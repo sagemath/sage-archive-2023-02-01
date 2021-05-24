@@ -218,7 +218,7 @@ def PolynomialRing(base_ring, *args, **kwds):
 
     ::
 
-        sage: R = PolynomialRing(QQ, 'a,b,c'); TestSuite(R).run(); R
+        sage: R = PolynomialRing(QQ, 'a,b,c'); TestSuite(R).run(skip='_test_elements'); R
         Multivariate Polynomial Ring in a, b, c over Rational Field
 
         sage: S = PolynomialRing(QQ, ['a','b','c']); S
@@ -236,9 +236,9 @@ def PolynomialRing(base_ring, *args, **kwds):
 
     There is a unique polynomial ring with each term order::
 
-        sage: R = PolynomialRing(QQ, 'x,y,z', order='degrevlex'); TestSuite(R).run(); R
+        sage: R = PolynomialRing(QQ, 'x,y,z', order='degrevlex'); TestSuite(R).run(skip='_test_elements'); R
         Multivariate Polynomial Ring in x, y, z over Rational Field
-        sage: S = PolynomialRing(QQ, 'x,y,z', order='invlex'); TestSuite(S).run(skip='_test_construction'); S
+        sage: S = PolynomialRing(QQ, 'x,y,z', order='invlex'); TestSuite(S).run(skip=['_test_construction', '_test_elements']); S
         Multivariate Polynomial Ring in x, y, z over Rational Field
         sage: S is PolynomialRing(QQ, 'x,y,z', order='invlex')
         True
@@ -425,7 +425,7 @@ def PolynomialRing(base_ring, *args, **kwds):
 
         sage: R = PolynomialRing(ZZ, 'x,y', implementation="generic"); TestSuite(R).run(skip=['_test_elements', '_test_elements_eq_transitive']); type(R)
         <class 'sage.rings.polynomial.multi_polynomial_ring.MPolynomialRing_polydict_domain_with_category'>
-        sage: S = PolynomialRing(ZZ, 'x,y'); TestSuite(S).run(); type(S)
+        sage: S = PolynomialRing(ZZ, 'x,y'); TestSuite(S).run(skip='_test_elements'); type(S)
         <class 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomialRing_libsingular'>
 
     Sparse univariate polynomials only support a generic

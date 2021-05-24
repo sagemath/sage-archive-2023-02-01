@@ -307,7 +307,7 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         True
         sage: x2 > x3
         True
-        sage: TestSuite(P).run()
+        sage: TestSuite(P).run(skip="_test_zero_divisors")
 
     Boolean polynomial rings are unique parent structures. We
     thus have::

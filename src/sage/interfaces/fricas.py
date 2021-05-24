@@ -1325,6 +1325,14 @@ class FriCASElement(ExpectElement):
             except KeyError:
                 e = function(e)
         else:
+            from sage.symbolic.constants import e as sage_e, pi, I
+            from sage.rings.infinity import infinity
+            constants = {'%i': I,
+                         '%e': sage_e,
+                         '%pi': pi,
+                         'infinity': infinity,
+                         'plusInfinity': infinity,
+                         'minusInfinity': -infinity}
             try:
                 e = ZZ(e)
             except TypeError:
@@ -1332,7 +1340,7 @@ class FriCASElement(ExpectElement):
                     e = float(e)
                 except ValueError:
                     try:
-                        e = symbol_table["fricas"][e]
+                        e = constants[e]
                     except KeyError:
                         e = var(e.replace("%", "_"))
         return e, a - 1
@@ -1569,22 +1577,24 @@ class FriCASElement(ExpectElement):
             0
             sage: fricas(A).D(x).sage() - diff(A, x)                            # optional - fricas
             0
+
+        Check that :trac:`31849` is fixed::
+
+            sage: var("D")
+            D
+            sage: integrate(D/x, x, algorithm="fricas")                         # optional - fricas
+            D*log(x)
+
         """
         from sage.libs.pynac.pynac import register_symbol
-        from sage.symbolic.constants import e, pi, I
         from sage.calculus.functional import diff
         from sage.functions.log import dilog, lambert_w
         from sage.functions.trig import sin, cos, tan, cot, sec, csc
         from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
         from sage.functions.other import abs
         from sage.misc.functional import symbolic_sum, symbolic_prod
-        from sage.rings.infinity import infinity
-        register_symbol(I, {'fricas': '%i'})
-        register_symbol(e, {'fricas': '%e'})
-        register_symbol(pi, {'fricas': 'pi'})  # fricas uses both pi and %pi
-        register_symbol(lambda: infinity, {'fricas': 'infinity'})
-        register_symbol(lambda: infinity, {'fricas': 'plusInfinity'})
-        register_symbol(lambda: -infinity, {'fricas': 'minusInfinity'})
+        from sage.symbolic.constants import I, pi
+        register_symbol(pi, {'fricas': 'pi'}) # pi is also a function in fricas
         register_symbol(cos, {'fricas': 'cos'})
         register_symbol(sin, {'fricas': 'sin'})
         register_symbol(tan, {'fricas': 'tan'})

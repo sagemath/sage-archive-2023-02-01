@@ -208,17 +208,18 @@ class Polyhedron_polymake(Polyhedron_base):
 
         TESTS:
 
-        We skip the pickling test because pickling is currently
-        not implemented::
-
             sage: p = Polyhedron(backend='polymake')                 # optional - polymake
             sage: TestSuite(p).run()                                 # optional - polymake
             sage: p = Polyhedron(vertices=[(1, 1)], rays=[(0, 1)],   # optional - polymake
             ....:                backend='polymake')
             sage: TestSuite(p).run()                                 # optional - polymake
+
+        We skip the Lawrence test because it involves numerically unstable
+        floating point arithmetic::
+
             sage: p = Polyhedron(vertices=[(-1,-1), (1,0), (1,1), (0,1)],  # optional - polymake
             ....:                backend='polymake')
-            sage: TestSuite(p).run()                                 # optional - polymake
+            sage: TestSuite(p).run(skip='_test_lawrence')            # optional - polymake
         """
         if polymake_polytope is not None:
             if Hrep is not None or Vrep is not None:

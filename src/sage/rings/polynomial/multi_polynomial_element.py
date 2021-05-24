@@ -379,44 +379,6 @@ class MPolynomial_element(MPolynomial):
         else:
             return self.parent().change_ring(R)(self)
 
-    def _test_subs(self, tester=None, **options):
-        r"""
-        Run some tests using the ``subs`` method.
-
-        TESTS::
-
-            sage: R.<x,y> = QQbar[]
-            sage: (x + y)._test_subs()
-        """
-        if tester is None:
-            tester = self._tester(**options)
-
-        gens = self.parent().gens()
-
-        if gens:
-            # substituting all variables (in a polynomial ring with variables) with 0
-            d = {str(gen): 0 for gen in gens}
-            tester.assertEqual(self.subs(**d).parent(), self.parent().base_ring())
-
-            # substituting all variables (in a polynomial ring with variables)
-            # with elements of another ring
-            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-            other = PolynomialRing(self.parent().base_ring(), 'other', len(gens))
-            other_gens = other.gens()
-            d = {str(gen): other_gen for gen, other_gen in zip(gens, other_gens)}
-            tester.assertEqual(self.subs(**d).parent(), other)
-
-        if len(gens) > 1:
-            # substituting one variable (in a polynomial ring with variables) with 0
-            d = {str(gens[0]): 0}
-            tester.assertEqual(self.subs(**d).parent(), self.parent())
-
-            # test error checking: partial substitution by elements
-            # from another ring is not allowed
-            d = {str(gens[0]): other_gens[0]}
-            with tester.assertRaises((ValueError, TypeError)):
-                self.subs(**d)
-
 
 class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):
     r"""

@@ -398,16 +398,17 @@ class MPolynomial_element(MPolynomial):
             d = {str(gen): 0 for gen in gens}
             tester.assertEqual(self.subs(**d).parent(), self.parent().base_ring())
 
-            # substituting one variable (in a polynomial ring with variables) with 0
-            d = {str(gens[0]): 0}
-            tester.assertEqual(self.subs(**d).parent(), self.parent())
-
             # substituting all variables (in a polynomial ring with variables)
             # with elements of another ring
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             other = PolynomialRing(self.parent().base_ring(), 'other', len(gens))
             d = {str(gen): other_gen for gen, other_gen in zip(gens, other.gens())}
             tester.assertEqual(self.subs(**d).parent(), other)
+
+        if len(gens) > 1:
+            # substituting one variable (in a polynomial ring with variables) with 0
+            d = {str(gens[0]): 0}
+            tester.assertEqual(self.subs(**d).parent(), self.parent())
 
 
 class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_element):

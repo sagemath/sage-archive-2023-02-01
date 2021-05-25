@@ -1569,6 +1569,13 @@ class FriCASElement(ExpectElement):
             0
             sage: fricas(A).D(x).sage() - diff(A, x)                            # optional - fricas
             0
+
+        Check that :trac:`31858` is fixed::
+
+            sage: fricas.Gamma(3/4).sage()                                      # optional - fricas
+            gamma(3/4)
+            sage: fricas.Gamma(3, 2).sage()                                     # optional - fricas
+            gamma(3, 2)
         """
         from sage.libs.pynac.pynac import register_symbol
         from sage.symbolic.constants import e, pi, I
@@ -1577,6 +1584,7 @@ class FriCASElement(ExpectElement):
         from sage.functions.trig import sin, cos, tan, cot, sec, csc
         from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
         from sage.functions.other import abs
+        from sage.functions.gamma import gamma
         from sage.misc.functional import symbolic_sum, symbolic_prod
         from sage.rings.infinity import infinity
         register_symbol(I, {'fricas': '%i'})
@@ -1597,6 +1605,7 @@ class FriCASElement(ExpectElement):
         register_symbol(coth, {'fricas': 'coth'})
         register_symbol(sech, {'fricas': 'sech'})
         register_symbol(csch, {'fricas': 'csch'})
+        register_symbol(gamma, {'fricas': 'Gamma'})
         register_symbol(lambda x, y: x + y, {'fricas': '+'})
         register_symbol(lambda x, y: x - y, {'fricas': '-'})
         register_symbol(lambda x, y: x * y, {'fricas': '*'})

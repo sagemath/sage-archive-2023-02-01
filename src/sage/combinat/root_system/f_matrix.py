@@ -36,7 +36,7 @@ from sage.combinat.root_system.poly_tup_engine import (
     _unflatten_coeffs,
     poly_tup_sortkey,
     resize,
-    tup_fixes_sq
+    # tup_fixes_sq
 )
 from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
 from sage.graphs.graph import Graph

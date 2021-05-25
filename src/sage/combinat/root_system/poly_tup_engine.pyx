@@ -123,7 +123,7 @@ cdef inline int has_appropriate_linear_term(tuple eq_tup):
     Determine whether the given tuple of pairs (of length 2) contains
     an *appropriate* linear term.
 
-    In this context, a linear term is said to be *appropriate* if 
+    In this context, a linear term is said to be *appropriate* if
     it is in the largest variable in the given polynomial (w.r.t.
     the degrevlex ordering), the monomial in which the linear term
     appears is univariate, and the linear term is not a common factor in
@@ -319,7 +319,8 @@ cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map):
       new_tup.append((exp, coeff_map(coeff)))
     return tuple(new_tup)
 
-cpdef inline bint tup_fixes_sq(tuple eq_tup):
+# cpdef inline bint tup_fixes_sq(tuple eq_tup):
+cdef inline bint tup_fixes_sq(tuple eq_tup):
     r"""
     Determine if given equation fixes the square of a variable.
 

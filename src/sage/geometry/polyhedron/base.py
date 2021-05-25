@@ -8445,7 +8445,7 @@ class Polyhedron_base(Element):
         from sage.interfaces.latte import integrate
 
         if self.base_ring() == RDF:
-            raise TypeError("LattE integrale cannot be applied over inexact rings.")
+            raise TypeError("LattE integrale cannot be applied over inexact rings")
         if self.dimension() == 0:
             vertices = self.vertices()
             assert len(self.vertices()) == 1

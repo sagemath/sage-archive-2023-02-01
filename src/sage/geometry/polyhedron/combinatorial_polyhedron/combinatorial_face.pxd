@@ -12,7 +12,9 @@ cdef class CombinatorialFace(SageObject):
 
     cdef MemoryAllocator _mem
     cdef size_t *atom_rep           # a place where atom-representation of face will be stored
+    cdef size_t _n_atom_rep
     cdef size_t *coatom_rep         # a place where coatom-representation of face will be stored
+    cdef size_t _n_coatom_rep
     cdef int _dimension             # dimension of current face, dual dimension if ``dual``
     cdef int _ambient_dimension     # dimension of the polyhedron
 

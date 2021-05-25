@@ -876,6 +876,8 @@ cdef class CombinatorialFace(SageObject):
         Compute the number of atoms in the current face by counting the
         number of set bits.
         """
+        if self.atom_rep is not NULL:
+            return self._n_atom_rep
         return face_len_atoms(self.face)
 
     cdef size_t set_coatom_rep(self) except -1:
@@ -883,16 +885,18 @@ cdef class CombinatorialFace(SageObject):
         Set ``coatom_rep`` to be the coatom-representation of the current face.
         Return its length.
         """
-        if not self.coatom_rep:
+        if self.coatom_rep is NULL:
             self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces(), sizeof(size_t))
-        return bit_rep_to_coatom_rep(self.face, self.coatoms.data, self.coatom_rep)
+            self._n_coatom_rep = bit_rep_to_coatom_rep(self.face, self.coatoms.data, self.coatom_rep)
+        return self._n_coatom_rep
 
     cdef size_t set_atom_rep(self) except -1:
         r"""
         Set ``atom_rep`` to be the atom-representation of the current face.
         Return its length.
         """
-        if not self.atom_rep:
+        if self.atom_rep is NULL:
             self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
-        return bit_rep_to_Vrep_list(self.face, self.atom_rep)
+            self._n_atom_rep = bit_rep_to_Vrep_list(self.face, self.atom_rep)
+        return self._n_atom_rep
 

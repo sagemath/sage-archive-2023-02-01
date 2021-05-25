@@ -6,7 +6,7 @@ from sage.rings.polynomial.polydict cimport ETuple
 cpdef tuple poly_to_tup(MPolynomial_libsingular poly)
 cpdef MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_libsingular parent)
 cpdef tuple resize(tuple eq_tup, dict idx_map, int nvars)
-cpdef list get_variables_degrees(list eqns)
+cpdef list get_variables_degrees(list eqns, int nvars)
 cpdef list variables(tuple eq_tup)
 cpdef constant_coeff(tuple eq_tup, field)
 cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map)

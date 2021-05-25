@@ -20,7 +20,7 @@ except:
 from copy import deepcopy
 from ctypes import cast, py_object
 from itertools import product, zip_longest
-from multiprocessing import cpu_count, Pool, set_start_method
+from multiprocessing import  Pool, cpu_count, set_start_method
 import numpy as np
 from os import getpid, remove
 
@@ -283,16 +283,12 @@ class FMatrix():
         if inject_variables:
             print("creating variables %s%s..%s%s"%(var_prefix,1,var_prefix,n_vars))
             self._poly_ring.inject_variables(get_main_globals())
-        self._var_to_sextuple, self._fvars = self.findcases(output=True)
-        self._var_to_idx = {var: idx for idx, var in enumerate(self._poly_ring.gens())}
-        self._idx_to_sextuple = {i: self._var_to_sextuple[self._poly_ring.gen(i)] for i in range(self._poly_ring.ngens())}
-        self._singles = self.singletons()
+        self._idx_to_sextuple, self._fvars = self.findcases(output=True)
 
         #Base field attributes
         self._field = self._FR.field()
         r = self._field.defining_polynomial().roots(ring=QQbar, multiplicities=False)[0]
         self._qqbar_embedding = self._field.hom([r], QQbar)
-        self._non_cyc_roots = list()
 
         #Warm starting
         self._chkpt_status = -1
@@ -352,7 +348,7 @@ class FMatrix():
             sage: f.get_fvars()[some_key]
             fx0
         """
-        self._fvars = {t : fx for fx, t in self._var_to_sextuple.items()}
+        self._fvars = {t: self._poly_ring.gen(idx) for idx, t in self._idx_to_sextuple.items()}
         self._solved = list(False for fx in self._fvars)
 
     def _reset_solver_state(self):
@@ -395,7 +391,8 @@ class FMatrix():
         """
         self._FR._basecoer = None
         self._field = self._FR.field()
-        self._update_poly_ring_base_field(field=self._field)
+        self._non_cyc_roots = list()
+        self._poly_ring = self._poly_ring.change_ring(self._field)
         self._chkpt_status = -1
         self.clear_vars()
         self.clear_equations()
@@ -403,36 +400,13 @@ class FMatrix():
         self._var_degs = [0]*n
         self._kp = dict()
         self._ks = KSHandler(n,self._field)
+        self._singles = self.get_fvars_by_size(1,indices=True)
         self._nnz = self._get_known_nonz()
 
         #Clear relevant caches
         [x.q_dimension.clear_cache() for x in self._FR.basis()]
         self._FR.r_matrix.clear_cache()
         self._FR.s_ij.clear_cache()
-
-    def _update_poly_ring_base_field(self,field):
-        r"""
-        Change base field of ``PolynomialRing`` and the corresponding
-        index attributes
-
-        EXAMPLES::
-
-            sage: f = FMatrix(FusionRing("D4",1))
-            sage: f._update_poly_ring_base_field(QQ)
-            sage: f._poly_ring.base_ring() == QQ
-            True
-            sage: all(fx in f._poly_ring for fx in f._var_to_idx)
-            True
-            sage: all(fx in f._poly_ring for fx in f._var_to_sextuple)
-            True
-        """
-        new_poly_ring = self._poly_ring.change_ring(field)
-        nvars = self._poly_ring.ngens()
-        #Do some appropriate conversions
-        self._singles = [new_poly_ring(fx) for fx in self._singles]
-        self._var_to_idx = {new_poly_ring.gen(i): i for i in range(nvars)}
-        self._var_to_sextuple = {new_poly_ring.gen(i): self._var_to_sextuple[self._poly_ring.gen(i)] for i in range(nvars)}
-        self._poly_ring = new_poly_ring
 
     def fmat(self, a, b, c, d, x, y, data=True):
         r"""
@@ -592,11 +566,11 @@ class FMatrix():
             sage: f.findcases()
             5
             sage: f.findcases(output=True)
-            ({fx4: (t, t, t, t, t, t),
-             fx3: (t, t, t, t, t, i0),
-             fx2: (t, t, t, t, i0, t),
-             fx1: (t, t, t, t, i0, i0),
-             fx0: (t, t, t, i0, t, t)},
+             ({0: (t, t, t, i0, t, t),
+              1: (t, t, t, t, i0, i0),
+              2: (t, t, t, t, i0, t),
+              3: (t, t, t, t, t, i0),
+              4: (t, t, t, t, t, t)},
              {(t, t, t, i0, t, t): fx0,
               (t, t, t, t, i0, i0): fx1,
               (t, t, t, t, i0, t): fx2,
@@ -607,47 +581,22 @@ class FMatrix():
         if output:
             idx_map = dict()
             ret = dict()
-        # for (a,b,c,d) in list(product(self._FR.basis(), repeat=4)):
         id_anyon = self._FR.one()
         for (a,b,c,d) in product(self._FR.basis(), repeat=4):
             if a == id_anyon or b == id_anyon or c == id_anyon:
                 continue
             for x in self.f_from(a, b, c, d):
                 for y in self.f_to(a, b, c, d):
-                # fm = self.fmat(a, b, c, d, x, y, data=False)
-                # if fm is not None and fm not in [0,1]:
                     if output:
-                        # v = self._poly_ring.gens()[i]
                         v = self._poly_ring.gen(i)
                         ret[(a,b,c,d,x,y)] = v
-                        idx_map[v] = (a, b, c, d, x, y)
+                        # idx_map[v] = (a, b, c, d, x, y)
+                        idx_map[i] = (a, b, c, d, x, y)
                     i += 1
         if output:
             return idx_map, ret
         else:
             return i
-
-    def singletons(self):
-        r"""
-        Find `x_i` that are automatically nonzero, because their F-matrix is
-        `1 \times 1`.
-
-        EXAMPLES::
-
-            sage: f = FMatrix(FusionRing("E7",1))
-            sage: singles = f.singletons()
-            sage: all(f.fmatrix(*f._var_to_sextuple[v][:4]).nrows() == 1 for v in singles)
-            True
-        """
-        ret = []
-        gens = set(self._poly_ring.gens())
-        for (a, b, c, d) in product(self._FR.basis(), repeat=4):
-            (ff,ft) = (self.f_from(a,b,c,d), self.f_to(a,b,c,d))
-            if len(ff) == 1 and len(ft) == 1:
-                v = self._fvars.get((a,b,c,d,ff[0],ft[0]), None)
-                if v in gens:
-                    ret.append(v)
-        return ret
 
     def f_from(self,a,b,c,d):
         r"""
@@ -936,7 +885,7 @@ class FMatrix():
             (100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
              100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100)
         """
-        nonz = {self._var_to_idx[var] : 100 for var in self._singles}
+        nonz = {idx: 100 for idx in self._singles}
         for idx, v in self._ks.items():
             nonz[idx] = 100
         return ETuple(nonz, self._poly_ring.ngens())
@@ -1630,13 +1579,8 @@ class FMatrix():
         # for i, sq in self._ks.items():
         #     assert sq == self._field(self.test_ks[i]), "{}: OG sq {}, shared sq {}".format(i, sq, self.test_ks[i])
 
-        degs = get_variables_degrees(eqns)
-        if degs:
-            for i, d in enumerate(degs):
-                self._var_degs[i] = d
-        else:
-            for i in range(self._poly_ring.ngens()):
-                self._var_degs[i] = 0
+        for i, d in enumerate(get_variables_degrees(eqns,self._poly_ring.ngens())):
+            self._var_degs[i] = d
         self._nnz = self._get_known_nonz()
         self._kp = compute_known_powers(self._var_degs,self._get_known_vals(),self._field.one())
 
@@ -1666,17 +1610,14 @@ class FMatrix():
             sage: f.ideal_basis
             []
         """
-        ret = True
         if eqns is None:
             eqns = self.ideal_basis
-            ret = False
-        # using_mp = self.pool is not None
+
         while True:
             linear_terms_exist = _solve_for_linear_terms(self,eqns)
             if not linear_terms_exist:
                 break
             _backward_subs(self)
-
             #Compute new reduction params and update eqns
             self._update_reduction_params(eqns=eqns)
             # n = len(eqns) // worker_pool._processes ** 2 + 1 if worker_pool is not None else len(eqns)
@@ -1693,8 +1634,6 @@ class FMatrix():
             eqns.sort(key=poly_tup_sortkey)
             if verbose:
                 print("Elimination epoch completed... {} eqns remain in ideal basis".format(len(eqns)))
-        if ret:
-            return eqns
         self.ideal_basis = eqns
 
     #####################
@@ -1815,7 +1754,7 @@ class FMatrix():
             print(graph.connected_components_sizes())
         return partition
 
-    def _par_graph_gb(self,eqns=None,term_order="degrevlex",verbose=True):
+    def _par_graph_gb(self,eqns=None,term_order="degrevlex",largest_comp=60,verbose=True):
         r"""
         Compute a Groebner basis for a list of equations partitioned
         according to their corresponding graph.
@@ -1861,7 +1800,7 @@ class FMatrix():
 
         for comp, comp_eqns in self._partition_eqns(verbose=verbose).items():
             #Check if component is too large to process
-            if len(comp) > 60:
+            if len(comp) > largest_comp:
                 # fmat_size = 0
                 # #For informative print statement
                 # for i in range(1,nmax+1):
@@ -2010,7 +1949,6 @@ class FMatrix():
             for fx, rhs in self._ks.items():
                 if not self._solved[fx]:
                     lt = (ETuple({fx : 2},n), one)
-                    # eqns.append((lt, (ETuple({},n), -self._field(list(rhs)))))
                     eqns.append(((lt, (ETuple({},n), -rhs))))
         eqns_partition = self._partition_eqns(verbose=verbose)
 
@@ -2064,9 +2002,8 @@ class FMatrix():
             numeric_fvars = {k : phi(v) for k, v in numeric_fvars.items()}
             for i, elt in enumerate(bf_elts):
                 numeric_fvars[non_cyclotomic_roots[i][0]] = elt
-
             #Update polynomial ring
-            self._update_poly_ring_base_field(self._field)
+            self._poly_ring = self._poly_ring.change_ring(self._field)
 
         #Ensure all F-symbols are known
         for fx in numeric_fvars:
@@ -2181,9 +2118,9 @@ class FMatrix():
         the F-symbols is determined based on the ``CartanType`` associated
         to ``self``. See :meth:`attempt_number_field_computation` for details.
         """
-        self._reset_solver_state()
         if self._poly_ring.ngens() == 0:
             return
+        self._reset_solver_state()
 
         #Resume computation from checkpoint
         if warm_start:
@@ -2226,7 +2163,6 @@ class FMatrix():
             #Report progress
             if verbose:
                 print("Hex elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
-
         self._checkpoint(checkpoint,2,verbose=verbose)
 
         if self._chkpt_status < 3:
@@ -2236,7 +2172,6 @@ class FMatrix():
             #Report progress
             if verbose:
                 print("Set up {} reduced pentagons...".format(len(self.ideal_basis)))
-
         self._checkpoint(checkpoint,3,verbose=verbose)
 
         #Simplify and eliminate variables
@@ -2245,7 +2180,6 @@ class FMatrix():
             #Report progress
             if verbose:
                 print("Pent elim step solved for {} / {} variables".format(sum(self._solved), len(self._poly_ring.gens())))
-
         self._checkpoint(checkpoint,4,verbose=verbose)
 
         #Try adding degrevlex gb -> elim loop until len(ideal_basis) does not change
@@ -2255,16 +2189,13 @@ class FMatrix():
             self.ideal_basis = self._par_graph_gb(term_order="lex",verbose=verbose)
             self.ideal_basis.sort(key=poly_tup_sortkey)
             self._triangular_elim(verbose=verbose)
-
         self._checkpoint(checkpoint,5,verbose=verbose)
 
         #Find numeric values for each F-symbol
         self._get_explicit_solution(verbose=verbose)
-
-        #The calculation was successful, so we may delete checkpoints
+        #The calculation was successful, so we may delete checkpoints and shared resources
         self._chkpt_status = 7
         self.clear_equations()
-        #Close worker pool and destroy shared resources
         self.shutdown_worker_pool()
         if checkpoint:
             remove("fmatrix_solver_checkpoint_"+self.get_fr_str()+".pickle")
@@ -2288,6 +2219,7 @@ class FMatrix():
 
             sage: f = FMatrix(FusionRing("A3",1))     # long time
             sage: f._reset_solver_state()             # long time
+            sage: f._var_to_sextuple = {f._poly_ring.gen(i): s for i, s in f._idx_to_sextuple.items()}  # long time
             sage: eqns = f.get_defining_equations("hexagons")+f.get_defining_equations("pentagons")  # long time
             sage: f.ideal_basis = set(Ideal(eqns).groebner_basis())   # long time
             sage: _, _ = f._substitute_degree_one()                   # long time
@@ -2322,6 +2254,7 @@ class FMatrix():
             creating variables fx1..fx27
             Defining fx0, ..., fx26
             sage: f._reset_solver_state()
+            sage: f._var_to_sextuple = {f._poly_ring.gen(i): s for i, s in f._idx_to_sextuple.items()}
             sage: f.ideal_basis = [fx0 - 8, fx4**2 - 3, fx4 + fx10 + 3, fx4 + fx9]
             sage: _, _ = f._substitute_degree_one()
             sage: f._fvars[f._var_to_sextuple[fx0]]
@@ -2335,17 +2268,18 @@ class FMatrix():
         new_knowns = set()
         useless = set()
         for eq in eqns:
-            if eq.degree() == 1 and sum(eq.degrees()) <= 2 and not self._solved[self._var_to_idx[eq.lm()]]:
+            if eq.degree() == 1 and sum(eq.degrees()) <= 2 and eq.lm() not in self._solved:
                 self._fvars[self._var_to_sextuple[eq.lm()]] = -sum(c * m for c, m in zip(eq.coefficients()[1:], eq.monomials()[1:])) / eq.lc()
                 #Add variable to set of known values and remove this equation
                 new_knowns.add(eq.lm())
                 useless.add(eq)
 
         #Update fvars depending on other variables
-        for fx in new_knowns:
-            self._solved[self._var_to_idx[fx]] = fx
+        for idx, fx in enumerate(self._poly_ring.gens()):
+            if fx in new_knowns:
+                self._solved[idx] = fx
         for sextuple, rhs in self._fvars.items():
-            d = {var: self._fvars[self._var_to_sextuple[var]] for var in rhs.variables() if self._solved[self._var_to_idx[var]]}
+            d = {var: self._fvars[self._var_to_sextuple[var]] for var in rhs.variables() if var in self._solved}
             if d:
                 self._fvars[sextuple] = rhs.subs(d)
         return new_knowns, useless
@@ -2360,6 +2294,7 @@ class FMatrix():
             creating variables fx1..fx27
             Defining fx0, ..., fx26
             sage: f._reset_solver_state()
+            sage: f._var_to_sextuple = {f._poly_ring.gen(i): s for i, s in f._idx_to_sextuple.items()}
             sage: f.ideal_basis = [fx0 - 8, fx4 + fx9, fx4**2 + fx3 - fx9**2]
             sage: _, _ = f._substitute_degree_one()
             sage: f._update_equations()
@@ -2424,9 +2359,10 @@ class FMatrix():
             sage: f.get_defining_equations("pentagons")
             []
         """
-        self._reset_solver_state()
         if self._poly_ring.ngens() == 0:
             return
+        self._reset_solver_state()
+        self._var_to_sextuple = {self._poly_ring.gen(i): s for i, s in self._idx_to_sextuple.items()}
 
         if equations is None:
             if verbose:

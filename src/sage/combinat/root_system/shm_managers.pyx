@@ -674,7 +674,6 @@ cdef class FvarsHandler:
             k = 0
             for r in coeff_tup:
                 num, denom = r.as_integer_ratio()
-                # assert denom != 0, "zero denominator error"
                 if abs(num) > 2**63 or denom > 2**63:
                     print("Large integers encountered in FvarsHandler", num, denom)
                 if abs(num) < 2**63:

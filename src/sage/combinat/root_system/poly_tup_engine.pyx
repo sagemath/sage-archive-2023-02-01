@@ -232,7 +232,7 @@ cdef inline ETuple degrees(tuple poly_tup):
         max_degs = max_degs.emax(<ETuple> (<tuple> poly_tup[i])[0])
     return max_degs
 
-cpdef list get_variables_degrees(list eqns):
+cpdef list get_variables_degrees(list eqns, int nvars):
     r"""
     Find maximum degrees for each variable in equations.
 
@@ -242,11 +242,11 @@ cpdef list get_variables_degrees(list eqns):
         sage: R.<x,y,z> = PolynomialRing(QQ)
         sage: polys = [x**2 + 1, x*y*z**2 - 4*x*y, x*z**3 - 4/3*y + 1]
         sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-        sage: get_variables_degrees([poly_to_tup(p) for p in polys])
+        sage: get_variables_degrees([poly_to_tup(p) for p in polys], 3)
         [2, 1, 3]
     """
     if not eqns:
-        return list()
+        return [0]*nvars
     cdef ETuple max_deg
     cdef int i
     max_deg = degrees(eqns[0])
@@ -342,7 +342,6 @@ cdef inline bint tup_fixes_sq(tuple eq_tup):
 ### Simplification ###
 ######################
 
-# cdef dict subs_squares(dict eq_dict, known_sq):
 cdef dict subs_squares(dict eq_dict, KSHandler known_sq):
     r"""
     Substitute for known squares into a given polynomial.
@@ -366,10 +365,7 @@ cdef dict subs_squares(dict eq_dict, KSHandler known_sq):
     for exp, coeff in eq_dict.items():
         new_e = dict()
         for idx, power in exp.sparse_iter():
-            # if idx in known_sq:
             if known_sq.contains(idx):
-                # coeff *= known_sq[idx] ** (power // 2)
-                # coeff *= pow(known_sq[idx], power // 2)
                 coeff *= pow(known_sq.get(idx), power // 2)
                 #New power is 1 if power is odd
                 if power & True:
@@ -464,7 +460,7 @@ cpdef dict compute_known_powers(max_degs, dict val_dict, one):
         sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
         sage: known_val = { 0 : poly_to_tup(R(-1)), 2 : poly_to_tup(y**2) }
         sage: from sage.combinat.root_system.poly_tup_engine import get_variables_degrees
-        sage: max_deg = get_variables_degrees([poly_to_tup(p) for p in polys])
+        sage: max_deg = get_variables_degrees([poly_to_tup(p) for p in polys], 3)
         sage: compute_known_powers(max_deg, known_val, R.base_ring().one())
         {0: [(((0, 0, 0), 1),),
         (((0, 0, 0), -1),),

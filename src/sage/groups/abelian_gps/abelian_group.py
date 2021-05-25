@@ -57,7 +57,7 @@ invariant factors of the group. You should now use
    (4, f4, 4)
 
 Background on invariant factors and the Smith normal form
-(according to section 4.1 of [C1]_): An abelian group is a
+(according to section 4.1 of [Cohen1]_): An abelian group is a
 group `A` for which there exists an exact sequence
 `\ZZ^k \rightarrow \ZZ^\ell \rightarrow A \rightarrow 1`,
 for some positive integers
@@ -151,20 +151,19 @@ the underlying representation is lists of integer exponents::
 
 REFERENCES:
 
-- [C1] \H. Cohen, Advanced topics in computational number theory,
+.. [Cohen1] \H. Cohen, Advanced topics in computational number theory,
   Springer, 2000.
 
-- [C2] \H. Cohen, A course in computational algebraic number theory,
+.. [Cohen2] \H. Cohen, A course in computational algebraic number theory,
   Springer, 1996.
 
-- [R] \J. Rotman, An introduction to the theory of
+.. [Rotman] \J. Rotman, An introduction to the theory of
   groups, 4th ed, Springer, 1995.
 
 .. warning::
 
    Many basic properties for infinite abelian groups are not
    implemented.
-
 
 AUTHORS:
 
@@ -191,7 +190,7 @@ AUTHORS:
   immutables. Rename invariants to gens_orders.
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #       Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>
 #       Copyright (C) 2012 Volker Braun <vbraun.name@gmail.com>
@@ -200,8 +199,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ

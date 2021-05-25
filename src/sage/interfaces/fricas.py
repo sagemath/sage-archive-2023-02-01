@@ -1572,6 +1572,8 @@ class FriCASElement(ExpectElement):
 
         Check that :trac:`31858` is fixed::
 
+            sage: fricas.Gamma(3/2).sage()                                      # optional - fricas
+            1/2*sqrt(pi)
             sage: fricas.Gamma(3/4).sage()                                      # optional - fricas
             gamma(3/4)
             sage: fricas.Gamma(3, 2).sage()                                     # optional - fricas

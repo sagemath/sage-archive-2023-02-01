@@ -8272,8 +8272,8 @@ class Polyhedron_base(Element):
         be obtained if we transform to rational coordinates::
 
             sage: P = 1.4142*polytopes.cube()
-            sage: P_QQ = Polyhedron(vertices = [[QQ(vi) for vi in v] for v in P.vertex_generator()])
-            sage: RDF(P_QQ.integrate(x^2*y^2*z^2))    # optional - latte_int
+            sage: P_QQ = Polyhedron(vertices=[[QQ(vi) for vi in v] for v in P.vertex_generator()])
+            sage: RDF(P_QQ.integrate(x^2*y^2*z^2))                  # optional - latte_int
             6.703841212195228
 
         Integral over a non full-dimensional polytope::
@@ -8284,9 +8284,12 @@ class Polyhedron_base(Element):
             0
             sage: ixy = P.integrate(x*y, measure='induced'); ixy    # optional - latte_int
             0.4714045207910317?
-            sage: ixy.parent()
+            sage: ixy.parent()                                      # optional - latte_int
             Algebraic Real Field
-            sage: ixy.radical_expression()  # convert to a symbolic expression
+
+        Convert to a symbolic expression::
+
+            sage: ixy.radical_expression()                          # optional - latte_int
             1/3*sqrt(2)
 
         Another non full-dimensional polytope integration::
@@ -8295,16 +8298,16 @@ class Polyhedron_base(Element):
             sage: P = polytopes.simplex(2)
             sage: V = AA(P.volume(measure='induced')); V.radical_expression()
             1/2*sqrt(3)
-            sage: P.integrate(R(1), measure='induced') == V
+            sage: P.integrate(R(1), measure='induced') == V                      # optional - latte_int
             True
 
         Computing the mass center::
 
-            sage: (P.integrate(x, measure='induced') / V).radical_expression()
+            sage: (P.integrate(x, measure='induced') / V).radical_expression()   # optional - latte_int
             1/3
-            sage: (P.integrate(y, measure='induced') / V).radical_expression()
+            sage: (P.integrate(y, measure='induced') / V).radical_expression()   # optional - latte_int
             1/3
-            sage: (P.integrate(z, measure='induced') / V).radical_expression()
+            sage: (P.integrate(z, measure='induced') / V).radical_expression()   # optional - latte_int
             1/3
 
         TESTS:

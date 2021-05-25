@@ -1589,7 +1589,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###########################################################
     def base_ring(self):
         """
-        Returns the base ring of the matrix.
+        Return the base ring of the matrix.
 
         EXAMPLES::
 
@@ -2223,7 +2223,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def dimensions(self):
         r"""
-        Returns the dimensions of this matrix as the tuple (nrows, ncols).
+        Return the dimensions of this matrix as the tuple (nrows, ncols).
 
         EXAMPLES::
 
@@ -2246,7 +2246,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     def act_on_polynomial(self, f):
         """
-        Returns the polynomial f(self\*x).
+        Return the polynomial f(self\*x).
 
         INPUT:
 
@@ -3552,8 +3552,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         cdef Py_ssize_t i, j, _
         cdef list pairs, k0_pairs, k1_pairs
@@ -3660,8 +3659,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         cdef dict d = {}
         cdef list queue = list(xrange(self._ncols))
@@ -3858,7 +3856,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_symmetric(self):
         """
-        Returns True if this is a symmetric matrix.
+        Return True if this is a symmetric matrix.
 
         A symmetric matrix is necessarily square.
 
@@ -4264,8 +4262,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         if self._ncols != self._nrows:
             raise ValueError("The matrix is not a square matrix")
@@ -4316,8 +4313,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         if self._ncols != self._nrows:
             raise ValueError("The matrix is not a square matrix")
@@ -4325,7 +4321,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_dense(self):
         """
-        Returns True if this is a dense matrix.
+        Return True if this is a dense matrix.
 
         In Sage, being dense is a property of the underlying
         representation, not the number of nonzero entries.
@@ -4423,7 +4419,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_singular(self):
         r"""
-        Returns ``True`` if ``self`` is singular.
+        Return ``True`` if ``self`` is singular.
 
         OUTPUT:
 
@@ -4632,7 +4628,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _nonzero_positions_by_row(self, copy=True):
         """
-        Returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``.
+        Return the list of pairs ``(i,j)`` such that ``self[i,j] != 0``.
 
         It is safe to change the resulting list (unless you give the
         option ``copy=False``).
@@ -4661,7 +4657,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _nonzero_positions_by_column(self, copy=True):
         """
-        Returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``, but
+        Return the list of pairs ``(i,j)`` such that ``self[i,j] != 0``, but
         sorted by columns, i.e., column ``j=0`` entries occur first, then
         column ``j=1`` entries, etc.
 
@@ -4916,13 +4912,11 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     cdef _vector_times_matrix_(self, Vector v):
         """
-        Returns the vector times matrix product.
+        Return the vector times matrix product.
 
         INPUT:
 
-
         -  ``v`` - a free module element.
-
 
         OUTPUT: The vector times matrix product v\*A.
 

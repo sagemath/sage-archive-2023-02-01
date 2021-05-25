@@ -157,14 +157,12 @@ cpdef _backward_subs(factory, bint flatten=True):
     solved = factory._solved
     cdef dict idx_to_sextuple = factory._idx_to_sextuple
     cdef int nvars = len(idx_to_sextuple)
-    # for i in range(len(idx_to_sextuple)-1,-1,-1):
     for i in range(nvars-1,-1,-1):
         sextuple = idx_to_sextuple[i]
         rhs = fvars[sextuple]
         d = {var_idx: fvars[idx_to_sextuple[var_idx]]
               for var_idx in variables(rhs) if solved[var_idx]}
         if d:
-            # kp = compute_known_powers(get_variables_degrees([rhs]), d, one)
             kp = compute_known_powers(get_variables_degrees([rhs],nvars), d, one)
             res = tuple(subs_squares(subs(rhs,kp,one),_ks).items())
             if flatten:
@@ -321,7 +319,6 @@ cdef get_reduced_pentagons(factory, tuple mp_params):
 
     #Pre-compute common parameters for speed
     cdef tuple basis = tuple(factory._FR.basis())
-    # cdef dict fvars = factory._fvars
     #Handle both cyclotomic and orthogonal solution method
     cdef bint must_zip_up
     for k, v in factory._fvars.items():

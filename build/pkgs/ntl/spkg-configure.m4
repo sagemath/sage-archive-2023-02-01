@@ -46,7 +46,7 @@ SAGE_SPKG_CONFIGURE([ntl], [
         AC_SUBST(NTL_INCDIR, [$ntl_inc_dir])
         PKG_CHECK_VAR([ntl_libdir], [ntl], [libdir])
         AS_IF([test "x$ntl_libdir" = x], [AC_SUBST(NTL_LIBDIR, [$ntl_prefix/lib])],
-	      [test "x$ntl_libdir" != x], [AC_SUBST(NTL_LIBDIR, [$ntl_prefix/[$(basename $ntl_libdir)]])]
+	      [test "x$ntl_libdir" != x], [AC_SUBST(NTL_LIBDIR, [$ntl_libdir])]
 	     )
     fi
 ])

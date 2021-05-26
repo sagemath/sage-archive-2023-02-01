@@ -36,6 +36,10 @@ CBLAS_PC_MODULES = "cblas"
 MATHJAX_DIR = SAGE_LOCAL + "/share/mathjax"
 THREEJS_DIR = SAGE_LOCAL + "/share/threejs"
 
+# OpenMP flags, if available.
+OPENMP_CFLAGS = "@OPENMP_CFLAGS@"
+OPENMP_CXXFLAGS = "@OPENMP_CXXFLAGS@"
+
 # Entry point 'sage-config'.  It does not depend on any packages.
 
 def _main():

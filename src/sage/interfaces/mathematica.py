@@ -232,7 +232,7 @@ We factor an integer::
     sage: F[4]                               # optional - mathematica
     {541, 1}
 
-Mathematica's ECM package is no longer available. 
+Mathematica's ECM package is no longer available.
 
 Long Input
 ----------
@@ -1000,7 +1000,7 @@ class MathematicaElement(ExpectElement):
 
             sage: Q = mathematica('Sin[x Cos[y]]/Sqrt[1-x^2]')   # optional - mathematica
             sage: show(Q)                                        # optional - mathematica
-            <html><script type="math/tex">\frac{\sin (x \cos (y))}{\sqrt{1-x^2}}</script></html>
+            <html>\(\frac{\sin (x \cos (y))}{\sqrt{1-x^2}}\)</html>
 
         The following example starts a Mathematica frontend to do the rendering
         (:trac:`28819`)::

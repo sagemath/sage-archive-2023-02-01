@@ -1544,6 +1544,54 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         else:
             return super(PolymakeElement, self)._sage_()
 
+    def fast_sage(self):
+        r"""
+        Convert ``self`` quickly to a sage object.
+
+        Not as clean as :meth:`_sage_`.
+        """
+        T1, T2 = self.typeof()
+        self._check_valid()
+        if 'Sparse' in T1:
+            return self._sage_()
+
+        r = self._repr_()
+        if 'Float' in T1:
+            from sage.rings.all import RDF
+            base_ring = RDF
+            str_to_base_ring = lambda s: RDF(s)
+        elif 'QuadraticExtension' in T1 and 'r' in r:
+            i = r.find('r')
+            i1 = min((r[i:]+' ').find(' '), (r[i:]+'\n').find('\n'))
+            d = int(r[i+1:i+i1])
+            from sage.rings.number_field.number_field import QuadraticField
+            base_ring = QuadraticField(d)
+
+            def str_to_base_ring(s):
+                m = re.match(r'(-?[0-9/]+)[+]?((-?[0-9/]+)r([0-9/]+))?', s)
+                a, b = m.group(1), m.group(3)
+                return base_ring(a) + base_ring(b)*base_ring.gen()
+
+        elif 'Rational' in T1:
+            from sage.rings.all import QQ
+            base_ring = QQ
+            str_to_base_ring = lambda s: QQ(s)
+        else:
+            return self._sage_()
+
+        if 'Vector' in T1:
+            from sage.modules.free_module_element import vector
+            if r == '':
+                return vector(base_ring)
+            return vector(base_ring, [str_to_base_ring(s) for s in r.split(' ')])
+        elif 'Matrix' in T1:
+            from sage.matrix.constructor import matrix
+            if r == '':
+                return matrix(base_ring)
+            return matrix(base_ring, [[str_to_base_ring(s) for s in t.split(' ')] for t in r.split('\n')])
+        else:
+            return self._sage_()
+
     def _sage_doc_(self):
         """
         EXAMPLES::

@@ -418,8 +418,7 @@ class Polyhedron_polymake(Polyhedron_base):
         self._Vrepresentation = []
         parent = self.parent()
         p = self._polymake_polytope
-        for g in p.VERTICES:
-            g = g.sage()
+        for g in p.VERTICES.fast_sage():
             d = g[0]
             if d == 0:
                 parent._make_Ray(self, g[1:])
@@ -427,8 +426,7 @@ class Polyhedron_polymake(Polyhedron_base):
                 parent._make_Vertex(self, g[1:])
             else:
                 raise NotImplementedError("Non-normalized vertex encountered: {}".format(g))
-        for g in p.LINEALITY_SPACE:
-            g = g.sage()
+        for g in p.LINEALITY_SPACE.fast_sage():
             d = g[0]
             if d == 0:
                 parent._make_Line(self, g[1:])
@@ -458,14 +456,14 @@ class Polyhedron_polymake(Polyhedron_base):
         else:
             self._Hrepresentation = []
             parent = self.parent()
-            for g in p.FACETS:
+            for g in p.FACETS.fast_sage():
                 if all(x==0 for x in g[1:]):
                     # Ignore vertical inequality
                     pass
                 else:
-                    parent._make_Inequality(self, g.sage())
-            for g in p.AFFINE_HULL:
-                parent._make_Equation(self, g.sage())
+                    parent._make_Inequality(self, g)
+            for g in p.AFFINE_HULL.fast_sage():
+                parent._make_Equation(self, g)
             self._Hrepresentation = tuple(self._Hrepresentation)
 
     @classmethod

@@ -990,6 +990,8 @@ class MixedForm(AlgebraElement):
         resu._latex_name = format_unop_latex(r'\mathrm{d}', self._latex_name)
         return resu
 
+    derivative = exterior_derivative
+
     def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of ``self``.

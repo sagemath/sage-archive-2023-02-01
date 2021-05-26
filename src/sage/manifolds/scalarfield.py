@@ -3605,6 +3605,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         """
         for rst in self._restrictions.values():
             rst.set_immutable()
+        for func in self._express.values():
+            func.set_immutable()
         super().set_immutable()
 
     @cached_method

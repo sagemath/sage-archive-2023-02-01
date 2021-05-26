@@ -1851,8 +1851,11 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         deprecation(27745, "the pexpect-based interface to polymake is deprecated. Install package jupymake so that Sage can use the more robust jupymake-based interface to polymake")
 
         if not self.is_running():
-            self._change_prompt("polytope > ")
-            Expect._start(self, alt_message=None)
+            try:
+                self._change_prompt("polytope > ")
+                Expect._start(self, alt_message=None)
+            except RuntimeError:
+                raise RuntimeError("runtime error with deprecated pexpect-base interface to polymake; please install jupymake")
         PolymakeAbstract._start(self)
         self.eval('use File::Slurp;')
 

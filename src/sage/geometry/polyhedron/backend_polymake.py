@@ -621,8 +621,16 @@ class Polyhedron_polymake(Polyhedron_base):
         from sage.interfaces.polymake import polymake
         data = self._polymake_Vrepresentation_data(vertices, rays, lines, minimal=True)
 
-        # Do not assume minimal Hrepresentation for unbounded polyhedra due to issues with the far facet.
-        data.update(self._polymake_Hrepresentation_data(inequalities, equations, minimal=(not rays and not lines)))
+        if rays or lines:
+            from sage.matrix.constructor import Matrix
+            polymake_rays = [r for r in data['VERTICES'] if r[0] == 0]
+            if Matrix(data['VERTICES']).rank() == Matrix(polymake_rays).rank() + 1:
+                # The recession cone is full-dimensional.
+                # In this case the homogenized inequalities
+                # do not ensure nonnegativy in the last coordinate.
+                # In the homogeneous cone the far face is a facet.
+                inequalities.append([1] + [0]*self.ambient_dim())
+        data.update(self._polymake_Hrepresentation_data(inequalities, equations, minimal=True))
 
         polymake_field = polymake(self.base_ring().fraction_field())
         self._polymake_polytope = polymake.new_object("Polytope<{}>".format(polymake_field), **data)

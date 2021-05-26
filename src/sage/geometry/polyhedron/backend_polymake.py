@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 """
 The polymake backend for polyhedral computations
 
@@ -276,7 +276,7 @@ class Polyhedron_polymake(Polyhedron_base):
         p = polymake.new_object("Polytope<{}>".format(polymake_field), **data)
         self._init_from_polymake_polytope(p)
 
-    def _polymake_Vrepresentation_data(self, vertices, rays, lines):
+    def _polymake_Vrepresentation_data(self, vertices, rays, lines, minimal=False):
         r"""
         Compute a dictionary with V-representation input for a polymake Polytope object.
 
@@ -294,11 +294,24 @@ class Polyhedron_polymake(Polyhedron_base):
           any iterable container of
           :meth:`~sage.geometry.polyhedron.base.base_ring` elements
 
+        - ``minimal`` -- boolean (default: ``False``); whether the input is already minimal
+
+        .. WARNING::
+
+            If ``minimal`` the representation is assumed to be correct.
+            It is not checked.
         """
-        return dict(CONE_AMBIENT_DIM=1+self.parent().ambient_dim(),
-                    POINTS=(  [ [1] + list(v) for v in vertices ]
-                            + [ [0] + list(r) for r in rays ]),
-                    INPUT_LINEALITY=[ [0] + list(l) for l in lines ])
+        if not minimal:
+            return dict(CONE_AMBIENT_DIM=1+self.parent().ambient_dim(),
+                        POINTS=(  [ [1] + list(v) for v in vertices ]
+                                + [ [0] + list(r) for r in rays ]),
+                        INPUT_LINEALITY=[ [0] + list(l) for l in lines ])
+        else:
+            return dict(CONE_AMBIENT_DIM=1+self.parent().ambient_dim(),
+                        VERTICES=(  [ [1] + list(v) for v in vertices ]
+                                  + [ [0] + list(r) for r in rays ]),
+                        LINEALITY_SPACE=[ [0] + list(l) for l in lines ])
+
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         r"""
@@ -331,7 +344,7 @@ class Polyhedron_polymake(Polyhedron_base):
         p = polymake.new_object("Polytope<{}>".format(polymake_field), **data)
         self._init_from_polymake_polytope(p)
 
-    def _polymake_Hrepresentation_data(self, ieqs, eqns):
+    def _polymake_Hrepresentation_data(self, ieqs, eqns, minimal=False):
         r"""
         Compute a dictionary with H-representation input for a polymake Polytope object.
 
@@ -345,6 +358,12 @@ class Polyhedron_polymake(Polyhedron_base):
           as any iterable container of
           :meth:`~sage.geometry.polyhedron.base.base_ring` elements
 
+        - ``minimal`` -- boolean (default: ``False``); whether the input is already minimal
+
+        .. WARNING::
+
+            If ``minimal`` the representation is assumed to be correct.
+            It is not checked.
         """
         if ieqs is None:
             ieqs = []
@@ -363,8 +382,12 @@ class Polyhedron_polymake(Polyhedron_base):
             # the ambient dimension is set correctly.
             # Since Polymake 3.2, the constant should not be zero.
             ieqs.append([1] + [0]*self.ambient_dim())
-        return dict(EQUATIONS=eqns,
-                    INEQUALITIES=ieqs)
+        if not minimal:
+            return dict(EQUATIONS=eqns,
+                        INEQUALITIES=ieqs)
+        else:
+            return dict(AFFINE_HULL=eqns,
+                        FACETS=ieqs)
 
     def _init_Vrepresentation_from_polymake(self):
         r"""
@@ -589,8 +612,8 @@ class Polyhedron_polymake(Polyhedron_base):
             equations = self.equations()
 
         from sage.interfaces.polymake import polymake
-        data = self._polymake_Vrepresentation_data(vertices, rays, lines)
-        data.update(self._polymake_Hrepresentation_data(inequalities, equations))
+        data = self._polymake_Vrepresentation_data(vertices, rays, lines, minimal=True)
+        data.update(self._polymake_Hrepresentation_data(inequalities, equations, minimal=True))
         polymake_field = polymake(self.base_ring().fraction_field())
         self._polymake_polytope = polymake.new_object("Polytope<{}>".format(polymake_field), **data)
 

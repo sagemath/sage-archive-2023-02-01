@@ -1071,12 +1071,17 @@ class FusionRing(WeylCharacterRing):
             if ct.n == 1:
                 return True
             return k <= 2
-        if ct.letter in ['B','D','G','F','E']:
+        # if ct.letter in ['B','D','G','F','E']:
+        if ct.letter in ['B','D','F','G']:
             return k <= 2
         if ct.letter == 'C':
             if ct.n == 2:
                 return k <= 2
             return k == 1
+        if ct.letter == 'E':
+            if ct.n == 8:
+                return k <= 3
+            return k <= 2
 
     ###################################
     ### Braid group representations ###

@@ -349,7 +349,7 @@ class FMatrix():
             fx0
         """
         self._fvars = {t: self._poly_ring.gen(idx) for idx, t in self._idx_to_sextuple.items()}
-        self._solved = list(False for fx in self._fvars)
+        self._solved = [False]*self._poly_ring.ngens()
 
     def _reset_solver_state(self):
         r"""
@@ -1798,7 +1798,7 @@ class FMatrix():
         # for i in range(nmax+1):
         #     vars_by_size.append(self.get_fvars_by_size(i))
 
-        for comp, comp_eqns in self._partition_eqns(verbose=verbose).items():
+        for comp, comp_eqns in self._partition_eqns(eqns=eqns,verbose=verbose).items():
             #Check if component is too large to process
             if len(comp) > largest_comp:
                 # fmat_size = 0
@@ -1904,6 +1904,8 @@ class FMatrix():
                 return False
         if ct.letter == 'E':
             if ct.n < 8 and k == 2:
+                return False
+            if ct.n == 8 and k == 3:
                 return False
         if ct.letter == 'F' and k == 2:
             return False
@@ -2021,6 +2023,8 @@ class FMatrix():
         #Update base field attributes
         self._FR._field = self.field()
         self._FR._basecoer = self.get_coerce_map_from_fr_cyclotomic_field()
+        if self._FR._basecoer:
+            self._FR.r_matrix.clear_cache()
 
     def find_orthogonal_solution(self, checkpoint=False, save_results="", warm_start="", use_mp=True, verbose=True):
         r"""

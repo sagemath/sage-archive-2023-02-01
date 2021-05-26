@@ -152,9 +152,9 @@ cpdef _backward_subs(factory, bint flatten=True):
         1
     """
     one = factory._field.one()
-    _ks = factory._ks
     fvars = factory._fvars
     solved = factory._solved
+    cdef KSHandler _ks = factory._ks
     cdef dict idx_to_sextuple = factory._idx_to_sextuple
     cdef int nvars = len(idx_to_sextuple)
     for i in range(nvars-1,-1,-1):
@@ -252,18 +252,18 @@ cdef get_reduced_hexagons(factory, tuple mp_params):
     #Pre-compute common parameters for speed
     cdef tuple basis = tuple(factory._FR.basis())
     cdef dict fvars
-    cdef bint must_zip_up
+    cdef bint must_zip_up = False
     if not output:
         fvars = {s: factory._poly_ring.gen(i) for i, s in factory._idx_to_sextuple.items()}
     else:
-      #Handle both cyclotomic and orthogonal solution method
-      for k, v in factory._fvars.items():
-          must_zip_up = isinstance(v, tuple)
-          break
-      if must_zip_up:
-          fvars = {k: _tup_to_poly(v,parent=factory._poly_ring) for k, v in factory._fvars.items()}
-      else:
-          fvars = factory._fvars
+        #Handle both cyclotomic and orthogonal solution method
+        for k, v in factory._fvars.items():
+            must_zip_up = isinstance(v, tuple)
+            break
+        if must_zip_up:
+            fvars = {k: _tup_to_poly(v,parent=factory._poly_ring) for k, v in factory._fvars.items()}
+        else:
+            fvars = factory._fvars
     r_matrix = factory._FR.r_matrix
     _Nk_ij = factory._FR.Nk_ij
     id_anyon = factory._FR.one()

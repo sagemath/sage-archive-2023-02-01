@@ -1590,10 +1590,10 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
             sage: G = DirichletGroup(12, QQbar)
             sage: e = G.gens()[0]
+            sage: e.kloosterman_sum(5, 4)
+            0.?e-17 - 4.000000000000000?*I
             sage: e.kloosterman_sum(5,11)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Kloosterman sums not implemented over this ring
+            0
         """
         G = self.parent()
         zo = G.zeta_order()

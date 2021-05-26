@@ -1,9 +1,4 @@
-if [ -z "$SAGE_LOCAL" ]; then
-    echo >&2 "SAGE_LOCAL undefined ... exiting"
-    echo >&2 "Maybe run 'sage --sh'?"
-    exit 1
-fi
-
+# -*- shell-script -*-
 cd src
 
 # ./config picks up these environment variables if they are set, instead of using uname components
@@ -12,26 +7,24 @@ unset RELEASE
 unset SYSTEM
 unset BUILD
 
-# Building on OS X Lion 64-bit seems to fail unless we build a 64-bit library.
+extra_config_args=
+target=$($CC -dumpmachine 2> /dev/null)
 echo
-echo "Configuring openssl..."
-./config --prefix="$SAGE_LOCAL" --openssldir="$SAGE_LOCAL"/openssl shared
+echo "Configuring openssl for target reported by $CC -dumpmachine: $target"
+case "$target" in
+    # Trac #31538: On 64 bit kernels running a 32 bit system, use the target of
+    # the configured compiler
+    i?86-*linux*)
+        extra_config_args="linux-x86"
+        ;;
+esac
+
+./config --prefix="$SAGE_LOCAL" --openssldir="$SAGE_LOCAL"/openssl shared $extra_config_args
+
 
 echo "Building openssl..."
-$MAKE
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error building openssl."
-    exit 1
-fi
-echo
-
-
+$MAKE || sdh_die "Error building openssl."
 
 echo "Installing openssl..."
 # installing the docs fails often, skip
-$MAKE install_sw
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing openssl."
-    exit 1
-fi
+$MAKE install_sw || sdh_die "Error installing openssl."

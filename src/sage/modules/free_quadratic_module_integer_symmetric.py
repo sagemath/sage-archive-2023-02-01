@@ -764,7 +764,6 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
         """
         return self.span(self.gram_matrix().inverse()*self.basis_matrix())
 
-    @cached_method
     def discriminant_group(self, s=0):
         r"""
         Return the discriminant group `L^\vee / L` of this lattice.
@@ -803,6 +802,18 @@ class FreeQuadraticModule_integer_symmetric(FreeQuadraticModule_submodule_with_b
             Finite quadratic module over Integer Ring with invariants ()
             Gram matrix of the quadratic form with values in Q/2Z:
             []
+
+        Test that the memory leak in :trac:`31625` is fixed::
+
+            sage: import gc
+            sage: L = IntegralLattice("A2")
+            sage: for k in range(1,500):
+            ....:     G = L.twist(k)
+            ....:     D = G.discriminant_group()
+            sage: tmp = gc.collect()
+            sage: tmp = gc.collect()
+            sage: len([a for a in gc.get_objects() if type(a)==type(L)])<=300
+            True
         """
         from sage.modules.torsion_quadratic_module import TorsionQuadraticModule
         D = TorsionQuadraticModule(self.dual_lattice(), self)

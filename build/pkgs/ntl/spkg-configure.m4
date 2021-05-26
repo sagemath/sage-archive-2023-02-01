@@ -1,17 +1,7 @@
 SAGE_SPKG_CONFIGURE([ntl], [
-    AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
-    AC_MSG_CHECKING([installing gmp/mpir? ])
-    if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes; then
-        AC_MSG_RESULT([yes; install ntl as well])
-        sage_spkg_install_ntl=yes
-    else
-        AC_MSG_RESULT([no])
-    fi
-
     m4_pushdef(SAGE_NTL_VERSION_MAJOR, [10])
     m4_pushdef(SAGE_NTL_VERSION_MINOR, [3])
-
-    if test x$sage_spkg_install_ntl != xyes; then
+    SAGE_SPKG_DEPCHECK([gmp mpir gcc], [
         AC_CHECK_HEADER([NTL/ZZ.h], [], [sage_spkg_install_ntl=yes])
         AC_MSG_CHECKING([whether we can link a program using NTL])
         NTL_SAVED_LIBS=$LIBS
@@ -40,7 +30,7 @@ SAGE_SPKG_CONFIGURE([ntl], [
                 AC_MSG_RESULT([no])
                 sage_spkg_install_ntl=yes
             ])
-    fi
+    ])
 
     m4_popdef([SAGE_NTL_VERSION_MAJOR])
     m4_popdef([SAGE_NTL_VERSION_MINOR])

@@ -1706,29 +1706,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpq_canonicalize(res.value)
             return res
 
-    def _algebraic_(self, parent):
-        r"""
-        Convert this element to an algebraic number, if possible.
-
-        EXAMPLES::
-
-            sage: NF.<i> = QuadraticField(-1)
-            sage: QQbar(1+i)
-            I + 1
-            sage: NF.<sqrt3> = QuadraticField(2)
-            sage: AA(sqrt3)
-            1.414213562373095?
-        """
-        import sage.rings.qqbar as qqbar
-        if (parent is qqbar.QQbar
-                and list(self._parent.polynomial()) == [1, 0, 1]):
-            # AlgebraicNumber.__init__ does a better job than
-            # NumberFieldElement._algebraic_ in this case, but
-            # QQbar._element_constructor_ calls the latter first.
-            return qqbar.AlgebraicNumber(self)
-        else:
-            return NumberFieldElement._algebraic_(self, parent)
-
     cpdef bint is_one(self):
         r"""
         Check whether this number field element is `1`.
@@ -2391,10 +2368,16 @@ cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
     of symbolic expressions to make the behavior of ``a + I*b`` with rational
     ``a``, ``b`` closer to that when ``a``, ``b`` are expressions.
 
-    TESTS::
+    EXAMPLES::
 
         sage: type(I)
         <class 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
+
+        sage: mi = QuadraticField(-1, embedding=CC(0,-1)).gen()
+        sage: type(mi)
+        <class 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
+        sage: CC(mi)
+        -1.00000000000000*I
     """
 
     def _symbolic_(self, SR):
@@ -2403,9 +2386,53 @@ cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
 
             sage: SR(1 + 2*i)
             2*I + 1
+
+            sage: K.<mi> = QuadraticField(-1, embedding=CC(0,-1))
+            sage: SR(1 + mi)
+            -I + 1
         """
         from sage.symbolic.constants import I
-        return self[1]*I + self[0]
+        return self[1]*(I if self.standard_embedding else -I) + self[0]
+
+    def _algebraic_(self, parent):
+        r"""
+        Convert this element to an algebraic number, if possible.
+
+        EXAMPLES::
+
+            sage: NF.<i> = QuadraticField(-1)
+            sage: QQbar(i+2)
+            I + 2
+            sage: K.<ii> = QuadraticField(-1, embedding=CC(0,-1))
+            sage: QQbar(ii+2)
+            -I + 2
+            sage: AA(i)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert i to an element of Algebraic Real Field
+
+        TESTS:
+
+        Check that :trac:`31808` is fixed::
+
+            sage: C.<I> = QuadraticField(-1)
+            sage: AA(C.one())
+            1
+            sage: AA(C.zero())
+            0
+        """
+        import sage.rings.qqbar as qqbar
+        cdef tuple coeffs
+        if parent is qqbar.QQbar:
+            # AlgebraicNumber.__init__ does a better job than
+            # NumberFieldElement._algebraic_ in this case, but
+            # QQbar._element_constructor_ calls the latter first.
+            return qqbar.AlgebraicNumber(self)
+        if parent is qqbar.AA:
+            coeffs = self.parts()
+            if coeffs[1].is_zero():
+                return qqbar.AlgebraicReal(coeffs[0])
+        raise ValueError(f"unable to convert {self!r} to an element of {parent!r}")
 
     cpdef real_part(self):
         r"""
@@ -2432,8 +2459,15 @@ cdef class NumberFieldElement_gaussian(NumberFieldElement_quadratic):
             2
             sage: (1 + 2*I).imag().parent()
             Rational Field
+
+            sage: K.<mi> = QuadraticField(-1, embedding=CC(0,-1))
+            sage: (1 - mi).imag()
+            1
         """
-        return self[1]
+        if self.standard_embedding:
+            return self[1]
+        else:
+            return -self[1]
 
     imag = imag_part
 

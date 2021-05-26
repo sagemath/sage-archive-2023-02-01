@@ -782,7 +782,7 @@ class TopologicalManifold(ManifoldSubset):
                     return True
         return False
 
-    def open_subset(self, name, latex_name=None, coord_def={}):
+    def open_subset(self, name, latex_name=None, coord_def={}, supersets=None):
         r"""
         Create an open subset of the manifold.
 
@@ -800,6 +800,8 @@ class TopologicalManifold(ManifoldSubset):
           terms of coordinates; ``coord_def`` must a be dictionary with keys
           charts on the manifold and values the symbolic expressions formed
           by the coordinates to define the subset
+        - ``supersets`` -- (default: only ``self``) list of sets that the
+          new open subset is a subset of
 
         OUTPUT:
 
@@ -872,7 +874,10 @@ class TopologicalManifold(ManifoldSubset):
                                    base_manifold=self._manifold,
                                    latex_name=latex_name,
                                    start_index=self._sindex)
-        self._init_open_subset(resu, coord_def=coord_def)
+        if supersets is None:
+            supersets = [self]
+        for superset in supersets:
+            superset._init_open_subset(resu, coord_def=coord_def)
         return resu
 
     def _init_open_subset(self, resu, coord_def):

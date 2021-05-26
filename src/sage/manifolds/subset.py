@@ -574,6 +574,25 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return list(self._open_covers)
 
+    def open_supersets(self):
+        r"""
+        Generate the open supersets of ``self``.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = U.subset('V')
+            sage: W = V.subset('W')
+            sage: sorted(W.open_supersets(), key=lambda S: S._name)
+            [2-dimensional topological manifold M,
+             Open subset U of the 2-dimensional topological manifold M]
+
+        """
+        for superset in self._supersets:
+            if superset.is_open():
+                yield superset
+
     def subsets(self):
         r"""
         Return the set of subsets that have been defined on the
@@ -878,6 +897,113 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sd._subsets.add(res)
         self._top_subsets.add(res)
         return res
+
+    def open_subset(self, name, latex_name=None, coord_def={}, supersets=None):
+        r"""
+        Create an open subset of the manifold that is a subset of ``self``.
+
+        An open subset is a set that is (i) included in the manifold and (ii)
+        open with respect to the manifold's topology. It is a topological
+        manifold by itself. Hence the returned object is an instance of
+        :class:`TopologicalManifold`.
+
+        INPUT:
+
+        - ``name`` -- name given to the open subset
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote
+          the subset; if none are provided, it is set to ``name``
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed
+          by the coordinates to define the subset
+        - ``supersets`` -- (default: only ``self``) list of sets that the
+          new open subset is a subset of
+
+        OUTPUT:
+
+        - the open subset, as an instance of :class:`TopologicalManifold`
+          or one of its subclasses
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: cl_D = M.subset('cl_D'); cl_D
+            Subset cl_D of the 2-dimensional topological manifold R^2
+            sage: D = cl_D.open_subset('D', coord_def={c_cart: x^2+y^2<1}); D
+            Open subset D of the 2-dimensional topological manifold R^2
+            sage: D.is_subset(cl_D)
+            True
+            sage: D.is_subset(M)
+            True
+
+            sage: M = Manifold(2, 'R^2', structure='differentiable')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: cl_D = M.subset('cl_D'); cl_D
+            Subset cl_D of the 2-dimensional differentiable manifold R^2
+            sage: D = cl_D.open_subset('D', coord_def={c_cart: x^2+y^2<1}); D
+            Open subset D of the 2-dimensional differentiable manifold R^2
+            sage: D.is_subset(cl_D)
+            True
+            sage: D.is_subset(M)
+            True
+
+            sage: M = Manifold(2, 'R^2', structure='Riemannian')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: cl_D = M.subset('cl_D'); cl_D
+            Subset cl_D of the 2-dimensional Riemannian manifold R^2
+            sage: D = cl_D.open_subset('D', coord_def={c_cart: x^2+y^2<1}); D
+            Open subset D of the 2-dimensional Riemannian manifold R^2
+            sage: D.is_subset(cl_D)
+            True
+            sage: D.is_subset(M)
+            True
+
+        """
+        if supersets is None:
+            supersets = set()
+        else:
+            supersets = set(supersets)
+        supersets.update([self])
+        # Delegate to the manifold's method.
+        return self._manifold.open_subset(name, latex_name=latex_name,
+                                          coord_def=coord_def,
+                                          supersets=supersets)
+
+    def _init_open_subset(self, resu, coord_def):
+        r"""
+        Initialize ``resu`` as an open subset of ``self``.
+
+        INPUT:
+
+        - ``resu`` -- an instance of ``:class:`TopologicalManifold` or
+          a subclass.
+
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed
+          by the coordinates to define the subset
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: cl_D = M.subset('cl_D')
+            sage: coord_def = {c_cart: x^2+y^2<1}
+            sage: D = M.open_subset('D', coord_def=coord_def)
+            sage: D.is_subset(cl_D)
+            False
+            sage: cl_D._init_open_subset(D, coord_def)
+            sage: D.is_subset(cl_D)
+            True
+
+        """
+        resu._supersets.update(self._supersets)
+        self._subsets.add(resu)
+        # Recursively delegate to the supersets.
+        for superset in self._supersets:
+            if superset is not self:
+                superset._init_open_subset(resu, coord_def=coord_def)
 
     def superset(self, name, latex_name=None, is_open=False):
         r"""

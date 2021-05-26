@@ -321,7 +321,7 @@ class CoFrame(FreeModuleCoBasis):
                                    latex_indices=latex_indices)
         # The coframe is added to the domain's set of coframes, as well as to
         # all the superdomains' sets of coframes
-        for sd in self._domain._supersets:
+        for sd in self._domain.open_supersets():
             sd._coframes.append(self)
 
     def _repr_(self):
@@ -728,7 +728,7 @@ class VectorFrame(FreeModuleBasis):
         # the superdomains' sets of frames; moreover the first defined frame
         # is considered as the default one
         dest_map = self._dest_map
-        for sd in self._domain._supersets:
+        for sd in self._domain.open_supersets():
             sd._frames.append(self)
             sd._top_frames.append(self)
             if sd._def_frame is None:
@@ -1069,7 +1069,7 @@ class VectorFrame(FreeModuleBasis):
                                        latex_indices=latex_indices,
                                        symbol_dual=symbol_dual,
                                        latex_symbol_dual=latex_symbol_dual)
-        for sdom in self._domain._supersets:
+        for sdom in self._domain.open_supersets():
             sdom._frame_changes[(self, the_new_frame)] = \
                             self._fmodule._basis_changes[(self, the_new_frame)]
             sdom._frame_changes[(the_new_frame, self)] = \
@@ -1163,7 +1163,7 @@ class VectorFrame(FreeModuleBasis):
 
             res._from_frame = self._from_frame
 
-            for dom in subdomain._supersets:
+            for dom in subdomain.open_supersets():
                 if dom is not subdomain:
                     dom._top_frames.remove(res)  # since it was added by
                                                  # VectorFrame constructor

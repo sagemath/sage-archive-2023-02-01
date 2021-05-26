@@ -11,6 +11,10 @@ A filtered complex is a simplicial complex, where each simplex is given
 a weight, or "filtration value", such that the weight of a simplex is
 greater than the weight of each of its faces.
 
+.. NOTE::
+
+    This module should behave close to the sage.homology.simplicial_complex
+    module, and have similar notations and methods.
 
 .. EXAMPLES::
 
@@ -66,8 +70,9 @@ class FilteredComplex(SageObject):
         :param simplex_degree_list: list of simplices and filtration values
         :param warnings: set to True for more info on each insertion
 
-        ``simplex_degree_list`` should be a list of tuples ``(l,v)`` where ``l`` is a list
-        of vertices and ``v`` the corresponding filtration value.
+        ``simplex_degree_list`` should be a list of tuples ``(l,v)`` where
+        ``l`` is a list of vertices and ``v`` is the corresponding filtration
+        value.
 
         .. EXAMPLES::
 
@@ -99,48 +104,98 @@ class FilteredComplex(SageObject):
             return -1
 
 
-    def _insert(self,s,d): #simplex as a list of vertices, degree. Insert so that the order is preserved
+    def _insert(self,simplex,d):
         r"""
         Add a simplex to the complex.
-        TODO
+
+        All faces of the simplex are added recursively if they are
+        not already present, with the same degree.
+
+        If the simplex is already present, and the new degree is lower
+        than its current degree in the complex, the value gets updated,
+        otherwise it does not change. This propagates recursively to faces.
+
+        :param simplex: simplex to be inserted
+        :type simplex: Simplex
+        :param d: degree of the simplex
+
+        .. EXAMPLES::
+
+            sage: X = FilteredComplex()
+            sage: X._insert(Simplex([0]),3)
+            sage: X
+            Filtered complex with vertex set (0,) and with simplices ((0,) : 3)
+
+
+
+
         """
-        # if the simplex is already in the complex, do nothing
+        # Keep track of whether the simplex is already in the complex
+        # and if it should be updated or not
         update = False
-        if self.get_value(s)>=0:
+        value = self[simplex]
+        if value >= 0:
             if self._warnings:
-                print("Face {} is already in the complex.".format(s))
-            if self.get_value(s) > d:
+                print("Face {} is already in the complex.".format(simplex))
+            if value > d:
                 if self._warnings:
-                    print("However its degree is higher than {}: updating it to {}".format(self.get_value(s),d))
+                    print("However its degree is {}: updating it to {}".format(self.get_value(simplex),d))
                 update = True
-                self._degrees_dict.pop(s)
+                self._degrees_dict.pop(simplex)
             else:
                 if self._warnings:
-                    print("Its degree is {} which is lower than {}: keeping it that way".format(self._degrees_dict[s],d))
+                    print("Its degree is {} which is lower than {}: keeping it that way".format(self._degrees_dict[simplex],d))
                 return
 
         # check that all faces are in the complex already. If not, warn the user and add faces (recursively)
-        faces = s.faces()
-        if s.dimension()>0:
+        faces = simplex.faces()
+        if simplex.dimension()>0:
             for f in faces:
 
                 if self._warnings:
-                    print("Inserting face {} as well".format(f))
+                    print("Also inserting face {} with value {}".format(f,d))
                 self._insert(f,d)
 
         if not update:
             self._numSimplices += 1
-            self._simplices.append(s)
+            self._simplices.append(simplex)
 
-        self._degrees_dict[s] = d
-        self._dimension = max(self._dimension,s.dimension())
+        self._degrees_dict[simplex] = d
+        self._dimension = max(self._dimension,simplex.dimension())
         self._maxDeg = max(self._maxDeg,d)
-        self._vertices.update(s.set())
+        self._vertices.update(simplex.set())
 
     def insert(self,vertex_list,filtration_value):
         r"""
         Add a simplex to the complex.
-        TODO
+
+        This method calls self._insert, turning the list of vertices
+        into a simplex.
+
+        :param vertex_list: list of vertices
+        :param filtration_value: desired degree of the simplex to be
+        added.
+
+        .. EXAMPLES::
+
+            sage: X = FilteredComplex()
+            sage: X.insert(Simplex([0]),3)
+            sage: X
+            Filtered complex with vertex set (0,) and with simplices ((0,) : 3)
+
+        If the warning parameter was set to true, this method will print
+        some info.
+
+            sage: X = FilteredComplex(warnings = True)
+            sage: X.insert(Simplex([0,1]),2)
+            Also inserting face (1,) with value 2
+            Also inserting face (0,) with value 2
+            sage: X.insert(Simplex([0]),1)
+            Face (0,) is already in the complex.
+            However its degree is 2: updating it to 1
+            sage: X.insert(Simplex([0]),77)
+            Face (0,) is already in the complex.
+            Its degree is 1 which is lower than 77: keeping it that way
         """
         self._insert(Simplex(vertex_list),filtration_value)
 
@@ -148,18 +203,22 @@ class FilteredComplex(SageObject):
 
     def compute_homology(self,field = 2, strict = True, verbose = False):
         """
+        Compute the homology intervals of the complex.
+
+        :param field: prime number modulo which homology is computed
+        :param strict: if set to False, takes into account intervals
+        of persistence 0. Default value: True
+        :param verbose: if set to True, prints progress of computation.
+        Default value: False.
+
+        .. ALGORITHM::
         TODO
 
-        Arguments:
-        - filteredComplex should be an instance of FilteredComplex, on which
-        homology will be computed.
-        - field: prime number, specifies the field over which homology is
-        computed. Default value: 2
-        - strict: Boolean. If set to True, homology elements of duration zero,
-        i.e. intervals of the form (x,x), will be ignored. Default value: True
-        - verbose: Boolean. If set to True, the compute_homology method will
-        output its progress throughout the algo. Default value: False
 
+        .. EXAMPLES::
+        TODO
+
+        .. REFERENCES::
         TODO
         """
 

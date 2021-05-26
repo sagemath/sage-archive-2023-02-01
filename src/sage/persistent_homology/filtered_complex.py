@@ -16,7 +16,7 @@ greater than the weight of each of its faces.
     This module should behave close to the sage.homology.simplicial_complex
     module, and have similar notations and methods.
 
-.. EXAMPLES::
+EXAMPLES::
 
     sage: FilteredComplex([([0], 0), ([1], 0), ([0,1], 1)])
     Filtered complex with vertex set (0, 1) and with simplices ((0,) : 0), ((1,) : 0), ((0, 1) : 1)
@@ -40,7 +40,7 @@ FilteredComplex objects are mutable::
     [(0, 1)]
 
 Filtration values can be accessed with function and list syntaxes.
-A simplex not in the complex will have filtration value -1
+A simplex not in the complex will have filtration value -1::
 
     sage: X = FilteredComplex([([0], 0), ([1], 0), ([0,1], 1)])
     sage: s_1 = Simplex([0])
@@ -74,7 +74,7 @@ class FilteredComplex(SageObject):
         ``l`` is a list of vertices and ``v`` is the corresponding filtration
         value.
 
-        .. EXAMPLES::
+        EXAMPLES::
 
             sage: FilteredComplex([([0], 0), ([1], 0), ([2], 1), ([0,1],2.27)])
             Filtered complex with vertex set (0, 1, 2) and with simplices ((0,) : 0), ((1,) : 0), ((2,) : 1), ((0, 1) : 2.27000000000000)
@@ -96,7 +96,9 @@ class FilteredComplex(SageObject):
         Return the filtration value of a simplex in the complex.
 
         :param s: simplex
+
         TODO
+
         """
         if s in self._degrees_dict:
             return self._degrees_dict[s]
@@ -119,15 +121,12 @@ class FilteredComplex(SageObject):
         :type simplex: Simplex
         :param d: degree of the simplex
 
-        .. EXAMPLES::
+        EXAMPLES::
 
             sage: X = FilteredComplex()
             sage: X._insert(Simplex([0]),3)
             sage: X
             Filtered complex with vertex set (0,) and with simplices ((0,) : 3)
-
-
-
 
         """
         # Keep track of whether the simplex is already in the complex
@@ -174,9 +173,9 @@ class FilteredComplex(SageObject):
 
         :param vertex_list: list of vertices
         :param filtration_value: desired degree of the simplex to be
-        added.
+            added.
 
-        .. EXAMPLES::
+        EXAMPLES:
 
             sage: X = FilteredComplex()
             sage: X.insert(Simplex([0]),3)
@@ -184,7 +183,7 @@ class FilteredComplex(SageObject):
             Filtered complex with vertex set (0,) and with simplices ((0,) : 3)
 
         If the warning parameter was set to true, this method will print
-        some info.
+        some info::
 
             sage: X = FilteredComplex(warnings = True)
             sage: X.insert(Simplex([0,1]),2)
@@ -196,6 +195,7 @@ class FilteredComplex(SageObject):
             sage: X.insert(Simplex([0]),77)
             Face (0,) is already in the complex.
             Its degree is 1 which is lower than 77: keeping it that way
+
         """
         self._insert(Simplex(vertex_list),filtration_value)
 
@@ -207,19 +207,24 @@ class FilteredComplex(SageObject):
 
         :param field: prime number modulo which homology is computed
         :param strict: if set to False, takes into account intervals
-        of persistence 0. Default value: True
+            of persistence 0. Default value: True
         :param verbose: if set to True, prints progress of computation.
-        Default value: False.
+            Default value: False.
 
-        .. ALGORITHM::
+        Blablabla
+
+        ALGORITHM:
+
         TODO
 
+        EXAMPLES:
 
-        .. EXAMPLES::
         TODO
 
-        .. REFERENCES::
+        REFERENCES:
+
         TODO
+
         """
 
 
@@ -385,9 +390,9 @@ class FilteredComplex(SageObject):
         count for each.
 
 
-        EXAMPLES::
+        EXAMPLES:
 
-            TODO
+        TODO
         """
 
         vert_count = len(self._vertices)

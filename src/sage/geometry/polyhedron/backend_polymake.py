@@ -220,6 +220,17 @@ class Polyhedron_polymake(Polyhedron_base):
             sage: p = Polyhedron(vertices=[(-1,-1), (1,0), (1,1), (0,1)],  # optional - polymake
             ....:                backend='polymake')
             sage: TestSuite(p).run(skip='_test_lawrence')            # optional - polymake
+
+        ::
+
+            sage: p = Polyhedron(rays=[[1,1]], backend='polymake')                     # optional - polymake
+            sage: TestSuite(p).run()                                                   # optional - polymake
+            sage: p = Polyhedron(rays=[[1]], backend='polymake')                       # optional - polymake
+            sage: TestSuite(p).run()                                                   # optional - polymake
+            sage: p = Polyhedron(rays=[[1,1,1]], lines=[[1,0,0]], backend='polymake')  # optional - polymake
+            sage: TestSuite(p).run()                                                   # optional - polymake
+            sage: p = Polyhedron(vertices=[[]], backend='polymake')                    # optional - polymake
+            sage: TestSuite(p).run()                                                   # optional - polymake
         """
         if polymake_polytope is not None:
             if Hrep is not None or Vrep is not None:
@@ -311,7 +322,6 @@ class Polyhedron_polymake(Polyhedron_base):
                         VERTICES=(  [ [1] + list(v) for v in vertices ]
                                   + [ [0] + list(r) for r in rays ]),
                         LINEALITY_SPACE=[ [0] + list(l) for l in lines ])
-
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         r"""
@@ -563,35 +573,28 @@ class Polyhedron_polymake(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake  # optional - polymake
             sage: P = polytopes.permutahedron(4, backend='polymake')                         # optional - polymake
             sage: P1 = loads(dumps(P))                                                       # optional - polymake
-            sage: P2 = Polyhedron_polymake(P1.parent(), None, None, P1._polymake_polytope)       # optional - polymake
-            sage: P2 == P # optional - polymake
-            True
+            sage: P2 = Polyhedron_polymake(P1.parent(), None, None, P1._polymake_polytope)   # optional - polymake
+            sage: P._test_polymake_pickling(other=P2)                                        # optional - polymake
 
-            sage: P = Polyhedron(lines=[[1,0], [0,1]], backend='polymake')              # optional - polymake
-            sage: P1 = loads(dumps(P))                                                  # optional - polymake
+            sage: P = Polyhedron(lines=[[1,0], [0,1]], backend='polymake')                  # optional - polymake
+            sage: P1 = loads(dumps(P))                                                      # optional - polymake
             sage: P2 = Polyhedron_polymake(P1.parent(), None, None, P1._polymake_polytope)  # optional - polymake
-            sage: P2 == P                                                               # optional - polymake
-            True
+            sage: P._test_polymake_pickling(other=P2)                                       # optional - polymake
 
-            sage: P = Polyhedron(backend='polymake')                                    # optional - polymake
-            sage: P1 = loads(dumps(P))                                                  # optional - polymake
-            sage: P2 = Polyhedron_polymake(P1.parent(), None, None, P1._polymake_polytope)  # optional - polymake
-            sage: P2 == P                                                               # optional - polymake
-            True
+            sage: P = Polyhedron(backend='polymake')                                        # optional - polymake
+            sage: P1 = loads(dumps(P))                                                      # optional - polymake
+            sage: P._test_polymake_pickling(other=P1)                                       # optional - polymake
 
             sage: P = polytopes.permutahedron(4, backend='polymake') * Polyhedron(lines=[[1]], backend='polymake')  # optional - polymake
-            sage: P1 = loads(dumps(P))                                                  # optional - polymake
-            sage: P2 = Polyhedron_polymake(P1.parent(), None, None, P1._polymake_polytope)  # optional - polymake
-            sage: P2 == P                                                               # optional - polymake
-            True
+            sage: P1 = loads(dumps(P))                                                                              # optional - polymake
+            sage: P2 = Polyhedron_polymake(P1.parent(), None, None, P1._polymake_polytope)                          # optional - polymake
+            sage: P._test_polymake_pickling(other=P2)                                                               # optional - polymake
 
             sage: print("Possible output"); P = polytopes.dodecahedron(backend='polymake')  # optional - polymake
             Possible output...
-            sage: P1 = loads(dumps(P))                            # optional - polymake
+            sage: P1 = loads(dumps(P))                                                      # optional - polymake
             sage: P2 = Polyhedron_polymake(P1.parent(), None, None, P1._polymake_polytope)  # optional - polymake
-            sage: P == P2                                         # optional - polymake
-            True
-
+            sage: P._test_polymake_pickling(other=P2)                                       # optional - polymake
         """
         if "_pickle_vertices" in state[1]:
             vertices = state[1].pop("_pickle_vertices")
@@ -611,11 +614,52 @@ class Polyhedron_polymake(Polyhedron_base):
             inequalities = self.inequalities()
             equations = self.equations()
 
+        if not vertices and not rays and not lines:
+            # The empty polyhedron.
+            return
+
         from sage.interfaces.polymake import polymake
         data = self._polymake_Vrepresentation_data(vertices, rays, lines, minimal=True)
-        data.update(self._polymake_Hrepresentation_data(inequalities, equations, minimal=True))
+
+        # Do not assume minimal Hrepresentation for unbounded polyhedra due to issues with the far facet.
+        data.update(self._polymake_Hrepresentation_data(inequalities, equations, minimal=(not rays and not lines)))
+
         polymake_field = polymake(self.base_ring().fraction_field())
         self._polymake_polytope = polymake.new_object("Polytope<{}>".format(polymake_field), **data)
+
+    def _test_polymake_pickling(self, tester=None, other=None, **options):
+        """
+        Run tests to see that our polymake pickling/unpickling works.
+
+        INPUT:
+
+        - ``other`` -- a pickling polytope of ``self`` to be tested against
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3, backend='polymake')._test_polymake_pickling()  # optional - polymake
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        if other is None:
+            from sage.misc.persist import loads, dumps
+            other = loads(dumps(self))
+
+        tester.assertEqual(self, other)
+
+        if not hasattr(self, '_polymake_polytope'):
+            tester.assertFalse(hasattr(other, '_polymake_polytope'))
+            return
+
+        P = self._polymake_polytope
+        P1 = other._polymake_polytope
+
+        tester.assertEqual(P.F_VECTOR,        P1.F_VECTOR)
+        tester.assertEqual(P.VERTICES,        P1.VERTICES)
+        tester.assertEqual(P.LINEALITY_SPACE, P1.LINEALITY_SPACE)
+        tester.assertEqual(P.FACETS,          P1.FACETS)
+        tester.assertEqual(P.AFFINE_HULL,     P1.AFFINE_HULL)
 
 #########################################################################
 class Polyhedron_QQ_polymake(Polyhedron_polymake, Polyhedron_QQ):

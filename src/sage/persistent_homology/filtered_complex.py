@@ -13,8 +13,8 @@ greater than the weight of each of its faces.
 
 .. NOTE::
 
-    This module should behave close to the sage.homology.simplicial_complex
-    module, and have similar notations and methods.
+    This implementation requires filtration values to be positive. Most
+    features will not work with negative values.
 
 EXAMPLES::
 
@@ -39,8 +39,9 @@ FilteredComplex objects are mutable::
     sage: X.persistence_intervals(1)
     [(0, 1)]
 
-Filtration values can be accessed with function and list syntaxes.
-A simplex not in the complex will have filtration value -1::
+Filtration values can be accessed with function call and list
+syntax as follows. A simplex not in the complex will have 
+filtration value -1::
 
     sage: X = FilteredComplex([([0], 0), ([1], 0), ([0,1], 1)])
     sage: s_1 = Simplex([0])
@@ -48,6 +49,8 @@ A simplex not in the complex will have filtration value -1::
     0
     sage: X(Simplex([0,1]))
     1
+    sage: X(Simplex(['baba']))
+    -1
 
 
 """
@@ -74,6 +77,7 @@ class FilteredComplex(SageObject):
         ``l`` is a list of vertices and ``v`` is the corresponding filtration
         value.
 
+
         EXAMPLES::
 
             sage: FilteredComplex([([0], 0), ([1], 0), ([2], 1), ([0,1],2.27)])
@@ -97,7 +101,13 @@ class FilteredComplex(SageObject):
 
         :param s: simplex
 
-        TODO
+
+
+        EXAMPLES::
+
+            sage: X = FilteredComplex([([0], 1), ([1], 2)])
+            sage: X.get_value(Simplex([0]))
+            1
 
         """
         if s in self._degrees_dict:
@@ -112,10 +122,12 @@ class FilteredComplex(SageObject):
 
         All faces of the simplex are added recursively if they are
         not already present, with the same degree.
-
         If the simplex is already present, and the new degree is lower
         than its current degree in the complex, the value gets updated,
         otherwise it does not change. This propagates recursively to faces.
+        If warnings have been enabled, this method will describe what it 
+        is doing during an insertion.
+
 
         :param simplex: simplex to be inserted
         :type simplex: Simplex
@@ -146,7 +158,8 @@ class FilteredComplex(SageObject):
                     print("Its degree is {} which is lower than {}: keeping it that way".format(self._degrees_dict[simplex],d))
                 return
 
-        # check that all faces are in the complex already. If not, warn the user and add faces (recursively)
+        # check that all faces are in the complex already. 
+        # If not, warn the user and add faces (recursively)
         faces = simplex.faces()
         if simplex.dimension()>0:
             for f in faces:
@@ -206,35 +219,53 @@ class FilteredComplex(SageObject):
         Compute the homology intervals of the complex.
 
         :param field: prime number modulo which homology is computed
+            Default value: 2
         :param strict: if set to False, takes into account intervals
             of persistence 0. Default value: True
         :param verbose: if set to True, prints progress of computation.
             Default value: False.
 
-        Blablabla
+        Once homology has been computed, The list of d-intervals may be 
+        accessed with ``self.persistence_intervals(d)``.
 
         ALGORITHM:
-
-        TODO
+            
+        The computation behind persistent homology is a matrix reduction.
+        The algorithm implemented is described in [ZC2005]_.
 
         EXAMPLES:
 
-        TODO
+        sage: X = FilteredComplex([([0],0), ([1],0), ([0,1],2)])
+        sage: X.compute_homology()
+        sage: X.persistence_intervals(0)
+        [(0, 2), (0, +Infinity)]
 
         REFERENCES:
 
-        TODO
+        [ZC2005]_
+
+        TESTS:
+
+            sage: list_simplex_degree = [([0],0), ([1],0), ([2],1), ([3],1), ([0, 1],1), ([1, 2],1), ([0, 3],2), ([2, 3],2), ([0, 2],3), ([0, 1, 2],4), ([0, 2, 3],5)]
+            sage: X = FilteredComplex(list_simplex_degree)
+            sage: X.compute_homology()
+            sage: X.persistence_intervals(0)
+            [(0, 1), (1, 2), (0, +Infinity)]
+            sage: X.persistence_intervals(1)
+            [(3, 4), (2, 5)]
 
         """
 
 
-        # first, order the simplices in lexico order on dimension, degree and then arbitrary order
+        # first, order the simplices in lexico order 
+        # on dimension, degree and then arbitrary order
+        # defined by the Simplex class.
         def key(s):
             d = self.get_value(s)
             return (s.dimension(),d,s)
         self._simplices.sort(key = key)
 
-        # remember the index of each simplex
+        # remember the index of each simplex in a dict
         self._indexBySimplex = {}
         for i in range(self._numSimplices):
             self._indexBySimplex[self._simplices[i]] = i
@@ -244,8 +275,8 @@ class FilteredComplex(SageObject):
         self._chaingroup = FreeModule(self._field,rank_or_basis_keys=self._simplices)
 
         self.marked = [False for i in range(self._numSimplices)]
-        self.T = [None for i in range(self._numSimplices)] # contains couples (index,chain)
-        self.intervals = [[] for i in range(self._dimension+1)] # contains homology intervals once the algo has finished
+        self.T = [None for i in range(self._numSimplices)] 
+        self.intervals = [[] for i in range(self._dimension+1)] 
         self.pairs = []
 
         self._strict = strict
@@ -253,40 +284,34 @@ class FilteredComplex(SageObject):
 
         if self._verbose:
             print("Beginning first pass")
+        
         for j in range(self._numSimplices):
+            # if being verbose, print progress
+            # every 1000 simplices.
             if j%1000 == 0 and self._verbose:
                 print('{}/{}'.format(j,self._numSimplices))
+            
             s = self._simplices[j]
-            #if self._verbose:
-                #print("Examining {}. Removing pivot rows...".format(s))
             d = self.__remove_pivot_rows(s)
-            #if self._verbose:
-                #print("Done removing pivot rows")
+            
             if d == 0:
-                #if self._verbose:
-                    #print("Boundary is empty when pivots are removed: marking {}".format(s))
                 self.marked[j] = True
             else:
-
                 maxInd = self.__max_index(d)
                 t = self._simplices[maxInd]
                 self.T[maxInd] = (s,d)
                 self.__add_interval(t,s)
-                #if self._verbose:
-                    #print("Boundary non-reducible: T{} is set to:".format(t))
-                    #print(str(d))
-
+                
         if self._verbose:
             print("First pass over, beginning second pass")
+        
         for j in range(self._numSimplices):
             if j%1000 == 0 and self._verbose:
                 print('{}/{}'.format(j,self._numSimplices))
             s = self._simplices[j]
             if self.marked[j] and not self.T[j]:
-
-                #if self._verbose:
-                    #print("Infinite interval found for {}.".format(s))
-                self.__add_interval(s,None)
+                  self.__add_interval(s,None)
+        
         if self._verbose:
             print("Second pass over")
 
@@ -296,6 +321,11 @@ class FilteredComplex(SageObject):
         This method should not be called by users, it is used in
         the ``compute_persistence`` method.
         """
+
+        # figure out dimension of homology element
+        # and indices of the two simplices. If the
+        # closing simplex is None, then the interval
+        # is infinite.
         k = s.dimension()
         i = self._degrees_dict[s]
         if not t:
@@ -303,29 +333,41 @@ class FilteredComplex(SageObject):
         else:
             j = self._degrees_dict[t]
 
+        # Only add intervals of length 0 if
+        # strict mode is not enabled.
         if i != j or (not self._strict):
-            #if self._verbose:
-                #print("Adding {}-interval ({},{})".format(k,i,j))
             self.intervals[k].append((i,j))
             self.pairs.append((s,t))
-            #if i == 10:
-            #    print(k,t,s)
 
     def __remove_pivot_rows(self,s):
         r"""
-        This method should not be called by users, it is used in
-        the ``compute_persistence`` method.
+        Return the boundary chain of a simplex,
+        from which pivot elements have been removed.
+
+        This method implements the subroutine of the
+        same name in [ZC2005]_. This method should not 
+        be called by users, it is used in the 
+        ``compute_persistence`` method.
         """
+        
         d = self._chaingroup()
+        # Handle the case when the simplex is a vertex
         if s.dimension() == 0:
             return d
+
+        # Initialize the boundary chain
         for (i,f) in enumerate(s.faces()):
             d += ((-1)**i) * self._chaingroup(f)
+
+        # Remove all unmarked elements 
         for (s,x_s) in d:
             j = self._indexBySimplex[s]
             if not self.marked[j]:
                 d = d - x_s*self._chaingroup(s)
 
+        # Reduce d until it is empty or until the simplex
+        # with maximum index in the complex among all 
+        # non-zero terms is not in T.
         while d != 0:
             maxInd = self.__max_index(d)
             t = self._simplices[maxInd]
@@ -357,18 +399,20 @@ class FilteredComplex(SageObject):
 
 
 
-    def persistence_intervals(self,d):
+    def persistence_intervals(self,dimension):
         """
-        Returns the list of d-dimensional homology elements.
+        Return the list of d-dimensional homology elements.
         Should only be run after compute_homology has been run.
-        TODO
+        
+        :param dimension: integer, dimension for which to
+            return intervals.
 
         """
-        return self.intervals[d][:]
+        return self.intervals[dimension][:]
 
     def betti_number(self,k,l,p):
         r"""
-        TODO
+        Return the k-dimensional betti number from ``l`` to ``l+p``
         """
         res = 0
         for (i,j) in self.intervals[k]:
@@ -377,9 +421,15 @@ class FilteredComplex(SageObject):
         return res
 
     def __call__(self,s):
+        r"""
+        Return the filtration value of a simplex
+        """
         return self.get_value(s)
 
     def __getitem__(self,s):
+        r"""
+        Return the filtration value of a simplex
+        """
         return self.get_value(s)
 
     def _repr_(self):
@@ -391,14 +441,20 @@ class FilteredComplex(SageObject):
 
 
         EXAMPLES:
+        
+            sage: X = FilteredComplex([([0], 0), ([1], 0), ([0,1], 1)])
+            sage: X
+            Filtered complex with vertex set (0, 1) and with simplices ((0,) : 0), ((1,) : 0), ((0, 1) : 1)
+            sage: X.insert([0,1,2,3,4],8)
+            sage: X
+            Filtered complex on 5 vertices with 31 simplices
 
-        TODO
         """
 
         vert_count = len(self._vertices)
         simp_count = self._numSimplices
-        if simp_count > 10 or vert_count>20:
-            return "Filtered Complex on {} vertices with {} simplices.".format(vert_count,simp_count)
+        if simp_count > 10 or vert_count>10:
+            return "Filtered complex on {} vertices with {} simplices".format(vert_count,simp_count)
 
         vertex_string = "with vertex set {}".format(tuple(self._vertices))
         simplex_string = "with simplices " + ", ".join(["({} : {})".format(s,self._degrees_dict[s]) for s in self._simplices])

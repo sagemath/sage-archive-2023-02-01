@@ -1,15 +1,22 @@
 r"""
-Galois groups of field extensions
+Galois groups of field extensions.
+
+We don't necessarily require extensions to be normal, but we do require them to be separable.
+When an extension is not normal, the Galois group refers to
+the automorphism group of the normal closure.
 
 AUTHORS:
 
 - David Roe (2019): initial version
 """
 
-from sage.groups.perm_gps.permgroup import PermutationGroup_generic
+from sage.groups.perm_gps.permgroup import PermutationGroup, PermutationGroup_generic
+from sage.groups.abelian_gps.abelian_group import AbelianGroup_class
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from sage.misc.lazy_attribute import lazy_attribute
+from sage.misc.cachefunc import cached_method
 from sage.structure.category_object import normalize_names
+from sage.rings.integer_ring import ZZ
 
 def _alg_key(self, algorithm=None, recompute=False):
     r"""
@@ -32,7 +39,177 @@ def _alg_key(self, algorithm=None, recompute=False):
         algorithm = self._get_algorithm(algorithm)
         return algorithm
 
-class GaloisGroup(PermutationGroup_generic):
+class _GaloisMixin:
+    r"""
+    This class provides some methods for Galois groups to be used for both permutation groups
+    and abelian groups.
+    """
+    def _repr_(self):
+        """
+        String representation of this Galois group
+
+        EXAMPLES::
+
+            sage: from sage.groups.galois_group import GaloisGroup_perm
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: G = K.galois_group()
+            sage: GaloisGroup_perm._repr_(G)
+            'Galois group of x^3 + 2*x + 2'
+        """
+        f = self._field.defining_polynomial()
+        return "Galois group of %s" % f
+
+    def _get_algorithm(self, algorithm):
+        r"""
+        Allows overriding the default algorithm specified at object creation.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: G = K.galois_group()
+            sage: G._get_algorithm(None)
+            'pari'
+            sage: G._get_algorithm('magma')
+            'magma'
+        """
+        return self._default_algorithm if algorithm is None else algorithm
+
+    def top_field(self):
+        r"""
+        Return the larger of the two fields in the extension defining this Galois group.
+
+        Note that this field may not be Galois.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: L = K.galois_closure('b')
+            sage: GK = K.galois_group()
+            sage: GK.top_field() is K
+            True
+            sage: GL = L.galois_group()
+            sage: GL.top_field() is L
+            True
+        """
+        return self._field
+
+    @lazy_attribute
+    def _field_degree(self):
+        """
+        Degree of the top field over its base.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: L.<b> = K.extension(x^2 + 3*a^2 + 8)
+            sage: GK = K.galois_group()
+            sage: GL = L.galois_group()
+            doctest:warning
+            ...
+            DeprecationWarning: Use .absolute_field().galois_group() if you want the Galois group of the absolute field
+            See https://trac.sagemath.org/28782 for details.
+            sage: GK._field_degree
+            3
+
+        Despite the fact that `L` is a relative number field, the Galois group
+        is computed for the corresponding absolute extension of the rationals.
+
+        This behavior may change in the future::
+
+            sage: GL._field_degree
+            6
+            sage: GL.transitive_label()
+            '6T2'
+            sage: GL
+            Galois group 6T2 ([3]2) with order 6 of x^2 + 3*a^2 + 8
+        """
+        try:
+            return self._field.degree()
+        except NotImplementedError: # relative number fields don't support degree
+            return self._field.absolute_degree()
+
+    def transitive_label(self):
+        r"""
+        Return the transitive label for the action of this Galois group on the roots of
+        the defining polynomial of the field extension.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^8 - x^5 + x^4 - x^3 + 1)
+            sage: G = K.galois_group()
+            sage: G.transitive_label()
+            '8T44'
+        """
+        return "%sT%s" % (self._field_degree, self.transitive_number())
+
+    def is_galois(self):
+        r"""
+        Return whether the top field is Galois over its base.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^8 - x^5 + x^4 - x^3 + 1)
+            sage: G = K.galois_group()
+            sage: from sage.groups.galois_group import GaloisGroup_perm
+            sage: GaloisGroup_perm.is_galois(G)
+            False
+        """
+        return self.order() == self._field_degree
+
+    @lazy_attribute
+    def _galois_closure(self):
+        r"""
+        The Galois closure of the top field.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: G = K.galois_group(names='b')
+            sage: G._galois_closure
+            Number Field in b with defining polynomial x^6 + 12*x^4 + 36*x^2 + 140
+        """
+        return self._gcdata[0]
+
+    def splitting_field(self):
+        r"""
+        The Galois closure of the top field.
+
+        EXAMPLES::
+
+            sage: K = NumberField(x^3 - x + 1, 'a')
+            sage: K.galois_group(names='b').splitting_field()
+            Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
+            sage: L = QuadraticField(-23, 'c'); L.galois_group().splitting_field() is L
+            True
+        """
+        return self._galois_closure
+
+    @lazy_attribute
+    def _gc_map(self):
+        r"""
+        The inclusion of the top field into the Galois closure.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^3 + 2*x + 2)
+            sage: G = K.galois_group(names='b')
+            sage: G._gc_map
+            Ring morphism:
+              From: Number Field in a with defining polynomial x^3 + 2*x + 2
+              To:   Number Field in b with defining polynomial x^6 + 12*x^4 + 36*x^2 + 140
+              Defn: a |--> 1/36*b^4 + 5/18*b^2 - 1/2*b + 4/9
+        """
+        return self._gcdata[1]
+
+class GaloisGroup_perm(_GaloisMixin, PermutationGroup_generic):
     r"""
     The group of automorphisms of a Galois closure of a given field.
 
@@ -84,138 +261,6 @@ class GaloisGroup(PermutationGroup_generic):
         # Note that we DON'T call the __init__ method for PermutationGroup_generic
         # Instead, the relevant attributes are computed lazily
         super(PermutationGroup_generic, self).__init__(category=category)
-
-    def _repr_(self):
-        """
-        String representation of this Galois group
-
-        EXAMPLES::
-
-            sage: from sage.groups.galois_group import GaloisGroup
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^3 + 2*x + 2)
-            sage: G = K.galois_group()
-            sage: GaloisGroup._repr_(G)
-            'Galois group of x^3 + 2*x + 2'
-        """
-        f = self._field.defining_polynomial()
-        return "Galois group of %s" % f
-
-    def _get_algorithm(self, algorithm):
-        r"""
-        Allows overriding the default algorithm specified at object creation.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^3 + 2*x + 2)
-            sage: G = K.galois_group()
-            sage: G._get_algorithm(None)
-            'pari'
-            sage: G._get_algorithm('magma')
-            'magma'
-        """
-        return self._default_algorithm if algorithm is None else algorithm
-
-    def top_field(self):
-        r"""
-        Return the larger of the two fields in the extension defining this Galois group.
-
-        Note that this field may not be Galois.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^3 + 2*x + 2)
-            sage: L = K.galois_closure('b')
-            sage: GK = K.galois_group()
-            sage: GK.top_field() is K
-            True
-            sage: GL = L.galois_group()
-            sage: GL.top_field() is L
-            True
-        """
-        return self._field
-
-    def transitive_label(self):
-        r"""
-        Return the transitive label for the action of this Galois group on the roots of
-        the defining polynomial of the field extension.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^8 - x^5 + x^4 - x^3 + 1)
-            sage: G = K.galois_group()
-            sage: G.transitive_label()
-            '8T44'
-        """
-        try:
-            return "%sT%s" % (self._field.degree(), self.transitive_number())
-        except NotImplementedError: # relative number fields don't support degree
-            return "%sT%s" % (self._field.relative_degree(), self.transitive_number())
-
-    def is_galois(self):
-        r"""
-        Return whether the top field is Galois over its base.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^8 - x^5 + x^4 - x^3 + 1)
-            sage: G = K.galois_group()
-            sage: from sage.groups.galois_group import GaloisGroup
-            sage: GaloisGroup.is_galois(G)
-            False
-        """
-        return self.order() == self._field.degree()
-
-    @lazy_attribute
-    def _galois_closure(self):
-        r"""
-        The Galois closure of the top field.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^3 + 2*x + 2)
-            sage: G = K.galois_group(names='b')
-            sage: G._galois_closure
-            Number Field in b with defining polynomial x^6 + 12*x^4 + 36*x^2 + 140
-        """
-        return self._gcdata[0]
-
-    def splitting_field(self):
-        r"""
-        The Galois closure of the top field.
-
-        EXAMPLES::
-
-            sage: K = NumberField(x^3 - x + 1, 'a')
-            sage: K.galois_group(names='b').splitting_field()
-            Number Field in b with defining polynomial x^6 - 6*x^4 + 9*x^2 + 23
-            sage: L = QuadraticField(-23, 'c'); L.galois_group().splitting_field() is L
-            True
-        """
-        return self._galois_closure
-
-    @lazy_attribute
-    def _gc_map(self):
-        r"""
-        The inclusion of the top field into the Galois closure.
-
-        EXAMPLES::
-
-            sage: R.<x> = ZZ[]
-            sage: K.<a> = NumberField(x^3 + 2*x + 2)
-            sage: G = K.galois_group(names='b')
-            sage: G._gc_map
-            Ring morphism:
-              From: Number Field in a with defining polynomial x^3 + 2*x + 2
-              To:   Number Field in b with defining polynomial x^6 + 12*x^4 + 36*x^2 + 140
-              Defn: a |--> 1/36*b^4 + 5/18*b^2 - 1/2*b + 4/9
-        """
-        return self._gcdata[1]
 
     @lazy_attribute
     def _deg(self):
@@ -302,3 +347,118 @@ class GaloisGroup(PermutationGroup_generic):
             1
         """
         return len(self._gens)
+
+class GaloisGroup_ab(_GaloisMixin, AbelianGroup_class):
+    r"""
+    Abelian Galois groups
+    """
+    def __init__(self, field, generator_orders, algorithm=None, gen_names='sigma'):
+        r"""
+        Initialize this Galois group.
+
+        TESTS::
+
+            sage: TestSuite(GF(9).galois_group()).run()
+        """
+        self._field = field
+        self._default_algorithm = algorithm
+        AbelianGroup_class.__init__(self, generator_orders, gen_names)
+
+    def is_galois(self):
+        r"""
+        Abelian extensions are Galois.
+
+        For compatibility with Galois groups of number fields.
+
+        EXAMPLES::
+
+            sage: GF(9).galois_group().is_galois()
+            True
+        """
+        return True
+
+    @lazy_attribute
+    def _gcdata(self):
+        r"""
+        Return the Galois closure (ie, the finite field itself) together with the identity
+
+        EXAMPLES::
+
+            sage: GF(3^2).galois_group()._gcdata
+            (Finite Field in z2 of size 3^2,
+             Identity endomorphism of Finite Field in z2 of size 3^2)
+        """
+        k = self._field
+        return k, k.Hom(k).identity()
+
+    @cached_method
+    def permutation_group(self):
+        r"""
+        Return a permutation group giving the action on the roots of a defining polynomial.
+
+        This is the regular representation for the abelian group, which is not necessarily the smallest degree permutation representation.
+
+        EXAMPLES::
+
+            sage: GF(3^10).galois_group().permutation_group()
+            Permutation Group with generators [(1,2,3,4,5,6,7,8,9,10)]
+        """
+        return PermutationGroup(gap_group=self._gap_().RegularActionHomomorphism().Image())
+
+    @cached_method(key=_alg_key)
+    def transitive_number(self, algorithm=None, recompute=False):
+        r"""
+        Return the transitive number for the action on the roots of the defining polynomial.
+
+        For abelian groups, there is only one transitive action up to isomorphism
+        (left multiplication of the group on itself), so we identify that action.
+
+        EXAMPLES::
+
+            sage: from sage.groups.galois_group import GaloisGroup_ab
+            sage: Gtest = GaloisGroup_ab(field=None, generator_orders=(2,2,4))
+            sage: Gtest.transitive_number()
+            2
+        """
+        return ZZ(self.permutation_group()._gap_().TransitiveIdentification())
+
+class GaloisGroup_cyc(GaloisGroup_ab):
+    r"""
+    Cyclic Galois groups
+    """
+    def transitive_number(self, algorithm=None, recompute=False):
+        r"""
+        Return the transitive number for the action on the roots of the defining polynomial.
+
+        EXAMPLES::
+
+            sage: GF(2^8).galois_group().transitive_number()
+            1
+            sage: GF(3^32).galois_group().transitive_number()
+            33
+            sage: GF(2^60).galois_group().transitive_number()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: transitive database only computed up to degree 47
+        """
+        d = self.order()
+        if d > 47:
+            raise NotImplementedError("transitive database only computed up to degree 47")
+        elif d == 32:
+            # I don't know why this case is special, but you can check this in Magma (GAP only goes up to 22)
+            return ZZ(33)
+        else:
+            return ZZ(1)
+
+    def signature(self):
+        r"""
+        Return 1 if contained in the alternating group, -1 otherwise.
+
+        EXAMPLES::
+
+            sage: GF(3^2).galois_group().signature()
+            -1
+            sage: GF(3^3).galois_group().signature()
+            1
+        """
+        return ZZ(1) if (self._field.degree() % 2) else ZZ(-1)

@@ -17,7 +17,7 @@ Standard test of pickleability::
 """
 
 from sage.structure.sage_object import SageObject
-from sage.groups.galois_group import _alg_key, GaloisGroup as GaloisGroup_base
+from sage.groups.galois_group import _alg_key, GaloisGroup_perm
 from sage.groups.perm_gps.permgroup import PermutationGroup_generic, standardize_generator
 
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
@@ -200,7 +200,7 @@ class GaloisGroup_v1(SageObject):
         return self.__number_field
 
 
-class GaloisGroup_v2(GaloisGroup_base):
+class GaloisGroup_v2(GaloisGroup_perm):
     r"""
     The Galois group of an (absolute) number field.
 
@@ -262,7 +262,7 @@ class GaloisGroup_v2(GaloisGroup_base):
         self._type = _type
         super(GaloisGroup_v2, self).__init__(number_field, algorithm, names, gc_numbering)
 
-    @cached_method(key=GaloisGroup_base._get_algorithm)
+    @cached_method(key=GaloisGroup_perm._get_algorithm)
     def _pol_galgp(self, algorithm=None):
         """
         Return the Galois group object associated to the defining polynomial of this field extension.

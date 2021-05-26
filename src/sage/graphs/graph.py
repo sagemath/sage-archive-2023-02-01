@@ -428,6 +428,7 @@ from sage.features import PythonModule
 lazy_import('sage.graphs.mcqd', ['mcqd'],
             feature=PythonModule('sage.graphs.mcqd', spkg='mcqd'))
 
+
 class Graph(GenericGraph):
     r"""
     Undirected graph.
@@ -1162,9 +1163,7 @@ class Graph(GenericGraph):
             from_incidence_matrix(self, data, loops=loops, multiedges=multiedges, weighted=weighted)
 
         elif format == 'seidel_adjacency_matrix':
-            multiedges = False
             weighted = False
-            loops = False
             self.allow_loops(False)
             self.allow_multiple_edges(False)
             from .graph_input import from_seidel_adjacency_matrix

@@ -210,7 +210,7 @@ class FilteredComplex(SageObject):
         :param filtration_value: desired degree of the simplex to be
             added.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = FilteredComplex()
             sage: X.insert(Simplex([0]),3)
@@ -253,7 +253,7 @@ class FilteredComplex(SageObject):
         The computation behind persistent homology is a matrix reduction.
         The algorithm implemented is described in [ZC2005]_.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = FilteredComplex([([0], 0), ([1], 0), ([0,1], 2)])
             sage: X.compute_homology()
@@ -261,7 +261,8 @@ class FilteredComplex(SageObject):
             [(0, 2), (0, +Infinity)]
 
         Some homology elements may have a lifespan or persistence of 0.
-        They are usually discarded, but can be kept if necessary:
+        They are usually discarded, but can be kept if necessary::
+
             sage: X = FilteredComplex()
             sage: X.insert([0,1],1) # opens a hole and closes it instantly
             sage: X.compute_homology(strict=False)
@@ -490,6 +491,7 @@ class FilteredComplex(SageObject):
             return intervals.
 
         EXAMPLES::
+
             sage: X = FilteredComplex([([0], 0), ([1], 1), ([0,1], 2)])
             sage: X.compute_homology()
             sage: X.persistence_intervals(0)
@@ -507,6 +509,7 @@ class FilteredComplex(SageObject):
         duration ``[a, a+b]``.
 
         EXAMPLES::
+
             sage: X = FilteredComplex([([0], 0), ([1], 0), ([0,1], 2)])
             sage: X.compute_homology()
             sage: X.betti_number(0, 0.5, 1)
@@ -515,7 +518,7 @@ class FilteredComplex(SageObject):
             1
 
         If an element vanishes at time ``a+b`` exactly,
-        it does not count towards the betti number.
+        it does not count towards the betti number::
 
             sage: X = FilteredComplex([([0], 0), ([1], 0), ([0,1], 2)])
             sage: X.compute_homology()

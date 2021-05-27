@@ -354,10 +354,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
                 pass
 
             if is_QuadraticField(parent):
-                c = x._coefficients() + [0,0]
-                gen = parent.gen()
-                r = 'new QuadraticExtension({}, {}, {})'.format(c[0], c[1], gen*gen)
-                return r
+                return x._polymake_init_()
             try:
                 if x.parent().is_exact():
                     # No other exact rings are supported.

@@ -1,5 +1,5 @@
-pluggy
-======
+pluggy: plugin and hook calling mechanisms for python
+=====================================================
 
 Description
 -----------

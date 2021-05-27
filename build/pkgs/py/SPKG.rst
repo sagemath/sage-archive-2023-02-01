@@ -1,5 +1,5 @@
-py
-==
+py: library with cross-python path, ini-parsing, io, code, log facilities
+=========================================================================
 
 Description
 -----------

@@ -1,5 +1,5 @@
-virtualenv
-==========
+virtualenv: Virtual Python Environment builder
+==============================================
 
 Description
 -----------

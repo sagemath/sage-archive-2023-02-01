@@ -9,6 +9,8 @@ Read resources from Python packages
 License
 -------
 
+Apache2
+
 Upstream Contact
 ----------------
 

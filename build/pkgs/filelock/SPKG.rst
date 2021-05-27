@@ -1,5 +1,5 @@
-filelock
-========
+filelock: A platform independent file lock
+==========================================
 
 Description
 -----------

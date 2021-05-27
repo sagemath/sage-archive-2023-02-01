@@ -3,11 +3,11 @@ Gauss-Legendre integration for vector-valued functions
 
 Routine to perform Gauss-Legendre integration for vector-functions.
 
+EXAMPLES::
+
 AUTHORS:
 
  - Nils Bruin (2017-06-06): initial version
-
-EXAMPLES::
 
 NOTE:
 

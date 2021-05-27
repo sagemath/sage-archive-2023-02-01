@@ -1,12 +1,14 @@
 MemoryAllocator: An extension class to allocate memory easily with cython.
 ==========================================================================
 
+This extension class started as part of the Sage software.
+
 Description
 -----------
 
-development website: https://github.com/kliem/memory_allocator
+development website: https://github.com/sagemath/memory_allocator
 
-PyPI page: XXX
+PyPI page: https://pypi.org/project/memory_allocator
 
 License
 -------
@@ -16,4 +18,9 @@ GPL-3.0
 Upstream Contact
 ----------------
 
-https://github.com/kliem/memory_allocator
+https://github.com/sagemath/memory_allocator
+
+Dependencies
+------------
+
+-  Cython

@@ -1876,6 +1876,8 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         """
         return [x[0] for x in self.factor()]
 
+    support = prime_factors
+
     def _div_(self, other):
         """
         Return the quotient self / other.

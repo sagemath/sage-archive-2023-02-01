@@ -220,6 +220,20 @@ SAGE_SPKG_CONFIGURE_BASE([gcc], [
     fi
     AC_SUBST(CFLAGS_MARCH)
 
+    # Determine wether compiler supports OpenMP.
+    AC_LANG_PUSH([C])
+    AX_OPENMP([
+        AC_SUBST(OPENMP_CFLAGS)
+    ])
+    AC_LANG_POP()
+
+    AC_LANG_PUSH([C++])
+    AX_OPENMP([
+        AC_SUBST(OPENMP_CXXFLAGS)
+    ])
+    AC_LANG_POP()
+
+
 ], , , [
     # Trac #27907: Find location of crti.o from the system CC, in case we build our own gcc
     AC_MSG_CHECKING([for the location of crti.o])

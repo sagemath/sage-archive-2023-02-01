@@ -3468,12 +3468,21 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 5.quo_rem(2/3)
             (15/2, 0)
 
+        Check that :trac:`29009` is fixed:
+
+            sage: divmod(1, sys.maxsize+1r)  # should not raise OverflowError: Python int too large to convert to C long
+            (0, 1)
+            sage: import mpmath
+            sage: mpmath.mp.prec = 1000
+            sage: root = mpmath.findroot(lambda x: x^2 - 3, 2)
+            sage: len(str(root))
+            301
         """
         cdef Integer q = PY_NEW(Integer)
         cdef Integer r = PY_NEW(Integer)
         cdef long d, res
 
-        if type(other) is int:
+        if is_small_python_int(other):
             d = PyInt_AS_LONG(other)
             if d > 0:
                 mpz_fdiv_qr_ui(q.value, r.value, self.value, d)

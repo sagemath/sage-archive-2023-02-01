@@ -533,6 +533,7 @@ for lib in "\$SAGE_ROOT/build/bin/sage-dist-helpers" "\$SAGE_SRC/bin/sage-env-co
         exit 1
     fi
 done
+export PATH="$SAGE_INST_LOCAL/bin:$PATH"
 
 export SAGE_INST_LOCAL="$SAGE_INST_LOCAL"
 
@@ -701,7 +702,7 @@ rm -f "$SAGE_DESTDIR_LOCAL/lib64"
 
 # All spkgs should eventually support this, but fall back on old behavior in
 # case DESTDIR=$SAGE_DESTDIR installation was not used
-echo "Copying package files from temporary location $SAGE_DESTDIR to $SAGE_LOCAL"
+echo "Copying package files from temporary location $SAGE_DESTDIR to $SAGE_INST_LOCAL"
 if [ -d "$SAGE_DESTDIR" ]; then
     # Some `find` implementations will put superfluous slashes in the
     # output if we give them a directory name with a slash; so make sure
@@ -717,8 +718,8 @@ if [ -d "$SAGE_DESTDIR" ]; then
     # Generate installed file manifest
     FILE_LIST="$(cd "$PREFIX" && find . -type f -o -type l | sed 's|^\./||' | sort)"
 
-    # Copy files into $SAGE_LOCAL
-    $SAGE_SUDO cp -Rp "$PREFIX/." "$SAGE_LOCAL"
+    # Copy files into $SAGE_INST_LOCAL
+    $SAGE_SUDO cp -Rp "$PREFIX/." "$SAGE_INST_LOCAL"
     if [ $? -ne 0 ]; then
         error_msg "Error copying files for $PKG_NAME."
         exit 1
@@ -784,7 +785,7 @@ fi
 
 
 # Note: spkg-check tests are run after the package has been copied into
-# SAGE_LOCAL.  It might make more sense to run the tests before, but the
+# SAGE_INST_LOCAL.  It might make more sense to run the tests before, but the
 # spkg-check scripts were written before use of DESTDIR installs, and so
 # fail in many cases.  This might be good to change later.
 

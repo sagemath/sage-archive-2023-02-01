@@ -125,21 +125,21 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         <...sage.interfaces.polymake.PolymakeExpect...
         sage: isinstance(polymake_expect, PolymakeAbstract)
         True
-        sage: p = polymake_expect.rand_sphere(4, 20, seed=5)       # optional - polymake
+        sage: p = polymake_expect.rand_sphere(4, 20, seed=5)       # optional - polymake_expect
         doctest...: DeprecationWarning: the pexpect-based interface to
         polymake is deprecated.
         Install package jupymake so that Sage can use the more robust
         jupymake-based interface to polymake
         See https://trac.sagemath.org/27745 for details.
-        sage: p                                             # optional - polymake
+        sage: p                                             # optional - polymake_expect
         Random spherical polytope of dimension 4; seed=5...
         sage: set_verbose(3)
-        sage: p.H_VECTOR                                    # optional - polymake
+        sage: p.H_VECTOR                                    # optional - polymake_expect
         used package ppl
           The Parma Polyhedra Library ...
         1 16 40 16 1
         sage: set_verbose(0)
-        sage: p.F_VECTOR                                    # optional - polymake
+        sage: p.F_VECTOR                                    # optional - polymake_expect
         20 94 148 74
 
     Testing the JuPyMake interface::
@@ -334,8 +334,42 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             r = self.new("{" + ",".join(A) + "}")
             r.__sage_dict = z # do this to avoid having the entries of the list be garbage collected
             return r
-        else:
-            return super(PolymakeAbstract, self)._coerce_impl(x, use_special=use_special)
+
+        from sage.rings.all import Integer, Rational, RDF
+
+        def to_str(x):
+            if isinstance(x, list):
+                s = '['
+                for y in x:
+                    s += to_str(y) + ', '
+                s += ']'
+                return s
+            if isinstance(x, (Integer, Rational, int)):
+                return '{}'.format(x)
+
+            try:
+                if x.parent().is_exact():
+                    # No other exact rings are supported.
+                    raise NotImplementedError
+            except AttributeError:
+                pass
+
+            try:
+                x = RDF(x)
+                return '{}'.format(x)
+            except:
+                pass
+
+            raise NotImplementedError
+
+        # Iteratively calling polymake for conversion takes a long time.
+        # However, it takes iterated arrays of integers, rationals and floats directly.
+        try:
+            x = to_str(x)
+        except NotImplementedError:
+            pass
+
+        return super(PolymakeAbstract, self)._coerce_impl(x, use_special=use_special)
 
     def console(self):
         """
@@ -1514,6 +1548,48 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         """
         T1, T2 = self.typeof()
         self._check_valid()
+        try:
+            # Try to just read things from the string representation.
+            if 'Sparse' in T1:
+                raise NotImplementedError
+
+            r = self._repr_()
+            if 'Float' in T1:
+                from sage.rings.all import RDF
+                base_ring = RDF
+                str_to_base_ring = lambda s: RDF(s)
+            elif 'QuadraticExtension' in T1 and 'r' in r:
+                i = r.find('r')
+                i1 = min((r[i:]+' ').find(' '), (r[i:]+'\n').find('\n'))
+                d = int(r[i+1:i+i1])
+                from sage.rings.number_field.number_field import QuadraticField
+                base_ring = QuadraticField(d)
+
+                def str_to_base_ring(s):
+                    m = re.match(r'(-?[0-9/]+)[+]?((-?[0-9/]+)r([0-9/]+))?', s)
+                    a, b = m.group(1), m.group(3)
+                    return base_ring(a) + base_ring(b)*base_ring.gen()
+
+            elif 'Rational' in T1:
+                from sage.rings.all import QQ
+                base_ring = QQ
+                str_to_base_ring = lambda s: QQ(s)
+            else:
+                raise NotImplementedError
+
+            if 'Vector' in T1:
+                from sage.modules.free_module_element import vector
+                if r == '':
+                    return vector(base_ring)
+                return vector(base_ring, [str_to_base_ring(s) for s in r.split(' ')])
+            elif 'Matrix' in T1:
+                from sage.matrix.constructor import matrix
+                if r == '':
+                    return matrix(base_ring)
+                return matrix(base_ring, [[str_to_base_ring(s) for s in t.split(' ')] for t in r.split('\n')])
+        except:
+            pass
+
         if T1:
             Temp = self.typename()
             if Temp:
@@ -1765,19 +1841,19 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         sage: from sage.interfaces.polymake import polymake_expect as polymake
         sage: type(polymake)
         <...sage.interfaces.polymake.PolymakeExpect...
-        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - polymake
-        sage: p                                             # optional - polymake
+        sage: p = polymake.rand_sphere(4, 20, seed=5)       # optional - polymake_expect
+        sage: p                                             # optional - polymake_expect
         Random spherical polytope of dimension 4; seed=5...
         sage: set_verbose(3)
-        sage: p.H_VECTOR;                                   # optional - polymake # random
+        sage: p.H_VECTOR;                                   # optional - polymake_expect # random
         used package ppl
           The Parma Polyhedra Library ...
-        sage: p.H_VECTOR                                    # optional - polymake
+        sage: p.H_VECTOR                                    # optional - polymake_expect
         1 16 40 16 1
         sage: set_verbose(0)
-        sage: p.F_VECTOR                                    # optional - polymake
+        sage: p.F_VECTOR                                    # optional - polymake_expect
         20 94 148 74
-        sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake # random
+        sage: print(p.F_VECTOR._sage_doc_())                # optional - polymake_expect # random
         property_types/Algebraic Types/Vector:
          A type for vectors with entries of type Element.
 
@@ -1829,11 +1905,11 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         TESTS::
 
             sage: from sage.interfaces.polymake import polymake_expect as polymake
-            sage: polymake.application('fan')               # optional - polymake
-            sage: 'normal_fan' in dir(polymake)             # optional - polymake
+            sage: polymake.application('fan')               # optional - polymake_expect
+            sage: 'normal_fan' in dir(polymake)             # optional - polymake_expect
             True
-            sage: polymake.quit()                           # optional - polymake
-            sage: polymake._start()                         # optional - polymake
+            sage: polymake.quit()                           # optional - polymake_expect
+            sage: polymake._start()                         # optional - polymake_expect
             doctest...: DeprecationWarning: the pexpect-based interface to
             polymake is deprecated.
             Install package jupymake so that Sage can use the more robust
@@ -1843,7 +1919,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         Since 'normal_fan' is not defined in the polymake application 'polytope',
         we now get::
 
-            sage: 'normal_fan' in dir(polymake)             # optional - polymake
+            sage: 'normal_fan' in dir(polymake)             # optional - polymake_expect
             False
 
         """
@@ -1879,7 +1955,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         is very flaky. Therefore, this test is marked as "not tested". ::
 
             sage: from sage.interfaces.polymake import polymake_expect as polymake
-            sage: c = polymake.cube(15)                         # optional - polymake
+            sage: c = polymake.cube(15)                         # optional - polymake_expect
             sage: alarm(1)                                      # not tested
             sage: try:                                          # not tested # indirect doctest
             ....:     c.F_VECTOR
@@ -1895,7 +1971,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
 
         Afterwards, the interface should still be running.  ::
 
-            sage: c.N_FACETS                                    # optional - polymake
+            sage: c.N_FACETS                                    # optional - polymake_expect
             30
 
         """
@@ -1927,32 +2003,32 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         TESTS::
 
             sage: from sage.interfaces.polymake import polymake_expect as polymake
-            sage: Q = polymake.cube(4)                          # optional - polymake
-            sage: polymake('"ok"')                              # optional - polymake
+            sage: Q = polymake.cube(4)                          # optional - polymake_expect
+            sage: polymake('"ok"')                              # optional - polymake_expect
             ok
-            sage: polymake._expect.sendline()                   # optional - polymake
+            sage: polymake._expect.sendline()                   # optional - polymake_expect
             1
 
         Now the interface is badly out of sync::
 
-            sage: polymake('"foobar"')                          # optional - polymake
+            sage: polymake('"foobar"')                          # optional - polymake_expect
             <repr(<sage.interfaces.polymake.PolymakeElement at ...>) failed:
             ...PolymakeError: Can't locate object method "description" via package "1"
             (perhaps you forgot to load "1"?)...>
-            sage: Q.typeof()                                    # optional - polymake # random
+            sage: Q.typeof()                                    # optional - polymake_expect # random
             ('foobar...', 'Polymake::polytope::Polytope__Rational')
-            sage: Q.typeof.clear_cache()                        # optional - polymake
+            sage: Q.typeof.clear_cache()                        # optional - polymake_expect
 
         After synchronisation, things work again as expected::
 
-            sage: polymake._synchronize()                       # optional - polymake
+            sage: polymake._synchronize()                       # optional - polymake_expect
             doctest:warning
             ...
             UserWarning: Polymake seems out of sync:
             The expected output did not appear before reaching the next prompt.
-            sage: polymake('"back to normal"')                  # optional - polymake
+            sage: polymake('"back to normal"')                  # optional - polymake_expect
             back to normal
-            sage: Q.typeof()                                    # optional - polymake
+            sage: Q.typeof()                                    # optional - polymake_expect
             ('Polymake::polytope::Polytope__Rational', 'ARRAY')
 
         """
@@ -2032,13 +2108,13 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         EXAMPLES::
 
             sage: from sage.interfaces.polymake import polymake_expect as polymake
-            sage: p = polymake.cube(3)              # optional - polymake  # indirect doctest
+            sage: p = polymake.cube(3)              # optional - polymake_expect  # indirect doctest
 
         Here we see that remarks printed by polymake are displayed if
         the verbosity is positive::
 
             sage: set_verbose(1)
-            sage: p.N_LATTICE_POINTS                # optional - polymake # random
+            sage: p.N_LATTICE_POINTS                # optional - polymake_expect # random
             used package latte
               LattE (Lattice point Enumeration) is a computer software dedicated to the
               problems of counting lattice points and integration inside convex polytopes.
@@ -2303,20 +2379,20 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         and finds that the polytope is very ample::
 
             sage: from sage.interfaces.polymake import polymake_expect as polymake
-            sage: q = polymake.new_object("Polytope", INEQUALITIES=[[5,-4,0,1],[-3,0,-4,1],[-2,1,0,0],[-4,4,4,-1],[0,0,1,0],[8,0,0,-1],[1,0,-1,0],[3,-1,0,0]]) # optional - polymake
-            sage: q.H_VECTOR                    # optional - polymake
+            sage: q = polymake.new_object("Polytope", INEQUALITIES=[[5,-4,0,1],[-3,0,-4,1],[-2,1,0,0],[-4,4,4,-1],[0,0,1,0],[8,0,0,-1],[1,0,-1,0],[3,-1,0,0]]) # optional - polymake_expect
+            sage: q.H_VECTOR                    # optional - polymake_expect
             1 5 5 1
-            sage: q.F_VECTOR                    # optional - polymake
+            sage: q.F_VECTOR                    # optional - polymake_expect
             8 14 8
-            sage: q.VERY_AMPLE                  # optional - polymake
+            sage: q.VERY_AMPLE                  # optional - polymake_expect
             true
 
         In the application 'fan', polymake can now compute the normal fan
         of `q` and its (primitive) rays::
 
-            sage: polymake.application('fan')   # optional - polymake
-            sage: g = q.normal_fan()            # optional - polymake
-            sage: g.RAYS                        # optional - polymake
+            sage: polymake.application('fan')   # optional - polymake_expect
+            sage: g = q.normal_fan()            # optional - polymake_expect
+            sage: g.RAYS                        # optional - polymake_expect
             -1 0 1/4
             0 -1 1/4
             1 0 0
@@ -2325,7 +2401,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
             0 0 -1
             0 -1 0
             -1 0 0
-            sage: g.RAYS.primitive()            # optional - polymake
+            sage: g.RAYS.primitive()            # optional - polymake_expect
             -4 0 1
             0 -4 1
             1 0 0
@@ -2344,20 +2420,20 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         but only in 'tropical', the following shows the effect of changing
         the application. ::
 
-            sage: polymake.application('polytope')                   # optional - polymake
-            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
+            sage: polymake.application('polytope')                # optional - polymake_expect
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake_expect
             False
-            sage: polymake.application('tropical')                   # optional - polymake
-            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
+            sage: polymake.application('tropical')                # optional - polymake_expect
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake_expect
             True
-            sage: polymake.application('polytope')                   # optional - polymake
-            sage: 'trop_witness' in dir(polymake)                 # optional - polymake
+            sage: polymake.application('polytope')                # optional - polymake_expect
+            sage: 'trop_witness' in dir(polymake)                 # optional - polymake_expect
             False
 
         For completeness, we show what happens when asking for an application
         that doesn't exist::
 
-            sage: polymake.application('killerapp')                  # optional - polymake
+            sage: polymake.application('killerapp')               # optional - polymake_expect
             Traceback (most recent call last):
             ...
             ValueError: Unknown polymake application 'killerapp'
@@ -2365,7 +2441,7 @@ class PolymakeExpect(PolymakeAbstract, Expect):
         Of course, a different error results when we send an explicit
         command in polymake to change to an unknown application::
 
-            sage: polymake.eval('application "killerapp";')         # optional - polymake
+            sage: polymake.eval('application "killerapp";')       # optional - polymake_expect
             Traceback (most recent call last):
             ...
             PolymakeError: Unknown application killerapp

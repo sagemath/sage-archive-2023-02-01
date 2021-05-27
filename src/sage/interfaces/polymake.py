@@ -336,6 +336,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             return r
 
         from sage.rings.all import Integer, Rational, RDF
+        from sage.rings.number_field.number_field import is_QuadraticField
 
         def to_str(x):
             if isinstance(x, list):
@@ -346,7 +347,17 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
                 return s
             if isinstance(x, (Integer, Rational, int)):
                 return '{}'.format(x)
+            parent = None
+            try:
+                parent = x.parent()
+            except AttributeError:
+                pass
 
+            if is_QuadraticField(parent):
+                c = x._coefficients() + [0,0]
+                gen = parent.gen()
+                r = 'new QuadraticExtension({}, {}, {})'.format(c[0], c[1], gen*gen)
+                return r
             try:
                 if x.parent().is_exact():
                     # No other exact rings are supported.
@@ -365,7 +376,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         # Iteratively calling polymake for conversion takes a long time.
         # However, it takes iterated arrays of integers, rationals and floats directly.
         try:
-            x = to_str(x)
+            return self.new(to_str(x))
         except NotImplementedError:
             pass
 

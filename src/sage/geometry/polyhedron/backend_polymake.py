@@ -497,7 +497,7 @@ class Polyhedron_polymake(Polyhedron_base):
                     base_ring = coercion_model.common_parent(*data).base_ring()
                 else:
                     base_ring = QQ
-            ambient_dim = polymake_polytope.AMBIENT_DIM()
+            ambient_dim = polymake_polytope.AMBIENT_DIM().sage()
             parent = Polyhedra(base_ring=base_ring, ambient_dim=ambient_dim, backend='polymake')
         return cls(parent, None, None, polymake_polytope=polymake_polytope)
 

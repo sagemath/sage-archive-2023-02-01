@@ -334,8 +334,42 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             r = self.new("{" + ",".join(A) + "}")
             r.__sage_dict = z # do this to avoid having the entries of the list be garbage collected
             return r
-        else:
-            return super(PolymakeAbstract, self)._coerce_impl(x, use_special=use_special)
+
+        from sage.rings.all import Integer, Rational, RDF
+
+        def to_str(x):
+            if isinstance(x, list):
+                s = '['
+                for y in x:
+                    s += to_str(y) + ', '
+                s += ']'
+                return s
+            if isinstance(x, (Integer, Rational, int)):
+                return '{}'.format(x)
+
+            try:
+                if x.parent().is_exact():
+                    # No other exact rings are supported.
+                    raise NotImplementedError
+            except AttributeError:
+                pass
+
+            try:
+                x = RDF(x)
+                return '{}'.format(x)
+            except:
+                pass
+
+            raise NotImplementedError
+
+        # Iteratively calling polymake for conversion takes a long time.
+        # However, it takes iterated arrays of integers, rationals and floats directly.
+        try:
+            x = to_str(x)
+        except NotImplementedError:
+            pass
+
+        return super(PolymakeAbstract, self)._coerce_impl(x, use_special=use_special)
 
     def console(self):
         """

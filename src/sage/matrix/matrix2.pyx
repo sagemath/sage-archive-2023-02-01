@@ -6590,6 +6590,12 @@ cdef class Matrix(Matrix1):
             doctest:...: DeprecationWarning: "extend" should be used as keyword argument
             See https://trac.sagemath.org/29243 for details.
             []
+
+        Check :trac:`30518`::
+
+            sage: K.<i> = QuadraticField(-1)
+            sage: m = matrix(K, 4, [2,4*i,-i,0, -4*i,2,-1,0, 2*i,-2,0,0, 4*i+4, 4*i-4,1-i,-2])
+            sage: assert all(m*v == e*v for e, vs, _ in m.eigenvectors_right() for v in vs)
         """
         if other is not None:
             if isinstance(other, bool):

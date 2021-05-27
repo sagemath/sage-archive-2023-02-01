@@ -320,9 +320,12 @@ class BipartiteGraph(Graph):
             ....:     G = BipartiteGraph(A)
             sage: for _ in range(10):
             ....:     make_bip_graph(A)
+            sage: import gc
+            sage: _ = gc.collect()
             sage: start_mem = get_memory_usage()
             sage: for _ in range(10):
             ....:     make_bip_graph(A)
+            sage: _ = gc.collect()
             sage: print(round(get_memory_usage() - start_mem))
             0.0
         """

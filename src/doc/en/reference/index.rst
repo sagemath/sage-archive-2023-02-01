@@ -99,7 +99,6 @@ Geometry and Topology
 * :doc:`Euclidean Spaces and Vector Calculus <euclidean_spaces/index>`
 * :doc:`Combinatorial and Discrete Geometry <discrete_geometry/index>`
 * :doc:`Cell Complexes and their Homology <homology/index>`
-* :doc:`Filtered Complexes and Persistent Homology <persistent_homology/index>`
 * :doc:`Manifolds and Differential Geometry <manifolds/index>`
 * :doc:`Hyperbolic Geometry <hyperbolic_geometry/index>`
 * :doc:`Parametrized Surfaces <riemannian_geometry/index>`

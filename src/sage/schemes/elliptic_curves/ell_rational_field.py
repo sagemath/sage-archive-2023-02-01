@@ -4439,17 +4439,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if self.conductor().is_squarefree():
             return self, Integer(1)
         j = self.j_invariant()
-        if j!=0 and j!=1728:
+        if j != 0 and j != 1728:
             # the constructor from j will give the minimal twist
             Et = constructor.EllipticCurve_from_j(j)
         else:
-            if j==0:  # divide c6 by largest cube
+            if j == 0:  # divide c6 by largest cube
                 c = -2*self.c6()
                 for p in c.support():
                     e = c.valuation(p)//3
                     c /= p**(3*e)
                 E1 = constructor.EllipticCurve([0,0,0,0,c])
-            elif j==1728: # divide c4 by largest square
+            else: # j=1728 ; divide c4 by largest square
                 c = -3*self.c4()
                 for p in c.support():
                     e = c.valuation(p)//2

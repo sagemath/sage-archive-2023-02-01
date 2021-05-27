@@ -35,6 +35,10 @@ SAGE_PKG_CONFIG_PATH = "@SAGE_PKG_CONFIG_PATH@".replace('$SAGE_LOCAL', SAGE_LOCA
 MATHJAX_DIR = SAGE_LOCAL + "/share/mathjax"
 THREEJS_DIR = SAGE_LOCAL + "/share/threejs"
 
+# OpenMP flags, if available.
+OPENMP_CFLAGS = "@OPENMP_CFLAGS@"
+OPENMP_CXXFLAGS = "@OPENMP_CXXFLAGS@"
+
 # Entry point 'sage-config'.  It does not depend on any packages.
 
 def _main():

@@ -4001,7 +4001,7 @@ class BTerm(TermWithCoefficient):
         sage: G = MonomialGrowthGroup(ZZ, 'x');
         sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
         sage: BT_QQ(x, 3, {'x': 20})
-        Term with coefficient 3, growth x and valid_from 20
+        Term with coefficient 3, growth x and valid from {'x': 20}
     """
     def __init__(self, parent, growth, coefficient, valid_from):
         r"""
@@ -4023,8 +4023,8 @@ class BTerm(TermWithCoefficient):
         super(BTerm, self).__init__(parent=parent, growth=growth, coefficient=coefficient)
 
     def _repr_(self):
-        return 'Term with coefficient %s and growth %s valid from %s' % \
-               (self.coefficient, self.growth, self.valid_from)
+        return 'Term with coefficient {}, growth {} and valid from {}'.format(
+               self.coefficient, self.growth, self.valid_from)
     
     def can_absorb(self, other):
         raise NotImplementedError
@@ -4060,7 +4060,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
         sage: BT = BTermMonoid(TermMonoid, G, QQ)
         sage: t1 = BT(x, 3, {'x': 20}); t2 = BT(x, 1, {'x': 10})
         sage: t1.absorb(t2)                                                                                                                                                                                                         
-        Term with coefficient 1/20 and growth x valid from 20
+        Term with coefficient 1/20, growth x and valid from 20
     """
 
     # enable the category framework for elements
@@ -4268,7 +4268,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: Term specification 'icecream' has to be either
-            'exact' or 'O' or an instance of an existing term.
+            'exact' or 'O' or 'B' or an instance of an existing term.
             sage: TermMonoid.create_key_and_extra_args('O', ZZ)
             Traceback (most recent call last):
             ...
@@ -4283,7 +4283,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         elif term_monoid == 'B':
             term_class = self.BTermMonoid
         else:
-            raise ValueError("Term specification '%s' has to be either 'exact', 'O' or 'B' "
+            raise ValueError("Term specification '%s' has to be either 'exact' or 'O' or 'B' "
                              "or an instance of an existing term." % term_monoid)
 
         if asymptotic_ring is not None and \

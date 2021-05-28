@@ -3985,14 +3985,14 @@ class BTerm(TermWithCoefficient):
 
     INPUT:
 
-    - ``parent`` -- the parent of the asymptotic term.
+    - ``parent`` -- the parent of the asymptotic term
 
     - ``growth`` -- an asymptotic growth element of
-      the parent's growth group.
+      the parent's growth group
 
-    - ``coefficient`` -- an element of the parent's coefficient ring.
+    - ``coefficient`` -- an element of the parent's coefficient ring
 
-    - ``valid_from`` -- list of indices from which the term is valid.
+    - ``valid_from`` -- list of indices from which the term is valid
 
     EXAMPLES::
 

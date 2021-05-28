@@ -4011,6 +4011,7 @@ class BTerm(TermWithCoefficient):
     """
     def __init__(self, parent, growth, coefficient, valid_from):
         r"""
+        See :class:`BTerm` for more information.
         """
         try:
             coefficient = parent.coefficient_ring(coefficient)

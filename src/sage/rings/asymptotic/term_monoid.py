@@ -4026,9 +4026,32 @@ class BTerm(TermWithCoefficient):
         self.coefficient = coefficient
         self.valid_from = valid_from
         
-        super(BTerm, self).__init__(parent=parent, growth=growth, coefficient=coefficient)
+        super().__init__(parent=parent, growth=growth, coefficient=coefficient)
 
     def _repr_(self):
+        r"""
+        A representation string for this B term.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        A string
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+            sage: G = MonomialGrowthGroup(ZZ, 'x');
+            sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
+            sage: BT_QQ(x, 3, {'x': 20})
+            Term with coefficient 3, growth x and valid from {'x': 20}
+        """
         return f'Term with coefficient {self.coefficient}, growth {self.growth}\
                 and valid from {self.valid_from}'
     
@@ -4071,6 +4094,30 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
     # enable the category framework for elements
     Element = BTerm
+
+    def _repr_(self):
+        r"""
+        A representation string for this B term monoid.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        A string
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: G = MonomialGrowthGroup(ZZ, 'x');
+            sage: TermMonoid('B', G, QQ)._repr_()
+            'B Term Monoid x^ZZ with coefficients in Rational Field'
+        """
+        return f'B Term Monoid {self.growth_group._repr_short_()} with ' + \
+               f'coefficients in {self.coefficient_ring}'
 
     def _create_element_(self, growth, coefficient, valid_from):
         r"""

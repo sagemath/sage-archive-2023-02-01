@@ -4016,13 +4016,12 @@ class BTerm(TermWithCoefficient):
         try:
             coefficient = parent.coefficient_ring(coefficient)
         except (ValueError, TypeError):
-            raise ValueError('{} is not a coefficient in {}.'.format(
-                             coefficient, parent.coefficient_ring))
+            raise ValueError(f'{coefficient} is not a coefficient in \
+                             {parent.coefficient_ring}.')
 
         if not coefficient:
             raise ZeroCoefficientError(
-                'Zero coefficient %s is not allowed in %s.' %
-                (coefficient, parent))
+                f'Zero coefficient {coefficient} is not allowed in {parent}.')
 
         self.coefficient = coefficient
         self.valid_from = valid_from
@@ -4030,8 +4029,8 @@ class BTerm(TermWithCoefficient):
         super(BTerm, self).__init__(parent=parent, growth=growth, coefficient=coefficient)
 
     def _repr_(self):
-        return 'Term with coefficient {}, growth {} and valid from {}'.format(
-               self.coefficient, self.growth, self.valid_from)
+        return f'Term with coefficient {self.coefficient}, growth {self.growth}\
+                and valid from {self.valid_from}'
     
     def can_absorb(self, other):
         raise NotImplementedError

@@ -1712,6 +1712,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
         - ``coefficient`` -- (default: ``None``)
           an element of the coefficient ring.
 
+        - ``valid_from`` -- (default: ``None``)
+          a dictionary of variables with their starting index.
+
         OUTPUT:
 
         An element of this term monoid.

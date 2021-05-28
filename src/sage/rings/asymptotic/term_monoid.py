@@ -1713,7 +1713,8 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
           an element of the coefficient ring.
 
         - ``valid_from`` -- (default: ``None``)
-          a dictionary of variables with their starting index.
+          a dictionary mapping variable names to lower bounds for the corresponding
+          variable.
 
         OUTPUT:
 
@@ -3992,7 +3993,9 @@ class BTerm(TermWithCoefficient):
 
     - ``coefficient`` -- an element of the parent's coefficient ring
 
-    - ``valid_from`` -- list of indices from which the term is valid
+    - ``valid_from`` -- dictionary mapping variable names to lower bounds
+      for the corresponding vriable. the bound by this term is valid when
+      all variables are at least their corresponding lowe bound
 
     EXAMPLES::
 

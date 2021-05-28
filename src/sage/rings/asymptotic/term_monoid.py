@@ -4015,8 +4015,8 @@ class BTerm(TermWithCoefficient):
         try:
             coefficient = parent.coefficient_ring(coefficient)
         except (ValueError, TypeError):
-            raise ValueError('%s is not a coefficient in %s.' %
-                             (coefficient, parent))
+            raise ValueError('{} is not a coefficient in {}.'.format(
+                             coefficient, parent.coefficient_ring))
 
         if coefficient == 0:
             raise ZeroCoefficientError(

@@ -1957,8 +1957,29 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
     def construction(self):
         """
         Return the construction functor.
+
+        EXAMPLES::
+
+            sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_integral_domain as PRing
+            sage: R = PRing(ZZ, 'x'); R
+            sage: functor, arg = R.construction(); functor, arg
+            (Poly[x], Integer Ring)
+            sage: functor.implementation is None
+            True
+
+            sage: R = PRing(ZZ, 'x', implementation='NTL'); R
+            sage: functor, arg = R.construction(); functor, arg
+            (Poly[x], Integer Ring)
+            sage: functor.implementation
+            'NTL'
         """
         implementation = None
+        # NOTE: This is obviously not a complete solution. The parents
+        # don't keep track in a clean way what the implementation is.
+        # Trac #31852 is the task of finding a general solution for
+        # construction functors of parents with multiple
+        # implementations, such as MatrixSpace, Polyhedron, and
+        # PolynomialRing.
         if 'NTL' in self._implementation_repr:
             implementation = 'NTL'
         return categories.pushout.PolynomialFunctor(self.variable_name(), sparse=self.is_sparse(),

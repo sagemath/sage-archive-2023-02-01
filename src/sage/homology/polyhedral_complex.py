@@ -1621,6 +1621,11 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc = pc1.disjoint_union(pc2)
             sage: set(pc.maximal_cell_iterator()) == set([p1, p2, p3])
             True
+            sage: pc4 = Polyhedron(vertices=[(1, 1), (0, 0), (0, 2)])
+            sage: pc.disjoint_union(PolyhedralComplex([pc4]))
+            Traceback (most recent call last):
+            ...
+            ValueError: The given cells are not face-to-face
         """
         maximal_cells = list(self.maximal_cell_iterator()) + list(
                         right.maximal_cell_iterator())

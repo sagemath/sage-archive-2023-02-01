@@ -92,7 +92,7 @@ List of PolyhedralComplex methods
     :meth:`~PolyhedralComplex.join` | Return the join of this polyhedral complex with another one.
     :meth:`~PolyhedralComplex.subdivide` | Return a new polyhedral complex (with option ``make_simplicial``) subdividing this one.
 
-**Update polyhedral complexe**
+**Update polyhedral complex**
 
 .. csv-table::
     :class: contentstable
@@ -1295,7 +1295,7 @@ class PolyhedralComplex(GenericCellComplex):
         Return the sub-polyhedral complex that is the boundary of ``self``.
 
         A point `P` is on the boundary of a set `S` if `P` is in the
-        closure of `S` but not in the interoir of `S`.
+        closure of `S` but not in the interior of `S`.
 
         EXAMPLES::
 
@@ -1359,7 +1359,7 @@ class PolyhedralComplex(GenericCellComplex):
         Return the maximal cells of the relative-boundary sub-complex.
 
         A point `P` is in the relative boundary of a set `S` if `P` is in the
-        closure of `S` but not in the relative interoir of `S`.
+        closure of `S` but not in the relative interior of `S`.
 
 
         .. WARNING::
@@ -1661,7 +1661,7 @@ class PolyhedralComplex(GenericCellComplex):
                                  backend=self._backend)
 
     ############################################################
-    # abstract methods not implemented in generic cell complexe
+    # abstract methods not implemented in generic cell complex
     ############################################################
 
     def wedge(self, right):

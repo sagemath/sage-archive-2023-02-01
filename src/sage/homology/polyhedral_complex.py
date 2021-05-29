@@ -89,6 +89,7 @@ List of PolyhedralComplex methods
     :meth:`~PolyhedralComplex.boundary_subcomplex` | Return the boundary subcomplex of this polyhedral complex.
     :meth:`~PolyhedralComplex.product` | Return the (Cartesian) product of this polyhedral complex with another one.
     :meth:`~PolyhedralComplex.disjoint_union` | Return the disjoint union of this polyhedral complex with another one.
+    :meth:`~PolyhedralComplex.union` | Return the union of this polyhedral complex with another one.
     :meth:`~PolyhedralComplex.join` | Return the join of this polyhedral complex with another one.
     :meth:`~PolyhedralComplex.subdivide` | Return a new polyhedral complex (with option ``make_simplicial``) subdividing this one.
 
@@ -1613,16 +1614,48 @@ class PolyhedralComplex(GenericCellComplex):
 
         EXAMPLES::
 
-            sage: p1 = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
-            sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
-            sage: p3 = Polyhedron(vertices=[(0, 0), (1, 1), (2, 0)])
-            sage: pc1 = PolyhedralComplex([p1, p3])
-            sage: pc2 = PolyhedralComplex([p2])
-            sage: pc = pc1.disjoint_union(pc2)
-            sage: set(pc.maximal_cell_iterator()) == set([p1, p2, p3])
+            sage: p1 = Polyhedron(vertices=[(-1, 0), (0, 0), (0, 1)])
+            sage: p2 = Polyhedron(vertices=[(0, -1), (0, 0), (1, 0)])
+            sage: p3 = Polyhedron(vertices=[(0, -1), (1, -1), (1, 0)])
+            sage: pc = PolyhedralComplex([p1]).disjoint_union(PolyhedralComplex([p3]))
+            sage: set(pc.maximal_cell_iterator()) == set([p1, p3])
             True
-            sage: pc4 = Polyhedron(vertices=[(1, 1), (0, 0), (0, 2)])
-            sage: pc.disjoint_union(PolyhedralComplex([pc4]))
+            sage: pc.disjoint_union(PolyhedralComplex([p2]))
+            Traceback (most recent call last):
+            ...
+            ValueError: The two complexes are not disjoint
+        """
+        maximal_cells_self = list(self.maximal_cell_iterator())
+        maximal_cells_right = list(right.maximal_cell_iterator())
+        for cell in maximal_cells_self:
+            for cell_right in maximal_cells_right:
+                if not cell.intersection(cell_right).is_empty():
+                    raise ValueError("The two complexes are not disjoint")
+        return PolyhedralComplex(maximal_cells_self + maximal_cells_right,
+                                 maximality_check=False,
+                                 face_to_face_check=False,
+                                 is_immutable=(self._is_immutable and
+                                               right._is_immutable),
+                                 backend=self._backend)
+
+    def union(self, right):
+        """
+        The union of this polyhedral complex with another one.
+
+        :param right: the other polyhedral complex (the right-hand factor)
+
+        EXAMPLES::
+
+            sage: p1 = Polyhedron(vertices=[(-1, 0), (0, 0), (0, 1)])
+            sage: p2 = Polyhedron(vertices=[(0, -1), (0, 0), (1, 0)])
+            sage: p3 = Polyhedron(vertices=[(0, -1), (1, -1), (1, 0)])
+            sage: pc = PolyhedralComplex([p1]).union(PolyhedralComplex([p3]))
+            sage: set(pc.maximal_cell_iterator()) == set([p1, p3])
+            True
+            sage: pc.union(PolyhedralComplex([p2]))
+            Polyhedral complex with 3 maximal cells
+            sage: p4 = Polyhedron(vertices=[(0, -1), (0, 0), (1, 0), (1, -1)])
+            sage: pc.union(PolyhedralComplex([p4]))
             Traceback (most recent call last):
             ...
             ValueError: The given cells are not face-to-face

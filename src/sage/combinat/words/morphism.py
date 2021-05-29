@@ -3238,17 +3238,17 @@ class WordMorphism(SageObject):
 
         Requires this morphism to be an endomorphism.
 
-        A language created by iterating a morphism is pushy if its words
+        A language created by iterating a morphism is pushy, if its words
         contain an infinite number of factors containing no growing letters. It
         turns out that this is equivalent to having at least one infinite
         repetition containing no growing letters.
 
-        See :meth:`infinite_repetitions` and :meth:`is_growing`.
+        See :meth:`infinite_repetitions_primitive_roots` and :meth:`is_growing`.
 
         INPUT:
 
-        - ``w`` -- finite iterable representing a word used to start the
-          language, default is ``self.domain().alphabet()``
+        - ``w`` -- finite iterable (default: ``self.domain().alphabet()``).
+          Represents a word used to start the language.
 
         EXAMPLES::
 
@@ -3257,7 +3257,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->abc,b->,c->bcb').is_pushy()
             True
         """
-        return bool(self.infinite_repetitions_bounded(w))
+        return bool(self.infinite_repetitions_primitive_roots(w, False))
 
     def is_unboundedly_repetitive(self, w=None):
         r"""
@@ -3266,16 +3266,16 @@ class WordMorphism(SageObject):
 
         Requires this morphism to be an endomorphism.
 
-        A language created by iterating a morphism is unboundedly repetitive if
+        A language created by iterating a morphism is unboundedly repetitive, if
         it has at least one infinite repetition containing at least one growing
         letter.
 
-        See :meth:`infinite_repetitions` and :meth:`is_growing`.
+        See :meth:`infinite_repetitions_primitive_roots` and :meth:`is_growing`.
 
         INPUT:
 
-        - ``w`` -- finite iterable representing a word used to start the
-          language, default is ``self.domain().alphabet()``
+        - ``w`` -- finite iterable (default: ``self.domain().alphabet()``).
+          Represents a word used to start the language.
 
         EXAMPLES::
 
@@ -3284,7 +3284,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->abc,b->,c->bcb').is_unboundedly_repetitive()
             False
         """
-        return bool(self.infinite_repetitions_growing(w))
+        return bool(self.infinite_repetitions_primitive_roots(w, True))
 
     def is_repetitive(self, w=None):
         r"""
@@ -3293,23 +3293,23 @@ class WordMorphism(SageObject):
 
         Requires this morphism to be an endomorphism.
 
-        A language is repetitive if for each positive integer `k` there exists
+        A language is repetitive, if for each positive integer `k` there exists
         a word `u` such that `u^k` is a factor of some word of the language.
 
-        It turns that for languages created by iterating a morphism this is
+        It turns out that for languages created by iterating a morphism this is
         equivalent to having at least one infinite repetition (this property is
         also known as strong repetitiveness).
 
-        See :meth:`infinite_repetitions`.
+        See :meth:`infinite_repetitions_primitive_roots`.
 
         INPUT:
 
-        - ``w`` -- finite iterable representing a word used to start the
-          language, default is ``self.domain().alphabet()``
+        - ``w`` -- finite iterable (default: ``self.domain().alphabet()``).
+          Represents a word used to start the language.
 
         EXAMPLES:
 
-        This method can be used to check whether a purely morphic word is NOT
+        This method can be used to check whether a purely morphic word is not
         k-power free for all positive integers k. For example, the language
         containing just the Thue-Morse word and its prefixes is not repetitive,
         since the Thue-Morse word is cube-free::
@@ -3330,40 +3330,55 @@ class WordMorphism(SageObject):
         """
         return self.is_pushy(w) or self.is_unboundedly_repetitive(w)
 
-    def infinite_repetitions(self, w=None):
+    def infinite_repetitions_primitive_roots(self, w=None, allow_growing=None):
         r"""
-        Return the set of primitive infinite repetitions (up to conjugacy)
-        from the language `\{m^n(w) | n \ge 0\}`, where `m` is this morphism
-        and `w` is a word inputted as a parameter.
+        Return the set of primitive roots (up to conjugacy) of infinite
+        repetitions from the language `\{m^n(w) | n \ge 0\}`, where `m` is this
+        morphism and `w` is a word inputted as a parameter.
 
         Requires this morphism to be an endomorphism.
 
-        A non-empty word `v` is an infinite repetition (also known as an
-        infinite periodic factor) of a language if for each positive integer
-        `k` the word `v^k` is a factor of some word from the language.
+        The word `v^\omega` is an infinite repetition (in other words, an
+        infinite periodic factor) of a language, if `v` is a non-empty word and
+        for each positive integer `k` the word `v^k` is a factor of some word
+        from the language. It turns out that a language created by iterating a
+        morphism has a finite number of primitive roots of infinite repetitions.
 
-        If `v` is an infinite repetition, then all its powers are also infinite
-        repetitions, therefore this method returns only the primitive ones. It
-        turns out that a language created by iterating a morphism has a finite
-        number of primitive infinite repetitions.
-
-        Similarly, if `v` is an infinite repetition, then all its conjugates
-        are also infinite repetitions, therefore this method returns only the
-        lexicographically minimal one from each conjugacy class.
+        If `v` is a primitive root of an infinite repetition, then all its
+        conjugations are also primitive roots of an infinite repetition. For
+        simplicity's sake this method returns only the lexicographically minimal
+        one from each conjugacy class.
 
         INPUT:
 
-        - ``w`` -- finite iterable representing a word used to start the
-          language, default is ``self.domain().alphabet()``
+        - ``w`` -- finite iterable (default: ``self.domain().alphabet()``).
+          Represents a word used to start the language.
+
+        - ``allow_growing`` -- boolean or ``None`` (default: ``None``). If
+          ``False``, return only the primitive roots that contain no growing
+          letters. If ``True``, return only the primitive roots that contain at
+          least one growing letter. If ``None``, return both.
+
+        ALGORITHM:
+
+        The algorithm used is described in detail in [KS2015]_.
 
         EXAMPLES::
 
             sage: m = WordMorphism('a->aba,b->aba,c->cd,d->e,e->d')
-            sage: inf_reps = m.infinite_repetitions('ac')
+            sage: inf_reps = m.infinite_repetitions_primitive_roots('ac')
             sage: sorted(inf_reps)
             [word: aab, word: de]
 
-        Incomplete check that these words are indeed infinite repetitions::
+        ``allow_growing`` parameter::
+
+            sage: sorted(m.infinite_repetitions_primitive_roots('ac', True))
+            [word: aab]
+            sage: sorted(m.infinite_repetitions_primitive_roots('ac', False))
+            [word: de]
+
+        Incomplete check that these words are indeed the primitive roots of
+        infinite repetitions::
 
             sage: SL = m._language_naive(10, Word('ac'))
             sage: all(x in SL for x in inf_reps)
@@ -3373,54 +3388,39 @@ class WordMorphism(SageObject):
             sage: all(x^3 in SL for x in inf_reps)
             True
 
-        Larger example::
+        Large example::
 
             sage: m = WordMorphism('a->1b5,b->fcg,c->dae,d->432,e->678,f->f,g->g,1->2,2->3,3->4,4->1,5->6,6->7,7->8,8->5')
-            sage: sorted(m.infinite_repetitions('a'))
+            sage: sorted(m.infinite_repetitions_primitive_roots('a'))
             [word: 1432f2143f3214f4321f, word: 5678g8567g7856g6785g]
-        """
-        return self.infinite_repetitions_bounded(w) | self.infinite_repetitions_growing(w)
-
-    def infinite_repetitions_bounded(self, w=None):
-        r"""
-        Return the set of primitive infinite repetitions (up to conjugacy),
-        which contain no growing letters,
-        from the language `\{m^n(w) | n \ge 0\}`, where `m` is this morphism
-        and `w` is a word inputted as a parameter.
-
-        Requires this morphism to be an endomorphism.
-
-        See :meth:`infinite_repetitions` and :meth:`is_growing`.
-
-        INPUT:
-
-        - ``w`` -- finite iterable representing a word used to start the
-          language, default is ``self.domain().alphabet()``
-
-        ALGORITHM:
-
-        The algorithm used is described in detail in [KS2015]_.
-
-        EXAMPLES::
-
-            sage: m = WordMorphism('a->aba,b->aba,c->cd,d->e,e->d')
-            sage: sorted(m.infinite_repetitions_bounded())
-            [word: de]
-
-            sage: m = WordMorphism('c->d,d->c,e->fc,f->ed')
-            sage: sorted(m.infinite_repetitions_bounded())
-            [word: c, word: d]
 
         TESTS::
 
             sage: m = WordMorphism('a->Cab,b->1c1,c->E2bd5,d->BbaA,5->6,6->7,7->8,8->9,9->5,1->2,2->1,A->B,B->C,C->D,D->E,E->')
-            sage: sorted(m.infinite_repetitions_bounded())
+            sage: sorted(m.infinite_repetitions_primitive_roots())
             [word: 1, word: 1519181716, word: 2, word: 2529282726]
 
-            sage: WordMorphism('a->b,b->b', codomain=FiniteWords('ab')).infinite_repetitions()
+            sage: m = WordMorphism('a->b,b->b', codomain=FiniteWords('ab'))
+            sage: m.infinite_repetitions_primitive_roots()
             set()
+
+            sage: m = WordMorphism('c->d,d->c,e->fc,f->ed')
+            sage: sorted(m.infinite_repetitions_primitive_roots())
+            [word: c, word: d]
+
+            sage: m = WordMorphism('a->bcb,b->ada,c->d,d->c')
+            sage: sorted(m.infinite_repetitions_primitive_roots())
+            [word: ad, word: bc]
+
+            sage: m = WordMorphism('b->c,c->bcb')
+            sage: sorted(m.infinite_repetitions_primitive_roots())
+            [word: bc]
+
+            sage: m = WordMorphism('a->abc,b->dab,c->abc,d->dab')
+            sage: sorted(m.infinite_repetitions_primitive_roots())
+            [word: ababcd]
         """
-        def impl():
+        def impl_no_growing(g, k):
             U = {}
             for x in unbounded:
                 xg = g.image(x)
@@ -3452,93 +3452,44 @@ class WordMorphism(SageObject):
         g, _, k, _ = f.simplify_until_injective()
         g._codomain = g._domain
         unbounded = set(g.growing_letters())
-        gb = g.restrict_domain(set(g._morph) - unbounded)
-
         result = set()
-        for x in impl():  # UR.
-            result.add(x.minimal_conjugate())
-        g, k = g.reversal(), k.reversal()
-        for x in impl():  # UL.
-            result.add(self.domain()(reversed(x)).minimal_conjugate())
 
-        return result
+        if allow_growing is not True:
+            gb = g.restrict_domain(set(g._morph) - unbounded)
+            for x in impl_no_growing(g, k):  # UR.
+                result.add(x.minimal_conjugate())
+            for x in impl_no_growing(g.reversal(), k.reversal()):  # UL.
+                result.add(self.domain()(reversed(x)).minimal_conjugate())
 
-    def infinite_repetitions_growing(self, w=None):
-        r"""
-        Return the set of primitive infinite repetitions (up to conjugacy),
-        which contain at least one growing letter,
-        from the language `\{m^n(w) | n \ge 0\}`, where `m` is this morphism
-        and `w` is a word inputted as a parameter.
-
-        Requires this morphism to be an endomorphism.
-
-        See :meth:`infinite_repetitions` and :meth:`is_growing`.
-
-        INPUT:
-
-        - ``w`` -- finite iterable representing a word used to start the
-          language, default is ``self.domain().alphabet()``
-
-        ALGORITHM:
-
-        The algorithm used is described in detail in [KS2015]_.
-
-        EXAMPLES::
-
-            sage: m = WordMorphism('a->aba,b->aba,c->cd,d->e,e->d')
-            sage: sorted(m.infinite_repetitions_growing())
-            [word: aab]
-
-            sage: m = WordMorphism('a->bcb,b->ada,c->d,d->c')
-            sage: sorted(m.infinite_repetitions_growing())
-            [word: ad, word: bc]
-
-            sage: m = WordMorphism('b->c,c->bcb')
-            sage: sorted(m.infinite_repetitions_growing())
-            [word: bc]
-
-            sage: m = WordMorphism('a->abc,b->dab,c->abc,d->dab')
-            sage: sorted(m.infinite_repetitions_growing())
-            [word: ababcd]
-        """
-        if w is None:
-            w = self._morph
-        reach = self._language_naive(2, self._domain(w))
-        f = self.restrict_domain([x[0] for x in reach])
-        f._codomain = f._domain
-        g, _, k, _ = f.simplify_until_injective()
-        g._codomain = g._domain
-        unbounded = set(g.growing_letters())
-
-        result = set()
-        for periodic_orbit in g.periodic_points():
-            gq = g ** len(periodic_orbit)
-            for periodic_point in periodic_orbit:
-                # Check if this periodic point is a periodic infinite word.
-                periodic_point = periodic_point[:1]
-                occurred = set(periodic_point)
-                one_unbounded_twice = False
-                for _ in g.domain().alphabet():
-                    previous_length = periodic_point.length()
-                    periodic_point = gq(periodic_point)
-                    for i, letter in enumerate(periodic_point[previous_length:]):
-                        if letter in unbounded:
-                            if letter in occurred:
-                                one_unbounded_twice = True
-                                break
-                            occurred.add(letter)
-                    if one_unbounded_twice:
+        if allow_growing is not False:
+            for periodic_orbit in g.periodic_points():
+                gq = g ** len(periodic_orbit)
+                for periodic_point in periodic_orbit:
+                    # Check if this periodic point is a periodic infinite word.
+                    periodic_point = periodic_point[:1]
+                    occurred = set(periodic_point)
+                    one_unbounded_twice = False
+                    for _ in g.domain().alphabet():
+                        previous_length = periodic_point.length()
+                        periodic_point = gq(periodic_point)
+                        for i, letter in enumerate(periodic_point[previous_length:]):
+                            if letter in unbounded:
+                                if letter in occurred:
+                                    one_unbounded_twice = True
+                                    break
+                                occurred.add(letter)
+                        if one_unbounded_twice:
+                            break
+                    if not one_unbounded_twice or letter != periodic_point[0]:
                         break
-                if not one_unbounded_twice or letter != periodic_point[0]:
-                    break
-                v = periodic_point[:previous_length + i]
-                vq = gq(v)
-                m = 0
-                while vq[m * v.length() : (m + 1) * v.length()] == v:
-                    m += 1
-                if m * v.length() != vq.length():
-                    break
-                result.add(k(v).primitive().minimal_conjugate())
+                    v = periodic_point[:previous_length + i]
+                    vq = gq(v)
+                    m = 0
+                    while vq[m * v.length() : (m + 1) * v.length()] == v:
+                        m += 1
+                    if m * v.length() != vq.length():
+                        break
+                    result.add(k(v).primitive().minimal_conjugate())
 
         return result
 
@@ -3557,7 +3508,7 @@ class WordMorphism(SageObject):
         `Y \subseteq X`, then the morphism `g: Z^* \rightarrow Z^* = h \circ k`
         is a simplification of `f` (with respect to `h` and `k`).
 
-        Loosely speaking a morphism is simplifiable if it contains "more letters
+        Loosely speaking, a morphism is simplifiable if it contains "more letters
         than is needed". Non-injectivity implies simplifiability. Simplification
         preserves some properties of the original morphism (e.g. repetitiveness).
 
@@ -3565,8 +3516,8 @@ class WordMorphism(SageObject):
 
         INPUT:
 
-        - ``Z`` -- iterable, whose elements are used as an alphabet for the
-          simplification, default is ``self.domain().alphabet()``
+        - ``Z`` -- iterable (default: ``self.domain().alphabet()``), whose
+          elements are used as an alphabet for the simplification.
 
         EXAMPLES:
 

@@ -3449,7 +3449,7 @@ class WordMorphism(SageObject):
         reach = self._language_naive(2, self._domain(w))
         f = self.restrict_domain([x[0] for x in reach])
         f._codomain = f._domain
-        g, _, k, _ = f.simplify_injective()
+        g, _, k, _ = f.simplify_until_injective()
         g._codomain = g._domain
         unbounded = set(g.growing_letters())
         gb = g.restrict_domain(set(g._morph) - unbounded)
@@ -3506,7 +3506,7 @@ class WordMorphism(SageObject):
         reach = self._language_naive(2, self._domain(w))
         f = self.restrict_domain([x[0] for x in reach])
         f._codomain = f._domain
-        g, _, k, _ = f.simplify_injective()
+        g, _, k, _ = f.simplify_until_injective()
         g._codomain = g._domain
         unbounded = set(g.growing_letters())
 
@@ -3542,7 +3542,7 @@ class WordMorphism(SageObject):
 
         return result
 
-    def simplify(self, Z=None):
+    def simplify_alphabet_size(self, Z=None):
         r"""
         If this morphism is simplifiable, return morphisms `h` and `k` such that
         this morphism is simplifiable with respect to `h` and `k`, otherwise
@@ -3573,7 +3573,7 @@ class WordMorphism(SageObject):
         Example of a simplifiable (non-injective) morphism::
 
             sage: f = WordMorphism('a->aca,b->badc,c->acab,d->adc')
-            sage: h, k = f.simplify('xyz'); h, k
+            sage: h, k = f.simplify_alphabet_size('xyz'); h, k
             (WordMorphism: a->x, b->zy, c->xz, d->y, WordMorphism: x->aca, y->adc, z->b)
             sage: k * h == f
             True
@@ -3583,7 +3583,7 @@ class WordMorphism(SageObject):
         Example of a simplifiable (injective) morphism::
 
             sage: f = WordMorphism('a->abcc,b->abcd,c->abdc,d->abdd')
-            sage: h, k = f.simplify('xyz'); h, k
+            sage: h, k = f.simplify_alphabet_size('xyz'); h, k
             (WordMorphism: a->xyy, b->xyz, c->xzy, d->xzz, WordMorphism: x->ab, y->c, z->d)
             sage: k * h == f
             True
@@ -3592,7 +3592,7 @@ class WordMorphism(SageObject):
 
         Example of a non-simplifiable morphism::
 
-            sage: WordMorphism('a->aa').simplify()
+            sage: WordMorphism('a->aa').simplify_alphabet_size()
             Traceback (most recent call last):
             ...
             ValueError: self (a->aa) is not simplifiable
@@ -3600,7 +3600,7 @@ class WordMorphism(SageObject):
         Example of an erasing morphism::
 
             sage: f = WordMorphism('a->abc,b->cc,c->')
-            sage: h, k = f.simplify(); h, k
+            sage: h, k = f.simplify_alphabet_size(); h, k
             (WordMorphism: a->a, b->b, c->, WordMorphism: a->abc, b->cc)
             sage: k * h == f
             True
@@ -3610,7 +3610,7 @@ class WordMorphism(SageObject):
         Example of a morphism, that is not an endomorphism::
 
             sage: f = WordMorphism('a->xx,b->xy,c->yx,d->yy')
-            sage: h, k = f.simplify(NN); h, k
+            sage: h, k = f.simplify_alphabet_size(NN); h, k
             (WordMorphism: a->00, b->01, c->10, d->11, WordMorphism: 0->x, 1->y)
             sage: k * h == f
             True
@@ -3704,17 +3704,17 @@ class WordMorphism(SageObject):
 
         return h, k
 
-    def simplify_injective(self):
+    def simplify_until_injective(self):
         r"""
         Return a quadruplet `(g, h, k, i)`, where `g` is an injective
         simplification of this morphism with respect to `h`, `k` and `i`.
 
         Requires this morphism to be an endomorphism.
 
-        This methods basically calls :meth:`simplify` until the returned
-        simplification is injective. If this morphism is already injective, a
-        quadruplet `(g, h, k, i)` is still returned, where `g` is this morphism,
-        `h` and `k` are the identity morphisms and `i` is 0.
+        This methods basically calls :meth:`simplify_alphabet_size` until the
+        returned simplification is injective. If this morphism is already
+        injective, a quadruplet `(g, h, k, i)` is still returned, where `g`
+        is this morphism, `h` and `k` are the identity morphisms and `i` is 0.
 
         Let `f: X^* \rightarrow Y^*` be a morphism and `Y \subseteq X`. Then
         `g: Z^* \rightarrow Z^*` is an injective simplification of `f` with
@@ -3727,7 +3727,7 @@ class WordMorphism(SageObject):
         EXAMPLES::
 
             sage: f = WordMorphism('a->abc,b->a,c->bc')
-            sage: g, h, k, i = f.simplify_injective(); g, h, k, i
+            sage: g, h, k, i = f.simplify_until_injective(); g, h, k, i
             (WordMorphism: a->aa, WordMorphism: a->aa, b->a, c->a, WordMorphism: a->abc, 2)
             sage: g.is_injective()
             True
@@ -3744,6 +3744,6 @@ class WordMorphism(SageObject):
         k = self.codomain().identity_morphism()
         i = 0
         while not g.is_injective():
-            h_new, k_new = g.simplify()
+            h_new, k_new = g.simplify_alphabet_size()
             g, h, k, i = h_new * k_new, h_new * h, k * k_new, i + 1
         return g, h, k, i

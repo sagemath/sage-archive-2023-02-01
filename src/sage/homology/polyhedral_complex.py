@@ -184,6 +184,9 @@ class PolyhedralComplex(GenericCellComplex):
 
          * ``field`` a generic Sage implementation
 
+    - ``ambient_dim`` -- integer; default ``None``; Used to set up an empty
+      complex in the intended ambient space.
+
     EXAMPLES::
 
         sage: pc = PolyhedralComplex([
@@ -263,7 +266,8 @@ class PolyhedralComplex(GenericCellComplex):
         'cdd'
     """
     def __init__(self, maximal_cells=None, backend=None, maximality_check=True,
-                 face_to_face_check=False, is_mutable=True, is_immutable=False):
+                 face_to_face_check=False, is_mutable=True, is_immutable=False,
+                 ambient_dim=None):
         r"""
         Define a PolyhedralComplex.
 
@@ -294,10 +298,13 @@ class PolyhedralComplex(GenericCellComplex):
             raise ValueError
         if not cells_dict:
             self._dim = -1
-            self._ambient_dim = -1
+            if ambient_dim is None:
+                ambient_dim = -1
         else:
             self._dim = max(cells_dict.keys())
-            self._ambient_dim = next(iter(cells_dict[self._dim])).ambient_dim()
+            if ambient_dim is None:
+                ambient_dim = next(iter(cells_dict[self._dim])).ambient_dim()
+        self._ambient_dim = ambient_dim
         self._maximal_cells = cells_dict
         if not all((is_Polyhedron(cell) and
                    cell.ambient_dim() == self._ambient_dim)
@@ -707,6 +714,9 @@ class PolyhedralComplex(GenericCellComplex):
             sage: empty_pc = PolyhedralComplex([])
             sage: empty_pc.ambient_dimension()
             -1
+            sage: pc0 = PolyhedralComplex(ambient_dim=2)
+            sage: pc0.ambient_dimension()
+            2
         """
         return self._ambient_dim
 
@@ -1816,11 +1826,15 @@ class PolyhedralComplex(GenericCellComplex):
 
         EXAMPLES:
 
-        If you add a cell which is already present, there is no effect::
+        Set up an empty complex in the intended ambient space, then add a cell::
 
-            sage: pc = PolyhedralComplex([Polyhedron(vertices=[(1, 2), (0, 2)])])
+            sage: pc = PolyhedralComplex(ambient_dim=2)
+            sage: pc.add_cell(Polyhedron(vertices=[(1, 2), (0, 2)]))
             sage: pc
             Polyhedral complex with 1 maximal cell
+
+        If you add a cell which is already present, there is no effect::
+
             sage: pc.add_cell(Polyhedron(vertices=[(1, 2)]))
             sage: pc
             Polyhedral complex with 1 maximal cell

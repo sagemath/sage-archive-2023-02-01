@@ -1962,12 +1962,14 @@ class PolynomialRing_integral_domain(PolynomialRing_commutative, PolynomialRing_
 
             sage: from sage.rings.polynomial.polynomial_ring import PolynomialRing_integral_domain as PRing
             sage: R = PRing(ZZ, 'x'); R
+            Univariate Polynomial Ring in x over Integer Ring
             sage: functor, arg = R.construction(); functor, arg
             (Poly[x], Integer Ring)
             sage: functor.implementation is None
             True
 
             sage: R = PRing(ZZ, 'x', implementation='NTL'); R
+            Univariate Polynomial Ring in x over Integer Ring (using NTL)
             sage: functor, arg = R.construction(); functor, arg
             (Poly[x], Integer Ring)
             sage: functor.implementation

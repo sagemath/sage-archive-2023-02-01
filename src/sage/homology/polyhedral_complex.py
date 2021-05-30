@@ -174,15 +174,15 @@ class PolyhedralComplex(GenericCellComplex):
       computations on Sage polyhedra. If it is ``None``, then each cell has its
       own backend. Otherwise, all cells will use the given backend from:
 
-         * ``ppl`` the Parma Polyhedra Library
+      * ``ppl`` the Parma Polyhedra Library
 
-         * ``cdd`` CDD
+      * ``cdd`` CDD
 
-         * ``normaliz`` normaliz
+      * ``normaliz`` normaliz
 
-         * ``polymake`` polymake
+      * ``polymake`` polymake
 
-         * ``field`` a generic Sage implementation
+      * ``field`` a generic Sage implementation
 
     - ``ambient_dim`` -- integer; default ``None``; Used to set up an empty
       complex in the intended ambient space.
@@ -244,7 +244,7 @@ class PolyhedralComplex(GenericCellComplex):
         ....:        face_to_face_check=True)
         Traceback (most recent call last):
         ...
-        ValueError: The given cells are not face-to-face
+        ValueError: the given cells are not face-to-face
 
     Check that all the cells must have the same ambient dimension::
 
@@ -253,7 +253,7 @@ class PolyhedralComplex(GenericCellComplex):
         ....:        Polyhedron(vertices=[[2], [0]]) ])
         Traceback (most recent call last):
         ...
-        ValueError: The given cells are not polyhedra in the same ambient space.
+        ValueError: the given cells are not polyhedra in the same ambient space
 
     Check that backend is passed to all the cells::
 
@@ -295,7 +295,7 @@ class PolyhedralComplex(GenericCellComplex):
                 else:
                     cells_dict[k] = set(l)
         else:
-            raise ValueError
+            raise ValueError("the maximal cells are not given in correct form")
         if not cells_dict:
             self._dim = -1
             if ambient_dim is None:
@@ -309,8 +309,8 @@ class PolyhedralComplex(GenericCellComplex):
         if not all((is_Polyhedron(cell) and
                    cell.ambient_dim() == self._ambient_dim)
                    for cell in self.maximal_cell_iterator()):
-            raise ValueError("The given cells are not polyhedra " +
-                             "in the same ambient space.")
+            raise ValueError("the given cells are not polyhedra " +
+                             "in the same ambient space")
         # initialize the attributes
         self._is_convex = None
         self._polyhedron = None
@@ -332,7 +332,7 @@ class PolyhedralComplex(GenericCellComplex):
                     r = p.intersection(q)
                     if not (r.is_empty() or (r in poset) and
                             poset.is_gequal(p, r) and poset.is_gequal(q, r)):
-                        raise ValueError("The given cells are not face-to-face")
+                        raise ValueError("the given cells are not face-to-face")
         self._is_immutable = False
         if not is_mutable or is_immutable:
             self.set_immutable()
@@ -345,9 +345,11 @@ class PolyhedralComplex(GenericCellComplex):
         optional argument ``subcomplex`` is present, then return only
         the cells which are *not* in the subcomplex.
 
-        :param subcomplex: a subcomplex of this polyhedral complex.  Return
-           the cells which are not in this subcomplex.
-        :type subcomplex: optional, default None
+        INPUT:
+
+        - ``subcomplex`` -- (optional, default ``None``) if a subcomplex
+          of this polyhedral complex is given, then return the cells which
+          are not in this subcomplex.
 
         EXAMPLES::
 
@@ -358,7 +360,7 @@ class PolyhedralComplex(GenericCellComplex):
             [2, 1, 0]
         """
         if subcomplex is not None:
-            raise NotImplementedError
+            raise NotImplementedError("providing subcomplex is not implemented")
         if self._cells is not None:
             return self._cells
         maximal_cells = self.maximal_cells()
@@ -424,11 +426,13 @@ class PolyhedralComplex(GenericCellComplex):
         return the ``n``-dimensional cells which are *not* in the
         subcomplex.
 
-        :param n: the dimension
-        :type n: non-negative integer
-        :param subcomplex: a subcomplex of this cell complex. Return
-           the cells which are not in this subcomplex.
-        :type subcomplex: optional, default ``None``
+        INPUT:
+
+        - ``n`` -- (non-negative integer) the dimension
+
+        - ``subcomplex`` -- (optional, default ``None``) if a subcomplex
+          of this polyhedral complex is given, then return the cells which
+          are not in this subcomplex.
 
         EXAMPLES::
 
@@ -455,9 +459,11 @@ class PolyhedralComplex(GenericCellComplex):
         If the optional argument ``subcomplex`` is present, then return only
         the cells which are *not* in the subcomplex.
 
-        :param subcomplex: a subcomplex of this polyhedral complex.  Return
-           the cells which are not in this subcomplex.
-        :type subcomplex: optional, default None
+        INPUT:
+
+        - ``subcomplex`` -- (optional, default ``None``) if a subcomplex
+          of this polyhedral complex is given, then return the cells which
+          are not in this subcomplex.
 
         EXAMPLES::
 
@@ -553,8 +559,9 @@ class PolyhedralComplex(GenericCellComplex):
         """
         List of maximal cells of dimension ``n`` of this polyhedral complex.
 
-        :param n: the dimension
-        :type n: non-negative integer
+        INPUT:
+
+        - ``n`` -- (non-negative integer) the dimension
 
         .. NOTE::
 
@@ -594,8 +601,9 @@ class PolyhedralComplex(GenericCellComplex):
         Sorted list of maximal cells of dimension ``n`` of this polyhedral
         complex.
 
-        :param n: the dimension
-        :type n: non-negative integer
+        INPUT:
+
+        - ``n`` -- (non-negative integer) the dimension
 
         .. WARNING::
 
@@ -733,7 +741,7 @@ class PolyhedralComplex(GenericCellComplex):
             Graphics object consisting of 10 graphics primitives
         """
         if self.dimension() > 3:
-            raise ValueError("Cannot plot in high dimension")
+            raise ValueError("cannot plot in high dimension")
         return sum(cell.plot(**kwds) for cell in self.maximal_cell_iterator())
 
     def is_pure(self):
@@ -802,11 +810,11 @@ class PolyhedralComplex(GenericCellComplex):
             sage: hash(pc3)
             Traceback (most recent call last):
             ...
-            ValueError: This polyhedral complex must be immutableCall set_immutable().
+            ValueError: this polyhedral complex must be immutable; call set_immutable()
         """
         if not self._is_immutable:
-            raise ValueError("This polyhedral complex must be immutable" +
-                             "Call set_immutable().")
+            raise ValueError("this polyhedral complex must be immutable; " +
+                             "call set_immutable()")
         return hash(tuple(self.maximal_cells_sorted()))
 
     def __eq__(self, right):
@@ -863,7 +871,9 @@ class PolyhedralComplex(GenericCellComplex):
         EXAMPLES::
 
             sage: PolyhedralComplex()._an_element_()
-            ()
+            Traceback (most recent call last):
+            ...
+            EmptySetError: the complex is empty
             sage: pc = PolyhedralComplex([
             ....: Polyhedron(vertices=[(1/3, 1/3), (0, 0), (1, 2)]),
             ....: Polyhedron(vertices=[(1, 2), (0, 0), (0, 1/2)])])
@@ -873,7 +883,8 @@ class PolyhedralComplex(GenericCellComplex):
         try:
             return next(self.maximal_cell_iterator(increasing=False))
         except StopIteration:
-            return ()
+            from sage.categories.sets_cat import EmptySetError
+            raise EmptySetError("the complex is empty")
 
     def __contains__(self, x):
         """
@@ -966,7 +977,9 @@ class PolyhedralComplex(GenericCellComplex):
         r"""
         Return True if ``self`` is a subcomplex of ``other``.
 
-        :param other: a polyhedral complex
+        INPUT:
+
+        - ``other`` -- a polyhedral complex
 
         Each maximal cell of ``self`` must be a cell of ``other``
         for this to be True.
@@ -1028,7 +1041,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: PolyhedralComplex([Polyhedron(rays=[(1,1)])]).graph()
             Traceback (most recent call last):
             ...
-            NotImplementedError: The polyhedral complex is unbounded.
+            NotImplementedError: the polyhedral complex is unbounded
 
         Wrong answer due to ``maximality_check=False``::
 
@@ -1043,7 +1056,7 @@ class PolyhedralComplex(GenericCellComplex):
             False
         """
         if not self.is_compact():
-            raise NotImplementedError("The polyhedral complex is unbounded.")
+            raise NotImplementedError("the polyhedral complex is unbounded")
         edges = self.n_cells(1)
         d = {}
         for e in edges:
@@ -1238,7 +1251,9 @@ class PolyhedralComplex(GenericCellComplex):
         The `n`-skeleton of a polyhedral complex is obtained by discarding
         all of the cells in dimensions larger than `n`.
 
-        :param n: non-negative integer
+        INPUT:
+
+        - ``n`` -- (non-negative integer) the dimension
 
         .. SEEALSO::
 
@@ -1582,20 +1597,23 @@ class PolyhedralComplex(GenericCellComplex):
             sage: PolyhedralComplex([p1, p3]).union_as_polyhedron()
             Traceback (most recent call last):
             ...
-            ValueError: The polyhedral complex is not convex.
+            ValueError: the polyhedral complex is not convex
         """
         if not self.is_convex():
-            raise ValueError("The polyhedral complex is not convex.")
+            raise ValueError("the polyhedral complex is not convex")
         return self._polyhedron
 
     def product(self, right):
         """
         The (Cartesian) product of this polyhedral complex with another one.
 
-        :param right: the other polyhedral complex (the right-hand
-           factor)
+        INPUT:
 
-        :return: the product ``self x right``
+        - ``right`` -- the other polyhedral complex (the right-hand factor)
+
+        OUTPUT:
+
+        - the product ``self x right``
 
         EXAMPLES::
 
@@ -1620,7 +1638,9 @@ class PolyhedralComplex(GenericCellComplex):
         """
         The disjoint union of this polyhedral complex with another one.
 
-        :param right: the other polyhedral complex (the right-hand factor)
+        INPUT:
+
+        - ``right`` -- the other polyhedral complex (the right-hand factor)
 
         EXAMPLES::
 
@@ -1633,14 +1653,14 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc.disjoint_union(PolyhedralComplex([p2]))
             Traceback (most recent call last):
             ...
-            ValueError: The two complexes are not disjoint
+            ValueError: the two complexes are not disjoint
         """
         maximal_cells_self = list(self.maximal_cell_iterator())
         maximal_cells_right = list(right.maximal_cell_iterator())
         for cell in maximal_cells_self:
             for cell_right in maximal_cells_right:
                 if not cell.intersection(cell_right).is_empty():
-                    raise ValueError("The two complexes are not disjoint")
+                    raise ValueError("the two complexes are not disjoint")
         return PolyhedralComplex(maximal_cells_self + maximal_cells_right,
                                  maximality_check=False,
                                  face_to_face_check=False,
@@ -1652,7 +1672,9 @@ class PolyhedralComplex(GenericCellComplex):
         """
         The union of this polyhedral complex with another one.
 
-        :param right: the other polyhedral complex (the right-hand factor)
+        INPUT:
+
+        - ``right`` -- the other polyhedral complex (the right-hand factor)
 
         EXAMPLES::
 
@@ -1668,7 +1690,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc.union(PolyhedralComplex([p4]))
             Traceback (most recent call last):
             ...
-            ValueError: The given cells are not face-to-face
+            ValueError: the given cells are not face-to-face
         """
         maximal_cells = list(self.maximal_cell_iterator()) + list(
                         right.maximal_cell_iterator())
@@ -1682,7 +1704,9 @@ class PolyhedralComplex(GenericCellComplex):
         """
         The join of this polyhedral complex with another one.
 
-        :param right: the other polyhedral complex (the right-hand factor)
+        INPUT:
+
+        - ``right`` -- the other polyhedral complex (the right-hand factor)
 
         EXAMPLES::
 
@@ -1708,7 +1732,12 @@ class PolyhedralComplex(GenericCellComplex):
     ############################################################
 
     def wedge(self, right):
-        raise NotImplementedError
+        """
+        The wedge (one-point union) of this cell complex with
+        another one. Currently not implemented.
+        """
+        raise NotImplementedError("wedge is not implemented for "
+                                  + "polyhedral complex")
 
     ############################################################
     # chain complexes, homology
@@ -1716,10 +1745,21 @@ class PolyhedralComplex(GenericCellComplex):
     def chain_complex(self, subcomplex=None, augmented=False,
                       verbose=False, check=True, dimensions=None,
                       base_ring=ZZ, cochain=False):
-        raise NotImplementedError
+        """
+        The chain complex associated to this polyhedral complex.
+        Currently not implemented.
+        """
+        raise NotImplementedError("chain_complex is not implemented for "
+                                  + "polyhedral complex")
 
     def alexander_whitney(self, cell, dim_left):
-        raise NotImplementedError
+        """
+        The decomposition of ``cell`` in this complex into left and right
+        factors, suitable for computing cup products.
+        Currently not implemented.
+        """
+        raise NotImplementedError("alexander_whitney is not implemented for "
+                                  + "polyhedral complex")
 
     ############################################################
     # end of chain complexes, homology
@@ -1819,7 +1859,9 @@ class PolyhedralComplex(GenericCellComplex):
         """
         Add a cell to this polyhedral complex.
 
-        :param cell: a polyhedron
+        INPUT:
+
+        - ``cell`` -- a polyhedron
 
         This *changes* the polyhedral complex, by adding a new cell and all
         of its subfaces.
@@ -1880,22 +1922,22 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc.add_cell(Polyhedron(vertices=[[0]]))
             Traceback (most recent call last):
             ...
-            ValueError: The given cell is not a polyhedron in the same ambient space.
+            ValueError: the given cell is not a polyhedron in the same ambient space
             sage: pc.add_cell(Polyhedron(vertices=[(1, 1), (0, 0), (2, 0)]))
             Traceback (most recent call last):
             ...
-            ValueError: The cell is not face-to-face with complex
+            ValueError: the cell is not face-to-face with complex
             sage: pc.set_immutable()
             sage: pc.add_cell(Polyhedron(vertices=[(-1, -1)]))
             Traceback (most recent call last):
             ...
-            ValueError: This polyhedral complex is not mutable
+            ValueError: this polyhedral complex is not mutable
         """
         if self._is_immutable:
-            raise ValueError("This polyhedral complex is not mutable")
+            raise ValueError("this polyhedral complex is not mutable")
         if not is_Polyhedron(cell) or cell.ambient_dim() != self._ambient_dim:
-            raise ValueError("The given cell is not a polyhedron " +
-                             "in the same ambient space.")
+            raise ValueError("the given cell is not a polyhedron " +
+                             "in the same ambient space")
         # if cell is already in self, do nothing.
         if self.has_cell(cell):
             return
@@ -1934,7 +1976,7 @@ class PolyhedralComplex(GenericCellComplex):
             r = p.intersection(cell)
             if not (r.is_empty() or (r in poset) and
                     poset.is_gequal(p, r) and poset.is_gequal(cell, r)):
-                raise ValueError("The cell is not face-to-face with complex")
+                raise ValueError("the cell is not face-to-face with complex")
         # update dim and maximal cells
         d = cell.dimension()
         if d > self._dim:
@@ -1963,11 +2005,12 @@ class PolyhedralComplex(GenericCellComplex):
         Remove the given cell from this polyhedral complex. In addition,
         it removes all the cells that contain the given cell as a subface.
 
-        :param cell: a cell of the polyhedral complex
+        INPUT:
 
-        :param check: boolean; optional, default ``False``. If
-            ``True``, raise an error if ``cell`` is not a
-            cell of this polyhedral complex
+        - ``cell`` -- a cell of the polyhedral complex
+
+        - ``check`` -- boolean; optional, default ``False``.
+          If ``True``, raise an error if ``cell`` is not a cell of this complex
 
         This does not return anything; instead, it *changes* the
         polyhedral complex.
@@ -2005,11 +2048,11 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc.remove_cell(Polyhedron(vertices=[[0]]), check=True)
             Traceback (most recent call last):
             ...
-            ValueError: Trying to remove a cell which is not in the polyhedral complex
+            ValueError: trying to remove a cell which is not in the polyhedral complex
             sage: pc.remove_cell(Polyhedron(vertices=[(1, 1)]))
             Traceback (most recent call last):
             ...
-            ValueError: The given cell is not a polyhedron in the same ambient space.
+            ValueError: the given cell is not a polyhedron in the same ambient space
             sage: pc.remove_cell(p)
             sage: pc.dimension()
             -1
@@ -2017,7 +2060,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: pc.remove_cell(Polyhedron(vertices=[[0]]))
             Traceback (most recent call last):
             ...
-            ValueError: This polyhedral complex is not mutable
+            ValueError: this polyhedral complex is not mutable
 
         Check that this function is coherent with
         :meth:`~sage.homology.simplicial_complex.SimplicialComplex.remove_face`::
@@ -2054,14 +2097,14 @@ class PolyhedralComplex(GenericCellComplex):
             [[[1], [2]], [[-3]], [[1]], [[2]]]
         """
         if self._is_immutable:
-            raise ValueError("This polyhedral complex is not mutable")
+            raise ValueError("this polyhedral complex is not mutable")
         if not is_Polyhedron(cell) or cell.ambient_dim() != self._ambient_dim:
-            raise ValueError("The given cell is not a polyhedron " +
-                             "in the same ambient space.")
+            raise ValueError("the given cell is not a polyhedron " +
+                             "in the same ambient space")
         # if cell is not in self, delete nothing.
         if not self.has_cell(cell):   # self.cells() is called
             if check:
-                raise ValueError("Trying to remove a cell which is not " +
+                raise ValueError("trying to remove a cell which is not " +
                                  "in the polyhedral complex")
             return
         # update cells and face poset
@@ -2163,10 +2206,12 @@ class PolyhedralComplex(GenericCellComplex):
         Currently, subdivision is only supported for bounded polyhedral complex
         or polyhedral fan.
 
-        :param make_simplicial: boolean; optional, default ``False``.
+        INPUT:
+
+        - ``make_simplicial`` -- boolean; optional, default ``False``.
             If ``True``, the returned polyhedral complex is simplicial.
 
-        :param new_vertices, new_rays: list; optional, default ``None``.
+        - ``new_vertices``, ``new_rays`` -- list; optional, default ``None``.
             New generators to be added during subdivision.
 
         EXAMPLES::
@@ -2194,7 +2239,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: fan.subdivide(new_vertices=[(0, 0, 1)])
             Traceback (most recent call last):
             ...
-            ValueError: new vertices cannot be used for subdivision.
+            ValueError: new vertices cannot be used for subdivision
             sage: subdivided_fan = fan.subdivide(new_rays=[(0, 0, 1)])
             sage: subdivided_fan
             Polyhedral complex with 4 maximal cells
@@ -2218,7 +2263,7 @@ class PolyhedralComplex(GenericCellComplex):
         """
         if self.is_compact():
             if new_rays:
-                raise ValueError("rays/lines cannot be used for subdivision.")
+                raise ValueError("rays/lines cannot be used for subdivision")
             # bounded version of `fan.subdivide`; not require rational.
             vertices = set([])
             if make_simplicial and not self.is_simplicial_complex():
@@ -2249,7 +2294,7 @@ class PolyhedralComplex(GenericCellComplex):
                                      backend=self._backend)
         elif self.is_polyhedral_fan():
             if new_vertices and any(vi != 0 for v in new_vertices for vi in v):
-                raise ValueError("new vertices cannot be used for subdivision.")
+                raise ValueError("new vertices cannot be used for subdivision")
             # mimic :meth:`~sage.geometry.fan <RationalPolyhedralFan>.subdivide`
             # but here we allow for non-pointed cones, and we subdivide them.
             rays_normalized = set([])
@@ -2291,7 +2336,7 @@ class PolyhedralComplex(GenericCellComplex):
             if new_rays:
                 for r in new_rays:
                     if vector(r).is_zero():
-                        raise ValueError("zero cannot be used for subdivision.")
+                        raise ValueError("zero cannot be used for subdivision")
                     r_n = vector(r).normalized()
                     r_n.set_immutable()
                     if r_n not in rays_normalized:

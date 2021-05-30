@@ -7,7 +7,7 @@ This module implements the basic structure of finite polyhedral complexes.
 A polyhedral complex `PC` is a collection of polyhedra in a certain ambient
 space `\RR^n` such that
 
-- If a poyhedron `P` is in `PC`, then all the faces of `P` are in `PC`.
+- If a polyhedron `P` is in `PC`, then all the faces of `P` are in `PC`.
 
 - If polyhedra `P` and `Q` are in `PC`, then `P \cap Q` is either empty or a face of both `P` and `Q`.
 

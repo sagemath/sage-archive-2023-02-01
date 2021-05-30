@@ -1799,6 +1799,9 @@ class RealSet(UniqueRepresentation, Parent):
             {2}
             sage: RealSet([1, 2], (3, 4)).boundary()
             {1} ∪ {2} ∪ {3} ∪ {4}
+            sage: RealSet((1, 2), (2, 3)).boundary()
+            {1} ∪ {2} ∪ {3}
+
         """
         return RealSet(*[RealSet.point(x) for i in self._intervals for x in i.boundary_points()])
 

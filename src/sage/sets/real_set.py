@@ -1048,10 +1048,9 @@ class RealSet(UniqueRepresentation, Parent):
 
     # ParentMethods of Subobjects
     
-    @staticmethod
-    def ambient():
+    def ambient(self):
         """
-        Construct the real line
+        Return the ambient space (the real line).
 
         EXAMPLES::
 

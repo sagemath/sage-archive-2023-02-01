@@ -382,6 +382,31 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         s +=  ']' if self._upper_closed else ')'
         return s
 
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: RealSet.open_closed(1/2, pi)._latex_()
+            '(\\frac{1}{2}, \\pi]'
+            sage: (RealSet.point(sqrt(2)))._latex_()
+            '\\{\\sqrt{2}\\}'
+        """
+        from sage.misc.latex import latex
+        if self.is_point():
+            # Converting to str avoids the extra whitespace
+            # that LatexExpr add on concenation. We do not need
+            # the whitespace because we are wrapping it in
+            # non-letter characters.
+            return r'\{' + str(latex(self.lower())) + r'\}'
+        s =  '[' if self._lower_closed else '('
+        s += str(latex(self.lower()))
+        s += ', '
+        s += str(latex(self.upper()))
+        s +=  ']' if self._upper_closed else ')'
+        return s
+
     def _sympy_condition_(self, variable):
         """
         Convert to a sympy conditional expression.
@@ -414,17 +439,6 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         else:
             upper_condition = true
         return lower_condition & upper_condition
-
-    def _latex_(self):
-        from sage.misc.latex import latex
-        if self.is_point():
-            return r'\{' + latex(self.lower()) + r'\}'
-        s =  '[' if self._lower_closed else '('
-        s += latex(self.lower())
-        s += ', '
-        s += latex(self.upper())
-        s +=  ']' if self._upper_closed else ')'
-        return s
 
     def closure(self):
         """
@@ -1105,20 +1119,21 @@ class RealSet(UniqueRepresentation, Parent):
             return ' ∪ '.join(map(repr, self._intervals))
 
     def _latex_(self):
-        """
+        r"""
+        Return a latex representation of ``self``.
+
         EXAMPLES::
 
-            sage: from cutgeneratingfunctionology.spam.real_set import RealSet
             sage: latex(RealSet(0, 1))
-            ( 0 , 1 )
+            (0, 1)
             sage: latex((RealSet(0, 1).union(RealSet.unbounded_above_closed(2))))
-            ( 0 , 1 ) \cup [ 2 , +\infty )
+            (0, 1) \cup [2, +\infty)
         """
         from sage.misc.latex import latex
         if self.n_components() == 0:
             return r'\emptyset'
         else:
-            return r' \cup '.join(map(latex, self._intervals))
+            return r' \cup '.join(latex(i) for i in self._intervals)
 
     def _sympy_condition_(self, variable):
         """

@@ -32,20 +32,27 @@ class ManifoldSubsetPullback(ManifoldSubset):
         base_manifold = map.domain()
         map_name = map._name or 'f'
         map_latex_name = map._latex_name or map_name
+        try:
+            codomain_subset_latex_name = codomain_subset._latex_name
+            codomain_subset_name = codomain_subset._name
+        except AttributeError:
+            from sage.misc.latex import latex
+            codomain_subset_latex_name = str(latex(codomain_subset))
+            codomain_subset_name = repr(codomain_subset)
         if latex_name is None:
             if name is None:
-                latex_name = map_latex_name + r'^{-1}(' + domain_subset._latex_name + ')'
+                latex_name = map_latex_name + r'^{-1}(' + codomain_subset_latex_name + ')'
             else:
                 latex_name = name
         if name is None:
-            name = map_name + '_inv_' + domain_subset._name
+            name = map_name + '_inv_' + codomain_subset_name
         ManifoldSubset.__init__(self, base_manifold, name, latex_name=latex_name)
 
     def is_open(self):
-        return self._subset.is_open()
+        return self._codomain_subset.is_open()
 
     def is_closed(self):
-        return self._subset.is_closed()
+        return self._codomain_subset.is_closed()
 
     def closure(self, name=None, latex_name=None):
         """
@@ -57,8 +64,13 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: r_squared = M.scalar_field(x^2+y^2)
             sage: r_squared.set_immutable()
             sage: I = RealSet((1, 2)); I
-            sage: O = ManifoldSubsetPullback(r_squared, I); O
+            (1, 2)
+            sage: O = ManifoldSubsetPullback(r_squared, None, I); O
+            Subset f_inv_(1, 2) of the 2-dimensional topological manifold R^2
+            sage: latex(O)
+            f^{-1}((1, 2))
             sage: O.closure()
+            Subset f_inv_[1, 2] of the 2-dimensional topological manifold R^2
         """
         if self.is_closed():
             return self

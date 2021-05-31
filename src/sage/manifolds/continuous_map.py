@@ -816,6 +816,11 @@ class ContinuousMap(Morphism):
                         pass
         return homset(resu_funct)
 
+    def pullback(self, codomain_subset, name=None, latex_name=None):
+        from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+        return ManifoldSubsetPullback(self, codomain_subset=codomain_subset,
+                                      name=name, latex_name=latex_name)
+
     #
     # Monoid methods
     #

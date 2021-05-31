@@ -59,9 +59,18 @@ class ManifoldSubsetPullback(ManifoldSubset):
         True
 
     """
+    @staticmethod
+    def __classcall_private__(cls, map, inverse=None, codomain_subset=None,
+                              name=None, latex_name=None):
+        if map.is_mutable():
+            map = map.copy()
+            map.set_immutable()
+        if inverse is not None and inverse.is_mutable():
+            inverse = inverse.copy()
+            inverse.set_immutable()
+        return super().__classcall__(cls, map, inverse, codomain_subset, name, latex_name)
 
     def __init__(self, map, inverse=None, codomain_subset=None, name=None, latex_name=None):
-
         self._map = map
         self._inverse = inverse
         if codomain_subset is None:

@@ -20,6 +20,44 @@ class ManifoldSubsetPullback(ManifoldSubset):
     """
     Manifold subset defined as a pullback of a subset under a continuous map.
 
+    EXAMPLES::
+
+        sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+        sage: M = Manifold(2, 'R^2', structure='topological')
+        sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+        sage: r_squared = M.scalar_field(x^2+y^2)
+        sage: r_squared.set_immutable()
+        sage: I = RealSet((1, 4)); I
+        (1, 4)
+        sage: O = ManifoldSubsetPullback(r_squared, None, I); O
+        Subset f_inv_(1, 4) of the 2-dimensional topological manifold R^2
+        sage: M.point((1, 0)) in O
+        False
+        sage: M.point((1, 1)) in O
+        True
+
+    Using the embedding map of a submanifold::
+
+        sage: M = Manifold(3, 'M', structure="topological")
+        sage: N = Manifold(2, 'N', ambient=M, structure="topological")
+        sage: N
+        2-dimensional topological submanifold N immersed in the 3-dimensional topological manifold M
+        sage: CM.<x,y,z> = M.chart()
+        sage: CN.<u,v> = N.chart()
+        sage: t = var('t')
+        sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]})
+        sage: phi_inv = M.continuous_map(N, {(CM,CN): [x,y]})
+        sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
+        sage: N.set_immersion(phi, inverse=phi_inv, var=t,
+        ....:                 t_inverse={t: phi_inv_t})
+        sage: N.declare_embedding()
+
+        sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+        sage: S = M.open_subset('S', coord_def={CM: z<1})
+        sage: D = ManifoldSubsetPullback(phi, codomain_subset=S)
+        sage: N.point((2,0)) in D   ### BUG - the foliation parameters are in the way!
+        True
+
     """
 
     def __init__(self, map, inverse=None, codomain_subset=None, name=None, latex_name=None):
@@ -47,6 +85,15 @@ class ManifoldSubsetPullback(ManifoldSubset):
         if name is None:
             name = map_name + '_inv_' + codomain_subset_name
         ManifoldSubset.__init__(self, base_manifold, name, latex_name=latex_name)
+
+    def __contains__(self, point):
+        r"""
+        Check whether ``point`` is contained in ``self``.
+
+        """
+        if super().__contains__(point):
+            return True
+        return self._map(point) in self._codomain_subset
 
     def is_open(self):
         return self._codomain_subset.is_open()

@@ -1,0 +1,44 @@
+diff --git a/ginac/normal.cpp b/ginac/normal.cpp
+index 461bb44..2a52c9e 100644
+--- a/ginac/normal.cpp
++++ b/ginac/normal.cpp
+@@ -87,7 +87,12 @@ numeric basic::integer_content() const
+ 
+ numeric numeric::integer_content() const
+ {
+-	return abs();
++    if (is_real()) {
++        return abs();
++        }
++	else {
++	    return real().numer().gcd(imag().numer()) / real().denom().lcm(imag().denom());
++	    }
+ }
+ 
+ numeric add::integer_content() const
+@@ -98,12 +103,12 @@ numeric add::integer_content() const
+ 	while (it != itend) {
+ 		GINAC_ASSERT(!is_exactly_a<numeric>(it->rest));
+ 		GINAC_ASSERT(is_exactly_a<numeric>(it->coeff));
+-		c = gcd(ex_to<numeric>(it->coeff).numer(), c);
+-		l = lcm(ex_to<numeric>(it->coeff).denom(), l);
++		c = gcd(ex_to<numeric>(it->coeff).integer_content().numer(), c);
++		l = lcm(ex_to<numeric>(it->coeff).integer_content().denom(), l);
+ 		it++;
+ 	}
+-	c = gcd(overall_coeff.numer(), c);
+-	l = lcm(overall_coeff.denom(), l);
++	c = gcd(overall_coeff.integer_content().numer(), c);
++	l = lcm(overall_coeff.integer_content().denom(), l);
+ 	return (c/l).abs();
+ }
+ 
+@@ -117,7 +122,7 @@ numeric mul::integer_content() const
+ 		++it;
+ 	}
+ #endif // def DO_GINAC_ASSERT
+-	return overall_coeff.abs();
++	return overall_coeff.integer_content();
+ }
+ 
+ 

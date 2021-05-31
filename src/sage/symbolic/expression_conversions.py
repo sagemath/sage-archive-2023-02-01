@@ -947,6 +947,15 @@ class FriCASConverter(InterfaceInit):
 
     def pyobject(self, ex, obj):
         """
+        Return a string which, when evaluated by FriCAS, returns the
+        object as an expression.
+
+        We explicitly add the coercion to the FriCAS domains
+        `Expression Integer` and `Expression Complex Integer` to make
+        sure that elements of the symbolic ring are translated to
+        these.  In particular, this is needed for integration, see
+        :trac:`28641` and :trac:`28647`.
+
         EXAMPLES::
 
             sage: 2._fricas_().domainOf()                                       # optional - fricas
@@ -983,14 +992,15 @@ class FriCASConverter(InterfaceInit):
         try:
             result = getattr(obj, self.name_init)()
             if (isinstance(obj, NumberFieldElement_quadratic) and
-                obj.parent() == GaussianField):
+                obj.parent() is GaussianField()):
                 return "((%s)::EXPR COMPLEX INT)" % result
         except AttributeError:
             result = repr(obj)
         return "((%s)::EXPR INT)" % result
 
     def symbol(self, ex):
-        """Convert the argument, which is a symbol, to FriCAS.
+        """
+        Convert the argument, which is a symbol, to FriCAS.
 
         In this case, we do not return an `Expression Integer`,
         because FriCAS frequently requires elements of domain

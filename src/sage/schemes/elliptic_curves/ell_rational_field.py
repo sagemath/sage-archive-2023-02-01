@@ -2567,7 +2567,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         ALGORITHM: Uses Cremona's ``eclib`` package, which computes a
         bound on the saturation index.  To `p`-saturate, or prove
         `p`-saturation, we consider the reductions of the points
-        modulo primes `q` of good reduction such that `E(\FF_q)` has
+        modulo primes `q` of good reduction such that `E(\GF{q})` has
         order divisible by `p`.
 
         .. note::

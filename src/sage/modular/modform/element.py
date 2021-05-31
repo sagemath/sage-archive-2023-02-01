@@ -24,7 +24,6 @@ Class hierarchy:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import, division
 
 import sage.modular.hecke.element as element
 
@@ -1962,7 +1961,7 @@ class Newform(ModularForm_abstract):
 
             sage: K.<i> = CyclotomicField(4)
             sage: f = Newforms(DirichletGroup(30, QQ).1, 2, K)[0]
-            sage: f.atkin_lehner_eigenvalue(embedding=K.embeddings(QQbar)[0])
+            sage: f.atkin_lehner_eigenvalue(embedding=K.embeddings(QQbar)[1])
             -0.8944271909999159? - 0.4472135954999580?*I
 
         Check that :trac:`24086` is fixed::

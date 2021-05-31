@@ -1,4 +1,8 @@
-# distutils: libraries = ntl gmp
+# distutils: libraries = NTL_LIBRARIES gmp
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 """
 Univariate Polynomials over GF(p^e) via NTL's ZZ_pEX
@@ -176,7 +180,7 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
 
     cpdef list list(self, bint copy=True):
         """
-        Returs the list of coefficients.
+        Return the list of coefficients.
 
         EXAMPLES::
 
@@ -187,7 +191,6 @@ cdef class Polynomial_ZZ_pEX(Polynomial_template):
             True
             sage: P.0.list()
             [0, 1]
-
         """
         cdef Py_ssize_t i
 

@@ -122,7 +122,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
@@ -1738,20 +1737,20 @@ class AffinePlaneCurve_field(AffinePlaneCurve, AffineCurve_field):
         f = self.defining_polynomial()
         return fundamental_group(f, projective=False)
 
-    def riemann_surface(self,**kwargs):
-        r"""Return the complex riemann surface determined by this curve
+    def riemann_surface(self, **kwargs):
+        r"""
+        Return the complex Riemann surface determined by this curve
 
         OUTPUT:
 
-         - RiemannSurface object
+        - RiemannSurface object
 
         EXAMPLES::
 
             sage: R.<x,y>=QQ[]
-            sage: C=Curve(x^3+3*y^3+5)
+            sage: C = Curve(x^3+3*y^3+5)
             sage: C.riemann_surface()
             Riemann surface defined by polynomial f = x^3 + 3*y^3 + 5 = 0, with 53 bits of precision
-
         """
         from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
         return RiemannSurface(self.defining_polynomial(),**kwargs)

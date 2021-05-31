@@ -279,20 +279,20 @@ LaTeX output::
 When working with the symbolic complex number `I`, notice that comparisons do not
 automatically simplify even in trivial situations::
 
-    sage: I^2 == -1
+    sage: SR(I)^2 == -1
     -1 == -1
-    sage: I^2 < 0
+    sage: SR(I)^2 < 0
     -1 < 0
-    sage: (I+1)^4 > 0
+    sage: (SR(I)+1)^4 > 0
     -4 > 0
 
 Nevertheless, if you force the comparison, you get the right answer (:trac:`7160`)::
 
-    sage: bool(I^2 == -1)
+    sage: bool(SR(I)^2 == -1)
     True
-    sage: bool(I^2 < 0)
+    sage: bool(SR(I)^2 < 0)
     True
-    sage: bool((I+1)^4 > 0)
+    sage: bool((SR(I)+1)^4 > 0)
     False
 
 More Examples
@@ -357,7 +357,6 @@ AUTHORS:
 - William Stein (2007-07-16): added arithmetic with symbolic equations
 
 """
-from __future__ import print_function
 
 import operator
 
@@ -1227,6 +1226,13 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
          x == (-0.809857800594 + 0.262869645851*I),
          x == (0.617093477784 + 0.900864951949*I),
          x == (-0.363623519329 + 0.952561195261*I)]
+
+    :trac:`31452` fixed::
+
+        sage: solve([x==3], [x], solution_dict=True)
+        [{x: 3}]
+        sage: solve([x==3], [x], solution_dict=True, algorithm='sympy')
+        [{x: 3}]
     """
     from sage.symbolic.ring import is_SymbolicVariable
     if f.is_relational():
@@ -1277,7 +1283,10 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
             ret = solveset(ex._sympy_(), sympy_vars[0], S.Reals)
         else:
             ret = solveset(ex._sympy_(), sympy_vars[0])
-        return sympy_set_to_list(ret, sympy_vars)
+        ret = sympy_set_to_list(ret, sympy_vars)
+        if solution_dict:
+            ret = [{sol.left(): sol.right()} for sol in ret]
+        return ret
 
     # from here on, maxima is used for solution
     m = ex._maxima_()
@@ -1365,10 +1374,10 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
                     continue
 
     if solution_dict:
-        if isinstance(x, (list, tuple)):
-            X = [{sol.left():sol.right() for sol in b} for b in X]
+        if isinstance(x, (list, tuple)) and len(x) > 1:
+            X = [{sol.left(): sol.right() for sol in b} for b in X]
         else:
-            X = [dict([[sol.left(),sol.right()]]) for sol in X]
+            X = [{sol.left(): sol.right()} for sol in X]
 
     if multiplicities:
         return X, ret_multiplicities

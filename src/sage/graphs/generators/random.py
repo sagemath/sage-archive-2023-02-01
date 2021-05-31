@@ -13,7 +13,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function, division
 
 import sys
 # import from Sage library
@@ -868,7 +867,7 @@ def growing_subtrees(T, k):
         sage: len(S)
         10
     """
-    from sage.misc.prandom import sample
+    from sage.misc.prandom import choice
     n = T.order()
     S = []
     for _ in range(n):
@@ -881,7 +880,7 @@ def growing_subtrees(T, k):
             neighbors = set(T.neighbor_iterator(x))
             for j in range(ki - 1):
                 # Select a random neighbor z outside of Ti and add it to Ti
-                z = sample(neighbors, 1)[0]
+                z = choice(tuple(neighbors))
                 Ti.add(z)
                 neighbors.update(y for y in T.neighbor_iterator(z) if y not in Ti)
             Vi = frozenset(Ti)
@@ -1011,7 +1010,7 @@ def pruned_tree(T, f, s):
     - ``T`` -- a tree
 
     - ``f`` -- a rational number; the edge deletion fraction. This value must be
-      choosen in `[0..1]`.
+      chosen in `[0..1]`.
 
     - ``s`` -- a real number between 0 and 1; selection barrier for the size of
       trees
@@ -1122,7 +1121,7 @@ def RandomChordalGraph(n, algorithm="growing", k=None, l=None, f=None, s=None):
       :meth:`~sage.graphs.generators.random.connecting_nodes` for more details.
 
     - ``f`` -- a rational number (default: ``None``); the edge deletion
-      fraction. This value must be choosen in `[0..1]`. If not specified, this
+      fraction. This value must be chosen in `[0..1]`. If not specified, this
       parameter is set to `\frac{1}{n-1}`.
       This parameter is used only when ``algorithm="pruned"``.
       See :meth:`~sage.graphs.generators.random.pruned_tree` for more details.

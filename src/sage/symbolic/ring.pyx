@@ -194,7 +194,8 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.polynomial.laurent_polynomial_ring import is_LaurentPolynomialRing
 
             from sage.rings.all import (ComplexField,
-                                        RLF, CLF, AA, QQbar, InfinityRing,
+                                        RLF, CLF,
+                                        InfinityRing,
                                         UnsignedInfinityRing)
             from sage.rings.finite_rings.finite_field_base import is_FiniteField
 
@@ -633,6 +634,20 @@ cdef class SymbolicRing(CommutativeRing):
         """
         from sage.symbolic.constants import pi
         return self(pi)
+
+    def I(self):
+        r"""
+        The imaginary unit, viewed as an element of the symbolic ring.
+
+        EXAMPLES::
+
+            sage: SR.I()^2
+            -1
+            sage: SR.I().parent()
+            Symbolic Ring
+        """
+        from sage.symbolic.constants import I
+        return I
 
     cpdef Expression symbol(self, name=None, latex_name=None, domain=None):
         """
@@ -1179,9 +1194,9 @@ cdef class NumpyToSRMorphism(Morphism):
 
     This behavior also applies to standard functions::
 
-        sage: cos(numpy.int('2'))
+        sage: cos(int('2'))
         cos(2)
-        sage: numpy.cos(numpy.int('2'))
+        sage: numpy.cos(int('2'))
         -0.4161468365471424
     """
     cdef _intermediate_ring

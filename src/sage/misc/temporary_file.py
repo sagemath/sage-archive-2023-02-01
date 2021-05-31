@@ -19,7 +19,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import io
 import os
@@ -165,7 +164,7 @@ class atomic_write(object):
 
     This is to be used in a ``with`` statement, where a temporary file
     is created when entering the ``with`` and is moved in place of the
-    target file when exiting the ``with`` (if no exceptions occured).
+    target file when exiting the ``with`` (if no exceptions occurred).
 
     INPUT:
 

@@ -1,7 +1,6 @@
 """
 Neighbors
 """
-from __future__ import print_function
 
 from sage.modules.free_module_element import vector
 from sage.rings.integer_ring import ZZ
@@ -52,7 +51,6 @@ def find_primitive_p_divisible_vector__random(self, p):
             v[ZZ.random_element(n)] = ZZ.random_element(p)
             # Replace a random entry and try again.
     raise RuntimeError("unable to find a p divisible vector")
-
 
 
 def find_primitive_p_divisible_vector__next(self, p, v=None):
@@ -231,13 +229,14 @@ def find_p_neighbor_from_vec(self, p, y):
     Gnew = (B*G*B.T).change_ring(R)
     return QF(Gnew)
 
+
 def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
                        algorithm=None, max_neighbors=1000, verbose=False):
     r"""
     Return all classes in the `p`-neighbor graph of ``self``.
 
     Starting from the given seeds, this function successively
-    finds p-neighbors untill no new quadratic form (class) is obtained.
+    finds p-neighbors until no new quadratic form (class) is obtained.
 
     INPUT:
 
@@ -251,7 +250,7 @@ def neighbor_iteration(seeds, p, mass=None, max_classes=ZZ(10)**3,
 
     - ``algorithm`` -- (optional) one of 'orbits', 'random', 'exaustion'
 
-    - ``max_random_trys`` -- (default: ``1000``) the maximum number of neigbors
+    - ``max_random_trys`` -- (default: ``1000``) the maximum number of neighbors
                              computed for a single lattice
 
     OUTPUT:

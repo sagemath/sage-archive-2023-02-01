@@ -20,7 +20,8 @@ specified in the forward direction).
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-import math, cmath
+import math
+import cmath
 
 cdef add, sub, mul, truediv, pow, neg, inv
 from operator import add, sub, mul, pow, neg, inv, truediv
@@ -555,7 +556,7 @@ cdef class LazyFieldElement(FieldElement):
 
     cpdef _mul_(left, right):
         """
-        Mutliply ``left`` with ``right``.
+        Multiply ``left`` with ``right``.
 
         EXAMPLES::
 
@@ -1595,8 +1596,7 @@ cdef class LazyAlgebraic(LazyFieldElement):
             c, b, a = self._poly.list()
             self._quadratic_disc = b*b - 4*a*c
         if isinstance(parent, RealLazyField_class):
-            from sage.rings.real_double import RDF
-            if len(self._poly.roots(RDF)) == 0:
+            if not self._poly.number_of_real_roots():
                 raise ValueError("%s has no real roots" % self._poly)
             approx = (RR if prec == 0 else RealField(prec))(approx)
         else:

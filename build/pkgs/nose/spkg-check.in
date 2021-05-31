@@ -2,4 +2,4 @@ cd src
 
 python3 setup.py build_tests
 
-sage-python23 selftest.py
+python3 selftest.py

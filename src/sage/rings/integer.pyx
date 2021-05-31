@@ -628,9 +628,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 12 == numpy.int8('12')
             True
 
-            sage: numpy.float('15') == 15
+            sage: float('15') == 15
             True
-            sage: 15 == numpy.float('15')
+            sage: 15 == float('15')
             True
 
         Test underscores as digit separators (PEP 515,
@@ -3468,12 +3468,21 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 5.quo_rem(2/3)
             (15/2, 0)
 
+        Check that :trac:`29009` is fixed:
+
+            sage: divmod(1, sys.maxsize+1r)  # should not raise OverflowError: Python int too large to convert to C long
+            (0, 1)
+            sage: import mpmath
+            sage: mpmath.mp.prec = 1000
+            sage: root = mpmath.findroot(lambda x: x^2 - 3, 2)
+            sage: len(str(root))
+            301
         """
         cdef Integer q = PY_NEW(Integer)
         cdef Integer r = PY_NEW(Integer)
         cdef long d, res
 
-        if type(other) is int:
+        if is_small_python_int(other):
             d = PyInt_AS_LONG(other)
             if d > 0:
                 mpz_fdiv_qr_ui(q.value, r.value, self.value, d)
@@ -4411,6 +4420,29 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         cdef Integer z = PY_NEW(Integer)
         sig_on()
         mpz_lcm(z.value, self.value, n.value)
+        sig_off()
+        return z
+
+    def _gcd(self, Integer n):
+        """
+        Return the greatest common divisor of self and `n`.
+
+        EXAMPLES::
+
+            sage: 1._gcd(-1)
+            1
+            sage: 0._gcd(1)
+            1
+            sage: 0._gcd(0)
+            0
+            sage: 2._gcd(2^6)
+            2
+            sage: 21._gcd(2^6)
+            1
+        """
+        cdef Integer z = PY_NEW(Integer)
+        sig_on()
+        mpz_gcd(z.value, self.value, n.value)
         sig_off()
         return z
 
@@ -6736,33 +6768,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ZeroDivisionError(f"inverse of Mod({self}, {m}) does not exist")
         return ans
 
-    def gcd(self, n):
-        """
-        Return the greatest common divisor of self and `n`.
-
-        EXAMPLES::
-
-            sage: gcd(-1,1)
-            1
-            sage: gcd(0,1)
-            1
-            sage: gcd(0,0)
-            0
-            sage: gcd(2,2^6)
-            2
-            sage: gcd(21,2^6)
-            1
-        """
-        if not isinstance(n, Integer) and not isinstance(n, int):
-            left, right = coercion_model.canonical_coercion(self, n)
-            return left.gcd(right)
-        cdef Integer m = as_Integer(n)
-        cdef Integer g = PY_NEW(Integer)
-        sig_on()
-        mpz_gcd(g.value, self.value, m.value)
-        sig_off()
-        return g
-
     def crt(self, y, m, n):
         """
         Return the unique integer between `0` and `mn` that is congruent to
@@ -7309,9 +7314,11 @@ cdef class long_to_Z(Morphism):
 cdef int sizeof_Integer
 
 # We use a global Integer element to steal all the references
-# from.  DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
+# from. DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
+#
+# Use actual calculation to avoid libgmp's new lazy allocation :trac:`31340`
 cdef Integer global_dummy_Integer
-global_dummy_Integer = Integer()
+global_dummy_Integer = Integer(1) - Integer(1)
 
 
 # A global pool for performance when integers are rapidly created and destroyed.

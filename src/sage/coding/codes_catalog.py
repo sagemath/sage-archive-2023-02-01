@@ -72,7 +72,6 @@ Derived Codes
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 # This module is imported as "codes" in all.py so that codes.<tab> is
 # available in the global namespace.
@@ -103,6 +102,7 @@ _lazy_import('sage.coding.goppa_code', 'GoppaCode')
 _lazy_import('sage.coding.kasami_codes', 'KasamiCode')
 _lazy_import('sage.coding.linear_rank_metric', 'LinearRankMetricCode')
 _lazy_import('sage.coding.gabidulin_code', 'GabidulinCode')
+_lazy_import('sage.coding.ag_code', ['EvaluationAGCode', 'DifferentialAGCode', 'CartierCode'])
 
 _lazy_import('sage.coding.guava', ['QuasiQuadraticResidueCode', 'RandomLinearCodeGuava'])
 

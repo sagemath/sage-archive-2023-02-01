@@ -61,7 +61,7 @@ class IncidenceStructure(object):
 
       .. NOTE::
 
-          The following syntax, where ``points`` is ommitted, automatically
+          The following syntax, where ``points`` is omitted, automatically
           defines the ground set as the union of the blocks::
 
               sage: H = IncidenceStructure([['a','b','c'],['c','d','e']])
@@ -1434,7 +1434,7 @@ class IncidenceStructure(object):
         from sage.numerical.mip import MixedIntegerLinearProgram
 
         # List of blocks containing a given point x
-        d = [[] for x in self._points]
+        d = [[] for _ in self._points]
         for i, B in enumerate(self._blocks):
             for x in B:
                 d[x].append(i)
@@ -1652,7 +1652,7 @@ class IncidenceStructure(object):
         r"""
         Test if the incidence structure is a generalized quadrangle.
 
-        An incidence structure is a generalized quadrangle iff (see [BH12]_,
+        An incidence structure is a generalized quadrangle iff (see [BH2012]_,
         section 9.6):
 
         - two blocks intersect on at most one point.
@@ -1947,7 +1947,7 @@ class IncidenceStructure(object):
                 domain = list(range(self.num_points()))
 
                 # Lists of blocks containing i for every i
-                dual = [[] for i in domain]
+                dual = [[] for _ in domain]
                 for i,B in enumerate(self._blocks):
                     for x in B:
                         dual[x].append(i)
@@ -2078,7 +2078,7 @@ class IncidenceStructure(object):
         except MIPSolverException:
             raise ValueError("This hypergraph is not {}-colorable".format(k))
 
-        col = [[] for i in range(k)]
+        col = [[] for _ in range(k)]
 
         for (x,i),v in p.get_values(b).items():
             if v:
@@ -2183,19 +2183,35 @@ class IncidenceStructure(object):
             sage: sets = Set(map(Set,list(g.subgraph_search_iterator(C4))))
             sage: H = Hypergraph(sets)
             sage: view(H) # not tested
+
+        TESTS::
+
+            # verify that :trac:`30976` is fixed
+            sage: IS = IncidenceStructure([1,2,3], [[1,2], [2,3]])
+            sage: if latex.has_file("tikz.sty"):          # optional - latex
+            ....:     IS._latex_()                        # optional - latex
+            ...UserWarning:
+            The hypergraph is drawn as a set of closed curves...
+            \begin{tikzpicture}...
+            \draw... -- ...;
+            \draw... -- ...;
+             \draw node...;
+             \draw node...;
+             \draw node...;
+            \end{tikzpicture}
+
         """
         from sage.functions.trig import arctan2
 
-        from sage.misc.misc import warn
+        from warnings import warn
         warn("\nThe hypergraph is drawn as a set of closed curves. The curve "
-             "representing a set S go **THROUGH** the points contained "
+             "representing a set S goes **THROUGH** the points contained "
              "in S.\n A point which is encircled by a curve but is not located "
              "on its boundary is **NOT** included in the corresponding set.\n"
              "\n"
              "The colors are picked for readability and have no other meaning.")
 
         latex.add_package_to_preamble_if_available("tikz")
-        latex.add_to_mathjax_avoid_list("tikz")
 
         if not latex.has_file("tikz.sty"):
             raise RuntimeError("You must have TikZ installed in order "

@@ -25,7 +25,6 @@ a right ideal, and ``R*[a,b,...]*R`` creates a two-sided ideal.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from types import GeneratorType
 
@@ -1710,7 +1709,7 @@ def Cyclic(R, n=None, homog=False, singular=None):
         from sage.interfaces.singular import singular as singular_default
         singular = singular_default
 
-    singular.lib("poly")
+    singular.lib("polylib")
     R2 = R.change_ring(RationalField())
     R2._singular_().set_ring()
 
@@ -1761,7 +1760,7 @@ def Katsura(R, n=None, homog=False, singular=None):
     if singular is None:
         from sage.interfaces.singular import singular as singular_default
         singular = singular_default
-    singular.lib("poly")
+    singular.lib("polylib")
     R2 = R.change_ring(RationalField())
     R2._singular_().set_ring()
 

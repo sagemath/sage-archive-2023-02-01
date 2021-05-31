@@ -31,7 +31,6 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import itertools
 import time
@@ -1330,7 +1329,6 @@ class ClusterSeed(SageObject):
             return catchup.cluster_variable(k)
         else:
             raise ValueError('Clusters not being tracked')
-            return None
 
     def cluster(self):
         r"""
@@ -2573,7 +2571,7 @@ class ClusterSeed(SageObject):
                 if k is None:
                     raise ValueError("variable provided is not in our cluster")
             else:
-                raise ValueError('Why wasnt this caught earlier? Cannot mutate in direction ' + str(k) + '.')
+                raise ValueError('Should not happen. Cannot mutate in direction ' + str(k) + '.')
 
             if seed._use_fpolys:
                 seed._f_mutate(k)
@@ -4129,7 +4127,7 @@ class ClusterSeed(SageObject):
                 ans = 0
                 if a1 >= a2:
                     PS = PathSubset(a1, a2)
-                elif a1 < a2:
+                else:
                     PS = PathSubset(a2, a1)
                 from sage.combinat.subset import Subsets
                 for T in Subsets(PS):
@@ -4138,7 +4136,7 @@ class ClusterSeed(SageObject):
                             oddT = set(T).intersection(PathSubset(a1, 0))
                             evenT = set(T).symmetric_difference(oddT)
                             ans = ans + S.x(0)**(b*len(evenT)) * S.x(1)**(c*len(oddT))
-                    elif a1 < a2:
+                    else:
                         if is_LeeLiZel_allowable(T, a2, a1, c, b):
                             oddT = set(T).intersection(PathSubset(a2, 0))
                             evenT = set(T).symmetric_difference(oddT)
@@ -4560,11 +4558,11 @@ class ClusterSeed(SageObject):
             #Each compatible sequence gives a term in the numerator of the Laurent polynomial.
                 for s in cList[i]:
                     term = 1
-                    #Calulates the monomial in the term.
+                    # Calculates the monomial in the term.
                     for j in range(num_rows):
                         x = R.gen(j)
                         expn = 0
-                        #The exponent is determined by the vectors a,s, and the matrix B.
+                        # The exponent is determined by the vectors a,s, and the matrix B.
                         for k in range(num_cols):
                             expn += (vd[i][0][k]-s[k])*max(0, B[j][k])+s[k]*max(0, -B[j][k])
                         term *= x ** expn

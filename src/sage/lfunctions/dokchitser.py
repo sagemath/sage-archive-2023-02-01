@@ -336,7 +336,7 @@ class Dokchitser(SageObject):
             raise RuntimeError("Unable to create L-series, due to precision or other limits in PARI.")
         if not self.__init and '***' in t:
             # After init_coeffs is called, future calls to this method should
-            # return the full output for futher parsing
+            # return the full output for further parsing
             raise RuntimeError("Unable to create L-series, due to precision or other limits in PARI.")
         return t
 

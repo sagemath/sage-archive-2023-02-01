@@ -177,7 +177,6 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from builtins import zip
 
@@ -1204,8 +1203,7 @@ class FiniteWordPath_all(SageObject):
             n += 1
             if len(s) != n:
                 return False
-        else:
-            return True
+        return True
 
     def tikz_trajectory(self):
         r"""

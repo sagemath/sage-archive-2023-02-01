@@ -1,5 +1,5 @@
-snowballstemmer
-===============
+snowballstemmer: Stemmer algorithms for natural language processing in Python
+=============================================================================
 
 Description
 -----------

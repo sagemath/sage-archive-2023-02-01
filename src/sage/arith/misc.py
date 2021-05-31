@@ -4546,7 +4546,7 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     if algorithm == "pari":
         if p == -1:
             p = 0
-        return ZZ(pari(a).hilbert(b,p))
+        return ZZ(pari(a).hilbert(b, p))
 
     elif algorithm == 'direct':
         if a == 0 or b == 0:
@@ -4557,13 +4557,15 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
 
         if p != -1:
             p_sqr = p**2
-            while a%p_sqr == 0: a //= p_sqr
-            while b%p_sqr == 0: b //= p_sqr
+            while a % p_sqr == 0:
+                a //= p_sqr
+            while b % p_sqr == 0:
+                b //= p_sqr
 
-        if p != 2 and True in ( kronecker(x,p) == 1 for x in (a,b,a+b) ):
+        if p != 2 and True in (kronecker(x, p) == 1 for x in (a, b, a + b)):
             return one
-        if a%p == 0:
-            if b%p == 0:
+        if a % p == 0:
+            if b % p == 0:
                 return hilbert_symbol(p,-(b//p),p)*hilbert_symbol(a//p,b,p)
             elif p == 2 and (b%4) == 3:
                 if kronecker(a+b,p) == -1:
@@ -5597,7 +5599,7 @@ def _key_complex_for_display(a):
     ai = a.imag()
     if not ai:
         return (0, ar)
-    epsilon = 1e-10
+    epsilon = ar.parent()(1e-10)
     if ar.abs() < epsilon:
         ar_truncated = 0
     elif ar.prec() < 34:

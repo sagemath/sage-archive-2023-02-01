@@ -1,4 +1,9 @@
-# distutils: libraries = ntl
+# distutils: libraries = NTL_LIBRARIES
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: language = c++
 r"""
 Rational Numbers
 
@@ -2585,7 +2590,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             return c
         elif d == -1 and n.denominator() == 2:
             # Exact rational times a power of I
-            from sage.symbolic.all import I
+            from sage.rings.imaginary_unit import I
             return c * I ** (n.numerator() % 4)
 
         # Result is c * d^n but we cannot simplify d^n further:

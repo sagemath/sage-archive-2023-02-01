@@ -1647,7 +1647,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()     # rel tol 1e-15
             6.666666666666666
 
-        The two constraints can alse be combined into a single
+        The two constraints can also be combined into a single
         vector-valued constraint::
 
             sage: p = MixedIntegerLinearProgram(maximization=True, solver='GLPK')
@@ -2527,7 +2527,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: b.solver_parameter("simplex_or_intopt", "simplex_only")
             sage: b.solver_parameter("verbosity_simplex", "GLP_MSG_ALL")
             sage: ans = p.solve()
-            GLPK Simplex Optimizer, v...
+            GLPK Simplex Optimizer...
             2 rows, 2 columns, 4 non-zeros
             *     0: obj =   7.000000000e+00 inf =   0.000e+00 (2)
             *     2: obj =   9.400000000e+00 inf =   0.000e+00 (0)

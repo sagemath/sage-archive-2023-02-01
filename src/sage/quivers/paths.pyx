@@ -134,7 +134,7 @@ cdef class QuiverPath(MonoidElement):
         - ``start``, integer, the label of the initial vertex.
         - ``end``, integer, the label of the terminal vertex.
         - ``path``, list of integers, providing the list of arrows
-          occuring in the path, labelled according to the position in
+          occurring in the path, labelled according to the position in
           the list of all arrows (resp. the list of outgoing arrows at
           each vertex).
 

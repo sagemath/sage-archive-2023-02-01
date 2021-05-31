@@ -15,7 +15,6 @@ The methods defined here appear in :mod:`sage.graphs.graph_generators`.
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         https://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import absolute_import, division
 
 from sage.graphs.graph import Graph
 from sage.arith.all import is_prime_power
@@ -397,7 +396,7 @@ def NonisotropicOrthogonalPolarGraph(m, q, sign="+", perp=None):
       is degenerate (cf. Sect. 7.C of [BL1984]_).
       Note that for `q=2` one will get a complete graph.
 
-    For more information, see Sect. 9.9 of [BH12]_ and [BL1984]_. Note that
+    For more information, see Sect. 9.9 of [BH2012]_ and [BL1984]_. Note that
     the `page of Andries Brouwer's website
     <https://www.win.tue.nl/~aeb/graphs/srghub.html>`_ uses different notation.
 
@@ -657,7 +656,7 @@ def NonisotropicUnitaryPolarGraph(m, q):
     Hermitean form, points of the `(m-1)`-dimensional projective space over `F_q`,
     with points adjacent whenever they lie on a tangent (to the set of isotropic points)
     line.
-    For more information, see Sect. 9.9 of [BH12]_ and series C14 in [Hub1975]_.
+    For more information, see Sect. 9.9 of [BH2012]_ and series C14 in [Hub1975]_.
 
     INPUT:
 
@@ -1421,7 +1420,7 @@ def Nowhere0WordsTwoWeightCodeGraph(q, hyperoval=None, field=None, check_hyperov
 def OrthogonalDualPolarGraph(e, d, q):
     r"""
     Return dual polar graph on $GO^e(n,q)$ of diameter `d`.
-    The value of `n` is determinded by `d` and `e`.
+    The value of `n` is determined by `d` and `e`.
 
     The graph is distance-regular with classical parameters
     `(d, q, 0, q^e)`.

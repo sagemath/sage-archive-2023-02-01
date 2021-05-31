@@ -279,7 +279,6 @@ We use the lexicographic ordering::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from copy import copy
 
@@ -317,6 +316,7 @@ from . import composition
 from sage.combinat.partitions import ZS1_iterator, ZS1_iterator_nk
 from sage.combinat.integer_vector import IntegerVectors
 from sage.combinat.integer_lists import IntegerListsLex
+from sage.combinat.integer_vector_weighted import iterator_fast as weighted_iterator_fast
 from sage.combinat.combinat_cython import conjugate
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
@@ -966,7 +966,6 @@ class Partition(CombinatorialElement):
         M = max(self)
         return '%s' % ','.join('%s%s' % (M-m, '' if e==1 else '^{%s}'%e)
                                  for (m,e) in enumerate(exp) if e>0)
-
 
     def ferrers_diagram(self):
         r"""
@@ -2963,7 +2962,7 @@ class Partition(CombinatorialElement):
 
         The degree of a partition `\lambda` is the sum of the
         `e`-:meth:`degree` of the standard tableaux of shape `\lambda`, for
-        `e` a poer of the prime `p`. The prime degree gives the exponent of
+        `e` a power of the prime `p`. The prime degree gives the exponent of
         `p` in the Gram determinant of the integral Specht module of the
         symmetric group.
 
@@ -3304,7 +3303,6 @@ class Partition(CombinatorialElement):
             for j in range(self[i]):
                 res *= 1-q**(self[i]-j-1)*t**(nu[j]-i)
         return res
-
 
     def hook_length(self, i, j):
         r"""
@@ -4989,7 +4987,7 @@ class Partition(CombinatorialElement):
         from sage.combinat.misc import umbral_operation
         return umbral_operation(res)
 
-    def dimension(self, smaller = [], k = 1):
+    def dimension(self, smaller=None, k=1):
         r"""
         Return the number of paths from the ``smaller`` partition to
         the partition ``self``, where each step consists of adding a
@@ -5056,7 +5054,7 @@ class Partition(CombinatorialElement):
         Checks that the dimension satisfies the obvious recursion relation::
 
             sage: test = lambda larger, smaller: larger.dimension(smaller) == sum(mu.dimension(smaller) for mu in larger.down())
-            sage: all(test(larger,smaller) for l in range(1,10) for s in range(0,10)
+            sage: all(test(larger,smaller) for l in range(1,10) for s in range(10)
             ....:     for larger in Partitions(l) for smaller in Partitions(s) if smaller != larger)
             True
 
@@ -5076,7 +5074,7 @@ class Partition(CombinatorialElement):
         - Paul-Olivier Dehaye (2011-06-07)
         """
         larger = self
-        if smaller == []:
+        if smaller is None:
             smaller = Partition([])
         if k == 1:
             if smaller == Partition([]):        # In this case, use the hook dimension formula
@@ -5106,7 +5104,7 @@ class Partition(CombinatorialElement):
 
             def multinomial_with_partitions(sizes,path_counts):
             # count the number of ways of performing the k paths in parallel,
-            # if we know the total length alloted for each of the paths (sizes), and the number
+            # if we know the total length allotted for each of the paths (sizes), and the number
             # of paths for each component. A multinomial picks the ordering of the components where
             # each step is taken.
                 return prod(path_counts) * multinomial(sizes)
@@ -6489,7 +6487,7 @@ class Partitions_n(Partitions):
         elif measure == 'Plancherel':
             return self.random_element_plancherel()
         else:
-            raise ValueError("Unkown measure: %s" % (measure))
+            raise ValueError("Unknown measure: %s" % measure)
 
     def random_element_uniform(self):
         """
@@ -7116,10 +7114,10 @@ class Partitions_parts_in(Partitions):
 
         EXAMPLES::
 
-            sage: [x for x in Partitions(4)]
-            [[4], [3, 1], [2, 2], [2, 1, 1], [1, 1, 1, 1]]
+            sage: [x for x in Partitions(5, parts_in=[1,2,3])]
+            [[3, 2], [3, 1, 1], [2, 2, 1], [2, 1, 1, 1], [1, 1, 1, 1, 1]]
         """
-        for p in self._fast_iterator(self.n, self.parts[:]):
+        for p in self._other_iterator(self.n, self.parts):
             yield self.element_class(self, p)
 
     def _fast_iterator(self, n, parts):
@@ -7165,6 +7163,38 @@ class Partitions_parts_in(Partitions):
                     for q in self._fast_iterator(n - k * p, parts[:]):
                         yield k * [p] + q
 
+    def _other_iterator(self, n, parts):
+        """
+        A fast iterator for the partitions of ``n`` which returns lists and
+        not partition types. This function is not intended to be called
+        directly.
+
+        INPUT:
+
+        - ``n`` -- nonnegative integer.
+
+        - ``parts`` -- a list of parts to use.
+
+        OUTPUT:
+
+        A generator object for partitions of `n` with parts in
+        ``parts``.
+
+        EXAMPLES::
+
+            sage: P = Partitions(4, parts_in=[2,4])
+            sage: it = P._other_iterator(4, [2,4])
+            sage: next(it)
+            [4]
+            sage: type(_)
+            <... 'list'>
+        """
+        sorted_parts = sorted(parts, reverse=True)
+        for vec in weighted_iterator_fast(n, sorted_parts):
+            yield sum(([pi] * multi
+                       for pi, multi in zip(sorted_parts, vec)), [])
+
+
 class Partitions_starting(Partitions):
     """
     All partitions with a given start.
@@ -7188,7 +7218,7 @@ class Partitions_starting(Partitions):
 
     def __init__(self, n, starting_partition):
         """
-        Initilizes ``self``.
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -7436,8 +7466,8 @@ class PartitionsInBox(Partitions):
         if h == 0:
             return [self.element_class(self, [])]
         else:
-            l = [[i] for i in range(0, w+1)]
-            add = lambda x: [ x+[i] for i in range(0, x[-1]+1)]
+            l = [[i] for i in range(w + 1)]
+            add = lambda x: [x + [i] for i in range(x[-1] + 1)]
             for i in range(h-1):
                 new_list = []
                 for element in l:

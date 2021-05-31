@@ -5,8 +5,11 @@ from __future__ import print_function
 import os
 import sys
 import time
+# Import setuptools before importing distutils, so that setuptools
+# can replace distutils by its own vendored copy.
+import setuptools
 from distutils import log
-from distutils.core import setup
+from setuptools import setup
 
 # Work around a Cython problem in Python 3.8.x on macOS
 # https://github.com/cython/cython/issues/3262
@@ -17,6 +20,9 @@ if os.uname().sysname == 'Darwin':
 #########################################################
 ### Set source directory
 #########################################################
+
+# PEP 517 builds do not have . in sys.path
+sys.path.insert(0, os.path.dirname(__file__))
 
 import sage.env
 sage.env.SAGE_SRC = os.getcwd()
@@ -57,18 +63,20 @@ from sage_setup.command.sage_build_ext import sage_build_ext
 print("Discovering Python/Cython source code....")
 t = time.time()
 
-distributions = ['']
-
 from sage_setup.optional_extension import is_package_installed_and_updated
 
-optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
-                                     'coxeter3', 'fes', 'sirocco', 'meataxe']
-
-distributions += ['sage-{}'.format(pkg)
-                  for pkg in optional_packages_with_extensions
-                  if is_package_installed_and_updated(pkg)]
-
-log.warn('distributions = {0}'.format(distributions))
+if sdist:
+    # No need to compute distributions.  This avoids a dependency on Cython
+    # just to make an sdist.
+    distributions = None
+else:
+    distributions = ['']
+    optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
+                                         'coxeter3', 'fes', 'sirocco', 'meataxe']
+    distributions += ['sage-{}'.format(pkg)
+                      for pkg in optional_packages_with_extensions
+                      if is_package_installed_and_updated(pkg)]
+    log.warn('distributions = {0}'.format(distributions))
 
 from sage_setup.find import find_python_sources
 python_packages, python_modules, cython_modules = find_python_sources(
@@ -79,20 +87,14 @@ log.debug('python_packages = {0}'.format(python_packages))
 print("Discovered Python/Cython sources, time: %.2f seconds." % (time.time() - t))
 
 
-from sage_setup.command.sage_install import sage_install
+from sage_setup.command.sage_install import sage_install_and_clean
 
 #########################################################
 ### Distutils
 #########################################################
 
-code = setup(name = 'sage',
-      version     =  SAGE_VERSION,
-      description = 'Sage: Open Source Mathematics Software',
-      license     = 'GNU Public License (GPL)',
-      author      = 'William Stein et al.',
-      author_email= 'https://groups.google.com/group/sage-support',
-      url         = 'https://www.sagemath.org',
-      packages    = python_packages,
+code = setup(
+      packages = python_packages,
       package_data = {
           'sage.libs.gap': ['sage.gaprc'],
           'sage.interfaces': ['sage-maxima.lisp'],
@@ -129,7 +131,6 @@ code = setup(name = 'sage',
                  'bin/sage-runtests',          # because it is useful for doctesting user scripts too
                  'bin/sage-fixdoctests',       # likewise
                  'bin/sage-coverage',          # because it is useful for coverage-testing user scripts too
-                 'bin/sage-coverageall',       # likewise
                  'bin/sage-cython',            # deprecated, might be used in user package install scripts
                  ## Helper scripts invoked by sage script
                  ## (they would actually belong to something like libexec)
@@ -138,16 +139,16 @@ code = setup(name = 'sage',
                  'bin/sage-massif',
                  'bin/sage-omega',
                  'bin/sage-valgrind',
+                 'bin/sage-venv-config',
                  'bin/sage-version.sh',
                  'bin/sage-cleaner',
                  ## Only makes sense in sage-the-distribution. TODO: Move to another installation script.
                  'bin/sage-list-packages',
-                 'bin/sage-download-upstream',
                  'bin/sage-location',
                  ## Uncategorized scripts in alphabetical order
                  'bin/math-readline',
                  'bin/sage-env',
-                 'bin/sage-env-config',
+                 # sage-env-config -- installed by sage_conf
                  # sage-env-config.in -- not to be installed',
                  'bin/sage-gdb-commands',
                  'bin/sage-grep',
@@ -160,7 +161,6 @@ code = setup(name = 'sage',
                  'bin/sage-num-threads.py',
                  'bin/sage-open',
                  'bin/sage-preparse',
-                 'bin/sage-pypkg-location',
                  'bin/sage-python',
                  'bin/sage-rebase.bat',
                  'bin/sage-rebase.sh',
@@ -172,10 +172,9 @@ code = setup(name = 'sage',
                  'bin/sage-startuptime.py',
                  'bin/sage-update-src',
                  'bin/sage-update-version',
-                 'bin/sage-upgrade',
                  ],
       cmdclass = dict(build=sage_build,
                       build_cython=sage_build_cython,
                       build_ext=sage_build_ext,
-                      install=sage_install),
+                      install=sage_install_and_clean),
       ext_modules = cython_modules)

@@ -165,8 +165,8 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
+from collections import defaultdict
 from sage.structure.category_object import normalize_names
 
 from sage.rings.integer import Integer
@@ -468,7 +468,23 @@ class FiniteFieldFactory(UniqueFactory):
         sage: GF(next_prime(2^63)^6)
         Finite Field in z6 of size 9223372036854775837^6
 
+    Check that :trac:`31547` has been fixed::
+
+        sage: q=2**152
+        sage: GF(q,'a',modulus='primitive') == GF(q,'a',modulus='primitive')
+        True
     """
+    def __init__(self, *args, **kwds):
+        """
+        Initialization.
+
+        EXAMPLES::
+
+            sage: TestSuite(GF).run()
+        """
+        self._modulus_cache = defaultdict(dict)
+        super().__init__(*args, **kwds)
+
     def create_key_and_extra_args(self, order, name=None, modulus=None, names=None,
                                   impl=None, proof=None, check_irreducible=True,
                                   prefix=None, repr=None, elem_cache=None,
@@ -539,8 +555,6 @@ class FiniteFieldFactory(UniqueFactory):
             elif order.is_prime_power():
                 if names is not None:
                     name = names
-                if name is not None:
-                    name = normalize_names(1, name)
 
                 p, n = order.factor()[0]
                 if name is None:
@@ -556,6 +570,7 @@ class FiniteFieldFactory(UniqueFactory):
                     # and a pseudo-Conway polynomial if it's not.
                     modulus = Fpbar._get_polynomial(n)
                     check_irreducible = False
+                name = normalize_names(1, name)
 
                 if impl is None:
                     if order < zech_log_bound:
@@ -577,7 +592,10 @@ class FiniteFieldFactory(UniqueFactory):
                     modulus = R.irreducible_element(n)
                 if isinstance(modulus, str):
                     # A string specifies an algorithm to find a suitable modulus.
-                    modulus = R.irreducible_element(n, algorithm=modulus)
+                    if modulus != "random" and modulus in self._modulus_cache[order]:
+                        modulus = self._modulus_cache[order][modulus]
+                    else:
+                        self._modulus_cache[order][modulus] = modulus = R.irreducible_element(n, algorithm=modulus)
                 else:
                     if sage.rings.polynomial.polynomial_element.is_Polynomial(modulus):
                         modulus = modulus.change_variable_name('x')

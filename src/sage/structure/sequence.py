@@ -1,5 +1,5 @@
 r"""
-Finite Homogenous Sequences
+Finite Homogeneous Sequences
 
 A mutable sequence of elements with a common guaranteed category,
 which can be set immutable.
@@ -59,7 +59,7 @@ specifying the universe of the sequence::
     sage: v = Sequence(range(10000), universe=ZZ)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -67,9 +67,8 @@ specifying the universe of the sequence::
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
-from __future__ import print_function
 
 import sage.structure.sage_object
 import sage.structure.coerce
@@ -216,7 +215,6 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
     """
     from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 
-
     if isinstance(x, Sequence_generic) and universe is None:
         universe = x.universe()
         x = list(x)
@@ -227,7 +225,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
 
     if universe is None:
         orig_x = x
-        x = list(x) # make a copy even if x is a list, we're going to change it
+        x = list(x)  # make a copy even if x is a list, we're going to change it
 
         if len(x) == 0:
             from sage.categories.objects import Objects
@@ -238,7 +236,7 @@ def Sequence(x, universe=None, check=True, immutable=False, cr=False, cr_str=Non
                 # convert any Python built-in numerical types to Sage objects
                 x = [sage.structure.coerce.py_scalar_to_element(e) for e in x]
             # start the pairwise coercion
-            for i in range(len(x)-1):
+            for i in range(len(x) - 1):
                 try:
                     x[i], x[i+1] = sage.structure.element.canonical_coercion(x[i],x[i+1])
                 except TypeError:
@@ -829,10 +827,10 @@ class Sequence_generic(sage.structure.sage_object.SageObject, list):
             True
 
         """
-        return Sequence(self,universe = self.__universe,
-                        check = False,
-                        immutable = self._is_immutable,
-                        cr = self.__cr_str)
+        return Sequence(self, universe=self.__universe,
+                        check=False,
+                        immutable=self._is_immutable,
+                        cr=self.__cr_str)
 
     def __getattr__(self, name):
         """

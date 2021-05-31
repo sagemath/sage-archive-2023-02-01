@@ -1,7 +1,6 @@
 r"""
 Parents for Polyhedra
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
@@ -96,7 +95,7 @@ def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *
         sage: Polyhedra(RR, 3, backend='field')
         Traceback (most recent call last):
         ...
-        ValueError: the 'field' backend for polyhedron can not be used with non-exact fields
+        ValueError: the 'field' backend for polyhedron cannot be used with non-exact fields
         sage: Polyhedra(RR, 3)
         Traceback (most recent call last):
         ...
@@ -161,7 +160,7 @@ def Polyhedra(ambient_space_or_base_ring=None, ambient_dim=None, backend=None, *
         return Polyhedra_polymake(base_ring.fraction_field(), ambient_dim, backend)
     elif backend == 'field':
         if not base_ring.is_exact():
-            raise ValueError("the 'field' backend for polyhedron can not be used with non-exact fields")
+            raise ValueError("the 'field' backend for polyhedron cannot be used with non-exact fields")
         return Polyhedra_field(base_ring.fraction_field(), ambient_dim, backend)
     else:
         raise ValueError('No such backend (=' + str(backend) +
@@ -325,7 +324,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
     @cached_method
     def an_element(self):
         r"""
-        Returns a Polyhedron.
+        Return a Polyhedron.
 
         EXAMPLES::
 
@@ -337,7 +336,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         one = self.base_ring().one()
         p = [zero] * self.ambient_dim()
         points = [p]
-        for i in range(0, self.ambient_dim()):
+        for i in range(self.ambient_dim()):
             p = [zero] * self.ambient_dim()
             p[i] = one
             points.append(p)
@@ -346,7 +345,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
     @cached_method
     def some_elements(self):
         r"""
-        Returns a list of some elements of the semigroup.
+        Return a list of some elements of the semigroup.
 
         EXAMPLES::
 
@@ -366,8 +365,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
                 self.element_class(self, None, [[], []])]
         points = []
         R = self.base_ring()
-        for i in range(0, self.ambient_dim() + 5):
-            points.append([R(i*j^2) for j in range(0, self.ambient_dim())])
+        for i in range(self.ambient_dim() + 5):
+            points.append([R(i*j^2) for j in range(self.ambient_dim())])
         return [
             self.element_class(self, [points[0:self.ambient_dim()+1], [], []], None),
             self.element_class(self, [points[0:1], points[1:self.ambient_dim()+1], []], None),

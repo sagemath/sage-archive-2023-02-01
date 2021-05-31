@@ -28,8 +28,10 @@ REFERENCES:
 from sage.misc.latex import latex
 from sage.rings.infinity import infinity, minus_infinity
 from sage.symbolic.ring import SR
+from sage.rings.real_mpfr import RR
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.manifolds.structure import RealDifferentialStructure
+from sage.categories.manifolds import Manifolds
 
 class OpenInterval(DifferentiableManifold):
     r"""
@@ -69,7 +71,8 @@ class OpenInterval(DifferentiableManifold):
     ``I`` is a 1-dimensional smooth manifold over `\RR`::
 
         sage: I.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth connected manifolds over Real Field with 53 bits of
+         precision
         sage: I.base_field()
         Real Field with 53 bits of precision
         sage: dim(I)
@@ -238,17 +241,20 @@ class OpenInterval(DifferentiableManifold):
 
         sage: J.category()
         Join of Category of subobjects of sets and Category of smooth manifolds
-         over Real Field with 53 bits of precision
+         over Real Field with 53 bits of precision and Category of connected
+         manifolds over Real Field with 53 bits of precision
         sage: K.category()
         Join of Category of subobjects of sets and Category of smooth manifolds
-         over Real Field with 53 bits of precision
+         over Real Field with 53 bits of precision and Category of connected
+         manifolds over Real Field with 53 bits of precision
 
     On the contrary, ``I``, which has not been created as a subinterval,
     is in the category of smooth manifolds (see
     :class:`~sage.categories.manifolds.Manifolds`)::
 
         sage: I.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth connected manifolds over Real Field with 53 bits of
+         precision
 
     and we have::
 
@@ -290,6 +296,34 @@ class OpenInterval(DifferentiableManifold):
         t: (1/2, 1)
 
     """
+    @staticmethod
+    def __classcall_private__(cls, lower, upper, ambient_interval=None,
+                              name=None, latex_name=None, coordinate=None,
+                              names=None, start_index=0):
+        r"""
+        Determine the correct interval to return based upon the input.
+
+        TESTS:
+
+        Check whether :trac:`30830` is fixed::
+
+            sage: I = OpenInterval(0,2)
+            sage: J = OpenInterval(0,1, ambient_interval=I, coordinate='t')
+            sage: I.open_interval(0,1)
+            Real interval (0, 1)
+
+        """
+        if ambient_interval:
+            # cope the UniqueRepresentation framework for subintervals and
+            # reset irrelevant information only:
+            coordinate = None
+            names = None
+            start_index = 0
+        return super(cls, OpenInterval).__classcall__(cls, lower, upper,
+                          ambient_interval=ambient_interval, name=name,
+                          latex_name=latex_name, coordinate=coordinate,
+                          names=names, start_index=start_index)
+
     def __init__(self, lower, upper, ambient_interval=None,
                  name=None, latex_name=None,
                  coordinate=None, names=None, start_index=0):
@@ -321,10 +355,12 @@ class OpenInterval(DifferentiableManifold):
             ambient_manifold = ambient_interval.manifold()
         field = 'real'
         structure = RealDifferentialStructure()
+        category = Manifolds(RR).Smooth().Connected()
         DifferentiableManifold.__init__(self, 1, name, field, structure,
                                         base_manifold=ambient_manifold,
                                         latex_name=latex_name,
-                                        start_index=start_index)
+                                        start_index=start_index,
+                                        category=category)
         if ambient_interval is None:
             if coordinate is None:
                 if names is None:
@@ -492,8 +528,8 @@ class OpenInterval(DifferentiableManifold):
             sage: M = Manifold(3, 'M')
             sage: H = I._Hom_(M); H
             Set of Morphisms from Real interval (-1, 1) to 3-dimensional
-             differentiable manifold M in Category of smooth manifolds over
-             Real Field with 53 bits of precision
+             differentiable manifold M in Category of smooth manifolds over Real
+             Field with 53 bits of precision
             sage: H is Hom(I, M)
             True
 
@@ -714,7 +750,8 @@ class RealLine(OpenInterval):
     ``R`` is a 1-dimensional real smooth manifold::
 
         sage: R.category()
-        Category of smooth manifolds over Real Field with 53 bits of precision
+        Category of smooth connected manifolds over Real Field with 53 bits of
+         precision
         sage: isinstance(R, sage.manifolds.differentiable.manifold.DifferentiableManifold)
         True
         sage: dim(R)
@@ -830,6 +867,27 @@ class RealLine(OpenInterval):
         [Real interval (0, 1), Real number line R]
 
     """
+    @staticmethod
+    def __classcall__(cls, name='R', latex_name=r'\Bold{R}', coordinate=None,
+                      names=None, start_index=0):
+        r"""
+        Determine the correct interval to return based upon the input.
+
+        TESTS::
+
+            sage: R = RealLine(); R
+            Real number line R
+            sage: R1 = RealLine('R'); R1
+            Real number line R
+            sage: R is R1
+            True
+
+        """
+        return super(cls, RealLine).__classcall__(cls, name=name,
+                                           latex_name=latex_name,
+                                           coordinate=coordinate,
+                                           names=names, start_index=start_index)
+
     def __init__(self, name='R', latex_name=r'\Bold{R}', coordinate=None,
                  names=None, start_index=0):
         r"""
@@ -840,7 +898,8 @@ class RealLine(OpenInterval):
             sage: R = RealLine() ; R
             Real number line R
             sage: R.category()
-            Category of smooth manifolds over Real Field with 53 bits of precision
+            Category of smooth connected manifolds over Real Field with 53 bits
+             of precision
             sage: TestSuite(R).run(skip='_test_elements')  # pickling of elements fails
 
         """

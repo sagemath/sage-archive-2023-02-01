@@ -43,7 +43,6 @@ Comprehensive Module list
     sage/combinat/combinat
     sage/combinat/combinat_cython
     sage/combinat/combination
-    sage/combinat/combinatorial_algebra
     sage/combinat/combinatorial_map
     sage/combinat/composition
     sage/combinat/composition_signed
@@ -177,7 +176,9 @@ Comprehensive Module list
     sage/combinat/parking_functions
     sage/combinat/path_tableaux/catalog
     sage/combinat/path_tableaux/dyck_path
+    sage/combinat/path_tableaux/frieze
     sage/combinat/path_tableaux/path_tableau
+    sage/combinat/path_tableaux/semistandard
     sage/combinat/plane_partition
     sage/combinat/partition
     sage/combinat/partition_algebra
@@ -206,6 +207,7 @@ Comprehensive Module list
     sage/combinat/q_bernoulli
     sage/combinat/quickref
     sage/combinat/ranker
+    sage/combinat/recognizable_series
     sage/combinat/restricted_growth
     sage/combinat/ribbon
     sage/combinat/ribbon_shaped_tableau

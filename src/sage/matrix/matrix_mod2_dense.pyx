@@ -118,7 +118,7 @@ from sage.libs.gmp.random cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.misc.misc import cputime
 from sage.misc.verbose import verbose, get_verbose
-from sage.modules.free_module import VectorSpace
+VectorSpace = None
 from sage.modules.vector_mod2_dense cimport Vector_mod2_dense
 from sage.structure.richcmp cimport rich_to_bool
 from sage.cpython.string cimport bytes_to_str, char_to_str, str_to_bytes
@@ -168,10 +168,6 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         Large matrices fail gracefully::
 
-            sage: MatrixSpace(GF(2), 2^30)(1)  # optional - memlimit
-            Traceback (most recent call last):
-            ...
-            RuntimeError: matrix allocation failed
             sage: MatrixSpace(GF(2), 1, 2^40).zero()
             Traceback (most recent call last):
             ...
@@ -180,6 +176,26 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Traceback (most recent call last):
             ...
             OverflowError: ...
+
+        Allocation fails if a memory limit is set (Linux only) lower
+        than is needed to construct a matrix but still high enough
+        that it doesn't crash the rest of SageMath::
+
+            sage: from platform import system
+            sage: import resource
+            sage: orig_soft, orig_hard = resource.getrlimit(resource.RLIMIT_AS)
+            sage: if system() != "Linux":
+            ....:     raise RuntimeError("matrix allocation failed")
+            ....: else:
+            ....:     four_GiB = 4*1024^3
+            ....:     resource.setrlimit(resource.RLIMIT_AS, (four_GiB, orig_hard))
+            ....:     MatrixSpace(GF(2), 2^30)(1)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: matrix allocation failed
+            sage: resource.setrlimit(resource.RLIMIT_AS, (orig_soft, orig_hard))
+            sage: (orig_soft, orig_hard) == resource.getrlimit(resource.RLIMIT_AS)
+            True
         """
         # m4ri assumes that nrows and ncols are of type rci_t:
         # check for overflow
@@ -507,6 +523,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return self.rows(copy=False)[i]
         cdef Py_ssize_t j
         cdef Vector_mod2_dense z = Vector_mod2_dense.__new__(Vector_mod2_dense)
+        global VectorSpace
+        if VectorSpace is None:
+            from sage.modules.free_module import VectorSpace
         z._init(self._ncols, VectorSpace(self.base_ring(),self._ncols))
         if self._ncols:
             mzd_submatrix(z._entries, self._entries, i, 0, i+1, self._ncols)
@@ -600,6 +619,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         cdef mzd_t *tmp
+        global VectorSpace
+        if VectorSpace is None:
+            from sage.modules.free_module import VectorSpace
         VS = VectorSpace(self._base_ring, self._nrows)
         if not isinstance(v, Vector_mod2_dense):
             v = VS(v)

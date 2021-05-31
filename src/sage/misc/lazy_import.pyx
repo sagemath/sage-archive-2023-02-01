@@ -127,9 +127,8 @@ cpdef test_fake_startup():
         sage: from sage.misc.lazy_import import lazy_import
         sage: lazy_import('sage.rings.all', 'ZZ', 'my_ZZ')
         sage: my_ZZ(123)
-        Traceback (most recent call last):
-        ...
-        RuntimeError: resolving lazy import ZZ during startup
+        Resolving lazy import ZZ during startup
+        123
         sage: sage.misc.lazy_import.finish_startup()
     """
     global startup_guard
@@ -217,9 +216,9 @@ cdef class LazyImport(object):
             return self._object
 
         if startup_guard and not self._at_startup:
-            raise RuntimeError(f"resolving lazy import {self._name} during startup")
+            print(f"Resolving lazy import {self._name} during startup")
         elif self._at_startup and not startup_guard:
-            print('Option ``at_startup=True`` for lazy import {0} not needed anymore'.format(self._name))
+            print(f"Option ``at_startup=True`` for lazy import {self._name} not needed anymore")
         try:
             self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)
         except ImportError as e:
@@ -372,7 +371,11 @@ cdef class LazyImport(object):
             sage: repr(lazy_ZZ)
             'Integer Ring'
         """
-        return repr(self.get_object())
+        try:
+            obj = self.get_object()
+            return repr(obj)
+        except FeatureNotPresentError as e:
+            return "Failed lazy import:\n" + str(e)
 
     def __str__(self):
         """
@@ -990,6 +993,9 @@ def lazy_import(module, names, as_=None, *,
       ``deprecation`` should be either a trac number (integer) or a
       pair ``(trac_number, message)``
 
+    - ``feature`` -- a python module (optional), if it cannot be imported
+      an appropriate error is raised
+
     .. SEEALSO:: :mod:`sage.misc.lazy_import`, :class:`LazyImport`
 
     EXAMPLES::
@@ -1052,6 +1058,22 @@ def lazy_import(module, names, as_=None, *,
         doctest:...: DeprecationWarning: This is an example.
         See http://trac.sagemath.org/14275 for details.
         5-adic Field with capped relative precision 20
+
+    An example of an import relying on a feature::
+
+        sage: from sage.features import PythonModule
+        sage: lazy_import('ppl', 'equation', feature=PythonModule('ppl', spkg='pplpy'))
+        sage: equation
+        <built-in function equation>
+        sage: lazy_import('PyNormaliz', 'NmzListConeProperties', feature=PythonModule('PyNormaliz', spkg='pynormaliz'))  # optional - pynormaliz
+        sage: NmzListConeProperties  # optional - pynormaliz
+        <built-in function NmzListConeProperties>
+        sage: lazy_import('foo', 'not_there', feature=PythonModule('foo', spkg='non-existing-package'))
+        sage: not_there
+        Failed lazy import:
+        foo is not available.
+        Importing not_there failed: No module named 'foo'...
+        No equivalent system packages for ... are known to Sage...
     """
     if as_ is None:
         as_ = names

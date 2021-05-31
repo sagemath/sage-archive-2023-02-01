@@ -114,8 +114,14 @@ from sage.geometry.point_collection import (PointCollection,
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.graphs.graph import DiGraph, Graph
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
-from ppl import (C_Polyhedron, Generator_System, Linear_Expression,
-                 point as PPL_point)
+
+from sage.misc.lazy_import import lazy_import
+from sage.features import PythonModule
+lazy_import('ppl', ['C_Polyhedron', 'Generator_System', 'Linear_Expression'],
+                    feature=PythonModule("ppl", spkg="pplpy"))
+lazy_import('ppl', 'point', as_='PPL_point',
+                    feature=PythonModule("ppl", spkg="pplpy"))
+
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.misc.all import cached_method, flatten, tmp_filename
@@ -3521,7 +3527,7 @@ class LatticePolytopeClass(SageObject, Hashable):
         dim = self.dim()
         amb_dim = self.lattice_dim()
         if dim > 3:
-            raise ValueError("%d-dimensional polytopes can not be plotted in 3D!" % self.dim())
+            raise ValueError("%d-dimensional polytopes cannot be plotted in 3D!" % self.dim())
         elif amb_dim > 3:
             return self._sublattice_polytope.plot3d(
                 show_facets, facet_opacity, facet_color,

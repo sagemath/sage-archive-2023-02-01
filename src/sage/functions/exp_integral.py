@@ -46,7 +46,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import division, print_function
 
 from sage.symbolic.function import BuiltinFunction
 from sage.symbolic.expression import Expression
@@ -1312,10 +1311,10 @@ Chi = cosh_integral = Function_cosh_integral()
 
 
 ###################################################################
-## Code below here was moved from sage/functions/transcendental.py
-## This occured as part of Trac #11143.
+# Code below here was moved from sage/functions/transcendental.py
+# This occurred as part of Trac #11143.
 ###################################################################
-#
+
 # This class has a name which is not specific enough
 # see Function_exp_integral_e above, for example, which
 # is the "generalized" exponential integral function. We

@@ -1184,7 +1184,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         Type IV point of precision 100 with centers given by
         ((t^2 + 2*t + 1) + O(3^20))*x and radii given by (y + 1.00000000000000)/y
 
-    When creating a Berkovich space backed by a number field, points can be created similarily::
+    When creating a Berkovich space backed by a number field, points can be created similarly::
 
         sage: R.<x> = QQ[]
         sage: A.<a> = NumberField(x^3 + 20)
@@ -1399,7 +1399,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def lt(self, other):
         r"""
-        Return ``True`` if this point is less than ``other`` in the standard partial order.
+        Return ``True`` if this point is strictly less than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in ``Cp``.
@@ -1476,7 +1476,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
 
     def gt(self, other):
         r"""
-        Return ``True`` if this point is greater than ``other`` in the standard partial order.
+        Return ``True`` if this point is strictly greater than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in `\CC_p`.
@@ -1550,7 +1550,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         """
         Computes the join of this point and ``other`` with respect to ``basepoint``.
 
-        The join is first point that lies on the interesection
+        The join is first point that lies on the intersection
         of the path from this point to ``basepoint`` and the path from ``other`` to
         ``basepoint``.
 
@@ -1667,7 +1667,7 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
             sage: B(0).involution_map()
             Traceback (most recent call last):
             ...
-            ValueError: involution map not deffined on affine type I point centered at 0
+            ValueError: involution map not defined on affine type I point centered at 0
 
         ::
 
@@ -1690,13 +1690,13 @@ class Berkovich_Element_Cp_Affine(Berkovich_Element_Cp):
         """
         if self.type_of_point() == 1:
             if self.center() == 0:
-                raise ValueError("involution map not deffined on affine type I point centered at 0")
+                raise ValueError("involution map not defined on affine type I point centered at 0")
             return self.parent()(1/self.center())
 
         zero = self.parent()(ZZ(0))
         radius = self.radius()
 
-        if self.type_of_point() in [2,3]:
+        if self.type_of_point() in [2, 3]:
             zero_contained_in_self = self.gt(zero)
             if zero_contained_in_self:
                 if self.type_of_point() == 2:
@@ -2045,7 +2045,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def lt(self, other):
         r"""
-        Return ``True`` if this point is less than ``other`` in the standard partial order.
+        Return ``True`` if this point is strictly less than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in `\CC_p`.
@@ -2096,6 +2096,11 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q3 = B((1,0))
             sage: Q4 = B(0, 1)
             sage: Q3.lt(Q4)
+            False
+
+        ::
+
+            sage: Q4.lt(Q3)
             True
 
         ::
@@ -2115,16 +2120,16 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         if self == other:
             return False
+
+        # infinity is maximal with respect to the standard partial order
+        infinity = self.parent()((1,0))
+        if self == infinity:
+            return False
+        if other == infinity:
+            return True
+
         if other.type_of_point() in [1, 4]:
             return False
-
-        # if this point is infinity, we apply the involution map
-        infty = self.parent()((1,0))
-        if self == infty:
-            newself = self.involution_map()
-            newother = other.involution_map()
-            return newself.lt(newother)
-
         if self.type_of_point() == 4:
             center = self.center()[-1]
             dist = self._custom_abs(other.center()[0] - center[0])
@@ -2135,7 +2140,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
     def gt(self, other):
         r"""
-        Return ``True`` if this point is greater than ``other`` in the standard partial order.
+        Return ``True`` if this point is strictly greater than ``other`` in the standard partial order.
 
         Roughly, the partial order corresponds to containment of
         the corresponding disks in `\CC_p`.
@@ -2186,6 +2191,17 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
             sage: Q3 = B([0, 3], [5, 1])
             sage: Q2.gt(Q3)
             True
+
+        ::
+
+            sage: Q4 = B((1,0))
+            sage: Q4.gt(Q2)
+            True
+
+        ::
+
+            sage: Q1.gt(Q4)
+            False
         """
         if not isinstance(other, Berkovich_Element_Cp_Projective):
             raise TypeError('other must be a point of a projective Berkovich space, but was %s' %other)
@@ -2194,9 +2210,15 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
 
         if self == other:
             return False
-        if self.type_of_point() in [1, 4]:
+        # infinity is maximal with respect to the standard partial order
+        infinity = self.parent()((1,0))
+        if self == infinity:
+            return True
+        if other == infinity:
             return False
 
+        if self.type_of_point() in [1, 4]:
+            return False
         if other.type_of_point() == 4:
             center = other.center()[-1]
             dist = self._custom_abs(self.center()[0] - center[0])
@@ -2209,7 +2231,7 @@ class Berkovich_Element_Cp_Projective(Berkovich_Element_Cp):
         """
         Computes the join of this point and ``other``, with respect to ``basepoint``.
 
-        The join is first point that lies on the interesection
+        The join is first point that lies on the intersection
         of the path from this point to ``basepoint`` and the path from ``other`` to
         ``basepoint``.
 

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-# distutils: extra_compile_args = M4RI_CFLAGS
-# distutils: libraries = iml ntl gmp m CBLAS_LIBRARIES
-# distutils: library_dirs = CBLAS_LIBDIR
-# distutils: include_dirs = M4RI_INCDIR CBLAS_INCDIR
+# distutils: extra_compile_args = NTL_CFLAGS M4RI_CFLAGS
+# distutils: libraries = iml NTL_LIBRARIES gmp m CBLAS_LIBRARIES
+# distutils: library_dirs = NTL_LIBDIR CBLAS_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: include_dirs = NTL_INCDIR M4RI_INCDIR CBLAS_INCDIR
 """
 Dense matrices over the integer ring
 
@@ -2940,7 +2941,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             R = A.to_matrix(self.new_matrix())
         return R
 
-    def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red=False, use_givens=False, use_siegel=False, **kwds):
+    def LLL(self, delta=None, eta=None, algorithm="fpLLL:wrapper", fp=None, prec=0, early_red=False, use_givens=False, use_siegel=False, transformation=False, **kwds):
         r"""
         Return LLL reduced or approximated LLL reduced lattice `R` for this
         matrix interpreted as a lattice.
@@ -2999,6 +3000,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         - ``use_siegel`` -- (default: ``False``) use Siegel's condition
           instead of Lovász's condition, ignored by NTL
+
+        - ``transformation`` -- (default: ``False``) also return transformation
+           matrix.
 
         - ``**kwds`` -- keywords to be passed to :mod:`fpylll`.  See
           :meth:`fpylll.LLL.reduction` for details.
@@ -3063,6 +3067,18 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: L[-1]
             (-100, -3, -1, 13, -1, -4, 2, 3, 4, 5, -1)
 
+        We return the transformation matrix::
+
+            sage: A = random_matrix(ZZ, 10, 20)
+            sage: R, U = A.LLL(transformation=True)
+            sage: U*A == R
+            True
+
+            sage: A = random_matrix(ZZ, 10, 20)
+            sage: R, U = A.LLL(algorithm="NTL:LLL", transformation=True)
+            sage: U*A == R
+            True
+
         TESTS::
 
             sage: matrix(ZZ, 0, 0).LLL()
@@ -3090,6 +3106,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
             ...
             TypeError: algorithm NTL:LLL_QD not supported
 
+            sage: A = random_matrix(ZZ, 0, 0)
+            sage: R, U = A.LLL(transformation=True)
+
         .. NOTE::
 
             See :mod:`sage.libs.ntl.ntl_mat_ZZ.ntl_mat_ZZ.LLL` and
@@ -3101,7 +3120,12 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         if self.ncols() == 0 or self.nrows() == 0:
             verbose("Trivial matrix, nothing to do")
-            return self
+            if transformation:
+                return self, self.new_matrix(0,0)
+            else:
+                return self
+
+        U = None
 
         tm = verbose("LLL of %sx%s matrix (algorithm %s)"%(self.nrows(), self.ncols(), algorithm))
         import sage.libs.ntl.all
@@ -3151,11 +3175,15 @@ cdef class Matrix_integer_dense(Matrix_dense):
                 raise TypeError("eta must be >= 0.5")
 
         if algorithm.startswith('NTL:'):
+
             A = sage.libs.ntl.all.mat_ZZ(self.nrows(),self.ncols(),
                     [ntl_ZZ(z) for z in self.list()])
 
             if algorithm == "NTL:LLL":
-                r, det2 = A.LLL(a,b, verbose=verb)
+                if transformation:
+                    r, det2, U = A.LLL(a,b, verbose=verb, return_U=True)
+                else:
+                    r, det2 = A.LLL(a,b, verbose=verb)
                 det2 = ZZ(det2)
                 try:
                     det = ZZ(det2.sqrt())
@@ -3164,26 +3192,33 @@ cdef class Matrix_integer_dense(Matrix_dense):
                     pass
             elif algorithm == "NTL:LLL_FP":
                 if use_givens:
-                    r = A.G_LLL_FP(delta, verbose=verb)
+                    r = A.G_LLL_FP(delta, verbose=verb, return_U=transformation)
                 else:
-                    r = A.LLL_FP(delta, verbose=verb)
+                    r = A.LLL_FP(delta, verbose=verb, return_U=transformation)
             elif algorithm == "NTL:LLL_QP":
                 if use_givens:
-                    r = A.G_LLL_QP(delta, verbose=verb)
+                    r = A.G_LLL_QP(delta, verbose=verb, return_U=transformation)
                 else:
-                    r = A.LLL_QP(delta, verbose=verb)
+                    r = A.LLL_QP(delta, verbose=verb, return_U=transformation)
             elif algorithm == "NTL:LLL_XD":
                 if use_givens:
-                    r = A.G_LLL_XD(delta, verbose=verb)
+                    r = A.G_LLL_XD(delta, verbose=verb, return_U=transformation)
                 else:
-                    r = A.LLL_XD(delta, verbose=verb)
+                    r = A.LLL_XD(delta, verbose=verb, return_U=transformation)
             elif algorithm == "NTL:LLL_RR":
                 if use_givens:
-                    r = A.G_LLL_RR(delta, verbose=verb)
+                    r = A.G_LLL_RR(delta, verbose=verb, return_U=transformation)
                 else:
-                    r = A.LLL_XD(delta, verbose=verb)
+                    r = A.LLL_XD(delta, verbose=verb, return_U=transformation)
             else:
                 raise TypeError("algorithm %s not supported"%algorithm)
+
+            if isinstance(r, tuple):
+                r, U = r
+
+            if transformation:
+                U = self.new_matrix(self.nrows(), self.nrows(),
+                                    entries=[ZZ(z) for z in U.list()])
 
             r = ZZ(r)
 
@@ -3194,6 +3229,9 @@ cdef class Matrix_integer_dense(Matrix_dense):
         elif algorithm.startswith('fpLLL:'):
             from fpylll import LLL, IntegerMatrix
             A = IntegerMatrix.from_matrix(self)
+            if transformation:
+                U = IntegerMatrix(A.nrows, A.nrows)
+
             method = algorithm.replace("fpLLL:","")
             if verb:
                 kwds["flags"] = kwds.get("flags", LLL.DEFAULT) | LLL.VERBOSE
@@ -3202,13 +3240,18 @@ cdef class Matrix_integer_dense(Matrix_dense):
             if early_red:
                 kwds["flags"] = kwds.get("flags", LLL.DEFAULT) | LLL.EARLY_RED
 
-            LLL.reduction(A, delta=delta, eta=eta, method=method, float_type=fp, precision=prec)
+            LLL.reduction(A, delta=delta, eta=eta, method=method, float_type=fp, precision=prec, U=U)
             R = A.to_matrix(self.new_matrix())
+            if transformation:
+                U = U.to_matrix(self.new_matrix(U.nrows, U.ncols))
         else:
             raise TypeError("algorithm %s not supported"%algorithm)
 
         verbose("LLL finished", tm)
-        return R
+        if transformation:
+            return R, U
+        else:
+            return R
 
     def is_LLL_reduced(self, delta=None, eta=None):
         r"""
@@ -4616,7 +4659,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         #. Let `C` be the submatrix of `B` of pivot
            columns. Let `D` be the complementary submatrix of
-           `B` of all all non-pivot columns. Use a `p`-adic
+           `B` of all non-pivot columns. Use a `p`-adic
            solver to find the matrix `X` and integer `d` such
            that `C (1/d) X=D`. I.e., solve a bunch of linear systems
            of the form `Cx = v`, where the columns of `X` are

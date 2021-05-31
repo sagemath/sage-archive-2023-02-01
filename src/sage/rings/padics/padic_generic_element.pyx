@@ -3522,10 +3522,27 @@ cdef class pAdicGenericElement(LocalGenericElement):
             except ValueError:
                 pass
         if ans is not None:
-            if list(ans.expansion()) > list((-ans).expansion()):
-                ans = -ans
+            ans2 = -ans
+            E1 = ans.expansion()
+            E2 = ans2.expansion()
+            if ans.parent().is_field():
+                i = 0
+            else:
+                i = ans.valuation()
+            while True:
+                try:
+                    d1 = E1[i]
+                    d2 = E2[i]
+                except (PrecisionError, IndexError):
+                    break
+                if d1 > d2:
+                    ans, ans2 = ans2, ans
+                    break
+                if d1 < d2:
+                    break
+                i += 1
             if all:
-                return [ans, -ans]
+                return [ans, ans2]
             else:
                 return ans
         if extend:
@@ -3564,7 +3581,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
              1 + 4*5^3 + 5^5 + 3*5^6 + 5^7 + 3*5^8 + 3*5^9 + O(5^10)]
 
         When `n` is divisible by the underlying prime `p`, we
-        are losing precision (which is consistant with the fact
+        are losing precision (which is consistent with the fact
         that raising to the pth power increases precision)::
 
             sage: z = x.nth_root(5); z

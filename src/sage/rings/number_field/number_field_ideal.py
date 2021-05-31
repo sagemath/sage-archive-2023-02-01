@@ -35,7 +35,6 @@ We test that pickling works::
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 SMALL_DISC = 1000000
 
@@ -1418,7 +1417,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(7)[0].decomposition_group()
-            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
+            Subgroup [(), (1,2)] of Galois group 2T1 (S2) with order 2 of x^2 + 23
         """
         return self.number_field().galois_group().decomposition_group(self)
 
@@ -1434,9 +1433,9 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(23)[0].ramification_group(0)
-            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
+            Subgroup [(), (1,2)] of Galois group 2T1 (S2) with order 2 of x^2 + 23
             sage: QuadraticField(-23, 'w').primes_above(23)[0].ramification_group(1)
-            Subgroup [()] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
+            Subgroup [()] of Galois group 2T1 (S2) with order 2 of x^2 + 23
         """
 
         return self.number_field().galois_group().ramification_group(self, v)
@@ -1452,7 +1451,7 @@ class NumberFieldIdeal(Ideal_generic):
         EXAMPLES::
 
             sage: QuadraticField(-23, 'w').primes_above(23)[0].inertia_group()
-            Subgroup [(), (1,2)] of Galois group of Number Field in w with defining polynomial x^2 + 23 with w = 4.795831523312720?*I
+            Subgroup [(), (1,2)] of Galois group 2T1 (S2) with order 2 of x^2 + 23
         """
         return self.ramification_group(0)
 
@@ -1861,6 +1860,8 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             [Fractional ideal (2, 1/2*w - 1/2), Fractional ideal (2, 1/2*w + 1/2), Fractional ideal (3, 1/2*w + 1/2)]
         """
         return [x[0] for x in self.factor()]
+
+    support = prime_factors
 
     def _div_(self, other):
         """

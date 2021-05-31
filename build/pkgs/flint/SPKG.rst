@@ -1,5 +1,5 @@
-flint
-=====
+flint: Fast Library for Number Theory
+=====================================
 
 Description
 -----------
@@ -7,7 +7,7 @@ Description
 FLINT is a C library for doing number theory, maintained by William
 Hart.
 
-Website: www.flintlib.org
+Website: http://www.flintlib.org
 
 License
 -------

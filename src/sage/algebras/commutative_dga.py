@@ -71,7 +71,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.unique_representation import UniqueRepresentation, CachedRepresentation
 from sage.structure.sage_object import SageObject
@@ -954,7 +953,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
         else:
             # Deal with multigrading: convert lists and tuples to elements
             # of an additive abelian group.
-            if len(degrees) > 0:
+            if degrees:
                 multigrade = False
                 try:
                     rank = len(list(degrees[0]))

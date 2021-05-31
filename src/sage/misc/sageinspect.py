@@ -112,7 +112,6 @@ defined Cython code, and with rather tricky argument lines::
     ArgSpec(args=['x', 'a', 'b'], varargs='args', keywords='kwds', defaults=(1, ')"', {False: 'bar'}))
 
 """
-from __future__ import print_function, absolute_import
 
 import ast
 import inspect
@@ -1285,17 +1284,18 @@ def _sage_getargspec_cython(source):
     if varargs is None:
         varargs = ''
     elif not py_units or py_units[-1] == ',':
-        varargs = '*'+varargs
+        varargs = '*' + varargs
     else:
-        varargs = ',*'+varargs
+        varargs = ',*' + varargs
     if keywords is None:
         keywords = ''
     elif varargs or (py_units and py_units[-1] != ','):
-        keywords = ',**'+keywords
+        keywords = ',**' + keywords
     else:
-        keywords = '**'+keywords
-    return _sage_getargspec_from_ast('def dummy('+''.join(py_units)
-                                     +varargs+keywords+'): pass')
+        keywords = '**' + keywords
+    return _sage_getargspec_from_ast('def dummy(' + ''.join(py_units) +
+                                     varargs + keywords + '): pass')
+
 
 def sage_getfile(obj):
     r"""
@@ -1495,7 +1495,7 @@ def sage_getargspec(obj):
     The following produced a syntax error before the patch at :trac:`11913`,
     see also :trac:`26906`::
 
-        sage: sage.misc.sageinspect.sage_getargspec(r.lm)
+        sage: sage.misc.sageinspect.sage_getargspec(r.lm)                         # optional - rpy2
         ArgSpec(args=['self'], varargs='args', keywords='kwds', defaults=None)
 
     The following was fixed in :trac:`16309`::
@@ -2232,7 +2232,7 @@ def sage_getsourcelines(obj):
 
         sage: from sage.misc.sageinspect import sage_getsourcelines
         sage: sage_getsourcelines(matrix)[1]
-        20
+        21
         sage: sage_getsourcelines(matrix)[0][0]
         'def matrix(*args, **kwds):\n'
 
@@ -2242,7 +2242,7 @@ def sage_getsourcelines(obj):
 
         sage: cachedfib = cached_function(fibonacci)
         sage: sage_getsourcelines(cachedfib)[0][0]
-        'def fibonacci(n, algorithm="pari"):\n'
+        'def fibonacci(n, algorithm="pari") -> Integer:\n'
         sage: sage_getsourcelines(type(cachedfib))[0][0]
         'cdef class CachedFunction(object):\n'
 
@@ -2313,7 +2313,7 @@ def sage_getsourcelines(obj):
         sage: sage_getsourcelines(HC)
         (['    class Homsets(HomsetsCategory):\n', ...], ...)
 
-    Testing against a bug that has occured during work on :trac:`11768`::
+    Testing against a bug that has occurred during work on :trac:`11768`::
 
         sage: P.<x,y> = QQ[]
         sage: I = P*[x,y]

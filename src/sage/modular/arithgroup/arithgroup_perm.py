@@ -97,7 +97,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ################################################################################
-from __future__ import print_function, absolute_import
 
 from .all import SL2Z
 from .arithgroup_generic import ArithmeticSubgroup
@@ -896,8 +895,10 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
             True
         """
         n = self.index()
-        S2_win = [None]*n;  S3_win = [None]*n
-        S2_test = [None]*n; S3_test = [None]*n
+        S2_win = [None] * n
+        S3_win = [None] * n
+        S2_test = [None] * n
+        S3_test = [None] * n
 
         m_win = self._canonical_rooted_labels(0)
         for i in range(n): # conjugation
@@ -961,7 +962,8 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
                 j = x[j]
 
             # if everybody is labelled do not go further
-            if k == n: break
+            if k == n:
+                break
 
             # find another guy with y
             j0 = y[waiting.pop(0)]
@@ -977,12 +979,12 @@ class ArithmeticSubgroup_Permutation_class(ArithmeticSubgroup):
     @cached_method
     def _index_to_lr_cusp_width(self):
         r"""
-        Precomputation of cusps data of self for this modular subgroup.
+        Precomputation of cusps data of ``self`` for this modular subgroup.
 
         This is a central precomputation for the ``.__contains__()`` method and
         consists in two lists  of positive integers ``lc`` and ``rc`` of length
         the index of the subgroup. They are defined as follows: the number
-        ``lc[i]`` (resp ``rc[i]``) is the lenth of the cycle of ``L`` (resp.
+        ``lc[i]`` (resp ``rc[i]``) is the length of the cycle of ``L`` (resp.
         ``R``) which contains ``i``.
 
         EXAMPLES::

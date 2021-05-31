@@ -31,7 +31,6 @@ AUTHOR:
 #
 #                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function, absolute_import
 
 import pexpect
 import time
@@ -88,8 +87,9 @@ class SingNot:
     def __hash__(self):
         return hash(self.canonical)
 
+
 # This is our list
-singmaster_list = [''] + [SingNot(index2singmaster(i+1)) for i in range(48)]; singmaster_list
+singmaster_list = [''] + [SingNot(index2singmaster(i + 1)) for i in range(48)]
 
 
 class OptimalSolver:

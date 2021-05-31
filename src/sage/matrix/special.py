@@ -62,7 +62,6 @@ matrices and Latin squares. See:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import, division
 
 from sage.rings.ring import is_Ring
 import sage.matrix.matrix_space as matrix_space
@@ -714,7 +713,7 @@ def diagonal_matrix(arg0=None, arg1=None, arg2=None, sparse=True):
         sage: A.parent()
         Full MatrixSpace of 3 by 3 sparse matrices over Real Double Field
 
-        sage: j = numpy.complex(0,1)
+        sage: j = complex(0,1)
         sage: entries = numpy.array([2.0+j, 8.1, 3.4+2.6*j]); entries
         array([2. +1.j , 8.1+0.j , 3.4+2.6j])
         sage: A = diagonal_matrix(entries); A
@@ -1233,7 +1232,7 @@ def elementary_matrix(arg0, arg1=None, **kwds):
 
         sage: E = elementary_matrix(4, row1=1, scale=I)
         sage: E.parent()
-        Full MatrixSpace of 4 by 4 dense matrices over Symbolic Ring
+        Full MatrixSpace of 4 by 4 dense matrices over Number Field in I with defining polynomial x^2 + 1 with I = 1*I
 
         sage: E = elementary_matrix(4, row1=1, scale=CDF(I))
         sage: E.parent()

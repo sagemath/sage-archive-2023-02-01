@@ -161,7 +161,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function, absolute_import
 from itertools import islice
 
 from . import free_module_element
@@ -1744,7 +1743,7 @@ done from the right side.""")
             sage: M.basis_matrix(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: matrix has denominators so can...t change to ZZ.
+            TypeError: matrix has denominators so can...t change to ZZ
         """
         try:
             A = self.__basis_matrix

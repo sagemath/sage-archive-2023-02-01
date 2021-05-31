@@ -41,7 +41,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ######################################################################
-from __future__ import absolute_import
 
 from . import heegner
 
@@ -243,7 +242,7 @@ class ModularParameterization:
         r"""
         Return the power series of this modular parametrization.
 
-        The curve must be a a minimal model.  The prec parameter determines
+        The curve must be a minimal model.  The prec parameter determines
         the number of significant terms.  This means that X will be given up
         to O(q^(prec-2)) and Y will be given up to O(q^(prec-3)).
 

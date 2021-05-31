@@ -148,7 +148,6 @@ TESTS::
 Classes
 -------
 """
-from __future__ import print_function
 
 from sage.misc.cachefunc import cached_method
 
@@ -1421,7 +1420,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         TESTS:
 
-        Make sure that variables not occuring in the equations are no problem::
+        Make sure that variables not occurring in the equations are no problem::
 
             sage: R.<x,y,z,t> = BooleanPolynomialRing()
             sage: S = Sequence([x*y+z, y*z+x, x+y+z+1])

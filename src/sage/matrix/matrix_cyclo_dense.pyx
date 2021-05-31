@@ -1,5 +1,9 @@
 # distutils: language = c++
-# distutils: libraries = ntl
+# distutils: libraries = NTL_LIBRARIES
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 """
 Matrices over Cyclotomic Fields
 
@@ -1285,7 +1289,8 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         if algorithm == 'multimodular':
             f = self._charpoly_multimodular(var, proof=proof)
         elif algorithm == 'pari':
-            f = self._charpoly_over_number_field(var)
+            paripoly = self.__pari__().charpoly()
+            f = self.base_ring()[var](paripoly)
         elif algorithm == 'hessenberg':
             f = self._charpoly_hessenberg(var)
         else:

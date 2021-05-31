@@ -2751,7 +2751,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         This differs from ``_mul_(self, other)`` by the fact that ``number``
         is not assumed to be a scalar field defined on the same domain as
         ``self``, contrary to ``other`` in ``_mul_(self, other)``. In
-        practice, ``number`` is a an element of the field on which the
+        practice, ``number`` is an element of the field on which the
         scalar field algebra is defined.
 
         INPUT:
@@ -3605,6 +3605,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         """
         for rst in self._restrictions.values():
             rst.set_immutable()
+        for func in self._express.values():
+            func.set_immutable()
         super().set_immutable()
 
     @cached_method

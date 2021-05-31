@@ -1,5 +1,5 @@
-tox automation project
-======================
+tox: A command line driven CI frontend and development task automation tool
+===========================================================================
 
 Description
 -----------

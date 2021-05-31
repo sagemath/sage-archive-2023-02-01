@@ -36,7 +36,6 @@ REFERENCES:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -2243,14 +2242,14 @@ class RealChart(Chart):
                 else:
                     raise ValueError("restrictions must be in CNF (list of tuples)")
             list_of_fast_callable = []
-            for litteral in clause:
-                if not isinstance(litteral, Expression):
+            for literal in clause:
+                if not isinstance(literal, Expression):
                     raise ValueError("Restrictions must be in CNF (list of tuples)")
                 # End of checks
 
-                fl = fast_callable(litteral.lhs(), vars=self[:], domain=float)
-                fr = fast_callable(litteral.rhs(), vars=self[:], domain=float)
-                op = litteral.operator()
+                fl = fast_callable(literal.lhs(), vars=self[:], domain=float)
+                fr = fast_callable(literal.rhs(), vars=self[:], domain=float)
+                op = literal.operator()
                 list_of_fast_callable.append((fl, fr, op))
             list_of_clause.append(list_of_fast_callable)
 
@@ -3087,7 +3086,7 @@ class CoordChange(SageObject):
 
     def __ne__(self, other):
         r"""
-        Unequality operator.
+        Non-equality operator.
 
         TESTS::
 

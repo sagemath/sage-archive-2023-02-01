@@ -51,7 +51,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function
 
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -2288,7 +2287,7 @@ class TensorField(ModuleElementWithMutability):
                     except ValueError:
                         break
                 else:
-                    # If this point is reached, no exception has occured; hence
+                    # If this point is reached, no exception has occurred; hence
                     # the result is valid and can be returned:
                     return resu
             # If this point is reached, the comparison has not been possible
@@ -2929,7 +2928,7 @@ class TensorField(ModuleElementWithMutability):
         """
         p = len(args)
         if p == 1 and self._tensor_type == (1,1):
-            # type-(1,1) tensor acting as a a field of tangent-space
+            # type-(1,1) tensor acting as a field of tangent-space
             # endomorphisms:
             vector = args[0]
             if vector._tensor_type != (1,0):
@@ -3984,10 +3983,10 @@ class TensorField(ModuleElementWithMutability):
             False
 
         """
-        n_con = self._tensor_type[0] # number of contravariant indices = k
+        n_con = self._tensor_type[0]  # number of contravariant indices = k
         if pos is None:
             result = self
-            for p in range(0, n_con):
+            for p in range(n_con):
                 k = result._tensor_type[0]
                 result = result.down(metric, k-1)
             return result

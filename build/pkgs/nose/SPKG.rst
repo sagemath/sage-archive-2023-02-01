@@ -1,5 +1,5 @@
-nose
-====
+nose: Python unit testing framework
+===================================
 
 Description
 -----------

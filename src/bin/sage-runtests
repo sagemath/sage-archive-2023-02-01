@@ -43,11 +43,6 @@ if __name__ == "__main__":
         callback=optional_argument, callback_args=(int, 0), nargs=0,
         metavar="N", help="tests in parallel using N threads with 0 interpreted as max(2, min(8, cpu_count()))")
     parser.add_option("-T", "--timeout", type=int, default=-1, help="timeout (in seconds) for doctesting one file, 0 for no timeout")
-    parser.add_option("-m", "--memlimit", type=int, default=3300,
-                      help='maximum virtual memory to allow each test '
-                           'process, in megabytes; no limit if zero or less, '
-                           'but tests tagged "optional - memlimit" are '
-                           'skipped if no limit is set (default: 3300 MB)')
     parser.add_option("-a", "--all", action="store_true", default=False, help="test all files in the Sage library")
     parser.add_option("--logfile", metavar="FILE", help="log all output to FILE")
 
@@ -135,39 +130,6 @@ if __name__ == "__main__":
         parser.print_help()
         sys.exit(2)
 
-    # Ensure that all doctests can be run with virtual memory limited to 3300
-    # MiB (or a user-provided value). We must set this limit before starting
-    # Sage. Note that this is a per-process limit, so we do not need to worry
-    # about running multiple doctest processes in parallel. It is in
-    # particular doctests in src/sage/schemes/elliptic_curves/heegner.py
-    # which need this much memory.
-    memlimit = options.memlimit << 20
-
-    # Python's resource module only supports limits up to sys.maxsize,
-    # even if the OS does support higher limits.
-    if 0 < memlimit <= sys.maxsize:
-        import resource
-        lim, hard = resource.getrlimit(resource.RLIMIT_AS)
-        if lim == resource.RLIM_INFINITY or lim > memlimit:
-            try:
-                resource.setrlimit(resource.RLIMIT_AS, (memlimit, hard))
-            except ValueError:
-                options.memlimit = -1
-                if sys.platform != 'cygwin':
-                    # RLIMIT_AS is not currently supported on Cygwin so
-                    # this will probably fail there:
-                    # https://trac.sagemath.org/ticket/23979
-                    raise
-            else:
-                if resource.RLIMIT_AS == getattr(resource, 'RLIMIT_RSS', None):
-                    # On some platforms (e.g. OSX) RLIMIT_AS is just an alias
-                    # for RLIMIT_RSS (see
-                    # https://trac.sagemath.org/ticket/24190)
-                    # In this case we still call setrlimit, but then disable
-                    # high mem tests since we don't want such tests to actually
-                    # cause us to run out of physical memory, leading to system
-                    # instability (as opposed to virtual memory allocs failing)
-                    options.memlimit = -1
     # Limit the number of threads to 2 to save system resources.
     # See Trac #23713, #23892, #30351
     if sys.platform == 'darwin':  
@@ -181,4 +143,19 @@ if __name__ == "__main__":
     DC = DocTestController(options, args)
     err = DC.run()
 
-    sys.exit(err)
+    try:
+        exit_code_pytest = 0
+        import pytest
+        pytest_options = ["--import-mode", "importlib"]
+        if options.verbose:
+            pytest_options.append("-v")
+        exit_code_pytest = pytest.main(pytest_options + args)
+    except ModuleNotFoundError:
+        print("Pytest is not installed, skip checking tests that rely on it.")
+
+
+
+    if err == 0:
+        sys.exit(exit_code_pytest)
+    else:
+        sys.exit(err)

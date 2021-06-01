@@ -21,8 +21,7 @@ from sage.symbolic.ring import SR
 from sage.symbolic.constants import I
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
-from sage.rings.number_field.number_field import GaussianField
-from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_gaussian
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from functools import reduce
 
@@ -448,8 +447,7 @@ class InterfaceInit(Converter):
             'Pi'
         """
         if (self.interface.name() in ['pari','gp'] and
-            isinstance(obj, NumberFieldElement_quadratic) and
-            obj.parent() is GaussianField()):
+            isinstance(obj, NumberFieldElement_gaussian)):
             return repr(obj)
         try:
             return getattr(obj, self.name_init)()
@@ -976,6 +974,12 @@ class FriCASConverter(InterfaceInit):
             sage: asin(pi)._fricas_()                                           # optional - fricas
             asin(%pi)
 
+            sage: I._fricas_().domainOf()                                   # optional - fricas
+            Complex(Integer())
+
+            sage: SR(I)._fricas_().domainOf()                                   # optional - fricas
+            Expression(Complex(Integer()))
+
             sage: ex = (I+sqrt(2)+2)
             sage: ex._fricas_().domainOf()                                      # optional - fricas
             Expression(Complex(Integer()))
@@ -991,8 +995,7 @@ class FriCASConverter(InterfaceInit):
         """
         try:
             result = getattr(obj, self.name_init)()
-            if (isinstance(obj, NumberFieldElement_quadratic) and
-                obj.parent() is GaussianField()):
+            if isinstance(obj, NumberFieldElement_gaussian):
                 return "((%s)::EXPR COMPLEX INT)" % result
         except AttributeError:
             result = repr(obj)

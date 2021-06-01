@@ -2182,7 +2182,7 @@ done from the right side.""")
         """
         return False
 
-    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None, **kwds):
+    def hom(self, im_gens, codomain=None, **kwds):
         """
         Override the hom method to handle the case of morphisms given by left-multiplication
         of a matrix and the codomain is not given.
@@ -2207,7 +2207,7 @@ done from the right side.""")
             codomain = self.base_ring()**im_gens.nrows()
         if not self.base_ring() == codomain.base_ring():
             from sage.categories.pushout import pushout
-            codomain = pushout(self, codomain)
+            codomain = pushout(self.base_ring(), codomain)
         return super().hom(im_gens, codomain, **kwds)
 
     def inner_product_matrix(self):

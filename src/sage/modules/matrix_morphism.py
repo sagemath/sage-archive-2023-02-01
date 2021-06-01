@@ -322,7 +322,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 
         Raises a ``ZeroDivisionError`` if the inverse does not exist.
 
-        EXAMPLES::
+        EXAMPLES:
 
         An invertible morphism created as a restriction of
         a non-invertible morphism, and which has an unequal
@@ -603,7 +603,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 
         .. WARNING::
 
-            Matrix morphisms can act be defined by either left or right-multiplication.
+            Matrix morphisms can be defined by either left or right-multiplication.
             The composite morphism always applies the morphism on the right of \* first.
             The matrix of the composite morphism of two morphisms given by 
             right-multiplication is not the morphism given by the product of their 
@@ -611,6 +611,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             If the two morphisms act on different sides, then the side of the resulting
             morphism is the default one.
         """
+        H = right.domain().Hom(self.codomain())
         if not isinstance(right, MatrixMorphism):
             if isinstance(right, (sage.categories.morphism.Morphism, sage.categories.map.Map)):
                 return sage.categories.map.Map.__mul__(self, right)
@@ -620,14 +621,14 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             raise TypeError("Incompatible composition of morphisms: domain of left morphism must be codomain of right.")
         if self.side() == "left":
             if right.side() == "left":
-                return right.domain().Hom(self.codomain())(right.matrix() * self.matrix(), side=self.side())
-            elif right.side() == "right":
-                return right.domain().Hom(self.codomain())(right.matrix().transpose() * self.matrix(), side=self.side())
-        if self.side() == "right":
+                return H(right.matrix() * self.matrix(), side=self.side())
+            else:
+                return H(right.matrix().transpose() * self.matrix(), side=self.side())
+        else:
             if right.side() == "right":
-                return right.domain().Hom(self.codomain())(self.matrix() * right.matrix(), side=self.side())
-            if right.side() == "left":
-                return right.domain().Hom(self.codomain())(right.matrix() * self.matrix().transpose(), side="left")
+                return H(self.matrix() * right.matrix(), side=self.side())
+            else:
+                return H(right.matrix() * self.matrix().transpose(), side="left")
 
     def __add__(self, right):
         """

@@ -177,7 +177,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         The following tests the bug fixed in :trac:`31818`. If there is no 
         coercion between base rings, one can only define the zero morphism, 
         as morphism of additive groups. Before one could for example use an 
-        integer matrix to define a morphism from the rational nombers to the 
+        integer matrix to define a morphism from the rational numbers to the
         integers.
 
             sage: V = QQ^2; W = ZZ^2; m = identity_matrix(2)                                

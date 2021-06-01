@@ -672,9 +672,6 @@ class GraphPlot(SageObject):
         # Make dict collection of all edges (keep label and edge color)
         edges_to_draw = defaultdict(list)
 
-        def update(key, label, color, head):
-            edges_to_draw[key].append((label, color, head))
-
         v_to_int = {v: i for i, v in enumerate(self._graph)}
 
         if (self._options['color_by_label']
@@ -689,25 +686,25 @@ class GraphPlot(SageObject):
                 for edge in edge_colors[color]:
                     a, b = edge[0], edge[1]
                     if v_to_int[a] < v_to_int[b]:
-                        key = a, b
+                        key = (a, b)
                         head = 1
                     else:
-                        key = b, a
+                        key = (b, a)
                         head = 0
                     if len(edge) < 3:
                         label = self._graph.edge_label(a, b)
                         if isinstance(label, list):
-                            update(key, label[-1], color, head)
+                            edges_to_draw[key].append((label[-1], color, head))
                             edges_drawn.append((a, b, label[-1]))
                             for lab in label[:-1]:
                                 edges_to_draw[key].append((lab, color, head))
                                 edges_drawn.append((a, b, lab))
                         else:
-                            update(key, label, color, head)
+                            edges_to_draw[key].append((label, color, head))
                             edges_drawn.append((a, b, label))
                     else:
                         label = edge[2]
-                        update(key, label, color, head)
+                        edges_to_draw[key].append((label, color, head))
                         edges_drawn.append((a, b, label))
 
             # Add unspecified edges (default color black set in DEFAULT_PLOT_OPTIONS)
@@ -721,17 +718,17 @@ class GraphPlot(SageObject):
                     else:
                         key = (b, a)
                         head = 0
-                    update(key, c, self._options['edge_color'], head)
+                    edges_to_draw[key].append((c, self._options['edge_color'], head))
 
         else:
             for a, b, c in self._graph.edge_iterator():
                 if v_to_int[a] < v_to_int[b]:
-                    key = a, b
+                    key = (a, b)
                     head = 1
                 else:
-                    key = b, a
+                    key = (b, a)
                     head = 0
-                update(key, c, self._options['edge_color'], head)
+                edges_to_draw[key].append((c, self._options['edge_color'], head))
 
         if edges_to_draw:
             self._plot_components['edges'] = []
@@ -742,29 +739,31 @@ class GraphPlot(SageObject):
         if self._arcs or self._loops:
             tmp = edges_to_draw.copy()
             dist = self._options['dist'] * 2
-            loop_size = self._options['loop_size']
+            min_loop_size = self._options['loop_size']
             max_dist = self._options['max_dist']
             from sage.functions.all import sqrt
             for a, b in tmp:
                 if a == b:
-                    # Loops
+                    # Multiple loops need varying loop radius starting at
+                    # minimum loop size and respecting other distances
+                    loop_size = min_loop_size  # current loop radius
                     distance = dist
                     local_labels = edges_to_draw.pop((a, b))
                     len_local_labels = len(local_labels)
                     if len_local_labels * dist > max_dist:
                         distance = float(max_dist) / len_local_labels
-                    r = loop_size  # current loop size
+                    loop_size_increment = distance / 4
+                    # Now add all the loops at this vertex, varying their size
                     for lab, col, _ in local_labels:
-                        c = circle((self._pos[a][0], self._pos[a][1] - r), r,
-                                   rgbcolor=col, **eoptions)
+                        x, y = self._pos[a][0], self._pos[a][1] - loop_size
+                        c = circle((x, y), loop_size, rgbcolor=col, **eoptions)
                         self._plot_components['edges'].append(c)
                         if labels:
                             bg = self._options['edge_labels_background']
-                            t = text(lab,
-                                     (self._pos[a][0], self._pos[a][1] - 2 * r),
-                                     background_color=bg)
+                            y -= loop_size  # place label at bottom of loop
+                            t = text(lab, (x, y), background_color=bg)
                             self._plot_components['edge_labels'].append(t)
-                        r += distance / 4
+                        loop_size += loop_size_increment
                 elif len(edges_to_draw[a, b]) > 1:
                     # Multi-edge
                     local_labels = edges_to_draw.pop((a,b))
@@ -772,10 +771,9 @@ class GraphPlot(SageObject):
                     # Compute perpendicular bisector
                     p1 = self._pos[a]
                     p2 = self._pos[b]
-                    p12 = (float(p2[0] - p1[0]), float(p2[1] - p1[1]))
                     m = ((p1[0] + p2[0])/2., (p1[1] + p2[1])/2.)  # midpoint
                     if not p1[1] == p2[1]:
-                        s = -p12[0]/p12[1]  # perp slope
+                        s = (p1[0] - p2[0])/(p2[1] - p1[1])  # perp slope
                         y = lambda x: s*(x - m[0]) + m[1]  # perp bisector line
 
                         # f, g are functions to determine x-values of point

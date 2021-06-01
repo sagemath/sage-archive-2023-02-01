@@ -182,12 +182,15 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Traceback (most recent call last):
             ...
             TypeError: Nontrivial morphisms require a coercion map from the base ring of the domain to the base ring of the codomain
-            sage: n = zero_matrix(2); H(n)                                                  
+            sage: n = zero_matrix(2); 
+            sage: h = H(n); h                                                                                                                                                                                           
             Free module morphism defined by the matrix
             [0 0]
             [0 0]
             Domain: Vector space of dimension 2 over Rational Field
             Codomain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            sage: [h(v) for v in V.gens()]                                                                                                                                                                              
+            [(0, 0), (0, 0)]
         """
         from . import free_module_morphism
         if not is_Matrix(A):

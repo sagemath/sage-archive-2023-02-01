@@ -171,6 +171,23 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             Codomain: Free module of degree 3 and rank 3 over Integer Ring
             Echelon ...
 
+        The following tests the bug fixed in :trac:`31818`. If there is no 
+        coercion between base rings, one can only define the zero morphism, 
+        as morphism of additive groups. Before one could for example use an 
+        integer matrix to define a morphism from the rational nombers to the 
+        integers.
+
+            sage: V = QQ^2; W = ZZ^2; m = identity_matrix(2)                                
+            sage: H = V.Hom(W); H(m)                                                        
+            Traceback (most recent call last):
+            ...
+            TypeError: Nontrivial morphisms require a coercion map from the base ring of the domain to the base ring of the codomain
+            sage: n = zero_matrix(2); H(n)                                                  
+            Free module morphism defined by the matrix
+            [0 0]
+            [0 0]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
         """
         from . import free_module_morphism
         if not is_Matrix(A):

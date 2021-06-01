@@ -96,20 +96,24 @@ class FilteredSimplicialComplex(SageObject):
         self._vertices = set()
 
         # _simplices is the list of simplices
-        # _degrees_dict has simplices as keys
-        # and corresponding degrees as values
+        # _filtration_dict has simplices as keys
+        # and entries are corresponding filtration values
         self._simplices = []
-        self._degrees_dict = {}
+        self._filtration_dict = {}
         self._num_simplices = 0
         self._dimension = 0
-        self._warnings = warnings
-        self._max_degree = 0
+        self._max_value = 0
 
+        # when _warnings is set to True, insertion
+        # will warn the user when something non-trivial
+        # happens.  
+        self._warnings = warnings
+        
         # Insert all simplices in the initial list
         for l, v in simplices:
             self.insert(l, v)
 
-    def get_value(self, s):
+    def _get_value(self, s):
         r"""
         Return the filtration value of a simplex in the complex.
 
@@ -120,30 +124,30 @@ class FilteredSimplicialComplex(SageObject):
         EXAMPLES::
 
             sage: X = FilteredSimplicialComplex([([0], 1), ([1], 2)])
-            sage: X.get_value(Simplex([0]))
+            sage: X._get_value(Simplex([0]))
             1
 
         """
-        if s in self._degrees_dict:
-            return self._degrees_dict[s]
+        if s in self._filtration_dict:
+            return self._filtration_dict[s]
         else:
             return None
 
-    def _insert(self, simplex, d):
+    def _insert(self, simplex, filtration_value):
         r"""
         Add a simplex to the complex.
 
         All faces of the simplex are added recursively if they are
-        not already present, with the same degree.
-        If the simplex is already present, and the new degree is lower
-        than its current degree in the complex, the value gets updated,
+        not already present, with the same value.
+        If the simplex is already present, and the new value is lower
+        than its current value in the complex, the value gets updated,
         otherwise it does not change. This propagates recursively to faces.
         If warnings have been enabled, this method will describe what it
         is doing during an insertion.
 
         :param simplex: simplex to be inserted
         :type simplex: Simplex
-        :param d: degree of the simplex
+        :param filtration_value: value of the simplex
 
         EXAMPLES::
 
@@ -156,20 +160,20 @@ class FilteredSimplicialComplex(SageObject):
         # Keep track of whether the simplex is already in the complex
         # and if it should be updated or not
         update = False
-        value = self[simplex]
-        if value is not None:
+        curr_value = self[simplex]
+        if curr_value is not None:
             if self._warnings:
                 print("Face {} is already in the complex.".format(simplex))
-            if value > d:
+            if curr_value > filtration_value:
                 if self._warnings:
-                    warning_string = "However its degree is {}".format(value)
-                    warning_string += ": updating it to {}".format(d)
+                    warning_string = "However its value is {}".format(curr_value)
+                    warning_string += ": updating it to {}".format(filtration_value)
                     print(warning_string)
                 update = True
-                self._degrees_dict.pop(simplex)
+                self._filtration_dict.pop(simplex)
             else:
                 if self._warnings:
-                    print("Its degree is {}: keeping it that way".format(value))
+                    print("Its value is {}: keeping it that way".format(curr_value))
                 return
 
         # check that all faces are in the complex already.
@@ -178,16 +182,16 @@ class FilteredSimplicialComplex(SageObject):
         if simplex.dimension() > 0:
             for f in faces:
                 if self._warnings:
-                    print("Also inserting face {} with value {}".format(f, d))
-                self._insert(f, d)
+                    print("Also inserting face {} with value {}".format(f, filtration_value))
+                self._insert(f, filtration_value)
 
         if not update:
             self._num_simplices += 1
             self._simplices.append(simplex)
 
-        self._degrees_dict[simplex] = d
+        self._filtration_dict[simplex] = filtration_value
         self._dimension = max(self._dimension, simplex.dimension())
-        self._max_degree = max(self._max_degree, d)
+        self._max_value = max(self._max_value, filtration_value)
         self._vertices.update(simplex.set())
 
     def insert(self, vertex_list, filtration_value):
@@ -195,9 +199,9 @@ class FilteredSimplicialComplex(SageObject):
         Add a simplex to the complex.
 
         All faces of the simplex are added recursively if they are
-        not already present, with the same degree.
-        If the simplex is already present, and the new degree is lower
-        than its current degree in the complex, the value gets updated,
+        not already present, with the same value.
+        If the simplex is already present, and the new value is lower
+        than its current value in the complex, the value gets updated,
         otherwise it does not change. This propagates recursively to faces.
         If warnings have been enabled, this method will describe what it
         is doing during an insertion.
@@ -206,7 +210,7 @@ class FilteredSimplicialComplex(SageObject):
         into a simplex.
 
         :param vertex_list: list of vertices
-        :param filtration_value: desired degree of the simplex to be
+        :param filtration_value: desired value of the simplex to be
             added.
 
         EXAMPLES::
@@ -225,13 +229,22 @@ class FilteredSimplicialComplex(SageObject):
             Also inserting face (0,) with value 2
             sage: X.insert(Simplex([0]),1)
             Face (0,) is already in the complex.
-            However its degree is 2: updating it to 1
+            However its value is 2: updating it to 1
             sage: X.insert(Simplex([0]), 77)
             Face (0,) is already in the complex.
-            Its degree is 1: keeping it that way
+            Its value is 1: keeping it that way
 
         """
         self._insert(Simplex(vertex_list), filtration_value)
+
+    def filtration(self, s, v=None):
+        """
+        TODO: fuse docstrings of insert and _get_value
+        """
+        if v is None:
+            return self._get_value(s)
+        else:
+            self._insert(s, v)
 
     def prune(self,threshold):
         """
@@ -305,8 +318,8 @@ class FilteredSimplicialComplex(SageObject):
 
         This complex is used as a running example in [ZC2005]_.
 
-            sage: list_simplex_degree = [([0], 0), ([1], 0), ([2], 1), ([3], 1), ([0, 1], 1), ([1, 2], 1), ([0, 3], 2), ([2, 3], 2), ([0, 2], 3), ([0, 1, 2], 4), ([0, 2, 3], 5)]
-            sage: X = FilteredSimplicialComplex(list_simplex_degree)
+            sage: l = [([0], 0), ([1], 0), ([2], 1), ([3], 1), ([0, 1], 1), ([1, 2], 1), ([0, 3], 2), ([2, 3], 2), ([0, 2], 3), ([0, 1, 2], 4), ([0, 2, 3], 5)]
+            sage: X = FilteredSimplicialComplex(l)
             sage: X.compute_persistent_homology()
             sage: X.persistence_intervals(0)
             [(0, 1), (1, 2), (0, +Infinity)]
@@ -319,10 +332,10 @@ class FilteredSimplicialComplex(SageObject):
         """
 
         # first, order the simplices in lexico order
-        # on dimension, degree and then arbitrary order
+        # on dimension, value and then arbitrary order
         # defined by the Simplex class.
         def key(s):
-            d = self.get_value(s)
+            d = self._get_value(s)
             return (s.dimension(), d, s)
         self._simplices.sort(key=key)
 
@@ -416,11 +429,11 @@ class FilteredSimplicialComplex(SageObject):
         # closing simplex is None, then the interval
         # is infinite.
         k = s.dimension()
-        i = self._degrees_dict[s]
+        i = self._filtration_dict[s]
         if not t:
             j = infinity
         else:
-            j = self._degrees_dict[t]
+            j = self._filtration_dict[t]
 
         # Only add intervals of length 0 if
         # strict mode is not enabled.
@@ -440,8 +453,8 @@ class FilteredSimplicialComplex(SageObject):
 
         TESTS::
 
-            sage: list_simplex_degree = [([0], 0), ([1], 0), ([2], 1), ([3], 1), ([0, 1], 1), ([1, 2], 1), ([0, 3], 2), ([2, 3], 2), ([0, 2], 3), ([0, 1, 2], 4)]
-            sage: X = FilteredSimplicialComplex(list_simplex_degree)
+            sage: l = [([0], 0), ([1], 0), ([2], 1), ([3], 1), ([0, 1], 1), ([1, 2], 1), ([0, 3], 2), ([2, 3], 2), ([0, 2], 3), ([0, 1, 2], 4)]
+            sage: X = FilteredSimplicialComplex(l)
             sage: X.compute_persistent_homology()
             sage: X._remove_pivot_rows(Simplex([0,1,2]))
             0
@@ -571,7 +584,7 @@ class FilteredSimplicialComplex(SageObject):
             1
 
         """
-        return self.get_value(s)
+        return self._get_value(s)
 
     def __getitem__(self, s):
         r"""
@@ -584,7 +597,7 @@ class FilteredSimplicialComplex(SageObject):
             1
 
         """
-        return self.get_value(s)
+        return self._get_value(s)
 
     def _repr_(self):
         """
@@ -612,7 +625,7 @@ class FilteredSimplicialComplex(SageObject):
         else:
             vertex_string = "on vertex set {}".format(tuple(self._vertices))
             simplex_string = "with simplices "
-            simplex_list = ["({} : {})".format(s, self._degrees_dict[s]) for s in self._simplices]
+            simplex_list = ["({} : {})".format(s, self._filtration_dict[s]) for s in self._simplices]
             simplex_string += ", ".join(simplex_list)
 
         return "Filtered complex " + vertex_string + " and " + simplex_string

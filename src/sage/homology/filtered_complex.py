@@ -252,12 +252,12 @@ class FilteredSimplicialComplex(SageObject):
         the threshold value have been removed.
 
         :param threshold: a real value, above which simplices are
-        discarded.
+            discarded.
 
         Simplices with filtration value exactly equal to ``threshold``
         are kept in the result.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: a = FilteredSimplicialComplex()
             sage: a.insert([0], 0)
@@ -504,7 +504,7 @@ class FilteredSimplicialComplex(SageObject):
         ``compute_persistence``. It should not be called by users
         outside of those methods.
 
-        TESTS:
+        TESTS::
 
             sage: X = FilteredSimplicialComplex([([0], 0), ([1], 5), ([0, 1], 18), ([0, 2, 3], 32)])
             sage: X.compute_persistent_homology()
@@ -606,7 +606,7 @@ class FilteredSimplicialComplex(SageObject):
         If there are too many simplices or vertices, only prints the
         count for each.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([0, 1], 1)])
             sage: X
@@ -637,7 +637,7 @@ class FilteredSimplicialComplex(SageObject):
         All simplices of the filtered simplicial complex are
         included in the resulting simplicial complex.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: l = [([0],0), ([1],0), ([2],1), ([3],1), ([0, 1],1), ([1, 2],1), ([0, 3],2), ([2, 3],2), ([0, 2],3), ([0, 1, 2],4), ([0, 2, 3],5)]
             sage: a = FilteredSimplicialComplex(l)

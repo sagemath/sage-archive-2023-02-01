@@ -5,11 +5,10 @@ TESTS::
 
     sage: from sage.tests.gap_packages import all_installed_packages, test_packages
     sage: pkgs = all_installed_packages(ignore_dot_gap=True)
-    sage: libgap.SetInfoLevel(libgap.InfoWarning, 0)
-    sage: for p in pkgs:
-    ....:     pkg = p.split('-')[0]
-    ....:     if not libgap.LoadPackage(pkg):
-    ....:         raise
+    sage: test_packages(pkgs, only_failures=True)    # optional - gap_packages
+      Status   Package   GAP Output
+    +--------+---------+------------+
+
     sage: test_packages(['atlasrep', 'tomlib'])
       Status   Package    GAP Output
     +--------+----------+------------+

@@ -2204,13 +2204,11 @@ done from the right side.""")
         from sage.structure.element import is_Matrix
         side = kwds.get("side", "left")
         if codomain is None and is_Matrix(im_gens) and side == "right":
-            C = self.base_ring()**im_gens.nrows()
-            if not self.base_ring() == im_gens.base_ring():
-                from sage.categories.pushout import pushout
-                C = pushout(self, C)
-            return super().hom(im_gens, C, **kwds) 
-        else:
-            return super().hom(im_gens, codomain, **kwds)
+            codomain = self.base_ring()**im_gens.nrows()
+        if self.base_ring() != codomain.base_ring():
+            from sage.categories.pushout import pushout
+            codomain = pushout(self, codomain)
+        return super().hom(im_gens, codomain, **kwds)
 
     def inner_product_matrix(self):
         """

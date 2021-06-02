@@ -4098,9 +4098,12 @@ class BTerm(TermWithCoefficient):
             return False
         if len(self.valid_from) > 1 or len(other.valid_from) > 1:
             raise NotImplementedError('Multivariate BTerms are not implemented.')
-        else:
-            return self.growth == other.growth and \
-                next(iter(self.valid_from)) >= next(iter(other.valid_from))
+
+        for key in self.valid_from.keys():
+            if key in other.valid_from.keys() and self.valid_from[key] >= other.valid_from[key]:
+                return (self.growth == other.growth)
+            else:
+                return False
 
     def _absorb_(self, other):
         r"""

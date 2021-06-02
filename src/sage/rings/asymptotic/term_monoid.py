@@ -4052,8 +4052,15 @@ class BTerm(TermWithCoefficient):
             sage: BT_QQ(x, 3, {'x': 20, 'm': 5})
             BTerm with coefficient 3, growth x and valid for x >= 20 and m >= 5
         """
-        return f'Term with coefficient {self.coefficient}, growth {self.growth}\
-                and valid from {self.valid_from}'
+        valid_from_string = ''
+        for key in self.valid_from:
+            if key is list(self.valid_from)[-1]:
+                valid_from_string += f'{key} >= {self.valid_from[key]}'
+            else:
+                valid_from_string += f'{key} >= {self.valid_from[key]} and '
+
+        return f'BTerm with coefficient {self.coefficient}, growth {self.growth} ' + \
+               f'and valid for {valid_from_string}'
     
     def can_absorb(self, other):
         raise NotImplementedError

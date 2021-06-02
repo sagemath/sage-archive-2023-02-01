@@ -237,14 +237,38 @@ class FilteredSimplicialComplex(SageObject):
         """
         self._insert(Simplex(vertex_list), filtration_value)
 
-    def filtration(self, s, v=None):
+    def filtration(self, s, filtration_value=None):
         """
-        TODO: fuse docstrings of insert and _get_value
+        Set filtration value of a simplex, or return value
+        of existing simplex.
+
+        :param s: Simplex for which to set or return value
+        :param filtration_value: Optional, filtration value
+            for the simplex.
+
+        If no filtration value is specified, this function calls
+        ``_get_value`` and hence returns the value of the simplex
+        in the complex. If the simplex is not in the complex, this
+        returns None.
+
+        If ``filtration_value`` is set, this function inserts the 
+        simplex into the complex with the specified value. 
+        See documentation of ``insert`` for more details.
+
+        EXAMPLES::
+
+            sage: X = FilteredSimplicialComplex([([0], 0), ([1], 1)])
+            sage: X.filtration(Simplex([0, 1]))
+            <BLANKLINE>
+            sage: X.filtration(Simplex([0, 1]), 2)
+            sage: X.filtration(Simplex([0, 1]))
+            2
+            
         """
-        if v is None:
+        if filtration_value is None:
             return self._get_value(s)
         else:
-            self._insert(s, v)
+            self._insert(s, filtration_value)
 
     def prune(self,threshold):
         """

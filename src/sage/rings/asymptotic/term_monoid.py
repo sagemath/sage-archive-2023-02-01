@@ -4007,7 +4007,7 @@ class BTerm(TermWithCoefficient):
         sage: G = MonomialGrowthGroup(ZZ, 'x');
         sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
         sage: BT_QQ(x, 3, {'x': 20})
-        Term with coefficient 3, growth x and valid from {'x': 20}
+        BTerm with coefficient 3, growth x and valid for x >= 20
     """
     def __init__(self, parent, growth, coefficient, valid_from):
         r"""
@@ -4049,8 +4049,8 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
-            sage: BT_QQ(x, 3, {'x': 20})
-            Term with coefficient 3, growth x and valid from {'x': 20}
+            sage: BT_QQ(x, 3, {'x': 20, 'm': 5})
+            BTerm with coefficient 3, growth x and valid for x >= 20 and m >= 5
         """
         return f'Term with coefficient {self.coefficient}, growth {self.growth}\
                 and valid from {self.valid_from}'
@@ -4062,8 +4062,7 @@ class BTerm(TermWithCoefficient):
         if self.valid_from[str(self.growth)] > other.valid_from[str(other.growth)]:
             coeff_new = other.coefficient/self.valid_from[str(self.growth)]
             return self.parent()(self.growth, coeff_new, self.valid_from[str(self.growth)])
-        else:
-           return None
+
 
 class BTermMonoid(TermWithCoefficientMonoid):
     r"""
@@ -4071,12 +4070,12 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
     INPUT:
 
-    - ``growth_group`` -- a growth group.
+    - ``growth_group`` -- a growth group
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. It has to be a subcategory
       of ``Join of Category of monoids and Category of posets``. This
-      is also the default category if ``None`` is specified.
+      is also the default category if ``None`` is specified
 
     EXAMPLES::
 
@@ -4087,9 +4086,8 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
         sage: G = MonomialGrowthGroup(ZZ, 'x')
         sage: BT = BTermMonoid(TermMonoid, G, QQ)
-        sage: t1 = BT(x, 3, {'x': 20}); t2 = BT(x, 1, {'x': 10})
-        sage: t1.absorb(t2)                                                                                                                                                                                                         
-        Term with coefficient 1/20, growth x and valid from 20
+        sage: BT
+        BTerm Monoid x^ZZ with coefficients in Rational Field
     """
 
     # enable the category framework for elements
@@ -4114,7 +4112,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: TermMonoid('B', G, QQ)._repr_()
-            'B Term Monoid x^ZZ with coefficients in Rational Field'
+            'BTerm Monoid x^ZZ with coefficients in Rational Field'
         """
         return f'B Term Monoid {self.growth_group._repr_short_()} with ' + \
                f'coefficients in {self.coefficient_ring}'
@@ -4122,9 +4120,14 @@ class BTermMonoid(TermWithCoefficientMonoid):
     def _create_element_(self, growth, coefficient, valid_from):
         r"""
         Helper method which creates an element by using the ``element_class``.
+
+        INPUT:
+
+        TESTS:
         """
 
         return self.element_class(self, growth, coefficient, valid_from)
+
 
 class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
     r"""
@@ -4135,6 +4138,8 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
 
     - :class:`ExactTermMonoid`.
 
+    - :class:`BTermMonoid`.
+
     .. NOTE::
 
         An instance of this factory is available as ``TermMonoid``.
@@ -4142,8 +4147,9 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
     INPUT:
 
     - ``term_monoid`` -- the kind of terms held in the new term monoid.
-      Either a string ``'exact'`` or ``'O'`` (capital letter ``O``),
-      or an existing instance of a term monoid.
+      Either a string ``'exact'``, ``'O'`` (capital letter ``O``) or
+      ``'B'`` (capital letter ``B``) or an existing instance of a term
+      monoid.
 
     - ``growth_group`` -- a growth group or
       a string describing a growth group.
@@ -4258,7 +4264,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
 
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import ExactTermMonoid, OTermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import ExactTermMonoid, OTermMonoid, BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
 
@@ -4266,14 +4272,19 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
             ....:     pass
             sage: class MyOTermMonoid(OTermMonoid):
             ....:     pass
+            sage: class MyBTermMonoid(BTermMonoid):
+            ....:     pass
             sage: MyTermMonoid = TermMonoidFactory('MyTermMonoid',
             ....:                                  exact_term_monoid_class=MyExactTermMonoid,
-            ....:                                  O_term_monoid_class=MyOTermMonoid)
+            ....:                                  O_term_monoid_class=MyOTermMonoid,
+            ....:                                  B_term_monoid_class=MyBTermMonoid)
             sage: G = GrowthGroup('x^ZZ')
             sage: type(MyTermMonoid('exact', G, QQ))
             <class '__main__.MyExactTermMonoid_with_category'>
             sage: type(MyTermMonoid('O', G, QQ))
             <class '__main__.MyOTermMonoid_with_category'>
+            sage: type(MyTermMonoid('B', G, QQ))
+            <class '__main__.MyBTermMonoid_with_category'>
         """
         super(TermMonoidFactory, self).__init__(name)
 

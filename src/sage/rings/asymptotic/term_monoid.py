@@ -4124,10 +4124,10 @@ class BTerm(TermWithCoefficient):
         sage: BT = BTermMonoid(TermMonoid, G, QQ)
         sage: t1 = BT(x, 3, {'x': 20}); t2 = BT(x, 1, {'x': 10})
         sage: t1.absorb(t2)
-        BTerm with coefficient 61/20, growth x and valid for 20
+        BTerm with coefficient 61/20, growth x and valid for x >= 20
         """
         coeff_new = self.coefficient + other.coefficient / self.valid_from[str(self.growth)]
-        return self.parent()(self.growth, coeff_new, self.valid_from[str(self.growth)])
+        return self.parent()(self.growth, coeff_new, self.valid_from)
 
 
 class BTermMonoid(TermWithCoefficientMonoid):

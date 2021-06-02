@@ -35,7 +35,7 @@ cell complexes.
    sage/homology/algebraic_topological_model
    sage/homology/homology_morphism
    sage/homology/matrix_utils
-   sage/homology/filtered_complex
+   sage/homology/filtered_simplicial_complex
    sage/interfaces/chomp
 
 .. include:: ../footer.txt

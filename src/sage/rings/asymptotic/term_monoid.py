@@ -4063,12 +4063,37 @@ class BTerm(TermWithCoefficient):
                f'and valid for {valid_from_string}'
     
     def can_absorb(self, other):
-        raise NotImplementedError
+        if not isinstance(other, BTerm):
+            return False
+        if len(self.valid_from) > 1 or len(other.valid_from) > 1:
+            raise NotImplementedError('Multivariate BTerms are not implemented.')
+        else:
+            return self.growth >= other.growth and \
+                next(iter(self.valid_from)) == next(iter(other.valid_from))
 
-    def absorb(self, other):
-        if self.valid_from[str(self.growth)] > other.valid_from[str(other.growth)]:
-            coeff_new = other.coefficient/self.valid_from[str(self.growth)]
-            return self.parent()(self.growth, coeff_new, self.valid_from[str(self.growth)])
+    def _absorb_(self, other):
+        r"""
+        Absorb another BTerm.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+        sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
+        sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+        sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+        sage: G = MonomialGrowthGroup(ZZ, 'x')
+        sage: BT = BTermMonoid(TermMonoid, G, QQ)
+        sage: t1 = BT(x, 3, {'x': 20}); t2 = BT(x, 1, {'x': 10})
+        sage: t1.absorb(t2)
+        BTerm with coefficient 61/20, growth x and valid for 20
+        """
+        coeff_new = self.coefficient + other.coefficient / self.valid_from[str(self.growth)]
+        return self.parent()(self.growth, coeff_new, self.valid_from[str(self.growth)])
 
 
 class BTermMonoid(TermWithCoefficientMonoid):

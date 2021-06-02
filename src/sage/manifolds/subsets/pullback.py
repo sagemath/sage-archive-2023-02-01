@@ -107,19 +107,14 @@ class ManifoldSubsetPullback(ManifoldSubset):
             if is_mutable:
                 inverse = inverse.copy()
                 inverse.set_immutable()
-        return super().__classcall__(cls, map, inverse, codomain_subset, name, latex_name)
 
-    def __init__(self, map, inverse=None, codomain_subset=None, name=None, latex_name=None):
-        self._map = map
-        self._inverse = inverse
         if codomain_subset is None:
             try:
                 codomain_subset = map.codomain()
             except AttributeError:
                 if isinstance(codomain_subset, Chart):
                     codomain_subset = FreeModule(self.base_field(), map.domain().dimension())
-        self._codomain_subset = codomain_subset
-        base_manifold = map.domain()
+
         if inverse is None:
             if isinstance(map, Chart):
                 from sage.misc.latex import latex
@@ -151,6 +146,18 @@ class ManifoldSubsetPullback(ManifoldSubset):
                 latex_name = name
         if name is None:
             name = inverse_name + '_' + codomain_subset_name
+
+        return super().__classcall__(cls, map, inverse, codomain_subset, name, latex_name)
+
+    def __init__(self, map, inverse, codomain_subset, name, latex_name):
+        r"""
+        Construct a manifold subset that is a pullback.
+
+        """
+        self._map = map
+        self._inverse = inverse
+        self._codomain_subset = codomain_subset
+        base_manifold = map.domain()
         ManifoldSubset.__init__(self, base_manifold, name, latex_name=latex_name)
 
     def __contains__(self, point):
@@ -204,7 +211,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: CS.insert(u + v < 3)
             sage: P = NNC_Polyhedron(CS); P
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 points
-            sage: S = ManifoldSubsetPullback(c_cart, P)
+            sage: S = ManifoldSubsetPullback(c_cart, None, P)
             Traceback (most recent call last):
             ...
             TypeError: unhashable type: 'NNC_Polyhedron'

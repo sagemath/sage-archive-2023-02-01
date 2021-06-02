@@ -4146,7 +4146,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: TermMonoid('B', G, QQ)._repr_()
             'BTerm Monoid x^ZZ with coefficients in Rational Field'
         """
-        return f'B Term Monoid {self.growth_group._repr_short_()} with ' + \
+        return f'BTerm Monoid {self.growth_group._repr_short_()} with ' + \
                f'coefficients in {self.coefficient_ring}'
 
     def _create_element_(self, growth, coefficient, valid_from):

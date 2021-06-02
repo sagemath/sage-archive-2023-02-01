@@ -20,16 +20,33 @@ from sage.manifolds.subset import ManifoldSubset
 
 class ManifoldSubsetClosure(ManifoldSubset):
 
-    """
+    r"""
     Topological closure of a manifold subset in the topology of the manifold.
 
     INPUT:
 
     - ``subset`` -- a :class:`ManifoldSubset`
     - ``name`` -- (default: computed from the name of the subset)
-       string; name (symbol) given to the closure
+      string; name (symbol) given to the closure
     - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
       denote the subset; if none is provided, it is set to ``name``
+
+    EXAMPLES::
+
+        sage: from sage.manifolds.subsets.closure import ManifoldSubsetClosure
+        sage: M = Manifold(2, 'R^2', structure='topological')
+        sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+        sage: D = M.open_subset('D', coord_def={c_cart: x^2+y^2<1}); D
+        Open subset D of the 2-dimensional topological manifold R^2
+        sage: cl_D = ManifoldSubsetClosure(D)
+
+    The closure of the subset `D` is a subset of every closed superset
+    of `D`::
+
+        sage: S = D.superset('S')
+        sage: S.declare_closed()
+        sage: cl_D.is_subset(S)
+        True
 
     """
 
@@ -87,7 +104,7 @@ class ManifoldSubsetClosure(ManifoldSubset):
         return "Topological closure {} of the {}".format(self._name, self._subset)
 
     def is_closed(self):
-        """
+        r"""
         Return if ``self`` is a closed set.
 
         This implementation of the method always returns ``True``.

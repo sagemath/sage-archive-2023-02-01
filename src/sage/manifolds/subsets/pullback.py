@@ -14,7 +14,9 @@ Manifold Subsets Defined as Pullbacks of Subsets under Continuous Maps
 # ****************************************************************************
 
 from sage.manifolds.subset import ManifoldSubset
+from sage.manifolds.chart import Chart
 from sage.sets.real_set import RealSet
+from sage.geometry.polyhedron.base import is_Polyhedron
 
 class ManifoldSubsetPullback(ManifoldSubset):
 
@@ -23,15 +25,21 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
     INPUT:
 
-    - ``map`` - an instance of :class:`ContinuousMap` or :class:`ScalarField`.
+    - ``map`` - an instance of :class:`ContinuousMap` or
+      :class:`ScalarField` or :class:`Chart`
 
-    - ``codomain_subset`` - an instance of :class:`ManifoldSubset` or :class:`RealSet`.
+    - ``codomain_subset`` - an instance of :class:`ManifoldSubset`,
+      :class:`RealSet`, :class:`Polyhedron_base`,
+      :class:`C_Polyhedron`, :class:`NNC_Polyhedron`
 
     EXAMPLES::
 
         sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
         sage: M = Manifold(2, 'R^2', structure='topological')
         sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+
+    Pulling back a real interval under a scalar field::
+
         sage: r_squared = M.scalar_field(x^2+y^2)
         sage: r_squared.set_immutable()
         sage: I = RealSet((1, 4)); I
@@ -42,6 +50,17 @@ class ManifoldSubsetPullback(ManifoldSubset):
         False
         sage: M.point((1, 1)) in O
         True
+
+    Pulling back a polytope under a chart::
+
+        sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [3, 4]]); P
+        A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+        sage: S = ManifoldSubsetPullback(c_cart, None, P); S
+        Subset x_y_inv_P of the 2-dimensional topological manifold R^2
+        sage: M((1, 2)) in S
+        True
+        sage: M((2, 0)) in S
+        False
 
     Using the embedding map of a submanifold::
 
@@ -94,25 +113,44 @@ class ManifoldSubsetPullback(ManifoldSubset):
         self._map = map
         self._inverse = inverse
         if codomain_subset is None:
-            codomain_subset = map.codomain()
+            try:
+                codomain_subset = map.codomain()
+            except AttributeError:
+                if isinstance(codomain_subset, Chart):
+                    codomain_subset = FreeModule(self.base_field(), map.domain().dimension())
         self._codomain_subset = codomain_subset
         base_manifold = map.domain()
-        map_name = map._name or 'f'
-        map_latex_name = map._latex_name or map_name
+        if inverse is None:
+            if isinstance(map, Chart):
+                from sage.misc.latex import latex
+                inverse_latex_name = '(' + ','.join(str(latex(x)) + '^{-1}' for x in map) + ')'
+                inverse_name = '_'.join(repr(x) for x in map) + '_inv'
+            else:
+                map_name = map._name or 'f'
+                map_latex_name = map._latex_name or map_name
+                inverse_name = map_name + '_inv'
+                inverse_latex_name = map_latex_name + r'^{-1}'
+        else:
+            inverse_name = inverse._name
+            inverse_latex_name = inverse._latex_name
         try:
             codomain_subset_latex_name = codomain_subset._latex_name
             codomain_subset_name = codomain_subset._name
         except AttributeError:
             from sage.misc.latex import latex
             codomain_subset_latex_name = str(latex(codomain_subset))
-            codomain_subset_name = repr(codomain_subset)
+            s = repr(codomain_subset)
+            if len(s) > 10:
+                codomain_subset_name = 'P'
+            else:
+                codomain_subset_name = s
         if latex_name is None:
             if name is None:
-                latex_name = map_latex_name + r'^{-1}(' + codomain_subset_latex_name + ')'
+                latex_name = inverse_latex_name + '(' + codomain_subset_latex_name + ')'
             else:
                 latex_name = name
         if name is None:
-            name = map_name + '_inv_' + codomain_subset_name
+            name = inverse_name + '_' + codomain_subset_name
         ManifoldSubset.__init__(self, base_manifold, name, latex_name=latex_name)
 
     def __contains__(self, point):
@@ -145,6 +183,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
             sage: M = Manifold(2, 'R^2', structure='topological')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+
             sage: r_squared = M.scalar_field(x^2+y^2)
             sage: r_squared.set_immutable()
             sage: cl_I = RealSet([1, 2]); cl_I
@@ -154,13 +193,47 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: cl_O.is_closed()
             True
 
+            sage: from ppl import Variable, NNC_Polyhedron, Constraint_System
+            sage: u = Variable(0)
+            sage: v = Variable(1)
+            sage: CS = Constraint_System()
+            sage: CS.insert(0 <= u)
+            sage: CS.insert(u <= 1)
+            sage: CS.insert(0 <= v)
+            sage: CS.insert(v <= 1)
+            sage: CS.insert(u + v < 3)
+            sage: P = NNC_Polyhedron(CS); P
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 points
+            sage: S = ManifoldSubsetPullback(c_cart, P)
+            Traceback (most recent call last):
+            ...
+            TypeError: unhashable type: 'NNC_Polyhedron'
+            sage: S.is_closed()
+            Traceback (most recent call last):
+            ...
+            NameError: name 'S' is not defined
+
         """
-        if self._codomain_subset.is_closed():
-            # known closed
-            return True
-        if isinstance(self._codomain_subset, RealSet):
+        if isinstance(self._codomain_subset, ManifoldSubset):
+            if self._codomain_subset.is_closed():
+                # known closed
+                return True
+        elif isinstance(self._codomain_subset, RealSet):
             # RealSet can decide closedness authoritatively
-            return False
+            return self._codomain_subset.is_closed()
+        elif is_Polyhedron(self._codomain_subset):
+            # Regardless of their base_ring, we treat polyhedra as closed
+            # convex subsets of R^n
+            return True
+        else:
+            if hasattr(self._codomain_subset, 'is_topologically_closed'):
+                try:
+                    from ppl import NNC_Polyhedron, C_Polyhedron
+                except ImportError:
+                    pass
+                else:
+                    # ppl polyhedra can decide closedness authoritatively
+                    return self._codomain_subset.is_topologically_closed()
         return super().is_closed()
 
     def closure(self, name=None, latex_name=None):

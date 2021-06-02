@@ -175,7 +175,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
         coercion between base rings, one can only define the zero morphism, 
         as morphism of additive groups. Before one could for example use an 
         integer matrix to define a morphism from the rational numbers to the
-        integers.
+        integers. ::
 
             sage: V = QQ^2; W = ZZ^2; m = identity_matrix(2)                                
             sage: H = V.Hom(W); H(m)                                                        
@@ -207,8 +207,8 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
                 # Let us hope that FreeModuleMorphism knows to handle
                 # that case
                 pass
-        if not(self.codomain().base_ring().has_coerce_map_from(self.domain().base_ring())) and not(A.is_zero()):
-            raise TypeError("Nontrivial morphisms require a coercion map from the base ring of the domain to the base ring of the codomain")
+        if not self.codomain().base_ring().has_coerce_map_from(self.domain().base_ring()) and not A.is_zero():
+            raise TypeError("nontrivial morphisms require a coercion map from the base ring of the domain to the base ring of the codomain")
         return free_module_morphism.FreeModuleMorphism(self, A)
 
     @cached_method

@@ -3612,8 +3612,8 @@ class ExactTerm(TermWithCoefficient):
 
             :meth:`OTerm.log_term`.
         """
-        return (self._log_coefficient_(base=base, locals=locals)
-                + self._log_growth_(base=base, locals=locals))
+        return (self._log_coefficient_(base=base, locals=locals) +
+                self._log_growth_(base=base, locals=locals))
 
     def is_constant(self):
         r"""
@@ -4025,7 +4025,7 @@ class BTerm(TermWithCoefficient):
 
         self.coefficient = coefficient
         self.valid_from = valid_from
-        
+
         super().__init__(parent=parent, growth=growth, coefficient=coefficient)
 
     def _repr_(self):
@@ -4061,15 +4061,46 @@ class BTerm(TermWithCoefficient):
 
         return f'BTerm with coefficient {self.coefficient}, growth {self.growth} ' + \
                f'and valid for {valid_from_string}'
-    
+
     def can_absorb(self, other):
+        r"""
+        Check whether this `B`-term can absorb ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term.
+
+        OUTPUT:
+
+        A boolean.
+
+        .. NOTE::
+
+            An :class:`BTerm` can absorb another BTerm
+            with equal growth.
+
+            See the :ref:`module description <term_absorption>` for a
+            detailed explanation of absorption.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: BT = TermMonoid('B', GrowthGroup('x^ZZ'), QQ)
+            sage: t1 = BT(x, 3, {'x': 20}); t2 = BT(x, 1, {'x': 10})
+            sage: t1.can_absorb(t2)
+            True
+            sage: t2.can_absorb(t1)
+            False
+        """
         if not isinstance(other, BTerm):
             return False
         if len(self.valid_from) > 1 or len(other.valid_from) > 1:
             raise NotImplementedError('Multivariate BTerms are not implemented.')
         else:
-            return self.growth >= other.growth and \
-                next(iter(self.valid_from)) == next(iter(other.valid_from))
+            return self.growth == other.growth and \
+                next(iter(self.valid_from)) >= next(iter(other.valid_from))
 
     def _absorb_(self, other):
         r"""

@@ -392,6 +392,12 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
         sage: integral(cos(ln(cos(x))), x, algorithm='fricas')                  # optional - fricas
         integral(cos(log(cos(x))), x)
 
+    Check that :trac:`28630` is fixed::
+
+        sage: f = polylog(3, x)
+        sage: f.integral(x, algorithm='fricas')                                 # optional - fricas
+        -x*dilog(x) - (x - 1)*log(-x + 1) + x*polylog(3, x) + x
+
     Check that :trac:`29043` is fixed::
 
         sage: var("a c d"); f = (I*a*tan(d*x + c) + a)*sec(d*x + c)^10

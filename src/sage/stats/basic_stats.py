@@ -10,7 +10,7 @@ The ``mean`` function returns the arithmetic mean (the sum of all the members
 of a list, divided by the number of members). Further revisions may include
 the geometric and harmonic mean. The ``median`` function returns the number
 separating the higher half of a sample from the lower half. The ``mode``
-returns the most common occuring member of a sample, plus the number of times
+returns the most common occurring member of a sample, plus the number of times
 it occurs. If entries occur equally common, the smallest of a list of the most
 common  entries is returned. The ``moving_average`` is a finite impulse
 response filter, creating a series of averages using a user-defined number of
@@ -30,7 +30,7 @@ AUTHOR:
 - Andrew Hou (11/06/2009)
 
 """
-######################################################################
+# ***********************************************************************
 #          Copyright (C) 2009, Andrew Hou <amhou@uw.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -38,10 +38,10 @@ AUTHOR:
 #            The full text of the GPL is available at:
 #                  https://www.gnu.org/licenses/
 ######################################################################
-from six import integer_types
 
 from sage.rings.integer_ring import ZZ
 from sage.symbolic.constants import NaN
+from sage.functions.other import sqrt
 
 
 def mean(v):
@@ -80,7 +80,7 @@ def mean(v):
     if not v:
         return NaN
     s = sum(v)
-    if isinstance(s, integer_types):
+    if isinstance(s, int):
         # python integers are stupid.
         return s / ZZ(len(v))
     return s / len(v)
@@ -90,7 +90,7 @@ def mode(v):
     """
     Return the mode of `v`.
 
-    The mode is the list of the most frequently occuring
+    The mode is the list of the most frequently occurring
     elements in `v`. If `n` is the most times that any element occurs
     in `v`, then the mode is the list of elements of `v` that
     occur `n` times. The list is sorted if possible.
@@ -195,8 +195,13 @@ def std(v, bias=False):
         sage: x = finance.TimeSeries([1..100])
         sage: std(x)
         29.011491975882016
-    """
 
+    TESTS::
+
+        sage: data = [random() for i in [1 .. 20]]
+        sage: std(data)  # random
+        0.29487771726609185
+    """
     # NOTE: in R bias = False by default, and in Scipy bias=True by
     # default, and R is more popular.
 
@@ -216,7 +221,7 @@ def std(v, bias=False):
         # standard deviation of empty set defined as NaN
         return NaN
 
-    return variance(v, bias=bias).sqrt()
+    return sqrt(variance(v, bias=bias))
 
 
 def variance(v, bias=False):
@@ -310,12 +315,12 @@ def variance(v, bias=False):
         x += (vi - mu)**2
     if bias:
         # population variance
-        if isinstance(x, integer_types):
+        if isinstance(x, int):
             return x / ZZ(len(v))
         return x / len(v)
     else:
         # sample variance
-        if isinstance(x, integer_types):
+        if isinstance(x, int):
             return x / ZZ(len(v)-1)
         return x / (len(v)-1)
 

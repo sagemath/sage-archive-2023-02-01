@@ -91,7 +91,6 @@ is returned by generators::
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
-from __future__ import absolute_import
 
 from copy import copy
 from cysignals.memory cimport check_allocarray, sig_free
@@ -102,7 +101,7 @@ from sage.groups.perm_gps.permgroup import PermutationGroup
 cimport sage.groups.perm_gps.partn_ref2.refinement_generic
 from sage.modules.finite_submodule_iter cimport FiniteFieldsubspace_projPoint_iterator as FFSS_projPoint
 from sage.groups.perm_gps.partn_ref.data_structures cimport *
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 
 
 cdef class InnerGroup:
@@ -760,6 +759,7 @@ cdef class PartitionRefinementLinearCode(PartitionRefinement_generic):
         """
         from sage.matrix.constructor import matrix
         cdef FFSS_projPoint iter = FFSS_projPoint(self._matrix)
+        cdef mp_bitcnt_t i,j
 
         ambient_space = (self._matrix.base_ring()) ** (self._n)
         weights2size = [0] * (self.len() + 1)

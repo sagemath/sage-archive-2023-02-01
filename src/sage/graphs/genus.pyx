@@ -36,7 +36,6 @@ described throughout the file.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from libc.string cimport memcpy
 from sage.ext.memory_allocator cimport MemoryAllocator
@@ -412,7 +411,7 @@ cdef class simple_connected_genus_backtracker:
         Compute the minimal or maximal genus of self's graph.
 
         Note, this is a remarkably naive algorithm for a very difficult problem.
-        Most interesting cases will take millenia to finish, with the exception
+        Most interesting cases will take millennia to finish, with the exception
         of graphs with max degree 3.
 
         INPUT:
@@ -489,7 +488,7 @@ cdef class simple_connected_genus_backtracker:
         """
         Here's the main backtracking routine.
 
-        We iterate over all all embeddings of self's graph by considering all
+        We iterate over all embeddings of self's graph by considering all
         cyclic orderings of `self.vertex_darts`.  We use the Steinhaus-
         Johnson-Trotter algorithm to enumerate these by walking over a poly-ary
         Gray code, and each time the Gray code would flip a bit, we apply the

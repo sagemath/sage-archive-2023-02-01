@@ -35,14 +35,12 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
-
-from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from copy import copy
 from sage.rings.all import ZZ, CC, infinity
 from sage.graphs.all import Graph, DiGraph
+from sage.graphs.views import EdgesView
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType, QuiverMutationType_Irreducible, QuiverMutationType_Reducible, _edge_list_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_class import _principal_part, _digraph_mutate, _matrix_to_digraph, _dg_canonical_form, _mutation_class_iter, _digraph_to_dig6, _dig6_to_matrix
 from sage.combinat.cluster_algebra_quiver.mutation_type import _connected_mutation_type, _mutation_type_from_data, is_mutation_finite
@@ -186,12 +184,12 @@ class ClusterQuiver(SageObject):
         sage: Q = ClusterQuiver(DiGraph([[1,1]]))
         Traceback (most recent call last):
         ...
-        ValueError: the input DiGraph contains a loop
+        ValueError: cannot add edge from 1 to 1 in graph without loops
 
         sage: Q = ClusterQuiver([[1,1]])
         Traceback (most recent call last):
         ...
-        ValueError: the input DiGraph contains a loop
+        ValueError: cannot add edge from 1 to 1 in graph without loops
 
         sage: Q = ClusterQuiver(DiGraph([[1, 0],[0,1]]))
         Traceback (most recent call last):
@@ -453,7 +451,7 @@ class ClusterQuiver(SageObject):
 
         # if data is a list of edges, the appropriate digraph is constructed.
 
-        elif isinstance(data, list) and all(isinstance(x, (list,tuple)) for x in data):
+        elif isinstance(data, (list, EdgesView)) and all(isinstance(x, (list,tuple)) for x in data):
             dg = DiGraph(data)
             self.__init__(data=dg, frozen=frozen)
 
@@ -1079,7 +1077,7 @@ class ClusterQuiver(SageObject):
             ['a', 'c', 'e']
         """
         return self._nlist
- 
+
     def frozen_vertices(self):
         """
         Return the list of frozen vertices of ``self``.
@@ -1318,7 +1316,7 @@ class ClusterQuiver(SageObject):
 
         - ``sequence`` -- a vertex of ``self``, an iterator of vertices of ``self``,
           a function which takes in the ClusterQuiver and returns a vertex or an iterator of vertices,
-          or a string of the parameter wanting to be called on ClusterQuiver that will return a vertex or 
+          or a string of the parameter wanting to be called on ClusterQuiver that will return a vertex or
           an iterator of vertices.
         - ``inplace`` -- (default: True) if False, the result is returned, otherwise ``self`` is modified.
 
@@ -1383,7 +1381,7 @@ class ClusterQuiver(SageObject):
             [ 0  0  0  1]
             [ 0  0 -1  0]
             [ 0 -1  1  0]
-            sage: Q2.mutate('a'); Q2.b_matrix() 
+            sage: Q2.mutate('a'); Q2.b_matrix()
             [ 0 -1  0  0]
             [ 1  0  0  0]
             [ 0  0  0  1]

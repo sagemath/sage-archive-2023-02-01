@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Interacts for the Sage Jupyter notebook
 
@@ -35,7 +36,8 @@ EXAMPLES::
 
 from ipywidgets.widgets import SelectionSlider, ValueWidget, ToggleButtons
 from ipywidgets.widgets.interaction import interactive, signature
-from collections import Iterable, Iterator, OrderedDict
+from collections import OrderedDict
+from collections.abc import Iterable, Iterator
 from .widgets import EvalText, SageColorPicker
 from .widgets_sagenb import input_grid
 from sage.structure.element import parent

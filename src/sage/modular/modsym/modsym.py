@@ -72,7 +72,7 @@ This tests the bugs reported in :trac:`20932`::
 """
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -87,8 +87,6 @@ This tests the bugs reported in :trac:`20932`::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 import weakref
 
@@ -347,8 +345,9 @@ def ModularSymbols(group  = 1,
     key = canonical_parameters(group, weight, sign, base_ring)
 
     if use_cache and key in _cache:
-         M = _cache[key]()
-         if not (M is None): return M
+        M = _cache[key]()
+        if M is not None:
+            return M
 
     (group, weight, sign, base_ring) = key
 

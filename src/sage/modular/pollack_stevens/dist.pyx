@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# distutils: libraries = gmp zn_poly
+# distutils: extra_compile_args = -D_XPG6
 """
 `p`-adic distributions spaces
 
@@ -24,7 +26,6 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object cimport SageObject
 from sage.structure.richcmp cimport richcmp_not_equal, rich_to_bool
@@ -47,7 +48,8 @@ from sage.rings.padics.padic_capped_relative_element cimport pAdicCappedRelative
 from sage.rings.padics.padic_fixed_mod_element cimport pAdicFixedModElement
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
-from sage.misc.misc import verbose, cputime
+from sage.misc.misc import cputime
+from sage.misc.verbose import verbose
 from sage.rings.infinity import Infinity
 
 from sage.libs.flint.nmod_poly cimport (nmod_poly_init2_preinv,
@@ -797,7 +799,7 @@ cdef class Dist_vector(Dist):
                 moments = parent.approx_module(1)([moments])
             # TODO: This is not quite right if the input is an inexact zero.
             if ordp != 0 and parent.prime() == 0:
-                raise ValueError("can not specify a valuation shift for an exact ring")
+                raise ValueError("cannot specify a valuation shift for an exact ring")
 
         self._moments = moments
         self.ordp = ordp
@@ -1092,7 +1094,7 @@ cdef class Dist_vector(Dist):
             (1 + O(7^5), 2 + O(7^2), 3 + O(7))
         """
         if not self.parent().is_symk() and self._moments != 0:  # non-classical
-            if len(self._moments) == 0:
+            if not self._moments:
                 return self
             V = self._moments.parent()
             R = V.base_ring()

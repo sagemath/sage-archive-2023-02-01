@@ -100,15 +100,15 @@ but only one generating line::
     sage: strip.lines()
     (A line in the direction (0, 1),)
     sage: [f.ambient_V_indices() for f in strip.faces(1)]
-    [(0, 1), (0, 2)]
+    [(0, 2), (0, 1)]
     sage: for face in strip.faces(1):
     ....:      print(face.ambient_V_indices())
-    (0, 1)
     (0, 2)
+    (0, 1)
     sage: for face in strip.faces(1):
     ....:      print("{} = {}".format(face.ambient_V_indices(), face.as_polyhedron().Vrepresentation()))
-    (0, 1) = (A line in the direction (0, 1), A vertex at (-1, 0))
     (0, 2) = (A line in the direction (0, 1), A vertex at (1, 0))
+    (0, 1) = (A line in the direction (0, 1), A vertex at (-1, 0))
 
 EXAMPLES::
 
@@ -291,7 +291,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function, absolute_import
 
 from sage.rings.all import ZZ, RDF, RR
 
@@ -313,7 +312,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
     INPUT:
 
-    - ``vertices`` -- list of point. Each point can be specified as
+    - ``vertices`` -- list of points. Each point can be specified as
       any iterable container of ``base_ring`` elements. If ``rays`` or
       ``lines`` are specified but no ``vertices``, the origin is
       taken to be the single vertex.
@@ -441,8 +440,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
         sage: R0.<r0> = QQ[]
         sage: R1.<r1> = NumberField(r0^2-5, embedding=AA(5)**(1/2))
-        sage: grat = (1+r1)/2
-        sage: v = [[0, 1, grat], [0, 1, -grat], [0, -1, grat], [0, -1, -grat]]
+        sage: gold = (1+r1)/2
+        sage: v = [[0, 1, gold], [0, 1, -gold], [0, -1, gold], [0, -1, -gold]]
         sage: pp = Permutation((1, 2, 3))
         sage: icosah = Polyhedron([(pp^2).action(w) for w in v]
         ....:             + [pp.action(w) for w in v] + v, base_ring=R1)
@@ -529,10 +528,37 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         ...
         ValueError: no default backend for computations with Real Field with 53 bits of precision
 
+    Check that :trac:`17339` is fixed::
+
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ)
+        The empty polyhedron in QQ^0
+        sage: P = Polyhedron(ambient_dim=0, ieqs=[], eqns=[], base_ring=QQ); P
+        A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
+        sage: P.Vrepresentation()
+        (A vertex at (),)
+        sage: Polyhedron(ambient_dim=2, ieqs=[], eqns=[], base_ring=QQ)
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull
+         of 1 vertex and 2 lines
+        sage: Polyhedron(ambient_dim=2, ieqs=[], eqns=[], base_ring=QQ, backend='field')
+        A 2-dimensional polyhedron in QQ^2 defined as the convex hull
+         of 1 vertex and 2 lines
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="cdd")
+        The empty polyhedron in QQ^0
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="ppl")
+        The empty polyhedron in QQ^0
+        sage: Polyhedron(ambient_dim=0, ieqs=[], eqns=[[1]], base_ring=QQ, backend="field")
+        The empty polyhedron in QQ^0
+
+        sage: Polyhedron(ambient_dim=2, vertices=[], rays=[], lines=[], base_ring=QQ)
+        The empty polyhedron in QQ^2
+
     .. SEEALSO::
 
         :mod:`Library of polytopes <sage.geometry.polyhedron.library>`
     """
+    got_Vrep = not ((vertices is None) and (rays is None) and (lines is None))
+    got_Hrep = not ((ieqs is None) and (eqns is None))
+
     # Clean up the arguments
     vertices = _make_listlist(vertices)
     rays = _make_listlist(rays)
@@ -540,15 +566,24 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     ieqs = _make_listlist(ieqs)
     eqns = _make_listlist(eqns)
 
-    got_Vrep = (len(vertices + rays + lines) > 0)
-    got_Hrep = (len(ieqs + eqns) > 0)
-
     if got_Vrep and got_Hrep:
         raise ValueError('cannot specify both H- and V-representation.')
     elif got_Vrep:
         deduced_ambient_dim = _common_length_of(vertices, rays, lines)[1]
+        if deduced_ambient_dim is None:
+            if ambient_dim is not None:
+                deduced_ambient_dim = ambient_dim
+            else:
+                deduced_ambient_dim = 0
     elif got_Hrep:
-        deduced_ambient_dim = _common_length_of(ieqs, eqns)[1] - 1
+        deduced_ambient_dim = _common_length_of(ieqs, eqns)[1]
+        if deduced_ambient_dim is None:
+            if ambient_dim is not None:
+                deduced_ambient_dim = ambient_dim
+            else:
+                deduced_ambient_dim = 0
+        else:
+            deduced_ambient_dim -= 1
     else:
         if ambient_dim is None:
             deduced_ambient_dim = 0
@@ -609,7 +644,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
                 raise ValueError("the only allowed inexact ring is 'RDF' with backend 'cdd'")
 
     # Add the origin if necessary
-    if got_Vrep and len(vertices) == 0:
+    if got_Vrep and len(vertices) == 0 and len(rays + lines) > 0:
         vertices = [[0] * ambient_dim]
 
     # Specific backends can override the base_ring

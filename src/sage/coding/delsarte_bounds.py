@@ -1,16 +1,23 @@
 # -*- coding: utf-8 -*-
 r"""
-Delsarte, a.k.a. Linear Programming (LP), upper bounds
+Delsarte (or linear programming) bounds
 
-This module provides LP upper bounds for the parameters of codes,
-introduced in [De1973]_.
+This module provides LP upper bounds for the parameters of codes, introduced in
+[De1973]_.
 
 The exact LP solver PPL is used by default, ensuring that no
 rounding/overflow problems occur.
 
 AUTHORS:
 
-- Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation. Minor fixes (2015)
+- Dmitrii V. (Dima) Pasechnik (2012-10): initial implementation
+
+- Dmitrii V. (Dima) Pasechnik (2015): minor fixes
+
+REFERENCES:
+
+.. [De73] \P. Delsarte, An algebraic approach to the association schemes of coding theory,
+    Philips Res. Rep., Suppl., vol. 10, 1973.
 """
 #*****************************************************************************
 #       Copyright (C) 2012 Dima Pasechnik <dimpase@gmail.com>
@@ -21,9 +28,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, division
-from sage.misc.superseded import deprecation, deprecated_function_alias
-
 
 def krawtchouk(n, q, l, x, check=True):
     r"""

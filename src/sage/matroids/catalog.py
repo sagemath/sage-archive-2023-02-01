@@ -25,25 +25,21 @@ AUTHORS:
 Functions
 =========
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Michael Welsh <michael@welsh.co.nz >
 #       Copyright (C) 2013 Stefan van Zwam <stefanvanzwam@gmail.com >
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from six.moves import range
-
-from itertools import combinations
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.matrix.constructor import Matrix
-from sage.graphs.all import Graph, graphs
+from sage.graphs.all import graphs
 
-from sage.rings.all import ZZ, QQ, FiniteField, GF
+from sage.rings.all import ZZ, GF
 from sage.schemes.all import ProjectiveSpace
-from sage.symbolic.ring import SR
 
 import sage.matroids.matroid
 import sage.matroids.basis_exchange_matroid
@@ -973,7 +969,7 @@ def PG(n, q, x=None):
         the Finite Field of size 7
     """
     if x is None:
-        x = SR.var('x')
+        x = 'x'
     F = GF(q, x)
     P = ProjectiveSpace(n, F)
     A = Matrix(F, [list(p) for p in P]).transpose()
@@ -1017,7 +1013,7 @@ def AG(n, q, x=None):
 
     """
     if x is None:
-        x = SR.var('x')
+        x = 'x'
     F = GF(q, x)
     P = ProjectiveSpace(n, F)
     A = Matrix(F, [list(p) for p in P if not list(p)[0] == 0]).transpose()
@@ -1044,7 +1040,6 @@ def R10():
         sage: cct = []
         sage: for i in M.circuits():
         ....:      cct.append(len(i))
-        ....:
         sage: Set(cct)
         {4, 6}
         sage: M.equals(M.dual())
@@ -1327,8 +1322,8 @@ def N2():
         [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1],
         [0, 0, 0, 0, 0, 1, 1, 2, 2, 1, 0, 1]
     ])
-    return TernaryMatroid(A, 'abcdefghijkl')
-    M.rename('T12: ' + repr(M))
+    M = TernaryMatroid(A, 'abcdefghijkl')
+    M.rename('N2: ' + repr(M))
     return M
 
 

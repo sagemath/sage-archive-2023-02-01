@@ -11,7 +11,7 @@ from . import Executable, FeatureTestResult
 
 class Plantri(Executable):
     r"""
-    A class:`sage.features.graph_generators.Feature` which checks for
+    A :class:`sage.features.graph_generators.Feature` which checks for
     the ``plantri`` binary.
 
     EXAMPLES::
@@ -59,7 +59,7 @@ class Plantri(Executable):
 
 class Buckygen(Executable):
     r"""
-    A class:`sage.features.graph_generators.Feature` which checks for the ``buckygen``
+    A :class:`sage.features.graph_generators.Feature` which checks for the ``buckygen``
     binary.
 
     EXAMPLES::
@@ -97,7 +97,7 @@ class Buckygen(Executable):
             return FeatureTestResult(self, False,
                     reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
 
-        expected = "Number of fullerenes generated with 13 vertices: 0"
+        expected = b"Number of fullerenes generated with 13 vertices: 0"
         if lines.find(expected) == -1:
             return FeatureTestResult(self, False,
                     reason="Call `{command}` did not produce output which contains `{expected}`".format(command=" ".join(command), expected=expected))
@@ -107,7 +107,7 @@ class Buckygen(Executable):
 
 class Benzene(Executable):
     r"""
-    A class:`sage.features.graph_generators.Feature` which checks for the ``benzene``
+    A :class:`sage.features.graph_generators.Feature` which checks for the ``benzene``
     binary.
 
     EXAMPLES::
@@ -146,7 +146,7 @@ class Benzene(Executable):
             return FeatureTestResult(self, False,
                     reason="Call `{command}` failed with exit code {e.returncode}".format(command=" ".join(command), e=e))
 
-        expected = ">>planar_code<<"
+        expected = b">>planar_code<<"
         if not lines.startswith(expected):
             return FeatureTestResult(self, False,
                     reason="Call `{command}` did not produce output that started with `{expected}`.".format(command=" ".join(command), expected=expected))

@@ -451,8 +451,6 @@ examples.
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 # ****************************************************************************
-from __future__ import print_function, absolute_import
-from six.moves import range
 
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.misc.lazy_attribute import lazy_attribute
@@ -555,12 +553,13 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: TestSuite(SteenrodAlgebra(basis='woody')).run() # long time
             sage: A3 = SteenrodAlgebra(3)
             sage: A3.category()
-            Category of graded hopf algebras with basis over Finite Field of size 3
-            sage: TestSuite(A3).run()
+            Category of supercocommutative super hopf algebras
+             with basis over Finite Field of size 3
+            sage: TestSuite(A3).run()  # long time
             sage: TestSuite(SteenrodAlgebra(basis='adem', p=3)).run()
-            sage: TestSuite(SteenrodAlgebra(basis='pst_llex', p=7)).run() # long time
-            sage: TestSuite(SteenrodAlgebra(basis='comm_deg', p=5)).run() # long time
-            sage: TestSuite(SteenrodAlgebra(p=2,generic=True)).run()
+            sage: TestSuite(SteenrodAlgebra(basis='pst_llex', p=7)).run()  # long time
+            sage: TestSuite(SteenrodAlgebra(basis='comm_deg', p=5)).run()  # long time
+            sage: TestSuite(SteenrodAlgebra(p=2, generic=True)).run()  # long time
 
         Two Steenrod algebras are equal iff their associated primes,
         bases, and profile functions (if present) are equal.  Because
@@ -585,7 +584,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             False
         """
         from sage.arith.all import is_prime
-        from sage.categories.graded_hopf_algebras_with_basis import GradedHopfAlgebrasWithBasis
+        from sage.categories.super_hopf_algebras_with_basis import SuperHopfAlgebrasWithBasis
         from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
         from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
         from sage.rings.infinity import Infinity
@@ -624,12 +623,13 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                                   truncation_type=truncation_type,
                                   generic=self._generic)
 
+        cat = SuperHopfAlgebrasWithBasis(base_ring).Supercocommutative()
         CombinatorialFreeModule.__init__(self,
                                          base_ring,
                                          basis_set,
                                          prefix=self._basis_name,
                                          element_class=self.Element,
-                                         category=GradedHopfAlgebrasWithBasis(base_ring),
+                                         category=cat,
                                          scalar_mult=' ')
 
     def _basis_key_iterator(self):
@@ -1331,8 +1331,8 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                     all_q = Set(t[0])
                     tens_q = {}
                     for a in all_q.subsets():
-                        left_q = sorted(list(a))
-                        right_q = sorted(list(all_q - a))
+                        left_q = sorted(a)
+                        right_q = sorted(all_q - a)
                         sign = Permutation(convert_perm(left_q + right_q)).signature()
                         tens_q[(tuple(left_q), tuple(right_q))] = sign
                     tens = {}
@@ -1445,7 +1445,9 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
         `P(n)` is the sum of the Milnor P basis elements in dimension
         `n*2(p-1)`, multiplied by `(-1)^n`, and the antipode of `\beta
         = Q_0` is `-Q_0`. So convert to the Serre-Cartan basis, as in
-        the `p=2` case.
+        the `p = 2` case. Note that in the odd prime case, there is a
+        sign in the antihomomorphism formula:
+        `c(ab) = (-1)^{\deg a \deg b} c(b) c(a)`.
 
         EXAMPLES::
 
@@ -1481,6 +1483,10 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             sage: H = SteenrodAlgebra(profile=[2,2,1])
             sage: H.Sq(1,2).antipode() in H
             True
+
+            sage: Q = A5.Q
+            sage: (Q(0) * Q(1)).antipode() == - Q(1).antipode() * Q(0).antipode()
+            True
         """
         p = self.prime()
         if self.basis_name() == 'serre-cartan':
@@ -1493,7 +1499,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
                 for index, n in enumerate(t):
                     if is_even(index):
                         if n != 0:
-                            antipode = -self.Q(0) * antipode
+                            antipode = -self.Q(0) * antipode * (-1)**antipode.degree()
                     else:
                         B = SteenrodAlgebra(p=p,generic=self._generic).basis(n * 2 * (p-1))
                         s = self(0)
@@ -2165,7 +2171,7 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
 
     def basis(self, d=None):
         """
-        Returns basis for self, either the whole basis or the basis in
+        Return basis for ``self``, either the whole basis or the basis in
         degree `d`.
 
         INPUT:
@@ -3465,12 +3471,12 @@ class SteenrodAlgebra_generic(CombinatorialFreeModule):
             """
             def excess_odd(mono):
                 """
-                Excess of mono, where mono has the form ((s0, s1, ...), (r1, r2,
-                ...)).
+                Excess of mono, where mono has the form
+                ((s0, s1, ...), (r1, r2, ...)).
 
-                Returns the length of the first component, since that is the number
-                of factors, plus twice the sum of the terms in the second
-                component.
+                Return the length of the first component, since that
+                is the number of factors, plus twice the sum of the
+                terms in the second component.
                 """
                 if not mono:
                     return 0
@@ -3807,7 +3813,8 @@ def SteenrodAlgebra(p=2, basis='milnor', generic='auto', **kwds):
         sage: A.is_division_algebra()
         False
         sage: A.category()
-        Category of graded hopf algebras with basis over Finite Field of size 2
+        Category of supercocommutative super hopf algebras
+         with basis over Finite Field of size 2
 
     There are methods for constructing elements of the Steenrod
     algebra::

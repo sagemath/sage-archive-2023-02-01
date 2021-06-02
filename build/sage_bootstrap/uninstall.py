@@ -44,10 +44,7 @@ import sys
 
 from os import path as pth
 
-try:
-    import argparse
-except ImportError:
-    from sage_bootstrap.compat import argparse
+import argparse
 
 from .env import SAGE_ROOT
 
@@ -134,7 +131,7 @@ def legacy_uninstall(spkg_name, verbose=False):
 
     # Any errors from this, including a non-zero return code will
     # bubble up and exit the uninstaller
-    subprocess.check_call(['bash', legacy_uninstall])
+    subprocess.check_call([legacy_uninstall])
 
 
 def modern_uninstall(spkg_name, sage_local, files, verbose=False):

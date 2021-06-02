@@ -8,7 +8,7 @@ Differentiable Manifolds
 
    sage/manifolds/differentiable/chart
 
-   sage/manifolds/differentiable/real_line
+   sage/manifolds/differentiable/examples/real_line
 
    diff_scalarfield
 
@@ -29,3 +29,5 @@ Differentiable Manifolds
    sage/manifolds/differentiable/affine_connection
 
    sage/manifolds/differentiable/differentiable_submanifold
+
+   diff_vector_bundle

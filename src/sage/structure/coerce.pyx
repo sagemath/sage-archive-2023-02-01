@@ -73,7 +73,6 @@ see the documentation for :class:`Parent`.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cpython.object cimport (PyObject, PyTypeObject,
         PyObject_CallObject, PyObject_RichCompare, Py_TYPE,
@@ -112,8 +111,6 @@ cpdef py_scalar_parent(py_type):
         sage: from sage.structure.coerce import py_scalar_parent
         sage: py_scalar_parent(int)
         Integer Ring
-        sage: py_scalar_parent(long)  # py2
-        Integer Ring
         sage: py_scalar_parent(float)
         Real Double Field
         sage: py_scalar_parent(complex)
@@ -135,12 +132,12 @@ cpdef py_scalar_parent(py_type):
         sage: py_scalar_parent(numpy.uint64)
         Integer Ring
 
-        sage: py_scalar_parent(numpy.float)
+        sage: py_scalar_parent(float)
         Real Double Field
         sage: py_scalar_parent(numpy.double)
         Real Double Field
 
-        sage: py_scalar_parent(numpy.complex)
+        sage: py_scalar_parent(complex)
         Complex Double Field
 
         sage: import gmpy2
@@ -209,9 +206,6 @@ cpdef py_scalar_to_element(x):
         sage: x = py_scalar_to_element(int(42))
         sage: x, parent(x)
         (42, Integer Ring)
-        sage: x = py_scalar_to_element(long(42))
-        sage: x, parent(x)
-        (42, Integer Ring)
         sage: x = py_scalar_to_element(float(42))
         sage: x, parent(x)
         (42.0, Real Double Field)
@@ -250,7 +244,7 @@ cpdef py_scalar_to_element(x):
     Test compatibility with :func:`py_scalar_parent`::
 
         sage: from sage.structure.coerce import py_scalar_parent
-        sage: elt = [True, int(42), long(42), float(42), complex(42)]
+        sage: elt = [True, int(42), float(42), complex(42)]
         sage: for x in elt:
         ....:     assert py_scalar_parent(type(x)) == py_scalar_to_element(x).parent()
 
@@ -322,8 +316,6 @@ cpdef bint parent_is_integers(P) except -1:
         sage: from sage.structure.coerce import parent_is_integers
         sage: parent_is_integers(int)
         True
-        sage: parent_is_integers(long)
-        True
         sage: parent_is_integers(float)
         False
         sage: parent_is_integers(bool)
@@ -336,7 +328,7 @@ cpdef bint parent_is_integers(P) except -1:
         True
         sage: parent_is_integers(numpy.uint64)
         True
-        sage: parent_is_integers(numpy.float)
+        sage: parent_is_integers(float)
         False
 
         sage: import gmpy2
@@ -365,6 +357,55 @@ cpdef bint parent_is_integers(P) except -1:
         from sage.rings.integer_ring import ZZ
         return P is ZZ
 
+def parent_is_numerical(P):
+    r"""
+    Test if elements of the parent or type ``P`` can be numerically evaluated
+    as complex numbers (in a canonical way).
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import parent_is_numerical
+        sage: import gmpy2, numpy
+        sage: [parent_is_numerical(R) for R in [RR, CC, QQ, QuadraticField(-1),
+        ....:         int, complex, gmpy2.mpc, numpy.complexfloating]]
+        [True, True, True, True, True, True, True, True]
+        sage: [parent_is_numerical(R) for R in [SR, QQ['x'], QQ[['x']], str]]
+        [False, False, False, False]
+        sage: [parent_is_numerical(R) for R in [RIF, RBF, CIF, CBF]]
+        [False, False, False, False]
+    """
+    if not isinstance(P, Parent):
+        P = py_scalar_parent(P)
+        if P is None:
+            return False
+    return P._is_numerical()
+
+def parent_is_real_numerical(P):
+    r"""
+    Test if elements of the parent or type ``P`` can be numerically evaluated
+    as real numbers (in a canonical way).
+
+    EXAMPLES::
+
+        sage: from sage.structure.coerce import parent_is_real_numerical
+        sage: import gmpy2, numpy
+        sage: [parent_is_real_numerical(R) for R in [RR, QQ, ZZ, RLF,
+        ....:         QuadraticField(2), int, float, gmpy2.mpq, numpy.integer]]
+        [True, True, True, True, True, True, True, True, True]
+        sage: [parent_is_real_numerical(R) for R in [CC, QuadraticField(-1),
+        ....:         complex, gmpy2.mpc, numpy.complexfloating]]
+        [False, False, False, False, False]
+        sage: [parent_is_real_numerical(R) for R in [SR, QQ['x'], QQ[['x']], str]]
+        [False, False, False, False]
+        sage: [parent_is_real_numerical(R) for R in [RIF, RBF, CIF, CBF]]
+        [False, False, False, False]
+    """
+    if not isinstance(P, Parent):
+        P = py_scalar_parent(P)
+        if P is None:
+            return False
+    return P._is_real_numerical()
+
 
 cpdef bint is_numpy_type(t):
     """
@@ -379,8 +420,6 @@ cpdef bint is_numpy_type(t):
         True
         sage: is_numpy_type(numpy.floating)
         True
-        sage: is_numpy_type(numpy.float)  # Alias for Python float
-        False
         sage: is_numpy_type(numpy.ndarray)
         True
         sage: is_numpy_type(numpy.matrix)
@@ -471,9 +510,9 @@ cdef class CoercionModel:
         sage: x * numpy.float32('1.5')
         1.50000000000000*x
         sage: p = x**3 + 2*x - 1
-        sage: p(numpy.float('1.2'))
+        sage: p(float('1.2'))
         3.12800000000000
-        sage: p(numpy.int('2'))
+        sage: p(int('2'))
         11.0000000000000
 
     This used to fail (see :trac:`18076`)::
@@ -844,17 +883,19 @@ cdef class CoercionModel:
 
         .. NOTE::
 
-           This function is accurate only in so far as analyse is kept
+           This function is accurate only in so far as :meth:`analyse` is kept
            in sync with the :meth:`bin_op` and
            :meth:`canonical_coercion` which are kept separate for
            maximal efficiency.
         """
         all, res = self.analyse(xp, yp, op)
-        indent = " "*4
+        indent = " " * 4
         if verbosity >= 2:
-            print("\n".join([s if isinstance(s, str) else indent+(repr(s).replace("\n", "\n"+indent)) for s in all]))
+            print("\n".join(s if isinstance(s, str)
+                            else (indent + repr(s).replace("\n", "\n" + indent))
+                            for s in all))
         elif verbosity >= 1:
-            print("\n".join([s for s in all if isinstance(s, str)]))
+            print("\n".join(s for s in all if isinstance(s, str)))
         if verbosity >= 1:
             if res is None:
                 print("Unknown result parent.")
@@ -1599,6 +1640,7 @@ cdef class CoercionModel:
             Call morphism:
               From: Multivariate Polynomial Ring in x, y over Integer Ring
               To:   Multivariate Polynomial Ring in x, y over Real Double Field,
+             (map internal to coercion system -- copy before use)
              Polynomial base injection morphism:
               From: Real Double Field
               To:   Multivariate Polynomial Ring in x, y over Real Double Field)

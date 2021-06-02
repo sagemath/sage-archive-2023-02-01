@@ -1,31 +1,33 @@
 SAGE_SPKG_CONFIGURE([mpir], [
 dnl Implement cases for what to do on different options here
+    _sage_spkg_install_gmp=no
     case "$with_mp" in
         system)
-            AC_CHECK_HEADER(gmp.h, [], [sage_spkg_install_mpir=yes])
-            AC_CHECK_HEADER(gmpxx.h, [], [sage_spkg_install_mpir=yes])
+            AC_CHECK_HEADER(gmp.h, [], [_sage_spkg_install_gmp=yes])
+            AC_CHECK_HEADER(gmpxx.h, [], [_sage_spkg_install_gmp=yes])
             dnl mpq_cmp_z appeared in GMP 6.1.0 and is used by pynac
-            AC_SEARCH_LIBS([__gmpq_cmp_z], [gmp], [break],
-                [sage_spkg_install_mpir=yes])
-            SAGE_MP_LIBRARY=mpir
+            AC_SEARCH_LIBS([__gmpq_cmp_z], [gmp], [],
+                [_sage_spkg_install_gmp=yes])
+            SAGE_MP_LIBRARY=gmp
             ;;
         mpir)
             sage_spkg_install_mpir=yes
             SAGE_MP_LIBRARY=mpir
             ;;
         gmp)
-            sage_spkg_install_gmp=yes
+            _sage_spkg_install_gmp=yes
             SAGE_MP_LIBRARY=gmp
             ;;
     esac
 ], [], [
     AC_ARG_WITH([mp],
     [AS_HELP_STRING([--with-mp=system],
-        [use the system GMP as multiprecision library, if possible (default)])]
-    [AS_HELP_STRING([--with-mp=mpir],
-        [use the Sage SPKG for MPIR as multiprecision library])]
-    [AS_HELP_STRING([--with-mp=gmp],
-        [use the Sage SPKG for GMP as multiprecision library])])
+                    [use the system GMP as multiprecision library, if possible (default)])
+dnl Not indented because whitespace ends up in the help text
+AS_HELP_STRING([--with-mp=mpir],
+               [use the Sage SPKG for MPIR as multiprecision library])
+AS_HELP_STRING([--with-mp=gmp],
+               [use the Sage SPKG for GMP as multiprecision library])])
 
 dnl Just parse the options here
     case "$with_mp" in
@@ -39,17 +41,17 @@ dnl Just parse the options here
 
 dnl Set SAGE_MP_LIBRARY depending on the with_mp option
     case "$with_mp" in
-    mpir|system)
+    mpir)
         SAGE_MP_LIBRARY=mpir
         ;;
-    gmp)
+    gmp|system)
         SAGE_MP_LIBRARY=gmp
         ;;
     esac
 
     AC_SUBST([SAGE_MP_LIBRARY], [$SAGE_MP_LIBRARY])
 ], [
-    if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes; then
+    if test x$sage_spkg_install_mpir = xyes -o x$_sage_spkg_install_gmp = xyes; then
         AC_SUBST(SAGE_GMP_PREFIX, ['$SAGE_LOCAL'])
         AC_SUBST(SAGE_GMP_INCLUDE, ['$SAGE_LOCAL/include'])
         AC_MSG_RESULT([using $SAGE_MP_LIBRARY SPKG (via --with-mp=$SAGE_MP_LIBRARY)])

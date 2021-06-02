@@ -163,6 +163,12 @@ class DiffForm(TensorField):
         sage: da.display(eV)
         da = -du/\dv
 
+    The exterior derivative can also be obtained by applying the function
+    ``diff`` to a differentiable form::
+
+        sage: diff(a) is a.exterior_derivative()
+        True
+
     Another 1-form defined by its components in ``eU``::
 
         sage: b = M.one_form(1+x*y, x^2, frame=eU, name='b')
@@ -196,11 +202,11 @@ class DiffForm(TensorField):
 
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
         sage: s = f*a ; s
-        1-form on the 2-dimensional differentiable manifold M
+        1-form f*a on the 2-dimensional differentiable manifold M
         sage: s.display(eU)
-        (-x^2*y - 2*x*y^2 - y^3) dx + (x^3 + 2*x^2*y + x*y^2) dy
+        f*a = (-x^2*y - 2*x*y^2 - y^3) dx + (x^3 + 2*x^2*y + x*y^2) dy
         sage: s.display(eV)
-        1/2*u^2*v du - 1/2*u^3 dv
+        f*a = 1/2*u^2*v du - 1/2*u^3 dv
 
 
     .. RUBRIC:: Examples with SymPy as the symbolic engine
@@ -263,9 +269,9 @@ class DiffForm(TensorField):
         sage: f = M.scalar_field({c_xy: (x+y)^2, c_uv: u^2}, name='f')
         sage: s = f*a
         sage: s.display(eU)
-        -y*(x**2 + 2*x*y + y**2) dx + x*(x**2 + 2*x*y + y**2) dy
+        f*a = -y*(x**2 + 2*x*y + y**2) dx + x*(x**2 + 2*x*y + y**2) dy
         sage: s.display(eV)
-        u**2*v/2 du - u**3/2 dv
+        f*a = u**2*v/2 du - u**3/2 dv
 
     """
     def __init__(self, vector_field_module, degree, name=None, latex_name=None):
@@ -275,7 +281,7 @@ class DiffForm(TensorField):
         TESTS:
 
         Construction via ``parent.element_class``, and not via a direct call
-        to ``DiffForm`, to fit with the category framework::
+        to ``DiffForm``, to fit with the category framework::
 
             sage: M = Manifold(2, 'M')
             sage: U = M.open_subset('U') ; V = M.open_subset('V')
@@ -422,19 +428,16 @@ class DiffForm(TensorField):
             True
 
         Instead of invoking the method :meth:`exterior_derivative`, one may
-        use the global function
-        :func:`~sage.manifolds.utilities.exterior_derivative`
-        or its alias :func:`~sage.manifolds.utilities.xder`::
+        use the global function ``diff``::
 
-            sage: from sage.manifolds.utilities import xder
-            sage: xder(a) is a.exterior_derivative()
+            sage: diff(a) is a.exterior_derivative()
             True
 
         Let us check Cartan's identity::
 
             sage: v = M.vector_field({e_xy: [-y, x]}, name='v')
             sage: v.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
-            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v))  # long time
+            sage: a.lie_der(v) == v.contract(diff(a)) + diff(a(v))  # long time
             True
 
         """
@@ -448,6 +451,9 @@ class DiffForm(TensorField):
         for dom, rst in self._restrictions.items():
             resu._restrictions[dom] = rst.exterior_derivative()
         return resu
+
+    derivative = exterior_derivative  # allows one to use functional notation,
+                                      # e.g. diff(a) for a.exterior_derivative()
 
     def wedge(self, other):
         r"""
@@ -505,7 +511,17 @@ class DiffForm(TensorField):
             sage: c1.display(e_xy)
             c = (-x^3 - (x - 1)*y^2) dx/\dy
 
+        Wedging with scalar fields yields the multiplication from right::
+
+            sage: f = M.scalar_field(x, name='f')
+            sage: f.add_expr_by_continuation(c_uv, W)
+            sage: t = a.wedge(f)
+            sage: t.display()
+            f*a = x*y dx + x^2 dy
+
         """
+        if other._tensor_rank == 0:
+            return self * other
         from sage.tensor.modules.format_utilities import is_atomic
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
@@ -515,6 +531,21 @@ class DiffForm(TensorField):
                 raise ValueError("incompatible ambient domains for exterior product")
         dom_resu = self._domain.intersection(other._domain)
         ambient_dom_resu = self._ambient_domain.intersection(other._ambient_domain)
+        resu_degree = self._tensor_rank + other._tensor_rank
+        dest_map = self._vmodule._dest_map
+        dest_map_resu = dest_map.restrict(dom_resu,
+                                          subcodomain=ambient_dom_resu)
+        # Facilitate computations involving zero:
+        if resu_degree > ambient_dom_resu._dim:
+            return dom_resu.diff_form_module(resu_degree,
+                                             dest_map=dest_map_resu).zero()
+        if self._is_zero or other._is_zero:
+            return dom_resu.diff_form_module(resu_degree,
+                                             dest_map=dest_map_resu).zero()
+        if self is other and (self._tensor_rank % 2) == 1:
+            return dom_resu.diff_form_module(resu_degree,
+                                             dest_map=dest_map_resu).zero()
+        # Generic case:
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)
         if ambient_dom_resu.is_manifestly_parallelizable():
@@ -539,11 +570,7 @@ class DiffForm(TensorField):
             if not is_atomic(olname):
                 olname = '(' + olname + ')'
             resu_latex_name = slname + r'\wedge ' + olname
-        dest_map = self._vmodule._dest_map
-        dest_map_resu = dest_map.restrict(dom_resu,
-                                          subcodomain=ambient_dom_resu)
         vmodule = dom_resu.vector_field_module(dest_map=dest_map_resu)
-        resu_degree = self._tensor_rank + other._tensor_rank
         resu = vmodule.alternating_form(resu_degree, name=resu_name,
                                         latex_name=resu_latex_name)
         for dom in self_r._restrictions:
@@ -575,7 +602,7 @@ class DiffForm(TensorField):
         """
         return self._tensor_rank
 
-    def hodge_dual(self, metric):
+    def hodge_dual(self, metric=None):
         r"""
         Compute the Hodge dual of the differential form with respect to some
         metric.
@@ -598,7 +625,9 @@ class DiffForm(TensorField):
 
         - ``metric``: a pseudo-Riemannian metric defined on the same manifold
           as the current differential form; must be an instance of
-          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
+          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`.
+          If none is provided, the ambient domain of ``self`` is supposed to be endowed
+          with a default metric and this metric is then used.
 
         OUTPUT:
 
@@ -623,6 +652,14 @@ class DiffForm(TensorField):
             sage: g[eU,1,1], g[eU,2,2] = 4/(1+x^2+y^2)^2, 4/(1+x^2+y^2)^2
             sage: g[eV,1,1], g[eV,2,2] = 4/(1+u^2+v^2)^2, 4/(1+u^2+v^2)^2
 
+        We endow `S^2` with the orientation defined by the stereographic
+        frame from the North pole, i.e. ``eU``; ``eV`` is then left-handed and
+        in order to define an orientation on the whole manifold, we introduce a
+        vector frame on ``V`` by swapping ``eV``'s vectors::
+
+            sage: f = V.vector_frame('f', (eV[2], eV[1]))
+            sage: M.set_orientation([eU, f])
+
         Then we construct the 1-form and take its Hodge dual w.r.t. `g`::
 
             sage: a = M.one_form({eU: [-y, x]}, name='a')
@@ -636,7 +673,7 @@ class DiffForm(TensorField):
             sage: sa.display(eU)
             *a = -x dx - y dy
             sage: sa.display(eV)
-            *a = -u/(u^4 + 2*u^2*v^2 + v^4) du - v/(u^4 + 2*u^2*v^2 + v^4) dv
+            *a = u/(u^4 + 2*u^2*v^2 + v^4) du + v/(u^4 + 2*u^2*v^2 + v^4) dv
 
         Instead of calling the method :meth:`hodge_dual` on the differential
         form, one can invoke the method
@@ -662,7 +699,7 @@ class DiffForm(TensorField):
             sage: eps.display(eU)
             eps_g = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx/\dy
             sage: eps.display(eV)
-            eps_g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
+            eps_g = -4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
             sage: seps = eps.hodge_dual(g); seps
             Scalar field *eps_g on the 2-dimensional differentiable manifold S^2
             sage: seps.display()
@@ -670,7 +707,32 @@ class DiffForm(TensorField):
             on U: (x, y) |--> 1
             on V: (u, v) |--> 1
 
+        Hodge dual of a 1-form in the Euclidean space `R^3`::
+
+            sage: M = Manifold(3, 'M', start_index=1)
+            sage: X.<x,y,z> = M.chart()
+            sage: g = M.metric('g')  # the Euclidean metric
+            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
+            sage: var('Ax Ay Az')
+            (Ax, Ay, Az)
+            sage: a = M.one_form(Ax, Ay, Az, name='A')
+            sage: sa = a.hodge_dual(g) ; sa
+            2-form *A on the 3-dimensional differentiable manifold M
+            sage: sa.display()
+            *A = Az dx/\dy - Ay dx/\dz + Ax dy/\dz
+            sage: ssa = sa.hodge_dual(g) ; ssa
+            1-form **A on the 3-dimensional differentiable manifold M
+            sage: ssa.display()
+            **A = Ax dx + Ay dy + Az dz
+            sage: ssa == a  # must hold for a Riemannian metric in dimension 3
+            True
+
+        See the documentation of
+        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.hodge_star`
+        for more examples.
         """
+        if metric is None:
+            metric = self._vmodule._ambient_domain.metric()
         return metric.hodge_star(self)
 
     def interior_product(self, qvect):
@@ -825,7 +887,7 @@ class DiffForm(TensorField):
 # *****************************************************************************
 
 
-class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
+class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
     r"""
     Differential form with values on a parallelizable manifold.
 
@@ -963,6 +1025,14 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         ....:                [r*sin(th)*cos(ph), r*sin(th)*sin(ph), r*cos(th)])
         sage: cart_to_spher = spher_to_cart.set_inverse(sqrt(x^2+y^2+z^2),
         ....:                              atan2(sqrt(x^2+y^2),z), atan2(y, x))
+        Check of the inverse coordinate transformation:
+          r == r  *passed*
+          th == arctan2(r*sin(th), r*cos(th))  **failed**
+          ph == arctan2(r*sin(ph)*sin(th), r*cos(ph)*sin(th))  **failed**
+          x == x  *passed*
+          y == y  *passed*
+          z == z  *passed*
+        NB: a failed report can reflect a mere lack of simplification.
         sage: eps.comp(c_spher.frame()) # computation of the components in the spherical frame
         Fully antisymmetric 3-indices components w.r.t. Coordinate frame
          (R3, (d/dr,d/dth,d/dph))
@@ -1017,7 +1087,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         no symmetry;  antisymmetry: (0, 1)
 
     The exterior derivative of a differential form is obtained by means
-    of the :meth:`exterior_derivative`::
+    of the method :meth:`exterior_derivative`::
 
         sage: da = a.exterior_derivative() ; da
         2-form dA on the 3-dimensional differentiable manifold R3
@@ -1029,6 +1099,11 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         dB = cos(x) dx/\dy + sin(z) dx/\dz - sin(y) dy/\dz
         sage: dab = ab.exterior_derivative() ; dab
         3-form d(A/\B) on the 3-dimensional differentiable manifold R3
+
+    or by applying the function ``diff`` to the differential form::
+
+        sage: diff(a) is a.exterior_derivative()
+        True
 
     As a 3-form over a 3-dimensional manifold, ``d(A/\B)`` is necessarily
     proportional to the volume 3-form::
@@ -1290,12 +1365,9 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             True
 
         Instead of invoking the method :meth:`exterior_derivative`, one may
-        use the global function
-        :func:`~sage.manifolds.utilities.exterior_derivative`
-        or its alias :func:`~sage.manifolds.utilities.xder`::
+        use the global function ``diff``::
 
-            sage: from sage.manifolds.utilities import xder
-            sage: xder(a) is a.exterior_derivative()
+            sage: diff(a) is a.exterior_derivative()
             True
 
         The exterior derivative is nilpotent::
@@ -1310,7 +1382,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         Let us check Cartan's identity::
 
             sage: v = M.vector_field(-y, x, t, z, name='v')
-            sage: a.lie_der(v) == v.contract(xder(a)) + xder(a(v)) # long time
+            sage: a.lie_der(v) == v.contract(diff(a)) + diff(a(v)) # long time
             True
 
         """
@@ -1370,6 +1442,9 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             resu._components[frame] = dc
         return resu
 
+    derivative = exterior_derivative  # allows one to use functional notation,
+                                      # e.g. diff(a) for a.exterior_derivative()
+
     def wedge(self, other):
         r"""
         Exterior product of ``self`` with another differential form.
@@ -1407,7 +1482,16 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
             sage: s[1,2,3] == a[1]*b[2,3] + a[2]*b[3,1] + a[3]*b[1,2]
             True
 
+        Wedging with scalar fields yields the multiplication from right::
+
+            sage: f = M.scalar_field(x, name='f')
+            sage: t = a.wedge(f)
+            sage: t.display()
+            f*a = 2*x dx + (x^2 + x) dy + x*y*z dz
+
         """
+        if other._tensor_rank == 0:
+            return self * other
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
                 raise ValueError("incompatible ambient domains for exterior " +
@@ -1420,72 +1504,6 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal):
         self_r = self.restrict(dom_resu)
         other_r = other.restrict(dom_resu)
         return FreeModuleAltForm.wedge(self_r, other_r)
-
-    def hodge_dual(self, metric):
-        r"""
-        Compute the Hodge dual of the differential form with respect to some
-        metric.
-
-        If the differential form is a `p`-form `A`, its *Hodge dual* with
-        respect to a pseudo-Riemannian metric `g` is the
-        `(n-p)`-form `*A` defined by
-
-        .. MATH::
-
-            *A_{i_1\ldots i_{n-p}} = \frac{1}{p!} A_{k_1\ldots k_p}
-                \epsilon^{k_1\ldots k_p}_{\qquad\ i_1\ldots i_{n-p}}
-
-        where `n` is the manifold's dimension, `\epsilon` is the volume
-        `n`-form associated with `g` (see
-        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.volume_form`)
-        and the indices `k_1,\ldots, k_p` are raised with `g`.
-
-        INPUT:
-
-        - ``metric``: a pseudo-Riemannian metric defined on the same manifold
-          as the current differential form; must be an instance of
-          :class:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric`
-
-        OUTPUT:
-
-        - the `(n-p)`-form `*A`
-
-        EXAMPLES:
-
-        Hodge dual of a 1-form in the Euclidean space `R^3`::
-
-            sage: M = Manifold(3, 'M', start_index=1)
-            sage: X.<x,y,z> = M.chart()
-            sage: g = M.metric('g')  # the Euclidean metric
-            sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
-            sage: var('Ax Ay Az')
-            (Ax, Ay, Az)
-            sage: a = M.one_form(Ax, Ay, Az, name='A')
-            sage: sa = a.hodge_dual(g) ; sa
-            2-form *A on the 3-dimensional differentiable manifold M
-            sage: sa.display()
-            *A = Az dx/\dy - Ay dx/\dz + Ax dy/\dz
-            sage: ssa = sa.hodge_dual(g) ; ssa
-            1-form **A on the 3-dimensional differentiable manifold M
-            sage: ssa.display()
-            **A = Ax dx + Ay dy + Az dz
-            sage: ssa == a  # must hold for a Riemannian metric in dimension 3
-            True
-
-        Instead of calling the method :meth:`hodge_dual` on the differential
-        form, one can invoke the method
-        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.hodge_star`
-        of the metric::
-
-            sage: a.hodge_dual(g) == g.hodge_star(a)
-            True
-
-        See the documentation of
-        :meth:`~sage.manifolds.differentiable.metric.PseudoRiemannianMetric.hodge_star`
-        for more examples.
-
-        """
-        return metric.hodge_star(self)
 
     def interior_product(self, qvect):
         r"""

@@ -8,6 +8,7 @@ Discrete dynamics
 
    cellular_automata
    complex_dynamics
+   sage/dynamics/finite_dynamical_system
    sage/sandpiles/sandpile
 
 .. SEEALSO::

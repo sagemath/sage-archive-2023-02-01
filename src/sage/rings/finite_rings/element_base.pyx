@@ -1,11 +1,23 @@
 """
 Base class for finite field elements
 
-AUTHORS::
+AUTHORS:
 
-- David Roe (2010-1-14) -- factored out of sage.structure.element
-- Sebastian Oehms (2018-7-19) -- add :meth:`conjugate` (see :trac:`26761`)
+- David Roe (2010-1-14): factored out of sage.structure.element
+
+- Sebastian Oehms (2018-7-19): added :meth:`conjugate` (see :trac:`26761`)
+
 """
+
+# ****************************************************************************
+#       Copyright (C) 2010 David Roe <roed@math.harvard.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
@@ -42,7 +54,7 @@ cdef class FiniteRingElement(CommutativeRingElement):
             sage: a = Zmod(17)(13)
             sage: a._nth_root_common(4, True, "Johnston", False)
             [3, 5, 14, 12]
-            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham
+            sage: a._nth_root_common(4, True, "Johnston", cunningham = True) # optional - cunningham_tables
             [3, 5, 14, 12]
         """
         K = self.parent()
@@ -110,14 +122,14 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         sage: k.<a> = GF(64)
         sage: TestSuite(a).run()
     """
-    def _im_gens_(self, codomain, im_gens):
+    def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Used for applying homomorphisms of finite fields.
 
         EXAMPLES::
 
-            sage: k.<a> = FiniteField(73^2, 'a')
-            sage: K.<b> = FiniteField(73^4, 'b')
+            sage: k.<a> = FiniteField(73^2)
+            sage: K.<b> = FiniteField(73^4)
             sage: phi = k.hom([ b^(73*73+1) ]) # indirect doctest
             sage: phi(0)
             0
@@ -130,7 +142,11 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         ## NOTE: see the note in sage/rings/number_field_element.pyx,
         ## in the comments for _im_gens_ there -- something analogous
         ## applies here.
-        return codomain(self.polynomial()(im_gens[0]))
+        f = self.polynomial()
+        if base_map is not None:
+            Cx = codomain['x']
+            f = Cx([base_map(c) for c in f])
+        return codomain(f(im_gens[0]))
 
     def minpoly(self,var='x',algorithm='pari'):
         """
@@ -199,8 +215,8 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
     def _vector_(self, reverse=False):
         """
-        Return a vector in self.parent().vector_space() matching
-        self. The most significant bit is to the right.
+        Return a vector matching this element in the vector space attached
+        to the parent.  The most significant bit is to the right.
 
         INPUT:
 
@@ -240,7 +256,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
 
         if reverse:
             ret.reverse()
-        return k.vector_space()(ret)
+        return k.vector_space(map=False)(ret)
 
     def matrix(self, reverse=False):
         r"""
@@ -452,7 +468,7 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         """
         f = self.charpoly('x')
         n = f[0]
-        if f.degree() % 2 != 0:
+        if f.degree() % 2:
             return -n
         else:
             return n
@@ -836,9 +852,25 @@ cdef class FinitePolyExtElement(FiniteRingElement):
             True
         """
         [(p, k2)] = list(self.parent().cardinality().factor())
-        if k2 % 2 != 0:
+        if k2 % 2:
             raise TypeError("cardinality of the field must be a square number")
         k = k2 / 2
 
         return self.pth_power(k=k)
+
+cdef class Cache_base(SageObject):
+    cpdef FinitePolyExtElement fetch_int(self, number):
+        """
+        Given an integer less than `p^n` with base `2`
+        representation `a_0 + a_1 \cdot 2 + \cdots + a_k 2^k`, this returns
+        `a_0 + a_1 x + \cdots + a_k x^k`, where `x` is the
+        generator of this finite field.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(2^48)
+            sage: k._cache.fetch_int(2^33 + 2 + 1)
+            a^33 + a + 1
+        """
+        raise NotImplementedError("this must be implemented by subclasses")
 

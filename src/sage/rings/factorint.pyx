@@ -151,7 +151,7 @@ cpdef factor_aurifeuillian(n, check=True):
         ....:         s = -1 if n % 4 == 1 else 1
         ....:         y = (m^2*n)^n + s
         ....:         F = fa(y)
-        ....:         assert(len(F) > 0 and prod(F) == y)
+        ....:         assert(F and prod(F) == y)
 
     REFERENCES:
 
@@ -220,15 +220,15 @@ def factor_cunningham(m, proof=None):
     EXAMPLES::
 
         sage: from sage.rings.factorint import factor_cunningham
-        sage: factor_cunningham(2^257-1) # optional - cunningham
+        sage: factor_cunningham(2^257-1) # optional - cunningham_tables
         535006138814359 * 1155685395246619182673033 * 374550598501810936581776630096313181393
-        sage: factor_cunningham((3^101+1)*(2^60).next_prime(),proof=False) # optional - cunningham
+        sage: factor_cunningham((3^101+1)*(2^60).next_prime(),proof=False) # optional - cunningham_tables
         2^2 * 379963 * 1152921504606847009 * 1017291527198723292208309354658785077827527
 
     """
     from sage.databases import cunningham_tables
     cunningham_prime_factors = cunningham_tables.cunningham_prime_factors()
-    if m.nbits() < 100 or len(cunningham_prime_factors) == 0:
+    if m.nbits() < 100 or not cunningham_prime_factors:
         return m.factor(proof=proof)
     n = Integer(m)
     L = []

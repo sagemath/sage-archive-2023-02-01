@@ -8,7 +8,6 @@ AUTHORS:
 - Nick Alexander (2008-01-08)
 
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Nick Alexander <ncalexander@gmail.com>
 #       Copyright (C) 2009/2010 Marco Streng <marco.streng@gmail.com>
@@ -27,7 +26,7 @@ from __future__ import absolute_import
 
 from sage.rings.all import PolynomialRing
 
-from sage.rings.complex_field import is_ComplexField
+from sage.rings.complex_mpfr import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 
 from sage.modules.free_module_element import vector

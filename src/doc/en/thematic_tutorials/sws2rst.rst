@@ -1,32 +1,31 @@
-.. _sws2srt:
+.. _sws2rst:
 
-====================================
-Creating a Tutorial from a Worksheet
-====================================
+=====================================================
+Creating a Tutorial from an old Sage Worksheet (.sws)
+=====================================================
 
-Sage has a number of `thematic tutorials <index.html>`_ and contains everything
-needed to turn a worksheet created in the `Sage notebook
-<https://github.com/sagemath/sagenb>`_ (sagenb) into a tutorial.
+A lot of pedagogical material has been written in the Sage Worksheet format, which is no longer supported by Sage after the transition to Python 3 and the removal of the SageNB package.
 
-* Once you have created a worksheet and are satisfied with the text and
-  computations, download it to a directory.
+However, it is possible to convert Sage Worksheet files.
+Once you have created a worksheet and are satisfied with the text and
+computations, download it to a directory.
 
 We will assume here that the worksheet is called ``Tutorial.sws``
 and the directory is called ``make_tutorial``.  We also assume that
 ``sage`` is your Sage command; if it is not in your ``PATH`` then replace
 this with the path to your Sage installation, such as
-``/Applications/Sage-6.2.app/Contents/Resources/sage/sage`` if you are
+``/Applications/Sage-9.2.app/Contents/Resources/sage/sage`` if you are
 using the Mac app and have placed it in your Applications directory.
 
-* Next, you will need an optional package to parse your worksheet.  Use the
+* Next, you will need an optional package to covert your worksheet.  Use the
   command:
 
   .. CODE-BLOCK:: shell-session
 
-      $ sage --pip install beautifulsoup4
+      $ sage -i sage_sws2rst
 
   to install it (or, in the Mac app, use the ``Terminal Session`` advanced
-  menu with ``--pip install beautifulsoup4``).
+  menu).
 
 * Then we will use the ``sws2rst`` script to turn the worksheet into
   a document in the `ReStructuredText <http://sphinx-doc.org/rest.html>`_
@@ -40,7 +39,7 @@ using the Mac app and have placed it in your Applications directory.
   files (which may be empty if there are no images).
 
   You can find help for ``sws2rst`` with the command
-  ``sage --sws2rst -h`` once you have installed beautifulsoup.
+  ``sage --sws2rst -h`` once you have installed beautifulsoup4.
 
 * In principle, such a file could be added directly to Sage's documentation (see
   the `developer's manual <../developer/index.html>`_). However, you probably

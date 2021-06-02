@@ -303,6 +303,7 @@ AUTHORS:
 - Travis Scrimshaw (2015): structure described via
   :class:`~sage.manifolds.structure.TopologicalStructure` or
   :class:`~sage.manifolds.structure.RealTopologicalStructure`
+- Michael Jung (2020): topological vector bundles and orientability
 
 
 REFERENCES:
@@ -324,15 +325,13 @@ REFERENCES:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from sage.categories.fields import Fields
 from sage.categories.manifolds import Manifolds
 from sage.categories.homset import Hom
 from sage.rings.all import CC
 from sage.rings.real_mpfr import RR, RealField_class
-from sage.rings.complex_field import ComplexField_class
+from sage.rings.complex_mpfr import ComplexField_class
 from sage.misc.prandom import getrandbits
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer import Integer
@@ -575,6 +574,7 @@ class TopologicalManifold(ManifoldSubset):
         self._top_charts = []  # list of charts defined on subsets of self
                         # that are not subcharts of charts on larger subsets
         self._def_chart = None  # default chart
+        self._orientation = [] # set no orientation a priori
         self._charts_by_coord = {} # dictionary of charts whose domain is self
                                    # (key: string formed by the coordinate
                                    #  symbols separated by a white space)
@@ -868,7 +868,8 @@ class TopologicalManifold(ManifoldSubset):
 
         """
         resu = TopologicalManifold(self._dim, name, self._field,
-                                   self._structure, base_manifold=self._manifold,
+                                   self._structure,
+                                   base_manifold=self._manifold,
                                    latex_name=latex_name,
                                    start_index=self._sindex)
         resu._calculus_method = self._calculus_method
@@ -1282,13 +1283,8 @@ class TopologicalManifold(ManifoldSubset):
         from .chart import Chart
         if not isinstance(chart, Chart):
             raise TypeError("{} is not a chart".format(chart))
-        if chart._domain is not self:
-            if self.is_manifestly_coordinate_domain():
-                raise TypeError("the chart domain must coincide with " +
-                                "the {}".format(self))
-            if chart not in self._atlas:
-                raise ValueError("the chart must be defined on the " +
-                                 "{}".format(self))
+        if chart not in self._atlas:
+            raise ValueError("the chart must be defined on the {}".format(self))
         self._def_chart = chart
 
     def coord_change(self, chart1, chart2):
@@ -1376,7 +1372,7 @@ class TopologicalManifold(ManifoldSubset):
               Chart (M, (r, s))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (r, s))}
 
         """
-        return self._coord_changes
+        return self._coord_changes.copy()
 
     def is_manifestly_coordinate_domain(self):
         r"""
@@ -1559,6 +1555,260 @@ class TopologicalManifold(ManifoldSubset):
 
         """
         return True
+
+    def set_orientation(self, orientation):
+        r"""
+        Set the preferred orientation of ``self``.
+
+        INPUT:
+
+        - ``orientation`` -- a chart or a list of charts
+
+        .. WARNING::
+
+            It is the user's responsibility that the orientation set here
+            is indeed an orientation. There is no check going on in the
+            background. See :meth:`orientation` for the definition of an
+            orientation.
+
+        EXAMPLES:
+
+        Set an orientation on a manifold::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: c_xy.<x,y> = M.chart(); c_uv.<u,v> = M.chart()
+            sage: M.set_orientation(c_uv)
+            sage: M.orientation()
+            [Chart (M, (u, v))]
+
+        Set an orientation in the non-trivial case::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.set_orientation([c_xy, c_uv])
+            sage: M.orientation()
+            [Chart (U, (x, y)), Chart (V, (u, v))]
+
+        """
+        chart_type = self._structure.chart
+        if isinstance(orientation, chart_type):
+            orientation = [orientation]
+        elif isinstance(orientation, (tuple, list)):
+            orientation = list(orientation)
+        else:
+            raise TypeError("orientation must be a chart or a list/tuple of "
+                            "charts")
+        dom_union = None
+        for c in orientation:
+            if not isinstance(c, chart_type):
+                raise ValueError("orientation must consist of charts")
+            dom = c._domain
+            if not dom.is_subset(self):
+                raise ValueError("{} must be defined ".format(c) +
+                                 "on a subset of {}".format(self))
+            if dom_union is not None:
+                dom_union = dom.union(dom_union)
+            else:
+                dom_union = dom
+        if dom_union != self:
+            raise ValueError("chart domains must cover {}".format(self))
+        self._orientation = orientation
+
+    def orientation(self):
+        r"""
+        Get the preferred orientation of ``self`` if available.
+
+        An *orientation* of an `n`-dimensional topologial manifold is an
+        atlas of charts whose transition maps are orientation preserving. A
+        homeomorphism `f \colon U \to V` for open subsets `U, V \subset \RR^n`
+        is called *orientation preserving* if for each `x \in U` the
+        following map between singular homologies is the identity:
+
+        .. MATH::
+
+            H_n(\RR^n, \RR^n - 0; \ZZ) \cong H_n(U, U - x; \ZZ)
+            \xrightarrow{f_*} H_n(V, V - f(x)) \cong H_n(\RR^n, \RR^n - 0; \ZZ)
+
+        See `this link
+        <http://www.map.mpim-bonn.mpg.de/Orientation_of_manifolds>`_
+        for details.
+
+        .. NOTE::
+
+            Notice that for differentiable manifolds, the notion of
+            orientability does not need homology theory at all. See
+            :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.orientation`
+            for details
+
+        The trivial case corresponds to the manifold being covered by
+        one chart. In that case, if no preferred orientation has been manually
+        set before, one of those charts (usually the default chart) is
+        set to the preferred orientation and returned here.
+
+        EXAMPLES:
+
+        If the manifold is covered by only one chart, it certainly admits an
+        orientation::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: c.<x,y,z> = M.chart()
+            sage: M.orientation()
+            [Chart (M, (x, y, z))]
+
+        Usually, an orientation cannot be obtained so easily::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.orientation()
+            []
+
+        In that case, the orientation can be set by the user manually::
+
+            sage: M.set_orientation([c_xy, c_uv])
+            sage: M.orientation()
+            [Chart (U, (x, y)), Chart (V, (u, v))]
+
+        The orientation on submanifolds are inherited from the ambient
+        manifold::
+
+            sage: W = U.intersection(V, name='W')
+            sage: W.orientation()
+            [Chart (W, (x, y))]
+
+        """
+        if not self._orientation:
+            # try to get an orientation from super domains:
+            for sdom in self._supersets:
+                sorient = sdom._orientation
+                if sorient:
+                    rst_orient = [c.restrict(self) for c in sorient]
+                    # clear duplicated domains:
+                    rst_orient = list(self._get_min_covering(rst_orient))
+                    self._orientation = rst_orient
+                    break
+            else:
+                # Trivial case:
+                if self.is_manifestly_coordinate_domain():
+                    # Try the default chart:
+                    def_chart = self._def_chart
+                    if def_chart is not None:
+                        if def_chart._domain is self:
+                            self._orientation = [self._def_chart]
+                    # Still no orientation? Choose arbitrary chart:
+                    if not self._orientation:
+                        for chart in self._covering_charts:
+                            self._orientation = [chart]
+                            break
+        return list(self._orientation)
+
+    def has_orientation(self):
+        r"""
+        Check whether ``self`` admits an obvious or by user set orientation.
+
+        .. SEEALSO::
+
+            Consult :meth:`orientation` for details about orientations.
+
+        .. NOTE::
+
+            Notice that if :meth:`has_orientation` returns ``False`` this
+            does not necessarily mean that the manifold admits no orientation.
+            It just means that the user has to set an orientation manually
+            in that case, see :meth:`set_orientation`.
+
+        EXAMPLES:
+
+        The trivial case::
+
+            sage: M = Manifold(3, 'M', structure='top')
+            sage: c.<x,y,z> = M.chart()
+            sage: M.has_orientation()
+            True
+
+        The non-trivial case::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: M.declare_union(U, V)
+            sage: c_xy.<x,y> = U.chart(); c_uv.<u,v> = V.chart()
+            sage: M.has_orientation()
+            False
+            sage: M.set_orientation([c_xy, c_uv])
+            sage: M.has_orientation()
+            True
+
+        """
+        return bool(self.orientation())
+
+    def _get_min_covering(self, object_list):
+        r"""
+        Helper method to return the minimal amount of objects necessary to
+        cover the union of all their domains.
+
+        INPUT:
+
+        - list of objects having an `domain` method
+
+        OUTPUT:
+
+        - set of objects
+
+        TESTS::
+
+            sage: M = Manifold(1, 'M', structure='top')
+            sage: U = M.open_subset('U'); V = M.open_subset('V')
+            sage: c1.<x> = U.chart(); c2.<y> = V.chart()
+            sage: c3.<z> = M.chart()
+            sage: M._get_min_covering([c1, c2, c3])
+            {Chart (M, (z,))}
+
+        """
+        min_obj_set = set()
+        for obj in object_list:
+            redund_obj_set = set()
+            for oobj in min_obj_set:
+                if obj.domain().is_subset(oobj.domain()):
+                    break
+                elif oobj.domain().is_subset(obj.domain()):
+                    redund_obj_set.add(oobj)
+            else:
+                min_obj_set.add(obj)
+            min_obj_set.difference_update(redund_obj_set)
+        return min_obj_set
+
+    def vector_bundle(self, rank, name, field='real', latex_name=None):
+        r"""
+        Return a topological vector bundle over the given field with given rank
+        over this topological manifold.
+
+        INPUT:
+
+        - ``rank`` -- rank of the vector bundle
+        - ``name`` -- name given to the total space
+        - ``field`` -- (default: ``'real'``) topological field giving the
+          vector space structure to the fibers
+        - ``latex_name`` -- optional LaTeX name for the total space
+
+        OUTPUT:
+
+        - a topological vector bundle as an instance of
+          :class:`~sage.manifolds.vector_bundle.TopologicalVectorBundle`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='top')
+            sage: M.vector_bundle(2, 'E')
+            Topological real vector bundle E -> M of rank 2 over the base space
+             2-dimensional topological manifold M
+
+        """
+        from sage.manifolds.vector_bundle import TopologicalVectorBundle
+        return TopologicalVectorBundle(rank, name, self, field=field,
+                                       latex_name=latex_name)
 
     def scalar_field_algebra(self):
         r"""
@@ -2224,12 +2474,23 @@ class TopologicalManifold(ManifoldSubset):
             F: M --> R
                (x, y) |--> x^2 + cos(y)*sin(x)
 
+        The calculus method chosen via ``set_calculus_method()`` applies to any
+        chart defined subsequently on the manifold::
+
+            sage: M.set_calculus_method('sympy')
+            sage: Y.<u,v> = M.chart()  # a new chart
+            sage: Y.calculus_method()
+            Available calculus methods (* = current):
+             - SR (default)
+             - sympy (*)
+
         .. SEEALSO::
 
             :meth:`~sage.manifolds.chart.Chart.calculus_method` for a
             control of the calculus method chart by chart
 
         """
+        self._calculus_method = method
         for chart in self._atlas:
             chart.calculus_method().set(method)
 
@@ -2309,7 +2570,6 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: def simpl_trig(a):
             ....:     return a.simplify_trig()
-            ....:
             sage: M.set_simplify_function(simpl_trig)
             sage: s = f + g
             sage: s.expr()
@@ -2332,7 +2592,6 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: def simpl_trig_sympy(a):
             ....:     return a.trigsimp()
-            ....:
             sage: M.set_simplify_function(simpl_trig_sympy, method='sympy')
 
         Then, it becomes active as soon as we change the calculus engine to
@@ -2357,6 +2616,8 @@ class TopologicalManifold(ManifoldSubset):
 
 ##############################################################################
 ## Constructor function
+
+_manifold_id = Integer(0)
 
 def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
              start_index=0, **extra_kwds):
@@ -2445,7 +2706,12 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
       subclasses
       :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
       or
-      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
+      :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`,
+      or, if the keyword ``ambient`` is used, one of the subclasses
+      :class:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold`,
+      :class:`~sage.manifolds.differentiable.differentiable_submanifold.DifferentiableSubmanifold`,
+      or
+      :class:`~sage.manifolds.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold`.
 
     EXAMPLES:
 
@@ -2514,12 +2780,29 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: M.diff_degree()
         +Infinity
 
-    See the documentation of classes
+    Submanifolds are constructed by means of the keyword ``ambient``::
+
+        sage: N = Manifold(2, 'N', field='complex', ambient=M); N
+        2-dimensional differentiable submanifold N immersed in the
+         3-dimensional complex manifold M
+
+    The immersion `N\to M` has to be specified in a second stage, via the
+    method
+    :meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_immersion`
+    or
+    :meth:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold.set_embedding`.
+
+    For more detailed examples, see the documentation of
     :class:`~sage.manifolds.manifold.TopologicalManifold`,
     :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`
     and
-    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`
-    for more detailed examples.
+    :class:`~sage.manifolds.differentiable.pseudo_riemannian.PseudoRiemannianManifold`,
+    or the documentation of
+    :class:`~sage.manifolds.topological_submanifold.TopologicalSubmanifold`,
+    :class:`~sage.manifolds.differentiable.differentiable_submanifold.DifferentiableSubmanifold`
+    and
+    :class:`~sage.manifolds.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold`
+    for submanifolds.
 
     .. RUBRIC:: Uniqueness of manifold objects
 
@@ -2588,18 +2871,25 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
         sage: isinstance(M, sage.misc.fast_methods.WithEqualityById)
         True
     """
-    from time import time
     from sage.rings.infinity import infinity
     from sage.manifolds.differentiable.manifold import DifferentiableManifold
     from sage.manifolds.differentiable.pseudo_riemannian import PseudoRiemannianManifold
+    from sage.manifolds.differentiable.degenerate import DegenerateManifold
     from sage.manifolds.topological_submanifold import TopologicalSubmanifold
     from sage.manifolds.differentiable.differentiable_submanifold import DifferentiableSubmanifold
     from sage.manifolds.differentiable.pseudo_riemannian_submanifold import PseudoRiemannianSubmanifold
+    from sage.manifolds.differentiable.degenerate_submanifold import DegenerateSubmanifold
+
+    global _manifold_id
+
     # Some sanity checks
     if not isinstance(dim, (int, Integer)):
         raise TypeError("the manifold dimension must be an integer")
     if dim < 1:
         raise ValueError("the manifold dimension must be strictly positive")
+
+    _manifold_id += 1
+    unique_tag = lambda: getrandbits(128)*_manifold_id
 
     if structure in ['topological', 'top']:
         if field == 'real' or isinstance(field, RealField_class):
@@ -2617,11 +2907,11 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                           ambient=ambient,
                                           latex_name=latex_name,
                                           start_index=start_index,
-                                          unique_tag=getrandbits(128)*time())
+                                          unique_tag=unique_tag())
         return TopologicalManifold(dim, name, field, structure,
                                    latex_name=latex_name,
                                    start_index=start_index,
-                                   unique_tag=getrandbits(128)*time())
+                                   unique_tag=unique_tag())
     elif structure in ['differentiable', 'diff', 'smooth']:
         if 'diff_degree' in extra_kwds:
             diff_degree = extra_kwds['diff_degree']
@@ -2646,13 +2936,13 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                              diff_degree=diff_degree,
                                              latex_name=latex_name,
                                              start_index=start_index,
-                                             unique_tag=getrandbits(128)*time())
+                                             unique_tag=unique_tag())
         return DifferentiableManifold(dim, name, field, structure,
                                       diff_degree=diff_degree,
                                       latex_name=latex_name,
                                       start_index=start_index,
-                                      unique_tag=getrandbits(128)*time())
-    elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian']:
+                                      unique_tag=unique_tag())
+    elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian','degenerate_metric']:
         if 'diff_degree' in extra_kwds:
             diff_degree = extra_kwds['diff_degree']
         else:
@@ -2672,6 +2962,8 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 signature = None
         elif structure == 'Riemannian':
             signature = dim
+        elif structure == 'degenerate_metric':
+            signature = (0,dim-1,1)
         elif structure == 'Lorentzian':
             if 'signature' in extra_kwds:
                 signat = extra_kwds['signature']
@@ -2687,27 +2979,43 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                 signature = dim - 2  # default value for a Lorentzian manifold
         if 'ambient' in extra_kwds:
             ambient = extra_kwds['ambient']
-            if not isinstance(ambient, PseudoRiemannianManifold):
+            if not isinstance(ambient, (PseudoRiemannianManifold, DegenerateManifold)):
                 raise TypeError("ambient must be a pseudo-Riemannian manifold")
             if dim>ambient._dim:
                 raise ValueError("the submanifold must be of smaller "
                                  + "dimension than its ambient manifold")
-            return PseudoRiemannianSubmanifold(dim, name, ambient=ambient,
+            if structure == 'degenerate_metric':
+                return DegenerateSubmanifold(dim, name, ambient = ambient,
                                                metric_name=metric_name,
                                                signature=signature,
                                                diff_degree=diff_degree,
                                                latex_name=latex_name,
                                                metric_latex_name=metric_latex_name,
                                                start_index=start_index,
-                                               unique_tag=getrandbits(128)*time())
-
+                                               unique_tag=unique_tag())
+            return PseudoRiemannianSubmanifold(dim, name, ambient = ambient,
+                                               metric_name=metric_name,
+                                               signature=signature,
+                                               diff_degree=diff_degree,
+                                               latex_name=latex_name,
+                                               metric_latex_name=metric_latex_name,
+                                               start_index=start_index,
+                                               unique_tag=unique_tag())
+        if structure == 'degenerate_metric':
+                return DegenerateManifold(dim, name, metric_name=metric_name,
+                                               signature=signature,
+                                               diff_degree=diff_degree,
+                                               latex_name=latex_name,
+                                               metric_latex_name=metric_latex_name,
+                                               start_index=start_index,
+                                               unique_tag=unique_tag())
         return PseudoRiemannianManifold(dim, name, metric_name=metric_name,
                                         signature=signature,
                                         diff_degree=diff_degree,
                                         latex_name=latex_name,
                                         metric_latex_name=metric_latex_name,
                                         start_index=start_index,
-                                        unique_tag=getrandbits(128)*time())
+                                        unique_tag=unique_tag())
     raise NotImplementedError("manifolds of type {} are ".format(structure) +
                               "not implemented")
 

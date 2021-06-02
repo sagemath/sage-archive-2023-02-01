@@ -7,6 +7,9 @@ AUTHORS:
 
 - Sebastien Besnier (2014-05-5): :class:`FormalCompositeMap` contains
   a list of Map instead of only two Map. See :trac:`16291`.
+
+- Sebastian Oehms   (2019-01-19): :meth:`section` added to :class:`FormalCompositeMap`.
+  See :trac:`27081`.
 """
 
 #*****************************************************************************
@@ -18,8 +21,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from __future__ import absolute_import, print_function
 
 from . import homset
 import weakref
@@ -814,7 +815,7 @@ cdef class Map(Element):
             ...
             NotImplementedError: _call_with_args not overridden to accept arguments for <type 'sage.categories.map.Map'>
         """
-        if len(args) == 0 and len(kwds) == 0:
+        if not args and not kwds:
             return self(x)
         else:
             raise NotImplementedError("_call_with_args not overridden to accept arguments for %s" % type(self))
@@ -1241,7 +1242,7 @@ cdef class Map(Element):
         """
         Return a section of self.
 
-        NOTE:
+        .. NOTE::
 
             By default, it returns ``None``. You may override it in subclasses.
 
@@ -1294,7 +1295,7 @@ cdef class Section(Map):
     """
     A formal section of a map.
 
-    NOTE:
+    .. NOTE::
 
         Call methods are not implemented for the base class ``Section``.
 
@@ -1463,7 +1464,7 @@ cdef class FormalCompositeMap(Map):
         - ``first``: a map or a list of maps
         - ``second``: a map or None
 
-        ..  NOTE::
+        .. NOTE::
 
             The intended use is of course that the codomain of the
             first map is contained in the domain of the second map,
@@ -1823,10 +1824,25 @@ cdef class FormalCompositeMap(Map):
             sage: g = S.hom([2*x])
             sage: (f*g).then() == f
             True
+
+            sage: f = QQ.coerce_map_from(ZZ)
+            sage: f = f.extend_domain(ZZ).extend_codomain(QQ)
+            sage: f.then()
+            Composite map:
+            From: Integer Ring
+            To:   Rational Field
+            Defn:   Natural morphism:
+            From: Integer Ring
+            To:   Rational Field
+            then
+            Identity endomorphism of Rational Field
         """
         if len(self.__list) == 2:
             return self.__list[1]
-        return FormalCompositeMap(self.__list[1:])
+        domain = self.__list[0].codomain()
+        codomain = self.codomain()
+        H = homset.Hom(domain, codomain, category=self._category_for)
+        return FormalCompositeMap(H, self.__list[1:])
 
     def is_injective(self):
         """
@@ -1879,7 +1895,7 @@ cdef class FormalCompositeMap(Map):
             # we try the category first
             # as of 2017-06, the MRO of this class does not get patched to
             # include the category's MorphismMethods (because it is a Cython
-            # class); therefore, we can not simply call "super" but need to
+            # class); therefore, we cannot simply call "super" but need to
             # invoke the category method explicitly
             return self.getattr_from_category('is_injective')()
         except (AttributeError, NotImplementedError):
@@ -1945,7 +1961,7 @@ cdef class FormalCompositeMap(Map):
             # we try the category first
             # as of 2017-06, the MRO of this class does not get patched to
             # include the category's MorphismMethods (because it is a Cython
-            # class); therefore, we can not simply call "super" but need to
+            # class); therefore, we cannot simply call "super" but need to
             # invoke the category method explicitly
             return self.getattr_from_category('is_surjective')()
         except (AttributeError, NotImplementedError):
@@ -1982,3 +1998,66 @@ cdef class FormalCompositeMap(Map):
         """
         for f in self.__list:
             yield f.domain()
+
+    def section(self):
+        """
+        Compute a section map from sections of the factors of
+        ``self`` if they have been implemented.
+
+        EXAMPLES::
+
+            sage: P.<x> = QQ[]
+            sage: incl = P.coerce_map_from(ZZ)
+            sage: sect = incl.section(); sect
+            Composite map:
+              From: Univariate Polynomial Ring in x over Rational Field
+              To:   Integer Ring
+              Defn:   Generic map:
+                      From: Univariate Polynomial Ring in x over Rational Field
+                      To:   Rational Field
+                    then
+                      Generic map:
+                      From: Rational Field
+                      To:   Integer Ring
+            sage: p = x + 5; q = x + 2
+            sage: sect(p-q)
+            3
+
+        the following example has been attached to :meth:`_integer_`
+        of :class:`sage.rings.polynomial.polynomial_element.Polynomial`
+        before (see comment there)::
+
+            sage: k = GF(47)
+            sage: R.<x> = PolynomialRing(k)
+            sage: R.coerce_map_from(ZZ).section()
+            Composite map:
+              From: Univariate Polynomial Ring in x over Finite Field of size 47
+              To:   Integer Ring
+              Defn:   Generic map:
+                      From: Univariate Polynomial Ring in x over Finite Field of size 47
+                      To:   Finite Field of size 47
+                    then
+                      Lifting map:
+                      From: Finite Field of size 47
+                      To:   Integer Ring
+            sage: ZZ(R(45))                 # indirect doctest
+            45
+            sage: ZZ(3*x + 45)              # indirect doctest
+            Traceback (most recent call last):
+            ...
+            TypeError: not a constant polynomial
+        """
+        sections = []
+        for m in reversed(list(self)):
+            try:
+                sec = m.section()
+            except TypeError:
+                return None
+            if sec is None:
+                return None
+            sections.append(sec)
+
+        from sage.categories.homset import Hom
+        from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
+        H = Hom(self.codomain(), self.domain(), category=SetsWithPartialMaps())
+        return FormalCompositeMap(H, sections)

@@ -18,8 +18,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from six import add_metaclass
-
 from sage.knots.link import Link
 from sage.knots.knot_table import small_knots_table
 from sage.knots.gauss_code import (recover_orientations, dowker_to_gauss,
@@ -32,8 +30,7 @@ from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.categories.monoids import Monoids
 
 # We need Link to be first in the MRO in order to use its equality, hash, etc.
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class Knot(Link, Element):
+class Knot(Link, Element, metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A knot.
 
@@ -431,7 +428,7 @@ class Knot(Link, Element):
         m1 = max(abs(i) for i in ogc1[0][0])
         m2 = min(abs(i) for i in ogc2[0][0])
         n = m1 - m2 + 1
-        # construct the oriented gauss code of the result
+        # construct the oriented Gauss code of the result
         ogc2_0_0 = [a + int(sign(a)) * n for a in ogc2[0][0]]
         nogc = [[ogc1[0][0] + ogc2_0_0], ogc1[1] + ogc2[1]]
         return type(self)(nogc)

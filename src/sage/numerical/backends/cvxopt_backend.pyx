@@ -16,7 +16,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from .generic_backend cimport GenericBackend
@@ -39,11 +38,6 @@ cdef class CVXOPTBackend(GenericBackend):
 
         sage: p
         Mixed Integer Program (no objective, 0 variables, 0 constraints)
-
-    General backend testsuite::
-
-        sage: p = MixedIntegerLinearProgram(solver="CVXOPT")
-        sage: TestSuite(p.get_backend()).run(skip=("_test_pickling","_test_solve","_test_solve_trac_18572"))
     """
 
     cdef list objective_function #c_matrix
@@ -415,7 +409,7 @@ cdef class CVXOPTBackend(GenericBackend):
         .. NOTE::
 
             This method raises ``MIPSolverException`` exceptions when
-            the solution can not be computed for any reason (none
+            the solution cannot be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
         EXAMPLES::

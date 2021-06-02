@@ -141,9 +141,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-
-from six.moves import range
 
 from sage.structure.global_options import GlobalOptions
 from sage.structure.parent import Parent
@@ -453,11 +450,16 @@ class SkewPartition(CombinatorialElement):
               ┌┐
             ┌┬┴┘
             └┘
+
+        TESTS::
+
+            sage: unicode_art(SkewPartition([[],[]]))
+            ∅
         """
         from sage.typeset.unicode_art import UnicodeArt
         out, inn = self
         inn = inn + [0] * (len(out) - len(inn))
-        if not self._list:
+        if not any(self._list):
             return UnicodeArt(u'∅')
         if self.parent().options.convention == "French":
             s, t, b, l, r, tr, tl, br, bl, x, h = list(u' ┴┬├┤┘└┐┌┼─')
@@ -691,7 +693,7 @@ class SkewPartition(CombinatorialElement):
         l_out = len(lam)
         l_in = len(mu)
         mu += [0]*(l_out-l_in)
-        
+
         if l_out == 0:
             return True
         else:
@@ -705,7 +707,7 @@ class SkewPartition(CombinatorialElement):
                 else:
                     u += 1
 
-            # Find the least v strictly greater than u for which 
+            # Find the least v strictly greater than u for which
             # lam[v] != mu[v-1]+1
             v = u + 1
             v_test = True
@@ -1517,9 +1519,10 @@ class SkewPartitions(UniqueRepresentation, Parent):
                 colL_new[iCol] -= 1;
                 if colL_new[iCol] < 0:
                     raise ValueError("Incompatible row and column length : %s and %s"%(rowL, colL))
-            while colL_new != [] and colL_new[-1] == 0:
+            while colL_new and colL_new[-1] == 0:
                 colL_new.pop()
         return self.element_class(self, [resOut, [x for x in resIn if x]])
+
 
 class SkewPartitions_all(SkewPartitions):
     """

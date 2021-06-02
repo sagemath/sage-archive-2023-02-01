@@ -26,7 +26,7 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
             Category of algebras over Rational Field
             sage: sorted(C.super_categories(), key=str)
             [Category of filtered algebras over Rational Field,
-             Category of graded modules over Rational Field]
+             Category of graded vector spaces over Rational Field]
 
             sage: AlgebrasWithBasis(QQ).Graded().base_ring()
             Rational Field
@@ -85,13 +85,13 @@ class GradedModulesCategory(RegressiveCovariantConstructionCategory, Category_ov
 
             sage: Algebras(QQ).Graded().super_categories()
             [Category of filtered algebras over Rational Field,
-             Category of graded modules over Rational Field]
+             Category of graded vector spaces over Rational Field]
 
         This resulted from the following call::
 
             sage: sage.categories.graded_modules.GradedModulesCategory.default_super_categories(Algebras(QQ))
             Join of Category of filtered algebras over Rational Field
-             and Category of graded modules over Rational Field
+             and Category of graded vector spaces over Rational Field
         """
         cat = super(GradedModulesCategory, cls).default_super_categories(category, *args)
         return Category.join([category.Filtered(), cat])

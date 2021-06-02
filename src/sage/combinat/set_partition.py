@@ -30,9 +30,6 @@ mutable version see :func:`DisjointSet`.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import, division
-from six.moves import range
-from six import add_metaclass
 
 from sage.sets.set import Set, Set_generic
 
@@ -58,8 +55,8 @@ from sage.probability.probability_distribution import GeneralDiscreteDistributio
 from sage.sets.disjoint_set import DisjointSet
 from sage.combinat.posets.hasse_diagram import HasseDiagram
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class AbstractSetPartition(ClonableArray):
+class AbstractSetPartition(ClonableArray,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     Methods of set partitions which are independent of the base set
     """
@@ -477,9 +474,60 @@ class AbstractSetPartition(ClonableArray):
         """
         return max(len(block) for block in self)
 
+    def conjugate(self):
+        r"""
+        An involution exchanging singletons and circular adjacencies.
 
-@add_metaclass(InheritComparisonClasscallMetaclass)
-class SetPartition(AbstractSetPartition):
+        This method implements the definition of the conjugate of
+        a set partition defined in [Cal2005]_.
+
+        INPUT:
+
+        - ``self`` -- a set partition of an ordered set
+
+        OUTPUT:
+
+        - a set partition
+
+        EXAMPLES::
+
+            sage: SetPartition([[1,6,7],[2,8],[3,4,5]]).conjugate()
+            {{1, 4, 7}, {2, 8}, {3}, {5}, {6}}
+            sage: all(sp.conjugate().conjugate()==sp for sp in SetPartitions([1,3,5,7]))
+            True
+            sage: SetPartition([]).conjugate()
+            {}
+        """
+        def next(a, support):
+            return support[(support.index(a)+1) % len(support)]
+        def addback(S, terminals, rsupport):
+            out = list(S)
+            for a in terminals*2:
+                if a not in out and next(a, rsupport) in out:
+                    out.append(a)
+            return out
+        def pre_conjugate(sp):
+            if len(sp) <= 1:
+                return SetPartition([[a] for S in sp for a in S])
+            if sp.max_block_size() == 1:
+                return SetPartition([sp.base_set()])
+            support = sorted(a for S in sp for a in S)
+            initials = [a for S in sp for a in S if next(a,support) in S]
+            singletons = [a for S in sp for a in S if len(S) == 1]
+            if not initials and not singletons:
+                return sp
+            rho = pre_conjugate(
+                SetPartition([[a for a in S if a not in initials]
+                for S in sp if len(S)>1 and any(a not in initials for a in S)]))
+            # add back initials as singletons and singletons as terminals
+            return SetPartition([addback(S, singletons, support[::-1])
+                for S in rho]+[[a] for a in initials])
+        support = sorted(a for S in self for a in S)
+        return SetPartition([[support[-support.index(a)-1] for a in S]
+            for S in pre_conjugate(self)])
+
+class SetPartition(AbstractSetPartition,
+        metaclass=InheritComparisonClasscallMetaclass):
     r"""
     A partition of a set.
 
@@ -1180,7 +1228,7 @@ class SetPartition(AbstractSetPartition):
         The algorithm proceeds as follows: non-attacking rooks are
         placed beginning at the top row.  The columns corresponding
         to the closers of the set partition remain empty.  Let `rs_j`
-        be the the number of closers which are larger than `j` and
+        be the number of closers which are larger than `j` and
         whose block is before the block of `j`.
 
         We then place a rook into row `j`, such that the number of
@@ -2225,7 +2273,7 @@ class SetPartitions(UniqueRepresentation, Parent):
 
         If ``n`` is not given, it is first checked whether it can be
         determined from the parent, otherwise it is the maximal
-        occuring integer in the set of rooks.
+        occurring integer in the set of rooks.
 
         INPUT:
 
@@ -2444,7 +2492,7 @@ class SetPartitions(UniqueRepresentation, Parent):
             k = rs[i-1]
             # find k-th block which does not yet have a closer
             b = 0
-            while k > 0 or (P[b] != [] and P[b][-1] in R):
+            while k > 0 or (P[b] and P[b][-1] in R):
                 if P[b][-1] not in R:
                     k -= 1
                 b += 1
@@ -2730,12 +2778,14 @@ class SetPartitions_set(SetPartitions):
         EXAMPLES::
 
             sage: S = SetPartitions(10)
-            sage: S.random_element()
-            {{1, 4, 9}, {2, 5, 7}, {3}, {6}, {8, 10}}
+            sage: s = S.random_element()
+            sage: s.parent() is S
+            True
 
             sage: S = SetPartitions(["a", "b", "c"])
-            sage: S.random_element() # random
-            {{'a'}, {'b', 'c'}}
+            sage: s = S.random_element()
+            sage: s.parent() is S
+            True
         """
         base_set = list(self.base_set())
         N = len(base_set)
@@ -3161,12 +3211,14 @@ class SetPartitions_setn(SetPartitions_set):
         EXAMPLES::
 
             sage: S = SetPartitions(10, 4)
-            sage: S.random_element()
-            {{1, 2, 4, 6, 9, 10}, {3}, {5, 7}, {8}}
+            sage: s = S.random_element()
+            sage: s.parent() is S
+            True
 
-            sage: SetPartitions(["a", "b", "c"], 2).random_element() # random
-            {{'a'}, {'b', 'c'}}
-
+            sage: S = SetPartitions(["a", "b", "c"], 2)
+            sage: s = S.random_element()
+            sage: s.parent() is S
+            True
         """
         def re(N, k):
             if N == 0:

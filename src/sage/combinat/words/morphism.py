@@ -88,12 +88,8 @@ Many other functionalities...::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
-import six
-from six.moves import range
-import itertools
-from six.moves import filterfalse
+from itertools import chain
 
 from sage.misc.callable_dict import CallableDict
 from sage.structure.sage_object import SageObject
@@ -247,7 +243,7 @@ class WordMorphism(SageObject):
 
     .. NOTE::
 
-        When the domain or the codomain are not explicitely given, it is
+        When the domain or the codomain are not explicitly given, it is
         expected that the letters are comparable because the alphabets of
         the domain and of the codomain are sorted.
 
@@ -278,7 +274,7 @@ class WordMorphism(SageObject):
         Finite words over {0, 1, 2}
 
     When the alphabet is non-sortable, the domain and/or codomain must be
-    explicitely given::
+    explicitly given::
 
         sage: W = FiniteWords(['a',6])
         sage: d = {'a':['a',6,'a'],6:[6,6,6,'a']}
@@ -394,7 +390,7 @@ class WordMorphism(SageObject):
             self._morph = {}
 
             dom_alph = list()
-            for (key,val) in six.iteritems(data):
+            for key, val in data.items():
                 dom_alph.append(key)
                 if val in codomain.alphabet():
                     self._morph[key] = codomain([val])
@@ -475,7 +471,7 @@ class WordMorphism(SageObject):
             Finite words over {0, 1, 2}
         """
         codom_alphabet = set()
-        for key,val in six.iteritems(data):
+        for key, val in data.items():
             try:
                 it = iter(val)
             except Exception:
@@ -491,7 +487,7 @@ class WordMorphism(SageObject):
             sage: hash(WordMorphism('a->ab,b->ba')) # random
             7211091143079804375
         """
-        return hash(tuple((k,v) for k,v in six.iteritems(self._morph))) ^ hash(self._codomain)
+        return hash(tuple((k,v) for k,v in self._morph.items())) ^ hash(self._codomain)
 
     def __eq__(self, other):
         r"""
@@ -604,7 +600,8 @@ class WordMorphism(SageObject):
             sage: str(s)
             'a->ab, b->ba'
         """
-        L = [str(lettre) + '->' + image.string_rep() for lettre,image in six.iteritems(self._morph)]
+        L = [str(lettre) + '->' + image.string_rep()
+             for lettre, image in self._morph.items()]
         return ', '.join(sorted(L))
 
     def __call__(self, w, order=1, datatype=None):
@@ -978,7 +975,7 @@ class WordMorphism(SageObject):
             sage: m * WordMorphism('')
             WordMorphism:
         """
-        return WordMorphism(dict((key, self(w)) for (key, w) in six.iteritems(other._morph)), codomain=self.codomain())
+        return WordMorphism(dict((key, self(w)) for key, w in other._morph.items()), codomain=self.codomain())
 
     def __pow__(self, exp):
         r"""
@@ -1083,7 +1080,7 @@ class WordMorphism(SageObject):
             raise TypeError("other (=%s) is not a WordMorphism"%other)
 
         nv = dict(other._morph)
-        for k,v in six.iteritems(self._morph):
+        for k, v in self._morph.items():
             nv[k] = v
         return WordMorphism(nv)
 
@@ -1291,7 +1288,7 @@ class WordMorphism(SageObject):
             sage: sorted(WordMorphism('6->ab,y->5,0->asd').images())
             [word: 5, word: ab, word: asd]
         """
-        return list(six.itervalues(self._morph))
+        return list(self._morph.values())
 
     def reversal(self):
         r"""
@@ -1304,7 +1301,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->ab,b->a').reversal()
             WordMorphism: a->ba, b->a
         """
-        return WordMorphism(dict((key, w.reversal()) for (key, w) in six.iteritems(self._morph)),codomain=self._codomain)
+        return WordMorphism(dict((key, w.reversal()) for (key, w) in self._morph.items()),codomain=self._codomain)
 
     def is_empty(self):
         r"""
@@ -1582,7 +1579,7 @@ class WordMorphism(SageObject):
 
         ALGORITHM:
 
-            Exercices 8.7.8, p.281 in [1] :
+            Exercices 8.7.8, p.281 in [1]:
             (c) Let `y(M)` be the least integer `e` such that `M^e` has all
             positive entries. Prove that, for all primitive matrices `M`,
             we have `y(M) \leq (d-1)^2 + 1`.
@@ -1794,7 +1791,7 @@ class WordMorphism(SageObject):
                     yield a
                 else:
                     next_w = next(w)
-                    w = itertools.chain([next_w], w, self.image(next_w))
+                    w = chain([next_w], w, self.image(next_w))
             except StopIteration:
                 return
 
@@ -2010,6 +2007,11 @@ class WordMorphism(SageObject):
              word: 10,9,8,7,6,5,4,3,2,9,8,7,6,5,4,3,2,8,7,6...,
              word: 7654326543254324323221654325432432322154...,
              word: 4,3,2,3,2,2,1,3,2,2,1,2,1,1,10,9,8,7,6,5...]
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a,b->bb').periodic_points()
+            [[word: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb...]]
         """
         assert self.is_endomorphism(), "f should be an endomorphism"
 
@@ -2018,12 +2020,14 @@ class WordMorphism(SageObject):
 
         A = self.domain().alphabet()
         d = dict((letter,self(letter)[0]) for letter in A)
+        G = set(self.growing_letters())
 
         res = []
         parent = self.codomain().shift()
         for cycle in get_cycles(CallableDict(d),A):
-            P = PeriodicPointIterator(self, cycle)
-            res.append([parent(P._cache[i]) for i in range(len(cycle))])
+            if cycle[0] in G:
+                P = PeriodicPointIterator(self, cycle)
+                res.append([parent(P._cache[i]) for i in range(len(cycle))])
 
         return res
 
@@ -2187,7 +2191,7 @@ class WordMorphism(SageObject):
             sage: m.conjugate(2)
             WordMorphism: a->cdeab, b->zxy
         """
-        return WordMorphism(dict((key, w.conjugate(pos)) for (key, w) in six.iteritems(self._morph)))
+        return WordMorphism(dict((key, w.conjugate(pos)) for (key, w) in self._morph.items()))
 
     def has_left_conjugate(self):
         r"""
@@ -2210,7 +2214,7 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->abbab,b->abb,c->').has_left_conjugate()
             True
         """
-        I = filterfalse(FiniteWord_class.is_empty, self.images())
+        I = (w for w in self.images() if not FiniteWord_class.is_empty(w))
 
         try:
             letter = next(I)[0]
@@ -2785,7 +2789,7 @@ class WordMorphism(SageObject):
           of the points of the fractal.
 
         - ``colormap`` - color map or dictionary (default: ``'hsv'``).
-          It can be one of the following :
+          It can be one of the following:
 
            - ``string`` - a coloring map. For available coloring map names type:
              ``sorted(colormaps)``
@@ -3063,13 +3067,20 @@ class WordMorphism(SageObject):
             sage: m.is_growing('c')
             False
 
+        TESTS:
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a').is_growing('a')
+            False
+
         REFERENCES:
 
         ..  [CassNic10] Cassaigne J., Nicolas F. Factor complexity.
             Combinatorics, automata and number theory, 163--247, Encyclopedia
             Math. Appl., 135, Cambridge Univ. Press, Cambridge, 2010.
         """
-        if self.is_primitive():
+        if self.is_primitive() and len(self._morph) > 1:
             return True
         if letter is None:
             I = range(self.domain().alphabet().cardinality())
@@ -3101,8 +3112,15 @@ class WordMorphism(SageObject):
             ['0']
             sage: WordMorphism('0->01,1->0,2->1',codomain=Words('012')).growing_letters()
             ['0', '1', '2']
+
+        TESTS:
+
+        Make sure that :trac:`31454` is fixed::
+
+            sage: WordMorphism('a->a').growing_letters()
+            []
         """
-        if self.is_primitive():
+        if self.is_primitive() and len(self._morph) > 1:
             return self.domain().alphabet().list()
         last_coef = 0
         coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)

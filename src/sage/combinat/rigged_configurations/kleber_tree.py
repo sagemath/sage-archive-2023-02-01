@@ -65,7 +65,6 @@ TESTS::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from six.moves import range
 import itertools
 
 from sage.misc.lazy_attribute import lazy_attribute
@@ -929,7 +928,7 @@ class KleberTree(UniqueRepresentation, Parent):
         """
         cur = []
         next = [self.root]
-        while len(next) > 0:
+        while next:
             cur = next
             next = []
             for node in cur:

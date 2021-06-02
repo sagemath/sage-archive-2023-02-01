@@ -413,10 +413,6 @@ Classes and Methods
 # (at your option) any later version.
 # http://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
-
-from six import iteritems
 
 from sage.rings.ring import Algebra
 from sage.structure.element import CommutativeAlgebraElement
@@ -678,6 +674,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if convert:
             from .misc import combine_exceptions
             from .term_monoid import ZeroCoefficientError
+
             def convert_terms(element):
                 T = self.parent().term_monoid(element.parent())
                 try:
@@ -696,7 +693,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         if simplify:
             self._simplify_()
-
 
     @property
     def summands(self):
@@ -1032,15 +1028,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: A.<x> = AsymptoticRing('QQ^x * x^QQ * log(x)^QQ', SR.subring(no_variables=True))
             sage: (pi/2 * 5^x * x^(42/17) - sqrt(euler_gamma) * log(x)^(-7/8)).show()
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2} \, \pi
-            5^{x} x^{\frac{42}{17}} - \sqrt{\gamma_E} \log\left(x\right)^{-\frac{7}{8}}</script></html>
+            1/2*pi*5^x*x^(42/17) - sqrt(euler_gamma)*log(x)^(-7/8)
 
         TESTS::
 
             sage: A.<x> = AsymptoticRing('(e^x)^QQ * x^QQ', SR.subring(no_variables=True))
             sage: (zeta(3) * (e^x)^(-1/2) * x^42).show()
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\zeta(3)
-            \left(e^{x}\right)^{-\frac{1}{2}} x^{42}</script></html>
+            zeta(3)*(e^x)^(-1/2)*x^42
         """
         from sage.repl.rich_output.pretty_print import pretty_print
         pretty_print(self)
@@ -2644,7 +2638,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         # update with rules
         if isinstance(rules, dict):
-            for k, v in iteritems(rules):
+            for k, v in rules.items():
                 if not isinstance(k, str) and k not in gens:
                     raise TypeError('Cannot substitute %s in %s '
                                     'since it is neither an '
@@ -2694,7 +2688,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             from .misc import combine_exceptions
             rules = '{' + ', '.join(
                 '%s: %s' % (k, v)
-                for k, v in sorted(iteritems(locals),
+                for k, v in sorted(locals.items(),
                                    key=lambda k: str(k[0]))
                 if not k.startswith('_') and
                 not any(k == str(g) and v is g for g in gens)) + '}'
@@ -2926,7 +2920,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             should be bounded.
 
             This method is mainly meant to have an easily usable
-            plausability check for asymptotic expansion created in
+            plausibility check for asymptotic expansion created in
             some way.
 
         EXAMPLES:
@@ -4433,7 +4427,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             NotImplementedOZero: got 1 + O(0)
             The error term O(0) means 0 for sufficiently large n.
 
-        In this case, we can manually intervene by adding an an error term
+        In this case, we can manually intervene by adding an error term
         that suits us::
 
             sage: B.coefficients_of_generating_function(f, (1,), precision=3,

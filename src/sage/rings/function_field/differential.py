@@ -1,8 +1,7 @@
 """
 Differentials of function fields
 
-Sage provides basic arithmetic with differentials of function fields. Advanced
-computations with differentials are available for global function fields.
+Sage provides arithmetic with differentials of function fields.
 
 EXAMPLES:
 
@@ -53,7 +52,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.latex import latex
 
@@ -65,6 +63,7 @@ from sage.sets.family import Family
 
 from sage.categories.modules import Modules
 from sage.categories.morphism import Morphism
+
 
 class FunctionFieldDifferential(ModuleElement):
     """
@@ -374,6 +373,8 @@ class FunctionFieldDifferential(ModuleElement):
              + Place (x + 2, y + 3)
              + Place (x^6 + 3*x^5 + 4*x^4 + 2*x^3 + x^2 + 3*x + 4, y + x^5)
 
+        ::
+
             sage: F.<x> = FunctionField(QQ)
             sage: w = (1/x).differential()
             sage: w.divisor()
@@ -385,11 +386,11 @@ class FunctionFieldDifferential(ModuleElement):
 
     def valuation(self, place):
         """
-        Return the valuation of the differential at the ``place``.
+        Return the valuation of the differential at the place.
 
         INPUT:
 
-        - ``place`` -- place of the function field
+        - ``place`` -- a place of the function field
 
         EXAMPLES::
 
@@ -404,29 +405,13 @@ class FunctionFieldDifferential(ModuleElement):
         return (self._f.valuation(place) + 2*min(F(x).valuation(place), 0)
                 + F.different().valuation(place))
 
-class FunctionFieldDifferential_global(FunctionFieldDifferential):
-    """
-    Differentials on global function fields.
-
-    EXAMPLES::
-
-        sage: F.<x>=FunctionField(GF(7))
-        sage: f = x/(x^2 + x + 1)
-        sage: f.differential()
-        ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
-
-        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
-        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
-        sage: y.differential()
-        (x*y^2 + 1/x*y) d(x)
-    """
     def residue(self, place):
         """
         Return the residue of the differential at the place.
 
         INPUT:
 
-        - ``place`` -- place of the function field
+        - ``place`` -- a place of the function field
 
         OUTPUT:
 
@@ -446,7 +431,7 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             sage: sum([w.residue(p).trace() for p in s])
             0
 
-        and also in an extension field::
+        and in an extension field::
 
             sage: K.<x> = FunctionField(GF(7)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
@@ -458,6 +443,19 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             sage: s = d.support()
             sage: sum([w.residue(p).trace() for p in s])
             0
+
+        and also in a function field of characteristic zero::
+
+            sage: R.<x> = FunctionField(QQ)
+            sage: L.<Y> = R[]
+            sage: F.<y> = R.extension(Y^2 - x^4 - 4*x^3 - 2*x^2 - 1)
+            sage: a = 6*x^2 + 5*x + 7
+            sage: b = 2*x^6 + 8*x^5 + 3*x^4 - 4*x^3 -1
+            sage: w = y*a/b*x.differential()
+            sage: d = w.divisor()
+            sage: sum([QQ(w.residue(p)) for p in d.support()])
+            0
+
         """
         R,fr_R,to_R = place._residue_field()
 
@@ -476,51 +474,14 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             c = g_shifted.higher_derivative(-r-1, s)
             return to_R(c)
 
-    def cartier(self):
-        r"""
-        Return the image of the differential by the Cartier operator.
-
-        The Cartier operator operates on differentials. Let `x` be a separating
-        element of the function field.  If a differential `\omega` is written
-        `\omega=(f_0^p+f_1^px+\dots+f_{p-1}^px^{p-1})dx` (prime-power
-        representation), then the Cartier operator maps `\omega` to
-        `f_{p-1}dx`. It is known that this definition does not depend on the
-        choice of `x`.
-
-        The Cartier operator has interesting properties. Notably, the set of
-        exact differentials is precisely the kernel of the Cartier operator and
-        logarithmic differentials are stable under the Cartier operation.
-
-        EXAMPLES::
-
-            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
-            sage: f = x/y
-            sage: w = 1/f * f.differential()
-            sage: w.cartier() == w
-            True
-
-            sage: F.<x> = FunctionField(GF(4))
-            sage: f = x/(x^2+x+1)
-            sage: w = 1/f * f.differential()
-            sage: w.cartier() == w
-            True
-        """
-        W = self.parent()
-        F = W.function_field()
-        der = F.higher_derivation()
-        power_repr = der._prime_power_representation(self._f)
-        return W.element_class(W, power_repr[-1])
-
     def monomial_coefficients(self, copy=True):
         """
-        Return a dictionary whose keys are indices of basis
-        elements in the support of ``self`` and whose values
-        are the corresponding coefficients.
+        Return a dictionary whose keys are indices of basis elements in the
+        support of ``self`` and whose values are the corresponding coefficients.
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(GF(5)); _.<Y>=K[]
+            sage: K.<x> = FunctionField(GF(5)); _.<Y> = K[]
             sage: L.<y> = K.extension(Y^3+x+x^3*Y)
             sage: d = y.differential()
             sage: d
@@ -529,6 +490,63 @@ class FunctionFieldDifferential_global(FunctionFieldDifferential):
             {0: (4*x/(x^7 + 3))*y^2 + ((4*x^7 + 1)/(x^8 + 3*x))*y + x^4/(x^7 + 3)}
         """
         return {0: self._f}
+
+
+class FunctionFieldDifferential_global(FunctionFieldDifferential):
+    """
+    Differentials on global function fields.
+
+    EXAMPLES::
+
+        sage: F.<x>=FunctionField(GF(7))
+        sage: f = x/(x^2 + x + 1)
+        sage: f.differential()
+        ((6*x^2 + 1)/(x^4 + 2*x^3 + 3*x^2 + 2*x + 1)) d(x)
+
+    ::
+
+        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+        sage: y.differential()
+        (x*y^2 + 1/x*y) d(x)
+    """
+    def cartier(self):
+        r"""
+        Return the image of the differential by the Cartier operator.
+
+        The Cartier operator operates on differentials. Let `x` be a separating
+        element of the function field.  If a differential `\omega` is written
+        in prime-power representation
+        `\omega=(f_0^p+f_1^px+\dots+f_{p-1}^px^{p-1})dx`, then the Cartier
+        operator maps `\omega` to `f_{p-1}dx`. It is known that this definition
+        does not depend on the choice of `x`.
+
+        The Cartier operator has interesting properties. Notably, the set of
+        exact differentials is precisely the kernel of the Cartier operator and
+        logarithmic differentials are stable under the Cartier operation.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
+            sage: f = x/y
+            sage: w = 1/f*f.differential()
+            sage: w.cartier() == w
+            True
+
+        ::
+
+            sage: F.<x> = FunctionField(GF(4))
+            sage: f = x/(x^2 + x + 1)
+            sage: w = 1/f*f.differential()
+            sage: w.cartier() == w
+            True
+        """
+        W = self.parent()
+        F = W.function_field()
+        der = F.higher_derivation()
+        power_repr = der._prime_power_representation(self._f)
+        return W.element_class(W, power_repr[-1])
 
 
 class DifferentialsSpace(UniqueRepresentation, Parent):
@@ -541,17 +559,17 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
-        sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
         sage: L.space_of_differentials()
         Space of differentials of Function field in y defined by y^3 + x^3*y + x
 
     The space of differentials is a one-dimensional module over the function
     field. So a base differential is chosen to represent differentials.
-    Usually the generator of the base rational function field is a seprating
+    Usually the generator of the base rational function field is a separating
     element and used to generate the base differential. Otherwise a separating
     element is automatically found and used to generate the base differential
-    relative which other differentials are denoted::
+    relative to which other differentials are denoted::
 
         sage: K.<x> = FunctionField(GF(5))
         sage: R.<y> = K[]
@@ -657,8 +675,8 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
             sage: S = L.space_of_differentials()
             sage: S.function_field()
             Function field in y defined by y^3 + x^3*y + x
@@ -686,8 +704,8 @@ class DifferentialsSpace(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
             sage: S = L.space_of_differentials()
             sage: S.basis()
             Family (d(x),)
@@ -705,8 +723,8 @@ class DifferentialsSpace_global(DifferentialsSpace):
 
     EXAMPLES::
 
-        sage: K.<x>=FunctionField(GF(4)); _.<Y>=K[]
-        sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+        sage: K.<x> = FunctionField(GF(4)); _.<Y> = K[]
+        sage: L.<y> = K.extension(Y^3 + x^3*Y + x)
         sage: L.space_of_differentials()
         Space of differentials of Function field in y defined by y^3 + x^3*y + x
     """
@@ -776,7 +794,6 @@ class DifferentialsSpaceInclusion(Morphism):
             sage: OL = L.space_of_differentials()
             sage: OL.coerce_map_from(OK).is_surjective()
             False
-
             sage: S.<z> = L[]
             sage: M.<z> = L.extension(z - 1)
             sage: OM = M.space_of_differentials()
@@ -797,8 +814,8 @@ class DifferentialsSpaceInclusion(Morphism):
 
         EXAMPLES::
 
-            sage: K.<x> = FunctionField(QQbar); R.<y> = K[]
-            sage: L.<y> = K.extension(y^2 - x*y + 4*x^3)
+            sage: K.<x> = FunctionField(QQbar); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^2 - x*Y + 4*x^3)
             sage: OK = K.space_of_differentials()
             sage: OL = L.space_of_differentials()
             sage: mor = OL.coerce_map_from(OK)

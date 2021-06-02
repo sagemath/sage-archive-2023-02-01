@@ -1,19 +1,21 @@
 """
 Combinatorics features that are imported by default in the interpreter namespace
 """
-from __future__ import absolute_import
 
 from sage.misc.lazy_import import lazy_import
 
 from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
-        CombinatorialObject, CombinatorialClass, FilteredCombinatorialClass, \
-        UnionCombinatorialClass, MapCombinatorialClass, \
-        InfiniteAbstractCombinatorialClass, \
-        tuples, number_of_tuples, \
-        unordered_tuples, number_of_unordered_tuples, \
-        bell_polynomial, fibonacci_sequence, \
-        fibonacci_xrange, bernoulli_polynomial
+        polygonal_number, CombinatorialObject, CombinatorialClass, \
+        MapCombinatorialClass, \
+        tuples, number_of_tuples, unordered_tuples, number_of_unordered_tuples, \
+        bell_polynomial, fibonacci_sequence, fibonacci_xrange, bernoulli_polynomial
+
+lazy_import('sage.combinat.combinat',
+            ('InfiniteAbstractCombinatorialClass', 'UnionCombinatorialClass',
+             'FilteredCombinatorialClass'),
+            deprecation=(31545, 'this class is deprecated, do not use'))
+
 
 from .expnums import expnums
 
@@ -28,7 +30,6 @@ from sage.combinat.designs.all import *
 
 # Free modules and friends
 from .free_module import CombinatorialFreeModule
-from .combinatorial_algebra import CombinatorialAlgebra
 from .debruijn_sequence import DeBruijnSequences
 
 from .schubert_polynomial import SchubertPolynomialRing
@@ -73,6 +74,9 @@ lazy_import('sage.combinat.skew_partition', ['SkewPartition', 'SkewPartitions'])
 #Partition algebra
 from .partition_algebra import SetPartitionsAk, SetPartitionsPk, SetPartitionsTk, SetPartitionsIk, SetPartitionsBk, SetPartitionsSk, SetPartitionsRk, SetPartitionsPRk
 
+#Raising operators
+lazy_import('sage.combinat.partition_shifting_algebras', 'ShiftingOperatorAlgebra')
+
 #Diagram algebra
 from .diagram_algebras import PartitionAlgebra, BrauerAlgebra, TemperleyLiebAlgebra, PlanarAlgebra, PropagatingIdeal
 
@@ -105,6 +109,9 @@ lazy_import('sage.combinat.lr_tableau', ['LittlewoodRichardsonTableau',
 lazy_import('sage.combinat.shifted_primed_tableau', ['ShiftedPrimedTableaux',
                                                      'ShiftedPrimedTableau'])
 
+#SuperTableaux
+lazy_import('sage.combinat.super_tableau',["StandardSuperTableau", "SemistandardSuperTableau", "StandardSuperTableaux", "SemistandardSuperTableaux"])
+
 #Words
 from .words.all import *
 
@@ -121,6 +128,10 @@ lazy_import('sage.combinat.alternating_sign_matrix', ('AlternatingSignMatrix',
                                                       'MonotoneTriangles',
                                                       'ContreTableaux',
                                                       'TruncatedStaircases'))
+
+# Decorated Permutations
+lazy_import('sage.combinat.decorated_permutation', ('DecoratedPermutation',
+                                                    'DecoratedPermutations'))
 
 # Plane Partitions
 lazy_import('sage.combinat.plane_partition', ('PlanePartition',
@@ -142,7 +153,6 @@ lazy_import('sage.combinat.rooted_tree', ('RootedTree', 'RootedTrees',
                          'LabelledRootedTree', 'LabelledRootedTrees'))
 
 from .combination import Combinations
-from .cartesian_product import CartesianProduct
 
 from .set_partition import SetPartition, SetPartitions
 from .set_partition_ordered import OrderedSetPartition, OrderedSetPartitions
@@ -203,9 +213,10 @@ lazy_import('sage.combinat.finite_state_machine',
 lazy_import('sage.combinat.finite_state_machine_generators',
             ['automata', 'transducers'])
 
-# Binary Recurrence Sequences
+# Sequences
 lazy_import('sage.combinat.binary_recurrence_sequences',
             'BinaryRecurrenceSequence')
+lazy_import('sage.combinat.recognizable_series', 'RecognizableSeriesSpace')
 
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
@@ -224,7 +235,7 @@ lazy_import("sage.combinat.cluster_complex", "ClusterComplex")
 lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
 
 # Growth diagrams
-lazy_import('sage.combinat.growth', ['GrowthDiagram',
-                                     'GrowthDiagramRSK', 'GrowthDiagramBurge',
-                                     'GrowthDiagramBinWord', 'GrowthDiagramDomino',
-                                     'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
+lazy_import('sage.combinat.growth', 'GrowthDiagram')
+
+# Path Tableaux
+lazy_import('sage.combinat.path_tableaux', 'catalog', as_='path_tableaux')

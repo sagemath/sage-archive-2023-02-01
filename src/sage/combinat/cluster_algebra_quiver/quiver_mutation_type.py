@@ -15,9 +15,9 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
-from __future__ import division, print_function, absolute_import
 
-from six.moves import range
+import os
+import pickle
 
 from sage.structure.sage_object import SageObject
 from copy import copy
@@ -25,7 +25,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.all import cached_method
 from sage.rings.all import ZZ, infinity
 from sage.graphs.all import Graph, DiGraph
-from sage.arith.all import binomial, Euler_Phi
+from sage.arith.all import binomial, euler_phi
 from sage.all import prod
 from sage.matrix.all import matrix
 
@@ -380,7 +380,7 @@ mutation types.
 
     * Grassmannian: This defines the cluster algebra (without
       coefficients) corresponding to the cluster algebra with
-      coefficients which is the co-ordinate ring of a Grassmannian.
+      coefficients which is the coordinate ring of a Grassmannian.
       ``letter`` is 'GR'.  ``rank`` is a pair of integers (`k`, `n`)
       with 'k' < 'n' specifying the Grassmannian of `k`-planes in
       `n`-space.  This defines a quiver given by a (k-1) x (n-k-1)
@@ -1751,7 +1751,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
                 i = ZZ(i)
                 j = ZZ(j)
                 n = i+j
-                f = Euler_Phi()
+                f = euler_phi
                 if i == j:
                     return ( binomial( 2*i,i ) +
                              sum( f(k) * binomial(2*i//k,i//k)**2
@@ -1811,7 +1811,7 @@ class QuiverMutationType_Irreducible(QuiverMutationType_abstract):
                 if self._rank == 4:
                     return 6
                 else:
-                    f = Euler_Phi()
+                    f = euler_phi
                     n = ZZ(self._rank)
                     return sum(f(n // k) * binomial(2 * k, k)
                                for k in n.divisors()) // (2 * n)
@@ -2254,8 +2254,6 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
 
         sage: save_quiver_data(2,up_to=False, verbose=False) # indirect doctest
     """
-    import os.path
-    from six.moves import cPickle
     data = {}
     possible_types = ['Classical', 'ClassicalExceptional', 'Exceptional']
     if types not in possible_types:
@@ -2274,7 +2272,7 @@ def _save_data_dig6(n, types='ClassicalExceptional', verbose=False):
     sage_makedirs(types_path)
     from sage.misc.temporary_file import atomic_write
     with atomic_write(types_file, binary=True) as f:
-        cPickle.dump(data, f)
+        pickle.dump(data, f)
     if verbose:
         keys = sorted(data.keys(),key=str)
         print("\nThe following types are saved to file", types_file,"and will now be used to determine quiver mutation types:")

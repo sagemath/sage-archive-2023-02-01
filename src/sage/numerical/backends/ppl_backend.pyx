@@ -18,7 +18,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.numerical.mip import MIPSolverException
 from ppl import MIP_Problem, Variable, Variables_Set, Linear_Expression, Constraint, Generator
@@ -31,12 +30,6 @@ cdef class PPLBackend(GenericBackend):
 
     """
     MIP Backend that uses the exact MIP solver from the Parma Polyhedra Library.
-
-    General backend testsuite::
-
-        sage: from sage.numerical.backends.generic_backend import get_solver
-        sage: p = get_solver(solver = "PPL")
-        sage: TestSuite(p).run(skip="_test_pickling")
     """
 
     cdef object mip
@@ -688,7 +681,7 @@ cdef class PPLBackend(GenericBackend):
         .. NOTE::
 
             This method raises ``MIPSolverException`` exceptions when
-            the solution can not be computed for any reason (none
+            the solution cannot be computed for any reason (none
             exists, or the solver was not able to find it, etc...)
 
         EXAMPLES:

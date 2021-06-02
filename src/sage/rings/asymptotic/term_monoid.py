@@ -198,7 +198,6 @@ Classes and Methods
 # (at your option) any later version.
 # https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 from sage.rings.big_oh import O
 from sage.structure.element import MultiplicativeGroupElement
@@ -2536,9 +2535,9 @@ class OTerm(GenericTerm):
             sage: t._substitute_({'x': 'null'})
             Traceback (most recent call last):
             ...
-            ArithmeticError: Cannot substitute in O(x) in
-            O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
-            > *previous* ArithmeticError: O(null) not defined
+            TypeError: Cannot substitute in O(x) in O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
+            > *previous* TypeError: Cannot substitute in x in Growth Group x^ZZ.
+            >> *previous* TypeError: unsupported operand type(s) for ** or pow(): 'str' and 'int'
         """
         try:
             g = self.growth._substitute_(rules)
@@ -3606,8 +3605,8 @@ class ExactTerm(TermWithCoefficient):
 
             :meth:`OTerm.log_term`.
         """
-        return self._log_coefficient_(base=base, locals=locals) \
-             + self._log_growth_(base=base, locals=locals)
+        return (self._log_coefficient_(base=base, locals=locals)
+                + self._log_growth_(base=base, locals=locals))
 
     def is_constant(self):
         r"""
@@ -4045,6 +4044,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass
@@ -4072,6 +4072,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         running ._test_associativity() . . . pass
         running ._test_cardinality() . . . pass
         running ._test_category() . . . pass
+        running ._test_construction() . . . pass
         running ._test_elements() . . .
           Running the test suite of self.an_element()
           running ._test_category() . . . pass

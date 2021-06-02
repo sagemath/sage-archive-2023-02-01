@@ -635,7 +635,7 @@ class FockSpace(Parent, UniqueRepresentation):
             h = a.height()
             l = AsciiArt(['|']*h)
             r = AsciiArt([' '*i + '\\' for i in range(h//2)], baseline=0)
-            if h % 2 != 0:
+            if h % 2:
                 r *= AsciiArt([' '*(h//2) + '>'], baseline=0)
             r *= AsciiArt([' '*i + '/' for i in reversed(range(h//2))], baseline=0)
             ret = l + a + r
@@ -668,7 +668,7 @@ class FockSpace(Parent, UniqueRepresentation):
             h = a.height()
             l = UnicodeArt([u'│']*h, baseline=0)
             r = UnicodeArt([u" "*i + u'╲' for i in range(h//2)], baseline=0)
-            if h % 2 != 0:
+            if h % 2:
                 r *= UnicodeArt([u" "*(h//2) + u'〉'], baseline=0)
             r *= UnicodeArt([u" "*i + u'╱' for i in reversed(range(h//2))], baseline=0)
             ret = l + a + r
@@ -1146,7 +1146,7 @@ class FockSpace(Parent, UniqueRepresentation):
             while any(c[1]*k + c[0] >= b for c in corners):
                 power = 0
                 i = -b + r # This will be converted to a mod n number
-                for x in range(0, b // k + 1):
+                for x in range(b // k + 1):
                     if (b-x*k, x) in cells:
                         power += 1
                         cur = cur.f(i)
@@ -1907,7 +1907,7 @@ class FockSpaceTruncated(FockSpace):
             while any(c[1]*k + c[0] >= b for c in corners): # While there is some cell left to count
                 power = 0
                 i = -b + r # This will be converted to a mod n number
-                for x in range(0, b // k + 1):
+                for x in range(b // k + 1):
                     if (b-x*k, x) in cells:
                         power += 1
                         cur = cur.f(i)
@@ -2213,4 +2213,3 @@ class FockSpaceTruncated(FockSpace):
 
     lower_global_crystal = G
     canonical = G
-

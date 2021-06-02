@@ -139,8 +139,7 @@ class AutomorphismField(TensorField):
         True
 
     """
-    def __init__(self, vector_field_module, name=None, latex_name=None,
-                 is_identity=False):
+    def __init__(self, vector_field_module, name=None, latex_name=None):
         r"""
         Construct a field of tangent-space automorphisms on a
         non-parallelizable manifold.
@@ -168,7 +167,7 @@ class AutomorphismField(TensorField):
 
         Construction of the identity field::
 
-            sage: b = GL.element_class(XM, is_identity=True); b
+            sage: b = GL.one(); b
             Field of tangent-space identity maps on the 2-dimensional
              differentiable manifold M
             sage: TestSuite(b).run(skip='_test_pickling')
@@ -186,24 +185,11 @@ class AutomorphismField(TensorField):
             Fix ``_test_pickling`` (in the superclass :class:`TensorField`).
 
         """
-        if is_identity:
-            if name is None:
-                name = 'Id'
-            if latex_name is None and name == 'Id':
-                latex_name = r'\mathrm{Id}'
         TensorField.__init__(self, vector_field_module, (1,1), name=name,
                              latex_name=latex_name,
                              parent=vector_field_module.general_linear_group())
-        self._is_identity = is_identity
+        self._is_identity = False # a priori
         self._init_derived() # initialization of derived quantities
-        # Specific initializations for the field of identity maps:
-        if self._is_identity:
-            self._inverse = self
-            for dom in self._domain._subsets:
-                if dom.is_manifestly_parallelizable():
-                    fmodule = dom.vector_field_module()
-                    self._restrictions[dom] = fmodule.identity_map(name=name,
-                                                         latex_name=latex_name)
 
     def _repr_(self):
         r"""
@@ -223,7 +209,7 @@ class AutomorphismField(TensorField):
 
         """
         description = "Field of tangent-space "
-        if self._is_identity:
+        if self is self.parent().one():
             description += "identity maps "
         else:
             description += "automorphisms "
@@ -260,6 +246,151 @@ class AutomorphismField(TensorField):
         TensorField._del_derived(self)
         # then deletes the inverse automorphism:
         self._inverse = None
+
+    def set_comp(self, basis=None):
+        r"""
+        Return the components of ``self`` w.r.t. a given module basis for
+        assignment.
+
+        The components with respect to other bases are deleted, in order to
+        avoid any inconsistency. To keep them, use the method :meth:`add_comp`
+        instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) basis in which the components are
+          defined; if none is provided, the components are assumed to refer to
+          the module's default basis
+
+        OUTPUT:
+
+        - components in the given basis, as an instance of the
+          class :class:`~sage.tensor.modules.comp.Components`; if such
+          components did not exist previously, they are created.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: e_uv = c_uv.frame()
+            sage: a= M.automorphism_field(name='a')
+            sage: a.set_comp(e_uv)
+            2-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            sage: a.set_comp(e_uv)[0,0] = u+v
+            sage: a.set_comp(e_uv)[1,1] = u+v
+            sage: a.display(e_uv)
+            a = (u + v) d/du*du + (u + v) d/dv*dv
+
+        Setting the components in a new frame::
+
+            sage: e = V.vector_frame('e')
+            sage: a.set_comp(e)
+            2-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            sage: a.set_comp(e)[0,1] = u*v
+            sage: a.set_comp(e)[1,0] = u*v
+            sage: a.display(e)
+            a = u*v e_0*e^1 + u*v e_1*e^0
+
+        Since the frames ``e`` and ``e_uv`` are defined on the same domain, the
+        components w.r.t. ``e_uv`` have been erased::
+
+            sage: a.display(c_uv.frame())
+            Traceback (most recent call last):
+            ...
+            ValueError: no basis could be found for computing the components
+             in the Coordinate frame (V, (d/du,d/dv))
+
+        Since the identity map is an immutable element, its components
+        cannot be changed::
+
+            sage: id = M.tangent_identity_field()
+            sage: id.add_comp(e)[0,1] = u*v
+            Traceback (most recent call last):
+            ...
+            ValueError: the components of an immutable element cannot be
+             changed
+
+        """
+        comp = super().set_comp(basis=basis)
+        self._is_identity = False  # a priori
+        return comp
+
+    def add_comp(self, basis=None):
+        r"""
+        Return the components of ``self`` w.r.t. a given module basis for
+        assignment, keeping the components w.r.t. other bases.
+
+        To delete the components w.r.t. other bases, use the method
+        :meth:`set_comp` instead.
+
+        INPUT:
+
+        - ``basis`` -- (default: ``None``) basis in which the components are
+          defined; if none is provided, the components are assumed to refer to
+          the module's default basis
+
+        .. WARNING::
+
+            If the automorphism field has already components in other bases, it
+            is the user's responsibility to make sure that the components
+            to be added are consistent with them.
+
+        OUTPUT:
+
+        - components in the given basis, as an instance of the
+          class :class:`~sage.tensor.modules.comp.Components`;
+          if such components did not exist previously, they are created
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M') # the 2-dimensional sphere S^2
+            sage: U = M.open_subset('U') # complement of the North pole
+            sage: c_xy.<x,y> = U.chart() # stereographic coordinates from the North pole
+            sage: V = M.open_subset('V') # complement of the South pole
+            sage: c_uv.<u,v> = V.chart() # stereographic coordinates from the South pole
+            sage: M.declare_union(U,V)   # S^2 is the union of U and V
+            sage: e_uv = c_uv.frame()
+            sage: a= M.automorphism_field(name='a')
+            sage: a.add_comp(e_uv)
+            2-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
+            sage: a.add_comp(e_uv)[0,0] = u+v
+            sage: a.add_comp(e_uv)[1,1] = u+v
+            sage: a.display(e_uv)
+            a = (u + v) d/du*du + (u + v) d/dv*dv
+
+        Setting the components in a new frame::
+
+            sage: e = V.vector_frame('e')
+            sage: a.add_comp(e)
+            2-indices components w.r.t. Vector frame (V, (e_0,e_1))
+            sage: a.add_comp(e)[0,1] = u*v
+            sage: a.add_comp(e)[1,0] = u*v
+            sage: a.display(e)
+            a = u*v e_0*e^1 + u*v e_1*e^0
+
+        The components with respect to ``e_uv`` are kept::
+
+            sage: a.display(e_uv)
+            a = (u + v) d/du*du + (u + v) d/dv*dv
+
+        Since the identity map is a special element, its components cannot be
+        changed::
+
+            sage: id = M.tangent_identity_field()
+            sage: id.add_comp(e)[0,1] = u*v
+            Traceback (most recent call last):
+            ...
+            ValueError: the components of an immutable element cannot be
+             changed
+
+        """
+        comp = super().add_comp(basis=basis)
+        self._is_identity = False  # a priori
+        return comp
 
     def _new_instance(self):
         r"""
@@ -395,6 +526,41 @@ class AutomorphismField(TensorField):
         # Case of 2 arguments:
         return TensorField.__call__(self, *arg)
 
+    def copy(self, name=None, latex_name=None):
+        r"""
+        Return an exact copy of the automorphism field ``self``.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the copy
+        - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the
+          copy; if none is provided, the LaTeX symbol is set to ``name``
+
+        .. NOTE::
+
+            The name and the derived quantities are not copied.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: U = M.open_subset('U') ; V = M.open_subset('V')
+            sage: M.declare_union(U,V)   # M is the union of U and V
+            sage: c_xy.<x,y> = U.chart() ; c_uv.<u,v> = V.chart()
+            sage: xy_to_uv = c_xy.transition_map(c_uv, (x+y, x-y),
+            ....:                    intersection_name='W', restrictions1= x>0,
+            ....:                    restrictions2= u+v>0)
+            sage: uv_to_xy = xy_to_uv.inverse()
+            sage: Id = M.tangent_identity_field(); Id
+            Field of tangent-space identity maps on the 2-dimensional
+             differentiable manifold M
+            sage: one = Id.copy('1'); one
+            Field of tangent-space automorphisms 1 on the 2-dimensional
+             differentiable manifold M
+
+        """
+        copy = super().copy(name=name, latex_name=latex_name)
+        copy._is_identity = self._is_identity
+        return copy
 
     #### MultiplicativeGroupElement methods ####
 
@@ -469,14 +635,22 @@ class AutomorphismField(TensorField):
         if self._is_identity:
             return self
         if self._inverse is None:
+            from sage.tensor.modules.format_utilities import is_atomic
             if self._name is None:
                 inv_name = None
             else:
-                inv_name = self._name  + '^(-1)'
+                if is_atomic(self._name, ['*']):
+                    inv_name = self._name + '^(-1)'
+                else:
+                    inv_name = '(' + self._name + ')^(-1)'
             if self._latex_name is None:
                 inv_latex_name = None
             else:
-                inv_latex_name = self._latex_name + r'^{-1}'
+                if is_atomic(self._latex_name, ['\\circ', '\\otimes']):
+                    inv_latex_name = self._latex_name + r'^{-1}'
+                else:
+                    inv_latex_name = r'\left(' + self._latex_name + \
+                                     r'\right)^{-1}'
             self._inverse = self._vmodule.automorphism(name=inv_name,
                                                        latex_name=inv_latex_name)
             for dom, rst in self._restrictions.items():
@@ -499,7 +673,7 @@ class AutomorphismField(TensorField):
         OUTPUT:
 
         - the automorphism resulting from the composition of ``other`` and
-        ``self``
+          ``self``
 
         TESTS::
 
@@ -729,9 +903,9 @@ class AutomorphismField(TensorField):
         if subdomain == self._domain:
             return self
         if subdomain not in self._restrictions:
-            if not self._is_identity:
+            if self is not self.parent().one():
                 return TensorField.restrict(self, subdomain, dest_map=dest_map)
-            # Special case of the identity map:
+            # Special case of the immutable identity map:
             if not subdomain.is_subset(self._domain):
                 raise ValueError("the provided domain is not a subset of " +
                                  "the field's domain")
@@ -789,8 +963,6 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
     - ``name`` -- (default: ``None``) name given to the field
     - ``latex_name`` -- (default: ``None``) LaTeX symbol to denote the field;
       if none is provided, the LaTeX symbol is set to ``name``
-    - ``is_identity`` -- (default: ``False``) determines whether the
-      constructed object is a field of identity automorphisms
 
     EXAMPLES:
 
@@ -834,8 +1006,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         True
 
     """
-    def __init__(self, vector_field_module, name=None, latex_name=None,
-                 is_identity=False):
+    def __init__(self, vector_field_module, name=None, latex_name=None):
         r"""
         Construct a field of tangent-space automorphisms.
 
@@ -861,7 +1032,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         Construction of the field of identity maps::
 
-            sage: b = GL.element_class(XM, is_identity=True); b
+            sage: b = GL.one(); b
             Field of tangent-space identity maps on the 2-dimensional
              differentiable manifold M
             sage: b[:]
@@ -871,12 +1042,12 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         """
         FreeModuleAutomorphism.__init__(self, vector_field_module,
-                                        name=name, latex_name=latex_name,
-                                        is_identity=is_identity)
+                                        name=name, latex_name=latex_name)
         # TensorFieldParal attributes:
         self._vmodule = vector_field_module
         self._domain = vector_field_module._domain
         self._ambient_domain = vector_field_module._ambient_domain
+        self._is_identity = False # a priori
         # Initialization of derived quantities:
         TensorFieldParal._init_derived(self)
 
@@ -899,7 +1070,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
 
         """
         description = "Field of tangent-space "
-        if self._is_identity:
+        if self is self.parent().one():
             description += "identity maps "
         else:
             description += "automorphisms "
@@ -1026,16 +1197,25 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
         if self._is_identity:
             return self
         if self._inverse is None:
+            from sage.tensor.modules.format_utilities import is_atomic
             if self._name is None:
                 inv_name = None
             else:
-                inv_name = self._name  + '^(-1)'
+                if is_atomic(self._name, ['*']):
+                    inv_name = self._name + '^(-1)'
+                else:
+                    inv_name = '(' + self._name + ')^(-1)'
             if self._latex_name is None:
                 inv_latex_name = None
             else:
-                inv_latex_name = self._latex_name + r'^{-1}'
+                if is_atomic(self._latex_name, ['\\circ', '\\otimes']):
+                    inv_latex_name = self._latex_name + r'^{-1}'
+                else:
+                    inv_latex_name = r'\left(' + self._latex_name + \
+                                     r'\right)^{-1}'
             fmodule = self._fmodule
-            si = fmodule._sindex ; nsi = fmodule._rank + si
+            si = fmodule._sindex
+            nsi = fmodule._rank + si
             self._inverse = fmodule.automorphism(name=inv_name,
                                                  latex_name=inv_latex_name)
             for frame in self._components:

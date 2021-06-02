@@ -106,9 +106,9 @@ class FilteredSimplicialComplex(SageObject):
 
         # when _warnings is set to True, insertion
         # will warn the user when something non-trivial
-        # happens.  
+        # happens.
         self._warnings = warnings
-        
+
         # Insert all simplices in the initial list
         for l, v in simplices:
             self.insert(l, v)
@@ -251,8 +251,8 @@ class FilteredSimplicialComplex(SageObject):
         in the complex. If the simplex is not in the complex, this
         returns None.
 
-        If ``filtration_value`` is set, this function inserts the 
-        simplex into the complex with the specified value. 
+        If ``filtration_value`` is set, this function inserts the
+        simplex into the complex with the specified value.
         See documentation of ``insert`` for more details.
 
         EXAMPLES::
@@ -263,7 +263,6 @@ class FilteredSimplicialComplex(SageObject):
             sage: X.filtration(Simplex([0, 1]), 2)
             sage: X.filtration(Simplex([0, 1]))
             2
-            
         """
         if filtration_value is None:
             return self._get_value(s)
@@ -657,7 +656,7 @@ class FilteredSimplicialComplex(SageObject):
     def _simplicial_(self):
         """
         Return the associated simplicial complex
-        
+
         All simplices of the filtered simplicial complex are
         included in the resulting simplicial complex.
 

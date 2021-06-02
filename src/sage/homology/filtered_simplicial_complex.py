@@ -13,30 +13,41 @@ greater than the weight of each of its faces.
 
 EXAMPLES::
 
-    sage: FilteredSimplicialComplex([([0], 0), ([1], 0), ([0,1], 1)])
+    sage: FilteredSimplicialComplex([([0], 0), ([1], 0), ([0, 1], 1)])
     Filtered complex on vertex set (0, 1) and with simplices ((0,) : 0), ((1,) : 0), ((0, 1) : 1)
 
 Sage can compute persistent homology of simplicial complexes::
 
-    sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([0,1], 1)])
+    sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([0, 1], 1)])
     sage: X.compute_persistent_homology()
     sage: X.persistence_intervals(0)
     [(0, 1), (0, +Infinity)]
 
-FilteredSimplicialComplex objects are mutable::
+FilteredSimplicialComplex objects are mutable. Filtration values can be
+set with the ``filtration`` method as follows::
 
     sage: X = FilteredSimplicialComplex() # returns an empty complex
-    sage: X.insert([0,2],0) # recursively adds faces
-    sage: X.insert([0,1],0)
-    sage: X.insert([1,2],0)
-    sage: X.insert([0,1,2],1) # closes the circle
+    sage: X.filtration(Simplex([0, 2]), 0) # recursively adds faces
+    sage: X.filtration(Simplex([0, 1]), 0)
+    sage: X.filtration(Simplex([1, 2]), 0)
+    sage: X.filtration(Simplex([0, 1, 2]), 1) # closes the circle
     sage: X.compute_persistent_homology()
     sage: X.persistence_intervals(1)
     [(0, 1)]
 
+The filtration value of a simplex can be accessed as well with the
+``filtration`` method, by not specifying a filtration value in
+the arguments. If the simplex is not in the complex, this returns
+None::
+
+    sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([0,1], 1)])
+    sage: X.filtration(Simplex([0]))
+    0
+    sage: X.filtration(Simplex([1,2]))
+    <BLANKLINE>
+
 Filtration values can be accessed with function call and list
-syntax as follows. A simplex not in the complex will have
-filtration value -1::
+syntax as follows::
 
     sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([0,1], 1)])
     sage: s_1 = Simplex([0])
@@ -46,6 +57,16 @@ filtration value -1::
     1
     sage: X(Simplex(['baba']))
     <BLANKLINE>
+
+It is also possible to set the filtration value of a simplex with
+the ``insert`` method, which takes as argument a list of vertices
+rather than a ``Simplex``. This can make code more readable / clear::
+
+    sage: X = FilteredSimplicialComplex()
+    sage: X.insert(['a'], 0)
+    sage: X.insert(['b', 'c'], 1)
+    sage: X
+    Filtered complex on vertex set ('a', 'c', 'b') and with simplices (('a',) : 0), (('c',) : 1), (('b',) : 1), (('b', 'c') : 1)
 
 """
 

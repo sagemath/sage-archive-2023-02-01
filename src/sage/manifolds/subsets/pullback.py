@@ -13,6 +13,7 @@ Manifold Subsets Defined as Pullbacks of Subsets under Continuous Maps
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from sage.categories.sets_cat import Sets
 from sage.manifolds.subset import ManifoldSubset
 from sage.manifolds.chart import Chart
 from sage.sets.real_set import RealSet
@@ -147,7 +148,56 @@ class ManifoldSubsetPullback(ManifoldSubset):
         if name is None:
             name = inverse_name + '_' + codomain_subset_name
 
-        return super().__classcall__(cls, map, inverse, codomain_subset, name, latex_name)
+        if cls._is_open(codomain_subset):
+
+            try:
+                coord_def = cls._coord_def(codomain_subset)
+            except NotImplementedError:
+                pass
+            else:
+                return domain.open_subset(name=name, latex_name=latex_name, coord_def=coord_def)
+
+        self = super().__classcall__(cls, map, inverse, codomain_subset, name, latex_name)
+
+        return self
+
+    @staticmethod
+    def _is_open(codomain_subset):
+
+        if isinstance(codomain_subset, ManifoldSubset):
+            return codomain_subset.is_open()
+
+        if isinstance(codomain_subset, RealSet):
+            return codomain_subset.is_open()
+
+        if is_Polyhedron(codomain_subset):
+            return codomain_subset.is_empty() or codomain_subset.is_universe()
+
+        if codomain_subset in Sets().Finite():
+            return codomain.cardinality() == 0
+
+        if hasattr(codomain_subset, 'minimized_constraints'):
+            try:
+                from ppl import NNC_Polyhedron, C_Polyhedron
+            except ImportError:
+                pass
+            else:
+                if isinstance(codomain_subset, (NNC_Polyhedron, C_Polyhedron)):
+                    cs = P.minimized_constraints()
+                    if cs.has_equalities():
+                        return False
+                    if any(constraint.is_nonstrict_inequality()
+                           for constraint in cs):
+                        return False
+                    return True
+
+        return False
+
+    @staticmethod
+    def _coord_def(codomain_subset):
+
+        raise NotImplementedError
+
 
     def __init__(self, map, inverse, codomain_subset, name, latex_name):
         r"""
@@ -239,8 +289,9 @@ class ManifoldSubsetPullback(ManifoldSubset):
                 except ImportError:
                     pass
                 else:
-                    # ppl polyhedra can decide closedness authoritatively
-                    return self._codomain_subset.is_topologically_closed()
+                    if isinstance(self._codomain_subset, (NNC_Polyhedron, C_Polyhedron)):
+                        # ppl polyhedra can decide closedness authoritatively
+                        return self._codomain_subset.is_topologically_closed()
         return super().is_closed()
 
     def closure(self, name=None, latex_name=None):

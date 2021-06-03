@@ -817,11 +817,11 @@ class HyperplaneArrangementElement(Element):
                p = (0, 0)
                W = Vector space of degree 2 and dimension 1 over Rational Field
              Basis matrix:
-             [1 0], Affine space p + W where:
+             [0 1], Affine space p + W where:
                p = (0, 0)
                W = Vector space of degree 2 and dimension 1 over Rational Field
              Basis matrix:
-             [0 1], Affine space p + W where:
+             [1 0], Affine space p + W where:
                p = (0, 0)
                W = Vector space of dimension 2 over Rational Field]
         """

@@ -114,6 +114,7 @@ src/sage/modular/arithgroup/farey_symbol.h
 !src/sage/graphs/cliquer/cl.c
 !src/sage/graphs/graph_decompositions/sage_tdlib.cpp
 !src/sage/libs/eclib/wrap.cpp
+!src/sage/libs/linkages/padics/relaxed/flint_helper.c
 !src/sage/misc/inherit_comparison_impl.c
 !src/sage/modular/arithgroup/farey.cpp
 !src/sage/modular/arithgroup/sl2z.cpp

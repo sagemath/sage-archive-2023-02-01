@@ -2742,6 +2742,21 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         r"""
         Return the topological closure of ``self`` as a subset of the manifold.
 
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the difference in the
+          case the latter has to be created; the default prepends ``cl_``
+          to ``self._name``
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          difference in the case the latter has to be created; the default
+          is built upon the operator `\mathrm{cl}`
+
+        OUTPUT:
+
+        - if ``self`` is already known to be closed (see :meth:`is_closed`),
+          ``self``; otherwise, an instance of
+          :class:`~sage.manifolds.subsets.closure.ManifoldSubsetClosure`
+
         EXAMPLES::
 
             sage: M = Manifold(2, 'R^2', structure='topological')

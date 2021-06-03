@@ -33,12 +33,20 @@ class ManifoldSubsetClosure(ManifoldSubset):
 
     EXAMPLES::
 
-        sage: from sage.manifolds.subsets.closure import ManifoldSubsetClosure
         sage: M = Manifold(2, 'R^2', structure='topological')
         sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
         sage: D = M.open_subset('D', coord_def={c_cart: x^2+y^2<1}); D
         Open subset D of the 2-dimensional topological manifold R^2
-        sage: cl_D = ManifoldSubsetClosure(D)
+        sage: cl_D = D.closure()
+        sage: cl_D
+        Topological closure cl_D of the Open subset D of the 2-dimensional
+         topological manifold R^2
+        sage: latex(cl_D)
+        \mathop{\mathrm{cl}}(D)
+        sage: type(cl_D)
+        <class 'sage.manifolds.subsets.closure.ManifoldSubsetClosure_with_category'>
+        sage: cl_D.category()
+        Category of subobjects of sets
 
     The closure of the subset `D` is a subset of every closed superset
     of `D`::

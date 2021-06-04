@@ -1571,9 +1571,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
             sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
             sage: m = P1.point_transformation_matrix(points_source, points_target); m
-            [ -13/59 -128/59  -25/59]
-            [538/177    8/59  26/177]
-            [ -45/59 -196/59       1]
+            [-13/210 -64/105   -5/42]
+            [269/315   4/105  13/315]
+            [  -3/14  -14/15  59/210]
             sage: [P1(list(m*vector(list(points_source[i])))) == points_target[i] for i in range(4)]
             [True, True, True, True]
 
@@ -1583,8 +1583,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: points_source = [P([-6,7]), P([1,4]), P([3,2])]
             sage: points_target = [P([-1,2]), P([0,2]), P([-1,6])]
             sage: P.point_transformation_matrix(points_source, points_target)
-            [10  4]
-            [10  1]
+            [12 10]
+            [12  9]
 
         ::
 

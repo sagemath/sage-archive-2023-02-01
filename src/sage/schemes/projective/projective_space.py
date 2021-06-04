@@ -1557,9 +1557,6 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         points in the same projective space, such that no n+1 points of each set are linearly dependent
         finds the unique element of PGL that translates the source points to the target points.
 
-
-        Warning :: will not work over precision fields
-
         INPUT:
 
             - ``points_source`` - points in source projective space.
@@ -1653,7 +1650,6 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         """
         r = self.base_ring()
         n = self.dimension_relative()
-        P = ProjectiveSpace(r, n * (n + 2), 'p')
         # makes sure there aren't to few or two many points
         if len(points_source) != n + 2:
             raise ValueError("incorrect number of points in source, need %d points" % (n + 2))
@@ -1663,24 +1659,31 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             raise ValueError("source points not in self")
         if any(x.codomain() != self for x in points_target):
             raise ValueError("target points not in self")
-        # putting points as the rows of the matrix
         Ms = matrix(r, [list(s) for s in points_source])
         if any(m == 0 for m in Ms.minors(n + 1)):
             raise ValueError("source points not independent")
         Mt = matrix(r, [list(t) for t in points_target])
         if any(l == 0 for l in Mt.minors(n + 1)):
             raise ValueError("target points not independent")
-        A = matrix(P.coordinate_ring(), n + 1, n + 1, P.gens())
-        # transpose to get image points and then get the list of image points with columns
-        funct = (A * Ms.transpose()).columns()
-        eq = []
-        for fk, ptk in zip(funct, points_target):
-            # n+2 num f point and n is size of pts
-            eq += [fk[i] * ptk[j] - fk[j] * ptk[i]
-                   for i in range(n + 1) for j in range(i + 1, n + 1)]
-        v = P.subscheme(eq)
-        w = v.rational_points()
-        return matrix(r, n + 1, n + 1, list(w[0]))
+
+        # get_matrix calculates the transform from the list of points
+        # [ [1 : 0 : 0 : ... ]
+        #   [0 : 1 : 0 : ... ]
+        #   [0 : 0 : 1 : ... ]
+        #   ...
+        #   [1 : 1 : 1 : ... ] ]
+        # to the list of points S
+        def get_matrix(S, N):
+            a = matrix(N+1, N+1, [S[j][i] for i in range(N+1) for j in range(N+1)])
+            b = matrix(N+1, 1, list(S[N+1]))
+            X = a.solve_right(b)
+            m = matrix(N+1, N+1, [X[i,0]*S[i][j] for i in range(N+1) for j in range(N+1)])
+            m = m.transpose()
+            return m
+
+        m_source = get_matrix(points_source, n)
+        m_target = get_matrix(points_target, n)
+        return m_target*m_source.inverse()
 
     def curve(self, F):
         r"""

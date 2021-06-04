@@ -14,6 +14,12 @@ Manifold Subsets Defined as Pullbacks of Subsets under Continuous Maps
 # ****************************************************************************
 
 from sage.categories.sets_cat import Sets
+from sage.categories.modules_with_basis import ModulesWithBasis as FreeModules
+from sage.categories.metric_spaces import MetricSpaces
+from sage.modules.free_module import is_FreeModule
+from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.manifolds.subset import ManifoldSubset
 from sage.manifolds.chart import Chart
 from sage.sets.real_set import RealSet
@@ -174,7 +180,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             return codomain_subset.is_empty() or codomain_subset.is_universe()
 
         if codomain_subset in Sets().Finite():
-            return codomain.cardinality() == 0
+            return codomain_subset.cardinality() == 0
 
         if hasattr(codomain_subset, 'minimized_constraints'):
             try:
@@ -241,6 +247,8 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: M = Manifold(2, 'R^2', structure='topological')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
 
+        The pullback of a closed real interval under a scalar field is closed::
+
             sage: r_squared = M.scalar_field(x^2+y^2)
             sage: r_squared.set_immutable()
             sage: cl_I = RealSet([1, 2]); cl_I
@@ -248,6 +256,15 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: cl_O = ManifoldSubsetPullback(r_squared, None, cl_I); cl_O
             Subset f_inv_[1, 2] of the 2-dimensional topological manifold R^2
             sage: cl_O.is_closed()
+            True
+
+        The pullback of a (closed convex) polyhedron under a chart is closed::
+
+            sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [3, 4]]); P
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+            sage: McP = ManifoldSubsetPullback(c_cart, None, P, name='McP'); McP
+            Subset McP of the 2-dimensional topological manifold R^2
+            sage: McP.is_closed()
             True
 
             sage: from ppl import Variable, NNC_Polyhedron, Constraint_System
@@ -264,11 +281,42 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: S = ManifoldSubsetPullback(c_cart, None, P)
             Traceback (most recent call last):
             ...
-            TypeError: unhashable type: 'NNC_Polyhedron'
+            NameError: name 'P' is not defined
             sage: S.is_closed()
             Traceback (most recent call last):
             ...
             NameError: name 'S' is not defined
+
+        The pullback of real vector subspaces under a chart is closed::
+
+            sage: V = span([[1, 2]], RR); V
+            Vector space of degree 2 and dimension 1 over Real Field with 53 bits of precision
+            Basis matrix:
+            [1.00000000000000 2.00000000000000]
+            sage: McV = ManifoldSubsetPullback(c_cart, None, V, name='McV'); McV
+            Subset McV of the 2-dimensional topological manifold R^2
+            sage: McV.is_closed()
+            True
+
+        The pullback of point lattices under a chart is closed::
+
+            sage: W = span([[1, 0], [3, 5]], ZZ); W
+            Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1 0]
+            [0 5]
+            sage: McW = ManifoldSubsetPullback(c_cart, None, W, name='McW'); McW
+            Subset McW of the 2-dimensional topological manifold R^2
+            sage: McW.is_closed()
+            True
+
+        The pullback of finite sets is closed::
+
+            sage: F = Family([vector(QQ, [1, 2], immutable=True), vector(QQ, [2, 3], immutable=True)])
+            sage: McF = ManifoldSubsetPullback(c_cart, None, F, name='McF'); McF
+            Subset McF of the 2-dimensional topological manifold R^2
+            sage: McF.is_closed()
+            False
 
         """
         if isinstance(self._codomain_subset, ManifoldSubset):
@@ -282,6 +330,17 @@ class ManifoldSubsetPullback(ManifoldSubset):
             # Regardless of their base_ring, we treat polyhedra as closed
             # convex subsets of R^n
             return True
+        elif is_FreeModule(self._codomain_subset) and self._codomain_subset.rank() != infinity:
+            if self._codomain_subset.base_ring() in MetricSpaces().Complete():
+                # Closed topological vector subspace
+                return True
+            if self._codomain_subset.base_ring() == ZZ:
+                if self._codomain_subset.coordinate_ring().is_subring(QQ):
+                    # Discrete subgroup of R^n
+                    return True
+                if self._codomain_subset.rank() == self._codomain_subset.base_extend(RR).dimension():
+                    # Discrete subgroup of R^n
+                    return True
         else:
             if hasattr(self._codomain_subset, 'is_topologically_closed'):
                 try:

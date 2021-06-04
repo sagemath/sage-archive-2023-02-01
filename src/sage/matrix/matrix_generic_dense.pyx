@@ -35,9 +35,9 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
         sage: A = random_matrix(Integers(25)['x'], 2)
         sage: A == A
         True
-        sage: A < A + 1
+        sage: A < A + 1 or A[0, 0].coefficients()[0] == 24
         True
-        sage: A+1 < A
+        sage: A+1 < A and A[0, 0].coefficients()[0] != 24
         False
 
     Test hashing::

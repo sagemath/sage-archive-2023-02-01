@@ -2536,7 +2536,10 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: density_sum = 0.0
             sage: total_count = 0.0
             sage: add_sample(0.5)
-            sage: while abs(density_sum/total_count - 0.394) > 0.01:  # TODO
+            sage: expected_density = 1.0 - (999/1000)^500
+            sage: expected_density
+            0.3936...
+            sage: while abs(density_sum/total_count - expected_density) > 0.001:
             ....:     add_sample(0.5)
 
         The matrix is updated instead of overwritten::
@@ -2544,20 +2547,26 @@ cdef class Matrix_modn_dense_template(Matrix_dense):
             sage: def add_sample(density):
             ....:     global density_sum, total_count
             ....:     total_count += 1.0
-            ....:     A += random_matrix(GF(5), 1000, 1000, density=density)
-            ....:     A.randomize(density=density)
+            ....:     A = random_matrix(GF(5), 1000, 1000, density=density)
+            ....:     A.randomize(density=density, nonzero=True)
             ....:     density_sum += A.density()
 
             sage: density_sum = 0.0
             sage: total_count = 0.0
             sage: add_sample(0.5)
-            sage: while abs(density_sum/total_count - (1 - 0.5^2)*4/5) > 0.001:
+            sage: expected_density = 1.0 - (999/1000)^1000
+            sage: expected_density
+            0.6323...
+            sage: while abs(density_sum/total_count - expected_density) > 0.001:
             ....:     add_sample(0.5)
 
             sage: density_sum = 0.0
             sage: total_count = 0.0
             sage: add_sample(0.1)
-            sage: while abs(density_sum/total_count - (1 - 0.1^2)*4/5) > 0.001:
+            sage: expected_density = 1.0 - (999/1000)^200
+            sage: expected_density
+            0.1813...
+            sage: while abs(density_sum/total_count - expected_density) > 0.001:
             ....:     add_sample(0.1)
         """
         density = float(density)

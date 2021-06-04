@@ -631,6 +631,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
             sage: K.<a> = GF(2^4)
             sage: A = random_matrix(K,3,4)
+            sage: A[0,0] = 0
             sage: B = copy(A)
             sage: A == B
             True
@@ -943,7 +944,9 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
 
             sage: K.<a> = GF(2^8)
             sage: A = random_matrix(K, 15, 15)
-            sage: A.pivots() # indirect doctest
+            sage: while A.rank() != 15:
+            ....:     A = random_matrix(K, 15, 15)
+            sage: A.pivots()  # indirect doctest
             (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
         """
         if not self.fetch('in_echelon_form'):
@@ -1145,7 +1148,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             sage: C = B.matrix_from_columns([3,4,5])
             sage: A.rank() < 3 or C == ~A
             True
-            sage: C*A == MS(1)
+            sage: A.rank() < 3 or C*A == MS(1)
             True
 
         TESTS::

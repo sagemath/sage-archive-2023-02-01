@@ -1075,12 +1075,10 @@ def three_factor_product(k,n1,n2,n3,check=False,explain_construction=False):
 
         # Check our stuff before we return it
         if check:
-            profile = [i for i in range(g2*g1) for _ in range(g1)]
             for classs in new_g1_parallel_classes:
-                assert_c_partition(classs,k,g2*g1,g1)
-            profile = list(range(g2*g1))
+                assert_c_partition(classs, k, g2 * g1, g1)
             for classs in new_parallel_classes:
-                assert_c_partition(classs,k,g2*g1,1)
+                assert_c_partition(classs, k, g2 * g1, 1)
 
         return new_g1_parallel_classes, new_parallel_classes
 

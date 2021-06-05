@@ -116,6 +116,23 @@ class ManifoldSubsetPullback(ManifoldSubset):
     @staticmethod
     def __classcall_private__(cls, map, inverse=None, codomain_subset=None,
                               name=None, latex_name=None):
+        """
+        Normalize arguments and delegate to other constructors.
+
+        TESTS::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [3, 4]]); P
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+            sage: S = ManifoldSubsetPullback(c_cart, None, P); S
+            Subset x_y_inv_P of the 2-dimensional topological manifold R^2
+            sage: S is ManifoldSubsetPullback(c_cart, None, P)
+            True
+
+        """
+
         try:
             is_mutable = map.is_mutable()
         except AttributeError:

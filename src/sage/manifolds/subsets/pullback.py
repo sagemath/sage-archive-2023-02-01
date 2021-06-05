@@ -183,6 +183,67 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
     @staticmethod
     def _is_open(codomain_subset):
+        """
+        Return whether ``codomain_subset`` is (known to be) an open subset of its ambient space.
+
+        EXAMPLES:
+
+        Manifolds and subsets::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: R2 = Manifold(2, 'R^2', structure='topological'); R2
+            2-dimensional topological manifold R^2
+            sage: ManifoldSubsetPullback._is_open(R2)
+            True
+            sage: A = R2.subset('A'); A
+            Subset A of the 2-dimensional topological manifold R^2
+            sage: ManifoldSubsetPullback._is_open(A)
+            False
+
+        :class:`RealSet` instances::
+
+            sage: I = RealSet.open(1, 2); I
+            (1, 2)
+            sage: ManifoldSubsetPullback._is_open(I)
+            True
+            sage: cl_I = RealSet.closed(1, 2); cl_I
+            [1, 2]
+            sage: ManifoldSubsetPullback._is_open(cl_I)
+            False
+
+        Polyhedra::
+
+            sage: Empty = Polyhedron(ambient_dim=2); Empty
+            The empty polyhedron in ZZ^2
+            sage: ManifoldSubsetPullback._is_open(Empty)
+            True
+            sage: C = polytopes.cube(); C
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: ManifoldSubsetPullback._is_open(C)
+            False
+
+        PPL polyhedra and not-necessarily-closed polyhedra::
+
+            sage: from ppl import Variable, C_Polyhedron, NNC_Polyhedron, Constraint_System
+            sage: u = Variable(0)
+            sage: v = Variable(1)
+            sage: CS = Constraint_System()
+            sage: CS.insert(0 < u)
+            sage: CS.insert(u < 1)
+            sage: CS.insert(0 < v)
+            sage: CS.insert(v < 1)
+            sage: CS.insert(u + v <= 3)       # redundant inequality
+            sage: P = NNC_Polyhedron(CS); P
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 4 closure_points
+            sage: ManifoldSubsetPullback._is_open(P)
+            True
+            sage: CS.insert(u + v <= 1)
+            sage: T = NNC_Polyhedron(CS); T
+            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 1 point, 3 closure_points
+            sage: ManifoldSubsetPullback._is_open(T)
+            False
+
+        """
 
         if isinstance(codomain_subset, ManifoldSubset):
             return codomain_subset.is_open()
@@ -203,7 +264,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
                 pass
             else:
                 if isinstance(codomain_subset, (NNC_Polyhedron, C_Polyhedron)):
-                    cs = P.minimized_constraints()
+                    cs = codomain_subset.minimized_constraints()
                     if cs.has_equalities():
                         return False
                     if any(constraint.is_nonstrict_inequality()
@@ -215,12 +276,53 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
     @staticmethod
     def _interval_restriction(expr, interval):
+        """
+        Return a restriction expressing that ``expr`` lies in ``interval``.
+
+        INPUT:
+
+        - ``expr`` -- a symbolic expression
+        - ``interval`` -- an instance of :class:`~sage.sets.real_set.InternalRealInterval`
+
+        OUTPUT:
+
+        - A restriction suitable as input to :meth:`~sage.manifolds.chart.restrict`:
+          lists are conjunctions, tuples are disjunctions
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: _interval_restriction = ManifoldSubsetPullback._interval_restriction
+            sage: var('t')
+            t
+            sage: assume(t >= -2)
+            sage: assume(t <= 5)
+            sage: _interval_restriction(t, RealSet(3, 4)[0])
+            [t > 3, t < 4]
+            sage: _interval_restriction(t, RealSet.unbounded_below_closed(2)[0])
+            t <= 2
+            sage: _interval_restriction(t, RealSet.closed(-5, 5)[0])
+            []
+            sage: _interval_restriction(t, RealSet.unbounded_below_closed(-5)[0])
+            ()
+            sage: _interval_restriction(t, RealSet.unbounded_above_closed(6)[0])
+            ()
+            sage: _interval_restriction(t^2, RealSet.unbounded_above_closed(0)[0])
+            []
+
+        """
+
         conjunction = []
         if interval.lower() != minus_infinity:
             if interval.lower_closed():
                 condition = (expr >= interval.lower())
+                negation  = (expr <  interval.lower())
             else:
-                condition = (expr > interval.lower())
+                condition = (expr >  interval.lower())
+                negation  = (expr <= interval.lower())
+            if negation:
+                # known to be false
+                return ()
             if not condition:
                 # not known to be true
                 conjunction.append(condition)
@@ -228,9 +330,15 @@ class ManifoldSubsetPullback(ManifoldSubset):
         if interval.upper() != infinity:
             if interval.upper_closed():
                 condition = (expr <= interval.upper())
+                negation  = (expr >  interval.upper())
             else:
-                condition = (expr < interval.upper())
+                condition = (expr <  interval.upper())
+                negation  = (expr >= interval.upper())
+            if negation:
+                # known to be false
+                return ()
             if not condition:
+                # not known to be true
                 conjunction.append(condition)
 
         if len(conjunction) == 1:
@@ -241,12 +349,42 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
     @staticmethod
     def _realset_restriction(expr, realset):
+        """
+        Return a restriction expressing that ``expr`` lies in ``realset``.
+
+        INPUT:
+
+        - ``expr`` -- a symbolic expression
+        - ``interval`` -- an instance of :class:`~sage.sets.real_set.RealSet`
+
+        OUTPUT:
+
+        - A restriction suitable as input to :meth:`~sage.manifolds.chart.restrict`:
+          lists are conjunctions, tuples are disjunctions
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: _realset_restriction = ManifoldSubsetPullback._realset_restriction
+            sage: var('t')
+            t
+            sage: assume(t >= -2)
+            sage: assume(t <= 5)
+            sage: _realset_restriction(t, RealSet(-oo, oo))
+            []
+            sage: _realset_restriction(t, RealSet())
+            ()
+            sage: _realset_restriction(t, RealSet([-5, -4], (-1, 1), [3, 4], [6, 7]))
+            ([t > -1, t < 1], [t >= 3, t <= 4])
+
+        """
         disjunction = []
         for interval in realset:
             condition = ManifoldSubsetPullback._interval_restriction(expr, interval)
             if condition == []:
                 return []
-            disjunction.append(condition)
+            if condition != ():
+                disjunction.append(condition)
 
         if len(disjunction) == 1:
             return disjunction[0]
@@ -341,10 +479,10 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: CS.insert(u + v < 3)
             sage: P = NNC_Polyhedron(CS); P
             A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 points
-            sage: S = ManifoldSubsetPullback(c_cart, None, P)
+            sage: S = ManifoldSubsetPullback(c_cart, None, P); S
             Traceback (most recent call last):
             ...
-            NameError: name 'P' is not defined
+            TypeError: unhashable type: 'NNC_Polyhedron'
             sage: S.is_closed()
             Traceback (most recent call last):
             ...

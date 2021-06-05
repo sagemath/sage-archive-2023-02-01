@@ -64,23 +64,10 @@ class MinMax_base(BuiltinFunction):
                 symb_args.append(x)
             else:
                 num_non_symbolic_args += 1
-                if res is None:
-                    # Any argument is greater or less than None
-                    res = x
-                else:
-                    res = builtin_f(res, x)
+                res = builtin_f(res, x)
 
         # if no symbolic arguments, return the result
         if len(symb_args) == 0:
-            if res is None:
-                # this is a hack to get the function to return None to the user
-                # the convention to leave a given symbolic function unevaluated
-                # is to return None from the _eval_ function, so we need
-                # a trick to indicate that the return value of the function is
-                # really None
-                # this is caught in the __call__ method, which knows to return
-                # None in this case
-                raise ValueError("return None")
             return res
 
         # if all arguments were symbolic return
@@ -119,17 +106,6 @@ class MinMax_base(BuiltinFunction):
             ...
             ValueError: number of arguments must be > 0
 
-        Check if we return None, when the builtin function would::
-
-            sage: max_symbolic([None]) is None  # py2 on Python 3 None is not ordered
-            True
-            sage: max_symbolic([None, None]) is None  # py2
-            True
-            sage: min_symbolic([None]) is None  # py2
-            True
-            sage: min_symbolic([None, None]) is None  # py2
-            True
-
         Check if a single argument which is not iterable works::
 
             sage: max_symbolic(None)
@@ -164,9 +140,7 @@ class MinMax_base(BuiltinFunction):
         try:
             return BuiltinFunction.__call__(self, *args, **kwds)
         except ValueError as e:
-            if e.args[0] == "return None":
-                return None
-
+            pass
 
 class MaxSymbolic(MinMax_base):
     def __init__(self):

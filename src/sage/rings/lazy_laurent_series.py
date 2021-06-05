@@ -94,7 +94,7 @@ from .lazy_laurent_series_operator import (
     LazyLaurentSeriesOperator_change_ring,
     LazyLaurentSeriesOperator_truncate
 )
-
+from sage.misc.lazy_list import lazy_list
 
 class LazyLaurentSeries(ModuleElement):
     r"""
@@ -151,7 +151,24 @@ class LazyLaurentSeries(ModuleElement):
         sage: g == f
         True
     """
-    def __init__(self, parent, coefficient=None, valuation=0, constant=None):
+    # def __init__(self, parent, coefficient=None, valuation=0, constant=None):
+    #     """
+    #     Initialize.
+
+    #     TESTS::
+
+    #         sage: L = LazyLaurentSeriesRing(GF(2), 'z')
+    #         sage: z = L.gen()
+    #         sage: TestSuite(z).run()
+    #     """
+    #     ModuleElement.__init__(self, parent)
+
+    #     self._coefficient_function = coefficient
+    #     self._approximate_valuation = valuation
+    #     self._constant = constant
+
+    #     self._cache = dict() # cache of known coefficients
+    def __init__(self, parent, coefficient=None, valuation=0, constant=None, implementation="sparse"):
         """
         Initialize.
 
@@ -167,7 +184,21 @@ class LazyLaurentSeries(ModuleElement):
         self._approximate_valuation = valuation
         self._constant = constant
 
-        self._cache = dict() # cache of known coefficients
+        if implementation == "sparse":
+            self._cache = dict() # cache of known coefficients
+        elif implementation == "dense":
+            # this might work
+            class mycache():
+                def __init__(self, coefficient, valuation):
+                    self.c = coefficient
+                    self.v = valuation
+                    self.cache = lazy_list(lambda n: self.c(n+self.v))
+                def __getitem__(self, n):
+                    return self.cache[n-self.v]
+               
+            self._cache = mycache(self._coefficient_function, self._approximate_valuation)
+        else:
+            raise ValueError("sparse or dense")
 
     def _richcmp_(self, other, op):
         """
@@ -581,7 +612,6 @@ class LazyLaurentSeries(ModuleElement):
         op = LazyLaurentSeriesOperator_mul(self, other)
 
         a = self._approximate_valuation + other._approximate_valuation
-        print("Testing")
         c = None
         if self._constant is not None and other._constant is not None:
             if self._constant[0] == 0 and other._constant[0] == 0:

@@ -432,14 +432,14 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: r_squared = M.scalar_field(x^2+y^2)
             sage: r_squared.set_immutable()
-            sage: I = RealSet((1, 2)); I
-            (1, 2)
+            sage: I = RealSet.open_closed(1, 2); I
+            (1, 2]
             sage: O = ManifoldSubsetPullback(r_squared, None, I); O
-            Open subset f_inv_(1, 2) of the 2-dimensional topological manifold R^2
+            Subset f_inv_(1, 2] of the 2-dimensional topological manifold R^2
             sage: latex(O)
-            f^{-1}((1, 2))
+            f^{-1}((1, 2])
             sage: cl_O = O.closure(); cl_O
-            Topological closure cl_f_inv_(1, 2) of the Open subset f_inv_(1, 2) of the 2-dimensional topological manifold R^2
+            Subset f_inv_[1, 2] of the 2-dimensional topological manifold R^2
             sage: cl_O.is_closed()
             True
 

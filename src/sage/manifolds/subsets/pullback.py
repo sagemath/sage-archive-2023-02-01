@@ -17,12 +17,13 @@ from sage.categories.sets_cat import Sets
 from sage.categories.modules_with_basis import ModulesWithBasis as FreeModules
 from sage.categories.metric_spaces import MetricSpaces
 from sage.modules.free_module import is_FreeModule
-from sage.rings.infinity import infinity
+from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.manifolds.subset import ManifoldSubset
 from sage.manifolds.continuous_map import ContinuousMap
 from sage.manifolds.chart import Chart
+from sage.manifolds.scalarfield import ScalarField
 from sage.sets.real_set import RealSet
 from sage.geometry.polyhedron.base import is_Polyhedron
 
@@ -50,10 +51,21 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         sage: r_squared = M.scalar_field(x^2+y^2)
         sage: r_squared.set_immutable()
+        sage: cl_I = RealSet((1, 4)); cl_I
+        (1, 4)
+        sage: cl_O = ManifoldSubsetPullback(r_squared, None, I); cl_O
+        Subset f_inv_I of the 2-dimensional topological manifold R^2
+        sage: M.point((0, 0)) in cl_O
+        True
+        sage: M.point((1, 1)) in cl_O
+        False
+
+    Pulling back an open real interval gives an open subset::
+
         sage: I = RealSet((1, 4)); I
         (1, 4)
         sage: O = ManifoldSubsetPullback(r_squared, None, I); O
-        Subset f_inv_(1, 4) of the 2-dimensional topological manifold R^2
+        Open subset f_inv_(1, 4) of the 2-dimensional topological manifold R^2
         sage: M.point((1, 0)) in O
         False
         sage: M.point((1, 1)) in O
@@ -162,7 +174,8 @@ class ManifoldSubsetPullback(ManifoldSubset):
             except NotImplementedError:
                 pass
             else:
-                return domain.open_subset(name=name, latex_name=latex_name, coord_def=coord_def)
+                return map.domain().open_subset(name=name, latex_name=latex_name,
+                                                coord_def=coord_def)
 
         self = super().__classcall__(cls, map, inverse, codomain_subset, name, latex_name)
 
@@ -201,9 +214,56 @@ class ManifoldSubsetPullback(ManifoldSubset):
         return False
 
     @staticmethod
+    def _interval_restriction(expr, interval):
+        conjunction = []
+        if interval.lower() != minus_infinity:
+            if interval.lower_closed():
+                condition = (expr >= interval.lower())
+            else:
+                condition = (expr > interval.lower())
+            if not condition:
+                # not known to be true
+                conjunction.append(condition)
+
+        if interval.upper() != infinity:
+            if interval.upper_closed():
+                condition = (expr <= interval.upper())
+            else:
+                condition = (expr < interval.upper())
+            if not condition:
+                conjunction.append(condition)
+
+        if len(conjunction) == 1:
+            return conjunction[0]
+        else:
+            # lists express 'and'
+            return conjunction
+
+    @staticmethod
+    def _realset_restriction(expr, realset):
+        disjunction = []
+        for interval in realset:
+            condition = ManifoldSubsetPullback._interval_restriction(expr, interval)
+            if condition == []:
+                return []
+            disjunction.append(condition)
+
+        if len(disjunction) == 1:
+            return disjunction[0]
+        else:
+            # tuples express 'or'
+            return tuple(disjunction)
+
+    @staticmethod
     def _coord_def(map, codomain_subset):
 
         #if isinstance(map, ContinuousMap) and isinstance(codomain_subset, Manifold):
+
+        if isinstance(map, ScalarField) and isinstance(codomain_subset, RealSet):
+
+            return {chart: ManifoldSubsetPullback._realset_restriction(func.expr(),
+                                                                       codomain_subset)
+                    for chart, func in map._express.items()}
 
         raise NotImplementedError
 
@@ -375,11 +435,11 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: I = RealSet((1, 2)); I
             (1, 2)
             sage: O = ManifoldSubsetPullback(r_squared, None, I); O
-            Subset f_inv_(1, 2) of the 2-dimensional topological manifold R^2
+            Open subset f_inv_(1, 2) of the 2-dimensional topological manifold R^2
             sage: latex(O)
             f^{-1}((1, 2))
             sage: cl_O = O.closure(); cl_O
-            Subset f_inv_[1, 2] of the 2-dimensional topological manifold R^2
+            Topological closure cl_f_inv_(1, 2) of the Open subset f_inv_(1, 2) of the 2-dimensional topological manifold R^2
             sage: cl_O.is_closed()
             True
 

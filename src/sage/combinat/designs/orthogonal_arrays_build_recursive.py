@@ -783,7 +783,6 @@ def thwart_lemma_4_1(k,n,m,explain_construction=False):
       T. G. Ostrom and F. A. Sherk.
       Canad. Math. Bull vol7 num.4 (1964)
     """
-    from sage.combinat.designs.designs_pyx import is_orthogonal_array
     from sage.rings.finite_rings.finite_field_constructor import FiniteField
     from sage.arith.all import is_prime_power
     from .block_design import DesarguesianProjectivePlaneDesign

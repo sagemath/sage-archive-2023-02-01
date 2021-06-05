@@ -432,6 +432,19 @@ class ManifoldSubsetPullback(ManifoldSubset):
         r"""
         Construct a manifold subset that is a pullback.
 
+        TESTS::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: r_squared = M.scalar_field(x^2+y^2)
+            sage: r_squared.set_immutable()
+            sage: cl_I = RealSet((1, 4)); cl_I
+            (1, 4)
+            sage: cl_O = ManifoldSubsetPullback(r_squared, None, I); cl_O
+            Subset f_inv_I of the 2-dimensional topological manifold R^2
+            sage: TestSuite(cl_O).run(skip='_test_elements')
+
         """
         self._map = map
         self._inverse = inverse

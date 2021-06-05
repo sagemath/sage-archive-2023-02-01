@@ -935,7 +935,6 @@ class DiffMap(ContinuousMap):
 
         """
         from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
-        from sage.manifolds.differentiable.vectorframe import CoordFrame
         from sage.tensor.modules.comp import (Components, CompWithSym,
                                               CompFullySym, CompFullyAntiSym)
 
@@ -1029,7 +1028,7 @@ class DiffMap(ContinuousMap):
                                 t *= jacob[ind_old[i]-si2, ind_new[i]-si1]
                             res += t
                         partial.append([ind_new, res])
-                        return partial
+                    return partial
 
                 for ii, val in paral_comp(listParalInput):
                     for jj in val:

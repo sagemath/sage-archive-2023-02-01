@@ -840,7 +840,7 @@ class DiffMap(ContinuousMap):
         return matrix([[diff_funct[i][j].expr() for j in range(n1)]
                        for i in range(n2)])
 
-    def pullback(self, tensor):
+    def pullback(self, tensor_or_codomain_subset, name=None, latex_name=None):
         r"""
         Pullback operator associated with ``self``.
 
@@ -934,6 +934,11 @@ class DiffMap(ContinuousMap):
             (2*cos(t) + 2) dt*dt
 
         """
+        if not hasattr(tensor_or_codomain_subset, '_domain'):
+            return super().pullback(tensor_or_codomain_subset,
+                                    name=name, latex_name=latex_name)
+        tensor = tensor_or_codomain_subset
+
         from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
         from sage.manifolds.differentiable.vectorframe import CoordFrame
         from sage.tensor.modules.comp import (Components, CompWithSym,

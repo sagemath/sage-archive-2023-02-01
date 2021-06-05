@@ -866,10 +866,49 @@ class ContinuousMap(Morphism):
                 return subset
         return ImageManifoldSubset(self, inverse=inverse, domain_subset=subset)
 
-    def pullback(self, codomain_subset, name=None, latex_name=None):
+    def preimage(self, codomain_subset, name=None, latex_name=None):
+        r"""
+        Return the preimage of ``codomain_subset`` under ``self``.
+
+        INPUT:
+
+        - ``codomain_subset`` -- an instance of :class:`ManifoldSubset`
+        - ``name`` -- string; name (symbol) given to the subset
+        - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
+          denote the subset; if none are provided, it is set to ``name``
+
+        OUTPUT:
+
+        - an instance of
+          :class:`~sage.manifolds.subsets.pullback.ManifoldSubsetPullback`
+
+        EXAMPLES::
+
+            sage: R = Manifold(1, 'R', structure='topological')  # field R
+            sage: T.<t> = R.chart()  # canonical chart on R
+            sage: R2 = Manifold(2, 'R^2', structure='topological')  # R^2
+            sage: c_xy.<x,y> = R2.chart() # Cartesian coordinates on R^2
+            sage: Phi = R.continuous_map(R2, [cos(t), sin(t)], name='Phi'); Phi
+            Continuous map Phi
+             from the 1-dimensional topological manifold R
+             to the 2-dimensional topological manifold R^2
+            sage: Q1 = R2.open_subset('Q1', coord_def={c_xy: [x>0, y>0]}); Q1
+            Open subset Q1 of the 2-dimensional topological manifold R^2
+            sage: Phi_inv_Q1 = Phi.preimage(Q1); Phi_inv_Q1
+            Subset Phi_inv_Q1 of the 1-dimensional topological manifold R
+            sage: R.point([pi/4]) in Phi_inv_Q1
+            True
+            sage: R.point([0]) in Phi_inv_Q1
+            False
+            sage: R.point([3*pi/4]) in Phi_inv_Q1
+            False
+
+        """
         from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
         return ManifoldSubsetPullback(self, codomain_subset=codomain_subset,
                                       name=name, latex_name=latex_name)
+
+    pullback = preimage
 
     #
     # Monoid methods

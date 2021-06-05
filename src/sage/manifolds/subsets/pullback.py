@@ -21,6 +21,7 @@ from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.manifolds.subset import ManifoldSubset
+from sage.manifolds.continuous_map import ContinuousMap
 from sage.manifolds.chart import Chart
 from sage.sets.real_set import RealSet
 from sage.geometry.polyhedron.base import is_Polyhedron
@@ -157,7 +158,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
         if cls._is_open(codomain_subset):
 
             try:
-                coord_def = cls._coord_def(codomain_subset)
+                coord_def = cls._coord_def(map, codomain_subset)
             except NotImplementedError:
                 pass
             else:
@@ -200,7 +201,9 @@ class ManifoldSubsetPullback(ManifoldSubset):
         return False
 
     @staticmethod
-    def _coord_def(codomain_subset):
+    def _coord_def(map, codomain_subset):
+
+        #if isinstance(map, ContinuousMap) and isinstance(codomain_subset, Manifold):
 
         raise NotImplementedError
 
@@ -230,8 +233,8 @@ class ManifoldSubsetPullback(ManifoldSubset):
         Return if ``self`` is an open set.
 
         """
-        # Because the map is continuous, the pullback is open if and only
-        # if the codomain_subset is open.  But because other code assumes
+        # Because the map is continuous, the pullback is open if the
+        # codomain_subset is open.  But because other code assumes
         # that open subsets are instances of Manifold, we do not use this
         # fact here. Instead, the constructor is responsible for creating
         # an instance of the appropriate subclass.
@@ -319,6 +322,8 @@ class ManifoldSubsetPullback(ManifoldSubset):
             False
 
         """
+        if self.manifold().dimension() == 0:
+            return True
         if isinstance(self._codomain_subset, ManifoldSubset):
             if self._codomain_subset.is_closed():
                 # known closed

@@ -151,24 +151,7 @@ class LazyLaurentSeries(ModuleElement):
         sage: g == f
         True
     """
-    # def __init__(self, parent, coefficient=None, valuation=0, constant=None):
-    #     """
-    #     Initialize.
-
-    #     TESTS::
-
-    #         sage: L = LazyLaurentSeriesRing(GF(2), 'z')
-    #         sage: z = L.gen()
-    #         sage: TestSuite(z).run()
-    #     """
-    #     ModuleElement.__init__(self, parent)
-
-    #     self._coefficient_function = coefficient
-    #     self._approximate_valuation = valuation
-    #     self._constant = constant
-
-    #     self._cache = dict() # cache of known coefficients
-    def __init__(self, parent, coefficient=None, valuation=0, constant=None, implementation="sparse"):
+    def __init__(self, parent, coefficient=None, valuation=0, constant=None):
         """
         Initialize.
 
@@ -184,21 +167,38 @@ class LazyLaurentSeries(ModuleElement):
         self._approximate_valuation = valuation
         self._constant = constant
 
-        if implementation == "sparse":
-            self._cache = dict() # cache of known coefficients
-        elif implementation == "dense":
-            # this might work
-            class mycache():
-                def __init__(self, coefficient, valuation):
-                    self.c = coefficient
-                    self.v = valuation
-                    self.cache = lazy_list(lambda n: self.c(n+self.v))
-                def __getitem__(self, n):
-                    return self.cache[n-self.v]
+        self._cache = dict() # cache of known coefficients
+    # def __init__(self, parent, coefficient=None, valuation=0, constant=None, implementation="sparse"):
+    #     """
+    #     Initialize.
+
+    #     TESTS::
+
+    #         sage: L = LazyLaurentSeriesRing(GF(2), 'z')
+    #         sage: z = L.gen()
+    #         sage: TestSuite(z).run()
+    #     """
+    #     ModuleElement.__init__(self, parent)
+
+    #     self._coefficient_function = coefficient
+    #     self._approximate_valuation = valuation
+    #     self._constant = constant
+
+    #     if implementation == "sparse":
+    #         self._cache = dict() # cache of known coefficients
+    #     elif implementation == "dense":
+    #         # this might work
+    #         class mycache():
+    #             def __init__(self, coefficient, valuation):
+    #                 self.c = coefficient
+    #                 self.v = valuation
+    #                 self.cache = lazy_list(lambda n: self.c(n+self.v))
+    #             def __getitem__(self, n):
+    #                 return self.cache[n-self.v]
                
-            self._cache = mycache(self._coefficient_function, self._approximate_valuation)
-        else:
-            raise ValueError("sparse or dense")
+    #         self._cache = mycache(self._coefficient_function, self._approximate_valuation)
+    #     else:
+    #         raise ValueError("sparse or dense")
 
     def _richcmp_(self, other, op):
         """

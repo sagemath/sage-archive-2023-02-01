@@ -581,7 +581,7 @@ class LazyLaurentSeries(ModuleElement):
         op = LazyLaurentSeriesOperator_mul(self, other)
 
         a = self._approximate_valuation + other._approximate_valuation
-
+        print("Testing")
         c = None
         if self._constant is not None and other._constant is not None:
             if self._constant[0] == 0 and other._constant[0] == 0:

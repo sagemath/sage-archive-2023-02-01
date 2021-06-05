@@ -100,12 +100,17 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
         sage: S = M.open_subset('S', coord_def={CM: z<1})
-        sage: D = ManifoldSubsetPullback(phi, codomain_subset=S); D
-        Subset f_inv_S of the
-         2-dimensional topological submanifold N
+        sage: phi_without_t = N.continuous_map(M, {(CN, CM): [expr.subs(t=0) for expr in phi.expr()]}); phi_without_t
+        Continuous map
+         from the 2-dimensional topological submanifold N
           embedded in the 3-dimensional topological manifold M
-        sage: N.point((2,0)) in D   # known bug - the foliation parameters are in the way!
-        True
+         to the 3-dimensional topological manifold M
+        sage: phi_without_t.expr()
+        (u, v, u^2 + v^2)
+        sage: D = ManifoldSubsetPullback(phi_without_t, codomain_subset=S); D
+        Subset f_inv_S of the 2-dimensional topological submanifold N embedded in the 3-dimensional topological manifold M
+        sage: N.point((2,0)) in D
+        False
 
     """
     @staticmethod

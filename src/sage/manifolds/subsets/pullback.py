@@ -452,6 +452,17 @@ class ManifoldSubsetPullback(ManifoldSubset):
         base_manifold = map.domain()
         ManifoldSubset.__init__(self, base_manifold, name, latex_name=latex_name)
 
+    def _an_element_(self):
+        r"""
+        Construct some point in ``self``.
+        """
+        if self._inverse is not None:
+            return self._inverse(self._codomain_subset.an_element())
+        p = super()._an_element_()
+        if p in self:
+            return p
+        return self.element_class(self)
+
     def __contains__(self, point):
         r"""
         Check whether ``point`` is contained in ``self``.

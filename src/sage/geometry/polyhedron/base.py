@@ -53,6 +53,7 @@ from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 
 from .constructor import Polyhedron
+from .relint import RelativeInterior
 from sage.categories.sets_cat import EmptySetError
 
 #########################################################################
@@ -8394,6 +8395,38 @@ class Polyhedron_base(Element):
 
     __contains__ = contains
 
+    @cached_method
+    def interior(self):
+        """
+        The interior of ``self``.
+
+        OUTPUT:
+
+        - either an empty polyhedron or an instance of
+          :class:`~sage.geometry.polyhedra.relint.RelativeInterior`
+
+        EXAMPLES:
+
+        If the polyhedron is full-dimensional, the result is the
+        same as that of :meth:`relative_interior`::
+
+            sage: P_full = Polyhedron(vertices=[[0,0],[1,1],[1,-1]])
+            sage: P_full.interior()
+            Relative interior of
+             a 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+
+        If the polyhedron is of strictly smaller dimension than the
+        ambient space, its interior is empty::
+
+            sage: P_lower = Polyhedron(vertices=[[0,1], [0,-1]])
+            sage: P_lower.interior()
+            The empty polyhedron in ZZ^2
+
+        """
+        if not self.is_full_dimensional():
+            return self.parent().element_class(self.parent(), None, None)
+        return self.relative_interior()
+
     def interior_contains(self, point):
         """
         Test whether the interior of the polyhedron contains the
@@ -8450,6 +8483,27 @@ class Polyhedron_base(Element):
             if not H.interior_contains(p):
                 return False
         return True
+
+    @cached_method
+    def relative_interior(self):
+        """
+        Return the relative interior of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (-1,0)])
+            sage: ri_P = P.relative_interior(); ri_P
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: (0, 0) in ri_P
+            True
+            sage: (1, 0) in ri_P
+            False
+
+        """
+        if self.is_empty() or self.is_universe():
+            return self
+        return RelativeInterior(self)
 
     def relative_interior_contains(self, point):
         """

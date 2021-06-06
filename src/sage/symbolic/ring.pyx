@@ -730,6 +730,7 @@ cdef class SymbolicRing(CommutativeRing):
 
             if name is None: # Check if we need a temporary anonymous new symbol
                 symb = ginac_new_symbol()
+                name = symb.get_name().decode('ascii')
                 if domain is not None:
                     symb.set_domain(sage_domain_to_ginac_domain(domain))
             else:
@@ -741,13 +742,101 @@ cdef class SymbolicRing(CommutativeRing):
                     ginac_domain = domain_complex
                 symb = ginac_symbol(str_to_bytes(name),
                                     str_to_bytes(latex_name), ginac_domain)
-                self.symbols[name] = e
 
             e._gobj = GEx(symb)
+            self.symbols[name] = e
             if domain is not None:
                 send_sage_domain_to_maxima(e, domain)
 
         return e
+
+    def temp_var(self, n=None, domain=None):
+        """
+        Return one or multiple new unique symbolic variables as an element
+        of the symbolic ring. Use this instead of SR.var() if there is a
+        possibility of name clashes occuring. Call SR.cleanup_var() once
+        the variables are no longer needed or use a `with SR.temp_var()
+        as ...` construct.
+
+        INPUT:
+
+        - ``n`` -- (optional) positive integer; number of symbolic variables
+
+        - ``domain`` -- (optional) specify the domain of the variable(s);
+
+        EXAMPLES:
+
+        Simple definition of a functional derivative::
+
+            sage: def functional_derivative(expr,f,x):
+            ....:     with SR.temp_var() as a:
+            ....:         return expr.subs({f(x):a}).diff(a).subs({a:f(x)})
+            sage: f = function('f')
+            sage: a = var('a')
+            sage: functional_derivative(f(a)^2+a,f,a)
+            2*f(a)
+
+        Contrast this to a similar implementation using SR.var(),
+        which gives a wrong result in our example::
+
+            sage: def functional_derivative(expr,f,x):
+            ....:     a = SR.var('a')
+            ....:     return expr.subs({f(x):a}).diff(a).subs({a:f(x)})
+            sage: f = function('f')
+            sage: a = var('a')
+            sage: functional_derivative(f(a)^2+a,f,a)
+            2*f(a) + 1
+
+        TESTS:
+
+            sage: x = SR.temp_var()
+            sage: y = SR.temp_var()
+            sage: bool(x == x)
+            True
+            sage: bool(x == y)
+            False
+            sage: bool(x.parent()(x._maxima_()) == x)
+            True
+
+        """
+        if (n == None):
+            return self.symbol(None, domain=domain)
+        return TemporaryVariables([self.temp_var(domain=domain) for i in range(n)])
+
+    def cleanup_var(self, symbol):
+        """
+        Cleans up a variable, removing assumptions about the
+        variable and allowing for it to be garbage collected
+
+        INPUT:
+
+        - ``symbol`` -- a variable or a list of variables
+
+        TESTS:
+
+            sage: from sage.symbolic.assumptions import assumptions
+            sage: symbols_copy = SR.symbols.copy()
+            sage: assumptions_copy = assumptions().copy()
+            sage: x = SR.temp_var(domain='real')
+            sage: SR.cleanup_var(x)
+            sage: symbols_copy == SR.symbols
+            True
+            sage: assumptions_copy == assumptions()
+            True
+        """
+        from sage.symbolic.assumptions import assumptions
+        if isinstance(symbol,list) or isinstance(symbol,tuple):
+            for s in symbol:
+                self.cleanup_var(s)
+        else:
+            try:
+                name = self._repr_element_(symbol)
+                del self.symbols[name]
+            except KeyError:
+                pass
+            for asm in assumptions():
+                if asm.has(symbol):
+                    asm.forget()
 
     def var(self, name, latex_name=None, n=None, domain=None):
         """
@@ -1424,3 +1513,23 @@ def isidentifier(x):
     if x in KEYWORDS:
         return False
     return x.isidentifier()
+
+class TemporaryVariables(tuple):
+    """
+    Instances of this class can be used with Python `with` to
+    automatically clean up after themselves.
+    """
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        """
+        TESTS::
+
+            sage: symbols_copy = SR.symbols.copy()
+            sage: with SR.temp_var(n=2) as temp_vars: pass
+            sage: symbols_copy == SR.symbols
+            True
+        """
+        SR.cleanup_var(self)
+        return False

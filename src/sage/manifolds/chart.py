@@ -3162,7 +3162,6 @@ class CoordChange(SageObject):
 
         """
         from sage.symbolic.relation import solve
-        from sage.symbolic.assumptions import assumptions
         if self._inverse is not None:
             return self._inverse
         # The computation is necessary:
@@ -3186,8 +3185,7 @@ class CoordChange(SageObject):
         for i in range(n2):
             if x2[i].is_positive():
                 coord_domain[i] = 'positive'
-        xp2 = [ SR.var('xxxx' + str(i), domain=coord_domain[i])
-                for i in range(n2) ]
+        xp2 = [ SR.temp_var(domain=coord_domain[i]) for i in range(n2) ]
         xx2 = self._transf.expr()
         equations = [xp2[i] == xx2[i] for i in range(n2)]
         try:
@@ -3240,12 +3238,7 @@ class CoordChange(SageObject):
                    "manually")
             x2_to_x1 = list_x2_to_x1[0]
         self._inverse = type(self)(self._chart2, self._chart1, *x2_to_x1)
-        # Some cleaning: the local symbolic variables (xxxx0, xxxx1, ...) are
-        # removed from the list of assumptions
-        for asm in assumptions():
-            for xxxx in xp2:
-                if asm.has(xxxx):
-                    asm.forget()
+        SR.cleanup_var(xp2)
         return self._inverse
 
     def set_inverse(self, *transformations, **kwds):

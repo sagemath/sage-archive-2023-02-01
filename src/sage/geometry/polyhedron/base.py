@@ -53,7 +53,7 @@ from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 
 from .constructor import Polyhedron
-from .relint import RelativeInterior
+from sage.geometry.relative_interior import RelativeInterior
 from sage.categories.sets_cat import EmptySetError
 
 #########################################################################
@@ -8403,7 +8403,7 @@ class Polyhedron_base(Element):
         OUTPUT:
 
         - either an empty polyhedron or an instance of
-          :class:`~sage.geometry.polyhedra.relint.RelativeInterior`
+          :class:`~sage.geometry.relative_interior.RelativeInterior`
 
         EXAMPLES:
 

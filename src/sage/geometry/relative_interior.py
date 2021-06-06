@@ -1,5 +1,5 @@
 r"""
-Relative interiors of polyhedra
+Relative Interiors of Polyhedra and Cones
 """
 
 # ****************************************************************************
@@ -17,7 +17,7 @@ from sage.structure.sage_object import SageObject
 class RelativeInterior(SageObject):
 
     """
-    The relative interior of a polyhedron
+    The relative interior of a polyhedron or cone
     """
 
     def __init__(self, polyhedron):
@@ -30,6 +30,18 @@ class RelativeInterior(SageObject):
         return self._polyhedron
 
     def _repr_(self):
+        """
+        Return a description of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices = [[1,2,3,4],[2,1,3,4],[4,3,2,1]])
+            sage: P.relative_interior()._repr_()
+            'Relative interior of a 2-dimensional polyhedron in ZZ^4 defined as the convex hull of 3 vertices'
+            sage: P.rename('A')
+            sage: P.relative_interior()._repr_()
+            'Relative interior of A'
+        """
         repr_P = repr(self._polyhedron)
         if repr_P.startswith('A '):
             repr_P = 'a ' + repr_P[2:]

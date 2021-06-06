@@ -55,7 +55,7 @@ EXAMPLES::
 
 
 from sage.rings.all import Infinity
-from sage.calculus.var import var
+from sage.symbolic.ring import SR
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RealField, RR
@@ -675,7 +675,7 @@ def Yu_bound(SUK, v, prec=106):
     else:
         # K and v don't satisfy the theorem hypotheses, and we must move to a quadratic extension L.
         # For justification of this next bound, see [AKMRVW].
-        x = var('x')
+        x = SR.var('x')
         if p == 2:
             L_over_K = K.extension(x**2 + x + 1, 'xi0')
         else:

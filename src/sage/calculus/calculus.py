@@ -421,6 +421,7 @@ from sage.libs.pynac.pynac import symbol_table
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.interfaces.maxima_lib', 'maxima')
+from types import FunctionType
 
 
 ########################################################
@@ -544,7 +545,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
         sage: assumptions() # check the assumptions were really forgotten
         []
 
-    This summation only Mathematica can perform::
+    A summation performed by Mathematica::
 
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'mathematica')     # optional - mathematica
         pi*coth(pi)
@@ -554,13 +555,10 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')
         (pi*e^(2*pi) - pi*e^(-2*pi))/(e^(2*pi) + e^(-2*pi) - 2)
 
-    SymPy can't solve that summation::
+    The same summation is solved by SymPy::
 
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'sympy')
-        Traceback (most recent call last):
-        ...
-        AttributeError: Unable to convert SymPy result (=Sum(1/(k**2 + 1),
-        (k, -oo, oo))) into Sage
+        pi/tanh(pi)
 
     SymPy and Maxima 5.39.0 can do the following (see
     :trac:`22005`)::
@@ -2057,6 +2055,34 @@ maxima_polygamma = re.compile(r"psi\[([^\[\]]*)\]\(")  # matches psi[n]( where n
 maxima_hyper = re.compile(r"\%f\[\d+,\d+\]")  # matches %f[m,n]
 
 
+def _is_function(v):
+    r"""
+    Return whether a symbolic element is a function, not a variable.
+
+    TESTS::
+
+        sage: from sage.calculus.calculus import _is_function
+        sage: _is_function(x)
+        False
+        sage: _is_function(sin)
+        True
+
+    Check that :trac:`31756` is fixed::
+
+        sage: from sage.libs.pynac.pynac import symbol_table
+        sage: _is_function(symbol_table['mathematica']['Gamma'])
+        True
+
+        sage: from sage.libs.pynac.pynac import register_symbol
+        sage: foo = lambda x: x^2 + 1
+        sage: register_symbol(foo, dict(mathematica='Foo'))  # optional - mathematica
+        sage: mathematica('Foo[x]').sage()                   # optional - mathematica
+        x^2 + 1
+    """
+    # note that Sage variables are callable, so we only check the type
+    return isinstance(v, Function) or isinstance(v, FunctionType)
+
+
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     r"""
     Given a string representation of a Maxima expression, parse it and
@@ -2144,9 +2170,9 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         +Infinity
     """
     var_syms = {k: v for k, v in symbol_table.get('maxima', {}).items()
-                if not isinstance(v,Function)}
+                if not _is_function(v)}
     function_syms = {k: v for k, v in symbol_table.get('maxima', {}).items()
-                     if isinstance(v,Function)}
+                     if _is_function(v)}
 
     if not len(x):
         raise RuntimeError("invalid symbolic expression -- ''")
@@ -2402,9 +2428,9 @@ def symbolic_expression_from_string(s, syms={}, accept_sequence=False):
     """
     parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression
     parser_make_var.set_names({k: v for k, v in syms.items()
-                               if not isinstance(v,Function)})
+                               if not _is_function(v)})
     parser_make_function.set_names({k: v for k, v in syms.items()
-                                    if isinstance(v,Function)})
+                                    if _is_function(v)})
     return parse_func(s)
 
 

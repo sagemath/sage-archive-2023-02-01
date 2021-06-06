@@ -62,6 +62,26 @@ class TangentVector(FiniteRankFreeModuleElement):
         sage: v in Tp
         True
 
+    Tangent vectors can also be constructed via the manifold method
+    :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.tangent_vector`::
+
+        sage: v = M.tangent_vector(p, (-2, 1), name='v'); v
+        Tangent vector v at Point p on the 2-dimensional differentiable
+         manifold M
+        sage: v.display()
+        v = -2 d/dx + d/dy
+
+    or via the method
+    :meth:`~sage.manifolds.differentiable.tensorfield_paral.TensorFieldParal.at`
+    of vector fields::
+
+        sage: vf = M.vector_field(x - 4*y/3, (x-y)^2, name='v')
+        sage: v = vf.at(p); v
+        Tangent vector v at Point p on the 2-dimensional differentiable
+         manifold M
+        sage: v.display()
+        v = -2 d/dx + d/dy
+
     By definition, a tangent vector at `p\in M` is a *derivation at* `p` on
     the space `C^\infty(M)` of smooth scalar fields on `M`. Indeed  let us
     consider a generic scalar field `f`::

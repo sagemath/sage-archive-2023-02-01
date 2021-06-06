@@ -181,9 +181,18 @@ REFERENCES:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
-#       Copyright (C) 2012 Andrey Novoseltsev <novoselt@gmail.com>
-#       Copyright (C) 2010 William Stein <wstein@gmail.com>
+#       Copyright (C) 2010-2014 Volker Braun <vbraun.name@gmail.com>
+#       Copyright (C) 2010-2018 Andrey Novoseltsev <novoselt@gmail.com>
+#       Copyright (C) 2010      William Stein <wstein@gmail.com>
+#       Copyright (C) 2012      Christian Stump
+#       Copyright (C) 2014-2018 Frédéric Chapoton
+#       Copyright (C) 2014      Peter Bruin
+#       Copyright (C) 2015-2017 Jori Mäntysalo
+#       Copyright (C) 2015-2020 Michael Orlitzky
+#       Copyright (C) 2016-2020 John H. Palmieri
+#       Copyright (C) 2018      David Coudert
+#       Copyright (C) 2019-2020 Jonathan Kliem
+#       Copyright (C) 2020-2021 Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

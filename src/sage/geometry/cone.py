@@ -1712,6 +1712,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
            point = point[0]
         return self._contains(point, 'interior')
 
+    @cached_method
     def interior(self):
         r"""
         Return the interior of ``self``.
@@ -1761,11 +1762,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
            point = point[0]
         return self._contains(point, 'relative interior')
 
+    @cached_method
     def relative_interior(self):
         r"""
         Return the relative interior of ``self``.
         """
-        if self.is_full_space():
+        if self.is_trivial() or self.is_full_space():
             return self
         return RelativeInterior(self)
 

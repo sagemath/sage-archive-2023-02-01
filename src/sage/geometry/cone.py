@@ -205,6 +205,7 @@ from sage.geometry.hasse_diagram import lattice_from_incidences
 from sage.geometry.toric_lattice import (ToricLattice, is_ToricLattice,
                                          is_ToricLatticeQuotient)
 from sage.geometry.toric_plotter import ToricPlotter, label_list
+from sage.geometry.relative_interior import RelativeInterior
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import column_matrix, matrix, MatrixSpace
 from sage.misc.all import cached_method, flatten, latex
@@ -1711,6 +1712,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
            point = point[0]
         return self._contains(point, 'interior')
 
+    def interior(self):
+        r"""
+        Return the interior of ``self``.
+        """
+        if self.is_solid():
+            return self.relative_interior()
+        return Polyhedron(ambient_dim=self.lattice_dim())
+
     def relative_interior_contains(self, *args):
         r"""
         Check if a given point is contained in the relative interior of ``self``.
@@ -1751,6 +1760,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
         if len(point) == 1:
            point = point[0]
         return self._contains(point, 'relative interior')
+
+    def relative_interior(self):
+        r"""
+        Return the relative interior of ``self``.
+        """
+        if self.is_full_space():
+            return self
+        return RelativeInterior(self)
 
     def cartesian_product(self, other, lattice=None):
         r"""

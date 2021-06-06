@@ -1725,6 +1725,34 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
     def interior(self):
         r"""
         Return the interior of ``self``.
+
+        OUTPUT:
+
+        - either ``self``, an empty polyhedron, or an instance of
+          :class:`~sage.geometry.relative_interior.RelativeInterior`.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0,0), (0,1,0)]); c
+            2-d cone in 3-d lattice N
+            sage: c.interior()
+            The empty polyhedron in ZZ^3
+
+            sage: origin = cones.trivial(2); origin
+            0-d cone in 2-d lattice N
+            sage: origin.interior()
+            The empty polyhedron in ZZ^2
+
+            sage: K = cones.nonnegative_orthant(2); K
+            2-d cone in 2-d lattice N
+            sage: K.interior()
+            Relative interior of 2-d cone in 2-d lattice N
+
+            sage: K2 = Cone([(1,0),(-1,0),(0,1),(0,-1)]); K2
+            2-d cone in 2-d lattice N
+            sage: K2.interior() is K2
+            True
+
         """
         if self.is_solid():
             return self.relative_interior()
@@ -1775,6 +1803,29 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
     def relative_interior(self):
         r"""
         Return the relative interior of ``self``.
+
+        OUTPUT:
+
+        - either ``self`` or an instance of
+          :class:`~sage.geometry.relative_interior.RelativeInterior`.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0,0), (0,1,0)]); c
+            2-d cone in 3-d lattice N
+            sage: c.relative_interior()
+            Relative interior of 2-d cone in 3-d lattice N
+
+            sage: origin = cones.trivial(2); origin
+            0-d cone in 2-d lattice N
+            sage: origin.relative_interior() is origin
+            True
+
+            sage: K2 = Cone([(1,0),(-1,0),(0,1),(0,-1)]); K2
+            2-d cone in 2-d lattice N
+            sage: K2.relative_interior() is K2
+            True
+
         """
         if self.is_trivial() or self.is_full_space():
             return self

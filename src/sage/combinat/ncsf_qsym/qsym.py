@@ -1806,7 +1806,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return self.tensor_square().sum_of_monomials((self._indices(compo[:i]),
                                                           self._indices(compo[i:]))
-                                                         for i in range(0,len(compo)+1))
+                                                         for i in range(len(compo)+1))
 
         def lambda_of_monomial(self, I, n):
             r"""
@@ -2758,7 +2758,7 @@ class QuasiSymmetricFunctions(UniqueRepresentation, Parent):
             """
             return self.tensor_square().sum_of_monomials((self._indices(compo[:i]),
                                                           self._indices(compo[i:]))
-                                                         for i in range(0,len(compo)+1))
+                                                         for i in range(len(compo)+1))
 
         def product_on_basis(self, I, J):
             r"""

@@ -98,7 +98,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     """
     Element = LazyLaurentSeries
 
-    def __init__(self, base_ring, names, category=None):
+    def __init__(self, base_ring, names, category=None, implementation='sparse'):
         """
         Initialize.
 
@@ -109,6 +109,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         Parent.__init__(self, base=base_ring, names=names,
                         category=MagmasAndAdditiveMagmas().or_subcategory(category))
+        self._implementation = implementation
 
     def _repr_(self):
         """

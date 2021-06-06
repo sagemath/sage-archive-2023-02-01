@@ -226,8 +226,8 @@ cdef class Matrix(Matrix0):
 
             sage: y = var('y')
             sage: M = matrix(SR, 2, [y+sin(y), y - 4, 1/y, dilog(y)])
-            sage: giac(M).det()
-            (y^2*dilog(y)+y*sin(y)*dilog(y)-y+4)/y
+            sage: giac(M).det().sage()
+            (y^2*dilog(y) + y*dilog(y)*sin(y) - y + 4)/y
         """
         s = ','.join('[' + ','.join(cf._giac_init_() for cf in row) + ']'
                      for row in self.rows())

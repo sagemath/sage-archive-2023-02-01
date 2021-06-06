@@ -1118,9 +1118,17 @@ class GiacElement(ExpectElement):
 
             sage: giac('true')._sage_(), giac('false')._sage_()
             (True, False)
+
+        Check that variables and constants are not mixed up (:trac:`30133`)::
+
+            sage: ee, ii, pp = SR.var('e,i,pi')
+            sage: giac(ee * ii * pp).sage().variables()
+            (e, i, pi)
+            sage: giac(e * i * pi).sage().variables()
+            ()
         """
         from sage.libs.pynac.pynac import symbol_table
-        from sage.calculus.calculus import symbolic_expression_from_string
+        from sage.calculus.calculus import symbolic_expression_from_string, SR_parser_giac
 
         result = repr(self) # string representation
 
@@ -1133,7 +1141,7 @@ class GiacElement(ExpectElement):
 
             try:
                 return symbolic_expression_from_string(result, lsymbols,
-                    accept_sequence=True)
+                    accept_sequence=True, parser=SR_parser_giac)
 
             except Exception:
                 raise NotImplementedError("Unable to parse Giac output: %s" % result)

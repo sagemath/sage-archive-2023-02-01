@@ -2930,7 +2930,7 @@ class Polyhedron_base(Element):
             sage: M = P.incidence_matrix.cache
             sage: P.incidence_matrix.clear_cache()
             sage: M == P.incidence_matrix()
-            True
+            False
         """
         if self.base_ring() in (ZZ, QQ):
             # Much faster for integers or rationals.

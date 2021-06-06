@@ -20,12 +20,15 @@ from sage.modules.free_module import is_FreeModule
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.symbolic.ring import SR
+from sage.modules.free_module_element import vector
 from sage.manifolds.subset import ManifoldSubset
 from sage.manifolds.continuous_map import ContinuousMap
 from sage.manifolds.chart import Chart
 from sage.manifolds.scalarfield import ScalarField
 from sage.sets.real_set import RealSet
 from sage.geometry.polyhedron.base import is_Polyhedron
+from sage.geometry.polyhedron.relint import RelativeInterior
 
 class ManifoldSubsetPullback(ManifoldSubset):
 
@@ -73,7 +76,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
     Pulling back a polytope under a chart::
 
-        sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [3, 4]]); P
+        sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [2, 1]]); P
         A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
         sage: S = ManifoldSubsetPullback(c_cart, None, P); S
         Subset x_y_inv_P of the 2-dimensional topological manifold R^2
@@ -81,6 +84,17 @@ class ManifoldSubsetPullback(ManifoldSubset):
         True
         sage: M((2, 0)) in S
         False
+
+    Pulling back the interior of a polytope under a chart::
+
+        sage: int_P = P.interior(); int_P
+        Relative interior of a 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+        sage: int_S = ManifoldSubsetPullback(c_cart, None, int_P, name='int_S'); int_S
+        Open subset int_S of the 2-dimensional topological manifold R^2
+        sage: M((0, 0)) in int_S
+        False
+        sage: M((1, 1)) in int_S
+        True
 
     Using the embedding map of a submanifold::
 
@@ -244,6 +258,13 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: ManifoldSubsetPullback._is_open(C)
             False
 
+        Interiors of polyhedra::
+
+            sage: int_C = C.interior(); int_C
+            Relative interior of a 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: ManifoldSubsetPullback._is_open(int_C)
+            True
+
         PPL polyhedra and not-necessarily-closed polyhedra::
 
             sage: from ppl import Variable, C_Polyhedron, NNC_Polyhedron, Constraint_System
@@ -275,6 +296,9 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         if is_Polyhedron(codomain_subset):
             return codomain_subset.is_empty() or codomain_subset.is_universe()
+
+        if isinstance(codomain_subset, RelativeInterior):
+            return codomain_subset.closure().is_full_dimensional()
 
         if codomain_subset in Sets().Finite():
             return codomain_subset.cardinality() == 0
@@ -415,6 +439,31 @@ class ManifoldSubsetPullback(ManifoldSubset):
             return tuple(disjunction)
 
     @staticmethod
+    def _polyhedron_restriction(expr, polyhedron, relint=False):
+
+        conjunction = []
+
+        expr = vector(SR, expr)
+        for constraint in polyhedron.Hrepresentation():
+
+            if constraint.is_inequality():
+                if relint:
+                    condition = (constraint.eval(expr) >  0)
+                else:
+                    condition = (constraint.eval(expr) >= 0)
+            else:
+                condition = (constraint.eval(expr) == 0)
+            if not condition:
+                # not known to be true
+                conjunction.append(condition)
+
+        if len(conjunction) == 1:
+            return conjunction[0]
+        else:
+            # lists express 'and'
+            return conjunction
+
+    @staticmethod
     def _coord_def(map, codomain_subset):
 
         #if isinstance(map, ContinuousMap) and isinstance(codomain_subset, Manifold):
@@ -424,6 +473,13 @@ class ManifoldSubsetPullback(ManifoldSubset):
             return {chart: ManifoldSubsetPullback._realset_restriction(func.expr(),
                                                                        codomain_subset)
                     for chart, func in map._express.items()}
+
+        if isinstance(map, Chart):
+
+            chart = map
+            if isinstance(codomain_subset, RelativeInterior):
+                return {chart: ManifoldSubsetPullback._polyhedron_restriction(
+                                   chart, codomain_subset.closure(), relint=True)}
 
         raise NotImplementedError
 

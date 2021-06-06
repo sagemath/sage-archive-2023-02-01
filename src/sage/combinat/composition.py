@@ -856,7 +856,7 @@ class Composition(CombinatorialElement):
         """
         result = []
         j = 0
-        for i, gi in enumerate(grouping):
+        for gi in grouping:
             result.append(sum(self[j:j + gi]))
             j += gi
         return Compositions()(result)

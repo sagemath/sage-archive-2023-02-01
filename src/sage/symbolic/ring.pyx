@@ -977,6 +977,15 @@ cdef class SymbolicRing(CommutativeRing):
         for s in names_list:
             if not isidentifier(s):
                 raise ValueError(f'The name "{s}" is not a valid Python identifier.')
+            # warn on bad symbol names, but only once
+            # symbol... names are temporary variables created with
+            #   SR.temp_var
+            # _symbol... names are used in the conversion of
+            #   derivatives of symbolic functions to maxima and other
+            #   external libraries
+            if self.symbols.get(s) is None and ((s.startswith('symbol') and s[6:].isdigit()) or (s.startswith('_symbol') and s[7:].isdigit())):
+                import warnings
+                warnings.warn(f'The name "{name}" may clash with names used internally in sagemath. It is recommended to choose a different name for your variable.')
 
         formatted_latex_name = None
         if latex_name is not None and n is None:

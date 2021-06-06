@@ -51,6 +51,7 @@ from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
+from sage.geometry.convex_set import ConvexSet_closed
 
 from .constructor import Polyhedron
 from sage.categories.sets_cat import EmptySetError
@@ -98,7 +99,7 @@ def is_Polyhedron(X):
 
 
 #########################################################################
-class Polyhedron_base(Element):
+class Polyhedron_base(Element, ConvexSet_closed):
     """
     Base class for Polyhedron objects
 

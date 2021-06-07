@@ -450,7 +450,7 @@ class LazyLaurentSeries(ModuleElement):
                 n = self._approximate_valuation
                 cache = self._cache
                 while True:
-                    if n < len(cache):
+                    if n - self._offset < len(cache):
                         if cache[n]:
                             self._approximate_valuation = n
                             return n

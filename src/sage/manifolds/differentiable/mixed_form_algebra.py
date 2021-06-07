@@ -471,7 +471,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         r"""
         Return the de Rham cohomology of the de Rham complex ``self``.
 
-        The `n`-th de Rham cohomology is given by
+        The `k`-th de Rham cohomology is given by
 
         .. MATH::
 

@@ -1012,7 +1012,7 @@ cdef class Pygen(GiacMethods_base):
                 except:
                   raise RuntimeError
             else:
-                raise IndexError,'list index %s out of range'%(i)
+                raise IndexError('list index %s out of range'%(i))
           else:
             if isinstance(i,slice):
               sig_on()
@@ -1029,14 +1029,14 @@ cdef class Pygen(GiacMethods_base):
                else:
                   return self[i[0],i[1]][tuple(i[2:])]
             else:
-              raise TypeError,'gen indexes are not yet implemented'
+              raise TypeError('gen indexes are not yet implemented')
         # Here we add support to formal variable indexes:
         else:
           cmd='%s[%s]'%(self,i)
           ans=Pygen(cmd).eval()
           # if the answer is a string, it must be an error message because self is not a list or a string
           if (ans._type == 12):
-            raise TypeError, "Error executing code in Giac\nCODE:\n\t%s\nGiac ERROR:\n\t%s"%(cmd, ans)
+            raise TypeError("Error executing code in Giac\nCODE:\n\t%s\nGiac ERROR:\n\t%s"%(cmd, ans))
           return ans
 
 
@@ -1380,7 +1380,7 @@ cdef class Pygen(GiacMethods_base):
            else:
               return self
         else:
-           raise TypeError, "self is not a giac List"
+           raise TypeError("self is not a giac List")
 
 
      # def htmlhelp(self, str lang='en'):
@@ -1397,7 +1397,7 @@ cdef class Pygen(GiacMethods_base):
      #       url=decstring23(browser_help(self.gptr[0],l[lang])) #python3
      #       giacbasedir=decstring23(GIAC_giac_aide_dir())  # python3
      #     except:
-     #       raise RuntimeError,'giac docs dir not found'
+     #       raise RuntimeError('giac docs dir not found')
      #     print(url)
      #     if os.access(giacbasedir,os.F_OK):
      #        url='file:'+url
@@ -1494,7 +1494,7 @@ cdef class Pygen(GiacMethods_base):
             return result
 
         else:
-           raise TypeError, "Cannot convert non giac integers to Integer"
+           raise TypeError("Cannot convert non giac integers to Integer")
 
 
      def _rational_(self,Z=None):
@@ -1522,9 +1522,9 @@ cdef class Pygen(GiacMethods_base):
                result=ZZ(self.numer())/ZZ(self.denom())
                return result
             except:
-               RuntimeError, "Failed to convert to QQ"
+               RuntimeError("Failed to convert to QQ")
         else:
-           raise TypeError, "Cannot convert non giac _FRAC_ to QQ"
+           raise TypeError("Cannot convert non giac _FRAC_ to QQ")
 
 
      def sage(self):
@@ -1711,7 +1711,7 @@ cdef class Pygen(GiacMethods_base):
         try:
            n = v._val
         except:
-           raise TypeError, "Entry is not a giac vector"
+           raise TypeError("Entry is not a giac vector")
         from sage.modules.free_module_element import vector
         sig_on()
         entries = [R(self[c]) for c in range(n)]
@@ -1816,7 +1816,7 @@ cdef class Pygen(GiacMethods_base):
                sig_off()
                return result
             else:
-               raise TypeError,"Cannot convert non _INT_ giac gen"
+               raise TypeError("Cannot convert non _INT_ giac gen")
 
 
      property _double:  # immediate double (type _DOUBLE_)
@@ -1830,7 +1830,7 @@ cdef class Pygen(GiacMethods_base):
                sig_off()
                return result
             else:
-               raise TypeError,"Cannot convert non _DOUBLE_ giac gen"
+               raise TypeError("Cannot convert non _DOUBLE_ giac gen")
 
      property help:
          def __get__(self):
@@ -1903,7 +1903,7 @@ cdef inline _wrap_gen(gen  g)except +:
 #    if(pyg.gptr !=NULL):
 #      return pyg
 #    else:
-#      raise MemoryError,"empty gen"
+#      raise MemoryError("empty gen")
 
 
 
@@ -1925,7 +1925,7 @@ cdef  vecteur _wrap_pylist(L) except +:
       sig_off()
       return V[0]
    else:
-     raise TypeError,"argument must be a tuple or a list"
+     raise TypeError("argument must be a tuple or a list")
 
 
 #################################
@@ -1947,7 +1947,7 @@ cdef  vecteur _getgiacslice(Pygen L,slice sl) except +:
       sig_off()
       return V[0]
    else:
-     raise TypeError,"argument must be a Pygen list and a slice"
+     raise TypeError("argument must be a Pygen list and a slice")
 
 
 

@@ -47,8 +47,13 @@ class MinMax_base(BuiltinFunction):
 
             sage: max_symbolic(3, 5, x)  # indirect doctest
             max(x, 5)
+            sage: max_symbolic([5.0r])   # indirect doctest
+            5.0
             sage: min_symbolic(3, 5, x)
             min(x, 3)
+            sage: min_symbolic([5.0r])   # indirect doctest
+            5.0
+
         """
         # __call__ ensures that if args is a singleton, the element is iterable
         arg_is_iter = False
@@ -64,7 +69,10 @@ class MinMax_base(BuiltinFunction):
                 symb_args.append(x)
             else:
                 num_non_symbolic_args += 1
-                res = builtin_f(res, x)
+                if res is None:
+                    res = x
+                else:
+                    res = builtin_f(res, x)
 
         # if no symbolic arguments, return the result
         if len(symb_args) == 0:

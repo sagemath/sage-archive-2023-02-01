@@ -76,7 +76,7 @@ class LocalGeneric(CommutativeRing):
 
     def is_capped_relative(self):
         """
-        Returns whether this `p`-adic ring bounds precision in a capped
+        Return whether this `p`-adic ring bounds precision in a capped
         relative fashion.
 
         The relative precision of an element is the power of `p`
@@ -101,7 +101,7 @@ class LocalGeneric(CommutativeRing):
 
     def is_capped_absolute(self):
         """
-        Returns whether this `p`-adic ring bounds precision in a
+        Return whether this `p`-adic ring bounds precision in a
         capped absolute fashion.
 
         The absolute precision of an element is the power of `p`
@@ -126,7 +126,7 @@ class LocalGeneric(CommutativeRing):
 
     def is_fixed_mod(self):
         """
-        Returns whether this `p`-adic ring bounds precision in a fixed
+        Return whether this `p`-adic ring bounds precision in a fixed
         modulus fashion.
 
         The absolute precision of an element is the power of `p`
@@ -153,7 +153,7 @@ class LocalGeneric(CommutativeRing):
 
     def is_floating_point(self):
         """
-        Returns whether this `p`-adic ring bounds precision in a floating
+        Return whether this `p`-adic ring bounds precision in a floating
         point fashion.
 
         The relative precision of an element is the power of `p`
@@ -178,7 +178,7 @@ class LocalGeneric(CommutativeRing):
 
     def is_lattice_prec(self):
         """
-        Returns whether this `p`-adic ring bounds precision using
+        Return whether this `p`-adic ring bounds precision using
         a lattice model.
 
         In lattice precision, relationships between elements
@@ -205,18 +205,18 @@ class LocalGeneric(CommutativeRing):
         """
         return False
 
-    def is_lazy(self):
+    def is_relaxed(self):
         """
-        Returns whether this `p`-adic ring bounds precision in a lazy
+        Return whether this `p`-adic ring bounds precision in a relaxed
         fashion.
 
-        In a lazy ring, elements have mechanisms for computing
+        In a relaxed ring, elements have mechanisms for computing
         themselves to greater precision.
 
         EXAMPLES::
 
             sage: R = Zp(5)
-            sage: R.is_lazy()
+            sage: R.is_relaxed()
             False
         """
         return False
@@ -528,7 +528,7 @@ class LocalGeneric(CommutativeRing):
 
     def precision_cap(self):
         r"""
-        Returns the precision cap for this ring.
+        Return the precision cap for this ring.
 
         EXAMPLES::
 
@@ -556,7 +556,7 @@ class LocalGeneric(CommutativeRing):
 
     def _precision_cap(self):
         r"""
-        Returns the precision cap for this ring, in the format
+        Return the precision cap for this ring, in the format
         used by the factory methods to create the ring.
 
         For most `p`-adic types, this is the same as :meth:`precision_cap`,
@@ -571,18 +571,10 @@ class LocalGeneric(CommutativeRing):
 
     def is_exact(self):
         r"""
-        Returns whether this p-adic ring is exact, i.e. False.
-
-        INPUT:
-            self -- a p-adic ring
-
-        OUTPUT:
-            boolean -- whether self is exact, i.e. False.
+        Return whether this `p`-adic ring is exact, i.e. ``False``.
 
         EXAMPLES::
 
-            #sage: R = Zp(5, 3, 'lazy'); R.is_exact()
-            #False
             sage: R = Zp(5, 3, 'fixed-mod'); R.is_exact()
             False
         """
@@ -590,7 +582,7 @@ class LocalGeneric(CommutativeRing):
 
     def residue_characteristic(self):
         r"""
-        Returns the characteristic of ``self``'s residue field.
+        Return the characteristic of ``self``'s residue field.
 
         INPUT:
 
@@ -609,7 +601,7 @@ class LocalGeneric(CommutativeRing):
 
     def defining_polynomial(self, var='x', exact=False):
         r"""
-        Returns the defining polynomial of this local ring
+        Return the defining polynomial of this local ring
 
         INPUT:
 
@@ -644,7 +636,7 @@ class LocalGeneric(CommutativeRing):
 
     def ground_ring(self):
         r"""
-        Returns ``self``.
+        Return ``self``.
 
         Will be overridden by extensions.
 
@@ -669,7 +661,7 @@ class LocalGeneric(CommutativeRing):
 
     def ground_ring_of_tower(self):
         r"""
-        Returns ``self``.
+        Return ``self``.
 
         Will be overridden by extensions.
 
@@ -963,7 +955,7 @@ class LocalGeneric(CommutativeRing):
 
     def inertia_subring(self):
         r"""
-        Returns the inertia subring, i.e. ``self``.
+        Return the inertia subring, i.e. ``self``.
 
         INPUT:
 
@@ -983,7 +975,7 @@ class LocalGeneric(CommutativeRing):
 
     def maximal_unramified_subextension(self):
         r"""
-        Returns the maximal unramified subextension.
+        Return the maximal unramified subextension.
 
         INPUT:
 
@@ -1003,13 +995,13 @@ class LocalGeneric(CommutativeRing):
 
 #    def get_extension(self):
 #        r"""
-#        Returns the trivial extension of self.
+#        Return the trivial extension of self.
 #        """
 #        raise NotImplementedError
 
     def uniformiser(self):
         """
-        Returns a uniformiser for ``self``, ie a generator for the unique maximal ideal.
+        Return a uniformiser for ``self``, ie a generator for the unique maximal ideal.
 
         EXAMPLES::
 
@@ -1026,7 +1018,7 @@ class LocalGeneric(CommutativeRing):
 
     def uniformiser_pow(self, n):
         """
-        Returns the `n`th power of the uniformiser of ``self`` (as an element of ``self``).
+        Return the `n`th power of the uniformiser of ``self`` (as an element of ``self``).
 
         EXAMPLES::
 
@@ -1076,8 +1068,6 @@ class LocalGeneric(CommutativeRing):
                 tester.assertLessEqual(y.precision_absolute(), 0)
             elif self.is_fixed_mod() or self.is_floating_point():
                 tester.assertGreaterEqual((x-y).valuation(), 0)
-            else:
-                raise NotImplementedError
 
             # if absprec < 0, then the result is in the fraction field (see #13591)
             y = x.add_bigoh(-1)
@@ -1086,7 +1076,7 @@ class LocalGeneric(CommutativeRing):
                 tester.assertLessEqual(y.precision_absolute(), -1)
 
             # make sure that we handle very large values correctly
-            if self._prec_type() != 'lattice-float':   # in the lattice-float model, there is no cap
+            if self._prec_type() not in [ 'lattice-float', 'relaxed' ]:   # no cap in these models
                 absprec = Integer(2)**1000
                 tester.assertEqual(x.add_bigoh(absprec), x)
 

@@ -24,6 +24,10 @@ CBLAS_PC_MODULES = "cblas"
 MATHJAX_DIR = "@prefix@/share/mathjax"
 THREEJS_DIR = "@prefix@/share/threejs"
 
+# OpenMP flags, if available.
+OPENMP_CFLAGS = "@OPENMP_CFLAGS@"
+OPENMP_CXXFLAGS = "@OPENMP_CXXFLAGS@"
+
 # The following must not be used during build to determine source or installation
 # location of sagelib.  See comments in SAGE_ROOT/src/Makefile.in
 SAGE_LOCAL = "@prefix@"

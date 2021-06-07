@@ -2056,12 +2056,11 @@ class TensorField(ModuleElementWithMutability):
 
     def copy_from(self, other):
         r"""
-        Make ``self`` to a copy from ``other``.
+        Make ``self`` a copy of ``other``.
 
         INPUT:
 
-        - ``other`` -- other tensor field in the very same module from which
-          ``self`` should be a copy of
+        - ``other`` -- other tensor field, in the same module as ``self``
 
         .. NOTE::
 
@@ -2092,7 +2091,7 @@ class TensorField(ModuleElementWithMutability):
             sage: s == t
             True
 
-        If the original tensor field is modified, the copy is not::
+        While the original tensor field is modified, the copy is not::
 
             sage: t[e_xy,0,0] = -1
             sage: t.display(e_xy)
@@ -2107,14 +2106,13 @@ class TensorField(ModuleElementWithMutability):
             raise ValueError("the components of an immutable element "
                              "cannot be changed")
         if other not in self.parent():
-            raise TypeError("the original must be an element "
-                            + "of {}".format(self.parent()))
+            raise TypeError("the original must be an element of "
+                            f"{self.parent()}")
         self._del_derived()
         self._del_restrictions() # delete restrictions
-        name, latex_name = self._name, self._latex_name # keep names
         for dom, rst in other._restrictions.items():
-            self._restrictions[dom] = rst.copy()
-        self.set_name(name=name, latex_name=latex_name)
+            self._restrictions[dom] = rst.copy(name=self._name,
+                                               latex_name=self._latex_name)
         self._is_zero = other._is_zero
 
     def copy(self, name=None, latex_name=None):
@@ -2167,9 +2165,17 @@ class TensorField(ModuleElementWithMutability):
 
         """
         resu = self._new_instance()
+        # set resu name
+        if name is not None:
+            resu._name = name
+            if latex_name is None:
+                resu._latex_name = name
+        if latex_name is not None:
+            resu._latex_name = latex_name
+        # set restrictions
         for dom, rst in self._restrictions.items():
-            resu._restrictions[dom] = rst.copy()
-        resu.set_name(name=name, latex_name=latex_name)
+            resu._restrictions[dom] = rst.copy(name=name,
+                                               latex_name=latex_name)
         resu._is_zero = self._is_zero
         return resu
 

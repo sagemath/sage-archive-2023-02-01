@@ -1,5 +1,5 @@
 SAGE_SPKG_CONFIGURE([python3], [
-   m4_pushdef([MIN_VERSION],               [3.6.0])
+   m4_pushdef([MIN_VERSION],               [3.7.0])
    m4_pushdef([MIN_NONDEPRECATED_VERSION], [3.7.0])
    m4_pushdef([LT_VERSION],                [3.10.0])
    AC_ARG_WITH([python],
@@ -97,17 +97,26 @@ SAGE_SPKG_CONFIGURE([python3], [
                 CFLAGS_MARCH=""
             ])
         ])
+
+        AS_IF([test -n "$OPENMP_CFLAGS$OPENMP_CXXFLAGS"], [
+            AC_MSG_CHECKING([whether OpenMP works with the C/C++ compilers configured for building extensions for $PYTHON_FOR_VENV])
+            SAGE_PYTHON_CHECK_DISTUTILS([CC="$CC" CXX="$CXX" CFLAGS="$CFLAGS $OPENMP_CFLAGS" CXXFLAGS="$CXXFLAGS $OPENMP_CXXFLAGS" conftest_venv/bin/python3], [
+                AC_MSG_RESULT([yes])
+            ], [
+                AC_MSG_RESULT([no, $reason; disabling use OpenMP])
+                OPENMP_CFLAGS=""
+                OPENMP_CXXFLAGS=""
+            ])
+        ])
+
         AX_COMPARE_VERSION([$python3_version], [lt], MIN_NONDEPRECATED_VERSION, [
             AC_MSG_NOTICE([deprecation notice: Support for system python < MIN_NONDEPRECATED_VERSION is deprecated
 and will be removed in the next development cycle.  Consider using a newer version of Python
 that may be available on your system or can be installed using the system package manager.
 To build Sage with a different system python, use ./configure --with-python=/path/to/python])
         ])
-    ], [
-        SAGE_MACOSX_DEPLOYMENT_TARGET=legacy
     ])
     AC_SUBST([PYTHON_FOR_VENV])
-    AC_SUBST([SAGE_MACOSX_DEPLOYMENT_TARGET])
 
     dnl These temporary directories are created by the check above
     dnl and need to be cleaned up to prevent the "rm -f conftest*"

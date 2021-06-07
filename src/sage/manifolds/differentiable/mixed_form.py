@@ -590,8 +590,6 @@ class MixedForm(AlgebraElement):
         self._is_zero = True
         return False
 
-    __nonzero__ = __bool__  # For Python2 compatibility
-
     def _richcmp_(self, other, op):
         r"""
         Comparison method for sage objects.

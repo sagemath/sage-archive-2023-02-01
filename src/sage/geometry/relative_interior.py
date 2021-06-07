@@ -14,8 +14,8 @@ Relative Interiors of Polyhedra and Cones
 
 from sage.structure.sage_object import SageObject
 
-class RelativeInterior(SageObject):
 
+class RelativeInterior(SageObject):
     r"""
     The relative interior of a polyhedron or cone
 
@@ -34,7 +34,6 @@ class RelativeInterior(SageObject):
         sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
         sage: octant.relative_interior()
         Relative interior of 3-d cone in 3-d lattice N
-
     """
 
     def __init__(self, polyhedron):
@@ -51,7 +50,6 @@ class RelativeInterior(SageObject):
             sage: P = Polyhedron()
             sage: from sage.geometry.relative_interior import RelativeInterior
             sage: TestSuite(RelativeInterior(P)).run()
-
         """
         self._polyhedron = polyhedron
 
@@ -121,7 +119,6 @@ class RelativeInterior(SageObject):
              a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
             sage: ri_segment.closure() is segment
             True
-
         """
         return self._polyhedron
 
@@ -169,7 +166,6 @@ class RelativeInterior(SageObject):
             sage: empty = Polyhedron(ambient_dim=2)
             sage: ri_segment == empty
             False
-
         """
         if type(self) != type(other):
             return False
@@ -195,6 +191,5 @@ class RelativeInterior(SageObject):
              a 1-dimensional polyhedron in AA^2 defined as the convex hull of 2 vertices
             sage: ri_segment != ri_segment2
             False
-
         """
         return not (self == other)

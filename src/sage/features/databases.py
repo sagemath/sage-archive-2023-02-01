@@ -87,10 +87,4 @@ class DatabaseKnotInfo(PythonModule):
             sage: isinstance(DatabaseKnotInfo(), DatabaseKnotInfo)
             True
         """
-        from sage.env import SAGE_SHARE
-        StaticFile.__init__(self, "Knot info database",
-                      filename='knotinfo/num_knots.sobj',
-                      search_path=SAGE_SHARE,
-                      spkg='database_knotinfo')
-        import os
-        self._sobj_path = os.path.join(SAGE_SHARE, 'knotinfo')
+        PythonModule.__init__(self, 'database_knotinfo', spkg='database_knotinfo')

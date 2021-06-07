@@ -149,7 +149,7 @@ class RelativeInterior(SageObject):
 
         INPUT:
 
-        - ``other`` -- a polyhedron
+        - ``other`` -- any object
 
         EXAMPLES::
 
@@ -164,7 +164,15 @@ class RelativeInterior(SageObject):
             sage: ri_segment == ri_segment2
             True
 
+        TESTS::
+
+            sage: empty = Polyhedron(ambient_dim=2)
+            sage: ri_segment == empty
+            False
+
         """
+        if type(self) != type(other):
+            return False
         return self._polyhedron == other._polyhedron
 
     def __ne__(self, other):
@@ -173,7 +181,7 @@ class RelativeInterior(SageObject):
 
         INPUT:
 
-        - ``other`` -- a polyhedron
+        - ``other`` -- any object
 
         TESTS::
 
@@ -189,4 +197,4 @@ class RelativeInterior(SageObject):
             False
 
         """
-        return self._polyhedron != other._polyhedron
+        return not (self == other)

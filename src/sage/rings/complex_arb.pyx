@@ -820,6 +820,13 @@ class ComplexBallField(UniqueRepresentation, Field):
             Traceback (most recent call last):
             ...
             ValueError: unable to determine which roots are real
+
+        TESTS::
+
+            sage: CBF._roots_univariate_polynomial(CBF['x'].zero(), CBF, False, None)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: taking the roots of the zero polynomial
         """
         if algorithm is not None:
             raise NotImplementedError
@@ -853,6 +860,8 @@ class ComplexBallField(UniqueRepresentation, Field):
         cdef ComplexBall cb
         acb_poly_init(rounded_poly)
         cdef long deg = acb_poly_degree(poly.__poly)
+        if deg < 0:
+            raise ArithmeticError("taking the roots of the zero polynomial")
         cdef acb_ptr roots = _acb_vec_init(deg)
         try:
             sig_on()

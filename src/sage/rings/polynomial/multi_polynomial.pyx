@@ -827,6 +827,41 @@ cdef class MPolynomial(CommutativeRingElement):
         else:
             return True
 
+    def homogeneous_components(self):
+        """
+        Return the homogeneous components of this polynomial.
+
+        OUTPUT:
+
+        A dictionary mapping degrees to homogeneous polynomials.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = QQ[]
+            sage: (x^3 + 2*x*y^3 + 4*y^3 + y).homogeneous_components()
+            {1: y, 3: x^3 + 4*y^3, 4: 2*x*y^3}
+            sage: R.zero().homogeneous_components()
+            {}
+
+        In case of weighted term orders, the polynomials are homogeneous with
+        respect to the weights::
+
+             sage: S.<a,b,c> = PolynomialRing(ZZ, order=TermOrder('wdegrevlex', (1,2,3)))
+             sage: (a^6 + b^3 + b*c + a^2*c + c + a + 1).homogeneous_components()
+             {0: 1, 1: a, 3: c, 5: a^2*c + b*c, 6: a^6 + b^3}
+        """
+        cdef ETuple e
+        from collections import defaultdict
+        d = defaultdict(dict)
+        if self._parent.term_order()._weights:
+            for c, m in self:
+                d[m.degree()][m.exponents()[0]] = c
+        else:
+            # Otherwise it is unweighted, so we use a faster implementation
+            for e, c in self.iterator_exp_coeff():
+               d[e.unweighted_degree()][e] = c
+        return {k: self._parent(d[k]) for k in d}
+
     cpdef _mod_(self, other):
         """
         EXAMPLES::

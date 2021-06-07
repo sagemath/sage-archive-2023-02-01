@@ -105,6 +105,7 @@ Miscellaneous
 .. toctree::
    :maxdepth: 1
 
+   sage/geometry/convex_set
    sage/geometry/linear_expression
    sage/geometry/newton_polygon
    sage/geometry/relative_interior

@@ -21,7 +21,6 @@ class ConvexSet_base(SageObject):
     Abstract base class for convex sets.
     """
 
-    @abstract_method
     def is_empty(self):
         r"""
         Test whether ``self`` is the empty set
@@ -30,8 +29,8 @@ class ConvexSet_base(SageObject):
 
         Boolean.
         """
+        return self.dim() < 0
 
-    @abstract_method
     def is_universe(self):
         r"""
         Test whether ``self`` is the whole ambient space
@@ -39,6 +38,15 @@ class ConvexSet_base(SageObject):
         OUTPUT:
 
         Boolean.
+        """
+        if not self.is_full_dimensional():
+            return False
+        raise NotImplementedError
+
+    @abstract_method
+    def dim(self):
+        r"""
+        Return the dimension of ``self``.
         """
 
     @abstract_method
@@ -55,8 +63,8 @@ class ConvexSet_base(SageObject):
 
         Boolean. Whether the polyhedron is not contained in any strict
         affine subspace.
-
         """
+        return self.dim() == self.ambient_dim()
 
     @abstract_method
     def is_open(self):
@@ -105,7 +113,7 @@ class ConvexSet_base(SageObject):
         r"""
         Return the topological interior of ``self``.
         """
-        if self.is_closed():
+        if self.is_open():
             return self
         raise NotImplementedError
 

@@ -71,6 +71,27 @@ class RelativeInterior(SageObject):
         """
         return self._polyhedron.relative_interior_contains(point)
 
+    def interior(self):
+        r"""
+        Return the interior of ``self``.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.interior()
+            The empty polyhedron in ZZ^2
+
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: ri_octant = octant.relative_interior(); ri_octant
+            Relative interior of 3-d cone in 3-d lattice N
+            sage: ri_octant.interior() is ri_octant
+            True
+        """
+        return self._polyhedron.interior()
+
     def relative_interior(self):
         r"""
         Return the relative interior of ``self``.

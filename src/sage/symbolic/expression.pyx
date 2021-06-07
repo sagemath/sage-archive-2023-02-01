@@ -10027,8 +10027,8 @@ cdef class Expression(CommutativeRingElement):
             sage: a = RR.random_element()
             sage: b = RR.random_element()
             sage: f = SR(a + b*I)
-            sage: bool(f.rectform() == a + b*I)
-            True
+            sage: abs(f.rectform() - (a + b*I))  # abs tol 1e-16
+            0.0
 
         If we decompose a complex number into its real and imaginary
         parts, they should correspond to the real and imaginary terms
@@ -10037,9 +10037,8 @@ cdef class Expression(CommutativeRingElement):
             sage: z = CC.random_element()
             sage: a = z.real_part()
             sage: b = z.imag_part()
-            sage: bool(SR(z).rectform() == a + b*I)
-            True
-
+            sage: abs(SR(z).rectform() - (a + b*I))  # abs tol 1e-16
+            0.0
         """
         return self.maxima_methods().rectform()
 
@@ -10241,10 +10240,10 @@ cdef class Expression(CommutativeRingElement):
             1/3*x*hypergeometric((), (2, 3), x) + hypergeometric((), (1, 2), x)
             sage: (2*hypergeometric((), (), x)).simplify_hypergeometric()
             2*e^x
-            sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)
+            sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)  # not tested, unstable
             ....:  .simplify_hypergeometric())
             laguerre(-laguerre(-e^x, x), x)
-            sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)
+            sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)  # not tested, unstable
             ....:  .simplify_hypergeometric(algorithm='sage'))
             hypergeometric((hypergeometric((e^x,), (1,), x),), (1,), x)
             sage: hypergeometric_M(1, 3, x).simplify_hypergeometric()

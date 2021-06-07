@@ -2176,6 +2176,7 @@ class ExpressionTreeWalker(Converter):
             sage: s = ExpressionTreeWalker(ex)
             sage: bool(s() == ex)
             True
+            sage: set_random_seed(0)  # random_expr is unstable
             sage: foo = random_expr(20, nvars=2)
             sage: s = ExpressionTreeWalker(foo)
             sage: bool(s() == foo)

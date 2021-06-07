@@ -1826,13 +1826,18 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             sage: origin.relative_interior() is origin
             True
 
+            sage: K1 = Cone([(1,0), (-1,0)]); K1
+            1-d cone in 2-d lattice N
+            sage: K1.relative_interior() is K1
+            True
+
             sage: K2 = Cone([(1,0),(-1,0),(0,1),(0,-1)]); K2
             2-d cone in 2-d lattice N
             sage: K2.relative_interior() is K2
             True
 
         """
-        if self.is_trivial() or self.is_full_space():
+        if self.is_relatively_open():
             return self
         return RelativeInterior(self)
 
@@ -4744,6 +4749,29 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             0
         """
         return self.linear_subspace().dimension()
+
+    def is_relatively_open(self):
+
+        r"""
+        Return whether ``self`` is relatively open.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: K = cones.nonnegative_orthant(3)
+            sage: K.is_relatively_open()
+            False
+
+            sage: K1 = Cone([(1,0), (-1,0)]); K1
+            1-d cone in 2-d lattice N
+            sage: K1.is_relatively_open()
+            True
+
+        """
+        return self.lineality() == self.dim()
 
     @cached_method
     def discrete_complementarity_set(self):

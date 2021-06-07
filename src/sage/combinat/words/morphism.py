@@ -106,46 +106,45 @@ from sage.combinat.words.word import FiniteWord_class
 from sage.combinat.words.words import FiniteWords, FiniteOrInfiniteWords
 
 
-def get_cycles(f, domain=None):
+def get_cycles(f, domain):
     r"""
-    Return the cycle of the function ``f`` on the finite set domain. It is
-    assumed that f is an endomorphism.
+    Return the list of cycles of the function ``f`` contained in ``domain``.
 
     INPUT:
 
     - ``f`` - function.
 
-    - ``domain`` - set (default: None) - the domain of ``f``. If none, then
-      tries to use ``f.domain()``.
+    - ``domain`` - iterable, a subdomain of the domain of definition of ``f``.
 
     EXAMPLES::
 
         sage: from sage.combinat.words.morphism import get_cycles
-        sage: get_cycles(lambda i: (i+1)%3, domain=[0,1,2])
+        sage: get_cycles(lambda i: (i+1)%3, [0,1,2])
         [(0, 1, 2)]
-        sage: get_cycles(lambda i: [0,0,0][i], domain=[0,1,2])
+        sage: get_cycles(lambda i: [0,0,0][i], [0,1,2])
         [(0,)]
-        sage: get_cycles(lambda i: [1,1,1][i], domain=[0,1,2])
+        sage: get_cycles(lambda i: [1,1,1][i], [0,1,2])
         [(1,)]
+        sage: get_cycles(lambda i: [2,3,0][i], [0,1,2])
+        [(0, 2)]
+        sage: d = {'a': 'a', 'b': 'b'}
+        sage: get_cycles(d.__getitem__, 'ba')
+        [('b',), ('a',)]
     """
-    if domain is None:
-        try:
-            domain = f.domain()
-        except AttributeError:
-            raise ValueError("you should specify the domain of the function f")
     cycles = []
-    not_seen = dict((letter,True) for letter in domain)
-    for a in not_seen:
-        if not_seen[a]:
-            not_seen[a] = False
-            cycle = [a]
-            b = f(a)
-            while not_seen[b]:
-                not_seen[b] = False
-                cycle.append(b)
-                b = f(b)
-            if b in cycle:
-                cycles.append(tuple(cycle[cycle.index(b):]))
+    not_seen = set(domain)
+    for a in domain:
+        if a not in not_seen:
+            continue
+        cycle = [a]
+        b = f(a)
+        not_seen.remove(a)
+        while b in not_seen:
+            not_seen.remove(b)
+            cycle.append(b)
+            b = f(b)
+        if b in cycle:
+            cycles.append(tuple(cycle[cycle.index(b):]))
 
     return cycles
 
@@ -2030,7 +2029,7 @@ class WordMorphism(SageObject):
 
         res = []
         parent = self.codomain().shift()
-        for cycle in get_cycles(CallableDict(d),A):
+        for cycle in get_cycles(CallableDict(d), A):
             if cycle[0] in G:
                 P = PeriodicPointIterator(self, cycle)
                 res.append([parent(P._cache[i]) for i in range(len(cycle))])
@@ -3107,27 +3106,14 @@ class WordMorphism(SageObject):
             Combinatorics, automata and number theory, 163--247, Encyclopedia
             Math. Appl., 135, Cambridge Univ. Press, Cambridge, 2010.
         """
-        if self.is_primitive() and len(self._morph) > 1:
-            return True
-        if letter is None:
-            I = range(self.domain().alphabet().cardinality())
+        if not letter:
+            return self.domain().alphabet().cardinality() == len(self.growing_letters())
         else:
-            if letter not in self.domain().alphabet():
-                raise TypeError("letter (=%s) is not in the domain of self" % letter)
-            I = [self.domain().alphabet().rank(letter)]
-
-        last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
-        while coefs[last_coef] == 0:
-            last_coef += 1
-        V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)
-        basis = V.ambient_vector_space().basis()
-
-        return not any(basis[i] in V for i in I)
+            return letter in self.growing_letters()
 
     def growing_letters(self):
         r"""
-        Returns the list of growing letters.
+        Return the list of growing letters.
 
         See :meth:`.is_growing` for more information.
 
@@ -3139,6 +3125,10 @@ class WordMorphism(SageObject):
             ['0']
             sage: WordMorphism('0->01,1->0,2->1',codomain=Words('012')).growing_letters()
             ['0', '1', '2']
+            sage: WordMorphism('a->b,b->a').growing_letters()
+            []
+            sage: WordMorphism('a->b,b->c,c->d,d->c', codomain=Words('abcd')).growing_letters()
+            []
 
         TESTS:
 
@@ -3147,17 +3137,73 @@ class WordMorphism(SageObject):
             sage: WordMorphism('a->a').growing_letters()
             []
         """
-        if self.is_primitive() and len(self._morph) > 1:
-            return self.domain().alphabet().list()
-        last_coef = 0
-        coefs = self.incidence_matrix().charpoly().coefficients(sparse=False)
-        while coefs[last_coef] == 0:
-            last_coef += 1
-        V = self.abelian_rotation_subspace() + (self.incidence_matrix()**last_coef).right_kernel().change_ring(QQ)
-        basis = V.ambient_vector_space().basis()
-        A = self.domain().alphabet()
+        # Remove letters that vanish, ie sigma^n(letter) is ultimately empty
+        immortal = set(self.immortal_letters())
+        new_morph = {x: [z for z in self._morph[x] if z in immortal] for x in immortal}
 
-        return list(A.unrank(i) for i in range(A.cardinality()) if basis[i] not in V)
+        # Remove cycles of letters
+        graph_one = {x : y[0] for x, y in new_morph.items() if len(y) == 1}
+        no_loops = set(new_morph)
+        for cycle in get_cycles(graph_one.__getitem__, graph_one):
+            no_loops.difference_update(cycle)
+        new_morph = {x: [z for z in new_morph[x] if z in no_loops] for x in no_loops}
+
+        # Remove letters ending in a cycle
+        # NOTE: here we should actually be using the domain made of the
+        # remaining letters in new_morph. However, building the corresponding
+        # alphabet and finite words cost much more time than using the same
+        # domain.
+        new_morph = WordMorphism(new_morph, domain=self.domain(), codomain=self.codomain())
+        return new_morph.immortal_letters()
+
+    def immortal_letters(self):
+        r"""
+        Return the list of immortal letters.
+
+        A letter `a` is *immortal* for the morphism `s` if the length of the
+        iterates of `| s^n(a) |` is larger than zero as `n` goes to infinity.
+
+        Requires this morphism to be an endomorphism.
+
+        EXAMPLES::
+
+            sage: WordMorphism('a->a').immortal_letters()
+            ['a']
+            sage: WordMorphism('a->b,b->a').immortal_letters()
+            ['a', 'b']
+            sage: WordMorphism('a->abcd,b->cd,c->dd,d->').immortal_letters()
+            ['a']
+            sage: WordMorphism('a->bc,b->cac,c->de,d->,e->').immortal_letters()
+            ['a', 'b']
+            sage: WordMorphism('a->', domain=Words('a'), codomain=Words('a')).immortal_letters()
+            []
+        """
+        if not self.is_endomorphism():
+            raise TypeError(f'self ({self}) is not an endomorphism')
+
+        forward = {}
+        backward = {letter: set() for letter in self._morph}
+        stack = []
+        for letter, image in self._morph.items():
+            if not image:
+                stack.append(letter)
+                forward[letter] = set()
+            else:
+                simage = set(image)
+                forward[letter] = simage
+                for occurrence in simage:
+                    backward[occurrence].add(letter)
+
+        while stack:
+            letter = stack.pop()
+            for preimage in backward[letter]:
+                forward[preimage].remove(letter)
+                if not forward[preimage]:
+                    stack.append(preimage)
+            del forward[letter]
+            del backward[letter]
+
+        return sorted(forward, key=self.domain().alphabet().rank)
 
     def abelian_rotation_subspace(self):
         r"""

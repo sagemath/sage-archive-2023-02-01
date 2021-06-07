@@ -1835,7 +1835,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             2-d cone in 2-d lattice N
             sage: K2.relative_interior() is K2
             True
-
         """
         if self.is_relatively_open():
             return self
@@ -4751,7 +4750,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         return self.linear_subspace().dimension()
 
     def is_relatively_open(self):
-
         r"""
         Return whether ``self`` is relatively open.
 
@@ -4769,7 +4767,6 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             1-d cone in 2-d lattice N
             sage: K1.is_relatively_open()
             True
-
         """
         return self.lineality() == self.dim()
 

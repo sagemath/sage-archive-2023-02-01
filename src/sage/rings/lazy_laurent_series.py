@@ -167,10 +167,7 @@ class LazyLaurentSeries(ModuleElement):
         self._approximate_valuation = valuation
         self._constant = constant
         self._implementation = parent._implementation
-        # print(parent)
-        # print("The implementation in the series file is:", self._implementation)
-        # print("The approx_val rn:", self._approximate_valuation)
-        # print("The constnt rn:", self._constant)
+        
         if self._implementation == 'sparse':
             self._cache = dict() # cache of known coefficients
         elif self._implementation == 'dense':
@@ -178,37 +175,6 @@ class LazyLaurentSeries(ModuleElement):
             self._offset = valuation
         else:
             raise ValueError
-    # def __init__(self, parent, coefficient=None, valuation=0, constant=None, implementation="sparse"):
-    #     """
-    #     Initialize.
-
-    #     TESTS::
-
-    #         sage: L = LazyLaurentSeriesRing(GF(2), 'z')
-    #         sage: z = L.gen()
-    #         sage: TestSuite(z).run()
-    #     """
-    #     ModuleElement.__init__(self, parent)
-
-    #     self._coefficient_function = coefficient
-    #     self._approximate_valuation = valuation
-    #     self._constant = constant
-
-    #     if implementation == "sparse":
-    #         self._cache = dict() # cache of known coefficients
-    #     elif implementation == "dense":
-    #         # this might work
-    #         class mycache():
-    #             def __init__(self, coefficient, valuation):
-    #                 self.c = coefficient
-    #                 self.v = valuation
-    #                 self.cache = lazy_list(lambda n: self.c(n+self.v))
-    #             def __getitem__(self, n):
-    #                 return self.cache[n-self.v]
-               
-    #         self._cache = mycache(self._coefficient_function, self._approximate_valuation)
-    #     else:
-    #         raise ValueError("sparse or dense")
 
     def _richcmp_(self, other, op):
         """
@@ -409,63 +375,31 @@ class LazyLaurentSeries(ModuleElement):
             sage: e
             1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
         """
+        
+        R = self.base_ring()
+        if self._approximate_valuation == infinity:
+            return R.zero()
+        elif n < self._approximate_valuation:
+            return R.zero()
+        elif self._constant is not None and n >= self._constant[1]:
+            return self._constant[0]
+
         if self._implementation == 'sparse':
-            R = self.base_ring()
-            # print(R)
-            # print("The approximate valuation is:", self._approximate_valuation)
-            if self._approximate_valuation == infinity:
-                # print("a")
-                # print(R.zero())
-                return R.zero()
-            elif n < self._approximate_valuation:
-                # print("b")
-                # print(R.zero())
-                return R.zero()
-            elif self._constant is not None and n >= self._constant[1]:
-                # print("c")
-                # print(self._constant[0])
-                # print(self._constant)
-                return self._constant[0]
-
-            try:
-                # print('d')
-                # print(self._cache)
+            try:                
                 c = self._cache[n]
-                # print(self._cache)
             except KeyError:
-                # print('e')
                 c = R(self._coefficient_function(self, n))
-                # print(c)
                 self._cache[n] = c
-                # print(self._cache)
-
             return c
 
         else:
-            R = self.base_ring()
-
-            if self._approximate_valuation == infinity:
-                return R.zero()
-            elif n < self._approximate_valuation:
-                return R.zero()
-            elif self._constant is not None and n >= self._constant[1]:
-                return self._constant[0]
-
-            # try:
-            #     c = self._cache[n]
-            # except KeyError:
-            #     c = R(self._coefficient_function(self, n))
-            #     self._cache[n] = c
-            # i = self._cache[n - self._offset]
-            i = self._cache[len(self._cache) - self._offset]
-            if i >= len(self._cache):
-                   # compute all coefficients up to the requested one
-               l = [R(self._coefficient_function(self, j)) for j in range(i)]
-               self._cache.extend(l)
-
-            c = self._cache[i]
-
+            i = len(self._cache) + n
+            if i >= len(self._cache) or -i >= len(self._cache):
+                l = [R(self._coefficient_function(self, j)) for j in range(1, i)] if i >= 0 else [R(self._coefficient_function(self, -j)) for j in range(-i, -1, -1)]
+                self._cache.extend(l)
+            c = self._cache[i - 1]
             return c
+
 
     def valuation(self):
         """
@@ -485,38 +419,32 @@ class LazyLaurentSeries(ModuleElement):
             sage: t.valuation()
             +Infinity
         """
-        if self._implementation == 'sparse':
+        if self._constant is not None:
+            n = self._approximate_valuation
+            m = self._constant[1]
+            while n <= m:
+                if self.coefficient(n) != 0:
+                    self._approximate_valuation = n
+                    return n
+                n += 1
+            return infinity
+
+        elif self._implementation == 'sparse':
             if self._constant is None:
                 n = self._approximate_valuation
                 cache = self._cache
-                # print("The cache is", self._cache)
-                # print("The approx value is", n)
                 while True:
                     if n in cache:
-                        # print("The current key is:", n)
                         if cache[n]:
                             self._approximate_valuation = n
                             return n
                         n += 1
                     else:
                         if self.coefficient(n) != 0:
-                            # print("The value is:", self.coefficient(n))
                             self._approximate_valuation = n
                             return n
                         n += 1
-            else:
-                n = self._approximate_valuation
-                m = self._constant[1]
-                # print("n is:", n)
-                # print('m is: ', m)
-                while n <= m:
-                    if self.coefficient(n) != 0:
-                        # print("Self", self._approximate_valuation)
-                        # print(n)
-                        self._approximate_valuation = n
-                        return n
-                    n += 1
-                return infinity
+
         else:
             if self._constant is None:
                 n = self._approximate_valuation
@@ -529,23 +457,9 @@ class LazyLaurentSeries(ModuleElement):
                         n += 1
                     else:
                         if self.coefficient(n) != 0:
-                            # print("The value is:", self.coefficient(n))
                             self._approximate_valuation = n
                             return n
                         n += 1
-            else:
-                n = self._approximate_valuation
-                m = self._constant[1]
-                # print("n is:", n)
-                # print('m is: ', m)
-                while n <= m:
-                    if self.coefficient(n) != 0:
-                        # print("Self", self._approximate_valuation)
-                        # print(n)
-                        self._approximate_valuation = n
-                        return n
-                    n += 1
-                return infinity
 
     def prec(self):
         """

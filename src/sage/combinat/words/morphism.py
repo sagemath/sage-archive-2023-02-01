@@ -1947,12 +1947,18 @@ class WordMorphism(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: self must be prolongable on a
+
+        Make sure that :trac:`31759` is fixed::
+
+            sage: WordMorphism('a->b,b->a').periodic_point('a')
+            word: a
         """
         if not self.is_growing(letter):
-            w = self(letter)
-            w2 = self(w)
-            while w2 != w:
-                w,w2 = w2, self(w2)
+            w = self.domain()(letter)
+            prev = set()
+            while w not in prev:
+                prev.add(w)
+                w = self(w)
             return w
 
         elif self.is_erasing():

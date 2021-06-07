@@ -3191,6 +3191,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             return False
         return self.rays().matrix().elementary_divisors() == [1] * self.nrays()
 
+    def is_empty(self):
+        """
+        Return whether ``self`` is the empty set.
+
+        Because a cone always contains the origin, this method returns ``False``.
+        """
+        return False
+
     def is_trivial(self):
         """
         Checks if the cone has no rays.
@@ -4448,6 +4456,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         A cone is said to be solid if it has nonempty interior. That
         is, if its extreme rays span the entire ambient space.
 
+        An alias is :meth:`is_full_dimensional`.
+
         OUTPUT:
 
         ``True`` if this cone is solid, and ``False`` otherwise.
@@ -4486,6 +4496,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             True
         """
         return (self.dim() == self.lattice_dim())
+
+    is_full_dimensional = is_solid
 
     def is_proper(self):
         r"""
@@ -4537,6 +4549,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         r"""
         Check if this cone is equal to its ambient vector space.
 
+        An alias is :meth:`is_universe`.
+
         OUTPUT:
 
         ``True`` if this cone equals its entire ambient vector
@@ -4573,6 +4587,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
 
         """
         return self.linear_subspace() == self.lattice().vector_space()
+
+    is_universe = is_full_space
 
     def lineality(self):
         r"""

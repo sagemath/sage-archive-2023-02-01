@@ -101,6 +101,21 @@ class ConvexSet_base(SageObject):
 
         """
 
+    def is_compact(self):
+        r"""
+        Return whether ``self`` is compact.
+
+        OUTPUT:
+
+        Boolean.
+
+        """
+        if not self.is_closed():
+            return False
+        if self.dimension() < 1:
+            return True
+        raise NotImplementedError
+
     def closure(self):
         r"""
         Return the topological closure of ``self``.
@@ -150,6 +165,34 @@ class ConvexSet_closed(ConvexSet_base):
 
         """
         return self.is_empty() or self.is_universe()
+
+
+class ConvexSet_compact(ConvexSet_closed):
+
+    r"""
+    Abstract base class for compact convex sets.
+    """
+
+    def is_universe(self):
+        r"""
+        Return whether ``self`` is the whole ambient space
+
+        OUTPUT:
+
+        Boolean.
+        """
+        return self.ambient_dim() == 0 and not self.is_empty()
+
+    def is_compact(self):
+        r"""
+        Return whether ``self`` is compact.
+
+        OUTPUT:
+
+        Boolean.
+
+        """
+        return True
 
 
 class ConvexSet_relatively_open(ConvexSet_base):

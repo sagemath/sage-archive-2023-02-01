@@ -135,7 +135,7 @@ from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
-from sage.geometry.convex_set import ConvexSet_closed
+from sage.geometry.convex_set import ConvexSet_compact
 
 from copy import copy
 from collections.abc import Hashable
@@ -465,7 +465,7 @@ def is_LatticePolytope(x):
     return isinstance(x, LatticePolytopeClass)
 
 @richcmp_method
-class LatticePolytopeClass(ConvexSet_closed, Hashable):
+class LatticePolytopeClass(ConvexSet_compact, Hashable):
     r"""
     Create a lattice polytope.
 

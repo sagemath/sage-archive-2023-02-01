@@ -203,7 +203,7 @@ class ConvexSet_relatively_open(ConvexSet_base):
 
     def is_relatively_open(self):
         r"""
-        Return whether ``self`` is open.
+        Return whether ``self`` is relatively open.
 
         OUTPUT:
 
@@ -211,3 +211,14 @@ class ConvexSet_relatively_open(ConvexSet_base):
 
         """
         return True
+
+    def is_open(self):
+        r"""
+        Return whether ``self`` is open.
+
+        OUTPUT:
+
+        Boolean.
+
+        """
+        return self.is_full_dimensional()

@@ -1010,6 +1010,8 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
         r"""
         Return the dimension of the ambient lattice of ``self``.
 
+        An alias is :meth:`ambient_dim`.
+
         OUTPUT:
 
         - integer.
@@ -1023,6 +1025,8 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
             1
         """
         return self.lattice().dimension()
+
+    ambient_dim = lattice_dim
 
     def nrays(self):
         r"""

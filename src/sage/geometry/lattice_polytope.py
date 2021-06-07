@@ -2599,6 +2599,8 @@ class LatticePolytopeClass(ConvexSet_closed, Hashable):
         r"""
         Return the dimension of the ambient lattice of ``self``.
 
+        An alias is :meth:`ambient_dim`.
+
         OUTPUT:
 
         - integer.
@@ -2612,6 +2614,8 @@ class LatticePolytopeClass(ConvexSet_closed, Hashable):
             0
         """
         return self.lattice().dimension()
+
+    ambient_dim = lattice_dim
 
     def linearly_independent_vertices(self):
         r"""

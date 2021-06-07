@@ -42,6 +42,11 @@ class ConvexSet_base(SageObject):
         """
 
     @abstract_method
+    def ambient_dim(self):
+        r"""
+        Return the dimension of the ambient space.
+        """
+
     def is_full_dimensional(self):
         r"""
         Return whether ``self`` is full dimensional.

@@ -102,7 +102,7 @@ EXAMPLES::
 #
 #*****************************************************************************
 
-from sage.homology.simplicial_complex import Simplex, SimplicialComplex
+from .simplicial_complex import Simplex, SimplicialComplex
 from sage.matrix.constructor import matrix, zero_matrix
 from sage.rings.integer_ring import ZZ
 from sage.homology.chain_complex_morphism import ChainComplexMorphism
@@ -119,7 +119,7 @@ def is_SimplicialComplexMorphism(x):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_complex_morphism import is_SimplicialComplexMorphism
+        sage: from sage.topology.simplicial_complex_morphism import is_SimplicialComplexMorphism
         sage: S = SimplicialComplex([[0,1],[3,4]], is_mutable=False)
         sage: H = Hom(S,S)
         sage: f = {0:0,1:1,3:3,4:4}
@@ -231,7 +231,7 @@ class SimplicialComplexMorphism(Morphism):
             sage: f = {0:0,1:1,2:2,3:3}
             sage: H = Hom(S,T)
             sage: x = H(f)
-            sage: from sage.homology.simplicial_complex import Simplex
+            sage: from sage.topology.simplicial_complex import Simplex
             sage: x(Simplex([0,2,3]))
             (0, 2, 3)
 
@@ -733,7 +733,7 @@ class SimplicialComplexMorphism(Morphism):
             True
             sage: h = Hom(S,S2)({0: 0, 1:1, 2:2}).induced_homology_morphism()
         """
-        from .homology_morphism import InducedHomologyMorphism
+        from sage.homology.homology_morphism import InducedHomologyMorphism
         return InducedHomologyMorphism(self, base_ring, cohomology)
 
     def is_contiguous_to(self, other):

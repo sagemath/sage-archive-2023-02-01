@@ -26,7 +26,7 @@ EXAMPLES::
     False
     sage: x.image()
     Simplicial complex with vertex set (0, 1, 3) and facets {(0, 1), (0, 3), (1, 3)}
-    sage: from sage.homology.simplicial_complex import Simplex
+    sage: from sage.topology.simplicial_complex import Simplex
     sage: s = Simplex([1,2])
     sage: x(s)
     (1, 3)
@@ -58,7 +58,7 @@ TESTS::
 #*****************************************************************************
 
 import sage.categories.homset
-from sage.homology.simplicial_complex_morphism import SimplicialComplexMorphism
+from .simplicial_complex_morphism import SimplicialComplexMorphism
 
 def is_SimplicialComplexHomset(x):
     """
@@ -73,7 +73,7 @@ def is_SimplicialComplexHomset(x):
         Set of Morphisms from Simplicial complex with vertex set () and facets {()}
          to Simplicial complex with vertex set () and facets {()}
          in Category of finite simplicial complexes
-        sage: from sage.homology.simplicial_complex_homset import is_SimplicialComplexHomset
+        sage: from sage.topology.simplicial_complex_homset import is_SimplicialComplexHomset
         sage: is_SimplicialComplexHomset(H)
         True
     """

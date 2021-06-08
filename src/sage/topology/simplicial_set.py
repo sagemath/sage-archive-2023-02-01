@@ -221,7 +221,7 @@ predefined ones using pushouts, pullbacks, etc., but they can also be
 constructed "by hand": first define some simplices, then define a
 simplicial set by specifying their faces::
 
-    sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+    sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
     sage: v = AbstractSimplex(0, name='v')
     sage: w = AbstractSimplex(0, name='w')
     sage: e = AbstractSimplex(1, name='e')
@@ -263,11 +263,11 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.structure.parent import Parent
 from sage.structure.sage_object import SageObject
+from sage.homology.algebraic_topological_model import algebraic_topological_model_delta_complex
+from sage.homology.chain_complex import ChainComplex
+from sage.homology.chains import Chains, Cochains
 
-from .algebraic_topological_model import algebraic_topological_model_delta_complex
 from .cell_complex import GenericCellComplex
-from .chain_complex import ChainComplex
-from .chains import Chains, Cochains
 from .delta_complex import DeltaComplex
 from .simplicial_complex import SimplicialComplex
 
@@ -312,7 +312,7 @@ class AbstractSimplex_class(SageObject):
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, (1,2))
             s_3 s_1 Delta^3
             sage: AbstractSimplex(3, None)
@@ -342,7 +342,7 @@ class AbstractSimplex_class(SageObject):
         Distinct non-degenerate simplices should never be equal, even
         if they have the same starting data::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex_class
+            sage: from sage.topology.simplicial_set import AbstractSimplex_class
             sage: AbstractSimplex_class(3) == AbstractSimplex_class(3)
             False
             sage: AbstractSimplex(3) == AbstractSimplex(3)
@@ -407,7 +407,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
             sage: hash(v) == hash(w)
@@ -431,7 +431,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
             sage: v == w
@@ -457,7 +457,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
             sage: v != w
@@ -483,7 +483,7 @@ class AbstractSimplex_class(SageObject):
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
 
@@ -585,7 +585,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: e = AbstractSimplex(1, (1,0), name='e')
             sage: f = AbstractSimplex(1, (2,1), name='f')
             sage: e > f
@@ -599,7 +599,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: e = AbstractSimplex(1, (1,0), name='e')
             sage: f = AbstractSimplex(1, (2,1), name='f')
             sage: e <= f
@@ -613,7 +613,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: e = AbstractSimplex(1, (1,0), name='e')
             sage: f = AbstractSimplex(1, (2,1), name='f')
             sage: e >= f
@@ -629,7 +629,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: v = AbstractSimplex(0, name='v')
             sage: sigma = v.apply_degeneracies(1, 0)
             sage: sigma.nondegenerate()
@@ -656,7 +656,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(4, (0,0,0)).degeneracies()
             [2, 1, 0]
             sage: AbstractSimplex(4, None).degeneracies()
@@ -670,7 +670,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, (2,1)).is_degenerate()
             True
             sage: AbstractSimplex(3, None).is_degenerate()
@@ -684,7 +684,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, (2,1)).is_nondegenerate()
             False
             sage: AbstractSimplex(3, None).is_nondegenerate()
@@ -700,7 +700,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, (2,1)).dimension()
             5
             sage: AbstractSimplex(3, None).dimension()
@@ -720,7 +720,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: v = AbstractSimplex(0)
             sage: e = v.apply_degeneracies(0)
             sage: e.nondegenerate() == v
@@ -766,7 +766,7 @@ class AbstractSimplex_class(SageObject):
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: v = AbstractSimplex(0)
             sage: copy(v) == v
             False
@@ -809,7 +809,7 @@ class AbstractSimplex_class(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: import copy
             sage: v = AbstractSimplex(0)
             sage: copy.deepcopy(v) == v
@@ -820,7 +820,7 @@ class AbstractSimplex_class(SageObject):
         The purpose for this method is to be able to make distinct
         copies of simplicial sets::
 
-            sage: from sage.homology.simplicial_set import SimplicialSet
+            sage: from sage.topology.simplicial_set import SimplicialSet
             sage: RP3 = simplicial_sets.RealProjectiveSpace(3)
             sage: dict(copy.copy(RP3._data)) == dict(RP3._data)
             True
@@ -848,7 +848,7 @@ class AbstractSimplex_class(SageObject):
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: AbstractSimplex(3, None)
             Delta^3
             sage: AbstractSimplex(3, (0,))
@@ -878,7 +878,7 @@ class AbstractSimplex_class(SageObject):
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: latex(AbstractSimplex(18, None))
             \Delta^{18}
             sage: latex(AbstractSimplex(3, (0, 0,)))
@@ -929,12 +929,12 @@ class NonDegenerateSimplex(AbstractSimplex_class, WithEqualityById):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: v = AbstractSimplex(0, name='v')
             sage: v
             v
             sage: type(v)
-            <class 'sage.homology.simplicial_set.NonDegenerateSimplex'>
+            <class 'sage.topology.simplicial_set.NonDegenerateSimplex'>
 
         Distinct non-degenerate simplices should never be equal, even
         if they have the same starting data. ::
@@ -944,7 +944,7 @@ class NonDegenerateSimplex(AbstractSimplex_class, WithEqualityById):
             sage: AbstractSimplex(3) == AbstractSimplex(3)
             False
 
-            sage: from sage.homology.simplicial_set import NonDegenerateSimplex
+            sage: from sage.topology.simplicial_set import NonDegenerateSimplex
             sage: x = NonDegenerateSimplex(0, name='x')
             sage: x == NonDegenerateSimplex(0, name='x')
             False
@@ -992,7 +992,7 @@ def AbstractSimplex(dim, degeneracies=(), underlying=None,
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import AbstractSimplex
+        sage: from sage.topology.simplicial_set import AbstractSimplex
         sage: AbstractSimplex(3, (3, 1))
         s_3 s_1 Delta^3
         sage: AbstractSimplex(3, None)
@@ -1168,7 +1168,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: S2.faces(v_0) is None
             True
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex
+            sage: from sage.topology.simplicial_set import AbstractSimplex
             sage: w = AbstractSimplex(0)
             sage: S2.faces(w)
             Traceback (most recent call last):
@@ -1236,7 +1236,7 @@ class SimplicialSet_arbitrary(Parent):
             sage: v0 in S1
             False
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: e = AbstractSimplex(1)
             sage: K = SimplicialSet({e: (v, v)})  # the circle
@@ -1331,7 +1331,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
             sage: S0 = SimplicialSet({v: None, w: None})
@@ -1398,7 +1398,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
             sage: S0 = SimplicialSet({v: None, w: None})
@@ -1500,7 +1500,7 @@ class SimplicialSet_arbitrary(Parent):
             v_0
             sage: S4._an_element_() in S4
             True
-            sage: from sage.homology.simplicial_set_examples import Empty
+            sage: from sage.topology.simplicial_set_examples import Empty
             sage: Empty()._an_element_() is None
             True
         """
@@ -1515,7 +1515,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: degen = v.apply_degeneracies(0)
@@ -1566,7 +1566,7 @@ class SimplicialSet_arbitrary(Parent):
               To:   Torus
               Defn: [] --> []
         """
-        from sage.homology.simplicial_set_examples import Empty
+        from sage.topology.simplicial_set_examples import Empty
         return Empty().Hom(self)({})
 
     def identity(self):
@@ -1635,7 +1635,7 @@ class SimplicialSet_arbitrary(Parent):
             ...
             ValueError: codomain is not pointed, so specify a target for the constant map
         """
-        from sage.homology.simplicial_set_examples import Point
+        from sage.topology.simplicial_set_examples import Point
         if codomain is None:
             codomain = Point()
         return self.Hom(codomain).constant_map(point)
@@ -1749,7 +1749,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: e = AbstractSimplex(1, name='e')
@@ -2199,7 +2199,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: e = AbstractSimplex(1, name='e')
@@ -2309,7 +2309,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: e = AbstractSimplex(1, name='e')
@@ -2341,7 +2341,7 @@ class SimplicialSet_arbitrary(Parent):
 
         Empty factors are ignored::
 
-            sage: from sage.homology.simplicial_set_examples import Empty
+            sage: from sage.topology.simplicial_set_examples import Empty
             sage: E = Empty()
             sage: K = S2.disjoint_union(S2, E, E, S2)
             sage: K == S2.disjoint_union(S2, S2)
@@ -2438,7 +2438,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: e = AbstractSimplex(1, name='e')
@@ -2746,7 +2746,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: e = AbstractSimplex(1, name='e')
             sage: w = AbstractSimplex(0, name='w')
@@ -2822,7 +2822,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: e = AbstractSimplex(1, name='e')
             sage: X = SimplicialSet({e: (v, v)})
@@ -3012,7 +3012,7 @@ class SimplicialSet_arbitrary(Parent):
             Set of Morphisms from S^3 to 4-simplex in Category of finite simplicial sets
         """
         # Import this here to prevent circular imports.
-        from sage.homology.simplicial_set_morphism import SimplicialSetHomset
+        from sage.topology.simplicial_set_morphism import SimplicialSetHomset
         # Error-checking on the ``category`` argument is done when
         # calling Hom(X,Y), so no need to do it again here.
         if category is None:
@@ -3039,7 +3039,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: X = SimplicialSet({v: None}, latex_name='*')
             sage: latex(X)
@@ -3060,7 +3060,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: X = SimplicialSet({v: None}, latex_name='*')
             sage: latex(X)
@@ -3085,7 +3085,7 @@ class SimplicialSet_arbitrary(Parent):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
             sage: degen = v.apply_degeneracies(0)
@@ -3158,7 +3158,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+        sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
         sage: u = AbstractSimplex(0, name='u')
         sage: v = AbstractSimplex(0, name='v')
         sage: w = AbstractSimplex(0, name='w')
@@ -3182,7 +3182,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
         r"""
         TESTS::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: e = AbstractSimplex(1)
             sage: SimplicialSet({e: (v, v, v)})
@@ -3364,7 +3364,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
             sage: e = AbstractSimplex(1)
@@ -3393,7 +3393,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
             sage: X = SimplicialSet({v: None})
@@ -3419,7 +3419,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: X = SimplicialSet({v: None})
             sage: degen = v.apply_degeneracies(0)
@@ -3460,7 +3460,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: e = AbstractSimplex(1, name='e')
@@ -3489,7 +3489,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: degen = v.apply_degeneracies(0)
@@ -3545,7 +3545,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: w = AbstractSimplex(0)
             sage: S0 = SimplicialSet({v: None, w: None})
@@ -3617,7 +3617,7 @@ class SimplicialSet_finite(SimplicialSet_arbitrary, GenericCellComplex):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0)
             sage: degen = v.apply_degeneracies(1, 0) # s_1 s_0 applied to v
             sage: sigma = AbstractSimplex(3)
@@ -3830,7 +3830,7 @@ def standardize_degeneracies(*L):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import standardize_degeneracies
+        sage: from sage.topology.simplicial_set import standardize_degeneracies
         sage: standardize_degeneracies(0, 0)
         (1, 0)
         sage: standardize_degeneracies(0, 0, 0, 0)
@@ -3895,7 +3895,7 @@ def all_degeneracies(n, l=1):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import all_degeneracies
+        sage: from sage.topology.simplicial_set import all_degeneracies
         sage: all_degeneracies(0, 3)
         {(2, 1, 0)}
         sage: all_degeneracies(1, 1)
@@ -3934,7 +3934,7 @@ def standardize_face_maps(*L):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import standardize_face_maps
+        sage: from sage.topology.simplicial_set import standardize_face_maps
         sage: standardize_face_maps(0, 1)
         (0, 0)
         sage: standardize_face_maps(0, 2)
@@ -3988,7 +3988,7 @@ def face_degeneracies(m, I):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import face_degeneracies
+        sage: from sage.topology.simplicial_set import face_degeneracies
         sage: face_degeneracies(0, (1, 0))
         ([0], None)
         sage: face_degeneracies(1, (1, 0))
@@ -4031,7 +4031,7 @@ def shrink_simplicial_complex(K):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import shrink_simplicial_complex
+        sage: from sage.topology.simplicial_set import shrink_simplicial_complex
         sage: K = simplicial_complexes.Simplex(3)
         sage: X = shrink_simplicial_complex(K)
         sage: X.f_vector()

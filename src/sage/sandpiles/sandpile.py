@@ -335,7 +335,7 @@ from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.graphs.all import DiGraph, Graph
 from sage.graphs.digraph_generators import digraphs
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
-from sage.homology.simplicial_complex import SimplicialComplex
+from sage.topology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
 from sage.misc.all import prod, det, tmp_filename, exists, denominator

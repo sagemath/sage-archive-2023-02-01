@@ -43,7 +43,7 @@ from .delta_complex import delta_complexes
 from .simplicial_set import AbstractSimplex, \
     SimplicialSet_arbitrary, SimplicialSet_finite
 
-import sage.homology.simplicial_complexes_catalog as simplicial_complexes
+import sage.topology.simplicial_complex_catalog as simplicial_complexes
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.categories.simplicial_sets', 'SimplicialSets')
@@ -447,7 +447,7 @@ def Empty():
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set_examples import Empty
+        sage: from sage.topology.simplicial_set_examples import Empty
         sage: E = Empty()
         sage: E
         Empty simplicial set
@@ -639,8 +639,8 @@ def simplicial_data_from_kenzo_output(filename):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set_examples import simplicial_data_from_kenzo_output
-        sage: from sage.homology.simplicial_set import SimplicialSet
+        sage: from sage.topology.simplicial_set_examples import simplicial_data_from_kenzo_output
+        sage: from sage.topology.simplicial_set import SimplicialSet
         sage: sphere = os.path.join(SAGE_ENV['SAGE_EXTCODE'], 'kenzo', 'S4.txt')
         sage: S4 = SimplicialSet(simplicial_data_from_kenzo_output(sphere))
         sage: S4.homology(reduced=False)

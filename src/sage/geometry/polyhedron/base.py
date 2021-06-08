@@ -2764,7 +2764,7 @@ class Polyhedron_base(Element):
             ...
             ValueError: self should be compact
         """
-        from sage.homology.simplicial_complex import SimplicialComplex
+        from sage.topology.simplicial_complex import SimplicialComplex
         if not self.is_compact():
             raise ValueError("self should be compact")
 

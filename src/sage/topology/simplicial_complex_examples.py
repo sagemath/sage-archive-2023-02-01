@@ -64,12 +64,12 @@ EXAMPLES::
     {0: 0, 1: Z^16, 2: 0}
 """
 
-from sage.homology.simplicial_complex import SimplicialComplex
+from .simplicial_complex import SimplicialComplex
 from sage.structure.unique_representation import UniqueRepresentation
 # Below we define a function Simplex to construct a simplex as a
 # simplicial complex. We also need to use actual simplices as
 # simplices, hence:
-from sage.homology.simplicial_complex import Simplex as TrueSimplex
+from .simplicial_complex import Simplex as TrueSimplex
 from sage.sets.set import Set
 from sage.misc.functional import is_even
 from sage.combinat.subset import Subsets
@@ -96,7 +96,7 @@ def facets_for_RP4():
 
     EXAMPLES::
 
-        sage: from sage.homology.examples import facets_for_RP4
+        sage: from sage.topology.simplicial_complex_examples import facets_for_RP4
         sage: A = facets_for_RP4()   # long time (1 or 2 seconds)
         sage: SimplicialComplex(A) == simplicial_complexes.RealProjectiveSpace(4) # long time
         True
@@ -134,7 +134,7 @@ def facets_for_K3():
 
     EXAMPLES::
 
-        sage: from sage.homology.examples import facets_for_K3
+        sage: from sage.topology.simplicial_complex_examples import facets_for_K3
         sage: A = facets_for_K3()   # long time (a few seconds)
         sage: SimplicialComplex(A) == simplicial_complexes.K3Surface()  # long time
         True
@@ -160,7 +160,7 @@ def matching(A, B):
 
     EXAMPLES::
 
-        sage: from sage.homology.examples import matching
+        sage: from sage.topology.simplicial_complex_examples import matching
         sage: matching([1, 2], [3, 4])
         [{(1, 3), (2, 4)}, {(1, 4), (2, 3)}]
         sage: matching([0, 2], [0])
@@ -195,7 +195,7 @@ class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
 
     EXAMPLES::
 
-        sage: from sage.homology.examples import UniqueSimplicialComplex
+        sage: from sage.topology.simplicial_complex_examples import UniqueSimplicialComplex
         sage: SimplicialComplex([[0, 1]]) is SimplicialComplex([[0, 1]])
         False
         sage: UniqueSimplicialComplex([[0, 1]]) is UniqueSimplicialComplex([[0, 1]])
@@ -210,7 +210,7 @@ class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
         """
         TESTS::
 
-            sage: from sage.homology.examples import UniqueSimplicialComplex
+            sage: from sage.topology.simplicial_complex_examples import UniqueSimplicialComplex
             sage: UniqueSimplicialComplex([[1, 2, 3], [0, 1, 3]]) is UniqueSimplicialComplex([(1, 2, 3), (0, 1, 3)])
             True
             sage: X = UniqueSimplicialComplex([[1, 2, 3], [0, 1, 3]])
@@ -250,7 +250,7 @@ class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
         """
         TESTS::
 
-            sage: from sage.homology.examples import UniqueSimplicialComplex
+            sage: from sage.topology.simplicial_complex_examples import UniqueSimplicialComplex
             sage: UniqueSimplicialComplex([[1, 2, 3], [0, 1, 3]], is_mutable=True).is_mutable()
             False
         """
@@ -271,7 +271,7 @@ class UniqueSimplicialComplex(SimplicialComplex, UniqueRepresentation):
 
         TESTS::
 
-            sage: from sage.homology.examples import UniqueSimplicialComplex
+            sage: from sage.topology.simplicial_complex_examples import UniqueSimplicialComplex
             sage: UniqueSimplicialComplex([[0, 1]])
             Simplicial complex with vertex set (0, 1) and facets {(0, 1)}
             sage: UniqueSimplicialComplex([[0, 1]], name='Joe')

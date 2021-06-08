@@ -39,8 +39,8 @@ from sage.matrix.constructor import matrix, zero_matrix
 from sage.misc.latex import latex
 from sage.rings.integer_ring import ZZ
 
-from .chain_complex_morphism import ChainComplexMorphism
-from .homology_morphism import InducedHomologyMorphism
+from sage.homology.chain_complex_morphism import ChainComplexMorphism
+from sage.homology.homology_morphism import InducedHomologyMorphism
 from .simplicial_set import SimplicialSet_arbitrary
 
 class SimplicialSetHomset(Homset):
@@ -55,7 +55,7 @@ class SimplicialSetHomset(Homset):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+        sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
         sage: v = AbstractSimplex(0, name='v')
         sage: w = AbstractSimplex(0, name='w')
         sage: e = AbstractSimplex(1, name='e')
@@ -346,7 +346,7 @@ class SimplicialSetMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
+            sage: from sage.topology.simplicial_set_morphism import SimplicialSetMorphism
             sage: K = simplicial_sets.Simplex(1)
             sage: S1 = simplicial_sets.Sphere(1)
             sage: v0 = K.n_cells(0)[0]
@@ -908,7 +908,7 @@ class SimplicialSetMorphism(Morphism):
           which must all equal that of ``self``.
 
         This returns the pushout as a simplicial set. See
-        :class:`sage.homology.simplicial_set_constructions.PushoutOfSimplicialSets`
+        :class:`sage.topology.simplicial_set_constructions.PushoutOfSimplicialSets`
         for more documentation and examples.
 
         EXAMPLES::
@@ -944,7 +944,7 @@ class SimplicialSetMorphism(Morphism):
           which must all equal that of ``self``.
 
         This returns the pullback as a simplicial set. See
-        :class:`sage.homology.simplicial_set_constructions.PullbackOfSimplicialSets`
+        :class:`sage.topology.simplicial_set_constructions.PullbackOfSimplicialSets`
         for more documentation and examples.
 
         EXAMPLES::
@@ -990,7 +990,7 @@ class SimplicialSetMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: x = AbstractSimplex(0, name='x')
@@ -1374,7 +1374,7 @@ class SimplicialSetMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: e = AbstractSimplex(1, name='e')

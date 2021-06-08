@@ -170,7 +170,7 @@ from sage.combinat.combination import Combinations
 from sage.geometry.cone import is_Cone
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.toric_lattice_element import is_ToricLatticeElement
-from sage.homology.simplicial_complex import SimplicialComplex
+from sage.topology.simplicial_complex import SimplicialComplex
 from sage.matrix.constructor import matrix
 from sage.misc.all import cached_method, flatten, latex, prod
 from sage.modules.all import vector
@@ -1552,7 +1552,7 @@ class ToricDivisor_generic(Divisor_generic):
 
         OUTPUT:
 
-        - :class:`simplicial complex <sage.homology.simplicial_complex.SimplicialComplex>`.
+        - :class:`simplicial complex <sage.topology.simplicial_complex.SimplicialComplex>`.
 
         EXAMPLES::
 

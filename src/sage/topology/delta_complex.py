@@ -50,13 +50,13 @@ vertex.
 """
 
 from copy import copy
-from sage.homology.cell_complex import GenericCellComplex
+from sage.topology.cell_complex import GenericCellComplex
 from sage.homology.chains import Chains, Cochains
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.integer import Integer
 from sage.matrix.constructor import matrix
-from sage.homology.simplicial_complex import Simplex, lattice_paths, SimplicialComplex
+from .simplicial_complex import Simplex, lattice_paths, SimplicialComplex
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from sage.arith.all import binomial
@@ -1590,7 +1590,7 @@ class DeltaComplex(GenericCellComplex):
              1: Vector space of dimension 2 over Rational Field,
              2: Vector space of dimension 1 over Rational Field}
         """
-        from .algebraic_topological_model import algebraic_topological_model_delta_complex
+        from sage.homology.algebraic_topological_model import algebraic_topological_model_delta_complex
         if base_ring is None:
             base_ring = QQ
         return algebraic_topological_model_delta_complex(self, base_ring)

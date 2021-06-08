@@ -69,9 +69,9 @@ can be specified as a list, a tuple, or a set.
 .. NOTE::
 
    This class derives from
-   :class:`~sage.homology.cell_complex.GenericCellComplex`, and so
+   :class:`~sage.topology.cell_complex.GenericCellComplex`, and so
    inherits its methods.  Some of those methods are not listed here;
-   see the :mod:`Generic Cell Complex <sage.homology.cell_complex>`
+   see the :mod:`Generic Cell Complex <sage.topology.cell_complex>`
    page instead.
 
 EXAMPLES::
@@ -161,7 +161,7 @@ from operator import index as PyNumber_Index
 from copy import copy
 from sage.misc.lazy_import import lazy_import
 from sage.misc.cachefunc import cached_method
-from sage.homology.cell_complex import GenericCellComplex
+from .cell_complex import GenericCellComplex
 from sage.structure.sage_object import SageObject
 from sage.structure.parent import Parent
 from sage.rings.integer import Integer
@@ -211,7 +211,7 @@ def lattice_paths(t1, t2, length=None):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_complex import lattice_paths
+        sage: from sage.topology.simplicial_complex import lattice_paths
         sage: lattice_paths([0,1,2], [0,1,2])
         [[(0, 0), (0, 1), (0, 2), (1, 2), (2, 2)],
          [(0, 0), (0, 1), (1, 1), (1, 2), (2, 2)],
@@ -308,7 +308,7 @@ def rename_vertex(n, keep, left=True):
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_complex import rename_vertex
+        sage: from sage.topology.simplicial_complex import rename_vertex
         sage: rename_vertex(6, [5, 6, 7])
         1
         sage: rename_vertex(3, [5, 6, 7, 8, 9])
@@ -413,7 +413,7 @@ class Simplex(SageObject):
             sage: type(Simplex(3).tuple())
             <... 'tuple'>
             sage: type(Simplex(3))
-            <class 'sage.homology.simplicial_complex.Simplex'>
+            <class 'sage.topology.simplicial_complex.Simplex'>
         """
         return self.__tuple
 
@@ -2451,7 +2451,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
              1: Vector space of dimension 2 over Rational Field,
              2: Vector space of dimension 1 over Rational Field}
         """
-        from .algebraic_topological_model import algebraic_topological_model
+        from sage.homology.algebraic_topological_model import algebraic_topological_model
         if base_ring is None:
             base_ring = QQ
         return algebraic_topological_model(self, base_ring)
@@ -3913,7 +3913,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             sage: Tc.homology()
             {0: 0, 1: Z x Z, 2: Z}
         """
-        from sage.homology.cubical_complex import CubicalComplex
+        from .cubical_complex import CubicalComplex
         V = self.vertices()
         embed = len(V)
         # dictionary to translate vertices to the numbers 1, ..., embed
@@ -4309,7 +4309,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         """
         if not category.is_subcategory(SimplicialComplexes()):
             raise TypeError("{} is not a subcategory of SimplicialComplexes()".format(category))
-        from sage.homology.simplicial_complex_homset import SimplicialComplexHomset
+        from sage.topology.simplicial_complex_homset import SimplicialComplexHomset
         return SimplicialComplexHomset(self, other)
 
     # @cached_method    when we switch to immutable SimplicialComplex
@@ -4737,7 +4737,7 @@ def facets_for_RP4():
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_complex import facets_for_RP4
+        sage: from sage.topology.simplicial_complex import facets_for_RP4
         sage: A = facets_for_RP4()   # long time (1 or 2 seconds)
         sage: SimplicialComplex(A) == simplicial_complexes.RealProjectiveSpace(4) # long time
         True
@@ -4775,7 +4775,7 @@ def facets_for_K3():
 
     EXAMPLES::
 
-        sage: from sage.homology.simplicial_complex import facets_for_K3
+        sage: from sage.topology.simplicial_complex import facets_for_K3
         sage: A = facets_for_K3()   # long time (a few seconds)
         sage: SimplicialComplex(A) == simplicial_complexes.K3Surface()  # long time
         True

@@ -23,7 +23,7 @@ pushout::
     sage: eta = simplicial_sets.HopfMap()
     sage: CP2 = eta.mapping_cone()
     sage: type(CP2)
-    <class 'sage.homology.simplicial_set_constructions.PushoutOfSimplicialSets_finite_with_category'>
+    <class 'sage.topology.simplicial_set_constructions.PushoutOfSimplicialSets_finite_with_category'>
 
 See the main documentation for simplicial sets, as well as for the
 classes for pushouts, pullbacks, etc., for more details.
@@ -106,7 +106,7 @@ class SubSimplicialSet(SimplicialSet_finite, UniqueRepresentation):
 
         TESTS::
 
-            sage: from sage.homology.simplicial_set_constructions import SubSimplicialSet
+            sage: from sage.topology.simplicial_set_constructions import SubSimplicialSet
             sage: K = simplicial_sets.Simplex(2)
             sage: e = K.n_cells(1)[0]
             sage: A = SubSimplicialSet({e: K.faces(e)}, ambient=K)
@@ -232,7 +232,7 @@ class PullbackOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
         """
         TESTS::
 
-            sage: from sage.homology.simplicial_set_constructions import PullbackOfSimplicialSets
+            sage: from sage.topology.simplicial_set_constructions import PullbackOfSimplicialSets
             sage: S2 = simplicial_sets.Sphere(2)
             sage: one = S2.Hom(S2).identity()
             sage: PullbackOfSimplicialSets([one, one]) == PullbackOfSimplicialSets((one, one))
@@ -290,7 +290,7 @@ class PullbackOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
             [(v_0, v_0), (sigma_2, sigma_2)]
         """
         # Import this here to prevent circular imports.
-        from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
+        from sage.topology.simplicial_set_morphism import SimplicialSetMorphism
         if maps and any(not isinstance(f, SimplicialSetMorphism) for f in maps):
             raise ValueError('the maps must be morphisms of simplicial sets')
 
@@ -416,7 +416,7 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
         """
         TESTS::
 
-            sage: from sage.homology.simplicial_set_constructions import PullbackOfSimplicialSets_finite
+            sage: from sage.topology.simplicial_set_constructions import PullbackOfSimplicialSets_finite
             sage: S2 = simplicial_sets.Sphere(2)
             sage: one = S2.Hom(S2).identity()
             sage: PullbackOfSimplicialSets_finite([one, one]) == PullbackOfSimplicialSets_finite((one, one))
@@ -462,7 +462,7 @@ class PullbackOfSimplicialSets_finite(PullbackOfSimplicialSets, SimplicialSet_fi
                 Defn: Identity map
         """
         # Import this here to prevent circular imports.
-        from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
+        from sage.topology.simplicial_set_morphism import SimplicialSetMorphism
         if maps and any(not isinstance(f, SimplicialSetMorphism) for f in maps):
             raise ValueError('the maps must be morphisms of simplicial sets')
         if not maps:
@@ -757,7 +757,7 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
         """
         TESTS::
 
-            sage: from sage.homology.simplicial_set_constructions import ProductOfSimplicialSets
+            sage: from sage.topology.simplicial_set_constructions import ProductOfSimplicialSets
             sage: S2 = simplicial_sets.Sphere(2)
             sage: ProductOfSimplicialSets([S2, S2]) == ProductOfSimplicialSets((S2, S2))
             True
@@ -800,7 +800,7 @@ class ProductOfSimplicialSets(PullbackOfSimplicialSets, Factors):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: e = AbstractSimplex(1, name='e')
@@ -1004,7 +1004,7 @@ class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplici
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: e = AbstractSimplex(1)
             sage: X = SimplicialSet({e: (v, v)})
@@ -1059,7 +1059,7 @@ class ProductOfSimplicialSets_finite(ProductOfSimplicialSets, PullbackOfSimplici
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: e = AbstractSimplex(1, name='e')
             sage: w = AbstractSimplex(0, name='w')
@@ -1122,7 +1122,7 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
         """
         TESTS::
 
-            sage: from sage.homology.simplicial_set_constructions import PushoutOfSimplicialSets
+            sage: from sage.topology.simplicial_set_constructions import PushoutOfSimplicialSets
             sage: S2 = simplicial_sets.Sphere(2)
             sage: one = S2.Hom(S2).identity()
             sage: PushoutOfSimplicialSets([one, one]) == PushoutOfSimplicialSets((one, one))
@@ -1171,7 +1171,7 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: a = AbstractSimplex(0, name='a')
             sage: b = AbstractSimplex(0, name='b')
@@ -1249,7 +1249,7 @@ class PushoutOfSimplicialSets(SimplicialSet_arbitrary, UniqueRepresentation):
             Z x Z x Z
         """
         # Import this here to prevent circular imports.
-        from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
+        from sage.topology.simplicial_set_morphism import SimplicialSetMorphism
         if maps and any(not isinstance(f, SimplicialSetMorphism) for f in maps):
             raise ValueError('the maps must be morphisms of simplicial sets')
         Cat = SimplicialSets()
@@ -1385,7 +1385,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
         """
         TESTS::
 
-            sage: from sage.homology.simplicial_set_constructions import PushoutOfSimplicialSets_finite
+            sage: from sage.topology.simplicial_set_constructions import PushoutOfSimplicialSets_finite
             sage: S2 = simplicial_sets.Sphere(2)
             sage: one = S2.Hom(S2).identity()
             sage: PushoutOfSimplicialSets_finite([one, one]) == PushoutOfSimplicialSets_finite((one, one))
@@ -1409,7 +1409,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set_constructions import PushoutOfSimplicialSets_finite
+            sage: from sage.topology.simplicial_set_constructions import PushoutOfSimplicialSets_finite
             sage: T = simplicial_sets.Torus()
             sage: S2 = simplicial_sets.Sphere(2)
             sage: PushoutOfSimplicialSets_finite([T.base_point_map(), S2.base_point_map()]).n_cells(0)[0]
@@ -1418,7 +1418,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
             v
         """
         # Import this here to prevent circular imports.
-        from sage.homology.simplicial_set_morphism import SimplicialSetMorphism
+        from sage.topology.simplicial_set_morphism import SimplicialSetMorphism
         if maps and any(not isinstance(f, SimplicialSetMorphism) for f in maps):
             raise ValueError('the maps must be morphisms of simplicial sets')
         if not maps:
@@ -1612,7 +1612,7 @@ class PushoutOfSimplicialSets_finite(PushoutOfSimplicialSets, SimplicialSet_fini
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: w = AbstractSimplex(0, name='w')
             sage: x = AbstractSimplex(0, name='x')
@@ -1882,7 +1882,7 @@ class SmashProductOfSimplicialSets_finite(QuotientOfSimplicialSet_finite,
         """
         TESTS::
 
-            sage: from sage.homology.simplicial_set_constructions import SmashProductOfSimplicialSets_finite as Smash
+            sage: from sage.topology.simplicial_set_constructions import SmashProductOfSimplicialSets_finite as Smash
             sage: S2 = simplicial_sets.Sphere(2)
             sage: Smash([S2, S2]) == Smash((S2, S2))
             True
@@ -1958,7 +1958,7 @@ class WedgeOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         """
         TESTS::
 
-            sage: from sage.homology.simplicial_set_constructions import WedgeOfSimplicialSets
+            sage: from sage.topology.simplicial_set_constructions import WedgeOfSimplicialSets
             sage: S2 = simplicial_sets.Sphere(2)
             sage: WedgeOfSimplicialSets([S2, S2]) == WedgeOfSimplicialSets((S2, S2))
             True
@@ -2075,7 +2075,7 @@ class WedgeOfSimplicialSets_finite(WedgeOfSimplicialSets, PushoutOfSimplicialSet
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set_constructions import WedgeOfSimplicialSets_finite
+            sage: from sage.topology.simplicial_set_constructions import WedgeOfSimplicialSets_finite
             sage: K = simplicial_sets.Simplex(3)
             sage: WedgeOfSimplicialSets_finite((K,K))
             Traceback (most recent call last):
@@ -2147,8 +2147,8 @@ class DisjointUnionOfSimplicialSets(PushoutOfSimplicialSets, Factors):
         """
         TESTS::
 
-            sage: from sage.homology.simplicial_set_constructions import DisjointUnionOfSimplicialSets
-            sage: from sage.homology.simplicial_set_examples import Empty
+            sage: from sage.topology.simplicial_set_constructions import DisjointUnionOfSimplicialSets
+            sage: from sage.topology.simplicial_set_examples import Empty
             sage: S2 = simplicial_sets.Sphere(2)
             sage: DisjointUnionOfSimplicialSets([S2, S2]) == DisjointUnionOfSimplicialSets((S2, S2))
             True
@@ -2283,8 +2283,8 @@ class DisjointUnionOfSimplicialSets_finite(DisjointUnionOfSimplicialSets,
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set_constructions import DisjointUnionOfSimplicialSets_finite
-            sage: from sage.homology.simplicial_set_examples import Empty
+            sage: from sage.topology.simplicial_set_constructions import DisjointUnionOfSimplicialSets_finite
+            sage: from sage.topology.simplicial_set_examples import Empty
             sage: S = simplicial_sets.Sphere(4)
             sage: DisjointUnionOfSimplicialSets_finite((S,S,S))
             Disjoint union: (S^4 u S^4 u S^4)
@@ -2336,7 +2336,7 @@ class ConeOfSimplicialSet(SimplicialSet_arbitrary, UniqueRepresentation):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: e = AbstractSimplex(1, name='e')
             sage: X = SimplicialSet({e: (v, v)})
@@ -2429,7 +2429,7 @@ class ConeOfSimplicialSet_finite(ConeOfSimplicialSet, SimplicialSet_finite):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: e = AbstractSimplex(1, name='e')
             sage: X = SimplicialSet({e: (v, v)})
@@ -2525,7 +2525,7 @@ class ReducedConeOfSimplicialSet(QuotientOfSimplicialSet):
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: e = AbstractSimplex(1, name='e')
             sage: X = SimplicialSet({e: (v, v)})
@@ -2622,7 +2622,7 @@ class ReducedConeOfSimplicialSet_finite(ReducedConeOfSimplicialSet,
 
         EXAMPLES::
 
-            sage: from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
+            sage: from sage.topology.simplicial_set import AbstractSimplex, SimplicialSet
             sage: v = AbstractSimplex(0, name='v')
             sage: e = AbstractSimplex(1, name='e')
             sage: X = SimplicialSet({e: (v, v)})

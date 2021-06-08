@@ -77,7 +77,7 @@ class GenericCellComplex(SageObject):
     It's hard to give informative examples of the base class, since
     essentially nothing is implemented. ::
 
-        sage: from sage.homology.cell_complex import GenericCellComplex
+        sage: from sage.topology.cell_complex import GenericCellComplex
         sage: A = GenericCellComplex()
     """
     def __eq__(self,right):
@@ -86,7 +86,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex(); B = GenericCellComplex()
             sage: A == B # indirect doctest
             Traceback (most recent call last):
@@ -101,7 +101,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex(); B = GenericCellComplex()
             sage: A != B # indirect doctest
             Traceback (most recent call last):
@@ -136,7 +136,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex()
             sage: A.cells()
             Traceback (most recent call last):
@@ -308,7 +308,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex(); B = GenericCellComplex()
             sage: A.product(B)
             Traceback (most recent call last):
@@ -327,7 +327,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex(); B = GenericCellComplex()
             sage: A.disjoint_union(B)
             Traceback (most recent call last):
@@ -347,7 +347,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex(); B = GenericCellComplex()
             sage: A.wedge(B)
             Traceback (most recent call last):
@@ -372,7 +372,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex(); B = GenericCellComplex()
             sage: A.join(B)
             Traceback (most recent call last):
@@ -439,7 +439,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex()
             sage: A.chain_complex()
             Traceback (most recent call last):
@@ -561,8 +561,8 @@ class GenericCellComplex(SageObject):
             {0: [], 1: 0, 2: [(Z, sigma_2)]}
         """
         from sage.interfaces.chomp import have_chomp, homcubes, homsimpl
-        from sage.homology.cubical_complex import CubicalComplex
-        from sage.homology.simplicial_complex import SimplicialComplex
+        from sage.topology.cubical_complex import CubicalComplex
+        from sage.topology.simplicial_complex import SimplicialComplex
         from sage.modules.all import VectorSpace
         from sage.homology.homology_group import HomologyGroup
 
@@ -845,7 +845,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex()
             sage: A.algebraic_topological_model(QQ)
             Traceback (most recent call last):
@@ -904,7 +904,7 @@ class GenericCellComplex(SageObject):
             sage: list(H.basis(3))
             [h^{3,0}]
         """
-        from .homology_vector_space_with_basis import HomologyVectorSpaceWithBasis
+        from sage.homology.homology_vector_space_with_basis import HomologyVectorSpaceWithBasis
         return HomologyVectorSpaceWithBasis(base_ring, self, cohomology)
 
     def cohomology_ring(self, base_ring=QQ):
@@ -1008,7 +1008,7 @@ class GenericCellComplex(SageObject):
             Cohomology ring of Simplicial complex with 9 vertices and
             18 facets over Rational Field
         """
-        from .homology_vector_space_with_basis import CohomologyRing
+        from sage.homology.homology_vector_space_with_basis import CohomologyRing
         return CohomologyRing(base_ring, self)
 
     @abstract_method
@@ -1053,7 +1053,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex()
             sage: A.alexander_whitney(None, 2)
             Traceback (most recent call last):
@@ -1111,7 +1111,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex()
             sage: A.graph()
             Traceback (most recent call last):
@@ -1164,7 +1164,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: A = GenericCellComplex()
             sage: A.n_skeleton(3)
             Traceback (most recent call last):
@@ -1189,7 +1189,7 @@ class GenericCellComplex(SageObject):
 
         EXAMPLES::
 
-            sage: from sage.homology.cell_complex import GenericCellComplex
+            sage: from sage.topology.cell_complex import GenericCellComplex
             sage: GenericCellComplex()._string_constants()
             ('Cell', 'cell', 'cells')
             sage: delta_complexes.Sphere(0)._string_constants()

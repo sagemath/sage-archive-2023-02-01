@@ -209,7 +209,7 @@ class FilteredSimplicialComplex(SageObject):
         self._dimension = max(self._dimension, simplex.dimension())
         self._max_value = max(self._max_value, filtration_value)
         self._vertices.update(simplex.set())
-        self._compute_persistent_homology.clear_cache()
+        self._persistent_homology.clear_cache()
 
     def insert(self, vertex_list, filtration_value):
         r"""
@@ -316,7 +316,7 @@ class FilteredSimplicialComplex(SageObject):
         return result_complex
 
     @cached_method(key=lambda self,f,s,v:(f,s))
-    def _compute_persistent_homology(self, field=2, strict=True, verbose=False):
+    def _persistent_homology(self, field=2, strict=True, verbose=False):
         """
         Compute the homology intervals of the complex.
 
@@ -328,7 +328,8 @@ class FilteredSimplicialComplex(SageObject):
             Default value: False.
 
         This method is called whenever betti numbers or intervals are
-        computed, and the result is cached.
+        computed, and the result is cached. It returns the list of
+        intervals.
 
         ALGORITHM:
 
@@ -338,8 +339,7 @@ class FilteredSimplicialComplex(SageObject):
         EXAMPLES::
 
             sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([0,1], 2)])
-            sage: X._compute_persistent_homology()
-            sage: X._intervals[0]
+            sage: X._persistent_homology()[0]
             [(0, 2), (0, +Infinity)]
 
         Some homology elements may have a lifespan or persistence of 0.
@@ -347,7 +347,7 @@ class FilteredSimplicialComplex(SageObject):
 
             sage: X = FilteredSimplicialComplex()
             sage: X.insert([0,1],1) # opens a hole and closes it instantly
-            sage: X.persistence_intervals(0, strict=False)
+            sage: X._persistent_homology(strict=False)[0]
             [(1, 1), (1, +Infinity)]
 
         REFERENCES:
@@ -391,7 +391,7 @@ class FilteredSimplicialComplex(SageObject):
         # Initialize data structures for the algo
         self._marked = [False for i in range(n)]
         self._T = [None for i in range(n)]
-        self._intervals = [[] for i in range(self._dimension+1)]
+        intervals = [[] for i in range(self._dimension+1)]
         self.pairs = []
 
         self._strict = strict
@@ -415,7 +415,7 @@ class FilteredSimplicialComplex(SageObject):
                 max_index = self._max_index(d)
                 t = simplices[max_index]
                 self._T[max_index] = (s, d)
-                self._add_interval(t, s)
+                self._add_interval(t, s, intervals)
 
         if self._verbose:
             print("First pass over, beginning second pass")
@@ -426,20 +426,23 @@ class FilteredSimplicialComplex(SageObject):
 
             s = simplices[j]
             if self._marked[j] and not self._T[j]:
-                self._add_interval(s, None)
+                self._add_interval(s, None, intervals)
 
         if self._verbose:
             print("Second pass over")
+        return intervals
+        
 
-    def _add_interval(self, s, t):
+    def _add_interval(self, s, t, intervals):
         r"""
         Add a new interval (i.e. homology element).
         This method should not be called by users, it is used in
-        the ``compute_persistence`` method. The simplex of
+        the ``_compute_persistence`` method. The simplex of
         death may be None, in which case the interval is infinite.
 
         :param s: birth simplex
         :param t: death simplex
+        :param intervals: list of current intervals
 
         If ``t`` is not None, its dimension should be
         1 more than the dimension of ``s``.
@@ -447,18 +450,18 @@ class FilteredSimplicialComplex(SageObject):
         TESTS::
 
             sage: X = FilteredSimplicialComplex([([0], 0), ([1, 2], 10)])
-            sage: X.persistence_intervals(0)
+            sage: int_list = X._persistent_homology()
+            sage: int_list[0]
             [(0, +Infinity), (10, +Infinity)]
-            sage: X._add_interval(Simplex([0]), Simplex([1, 2]))
-            sage: X.persistence_intervals(0)
+            sage: X._add_interval(Simplex([0]), Simplex([1, 2]),int_list)
+            sage: int_list[0]
             [(0, +Infinity), (10, +Infinity), (0, 10)]
 
         Infinite interval:
-
-            sage: X.persistence_intervals(1)
-            []
-            sage: X._add_interval(Simplex([1, 2]), None)
-            sage: X.persistence_intervals(1)
+            
+            sage: int_list2 = [[],[]]
+            sage: X._add_interval(Simplex([1, 2]), None, int_list2)
+            sage: int_list2[1]
             [(10, +Infinity)]
 
         """
@@ -477,7 +480,7 @@ class FilteredSimplicialComplex(SageObject):
         # Only add intervals of length 0 if
         # strict mode is not enabled.
         if i != j or (not self._strict):
-            self._intervals[k].append((i, j))
+            intervals[k].append((i, j))
             self.pairs.append((s, t))
 
     def _remove_pivot_rows(self, s, simplices):
@@ -494,7 +497,8 @@ class FilteredSimplicialComplex(SageObject):
 
             sage: l = [([0], 0), ([1], 0), ([2], 1), ([3], 1), ([0, 1], 1), ([1, 2], 1), ([0, 3], 2), ([2, 3], 2), ([0, 2], 3), ([0, 1, 2], 4)]
             sage: X = FilteredSimplicialComplex(l)
-            sage: X._compute_persistent_homology()
+            sage: X._persistent_homology()
+            [[(0, 1), (1, 2), (0, +Infinity)], [(3, 4), (2, +Infinity)], []]
             sage: X._remove_pivot_rows(Simplex([0,1,2]), list(X._filtration_dict))
             0
             sage: X.insert([0,2,3],5)
@@ -546,7 +550,8 @@ class FilteredSimplicialComplex(SageObject):
         TESTS::
 
             sage: X = FilteredSimplicialComplex([([0], 0), ([1], 5), ([0, 1], 18), ([0, 2, 3], 32)])
-            sage: X._compute_persistent_homology()
+            sage: X._persistent_homology()
+            [[(5, 18), (0, +Infinity)], [], []]
             sage: a = X._chaingroup(Simplex([0, 1]))
             sage: b = X._chaingroup(Simplex([0, 3]))
             sage: d = a + b
@@ -578,9 +583,9 @@ class FilteredSimplicialComplex(SageObject):
             [(1, 2), (0, +Infinity)]
 
         """
-        self._compute_persistent_homology(field, strict, verbose=False)
-        if dimension < len(self._intervals):
-            return self._intervals[dimension][:]
+        intervals = self._persistent_homology(field, strict, verbose=False)
+        if dimension < len(intervals):
+            return intervals[dimension][:]
         else:
             return []
 
@@ -613,9 +618,9 @@ class FilteredSimplicialComplex(SageObject):
             1
 
         """
-        self._compute_persistent_homology(field, strict, verbose=False)
+        intervals = self._persistent_homology(field, strict, verbose=False)
         res = 0
-        for (i, j) in self._intervals[k]:
+        for (i, j) in intervals[k]:
             if (i <= a and a + b < j) and a >= 0:
                     res += 1
         return res

@@ -12,7 +12,7 @@ the ridges and the face lattice.
 Terminology used in this module:
 
 - Vrep                  -- ``[vertices, rays, lines]`` of the polyhedron.
-- Hrep                  -- inequalities and equalities of the polyhedron.
+- Hrep                  -- inequalities and equations of the polyhedron.
 - Facets                -- facets of the polyhedron.
 - Vrepresentation       -- represents a face by the list of Vrep it contains.
 - Hrepresentation       -- represents a face by a list of Hrep it is contained in.
@@ -337,7 +337,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         self._edges = NULL
         self._ridges = NULL
         self._face_lattice_incidences = NULL
-        self._equalities = ()
+        self._equations = ()
         self._all_faces = None
         self._mem_tuple = ()
         cdef MemoryAllocator mem
@@ -413,20 +413,20 @@ cdef class CombinatorialPolyhedron(SageObject):
             Vinv = None
 
         if facets:
-            # store facets names and compute equalities
+            # store facets names and compute equations
             facets = tuple(facets)
 
-            test = [1] * len(facets)  # 0 if that facet is an equality
+            test = [1] * len(facets)  # 0 if that facet is an equation
             for i in range(len(facets)):
                 if hasattr(facets[i], "is_inequality"):
-                    # We remove equalities.
-                    # At the moment only equalities with this attribute ``True``
+                    # We remove equations.
+                    # At the moment only equations with this attribute ``True``
                     # will be detected.
                     if not facets[i].is_inequality():
                         test[i] = 0
             self._facet_names = tuple(facets[i] for i in range(len(facets)) if test[i])
 
-            self._equalities = tuple(facets[i] for i in range(len(facets)) if not test[i])
+            self._equations = tuple(facets[i] for i in range(len(facets)) if not test[i])
         else:
             self._facet_names = None
 
@@ -682,20 +682,20 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     def Hrepresentation(self):
         r"""
-        Return a list of names of facets and possibly some equalities.
+        Return a list of names of facets and possibly some equations.
 
         EXAMPLES::
 
             sage: P = polytopes.permutahedron(3)
             sage: C = CombinatorialPolyhedron(P)
             sage: C.Hrepresentation()
-            (An equation (1, 1, 1) x - 6 == 0,
-             An inequality (1, 1, 0) x - 3 >= 0,
+            (An inequality (1, 1, 0) x - 3 >= 0,
              An inequality (-1, -1, 0) x + 5 >= 0,
              An inequality (0, 1, 0) x - 1 >= 0,
              An inequality (-1, 0, 0) x + 3 >= 0,
              An inequality (1, 0, 0) x - 1 >= 0,
-             An inequality (0, -1, 0) x + 3 >= 0)
+             An inequality (0, -1, 0) x + 3 >= 0,
+             An equation (1, 1, 1) x - 6 == 0)
 
             sage: points = [(1,0,0), (0,1,0), (0,0,1),
             ....: (-1,0,0), (0,-1,0), (0,0,-1)]
@@ -716,7 +716,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             (M(0, 1), M(1, 0))
         """
         if self.facet_names() is not None:
-            return self.equalities() + self.facet_names()
+            return self.facet_names() + self.equations()
         else:
             return tuple(smallInteger(i) for i in range(self.n_Hrepresentation()))
 
@@ -1041,7 +1041,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         ::
 
-            sage: P = polytopes.permutahedron(5)
+            sage: P = polytopes.permutahedron(5, backend='field')
             sage: C = P.combinatorial_polyhedron()
             sage: C.incidence_matrix.clear_cache()
             sage: C.incidence_matrix() == P.incidence_matrix()
@@ -1091,17 +1091,17 @@ cdef class CombinatorialPolyhedron(SageObject):
             incidence_matrix.set_immutable()
             return incidence_matrix
 
-        # If equalities are present, we add them as first columns.
-        n_equalities = 0
+        # If equations are present, we add them as last columns.
+        n_facets = self.n_facets()
         if self.facet_names() is not None:
-            n_equalities = len(self.equalities())
-            for Hindex in range(n_equalities):
+            n_equations = len(self.equations())
+            for Hindex in range(n_facets, n_facets + n_equations):
                 for Vindex in range(self.n_Vrepresentation()):
                     incidence_matrix.set_unsafe_si(Vindex, Hindex, 1)
 
         facet_iter = self.face_iter(self.dimension() - 1, dual=False)
         for facet in facet_iter:
-            Hindex = facet.ambient_H_indices()[0] + n_equalities
+            Hindex = facet.ambient_H_indices()[0]
             for Vindex in facet.ambient_V_indices():
                 incidence_matrix.set_unsafe_si(Vindex, Hindex, 1)
 
@@ -1249,7 +1249,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         deprecation(28603, "the method edge_graph of CombinatorialPolyhedron is deprecated; use vertex_graph", 3)
         return Graph(self.edges(names=names), format="list_of_edges")
 
-    def ridges(self, add_equalities=False, names=True):
+    def ridges(self, add_equations=False, names=True, add_equalities=False):
         r"""
         Return the ridges.
 
@@ -1263,7 +1263,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         INPUT:
 
-        - ``add_equalities`` -- if ``True``, then equalities of the polyhedron
+        - ``add_equations`` -- if ``True``, then equations of the polyhedron
           will be added (only applicable when ``names`` is ``True``)
 
         - ``names`` -- if ``False``, then the facets are given by their indices
@@ -1279,7 +1279,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C = CombinatorialPolyhedron(P)
             sage: C.ridges()
             ((An inequality (1, 0) x - 1 >= 0, An inequality (-1, 0) x + 2 >= 0),)
-            sage: C.ridges(add_equalities=True)
+            sage: C.ridges(add_equations=True)
             (((An inequality (1, 0) x - 1 >= 0, An equation (1, 1) x - 3 == 0),
               (An inequality (-1, 0) x + 2 >= 0, An equation (1, 1) x - 3 == 0)),)
 
@@ -1330,12 +1330,26 @@ cdef class CombinatorialPolyhedron(SageObject):
 
         TESTS:
 
-        Testing that ``add_equalities`` is ignored if ``names`` is ``False``::
+        Testing that ``add_equations`` is ignored if ``names`` is ``False``::
 
             sage: C = CombinatorialPolyhedron(polytopes.simplex())
-            sage: C.ridges(names=False, add_equalities=True)
+            sage: C.ridges(names=False, add_equations=True)
             ((2, 3), (1, 3), (0, 3), (1, 2), (0, 2), (0, 1))
+
+        The keyword ``add_equalities`` is deprecated::
+
+            sage: C = CombinatorialPolyhedron(polytopes.simplex())
+            sage: r = C.ridges(add_equations=True)
+            sage: r1 = C.ridges(add_equalities=True)
+            doctest:...: DeprecationWarning: the keyword ``add_equalities`` is deprecated; use ``add_equations``
+            See https://trac.sagemath.org/31834 for details.
+            sage: r == r1
+            True
         """
+        if add_equalities:
+            from sage.misc.superseded import deprecation
+            deprecation(31834, "the keyword ``add_equalities`` is deprecated; use ``add_equations``", 3)
+            add_equations = True
         if self._ridges is NULL:
             # compute the ridges.
             if not self.is_bounded():
@@ -1364,11 +1378,11 @@ cdef class CombinatorialPolyhedron(SageObject):
             return f(self._get_edge(self._ridges, i, 1))
 
         cdef size_t j
-        if add_equalities and names:
-            # Also getting the equalities for each facet.
+        if add_equations and names:
+            # Also getting the equations for each facet.
             return tuple(
-                (((facet_one(i),) + self.equalities()),
-                 ((facet_two(i),) + self.equalities()))
+                (((facet_one(i),) + self.equations()),
+                 ((facet_two(i),) + self.equations()))
                 for i in range(n_ridges))
         else:
             return tuple((facet_one(i), facet_two(i))
@@ -1414,7 +1428,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             V = list(facet.ambient_Hrepresentation() for facet in face_iter)
         else:
             V = list(facet.ambient_V_indices() for facet in face_iter)
-        E = self.ridges(names=names, add_equalities=True)
+        E = self.ridges(names=names, add_equations=True)
         if not names:
             # If names is false, the ridges are given as tuple of indices,
             # i.e. (1,2) instead of (('f1',), ('f2',)).
@@ -2239,7 +2253,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         vertex_iter = self._face_iter(True, 0)
         n_facets = self.n_facets()
         for vertex in vertex_iter:
-            if vertex.n_ambient_Hrepresentation() == n_facets - 1:
+            if vertex.n_ambient_Hrepresentation(add_equations=False) == n_facets - 1:
                 if certificate:
                     return (True, vertex.ambient_Vrepresentation()[0])
                 return True
@@ -2296,11 +2310,11 @@ cdef class CombinatorialPolyhedron(SageObject):
              An inequality (0, 0, 0, -1, 0) x + 5 >= 0,
              An equation (1, 1, 1, 1, 1) x - 15 == 0)
             sage: face.ambient_H_indices()
-            (25, 29)
+            (25, 29, 30)
             sage: face = next(it); face
             A 2-dimensional face of a 4-dimensional combinatorial polyhedron
             sage: face.ambient_H_indices()
-            (24, 29)
+            (24, 29, 30)
             sage: face.ambient_V_indices()
             (32, 89, 90, 94)
 
@@ -2691,13 +2705,18 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         return self._facet_names
 
-    cdef tuple equalities(self):
+    cdef tuple equations(self):
         r"""
-        Return the names of the equalities.
+        Return the names of the equations.
 
-        If not equalities are given, return ``None``.
+        If not equations are given, return ``None``.
         """
-        return self._equalities
+        return self._equations
+
+    cdef tuple equalities(self):
+        from sage.misc.superseded import deprecation
+        deprecation(31834, "the method equalities of CombinatorialPolyhedron is deprecated; use equations", 3)
+        return self.equations()
 
     cdef unsigned int n_Vrepresentation(self):
         r"""

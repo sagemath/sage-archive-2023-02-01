@@ -393,13 +393,29 @@ class LazyLaurentSeries(ModuleElement):
             return c
 
         else:
-            i = len(self._cache) + n
-            if i >= len(self._cache) or -i >= len(self._cache):
-                l = [R(self._coefficient_function(self, j)) for j in range(1, i)] if i >= 0 else [R(self._coefficient_function(self, -j)) for j in range(-i, -1, -1)]
-                self._cache.extend(l)
-            c = self._cache[i - 1]
-            return c
+            if n - self._offset < len(self._cache):
+                    c = self._cache[n - self._offset]
+                    return c
 
+            if len(self._cache) != 0:
+                i = n + 1
+                calculated_index = len(self._cache) + self._offset
+                l = [R(self._coefficient_function(self, j)) for j in range(calculated_index, i)]
+                self._cache.extend(l)
+                c = self._cache[n - self._offset]
+                return c
+            else:
+                i = n - self._offset + 1 if self._offset <= 0 else n + 1
+                if self._offset <= 0:
+                    l = [R(self._coefficient_function(self, -j)) for j in range(-self._offset, -1, -1)]
+                    self._cache.extend(l)
+                    c = self._cache[n - self._offset]
+                    return c
+                else:
+                    l = [R(self._coefficient_function(self, j)) for j in range(self._offset, i)]
+                    self._cache.extend(l)
+                    c = self._cache[i - 1 - self._offset]
+                    return c
 
     def valuation(self):
         """

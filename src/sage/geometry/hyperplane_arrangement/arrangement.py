@@ -812,7 +812,7 @@ class HyperplaneArrangementElement(Element):
             sage: A = hyperplane_arrangements.coordinate(2)
             sage: L = A.intersection_poset(element_label='subspace'); L
             Finite poset containing 4 elements
-            sage: sorted(L)
+            sage: sorted(L, key=lambda S: (S.dimension(), S.linear_part().basis_matrix()))
             [Affine space p + W where:
                p = (0, 0)
                W = Vector space of degree 2 and dimension 0 over Rational Field
@@ -821,11 +821,11 @@ class HyperplaneArrangementElement(Element):
                p = (0, 0)
                W = Vector space of degree 2 and dimension 1 over Rational Field
              Basis matrix:
-             [1 0], Affine space p + W where:
+             [0 1], Affine space p + W where:
                p = (0, 0)
                W = Vector space of degree 2 and dimension 1 over Rational Field
              Basis matrix:
-             [0 1], Affine space p + W where:
+             [1 0], Affine space p + W where:
                p = (0, 0)
                W = Vector space of dimension 2 over Rational Field]
         """

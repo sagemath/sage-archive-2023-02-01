@@ -545,7 +545,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
         sage: assumptions() # check the assumptions were really forgotten
         []
 
-    This summation only Mathematica can perform::
+    A summation performed by Mathematica::
 
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'mathematica')     # optional - mathematica
         pi*coth(pi)
@@ -555,13 +555,10 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')
         (pi*e^(2*pi) - pi*e^(-2*pi))/(e^(2*pi) + e^(-2*pi) - 2)
 
-    SymPy can't solve that summation::
+    The same summation is solved by SymPy::
 
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'sympy')
-        Traceback (most recent call last):
-        ...
-        AttributeError: Unable to convert SymPy result (=Sum(1/(k**2 + 1),
-        (k, -oo, oo))) into Sage
+        pi/tanh(pi)
 
     SymPy and Maxima 5.39.0 can do the following (see
     :trac:`22005`)::

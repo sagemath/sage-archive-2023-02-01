@@ -6776,7 +6776,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             :meth:`antichains_iterator`
         """
-        if partial is None or not partial:
+        if not partial:
             start = self.minimal_elements()
             partial = []
         else:
@@ -6874,7 +6874,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             else:
                 facets.append([a.element for a in f])
 
-        return SimplicialComplex(facets)
+        return SimplicialComplex(facets, maximality_check=False)
 
     def order_polytope(self):
         r"""

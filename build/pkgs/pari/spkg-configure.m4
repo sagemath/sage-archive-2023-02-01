@@ -67,7 +67,7 @@ SAGE_SPKG_CONFIGURE([pari], [
             sage_spkg_install_pari=yes
         fi
         AC_MSG_CHECKING([whether rnfdisc bug of pari 2.13.1 is fixed])
-        bug_check=`echo "K = nfinit(y^4-10*y^2+1); disc = rnfdisc(K,x^2-(y^3/2+y^2-5*y/2+1)); idealnorm(K,disc)" | $GP -qf 2 >> config.log`
+        bug_check=`echo "K = nfinit(y^4-10*y^2+1); disc = rnfdisc(K,x^2-(y^3/2+y^2-5*y/2+1)); idealnorm(K,disc)" | $GP -qf 2>> config.log`
         expected="2304"
         if test x"$bug_check" = x"$expected"; then
           AC_MSG_RESULT([yes])

@@ -73,11 +73,9 @@ def LocalComponent(f, p, twist_factor=None):
         Character of Q_7*, of level 0, mapping 7 |--> 1
         sage: Pi.species()
         'Supercuspidal'
-        sage: Pi.characters()
-        [
-        Character of unramified extension Q_7(s)* (s^2 + 6*s + 3 = 0), of level 1, mapping s |--> d, 7 |--> 1,
-        Character of unramified extension Q_7(s)* (s^2 + 6*s + 3 = 0), of level 1, mapping s |--> -d, 7 |--> 1
-        ]
+        sage: set(Pi.characters())
+        {Character of unramified extension Q_7(s)* (s^2 + 6*s + 3 = 0), of level 1, mapping s |--> -d, 7 |--> 1,
+         Character of unramified extension Q_7(s)* (s^2 + 6*s + 3 = 0), of level 1, mapping s |--> d, 7 |--> 1}
     """
     p = ZZ(p)
     if not p.is_prime():
@@ -635,11 +633,9 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
 
             sage: f = Newform('50a')
             sage: Pi = LocalComponent(f, 5)
-            sage: chars = Pi.characters(); chars
-            [
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> d, 5 |--> 1,
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -d - 1, 5 |--> 1
-            ]
+            sage: chars = Pi.characters(); set(chars)
+            {Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -d - 1, 5 |--> 1,
+             Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> d, 5 |--> 1}
             sage: chars[0].base_ring()
             Number Field in d with defining polynomial x^2 + x + 1
 
@@ -653,13 +649,11 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
             sage: f = Newforms(GammaH(25, [6]), 3, names='j')[0]; f
             q + j0*q^2 + 1/3*j0^3*q^3 - 1/3*j0^2*q^4 + O(q^6)
             sage: Pi = LocalComponent(f, 5)
-            sage: Pi.characters()
-            [
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> d, 5 |--> 5,
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -d - 1/3*j0^3, 5 |--> 5
-            ]
+            sage: set(Pi.characters())
+            {Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> 1/3*j0^2*d - 1/3*j0^3, 5 |--> 5,
+             Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -1/3*j0^2*d, 5 |--> 5}
             sage: Pi.characters()[0].base_ring()
-            Number Field in d with defining polynomial x^2 + 1/3*j0^3*x - 1/3*j0^2 over its base field
+            Number Field in d with defining polynomial x^2 - j0*x + 1/3*j0^2 over its base field
 
         .. warning::
 

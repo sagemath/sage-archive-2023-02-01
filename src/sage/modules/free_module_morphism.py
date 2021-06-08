@@ -70,6 +70,8 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
             -  ``A`` - matrix
 
+            - side -- side of the vectors acted on by the matrix  (default: ``"left"``)
+
         EXAMPLES::
 
             sage: V = ZZ^3; W = span([[1,2,3],[-1,2,8]], ZZ)
@@ -636,6 +638,7 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
               Basis matrix:
               [0 1 0]
               [0 0 1])]
+        
         ::
 
             sage: V = QQ^2; m = matrix(2, [1, 1, 0, 1])                                     

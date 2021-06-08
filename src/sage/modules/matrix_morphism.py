@@ -1786,7 +1786,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
             sage: phi._repr_()
             'Free module morphism defined by the matrix\n[3 0]\n[0 2]\nDomain: Ambient free module of rank 2 over the principal ideal domain Integer Ring\nCodomain: Ambient free module of rank 2 over the principal ideal domain Integer Ring'
         """
-        rep == "Morphism defined by the matrix\n{0}".format(self.matrix())
+        rep = "Morphism defined by the matrix\n{0}".format(self.matrix())
         if self._side == 'right':
             rep += " acting by multiplication on the left"
         return rep

@@ -1300,6 +1300,216 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         monomials.reverse()  # order the monomials greatest to least via the given monomial order
         return Hom(self, CS)(monomials)
 
+    def point_transformation_matrix(self, points_source, points_target, normalize=True):
+        r"""
+
+        Returns a unique element of PGL that transforms one set of points to another.
+
+        Given a projective space of degree n and a set of n+2 source points and a set of n+2 target
+        points in the same projective space, such that no n+1 points of each set are linearly dependent
+        finds the unique element of PGL that translates the source points to the target points.
+
+        INPUT:
+
+            - ``points_source`` -- points in source projective space.
+
+            - ``points_target`` -- points in target projective space.
+
+            - ``normalize`` -- (default: `True`) If the returned matrix should be normalized.
+              If the base ring is a field, then the last non-zero coordinate of the matrix is normalized
+              to be 1. If the base ring is a ring, then the matrix is normalized so that the
+              entries are elements of the base ring.
+
+        OUTPUT: Transformation matrix - element of PGL.
+
+        EXAMPLES::
+
+            sage: P1.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
+            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
+            sage: m = P1.point_transformation_matrix(points_source, points_target); m
+            [ -13/59 -128/59  -25/59]
+            [538/177    8/59  26/177]
+            [ -45/59 -196/59       1]
+            sage: [P1(list(m*vector(list(points_source[i])))) == points_target[i] for i in range(4)]
+            [True, True, True, True]
+
+        ::
+
+            sage: P.<a,b> = ProjectiveSpace(GF(13),1)
+            sage: points_source = [P([-6,7]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2]), P([0,2]), P([-1,6])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            [10  4]
+            [10  1]
+
+        ::
+
+            sage: P.<a,b> = ProjectiveSpace(QQ,1)
+            sage: points_source = [P([-6,-4]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2]), P([0,2]), P([-7,-3])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: source points not independent
+
+        ::
+
+            sage: R.<t> = FunctionField(QQ)
+            sage: P.<a,b> = ProjectiveSpace(R,1)
+            sage: points_source = [P([-6*t,7]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2*t]), P([0,2]), P([-1,6])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            [             (1/3*t + 7/12)/(t^2 - 53/24*t)            (-1/12*t - 7/48)/(t^2 - 53/24*t)]
+            [(-2/3*t^2 - 7/36*t - 35/12)/(t^2 - 53/24*t)                                           1]
+
+        ::
+
+            sage: P1.<a,b,c>=ProjectiveSpace(RR, 2)
+            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
+            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
+            sage: P1.point_transformation_matrix(points_source, points_target)
+            [-0.220338983050841  -2.16949152542374 -0.423728813559330]
+            [  3.03954802259888  0.135593220338984  0.146892655367236]
+            [-0.762711864406775  -3.32203389830510   1.00000000000000]
+
+        ::
+
+            sage: P1.<a,b,c>=ProjectiveSpace(ZZ, 2)
+            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
+            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
+            sage: P1.point_transformation_matrix(points_source, points_target)
+            [ -507 -4992  -975]
+            [ 6994   312   338]
+            [-1755 -7644  2301]
+
+        ::
+
+            sage: P1.<a,b,c>=ProjectiveSpace(ZZ, 2)
+            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
+            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
+            sage: P1.point_transformation_matrix(points_source, points_target, normalize=False)
+            [-13/30 -64/15   -5/6]
+            [269/45   4/15  13/45]
+            [  -3/2 -98/15  59/30]
+
+        ::
+
+            sage: R.<t> = ZZ[]
+            sage: P.<a,b> = ProjectiveSpace(R,1)
+            sage: points_source = [P([-6*t,7]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2*t]), P([0,2]), P([-1,6])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            [           48*t + 84           -12*t - 21]
+            [-96*t^2 - 28*t - 420      144*t^2 - 318*t]
+
+        TESTS::
+
+            sage: P.<a,b> = ProjectiveSpace(QQ,1)
+            sage: points_source = [P([-6,-1]), P([1,4]), P([3,2])]
+            sage: points_target = [P([-1,2]), P([0,2]), P([-2,4])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: target points not independent
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: incorrect number of points in source, need 4 points
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1]),P([7,8,-9])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: incorrect number of points in target, need 4 points
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P1([1,-1,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: source points not in self
+
+        ::
+
+            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
+            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
+            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
+            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P1([6,-1,1])]
+            sage: P.point_transformation_matrix(points_source, points_target)
+            Traceback (most recent call last):
+            ...
+            ValueError: target points not in self
+        """
+        r = self.base_ring()
+        n = self.dimension_relative()
+        # makes sure there aren't to few or two many points
+        if len(points_source) != n + 2:
+            raise ValueError("incorrect number of points in source, need %d points" % (n + 2))
+        if len(points_target) != n + 2:
+            raise ValueError("incorrect number of points in target, need %d points" % (n + 2))
+        if any(x.codomain() != self for x in points_source):
+            raise ValueError("source points not in self")
+        if any(x.codomain() != self for x in points_target):
+            raise ValueError("target points not in self")
+        Ms = matrix(r, [list(s) for s in points_source])
+        if any(m == 0 for m in Ms.minors(n + 1)):
+            raise ValueError("source points not independent")
+        Mt = matrix(r, [list(t) for t in points_target])
+        if any(l == 0 for l in Mt.minors(n + 1)):
+            raise ValueError("target points not independent")
+
+        # get_matrix calculates the transform from the list of points
+        # [ [1 : 0 : 0 : ... ]
+        #   [0 : 1 : 0 : ... ]
+        #   [0 : 0 : 1 : ... ]
+        #   ...
+        #   [1 : 1 : 1 : ... ] ]
+        # to the list of points S
+        def get_matrix(S, N):
+            a = matrix(N+1, N+1, [S[j][i] for i in range(N+1) for j in range(N+1)])
+            b = matrix(N+1, 1, list(S[N+1]))
+            X = a.solve_right(b)
+            m = matrix(N+1, N+1, [X[i,0]*S[i][j] for i in range(N+1) for j in range(N+1)])
+            m = m.transpose()
+            return m
+
+        m_source = get_matrix(points_source, n)
+        m_target = get_matrix(points_target, n)
+        return_mat = m_target*m_source.inverse()
+        if normalize:
+            if self.base_ring().is_field():
+                last_ele = 0
+                for row in reversed(return_mat.rows()):
+                    for ele in reversed(row):
+                        if ele != 0:
+                            last_ele = ele
+                            break
+                    if last_ele != 0:
+                        break
+                return_mat *= ZZ(1)/last_ele
+            else:
+                lcm = return_mat[0][0]
+                for row in return_mat.rows():
+                    for ele in row:
+                        lcm = lcm.lcm(ele.denominator())
+                return_mat *= lcm
+        return return_mat
+
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -1548,143 +1758,6 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         else:
             return self.subscheme(ch)
 
-    def point_transformation_matrix(self, points_source, points_target):
-        r"""
-
-        Returns a unique element of PGL that transforms one set of points to another.
-
-        Given a projective space of degree n and a set of n+2 source points and a set of n+2 target
-        points in the same projective space, such that no n+1 points of each set are linearly dependent
-        finds the unique element of PGL that translates the source points to the target points.
-
-        INPUT:
-
-            - ``points_source`` - points in source projective space.
-
-            - ``points_target`` - points in target projective space.
-
-        OUTPUT: Transformation matrix - element of PGL.
-
-        EXAMPLES::
-
-            sage: P1.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
-            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
-            sage: m = P1.point_transformation_matrix(points_source, points_target); m
-            [-13/210 -64/105   -5/42]
-            [269/315   4/105  13/315]
-            [  -3/14  -14/15  59/210]
-            sage: [P1(list(m*vector(list(points_source[i])))) == points_target[i] for i in range(4)]
-            [True, True, True, True]
-
-        ::
-
-            sage: P.<a,b> = ProjectiveSpace(GF(13),1)
-            sage: points_source = [P([-6,7]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2]), P([0,2]), P([-1,6])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            [12 10]
-            [12  9]
-
-        ::
-
-            sage: P.<a,b> = ProjectiveSpace(QQ,1)
-            sage: points_source = [P([-6,-4]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2]), P([0,2]), P([-7,-3])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: source points not independent
-
-        ::
-
-            sage: P.<a,b> = ProjectiveSpace(QQ,1)
-            sage: points_source = [P([-6,-1]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2]), P([0,2]), P([-2,4])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: target points not independent
-
-        ::
-
-            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: incorrect number of points in source, need 4 points
-
-        ::
-
-            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1]),P([7,8,-9])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: incorrect number of points in target, need 4 points
-
-        ::
-
-            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P1([1,-1,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: source points not in self
-
-        ::
-
-            sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P1([6,-1,1])]
-            sage: P.point_transformation_matrix(points_source, points_target)
-            Traceback (most recent call last):
-            ...
-            ValueError: target points not in self
-        """
-        r = self.base_ring()
-        n = self.dimension_relative()
-        # makes sure there aren't to few or two many points
-        if len(points_source) != n + 2:
-            raise ValueError("incorrect number of points in source, need %d points" % (n + 2))
-        if len(points_target) != n + 2:
-            raise ValueError("incorrect number of points in target, need %d points" % (n + 2))
-        if any(x.codomain() != self for x in points_source):
-            raise ValueError("source points not in self")
-        if any(x.codomain() != self for x in points_target):
-            raise ValueError("target points not in self")
-        Ms = matrix(r, [list(s) for s in points_source])
-        if any(m == 0 for m in Ms.minors(n + 1)):
-            raise ValueError("source points not independent")
-        Mt = matrix(r, [list(t) for t in points_target])
-        if any(l == 0 for l in Mt.minors(n + 1)):
-            raise ValueError("target points not independent")
-
-        # get_matrix calculates the transform from the list of points
-        # [ [1 : 0 : 0 : ... ]
-        #   [0 : 1 : 0 : ... ]
-        #   [0 : 0 : 1 : ... ]
-        #   ...
-        #   [1 : 1 : 1 : ... ] ]
-        # to the list of points S
-        def get_matrix(S, N):
-            a = matrix(N+1, N+1, [S[j][i] for i in range(N+1) for j in range(N+1)])
-            b = matrix(N+1, 1, list(S[N+1]))
-            X = a.solve_right(b)
-            m = matrix(N+1, N+1, [X[i,0]*S[i][j] for i in range(N+1) for j in range(N+1)])
-            m = m.transpose()
-            return m
-
-        m_source = get_matrix(points_source, n)
-        m_target = get_matrix(points_target, n)
-        return m_target*m_source.inverse()
-
     def curve(self, F):
         r"""
         Return a curve defined by ``F`` in this projective space.
@@ -1733,7 +1806,6 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         m = matrix(3, list(self.gens()) + list(p) + list(q))
         return Curve([f for f in m.minors(3) if f])
-
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):

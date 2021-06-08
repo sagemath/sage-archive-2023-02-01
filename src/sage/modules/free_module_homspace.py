@@ -181,7 +181,7 @@ class FreeModuleHomspace(sage.categories.homset.HomsetWithBase):
             sage: H = V.Hom(W); H(m)                                                        
             Traceback (most recent call last):
             ...
-            TypeError: Nontrivial morphisms require a coercion map from the base ring of the domain to the base ring of the codomain
+            TypeError: nontrivial morphisms require a coercion map from the base ring of the domain to the base ring of the codomain
             sage: n = zero_matrix(2); 
             sage: h = H(n); h                                                                                                                                                                                           
             Free module morphism defined by the matrix

@@ -28,6 +28,8 @@ FilteredSimplicialComplex objects are mutable. Filtration values can be
 set with the ``filtration`` method as follows::
 
     sage: X = FilteredSimplicialComplex() # returns an empty complex
+    sage: X.persistence_intervals(1)
+    []
     sage: X.filtration(Simplex([0, 2]), 0) # recursively adds faces
     sage: X.filtration(Simplex([0, 1]), 0)
     sage: X.filtration(Simplex([1, 2]), 0)
@@ -127,10 +129,6 @@ class FilteredSimplicialComplex(SageObject):
         # happens.
         self._warnings = warnings
 
-        # Count the number of modifications to be able to
-        # cache persistent_homology computation    
-        self._modif_count = 0
-
         # Insert all simplices in the initial list
         for l, v in simplices:
             self.insert(l, v)
@@ -211,7 +209,7 @@ class FilteredSimplicialComplex(SageObject):
         self._dimension = max(self._dimension, simplex.dimension())
         self._max_value = max(self._max_value, filtration_value)
         self._vertices.update(simplex.set())
-        self._modif_count +=1
+        self._compute_persistent_homology.clear_cache()
 
     def insert(self, vertex_list, filtration_value):
         r"""
@@ -317,7 +315,7 @@ class FilteredSimplicialComplex(SageObject):
 
         return result_complex
 
-    @cached_method(key=lambda self,f,s,v:(f,s,self._modif_count))
+    @cached_method(key=lambda self,f,s,v:(f,s))
     def _compute_persistent_homology(self, field=2, strict=True, verbose=False):
         """
         Compute the homology intervals of the complex.
@@ -358,7 +356,7 @@ class FilteredSimplicialComplex(SageObject):
 
         TESTS:
 
-        This complex is used as a running example in [ZC2005]_.
+        This complex is used as a running example in [ZC2005]_:
 
             sage: l = [([0], 0), ([1], 0), ([2], 1), ([3], 1), ([0, 1], 1), ([1, 2], 1), ([0, 3], 2), ([2, 3], 2), ([0, 2], 3), ([0, 1, 2], 4), ([0, 2, 3], 5)]
             sage: X = FilteredSimplicialComplex(l)
@@ -581,7 +579,10 @@ class FilteredSimplicialComplex(SageObject):
 
         """
         self._compute_persistent_homology(field, strict, verbose=False)
-        return self._intervals[dimension][:]
+        if dimension < len(self._intervals):
+            return self._intervals[dimension][:]
+        else:
+            return []
 
     def betti_number(self, k, a, b, field=2, strict=True):
         r"""

@@ -222,7 +222,7 @@ cdef class Matrix(Matrix0):
             sage: P.<x> = ZZ[]
             sage: M = matrix(P, 2, [-9*x^2-2*x+2, x-1, x^2+8*x, -3*x^2+5])
             sage: giac(M)
-            [[-9*x^2-2*x+2,x-1],[x^2+8*x,-3*x^2+5]]
+            [[-9*sageVARx^2-2*sageVARx+2,sageVARx-1],[sageVARx^2+8*sageVARx,-3*sageVARx^2+5]]
 
             sage: y = var('y')
             sage: M = matrix(SR, 2, [y+sin(y), y - 4, 1/y, dilog(y)])

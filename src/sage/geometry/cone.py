@@ -3283,6 +3283,13 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         Return whether ``self`` is the empty set.
 
         Because a cone always contains the origin, this method returns ``False``.
+
+        EXAMPLES::
+
+            sage: trivial_cone = cones.trivial(3)
+            sage: trivial_cone.is_empty()
+            False
+
         """
         return False
 

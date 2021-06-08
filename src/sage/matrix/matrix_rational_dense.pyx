@@ -2296,7 +2296,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             ....:         A.randomize(dens)
             ....:         ranks[A.rank()] = True
 
-        The default density is ``6/9`::
+        The default density is `6/9`::
 
             sage: def add_sample(density, num_rows, num_cols):
             ....:     global density_sum, total_count

@@ -375,6 +375,22 @@ class LazyLaurentSeries(ModuleElement):
             16796
             sage: e
             1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
+
+        TESTS::
+            sage: def g(s, i):
+            ....:     if i == 0:
+            ....:         return 1
+            ....:     else:
+            ....:         return sum(s.coefficient(j)*s.coefficient(i - 1 - j) for j in [0..i-1])
+            ....:
+            sage: L = LazyLaurentSeriesRing(ZZ,'z',implementation='dense')
+            sage: e = L.series(g, valuation = 0)
+            sage: e.coefficient(10)
+            16796
+            sage: e
+            1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
+
+
         """
 
         R = self.base_ring()
@@ -395,7 +411,8 @@ class LazyLaurentSeries(ModuleElement):
 
         else:
             a = len(self._cache) + self._offset
-            self._cache.extend([R(self._coefficient_function(self, j)) for j in range(a, n + 1)])
+            old_len = len(self._cache)
+            self._cache.extend([R(self._coefficient_function(self, j)) for j in range(a, n + 1)][(len(self._cache) - old_len):])
             c = self._cache[n - self._offset]
             return c
 

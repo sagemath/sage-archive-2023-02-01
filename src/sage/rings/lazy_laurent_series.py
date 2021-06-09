@@ -96,6 +96,7 @@ from .lazy_laurent_series_operator import (
 )
 from sage.misc.lazy_list import lazy_list
 
+
 class LazyLaurentSeries(ModuleElement):
     r"""
     Return a lazy Laurent series.
@@ -167,9 +168,9 @@ class LazyLaurentSeries(ModuleElement):
         self._approximate_valuation = valuation
         self._constant = constant
         self._implementation = parent._implementation
-        
+
         if self._implementation == 'sparse':
-            self._cache = dict() # cache of known coefficients
+            self._cache = dict()  # cache of known coefficients
         elif self._implementation == 'dense':
             self._cache = list()
             self._offset = valuation
@@ -301,7 +302,7 @@ class LazyLaurentSeries(ModuleElement):
         n = self.valuation()
 
         if self._constant is None:
-            m = n + 7 # long enough
+            m = n + 7  # long enough
         elif self._constant[0] != 0:
             m = self._constant[1] + 3
         else:
@@ -317,16 +318,16 @@ class LazyLaurentSeries(ModuleElement):
                 if not atomic_repr and n > 0 and (x[1:].find('+') != -1 or x[1:].find('-') != -1):
                     x = '({})'.format(x)
                 if n > 1 or n < 0:
-                    var = '*{}^{}'.format(X,n)
+                    var = '*{}^{}'.format(X, n)
                 elif n == 1:
                     var = '*{}'.format(X)
                 else:  # n == 0
                     var = ''
-                s += '{}{}'.format(x,var)
+                s += '{}{}'.format(x, var)
                 first = False
             n += 1
 
-        s = s.replace(" + -", " - ").replace(" 1*"," ").replace(" -1*", " -")[1:]
+        s = s.replace(" + -", " - ").replace(" 1*", " ").replace(" -1*", " -")[1:]
 
         if not s:  # zero series
             s = '0'
@@ -375,7 +376,7 @@ class LazyLaurentSeries(ModuleElement):
             sage: e
             1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
         """
-        
+
         R = self.base_ring()
         if self._approximate_valuation == infinity:
             return R.zero()
@@ -385,7 +386,7 @@ class LazyLaurentSeries(ModuleElement):
             return self._constant[0]
 
         if self._implementation == 'sparse':
-            try:                
+            try:
                 c = self._cache[n]
             except KeyError:
                 c = R(self._coefficient_function(self, n))
@@ -393,29 +394,10 @@ class LazyLaurentSeries(ModuleElement):
             return c
 
         else:
-            if n - self._offset < len(self._cache):
-                    c = self._cache[n - self._offset]
-                    return c
-
-            if len(self._cache) != 0:
-                i = n + 1
-                calculated_index = len(self._cache) + self._offset
-                l = [R(self._coefficient_function(self, j)) for j in range(calculated_index, i)]
-                self._cache.extend(l)
-                c = self._cache[n - self._offset]
-                return c
-            else:
-                i = n - self._offset + 1 if self._offset <= 0 else n + 1
-                if self._offset <= 0:
-                    l = [R(self._coefficient_function(self, -j)) for j in range(-self._offset, -1, -1)]
-                    self._cache.extend(l)
-                    c = self._cache[n - self._offset]
-                    return c
-                else:
-                    l = [R(self._coefficient_function(self, j)) for j in range(self._offset, i)]
-                    self._cache.extend(l)
-                    c = self._cache[i - 1 - self._offset]
-                    return c
+            a = len(self._cache) + self._offset
+            self._cache.extend([R(self._coefficient_function(self, j)) for j in range(a, n + 1)])
+            c = self._cache[n - self._offset]
+            return c
 
     def valuation(self):
         """
@@ -467,7 +449,7 @@ class LazyLaurentSeries(ModuleElement):
                 cache = self._cache
                 while True:
                     if n - self._offset < len(cache):
-                        if cache[n]:
+                        if cache[n - self._offset]:
                             self._approximate_valuation = n
                             return n
                         n += 1
@@ -553,7 +535,7 @@ class LazyLaurentSeries(ModuleElement):
             from sage.rings.all import LaurentPolynomialRing
             R = LaurentPolynomialRing(S.base_ring(), name=name)
             n = self.valuation()
-            return R([self.coefficient(i) for i in range(n,m)]).shift(n)
+            return R([self.coefficient(i) for i in range(n, m)]).shift(n)
         else:
             from sage.rings.all import PolynomialRing
             R = PolynomialRing(S.base_ring(), name=name)
@@ -603,7 +585,7 @@ class LazyLaurentSeries(ModuleElement):
             from sage.rings.all import LaurentSeriesRing
             R = LaurentSeriesRing(S.base_ring(), name=name)
             n = self.valuation()
-            return R([self.coefficient(i) for i in range(n,prec)], n).add_bigoh(prec)
+            return R([self.coefficient(i) for i in range(n, prec)], n).add_bigoh(prec)
         else:
             from sage.rings.all import PowerSeriesRing
             R = PowerSeriesRing(S.base_ring(), name=name)

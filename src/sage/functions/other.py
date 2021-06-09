@@ -2329,7 +2329,7 @@ class Function_elementof(BuiltinFunction):
             ...
             ValueError: not a set: 0
         """
-        from sage.sets.sets_cat import Sets
+        from sage.categories.sets_cat import Sets
         if not s in Sets():
             raise ValueError("not a set: {}".format(s))
 

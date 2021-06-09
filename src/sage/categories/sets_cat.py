@@ -1686,6 +1686,32 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             result.__doc__ = Sets.ParentMethods.algebra.__doc__
             return result
 
+        def _sympy_(self):
+            """
+            Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSets().example(); F
+                An example of a finite enumerated set: {1,2,3}
+                sage: sF = F._sympy_(); sF
+                SageSet(An example of a finite enumerated set: {1,2,3})
+                sage: bool(sF)
+                True
+                sage: len(sF)
+                3
+                sage: list(sF)
+                [1, 2, 3]
+                sage: from sympy import FiniteSet
+                sage: FiniteSet.fromiter(sF)
+                FiniteSet(1, 2, 3)
+
+                sage: RR._sympy_().is_finite_set
+                False
+            """
+            from sage.interfaces.sympy_wrapper import SageSet
+            return SageSet(self)
+
     class ElementMethods:
         ## Should eventually contain the basic operations which are no math
         ## latex, hash, ...

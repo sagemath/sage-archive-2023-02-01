@@ -748,6 +748,17 @@ def _sympysage_crootof(self):
     from sage.symbolic.ring import SR
     return complex_root_of(self.args[0]._sage_(), SR(self.args[1]))
 
+def _sympysage_matrix(self):
+    try:
+        return self._sage_object
+    except AttributeError:
+        from sympy.matrices import SparseMatrix
+        from sage.matrix.constructor import matrix
+        rows, cols = self.shape()
+        return matrix(rows, cols, self.todok(),
+                      sparse=isinstance(self, SparseMatrix),
+                      immutable=True)
+
 def _sympysage_relational(self):
     """
     EXAMPLES::
@@ -846,6 +857,7 @@ def sympy_init():
     from sympy.integrals.integrals import Integral
     from sympy.polys.rootoftools import CRootOf
     from sympy.series.order import Order
+    from sympy.matrices import ImmutableMatrix, ImmutableSparseMatrix, Matrix, SparseMatrix
 
     Float._sage_ = _sympysage_float
     Integer._sage_ = _sympysage_integer
@@ -854,6 +866,10 @@ def sympy_init():
     NegativeInfinity._sage_ = _sympysage_ninfty
     ComplexInfinity._sage_ = _sympysage_uinfty
     sympy_nan._sage_ = _sympysage_nan
+    ImmutableMatrix._sage_ = _sympysage_matrix
+    ImmutableSparseMatrix._sage_ = _sympysage_matrix
+    Matrix._sage_ = _sympysage_matrix
+    SparseMatrix._sage_ = _sympysage_matrix
     Relational._sage_ = _sympysage_relational
     Exp1._sage_ = _sympysage_e
     Pi._sage_ = _sympysage_pi

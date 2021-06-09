@@ -1493,14 +1493,10 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         return_mat = m_target*m_source.inverse()
         if normalize:
             if self.base_ring().is_field():
-                last_ele = 0
-                for row in reversed(return_mat.rows()):
-                    for ele in reversed(row):
-                        if ele != 0:
-                            last_ele = ele
-                            break
-                    if last_ele != 0:
-                        break
+                last_row = list(return_mat.rows()[-1])[:]
+                last_ele = last_row.pop()
+                while last_ele == 0:
+                    last_ele = last_row.pop()
                 return_mat *= ZZ(1)/last_ele
             else:
                 lcm = return_mat[0][0]

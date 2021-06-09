@@ -4111,9 +4111,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                  for j in range(i+1, N)]
             L = [t for t in L if t != 0]
             X = PS.subscheme(L + list(dom.defining_polynomials()))
+            if minimal:
+                Sn = []
+                for k in ZZ(n).divisors():
+                    if ZZ(n/k).is_prime():
+                        Sn.append(k)
+                Ik = CR.ideal(1)
+                for k in Sn:
+                    Ik *= f.periodic_points(k, return_scheme=True, minimal=False).defining_ideal()
+                In = f.periodic_points(n, return_scheme=True, minimal=False).defining_ideal()
+                X = PS.subscheme(In.saturation(Ik)[0])
             if return_scheme:  # this includes the indeterminacy locus points!
-                if minimal and n != 1:
-                    raise NotImplementedError("return_subscheme only implemented for minimal=False")
                 return X
             if X.dimension() == 0:
                 if R in NumberFields() or R is QQbar or R in FiniteFields():
@@ -4127,21 +4135,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                             good_points.append(Q)
                     points = good_points
 
-                    if not minimal:
-                        return points
-                    else:
-                        # we want only the points with minimal period n
-                        # so we go through the list and remove any that
-                        # have smaller period by checking the iterates
-                        for i in range(len(points)-1,-1,-1):
-                            # iterate points to check if minimal
-                            P = points[i]
-                            for j in range(1,n):
-                                P = f(P)
-                                if P == points[i]:
-                                    points.pop(i)
-                                    break
-                        return points
+                    return points
                 else:
                     raise NotImplementedError("ring must be a number field or finite field")
             else: #a higher dimensional scheme

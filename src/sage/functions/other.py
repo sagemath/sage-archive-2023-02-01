@@ -2315,7 +2315,8 @@ class Function_elementof(BuiltinFunction):
             sage: loads(dumps(element_of))
             element_of
         """
-        BuiltinFunction.__init__(self, "element_of", nargs=2)
+        BuiltinFunction.__init__(self, "element_of", nargs=2,
+                                 conversions=dict(sympy='Contains'))
 
     def _eval_(self, x, s):
         """

@@ -2329,8 +2329,8 @@ class Function_elementof(BuiltinFunction):
             ...
             ValueError: not a set: 0
         """
-        from sage.sets.set import is_Set
-        if not is_Set(s):
+        from sage.sets.sets_cat import Sets
+        if not s in Sets():
             raise ValueError("not a set: {}".format(s))
 
     def _latex_(self):

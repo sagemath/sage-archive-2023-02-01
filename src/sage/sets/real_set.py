@@ -93,6 +93,7 @@ from sage.rings.all import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
 
+from sage.misc.superseded import deprecated_function_alias
 
 @richcmp_method
 class InternalRealInterval(UniqueRepresentation, Parent):
@@ -1599,13 +1600,13 @@ class RealSet(UniqueRepresentation, Parent):
     
     __contains__ = contains
     
-    def is_included_in(self, *other):
+    def is_subset(self, *other):
         r"""
-        Tests interval inclusion
+        Return whether ``self`` is a subset of ``other``.
             
         INPUT:
 
-        - ``*args`` -- a :class:`RealSet` or something that defines
+        - ``*other`` -- a :class:`RealSet` or something that defines
           one.
 
         OUTPUT:
@@ -1617,12 +1618,14 @@ class RealSet(UniqueRepresentation, Parent):
             sage: I = RealSet((1,2))
             sage: J = RealSet((1,3))
             sage: K = RealSet((2,3))
-            sage: I.is_included_in(J)
+            sage: I.is_subset(J)
             True
-            sage: J.is_included_in(K)
+            sage: J.is_subset(K)
             False
         """
         return RealSet(*other).intersection(self) == self
+
+    is_included_in = deprecated_function_alias(31927, is_subset)
 
     def an_element(self):
         """

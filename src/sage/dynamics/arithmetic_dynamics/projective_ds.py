@@ -3713,22 +3713,22 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
-            sage: f = DynamicalSystem_projective([x^2-y^2, y^2])
-            sage: f.preperiodic_points(0,1)
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: f.preperiodic_points(0, 1)
             [(-0.618033988749895? : 1), (1 : 0), (1.618033988749895? : 1)]
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2-29/16*y^2, y^2])
-            sage: f.preperiodic_points(1,3)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 - 29/16*y^2, y^2])
+            sage: f.preperiodic_points(1, 3)
             [(-5/4 : 1), (1/4 : 1), (7/4 : 1)]
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
-            sage: f = DynamicalSystem_projective([x^2-x*y+2*y^2, x^2-y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
+            sage: f = DynamicalSystem_projective([x^2 - x*y + 2*y^2, x^2 - y^2])
             sage: f.preperiodic_points(1,2,minimal=False)
             [(-3.133185666641252? : 1),
             (-1 : 1),
@@ -3851,6 +3851,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             f = self.change_ring(R)
             R = f.base_ring() #in the case when R is an embedding
+        CR = f.coordinate_ring()
         dom = f.domain()
         PS = f.codomain().ambient_space()
         N = PS.dimension_relative() + 1
@@ -3861,39 +3862,44 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         X = PS.subscheme(L + list(dom.defining_polynomials()))
         minimal = kwds.pop('minimal',True)
         return_scheme = kwds.pop('return_scheme',False)
+        if minimal and n != 1:
+            Sn = []
+            for k in ZZ(n).divisors():
+                if ZZ(n/k).is_prime():
+                    Sn.append(k)
+            if (is_PolynomialRing(R) or is_MPolynomialRing(R)):
+                from sage.rings.polynomial.flatten import FlatteningMorphism
+                phi = FlatteningMorphism(CR)
+                flatCR = phi.codomain()
+                Ik = flatCR.ideal(1)
+                for k in Sn:
+                    Ik *= f.preperiodic_points(m, k, return_scheme=True, minimal=False).defining_ideal()
+                Ik *= f.preperiodic_points(m-1, n, return_scheme=True, minimal=False).defining_ideal()
+                from sage.rings.polynomial.flatten import UnflatteningMorphism
+                psi = UnflatteningMorphism(flatCR, CR)
+                In = flatCR.ideal([phi(i) for i in X.defining_polynomials()])
+                X = PS.subscheme(flatCR.ideal([psi(i) for i in In.saturation(Ik)[0].gens()]))
+            else:
+                Ik = CR.ideal(1)
+                for k in Sn:
+                    Ik *= f.periodic_points(k, return_scheme=True, minimal=False).defining_ideal()
+                In = X.defining_ideal()
+                X = PS.subscheme(In.saturation(Ik)[0])
         if return_scheme:  # this includes the indeterminacy locus points!
-            if minimal and n != 1:
-                raise NotImplementedError("return_subscheme only implemented for minimal=False")
             return X
-        if X.dimension() == 0:
+        if X.dimension() <= 0:
             if R in NumberFields() or R is QQbar or R in FiniteFields():
+                Z = f.base_indeterminacy_locus()
                 points = [dom(Q) for Q in X.rational_points()]
                 good_points = []
                 for Q in points:
-                    # check if point is in indeterminacy
-                    if not all(F(list(Q)) == 0 for F in f):
+                    try:
+                        Z(list(Q))
+                    except TypeError:
                         good_points.append(Q)
                 points = good_points
-                if not minimal:
-                    return points
-                else:
-                    #we want only the points with minimal period m,n
-                    #so we go through the list and create a new list
-                    #that only includes the points with minimal period
-                    minimal_points = []
-                    for P in points:
-                        orbit = [P]
-                        Q = f(P)
-                        n_plus_m = 1
-                        while Q not in orbit:
-                            orbit.append(Q)
-                            Q = f(Q)
-                            n_plus_m += 1
-                        preperiod = orbit.index(Q)
-                        period = n_plus_m - preperiod
-                        if period == n and preperiod == m:
-                            minimal_points.append(P)
-                    return minimal_points
+
+                return points
             else:
                 raise NotImplementedError("ring must a number field or finite field")
         else: #a higher dimensional scheme
@@ -4067,9 +4073,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
               -x*y^2 + x^2*z - y^2*z + x*z^2,
               -y^3 + x^2*z + y*z^2 - z^3
             sage: f.periodic_points(2, minimal=True, return_scheme=True)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: return_subscheme only implemented for minimal=False
+            Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              x - y + z,
+              y*z - z^2
 
         ::
 
@@ -4077,6 +4083,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: f.periodic_points(2, R=GF(3^2,'t'))
             [(t + 2 : 1), (2*t : 1)]
+
+        ::
+
+            sage: S.<c> = QQ[]
+            sage: R.<x,y> = PolynomialRing(S, 2)
+            sage: P = ProjectiveSpace(R)
+            sage: f = DynamicalSystem_projective([x^2 + c*y^2, y^2])
+            sage: f.periodic_points(2, return_scheme=True)
+            Closed subscheme of Projective Space of dimension 1 over Univariate
+            Polynomial Ring in c over Rational Field defined by:
+              x^2 + x*y + (c + 1)*y^2
         """
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
@@ -4111,19 +4128,31 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                  for j in range(i+1, N)]
             L = [t for t in L if t != 0]
             X = PS.subscheme(L + list(dom.defining_polynomials()))
-            if minimal:
+            if minimal and n != 1:
                 Sn = []
                 for k in ZZ(n).divisors():
                     if ZZ(n/k).is_prime():
                         Sn.append(k)
-                Ik = CR.ideal(1)
-                for k in Sn:
-                    Ik *= f.periodic_points(k, return_scheme=True, minimal=False).defining_ideal()
-                In = f.periodic_points(n, return_scheme=True, minimal=False).defining_ideal()
-                X = PS.subscheme(In.saturation(Ik)[0])
+                if (is_PolynomialRing(R) or is_MPolynomialRing(R)):
+                    from sage.rings.polynomial.flatten import FlatteningMorphism
+                    phi = FlatteningMorphism(CR)
+                    flatCR = phi.codomain()
+                    Ik = flatCR.ideal(1)
+                    for k in Sn:
+                        Ik *= f.periodic_points(k, return_scheme=True, minimal=False).defining_ideal()
+                    from sage.rings.polynomial.flatten import UnflatteningMorphism
+                    psi = UnflatteningMorphism(flatCR, CR)
+                    In = flatCR.ideal([phi(i) for i in X.defining_polynomials()])
+                    X = PS.subscheme(flatCR.ideal([psi(i) for i in In.saturation(Ik)[0].gens()]))
+                else:
+                    Ik = CR.ideal(1)
+                    for k in Sn:
+                        Ik *= f.periodic_points(k, return_scheme=True, minimal=False).defining_ideal()
+                    In = X.defining_ideal()
+                    X = PS.subscheme(In.saturation(Ik)[0])
             if return_scheme:  # this includes the indeterminacy locus points!
                 return X
-            if X.dimension() == 0:
+            if X.dimension() <= 0:
                 if R in NumberFields() or R is QQbar or R in FiniteFields():
                     Z = f.base_indeterminacy_locus()
                     points = [dom(Q) for Q in X.rational_points()]

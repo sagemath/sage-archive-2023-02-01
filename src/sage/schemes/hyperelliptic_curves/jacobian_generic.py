@@ -152,3 +152,26 @@ class HyperellipticJacobian_generic(Jacobian_generic):
 
     def _point(self, *args, **kwds):
         return jacobian_morphism.JacobianMorphism_divisor_class_field(*args, **kwds)
+
+    ####################################################################
+    # Endomorphism rings and related properties
+    ####################################################################
+
+    def endomorphism_ring(self):
+        r"""
+        The ring of endomorphisms of this Jacobian which are defined over
+        the base field.
+        """
+
+        try:
+            return self.__endomorphism_ring
+        except AttributeError:
+            from .jacobian_endomorphisms import EndomorphismRing
+            self.__endomorphism_ring = EndomorphismRing(self)
+        return self.__endomorphism_ring
+
+    def is_generic(self, B=200):
+        return self.endomorphism_ring().is_absolutely_trivial(B=B)
+
+    def is_absolutely_simple(self,B=200):
+        return self.endomorphism_ring().is_absolutely_field(B=B)

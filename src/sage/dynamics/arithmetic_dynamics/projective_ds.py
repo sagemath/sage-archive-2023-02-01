@@ -3729,7 +3729,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
             sage: f = DynamicalSystem_projective([x^2 - x*y + 2*y^2, x^2 - y^2])
-            sage: f.preperiodic_points(1,2,minimal=False)
+            sage: f.preperiodic_points(1, 2, minimal=False)
             [(-3.133185666641252? : 1),
             (-1 : 1),
             (-0.3478103847799310? - 1.028852254136693?*I : 1),
@@ -3745,9 +3745,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: R.<w> = QQ[]
             sage: K.<s> = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1)
-            sage: P.<x,y,z> = ProjectiveSpace(K,2)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
             sage: f = DynamicalSystem_projective([x^2+z^2, y^2+x^2, z^2+y^2])
-            sage: sorted(f.preperiodic_points(0,1), key=str)
+            sage: sorted(f.preperiodic_points(0, 1), key=str)
             [(-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
              (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
              (-s^5 + 3*s^4 - 5*s^3 + 4*s^2 - 3*s + 1 : s^5 - 2*s^4 + 3*s^3 - 3*s^2 + 4*s - 1 : 1),
@@ -3758,17 +3758,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: K.<v> = QuadraticField(5)
             sage: phi = QQ.embeddings(K)[0]
-            sage: f = DynamicalSystem_projective([x^2-y^2,y^2])
-            sage: f.preperiodic_points(1,1,R=phi)
+            sage: f = DynamicalSystem_projective([x^2 - y^2,y^2])
+            sage: f.preperiodic_points(1, 1, R=phi)
             [(-1/2*v - 1/2 : 1), (1/2*v - 1/2 : 1)]
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: X = P.subscheme(2*x-y)
+            sage: X = P.subscheme(2*x - y)
             sage: f = DynamicalSystem_projective([x^2-y^2, 2*(x^2-y^2), y^2-z^2], domain=X)
             sage: f.preperiodic_points(1,1)
             [(-1/4 : -1/2 : 1), (1 : 2 : 1)]
@@ -3777,7 +3777,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
             sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
-            sage: sorted(f.preperiodic_points(2,1))
+            sage: sorted(f.preperiodic_points(2, 1))
             [(0 : 2 : 1),
              (0 : 3 : 1),
              (1 : 2 : 1),
@@ -3801,11 +3801,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
             sage: f = DynamicalSystem_projective([x^2, x*y, z^2])
-            sage: f.preperiodic_points(2,1, return_scheme=True)
+            sage: f.preperiodic_points(2, 1, return_scheme=True)
             Closed subscheme of Projective Space of dimension 2 over Finite Field of size 5 defined by:
-              0,
-              x^8*z^4 - x^4*z^8,
-              x^7*y*z^4 - x^3*y*z^8
+              x^2 + z^2
 
         ::
 
@@ -3815,6 +3813,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
             sage: f.preperiodic_points(2, 1, R=K)
             [(v : 1), (-v : 1)]
+
+        ::
+
+            sage: S.<c> = QQ[]
+            sage: R.<x,y> = PolynomialRing(S, 2)
+            sage: P = ProjectiveSpace(R)
+            sage: f = DynamicalSystem_projective([x^2 + c*y^2, y^2])
+            sage: f.preperiodic_points(1, 2, return_scheme=True)
+            Closed subscheme of Projective Space of dimension 1 over Univariate
+            Polynomial Ring in c over Rational Field defined by:
+              x^2 - x*y + (c + 1)*y^2
 
         TESTS::
 
@@ -3827,9 +3836,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2-29/16*y^2, y^2])
-            sage: f.preperiodic_points(1.2,3)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 - 29/16*y^2, y^2])
+            sage: f.preperiodic_points(1.2, 3)
             Traceback (most recent call last):
             ...
             TypeError: Attempt to coerce non-integral RealNumber to Integer
@@ -3862,7 +3871,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         X = PS.subscheme(L + list(dom.defining_polynomials()))
         minimal = kwds.pop('minimal',True)
         return_scheme = kwds.pop('return_scheme',False)
-        if minimal and n != 1:
+        if minimal:
             Sn = []
             for k in ZZ(n).divisors():
                 if ZZ(n/k).is_prime():
@@ -3874,7 +3883,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 Ik = flatCR.ideal(1)
                 for k in Sn:
                     Ik *= f.preperiodic_points(m, k, return_scheme=True, minimal=False).defining_ideal()
-                Ik *= f.preperiodic_points(m-1, n, return_scheme=True, minimal=False).defining_ideal()
+                if m != 0:
+                    Ik *= f.preperiodic_points(m-1, n, return_scheme=True, minimal=False).defining_ideal()
                 from sage.rings.polynomial.flatten import UnflatteningMorphism
                 psi = UnflatteningMorphism(flatCR, CR)
                 In = flatCR.ideal([phi(i) for i in X.defining_polynomials()])
@@ -3883,6 +3893,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 Ik = CR.ideal(1)
                 for k in Sn:
                     Ik *= f.periodic_points(k, return_scheme=True, minimal=False).defining_ideal()
+                if m != 0:
+                    Ik *= f.preperiodic_points(m-1, n, return_scheme=True, minimal=False).defining_ideal()
                 In = X.defining_ideal()
                 X = PS.subscheme(In.saturation(Ik)[0])
         if return_scheme:  # this includes the indeterminacy locus points!
@@ -3961,7 +3973,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QuadraticField(5,'t'),2)
-            sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2-z^2, z^2])
+            sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2 - z^2, z^2])
             sage: f.periodic_points(2)
             [(-5/4 : -1 : 1), (-5/4 : -1/2*t + 1/2 : 1), (-5/4 : 0 : 1),
              (-5/4 : 1/2*t + 1/2 : 1), (-3/4 : -1 : 1), (-3/4 : 0 : 1),
@@ -3972,8 +3984,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: w = QQ['w'].0
             sage: K = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1,'s')
-            sage: P.<x,y,z> = ProjectiveSpace(K,2)
-            sage: f = DynamicalSystem_projective([x^2+z^2, y^2+x^2, z^2+y^2])
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: f = DynamicalSystem_projective([x^2 + z^2, y^2 + x^2, z^2 + y^2])
             sage: sorted(f.periodic_points(1), key=str)
             [(-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
              (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
@@ -3985,8 +3997,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2-2*z^2, z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2 - 2*z^2, z^2])
             sage: f.periodic_points(2, False)
             [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (-3/4 : -1 : 1),
              (-3/4 : 2 : 1), (0 : 1 : 0), (1/4 : -1 : 1), (1/4 : 2 : 1),
@@ -3994,8 +4006,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2-2*z^2, z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2 - 2*z^2, z^2])
             sage: f.periodic_points(2)
             [(-5/4 : -1 : 1), (-5/4 : 2 : 1), (1/4 : -1 : 1), (1/4 : 2 : 1)]
 
@@ -4003,7 +4015,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: set_verbose(None)
             sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
-            sage: f = DynamicalSystem_projective([x^2+y^2,y^2])
+            sage: f = DynamicalSystem_projective([x^2 + y^2, y^2])
             sage: f.periodic_points(2, R=QQbar, minimal=False)
             [(-0.50000000000000000? - 1.322875655532296?*I : 1),
              (-0.50000000000000000? + 1.322875655532296?*I : 1),
@@ -4014,7 +4026,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         ::
 
             sage: P.<x,y> = ProjectiveSpace(GF(307), 1)
-            sage: f = DynamicalSystem_projective([x^10+y^10, y^10])
+            sage: f = DynamicalSystem_projective([x^10 + y^10, y^10])
             sage: f.periodic_points(16, minimal=True, algorithm='cyclegraph')
             [(69 : 1), (185 : 1), (120 : 1), (136 : 1), (97 : 1), (183 : 1),
              (170 : 1), (105 : 1), (274 : 1), (275 : 1), (154 : 1), (156 : 1),
@@ -4022,7 +4034,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(GF(13^2,'t'),1)
+            sage: P.<x,y> = ProjectiveSpace(GF(13^2, 't'), 1)
             sage: f = DynamicalSystem_projective([x^3 + 3*y^3, x^2*y])
             sage: f.periodic_points(30, minimal=True, algorithm='cyclegraph')
             [(t + 3 : 1), (6*t + 6 : 1), (7*t + 1 : 1), (2*t + 8 : 1),
@@ -4036,10 +4048,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([3*x^2+5*y^2,y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([3*x^2 + 5*y^2, y^2])
             sage: f.periodic_points(2, R=GF(3), minimal=False)
             [(2 : 1)]
+            sage: f.periodic_points(2, R=GF(3))
+            []
 
         ::
 
@@ -4054,16 +4068,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: R.<x> = QQ[]
             sage: K.<u> = NumberField(x^2 - x + 3)
-            sage: P.<x,y,z> = ProjectiveSpace(K,2)
-            sage: X = P.subscheme(2*x-y)
-            sage: f = DynamicalSystem_projective([x^2-y^2, 2*(x^2-y^2), y^2-z^2], domain=X)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: X = P.subscheme(2*x - y)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, 2*(x^2 - y^2), y^2 - z^2], domain=X)
             sage: f.periodic_points(2)
             [(-1/5*u - 1/5 : -2/5*u - 2/5 : 1), (1/5*u - 2/5 : 2/5*u - 4/5 : 1)]
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: f = DynamicalSystem_projective([x^2-y^2, x^2-z^2, y^2-z^2])
+            sage: f = DynamicalSystem_projective([x^2 - y^2, x^2 - z^2, y^2 - z^2])
             sage: f.periodic_points(1)
             [(-1 : 0 : 1)]
             sage: f.periodic_points(1, return_scheme=True)

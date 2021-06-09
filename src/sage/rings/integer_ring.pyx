@@ -1467,6 +1467,18 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return '"Integer"'
 
+    def _sympy_(self):
+        r"""
+        Return the SymPy set ``Integers``.
+
+        EXAMPLES::
+
+            sage: ZZ._sympy_()
+            Integers
+        """
+        from sympy import Integers
+        return Integers
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when

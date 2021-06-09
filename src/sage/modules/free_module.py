@@ -5306,6 +5306,20 @@ class FreeModule_ambient(FreeModule_generic):
             v.set_immutable()
             return v
 
+    def _sympy_(self):
+        """
+        Return a SymPy ``ProductSet`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: sZZ3 = (ZZ^3)._sympy_(); sZZ3
+            ProductSet(Integers, Integers, Integers)
+            sage: (1, 2, 3) in sZZ3
+            True
+        """
+        from sympy import ProductSet
+        return ProductSet(*([self.coordinate_ring()] * self.rank()))
+
 
 ###############################################################################
 #

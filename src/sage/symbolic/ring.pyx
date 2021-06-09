@@ -262,8 +262,6 @@ cdef class SymbolicRing(CommutativeRing):
             Integer Ring
             sage: SR(Set([1/2, 2/3, 3/4]))
             {3/4, 2/3, 1/2}
-            sage: SR(QQ.completion(oo, oo))
-            Real Field
             sage: SR(RealSet(0, 1))
             (0, 1)
 
@@ -409,7 +407,6 @@ cdef class SymbolicRing(CommutativeRing):
         elif x in Sets():
             from sage.rings.all import NN, ZZ, QQ, AA
             from sage.sets.real_set import RealSet
-            oo = infinity
             if (x.is_finite() or x in (NN, ZZ, QQ, AA)
                     or isinstance(x, RealSet)):
                 exp = x

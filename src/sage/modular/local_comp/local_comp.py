@@ -771,6 +771,10 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                 except ValueError:
                     B_fail = 1
 
+                if chisA == chisB or chisA == reversed(chisB):
+                    # repeated roots -- break symmetry arbitrarily
+                    B_fail = 1
+
                 # check the character relation from LW12
                 if (not A_fail and not B_fail):
                     for x in G.ideal(n).invertible_residues():

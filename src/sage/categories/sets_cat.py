@@ -2451,6 +2451,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     True
                 """
                 from sympy import ProductSet
+                from sage.interfaces.sympy import sympy_init
+                sympy_init()
                 return ProductSet(*self.cartesian_factors())
 
         class ElementMethods:

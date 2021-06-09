@@ -233,4 +233,6 @@ class NonNegativeIntegers(UniqueRepresentation, Parent):
             Naturals0
         """
         from sympy import Naturals0
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         return Naturals0

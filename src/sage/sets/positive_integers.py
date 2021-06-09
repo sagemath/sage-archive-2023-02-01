@@ -86,4 +86,6 @@ class PositiveIntegers(IntegerRangeInfinite):
             Naturals
         """
         from sympy import Naturals
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         return Naturals

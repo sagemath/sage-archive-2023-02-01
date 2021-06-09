@@ -433,6 +433,8 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             Interval.open(0, oo)
         """
         from sympy import Interval
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         return Interval(self.lower(), self.upper(),
                         left_open=not self._lower_closed,
                         right_open=not self._upper_closed)
@@ -1869,6 +1871,8 @@ class RealSet(UniqueRepresentation, Parent):
             False
         """
         from sympy import Reals, Union
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         if self.is_universe():
             return Reals
         else:

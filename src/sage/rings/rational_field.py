@@ -1586,6 +1586,8 @@ class RationalField(Singleton, number_field_base.NumberField):
             Rationals
         """
         from sympy import Rationals
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         return Rationals
 
     def _sage_input_(self, sib, coerced):

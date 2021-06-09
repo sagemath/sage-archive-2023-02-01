@@ -5318,6 +5318,8 @@ class FreeModule_ambient(FreeModule_generic):
             True
         """
         from sympy import ProductSet
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         return ProductSet(*([self.coordinate_ring()] * self.rank()))
 
 

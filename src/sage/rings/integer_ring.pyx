@@ -1477,6 +1477,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             Integers
         """
         from sympy import Integers
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         return Integers
 
     def _sage_input_(self, sib, coerced):

@@ -2038,6 +2038,8 @@ class WordMorphism(SageObject):
         The language of the substitution is the DOL language which consist
         of factors of `s^n(u)`.
 
+        This method assumes this substitution is non-erasing.
+
         INPUT:
 
         - ``n`` -- non-negative integer - length of the words in the language
@@ -2057,19 +2059,38 @@ class WordMorphism(SageObject):
 
             sage: s._language_naive(3, W())
             set()
+            sage: W([1, 1]) in s._language_naive(3, W([1, 1]))
+            True
         """
-        L = set(u.parent()())
-        todo = [u]
+        L = set()
+        todo = []
+        for i in range(len(u)):
+            for j in range(i+1, min(len(u)+1, i+n)):
+                f = u[i:j]
+                if f not in L:
+                    todo.append(f)
+                    L.add(f)
         while todo:
             u = todo.pop()
             v = self(u)
-            for i in range(len(v)):
-                for j in range(i+1, min(len(v)+1, i+n)):
-                    f = v[i:j]
-                    if f not in L:
-                        todo.append(f)
-                        L.add(f)
-
+            if u.length() == 1:
+                for i in range(len(v)):
+                    for j in range(i+1, min(len(v)+1, i+n)):
+                        f = v[i:j]
+                        if f not in L:
+                            todo.append(f)
+                            L.add(f)
+            else:
+                l = self._morph[u[0]].length()
+                r = self._morph[u[-1]].length()
+                m = v.length() - l - r
+                x = n - 1 - m
+                for i in range(l - min(x - 1, l), l):
+                    for j in range(l + m + 1, l + m + 1 + min(x - l + i, r)):
+                        f = v[i:j]
+                        if f not in L:
+                            todo.append(f)
+                            L.add(f)
         return L
 
     def language(self, n, u=None):

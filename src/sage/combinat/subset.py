@@ -353,17 +353,10 @@ class Subsets_s(Parent):
             8
             sage: Subsets(3).cardinality()
             8
-        """
-        return Integer(1) << self._s.cardinality()
-
-    def __len__(self):
-        r"""
-        Equivalent to ``self.cardinality()``.
 
         TESTS::
 
-            ``__len__`` should return a Python int; in Python 3.7+ this happens
-            automatically, but not on Python 3.6.
+            ``__len__`` should return a Python int.
 
             sage: S = Subsets(Set([1,2,3]))
             sage: len(S)
@@ -371,7 +364,9 @@ class Subsets_s(Parent):
             sage: type(len(S)) is int
             True
         """
-        return int(self.cardinality())
+        return Integer(1) << self._s.cardinality()
+
+    __len__ = cardinality
 
     def first(self):
         """

@@ -5,6 +5,9 @@ from __future__ import print_function
 import os
 import sys
 import time
+# Import setuptools before importing distutils, so that setuptools
+# can replace distutils by its own vendored copy.
+import setuptools
 from distutils import log
 from setuptools import setup
 
@@ -17,6 +20,9 @@ if os.uname().sysname == 'Darwin':
 #########################################################
 ### Set source directory
 #########################################################
+
+# PEP 517 builds do not have . in sys.path
+sys.path.insert(0, os.path.dirname(__file__))
 
 import sage.env
 sage.env.SAGE_SRC = os.getcwd()

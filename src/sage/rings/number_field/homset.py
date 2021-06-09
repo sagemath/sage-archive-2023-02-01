@@ -432,8 +432,33 @@ class RelativeNumberFieldHomset(NumberFieldHomset):
               From: Number Field in b with defining polynomial x^2 + 23
               To:   Number Field in c with defining polynomial x^4 + 80*x^2 + 36
               Defn: b |--> 1/12*c^3 + 43/6*c
+
+        TESTS:
+
+        Check that :trac:`30518` is fixed::
+
+            sage: K.<i> = QuadraticField(-1, embedding=QQbar.gen())
+            sage: L.<a> = K.extension(x^2 - 6*x - 4)
+            sage: a0, a1 = a.galois_conjugates(QQbar)
+            sage: f0 = hom(L, QQbar, a0)
+            sage: assert f0(i) == QQbar.gen()
+            sage: f1 = hom(L, QQbar, a1)
+            sage: assert f1(i) == QQbar.gen()
+
+            sage: K.<i> = QuadraticField(-1, embedding=-QQbar.gen())
+            sage: L.<a> = K.extension(x^2 - 6*x - 4)
+            sage: a0, a1 = a.galois_conjugates(QQbar)
+            sage: f0 = hom(L, QQbar, a0)
+            sage: assert f0(i) == -QQbar.gen()
+            sage: f1 = hom(L, QQbar, a1)
+            sage: assert f1(i) == -QQbar.gen()
         """
-        v = self.domain().base_field().embeddings(self.codomain())
+        K = self.domain().base_field()
+        C = self.codomain()
+        f = C.coerce_map_from(K)
+        if f is not None:
+            return f
+        v = K.embeddings(C)
         if len(v) == 0:
             raise ValueError("no way to map base field to codomain.")
         return v[0]

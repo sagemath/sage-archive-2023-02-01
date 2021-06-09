@@ -1015,21 +1015,6 @@ class RealSet(UniqueRepresentation, Parent):
         """
         return len(self._intervals) == 0
 
-    def is_finite(self):
-        """
-        Return whether the set is finite.
-
-        EXAMPLES::
-
-            sage: RealSet().is_finite()
-            True
-            sage: RealSet(0, 0).is_finite()
-            True
-            sage: RealSet(0, 1).is_finite()
-            False
-        """
-        return self.is_empty() or all(i.is_point() for i in self._intervals)
-
     def get_interval(self, i):
         """
         Return the ``i``-th connected component.

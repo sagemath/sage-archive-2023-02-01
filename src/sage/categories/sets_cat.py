@@ -1690,12 +1690,17 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             """
             Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
 
+            The default implementation creates an instance of
+            :class:`~sage.interfaces.sympy_wrapper`.
+
             EXAMPLES::
 
                 sage: F = FiniteEnumeratedSets().example(); F
                 An example of a finite enumerated set: {1,2,3}
                 sage: sF = F._sympy_(); sF
                 SageSet(An example of a finite enumerated set: {1,2,3})
+                sage: sF.is_finite_set
+                True
                 sage: bool(sF)
                 True
                 sage: len(sF)
@@ -1708,6 +1713,14 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
 
                 sage: RR._sympy_().is_finite_set
                 False
+
+                sage: F = Set([1, 2])
+                sage: F is Set([1, 2])
+                False
+                sage: sF = F._sympy_(); sF
+                SageSet({1, 2})
+                sage: sF._sage_() is F
+                True
             """
             from sage.interfaces.sympy_wrapper import SageSet
             return SageSet(self)

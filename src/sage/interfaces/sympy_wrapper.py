@@ -46,6 +46,9 @@ class SageSet(Set):
     """
 
     def __new__(cls, sage_set):
+        r"""
+        Construct a wrapper for a Sage set.
+        """
         return Basic.__new__(cls, sage_set)
 
     def _sage_(self):
@@ -67,6 +70,8 @@ class SageSet(Set):
     @property
     def is_empty(self):
         r"""
+        Return whether the set ``self`` is empty.
+
         EXAMPLES::
 
             sage: Empty = Set([])
@@ -79,6 +84,8 @@ class SageSet(Set):
     @property
     def is_finite_set(self):
         r"""
+        Return whether the set ``self`` is finite.
+
         EXAMPLES::
 
             sage: W = WeylGroup(["A",1,1])
@@ -92,6 +99,8 @@ class SageSet(Set):
     @property
     def is_iterable(self):
         r"""
+        Return whether the set ``self`` is iterable.
+
         EXAMPLES::
 
             sage: W = WeylGroup(["A",1,1])
@@ -105,6 +114,8 @@ class SageSet(Set):
 
     def __iter__(self):
         r"""
+        Iterator for the set ``self``.
+
         EXAMPLES::
 
             sage: sPrimes = Primes()._sympy_(); sPrimes
@@ -116,19 +127,36 @@ class SageSet(Set):
         for element in self._sage_():
             yield sympify(element)
 
-    def _contains(self, other):
+    def _contains(self, element):
         """
+        Return whether ``element`` is an element of the set ``self``.
+
         EXAMPLES::
 
             sage: sPrimes = Primes()._sympy_(); sPrimes
             SageSet(Set of all prime numbers: 2, 3, 5, 7, ...)
             sage: 91 in sPrimes
             False
+
+            sage: from sympy.abc import p
+            sage: sPrimes.contains(p)
+            Contains(p, SageSet(Set of all prime numbers: 2, 3, 5, 7, ...))
+
+            sage: p in sPrimes
+            Traceback (most recent call last):
+            ...
+            TypeError: did not evaluate to a bool: None
+
         """
-        return other in self._sage_()
+        if element.is_symbol:
+            # keep symbolic
+            return None
+        return element in self._sage_()
 
     def __len__(self):
         """
+        Return the cardinality of the finite set ``self``.
+
         EXAMPLES::
 
             sage: sB3 = WeylGroup(["B", 3])._sympy_(); sB3

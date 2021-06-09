@@ -1808,7 +1808,7 @@ class RealSet(UniqueRepresentation, Parent):
         """
         return RealSet(*[RealSet.point(x) for i in self._intervals for x in i.boundary_points()])
 
-    def is_disjoint_from(self, *other):
+    def is_disjoint(self, *other):
         """
         Test whether the two sets are disjoint
 
@@ -1826,13 +1826,15 @@ class RealSet(UniqueRepresentation, Parent):
             (0, 1) ∪ (2, 3)
             sage: s2 = RealSet([1, 2]);  s2
             [1, 2]
-            sage: s1.is_disjoint_from(s2)
+            sage: s1.is_disjoint(s2)
             True
-            sage: s1.is_disjoint_from([1, 2])
+            sage: s1.is_disjoint([1, 2])
             True
         """
         other = RealSet(*other)
         return self.intersection(other).is_empty()
+
+    is_disjoint_from = deprecated_function_alias(31927, is_disjoint)
 
     @staticmethod
     def are_pairwise_disjoint(*real_set_collection):
@@ -1865,7 +1867,7 @@ class RealSet(UniqueRepresentation, Parent):
             for j in range(i):
                 si = sets[i]
                 sj = sets[j]
-                if not si.is_disjoint_from(sj):
+                if not si.is_disjoint(sj):
                     return False
         return True
 

@@ -1723,6 +1723,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 True
             """
             from sage.interfaces.sympy_wrapper import SageSet
+            from sage.interfaces.sympy import sympy_init
+            sympy_init()
             return SageSet(self)
 
     class ElementMethods:

@@ -605,9 +605,12 @@ If you got giac from the spkg then ``$PREFIX`` is ``$SAGE_LOCAL``
 
         TESTS::
 
-            sage: h='int(1/x*((-2*x^(1/3)+1)^(1/4))^3,x)'
-            sage: giac(h)
-            12*(...)
+            sage: h1 = 'int(sin(x)^2, x)'
+            sage: h2 = 'int(cos(x)^2, x)'
+            sage: giac_result = giac(h1) + giac(h2)
+            sage: bool(giac_result.sage() == x)
+            True
+
         """
         with gc_disabled():
             z = Expect._eval_line(self, line, allow_use_file=allow_use_file,

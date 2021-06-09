@@ -94,8 +94,6 @@ from .lazy_laurent_series_operator import (
     LazyLaurentSeriesOperator_change_ring,
     LazyLaurentSeriesOperator_truncate
 )
-from sage.misc.lazy_list import lazy_list
-
 
 class LazyLaurentSeries(ModuleElement):
     r"""
@@ -377,24 +375,27 @@ class LazyLaurentSeries(ModuleElement):
             1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
 
         TESTS::
+
             sage: def g(s, i):
             ....:     if i == 0:
             ....:         return 1
             ....:     else:
             ....:         return sum(s.coefficient(j)*s.coefficient(i - 1 - j) for j in [0..i-1])
             ....:
-            sage: L = LazyLaurentSeriesRing(ZZ,'z',implementation='dense')
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z', implementation='dense')
             sage: e = L.series(g, valuation = 0)
-            sage: e.coefficient(10)
-            16796
             sage: e
             1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
-
+            sage: e._cache
+            [1, 1, 2, 5, 14, 42, 132]
+            sage: e.coefficient(10)
+            16796
+            sage: e._cache
+            [1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862, 16796]
 
         """
-
         R = self.base_ring()
-        if self._approximate_valuation == infinity:
+        if self._approximate_valuation is infinity:
             return R.zero()
         elif n < self._approximate_valuation:
             return R.zero()
@@ -407,14 +408,18 @@ class LazyLaurentSeries(ModuleElement):
             except KeyError:
                 c = R(self._coefficient_function(self, n))
                 self._cache[n] = c
-            return c
 
         else:
-            a = len(self._cache) + self._offset
-            old_len = len(self._cache)
-            self._cache.extend([R(self._coefficient_function(self, j)) for j in range(a, n + 1)][(len(self._cache) - old_len):])
-            c = self._cache[n - self._offset]
-            return c
+            i = n - self._offset
+            if i >= len(self._cache):
+                a = len(self._cache) + self._offset
+                # it is important to extend by generator:
+                # self._coefficient_function might recurse, and
+                # thereby extend the cache itself, too
+                self._cache.extend(R(self._coefficient_function(self, j)) for j in range(a, n+1))
+            c = self._cache[i]
+
+        return c
 
     def valuation(self):
         """
@@ -765,7 +770,7 @@ class LazyLaurentSeries(ModuleElement):
         """
         v = self.valuation()
 
-        if v == infinity:
+        if v is infinity:
             raise ZeroDivisionError('cannot invert zero')
 
         R = self.parent()

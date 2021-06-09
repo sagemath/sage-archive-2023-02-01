@@ -24,6 +24,7 @@ from sage.rings.all                 import ZZ, QQbar, PolynomialRing, polygen
 from sage.misc.abstract_method      import abstract_method
 from sage.misc.cachefunc            import cached_method
 from sage.misc.verbose              import verbose
+from sage.misc.flatten              import flatten
 from sage.modular.modform.element   import Newform
 from sage.structure.sequence        import Sequence
 
@@ -730,7 +731,9 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                 F = self.coefficient_field().extension(theta_poly, "d")
                 G = G.base_extend(F)
 
-            gvals = [x[0] for x in theta_poly.roots(G.base_ring())]
+            # roots with repetitions allowed
+            gvals = flatten([[y[0]]*y[1] for y in theta_poly.roots(G.base_ring())])
+
             if len(gs) == 1:
                 # This is always the case if p != 2
                 chi1, chi2 = [G.extend_character(n, self.central_character(), [x]) for x in gvals]
@@ -741,18 +744,18 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                 g0 = gs[0]
                 try:
                     G._reduce_Qp(1, g0)
-                    raise ZeroDivisionError
+                    raise ArithmeticError("Bad generators returned")
                 except ValueError:
                     pass
 
                 tr = (~T.rho(g0.matrix().list())).trace()
                 X = polygen(G.base_ring())
-                theta_poly = X**2 - (-1)**n*tr*X + self.central_character()(g0.norm())
+                theta0_poly = X**2 - (-1)**n*tr*X + self.central_character()(g0.norm())
                 verbose("theta_poly for %s is %s" % (g0, theta_poly), level=1)
-                if theta_poly.is_irreducible():
-                    F = theta_poly.base_ring().extension(theta_poly, "e")
+                if theta0_poly.is_irreducible():
+                    F = theta0_poly.base_ring().extension(theta_poly, "e")
                     G = G.base_extend(F)
-                g0vals = [y[0] for y in theta_poly.roots(G.base_ring())]
+                g0vals = flatten([[y[0]]*y[1] for y in theta0_poly.roots(G.base_ring())])
 
                 pairA = [ [g0vals[0], gvals[0]], [g0vals[1], gvals[1]] ]
                 pairB = [ [g0vals[0], gvals[1]], [g0vals[1], gvals[0]] ]
@@ -773,21 +776,26 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                     for x in G.ideal(n).invertible_residues():
                         try:
                             # test if G mod p is in Fp
-                            G._reduce_Qp(1, x)
+                            flag = G._reduce_Qp(1, x)
                         except ValueError:
-                            verbose("testing x = %s" % x, level=1)
-                            ti = (-1)**n * (~T.rho(x.matrix().list())).trace()
-                            verbose("  trace of matrix is %s" % ti, level=1)
-                            if ti != chisA[0](x) + chisA[1](x):
-                                verbose("  chisA FAILED", level=1)
-                                A_fail = 1
-                                break
-                            if ti != chisB[0](x) + chisB[1](x):
-                                verbose("  chisB FAILED", level=1)
-                                B_fail = 1
-                                break
-                            else:
-                                verbose("  Trace identity check works for both", level=1)
+                            flag = None
+                        if flag is not None: 
+                            verbose("skipping x=%s as congruent to %s mod p" % (x, flag))
+                            continue
+
+                        verbose("testing x = %s" % x, level=1)
+                        ti = (-1)**n * (~T.rho(x.matrix().list())).trace()
+                        verbose("  trace of matrix is %s" % ti, level=1)
+                        if ti != chisA[0](x) + chisA[1](x):
+                            verbose("  chisA FAILED", level=1)
+                            A_fail = 1
+                            break
+                        if ti != chisB[0](x) + chisB[1](x):
+                            verbose("  chisB FAILED", level=1)
+                            B_fail = 1
+                            break
+                        else:
+                            verbose("  Trace identity check works for both", level=1)
 
                 if B_fail and not A_fail:
                     chi1, chi2 = chisA
@@ -845,7 +853,6 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
             if theta_poly.is_irreducible():
                 F = self.coefficient_field().extension(theta_poly, "d")
                 G = G.base_extend(F)
-            from sage.misc.flatten import flatten
             c1q, c2q = flatten([[x]*e for x,e in theta_poly.roots(G.base_ring())])
 
             if len(qs) == 1:

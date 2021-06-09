@@ -410,7 +410,7 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.all import NN, ZZ, QQ, AA
             from sage.sets.real_set import RealSet
             oo = infinity
-            if (x.is_finite() or x in (NN, ZZ, QQ, AA, QQ.completion(oo,oo))
+            if (x.is_finite() or x in (NN, ZZ, QQ, AA)
                     or isinstance(x, RealSet)):
                 exp = x
             else:

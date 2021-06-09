@@ -2191,6 +2191,14 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             sage: len(list(K.primes_above(3)[0].invertible_residues()))
             80
 
+        TESTS:
+
+        Check that the integrality is not lost,  cf. :trac:`30801`::
+
+            sage: K.<a> = NumberField(x^2 + x + 1)
+            sage: list(K.ideal(8).invertible_residues())[:5]
+            [1, a - 1, -3*a, -2*a + 3, -a - 1]
+
         AUTHOR: John Cremona
         """
         return self.invertible_residues_mod(subgp_gens=None, reduce=reduce)
@@ -2277,7 +2285,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         A, U, V = M.smith_form()
 
         V = V.inverse()
-        new_basis = [prod([g[j]**V[i, j] for j in range(n)]) for i in range(n)]
+        new_basis = [prod([g[j]**(V[i, j] % invs[j]) for j in range(n)]) for i in range(n)]
 
         if reduce:
             combo = lambda c: self.small_residue(prod(new_basis[i] ** c[i]

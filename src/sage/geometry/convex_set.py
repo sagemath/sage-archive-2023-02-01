@@ -197,6 +197,37 @@ class ConvexSet_base(SageObject):
         Return the affine hull of ``self``.
         """
 
+    def _test_convex_set(self, tester=None, **options):
+        """
+        Run some tests on the methods of :class:`ConvexSet_base`.
+        """
+        if tester is None:
+            tester = self._tester(**options)
+        dim = self.dim()
+        tester.assertTrue(dim <= self.ambient_dim())
+        if self.is_empty():
+            tester.assertTrue(dim == -1)
+        if self.is_universe():
+            tester.assertTrue(self.is_full_dimensional())
+        cl_self = self.closure()
+        try:
+            int_self = self.interior()
+        except NotImplementedError:
+            int_self = None
+        try:
+            relint_self = self.relative_interior()
+        except NotImplementedError:
+            relint_self = None
+        if self.is_full_dimensional():
+            tester.assertTrue(int_self == relint_self)
+        if self.is_relatively_open():
+            tester.assertTrue(self == relint_self)
+        if self.is_open():
+            tester.assertTrue(self == int_self)
+        if self.is_closed():
+            tester.assertTrue(self == cl_self)
+        if self.is_compact():
+            tester.assertTrue(self.is_closed())
 
 class ConvexSet_closed(ConvexSet_base):
     r"""

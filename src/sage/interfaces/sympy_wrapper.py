@@ -48,6 +48,14 @@ class SageSet(Set):
     def __new__(cls, sage_set):
         r"""
         Construct a wrapper for a Sage set.
+
+        TESTS::
+
+            sage: from sage.interfaces.sympy_wrapper import SageSet
+            sage: F = Set([1, 2]); F
+            {1, 2}
+            sage: sF = SageSet(F); sF
+            SageSet({1, 2})
         """
         return Basic.__new__(cls, sage_set)
 

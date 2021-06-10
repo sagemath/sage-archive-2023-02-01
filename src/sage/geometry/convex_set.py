@@ -176,6 +176,21 @@ class ConvexSet_base(SageObject):
             return self
         raise NotImplementedError
 
+    def relative_interior(self):
+        r"""
+        Return the relative interior of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_relatively_open
+            sage: C = ConvexSet_relatively_open()
+            sage: C.relative_interior() is C
+            True
+        """
+        if self.is_relatively_open():
+            return self
+        raise NotImplementedError
+
     @abstract_method(optional=True)
     def affine_hull(self):
         r"""

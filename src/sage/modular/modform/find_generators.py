@@ -25,8 +25,13 @@ from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
 from .constructor                 import ModularForms
+from .element import is_ModularFormElement
 from sage.structure.sage_object  import SageObject
 from random import shuffle
+
+from sage.structure.parent import Parent
+from sage.structure.element import Element
+from sage.structure.unique_representation import UniqueRepresentation
 
 def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=False):
     r"""
@@ -159,9 +164,61 @@ def basis_for_modform_space(*args):
     """
     raise NotImplementedError("basis_for_modform_space has been removed -- use ModularFormsRing.q_expansion_basis()")
 
+class GradedModularFormElement(Element):
+    #TODO: add documentation!!!
+    def __init__(self, parent, mf_dict):
+        for k,f in mf_dict.items():
+            if not isinstance(k, Integer):
+                raise ValueError("at least one key is not an integer")
+            if not is_ModularFormElement(f):
+                raise ValueError("at least one value is not a modular form")
+        self.__mf_dict = mf_dict
+        Element.__init__(self, parent)
+
+    def _dictionnary(self):
+        return self.__mf_dict
+
+    def q_expansion(self, prec=None):
+        qexp = 0
+        for f in self._dictionnary().values():
+            qexp += f.q_expansion(prec)
+        return qexp
+
+    def _repr_(self):
+        return "%s"%(self.q_expansion())
+
+    def __getitem__(self, key):
+        return self._dictionnary()[key]
+    
+    def _add_(self, other):
+        GM = self.__class__
+        f_self = self._dictionnary()
+        f_other = other._dictionnary()
+        f_sum = {}
+        for k_self, k_other in zip(sorted(f_self), sorted(f_other)):
+            if k_self < k_other:
+                f_sum[k_self] = f_self[k_self]
+            if k_self > k_other:
+                f_sum[k_other] = f_other[k_other]
+            if k_self == k_other:
+                f_sum[k_self] = f_self[k_self] + f_other[k_other]
+        return GM(self.parent(), f_sum)
+
+    def _mul_(self, other):
+        GM = self.__class__
+        f_self = self._dictionnary()
+        f_other = other._dictionnary()
+        f_mul = {}
+        for k_self in f_self.keys():
+            for k_other in f_other.keys():
+                f_mul[k_self + k_other] = f_self[k_self]*f_other[k_other]
+        return GM(self.parent(), f_mul)
 
 @richcmp_method
-class ModularFormsRing(SageObject):
+#class ModularFormsRing(SageObject):
+class ModularFormsRing(Parent, UniqueRepresentation):
+    
+    Element = GradedModularFormElement
 
     def __init__(self, group, base_ring=QQ):
         r"""

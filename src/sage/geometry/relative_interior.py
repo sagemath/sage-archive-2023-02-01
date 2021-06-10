@@ -47,7 +47,7 @@ class RelativeInterior(ConvexSet_relatively_open):
 
         TESTS::
 
-            sage: P = Polyhedron()
+            sage: P = Polyhedron([[1, 2], [3, 4]])
             sage: from sage.geometry.relative_interior import RelativeInterior
             sage: TestSuite(RelativeInterior(P)).run()
         """

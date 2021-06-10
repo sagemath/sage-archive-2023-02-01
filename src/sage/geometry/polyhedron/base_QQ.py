@@ -6,7 +6,6 @@ from sage.rings.all import QQ
 from sage.misc.all import cached_method, prod
 from .base import Polyhedron_base
 from sage.sets.all import Set
-from .constructor import Polyhedron
 
 
 class Polyhedron_QQ(Polyhedron_base):
@@ -795,12 +794,13 @@ class Polyhedron_QQ(Polyhedron_base):
 
     def fixed_subpolytope(self, vertex_permutation):
         r"""
-        Return the fixed subpolytope of ``self`` by the cyclic action of
+        Return the fixed subpolytope of this polytope by the cyclic action of
         ``vertex_permutation``.
 
-        INPUT:
+        The fixed subpolytope of this polytope under the ``vertex_permutation``
+        is the subset of this polytope that is fixed pointwise.
 
-        - ``self`` -- polyhedron object; a compact lattice polytope.
+        INPUT:
 
         - ``vertex_permutation`` -- permutation; a permutation of the vertices
           of ``self``.
@@ -808,11 +808,6 @@ class Polyhedron_QQ(Polyhedron_base):
         OUTPUT:
 
         A subpolytope of ``self``.
-
-        .. TODO::
-
-            Backend normaliz is not implemented for polytopes with basering RDF,
-            otherwise this method would work for those polytopes.
 
         .. NOTE::
 
@@ -863,7 +858,7 @@ class Polyhedron_QQ(Polyhedron_base):
             A vertex at (1, -1, 0),
             A vertex at (1, 1, 0))
 
-        The next example shows that fixed_subpolytope still works for rational polytopes::
+        The next example shows that fixed_subpolytope works for rational polytopes::
 
            sage: P = Polyhedron(vertices = [[0,0],[3/2,0],[3/2,3/2],[0,3/2]], backend ='normaliz') # optional - pynormaliz
            sage: P.vertices()                                                   # optional - pynormaliz
@@ -909,24 +904,27 @@ class Polyhedron_QQ(Polyhedron_base):
             orbit_barycenter = (1/QQ(size)) * s
             vertices += [orbit_barycenter]
 
-        return Polyhedron(vertices=vertices, backend='normaliz')
+        P = self.parent().change_ring(self.base_ring().fraction_field(),backend='normaliz')
+        return P.element_class(P, [vertices,[],[]], None)
 
     def fixed_subpolytopes(self, conj_class_reps):
         r"""
         Return the fixed subpolytope of an element in each conjugacy class of a
-        given subgroup of the automorphism group of ``self``.
+        given subgroup of the automorphism group of this polytope.
+
+        For an element of the automorphism group, the fixed subpolytope of
+        is the subset of this polytope that is fixed pointwise.
 
         INPUT:
 
-        - ``self`` -- polyhedron object. a lattice polytope.
-
-        - ``conj_class_reps`` -- a list of representatives of the conjugacy classes
-          of the subgroup of the ``restricted_automorphism_group`` of the polytope.
-          Each element is written as a permutation of the vertices of the polytope.
+        - ``conj_class_reps`` -- a list of representatives of the conjugacy
+          classes of the subgroup of the ``restricted_automorphism_group`` of
+          the polytope. Each element is written as a permutation of the vertices
+          of the polytope.
 
         OUTPUT:
 
-        A dictionary with conj_class_reps as keys and the fixed subpolytopes
+        A dictionary with ``conj_class_reps`` as keys and the fixed subpolytopes
         as values.
 
         .. NOTE::
@@ -951,6 +949,16 @@ class Polyhedron_QQ(Polyhedron_base):
             (0,1)(2,3): A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices,
             (0,1,3,2): A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex,
             (0,3)(1,2): A 0-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex}
+
+        TESTS::
+
+            sage: P = Polyhedron(vertices=[[1, 1]], rays=[[1, 1]])
+            sage: aut_P = P.restricted_automorphism_group(output = 'permutation')
+            sage: conj_list = aut_P.conjugacy_classes_representatives()
+            sage: P.fixed_subpolytopes(conj_list)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Unbounded polyhedra are not supported
         """
         if self.is_empty():
             raise NotImplementedError('Empty polyhedra are not supported')
@@ -966,8 +974,8 @@ class Polyhedron_QQ(Polyhedron_base):
     def Hstar_function(self, acting_group=None, output=None):
         r"""
         Return `H^*` as a rational function in `t` with coefficients in
-        the ring of class functions of the ``acting_group`'
-        of ``self``.
+        the ring of class functions of the ``acting_group``
+        of this polytope.
 
         Here, `\H^*(t) = \sum\_{m} \chi\_{m\text{``self``}}t^m det(Id-\rho(t))`.
         The irreducible characters of ``acting_group`` form an orthonormal basis
@@ -976,28 +984,25 @@ class Polyhedron_QQ(Polyhedron_base):
 
         INPUT:
 
-        - ``self`` -- polyhedron object. A full dimensional lattice polytope
-          with backend='normaliz'.
-
         - ``acting_group`` -- (default=None) a permgroup object. A subgroup of
-          `self`'s `restricted_automorphism_group` output as a permutation.
-          If ``None``, it is set to the full `restricted_automorphism_group`
-          of `self`. The acting group should always use output='permutation'.
+          the polytope's `restricted_automorphism_group` permutation. If
+          ``None``, it is set to the full `restricted_automorphism_group` of the
+          polytope. The acting group should always use output='permutation'.
 
         - ``output`` -- string. an output option. The allowed values are:
 
-            * ``None`` (default): returns the rational function `H^*(t)`. `H^*` is
-              a rational function in `t` with coefficients in the ring of
+            * ``None`` (default): returns the rational function `H^*(t)`. `H^*`
+              is a rational function in `t` with coefficients in the ring of
               class functions.
-            * ``'e_series_list'``: string. Returns a list of the ehrhart_series
-              for the fixed_subpolytopes of each conjugacy class representative.
-            * ``'determinant_vec'``: string. Returns a list of the determinants
+            * ``'e_series_list'``: Returns a list of the ehrhart_series for the
+              fixed_subpolytopes of each conjugacy class representative.
+            * ``'determinant_vec'``: Returns a list of the determinants
               of `Id-\rho*t` for each conjugacy class representative.
-            * ``'Hstar_as_lin_comb'``: string. Returns a vector of the coefficients
+            * ``'Hstar_as_lin_comb'``: Returns a vector of the coefficients
               of the irreducible representations in the expression of `H^*`.
-            * ``'prod_det_es'``: string. Returns a vector of the product of
+            * ``'prod_det_es'``: Returns a vector of the product of
               determinants and the Ehrhart series.
-            * ``'verbose'``: string. Returns a list with Hstar,
+            * ``'complete'``: Returns a list with Hstar,
               Hstar_as_lin_comb, character table of the acting group, and
               whether Hstar is effective.
 
@@ -1011,7 +1016,7 @@ class Polyhedron_QQ(Polyhedron_base):
 
         EXAMPLES:
 
-        The `H^*`-polynomial of the standard `d-1` dimensional simplex
+        The `H^*`-polynomial of the standard (`d-1`)-dimensional simplex
         `S = conv(e_1, \dots, e_d)` under its ``restricted_automorphism_group``
         is equal to 1 = `\chi_{trivial}` (Prop 6.1 [Stap2011]_).
         Here is the computation for the 3-dimensional standard simplex::
@@ -1042,7 +1047,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: G = K.subgroup(gens = [K[6]]); G                                       # optional - pynormaliz
             Subgroup generated by [(0,2)(1,3)(4,6)(5,7)] of (Permutation Group with generators [(2,4)(3,5), (1,2)(5,6), (0,1)(2,3)(4,5)(6,7), (0,7)(1,3)(2,5)(4,6)])
             sage: conj_reps = G.conjugacy_classes_representatives()                      # optional - pynormaliz
-            sage: Dict = P.match_permutations_to_matrices(conj_reps, acting_group = G)   # optional - pynormaliz
+            sage: Dict = P.permutations_to_matrices(conj_reps, acting_group = G)   # optional - pynormaliz
             sage: list(Dict.keys())[0]                                                   # optional - pynormaliz
             (0,2)(1,3)(4,6)(5,7)
             sage: list(Dict.values())[0]                                                 # optional - pynormaliz
@@ -1072,16 +1077,47 @@ class Polyhedron_QQ(Polyhedron_base):
             raise NotImplementedError('Empty polyhedra are not supported')
         if not self.is_compact():
             raise NotImplementedError('Unbounded polyhedra are not supported')
-        if self.backend() == 'normaliz':
-            return self._Hstar_function_normaliz(acting_group, output)
-        else:
+        if not self.backend() == 'normaliz':
             raise TypeError("The backend of the polyhedron should be 'normaliz'")
+        else:
+            return self._Hstar_function_normaliz(acting_group, output)
 
     def _Hstar_function_normaliz(self, acting_group=None, output=None):
         r"""
         Return `H^*` as a rational function in `t` with coefficients in
         the ring of class functions of the ``acting_group`'
         of ``self``.
+
+        INPUT:
+
+        - ``acting_group`` -- (default=None) a permgroup object. A subgroup of
+          `self`'s `restricted_automorphism_group` output as a permutation.
+          If ``None``, it is set to the full `restricted_automorphism_group`
+          of `self`. The acting group should always use output='permutation'.
+
+        - ``output`` -- string. an output option. The allowed values are:
+
+            * ``None`` (default): returns the rational function `H^*(t)`. `H^*`
+              is a rational function in `t` with coefficients in the ring of
+              class functions.
+            * ``'e_series_list'``: Returns a list of the ehrhart_series
+              for the fixed_subpolytopes of each conjugacy class representative.
+            * ``'determinant_vec'``: Returns a list of the determinants
+              of `Id-\rho*t` for each conjugacy class representative.
+            * ``'Hstar_as_lin_comb'``: Returns a vector of the coefficients
+              of the irreducible representations in the expression of `H^*`.
+            * ``'prod_det_es'``: Returns a vector of the product of
+              determinants and the Ehrhart series.
+            * ``'complete'``: Returns a list with Hstar,
+              Hstar_as_lin_comb, character table of the acting group, and
+              whether Hstar is effective.
+
+        OUTPUT:
+
+        The default output is the rational function `H^*`. `H^*` is a rational
+        function in `t` with coefficients in the ring of class functions.
+        There are several output options to see the intermediary outputs of the
+        function.
 
         TESTS::
 
@@ -1093,27 +1129,31 @@ class Polyhedron_QQ(Polyhedron_base):
         """
         raise TypeError("The backend of the polyhedron should be 'normaliz'")
 
-    def Hstar_is_effective(self, Hstar, Hstar_as_lin_comb):
+    def is_effective(self, Hstar, Hstar_as_lin_comb):
         r"""
-        Check if the `H^*` series is effective.
+        Test for the effectiveness of the ``Hstar`` series of this polytope.
 
-        The `H^*` series is effective if it is a polynomial and the coefficients
-        of each `t^i` are effective representations. The coefficients of each
-        irreducible representation must be non-negative integers. The `H^*` series
-        must be polynomial in order for it to be effective.
+        The ``Hstar`` series of the polytope is determined by the action of a
+        subgroup of the polytope's ``restricted_automorphism_group``. The
+        ``Hstar`` series is effective if it is a polynomial in `t` and the
+        coefficient of each `t^i` is an effective character in the ring of
+        class functions of the acting group. A character `\rho` is effective if
+        the coefficients of the irreducible representations in the expression
+        of `\rho` are non-negative integers.
 
         INPUT:
 
-        - ``self`` -- polyhedron object. a polytope with backend ``'normaliz'``
+        - ``Hstar`` -- a rational function in `t` with coefficients in the ring
+          of class functions.
 
-        - ``Hstar`` -- a rational function in `t` with coefficients in the ring of
-                       class functions.
-
-        - ``Hstar_as_lin_comb`` -- vector.
+        - ``Hstar_as_lin_comb`` -- vector. The coefficients of the irreducible
+          representations of the acting group in the expression of ``Hstar`` as
+          a linear combination of irreducible representations with coefficients
+          in the field of rational functions in `t`.
 
         OUTPUT:
 
-        Boolean. Whether the `H^*` series is effective.
+        Boolean. Whether the ``Hstar`` series is effective.
 
         .. SEEALSO::
 
@@ -1130,7 +1170,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: H.order()                                                  # optional - pynormaliz
             6
             sage: [Hstar, Hlin] = [p2.Hstar_function(H), p2.Hstar_function(H, output = 'Hstar_as_lin_comb')] # optional - pynormaliz
-            sage: p2.Hstar_is_effective(Hstar,Hlin)   # optional - pynormaliz
+            sage: p2.is_effective(Hstar,Hlin)   # optional - pynormaliz
             True
 
         The `H^*` series must be a polynomial in order to be effective. If it is
@@ -1143,7 +1183,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: Hstar = P.Hstar_function(H); Hstar                                   # optional - pynormaliz
             (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
             sage: Hstar_lin = P.Hstar_function(H, output = 'Hstar_as_lin_comb')        # optional - pynormaliz
-            sage: P.Hstar_is_effective(Hstar, Hstar_lin)                               # optional - pynormaliz
+            sage: P.is_effective(Hstar, Hstar_lin)                               # optional - pynormaliz
             Traceback (most recent call last):
             ...
             ValueError: The Hstar vector must be polynomial
@@ -1153,18 +1193,42 @@ class Polyhedron_QQ(Polyhedron_base):
         if not self.is_compact():
             raise NotImplementedError('Unbounded polyhedra are not supported')
         if self.backend() == 'normaliz':
-            return self._Hstar_is_effective_normaliz(Hstar, Hstar_as_lin_comb)
+            return self._is_effective_normaliz(Hstar, Hstar_as_lin_comb)
         else:
             raise TypeError("The backend of the polyhedron should be 'normaliz'")
 
-    def _Hstar_is_effective_normaliz(self, Hstar, Hstar_as_lin_comb):
+    def _is_effective_normaliz(self, Hstar, Hstar_as_lin_comb):
         r"""
+        Test for the effectiveness of the ``Hstar`` series of this polytope.
+
+        The ``Hstar`` series of the polytope is determined by the action of a
+        subgroup of the polytope's ``restricted_automorphism_group``. The
+        ``Hstar`` series is effective if it is a polynomial in `t` and the
+        coefficient of each `t^i` is an effective character in the ring of
+        class functions of the acting group. A character `\rho` is effective if
+        the coefficients of the irreducible representations in the expression
+        of `\rho` are non-negative integers.
+
+        INPUT:
+
+        - ``Hstar`` -- a rational function in `t` with coefficients in the ring
+          of class functions.
+
+        - ``Hstar_as_lin_comb`` -- vector. The coefficients of the irreducible
+          representations of the acting group in the expression of ``Hstar`` as
+          a linear combination of irreducible representations with coefficients
+          in the field of rational functions in `t`.
+
+        OUTPUT:
+
+        Boolean. Whether the ``Hstar`` series is effective.
+
         TESTS::
 
             sage: p1 = Polyhedron(vertices = [[0],[1/2]]);
             sage: p2 = Polyhedron(vertices = [[0],[1/2]], backend='normaliz')  # optional - pynormaliz
             sage: [Hstar,Hstarlin] = [p2.Hstar_function(),p2.Hstar_function(output='Hstar_as_lin_comb')] # optional - pynormaliz
-            sage: p1._Hstar_is_effective_normaliz(Hstar,Hstarlin)              # optional - pynormaliz
+            sage: p1._is_effective_normaliz(Hstar,Hstarlin)              # optional - pynormaliz
             Traceback (most recent call last):
             ...
             TypeError: The backend of the polyhedron should be 'normaliz'

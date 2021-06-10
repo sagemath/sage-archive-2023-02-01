@@ -9715,7 +9715,7 @@ class Polyhedron_base(Element):
         else:
             return MatrixGroup(matrices)
 
-    def match_permutations_to_matrices(self, conj_class_reps, acting_group=None, additional_elts=None):
+    def permutations_to_matrices(self, conj_class_reps, acting_group=None, additional_elts=None):
         r"""
         Return a dictionary between different representations of elements in
         the ``acting_group``, with group elements represented as permutations
@@ -9727,8 +9727,6 @@ class Polyhedron_base(Element):
         of the polytope. Each element in ``additional_elts`` also becomes a key.
 
         INPUT:
-
-        - ``self`` -- polyhedron object. a lattice polytope.
 
         - ``conj_class_reps`` -- list. A list of representatives of the
           conjugacy classes of the ``acting_group``.
@@ -9749,65 +9747,37 @@ class Polyhedron_base(Element):
 
         This example shows the dictionary between permutations and matrices
         for the generators of the ``restricted_automorphism_group`` of the
-        `\pm 1` 2-dimensional square::
+        `\pm 1` 2-dimensional square. The permutations are written in terms
+        of the vertices of the square::
 
             sage: square = Polyhedron(vertices=[[1,1],[-1,1],[-1,-1],[1,-1]], backend='normaliz') # optional - pynormaliz
-            sage: aut_square = square.restricted_automorphism_group(output = 'permutation')       # optional - pynormaliz
-            sage: conj_reps = aut_square.conjugacy_classes_representatives()                      # optional - pynormaliz
-            sage: gens_dict = square.match_permutations_to_matrices(conj_reps); gens_dict         # optional - pynormaliz
-            {(): [1 0 0]
-             [0 1 0]
-             [0 0 1],
-             (1,2): [0 1 0]
-             [1 0 0]
-             [0 0 1],
-             (0,1)(2,3): [ 1  0  0]
-             [ 0 -1  0]
-             [ 0  0  1],
-             (0,1,3,2): [ 0  1  0]
-             [-1  0  0]
-             [ 0  0  1],
-             (0,3): [ 0 -1  0]
-             [-1  0  0]
-             [ 0  0  1],
-             (0,3)(1,2): [-1  0  0]
-             [ 0 -1  0]
-             [ 0  0  1]}
             sage: square.vertices() # optional - pynormaliz
             (A vertex at (-1, -1),
             A vertex at (-1, 1),
             A vertex at (1, -1),
             A vertex at (1, 1))
+            sage: aut_square = square.restricted_automorphism_group(output = 'permutation')       # optional - pynormaliz
+            sage: conj_reps = aut_square.conjugacy_classes_representatives()                      # optional - pynormaliz
+            sage: gens_dict = square.permutations_to_matrices(conj_reps);                         # optional - pynormaliz
+            sage: conj_reps[1],gens_dict[conj_reps[1]]
+            (
+                   [0 1 0]
+                   [1 0 0]
+            (1,2), [0 0 1]
+            )
 
-        This example tests the functionality for extra elements::
+        This example tests the functionality for additional elements::
 
             sage: C = polytopes.cross_polytope(2)
             sage: G = C.restricted_automorphism_group(output = 'permutation')
             sage: conj_reps = G.conjugacy_classes_representatives()
-            sage: add_elt = [G[6]]; add_elt
-            [(0,2,3,1)]
-            sage: C.match_permutations_to_matrices(conj_reps,additional_elts = add_elt)
-            {(): [1 0 0]
-             [0 1 0]
-             [0 0 1],
-             (1,2): [ 1  0  0]
-             [ 0 -1  0]
-             [ 0  0  1],
-             (0,1)(2,3): [0 1 0]
-             [1 0 0]
-             [0 0 1],
-             (0,1,3,2): [ 0 -1  0]
-             [ 1  0  0]
-             [ 0  0  1],
-             (0,2,3,1): [ 0  1  0]
-             [-1  0  0]
-             [ 0  0  1],
-             (0,3): [-1  0  0]
+            sage: add_elt = G[6]; add_elt
+            (0,2,3,1)
+            sage: dict = C.permutations_to_matrices(conj_reps,additional_elts = [add_elt])
+            sage: dict[add_elt]
              [ 0  1  0]
-             [ 0  0  1],
-             (0,3)(1,2): [-1  0  0]
-             [ 0 -1  0]
-             [ 0  0  1]}
+             [-1  0  0]
+             [ 0  0  1]
         """
         if self.is_empty():
             raise NotImplementedError('Empty polyhedra are not supported')
@@ -9823,65 +9793,20 @@ class Polyhedron_base(Element):
             G = acting_group
 
         group_dict = {}
+        def permutation_to_matrix(permutation, V, Vplus, W):
+            A = sum(V[permutation(i)].column() * Vplus[i].row() for i in range(len(V)))
+            return A + W
 
         for perm in G.gens():
-            group_dict[perm] = self._match_permutation_to_matrix(perm, V, Vplus, W)
+            group_dict[perm] = permutation_to_matrix(perm, V, Vplus, W)
 
         for perm in conj_class_reps:
-            group_dict[perm] = self._match_permutation_to_matrix(perm, V, Vplus, W)
+            group_dict[perm] = permutation_to_matrix(perm, V, Vplus, W)
 
         if additional_elts is not None:
             for perm in additional_elts:
-                group_dict[perm] = self._match_permutation_to_matrix(perm, V, Vplus, W)
+                group_dict[perm] = permutation_to_matrix(perm, V, Vplus, W)
         return group_dict
-
-    def _match_permutation_to_matrix(self, permutation, V, Vplus, W):
-        r"""
-        Return the matrix representation of a permutation in the
-        ``restricted_autormorphism_group`` of this polytope.
-
-        INPUT:
-
-        - ``self`` -- polyhedron object. A lattice polytope.
-
-        - ``permutation`` -- a permutation group element.
-
-        - ``V`` -- list. a list of vectors from the
-          ``match_permutations_to_matrices`` function.
-
-        - ``Vplus`` -- list. from the ``match_permutations_to_matrices``
-          function.
-
-        - ``W`` -- matrix. from the ``match_permutations_to_matrices`` function.
-
-        OUTPUT:
-
-        A matrix that acts in the same way on the polytope as the ``permutation``.
-
-        EXAMPLES:
-
-        This example shows a reflection across the x-axis::
-
-            sage: cross = polytopes.cross_polytope(2, backend = 'normaliz')          # optional - pynormaliz
-            sage: cross.vertices()                                                   # optional - pynormaliz
-            (A vertex at (-1, 0),
-             A vertex at (0, -1),
-             A vertex at (0, 1),
-             A vertex at (1, 0))
-            sage: G = cross.restricted_automorphism_group(output = 'permutation')    # optional - pynormaliz
-            sage: flip = G.gens()[0]; flip                                           # optional - pynormaliz
-            (1,2)
-            sage: V = [v.homogeneous_vector() for v in cross.Vrepresentation()]      # optional - pynormaliz
-            sage: Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()       # optional - pynormaliz
-            sage: Vplus = list(matrix(V) * Qplus)                                    # optional - pynormaliz
-            sage: W = 1 - sum(V[i].column() * Vplus[i].row() for i in range(len(V))) # optional - pynormaliz
-            sage: cross._match_permutation_to_matrix(flip, V, Vplus, W)              # optional - pynormaliz
-            [ 1  0  0]
-            [ 0 -1  0]
-            [ 0  0  1]
-        """
-        A = sum(V[permutation(i)].column() * Vplus[i].row() for i in range(len(V)))
-        return A + W
 
     def is_full_dimensional(self):
         """

@@ -977,34 +977,6 @@ cdef class FractionFieldElement(FieldElement):
         """
         return self.__numerator == self.__denominator
 
-    def is_element_of_base_ring(self):
-        r"""
-        Return ``True`` if this element is an element of the base ring.
-
-        The base ring may be seen as a subset of the fraction field. This subset
-        consists of elements whose equivalence classes have representatives
-        (a,1) for a in the base ring. This function tests membership
-        in this subset.
-
-        INPUT:
-
-        - ``self`` -- a fraction field element.
-
-        OUTPUT:
-
-        Boolean. Whether ``self`` is a polynomial.
-
-        EXAMPLES::
-
-            sage: F = ZZ['x,y'].fraction_field()
-            sage: x,y = F.gens()
-            sage: (x/(x+1)).is_element_of_base_ring()
-            False
-            sage: (2*x+3*y).is_element_of_base_ring()
-            True
-        """
-        return self.denominator().is_unit()
-
     def _symbolic_(self, ring):
         """
         Return ``self`` as a fraction in the ring ``ring``. Used for

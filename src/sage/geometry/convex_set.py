@@ -196,9 +196,8 @@ class ConvexSet_compact(ConvexSet_closed):
 
 
 class ConvexSet_relatively_open(ConvexSet_base):
-
     r"""
-    Abstract base class for relatively open sets.
+    Abstract base class for relatively open convex sets.
     """
 
     def is_relatively_open(self):
@@ -222,3 +221,31 @@ class ConvexSet_relatively_open(ConvexSet_base):
 
         """
         return self.is_full_dimensional()
+
+
+class ConvexSet_open(ConvexSet_relatively_open):
+    r"""
+    Abstract base class for open convex sets.
+    """
+
+    def is_open(self):
+        r"""
+        Return whether ``self`` is open.
+
+        OUTPUT:
+
+        Boolean.
+
+        """
+        return True
+
+    def is_closed(self):
+        r"""
+        Return whether ``self`` is closed.
+
+        OUTPUT:
+
+        Boolean.
+
+        """
+        return self.is_empty() or self.is_universe()

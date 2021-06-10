@@ -779,22 +779,39 @@ def _sympysage_matrix(self):
         [0 0 1]
         sage: N.parent()
         Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+
+        sage: sO = SparseMatrix.zeros(3); sO
+        Matrix([
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]])
+        sage: O = sO._sage_(); O
+        [0 0 0]
+        [0 0 0]
+        [0 0 0]
+        sage: O.parent()
+        Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
     """
     try:
         return self._sage_object
     except AttributeError:
         from sympy.matrices import SparseMatrix
         from sage.matrix.constructor import matrix
-        from sage.structure.element import get_coercion_model
-        from sage.symbolic.ring import SR
 
         rows, cols = self.shape
         d = {row_col: value._sage_()
              for row_col, value in self.todok().items()}
-        coercion_model = get_coercion_model()
-        base_ring = coercion_model.common_parent(*d.values())
-        if base_ring is None:
-            base_ring = SR
+        if not d:
+            from sage.rings.integer_ring import ZZ
+            base_ring = ZZ
+        else:
+            from sage.structure.element import get_coercion_model
+            from sage.symbolic.ring import SR
+            coercion_model = get_coercion_model()
+            try:
+                base_ring = coercion_model.common_parent(*d.values())
+            except TypeError: # no common canonical parent
+                base_ring = SR
         return matrix(base_ring, rows, cols, d,
                       sparse=isinstance(self, SparseMatrix),
                       immutable=True)

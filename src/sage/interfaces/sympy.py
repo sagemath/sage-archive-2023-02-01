@@ -754,7 +754,7 @@ def _sympysage_matrix(self):
 
     EXAMPLES::
 
-        sage: from sympy.matrices import Matrix, SparseMatrix
+        sage: from sympy.matrices import Matrix, SparseMatrix, ImmutableMatrix
         sage: from sage.interfaces.sympy import sympy_init
         sage: from sympy.abc import x
         sage: sympy_init()
@@ -791,11 +791,33 @@ def _sympysage_matrix(self):
         [0 0 0]
         sage: O.parent()
         Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+
+    If ``self`` is immutable, the result is cached::
+
+        sage: sImmM = ImmutableMatrix([[1, x + 1], [x - 1, 1]]); sImmM
+        Matrix([
+        [    1, x + 1],
+        [x - 1,     1]])
+        sage: ImmM = sImmM._sage_(); ImmM
+        [    1 x + 1]
+        [x - 1     1]
+        sage: ImmM is sImmM._sage_()
+        True
+
+    If ``self`` is mutable, the conversion is redone every time::
+
+        sage: sM[0, 0] = 1000
+        sage: MutatedM = sM._sage_(); MutatedM
+        [ 1000 x + 1]
+        [x - 1     1]
+        sage: M == MutatedM
+        False
+
     """
     try:
         return self._sage_object
     except AttributeError:
-        from sympy.matrices import SparseMatrix
+        from sympy.matrices import SparseMatrix, ImmutableMatrix
         from sage.matrix.constructor import matrix
 
         rows, cols = self.shape
@@ -812,9 +834,12 @@ def _sympysage_matrix(self):
                 base_ring = coercion_model.common_parent(*d.values())
             except TypeError: # no common canonical parent
                 base_ring = SR
-        return matrix(base_ring, rows, cols, d,
-                      sparse=isinstance(self, SparseMatrix),
-                      immutable=True)
+        result = matrix(base_ring, rows, cols, d,
+                        sparse=isinstance(self, SparseMatrix),
+                        immutable=True)
+        if isinstance(self, ImmutableMatrix):
+            self._sage_object = result
+        return result
 
 def _sympysage_relational(self):
     """

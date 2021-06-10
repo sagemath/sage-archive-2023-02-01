@@ -63,6 +63,17 @@ class ConvexSet_base(SageObject):
 
         Boolean. Whether the polyhedron is not contained in any strict
         affine subspace.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0)])
+            sage: c.is_full_dimensional()
+            False
+
+            sage: polytopes.hypercube(3).is_full_dimensional()
+            True
+            sage: Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)]).is_full_dimensional()
+            False
         """
         return self.dim() == self.ambient_dim()
 

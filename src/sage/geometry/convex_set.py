@@ -16,7 +16,6 @@ from sage.structure.sage_object import SageObject
 from sage.misc.abstract_method import abstract_method
 
 class ConvexSet_base(SageObject):
-
     """
     Abstract base class for convex sets.
     """
@@ -28,6 +27,14 @@ class ConvexSet_base(SageObject):
         OUTPUT:
 
         Boolean.
+
+        EXAMPLES::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: p.is_empty()
+            True
+
         """
         return self.dim() < 0
 
@@ -90,11 +97,23 @@ class ConvexSet_base(SageObject):
 
     def is_relatively_open(self):
         r"""
-        Return whether ``self`` is open.
+        Return whether ``self`` is relatively open.
+
+        The default implementation of this method only knows that open
+        sets are also relatively open.
 
         OUTPUT:
 
         Boolean.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: class ExampleSet(ConvexSet_base):
+            ....:     def is_open(self):
+            ....:         return True
+            sage: ExampleSet().is_relatively_open()
+            True
 
         """
         if self.is_open():
@@ -123,13 +142,20 @@ class ConvexSet_base(SageObject):
         """
         if not self.is_closed():
             return False
-        if self.dimension() < 1:
+        if self.dim() < 1:
             return True
         raise NotImplementedError
 
     def closure(self):
         r"""
         Return the topological closure of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_closed
+            sage: C = ConvexSet_closed()
+            sage: C.closure() is C
+            True
         """
         if self.is_closed():
             return self
@@ -138,6 +164,13 @@ class ConvexSet_base(SageObject):
     def interior(self):
         r"""
         Return the topological interior of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_open
+            sage: C = ConvexSet_open()
+            sage: C.interior() is C
+            True
         """
         if self.is_open():
             return self
@@ -151,7 +184,6 @@ class ConvexSet_base(SageObject):
 
 
 class ConvexSet_closed(ConvexSet_base):
-
     r"""
     Abstract base class for closed convex sets.
     """
@@ -179,7 +211,6 @@ class ConvexSet_closed(ConvexSet_base):
 
 
 class ConvexSet_compact(ConvexSet_closed):
-
     r"""
     Abstract base class for compact convex sets.
     """

@@ -3311,6 +3311,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         """
         return self.nrays() == 0
 
+    is_compact = is_trivial
+
     def is_strictly_convex(self):
         r"""
         Check if ``self`` is strictly convex.

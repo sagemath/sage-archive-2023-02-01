@@ -565,7 +565,7 @@ cdef class Matrix(Matrix0):
             sage: immA._sympy_()._sage_() is immA
             True
 
-        If ``self`` is mutable, then converting back to Sage creates a new matrix::
+        If ``self`` was mutable, then converting back to Sage creates a new matrix::
 
             sage: sA._sage_() is A
             Traceback (most recent call last):

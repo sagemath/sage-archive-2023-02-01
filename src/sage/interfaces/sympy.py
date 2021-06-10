@@ -749,13 +749,53 @@ def _sympysage_crootof(self):
     return complex_root_of(self.args[0]._sage_(), SR(self.args[1]))
 
 def _sympysage_matrix(self):
+    """
+    Convert SymPy matrix ``self`` to Sage.
+
+    EXAMPLES::
+
+        sage: from sympy.matrices import Matrix, SparseMatrix
+        sage: from sage.interfaces.sympy import sympy_init
+        sage: from sympy.abc import x
+        sage: sympy_init()
+        sage: sM = Matrix([[1, x + 1], [x - 1, 1]]); sM
+        Matrix([
+        [    1, x + 1],
+        [x - 1,     1]])
+        sage: M = sM._sage_(); M
+        [    1 x + 1]
+        [x - 1     1]
+        sage: M.parent()
+        Full MatrixSpace of 2 by 2 dense matrices over Symbolic Ring
+
+        sage: sN = SparseMatrix.eye(3); sN
+        Matrix([
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]])
+        sage: N = sN._sage_(); N
+        [1 0 0]
+        [0 1 0]
+        [0 0 1]
+        sage: N.parent()
+        Full MatrixSpace of 3 by 3 sparse matrices over Integer Ring
+    """
     try:
         return self._sage_object
     except AttributeError:
         from sympy.matrices import SparseMatrix
         from sage.matrix.constructor import matrix
-        rows, cols = self.shape()
-        return matrix(rows, cols, self.todok(),
+        from sage.structure.element import get_coercion_model
+        from sage.symbolic.ring import SR
+
+        rows, cols = self.shape
+        d = {row_col: value._sage_()
+             for row_col, value in self.todok().items()}
+        coercion_model = get_coercion_model()
+        base_ring = coercion_model.common_parent(*d.values())
+        if base_ring is None:
+            base_ring = SR
+        return matrix(base_ring, rows, cols, d,
                       sparse=isinstance(self, SparseMatrix),
                       immutable=True)
 

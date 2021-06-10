@@ -568,14 +568,8 @@ cdef class Matrix(Matrix0):
         If ``self`` was mutable, then converting back to Sage creates a new matrix::
 
             sage: sA._sage_() is A
-            Traceback (most recent call last):
-            ...
-            TypeError: 'tuple' object is not callable
-            True
+            False
             sage: sA._sage_() == A
-            Traceback (most recent call last):
-            ...
-            TypeError: 'tuple' object is not callable
             True
 
         Symbolic matrices are supported::

@@ -251,7 +251,7 @@ class ConvexSet_base(SageObject):
             ....:     def ambient_dim(self):
             ....:         return 91
             sage: TestSuite(FaultyConvexSet()).run(skip='_test_pickling')
-            Traceback (most recent call last):
+            Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
 
@@ -261,7 +261,7 @@ class ConvexSet_base(SageObject):
             ....:     def ambient_dim(self):
             ....:         return 3
             sage: TestSuite(BiggerOnTheInside()).run(skip='_test_pickling')
-            Traceback (most recent call last):
+            Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
 

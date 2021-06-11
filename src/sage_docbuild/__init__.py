@@ -116,7 +116,7 @@ def builder_helper(type):
             # WEBSITESPHINXOPTS is either empty or " -A hide_pdf_links=1 "
             options += WEBSITESPHINXOPTS
 
-        if kwds.get('use_multidoc_inventory', True):
+        if kwds.get('use_multidoc_inventory', True) and type != 'inventory':
             options += ' -D multidoc_first_pass=0'
         else:
             options += ' -D multidoc_first_pass=1'

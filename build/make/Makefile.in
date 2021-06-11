@@ -335,7 +335,27 @@ DOC_DEPENDENCIES = sagelib sage_docbuild $(inst_sphinx) \
 	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials) \
 	$(inst_tachyon) $(inst_jmol) $(inst_thebe) $(inst_ipywidgets)
 
-doc: doc-html
+doc: doc-references doc-other
+
+doc-references: $(DOC_DEPENDENCIES)
+	$(eval DOCS = $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents reference))
+	$(eval biblio = $(firstword $(DOCS)))
+	$(eval other_docs = $(wordlist 2, 100, $(DOCS)))
+	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(biblio) inventory $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
+	for doc in $(other_docs); do \
+	    $(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $$doc inventory $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
+	done
+	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links reference inventory $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
+	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(biblio) html $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
+	for doc in $(other_docs); do \
+	    $(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $$doc html $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
+	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links reference html $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
+	done
+
+doc-other: $(DOC_DEPENDENCIES) doc-references
+	for doc in $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)); do \
+	    $(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $$doc html $(SAGE_DOCBUILD_OPTS)" logs/docs-other-html.log; \
+	done
 
 doc-html: $(DOC_DEPENDENCIES)
 	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log

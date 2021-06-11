@@ -124,7 +124,7 @@ class PolyhedronFace(ConvexSet_closed):
 
     TESTS::
 
-        sage: TestSuite(face).run()
+        sage: TestSuite(face).run(skip='_test_pickling')
 
     """
 
@@ -152,7 +152,7 @@ class PolyhedronFace(ConvexSet_closed):
             sage: from sage.geometry.polyhedron.face import PolyhedronFace
             sage: PolyhedronFace(Polyhedron(), [], [])   # indirect doctest
             A -1-dimensional face of a Polyhedron in ZZ^0
-            sage: TestSuite(_).run()
+            sage: TestSuite(_).run(skip='_test_pickling')
         """
         self._polyhedron = polyhedron
         self._ambient_Vrepresentation_indices = tuple(V_indices)
@@ -186,6 +186,10 @@ class PolyhedronFace(ConvexSet_closed):
             A vertex at (1, 1)
             sage: type(face.vertex_generator())
             <... 'generator'>
+
+        TESTS::
+
+            sage: TestSuite(face).run(skip='_test_pickling')
         """
         for V in self.ambient_Vrepresentation():
             if V.is_vertex():
@@ -206,6 +210,10 @@ class PolyhedronFace(ConvexSet_closed):
             sage: face = triangle.faces(1)[2]
             sage: face.vertices()
             (A vertex at (0, 1), A vertex at (1, 0))
+
+        TESTS::
+
+            sage: TestSuite(face).run(skip='_test_pickling')
         """
         return tuple(self.vertex_generator())
 
@@ -224,6 +232,10 @@ class PolyhedronFace(ConvexSet_closed):
             sage: face = Q.faces(2)[0]
             sage: face.n_vertices()
             3
+
+        TESTS::
+
+            sage: TestSuite(face).run(skip='_test_pickling')
         """
         return len(self.vertices())
 
@@ -237,6 +249,10 @@ class PolyhedronFace(ConvexSet_closed):
             sage: face = pi.faces(1)[1]
             sage: next(face.ray_generator())
             A ray in the direction (1, 0)
+
+        TESTS::
+
+            sage: TestSuite(face).run(skip='_test_pickling')
         """
         for V in self.ambient_Vrepresentation():
             if V.is_ray():
@@ -288,6 +304,10 @@ class PolyhedronFace(ConvexSet_closed):
             sage: face = pr.faces(1)[0]
             sage: next(face.line_generator())
             A line in the direction (1, 0)
+
+        TESTS::
+
+            sage: TestSuite(face).run(skip='_test_pickling')
         """
         for V in self.ambient_Vrepresentation():
             if V.is_line():
@@ -656,6 +676,43 @@ class PolyhedronFace(ConvexSet_closed):
         return self._polyhedron
 
     ambient = polyhedron
+
+    def is_relatively_open(self):
+        r"""
+        Return whether ``self`` is relatively open.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
+            sage: line = half_plane.faces(1)[0]; line
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: line.is_relatively_open()
+            True
+        """
+        return self.as_polyhedron().is_relatively_open()
+
+    def is_compact(self):
+        r"""
+        Return whether ``self`` is compact.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
+            sage: line = half_plane.faces(1)[0]; line
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: line.is_compact()
+            False
+        """
+        return not any(V.is_ray() or V.is_line()
+                       for V in self.ambient_Vrepresentation())
 
     @cached_method
     def as_polyhedron(self):

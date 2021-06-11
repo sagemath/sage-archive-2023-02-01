@@ -12,81 +12,89 @@ Invariant algebras
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-class FiniteDimensionalInvariantWithBasis(CombinatorialFreeModule):
+from sage.misc.cachefunc import cached_method
+from sage.modules.with_basis.subquotient import SubmoduleWithBasis
+from sage.structure.unique_representation import UniqueRepresentation
+
+class FiniteDimensionalInvariantAlgebra(UniqueRepresentation, SubmoduleWithBasis):
     r"""
-    When a group `G` acts on a module `M`, the invariant algebra is the collection 
-    of elements `m` in `M` such that `g*m = m`.
+    Construct the `G`-invariant subalgebra of `A`. When a group `G` acts on an algebra 
+    `A`, the invariant algebra is the collection of elements `a` in `A` such that 
+    `g*a = a`.
 
     ..MATH::
 
-        M^G = \{m \in M : g\cdot m = m}
+        A^G = \{a \in A : g\cdot a = a}
 
-    The current implementation works when `G` is a finitely-generated group, and
-    when `M` is a finite-dimensional free module.
+    NOTE: The current implementation works when `G` is a finitely-generated group, and
+    when `A` is a finite-dimensional free module.
+
+    TODO::
+        Extend when `A` does not have a basis and `G` is a permutation group using:
+        - https://arxiv.org/abs/0812.3082
+        - https://www.dmtcs.org/pdfpapers/dmAA0123.pdf
+
+>>>>>>> 48a499577f (Rewrite FiniteDimensionalInvariantAlgebra to subclass UniqueRepresentation and SubmoduleWithBasis)
     """
 
-    def __init__(self, M, G, action_on_basis = None, **kwds):
+    def __init__(self, A, G, action_on_basis = lambda x, g: x, **kwargs):
         """
-        EXAMPLES::
 
-        sage: V = VectorSpace(QQ,3)
-        sage: G = CyclicPermutationGroup(3)
-        sage: action = lambda x,g: x
-        sage: VG = FiniteDimensionalInvariantWithBasis(V,G,action)
-        Cyclic group of order 3 as a permutation group-invariant submodule of Vector space of dimension 3 over Rational Field
-        sage: TestSuite(VG).run()
+        TESTS::
 
-        sage: R.<x,y,z> = PolynomialRing(QQ)
-        sage: G = CyclicPermutationGroup(3)
-        sage: RG = FiniteDimensionalInvariantWithBasis(V,G,action)
-        sage: TestSuite(RG).run()
-        
+            sage: from sage.algebras.invariants import FiniteDimensionalInvariantAlgebra
+            sage: A.<x,y,z> = PolynomialRing(QQ)
+            sage: G = SymmetricGroup(3); G.rename('S3')
+            sage: import operator
+            sage: AG = FiniteDimensionalInvariantAlgebra(A, G, operator.mul); AG
+            (S3)-invariant subalgebra of Polynomial Ring over Rational Field
+
         """
-        # TODO: check assumtions on M
-        self._ambient_module = M
-        self._ambient_module_basis = M.basis()
-        self._base_ring = M.base_ring()
 
-        # TODO: add check for G to be finitely generated
         self._group = G
+        self._action_on_basis = action_on_basis
 
-        # TODO: Determine if there are any checks to do here.
-        self._action_on_basis = action_on_basis if action_on_basis else lambda x,g: x*g
+        side = kwargs.pop('side','right')
+        support_order = kwargs.pop('support_order', None)
+        unitriangular = kwargs.pop('unitriangular', False)
+        category = kwargs.pop('category', None)
 
-        self._basis = M.annihilator_basis(G.gens(), lambda x,g: self._action_on_basis(x,g) - x)
+        basis = A.annihilator_basis(G.gens(), action = lambda x,g: action_on_basis(x,g) - x, side=side)
 
-        cat = kwds.pop("category", None)
+        super(SubmoduleWithBasis,self).__init__(basis.keys(),
+                                                support_order = support_order,
+                                                ambient = A,
+                                                unitriangular = unitriangular,
+                                                category = category,
+                                                **kwargs)
 
-        if cat is None:        
-            cat = Modules(self._base_ring).FiniteDimensional().WithBasis()
-
-        CombinatorialFreeModule.__init__(self, self._base_ring, self._basis, 
-            category = cat)
-        
     def _repr_(self):
         """
         EXAMPLES::
-        
+
             sage: V = VectorSpace(QQ,3)
             sage: G = CyclicPermutationGroup(3)
-            sage: action = lambda g, x: x
-            sage: FiniteDimensionalInvariantWithBasis(V, G, action)
-            (Cyclic group of order 3 as a permutation group)-invariant submodule of Vector space of dimension 3 over Rational Field
+            sage: FiniteDimensionalInvariantAlgebra(V, G)
+            (Cyclic group of order 3 as a permutation group)-invariant subalgebra of Vector space of dimension 3 over Rational Field
 
         """
 
-        return f"({self._group})-invariant submodule of {self._ambient_module}"
+        return f"({self._group})-invariant subalgebra of {self._ambient_module}"
 
-    def base_ring(self):
+
+    def group(self):
         """
+        Return the group `G` whose action ``self`` is invariant under.
+
         EXAMPLES::
 
-            sage: V = VectorSpace(QQ,3)
-            sage: G = CyclicPermutationGroup(3)
-            sage: VG = FiniteDimensionalInvariantWithBasis(V,G,lambda x,g: x)
-            sage: VG.base_ring()
-            Rational Field
+            sage: G = SymmetricGroup(3)
+            sage: A.<x,y,z> = PolynomialRing(QQ)
+            sage: import operator
+            sage: AG = FiniteDimensionalInvariantAlgebra(G,A,operator.mul)
+            sage: AG.group()
+            Symmetric group of order 3! as a permutation group
+
         """
 
-        return self._base_ring
-
+        return self._group

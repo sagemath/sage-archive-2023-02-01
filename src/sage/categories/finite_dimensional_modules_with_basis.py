@@ -375,21 +375,9 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
 
             """
 
-            self._base_ring = A.base_ring()
-            
-            self._ambient_algebra = A
+            from sage.algebras.invariants import FiniteDimensionalInvariantAlgebra
 
-            self._ambient_algebra_basis = A.basis()
-            
-            self._group = G
-
-            self._action_on_basis = action_on_basis
-
-            self._basis = M.annihilator_basis(self._group.gens(), lambda x,g: self._action_on_basis(x,g) - x)
-
-            return FiniteDimensionalInvariantAlgebra(self._ambient_algebra,
-                                                     self._G,
-                                                     self._action_on_basis)
+            return FiniteDimensionalInvariantAlgebra(A, G, action_on_basis)
 
     class ElementMethods:
         def dense_coefficient_list(self, order=None):

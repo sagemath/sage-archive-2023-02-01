@@ -2095,6 +2095,7 @@ class ClusterQuiver(SageObject):
                                                     for d_i in d]))
         Li += [e for e in it if e.dot_product(theta) > mu_d * sum(e)]
         Li.append(d)
+        N = len(Li) - 1
 
         q = polygen(QQ, 'v')  # q stands for v**2 until the last line
 
@@ -2104,16 +2105,19 @@ class ClusterQuiver(SageObject):
                               for i, j in edges)
             return cardinal_R / cardinal_G
 
-        Reineke_mat = matrix(q.parent().fraction_field(), len(Li), len(Li), 1)
+        Reineke_submat = matrix(q.parent().fraction_field(), N, N)
 
-        for i, e in enumerate(Li):
-            for j, f in enumerate(Li):
+        for i, e in enumerate(Li[:-1]):
+            for j, f in enumerate(Li[1:]):
+                if e == f:
+                    Reineke_submat[i, j] = 1
+                    continue
                 f_e = f - e
                 if all(x >= 0 for x in f_e):
                     power = (-f_e) * Eu * e
-                    Reineke_mat[i, j] = q**power * cardinal_RG(f_e)
+                    Reineke_submat[i, j] = q**power * cardinal_RG(f_e)
 
-        poly = ((1 - q) * Reineke_mat.inverse()[0, -1]).numerator()
+        poly = (-1)**N * ((1 - q) * Reineke_submat.det()).numerator()
         return poly(q**2)  # replacing q by v**2
 
     def d_vector_fan(self):

@@ -187,10 +187,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             sage: Polymake(command='foobar').version()
             Traceback (most recent call last):
             ...
-            RuntimeError: unable to start polymake because the command 'foobar' failed:
-            The command was not found or was not executable: foobar.
-            Please install the optional polymake package for sage (but read its SPKG.txt first!)
-            or install polymake system-wide
+            RuntimeError: runtime error with deprecated pexpect-based interface to polymake; please install jupymake
 
         """
         return self.get('$Polymake::Version')
@@ -358,11 +355,12 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
         TESTS::
 
             sage: print(polymake._install_hints())
-            Please install the optional polymake package for sage (but read its SPKG.txt first!)
+            Please install the optional polymake package for sage
             or install polymake system-wide
+            (use the shell command 'sage --info polymake' for more information)
 
         """
-        return "Please install the optional polymake package for sage  (but read its SPKG.txt first!)"+os.linesep+"or install polymake system-wide"
+        return "Please install the optional polymake package for sage" + os.linesep + "or install polymake system-wide" + os.linesep + "(use the shell command 'sage --info polymake' for more information)"
 
     def _start(self):
         """
@@ -1848,14 +1846,13 @@ class PolymakeExpect(PolymakeAbstract, Expect):
 
         """
         from sage.misc.superseded import deprecation
-        deprecation(27745, "the pexpect-based interface to polymake is deprecated. Install package jupymake so that Sage can use the more robust jupymake-based interface to polymake")
-
         if not self.is_running():
             try:
                 self._change_prompt("polytope > ")
                 Expect._start(self, alt_message=None)
             except RuntimeError:
-                raise RuntimeError("runtime error with deprecated pexpect-base interface to polymake; please install jupymake")
+                raise RuntimeError("runtime error with deprecated pexpect-based interface to polymake; please install jupymake")
+        deprecation(27745, "the pexpect-based interface to polymake is deprecated. Install package jupymake so that Sage can use the more robust jupymake-based interface to polymake")
         PolymakeAbstract._start(self)
         self.eval('use File::Slurp;')
 

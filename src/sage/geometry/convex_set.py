@@ -73,14 +73,20 @@ class ConvexSet_base(SageObject):
         return self.dim()
 
     @abstract_method
+    def ambient(self):
+        r"""
+        Return the ambient convex set or space.
+        """
+
+    @abstract_method
     def ambient_dim(self):
         r"""
-        Return the dimension of the ambient space.
+        Return the dimension of the ambient convex set or space.
         """
 
     def ambient_dimension(self):
         r"""
-        Return the dimension of ``self``.
+        Return the dimension of the ambient convex set or space.
 
         This is the same as :meth:`ambient_dim`.
 
@@ -97,7 +103,7 @@ class ConvexSet_base(SageObject):
 
     def codimension(self):
         r"""
-        Return the codimension of ``self``.
+        Return the codimension of ``self`` in `self.ambient()``.
 
         An alias is :meth:`codim`.
 
@@ -287,6 +293,8 @@ class ConvexSet_base(SageObject):
 
             sage: from sage.geometry.convex_set import ConvexSet_open
             sage: class FaultyConvexSet(ConvexSet_open):
+            ....:     def ambient(self):
+            ....:         return QQ^55
             ....:     def is_universe(self):
             ....:         return True
             ....:     def dim(self):
@@ -301,6 +309,8 @@ class ConvexSet_base(SageObject):
             sage: class BiggerOnTheInside(ConvexSet_open):
             ....:     def dim(self):
             ....:         return 100000
+            ....:     def ambient(self):
+            ....:         return QQ^3
             ....:     def ambient_dim(self):
             ....:         return 3
             sage: TestSuite(BiggerOnTheInside()).run(skip='_test_pickling')

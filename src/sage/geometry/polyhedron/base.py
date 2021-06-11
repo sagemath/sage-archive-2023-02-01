@@ -2478,7 +2478,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         """
         return self.parent().Vrepresentation_space()
 
-    ambient_space = Vrepresentation_space
+    ambient = ambient_space = Vrepresentation_space
 
     def Hrepresentation_space(self):
         r"""

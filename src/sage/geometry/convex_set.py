@@ -22,7 +22,7 @@ class ConvexSet_base(SageObject):
 
     def is_empty(self):
         r"""
-        Test whether ``self`` is the empty set
+        Test whether ``self`` is the empty set.
 
         OUTPUT:
 
@@ -34,13 +34,12 @@ class ConvexSet_base(SageObject):
             -1-d lattice polytope in 3-d lattice M
             sage: p.is_empty()
             True
-
         """
         return self.dim() < 0
 
     def is_universe(self):
         r"""
-        Test whether ``self`` is the whole ambient space
+        Test whether ``self`` is the whole ambient space.
 
         OUTPUT:
 
@@ -84,23 +83,39 @@ class ConvexSet_base(SageObject):
         """
         return self.dim() == self.ambient_dim()
 
-    @abstract_method
     def is_open(self):
         r"""
         Return whether ``self`` is open.
+
+        The default implementation of this method only knows that the
+        empty set and the ambient space are open.
 
         OUTPUT:
 
         Boolean.
 
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: class ExampleSet(ConvexSet_base):
+            ....:     def is_empty(self):
+            ....:         return False
+            ....:     def is_universe(self):
+            ....:         return True
+            sage: ExampleSet().is_open()
+            True
         """
+        if self.is_empty() or self.is_universe():
+            return True
+        raise NotImplementedError
 
     def is_relatively_open(self):
         r"""
         Return whether ``self`` is relatively open.
 
         The default implementation of this method only knows that open
-        sets are also relatively open.
+        sets are also relatively open, and in addition singletons are
+        relatively open.
 
         OUTPUT:
 
@@ -114,31 +129,55 @@ class ConvexSet_base(SageObject):
             ....:         return True
             sage: ExampleSet().is_relatively_open()
             True
-
         """
         if self.is_open():
             return True
+        if self.dim() == 0:
+            return True
         raise NotImplementedError
 
-    @abstract_method
     def is_closed(self):
         r"""
         Return whether ``self`` is closed.
+
+        The default implementation of this method only knows that the
+        empty set, a singleton set, and the ambient space are closed.
 
         OUTPUT:
 
         Boolean.
 
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: class ExampleSet(ConvexSet_base):
+            ....:     def dim(self):
+            ....:         return 0
+            sage: ExampleSet().is_closed()
+            True
         """
+        if self.is_empty() or self.dim() == 0 or self.is_universe():
+            return True
+        raise NotImplementedError
 
     def is_compact(self):
         r"""
         Return whether ``self`` is compact.
 
+        The default implementation of this method only knows that a
+        non-closed set cannot be compact, and that the empty set and
+        a singleton set are compact.
+
         OUTPUT:
 
         Boolean.
 
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: class ExampleSet(ConvexSet_base):
+            ....:     def dim(self):
+            ....:         return 0
+            sage: ExampleSet().is_compact()
+            True
         """
         if not self.is_closed():
             return False
@@ -200,6 +239,32 @@ class ConvexSet_base(SageObject):
     def _test_convex_set(self, tester=None, **options):
         """
         Run some tests on the methods of :class:`ConvexSet_base`.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_open
+            sage: class FaultyConvexSet(ConvexSet_open):
+            ....:     def is_universe(self):
+            ....:         return True
+            ....:     def dim(self):
+            ....:         return 42
+            ....:     def ambient_dim(self):
+            ....:         return 91
+            sage: TestSuite(FaultyConvexSet()).run(skip='_test_pickling')
+            Traceback (most recent call last):
+            ...
+            The following tests failed: _test_convex_set
+
+            sage: class BiggerOnTheInside(ConvexSet_open):
+            ....:     def dim(self):
+            ....:         return 100000
+            ....:     def ambient_dim(self):
+            ....:         return 3
+            sage: TestSuite(BiggerOnTheInside()).run(skip='_test_pickling')
+            Traceback (most recent call last):
+            ...
+            The following tests failed: _test_convex_set
+
         """
         if tester is None:
             tester = self._tester(**options)
@@ -241,6 +306,12 @@ class ConvexSet_closed(ConvexSet_base):
         OUTPUT:
 
         Boolean.
+
+        EXAMPLES::
+
+            sage: hcube = polytopes.hypercube(5)
+            sage: hcube.is_closed()
+            True
         """
         return True
 
@@ -252,6 +323,15 @@ class ConvexSet_closed(ConvexSet_base):
 
         Boolean.
 
+        EXAMPLES::
+
+            sage: hcube = polytopes.hypercube(5)
+            sage: hcube.is_open()
+            False
+
+            sage: zerocube = polytopes.hypercube(0)
+            sage: zerocube.is_open()
+            True
         """
         return self.is_empty() or self.is_universe()
 
@@ -268,6 +348,16 @@ class ConvexSet_compact(ConvexSet_closed):
         OUTPUT:
 
         Boolean.
+
+        EXAMPLES::
+
+            sage: cross3 = lattice_polytope.cross_polytope(3)
+            sage: cross3.is_universe()
+            False
+            sage: point0 = LatticePolytope([[]]); point0
+            0-d reflexive polytope in 0-d lattice M
+            sage: point0.is_universe()
+            True
         """
         return self.ambient_dim() == 0 and not self.is_empty()
 
@@ -279,8 +369,15 @@ class ConvexSet_compact(ConvexSet_closed):
 
         Boolean.
 
+        EXAMPLES::
+
+            sage: cross3 = lattice_polytope.cross_polytope(3)
+            sage: cross3.is_compact()
+            True
         """
         return True
+
+    is_relatively_open = ConvexSet_closed.is_open
 
 
 class ConvexSet_relatively_open(ConvexSet_base):
@@ -296,6 +393,12 @@ class ConvexSet_relatively_open(ConvexSet_base):
 
         Boolean.
 
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior()
+            sage: ri_segment.is_relatively_open()
+            True
         """
         return True
 
@@ -307,8 +410,14 @@ class ConvexSet_relatively_open(ConvexSet_base):
 
         Boolean.
 
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior()
+            sage: ri_segment.is_open()
+            False
         """
-        return self.is_full_dimensional()
+        return self.is_empty() or self.is_full_dimensional()
 
 
 class ConvexSet_open(ConvexSet_relatively_open):
@@ -324,6 +433,12 @@ class ConvexSet_open(ConvexSet_relatively_open):
 
         Boolean.
 
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_open
+            sage: b = ConvexSet_open()
+            sage: b.is_open()
+            True
         """
         return True
 
@@ -335,5 +450,15 @@ class ConvexSet_open(ConvexSet_relatively_open):
 
         Boolean.
 
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_open
+            sage: class OpenBall(ConvexSet_open):
+            ....:     def dim(self):
+            ....:         return 3
+            ....:     def is_universe(self):
+            ....:         return False
+            sage: OpenBall().is_closed()
+            False
         """
         return self.is_empty() or self.is_universe()

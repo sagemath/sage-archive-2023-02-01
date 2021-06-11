@@ -362,6 +362,30 @@ class ConvexSet_base(SageObject):
         The Cartesian product of ``self`` and ``other``.
         """
 
+    @abstract_method(optional=True)
+    def contains(self, point):
+        """
+        Test whether ``self`` contains the given ``point``.
+
+        INPUT:
+
+        - ``point`` -- a point or its coordinates
+        """
+
+    @abstract_method(optional=True)
+    def intersection(self, other):
+        r"""
+        Return the intersection of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- another convex set
+
+        OUTPUT:
+
+        The intersection.
+        """
+
 
 class ConvexSet_closed(ConvexSet_base):
     r"""

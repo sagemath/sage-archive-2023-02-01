@@ -2617,6 +2617,26 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable):
 
     ambient_dim = lattice_dim
 
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+
+        It is the ambient lattice (:meth:`lattice`) tensored with a field.
+
+        INPUT::
+
+        - ``base_field`` -- (default: the rationals) a field.
+
+        EXAMPLES::
+
+            sage: p = LatticePolytope([(1,0)])
+            sage: p.ambient_vector_space()
+            Vector space of dimension 2 over Rational Field
+            sage: p.ambient_vector_space(AA)
+            Vector space of dimension 2 over Algebraic Real Field
+        """
+        return self.lattice().vector_space(base_field=base_field)
+
     def linearly_independent_vertices(self):
         r"""
         Return a maximal set of linearly independent vertices.

@@ -73,6 +73,12 @@ class ConvexSet_base(SageObject):
         return self.dim()
 
     @abstract_method
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+        """
+
+    @abstract_method
     def ambient(self):
         r"""
         Return the ambient convex set or space.
@@ -295,6 +301,8 @@ class ConvexSet_base(SageObject):
             sage: class FaultyConvexSet(ConvexSet_open):
             ....:     def ambient(self):
             ....:         return QQ^55
+            ....:     def ambient_vector_space(self, base_field=None):
+            ....:         return QQ^16
             ....:     def is_universe(self):
             ....:         return True
             ....:     def dim(self):
@@ -309,6 +317,8 @@ class ConvexSet_base(SageObject):
             sage: class BiggerOnTheInside(ConvexSet_open):
             ....:     def dim(self):
             ....:         return 100000
+            ....:     def ambient_vector_space(self):
+            ....:         return QQ^3
             ....:     def ambient(self):
             ....:         return QQ^3
             ....:     def ambient_dim(self):

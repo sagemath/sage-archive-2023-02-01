@@ -677,6 +677,29 @@ class PolyhedronFace(ConvexSet_closed):
 
     ambient = polyhedron
 
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+
+        It is the ambient free module of the containing polyhedron tensored
+        with a field.
+
+        INPUT::
+
+        - ``base_field`` -- (default: the fraction field of the base ring) a field.
+
+        EXAMPLES::
+
+            sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
+            sage: line = half_plane.faces(1)[0]; line
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: line.ambient_vector_space()
+            Vector space of dimension 2 over Rational Field
+            sage: line.ambient_vector_space(AA)
+            Vector space of dimension 2 over Algebraic Real Field
+        """
+        return self.polyhedron().ambient_vector_space(base_field=base_field)
+
     def is_relatively_open(self):
         r"""
         Return whether ``self`` is relatively open.

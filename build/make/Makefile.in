@@ -337,20 +337,24 @@ DOC_DEPENDENCIES = sagelib sage_docbuild $(inst_sphinx) \
 
 doc: doc-references doc-other
 
+# Matches doc-inventory-reference-manifolds etc.
+doc-inventory-%:
+	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-inventory-,,$@)) inventory $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log
+
+# Matches doc-html-developer, doc-html-reference-manifolds etc.
+doc-html-%:
+	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-html-,,$@)) html $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log
+
 doc-references: $(DOC_DEPENDENCIES)
 	$(eval DOCS = $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents reference))
 	$(eval biblio = $(firstword $(DOCS)))
 	$(eval other_docs = $(wordlist 2, 100, $(DOCS)))
-	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(biblio) inventory $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
-	for doc in $(other_docs); do \
-	    $(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $$doc inventory $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
-	done
-	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links reference inventory $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
-	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(biblio) html $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
-	for doc in $(other_docs); do \
-	    $(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $$doc html $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
-	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links reference html $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log; \
-	done
+	+$(MAKE_REC) doc-inventory-$(subst /,-,$(biblio))
+	+$(MAKE_REC) $(foreach doc, $(other_docs), doc-inventory-$(subst /,-,$(doc)))
+	+$(MAKE_REC) doc-inventory-reference
+	+$(MAKE_REC) doc-html-$(subst /,-,$(biblio))
+	+$(MAKE_REC) $(foreach doc, $(other_docs), doc-html-$(subst /,-,$(doc)))
+	+$(MAKE_REC) doc-html-reference
 
 doc-other: $(DOC_DEPENDENCIES) doc-references
 	for doc in $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)); do \

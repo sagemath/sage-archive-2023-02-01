@@ -2067,6 +2067,10 @@ class ClusterQuiver(SageObject):
             ...
             ValueError: dimension vector d is not coprime
 
+            sage: Q = ClusterQuiver(['A',3])
+            sage: Q.poincare_semistable([1,1,0],[2,3,4])
+            0
+
         REFERENCES:
 
         .. [Rei2002] Markus Reineke, *The Harder-Narasimhan system in quantum
@@ -2082,6 +2086,7 @@ class ClusterQuiver(SageObject):
         Eu = matrix(ZZ, n, n,
                     lambda i, j: -b_mat[i, j] if b_mat[i, j] > 0 else 0)
         Eu = 1 + Eu
+        edges = list(self.digraph().edges(labels=False))
 
         mu_d = theta.dot_product(d) / sum(d)
 
@@ -2091,16 +2096,15 @@ class ClusterQuiver(SageObject):
         Li += [e for e in it if e.dot_product(theta) > mu_d * sum(e)]
         Li.append(d)
 
-        v = polygen(QQ, 'v')
-        q = v**2
+        q = polygen(QQ, 'v')  # q stands for v**2 until the last line
 
         def cardinal_RG(d):
             cardinal_G = prod(q**d_i - q**k for d_i in d for k in range(d_i))
             cardinal_R = prod(q**(b_mat[i, j] * d[i] * d[j])
-                              for i, j in self.digraph().edges(labels=False))
+                              for i, j in edges)
             return cardinal_R / cardinal_G
 
-        Reineke_mat = matrix(v.parent().fraction_field(), len(Li), len(Li), 1)
+        Reineke_mat = matrix(q.parent().fraction_field(), len(Li), len(Li), 1)
 
         for i, e in enumerate(Li):
             for j, f in enumerate(Li):
@@ -2109,7 +2113,8 @@ class ClusterQuiver(SageObject):
                     power = (-f_e) * Eu * e
                     Reineke_mat[i, j] = q**power * cardinal_RG(f_e)
 
-        return ((1 - v**2) * Reineke_mat.inverse()[0, -1]).numerator()
+        poly = ((1 - q) * Reineke_mat.inverse()[0, -1]).numerator()
+        return poly(q**2)  # replacing q by v**2
 
     def d_vector_fan(self):
         r"""

@@ -26,12 +26,15 @@ from sage.misc.cachefunc import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
 from .constructor                 import ModularForms
 from .element import is_ModularFormElement
-from sage.structure.sage_object  import SageObject
+#from sage.structure.sage_object  import SageObject
 from random import shuffle
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.unique_representation import UniqueRepresentation
+
+#from sage.categories.graded_algebras import GradedAlgebras
+from sage.categories.commutative_rings import CommutativeRings
 
 def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=False):
     r"""
@@ -165,8 +168,21 @@ def basis_for_modform_space(*args):
     raise NotImplementedError("basis_for_modform_space has been removed -- use ModularFormsRing.q_expansion_basis()")
 
 class GradedModularFormElement(Element):
-    #TODO: add documentation!!!
+    # Move this class in an other module?
+    # TODO: add documentation!!!
     def __init__(self, parent, mf_dict):
+        r"""
+        An element of a graded ring of modular forms.
+
+        INPUTS:
+
+            - ``parents`` - an object of the class ModularFormsRing
+            - ``mf_dict`` - a dictionary ``{k_1:f_1, k_2:f_2, ..., k_n:f_n}`` where `f_i` is a modular form of weight `k_i`
+        
+        OUTPUT:
+
+        A GradedModularFormElement corresponding to `f_1 + f_2 + ... f_n`
+        """
         for k,f in mf_dict.items():
             if not isinstance(k, Integer):
                 raise ValueError("at least one key is not an integer")
@@ -176,25 +192,38 @@ class GradedModularFormElement(Element):
         Element.__init__(self, parent)
 
     def _dictionnary(self):
+        r"""
+        Return the dictionnary that defines the ``GradedModularFormElement``.
+        """
         return self.__mf_dict
 
     def q_expansion(self, prec=None):
+        r"""
+        Compute the `q`-expansion of the graded modular form up to precision ``prec`` (default: 6).
+        """
         qexp = 0
         for f in self._dictionnary().values():
             qexp += f.q_expansion(prec)
         return qexp
 
     def _repr_(self):
+        r"""
+        The string representation of self.
+        """
         return "%s"%(self.q_expansion())
 
     def __getitem__(self, key):
         return self._dictionnary()[key]
     
     def _add_(self, other):
+        r"""
+        Addition of two ``GradedModularFormElement``.
+        """
         GM = self.__class__
         f_self = self._dictionnary()
         f_other = other._dictionnary()
         f_sum = {}
+        #compare the weights and add forms if they have the same weight
         for k_self, k_other in zip(sorted(f_self), sorted(f_other)):
             if k_self < k_other:
                 f_sum[k_self] = f_self[k_self]
@@ -204,7 +233,18 @@ class GradedModularFormElement(Element):
                 f_sum[k_self] = f_self[k_self] + f_other[k_other]
         return GM(self.parent(), f_sum)
 
+    def _neg_(self):
+        r"""
+        The negation of self.
+        """
+        GM = self.__class__
+        minus_self = {k:-self._dictionnary()[k] for k in self._dictionnary()}
+        return GM(self.parent(), minus_self)
+
     def _mul_(self, other):
+        r"""
+        Multiplication of two ``GradedModularFormElement``.
+        """
         GM = self.__class__
         f_self = self._dictionnary()
         f_other = other._dictionnary()
@@ -214,9 +254,16 @@ class GradedModularFormElement(Element):
                 f_mul[k_self + k_other] = f_self[k_self]*f_other[k_other]
         return GM(self.parent(), f_mul)
 
+    def is_homogeneous(self):
+        r"""
+        Return True if the graded modular form is homogeneous, i.e. if it is a modular forms of a certain weight.
+        """
+        if len(self._dictionnary())>1:
+            return False
+        return True
+
 @richcmp_method
-#class ModularFormsRing(SageObject):
-class ModularFormsRing(Parent, UniqueRepresentation):
+class ModularFormsRing(Parent):
     
     Element = GradedModularFormElement
 
@@ -288,6 +335,8 @@ class ModularFormsRing(Parent, UniqueRepresentation):
         self.__cached_gens = []
         self.__cached_cusp_maxweight = ZZ(-1)
         self.__cached_cusp_gens = []
+        Parent.__init__(self, base=base_ring, category=CommutativeRings())
+        #TODO: Figure out why there is a bug when category=GradedAlgebras(base_ring)
 
     def group(self):
         r"""

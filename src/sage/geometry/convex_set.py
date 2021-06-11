@@ -279,12 +279,6 @@ class ConvexSet_base(SageObject):
             return self
         raise NotImplementedError
 
-    @abstract_method(optional=True)
-    def affine_hull(self):
-        r"""
-        Return the affine hull of ``self``.
-        """
-
     def _test_convex_set(self, tester=None, **options):
         """
         Run some tests on the methods of :class:`ConvexSet_base`.
@@ -345,6 +339,29 @@ class ConvexSet_base(SageObject):
             tester.assertTrue(self == cl_self)
         if self.is_compact():
             tester.assertTrue(self.is_closed())
+
+    # Optional methods
+
+    @abstract_method(optional=True)
+    def affine_hull(self):
+        r"""
+        Return the affine hull of ``self``.
+        """
+
+    @abstract_method(optional=True)
+    def cartesian_product(self, other):
+        """
+        Return the Cartesian product.
+
+        INPUT:
+
+        - ``other`` -- another convex set
+
+        OUTPUT:
+
+        The Cartesian product of ``self`` and ``other``.
+        """
+
 
 class ConvexSet_closed(ConvexSet_base):
     r"""

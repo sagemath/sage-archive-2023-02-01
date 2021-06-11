@@ -4817,6 +4817,8 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
     _mul_ = product
 
+    cartesian_product = product
+
     def _test_product(self, tester=None, **options):
         """
         Run tests on the method :meth:`.product`.

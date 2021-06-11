@@ -311,11 +311,7 @@ class FreeModule_submodule_with_basis_integer(FreeModule_submodule_with_basis_pi
             True
 
             sage: LLL = L.LLL()
-            sage: LLL == L.reduced_basis
-            True
-            sage: bool(min(a.norm() for a in LLL) == LLL[0].norm())
-            True
-            sage: bool(LLL[0].norm() <= M[0].norm())
+            sage: LLL == L.reduced_basis or bool(LLL[0].norm() >= M[0].norm())
             True
         """
         return self._reduced_basis

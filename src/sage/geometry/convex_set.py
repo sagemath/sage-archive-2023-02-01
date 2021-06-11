@@ -55,11 +55,45 @@ class ConvexSet_base(SageObject):
         Return the dimension of ``self``.
         """
 
+    def dimension(self):
+        r"""
+        Return the dimension of ``self``.
+
+        This is the same as :meth:`dim`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: class ExampleSet(ConvexSet_base):
+            ....:     def dim(self):
+            ....:         return 42
+            sage: ExampleSet().dimension()
+            42
+        """
+        return self.dim()
+
     @abstract_method
     def ambient_dim(self):
         r"""
         Return the dimension of the ambient space.
         """
+
+    def ambient_dimension(self):
+        r"""
+        Return the dimension of ``self``.
+
+        This is the same as :meth:`ambient_dim`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: class ExampleSet(ConvexSet_base):
+            ....:     def ambient_dim(self):
+            ....:         return 91
+            sage: ExampleSet().ambient_dimension()
+            91
+        """
+        return self.ambient_dim()
 
     def codimension(self):
         r"""

@@ -764,6 +764,49 @@ class PolyhedronFace(ConvexSet_closed):
         Vrep = (self.vertices(), self.rays(), self.lines())
         return P.__class__(parent, Vrep, None)
 
+    def contains(self, point):
+        """
+        Test whether the polyhedron contains the given ``point``.
+
+        INPUT:
+
+        - ``point`` -- a point or its coordinates
+
+        EXAMPLES::
+
+            sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
+            sage: line = half_plane.faces(1)[0]; line
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: line.contains([0, 1])
+            True
+
+        As a shorthand, one may use the usual ``in`` operator::
+
+            sage: [5, 7] in line
+            False
+        """
+        # preprocess in the same way as Polyhedron_base.contains
+        try:
+            p = vector(point)
+        except TypeError:  # point not iterable or no common ring for elements
+            if len(point) > 0:
+                return False
+            else:
+                p = vector(self.polyhedron().base_ring(), [])
+
+        if len(p) != self.ambient_dim():
+            return False
+
+        if not self.polyhedron().contains(p):
+            return False
+
+        for H in self.ambient_Hrepresentation():
+            if H.eval(p) != 0:
+                return False
+        return True
+
+    __contains__ = contains
+
     @cached_method
     def normal_cone(self, direction='outer'):
         """

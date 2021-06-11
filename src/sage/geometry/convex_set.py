@@ -309,7 +309,7 @@ class ConvexSet_base(SageObject):
             ....:         return 42
             ....:     def ambient_dim(self):
             ....:         return 91
-            sage: TestSuite(FaultyConvexSet()).run(skip='_test_pickling')
+            sage: TestSuite(FaultyConvexSet()).run(skip=('_test_pickling', '_test_contains'))
             Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
@@ -323,7 +323,7 @@ class ConvexSet_base(SageObject):
             ....:         return QQ^3
             ....:     def ambient_dim(self):
             ....:         return 3
-            sage: TestSuite(BiggerOnTheInside()).run(skip='_test_pickling')
+            sage: TestSuite(BiggerOnTheInside()).run(skip=('_test_pickling', '_test_contains'))
             Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
@@ -391,6 +391,18 @@ class ConvexSet_base(SageObject):
 
         - ``point`` -- a point or its coordinates
         """
+
+    def _test_contains(self, tester=None, **options):
+        """
+        Test the ``contains`` method.
+        """
+        if tester is None:
+            tester = self._tester(**options)
+        space = self.ambient_vector_space()
+        point = space.an_element()
+        coords = space.coordinates(point)
+        if self.contains != NotImplemented:
+            tester.assertEqual(self.contains(point), self.contains(coords))
 
     @abstract_method(optional=True)
     def intersection(self, other):

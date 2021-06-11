@@ -78,12 +78,12 @@ from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
-
+from sage.geometry.convex_set import ConvexSet_closed
 
 
 #########################################################################
 @richcmp_method
-class PolyhedronFace(SageObject):
+class PolyhedronFace(ConvexSet_closed):
     r"""
     A face of a polyhedron.
 
@@ -121,6 +121,11 @@ class PolyhedronFace(SageObject):
         (An inequality (1, 1, 1) x + 1 >= 0,)
         sage: face.ambient_Vrepresentation()
         (A vertex at (-1, 0, 0), A vertex at (0, -1, 0), A vertex at (0, 0, -1))
+
+    TESTS::
+
+        sage: TestSuite(face).run()
+
     """
 
     def __init__(self, polyhedron, V_indices, H_indices):
@@ -147,6 +152,7 @@ class PolyhedronFace(SageObject):
             sage: from sage.geometry.polyhedron.face import PolyhedronFace
             sage: PolyhedronFace(Polyhedron(), [], [])   # indirect doctest
             A -1-dimensional face of a Polyhedron in ZZ^0
+            sage: TestSuite(_).run()
         """
         self._polyhedron = polyhedron
         self._ambient_Vrepresentation_indices = tuple(V_indices)
@@ -648,6 +654,8 @@ class PolyhedronFace(SageObject):
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
         """
         return self._polyhedron
+
+    ambient = polyhedron
 
     @cached_method
     def as_polyhedron(self):

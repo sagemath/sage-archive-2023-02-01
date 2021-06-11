@@ -352,6 +352,45 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             ret = [self.from_vector(vec, order=order) for vec in mat if vec]
             return ret
 
+        @cached_method
+        def invariant_algebra(self, A, G, action_on_basis = lambda x,g: x, **kwargs):
+            r"""
+            Given a group acting on an algebra, return the algebra 
+            `A^G = \{a \in A : ga = a \forall g \in G\}`
+
+            INPUT::
+
+            - ``A`` -- a finite-dimensional algebra with a basis
+
+            - ``G`` -- a finitely-generated group
+
+            - ``action_on_basis(x,g)`` -- a function of taking positional arguments
+              ``x`` and ``g`` which gives the action of ``g`` defined on a basis
+              element ``x`` of ``A``. Default is the trivial action.
+
+            OUTPUT::
+
+            - ``invariant`` -- an instance of ``FiniteDimensionalInvariantAlgebra``
+              representing `A^G`
+
+            """
+
+            self._base_ring = A.base_ring()
+            
+            self._ambient_algebra = A
+
+            self._ambient_algebra_basis = A.basis()
+            
+            self._group = G
+
+            self._action_on_basis = action_on_basis
+
+            self._basis = M.annihilator_basis(self._group.gens(), lambda x,g: self._action_on_basis(x,g) - x)
+
+            return FiniteDimensionalInvariantAlgebra(self._ambient_algebra,
+                                                     self._G,
+                                                     self._action_on_basis)
+
     class ElementMethods:
         def dense_coefficient_list(self, order=None):
             """

@@ -1225,8 +1225,11 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
             sage: K.codim() == K.dual().lineality()
             True
         """
+        # same as ConvexSet_base.codim; the main point is the much more detailed
+        # docstring.
         return (self.lattice_dim() - self.dim())
 
+    codimension = codim
 
     def span(self, base_ring=None):
         r"""

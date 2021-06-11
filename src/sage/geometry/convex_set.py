@@ -61,6 +61,21 @@ class ConvexSet_base(SageObject):
         Return the dimension of the ambient space.
         """
 
+    def codimension(self):
+        r"""
+        Return the codimension of ``self``.
+
+        An alias is :meth:`codim`.
+
+        EXAMPLES::
+
+            sage: Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)]).codimension()
+            2
+        """
+        return self.ambient_dim() - self.dim()
+
+    codim = codimension
+
     def is_full_dimensional(self):
         r"""
         Return whether ``self`` is full dimensional.
@@ -269,7 +284,10 @@ class ConvexSet_base(SageObject):
         if tester is None:
             tester = self._tester(**options)
         dim = self.dim()
+        codim = self.codim()
         tester.assertTrue(dim <= self.ambient_dim())
+        if dim >= 0:
+            tester.assertTrue(dim + codim == self.ambient_dim())
         if self.is_empty():
             tester.assertTrue(dim == -1)
         if self.is_universe():

@@ -352,31 +352,41 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             ret = [self.from_vector(vec, order=order) for vec in mat if vec]
             return ret
 
-        def invariant_algebra(self, A, G, action_on_basis = lambda x,g: x, **kwargs):
+        def invariant_module(self, A, G, action_on_basis = lambda x,g: x,
+                             side = "left", **kwargs):
             r"""
-            Given a group acting on an algebra, return the algebra 
+            Given a group acting on a module, return the module
             `A^G = \{a \in A : ga = a \forall g \in G\}`
 
             INPUT::
 
-            - ``A`` -- a finite-dimensional algebra with a basis
+            - ``M`` -- a finite-dimensional module with a basis
 
             - ``G`` -- a finitely-generated group
 
             - ``action_on_basis(x,g)`` -- a function of taking positional arguments
               ``x`` and ``g`` which gives the action of ``g`` defined on a basis
-              element ``x`` of ``A``. Default is the trivial action.
+              element ``x`` of ``M``. Default is the trivial action.
 
             OUTPUT::
 
-            - ``invariant`` -- an instance of ``FiniteDimensionalInvariantAlgebra``
-              representing `A^G`
+            - ``invariant`` -- an instance of ``FiniteDimensionalInvariantModule``
+              representing `M^G`
+
+            EXAMPLES::
+                sage: action = lambda g, m: m.parent()(g._act_on_list_on_position(list(m)))
+                sage: G = SymmetricGroup(3)
+                sage: M = FreeModule(ZZ,[0,1,2])
+                sage: R = Representation(G, M, action)
 
             """
 
-            from sage.algebras.invariants import FiniteDimensionalInvariantAlgebra
+            from sage.modules.invariants import FiniteDimensionalInvariantModule
+            from sage.modules.with_basis.representation import Representation
 
-            return FiniteDimensionalInvariantAlgebra(A, G, action_on_basis)
+            R = Representation(G, M, action_on_basis, side)
+
+            return FiniteDimensionalInvariantModule(M, G, R)
 
     class ElementMethods:
         def dense_coefficient_list(self, order=None):

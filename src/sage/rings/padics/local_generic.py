@@ -1127,7 +1127,7 @@ class LocalGeneric(CommutativeRing):
 
         This method is useful for increasing the numerical
         stability. It is called by :meth:`_matrix_smith_form`
-        and :meth:`_matrix_determinant` 
+        and :meth:`_matrix_determinant`
 
         Only for internal use.
 
@@ -1151,18 +1151,21 @@ class LocalGeneric(CommutativeRing):
         """
         parent = M.base_ring()
         cap = parent.precision_cap()
-        n = M.nrows(); m = M.ncols()
+        n = M.nrows()
+        m = M.ncols()
         shift_rows = n * [ ZZ(0) ]
         shift_cols = m * [ ZZ(0) ]
         for i in range(n):
             prec = min(M[i,j].precision_absolute() for j in range(m))
-            if prec is Infinity or prec == cap: continue
+            if prec is Infinity or prec == cap:
+                continue
             shift_rows[i] = s = cap - prec
             for j in range(m):
                 M[i,j] <<= s
         for j in range(m):
             prec = min(M[i,j].precision_absolute() for i in range(n))
-            if prec is Infinity or prec == cap: continue
+            if prec is Infinity or prec == cap:
+                continue
             shift_cols[j] = s = cap - prec
             for i in range(n):
                 M[i,j] <<= s
@@ -1341,10 +1344,13 @@ class LocalGeneric(CommutativeRing):
                     if exact: # we only care in this case
                         allexact = allexact and Sij.precision_absolute() is infinity
                     if v < curval:
-                        pivi = i; pivj = j
+                        pivi = i
+                        pivj = j
                         curval = v
-                        if v == val: break
-                else: continue
+                        if v == val:
+                            break
+                else:
+                    continue
                 break
             val = curval
 
@@ -1362,8 +1368,10 @@ class LocalGeneric(CommutativeRing):
                         for i in range(i,n):
                             for j in range(piv,m):
                                 allexact = allexact and S[i,j].precision_absolute() is infinity
-                                if not allexact: break
-                            else: continue
+                                if not allexact:
+                                    break
+                            else:
+                                continue
                             break
                     if not allexact:
                         raise PrecisionError("some elementary divisors indistinguishable from zero (try exact=False)")
@@ -1549,11 +1557,11 @@ class LocalGeneric(CommutativeRing):
             O(37)
         """
         n = M.nrows()
-    
+
         # For 2x2 matrices, we use the formula
         if n == 2:
             return M[0,0]*M[1,1] - M[0,1]*M[1,0]
-    
+
         R = M.base_ring()
         track_precision = R._prec_type() in ['capped-rel','capped-abs']
 
@@ -1572,7 +1580,8 @@ class LocalGeneric(CommutativeRing):
                 for j in range(piv,n):
                     v = S[i,j].valuation()
                     if v < curval:
-                        pivi = i; pivj = j
+                        pivi = i
+                        pivj = j
                         curval = v
                         if v == val:
                             break
@@ -1588,9 +1597,11 @@ class LocalGeneric(CommutativeRing):
 
             valdet += val
             S.swap_rows(pivi,piv)
-            if pivi > piv: sign = -sign
+            if pivi > piv:
+                sign = -sign
             S.swap_columns(pivj,piv)
-            if pivj > piv: sign = -sign
+            if pivj > piv:
+                sign = -sign
 
             det *= S[piv,piv]
             inv = ~(S[piv,piv] >> val)
@@ -1608,9 +1619,12 @@ class LocalGeneric(CommutativeRing):
                 for j in range(n):
                     prec = min(prec, S[i,j].precision_absolute())
                 prec -= S[i,i].valuation()
-                if prec < relprec: relprec = prec
-                if prec < 0: relprec_neg += prec
-            if relprec_neg < 0: relprec = relprec_neg
+                if prec < relprec:
+                    relprec = prec
+                if prec < 0:
+                    relprec_neg += prec
+            if relprec_neg < 0:
+                relprec = relprec_neg
             det = (sign*det).add_bigoh(valdet+relprec)
         else:
             det = sign*det

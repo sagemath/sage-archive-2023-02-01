@@ -810,7 +810,9 @@ def bisection_method(
             c = (b+a)/two
             if abs(f(c)) < h or round >= maxn:
                 break
-            fa = f(a); fb = f(b); fc = f(c)
+            fa = f(a)
+            fb = f(b)
+            fc = f(c)
             if abs(fc) < eps:
                 return c, intervals
             if fa*fc < 0:
@@ -1150,7 +1152,8 @@ def simpson_integration(
         K = solve([A*a[0]**2+B*a[0]+C==a[1], A*b[0]**2+B*b[0]+C==b[1], A*c[0]**2+B*c[0]+C==c[1]], [A, B, C], solution_dict=True)[0]
         f = K[A]*x**2+K[B]*x+K[C]
         return f
-    xs = []; ys = []
+    xs = []
+    ys = []
     dx = float(interval[1]-interval[0])/n
 
     for i in range(n+1):
@@ -1357,14 +1360,17 @@ def function_tool(f=sin(x), g=cos(x), xrange=range_slider(-3,3,default=(0,1),lab
     """
     x = SR.var('x')
     try:
-        f = SR(f); g = SR(g); a = SR(a)
+        f = SR(f)
+        g = SR(g)
+        a = SR(a)
     except TypeError as msg:
         print(msg[-200:])
         print("Unable to make sense of f,g, or a as symbolic expressions in single variable x.")
         return
     if not (isinstance(xrange, tuple) and len(xrange) == 2):
           xrange = (0,1)
-    h = 0; lbl = ''
+    h = 0
+    lbl = ''
     if action == 'f':
         h = f
         lbl = 'f'
@@ -1659,33 +1665,37 @@ def polar_prime_spiral(
     list2 = []
     if not show_factors:
         for i in srange(start, end, include_endpoint = True):
-            if Integer(i).is_pseudoprime(): list.append(f(i-start+1)) #Primes list
-            else: list2.append(f(i-start+1)) #Composites list
+            if Integer(i).is_pseudoprime():
+                list.append(f(i-start+1))  # Primes list
+            else:
+                list2.append(f(i-start+1))  # Composites list
         P = points(list)
-        R = points(list2, alpha = .1) #Faded Composites
+        R = points(list2, alpha = .1)  # Faded Composites
     else:
         for i in srange(start, end, include_endpoint = True):
-            list.append(disk((f(i-start+1)),0.05*pow(2,len(factor(i))-1), (0,2*pi))) #resizes each of the dots depending of the number of factors of each number
-            if Integer(i).is_pseudoprime() and highlight_primes: list2.append(f(i-start+1))
+            list.append(disk((f(i-start+1)),0.05*pow(2,len(factor(i))-1), (0,2*pi)))  # resizes each of the dots depending of the number of factors of each number
+            if Integer(i).is_pseudoprime() and highlight_primes:
+                list2.append(f(i-start+1))
         P = Graphics()
         for g in list:
             P += g
-        p_size = 5 #the orange dot size of the prime markers
-        if not highlight_primes: list2 = [(f(n-start+1))]
+        p_size = 5  # the orange dot size of the prime markers
+        if not highlight_primes:
+            list2 = [(f(n-start+1))]
         R = points(list2, hue = .1, pointsize = p_size)
 
     if n > 0:
         html('$n = %s$' % factor(n))
 
         p = 1
-        #The X which marks the given n
+        # The X which marks the given n
         W1 = disk((f(n-start+1)), p, (pi/6, 2*pi/6), alpha=.1)
         W2 = disk((f(n-start+1)), p, (4*pi/6, 5*pi/6), alpha=.1)
         W3 = disk((f(n-start+1)), p, (7*pi/6, 8*pi/6), alpha=.1)
         W4 = disk((f(n-start+1)), p, (10*pi/6, 11*pi/6), alpha=.1)
         Q = W1 + W2 + W3 + W4
 
-        n = n - start +1        #offsets the n for different start values to ensure accurate plotting
+        n = n - start +1  # offsets the n for different start values to ensure accurate plotting
         if show_curves:
             begin_curve = 0
             t = SR.var('t')
@@ -1704,7 +1714,7 @@ def polar_prime_spiral(
             r = symbolic_expression(sqrt(g(m))).function(m)
             theta = symbolic_expression(r(m)- m*sqrt(a)).function(m)
             S1 = parametric_plot(((r(t))*cos(2*pi*(theta(t))),(r(t))*sin(2*pi*(theta(t)))),
-                 (begin_curve, ceil(sqrt(end-start))), color=hue(0.8), thickness = .3) #Pink Line
+                 (begin_curve, ceil(sqrt(end-start))), color=hue(0.8), thickness=.3) #Pink Line
 
             b = 1
             c = c2;
@@ -1712,8 +1722,10 @@ def polar_prime_spiral(
             r = symbolic_expression(sqrt(g(m))).function(m)
             theta = symbolic_expression(r(m)- m*sqrt(a)).function(m)
             S2 = parametric_plot(((r(t))*cos(2*pi*(theta(t))),(r(t))*sin(2*pi*(theta(t)))),
-                 (begin_curve, ceil(sqrt(end-start))), color=hue(0.6), thickness = .3) #Green Line
+                 (begin_curve, ceil(sqrt(end-start))), color=hue(0.6), thickness=.3) #Green Line
 
-            show(R+P+S1+S2+Q, aspect_ratio = 1, axes = False, dpi = dpi)
-        else: show(R+P+Q, aspect_ratio = 1, axes = False, dpi = dpi)
-    else: show(R+P, aspect_ratio = 1, axes = False, dpi = dpi)
+            show(R+P+S1+S2+Q, aspect_ratio=1, axes=False, dpi=dpi)
+        else:
+            show(R+P+Q, aspect_ratio=1, axes=False, dpi=dpi)
+    else:
+        show(R+P, aspect_ratio=1, axes=False, dpi=dpi)

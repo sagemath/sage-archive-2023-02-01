@@ -3785,7 +3785,8 @@ class Link(SageObject):
                 return L
 
             chiral = True
-            ach = L.is_amphicheiral(); achp = L.is_amphicheiral(positive=True)
+            ach = L.is_amphicheiral()
+            achp = L.is_amphicheiral(positive=True)
             if ach is None and achp is None:
                 if unique:
                     raise NotImplementedError('this link cannot be uniquely determined (unknown chirality)%s' %non_unique_hint)

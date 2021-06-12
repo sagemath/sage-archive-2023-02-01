@@ -837,7 +837,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
                 y = ~x
             except (ZeroDivisionError, PrecisionError, ValueError):
                 tester.assertFalse(x.is_unit())
-                if not self.is_fixed_mod(): tester.assertTrue(x.is_zero())
+                if not self.is_fixed_mod():
+                    tester.assertTrue(x.is_zero())
             else:
                 try:
                     e = y * x
@@ -904,8 +905,10 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             try:
                 z = x / y
             except (ZeroDivisionError, PrecisionError, ValueError):
-                if self.is_fixed_mod(): tester.assertFalse(y.is_unit())
-                else: tester.assertTrue(y.is_zero())
+                if self.is_fixed_mod():
+                    tester.assertFalse(y.is_unit())
+                else:
+                    tester.assertTrue(y.is_zero())
             else:
                 try:
                     xx = z*y
@@ -1011,7 +1014,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         """
         tester = self._tester(**options)
         for x in tester.some_elements():
-            if x.is_zero(): continue
+            if x.is_zero():
+                continue
             try:
                 l = x.log(p_branch=0)
                 tester.assertIs(l.parent(), self)
@@ -1026,14 +1030,16 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         if self.is_capped_absolute() or self.is_capped_relative():
             # In the fixed modulus setting, rounding errors may occur
             for x, y, b in tester.some_elements(repeat=3):
-                if (x*y).is_zero(): continue
+                if (x*y).is_zero():
+                    continue
                 r1 = x.log(pi_branch=b) + y.log(pi_branch=b)
                 r2 = (x*y).log(pi_branch=b)
                 tester.assertEqual(r1, r2)
 
             p = self.prime()
             for x in tester.some_elements():
-                if x.is_zero(): continue
+                if x.is_zero():
+                    continue
                 if p == 2:
                     a = 4 * x.unit_part()
                 else:
@@ -1416,7 +1422,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
              3 + 3*5 + 2*5^2 + 3*5^3 + 5^4 + 2*5^6 + 5^7 + 4*5^8 + 5^9 + O(5^10),
              4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)]
 
-        In general, there might be more roots of unity (it happens when the ring has non 
+        In general, there might be more roots of unity (it happens when the ring has non
         trivial ``p``-th roots of unity)::
 
             sage: W.<a> = Zq(3^2, 2)
@@ -1426,7 +1432,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: roots = R.roots_of_unity(); roots
             [1 + O(pi^4),
              a + 2*a*pi + 2*a*pi^2 + a*pi^3 + O(pi^4),
-             ... 
+             ...
              1 + pi + O(pi^4),
              a + a*pi^2 + 2*a*pi^3 + O(pi^4),
              ...
@@ -1455,23 +1461,23 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         - ``ring`` -- a ring into which this ring coerces
 
-        - ``multiplicities`` -- a boolean (default: ``True``); 
+        - ``multiplicities`` -- a boolean (default: ``True``);
           whether we have to return the multiplicities of each
           root or not
 
-        - ``algorithm`` -- ``"pari"``, ``"sage"`` or ``None`` (default: 
-          ``None``); Sage provides an implementation for any extension of 
-          `Q_p` whereas only roots of polynomials over `\QQ_p` is implemented 
-          in Pari; the default is ``"pari"`` if ``ring`` is `\ZZ_p` or `\QQ_p`, 
+        - ``algorithm`` -- ``"pari"``, ``"sage"`` or ``None`` (default:
+          ``None``); Sage provides an implementation for any extension of
+          `Q_p` whereas only roots of polynomials over `\QQ_p` is implemented
+          in Pari; the default is ``"pari"`` if ``ring`` is `\ZZ_p` or `\QQ_p`,
           ``"sage"`` otherwise.
 
         - ``secure`` -- a boolean (default: ``False``)
 
         NOTE:
 
-        When ``secure`` is ``True``, this method raises an error when 
-        the precision on the input polynomial is not enough to determine 
-        the number of roots in the ground field. This happens when two 
+        When ``secure`` is ``True``, this method raises an error when
+        the precision on the input polynomial is not enough to determine
+        the number of roots in the ground field. This happens when two
         roots cannot be separated.
         A typical example is the polynomial
 
@@ -1479,14 +1485,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
              (1 + O(p^10))*X^2 + O(p^10)*X + O(p^10)
 
-        Indeed its discriminant might be any `p`-adic integer divisible 
-        by `p^{10}` (resp. `p^{11}` when `p=2`) and so can be as well 
+        Indeed its discriminant might be any `p`-adic integer divisible
+        by `p^{10}` (resp. `p^{11}` when `p=2`) and so can be as well
         zero, a square and a non-square.
         In the first case, the polynomial has one double root; in the
         second case, it has two roots; in the third case, it has no
         root in `\QQ_p`.
 
-        When ``secure`` is ``False``, this method assumes that two 
+        When ``secure`` is ``False``, this method assumes that two
         inseparable roots actually collapse. In the above example,
         it then answers that the given polynomial has a double root
         `O(p^5)`.

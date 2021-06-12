@@ -352,7 +352,6 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             ret = [self.from_vector(vec, order=order) for vec in mat if vec]
             return ret
 
-        @cached_method
         def invariant_algebra(self, A, G, action_on_basis = lambda x,g: x, **kwargs):
             r"""
             Given a group acting on an algebra, return the algebra 

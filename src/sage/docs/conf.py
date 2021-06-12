@@ -704,7 +704,8 @@ def process_inherited(app, what, name, obj, options, docstringlines):
 dangling_debug = False
 
 def debug_inf(app, message):
-    if dangling_debug: app.info(message)
+    if dangling_debug:
+        app.info(message)
 
 def call_intersphinx(app, env, node, contnode):
     r"""

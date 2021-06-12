@@ -1224,7 +1224,8 @@ class RationalField(Singleton, number_field_base.NumberField):
         if num_bound is None:
             num = ZZ.random_element(*args, **kwds)
             den = ZZ.random_element(*args, **kwds)
-            while den == 0: den = ZZ.random_element(*args, **kwds)
+            while den == 0:
+                den = ZZ.random_element(*args, **kwds)
             return self((num, den))
         else:
             if num_bound == 0:
@@ -1235,7 +1236,8 @@ class RationalField(Singleton, number_field_base.NumberField):
                     den_bound = 2
             num = ZZ.random_element(-num_bound, num_bound+1, *args, **kwds)
             den = ZZ.random_element(1, den_bound+1, *args, **kwds)
-            while den == 0: den = ZZ.random_element(1, den_bound+1, *args, **kwds)
+            while den == 0:
+                den = ZZ.random_element(1, den_bound+1, *args, **kwds)
             return self((num,den))
 
     def zeta(self, n=2):

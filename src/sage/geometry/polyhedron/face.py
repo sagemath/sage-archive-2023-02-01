@@ -679,7 +679,7 @@ class PolyhedronFace(SageObject):
     @cached_method
     def normal_cone(self, direction='outer'):
         """
-        Return the pointed polyhedral cone consisting of normal vectors to
+        Return the polyhedral cone consisting of normal vectors to
         hyperplanes supporting ``self``.
 
         INPUT:
@@ -754,6 +754,46 @@ class PolyhedronFace(SageObject):
         parent = self.polyhedron().parent()
         origin = self.polyhedron().ambient_space().zero()
         return parent.element_class(parent, [[origin], rays, lines], None)
+
+    @cached_method
+    def affine_tangent_cone(self):
+        """
+        Return the affine tangent cone of ``self`` as a polyhedron.
+
+        It is equal to the sum of ``self`` and the cone of feasible directions
+        at any point of the relative interior of ``self``.
+
+        OUTPUT:
+
+        A polyhedron.
+
+        EXAMPLES::
+
+            sage: half_plane_in_space = Polyhedron(ieqs=[(0,1,0,0)], eqns=[(0,0,0,1)])
+            sage: line = half_plane_in_space.faces(1)[0]; line
+            A 1-dimensional face
+             of a Polyhedron in QQ^3 defined as the convex hull of 1 vertex and 1 line
+            sage: T_line = line.affine_tangent_cone()
+            sage: T_line == half_plane_in_space
+            True
+
+            sage: c = polytopes.cube()
+            sage: edge = min(c.faces(1))
+            sage: edge.vertices()
+            (A vertex at (1, -1, -1), A vertex at (1, 1, -1))
+            sage: T_edge = edge.affine_tangent_cone()
+            sage: T_edge.Vrepresentation()
+            (A line in the direction (0, 1, 0),
+            A ray in the direction (0, 0, 1),
+            A vertex at (1, 0, -1),
+            A ray in the direction (-1, 0, 0))
+        """
+        parent = self.polyhedron().parent()
+        new_ieqs = [H for H in self.ambient_Hrepresentation()
+                    if H.is_inequality()]
+        new_eqns = [H for H in self.ambient_Hrepresentation()
+                    if H.is_equation()]
+        return parent.element_class(parent, None, [new_ieqs, new_eqns])
 
     @cached_method
     def stacking_locus(self):

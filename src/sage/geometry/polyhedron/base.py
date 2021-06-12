@@ -4767,6 +4767,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: P1 * 2.0
             A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 2 vertices
 
+        An alias is :meth:`cartesian_product`::
+
+            sage: P1.cartesian_product(P2) == P1.product(P2)
+            True
+
         TESTS:
 
         Check that :trac:`15253` is fixed::

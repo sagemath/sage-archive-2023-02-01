@@ -335,44 +335,41 @@ DOC_DEPENDENCIES = sagelib sage_docbuild $(inst_sphinx) \
 	$(inst_ipykernel) $(inst_jupyter_client) $(inst_conway_polynomials) \
 	$(inst_tachyon) $(inst_jmol) $(inst_thebe) $(inst_ipywidgets)
 
-doc: doc-references doc-other
+doc: doc-html
 
-# Matches doc-inventory-reference-manifolds etc.
-doc-inventory-%:
-	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-inventory-,,$@)) inventory $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log
+# Matches doc-inventory--reference-manifolds etc.
+doc-inventory--%:
+	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-inventory--,,$@)) inventory $(SAGE_DOCBUILD_OPTS)" logs/dochtml.log
 
-# Matches doc-html-developer, doc-html-reference-manifolds etc.
-doc-html-%:
-	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-html-,,$@)) html $(SAGE_DOCBUILD_OPTS)" logs/docs-reference-html.log
+# Matches doc-html--developer, doc-html--reference-manifolds etc.
+doc-html--%:
+	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-html--,,$@)) html $(SAGE_DOCBUILD_OPTS)" logs/dochtml.log
 
-doc-references: $(DOC_DEPENDENCIES)
+doc-html-references: $(DOC_DEPENDENCIES)
 	$(eval DOCS = $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents reference))
 	$(eval biblio = $(firstword $(DOCS)))
 	$(eval other_docs = $(wordlist 2, 100, $(DOCS)))
-	+$(MAKE_REC) doc-inventory-$(subst /,-,$(biblio))
-	+$(MAKE_REC) $(foreach doc, $(other_docs), doc-inventory-$(subst /,-,$(doc)))
-	+$(MAKE_REC) doc-inventory-reference
-	+$(MAKE_REC) doc-html-$(subst /,-,$(biblio))
-	+$(MAKE_REC) $(foreach doc, $(other_docs), doc-html-$(subst /,-,$(doc)))
-	+$(MAKE_REC) doc-html-reference
+	+$(MAKE_REC) doc-inventory--$(subst /,-,$(biblio))
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(other_docs), doc-inventory--$(subst /,-,$(doc)))
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-inventory--reference
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-html--$(subst /,-,$(biblio))
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(other_docs), doc-html--$(subst /,-,$(doc)))
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-html--reference
 
-doc-other: $(DOC_DEPENDENCIES) doc-references
-	for doc in $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)); do \
-	    $(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $$doc html $(SAGE_DOCBUILD_OPTS)" logs/docs-other-html.log; \
-	done
+doc-html-other: $(DOC_DEPENDENCIES) doc-html-references
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)), doc-html--$(subst /,-,$(doc)))
 
-doc-html: $(DOC_DEPENDENCIES)
-	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+doc-html: doc-html-references doc-html-other
 
 # 'doc-html-no-plot': build docs without building the graphics coming
 # from the '.. plot' directive, in case you want to save a few
 # megabytes of disk space. 'doc-clean' is a prerequisite because the
 # presence of graphics is cached in src/doc/output.
-doc-html-no-plot: doc-clean $(DOC_DEPENDENCIES)
-	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+doc-html-no-plot: doc-clean
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-plot" doc-html
 
-doc-html-mathjax: $(DOC_DEPENDENCIES)
-	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+doc-html-mathjax:
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) -j" doc-html
 
 # Keep target 'doc-html-jsmath' for backwards compatibility.
 doc-html-jsmath: doc-html-mathjax

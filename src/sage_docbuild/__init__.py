@@ -1571,6 +1571,9 @@ def setup_parser():
     standard.add_option("--check-nested", dest="check_nested",
                         action="store_true",
                         help="check picklability of nested classes in DOCUMENT 'reference'")
+    standard.add_option("--no-prune-empty-dirs", dest="no_prune_empty_dirs",
+                        action="store_true",
+                        help="do not prune empty directories in the documentation sources")
     standard.add_option("-N", "--no-colors", dest="color", default=True,
                         action="store_false",
                         help="do not color output; does not affect children")
@@ -1747,13 +1750,16 @@ def main():
 
     ABORT_ON_ERROR = not options.keep_going
 
-    # Delete empty directories. This is needed in particular for empty
-    # directories due to "git checkout" which never deletes empty
-    # directories it leaves behind. See Trac #20010.
-    for dirpath, dirnames, filenames in os.walk(SAGE_DOC_SRC, topdown=False):
-        if not dirnames + filenames:
-            logger.warning('Deleting empty directory {0}'.format(dirpath))
-            os.rmdir(dirpath)
+    if not options.no_prune_empty_dirs:
+        # Delete empty directories. This is needed in particular for empty
+        # directories due to "git checkout" which never deletes empty
+        # directories it leaves behind. See Trac #20010.
+        # Trac #31948: This is not parallelization-safe; use the option
+        # --no-prune-empty-dirs to turn it off
+        for dirpath, dirnames, filenames in os.walk(SAGE_DOC_SRC, topdown=False):
+            if not dirnames + filenames:
+                logger.warning('Deleting empty directory {0}'.format(dirpath))
+                os.rmdir(dirpath)
 
     # Set up Intersphinx cache
     C = IntersphinxCache()

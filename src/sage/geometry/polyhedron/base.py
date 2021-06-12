@@ -9975,6 +9975,26 @@ class Polyhedron_base(Element, ConvexSet_closed):
             if self.n_vertices():
                 tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))
 
+    def affine_hull(self, *args, **kwds):
+        """
+        Return the affine hull of ``self`` as a polyhedron.
+
+        EXAMPLES::
+
+            sage: half_plane_in_space = Polyhedron(ieqs=[(0,1,0,0)], eqns=[(0,0,0,1)])
+            sage: half_plane_in_space.affine_hull().Hrepresentation()
+            (An equation (0, 0, 1) x + 0 == 0,)
+
+            sage: polytopes.cube().affine_hull().is_universe()
+            True
+        """
+        if args or kwds:
+            raise TypeError("the method 'affine_hull' does not take any parameters; perhaps you meant 'affine_hull_projection'")
+        if not self.inequalities():
+            return self
+        self_as_face = self.faces(self.dimension())[0]
+        return self_as_face.affine_tangent_cone()
+
     @dataclass
     class AffineHullProjectionData:
         polyhedron: Any = None
@@ -10417,12 +10437,6 @@ class Polyhedron_base(Element, ConvexSet_closed):
             ValueError: the base ring needs to be extended; try with "extend=True"
             sage: P.affine_hull_projection(orthonormal=True, extend=True)
             A 4-dimensional polyhedron in AA^4 defined as the convex hull of 6 vertices
-
-        ``affine_hull`` is a deprecated alias::
-
-            sage: _ = P.affine_hull()
-            doctest:...: DeprecationWarning: affine_hull is deprecated. Please use affine_hull_projection instead.
-            See https://trac.sagemath.org/29326 for details.
         """
         if as_polyhedron is None:
             as_polyhedron = not as_affine_map
@@ -10530,8 +10544,6 @@ class Polyhedron_base(Element, ConvexSet_closed):
             return (result.projection_linear_map, result.projection_translation)
         else:
             return result.polyhedron
-
-    affine_hull = deprecated_function_alias(29326, affine_hull_projection)
 
     def _test_affine_hull_projection(self, tester=None, verbose=False, **options):
         """

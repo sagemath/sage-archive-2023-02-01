@@ -370,6 +370,12 @@ class ConvexSet_base(SageObject):
             tester.assertTrue(self == cl_self)
         if self.is_compact():
             tester.assertTrue(self.is_closed())
+        from sage.misc.sage_unittest import TestSuite
+        if relint_self is not None and relint_self is not self:
+            tester.info("\n  Running the test suite of self.relative_interior()")
+            TestSuite(relint_self).run(verbose=tester._verbose,
+                                       prefix=tester._prefix + "  ")
+            tester.info(tester._prefix + " ", newline=False)
 
     # Optional methods
 

@@ -34,7 +34,6 @@ class FiniteDimensionalInvariantAlgebra(UniqueRepresentation, SubmoduleWithBasis
         - https://arxiv.org/abs/0812.3082
         - https://www.dmtcs.org/pdfpapers/dmAA0123.pdf
 
->>>>>>> 48a499577f (Rewrite FiniteDimensionalInvariantAlgebra to subclass UniqueRepresentation and SubmoduleWithBasis)
     """
 
     def __init__(self, A, G, action_on_basis = lambda x, g: x, **kwargs):

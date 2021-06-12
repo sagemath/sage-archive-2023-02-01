@@ -99,11 +99,15 @@ class ConvexSet_base(SageObject):
         r"""
         Return the codimension of ``self``.
 
-        An alias is :meth:`codim`.
-
         EXAMPLES::
 
-            sage: Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)]).codimension()
+            sage: P = Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)])
+            sage: P.codimension()
+            2
+
+        An alias is :meth:`codim`::
+
+            sage: P.codim()
             2
         """
         return self.ambient_dim() - self.dim()

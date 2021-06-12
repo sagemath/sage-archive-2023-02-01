@@ -2650,7 +2650,8 @@ class SR_gf2(SR_generic):
             return tuple(ret)
         elif is_Matrix(l):
             return Matrix(GF(2), l.ncols(), l.nrows()*self.e, ret).transpose()
-        else: raise TypeError
+        else:
+            raise TypeError
 
     def antiphi(self, l):
         r"""

@@ -3995,7 +3995,7 @@ class BTerm(TermWithCoefficient):
 
     - ``valid_from`` -- dictionary mapping variable names to lower bounds
       for the corresponding vriable. the bound by this term is valid when
-      all variables are at least their corresponding lowe bound
+      all variables are at least their corresponding lower bound
 
     EXAMPLES::
 

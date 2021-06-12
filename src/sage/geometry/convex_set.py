@@ -75,12 +75,12 @@ class ConvexSet_base(SageObject):
     @abstract_method
     def ambient_dim(self):
         r"""
-        Return the dimension of the ambient space.
+        Return the dimension of the ambient convex set or space.
         """
 
     def ambient_dimension(self):
         r"""
-        Return the dimension of ``self``.
+        Return the dimension of the ambient convex set or space.
 
         This is the same as :meth:`ambient_dim`.
 

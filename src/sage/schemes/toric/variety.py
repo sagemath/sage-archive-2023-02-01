@@ -2174,7 +2174,8 @@ class ToricVariety_field(AmbientSpace):
         """
         assert self.is_complete(), "Can only integrate over compact varieties."
         top_form = cohomology_class.part_of_degree(self.dimension())
-        if top_form.is_zero(): return 0
+        if top_form.is_zero():
+            return 0
         return top_form.lc() / self.volume_class().lc()
 
     @property

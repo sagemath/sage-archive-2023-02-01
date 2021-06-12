@@ -1506,7 +1506,8 @@ class FreeModuleTensor(ModuleElementWithMutability):
             [Basis (e_1,e_2,e_3) on the Rank-3 free module M over the Integer Ring]
 
         """
-        if basis is None: basis = self._fmodule._def_basis
+        if basis is None:
+        basis = self._fmodule._def_basis
         if basis not in self._components:
             raise ValueError("the components w.r.t. the {}".format(basis) +
                              " have not been defined")

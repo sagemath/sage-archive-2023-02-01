@@ -87,7 +87,8 @@ class MinMax_base(BuiltinFunction):
         if num_non_symbolic_args <= 1 and not arg_is_iter:
             return None
 
-        if res is not None: symb_args.append(res)
+        if res is not None:
+            symb_args.append(res)
         return this_f(*symb_args)
 
     def __call__(self, *args, **kwds):

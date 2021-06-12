@@ -44,6 +44,15 @@ class ConvexSet_base(SageObject):
         OUTPUT:
 
         Boolean.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.is_universe()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method dim at ...>
         """
         if not self.is_full_dimensional():
             return False
@@ -53,6 +62,15 @@ class ConvexSet_base(SageObject):
     def dim(self):
         r"""
         Return the dimension of ``self``.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.dim()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method dim at ...>
         """
 
     def dimension(self):
@@ -88,6 +106,15 @@ class ConvexSet_base(SageObject):
     def ambient_dim(self):
         r"""
         Return the dimension of the ambient convex set or space.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.ambient_dim()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method ambient_dim at ...>
         """
 
     def ambient_dimension(self):
@@ -111,11 +138,15 @@ class ConvexSet_base(SageObject):
         r"""
         Return the codimension of ``self`` in `self.ambient()``.
 
-        An alias is :meth:`codim`.
-
         EXAMPLES::
 
-            sage: Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)]).codimension()
+            sage: P = Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)])
+            sage: P.codimension()
+            2
+
+        An alias is :meth:`codim`::
+
+            sage: P.codim()
             2
         """
         return self.ambient_dim() - self.dim()
@@ -359,6 +390,12 @@ class ConvexSet_base(SageObject):
             tester.assertTrue(self == cl_self)
         if self.is_compact():
             tester.assertTrue(self.is_closed())
+        from sage.misc.sage_unittest import TestSuite
+        if relint_self is not None and relint_self is not self:
+            tester.info("\n  Running the test suite of self.relative_interior()")
+            TestSuite(relint_self).run(verbose=tester._verbose,
+                                       prefix=tester._prefix + "  ")
+            tester.info(tester._prefix + " ", newline=False)
 
     # Optional methods
 
@@ -366,6 +403,15 @@ class ConvexSet_base(SageObject):
     def affine_hull(self):
         r"""
         Return the affine hull of ``self``.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.affine_hull()
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
         """
 
     @abstract_method(optional=True)
@@ -380,6 +426,15 @@ class ConvexSet_base(SageObject):
         OUTPUT:
 
         The Cartesian product of ``self`` and ``other``.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.cartesian_product(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
         """
 
     @abstract_method(optional=True)
@@ -390,6 +445,15 @@ class ConvexSet_base(SageObject):
         INPUT:
 
         - ``point`` -- a point or its coordinates
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.contains(vector([0, 0]))
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
         """
 
     def _test_contains(self, tester=None, **options):
@@ -463,6 +527,15 @@ class ConvexSet_base(SageObject):
         OUTPUT:
 
         The intersection.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.intersection(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
         """
 
 

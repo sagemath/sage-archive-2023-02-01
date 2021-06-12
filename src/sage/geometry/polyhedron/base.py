@@ -4797,6 +4797,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: P1 * 2.0
             A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 2 vertices
 
+        An alias is :meth:`cartesian_product`::
+
+            sage: P1.cartesian_product(P2) == P1.product(P2)
+            True
+
         TESTS:
 
         Check that :trac:`15253` is fixed::
@@ -8455,7 +8460,15 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: P_lower.interior()
             The empty polyhedron in ZZ^2
 
+        TESTS::
+
+            sage: Empty = Polyhedron(ambient_dim=2); Empty
+            The empty polyhedron in ZZ^2
+            sage: Empty.interior() is Empty
+            True
         """
+        if self.is_open():
+            return self
         if not self.is_full_dimensional():
             return self.parent().element_class(self.parent(), None, None)
         return self.relative_interior()

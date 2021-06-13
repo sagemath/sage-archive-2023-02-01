@@ -351,7 +351,7 @@ doc-inventory-references: $(DOC_DEPENDENCIES)
 	$(eval other_docs = $(wordlist 2, 100, $(DOCS)))
 	+$(MAKE_REC) doc-inventory--$(subst /,-,$(biblio))
 	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(other_docs), doc-inventory--$(subst /,-,$(doc)))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-inventory--reference
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-inventory--reference_top
 
 doc-html-references: doc-inventory-references
 	$(eval DOCS = $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents reference))
@@ -359,7 +359,7 @@ doc-html-references: doc-inventory-references
 	$(eval other_docs = $(wordlist 2, 100, $(DOCS)))
 	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-html--$(subst /,-,$(biblio))
 	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(other_docs), doc-html--$(subst /,-,$(doc)))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-html--reference
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-html--reference_top
 
 doc-html-other: $(DOC_DEPENDENCIES) doc-html-references
 	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)), doc-html--$(subst /,-,$(doc)))
@@ -389,7 +389,7 @@ doc-pdf: doc-inventory-references
 	$(eval other_docs = $(wordlist 2, 100, $(DOCS)))
 	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-pdf--$(subst /,-,$(biblio))
 	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(other_docs), doc-pdf--$(subst /,-,$(doc)))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-pdf--reference
+	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-pdf--reference_top
 	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)), doc-pdf--$(subst /,-,$(doc)))
 
 doc-clean: doc-src-clean doc-output-clean

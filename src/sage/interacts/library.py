@@ -1670,7 +1670,7 @@ def polar_prime_spiral(
             else:
                 list2.append(f(i-start+1))  # Composites list
         P = points(list)
-        R = points(list2, alpha = .1)  # Faded Composites
+        R = points(list2, alpha=.1)  # Faded Composites
     else:
         for i in srange(start, end, include_endpoint = True):
             list.append(disk((f(i-start+1)),0.05*pow(2,len(factor(i))-1), (0,2*pi)))  # resizes each of the dots depending of the number of factors of each number
@@ -1714,7 +1714,8 @@ def polar_prime_spiral(
             r = symbolic_expression(sqrt(g(m))).function(m)
             theta = symbolic_expression(r(m)- m*sqrt(a)).function(m)
             S1 = parametric_plot(((r(t))*cos(2*pi*(theta(t))),(r(t))*sin(2*pi*(theta(t)))),
-                 (begin_curve, ceil(sqrt(end-start))), color=hue(0.8), thickness=.3) #Pink Line
+                                 (begin_curve, ceil(sqrt(end-start))),
+                                 color=hue(0.8), thickness=.3)  # Pink Line
 
             b = 1
             c = c2;
@@ -1722,7 +1723,8 @@ def polar_prime_spiral(
             r = symbolic_expression(sqrt(g(m))).function(m)
             theta = symbolic_expression(r(m)- m*sqrt(a)).function(m)
             S2 = parametric_plot(((r(t))*cos(2*pi*(theta(t))),(r(t))*sin(2*pi*(theta(t)))),
-                 (begin_curve, ceil(sqrt(end-start))), color=hue(0.6), thickness=.3) #Green Line
+                                 (begin_curve, ceil(sqrt(end-start))),
+                                 color=hue(0.6), thickness=.3)  # Green Line
 
             show(R+P+S1+S2+Q, aspect_ratio=1, axes=False, dpi=dpi)
         else:

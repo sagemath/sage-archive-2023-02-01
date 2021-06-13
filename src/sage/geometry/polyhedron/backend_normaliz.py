@@ -40,7 +40,6 @@ from sage.calculus.all import var
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ
-from sage.geometry.polyhedron.all import lazy_import
 
 from sage.groups.conjugacy_classes import ConjugacyClassGAP
 
@@ -2231,7 +2230,8 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             * ``'prod_det_es'``: string. Returns a vector of the product of
               determinants and the Ehrhart series.
             * ``'complete'``: string. Returns a dictionary with Hstar,
-              Hstar_as_lin_comb, the character table of the acting group, and
+              Hstar_as_lin_comb, the conjugacy class representatives,
+              the character table of the acting group, and
               whether Hstar is effective.
 
         OUTPUT:
@@ -2390,6 +2390,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             results_dictionary = {}
             results_dictionary['Hstar'] = new_new_result
             results_dictionary['Hstar_as_lin_comb'] = new_result
+            results_dictionary['conjugacy_class_reps'] = conj_reps
             results_dictionary['character_table'] = Char
             results_dictionary['is_effective'] = self._is_effective_normaliz(new_new_result, new_result)
             return(results_dictionary)

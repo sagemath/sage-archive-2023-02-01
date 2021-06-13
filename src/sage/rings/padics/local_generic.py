@@ -1,4 +1,4 @@
-"""
+r"""
 Local Generic
 
 Superclass for `p`-adic and power series rings.
@@ -8,7 +8,7 @@ AUTHORS:
 - David Roe
 """
 
-#*****************************************************************************
+# *****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
 #                               William Stein <wstein@gmail.com>
 #
@@ -16,8 +16,8 @@ AUTHORS:
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from copy import copy
 from sage.rings.ring import CommutativeRing
@@ -30,8 +30,8 @@ from sage.rings.infinity import Infinity
 
 class LocalGeneric(CommutativeRing):
     def __init__(self, base, prec, names, element_class, category=None):
-        """
-        Initializes self.
+        r"""
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -75,7 +75,7 @@ class LocalGeneric(CommutativeRing):
         Parent.__init__(self, base, names=(names,), normalize=False, category=category)
 
     def is_capped_relative(self):
-        """
+        r"""
         Return whether this `p`-adic ring bounds precision in a capped
         relative fashion.
 
@@ -100,7 +100,7 @@ class LocalGeneric(CommutativeRing):
         return False
 
     def is_capped_absolute(self):
-        """
+        r"""
         Return whether this `p`-adic ring bounds precision in a
         capped absolute fashion.
 
@@ -125,7 +125,7 @@ class LocalGeneric(CommutativeRing):
         return False
 
     def is_fixed_mod(self):
-        """
+        r"""
         Return whether this `p`-adic ring bounds precision in a fixed
         modulus fashion.
 
@@ -152,7 +152,7 @@ class LocalGeneric(CommutativeRing):
         return False
 
     def is_floating_point(self):
-        """
+        r"""
         Return whether this `p`-adic ring bounds precision in a floating
         point fashion.
 
@@ -177,7 +177,7 @@ class LocalGeneric(CommutativeRing):
         return False
 
     def is_lattice_prec(self):
-        """
+        r"""
         Return whether this `p`-adic ring bounds precision using
         a lattice model.
 
@@ -206,7 +206,7 @@ class LocalGeneric(CommutativeRing):
         return False
 
     def is_relaxed(self):
-        """
+        r"""
         Return whether this `p`-adic ring bounds precision in a relaxed
         fashion.
 
@@ -456,7 +456,7 @@ class LocalGeneric(CommutativeRing):
                 functor.extras['names'] = kwds.pop('names')
             elif functor.extras['names'][0] == curpstr:
                 functor.extras['names'] = (str(p),)
-            # labels for lattice precision
+            # Labels for lattice precision
             if 'label' in kwds:
                 functor.extras['label'] = kwds.pop('label')
             elif 'label' in functor.extras and functor.type not in ['lattice-cap','lattice-float']:
@@ -590,7 +590,7 @@ class LocalGeneric(CommutativeRing):
 
         OUTPUT:
 
-        - integer -- the characteristic of the residue field.
+        The characteristic of the residue field.
 
         EXAMPLES::
 
@@ -646,7 +646,7 @@ class LocalGeneric(CommutativeRing):
 
         OUTPUT:
 
-        - the ground ring of ``self``, i.e., itself
+        The ground ring of ``self``, i.e., itself.
 
         EXAMPLES::
 
@@ -671,7 +671,7 @@ class LocalGeneric(CommutativeRing):
 
         OUTPUT:
 
-        - the ground ring of the tower for ``self``, i.e., itself
+        The ground ring of the tower for ``self``, i.e., itself.
 
         EXAMPLES::
 
@@ -683,8 +683,8 @@ class LocalGeneric(CommutativeRing):
 
 
     def absolute_degree(self):
-        """
-        Return the degree of this extension over the prime p-adic field/ring
+        r"""
+        Return the degree of this extension over the prime p-adic field/ring.
 
         EXAMPLES::
 
@@ -699,8 +699,8 @@ class LocalGeneric(CommutativeRing):
         return self.absolute_e() * self.absolute_f()
 
     def relative_degree(self):
-        """
-        Return the degree of this extension over its base field/ring
+        r"""
+        Return the degree of this extension over its base field/ring.
 
         EXAMPLES::
 
@@ -715,7 +715,7 @@ class LocalGeneric(CommutativeRing):
         return self.absolute_degree() // self.base_ring().absolute_degree()
 
     def degree(self):
-        """
+        r"""
         Return the degree of this extension.
 
         Raise an error if the base ring/field is itself an extension.
@@ -737,8 +737,8 @@ class LocalGeneric(CommutativeRing):
 
 
     def absolute_e(self):
-        """
-        Return the absolute ramification index of this ring/field
+        r"""
+        Return the absolute ramification index of this ring/field.
 
         EXAMPLES::
 
@@ -757,8 +757,8 @@ class LocalGeneric(CommutativeRing):
             return self.base_ring().absolute_e()
 
     def absolute_ramification_index(self):
-        """
-        Return the absolute ramification index of this ring/field
+        r"""
+        Return the absolute ramification index of this ring/field.
 
         EXAMPLES::
 
@@ -773,8 +773,8 @@ class LocalGeneric(CommutativeRing):
         return self.absolute_e()
 
     def relative_e(self):
-        """
-        Return the ramification index of this extension over its base ring/field
+        r"""
+        Return the ramification index of this extension over its base ring/field.
 
         EXAMPLES::
 
@@ -789,8 +789,8 @@ class LocalGeneric(CommutativeRing):
         return self.absolute_e() // self.base_ring().absolute_e()
 
     def relative_ramification_index(self):
-        """
-        Return the ramification index of this extension over its base ring/field
+        r"""
+        Return the ramification index of this extension over its base ring/field.
 
         EXAMPLES::
 
@@ -805,7 +805,7 @@ class LocalGeneric(CommutativeRing):
         return self.relative_e()
 
     def e(self):
-        """
+        r"""
         Return the ramification index of this extension.
 
         Raise an error if the base ring/field is itself an extension.
@@ -826,7 +826,7 @@ class LocalGeneric(CommutativeRing):
             raise NotImplementedError("For a relative p-adic ring or field you must use relative_e or absolute_e as appropriate")
 
     def ramification_index(self):
-        """
+        r"""
         Return the ramification index of this extension.
 
         Raise an error if the base ring/field is itself an extension.
@@ -845,9 +845,9 @@ class LocalGeneric(CommutativeRing):
 
 
     def absolute_f(self):
-        """
+        r"""
         Return the degree of the residue field of this ring/field
-        over its prime subfield
+        over its prime subfield.
 
         EXAMPLES::
 
@@ -866,9 +866,9 @@ class LocalGeneric(CommutativeRing):
             return self.base_ring().absolute_f()
 
     def absolute_inertia_degree(self):
-        """
+        r"""
         Return the degree of the residue field of this ring/field
-        over its prime subfield
+        over its prime subfield.
 
         EXAMPLES::
 
@@ -883,8 +883,8 @@ class LocalGeneric(CommutativeRing):
         return self.absolute_f()
 
     def relative_f(self):
-        """
-        Return the degree of the residual extension over its base ring/field
+        r"""
+        Return the degree of the residual extension over its base ring/field.
 
         EXAMPLES::
 
@@ -899,8 +899,8 @@ class LocalGeneric(CommutativeRing):
         return self.absolute_f() // self.base_ring().absolute_f()
 
     def relative_inertia_degree(self):
-        """
-        Return the degree of the residual extension over its base ring/field
+        r"""
+        Return the degree of the residual extension over its base ring/field.
 
         EXAMPLES::
 
@@ -915,7 +915,7 @@ class LocalGeneric(CommutativeRing):
         return self.relative_f()
 
     def f(self):
-        """
+        r"""
         Return the degree of the residual extension.
 
         Raise an error if the base ring/field is itself an extension.
@@ -936,7 +936,7 @@ class LocalGeneric(CommutativeRing):
             raise NotImplementedError("For a relative p-adic ring or field you must use relative_f or absolute_f as appropriate")
 
     def inertia_degree(self):
-        """
+        r"""
         Return the degree of the residual extension.
 
         Raise an error if the base ring/field is itself an extension.
@@ -1000,7 +1000,7 @@ class LocalGeneric(CommutativeRing):
 #        raise NotImplementedError
 
     def uniformiser(self):
-        """
+        r"""
         Return a uniformiser for ``self``, ie a generator for the unique maximal ideal.
 
         EXAMPLES::
@@ -1017,7 +1017,7 @@ class LocalGeneric(CommutativeRing):
         return self.uniformizer()
 
     def uniformiser_pow(self, n):
-        """
+        r"""
         Return the `n`th power of the uniformiser of ``self`` (as an element of ``self``).
 
         EXAMPLES::
@@ -1029,8 +1029,8 @@ class LocalGeneric(CommutativeRing):
         return self.uniformizer_pow(n)
 
     def ext(self, *args, **kwds):
-        """
-        Constructs an extension of self.  See ``extension`` for more details.
+        r"""
+        Construct an extension of self.  See :meth:`extension` for more details.
 
         EXAMPLES::
 
@@ -1120,7 +1120,7 @@ class LocalGeneric(CommutativeRing):
             tester.assertEqual(x, z)
 
     def _matrix_flatten_precision(self, M):
-        """
+        r"""
         Rescale rows and columns of ``M`` so that the minimal
         absolute precision of each row and column is equal to
         the cap.

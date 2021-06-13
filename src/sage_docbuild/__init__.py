@@ -1274,6 +1274,9 @@ def get_builder(name):
     documentation.
     """
     if name == 'all':
+        from sage.misc.superseded import deprecation
+        deprecation(31948, 'avoid using "sage --docbuild all html" and "sage --docbuild all pdf"; '
+                'use "make doc" and "make doc-pdf" instead, if available.')
         return AllBuilder()
     elif name.endswith('reference'):
         return ReferenceBuilder(name)
@@ -1376,9 +1379,7 @@ def help_documents(s=""):
     documentation builder.
     """
     docs = get_documents()
-    s += "DOCUMENTs:\n"
-    s += format_columns(docs + ['all  (!)'])
-    s += "(!) Builds everything.\n\n"
+    s += "DOCUMENTs:\n\n"
     if 'reference' in docs:
         s+= "Other valid document names take the form 'reference/DIR', where\n"
         s+= "DIR is a subdirectory of SAGE_DOC_SRC/en/reference/.\n"

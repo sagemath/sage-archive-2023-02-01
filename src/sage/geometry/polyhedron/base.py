@@ -8484,6 +8484,39 @@ class Polyhedron_base(Element):
                 return False
         return True
 
+    def is_relatively_open(self):
+        r"""
+        Return whether ``self`` is relatively open.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (-1,0)]); P
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: P.is_relatively_open()
+            False
+
+            sage: P0 = Polyhedron(vertices=[[1, 2]]); P0
+            A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P0.is_relatively_open()
+            True
+
+            sage: Empty = Polyhedron(ambient_dim=2); Empty
+            The empty polyhedron in ZZ^2
+            sage: Empty.is_relatively_open()
+            True
+
+            sage: Line = Polyhedron(vertices=[(1, 1)], lines=[(1, 0)]); Line
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: Line.is_relatively_open()
+            True
+
+        """
+        return not self.inequalities()
+
     @cached_method
     def relative_interior(self):
         """
@@ -8507,8 +8540,12 @@ class Polyhedron_base(Element):
             sage: Empty = Polyhedron(ambient_dim=2)
             sage: Empty.relative_interior() is Empty
             True
+
+            sage: Line = Polyhedron(vertices=[(1, 1)], lines=[(1, 0)])
+            sage: Line.relative_interior() is Line
+            True
         """
-        if self.dim() <= 0 or self.is_universe():
+        if self.is_relatively_open():
             return self
         return RelativeInterior(self)
 

@@ -14,8 +14,8 @@ Relative Interiors of Polyhedra and Cones
 
 from sage.structure.sage_object import SageObject
 
-class RelativeInterior(SageObject):
 
+class RelativeInterior(SageObject):
     r"""
     The relative interior of a polyhedron or cone
 
@@ -34,7 +34,6 @@ class RelativeInterior(SageObject):
         sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
         sage: octant.relative_interior()
         Relative interior of 3-d cone in 3-d lattice N
-
     """
 
     def __init__(self, polyhedron):
@@ -51,7 +50,6 @@ class RelativeInterior(SageObject):
             sage: P = Polyhedron()
             sage: from sage.geometry.relative_interior import RelativeInterior
             sage: TestSuite(RelativeInterior(P)).run()
-
         """
         self._polyhedron = polyhedron
 
@@ -70,6 +68,27 @@ class RelativeInterior(SageObject):
             False
         """
         return self._polyhedron.relative_interior_contains(point)
+
+    def interior(self):
+        r"""
+        Return the interior of ``self``.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.interior()
+            The empty polyhedron in ZZ^2
+
+            sage: octant = Cone([(1,0,0), (0,1,0), (0,0,1)])
+            sage: ri_octant = octant.relative_interior(); ri_octant
+            Relative interior of 3-d cone in 3-d lattice N
+            sage: ri_octant.interior() is ri_octant
+            True
+        """
+        return self._polyhedron.interior()
 
     def relative_interior(self):
         r"""
@@ -100,7 +119,6 @@ class RelativeInterior(SageObject):
              a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
             sage: ri_segment.closure() is segment
             True
-
         """
         return self._polyhedron
 
@@ -128,7 +146,7 @@ class RelativeInterior(SageObject):
 
         INPUT:
 
-        - ``other`` -- a polyhedron
+        - ``other`` -- any object
 
         EXAMPLES::
 
@@ -143,7 +161,14 @@ class RelativeInterior(SageObject):
             sage: ri_segment == ri_segment2
             True
 
+        TESTS::
+
+            sage: empty = Polyhedron(ambient_dim=2)
+            sage: ri_segment == empty
+            False
         """
+        if type(self) != type(other):
+            return False
         return self._polyhedron == other._polyhedron
 
     def __ne__(self, other):
@@ -152,7 +177,7 @@ class RelativeInterior(SageObject):
 
         INPUT:
 
-        - ``other`` -- a polyhedron
+        - ``other`` -- any object
 
         TESTS::
 
@@ -166,6 +191,5 @@ class RelativeInterior(SageObject):
              a 1-dimensional polyhedron in AA^2 defined as the convex hull of 2 vertices
             sage: ri_segment != ri_segment2
             False
-
         """
-        return self._polyhedron != other._polyhedron
+        return not (self == other)

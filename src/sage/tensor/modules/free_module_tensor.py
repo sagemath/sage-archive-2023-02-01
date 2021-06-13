@@ -1507,7 +1507,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
 
         """
         if basis is None:
-        basis = self._fmodule._def_basis
+            basis = self._fmodule._def_basis
         if basis not in self._components:
             raise ValueError("the components w.r.t. the {}".format(basis) +
                              " have not been defined")

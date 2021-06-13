@@ -28,7 +28,7 @@ from sage.manifolds.chart import Chart
 from sage.manifolds.scalarfield import ScalarField
 from sage.sets.real_set import RealSet
 from sage.geometry.polyhedron.base import is_Polyhedron
-from sage.geometry.polyhedron.relint import RelativeInterior
+from sage.geometry.relative_interior import RelativeInterior
 
 class ManifoldSubsetPullback(ManifoldSubset):
 

@@ -568,7 +568,7 @@ class ReferenceBuilder(AllBuilder):
         """
         Build top-level document.
         """
-        getattr(ReferenceTopBuilder(), format)(*args, **kwds)
+        getattr(ReferenceTopBuilder('reference'), format)(*args, **kwds)
 
     def _wrapper(self, format, *args, **kwds):
         """

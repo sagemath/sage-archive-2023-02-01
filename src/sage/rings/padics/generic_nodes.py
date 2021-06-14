@@ -643,9 +643,9 @@ class pAdicLatticeGeneric(pAdicGeneric):
         p = self.prime()
 
         # We sort elements by precision lattice
-        elt_by_prec = { }
-        elt_other = [ ]
-        indices = { }
+        elt_by_prec = {}
+        elt_other = []
+        indices = {}
         for i in range(len(elts)):
             x = elts[i]
             idx = id(x)
@@ -683,7 +683,7 @@ class pAdicLatticeGeneric(pAdicGeneric):
                     raise NotImplementedError("multiple conversion of a set of variables for which the module precision is not a lattice is not implemented yet")
                 for j in range(len(L)):
                     x = L[j]
-                    dx = [ ]
+                    dx = []
                     for i in range(j):
                         dx.append([L[i], lattice[i,j]])
                     prec = lattice[j,j].valuation(p)

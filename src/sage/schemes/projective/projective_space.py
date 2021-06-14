@@ -1557,6 +1557,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         points in the same projective space, such that no n+1 points of each set are linearly dependent
         finds the unique element of PGL that translates the source points to the target points.
 
+        Warning :: will not work over precision fields
+
         INPUT:
 
             - ``points_source`` - points in source projective space.
@@ -1571,9 +1573,9 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
             sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
             sage: m = P1.point_transformation_matrix(points_source, points_target); m
-            [-13/210 -64/105   -5/42]
-            [269/315   4/105  13/315]
-            [  -3/14  -14/15  59/210]
+            [ -13/59 -128/59  -25/59]
+            [538/177    8/59  26/177]
+            [ -45/59 -196/59       1]
             sage: [P1(list(m*vector(list(points_source[i])))) == points_target[i] for i in range(4)]
             [True, True, True, True]
 
@@ -1583,8 +1585,8 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             sage: points_source = [P([-6,7]), P([1,4]), P([3,2])]
             sage: points_target = [P([-1,2]), P([0,2]), P([-1,6])]
             sage: P.point_transformation_matrix(points_source, points_target)
-            [12 10]
-            [12  9]
+            [10  4]
+            [10  1]
 
         ::
 
@@ -1650,6 +1652,7 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         """
         r = self.base_ring()
         n = self.dimension_relative()
+        P = ProjectiveSpace(r, n * (n + 2), 'p')
         # makes sure there aren't to few or two many points
         if len(points_source) != n + 2:
             raise ValueError("incorrect number of points in source, need %d points" % (n + 2))
@@ -1659,31 +1662,24 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
             raise ValueError("source points not in self")
         if any(x.codomain() != self for x in points_target):
             raise ValueError("target points not in self")
+        # putting points as the rows of the matrix
         Ms = matrix(r, [list(s) for s in points_source])
         if any(m == 0 for m in Ms.minors(n + 1)):
             raise ValueError("source points not independent")
         Mt = matrix(r, [list(t) for t in points_target])
         if any(l == 0 for l in Mt.minors(n + 1)):
             raise ValueError("target points not independent")
-
-        # get_matrix calculates the transform from the list of points
-        # [ [1 : 0 : 0 : ... ]
-        #   [0 : 1 : 0 : ... ]
-        #   [0 : 0 : 1 : ... ]
-        #   ...
-        #   [1 : 1 : 1 : ... ] ]
-        # to the list of points S
-        def get_matrix(S, N):
-            a = matrix(N+1, N+1, [S[j][i] for i in range(N+1) for j in range(N+1)])
-            b = matrix(N+1, 1, list(S[N+1]))
-            X = a.solve_right(b)
-            m = matrix(N+1, N+1, [X[i,0]*S[i][j] for i in range(N+1) for j in range(N+1)])
-            m = m.transpose()
-            return m
-
-        m_source = get_matrix(points_source, n)
-        m_target = get_matrix(points_target, n)
-        return m_target*m_source.inverse()
+        A = matrix(P.coordinate_ring(), n + 1, n + 1, P.gens())
+        # transpose to get image points and then get the list of image points with columns
+        funct = (A * Ms.transpose()).columns()
+        eq = []
+        for fk, ptk in zip(funct, points_target):
+            # n+2 num f point and n is size of pts
+            eq += [fk[i] * ptk[j] - fk[j] * ptk[i]
+                   for i in range(n + 1) for j in range(i + 1, n + 1)]
+        v = P.subscheme(eq)
+        w = v.rational_points()
+        return matrix(r, n + 1, n + 1, list(w[0]))
 
     def curve(self, F):
         r"""

@@ -1421,7 +1421,9 @@ def help_documents(s=""):
     documentation builder.
     """
     docs = get_documents()
-    s += "DOCUMENTs:\n\n"
+    s += "DOCUMENTs:\n"
+    s += format_columns(docs)
+    s += "\n"
     if 'reference' in docs:
         s+= "Other valid document names take the form 'reference/DIR', where\n"
         s+= "DIR is a subdirectory of SAGE_DOC_SRC/en/reference/.\n"

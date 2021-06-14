@@ -595,7 +595,7 @@ class pRational:
             return []
         p = self.p
         x = ZZ(self.x * p**(self.exponent - val))
-        l = [ ]
+        l = []
         for _ in range(val, prec):
             x, digit = x.quo_rem(p)
             l.append(digit)

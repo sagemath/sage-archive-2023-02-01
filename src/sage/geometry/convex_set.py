@@ -505,10 +505,11 @@ class ConvexSet_base(SageObject):
             if ambient_point is not None:
                 tester.assertEqual(contains_space_point, self.contains(ambient_point))
             tester.assertEqual(contains_space_point, self.contains(space_coords))
-            from sage.rings.qqbar import AA
-            ext_space = self.ambient_vector_space(AA)
-            ext_space_point = ext_space(space_point)
-            tester.assertEqual(contains_space_point, self.contains(ext_space_point))
+            if space.base_ring().is_exact():
+                from sage.rings.qqbar import AA
+                ext_space = self.ambient_vector_space(AA)
+                ext_space_point = ext_space(space_point)
+                tester.assertEqual(contains_space_point, self.contains(ext_space_point))
             from sage.symbolic.ring import SR
             symbolic_space = self.ambient_vector_space(SR)
             symbolic_space_point = symbolic_space(space_point)

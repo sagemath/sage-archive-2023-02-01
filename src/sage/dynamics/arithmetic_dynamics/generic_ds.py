@@ -396,14 +396,6 @@ class DynamicalSystem(SchemeMorphism_polynomial,
                 From: Finite Field in a of size 3^2
                 To:   Finite Field in b of size 3^6
                 Defn: a |--> 2*b^5 + 2*b^3 + b^2 + 2*b + 2)
-
-        TESTS::
-
-            sage: A.<x> = AffineSpace(QQ,1)
-            sage: f = DynamicalSystem_affine(x^2 + x + 1)
-            sage: F = f.homogenize(1)
-            sage: F.field_of_definition_critical(1)
-            (Rational Field, Identity endomorphism of Rational Field)
         """
         ds = copy(self)
         space = ds.domain().ambient_space()
@@ -417,7 +409,6 @@ class DynamicalSystem(SchemeMorphism_polynomial,
                 return K
         if space.is_projective():
             ds = ds.dehomogenize(1)
-            space = ds.domain().ambient_space()
         f,g = ds[0].numerator(), ds[0].denominator()
         CR = space.coordinate_ring()
         if CR.is_field():
@@ -517,14 +508,6 @@ class DynamicalSystem(SchemeMorphism_polynomial,
                 From: Finite Field in a of size 2^2
                 To:   Finite Field in b of size 2^4
                 Defn: a |--> b^2 + b)
-
-        TESTS::
-
-            sage: A.<x> = AffineSpace(QQ,1)
-            sage: f = DynamicalSystem_affine(x^2 + x + 1)
-            sage: F = f.homogenize(1)
-            sage: F.field_of_definition_periodic(1)
-            Number Field in a with defining polynomial z^2 + 1
         """
         ds = copy(self)
         n = int(n)
@@ -541,7 +524,6 @@ class DynamicalSystem(SchemeMorphism_polynomial,
                 return K
         if space.is_projective():
             ds = ds.dehomogenize(1)
-            space = ds.domain().ambient_space()
         CR = space.coordinate_ring()
         if CR.is_field():
             #want the polynomial ring not the fraction field
@@ -625,14 +607,6 @@ class DynamicalSystem(SchemeMorphism_polynomial,
                 From: Finite Field of size 5
                 To:   Finite Field in a of size 5^2
                 Defn: 1 |--> 1)
-
-        TESTS::
-
-            sage: A.<x> = AffineSpace(QQ,1)
-            sage: f = DynamicalSystem_affine(x^2 + x + 1)
-            sage: F = f.homogenize(1)
-            sage: F.field_of_definition_preimage(2, 1)
-            Number Field in a with defining polynomial z^2 + z - 1
         """
         ds = copy(self)
         n = int(n)
@@ -647,7 +621,6 @@ class DynamicalSystem(SchemeMorphism_polynomial,
             raise TypeError('`point` must be in {}'.format(ds.domain()))
         if space.is_projective():
             ds = ds.dehomogenize(1)
-            space = ds.domain().ambient_space()
         else:
             point = (point[0],1)
         fn = ds.nth_iterate_map(n)

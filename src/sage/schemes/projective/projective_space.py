@@ -1305,9 +1305,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
         Returns a unique element of PGL that transforms one set of points to another.
 
-        Given a projective space of degree n and a set of n+2 source points and a set of n+2 target
+        Given a projective space of dimension n and a set of n+2 source points and a set of n+2 target
         points in the same projective space, such that no n+1 points of each set are linearly dependent
-        finds the unique element of PGL that translates the source points to the target points.
+        find the unique element of PGL that translates the source points to the target points.
 
         INPUT:
 
@@ -1316,38 +1316,42 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             - ``points_target`` -- points in target projective space.
 
             - ``normalize`` -- (default: `True`) If the returned matrix should be normalized.
-              If the base ring is a field, then the last non-zero coordinate of the matrix is normalized
-              to be 1. If the base ring is a ring, then the matrix is normalized so that the
+              If the base ring is a field, the matrix is normalized so that the last nonzero entry in
+              the last row is 1. If the base ring is a ring, then the matrix is normalized so that the
               entries are elements of the base ring.
 
         OUTPUT: Transformation matrix - element of PGL.
 
+        ALGORITHM:
+
+        See [Hutz2007]_, Proposition 2.16 for details.
+
         EXAMPLES::
 
             sage: P1.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
-            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
+            sage: points_source=[P1([1, 4, 1]), P1([1, 2, 2]), P1([3, 5, 1]), P1([1, -1, 1])]
+            sage: points_target=[P1([5, -2, 7]), P1([3, -2, 3]), P1([6, -5, 9]), P1([3, 6, 7])]
             sage: m = P1.point_transformation_matrix(points_source, points_target); m
             [ -13/59 -128/59  -25/59]
             [538/177    8/59  26/177]
             [ -45/59 -196/59       1]
-            sage: [P1(list(m*vector(list(points_source[i])))) == points_target[i] for i in range(4)]
+            sage: [m*points_source[i] == points_target[i] for i in range(4)]
             [True, True, True, True]
 
         ::
 
-            sage: P.<a,b> = ProjectiveSpace(GF(13),1)
-            sage: points_source = [P([-6,7]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2]), P([0,2]), P([-1,6])]
+            sage: P.<a,b> = ProjectiveSpace(GF(13),  1)
+            sage: points_source = [P([-6, 7]), P([1, 4]), P([3, 2])]
+            sage: points_target = [P([-1, 2]), P([0, 2]), P([-1, 6])]
             sage: P.point_transformation_matrix(points_source, points_target)
             [10  4]
             [10  1]
 
         ::
 
-            sage: P.<a,b> = ProjectiveSpace(QQ,1)
-            sage: points_source = [P([-6,-4]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2]), P([0,2]), P([-7,-3])]
+            sage: P.<a,b> = ProjectiveSpace(QQ, 1)
+            sage: points_source = [P([-6, -4]), P([1, 4]), P([3, 2])]
+            sage: points_target = [P([-1, 2]), P([0, 2]), P([-7, -3])]
             sage: P.point_transformation_matrix(points_source, points_target)
             Traceback (most recent call last):
             ...
@@ -1356,9 +1360,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         ::
 
             sage: R.<t> = FunctionField(QQ)
-            sage: P.<a,b> = ProjectiveSpace(R,1)
-            sage: points_source = [P([-6*t,7]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2*t]), P([0,2]), P([-1,6])]
+            sage: P.<a,b> = ProjectiveSpace(R, 1)
+            sage: points_source = [P([-6*t, 7]), P([1, 4]), P([3, 2])]
+            sage: points_target = [P([-1, 2*t]), P([0, 2]), P([-1, 6])]
             sage: P.point_transformation_matrix(points_source, points_target)
             [             (1/3*t + 7/12)/(t^2 - 53/24*t)            (-1/12*t - 7/48)/(t^2 - 53/24*t)]
             [(-2/3*t^2 - 7/36*t - 35/12)/(t^2 - 53/24*t)                                           1]
@@ -1366,8 +1370,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         ::
 
             sage: P1.<a,b,c>=ProjectiveSpace(RR, 2)
-            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
-            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
+            sage: points_source=[P1([1, 4, 1]), P1([1, 2, 2]), P1([3, 5, 1]), P1([1, -1, 1])]
+            sage: points_target=[P1([5, -2, 7]), P1([3, -2, 3]), P1([6, -5, 9]), P1([3, 6, 7])]
             sage: P1.point_transformation_matrix(points_source, points_target)
             [-0.220338983050841  -2.16949152542374 -0.423728813559330]
             [  3.03954802259888  0.135593220338984  0.146892655367236]
@@ -1376,8 +1380,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         ::
 
             sage: P1.<a,b,c>=ProjectiveSpace(ZZ, 2)
-            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
-            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
+            sage: points_source=[P1([1, 4, 1]), P1([1, 2, 2]), P1([3, 5, 1]), P1([1, -1, 1])]
+            sage: points_target=[P1([5, -2, 7]), P1([3, -2, 3]), P1([6, -5, 9]), P1([3, 6, 7])]
             sage: P1.point_transformation_matrix(points_source, points_target)
             [ -507 -4992  -975]
             [ 6994   312   338]
@@ -1386,8 +1390,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         ::
 
             sage: P1.<a,b,c>=ProjectiveSpace(ZZ, 2)
-            sage: points_source=[P1([1,4,1]),P1([1,2,2]),P1([3,5,1]),P1([1,-1,1])]
-            sage: points_target=[P1([5,-2,7]),P1([3,-2,3]),P1([6,-5,9]), P1([3,6,7])]
+            sage: points_source=[P1([1, 4, 1]), P1([1, 2, 2]), P1([3, 5, 1]), P1([1, -1, 1])]
+            sage: points_target=[P1([5, -2, 7]), P1([3, -2, 3]), P1([6, -5, 9]), P1([3, 6, 7])]
             sage: P1.point_transformation_matrix(points_source, points_target, normalize=False)
             [-13/30 -64/15   -5/6]
             [269/45   4/15  13/45]
@@ -1396,18 +1400,18 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         ::
 
             sage: R.<t> = ZZ[]
-            sage: P.<a,b> = ProjectiveSpace(R,1)
-            sage: points_source = [P([-6*t,7]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2*t]), P([0,2]), P([-1,6])]
+            sage: P.<a,b> = ProjectiveSpace(R, 1)
+            sage: points_source = [P([-6*t, 7]), P([1, 4]), P([3, 2])]
+            sage: points_target = [P([-1, 2*t]), P([0, 2]), P([-1, 6])]
             sage: P.point_transformation_matrix(points_source, points_target)
             [           48*t + 84           -12*t - 21]
             [-96*t^2 - 28*t - 420      144*t^2 - 318*t]
 
         TESTS::
 
-            sage: P.<a,b> = ProjectiveSpace(QQ,1)
-            sage: points_source = [P([-6,-1]), P([1,4]), P([3,2])]
-            sage: points_target = [P([-1,2]), P([0,2]), P([-2,4])]
+            sage: P.<a,b> = ProjectiveSpace(QQ, 1)
+            sage: points_source = [P([-6, -1]), P([1, 4]), P([3, 2])]
+            sage: points_target = [P([-1, 2]), P([0, 2]), P([-2, 4])]
             sage: P.point_transformation_matrix(points_source, points_target)
             Traceback (most recent call last):
             ...
@@ -1416,8 +1420,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         ::
 
             sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
+            sage: points_source=[P([1, 4, 1]), P([2, -7, 9]), P([3, 5, 1])]
+            sage: points_target=[P([5, -2, 7]), P([3, -2, 3]), P([6, -5, 9]), P([6, -1, 1])]
             sage: P.point_transformation_matrix(points_source, points_target)
             Traceback (most recent call last):
             ...
@@ -1426,8 +1430,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         ::
 
             sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1]),P([7,8,-9])]
+            sage: points_source=[P([1, 4, 1]), P([2, -7, 9]), P([3, 5, 1]), P([1, -1, 1])]
+            sage: points_target=[P([5, -2, 7]), P([3, -2, 3]), P([6, -5, 9]), P([6, -1, 1]),P([7, 8, -9])]
             sage: P.point_transformation_matrix(points_source, points_target)
             Traceback (most recent call last):
             ...
@@ -1437,8 +1441,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
             sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
             sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P1([1,-1,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P([6,-1,1])]
+            sage: points_source=[P([1, 4, 1]), P([2, -7, 9]), P([3, 5, 1]), P1([1, -1, 1])]
+            sage: points_target=[P([5, -2, 7]), P([3, -2, 3]), P([6, -5, 9]), P([6, -1, 1])]
             sage: P.point_transformation_matrix(points_source, points_target)
             Traceback (most recent call last):
             ...
@@ -1448,8 +1452,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
             sage: P.<a,b,c>=ProjectiveSpace(QQ, 2)
             sage: P1.<x,y,z>=ProjectiveSpace(QQ, 2)
-            sage: points_source=[P([1,4,1]),P([2,-7,9]),P([3,5,1]),P([1,-1,1])]
-            sage: points_target=[P([5,-2,7]),P([3,-2,3]),P([6,-5,9]),P1([6,-1,1])]
+            sage: points_source=[P([1, 4, 1]), P([2, -7, 9]), P([3, 5, 1]), P([1, -1, 1])]
+            sage: points_target=[P([5, -2, 7]), P([3, -2, 3]), P([6, -5, 9]), P1([6, -1, 1])]
             sage: P.point_transformation_matrix(points_source, points_target)
             Traceback (most recent call last):
             ...

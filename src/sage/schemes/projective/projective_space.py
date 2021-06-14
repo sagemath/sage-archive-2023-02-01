@@ -1790,13 +1790,13 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
         N = self.dimension()
         CR = self.coordinate_ring()
         points = []
-        height_1 = list(self.points_of_bounded_height(bound=1))
         # to determine the PGL transform, we need N+2 points source points and N+2 target points,
         # of which no N+1 are co-planar. Additionally, in order to map plane_1 to plane_2, N source
         # points must lie on plane_1, and N target points must lie on plane_2
         for plane in [plane_1, plane_2]:
             source_points = []
             nonzero_places = []
+            height_1 = self.points_of_bounded_height(bound=1)
 
             # first we find N planar points
             for i in range(N+1):

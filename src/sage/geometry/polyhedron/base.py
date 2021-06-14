@@ -9759,7 +9759,7 @@ class Polyhedron_base(Element):
             sage: aut_square = square.restricted_automorphism_group(output = 'permutation')       # optional - pynormaliz
             sage: conj_reps = aut_square.conjugacy_classes_representatives()                      # optional - pynormaliz
             sage: gens_dict = square.permutations_to_matrices(conj_reps);                         # optional - pynormaliz
-            sage: conj_reps[1],gens_dict[conj_reps[1]]
+            sage: conj_reps[1],gens_dict[conj_reps[1]]                                            # optional - pynormaliz
             (
                    [0 1 0]
                    [1 0 0]

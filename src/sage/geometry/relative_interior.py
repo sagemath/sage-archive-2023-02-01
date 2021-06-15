@@ -80,6 +80,36 @@ class RelativeInterior(ConvexSet_relatively_open):
         """
         return self._polyhedron.relative_interior_contains(point)
 
+    def ambient(self):
+        r"""
+        Return the ambient convex set or space.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.ambient()
+            Vector space of dimension 2 over Rational Field
+        """
+        return self._polyhedron.ambient()
+
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.ambient_vector_space()
+            Vector space of dimension 2 over Rational Field
+        """
+        return self._polyhedron.ambient_vector_space(base_field=base_field)
+
     def ambient_dim(self):
         r"""
         Return the dimension of the ambient space.

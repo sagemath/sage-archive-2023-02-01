@@ -1309,6 +1309,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         points in the same projective space, such that no n+1 points of each set are linearly dependent
         find the unique element of PGL that translates the source points to the target points.
 
+        Warning :: over non exact rings such as the ComplexField, the returned matrix could
+        be very far from correct.
+
         INPUT:
 
             - ``points_source`` -- points in source projective space.
@@ -1316,9 +1319,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             - ``points_target`` -- points in target projective space.
 
             - ``normalize`` -- (default: `True`) If the returned matrix should be normalized.
-              If the base ring is a field, the matrix is normalized so that the last nonzero entry in
-              the last row is 1. If the base ring is a ring, then the matrix is normalized so that the
-              entries are elements of the base ring.
+              Only works over exact rings. If the base ring is a field, the matrix is normalized so
+              that the last nonzero entry in the last row is 1. If the base ring is a ring, then
+              the matrix is normalized so that the entries are elements of the base ring.
 
         OUTPUT: Transformation matrix - element of PGL.
 
@@ -1373,9 +1376,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: points_source=[P1([1, 4, 1]), P1([1, 2, 2]), P1([3, 5, 1]), P1([1, -1, 1])]
             sage: points_target=[P1([5, -2, 7]), P1([3, -2, 3]), P1([6, -5, 9]), P1([3, 6, 7])]
             sage: P1.point_transformation_matrix(points_source, points_target)
-            [-0.220338983050841  -2.16949152542374 -0.423728813559330]
-            [  3.03954802259888  0.135593220338984  0.146892655367236]
-            [-0.762711864406775  -3.32203389830510   1.00000000000000]
+            [-0.0619047619047597  -0.609523809523810  -0.119047619047621]
+            [  0.853968253968253  0.0380952380952380  0.0412698412698421]
+            [ -0.214285714285712  -0.933333333333333   0.280952380952379]
 
         ::
 
@@ -1496,18 +1499,20 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         m_target = get_matrix(points_target, n)
         return_mat = m_target*m_source.inverse()
         if normalize:
-            if self.base_ring().is_field():
-                last_row = list(return_mat.rows()[-1])[:]
-                last_ele = last_row.pop()
-                while last_ele == 0:
+            R = self.base_ring()
+            if R.is_exact():
+                if R.is_field():
+                    last_row = list(return_mat.rows()[-1])[:]
                     last_ele = last_row.pop()
-                return_mat *= ZZ(1)/last_ele
-            else:
-                lcm = return_mat[0][0]
-                for row in return_mat.rows():
-                    for ele in row:
-                        lcm = lcm.lcm(ele.denominator())
-                return_mat *= lcm
+                    while last_ele == 0:
+                        last_ele = last_row.pop()
+                    return_mat *= ZZ(1)/last_ele
+                else:
+                    lcm = return_mat[0][0]
+                    for row in return_mat.rows():
+                        for ele in row:
+                            lcm = lcm.lcm(ele.denominator())
+                    return_mat *= lcm
         return return_mat
 
 

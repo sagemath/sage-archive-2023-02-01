@@ -3757,7 +3757,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: R.<w> = QQ[]
             sage: K.<s> = NumberField(w^6 - 3*w^5 + 5*w^4 - 5*w^3 + 5*w^2 - 3*w + 1)
             sage: P.<x,y,z> = ProjectiveSpace(K, 2)
-            sage: f = DynamicalSystem_projective([x^2+z^2, y^2+x^2, z^2+y^2])
+            sage: f = DynamicalSystem_projective([x^2 + z^2, y^2 + x^2, z^2 + y^2])
             sage: sorted(f.preperiodic_points(0, 1), key=str)
             [(-2*s^5 + 4*s^4 - 5*s^3 + 3*s^2 - 4*s : -2*s^5 + 5*s^4 - 7*s^3 + 6*s^2 - 7*s + 3 : 1),
              (-s^5 + 3*s^4 - 4*s^3 + 4*s^2 - 4*s + 2 : -s^5 + 2*s^4 - 2*s^3 + s^2 - s : 1),
@@ -3770,18 +3770,32 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + 1/4*y^2, y^2])
+            sage: f.preperiodic_points(1, 1, formal=True)
+            [(-1/2 : 1), (1 : 0)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2])
+            sage: f.preperiodic_points(0, 2, formal=True)
+            [(-1/2 : 1)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: K.<v> = QuadraticField(5)
             sage: phi = QQ.embeddings(K)[0]
-            sage: f = DynamicalSystem_projective([x^2 - y^2,y^2])
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
             sage: f.preperiodic_points(1, 1, R=phi)
             [(-1/2*v - 1/2 : 1), (1/2*v - 1/2 : 1)]
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: X = P.subscheme(2*x - y)
-            sage: f = DynamicalSystem_projective([x^2-y^2, 2*(x^2-y^2), y^2-z^2], domain=X)
-            sage: f.preperiodic_points(1,1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, 2*(x^2 - y^2), y^2 - z^2], domain=X)
+            sage: f.preperiodic_points(1, 1)
             [(-1/4 : -1/2 : 1), (1 : 2 : 1)]
 
         ::
@@ -3922,8 +3936,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             f_deformed = DynamicalSystem(deformed_polys)
             Ideal = f_deformed.preperiodic_points(m, n, return_scheme=True).defining_ideal()
             L = [poly.specialization({t:0}) for poly in Ideal.gens()]
-            new_P = ProjectiveSpace(L[0].parent())
-            X = new_P.subscheme(L)
+            X = PS.subscheme(L)
+            subs_list = mat.inverse()*vector(CR.gens())
+            subs = {}
+            for i in range(len(subs_list)):
+                subs[PS.gens()[i]] = subs_list[i]
+            X = PS.subscheme([poly.subs(subs) for poly in X.defining_polynomials()])
         if minimal and not formal:
             Sn = []
             for k in ZZ(n).divisors():
@@ -3956,8 +3974,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if R in NumberFields() or R is QQbar or R in FiniteFields():
                 Z = f.base_indeterminacy_locus()
                 points = [dom(Q) for Q in X.rational_points()]
-                if formal:
-                    points = [mat*point for point in points]
                 good_points = []
                 for Q in points:
                     try:
@@ -4093,7 +4109,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x^2 - 3/4*z^2, y^2 - 3/4*z^2, z^2])
             sage: f.periodic_points(2, formal=True)
-            [(-1/2 : 3/2 : 1), (3/2 : -1/2 : 1), (-1/2 : -1/2 : 1)]
+            [(-1/2 : -1/2 : 1), (-1/2 : 3/2 : 1), (3/2 : -1/2 : 1)]
 
         ::
 
@@ -4148,7 +4164,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x^2 - y^2, x^2 - z^2, y^2 - z^2])
             sage: f.periodic_points(1)
             [(-1 : 0 : 1)]
@@ -4238,11 +4254,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         if hyperplane_found:
                             break
                     source = PS.subscheme(CR.gens()[-1])
-                    m = PS.hyperplane_transformation_matrix(source, hyperplane)
-                    new_f = f.conjugate(m)
+                    mat = PS.hyperplane_transformation_matrix(source, hyperplane)
+                    new_f = f.conjugate(mat)
                 else:
                     new_f = f
-                    m = matrix.identity(N)
+                    mat = matrix.identity(N)
 
                 # we now deform by a parameter t
                 T = R['t']
@@ -4253,8 +4269,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 f_deformed = DynamicalSystem(deformed_polys)
                 Ideal = f_deformed.periodic_points(n, return_scheme=True).defining_ideal()
                 L = [poly.specialization({t:0}) for poly in Ideal.gens()]
-                new_P = ProjectiveSpace(L[0].parent())
-                X = new_P.subscheme(L)
+                subs_list = mat.inverse()*vector(CR.gens())
+                subs = {}
+                for i in range(len(subs_list)):
+                    subs[PS.gens()[i]] = subs_list[i]
+                X = PS.subscheme([poly.subs(subs) for poly in L])
             if minimal and n != 1 and not formal:
                 Sn = []
                 for k in ZZ(n).divisors():
@@ -4283,8 +4302,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 if R in NumberFields() or R is QQbar or R in FiniteFields():
                     Z = f.base_indeterminacy_locus()
                     points = [dom(Q) for Q in X.rational_points()]
-                    if formal:
-                        points = [m*point for point in points]
                     good_points = []
                     for Q in points:
                         try:

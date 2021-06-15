@@ -152,7 +152,7 @@ class Representation(Representation_abstract):
 
     - :wikipedia:`Group_representation`
     """
-    def __init__(self, semigroup, module, on_basis, side="left"):
+    def __init__(self, semigroup, module, on_basis, side="left", **kwargs):
         """
         Initialize ``self``.
 
@@ -164,18 +164,31 @@ class Representation(Representation_abstract):
             sage: on_basis = lambda g,m: M.term(m, g.sign())
             sage: R = Representation(G, M, on_basis)
             sage: R._test_representation()
+
+            sage: G = SymmetricGroup(4)
+            sage: A = SymmetricGroup(4).algebra(QQ)
+            sage: from sage.categories.algebras import Algebras
+            sage: from sage.modules.with_basis.representation import Representation
+            sage: action = lambda g,x: A.monomial(g*x)
+            sage: category = Algebras(QQ).WithBasis().FiniteDimensional()
+            sage: R = Representation(G, A, action, 'left', category=category)
+            sage: r = R.an_element()
+            sage: r^2
+            14*() + 2*(2,3,4) + (2,4,3) + 12*(1,2)(3,4) + 3*(1,2,4) + 2*(1,3,2) + 4*(1,3)(2,4) + 5*(1,4,3) + 6*(1,4)(2,3)
+
         """
+
+        category = kwargs.pop('category', Modules(module.base_ring()).WithBasis())
         if side not in ["left", "right"]:
             raise ValueError('side must be "left" or "right"')
         self._left_repr = (side == "left")
         self._on_basis = on_basis
         self._module = module
         indices = module.basis().keys()
-        cat = Modules(module.base_ring()).WithBasis()
         if 'FiniteDimensional' in module.category().axioms():
-            cat = cat.FiniteDimensional()
+            category = category.FiniteDimensional()
         Representation_abstract.__init__(self, semigroup, module.base_ring(), indices,
-                                         category=cat, **module.print_options())
+                                         category=category, **module.print_options())
 
     def _test_representation(self, **options):
         """
@@ -369,9 +382,44 @@ class Representation(Representation_abstract):
                         ret += P.linear_combination(((P._on_basis(ms, m), cs*c)
                                                     for m,c in self), not self_on_left)
                     return ret
+
             return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
 
         _rmul_ = _lmul_ = _acted_upon_
+
+        def _mul_(self, other):
+            """
+            EXAMPLES::
+
+                sage: G = SymmetricGroup(4)
+                sage: A = G.algebra(QQ)
+                sage: from sage.categories.algebras import Algebras
+                sage: from sage.modules.with_basis.representation import Representation
+                sage: action = lambda g,x: A.monomial(g*x)
+                sage: category = Algebras(QQ).WithBasis().FiniteDimensional()
+                sage: R = Representation(G, A, action, 'left', category=category)
+                sage: r = R.an_element()
+                sage: r^2
+                14*() + 2*(2,3,4) + (2,4,3) + 12*(1,2)(3,4) + 3*(1,2,4) + 2*(1,3,2) + 4*(1,3)(2,4) + 5*(1,4,3) + 6*(1,4)(2,3)
+
+            TESTS::
+
+                sage: G = SymmetricGroup(4)
+                sage: M = CombinatorialFreeModule(QQ, ['a','b','c','d'])
+                sage: from sage.modules.with_basis.representation import Representation
+                sage: action = lambda g,x: M.monomial( g(x.to_vector()))
+                sage: R = Representation(G, M, action, 'left')
+                sage: r = R.an_element()
+                sage: r*r
+                Traceback (most recent call last):
+                ...
+                AttributeError: 'CombinatorialFreeModule_with_category' object has no attribute '_product_from_product_on_basis_multiply'
+            """
+
+            if self.parent() is not other.parent():
+                return NotImplemented
+
+            return self.parent()._module._product_from_product_on_basis_multiply(self,other)
 
 class RegularRepresentation(Representation):
     r"""

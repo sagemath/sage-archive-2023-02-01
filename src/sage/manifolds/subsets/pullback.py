@@ -477,7 +477,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
         if isinstance(map, Chart):
 
             chart = map
-            if isinstance(codomain_subset, RelativeInterior):
+            if isinstance(codomain_subset, RelativeInterior) and is_Polyhedron(codomain_subset.closure()):
                 return {chart: ManifoldSubsetPullback._polyhedron_restriction(
                                    chart, codomain_subset.closure(), relint=True)}
 

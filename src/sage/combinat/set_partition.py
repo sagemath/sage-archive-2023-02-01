@@ -2668,6 +2668,21 @@ class SetPartitions_all(SetPartitions):
         """
         SetPartitions.__init__(self, category=InfiniteEnumeratedSets())
 
+    def subset(self, size=None, **kwargs):
+        """
+        Returns the subset of set partitions of a given size and
+        additional keyword arguments.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions()
+            sage: P.subset(4)
+            Set partitions of {1, 2, 3, 4}
+        """
+        if size is None:
+            return self
+        return SetPartitions(size, **kwargs)
+
     def _repr_(self):
         """
         Return a string representation of ``self``.

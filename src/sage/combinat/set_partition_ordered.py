@@ -1297,6 +1297,21 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
         """
         Parent.__init__(self, category=InfiniteEnumeratedSets())
 
+    def subset(self, size=None, **kwargs):
+        """
+        Returns the subset of ordered set partitions of a given
+        size and additional keyword arguments.
+
+        EXAMPLES::
+
+            sage: P = OrderedSetPartitions()
+            sage: P.subset(4)
+            Ordered set partitions of {1, 2, 3, 4}
+        """
+        if size is None:
+            return self
+        return OrderedSetPartitions(size, **kwargs)
+
     def __iter__(self):
         """
         Iterate over ``self``.

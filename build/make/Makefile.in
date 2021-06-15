@@ -337,60 +337,24 @@ DOC_DEPENDENCIES = sagelib sage_docbuild $(inst_sphinx) \
 
 doc: doc-html
 
-# Matches doc-inventory--reference-manifolds etc.
-doc-inventory--%:
-	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-inventory--,,$@)) inventory $(SAGE_DOCBUILD_OPTS)" logs/dochtml.log
-
-# Matches doc-html--developer, doc-html--reference-manifolds etc.
-doc-html--%:
-	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-html--,,$@)) html $(SAGE_DOCBUILD_OPTS)" logs/dochtml.log
-
-doc-inventory-references: $(DOC_DEPENDENCIES)
-	$(eval DOCS = $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents reference))
-	$(eval biblio = $(firstword $(DOCS)))
-	$(eval other_docs = $(wordlist 2, 100, $(DOCS)))
-	+$(MAKE_REC) doc-inventory--$(subst /,-,$(biblio))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(other_docs), doc-inventory--$(subst /,-,$(doc)))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-inventory--reference_top
-
-doc-html-references: doc-inventory-references
-	$(eval DOCS = $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents reference))
-	$(eval biblio = $(firstword $(DOCS)))
-	$(eval other_docs = $(wordlist 2, 100, $(DOCS)))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-html--$(subst /,-,$(biblio))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(other_docs), doc-html--$(subst /,-,$(doc)))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-html--reference_top
-
-doc-html-other: $(DOC_DEPENDENCIES) doc-html-references
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)), doc-html--$(subst /,-,$(doc)))
-
-doc-html: doc-html-references doc-html-other
+doc-html: $(DOC_DEPENDENCIES)
+	cd "$(SAGE_SRC)/doc" && sage-logger -p "$(MAKE) doc-html" $(SAGE_ROOT)/logs/dochtml.log
 
 # 'doc-html-no-plot': build docs without building the graphics coming
 # from the '.. plot' directive, in case you want to save a few
 # megabytes of disk space. 'doc-clean' is a prerequisite because the
 # presence of graphics is cached in src/doc/output.
 doc-html-no-plot: doc-clean
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-plot" doc-html
+	sage-logger -p "$(MAKE) SAGE_DOCBUILD_OPTS=\"$(SAGE_DOCBUILD_OPTS) --no-plot\" doc-html" $(SAGE_ROOT)/logs/dochtml.log
 
 doc-html-mathjax:
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) -j" doc-html
+	sage-logger -p "$(MAKE) SAGE_DOCBUILD_OPTS=\"$(SAGE_DOCBUILD_OPTS) -j\" doc-html" $(SAGE_ROOT)/logs/dochtml.log
 
 # Keep target 'doc-html-jsmath' for backwards compatibility.
 doc-html-jsmath: doc-html-mathjax
 
-# Matches doc-pdf--developer, doc-pdf--reference-manifolds etc.
-doc-pdf--%:
-	$(AM_V_at)cd $(SAGE_ROOT) && sage-logger -p "./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-pdf--,,$@)) pdf $(SAGE_DOCBUILD_OPTS)" logs/docpdf.log
-
-doc-pdf: doc-inventory-references
-	$(eval DOCS = $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents reference))
-	$(eval biblio = $(firstword $(DOCS)))
-	$(eval other_docs = $(wordlist 2, 100, $(DOCS)))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-pdf--$(subst /,-,$(biblio))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(other_docs), doc-pdf--$(subst /,-,$(doc)))
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-pdf--reference_top
-	+$(MAKE_REC) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)), doc-pdf--$(subst /,-,$(doc)))
+doc-pdf: $(DOC_DEPENDENCIES)
+	cd "$(SAGE_SRC)/doc" && sage-logger -p "$(MAKE) doc-pdf" $(SAGE_ROOT)/logs/docpdf.log
 
 doc-clean: doc-src-clean doc-output-clean
 

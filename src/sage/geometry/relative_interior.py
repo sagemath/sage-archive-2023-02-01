@@ -80,6 +80,7 @@ class RelativeInterior(ConvexSet_relatively_open):
             Relative interior of
              a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
             sage: ri_segment.ambient()
+            Vector space of dimension 2 over Rational Field
         """
         return self._polyhedron.ambient()
 
@@ -94,6 +95,7 @@ class RelativeInterior(ConvexSet_relatively_open):
             Relative interior of
              a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
             sage: ri_segment.ambient_vector_space()
+            Vector space of dimension 2 over Rational Field
         """
         return self._polyhedron.ambient_vector_space(base_field=base_field)
 

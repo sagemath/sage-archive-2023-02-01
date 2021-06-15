@@ -3699,6 +3699,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           ``False`` specifies to find all preperiodic points of period
           ``m``, ``n``
 
+        - ``formal`` -- (default: ``False``) boolean; ``True`` specifies to
+          find the formal periodic points only. The formal periodic points
+          are the points in the support of the dynatomic cycle.
+
         - ``R`` -- (default: the base ring of the dynamical system) a
           commutative ring over which to find the preperiodic points
 
@@ -3724,6 +3728,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 - 29/16*y^2, y^2])
             sage: f.preperiodic_points(1, 3)
             [(-5/4 : 1), (1/4 : 1), (7/4 : 1)]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2 , z^2])
+            sage: f.preperiodic_points(0, 2, formal=True)
+            [(-1/2 : 1 : 0), (-1/2 : 1 : 1)]
 
         ::
 
@@ -3869,9 +3880,51 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         L = [F_1[i]*F_2[j] - F_1[j]*F_2[i] for i in range(N)
                 for j in range(i+1, N)]
         X = PS.subscheme(L + list(dom.defining_polynomials()))
-        minimal = kwds.pop('minimal',True)
-        return_scheme = kwds.pop('return_scheme',False)
-        if minimal:
+        minimal = kwds.pop('minimal', True)
+        return_scheme = kwds.pop('return_scheme', False)
+        formal = kwds.pop('formal', False)
+        if formal:
+            hyperplane_at_infinity = PS.subscheme(CR.gens()[-1])
+            d = f.degree()
+
+            # if a point of period m, n lies on the hyperplane at infinity,
+            # we must find a suitable hyperplane which contians no preperiodic points
+            # before deforming
+            if X.intersection(hyperplane_at_infinity).dimension() >= 0:
+                attempted_combinations = {}
+                hyperplane_found = False
+                from itertools import count, product
+                for height_bound in count(1):
+                    coeff_lst = ZZ.range(height_bound)
+                    for tup in product(coeff_lst, repeat=N):
+                        if list(tup) != [0]*len(PS.gens()):
+                            if PS(tup) not in attempted_combinations:
+                                attempted_combinations[PS(tup)] = 0
+                                hyperplane = PS.subscheme(sum([tup[i]*PS.gens()[i] for i in range(N)]))
+                                if X.intersection(hyperplane).dimension() < 0:
+                                    hyperplane_found = True
+                                    break
+                    if hyperplane_found:
+                        break
+                source = PS.subscheme(CR.gens()[-1])
+                mat = PS.hyperplane_transformation_matrix(source, hyperplane)
+                new_f = f.conjugate(mat)
+            else:
+                new_f = f
+                mat = matrix.identity(N)
+
+            # we now deform by a parameter t
+            T = R['t']
+            t = T.gens()[0]
+            Pt = ProjectiveSpace(N-1, R=T, names = [str(i) for i in CR.gens()])
+            deformed_polys = [poly + t*Pt.gens()[-1]**d for poly in new_f.defining_polynomials()[:-1]]
+            deformed_polys += [new_f.defining_polynomials()[-1]]
+            f_deformed = DynamicalSystem(deformed_polys)
+            Ideal = f_deformed.preperiodic_points(m, n, return_scheme=True).defining_ideal()
+            L = [poly.specialization({t:0}) for poly in Ideal.gens()]
+            new_P = ProjectiveSpace(L[0].parent())
+            X = new_P.subscheme(L)
+        if minimal and not formal:
             Sn = []
             for k in ZZ(n).divisors():
                 if ZZ(n/k).is_prime():
@@ -3903,15 +3956,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if R in NumberFields() or R is QQbar or R in FiniteFields():
                 Z = f.base_indeterminacy_locus()
                 points = [dom(Q) for Q in X.rational_points()]
+                if formal:
+                    points = [mat*point for point in points]
                 good_points = []
                 for Q in points:
                     try:
                         Z(list(Q))
                     except TypeError:
                         good_points.append(Q)
-                points = good_points
-
-                return points
+                return good_points
             else:
                 raise NotImplementedError("ring must a number field or finite field")
         else: #a higher dimensional scheme
@@ -3968,8 +4021,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         EXAMPLES::
 
             sage: set_verbose(None)
-            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
-            sage: f = DynamicalSystem_projective([x^2-x*y+y^2, x^2-y^2+x*y])
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
+            sage: f = DynamicalSystem_projective([x^2 - x*y + y^2, x^2 - y^2 + x*y])
             sage: f.periodic_points(1)
             [(-0.50000000000000000? - 0.866025403784439?*I : 1),
              (-0.50000000000000000? + 0.866025403784439?*I : 1),
@@ -3977,7 +4030,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QuadraticField(5,'t'),2)
+            sage: P.<x,y,z> = ProjectiveSpace(QuadraticField(5,'t'), 2)
             sage: f = DynamicalSystem_projective([x^2 - 21/16*z^2, y^2 - z^2, z^2])
             sage: f.periodic_points(2)
             [(-5/4 : -1 : 1), (-5/4 : -1/2*t + 1/2 : 1), (-5/4 : 0 : 1),
@@ -4037,8 +4090,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
-            sage: f = DynamicalSystem_projective([x^2 - 3/4*z^2, y^2 -3/4*z^2, z^2])
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2 - 3/4*z^2, y^2 - 3/4*z^2, z^2])
             sage: f.periodic_points(2, formal=True)
             [(-1/2 : 3/2 : 1), (3/2 : -1/2 : 1), (-1/2 : -1/2 : 1)]
 
@@ -4163,8 +4216,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             X = PS.subscheme(L + list(dom.defining_polynomials()))
             if formal:
                 hyperplane_at_infinity = PS.subscheme(CR.gens()[-1])
+                d = f.degree()
 
-                # if a point of periodic n lies on the hyperplane at infinity,
+                # if a point of period n lies on the hyperplane at infinity,
                 # we must find a suitable hyperplane which contians no periodic points
                 # before deforming
                 if X.intersection(hyperplane_at_infinity).dimension() >= 0:
@@ -4188,26 +4242,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     new_f = f.conjugate(m)
                 else:
                     new_f = f
+                    m = matrix.identity(N)
 
                 # we now deform by a parameter t
                 T = R['t']
                 t = T.gens()[0]
                 Pt = ProjectiveSpace(N-1, R=T, names = [str(i) for i in CR.gens()])
-                deformed_polys = [poly + t*Pt.gens()[-1]**n for poly in new_f.defining_polynomials()[:-1]]
+                deformed_polys = [poly + t*Pt.gens()[-1]**d for poly in new_f.defining_polynomials()[:-1]]
                 deformed_polys += [new_f.defining_polynomials()[-1]]
                 f_deformed = DynamicalSystem(deformed_polys)
-                Ideal = f_deformed.periodic_points(n, return_scheme = True).defining_ideal()
-                from sage.rings.polynomial.flatten import FlatteningMorphism
-                phi = FlatteningMorphism(Pt.coordinate_ring())
-                CR2 = phi.codomain()
-                reduce_ideal = CR2.ideal([phi(F) for F in Ideal.gens()])
-                L = [poly.specialization({t:0}) for poly in reduce_ideal.gens()]
+                Ideal = f_deformed.periodic_points(n, return_scheme=True).defining_ideal()
+                L = [poly.specialization({t:0}) for poly in Ideal.gens()]
                 new_P = ProjectiveSpace(L[0].parent())
                 X = new_P.subscheme(L)
-                if new_f != f:
-                    return [m*PS(point) for point in X.rational_points()]
-                return X.rational_points()
-            if minimal and n != 1:
+            if minimal and n != 1 and not formal:
                 Sn = []
                 for k in ZZ(n).divisors():
                     if ZZ(n/k).is_prime():
@@ -4235,15 +4283,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 if R in NumberFields() or R is QQbar or R in FiniteFields():
                     Z = f.base_indeterminacy_locus()
                     points = [dom(Q) for Q in X.rational_points()]
+                    if formal:
+                        points = [m*point for point in points]
                     good_points = []
                     for Q in points:
                         try:
                             Z(list(Q))
                         except TypeError:
                             good_points.append(Q)
-                    points = good_points
-
-                    return points
+                    return good_points
                 else:
                     raise NotImplementedError("ring must be a number field or finite field")
             else: #a higher dimensional scheme

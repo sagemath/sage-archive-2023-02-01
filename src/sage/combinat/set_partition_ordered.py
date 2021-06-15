@@ -1299,7 +1299,7 @@ class OrderedSetPartitions_all(OrderedSetPartitions):
 
     def subset(self, size=None, **kwargs):
         """
-        Returns the subset of ordered set partitions of a given
+        Return the subset of ordered set partitions of a given
         size and additional keyword arguments.
 
         EXAMPLES::

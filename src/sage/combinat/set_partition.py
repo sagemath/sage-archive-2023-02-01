@@ -2670,7 +2670,7 @@ class SetPartitions_all(SetPartitions):
 
     def subset(self, size=None, **kwargs):
         """
-        Returns the subset of set partitions of a given size and
+        Return the subset of set partitions of a given size and
         additional keyword arguments.
 
         EXAMPLES::
@@ -3256,7 +3256,7 @@ class SetPartitions_setn(SetPartitions_set):
 
 def cyclic_permutations_of_set_partition(set_part):
     """
-    Returns all combinations of cyclic permutations of each cell of the
+    Return all combinations of cyclic permutations of each cell of the
     set partition.
 
     AUTHORS:

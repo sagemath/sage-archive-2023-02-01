@@ -782,7 +782,7 @@ class TopologicalManifold(ManifoldSubset):
                     return True
         return False
 
-    def open_subset(self, name, latex_name=None, coord_def={}):
+    def open_subset(self, name, latex_name=None, coord_def={}, supersets=None):
         r"""
         Create an open subset of the manifold.
 
@@ -800,6 +800,8 @@ class TopologicalManifold(ManifoldSubset):
           terms of coordinates; ``coord_def`` must a be dictionary with keys
           charts on the manifold and values the symbolic expressions formed
           by the coordinates to define the subset
+        - ``supersets`` -- (default: only ``self``) list of sets that the
+          new open subset is a subset of
 
         OUTPUT:
 
@@ -872,6 +874,36 @@ class TopologicalManifold(ManifoldSubset):
                                    base_manifold=self._manifold,
                                    latex_name=latex_name,
                                    start_index=self._sindex)
+        if supersets is None:
+            supersets = [self]
+        for superset in supersets:
+            superset._init_open_subset(resu, coord_def=coord_def)
+        return resu
+
+    def _init_open_subset(self, resu, coord_def):
+        r"""
+        Initialize ``resu`` as an open subset of ``self``.
+
+        INPUT:
+
+        - ``resu`` -- an instance of ``:class:`TopologicalManifold` or
+          a subclass.
+
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed
+          by the coordinates to define the subset
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: from sage.manifolds.manifold import TopologicalManifold
+            sage: U = TopologicalManifold(2, 'U', field=M._field, structure=M._structure, base_manifold=M)
+            sage: M._init_open_subset(U, coord_def={c_cart: x^2+y^2<1})
+            sage: U
+            Open subset U of the 2-dimensional topological manifold R^2
+        """
         resu._calculus_method = self._calculus_method
         resu._supersets.update(self._supersets)
         for sd in self._supersets:
@@ -888,7 +920,6 @@ class TopologicalManifold(ManifoldSubset):
             for chart2 in coord_def:
                 if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
                     self._coord_changes[(chart1, chart2)].restrict(resu)
-        return resu
 
     def get_chart(self, coordinates, domain=None):
         r"""

@@ -246,6 +246,8 @@ class TopologicalSubmanifold(TopologicalManifold):
              3-dimensional topological manifold M
 
         """
+        if self is not self._manifold:
+            return "Open subset {} of the {}".format(self._name, self._manifold)
         if self._ambient is self:
             return super(TopologicalManifold, self).__repr__()
         if self._embedded:
@@ -253,6 +255,122 @@ class TopologicalSubmanifold(TopologicalManifold):
                 self._dim, self._structure.name, self._name, self._ambient)
         return "{}-dimensional {} submanifold {} immersed in the {}".format(
                 self._dim, self._structure.name, self._name, self._ambient)
+
+    def open_subset(self, name, latex_name=None, coord_def={}, supersets=None):
+        r"""
+        Create an open subset of the manifold.
+
+        An open subset is a set that is (i) included in the manifold and (ii)
+        open with respect to the manifold's topology. It is a topological
+        manifold by itself.
+
+        As ``self`` is a submanifold of its ambient manifold,
+        the new open subset is also considered a submanifold of that.
+        Hence the returned object is an instance of
+        :class:`TopologicalSubmanifold`.
+
+        INPUT:
+
+        - ``name`` -- name given to the open subset
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote
+          the subset; if none are provided, it is set to ``name``
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed
+          by the coordinates to define the subset
+        - ``supersets`` -- (default: only ``self``) list of sets that the
+          new open subset is a subset of
+
+        OUTPUT:
+
+        - the open subset, as an instance of
+          :class:`~sage.manifolds.manifold.topological_submanifold.TopologicalSubmanifold`
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient=M, structure="topological"); N
+            2-dimensional topological submanifold N immersed in the
+             3-dimensional topological manifold M
+            sage: S = N.subset('S'); S
+            Subset S of the
+             2-dimensional topological submanifold N immersed in the
+              3-dimensional topological manifold M
+            sage: O = N.subset('O', is_open=True); O  # indirect doctest
+            Open subset O of the
+             2-dimensional topological submanifold N immersed in the
+              3-dimensional topological manifold M
+
+            sage: phi = N.continuous_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional topological submanifold N embedded in the
+             3-dimensional topological manifold M
+            sage: S = N.subset('S'); S
+            Subset S of the
+             2-dimensional topological submanifold N embedded in the
+              3-dimensional topological manifold M
+            sage: O = N.subset('O', is_open=True); O  # indirect doctest
+            Open subset O of the
+             2-dimensional topological submanifold N embedded in the
+              3-dimensional topological manifold M
+
+        """
+        resu = TopologicalSubmanifold(self._dim, name, self._field,
+                                      self._structure, self._ambient,
+                                      base_manifold=self._manifold,
+                                      latex_name=latex_name,
+                                      start_index=self._sindex)
+        if supersets is None:
+            supersets = [self]
+        for superset in supersets:
+            superset._init_open_subset(resu, coord_def=coord_def)
+        return resu
+
+    def _init_open_subset(self, resu, coord_def):
+        r"""
+        Initialize ``resu`` as an open subset of ``self``.
+
+        INPUT:
+
+        - ``resu`` -- an instance of ``:class:`TopologicalManifold` or
+          a subclass.
+
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed
+          by the coordinates to define the subset
+
+        EXAMPLES:
+
+            sage: M = Manifold(3, 'M', structure="topological")
+            sage: N = Manifold(2, 'N', ambient=M, structure="topological")
+            sage: phi = N.continuous_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional topological submanifold N embedded in the
+             3-dimensional topological manifold M
+            sage: from sage.manifolds.topological_submanifold import TopologicalSubmanifold
+            sage: O = TopologicalSubmanifold(3, 'O', field=M._field, structure=M._structure,
+            ....:                            ambient=M, base_manifold=N)
+            sage: N._init_open_subset(O, {})
+            sage: O
+            Open subset O of the
+             2-dimensional topological submanifold N embedded in the
+              3-dimensional topological manifold M
+            sage: O.embedding()
+            Continuous map
+             from the Open subset O of the 2-dimensional topological submanifold N
+              embedded in the 3-dimensional topological manifold M
+             to the 3-dimensional topological manifold M
+        """
+        super()._init_open_subset(resu, coord_def=coord_def)
+        ## Extras for Submanifold
+        if self._immersed:
+            resu.set_immersion(self._immersion.restrict(resu),
+                               var=self._var, t_inverse=self._t_inverse)
+        if self._embedded:
+            resu.declare_embedding()
 
     def set_immersion(self, phi, inverse=None, var=None,
                       t_inverse=None):

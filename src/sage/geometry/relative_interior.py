@@ -12,10 +12,10 @@ Relative Interiors of Polyhedra and Cones
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.structure.sage_object import SageObject
+from sage.geometry.convex_set import ConvexSet_relatively_open
 
 
-class RelativeInterior(SageObject):
+class RelativeInterior(ConvexSet_relatively_open):
     r"""
     The relative interior of a polyhedron or cone
 
@@ -47,7 +47,7 @@ class RelativeInterior(SageObject):
 
         TESTS::
 
-            sage: P = Polyhedron()
+            sage: P = Polyhedron([[1, 2], [3, 4]])
             sage: from sage.geometry.relative_interior import RelativeInterior
             sage: TestSuite(RelativeInterior(P)).run()
         """
@@ -68,6 +68,40 @@ class RelativeInterior(SageObject):
             False
         """
         return self._polyhedron.relative_interior_contains(point)
+
+    def ambient_dim(self):
+        r"""
+        Return the dimension of the ambient space.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: segment.ambient_dim()
+            2
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.ambient_dim()
+            2
+        """
+        return self._polyhedron.ambient_dim()
+
+    def dim(self):
+        r"""
+        Return the dimension of ``self``.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: segment.dim()
+            1
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.dim()
+            1
+        """
+        return self._polyhedron.dim()
 
     def interior(self):
         r"""
@@ -121,6 +155,49 @@ class RelativeInterior(SageObject):
             True
         """
         return self._polyhedron
+
+    def is_universe(self):
+        r"""
+        Return whether ``self`` is the whole ambient space
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.is_universe()
+            False
+        """
+        # Relies on ``self`` not set up for polyhedra that are already
+        # relatively open themselves.
+        assert not self._polyhedron.is_universe()
+        return False
+
+    def is_closed(self):
+        r"""
+        Return whether ``self`` is closed.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.is_closed()
+            False
+        """
+        # Relies on ``self`` not set up for polyhedra that are already
+        # relatively open themselves.
+        assert not self._polyhedron.is_relatively_open()
+        return False
 
     def _repr_(self):
         r"""

@@ -507,7 +507,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
     """
     Element = AbelianGroupElement
 
-    def __init__(self, generator_orders, names):
+    def __init__(self, generator_orders, names, category=None):
         """
         The Python constructor
 
@@ -533,12 +533,13 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         n = len(generator_orders)
         names = normalize_names(n, names)
         self._assign_names(names)
-        cat = Groups().Commutative()
+        if category is None:
+            category = Groups().Commutative()
         if all(order > 0 for order in generator_orders):
-            cat = cat.Finite().Enumerated()
+            category = category.Finite().Enumerated()
         else:
-            cat = cat.Infinite()
-        AbelianGroupBase.__init__(self, category=cat)
+            category = category.Infinite()
+        AbelianGroupBase.__init__(self, category=category)
 
     def is_isomorphic(left, right):
         """
@@ -1225,7 +1226,7 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
         for h in gensH:
             if h not in G:
                 raise TypeError('Subgroup generators must belong to the given group.')
-        return AbelianGroup_subgroup(self, gensH, names)
+        return self.Subgroup(self, gensH, names)
 
     def list(self):
         """
@@ -1578,7 +1579,7 @@ class AbelianGroup_subgroup(AbelianGroup_class):
         There should be a way to coerce an element of a subgroup
         into the ambient group.
     """
-    def __init__(self, ambient, gens, names="f"):
+    def __init__(self, ambient, gens, names="f", category=None):
         """
         EXAMPLES::
 
@@ -1704,7 +1705,9 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             for x in Hgens0:
                invs.append(0)
         invs = tuple(ZZ(i) for i in invs)
-        AbelianGroup_class.__init__(self, invs, names)
+        if category is None:
+            category = Groups().Commutative().Subobjects()
+        AbelianGroup_class.__init__(self, invs, names, category=category)
 
     def __contains__(self, x):
         """
@@ -1868,4 +1871,7 @@ class AbelianGroup_subgroup(AbelianGroup_class):
             a
         """
         return self._gens[n]
+
+# We allow subclasses to override this, analogous to Element
+AbelianGroup_class.Subgroup = AbelianGroup_subgroup
 

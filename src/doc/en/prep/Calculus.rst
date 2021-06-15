@@ -323,7 +323,9 @@ Maxima) could do.
 
 ::
 
-    sage: integral(sinh(x^2+sqrt(x-1)),x)  # long time (15s on sage.math, 2012)
+    sage: result = integral(sinh(x^2+sqrt(x-1)),x)  # long time (15s on sage.math, 2012)
+    ...
+    sage: result
     integrate(sinh(x^2 + sqrt(x - 1)), x)
 
 This last one stumps other systems too.

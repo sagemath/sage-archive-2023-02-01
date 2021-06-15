@@ -409,7 +409,9 @@ def _sympysage_derivative(self):
         integrate(diff(f(x, t), x), t)
         sage: diff(f(x, t), x).integrate(t, algorithm='sympy')
         integrate(diff(f(x, t), x), t)
-        sage: integrate(f(x, t), x).diff(t)
+        sage: result = integrate(f(x, t), x).diff(t)
+        ...
+        sage: result
         integrate(diff(f(x, t), t), x)
     """
     from sage.calculus.functional import derivative

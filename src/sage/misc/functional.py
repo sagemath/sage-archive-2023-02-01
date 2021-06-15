@@ -673,7 +673,9 @@ def integral(x, *args, **kwds):
 
     Numerical approximation::
 
-        sage: h = integral(tan(x)/x, (x, 1, pi/3)); h
+        sage: h = integral(tan(x)/x, (x, 1, pi/3))
+        ...
+        sage: h
         integrate(tan(x)/x, x, 1, 1/3*pi)
         sage: h.n()
         0.07571599101...
@@ -751,7 +753,9 @@ def integral(x, *args, **kwds):
     :trac:`11590` can be integrated::
 
         sage: x = SR.symbol('x', domain='real')
-        sage: integrate(x * sgn(x^2 - 1/4), x, -1, 0)
+        sage: result = integrate(x * sgn(x^2 - 1/4), x, -1, 0)
+        ...
+        sage: result
         -1/4
 
     """

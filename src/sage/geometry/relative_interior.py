@@ -53,6 +53,17 @@ class RelativeInterior(ConvexSet_relatively_open):
         """
         self._polyhedron = polyhedron
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: P = Polyhedron([[1, 2], [3, 4]])
+            sage: Q = Polyhedron([[3, 4], [1, 2]])
+            sage: hash(P.relative_interior()) == hash(Q.relative_interior())
+            True
+        """
+        return hash(self._polyhedron) ^ 1789
+
     def __contains__(self, point):
         r"""
         Return whether ``self`` contains ``point``.

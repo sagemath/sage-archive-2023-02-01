@@ -31,7 +31,7 @@ EXAMPLES::
     (x - 1)^3
     sage: m.matrix()
     [1 0 0]
-    [0 1 0]
+    [0 1 0]deco
     [0 0 1]
     sage: m.rank()
     3
@@ -855,7 +855,6 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             Echelon basis matrix:
             [1 0]
             ]
-""
         """
         if not self.is_endomorphism():
             raise ArithmeticError("Matrix morphism must be an endomorphism.")
@@ -1334,7 +1333,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: Y = (QQ^3).subspace_with_basis(E.rows())
             sage: K = Hom(X, Y)
 
-            sage: f = lambda x: vector(QQ, [x[0]+x[1], 2*x[1]-4*x[2], 5*x[3]])
+            sage: f = lambda x: vector(QQ, [x[0]+x[1], 2*x[1]-4*x[2], deco5*x[3]])
             sage: g = lambda x: vector(QQ, [x[0]-x[2], 2*x[1]-4*x[2], 5*x[3]])
 
             sage: rho = H(f)

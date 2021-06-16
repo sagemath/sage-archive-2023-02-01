@@ -1,11 +1,3 @@
-# Silent rules
-# https://www.gnu.org/software/automake/manual/html_node/Automake-Silent-Rules.html
-ifeq ($(V), 0)
-AM_V_at = @
-else
-AM_V_at =
-endif
-
 ########################################################
 #
 # 'make doc-html' (synonym for 'make' and 'make all') builds the html documentation.
@@ -25,11 +17,11 @@ clean:
 
 # Matches doc-inventory--reference-manifolds etc.
 doc-inventory--%:
-	$(AM_V_at)cd $(SAGE_ROOT) && ./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-inventory--,,$@)) inventory $(SAGE_DOCBUILD_OPTS)
+	cd $(SAGE_ROOT) && ./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-inventory--,,$@)) inventory $(SAGE_DOCBUILD_OPTS)
 
 # Matches doc-html--developer, doc-html--reference-manifolds etc.
 doc-html--%:
-	$(AM_V_at)cd $(SAGE_ROOT) && ./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-html--,,$@)) html $(SAGE_DOCBUILD_OPTS)
+	cd $(SAGE_ROOT) && ./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-html--,,$@)) html $(SAGE_DOCBUILD_OPTS)
 
 # reference manual, inventory
 ifndef SAGE_ROOT
@@ -62,7 +54,7 @@ doc-html: doc-html-reference doc-html-other
 
 # Matches doc-pdf--developer, doc-pdf--reference-manifolds etc.
 doc-pdf--%:
-	$(AM_V_at)cd $(SAGE_ROOT) && ./sage --docbuild --no-pdf-links $(subst -,/,$(subst doc-pdf--,,$@)) pdf $(SAGE_DOCBUILD_OPTS)
+	cd $(SAGE_ROOT) && ./sage --docbuild $(subst -,/,$(subst doc-pdf--,,$@)) pdf $(SAGE_DOCBUILD_OPTS)
 
 doc-pdf: doc-inventory-reference
 	$(eval DOCS = $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents reference))

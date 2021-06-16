@@ -4359,7 +4359,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         return multipliers
 
-    def sigma_invariants(self, n, formal=False, embedding=None, type='point'):
+    def sigma_invariants(self, n, formal=False, embedding=None, type='point', return_polynomial=False):
         r"""
         Computes the values of the elementary symmetric polynomials of
         the ``n`` multiplier spectra of this dynamical system.
@@ -4392,6 +4392,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         variable `w`. Note that if `f` is a rational function, we clear
         denominators for `g`.
 
+        To calculate the full polynomial defining the sigma invariants,
+        we follow the algorithm outlined in section 4 of [Hutz2019]_.
+
         INPUT:
 
         - ``n`` -- a positive integer, the period
@@ -4408,6 +4411,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``type`` -- (default: ``'point'``) string; either ``'point'``
           or ``'cycle'`` depending on whether you compute with one
           multiplier per point or one per cycle
+
+        - ``return polynomial`` -- (default: ``False``) boolean;
+          ``True`` specifies returning the polynomial which generates
+          the sigma invariants, see [Hutz2019]_ for the full definition.
+          The polynomial is always a multivariate polynomial with variables
+          ``w`` and ``t``.
 
         OUTPUT: a list of elements in the base ring
 
@@ -4513,13 +4522,53 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         dom = self.domain()
         if not is_ProjectiveSpace(dom):
             raise NotImplementedError("not implemented for subschemes")
-        if dom.dimension_relative() > 1:
-            raise NotImplementedError("only implemented for dimension 1")
         if not embedding is None:
             from sage.misc.superseded import deprecation
             deprecation(23333, "embedding keyword no longer used")
         if self.degree() <= 1:
             raise TypeError("must have degree at least 2")
+        if dom.dimension_relative() > 1 or return_polynomial:
+            from sage.calculus.functions import jacobian
+            d = self.degree()
+            N = dom.dimension_relative()
+            Fn = self.nth_iterate_map(n)
+            base_ring = self.base_ring()
+            X = Fn.periodic_points(1, minimal=False, return_scheme=True)
+            R = PolynomialRing(base_ring, 'v', N+N+3, order='lex')
+            var = list(R.gens())
+            R2 = PolynomialRing(base_ring, var[:N] + var[-2:])
+            newR = PolynomialRing(base_ring, 'w, t', 2, order='lex')
+            psi = R2.hom(N*[0]+list(newR.gens()), newR)
+            R_zero = {R.gen(N):1}
+            for j in range(N+1, N+N+1):
+                R_zero[R.gen(j)] = 0
+            t = var.pop()
+            w = var.pop()
+            var = var[:N]
+            sigma_polynomial = 1
+            for j in range(N,-1,-1):
+                Xa = X.affine_patch(j)
+                fa = Fn.dehomogenize(j)
+                Pa = fa.domain()
+                im = [R.gen(i) for i in range(j)] + (N-j)*[0]
+                phi = Pa.coordinate_ring().hom(im, R)
+                M = t*matrix.identity(R, N)
+                print(jacobian([phi(F.numerator())/phi(F.denominator()) for F in fa], var))
+                g = (M-jacobian([phi(F.numerator())/phi(F.denominator()) for F in fa], var)).det()
+                L = [phi(h) for h in Xa.defining_polynomials()]
+                L += [w*g.denominator()-R.gen(N)*g.numerator() + sum(R.gen(j-1)*R.gen(N+j)*g.denominator() for j in range(1,N+1))]
+                I = R.ideal(L)
+                G = I.groebner_basis()
+                sigma_polynomial *= psi(G[-1].specialization(R_zero))
+            if return_polynomial:
+                return sigma_polynomial
+            sigmas = []
+            sigma_dictionary = dict([list(reversed(i)) for i in list(sigma_polynomial)])
+            degree = sigma_polynomial.degree()
+            for i in range(degree, -1, -1):
+                for j in range(degree-j, -1, -1):
+                    sigmas.append(sigma_dictionary.pop(w**i*t**j, 0))
+            return sigmas
         if not type in ['point', 'cycle']:
             raise ValueError("type must be either point or cycle")
 

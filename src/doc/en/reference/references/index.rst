@@ -3037,6 +3037,9 @@ REFERENCES:
 .. [Hutz2015] \B. Hutz. Determination of all rational preperiodic points
               for morphisms of PN. Mathematics of Computation, 84:291 (2015), 289-308.
 
+.. [Hutz2019] \B. Hutz. Multipliers and invariants of endomorphisms of projective
+              space in dimension greater than 1
+
 .. [Huy2005] \D. Huybrechts : *Complex Geometry*, Springer (Berlin)
              (2005).
 

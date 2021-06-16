@@ -208,8 +208,10 @@ class Representation(Representation_abstract):
         except AttributeError:
             pass
 
-        category = kwargs.pop('category', Modules(module.base_ring()).WithBasis())
-        
+        category = module.category()
+        if 'WithBasis' not in module.category().axioms():
+            raise ValueError(f'{module} must have a basis')
+
         if side not in ["left", "right"]:
             raise ValueError('side must be "left" or "right"')
         
@@ -218,10 +220,7 @@ class Representation(Representation_abstract):
         self._module = module
         
         indices = module.basis().keys()
-        
-        if 'FiniteDimensional' in module.category().axioms():
-            category = category.FiniteDimensional()
-        
+
         Representation_abstract.__init__(self, semigroup, module.base_ring(), indices,
                                          category=category, **module.print_options())
 

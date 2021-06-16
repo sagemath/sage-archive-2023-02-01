@@ -4888,11 +4888,10 @@ cdef class Expression(CommutativeRingElement):
             (-x)^(3/4)
             sage: forget()
 
-        Check that :trac:`31077` is fixed (also see :trac:`31679`)::
+        Check that :trac:`31077` and :trac:`31585` are fixed (also see :trac:`31679`)::
 
             sage: a,b,c,d = var("a b c d")
-            sage: f = ((a + b + c)^30 * (3*b + d - 5/d)^3).expand().subs(a=0,b=2,c=-1)
-            sage: sum(sign(s) * (abs(ZZ(s)) % ZZ(2^30)) * d^i for s,i in f.coefficients())
+            sage: ((a + b + c)^30 * (3*b + d - 5/d)^3).expand().subs(a=0,b=2,c=-1)
             d^3 + 18*d^2 + 93*d - 465/d + 450/d^2 - 125/d^3 + 36
 
         Check that :trac:`31411` is fixed::
@@ -4901,8 +4900,7 @@ cdef class Expression(CommutativeRingElement):
             sage: A = q^(2/3) + q^(2/5)
             sage: B = product(1 - q^j, j, 1, 31) * q^(1/24)
             sage: bool((A * B).expand() == (A * B.expand()).expand())
-            True  # 64-bit
-            True  # 32-bit # known bug (#31585)
+            True
         """
         if side is not None:
             if not is_a_relational(self._gobj):
@@ -5531,6 +5529,26 @@ cdef class Expression(CommutativeRingElement):
             sage: (a + b*x).series(x, 2).subs(a=a, b=b)
             (a) + (b)*x + Order(x^2)
 
+        Check that :trac:`31585` is fixed::
+
+            sage: m = -2^31
+            sage: (-x).subs(x=m)
+            2147483648
+            sage: abs(x).subs(x=m)
+            2147483648
+            sage: (2*x).subs(x=m)
+            -4294967296
+            sage: (m*x + 1)*x
+            -(2147483648*x - 1)*x
+            sage: m = -2^63
+            sage: (-x).subs(x=m)
+            9223372036854775808
+            sage: abs(x).subs(x=m)
+            9223372036854775808
+            sage: (2*x).subs(x=m)
+            -18446744073709551616
+            sage: (m*x + 1)*x
+            -(9223372036854775808*x - 1)*x
         """
         cdef dict sdict = {}
         cdef GEx res

@@ -199,6 +199,7 @@ Classes and Methods
 # https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from sage.misc.superseded import experimental
 from sage.rings.big_oh import O
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
@@ -4007,8 +4008,17 @@ class BTerm(TermWithCoefficient):
         sage: G = MonomialGrowthGroup(ZZ, 'x');
         sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
         sage: BT_QQ(x, 3, {'x': 20})
+        doctest:...:
+        FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        See https://trac.sagemath.org/31922 for details.
         BTerm with coefficient 3, growth x and valid for x >= 20
+
+    WARNING::
+        As this code is experimental, warnings are thrown when a Bterm
+        is created for the first time in a session (see
+        :class:`sage.misc.superseded.experimental`).
     """
+    @experimental(trac_number=31922)
     def __init__(self, parent, growth, coefficient, valid_from):
         r"""
         See :class:`BTerm` for more information.

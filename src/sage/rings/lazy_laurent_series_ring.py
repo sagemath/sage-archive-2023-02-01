@@ -73,6 +73,7 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
 
 from .lazy_laurent_series import LazyLaurentSeries
+from .lazy_laurent_series_new import LLS
 from .lazy_laurent_series_operator import (
     LazyLaurentSeriesOperator_gen,
     LazyLaurentSeriesOperator_constant,
@@ -97,6 +98,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         Lazy Laurent Series Ring in t over Integer Ring
     """
     Element = LazyLaurentSeries
+    # Element = LLS
 
     def __init__(self, base_ring, names, category=None, implementation='sparse'):
         """

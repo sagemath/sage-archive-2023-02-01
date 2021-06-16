@@ -1,5 +1,5 @@
 r"""
-Invariant modules
+Invariant algebras
 """
 
 # ****************************************************************************
@@ -13,6 +13,7 @@ Invariant modules
 # ****************************************************************************
 
 from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+from sage.categories.algebras import Algebras
 
 class FiniteDimensionalInvariantAlgebra(FiniteDimensionalInvariantModule):
 
@@ -37,4 +38,12 @@ class FiniteDimensionalInvariantAlgebra(FiniteDimensionalInvariantModule):
 
         """
 
-        pass
+        if R._module not in Algebras:
+
+            raise ValueErrror(f'{R._module} is not an algebra')
+
+        if R._module not in Algebras().FiniteDimensional().WithBasis():
+
+            raise NotImplementedError(f'{R._module} must be finite-dimensional with a basis')
+
+        super().__init__(R,*args,**kwargs)

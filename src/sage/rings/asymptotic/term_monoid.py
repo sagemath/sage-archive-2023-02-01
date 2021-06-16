@@ -4062,12 +4062,8 @@ class BTerm(TermWithCoefficient):
             sage: BT_QQ(x, 3, {'x': 20, 'm': 5})
             BTerm with coefficient 3, growth x and valid for x >= 20 and m >= 5
         """
-        valid_from_string = ''
-        for key in self.valid_from:
-            if key is list(self.valid_from)[-1]:
-                valid_from_string += f'{key} >= {self.valid_from[key]}'
-            else:
-                valid_from_string += f'{key} >= {self.valid_from[key]} and '
+        valid_from_string = ' and '.join(f'{variable} >= {value}'
+                                         for variable, value in self.valid_from.items())
 
         return f'BTerm with coefficient {self.coefficient}, growth {self.growth} ' + \
                f'and valid for {valid_from_string}'
@@ -4201,7 +4197,6 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
         TESTS:
         """
-
         return self.element_class(self, growth, coefficient, valid_from)
 
 

@@ -63,6 +63,8 @@ class ConvexSet_base(SageObject):
         r"""
         Return the dimension of ``self``.
 
+        Subclasses must provide an implementation of this method.
+
         TESTS::
 
             sage: from sage.geometry.convex_set import ConvexSet_base
@@ -94,28 +96,55 @@ class ConvexSet_base(SageObject):
     def ambient_vector_space(self, base_field=None):
         r"""
         Return the ambient vector space.
+
+        Subclasses must provide an implementation of this method.
+
+        The default implementations of :meth:`ambient`, :meth:`ambient_dim`,
+        :meth:`ambient_dimension` use this method.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.ambient_vector_space()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method ambient_vector_space at ...>
         """
 
-    @abstract_method
     def ambient(self):
         r"""
         Return the ambient convex set or space.
-        """
 
-    @abstract_method
+        The default implementation delegates to :meth:`ambient_vector_space`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: class ExampleSet(ConvexSet_base):
+            ....:     def ambient_vector_space(self, base_field=None):
+            ....:         return (base_field or QQ)^2001
+            sage: ExampleSet().ambient_dim()
+            2001
+        """
+        return self.ambient_vector_space()
+
     def ambient_dim(self):
         r"""
         Return the dimension of the ambient convex set or space.
 
-        TESTS::
+        The default implementation obtains it from :meth:`ambient`.
+
+        EXAMPLES::
 
             sage: from sage.geometry.convex_set import ConvexSet_base
-            sage: C = ConvexSet_base()
-            sage: C.ambient_dim()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: <abstract method ambient_dim at ...>
+            sage: class ExampleSet(ConvexSet_base):
+            ....:     def ambient(self):
+            ....:         return QQ^7
+            sage: ExampleSet().ambient_dim()
+            7
         """
+        return self.ambient().dimension()
 
     def ambient_dimension(self):
         r"""

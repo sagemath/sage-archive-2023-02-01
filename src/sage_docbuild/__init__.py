@@ -638,7 +638,7 @@ class ReferenceTopBuilder(DocBuilder):
         EXAMPLES::
 
             sage: from sage_docbuild import ReferenceTopBuilder
-            sage: b = ReferenceTopBuilder()
+            sage: b = ReferenceTopBuilder('reference')
             sage: b._output_dir('html')
             '.../html/en/reference'
         """

@@ -443,6 +443,45 @@ class ConvexSet_base(SageObject):
             TypeError: 'NotImplementedType' object is not callable
         """
 
+    def an_element(self):
+        r"""
+        Return a point of ``self``.
+
+        If ``self`` is empty, an :class:`EmptySetError` will be raised.
+
+        The default implementation delegates to :meth:`some_elements`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_compact
+            sage: class BlueBox(ConvexSet_compact):
+            ....:     def some_elements(self):
+            ....:         yield 'blue'
+            ....:         yield 'cyan'
+            sage: BlueBox().an_element()
+        """
+        try:
+            return next(iter(self.some_elements()))
+        except StopIteration:
+            raise EmptySetError
+
+    @abstract_method(optional=True)
+    def some_elements(self):
+        r"""
+        Generate some points of ``self``.
+
+        If ``self`` is empty, no points are generated; no exception will be raised.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.some_elements(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
+        """
+
     @abstract_method(optional=True)
     def cartesian_product(self, other):
         """

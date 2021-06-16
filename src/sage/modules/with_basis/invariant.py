@@ -211,3 +211,31 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 return self
 
             return None
+
+class FiniteDimensionalTwistedInvariantModule(FiniteDimensionalInvariantModule):
+    r"""
+    Construct the `\chi`-twisted invariant submodule of `M`. When a semigroup `S` acts on a module
+    `M`, the `\chi`-twisted invariant submodule of `M` is the isotypic component of the representation
+    `M` corresponding to the irreducible character `\chi`.
+
+    ..MATH::
+
+        M^S = \{m \in M : s\cdot m = m,\, \forall s \in S \}
+
+    NOTE: The current implementation works when `S` is a finitely-generated semigroup,
+    and when `M` is a finite-dimensional free module with a distinguished basis.
+    """
+
+    def __init__(self, R, character = 'trivial'):
+
+        super.__init__(R)
+
+        if character != 'trivial':
+
+            pass
+
+    def projection(self, element):
+        """
+        Give the projection of element onto self
+        """
+        pass

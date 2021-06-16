@@ -440,7 +440,32 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
     @staticmethod
     def _polyhedron_restriction(expr, polyhedron, relint=False):
+        """
+        Return a restriction expressing that ``expr`` lies in ``polyhedron`` or its relative interior.
 
+        INPUT:
+
+        - ``expr`` -- a symbolic expression
+        - ``polyhedron`` -- an instance of :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
+        - ``relint`` -- whether the restriction should use the relative interior.
+
+        OUTPUT:
+
+        - A restriction suitable as input to :meth:`~sage.manifolds.chart.restrict`:
+          lists are conjunctions, tuples are disjunctions
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: _polyhedron_restriction = ManifoldSubsetPullback._polyhedron_restriction
+            sage: var('x y z')
+            (x, y, z)
+            sage: c = polytopes.cube()
+            sage: _polyhedron_restriction((x, y, z), c)
+            [-x + 1 >= 0, -y + 1 >= 0, -z + 1 >= 0, x + 1 >= 0, z + 1 >= 0, y + 1 >= 0]
+            sage: _polyhedron_restriction((x, y, z), c, relint=True)
+            [-x + 1 > 0, -y + 1 > 0, -z + 1 > 0, x + 1 > 0, z + 1 > 0, y + 1 > 0]
+        """
         conjunction = []
 
         expr = vector(SR, expr)
@@ -523,21 +548,64 @@ class ManifoldSubsetPullback(ManifoldSubset):
         r"""
         Check whether ``point`` is contained in ``self``.
 
-        """
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: M = Manifold(3, 'R^3', structure='topological')
+            sage: c_cart.<x,y,z> = M.chart() # Cartesian coordinates on R^3
+            sage: Cube = polytopes.cube(); Cube
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: Cube.vertices_list()
+            [[1, -1, -1],
+            [1, 1, -1],
+            [1, 1, 1],
+            [1, -1, 1],
+            [-1, -1, 1],
+            [-1, -1, -1],
+            [-1, 1, -1],
+            [-1, 1, 1]]
+            sage: McCube = ManifoldSubsetPullback(c_cart, None, Cube, name='McCube'); McCube
+            Subset McCube of the 3-dimensional topological manifold R^3
+            sage: p = M.point((0, 0, 0)); p
+            Point on the 3-dimensional topological manifold R^3
+            sage: p in McCube
+            True
+            sage: q = M.point((2, 3, 4)); q
+            Point on the 3-dimensional topological manifold R^3
+            sage: q in McCube
+            False
+         """
         if super().__contains__(point):
             return True
         return self._map(point) in self._codomain_subset
 
     def is_open(self):
         """
-        Return if ``self`` is an open set.
+        Return if ``self`` is (known to be) an open set.
 
+        This version of the method always returns ``False``.
+
+        Because the map is continuous, the pullback is open if the
+        ``codomain_subset`` is open.
+
+        However, the design of :class:`ManifoldSubset` requires that open subsets
+        are instances of the subclass :class:`TopologicalManifold`.
+        The constructor of :class:`ManifoldSubsetPullback` delegates to a subclass
+        of :class:`TopologicalManifold` for some open subsets.
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+
+            sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [3, 4]]); P
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+            sage: P.is_open()
+            False
+            sage: McP = ManifoldSubsetPullback(c_cart, None, P, name='McP'); McP
+            Subset McP of the 2-dimensional topological manifold R^2
+            sage: McP.is_open()
+            False
         """
-        # Because the map is continuous, the pullback is open if the
-        # codomain_subset is open.  But because other code assumes
-        # that open subsets are instances of Manifold, we do not use this
-        # fact here. Instead, the constructor is responsible for creating
-        # an instance of the appropriate subclass.
         return super().is_open()
 
     def is_closed(self):

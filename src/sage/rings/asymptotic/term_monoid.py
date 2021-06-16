@@ -3613,8 +3613,8 @@ class ExactTerm(TermWithCoefficient):
 
             :meth:`OTerm.log_term`.
         """
-        return (self._log_coefficient_(base=base, locals=locals) +
-                self._log_growth_(base=base, locals=locals))
+        return (self._log_coefficient_(base=base, locals=locals)
+                + self._log_growth_(base=base, locals=locals))
 
     def is_constant(self):
         r"""

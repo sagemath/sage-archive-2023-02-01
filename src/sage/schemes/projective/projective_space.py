@@ -1597,6 +1597,27 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: plane2(m*P((2*u, 1, 0)))
             (-u : 1 : 0)
 
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(FiniteField(2), 2)
+            sage: plane1 = P.subscheme(x + y + z)
+            sage: plane2 = P.subscheme(z)
+            sage: P.hyperplane_transformation_matrix(plane1, plane2)
+            [1 0 0]
+            [1 1 0]
+            [1 1 1]
+
+        ::
+
+            sage: R.<t> = QQ[]
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: plane1 = P.subscheme(x + 9*t*y + z)
+            sage: plane2 = P.subscheme(x + z)
+            sage: P.hyperplane_transformation_matrix(plane1, plane2)
+            [       -1/9*t          -t^2             0]
+            [ -t^2 + 1/9*t             0             0]
+            [         1/81         1/9*t -1/9*t + 1/81]
+
         TESTS::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
@@ -1670,9 +1691,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
                         break
             if len(source_points) != N+2:
                 raise NotImplementedError('Failed to automatically find sufficient independent points.' +
-                    ' Please find the necessary independent points manually, then use point transformation matrix.'
-                    + 'Also, please open a trac ticket with the example that failed, and CC me, gh-EnderWannabe.'
-                    + ' Thanks!')
+                    ' Please find the necessary independent points manually, then use point transformation matrix.')
             points.append(source_points)
         return self.point_transformation_matrix(points[0], points[1])
 

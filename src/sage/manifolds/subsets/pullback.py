@@ -490,9 +490,47 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
     @staticmethod
     def _coord_def(map, codomain_subset):
+        r"""
+        Return a coordinate definition of the open subset that is the pullback of ``codomain_subset``.
 
-        #if isinstance(map, ContinuousMap) and isinstance(codomain_subset, Manifold):
+        INPUT:
 
+        - ``map`` -- an instance of :class:`ScalarField` or :class:`Chart`.
+
+        - ``codomain_subset`` - if ``map`` is a :class:`ScalarField`, an instance of :class:`RealSet`;
+          if ``map`` is a :class:`Chart`, the relative interior of a polyhedron.
+
+        For other inputs, a ``NotImplementedError`` will be raised.
+
+        OUTPUT:
+
+        - an object suitable for the parameter ``coord_def`` of :meth:`TopologicalManifold.open_subset`.
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: _coord_def = ManifoldSubsetPullback._coord_def
+            sage: M = Manifold(2, 'R^2', structure='topological')
+
+        Coordinate definition of an open chart polyhedron::
+
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [3, 4]]); P
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+            sage: ri_P = P.relative_interior(); ri_P
+            Relative interior of a 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+            sage: _coord_def(c_cart, ri_P)
+            {Chart (R^2, (x, y)): [2*x - y > 0, -4*x + 3*y > 0, x - y + 1 > 0]}
+
+        Coordinate definition of the pullback of an open interval under a scalar field::
+
+            sage: r_squared = M.scalar_field(x^2+y^2)
+            sage: I = RealSet((1, 4)); I
+            (1, 4)
+            sage: _coord_def(r_squared, I)
+            {Chart (R^2, (x, y)): [x^2 + y^2 > 1, x^2 + y^2 < 4]}
+
+        """
         if isinstance(map, ScalarField) and isinstance(codomain_subset, RealSet):
 
             return {chart: ManifoldSubsetPullback._realset_restriction(func.expr(),

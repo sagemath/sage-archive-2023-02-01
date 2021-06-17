@@ -1668,6 +1668,11 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
                     if not any([m == 0 for m in Ms.minors(N + 1)]):
                         source_points.append(self(point))
                         break
+            if len(source_points) != N+2:
+                raise NotImplementedError('Failed to automatically find sufficient independent points.' +
+                    ' Please find the necessary independent points manually, then use point transformation matrix.'
+                    + 'Also, please open a trac ticket with the example that failed, and CC me, gh-EnderWannabe.'
+                    + ' Thanks!')
             points.append(source_points)
         return self.point_transformation_matrix(points[0], points[1])
 

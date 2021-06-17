@@ -73,7 +73,10 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
 
 from .lazy_laurent_series import LazyLaurentSeries
-from .lazy_laurent_series_new import LLS
+from .lazy_laurent_series_new import (
+    LLS,
+    LLS_coefficient_function
+)
 from .lazy_laurent_series_operator import (
     LazyLaurentSeriesOperator_gen,
     LazyLaurentSeriesOperator_constant,
@@ -97,10 +100,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         sage: LazyLaurentSeriesRing(ZZ, 't')
         Lazy Laurent Series Ring in t over Integer Ring
     """
-    Element = LazyLaurentSeries
-    # Element = LLS
+    # Element = LazyLaurentSeries
+    Element = LLS
 
-    def __init__(self, base_ring, names, category=None, implementation='sparse'):
+    def __init__(self, base_ring, names, category=None):
         """
         Initialize.
 
@@ -111,7 +114,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         Parent.__init__(self, base=base_ring, names=names,
                         category=MagmasAndAdditiveMagmas().or_subcategory(category))
-        self._implementation = implementation
 
     def _repr_(self):
         """
@@ -262,7 +264,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         return self._element_constructor_(0)
 
-    def series(self, coefficient, valuation, constant=None):
+    # def series(self, coefficient, valuation, constant=None):
+    def series(self, coefficient_function, is_sparse, approximate_valuation, constant=None):
         r"""
         Return a lazy Laurent series.
 
@@ -325,24 +328,25 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
         """
-        if isinstance(coefficient, (tuple, list)):
+        if isinstance(coefficient_function, (tuple, list)):
             if isinstance(constant, tuple):
                 constant = constant[0]
             if constant is None:
                 constant = self.base_ring().zero()
             elif constant not in self.base_ring():
                 raise ValueError("constant is not an element of the base ring")
-            constant = (constant, valuation + len(coefficient))
-            coefficient = LazyLaurentSeriesOperator_list(self, coefficient, valuation)
+            constant = (constant, approximate_valuation + len(coefficient_function))
+            coefficient_function = LazyLaurentSeriesOperator_list(self, coefficient_function, approximate_valuation)
         elif constant is not None:
             try:
                 c,m = constant
             except TypeError:
                 raise TypeError('not a tuple')
 
-            if valuation > m and c: # weird case
+            if approximate_valuation > m and c: # weird case
                 raise ValueError('inappropriate valuation')
 
             constant = (self.base_ring()(c), m)
 
-        return self.element_class(self, coefficient=coefficient, valuation=valuation, constant=constant)
+        aux = LLS_coefficient_function(coefficient_function=coefficient_function, is_sparse=is_sparse, approximate_valuation=approximate_valuation, constant=constant)
+        return self.element_class(self, aux)

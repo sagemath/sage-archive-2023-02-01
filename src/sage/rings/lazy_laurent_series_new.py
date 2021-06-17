@@ -1,5 +1,6 @@
 from .infinity import infinity
 from sage.structure.element import ModuleElement
+from .integer_ring import ZZ
 
 class LLS(ModuleElement):
     def __init__(self, parent, aux):

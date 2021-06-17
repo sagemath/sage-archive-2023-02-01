@@ -124,8 +124,8 @@ class ConvexSet_base(SageObject):
             sage: class ExampleSet(ConvexSet_base):
             ....:     def ambient_vector_space(self, base_field=None):
             ....:         return (base_field or QQ)^2001
-            sage: ExampleSet().ambient_dim()
-            2001
+            sage: ExampleSet().ambient()
+            Vector space of dimension 2001 over Rational Field
         """
         return self.ambient_vector_space()
 

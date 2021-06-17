@@ -2623,7 +2623,7 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable):
 
         It is the ambient lattice (:meth:`lattice`) tensored with a field.
 
-        INPUT::
+        INPUT:
 
         - ``base_field`` -- (default: the rationals) a field.
 

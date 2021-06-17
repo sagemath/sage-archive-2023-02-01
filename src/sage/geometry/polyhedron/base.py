@@ -2487,7 +2487,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         It is the ambient free module (:meth:`Vrepresentation_space`) tensored
         with a field.
 
-        INPUT::
+        INPUT:
 
         - ``base_field`` -- (default: the fraction field of the base ring) a field.
 

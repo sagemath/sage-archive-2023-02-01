@@ -684,7 +684,7 @@ class PolyhedronFace(ConvexSet_closed):
         It is the ambient free module of the containing polyhedron tensored
         with a field.
 
-        INPUT::
+        INPUT:
 
         - ``base_field`` -- (default: the fraction field of the base ring) a field.
 

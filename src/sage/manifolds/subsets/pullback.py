@@ -528,7 +528,12 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         """
         self._map = map
+        if inverse is None and isinstance(map, Chart):
+            def _inverse(coords):
+                return self.point(coords, chart=map)
+            inverse = _inverse
         self._inverse = inverse
+
         self._codomain_subset = codomain_subset
         base_manifold = map.domain()
         ManifoldSubset.__init__(self, base_manifold, name, latex_name=latex_name)

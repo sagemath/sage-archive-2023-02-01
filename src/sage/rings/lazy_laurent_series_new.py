@@ -17,6 +17,58 @@ class LLS(ModuleElement):
     def _add_(self, other):
         P = self.parent()
         return P.element_class(P, LLS_add(self._aux, other._aux))
+    
+    def _repr_(self):
+        """
+        Return the string representation of this Laurent series.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: -1/(1 + 2*z)
+            -1 + 2*z - 4*z^2 + 8*z^3 - 16*z^4 + 32*z^5 - 64*z^6 + ...
+        """
+        atomic_repr = self.base_ring()._repr_option('element_is_atomic')
+        X = self.parent().variable_name()
+
+        n = self._aux._approximate_valuation
+
+        if self._aux._constant is None:
+            m = n + 7  # long enough
+        elif self._aux._constant[0] != 0:
+            m = self._aux._constant[1] + 3
+        else:
+            m = self._aux._constant[1]
+
+        s = ' '
+        first = True
+        while n < m:
+            x = repr(self._aux[n])
+            if x != '0':
+                if not first:
+                    s += ' + '
+                if not atomic_repr and n > 0 and (x[1:].find('+') != -1 or x[1:].find('-') != -1):
+                    x = '({})'.format(x)
+                if n > 1 or n < 0:
+                    var = '*{}^{}'.format(X, n)
+                elif n == 1:
+                    var = '*{}'.format(X)
+                else:  # n == 0
+                    var = ''
+                s += '{}{}'.format(x, var)
+                first = False
+            n += 1
+
+        s = s.replace(" + -", " - ").replace(" 1*", " ").replace(" -1*", " -")[1:]
+
+        if not s:  # zero series
+            s = '0'
+
+        if self._aux._constant is None or self._aux._constant[1] > m or self._aux._constant[0] != 0:
+            s += ' + {}'.format('...')
+
+        return s
+    
 
 class LLS_aux():
     def __init__(self, is_sparse, approximate_valuation, constant=None):
@@ -57,10 +109,10 @@ class LLS_aux():
             c = self._cache[i]
 
         return c
+    
 
 class LLS_coefficient_function(LLS_aux):
     """
-
     EXAMPLES::
 
         sage: s = LLS_coefficient_function(lambda n: 1, True, 0)

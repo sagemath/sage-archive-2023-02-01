@@ -461,6 +461,8 @@ class ConvexSet_base(SageObject):
             sage: BlueBox().an_element()
             'blue'
         """
+        if self._some_elements_ == NotImplemented:
+            raise NotImplementedError
         try:
             return next(iter(self._some_elements_()))
         except StopIteration:
@@ -484,6 +486,8 @@ class ConvexSet_base(SageObject):
             sage: BlueBox().some_elements()
             ['blue', 'cyan']
         """
+        if self._some_elements_ == NotImplemented:
+            raise NotImplementedError
         return list(self._some_elements_())
 
     @abstract_method(optional=True)

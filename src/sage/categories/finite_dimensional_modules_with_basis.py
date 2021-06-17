@@ -338,7 +338,7 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 [x[0] - x[2], x[1] - x[2]]
             """
             if order is not None:
-                order = self._compute_support_order(order)
+                order = self._compute_support_order(elements, order)
             from sage.matrix.constructor import matrix
             mat = matrix(self.base_ring(), [g._vector_(order=order) for g in elements])
             # Echelonizing a matrix over a field returned the rref

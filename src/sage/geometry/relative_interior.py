@@ -240,6 +240,22 @@ class RelativeInterior(ConvexSet_relatively_open):
         assert not self._polyhedron.is_relatively_open()
         return False
 
+    def some_elements(self):
+        r"""
+        Generate some points of ``self``.
+
+        If ``self`` is empty, no points are generated; no exception will be raised.
+
+        EXAMPLES::
+
+            sage: P = polytopes.simplex()
+            sage: list(P.relative_interior().some_elements())
+            [(1/4, 1/4, 1/4, 1/4), (1/2, 1/4, 1/8, 1/8)]
+        """
+        for p in self._polyhedron.some_elements():
+            if p in self:
+                yield p
+
     def _repr_(self):
         r"""
         Return a description of ``self``.

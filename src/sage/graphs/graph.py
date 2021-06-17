@@ -2727,7 +2727,7 @@ class Graph(GenericGraph):
         A = self.automorphism_group()
         e = next(self.edge_iterator(labels=False))
         e = [A._domain_to_gap[e[0]], A._domain_to_gap[e[1]]]
-
+        e.sort()
         return libgap(A).OrbitLength(e, libgap.OnSets) == self.size()
 
     @doc_index("Graph properties")

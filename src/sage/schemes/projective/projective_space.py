@@ -1309,8 +1309,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         points in the same projective space, such that no n+1 points of each set are linearly dependent
         find the unique element of PGL that translates the source points to the target points.
 
-        Warning:: over non-exact rings such as the ComplexField, the returned matrix could
-        be very far from correct.
+        .. warning::
+            over non-exact rings such as the ComplexField, the returned matrix could
+            be very far from correct.
 
         INPUT:
 

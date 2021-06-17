@@ -124,8 +124,8 @@ class ConvexSet_base(SageObject):
             sage: class ExampleSet(ConvexSet_base):
             ....:     def ambient_vector_space(self, base_field=None):
             ....:         return (base_field or QQ)^2001
-            sage: ExampleSet().ambient_dim()
-            2001
+            sage: ExampleSet().ambient()
+            Vector space of dimension 2001 over Rational Field
         """
         return self.ambient_vector_space()
 
@@ -449,24 +449,45 @@ class ConvexSet_base(SageObject):
 
         If ``self`` is empty, an :class:`EmptySetError` will be raised.
 
-        The default implementation delegates to :meth:`some_elements`.
+        The default implementation delegates to :meth:`_some_elements_`.
 
         EXAMPLES::
 
             sage: from sage.geometry.convex_set import ConvexSet_compact
             sage: class BlueBox(ConvexSet_compact):
-            ....:     def some_elements(self):
+            ....:     def _some_elements_(self):
             ....:         yield 'blue'
             ....:         yield 'cyan'
             sage: BlueBox().an_element()
+            'blue'
         """
         try:
-            return next(iter(self.some_elements()))
+            return next(iter(self._some_elements_()))
         except StopIteration:
             raise EmptySetError
 
-    @abstract_method(optional=True)
     def some_elements(self):
+        r"""
+        Return a list of some points of ``self``.
+
+        If ``self`` is empty, an empty list is returned; no exception will be raised.
+
+        The default implementation delegates to :meth:`_some_elements_`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_compact
+            sage: class BlueBox(ConvexSet_compact):
+            ....:     def _some_elements_(self):
+            ....:         yield 'blue'
+            ....:         yield 'cyan'
+            sage: BlueBox().some_elements()
+            ['blue', 'cyan']
+        """
+        return list(self._some_elements_())
+
+    @abstract_method(optional=True)
+    def _some_elements_(self):
         r"""
         Generate some points of ``self``.
 
@@ -476,7 +497,7 @@ class ConvexSet_base(SageObject):
 
             sage: from sage.geometry.convex_set import ConvexSet_base
             sage: C = ConvexSet_base()
-            sage: C.some_elements(C)
+            sage: C._some_elements_(C)
             Traceback (most recent call last):
             ...
             TypeError: 'NotImplementedType' object is not callable

@@ -684,7 +684,7 @@ class PolyhedronFace(ConvexSet_closed):
         It is the ambient free module of the containing polyhedron tensored
         with a field.
 
-        INPUT::
+        INPUT:
 
         - ``base_field`` -- (default: the fraction field of the base ring) a field.
 
@@ -764,7 +764,7 @@ class PolyhedronFace(ConvexSet_closed):
         Vrep = (self.vertices(), self.rays(), self.lines())
         return P.__class__(parent, Vrep, None)
 
-    def some_elements(self):
+    def _some_elements_(self):
         r"""
         Generate some points of ``self``.
 
@@ -779,7 +779,9 @@ class PolyhedronFace(ConvexSet_closed):
             A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices
             sage: face.as_polyhedron().vertices()
             (A vertex at (0, -1, 0), A vertex at (0, 0, -1), A vertex at (1, 0, 0))
-            sage: list(face.some_elements())
+            sage: face.an_element()              # indirect doctest
+            (1/3, -1/3, -1/3)
+            sage: face.some_elements()           # indirect doctest
             [(1/3, -1/3, -1/3), (0, -1, 0), (0, -1/2, -1/2), (1/2, -1/4, -1/4)]
         """
         yield from self.as_polyhedron().some_elements()

@@ -1497,7 +1497,7 @@ class FinitePosets(CategoryWithAxiom):
                 orbit = [ A ]
                 while True:
                     A = self.order_ideal_toggles(A, vs)
-                    if A not in O:
+                    if A not in OI:
                         break
                     orbit.append( A )
                     OI.remove( A )

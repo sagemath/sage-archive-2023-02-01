@@ -13,7 +13,7 @@ Manifold Subsets Defined as Pullbacks of Subsets under Continuous Maps
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.categories.sets_cat import Sets
+from sage.categories.sets_cat import Sets, EmptySetError
 from sage.categories.modules_with_basis import ModulesWithBasis as FreeModules
 from sage.categories.metric_spaces import MetricSpaces
 from sage.modules.free_module import is_FreeModule
@@ -541,17 +541,84 @@ class ManifoldSubsetPullback(ManifoldSubset):
     def _an_element_(self):
         r"""
         Construct some point in ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: M = Manifold(3, 'R^3', structure='topological')
+            sage: c_cart.<x,y,z> = M.chart() # Cartesian coordinates on R^3
+            sage: Cube = polytopes.cube(); Cube
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: McCube = ManifoldSubsetPullback(c_cart, None, Cube, name='McCube'); McCube
+            Subset McCube of the 3-dimensional topological manifold R^3
+            sage: p = McCube.an_element(); p
+            Point on the 3-dimensional topological manifold R^3
+            sage: p.coordinates(c_cart)
+            (0, 0, 0)
+
+            sage: Empty = Polyhedron(ambient_dim=3)
+            sage: McEmpty = ManifoldSubsetPullback(c_cart, None, Empty, name='McEmpty'); McEmpty
+            Subset McEmpty of the 3-dimensional topological manifold R^3
+            sage: McEmpty.an_element()
+            Traceback (most recent call last):
+            ...
+            sage.categories.sets_cat.EmptySetError
+        """
+        try:
+            return next(iter(self.some_elements()))
+        except StopIteration:
+            raise EmptySetError
+
+    def some_elements(self):
+        r"""
+        Generate some elements of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+            sage: M = Manifold(3, 'R^3', structure='topological')
+            sage: c_cart.<x,y,z> = M.chart() # Cartesian coordinates on R^3
+            sage: Cube = polytopes.cube(); Cube
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: McCube = ManifoldSubsetPullback(c_cart, None, Cube, name='McCube'); McCube
+            Subset McCube of the 3-dimensional topological manifold R^3
+            sage: L = list(McCube.some_elements()); L
+            [Point on the 3-dimensional topological manifold R^3,
+             Point on the 3-dimensional topological manifold R^3,
+             Point on the 3-dimensional topological manifold R^3,
+             Point on the 3-dimensional topological manifold R^3,
+             Point on the 3-dimensional topological manifold R^3,
+             Point on the 3-dimensional topological manifold R^3]
+            sage: list(p.coordinates(c_cart) for p in L)
+            [(0, 0, 0),
+             (1, -1, -1),
+             (1, 0, -1),
+             (1, 1/2, 0),
+             (1, -1/4, 1/2),
+             (0, -5/8, 3/4)]
+
+            sage: Empty = Polyhedron(ambient_dim=3)
+            sage: McEmpty = ManifoldSubsetPullback(c_cart, None, Empty, name='McEmpty'); McEmpty
+            Subset McEmpty of the 3-dimensional topological manifold R^3
+            sage: list(McEmpty.some_elements())
+            []
         """
         if self._inverse is not None:
-            return self._inverse(self._codomain_subset.an_element())
-        p = super()._an_element_()
-        if p in self:
-            return p
-        return self.element_class(self)
+            for y in self._codomain_subset.some_elements():
+                yield self._inverse(y)
+        elif self.is_empty():
+            return
+        else:
+            # Fallback
+            p = super()._an_element_()
+            if p in self:
+                yield p
 
     def __contains__(self, point):
         r"""
         Check whether ``point`` is contained in ``self``.
+
+        EXAMPLES::
 
             sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
             sage: M = Manifold(3, 'R^3', structure='topological')

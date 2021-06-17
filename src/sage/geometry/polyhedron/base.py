@@ -3302,7 +3302,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         accumulator.set_immutable()
         return accumulator
 
-    def some_elements(self):
+    def _some_elements_(self):
         r"""
         Generate some points of ``self``.
 
@@ -3311,7 +3311,9 @@ class Polyhedron_base(Element, ConvexSet_closed):
         EXAMPLES::
 
             sage: P = polytopes.simplex()
-            sage: list(P.some_elements())
+            sage: P.an_element()            # indirect doctest
+            (1/4, 1/4, 1/4, 1/4)
+            sage: P.some_elements()         # indirect doctest
             [(1/4, 1/4, 1/4, 1/4),
              (0, 0, 0, 1),
              (0, 0, 1/2, 1/2),

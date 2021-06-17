@@ -1515,6 +1515,162 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
                     return_mat *= lcm
         return return_mat
 
+    def hyperplane_transformation_matrix(self, plane_1, plane_2):
+        r"""
+        Return a PGL element sending ``plane_1`` to ``plane_2``.
+
+        ``plane_1`` and ``plane_2`` must be hyperplanes (subschemes of
+        codimension 1, each defined by a single linear homogenous equation).
+
+        INPUT:
+
+        - ``plane_1``, ``plane_2`` -- hyperplanes of this projective space
+
+        OUTPUT: An element of PGL
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: plane1 = P.subscheme(x)
+            sage: plane2 = P.subscheme(y)
+            sage: m = P.hyperplane_transformation_matrix(plane1, plane2); m
+            [-1 -1]
+            [ 1  0]
+            sage: plane2(m*P((0,1)))
+            (1 : 0)
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: plane1 = P.subscheme(x + 2*y + z)
+            sage: plane2 = P.subscheme(2*x + y + z)
+            sage: P.hyperplane_transformation_matrix(plane1, plane2)
+            [  -3    0    0    0]
+            [   9    6    0    0]
+            [-3/2   -3  3/2    0]
+            [-1/2   -1 -1/2    1]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(ZZ, 1)
+            sage: plane1 = P.subscheme(x + y)
+            sage: plane2 = P.subscheme(y)
+            sage: P.hyperplane_transformation_matrix(plane1, plane2)
+            [ 1  0]
+            [-1 -1]
+
+        ::
+
+            sage: K.<v> = CyclotomicField(3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: plane1 = P.subscheme(x - 2*v*y + z)
+            sage: plane2 = P.subscheme(x + v*y + v*z)
+            sage: m = P.hyperplane_transformation_matrix(plane1, plane2)
+            sage: m
+            [ -6/7*v - 2/7             0             0]
+            [ 2/7*v + 10/7  -4/7*v + 8/7             0]
+            [ -4/7*v + 1/7 -10/7*v - 8/7             1]
+
+        ::
+
+            sage: R.<x> = QQ[]
+            sage: K.<k> = NumberField(x^2+1)
+            sage: P.<x,y,z,w> = ProjectiveSpace(K, 3)
+            sage: plane1 = P.subscheme(k*x + 2*k*y + z)
+            sage: plane2 = P.subscheme(7*k*x + y + 9*z)
+            sage: m = P.hyperplane_transformation_matrix(plane1, plane2); m
+            [   297/410*k + 279/410                      0                      0                      0]
+            [-3609/410*k + 4437/410 -1656/205*k + 2358/205                      0                      0]
+            [    511/410*k - 24/205     511/205*k - 48/205   -107/205*k + 327/410                      0]
+            [    83/410*k - 107/205     83/205*k - 214/205     107/205*k + 83/410                      1]
+
+        ::
+
+            sage: K.<v> = CyclotomicField(3)
+            sage: R.<t> = K[]
+            sage: F.<w> = K.extension(t^5 + 2)
+            sage: G.<u> = F.absolute_field()
+            sage: P.<x,y,z> = ProjectiveSpace(G, 2)
+            sage: plane1 = P.subscheme(x - 2*u*y + z)
+            sage: plane2 = P.subscheme(x + u*y + z)
+            sage: m = P.hyperplane_transformation_matrix(plane1, plane2)
+            sage: plane2(m*P((2*u, 1, 0)))
+            (-u : 1 : 0)
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: plane1 = P.subscheme(x^2)
+            sage: plane2 = P.subscheme(y)
+            sage: P.hyperplane_transformation_matrix(plane1, plane2)
+            Traceback (most recent call last):
+            ...
+            ValueError: plane_1 must be defined by a single degree 1 equation
+        """
+        from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
+        if not isinstance(plane_1, AlgebraicScheme_subscheme_projective):
+            raise TypeError('plane_1 must be a subscheme')
+        if not isinstance(plane_2, AlgebraicScheme_subscheme_projective):
+            raise TypeError('plane_2 must be a subscheme')
+        if plane_1.ambient_space() != self:
+            raise ValueError('plane_1 must be a subscheme of this projective space')
+        if plane_2.ambient_space() != self:
+            raise ValueError('plane_2 must be a subscheme of this projective space')
+        if len(plane_1.defining_polynomials()) > 1 or plane_1.defining_polynomials()[0].degree() != 1:
+            raise ValueError('plane_1 must be defined by a single degree 1 equation')
+        if len(plane_2.defining_polynomials()) > 1 or plane_2.defining_polynomials()[0].degree() != 1:
+            raise ValueError('plane_2 must be defined by a single degree 1 equation')
+        N = self.dimension_relative()
+        CR = self.coordinate_ring()
+        points = []
+        from sage.rings.rational_field import QQ
+        P_QQ = ProjectiveSpace(QQ, N)
+        # to determine the PGL transform, we need N+2 points source points and N+2 target points,
+        # of which no N+1 are co-planar. Additionally, in order to map plane_1 to plane_2, N source
+        # points must lie on plane_1, and N target points must lie on plane_2
+        for plane in [plane_1, plane_2]:
+            source_points = []
+            nonzero_places = []
+            height_1 = P_QQ.points_of_bounded_height(bound=1)
+
+            # first we find N planar points
+            # we have a single linear equation with N+1 variables
+            # first we add a point for each variable with coefficient 0
+            # giving us J points added in this loop
+            for i in range(N+1):
+                if plane.defining_polynomials()[0].coefficient(CR.gens()[i]) == 0:
+                    L = [0]*(N+1)
+                    L[i] = 1
+                    source_points.append(self(L))
+                else:
+                    nonzero_places.append(i)
+            # next we add a point for each variable with non-zero coefficient, except the last
+            # giving us a total of (N+1) - J - 1 = N - J points added in this loop
+            # resulting in exactly J + (N-J) = N points on the plane
+            for i in range(len(nonzero_places)-1):
+                nonzero_place1 = nonzero_places[i]
+                nonzero_place2 = nonzero_places[i+1]
+                L = [0]*(N+1)
+                L[nonzero_place1] = -1*plane.defining_polynomials()[0].coefficient(CR.gens()[nonzero_place2])
+                L[nonzero_place2] = plane.defining_polynomials()[0].coefficient(CR.gens()[nonzero_place1])
+                source_points.append(self(L))
+
+            # next we add independent points until we have N+2 points total
+            for point in height_1:
+                if len(source_points) == N:
+                    try:
+                        plane(point)
+                    except:
+                        source_points.append(self(point))
+                        base_list = [list(s) for s in source_points]
+                elif len(source_points) == N+1:
+                    Ms = matrix(base_list + [point])
+                    if not any([m == 0 for m in Ms.minors(N + 1)]):
+                        source_points.append(self(point))
+                        break
+            points.append(source_points)
+        return self.point_transformation_matrix(points[0], points[1])
+
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):
@@ -1811,153 +1967,6 @@ class ProjectiveSpace_field(ProjectiveSpace_ring):
 
         m = matrix(3, list(self.gens()) + list(p) + list(q))
         return Curve([f for f in m.minors(3) if f])
-
-    def hyperplane_transformation_matrix(self, plane_1, plane_2):
-        r"""
-        Return a PGL element sending ``plane_1`` to ``plane_2``.
-
-        ``plane_1`` and ``plane_2`` must be hyperplanes (subschemes of
-        codimension 1, each defined by a single linear homogenous equation).
-
-        INPUT:
-
-        - ``plane_1``, ``plane_2`` -- hyperplanes of this projective space
-
-        OUTPUT: An element of PGL
-
-        EXAMPLES::
-
-            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: plane1 = P.subscheme(x)
-            sage: plane2 = P.subscheme(y)
-            sage: m = P.hyperplane_transformation_matrix(plane1, plane2); m
-            [-1 -1]
-            [ 1  0]
-            sage: plane2(m*P((0,1)))
-            (1 : 0)
-
-        ::
-
-            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
-            sage: plane1 = P.subscheme(x + 2*y + z)
-            sage: plane2 = P.subscheme(2*x + y + z)
-            sage: P.hyperplane_transformation_matrix(plane1, plane2)
-            [  -3    0    0    0]
-            [   9    6    0    0]
-            [-3/2   -3  3/2    0]
-            [-1/2   -1 -1/2    1]
-
-        ::
-
-            sage: K.<v> = CyclotomicField(3)
-            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
-            sage: plane1 = P.subscheme(x - 2*v*y + z)
-            sage: plane2 = P.subscheme(x + v*y + v*z)
-            sage: m = P.hyperplane_transformation_matrix(plane1, plane2)
-            sage: m
-            [ -6/7*v - 2/7             0             0]
-            [ 2/7*v + 10/7  -4/7*v + 8/7             0]
-            [ -4/7*v + 1/7 -10/7*v - 8/7             1]
-
-        ::
-
-            sage: R.<x> = QQ[]
-            sage: K.<k> = NumberField(x^2+1)
-            sage: P.<x,y,z,w> = ProjectiveSpace(K, 3)
-            sage: plane1 = P.subscheme(k*x + 2*k*y + z)
-            sage: plane2 = P.subscheme(7*k*x + y + 9*z)
-            sage: m = P.hyperplane_transformation_matrix(plane1, plane2); m
-            [   297/410*k + 279/410                      0                      0                      0]
-            [-3609/410*k + 4437/410 -1656/205*k + 2358/205                      0                      0]
-            [    511/410*k - 24/205     511/205*k - 48/205   -107/205*k + 327/410                      0]
-            [    83/410*k - 107/205     83/205*k - 214/205     107/205*k + 83/410                      1]
-
-        ::
-
-            sage: K.<v> = CyclotomicField(3)
-            sage: R.<t> = K[]
-            sage: F.<w> = K.extension(t^5 + 2)
-            sage: G.<u> = F.absolute_field()
-            sage: P.<x,y,z> = ProjectiveSpace(G, 2)
-            sage: plane1 = P.subscheme(x - 2*u*y + z)
-            sage: plane2 = P.subscheme(x + u*y + z)
-            sage: m = P.hyperplane_transformation_matrix(plane1, plane2)
-            sage: plane2(m*P((2*u, 1, 0)))
-            (-u : 1 : 0)
-
-        TESTS::
-
-            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: plane1 = P.subscheme(x^2)
-            sage: plane2 = P.subscheme(y)
-            sage: P.hyperplane_transformation_matrix(plane1, plane2)
-            Traceback (most recent call last):
-            ...
-            ValueError: plane_1 must be defined by a single degree 1 equation
-        """
-        from sage.schemes.projective.projective_subscheme import AlgebraicScheme_subscheme_projective
-        if not isinstance(plane_1, AlgebraicScheme_subscheme_projective):
-            raise TypeError('plane_1 must be a subscheme')
-        if not isinstance(plane_2, AlgebraicScheme_subscheme_projective):
-            raise TypeError('plane_2 must be a subscheme')
-        if plane_1.ambient_space() != self:
-            raise ValueError('plane_1 must be a subscheme of this projective space')
-        if plane_2.ambient_space() != self:
-            raise ValueError('plane_2 must be a subscheme of this projective space')
-        if len(plane_1.defining_polynomials()) > 1 or plane_1.defining_polynomials()[0].degree() != 1:
-            raise ValueError('plane_1 must be defined by a single degree 1 equation')
-        if len(plane_2.defining_polynomials()) > 1 or plane_2.defining_polynomials()[0].degree() != 1:
-            raise ValueError('plane_2 must be defined by a single degree 1 equation')
-        N = self.dimension()
-        CR = self.coordinate_ring()
-        points = []
-        from sage.rings.rational_field import QQ
-        P_QQ = ProjectiveSpace(QQ, N)
-        # to determine the PGL transform, we need N+2 points source points and N+2 target points,
-        # of which no N+1 are co-planar. Additionally, in order to map plane_1 to plane_2, N source
-        # points must lie on plane_1, and N target points must lie on plane_2
-        for plane in [plane_1, plane_2]:
-            source_points = []
-            nonzero_places = []
-            height_1 = P_QQ.points_of_bounded_height(bound=1)
-
-            # first we find N planar points
-            # we have a single linear equation with N+1 variables
-            # first we add a point for each variable with coefficient 0
-            # giving us J points added in this loop
-            for i in range(N+1):
-                if plane.defining_polynomials()[0].coefficient(CR.gens()[i]) == 0:
-                    L = [0]*(N+1)
-                    L[i] = 1
-                    source_points.append(self(L))
-                else:
-                    nonzero_places.append(i)
-            # next we add a point for each variable with non-zero coefficient, except the last
-            # giving us a total of (N+1) - J - 1 = N - J points added in this loop
-            # resulting in exactly J + (N-J) = N points on the plane
-            for i in range(len(nonzero_places)-1):
-                nonzero_place1 = nonzero_places[i]
-                nonzero_place2 = nonzero_places[i+1]
-                L = [0]*(N+1)
-                L[nonzero_place1] = -1*plane.defining_polynomials()[0].coefficient(CR.gens()[nonzero_place2])
-                L[nonzero_place2] = plane.defining_polynomials()[0].coefficient(CR.gens()[nonzero_place1])
-                source_points.append(self(L))
-
-            # next we add independent points until we have N+2 points total
-            for point in height_1:
-                if len(source_points) == N:
-                    try:
-                        plane(point)
-                    except:
-                        source_points.append(self(point))
-                        base_list = [list(s) for s in source_points]
-                elif len(source_points) == N+1:
-                    Ms = matrix(base_list + [point])
-                    if not any([m == 0 for m in Ms.minors(N + 1)]):
-                        source_points.append(self(point))
-                        break
-            points.append(source_points)
-        return self.point_transformation_matrix(points[0], points[1])
 
 class ProjectiveSpace_finite_field(ProjectiveSpace_field):
     def _point(self, *args, **kwds):

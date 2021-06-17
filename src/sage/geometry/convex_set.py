@@ -13,6 +13,7 @@ Convex Sets
 # ****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.categories.sets_cat import EmptySetError
 from sage.misc.abstract_method import abstract_method
 
 class ConvexSet_base(SageObject):
@@ -587,7 +588,7 @@ class ConvexSet_base(SageObject):
         space = self.ambient_vector_space()
         try:
             ambient_point = ambient.an_element()
-        except (AttributeError, NotImplementedError):
+        except (AttributeError, NotImplementedError, EmptySetError):
             ambient_point = None
             space_point = space.an_element()
         else:
@@ -608,6 +609,15 @@ class ConvexSet_base(SageObject):
             symbolic_space_point = symbolic_space(space_point)
             # Only test that it can accept SR vectors without error.
             self.contains(symbolic_space_point)
+            # Test that elements returned by some_elements are contained.
+            try:
+                points = self.some_elements()
+            except NotImplementedError:
+                pass
+            else:
+                for point in points:
+                    tester.assertTrue(self.contains(point))
+                    tester.assertTrue(point in self)
 
     @abstract_method(optional=True)
     def intersection(self, other):

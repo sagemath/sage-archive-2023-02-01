@@ -281,23 +281,12 @@ class LLS_rmul(LLS_aux):
         """
         self._series = series
         self._scalar = scalar
+
         a = series._approximate_valuation
-
-        # if left._constant is not None and right._constant is not None:
-        #     c = (left._constant[0] + right._constant[0],
-        #          max(left._constant[1], right._constant[1]))
-        # else:
-        #     c = None
-        
-        # if left._is_sparse != right._is_sparse:
-        #     raise NotImplementedError
-
         if series._constant is not None:
             c = (scalar * series._constant[0], series._constant[1])
         else:
             c = None
-
-        # return R.element_class(R, coefficient=op, valuation=a, constant=c)
         
         super().__init__(series._is_sparse, a, c)
     

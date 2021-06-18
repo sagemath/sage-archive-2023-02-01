@@ -1701,7 +1701,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
                     self.coefficient_ring.has_coerce_map_from(S.coefficient_ring):
                 return True
 
-    def _element_constructor_(self, data, coefficient=None, valid_from=None):
+    def _element_constructor_(self, data, coefficient=None, **kwds):
         r"""
         Convert the given object to this term monoid.
 
@@ -1713,9 +1713,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
         - ``coefficient`` -- (default: ``None``)
           an element of the coefficient ring.
 
-        - ``valid_from`` -- (default: ``None``)
-          a dictionary mapping variable names to lower bounds for the corresponding
-          variable.
+        - ``**kwds`` -- keywords for creation of some terms like BTerms.
 
         OUTPUT:
 
@@ -1823,10 +1821,8 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             except (ValueError, TypeError) as e:
                 raise combine_exceptions(
                     ValueError('Growth %s is not in %s.' % (data, self)), e)
-            if valid_from is not None:
-                return self._create_element_(data, coefficient, valid_from)
             else:
-                return self._create_element_(data, coefficient)
+                return self._create_element_(data, coefficient, **kwds)
 
         try:
             growth, coefficient = self._split_growth_and_coefficient_(data)
@@ -4007,11 +4003,11 @@ class BTerm(TermWithCoefficient):
 
         sage: G = MonomialGrowthGroup(ZZ, 'x');
         sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
-        sage: BT_QQ(x, 3, {'x': 20})
+        sage: BT_QQ(x, 3, valid_from={'m': 20})
         doctest:...:
         FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See https://trac.sagemath.org/31922 for details.
-        BTerm with coefficient 3, growth x and valid for x >= 20
+        BTerm with coefficient 3, growth x and valid for m >= 20
 
     WARNING::
         As this code is experimental, warnings are thrown when a Bterm
@@ -4059,8 +4055,8 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
-            sage: BT_QQ(x, 3, {'x': 20, 'm': 5})
-            BTerm with coefficient 3, growth x and valid for x >= 20 and m >= 5
+            sage: BT_QQ(x, 3, valid_from={'m': 20, 'n': 5})
+            BTerm with coefficient 3, growth x and valid for m >= 20 and n >= 5
         """
         valid_from_string = ' and '.join(f'{variable} >= {value}'
                                          for variable, value in self.valid_from.items())
@@ -4094,7 +4090,7 @@ class BTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: BT = TermMonoid('B', GrowthGroup('x^ZZ'), QQ)
-            sage: t1 = BT(x, 3, {'x': 20}); t2 = BT(x, 1, {'x': 10})
+            sage: t1 = BT(x, 3, valid_from={'m': 20}); t2 = BT(x, 1, valid_from={'m': 10})
             sage: t1.can_absorb(t2)
             True
             sage: t2.can_absorb(t1)
@@ -4128,12 +4124,16 @@ class BTerm(TermWithCoefficient):
 
         sage: G = MonomialGrowthGroup(ZZ, 'x')
         sage: BT = BTermMonoid(TermMonoid, G, QQ)
-        sage: t1 = BT(x, 3, {'x': 20}); t2 = BT(x, 1, {'x': 10})
+        sage: t1 = BT(x, 3, valid_from={'m': 20}); t2 = BT(x, 1, valid_from={'m': 10});
+        sage: t1
+        BTerm with coefficient 3, growth x and valid for m >= 20
+        sage: t1.can_absorb(t2)
+        True
         sage: t1.absorb(t2)
-        BTerm with coefficient 61/20, growth x and valid for x >= 20
+        BTerm with coefficient 61/20, growth x and valid for m >= 20
         """
-        coeff_new = self.coefficient + other.coefficient / self.valid_from[str(self.growth)]
-        return self.parent()(self.growth, coeff_new, self.valid_from)
+        coeff_new = self.coefficient + other.coefficient / self.valid_from[next(iter(self.valid_from))]
+        return self.parent()(self.growth, coeff_new, valid_from=self.valid_from)
 
 
 class BTermMonoid(TermWithCoefficientMonoid):
@@ -4189,7 +4189,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
         return f'BTerm Monoid {self.growth_group._repr_short_()} with ' + \
                f'coefficients in {self.coefficient_ring}'
 
-    def _create_element_(self, growth, coefficient, valid_from):
+    def _create_element_(self, growth, coefficient, **kwds):
         r"""
         Helper method which creates an element by using the ``element_class``.
 
@@ -4197,7 +4197,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
         TESTS:
         """
-        return self.element_class(self, growth, coefficient, valid_from)
+        return self.element_class(self, growth, coefficient, **kwds)
 
 
 class TermMonoidFactory(UniqueRepresentation, UniqueFactory):

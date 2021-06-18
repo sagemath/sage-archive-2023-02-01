@@ -32,6 +32,66 @@ class LLS(ModuleElement):
         P = self.parent()
         return P.element_class(P, LLS_neg(self._aux))
     
+    def valuation(self):
+        """
+        Return the valuation of the series.
+
+        This method determines the valuation of the series by looking for a
+        nonzero coefficient. Hence if the series happens to be zero, then it
+        may run forever.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: s = 1/(1 - z) - 1/(1 - 2*z)
+            sage: s.valuation()
+            1
+            sage: t = z - z
+            sage: t.valuation()
+            +Infinity
+        """
+        if self._aux._constant is not None:
+            n = self._aux._approximate_valuation
+            m = self._aux._constant[1]
+            while n <= m:
+                if self[n] != 0:
+                    self._aux._approximate_valuation = n
+                    return n
+                n += 1
+            return infinity
+
+        elif self._aux._is_sparse:
+            if self._aux._constant is None:
+                n = self._aux._approximate_valuation
+                cache = self._aux._cache
+                while True:
+                    if n in cache:
+                        if cache[n]:
+                            self._aux._approximate_valuation = n
+                            return n
+                        n += 1
+                    else:
+                        if self[n] != 0:
+                            self._aux._approximate_valuation = n
+                            return n
+                        n += 1
+
+        else:
+            if self._aux._constant is None:
+                n = self._aux._approximate_valuation
+                cache = self._aux._cache
+                while True:
+                    if n - self._aux._offset < len(cache):
+                        if cache[n - self._aux._offset]:
+                            self._aux._approximate_valuation = n
+                            return n
+                        n += 1
+                    else:
+                        if self[n] != 0:
+                            self._aux._approximate_valuation = n
+                            return n
+                        n += 1
+    
     def _repr_(self):
         """
         Return the string representation of this Laurent series.

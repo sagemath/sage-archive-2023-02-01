@@ -134,6 +134,10 @@ class LLS(ModuleElement):
 
         return False
     
+    def __hash__(self):
+        return hash((type(self), self._aux._coefficient_function,
+                     self._aux._approximate_valuation, self._aux._constant)) 
+    
 
 class LLS_aux():
     def __init__(self, is_sparse, approximate_valuation, constant=None):

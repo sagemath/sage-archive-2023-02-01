@@ -748,26 +748,6 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: McP.is_closed()
             True
 
-            sage: from ppl import Variable, NNC_Polyhedron, Constraint_System
-            sage: u = Variable(0)
-            sage: v = Variable(1)
-            sage: CS = Constraint_System()
-            sage: CS.insert(0 <= u)
-            sage: CS.insert(u <= 1)
-            sage: CS.insert(0 <= v)
-            sage: CS.insert(v <= 1)
-            sage: CS.insert(u + v < 3)
-            sage: P = NNC_Polyhedron(CS); P
-            A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 points
-            sage: S = ManifoldSubsetPullback(c_cart, None, P); S
-            Traceback (most recent call last):
-            ...
-            TypeError: unhashable type: 'NNC_Polyhedron'
-            sage: S.is_closed()
-            Traceback (most recent call last):
-            ...
-            NameError: name 'S' is not defined
-
         The pullback of real vector subspaces under a chart is closed::
 
             sage: V = span([[1, 2]], RR); V

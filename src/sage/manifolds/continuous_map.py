@@ -872,7 +872,8 @@ class ContinuousMap(Morphism):
 
         INPUT:
 
-        - ``codomain_subset`` -- an instance of :class:`ManifoldSubset`
+        - ``codomain_subset`` -- an instance of
+          :class:`~sage.manifolds.subset.ManifoldSubset`
         - ``name`` -- string; name (symbol) given to the subset
         - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
           denote the subset; if none are provided, it is set to ``name``

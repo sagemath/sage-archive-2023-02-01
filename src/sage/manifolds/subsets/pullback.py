@@ -40,7 +40,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
     - ``map`` - an instance of :class:`ContinuousMap` or
       :class:`ScalarField` or :class:`Chart`
 
-    - ``codomain_subset`` - an instance of :class:`ManifoldSubset`,
+    - ``codomain_subset`` - an instance of :class:`~sage.manifolds.subset.ManifoldSubset`,
       :class:`RealSet`, :class:`Polyhedron_base`,
       :class:`C_Polyhedron`, :class:`NNC_Polyhedron`
 
@@ -696,7 +696,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
         Because the map is continuous, the pullback is open if the
         ``codomain_subset`` is open.
 
-        However, the design of :class:`ManifoldSubset` requires that open subsets
+        However, the design of :class:`~sage.manifolds.subset.ManifoldSubset` requires that open subsets
         are instances of the subclass :class:`TopologicalManifold`.
         The constructor of :class:`ManifoldSubsetPullback` delegates to a subclass
         of :class:`TopologicalManifold` for some open subsets.

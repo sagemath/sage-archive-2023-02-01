@@ -37,12 +37,11 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
     INPUT:
 
-    - ``map`` - an instance of :class:`ContinuousMap` or
-      :class:`ScalarField` or :class:`Chart`
+    - ``map`` - an instance of :class:`ContinuousMap`,
+      :class:`ScalarField`, or :class:`Chart`
 
     - ``codomain_subset`` - an instance of :class:`~sage.manifolds.subset.ManifoldSubset`,
-      :class:`RealSet`, :class:`Polyhedron_base`,
-      :class:`C_Polyhedron`, :class:`NNC_Polyhedron`
+      :class:`RealSet`, or :class:`~sage.geometry.convex_set.ConvexSet_base`
 
     EXAMPLES::
 
@@ -504,7 +503,8 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         OUTPUT:
 
-        - an object suitable for the parameter ``coord_def`` of :meth:`TopologicalManifold.open_subset`.
+        - an object suitable for the parameter ``coord_def`` of
+          :meth:`sage.manifolds.manifold.TopologicalManifold.open_subset`.
 
         EXAMPLES::
 
@@ -697,9 +697,9 @@ class ManifoldSubsetPullback(ManifoldSubset):
         ``codomain_subset`` is open.
 
         However, the design of :class:`~sage.manifolds.subset.ManifoldSubset` requires that open subsets
-        are instances of the subclass :class:`TopologicalManifold`.
+        are instances of the subclass :class:`sage.manifolds.manifold.TopologicalManifold`.
         The constructor of :class:`ManifoldSubsetPullback` delegates to a subclass
-        of :class:`TopologicalManifold` for some open subsets.
+        of :class:`sage.manifolds.manifold.TopologicalManifold` for some open subsets.
 
         EXAMPLES::
 

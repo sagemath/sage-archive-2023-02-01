@@ -844,22 +844,30 @@ class DiffMap(ContinuousMap):
         r"""
         Pullback operator associated with ``self``.
 
-        In what follows, let `\Phi` denote a differentiable map, `M` its
-        domain and `N` its codomain.
+        In what follows, let `\Phi` denote a differentiable map ``self``,
+        `M` its domain and `N` its codomain.
 
         INPUT:
 
-        - ``tensor`` --
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`;
-          a fully covariant tensor field `T` on `N`, i.e. a tensor
-          field of type `(0, p)`, with `p` a positive or zero integer; the
-          case `p = 0` corresponds to a scalar field
+        One of the following:
+
+        - ``tensor_or_codomain_subset`` -- one of the following:
+
+          - a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`;
+            a fully covariant tensor field `T` on `N`, i.e. a tensor
+            field of type `(0, p)`, with `p` a positive or zero integer; the
+            case `p = 0` corresponds to a scalar field
+          - a :class:`~sage.manifolds.subset.ManifoldSubset` `S`
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+        - (if the input is a tensor field `T`)
+          a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a fully covariant tensor field on `M` that is the
           pullback of `T` by `\Phi`
+        - (if the input is a manifold subset `S`)
+          a :class:`~sage.manifolds.subset.ManifoldSubset` that is the
+          preimage `\Phi^{-1}(S)`; same as :meth:`preimage`
 
         EXAMPLES:
 

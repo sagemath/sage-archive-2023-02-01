@@ -870,6 +870,8 @@ class ContinuousMap(Morphism):
         r"""
         Return the preimage of ``codomain_subset`` under ``self``.
 
+        An alias is :meth:`pullback`.
+
         INPUT:
 
         - ``codomain_subset`` -- an instance of

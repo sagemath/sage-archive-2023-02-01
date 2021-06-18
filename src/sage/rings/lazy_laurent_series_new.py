@@ -32,6 +32,75 @@ class LLS(ModuleElement):
         P = self.parent()
         return P.element_class(P, LLS_neg(self._aux))
     
+    def polynomial(self, degree=None, name=None):
+        """
+        Return the polynomial or Laurent polynomial if the series is actually so.
+
+        INPUT:
+
+        - ``degree`` -- ``None`` or an integer
+
+        - ``name`` -- name of the variable; if it is ``None``, the name of the variable
+          of the series is used
+
+        OUTPUT: a Laurent polynomial if the valuation of the series is negative or
+        a polynomial otherwise.
+
+        If ``degree`` is not ``None``, the terms of the series of degree
+        greater than ``degree`` are truncated first. If ``degree`` is ``None``
+        and the series is not a polynomial or a Laurent polynomial, a
+        ``ValueError`` is raised.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: f = L.series([1,0,0,2,0,0,0,3], 5); f
+            z^5 + 2*z^8 + 3*z^12
+            sage: f.polynomial()
+            3*z^12 + 2*z^8 + z^5
+
+        ::
+
+            sage: g = L.series([1,0,0,2,0,0,0,3], -5); g
+            z^-5 + 2*z^-2 + 3*z^2
+            sage: g.polynomial()
+            z^-5 + 2*z^-2 + 3*z^2
+
+        ::
+
+            sage: z = L.gen()
+            sage: f = (1 + z)/(z^3 - z^5)
+            sage: f
+            z^-3 + z^-2 + z^-1 + 1 + z + z^2 + z^3 + ...
+            sage: f.polynomial(5)
+            z^-3 + z^-2 + z^-1 + 1 + z + z^2 + z^3 + z^4 + z^5
+            sage: f.polynomial(0)
+            z^-3 + z^-2 + z^-1 + 1
+            sage: f.polynomial(-5)
+            0
+        """
+        if degree is None:
+            if self._aux._constant is None or not self._aux._constant[0].is_zero():
+                raise ValueError("not a polynomial")
+            m = self._aux._constant[1]
+        else:
+            m = degree + 1
+
+        S = self.parent()
+
+        if name is None:
+            name = S.variable_name()
+
+        if self.valuation() < 0:
+            from sage.rings.all import LaurentPolynomialRing
+            R = LaurentPolynomialRing(S.base_ring(), name=name)
+            n = self.valuation()
+            return R([self[i] for i in range(n, m)]).shift(n)
+        else:
+            from sage.rings.all import PolynomialRing
+            R = PolynomialRing(S.base_ring(), name=name)
+            return R([self[i] for i in range(m)])
+    
     def valuation(self):
         """
         Return the valuation of the series.

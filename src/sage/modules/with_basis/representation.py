@@ -168,13 +168,24 @@ class Representation(Representation_abstract):
             sage: G = CyclicPermutationGroup(3)
             sage: M = algebras.Exterior(QQ, 'x', 3)
             sage: from sage.modules.with_basis.representation import Representation
-            sage: on_basis = lambda g,m: E.monomial(tuple(g(i+1)-1 for i in m[0])) #cyclically permute generators
+            sage: on_basis = lambda g,m: M.prod([M.monomial(tuple([g(j+1)-1])) for j in m]) #cyclically permute generators
             sage: from sage.categories.algebras import Algebras
             sage: R = Representation(G, M, on_basis, category = Algebras(QQ).WithBasis().FiniteDimensional())
             sage: r = R.an_element(); r
             1 + 2*x0 + x0*x1 + 3*x1
             sage: r*r
             1 + 4*x0 + 2*x0*x1 + 6*x1
+            sage: x0, x1, x2 = M.gens()
+            sage: s = R(x0*x1)
+            sage: g = G.an_element()
+            sage: g*s
+            x1*x2
+            sage: g*R(x1*x2)
+            -x0*x2
+            sage: g*r
+            1 + 2*x1 + x1*x2 + 3*x2
+            sage: g^2*r
+            1 + 3*x0 - x0*x2 + 2*x2
 
             sage: G = SymmetricGroup(4)
             sage: A = SymmetricGroup(4).algebra(QQ)
@@ -182,11 +193,15 @@ class Representation(Representation_abstract):
             sage: from sage.modules.with_basis.representation import Representation
             sage: action = lambda g,x: A.monomial(g*x)
             sage: category = Algebras(QQ).WithBasis().FiniteDimensional()
-            sage: R = Representation(G, A, action, 'left', category=category)
-            sage: r = R.an_element()
+            sage: R = Representation(G, A, action, 'left', category = category)
+            sage: r = R.an_element(); r
+            () + (2,3,4) + 2*(1,3)(2,4) + 3*(1,4)(2,3)
             sage: r^2
             14*() + 2*(2,3,4) + (2,4,3) + 12*(1,2)(3,4) + 3*(1,2,4) + 2*(1,3,2) + 4*(1,3)(2,4) + 5*(1,4,3) + 6*(1,4)(2,3)
-
+            sage: g = G.an_element(); g
+            (2,3,4)
+            sage: g*r
+            (2,3,4) + (2,4,3) + 2*(1,3,2) + 3*(1,4,3)
         """
         try:
             self.product_on_basis = module.product_on_basis

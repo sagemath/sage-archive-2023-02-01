@@ -32,6 +32,10 @@ class LLS(ModuleElement):
         P = self.parent()
         return P.element_class(P, LLS_neg(self._aux))
     
+    def __invert__(self):
+        P = self.parent()
+        return P.element_class(P, LLS_inv(self._aux))
+    
     def approximate_series(self, prec, name=None):
         """
         Return the Laurent series with absolute precision ``prec`` approximated
@@ -708,4 +712,65 @@ class LLS_neg(LLS_aux):
         while True:
             c = -1 * self._series[n]
             yield c
+            n += 1
+
+
+class LLS_inv(LLS_aux):
+    """
+    Operator for multiplicative inverse of the series.
+    """
+    def __init__(self, series):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z) * 1/(1 + z)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._series = series
+        self._v = series.valuation()
+        self._ainv = ~series[self._v]
+        self._zero = series.base_ring().zero()
+        v = series.valuation()
+
+        if v is infinity:
+            raise ZeroDivisionError('cannot invert zero')
+        
+        super().__init__(series._is_sparse, -v, series._constant)
+    
+    def get_coefficient(self, s, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = (1 + z)*(1 - z)
+            sage: f.coefficient(2)
+            -1
+        """
+
+        v = self._v
+        if n == -v:
+            return self._ainv
+        c = self._zero
+        for k in range(-v, n):
+            c += s[k] * self._series[n + v - k]
+        return -c * self._ainv
+
+    def iterate_coefficients(self):
+        n = self._offset
+        while True:
+            v = self._v
+            if n == -v:
+                yield self._ainv
+                n += 1
+                continue
+            c = self._zero
+            for k in range(-v, n):
+                c += s[k] * self._series[n + v - k]
+            yield -c * self._ainv
             n += 1

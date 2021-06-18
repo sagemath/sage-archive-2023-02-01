@@ -761,7 +761,7 @@ class LLS_inv(LLS_aux):
             c += s[k] * self._series[n + v - k]
         return -c * self._ainv
 
-    def iterate_coefficients(self):
+    def iterate_coefficients(self, s):
         n = self._offset
         while True:
             v = self._v

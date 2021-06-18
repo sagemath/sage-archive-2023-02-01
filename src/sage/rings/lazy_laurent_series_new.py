@@ -734,9 +734,8 @@ class LLS_inv(LLS_aux):
         self._v = series.valuation()
         self._ainv = ~series[self._v]
         self._zero = series.base_ring().zero()
-        v = series.valuation()
 
-        if v is infinity:
+        if self._v is infinity:
             raise ZeroDivisionError('cannot invert zero')
         
         super().__init__(series._is_sparse, -v, series._constant)

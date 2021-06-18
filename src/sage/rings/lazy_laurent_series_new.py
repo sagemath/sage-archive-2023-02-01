@@ -32,6 +32,56 @@ class LLS(ModuleElement):
         P = self.parent()
         return P.element_class(P, LLS_neg(self._aux))
     
+    def approximate_series(self, prec, name=None):
+        """
+        Return the Laurent series with absolute precision ``prec`` approximated
+        from this series.
+
+        INPUT:
+
+        - ``prec`` -- an integer
+
+        - ``name`` -- name of the variable; if it is ``None``, the name of the variable
+          of the series is used
+
+        OUTPUT: a Laurent series with absolute precision ``prec``
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = (z - 2*z^3)^5/(1 - 2*z)
+            sage: f
+            z^5 + 2*z^6 - 6*z^7 - 12*z^8 + 16*z^9 + 32*z^10 - 16*z^11 + ...
+            sage: g = f.approximate_series(10)
+            sage: g
+            z^5 + 2*z^6 - 6*z^7 - 12*z^8 + 16*z^9 + O(z^10)
+            sage: g.parent()
+            Power Series Ring in z over Integer Ring
+
+        ::
+
+            sage: h = (f^-1).approximate_series(3)
+            sage: h
+            z^-5 - 2*z^-4 + 10*z^-3 - 20*z^-2 + 60*z^-1 - 120 + 280*z - 560*z^2 + O(z^3)
+            sage: h.parent()
+            Laurent Series Ring in z over Integer Ring
+        """
+        S = self.parent()
+
+        if name is None:
+            name = S.variable_name()
+
+        if self.valuation() < 0:
+            from sage.rings.all import LaurentSeriesRing
+            R = LaurentSeriesRing(S.base_ring(), name=name)
+            n = self.valuation()
+            return R([self[i] for i in range(n, prec)], n).add_bigoh(prec)
+        else:
+            from sage.rings.all import PowerSeriesRing
+            R = PowerSeriesRing(S.base_ring(), name=name)
+            return R([self[i] for i in range(prec)]).add_bigoh(prec)
+
     def prec(self):
         """
         Return the precision of the series, which is infinity.

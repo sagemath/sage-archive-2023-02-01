@@ -365,7 +365,7 @@ as Sage's `e` (:trac:`29833`)::
     e^x
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -378,7 +378,7 @@ as Sage's `e` (:trac:`29833`)::
 #  The full text of the GPL is available at:
 #
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 import os
 import re
@@ -397,9 +397,10 @@ def clean_output(s):
         return ''
     i = s.find('Out[')
     j = i + s[i:].find('=')
-    s = s[:i] + ' '*(j+1-i) + s[j+1:]
-    s = s.replace('\\\n','')
+    s = s[:i] + ' ' * (j + 1 - i) + s[j + 1:]
+    s = s.replace('\\\n', '')
     return s.strip('\n')
+
 
 def _un_camel(name):
     """
@@ -470,7 +471,7 @@ class Mathematica(ExtraTabCompletion, Expect):
                         eval_using_file_cutoff=eval_using_file_cutoff)
 
     def _read_in_file_command(self, filename):
-        return '<<"%s"'%filename
+        return '<<"%s"' % filename
 
     def _keyboard_interrupt(self):
         print("Interrupting %s..." % self)
@@ -533,28 +534,28 @@ remote connection to a server running Mathematica -- for hints, type
         that's the only way at present).
 """
 
-##         The following only works with Sage for Cygwin (not colinux).
-##         Note that Sage colinux is the preferred way to run Sage in Windows,
-##         and I do not know how to use Mathematica from colinux Sage (unless
-##         you install Mathematica-for-linux into the colinux machine, which
-##         is possible).
+#          The following only works with Sage for Cygwin (not colinux).
+#          Note that Sage colinux is the preferred way to run Sage in Windows,
+#          and I do not know how to use Mathematica from colinux Sage (unless
+#          you install Mathematica-for-linux into the colinux machine, which
+#          is possible).
 
-##         Create a file named "math", which you place in the Sage root
-##         directory.  The file contained a single line, which was the
-##         path to the mathematica math.exe file.  In my case, this might be:
+#          Create a file named "math", which you place in the Sage root
+#          directory.  The file contained a single line, which was the
+#          path to the mathematica math.exe file.  In my case, this might be:
 
-##         C:/Program Files/Wolfram Research/Mathematica/4.0/math.exe
+#          C:/Program Files/Wolfram Research/Mathematica/4.0/math.exe
 
-##         The key points are
-##         1) there is a file named "math.exe", and it will generally be
-##            located in a place analogous to the above (depending on where
-##            Mathematica has been installed).  This file is used only for
-##            launching the kernel with a text-based interface.
-##         2) a cygwin batch file must be created which executes this file,
-##            which means using forward slashes rather than back slashes,
-##            and probably surrounding everything in quotes
-##         3) this cygwin batch file must be on the path for Sage (placing
-##            it in <SAGE_LOCAL>/bin/ is an easy way to ensure this).
+#          The key points are
+#          1) there is a file named "math.exe", and it will generally be
+#             located in a place analogous to the above (depending on where
+#             Mathematica has been installed).  This file is used only for
+#             launching the kernel with a text-based interface.
+#          2) a cygwin batch file must be created which executes this file,
+#             which means using forward slashes rather than back slashes,
+#             and probably surrounding everything in quotes
+#          3) this cygwin batch file must be on the path for Sage (placing
+#             it in <SAGE_LOCAL>/bin/ is an easy way to ensure this).
 
     def eval(self, code, strip=True, **kwds):
         s = Expect.eval(self, code, **kwds)
@@ -563,24 +564,14 @@ remote connection to a server running Mathematica -- for hints, type
         else:
             return AsciiArtString(s)
 
-    #def _keyboard_interrupt(self):
-    #    print("Keyboard interrupt pressed; trying to recover.")
-    #    E = self.expect()
-    #    E.sendline(chr(3))
-    #    E.sendline('a')
-    #    E.expect(':= ')
-    #    raise KeyboardInterrupt, "Ctrl-c pressed while running Mathematica command"
-
-
     def set(self, var, value):
         """
         Set the variable var to the given value.
         """
-        cmd = '%s=%s;'%(var,value)
-        #out = self.eval(cmd)
+        cmd = '%s=%s;' % (var, value)
         out = self._eval_line(cmd, allow_use_file=True)
         if len(out) > 8:
-            raise TypeError("Error executing code in Mathematica\nCODE:\n\t%s\nMathematica ERROR:\n\t%s"%(cmd, out))
+            raise TypeError("Error executing code in Mathematica\nCODE:\n\t%s\nMathematica ERROR:\n\t%s" % (cmd, out))
 
     def get(self, var, ascii_art=False):
         """
@@ -594,16 +585,9 @@ remote connection to a server running Mathematica -- for hints, type
         """
         if ascii_art:
             return self.eval(var, strip=True)
-        else:
-            return self.eval('InputForm[%s, NumberMarks->False]'%var, strip=True)
+        return self.eval('InputForm[%s, NumberMarks->False]' % var, strip=True)
 
-    #def clear(self, var):
-    #    """
-    #    Clear the variable named var.
-    #    """
-    #    self.eval('Clear[%s]'%var)
-
-    def _eval_line(self, line,  allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
+    def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True, restart_if_needed=False):
         s = Expect._eval_line(self, line,
              allow_use_file=allow_use_file, wait_for_prompt=wait_for_prompt)
         return str(s).strip('\n')
@@ -617,7 +601,7 @@ remote connection to a server running Mathematica -- for hints, type
             sage: mathematica._function_call_string('Sin', ['x'], [])
             'Sin[x]'
         """
-        return "%s[%s]"%(function, ",".join(args))
+        return "%s[%s]" % (function, ",".join(args))
 
     def _left_list_delim(self):
         return "{"
@@ -644,7 +628,7 @@ remote connection to a server running Mathematica -- for hints, type
             sage: mathematica('Directory[]')      # optional - mathematica
             "/"
         """
-        self.eval('SetDirectory["%s"]'%dir)
+        self.eval('SetDirectory["%s"]' % dir)
 
     def _true_symbol(self):
         return 'True'
@@ -686,11 +670,10 @@ remote connection to a server running Mathematica -- for hints, type
 
     def _tab_completion(self):
         a = self.eval('Names["*"]')
-        return a.replace('$','').replace('\n \n>','').replace(',','').replace('}','').replace('{','').split()
-
+        return a.replace('$', '').replace('\n \n>', '').replace(',', '').replace('}', '').replace('{', '').split()
 
     def help(self, cmd):
-        return self.eval('? %s'%cmd)
+        return self.eval('? %s' % cmd)
 
     def __getattr__(self, attrname):
         if attrname[:1] == "_":
@@ -701,7 +684,7 @@ remote connection to a server running Mathematica -- for hints, type
 @instancedoc
 class MathematicaElement(ExpectElement):
     def __getitem__(self, n):
-        return self.parent().new('%s[[%s]]'%(self._name, n))
+        return self.parent().new('%s[[%s]]' % (self._name, n))
 
     def __getattr__(self, attrname):
         self._check_valid()
@@ -711,7 +694,7 @@ class MathematicaElement(ExpectElement):
 
     def __float__(self, precision=16):
         P = self.parent()
-        return float(P.eval('N[%s,%s]'%(self.name(),precision)))
+        return float(P.eval('N[%s,%s]' % (self.name(), precision)))
 
     def _reduce(self):
         return self.parent().eval('InputForm[%s]' % self.name()).strip()
@@ -720,9 +703,9 @@ class MathematicaElement(ExpectElement):
         return reduce_load, (self._reduce(), )
 
     def _latex_(self):
-        z = self.parent().eval('TeXForm[%s]'%self.name())
+        z = self.parent().eval('TeXForm[%s]' % self.name())
         i = z.find('=')
-        return z[i+1:].strip()
+        return z[i + 1:].strip()
 
     def _repr_(self):
         P = self.parent()
@@ -844,10 +827,9 @@ class MathematicaElement(ExpectElement):
         lsymbols.update(locals)
 
         # Strategies for translating unknown functions/constants:
-        autotrans = [   str.lower,      # Try it in lower case
-                        _un_camel,    # Convert `CamelCase` to `camel_case`
-                        lambda x: x     # Try the original name
-                    ]
+        autotrans = [str.lower,      # Try it in lower case
+                     _un_camel,    # Convert `CamelCase` to `camel_case`
+                     lambda x: x]     # Try the original name
 
         # Find the MMA funcs/vars/constants - they start with a letter.
         # Exclude exponents (e.g. 'e8' from 4.e8)
@@ -861,7 +843,7 @@ class MathematicaElement(ExpectElement):
             # in `autotrans` and check if the function exists in Sage
             elif m.end() < len(res) and res[m.end()] == '(':
                 for t in autotrans:
-                    f = find_func(t(m.group()), create_when_missing = False)
+                    f = find_func(t(m.group()), create_when_missing=False)
                     if f is not None:
                         lsymbols[m.group()] = f
                         break
@@ -941,7 +923,8 @@ class MathematicaElement(ExpectElement):
         if not self._is_graphics():
             raise ValueError('mathematica expression is not graphics')
         filename = os.path.abspath(filename)
-        s = 'Export["%s", %s, ImageSize->%s]'%(filename, self.name(), ImageSize)
+        s = 'Export["%s", %s, ImageSize->%s]' % (filename, self.name(),
+                                                 ImageSize)
         P.eval(s)
 
     def _rich_repr_(self, display_manager, **kwds):
@@ -1018,11 +1001,11 @@ class MathematicaElement(ExpectElement):
 
     def _richcmp_(self, other, op):
         P = self.parent()
-        if P.eval("%s < %s"%(self.name(), other.name())).strip() == 'True':
+        if P.eval("%s < %s" % (self.name(), other.name())).strip() == 'True':
             return rich_to_bool(op, -1)
-        elif P.eval("%s > %s"%(self.name(), other.name())).strip() == 'True':
+        elif P.eval("%s > %s" % (self.name(), other.name())).strip() == 'True':
             return rich_to_bool(op, 1)
-        elif P.eval("%s == %s"%(self.name(), other.name())).strip() == 'True':
+        elif P.eval("%s == %s" % (self.name(), other.name())).strip() == 'True':
             return rich_to_bool(op, 0)
         return NotImplemented
 
@@ -1084,6 +1067,7 @@ class MathematicaFunctionElement(FunctionElement):
 
 # An instance
 mathematica = Mathematica()
+
 
 def reduce_load(X):
     return mathematica(X)
@@ -1290,9 +1274,7 @@ def symbolic_expression_from_mathematica_string(mexpr):
         sage: symbolic_expression_from_mathematica_string(u'-Cos[x]')
         -cos(x)
     """
-    import re
     from sage.libs.pynac.pynac import symbol_table
-    from sage.interfaces.mathematica import _un_camel as un_camel
     from sage.symbolic.constants import constants_name_table as constants
     from sage.calculus.calculus import symbolic_expression_from_string
     from sage.calculus.calculus import _find_func as find_func
@@ -1302,7 +1284,7 @@ def symbolic_expression_from_mathematica_string(mexpr):
     expr = expr.replace('{', '[').replace('}', ']')
     lsymbols = symbol_table['mathematica'].copy()
     autotrans = [lambda x:x.lower(),      # Try it in lower case
-                 un_camel,      # Convert `CamelCase` to `camel_case`
+                 _un_camel,      # Convert `CamelCase` to `camel_case`
                  lambda x: x]     # Try the original name
     # Find the MMA funcs/vars/constants - they start with a letter.
     # Exclude exponents (e.g. 'e8' from 4.e8)

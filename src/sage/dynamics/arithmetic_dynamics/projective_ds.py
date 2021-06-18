@@ -4737,7 +4737,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             N = dom.dimension_relative()
             Fn = self.nth_iterate_map(n)
             base_ring = self.base_ring()
-            X = Fn.periodic_points(1, minimal=False, return_scheme=True)
+            X = Fn.periodic_points(1, minimal=False, formal=formal, return_scheme=True)
             newR = PolynomialRing(base_ring, 'w, t', 2, order='lex')
             if chow:
                 R = PolynomialRing(base_ring, 'v', N+N+3, order='lex')

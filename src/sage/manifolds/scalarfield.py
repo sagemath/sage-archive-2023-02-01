@@ -2562,8 +2562,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
         OUTPUT:
 
-        - an instance of
-          :class:`~sage.manifolds.subsets.pullback.ManifoldSubsetPullback`
+        - either a :class:`~sage.manifolds.manifold.TopologicalManifold` or
+          a :class:`~sage.manifolds.subsets.pullback.ManifoldSubsetPullback`
 
         EXAMPLES::
 

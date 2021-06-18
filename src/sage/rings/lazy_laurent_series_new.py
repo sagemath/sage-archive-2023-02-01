@@ -136,7 +136,39 @@ class LLS(ModuleElement):
     
     def __hash__(self):
         return hash((type(self), self._aux._coefficient_function,
-                     self._aux._approximate_valuation, self._aux._constant)) 
+                     self._aux._approximate_valuation, self._aux._constant))
+    
+    def __bool__(self):
+        """
+        Test whether ``self`` is not zero.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(GF(2))
+            sage: (z-z).is_zero()
+            True
+            sage: f = 1/(1 - z)
+            sage: f.is_zero()
+            False
+        """
+        if self._aux._constant is None:
+            for a in self._aux._cache:
+                if a:
+                    return True
+            if self[self._aux._approximate_valuation]:
+                return True
+            raise ValueError("undecidable as lazy Laurent series")
+
+        sc, sm = self._aux._constant
+
+        if sc:
+            return True
+
+        for i in range(self._aux._approximate_valuation, sm):
+            if self[i]:
+                return True
+
+        return False
     
 
 class LLS_aux():

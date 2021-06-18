@@ -32,6 +32,19 @@ class LLS(ModuleElement):
         P = self.parent()
         return P.element_class(P, LLS_neg(self._aux))
     
+    def prec(self):
+        """
+        Return the precision of the series, which is infinity.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z)
+            sage: f.prec()
+            +Infinity
+        """
+        return infinity
+    
     def polynomial(self, degree=None, name=None):
         """
         Return the polynomial or Laurent polynomial if the series is actually so.

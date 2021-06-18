@@ -28,6 +28,10 @@ class LLS(ModuleElement):
         P = self.parent()
         return P.element_class(P, LLS_sub(self._aux, other._aux))
     
+    def _neg_(self):
+        P = self.parent()
+        return P.element_class(P, LLS_neg(self._aux))
+    
     def _repr_(self):
         """
         Return the string representation of this Laurent series.
@@ -464,5 +468,52 @@ class LLS_rmul(LLS_aux):
         n = self._offset
         while True:
             c = self._series[n] * self._scalar
+            yield c
+            n += 1
+
+
+class LLS_neg(LLS_aux):
+    """
+    Operator for negative of the series.
+    """
+    def __init__(self, series):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z) * 1/(1 + z)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._series = series
+        a = series._approximate_valuation
+
+        if series._constant is not None:
+            c = (-series._constant[0], series._constant[1])
+        else:
+            c = None
+        
+        super().__init__(series._is_sparse, a, c)
+    
+    def get_coefficient(self, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = (1 + z)*(1 - z)
+            sage: f.coefficient(2)
+            -1
+        """
+        c = -1 * self._series[n]
+        return c
+
+    def iterate_coefficients(self):
+        n = self._offset
+        while True:
+            c = -1 * self._series[n]
             yield c
             n += 1

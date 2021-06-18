@@ -321,7 +321,6 @@ class UndefSageHelper:
         sage: assert f == F._sage_()
     """
     def __get__(self, ins, typ):
-        import sage.all as sage
         if ins is None:
             return lambda: _sympysage_function_by_name(typ.__name__)
         else:
@@ -925,7 +924,7 @@ def check_expression(expr, var_symbols, only_from_sympy=False):
 
     # evaluate the expression in the context of SymPy:
     if var_symbols:
-        sympy_vars = svar(var_symbols)
+        svar(var_symbols)
     b = globals().copy()
     b.update(sympydict)
     assert "sin" in b

@@ -211,7 +211,7 @@ class DefiniteIntegral(BuiltinFunction):
             sage: definite_integral(exp(x),x,0,1) # indirect doctest
             e - 1
 
-        TESTS::
+        TESTS:
 
         Check that :trac:`32002` is fixed::
 

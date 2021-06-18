@@ -1,6 +1,8 @@
 from .infinity import infinity
 from sage.structure.element import ModuleElement
 from .integer_ring import ZZ
+from sage.structure.richcmp import op_EQ, op_NE
+
 
 class LLS(ModuleElement):
     def __init__(self, parent, aux):
@@ -72,6 +74,65 @@ class LLS(ModuleElement):
             s += ' + {}'.format('...')
 
         return s
+    
+    def _richcmp_(self, other, op):
+        """
+        Compare ``self` with ``other`` with respect to the comparison operator ``op``.
+
+        Equality is verified if the corresponding coefficients of both series
+        can be checked for equality without computing coefficients
+        indefinitely.  Otherwise an exception is raised to declare that
+        equality is not decidable.
+
+        Inequality is not defined for lazy Laurent series.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: z + z^2 == z^2 + z
+            True
+            sage: z + z^2 != z^2 + z
+            False
+            sage: z + z^2 > z^2 + z
+            False
+            sage: z + z^2 < z^2 + z
+            False
+        """
+        if op is op_EQ:
+            if self._aux._constant is None:
+                if other._aux._constant is None:
+                    n = min(self._aux._approximate_valuation, other._aux._approximate_valuation)
+                    m = max(self._aux._approximate_valuation, other._aux._approximate_valuation)
+                    for i in range(n, m):
+                        if self[i] != other[i]:
+                            return False
+                    if self._aux._coefficient_function == other._aux._coefficient_function:
+                        return True
+                    raise ValueError("undecidable as lazy Laurent series")
+                else:
+                    raise ValueError("undecidable as lazy Laurent series")
+            elif other._aux._constant is None:
+                raise ValueError("undecidable as lazy Laurent series")
+
+            sc, sm = self._aux._constant
+            oc, om = other._aux._constant
+
+            if sc != oc:
+                return False
+
+            n = self._aux._approximate_valuation
+            m = max(sm, om)
+
+            for i in range(n, m):
+                if self[i] != other[i]:
+                    return False
+
+            return True
+
+        if op is op_NE:
+            return not (self == other)
+
+        return False
     
 
 class LLS_aux():
@@ -263,6 +324,7 @@ class LLS_add(LLS_aux):
             c = self._left[n] + self._right[n]
             yield c
             n += 1
+
 
 class LLS_rmul(LLS_aux):
     """

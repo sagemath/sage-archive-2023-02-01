@@ -24,6 +24,10 @@ class LLS(ModuleElement):
         P = self.parent()
         return P.element_class(P, LLS_rmul(self._aux, scalar))
     
+    def _sub_(self, other):
+        P = self.parent()
+        return P.element_class(P, LLS_sub(self._aux, other._aux))
+    
     def _repr_(self):
         """
         Return the string representation of this Laurent series.
@@ -358,6 +362,60 @@ class LLS_add(LLS_aux):
         while True:
             c = ZZ.zero()
             c = self._left[n] + self._right[n]
+            yield c
+            n += 1
+
+
+class LLS_sub(LLS_aux):
+    """
+    Operator for subtraction.
+    """
+    def __init__(self, left, right):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z) * 1/(1 + z)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._left = left
+        self._right = right
+        a = min(left._approximate_valuation, right._approximate_valuation)
+
+        if left._constant is not None and right._constant is not None:
+            c = (left._constant[0] - right._constant[0],
+                 max(left._constant[1], right._constant[1]))
+        else:
+            c = None
+        
+        if left._is_sparse != right._is_sparse:
+            raise NotImplementedError
+        
+        super().__init__(left._is_sparse, a, c)
+    
+    def get_coefficient(self, n):
+        """
+        Return the `n`-th coefficient of the series ``s``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = (1 + z)*(1 - z)
+            sage: f.coefficient(2)
+            -1
+        """
+        c = ZZ.zero()
+        c = self._left[n] - self._right[n]
+        return c
+
+    def iterate_coefficients(self):
+        n = self._offset
+        while True:
+            c = ZZ.zero()
+            c = self._left[n] - self._right[n]
             yield c
             n += 1
 

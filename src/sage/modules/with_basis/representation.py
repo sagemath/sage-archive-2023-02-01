@@ -168,9 +168,9 @@ class Representation(Representation_abstract):
             sage: G = CyclicPermutationGroup(3)
             sage: M = algebras.Exterior(QQ, 'x', 3)
             sage: from sage.modules.with_basis.representation import Representation
-            sage: on_basis = lambda g,m: M.prod([M.monomial(tuple([g(j+1)-1])) for j in m]) #cyclically permute generators
+            sage: on_basis = lambda g,m: M.prod([M.monomial((g(j+1)-1,)) for j in m]) #cyclically permute generators
             sage: from sage.categories.algebras import Algebras
-            sage: R = Representation(G, M, on_basis, category = Algebras(QQ).WithBasis().FiniteDimensional())
+            sage: R = Representation(G, M, on_basis, category=Algebras(QQ).WithBasis().FiniteDimensional())
             sage: r = R.an_element(); r
             1 + 2*x0 + x0*x1 + 3*x1
             sage: r*r
@@ -193,7 +193,7 @@ class Representation(Representation_abstract):
             sage: from sage.modules.with_basis.representation import Representation
             sage: action = lambda g,x: A.monomial(g*x)
             sage: category = Algebras(QQ).WithBasis().FiniteDimensional()
-            sage: R = Representation(G, A, action, 'left', category = category)
+            sage: R = Representation(G, A, action, 'left', category=category)
             sage: r = R.an_element(); r
             () + (2,3,4) + 2*(1,3)(2,4) + 3*(1,4)(2,3)
             sage: r^2
@@ -349,7 +349,7 @@ class Representation(Representation_abstract):
             
             sage: from sage.categories.algebras import Algebras
             sage: category = Algebras(QQ).FiniteDimensional().WithBasis()
-            sage: T = Representation(G, E, on_basis, category = category)
+            sage: T = Representation(G, E, on_basis, category=category)
             sage: t = T.an_element(); t
             1 + 2*e0 + 3*e1 + e1*e2
             sage: g*t == t

@@ -685,7 +685,10 @@ class ManifoldSubsetPullback(ManifoldSubset):
          """
         if super().__contains__(point):
             return True
-        return self._map(point) in self._codomain_subset
+        coords = self._map(point)
+        if isinstance(coords, (tuple, list)):
+            coords = vector(coords)
+        return coords in self._codomain_subset
 
     def is_open(self):
         """

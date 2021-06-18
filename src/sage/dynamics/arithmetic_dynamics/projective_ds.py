@@ -4359,7 +4359,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         return multipliers
 
-    def sigma_invariants(self, n, formal=False, embedding=None, type='point', return_polynomial=False):
+    def sigma_invariants(self, n, formal=False, embedding=None, type='point',
+                        return_polynomial=False, chow=False):
         r"""
         Computes the values of the elementary symmetric polynomials of
         the ``n`` multiplier spectra of this dynamical system.
@@ -4418,7 +4419,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           The polynomial is always a multivariate polynomial with variables
           ``w`` and ``t``.
 
-        OUTPUT: a list of elements in the base ring
+        - ``chow`` -- (default: ``False``) boolean; ``True`` specifies
+          using the Chow algorithm from [Hutz2019]_ to compute the sigma
+          invariants. While slower, the Chow algorithm does not lose
+          information about multiplicities. Helpful when this map has
+          repeated multipliers or fixed points with high multiplicity.
+
+        OUTPUT: a list of elements in the base ring, unless ``return_polynomial``
+                is ``True``, in which case a polynomial in ``w`` and ``t`` is returned.
 
         EXAMPLES::
 
@@ -4430,6 +4438,20 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             -2622661114909099878224381377917540931367/1099511627776,
             -2622661107937102104196133701280271632423/549755813888,
             338523204830161116503153209450763500631714178825448006778305/72057594037927936, 0]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: f = DynamicalSystem_projective([x^2 + 2*y^2, y^2])
+            sage: poly = f.sigma_invariants(1, return_polynomial=True); poly
+            w^3 - 3*w^2*t + 2*w^2 + 3*w*t^2 - 4*w*t + 8*w - t^3 + 2*t^2 - 8*t
+
+        From the full polynomial, we can easily get the one variable polynomial whose coefficients
+        are symmetric functions in the multipliers::
+
+            sage: w, t = poly.variabls()
+            sage: poly.subs({w:0})
+            -t^3 + 2*t^2 - 8*t
 
         ::
 
@@ -4460,10 +4482,25 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
-            sage: f.sigma_invariants(1)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: only implemented for dimension 1
+            sage: f.sigma_invariants(1, return_polynomial=True, chow=True)
+            w^7 - 7*w^6*t^2 + 10*w^6*t - 4*w^6 + 21*w^5*t^4 - 60*w^5*t^3 + 60*w^5*t^2 -
+            24*w^5*t - 35*w^4*t^6 + 150*w^4*t^5 - 240*w^4*t^4 + 176*w^4*t^3 - 48*w^4*t^2
+            + 35*w^3*t^8 - 200*w^3*t^7 + 440*w^3*t^6 - 464*w^3*t^5 + 224*w^3*t^4 - 32*w^3*t^3
+            - 21*w^2*t^10 + 150*w^2*t^9 - 420*w^2*t^8 + 576*w^2*t^7 - 384*w^2*t^6 + 96*w^2*t^5
+            + 7*w*t^12 - 60*w*t^11 + 204*w*t^10 - 344*w*t^9 + 288*w*t^8 - 96*w*t^7 - t^14 +
+            10*t^13 - 40*t^12 + 80*t^11 - 80*t^10 + 32*t^9
+
+        ::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: f = DynamicalSystem_projective([x^2, w^2, z^2, y^2])
+            sage: f.sigma_invariants(1, return_polynomial=True)
+            w^6 - 6*w^5*t^3 + 2*w^5*t^2 + 8*w^5*t - 8*w^5 + 15*w^4*t^6 - 10*w^4*t^5 -
+            44*w^4*t^4 + 48*w^4*t^3 + 16*w^4*t^2 - 32*w^4*t - 20*w^3*t^9 + 20*w^3*t^8 +
+            96*w^3*t^7 - 120*w^3*t^6 - 96*w^3*t^5 + 160*w^3*t^4 + 15*w^2*t^12 - 20*w^2*t^11
+            - 104*w^2*t^10 + 152*w^2*t^9 + 192*w^2*t^8 - 320*w^2*t^7 - 64*w^2*t^6 + 128*w^2*t^5
+            - 6*w*t^15 + 10*w*t^14 + 56*w*t^13 - 96*w*t^12 - 160*w*t^11 + 288*w*t^10 + 128*w*t^9
+            - 256*w*t^8 + t^18 - 2*t^17 - 12*t^16 + 24*t^15 + 48*t^14 - 96*t^13 - 64*t^12 + 128*t^11
 
         ::
 
@@ -4534,32 +4571,52 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Fn = self.nth_iterate_map(n)
             base_ring = self.base_ring()
             X = Fn.periodic_points(1, minimal=False, return_scheme=True)
-            R = PolynomialRing(base_ring, 'v', N+N+3, order='lex')
-            var = list(R.gens())
-            R2 = PolynomialRing(base_ring, var[:N] + var[-2:])
             newR = PolynomialRing(base_ring, 'w, t', 2, order='lex')
-            psi = R2.hom(N*[0]+list(newR.gens()), newR)
-            R_zero = {R.gen(N):1}
-            for j in range(N+1, N+N+1):
-                R_zero[R.gen(j)] = 0
-            t = var.pop()
-            w = var.pop()
-            var = var[:N]
+            if chow:
+                R = PolynomialRing(base_ring, 'v', N+N+3, order='lex')
+                var = list(R.gens())
+                R2 = PolynomialRing(base_ring, var[:N] + var[-2:])
+                psi = R2.hom(N*[0]+list(newR.gens()), newR)
+                R_zero = {R.gen(N):1}
+                for j in range(N+1, N+N+1):
+                    R_zero[R.gen(j)] = 0
+                t = var.pop()
+                w = var.pop()
+                var = var[:N]
+            else:
+                R = PolynomialRing(base_ring,'v', N+2, order='lex')
+                psi = R.hom(N*[0] + list(newR.gens()), newR)
+                var = list(R.gens())
+                t = var.pop()
+                w = var.pop()
             sigma_polynomial = 1
             for j in range(N,-1,-1):
                 Xa = X.affine_patch(j)
                 fa = Fn.dehomogenize(j)
                 Pa = fa.domain()
-                im = [R.gen(i) for i in range(j)] + (N-j)*[0]
-                phi = Pa.coordinate_ring().hom(im, R)
+                Ra = Pa.coordinate_ring()
+                if chow:
+                    im = [R.gen(i) for i in range(j)] + (N-j)*[0] + [R.gen(i) for i in range(N, R.ngens())]
+                else:
+                    im = list(R.gens())[:j] + (N-j)*[0] + [R.gen(i) for i in range(N, R.ngens())]
+                phi = Ra.hom(Ra.gens(), R)
                 M = t*matrix.identity(R, N)
-                print(jacobian([phi(F.numerator())/phi(F.denominator()) for F in fa], var))
                 g = (M-jacobian([phi(F.numerator())/phi(F.denominator()) for F in fa], var)).det()
-                L = [phi(h) for h in Xa.defining_polynomials()]
-                L += [w*g.denominator()-R.gen(N)*g.numerator() + sum(R.gen(j-1)*R.gen(N+j)*g.denominator() for j in range(1,N+1))]
+                g_prime = w*R(g.denominator())(im)-R(g.numerator())(im)
+                L = [phi(h)(im) for h in Xa.defining_polynomials()]
+                if chow:
+                    L += [g_prime + sum(R.gen(j-1)*R.gen(N+j)*(R(g.denominator())(im)) for j in range(1,N+1))]
+                else:
+                    L += [g_prime]
                 I = R.ideal(L)
                 G = I.groebner_basis()
-                sigma_polynomial *= psi(G[-1].specialization(R_zero))
+                if chow:
+                    poly = psi(G[-1].specialization(R_zero))
+                    if len(list(poly)) > 0:
+                        poly *= poly.coefficients()[0].inverse_of_unit()
+                    sigma_polynomial *= poly
+                else:
+                    sigma_polynomial *= psi(G[-1])
             if return_polynomial:
                 return sigma_polynomial
             sigmas = []

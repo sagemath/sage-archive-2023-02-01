@@ -1229,13 +1229,13 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
         A._entries = mzed_concat(A._entries, self._entries, right._entries)
         return A
 
-    def stack(self, Matrix_gf2e_dense other):
-        """
-        Stack ``self`` on top of ``other``.
+    cdef _stack_impl(self, bottom):
+        r"""
+        Stack ``self`` on top of ``bottom``.
 
         INPUT:
 
-        - ``other`` - a matrix
+        - ``bottom`` -- a matrix with the same number of columns as ``self``
 
         EXAMPLES::
 
@@ -1283,9 +1283,17 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             sage: N = Matrix(K, 1, 0, 0)
             sage: M.stack(N)
             []
+
+        Check that we can stack a vector (:trac:`31708`)::
+
+            sage: R.<a> = GF(2^3)
+            sage: M = matrix(R, [[1,1],[0,a+1]])
+            sage: M.stack(vector(R, [a,0]))
+            [    1     1]
+            [    0 a + 1]
+            [    a     0]
         """
-        if self._ncols != other._ncols:
-            raise TypeError("Both numbers of columns must match.")
+        cdef Matrix_gf2e_dense other = <Matrix_gf2e_dense> bottom
 
         if self._nrows == 0:
             return other.__copy__()
@@ -1293,7 +1301,7 @@ cdef class Matrix_gf2e_dense(matrix_dense.Matrix_dense):
             return self.__copy__()
 
         cdef Matrix_gf2e_dense A
-        A = self.new_matrix(nrows = self._nrows + other._nrows)
+        A = self.new_matrix(nrows=self._nrows + other._nrows)
         if self._ncols == 0:
             return A
         A._entries = mzed_stack(A._entries, self._entries, other._entries)

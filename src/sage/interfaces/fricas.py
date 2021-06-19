@@ -1579,7 +1579,7 @@ class FriCASElement(ExpectElement):
         from sage.functions.other import abs
         from sage.misc.functional import symbolic_sum, symbolic_prod
         from sage.rings.infinity import infinity
-        register_symbol(I, {'fricas': '%i'})
+        register_symbol(I, {'fricas': '(%i::EXPR Complex INT)'})
         register_symbol(e, {'fricas': '%e'})
         register_symbol(pi, {'fricas': 'pi'})  # fricas uses both pi and %pi
         register_symbol(lambda: infinity, {'fricas': 'infinity'})
@@ -1729,7 +1729,7 @@ class FriCASElement(ExpectElement):
 
         We can also convert FriCAS's polynomials to Sage polynomials::
 
-            sage: a = fricas(x^2 + 1); a.typeOf()                               # optional - fricas
+            sage: a = fricas("x^2 + 1"); a.typeOf()                             # optional - fricas
             Polynomial(Integer)
             sage: a.sage()                                                      # optional - fricas
             x^2 + 1

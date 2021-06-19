@@ -42,19 +42,8 @@ x = SR.var('x')
 # It is important that this file is lazily imported for this to work
 from sage.repl.user_globals import get_global
 
-# Get a bunch of functions from the user globals. In SageNB, this will
-# refer to SageNB functions; in Jupyter, this will refer to Jupyter
-# functions. In the command-line and for doctests, we import the
-# SageNB functions as fall-back.
-for name in ("interact", "checkbox", "input_box", "input_grid",
-        "range_slider", "selector", "slider", "text_control"):
-    try:
-        obj = get_global(name)
-    except NameError:
-        import sagenb.notebook.interact
-        obj = sagenb.notebook.interact.__dict__[name]
-    globals()[name] = obj
-
+from sage.repl.ipython_kernel.all_jupyter import (interact, checkbox,
+    input_box, input_grid, range_slider, selector, slider, text_control)
 
 def library_interact(f):
     """

@@ -63,7 +63,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             sage: I = FiniteDimensionalInvariantModule(R)
             sage: [I.lift(b) for b in I.basis()]
             [M[1] + M[2] + M[3]]
-            
+
             sage: G = CyclicPermutationGroup(3)
             sage: M = CombinatorialFreeModule(QQ, [1,2,3], prefix='M')
             sage: from sage.modules.with_basis.representation import Representation
@@ -86,7 +86,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         """
         self._semigroup_representation = R
         self._semigroup = R.semigroup()
-        
+
         if self._semigroup not in FinitelyGeneratedSemigroups:
             raise ValueError(f'{self._semigroup} is not finitely generated')
 
@@ -102,7 +102,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         unitriangular = kwargs.pop('unitriangular', False)
         category = kwargs.pop('category', R.category().Subobjects())
 
-        if self._side == 'left':            
+        if self._side == 'left':
             self._invariant_map = lambda g,x: self._on_ambient_basis(g,x.support()[0]) - x
         else:
             self._invariant_map = lambda x,g: self._on_ambient_basis(x.support()[0],g) - x
@@ -168,11 +168,11 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         return self._action_on_basis(args)
 
     class Element(SubmoduleWithBasis.Element):
-        
+
         def _mul_(self, other):
             P = self.parent()
             return P.retract(P.lift(self) * P.lift(other))
-        
+
         # lmul -- self*right
         def _lmul_(self, right):
             """
@@ -197,7 +197,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             """
             if left in self.parent()._semigroup and self.parent()._side == 'left':
                 return self
-            
+
             return super()._rmul_(left)
 
         def _acted_upon_(self, scalar, self_on_left = False):

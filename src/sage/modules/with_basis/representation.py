@@ -5,6 +5,7 @@ AUTHORS:
 
 - Travis Scrimshaw (2015-11-21): Initial version
 - Siddharth Singh  (2020-03-21): Signed Representation
+- Trevor Karn (2021-06-18): Add functionality to Representation
 """
 
 ####################################################################################
@@ -208,18 +209,19 @@ class Representation(Representation_abstract):
         except AttributeError:
             pass
 
-        category = module.category()
-        if 'WithBasis' not in module.category().axioms():
-            raise ValueError(f'{module} must have a basis')
+        category = kwargs.pop('category', Modules(module.base_ring()).WithBasis())
 
         if side not in ["left", "right"]:
             raise ValueError('side must be "left" or "right"')
-        
+
         self._left_repr = (side == "left")
         self._on_basis = on_basis
         self._module = module
-        
+
         indices = module.basis().keys()
+
+        if 'FiniteDimensional' in module.category().axioms():
+            category = category.FiniteDimensional()
 
         Representation_abstract.__init__(self, semigroup, module.base_ring(), indices,
                                          category=category, **module.print_options())
@@ -342,10 +344,10 @@ class Representation(Representation_abstract):
             ...
             TypeError: unsupported operand parent(s) for *:
              'Representation of The Klein 4 group of order 4, as a permutation
-             group indexed by Subsets of {0, 1, 2, 3} over Rational Field' and 
-             'Representation of The Klein 4 group of order 4, as a permutation 
+             group indexed by Subsets of {0, 1, 2, 3} over Rational Field' and
+             'Representation of The Klein 4 group of order 4, as a permutation
              group indexed by Subsets of {0, 1, 2, 3} over Rational Field'
-            
+
             sage: from sage.categories.algebras import Algebras
             sage: category = Algebras(QQ).FiniteDimensional().WithBasis()
             sage: T = Representation(G, E, on_basis, category=category)

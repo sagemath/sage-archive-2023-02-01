@@ -869,3 +869,30 @@ class TopologicalSubmanifold(TopologicalManifold):
         if not self._embedded:
             raise ValueError("the submanifold is not embedded")
         return self._immersion
+
+    def as_subset(self):
+        r"""
+        Return ``self`` as a subset of the ambient manifold.
+
+        ``self`` must be an embedded submanifold.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure="topological")
+            sage: N = Manifold(1, 'N', ambient=M, structure="topological")
+            sage: CM.<x,y> = M.chart()
+            sage: CN.<u> = N.chart()
+            sage: CN.add_restrictions([u > -1, u < 1])
+            sage: phi = N.continuous_map(M, {(CN,CM): [u, u^2]})
+            sage: N.set_embedding(phi)
+            sage: N
+            1-dimensional topological submanifold N
+              embedded in the 2-dimensional topological manifold M
+            sage: N.as_subset()
+            Image of the Continuous map
+              from the 1-dimensional topological submanifold N
+                embedded in the 2-dimensional topological manifold M
+              to the 2-dimensional topological manifold M
+
+        """
+        return self.embedding().image()

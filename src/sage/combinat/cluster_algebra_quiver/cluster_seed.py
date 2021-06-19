@@ -1329,7 +1329,6 @@ class ClusterSeed(SageObject):
             return catchup.cluster_variable(k)
         else:
             raise ValueError('Clusters not being tracked')
-            return None
 
     def cluster(self):
         r"""
@@ -4128,7 +4127,7 @@ class ClusterSeed(SageObject):
                 ans = 0
                 if a1 >= a2:
                     PS = PathSubset(a1, a2)
-                elif a1 < a2:
+                else:
                     PS = PathSubset(a2, a1)
                 from sage.combinat.subset import Subsets
                 for T in Subsets(PS):
@@ -4137,7 +4136,7 @@ class ClusterSeed(SageObject):
                             oddT = set(T).intersection(PathSubset(a1, 0))
                             evenT = set(T).symmetric_difference(oddT)
                             ans = ans + S.x(0)**(b*len(evenT)) * S.x(1)**(c*len(oddT))
-                    elif a1 < a2:
+                    else:
                         if is_LeeLiZel_allowable(T, a2, a1, c, b):
                             oddT = set(T).intersection(PathSubset(a2, 0))
                             evenT = set(T).symmetric_difference(oddT)

@@ -346,32 +346,19 @@ class VectorField(MultivectorField):
             return scalar(self)
         if scalar._tensor_type != (0,0):
             raise TypeError("the argument must be a scalar field")
-        #!# Could it be simply
-        # return scalar.differential()(self)
-        # ?
-        dom_resu = self._domain.intersection(scalar._domain)
-        self_r = self.restrict(dom_resu)
-        scalar_r = scalar.restrict(dom_resu)
-        if scalar_r._is_zero:
-            return dom_resu._zero_scalar_field
-        if isinstance(self_r, VectorFieldParal):
-            return self_r(scalar_r)
-        # Creation of the result:
-        if self._name is not None and scalar._name is not None:
-            resu_name = "{}({})".format(self._name, scalar._name)
-        else:
-            resu_name = None
-        if self._latex_name is not None and scalar._latex_name is not None:
-            resu_latex = r"{}\left({}\right)".format(self._latex_name ,
-                                                     scalar._latex_name)
-        else:
-            resu_latex = None
-        resu = dom_resu.scalar_field(name=resu_name, latex_name=resu_latex)
-        for dom, rst in self_r._restrictions.items():
-            resu_rst = rst(scalar_r.restrict(dom))
-            for chart, funct in resu_rst._express.items():
-                resu._express[chart] = funct
+        resu = scalar.differential()(self)
+        if not resu.is_immutable():
+            if self._name is not None and scalar._name is not None:
+                name = f"{self._name}({scalar._name})"
+            else:
+                name = None
+            if self._latex_name is not None and scalar._latex_name is not None:
+                latex_name = fr"{self._latex_name}\left({scalar._latex_name}\right)"
+            else:
+                latex_name = None
+            resu.set_name(name=name, latex_name=latex_name)
         return resu
+
 
     @options(max_range=8, scale=1, color='blue')
     def plot(self, chart=None, ambient_coords=None, mapping=None,
@@ -1746,57 +1733,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
             (x, y) |--> 2*x^2*y - y^3
 
         """
-        from sage.manifolds.differentiable.vectorframe import CoordFrame
-        if scalar._tensor_type == (0,1):
-            # This is actually the action of the vector field on a 1-form,
-            # as a tensor field of type (1,0):
-            return scalar(self)
-        if scalar._tensor_type != (0,0):
-            raise TypeError("the argument must be a scalar field")
-        #!# Could it be simply
-        # return scalar.differential()(self)
-        # ?
-        dom_resu = self._domain.intersection(scalar._domain)
-        self_r = self.restrict(dom_resu)
-        scalar_r = scalar.restrict(dom_resu)
-        if scalar_r._is_zero:
-            return dom_resu._zero_scalar_field
-        # Creation of the result:
-        if self._name is not None and scalar._name is not None:
-            resu_name = self._name + "(" + scalar._name + ")"
-        else:
-            resu_name = None
-        if self._latex_name is not None and scalar._latex_name is not None:
-            resu_latex = (self._latex_name + r"\left(" + scalar._latex_name
-                          + r"\right)")
-        else:
-            resu_latex = None
-        resu = dom_resu.scalar_field(name=resu_name, latex_name=resu_latex)
-        # Search for common charts for the computation:
-        common_charts = set()
-        for chart in scalar_r._express:
-            try:
-                self_r.comp(chart._frame)
-                common_charts.add(chart)
-            except ValueError:
-                pass
-        for frame in self_r._components:
-            if isinstance(frame, CoordFrame):
-                chart = frame._chart
-                try:
-                    scalar_r.coord_function(chart)
-                    common_charts.add(chart)
-                except ValueError:
-                    pass
-        if not common_charts:
-            raise ValueError("no common chart found")
-        # The computation:
-        manif = scalar._manifold
-        for chart in common_charts:
-            v = self_r.comp(chart._frame)
-            f = scalar_r.coord_function(chart)
-            res = 0
-            for i in manif.irange():
-                res += v[i, chart] * f.diff(i)
-            resu._express[chart] = res
-        return resu
+        # This method enforces VectorField.__call__
+        # instead of FiniteRankFreeModuleElement.__call__, which would have
+        # been inheritated otherwise
+        return VectorField.__call__(self, scalar)

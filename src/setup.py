@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+## This version of setup.py is used by the Sage distribution
+## only when configure --enable-editable has been used.
+##
+## Distribution packaging should use build/pkgs/sagelib/src/setup.py
+## instead.
+
 from __future__ import print_function
 
 import os

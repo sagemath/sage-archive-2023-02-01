@@ -55,7 +55,7 @@ cdef class FaceIterator_base(SageObject):
     cdef MemoryAllocator _mem
 
     # some copies from ``CombinatorialPolyhedron``
-    cdef tuple _Vrep, _facet_names, _equalities
+    cdef tuple _Vrep, _facet_names, _equations
     cdef bint _bounded
 
     # Atoms and coatoms are the vertices/facets of the Polyedron.

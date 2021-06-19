@@ -15,7 +15,7 @@ cdef class PolyhedronFaceLattice:
     cdef size_t *coatom_rep         # a place where coatom-representation of face will be stored
 
     # some copies from CombinatorialPolyhedron
-    cdef tuple _Vrep, _facet_names, _equalities
+    cdef tuple _Vrep, _facet_names, _equations
 
     # Atoms and coatoms are the Vrep/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms Vrepresentatives and vice versa.

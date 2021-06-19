@@ -252,7 +252,7 @@ cdef class FaceIterator_base(SageObject):
             self.atoms = C.bitrep_Vrep()
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
-        self._equalities = C.equalities()
+        self._equations = C.equations()
         self._bounded = C.is_bounded()
 
         self.structure.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
@@ -469,7 +469,8 @@ cdef class FaceIterator_base(SageObject):
             sage: it = C.face_iter(dual=True)
             sage: n_faces_with_non_simplex_quotient = 1
             sage: for face in it:
-            ....:     if face.n_ambient_Hrepresentation() > C.dimension() - face.dimension() + 1:
+            ....:     n_facets = face.n_ambient_Hrepresentation(add_equations=False)
+            ....:     if n_facets > C.dimension() - face.dimension() + 1:
             ....:         n_faces_with_non_simplex_quotient += 1
             ....:     else:
             ....:         it.ignore_supfaces()

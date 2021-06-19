@@ -2,82 +2,90 @@ r"""
 Brandt Modules
 
 Introduction
-============
+------------
 
-This tutorial outlines the construction of Brandt modules in Sage. The
-importance of this construction is that it provides us with a method
-to compute modular forms on `\Gamma_0(N)` as outlined in Pizer's paper
-[Piz1980]_. In fact there exists a non-canonical Hecke algebra isomorphism
-between the Brandt modules and a certain subspace of
-`S_{2}(\Gamma_0(pM))` which contains all the newforms.
+The construction of Brandt modules provides us with a method to
+compute modular forms, as outlined in Pizer's paper [Piz1980]_.
 
-The Brandt module is the free abelian group on right ideal classes of
-a quaternion order together with a natural Hecke action determined by
-Brandt matrices.
+Given a prime number `p` and a positive integer `M` with `p\nmid M`,
+the *Brandt module* `B(p, M)` is the free abelian group on right ideal
+classes of a quaternion order of level `pM` in the quaternion algebra
+ramified precisely at the places `p` and `\infty`. This Brandt module
+carries a natural Hecke action given by Brandt matrices. There exists
+a non-canonical Hecke algebra isomorphism between `B(p, M)` and a
+certain subspace of `S_{2}(\Gamma_0(pM))` containing the newforms.
 
 Quaternion Algebras
 -------------------
 
 A quaternion algebra over `\QQ` is a central simple algebra of
-dimension 4 over `\QQ`. Such an algebra `A` is said to be
-ramified at a place `v` of `\QQ` if and only if `A_v=A\otimes
-\QQ_v` is a division algebra. Otherwise `A` is said to be split
-at `v`.
+dimension 4 over `\QQ`. Such an algebra `A` is said to be ramified at
+a place `v` of `\QQ` if and only if `A \otimes \QQ_v` is a division
+algebra. Otherwise `A` is said to be split at `v`.
 
 ``A = QuaternionAlgebra(p)`` returns the quaternion algebra `A` over
 `\QQ` ramified precisely at the places `p` and `\infty`.
 
-``A = QuaternionAlgebra(k,a,b)`` returns a quaternion algebra with basis
-`\{1,i,j,j\}` over `\mathbb{K}` such that `i^2=a`, `j^2=b` and `ij=k.`
+``A = QuaternionAlgebra(a, b)`` returns the quaternion algebra `A`
+over `\QQ` with basis `\{1, i, j, k\}` such that `i^2 = a`, `j^2 = b`
+and `ij = -ji = k.`
 
-An order `R` in a quaternion algebra is a 4-dimensional lattice on `A`
-which is also a subring containing the identity.
+An order `R` in a quaternion algebra `A` over `\QQ` is a 4-dimensional
+lattice in `A` which is also a subring containing the identity.  A
+maximal order is one that is not properly contained in another order.
+
+A particularly important kind of orders are those that have a level;
+see Definition 1.2 in [Piz1980]_.  This is a positive integer `N` such
+that every prime that ramifies in `A` divides `N` to an odd power.
+The maximal orders are those that have level equal to the discriminant
+of `A`.
 
 ``R = A.maximal_order()`` returns a maximal order `R` in the quaternion
 algebra `A.`
 
-An Eichler order `\mathcal{O}` in a quaternion algebra is the
-intersection of two maximal orders. The level of `\mathcal{O}` is its
-index in any maximal order containing it.
+A right `\mathcal{O}`-ideal `I` is a lattice in `A` such that for
+every prime `p` there exists `a_p\in A_p^*` with `I_p =
+a_p\mathcal{O}_p`. Two right `\mathcal{O}`-ideals `I` and `J` are said
+to belong to the same class if `I=aJ` for some `a \in A^*`. Left
+`\mathcal{O}`-ideals are defined in a similar fashion.
 
-``O = A.order_of_level_N`` returns an Eichler order `\mathcal{O}` in `A`
-of level `N` where `p` does not divide `N`.
+The right order of `I` is the subring of `A` consisting of elements
+`a` with `Ia \subseteq I`.
 
+Brandt Modules
+--------------
 
-A right `\mathcal{O}`-ideal `I` is a lattice on `A` such that
-`I_p=a_p\mathcal{O}` (for some `a_p\in A_p^*`) for all `p<\infty`. Two
-right `\mathcal{O}`-ideals `I` and `J` are said to belong to the same
-class if `I=aJ` for some `a \in A^*`. (Left `\mathcal{O}`-ideals are
-defined in a similar fashion.)
+``B = BrandtModule(p, M=1)`` returns the Brandt module associated to
+the prime number `p` and the integer `M`, with `p` not dividing `M`.
 
-The right order of `I` is defined to be the set of elements in `A`
-which fix `I` under right multiplication.
+``A = B.quaternion_algebra()`` returns the quaternion algebra attached
+to `B`; this is the quaternion algebra over `\QQ` ramified exactly at
+`p` and `\infty`.
 
-``right_order(R, basis)`` returns the right ideal of `I` in `R` given a
-basis for the right ideal `I` contained in the maximal order `R.`
+``O = B.order_of_level_N()`` returns an order `\mathcal{O}` of level
+`N = pM` in `A`.
 
-``ideal_classes(self)`` returns a tuple of all right ideal classes in self
-which, for the purpose of constructing the Brandt module B(p,M), is
-taken to be an Eichler order of level M.
+``B.right_ideals()`` returns a tuple of representatives for all right
+ideal classes of `\mathcal{O}`.
 
 The implementation of this method is especially interesting. It
 depends on the construction of a Hecke module defined as a free
 abelian group on right ideal classes of a quaternion algebra with the
-following action
+following action:
 
 .. MATH::
 
     T_n[I] = \sum_{\phi} [J]
 
 where `(n,pM)=1` and the sum is over cyclic `\mathcal{O}`-module
-homomorphisms `\phi :I\rightarrow J` of degree `n` up to isomorphism
-of `J`. Equivalently one can sum over the inclusions of the submodules
-`J \rightarrow n^{-1}I`. The rough idea is to start with the trivial
-ideal class containing the order `\mathcal{O}` itself. Using the
-method ``cyclic_submodules(self, I, p)`` one computes `T_p([\mathcal{O}])`
-for some prime integer `p` not dividing the level of the order
-`\mathcal{O}`. Apply this method repeatedly and test for equivalence
-among resulting ideals. A theorem of Serre asserts that one gets a
+homomorphisms `\phi\colon I\rightarrow J` of degree `n` up to
+isomorphism of `J`. Equivalently one can sum over the inclusions of
+the submodules `J \rightarrow n^{-1}I`. The rough idea is to start
+with the trivial ideal class containing the order `\mathcal{O}`
+itself. Using the method ``cyclic_submodules(self, I, q)`` one then
+repeatedly computes `T_q([\mathcal{O}])` for some prime `q` not
+dividing the level of `\mathcal{O}` and tests for equivalence among
+the resulting ideals. A theorem of Serre asserts that one gets a
 complete set of ideal class representatives after a finite number of
 repetitions.
 
@@ -828,7 +836,7 @@ class BrandtModule_class(AmbientHeckeModule):
     @cached_method
     def order_of_level_N(self):
         """
-        Return Eichler order of level `N = p^{2 r + 1} M` in the
+        Return an order of level `N = p^{2 r + 1} M` in the
         quaternion algebra.
 
         EXAMPLES::

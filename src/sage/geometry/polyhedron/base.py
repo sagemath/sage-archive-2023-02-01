@@ -3567,6 +3567,22 @@ class Polyhedron_base(Element):
         from sage.geometry.polyhedron.combinatorial_polyhedron.base import CombinatorialPolyhedron
         return CombinatorialPolyhedron(self)
 
+    def _test_combinatorial_polyhedron(self, tester=None, **options):
+        """
+        Run test suite of combinatorial polyhedron.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_combinatorial_polyhedron()
+        """
+        from sage.misc.sage_unittest import TestSuite
+
+        tester = self._tester(tester=tester, **options)
+        tester.info("\n  Running the test suite of self.combinatorial_polyhedron()")
+        TestSuite(self.combinatorial_polyhedron()).run(verbose=tester._verbose,
+                                                       prefix=tester._prefix+"  ")
+        tester.info(tester._prefix+" ", newline = False)
+
     def simplicity(self):
         r"""
         Return the largest integer `k` such that the polytope is `k`-simple.
@@ -8228,18 +8244,29 @@ class Polyhedron_base(Element):
         else:
             raise TypeError("the measure should be `ambient`, `induced`, `induced_rational`, or `induced_lattice`")
 
-    def integrate(self, polynomial, **kwds):
+    def integrate(self, function, measure='ambient', **kwds):
         r"""
-        Return the integral of a polynomial over a polytope.
+        Return the integral of ``function`` over this polytope.
 
         INPUT:
 
-        - ``P`` -- Polyhedron
+        - ``self`` -- Polyhedron
 
-        - ``polynomial`` -- A multivariate polynomial or a valid LattE description string for
-          polynomials
+        - ``function`` -- a multivariate polynomial or
+          a valid LattE description string for polynomials
 
-        - ``**kwds`` -- additional keyword arguments that are passed to the engine
+        - ``measure`` -- string, the measure to use
+
+          Allowed values are:
+
+          * ``ambient`` (default): Lebesgue measure of ambient space,
+          * ``induced``: Lebesgue measure of the affine hull,
+          * ``induced_nonnormalized``: Lebesgue measure of the affine hull
+            without the normalization by `\sqrt{\det(A^\top A)}` (with
+            `A` being the affine transformation matrix; see :meth:`affine_hull`).
+
+        - ``**kwds`` -- additional keyword arguments that
+          are passed to the engine
 
         OUTPUT:
 
@@ -8261,8 +8288,8 @@ class Polyhedron_base(Element):
         be obtained if we transform to rational coordinates::
 
             sage: P = 1.4142*polytopes.cube()
-            sage: P_QQ = Polyhedron(vertices = [[QQ(vi) for vi in v] for v in P.vertex_generator()])
-            sage: RDF(P_QQ.integrate(x^2*y^2*z^2))    # optional - latte_int
+            sage: P_QQ = Polyhedron(vertices=[[QQ(vi) for vi in v] for v in P.vertex_generator()])
+            sage: RDF(P_QQ.integrate(x^2*y^2*z^2))                  # optional - latte_int
             6.703841212195228
 
         Integral over a non full-dimensional polytope::
@@ -8270,9 +8297,34 @@ class Polyhedron_base(Element):
             sage: x, y = polygens(QQ, 'x, y')
             sage: P = Polyhedron(vertices=[[0,0],[1,1]])
             sage: P.integrate(x*y)    # optional - latte_int
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: the polytope must be full-dimensional
+            0
+            sage: ixy = P.integrate(x*y, measure='induced'); ixy    # optional - latte_int
+            0.4714045207910317?
+            sage: ixy.parent()                                      # optional - latte_int
+            Algebraic Real Field
+
+        Convert to a symbolic expression::
+
+            sage: ixy.radical_expression()                          # optional - latte_int
+            1/3*sqrt(2)
+
+        Another non full-dimensional polytope integration::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: P = polytopes.simplex(2)
+            sage: V = AA(P.volume(measure='induced')); V.radical_expression()
+            1/2*sqrt(3)
+            sage: P.integrate(R(1), measure='induced') == V                      # optional - latte_int
+            True
+
+        Computing the mass center::
+
+            sage: (P.integrate(x, measure='induced') / V).radical_expression()   # optional - latte_int
+            1/3
+            sage: (P.integrate(y, measure='induced') / V).radical_expression()   # optional - latte_int
+            1/3
+            sage: (P.integrate(z, measure='induced') / V).radical_expression()   # optional - latte_int
+            1/3
 
         TESTS:
 
@@ -8305,15 +8357,119 @@ class Polyhedron_base(Element):
             Traceback (most recent call last):
             ...
             TypeError: LattE integrale cannot be applied over inexact rings
+
+        Integration of zero-polynomial::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: P = polytopes.simplex(2)
+            sage: P.integrate(R(0))
+            0
+            sage: P.integrate('[]')  # with LattE description string
+            0
+
+        ::
+
+            sage: R.<x, y, z> = QQ[]
+            sage: P = Polyhedron(vertices=[(0, 0, 1), (0, 1, 0)])
+            sage: P.integrate(x^2)
+            0
         """
+        if function == 0 or function == '[]':
+            return self.base_ring().zero()
+
+        if not self.is_compact():
+            raise NotImplementedError(
+                'integration over non-compact polyhedra not allowed')
+
+        if measure == 'ambient':
+            if not self.is_full_dimensional():
+                return self.base_ring().zero()
+
+            return self._integrate_latte_(function, **kwds)
+
+        elif measure == 'induced' or measure == 'induced_nonnormalized':
+            # if polyhedron is actually full-dimensional,
+            # return with ambient measure
+            if self.is_full_dimensional():
+                return self.integrate(function, measure='ambient', **kwds)
+
+            if isinstance(function, str):
+                raise NotImplementedError(
+                    'LattE description strings for polynomials not allowed '
+                    'when using measure="induced"')
+
+            # use an orthogonal transformation
+            affine_hull_data = self.affine_hull_projection(orthogonal=True, return_all_data=True)
+            polyhedron = affine_hull_data.polyhedron
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            R = PolynomialRing(affine_hull_data.section_linear_map.base_ring(), 'x', self.dim())
+            coordinate_images = affine_hull_data.section_linear_map.matrix().transpose() * vector(R.gens()) + affine_hull_data.section_translation
+
+            hom = function.parent().hom(coordinate_images)
+            function_in_affine_hull = hom(function)
+
+            I = polyhedron.integrate(function_in_affine_hull,
+                                     measure='ambient', **kwds)
+            if measure == 'induced_nonnormalized':
+                return I
+            else:
+                A = affine_hull_data.projection_linear_map.matrix()
+                Adet = (A.transpose() * A).det()
+                try:
+                    Adet = AA.coerce(Adet)
+                except TypeError:
+                    pass
+                return I / sqrt(Adet)
+
+        else:
+            raise ValueError('unknown measure "{}"'.format(measure))
+
+    def _integrate_latte_(self, polynomial, **kwds):
+        r"""
+        Return the integral of a polynomial over this polytope by calling LattE.
+
+        INPUT:
+
+        - ``polynomial`` -- a multivariate polynomial or
+          a valid LattE description string for polynomials
+
+        - ``**kwds`` -- additional keyword arguments that are passed
+          to the engine
+
+        OUTPUT:
+
+        The integral of the polynomial over the polytope.
+
+        .. NOTE::
+
+            The polytope triangulation algorithm is used. This function depends
+            on LattE (i.e., the ``latte_int`` optional package).
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: x, y, z = polygens(QQ, 'x, y, z')
+            sage: P._integrate_latte_(x^2 + y^2*z^2)    # optional - latte_int
+            32/9
+
+        ::
+
+            sage: R = PolynomialRing(QQ, '', 0)
+            sage: Polyhedron(vertices=[()]).integrate(R(42))
+            42
+        """
+        from sage.interfaces.latte import integrate
+
         if self.base_ring() == RDF:
             raise TypeError("LattE integrale cannot be applied over inexact rings")
-        elif not self.is_full_dimensional():
-            raise NotImplementedError("the polytope must be full-dimensional")
-        else:
-            from sage.interfaces.latte import integrate
-            return integrate(self.cdd_Hrepresentation(), polynomial,
-                             cdd=True, **kwds)
+        if self.dimension() == 0:
+            vertices = self.vertices()
+            assert len(self.vertices()) == 1
+            vertex = tuple(vertices[0])
+            return polynomial(vertex)
+        return integrate(self.cdd_Hrepresentation(),
+                         polynomial,
+                         cdd=True, **kwds)
 
     def contains(self, point):
         """

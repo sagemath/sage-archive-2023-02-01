@@ -6,7 +6,9 @@ The class :class:`ManifoldSubset` implements generic subsets of a
 topological manifold. Open subsets are implemented by the class
 :class:`~sage.manifolds.manifold.TopologicalManifold` (since an
 open subset of a manifold is a manifold by itself), which inherits
-from :class:`ManifoldSubset`.
+from :class:`ManifoldSubset`.  Besides, subsets that are images of
+a manifold subset under a continuous map are implemented by the
+subclass :class:`~sage.manifolds.continuous_map_image.ImageManifoldSubset`.
 
 AUTHORS:
 
@@ -2741,6 +2743,21 @@ class ManifoldSubset(UniqueRepresentation, Parent):
     def closure(self, name=None, latex_name=None):
         r"""
         Return the topological closure of ``self`` as a subset of the manifold.
+
+        INPUT:
+
+        - ``name`` -- (default: ``None``) name given to the difference in the
+          case the latter has to be created; the default prepends ``cl_``
+          to ``self._name``
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          difference in the case the latter has to be created; the default
+          is built upon the operator `\mathrm{cl}`
+
+        OUTPUT:
+
+        - if ``self`` is already known to be closed (see :meth:`is_closed`),
+          ``self``; otherwise, an instance of
+          :class:`~sage.manifolds.subsets.closure.ManifoldSubsetClosure`
 
         EXAMPLES::
 

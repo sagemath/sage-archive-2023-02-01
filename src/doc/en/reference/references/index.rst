@@ -304,6 +304,10 @@ REFERENCES:
             of crystals for the quantum queer superalgebra*.
             Preprint (2018). :arxiv:`1803.06317`
 
+.. [AS2003] Jean-Paul Allouche, Jeffrey Shallit,
+            *Automatic Sequences: Theory, Applications, Generalizations*,
+            Cambridge University Press, 2003.
+
 .. [As2008b] Sami Assaf. *Dual equivalence graphs and a
              combinatorial proof of LLT and Macdonald positivity*.
              (2008). :arxiv:`1005.3759v5`.
@@ -4765,6 +4769,9 @@ REFERENCES:
 
 .. [Rea2009] Nathan Reading, *Noncrossing partitions and the shard
              intersection order*, DMTCS Proceedings of FPSAC 2009, 745--756
+
+.. [ReSt2020] Nathan Reading and Salvatore Stella, *An affine almost positive
+              roots model*, J. Comb. Algebra Volume 4, Issue 1, 2020, pp. 1--59
 
 .. [Red2001] Maria Julia Redondo. *Hochschild cohomology: some methods
              for computations*. Resenhas IME-USP 5 (2), 113-137

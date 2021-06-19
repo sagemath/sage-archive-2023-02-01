@@ -10297,7 +10297,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         ::
 
             sage: type(CyclotomicField(4).zero())
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
             sage: type(CyclotomicField(6).one())
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
             sage: type(CyclotomicField(6).an_element())
@@ -10318,8 +10318,8 @@ class NumberField_cyclotomic(NumberField_absolute):
                                       embedding = embedding,
                                       assume_disc_small=assume_disc_small,
                                       maximize_at_primes=maximize_at_primes)
-        if n%2:
-            self.__zeta_order = 2*n
+        if n % 2:
+            self.__zeta_order = 2 * n
         else:
             self.__zeta_order = n
         ## quadratic number fields require this:
@@ -10335,12 +10335,13 @@ class NumberField_cyclotomic(NumberField_absolute):
             self._standard_embedding = not CDF.has_coerce_map_from(self) or CDF(self.gen()).imag() > 0
             self._cache_an_element = None
 
-            self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
             if n == 4:
+                self._element_class = number_field_element_quadratic.NumberFieldElement_gaussian
                 self._D = ZZ(-1)
                 self._NumberField_generic__gen = self._element_class(self, (QQ(0), QQ(1)))
             else:
                 ## n is 3 or 6
+                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
                 self._D = ZZ(-3)
                 one_half = ZZ(1)/ZZ(2)
                 if n == 3:
@@ -11610,9 +11611,9 @@ class NumberField_quadratic(NumberField_absolute):
 
             sage: k.<a> = QuadraticField(7)
             sage: type(k.zero())
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
             sage: type(k.one())
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
 
             sage: TestSuite(k).run()
 
@@ -11627,16 +11628,22 @@ class NumberField_quadratic(NumberField_absolute):
                                       embedding=embedding, latex_name=latex_name,
                                       assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         self._standard_embedding = True
+
+        # set the generator and element class
         c, b, a = [QQ(t) for t in self.defining_polynomial().list()]
-        if a.is_one() and b.is_zero() and c.is_one():
-            self._element_class = number_field_element_quadratic.NumberFieldElement_gaussian
-        else:
-            self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
-        # set the generator
         Dpoly = b*b - 4*a*c
         D = (Dpoly.numer() * Dpoly.denom()).squarefree_part(bound=10000)
         self._D = D
         parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
+
+        if a.is_one() and b.is_zero() and c.is_one():
+            self._element_class = number_field_element_quadratic.NumberFieldElement_gaussian
+        else:
+            if number_field_element_quadratic.is_sqrt_disc(parts[0], parts[1]):
+                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic_sqrt
+            else:
+                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
+
         self._NumberField_generic__gen = self._element_class(self, parts)
 
         # we must set the flag _standard_embedding *before* any element creation

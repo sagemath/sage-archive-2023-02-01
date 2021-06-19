@@ -2,6 +2,13 @@
 
 VERSION = "@PACKAGE_VERSION@"
 
+# The following must not be used during build to determine source or installation
+# location of sagelib.  See comments in SAGE_ROOT/src/Makefile.in
+# These variables come first so that other substituted variable values can refer
+# to it.
+SAGE_LOCAL = "@prefix@"
+SAGE_ROOT = "@SAGE_ROOT@"
+
 MAXIMA = "@prefix@/bin/maxima"
 
 ARB_LIBRARY = "@SAGE_ARB_LIBRARY@"
@@ -11,7 +18,7 @@ NTL_LIBDIR = "@NTL_LIBDIR@"
 
 # Path to the ecl-config script
 # TODO: At the moment this is hard-coded, needs to be set during the configure phase if we want to support system-installed ecl.
-ECL_CONFIG = "@prefix@/bin/ecl-config"
+ECL_CONFIG = "${prefix}/bin/ecl-config".replace('${prefix}', SAGE_LOCAL)
 
 SAGE_NAUTY_BINS_PREFIX = "@SAGE_NAUTY_BINS_PREFIX@"
 
@@ -21,17 +28,12 @@ SAGE_NAUTY_BINS_PREFIX = "@SAGE_NAUTY_BINS_PREFIX@"
 CBLAS_PC_MODULES = "cblas"
 
 # Used in sage.repl.ipython_kernel.install
-MATHJAX_DIR = "@prefix@/share/mathjax"
-THREEJS_DIR = "@prefix@/share/threejs"
+MATHJAX_DIR = SAGE_LOCAL + "/share/mathjax"
+THREEJS_DIR = SAGE_LOCAL + "/share/threejs"
 
 # OpenMP flags, if available.
 OPENMP_CFLAGS = "@OPENMP_CFLAGS@"
 OPENMP_CXXFLAGS = "@OPENMP_CXXFLAGS@"
-
-# The following must not be used during build to determine source or installation
-# location of sagelib.  See comments in SAGE_ROOT/src/Makefile.in
-SAGE_LOCAL = "@prefix@"
-SAGE_ROOT = "@SAGE_ROOT@"
 
 # Entry point 'sage-config'.  It does not depend on any packages.
 

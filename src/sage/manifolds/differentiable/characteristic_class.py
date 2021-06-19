@@ -122,7 +122,7 @@ The corresponding characteristic form w.r.t. the bundle connection can be
 obtained via :meth:`get_form`.
 
     sage: ch_form = ch.get_form(nab); ch_form.display_expansion()
-    ch(E, nabla^E) = [1] + [0] + [1/2*d(A)/dt/pi dt/\dx]
+    ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt/\dx
 
 .. _multiplicative:
 
@@ -197,7 +197,7 @@ Now, the Chern class can be constructed::
      base space 2-dimensional differentiable manifold CP^1
     sage: c_form = c.get_form(nab)
     sage: c_form.display_expansion(c_comp.frame(), chart=c_comp)
-    c(gamma^1, nabla) = [1] + [0] + [1/2*I/(pi + pi*z^2*zbar^2 + 2*pi*z*zbar) dz/\dzbar]
+    c(gamma^1, nabla) = 1 + 1/2*I/(pi + pi*z^2*zbar^2 + 2*pi*z*zbar) dz/\dzbar
 
 Since `U` and `\CC\mathbf{P}^1` differ only by a point and therefore a null
 set, it is enough to integrate the top form over the domain `U`::
@@ -302,8 +302,7 @@ Now the representative of the Euler class with respect to the connection
     sage: cmatrices = {eU: cmatrix_U, eV: cmatrix_V}
     sage: e_class_form = e_class.get_form(nab, cmatrices)
     sage: e_class_form.display_expansion()
-    e(TS2, nabla_g) = [0] + [0] + [2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 +
-     2*(pi + pi*x^2)*y^2) dx/\dy]
+    e(TS2, nabla_g) = 2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 + 2*(pi + pi*x^2)*y^2) dx/\dy
 
 Let us check whether this form represents the Euler class correctly::
 
@@ -811,7 +810,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: ch_form.display()
             ch(E, nabla^E) = ch_0(E, nabla^E) + zero + ch_1(E, nabla^E)
             sage: ch_form.display_expansion()
-            ch(E, nabla^E) = [1] + [0] + [1/2*d(A)/dt/pi dt/\dx]
+            ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt/\dx
 
         Due to long computation times, the form is saved::
 

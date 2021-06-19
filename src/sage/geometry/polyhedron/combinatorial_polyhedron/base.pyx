@@ -104,6 +104,7 @@ from cysignals.signals                 cimport sig_check, sig_block, sig_unblock
 from sage.matrix.matrix_integer_dense  cimport Matrix_integer_dense
 
 from .face_data_structure cimport face_len_atoms, face_init
+from .face_iterator cimport iter_t, parallel_f_vector
 
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
@@ -1554,12 +1555,19 @@ cdef class CombinatorialPolyhedron(SageObject):
         return DiGraph([vertices, edges], format='vertices_and_edges', immutable=True)
 
     @cached_method
-    def f_vector(self):
+    def f_vector(self, num_threads=None, parallelization_depth=None):
         r"""
         Compute the ``f_vector`` of the polyhedron.
 
         The ``f_vector`` contains the number of faces of dimension `k`
         for each `k` in ``range(-1, self.dimension() + 1)``.
+
+        INPUT:
+
+        - ``num_threads`` -- integer (optional); specify the number of threads
+
+        - ``parallelization_depth`` -- integer (optional); specify
+          how deep in the lattice the parallelization is done
 
         .. NOTE::
 
@@ -1578,13 +1586,35 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.f_vector()
             (1, 10, 45, 120, 185, 150, 50, 1)
 
+        Using two threads::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C.f_vector(num_threads=2)
+            (1, 120, 240, 150, 30, 1)
+
         TESTS::
 
             sage: type(C.f_vector())
             <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
         """
+        if num_threads is None:
+            from sage.parallel.ncpus import ncpus
+            num_threads = ncpus()
+
+        if parallelization_depth is None:
+            # Setting some reasonable defaults.
+            if num_threads == 0:
+                parallelization_depth = 0
+            elif num_threads <= 3:
+                parallelization_depth = 1
+            elif num_threads <= 8:
+                parallelization_depth = 2
+            else:
+                parallelization_depth = 3
+
         if not self._f_vector:
-            self._compute_f_vector()
+            self._compute_f_vector(num_threads, parallelization_depth)
         if not self._f_vector:
             raise ValueError("could not determine f_vector")
         from sage.modules.free_module_element import vector
@@ -2888,17 +2918,26 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     # Internal methods.
 
-    cdef int _compute_f_vector(self, bint compute_edges=False, given_dual=None) except -1:
+    cdef int _compute_f_vector(self, size_t num_threads, size_t parallelization_depth) except -1:
         r"""
         Compute the ``f_vector`` of the polyhedron.
 
-        If ``compute_edges`` computes the edges in non-dual mode as well.
-        In dual mode the ridges.
-
-        See :meth:`f_vector` and :meth:`_compute_edges`.
+        See :meth:`f_vector`.
         """
         if self._f_vector:
             return 0  # There is no need to recompute the f_vector.
+
+        cdef int dim = self.dimension()
+        cdef int d  # dimension of the current face of the iterator
+        cdef MemoryAllocator mem = MemoryAllocator()
+
+        if num_threads == 0:
+            # No need to complain.
+            num_threads = 1
+
+        if parallelization_depth > dim - 1:
+            # Is a very bad choice anyway, but prevent segmenation faults.
+            parallelization_depth = dim - 1
 
         cdef bint dual
         if not self.is_bounded() or self.n_facets() <= self.n_Vrepresentation():
@@ -2907,49 +2946,21 @@ cdef class CombinatorialPolyhedron(SageObject):
         else:
             # In this case the dual approach is faster.
             dual = True
-        if given_dual is not None:
-            dual = given_dual
 
+        cdef FaceIterator face_iter
+        cdef iter_t* structs = <iter_t*> mem.allocarray(num_threads, sizeof(iter_t))
+        cdef size_t i
 
-        cdef FaceIterator face_iter = self._face_iter(dual, -2)
-
-        cdef int dim = self.dimension()
-        cdef int d  # dimension of the current face of the iterator
-        cdef MemoryAllocator mem = MemoryAllocator()
-
-        # In case we compute the edges as well.
-        cdef size_t **edges
-        cdef size_t counter = 0         # the number of edges so far
-        cdef size_t current_length      # dynamically enlarge **edges
-        cdef size_t a,b                # vertices of an edge
-        if compute_edges:
-            edges = <size_t**> mem.malloc(sizeof(size_t**))
-            current_length = 1
+        # For each thread an independent structure.
+        face_iters = [self._face_iter(dual, -2) for _ in range(num_threads)]
+        for i in range(num_threads):
+            face_iter = face_iters[i]
+            structs[i][0] = face_iter.structure[0]
 
         # Initialize ``f_vector``.
         cdef size_t *f_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
-        f_vector[0] = 1         # Face iterator will only visit proper faces.
-        f_vector[dim + 1] = 1   # Face iterator will only visit proper faces.
 
-        # For each face in the iterator, add `1` to the corresponding entry in
-        # ``f_vector``.
-        if self.n_facets() > 0 and dim > 0:
-            d = face_iter.next_dimension()
-            while (d < dim):
-                sig_check()
-                f_vector[d+1] += 1
-
-                if compute_edges and d == 1:
-                    # If it is an edge.
-
-                    # Set up face_iter.atom_rep
-                    face_iter.set_atom_rep()
-
-                    # Copy the information.
-                    a = face_iter.structure.atom_rep[0]
-                    b = face_iter.structure.atom_rep[1]
-                    self._set_edge(a, b, &edges, &counter, &current_length, mem)
-                d = face_iter.next_dimension()
+        parallel_f_vector(structs, num_threads, parallelization_depth, f_vector)
 
         # Copy ``f_vector``.
         if dual:
@@ -2969,21 +2980,6 @@ cdef class CombinatorialPolyhedron(SageObject):
                 raise ValueError("not all vertices are intersections of facets")
 
             self._f_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
-
-        if compute_edges:
-            # Success, copy the data to ``CombinatorialPolyhedron``.
-            if dual:
-                sig_block()
-                self._n_ridges = counter
-                self._ridges = edges
-                self._mem_tuple += (mem,)
-                sig_unblock()
-            else:
-                sig_block()
-                self._n_edges = counter
-                self._edges = edges
-                self._mem_tuple += (mem,)
-                sig_unblock()
 
     cdef int _compute_edges_or_ridges(self, bint dual, bint do_edges) except -1:
         r"""
@@ -3008,6 +3004,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t current_length = 1  # dynamically enlarge **edges
         cdef int output_dim_init = 1 if do_edges else dim - 2
 
+        cdef bint do_f_vector
+        cdef size_t* f_vector
+
         if dim == 1 and (do_edges or self.n_facets() > 1):
             # In this case there is an edge/ridge, but its not a proper face.
             self._set_edge(0, 1, &edges, &counter, &current_length, mem)
@@ -3017,18 +3016,46 @@ cdef class CombinatorialPolyhedron(SageObject):
             # Prevent an error when calling the face iterator.
             pass
 
-        elif not self._f_vector and ((dual ^ do_edges)):
-            # While doing edges in non-dual mode or ridges in dual-mode
-            # one might as well do the f-vector.
-            return self._compute_f_vector(compute_edges=True, given_dual=dual)
-
         else:
-            # Only compute the edges/ridges.
-            face_iter = self._face_iter(dual, output_dim_init)
-
-            self._compute_edges_or_ridges_with_iterator(face_iter, (dual ^ do_edges), &edges, &counter, &current_length, mem)
+            if not self._f_vector and ((dual ^ do_edges)):
+                # While doing edges in non-dual mode or ridges in dual-mode
+                # one might as well do the f-vector.
+                do_f_vector = True
+                # Initialize ``f_vector``.
+                f_vector = <size_t *> mem.calloc((dim + 2), sizeof(size_t))
+                f_vector[0] = 1
+                f_vector[dim + 1] = 1
+                face_iter = self._face_iter(dual, -2)
+            else:
+                do_f_vector = False
+                face_iter = self._face_iter(dual, output_dim_init)
+            self._compute_edges_or_ridges_with_iterator(face_iter, (dual ^ do_edges), do_f_vector,
+                                                        &edges, &counter, &current_length,
+                                                        f_vector, mem)
 
         # Success, copy the data to ``CombinatorialPolyhedron``.
+
+        # Copy ``f_vector``.
+        if do_f_vector:
+            if dual:
+                if dim > 1 and f_vector[1] < self.n_facets():
+                    # The input seemed to be wrong.
+                    raise ValueError("not all facets are joins of vertices")
+
+                # We have computed the ``f_vector`` of the dual.
+                # Reverse it:
+                self._f_vector = \
+                    tuple(smallInteger(f_vector[dim+1-i]) for i in range(dim+2))
+
+            else:
+                if self.is_bounded() and dim > 1 \
+                        and f_vector[1] < self.n_Vrepresentation() - len(self.far_face_tuple()):
+                    # The input seemed to be wrong.
+                    raise ValueError("not all vertices are intersections of facets")
+
+                self._f_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
+
+        # Copy the edge or ridges.
         if do_edges:
             sig_block()
             self._n_edges = counter
@@ -3043,32 +3070,45 @@ cdef class CombinatorialPolyhedron(SageObject):
             sig_unblock()
 
     cdef size_t _compute_edges_or_ridges_with_iterator(
-            self, FaceIterator face_iter, bint do_atom_rep, size_t ***edges_pt,
-            size_t *counter_pt, size_t *current_length_pt,
-            MemoryAllocator mem) except -1:
+            self, FaceIterator face_iter, const bint do_atom_rep, const bint do_f_vector,
+            size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt,
+            size_t* f_vector, MemoryAllocator mem) except -1:
         r"""
         See :meth:`CombinatorialPolyhedron._compute_edges`.
         """
         cdef size_t a,b                # facets of an edge
         cdef int dim = self.dimension()
+
+        # The dimension in which to record the edges or ridges.
         cdef output_dimension = 1 if do_atom_rep else dim - 2
 
-        while face_iter.next_dimension() == output_dimension:
-            if do_atom_rep:
-                # Set up face_iter.atom_rep
-                face_iter.set_atom_rep()
+        cdef int d = face_iter.next_dimension()
+        while d < dim:
+            sig_check()
+            if do_f_vector:
+                f_vector[d + 1] += 1
 
-                # Copy the information.
-                a = face_iter.structure.atom_rep[0]
-                b = face_iter.structure.atom_rep[1]
-            else:
-                # Set up face_iter.coatom_rep
-                face_iter.set_coatom_rep()
+            # If ``not do_f_vector`` the iterator is set up
+            # for ``output_dimension`` and
+            # ``d < dim`` implies
+            # ``d == ouput_dimension``.
+            if not do_f_vector or d == output_dimension:
+                if do_atom_rep:
+                    # Set up face_iter.atom_rep
+                    face_iter.set_atom_rep()
 
-                # Copy the information.
-                a = face_iter.structure.coatom_rep[0]
-                b = face_iter.structure.coatom_rep[1]
-            self._set_edge(a, b, edges_pt, counter_pt, current_length_pt, mem)
+                    # Copy the information.
+                    a = face_iter.structure.atom_rep[0]
+                    b = face_iter.structure.atom_rep[1]
+                else:
+                    # Set up face_iter.coatom_rep
+                    face_iter.set_coatom_rep()
+
+                    # Copy the information.
+                    a = face_iter.structure.coatom_rep[0]
+                    b = face_iter.structure.coatom_rep[1]
+                self._set_edge(a, b, edges_pt, counter_pt, current_length_pt, mem)
+            d = face_iter.next_dimension()
 
     cdef int _compute_face_lattice_incidences(self) except -1:
         r"""

@@ -6937,6 +6937,50 @@ class Polyhedron_base(Element):
             return ()
         return self.faces(self.dimension()-1)
 
+    def _test_combinatorial_face_as_combinatorial_polyhedron(self, tester=None, **options):
+        """
+        Run tests on obtaining the combinatorial face as combinatorial polyhedron.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_combinatorial_face_as_combinatorial_polyhedron()
+        """
+        if not self.is_compact():
+            return
+        if self.dim() > 7 or self.n_vertices() > 100 or self.n_facets() > 100:
+            # Avoid very long tests.
+            return
+        if self.dim() < 1:
+            # Avoid trivial cases.
+            return
+
+        from sage.misc.prandom import random
+
+        if tester is None:
+            tester = self._tester(**options)
+
+        it = self.face_generator()
+        _ = next(it), next(it)  # get rid of non_proper faces
+        C1 = self.combinatorial_polyhedron()
+        it1 = C1.face_iter()
+        C2 = C1.dual()
+        it2 = C2.face_iter(dual=not it1.dual)
+
+        for f in it:
+            f1 = next(it1)
+            f2 = next(it2)
+            if random() < 0.95:
+                # Only test a random 5 percent of the faces.
+                continue
+
+            P = f.as_polyhedron()
+            D1 = f1.as_combinatorial_polyhedron()
+            D2 = f2.as_combinatorial_polyhedron(quotient=True).dual()
+            D1._test_bitsets(tester, **options)
+            D2._test_bitsets(tester, **options)
+            tester.assertTrue(P.combinatorial_polyhedron().vertex_facet_graph().is_isomorphic(D1.vertex_facet_graph()))
+            tester.assertTrue(P.combinatorial_polyhedron().vertex_facet_graph().is_isomorphic(D2.vertex_facet_graph()))
+
     @cached_method(do_pickle=True)
     def f_vector(self):
         r"""

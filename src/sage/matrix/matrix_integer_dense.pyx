@@ -2400,13 +2400,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [0 3 0]
             [0 0 0]
             sage: U
-            [ 0  1  0]
+            [ 0  2 -1]
             [ 0 -1  1]
-            [-1  2 -1]
+            [ 1 -2  1]
             sage: V
-            [-1  4  1]
-            [ 1 -3 -2]
             [ 0  0  1]
+            [-1  2 -2]
+            [ 1 -1  1]
             sage: U*A*V
             [1 0 0]
             [0 3 0]
@@ -2421,12 +2421,12 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [0 2]
             [0 0]
             sage: U
-            [ 0  1  0]
+            [ 0  2 -1]
             [ 0 -1  1]
-            [-1  2 -1]
+            [ 1 -2  1]
             sage: V
-            [-1  3]
-            [ 1 -2]
+            [-1  1]
+            [ 1  0]
             sage: U * A * V
             [1 0]
             [0 2]
@@ -2445,7 +2445,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
            :meth:`elementary_divisors`
         """
-        v = self.__pari__().matsnf(1).sage()
+        X = self.matrix_space()([self[i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._ncols-1,-1,-1)])
+        v = X.__pari__().matsnf(1).sage()
         # need to reverse order of rows of U, columns of V, and both of D.
         D = self.matrix_space()([v[2][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._ncols-1,-1,-1)])
 
@@ -2461,13 +2462,13 @@ cdef class Matrix_integer_dense(Matrix_dense):
             # silly special cases for matrices with 0 columns (PARI has a unique empty matrix)
             U = self.matrix_space(ncols = self._nrows)(1)
         else:
-            U = self.matrix_space(ncols = self._nrows)([v[0][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._nrows)])
+            U = self.matrix_space(ncols = self._nrows)([v[0][i,j] for i in xrange(self._nrows-1,-1,-1) for j in xrange(self._nrows-1,-1,-1)])
 
         if self._nrows == 0:
             # silly special cases for matrices with 0 rows (PARI has a unique empty matrix)
             V = self.matrix_space(nrows = self._ncols)(1)
         else:
-            V = self.matrix_space(nrows = self._ncols)([v[1][i,j] for i in xrange(self._ncols) for j in xrange(self._ncols-1,-1,-1)])
+            V = self.matrix_space(nrows = self._ncols)([v[1][i,j] for i in xrange(self._ncols-1,-1,-1) for j in xrange(self._ncols-1,-1,-1)])
 
         return D, U, V
 

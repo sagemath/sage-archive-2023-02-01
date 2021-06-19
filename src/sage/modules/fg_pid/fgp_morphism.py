@@ -258,20 +258,20 @@ class FGP_Morphism(Morphism):
             sage: O.V()
             Free module of degree 3 and rank 2 over Integer Ring
             User basis matrix:
-            [0 0 1]
-            [0 2 0]
+            [ 0  6  1]
+            [ 0 -2  0]
             sage: phi = Q.hom([Q.0, 4*Q.1])
             sage: x = Q(V.0); x
-            (0, 4)
-            sage: x == 4*Q.1
+            (0, 8)
+            sage: x == 8*Q.1
             True
             sage: x in O.V()
             False
             sage: phi(x)
-            (0, 4)
-            sage: phi(4*Q.1)
-            (0, 4)
-            sage: phi(4*Q.1) == phi(x)
+            (0, 8)
+            sage: phi(8*Q.1)
+            (0, 8)
+            sage: phi(8*Q.1) == phi(x)
             True
         """
         from .fgp_module import is_FGP_Module

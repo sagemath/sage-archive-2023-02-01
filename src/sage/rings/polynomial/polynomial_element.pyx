@@ -7624,7 +7624,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-3.5074662110434039?e451, 1)]
             sage: p = bigc*x + 1
             sage: p.roots(ring=RR)
-            [(0.000000000000000, 1)]
+            [(-2.85106096489671e-452, 1)]
             sage: p.roots(ring=AA)
             [(-2.8510609648967059?e-452, 1)]
             sage: p.roots(ring=QQbar)

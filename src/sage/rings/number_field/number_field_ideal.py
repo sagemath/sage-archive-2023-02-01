@@ -2536,7 +2536,7 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         from sage.libs.pari.all import PariError
         try:
             bid = self._bid
-            if flag==2:
+            if flag == 2:
                 # Try to access generators, we get PariError if this fails.
                 bid.bid_get_gen()
         except (AttributeError, PariError):
@@ -2544,7 +2544,6 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
             bid = k.pari_nf().idealstar(self.pari_hnf(), flag)
             self._bid = bid
         return bid
-
 
     def idealstar(self, flag=1):
         r"""

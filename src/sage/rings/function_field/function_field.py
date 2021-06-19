@@ -1870,7 +1870,7 @@ class FunctionField_polymod(FunctionField):
         if base is None:
             base = self.base_field()
         degree = self.degree(base)
-        V = base**degree;
+        V = base**degree
         if not map:
             return V
         from_V = MapVectorSpaceToFunctionField(V, self)
@@ -2074,7 +2074,7 @@ class FunctionField_polymod(FunctionField):
             base_morphism = self.base_field().hom(im_gens[1:], base_morphism)
 
         # the codomain of this morphism is the field containing all the im_gens
-        codomain = im_gens[0].parent();
+        codomain = im_gens[0].parent()
         if base_morphism is not None:
             from sage.categories.pushout import pushout
             codomain = pushout(codomain, base_morphism.codomain())

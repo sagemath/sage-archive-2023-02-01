@@ -32,6 +32,10 @@ SAGE_NAUTY_BINS_PREFIX = "@SAGE_NAUTY_BINS_PREFIX@"
 # always provides cblas.pc, if necessary by creating a facade pc file for a system BLAS.
 CBLAS_PC_MODULES = "cblas"
 
+# for sage_setup.setenv
+SAGE_ARCHFLAGS = "@SAGE_ARCHFLAGS@"
+SAGE_PKG_CONFIG_PATH = "@SAGE_PKG_CONFIG_PATH@".replace('$SAGE_LOCAL', SAGE_LOCAL)
+
 # Used in sage.repl.ipython_kernel.install
 MATHJAX_DIR = SAGE_LOCAL + "/share/mathjax"
 THREEJS_DIR = SAGE_LOCAL + "/share/threejs"

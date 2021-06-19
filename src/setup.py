@@ -45,6 +45,9 @@ from sage.env import *
 
 sys.excepthook = excepthook
 
+from sage_setup.setenv import setenv
+setenv()
+
 # ########################################################
 # ## Configuration
 # ########################################################

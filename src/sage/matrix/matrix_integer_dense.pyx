@@ -1998,8 +1998,8 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: m = random_matrix(ZZ, 100, 100, x=-1000, y=1000, density=.1)
             sage: m.parent()
             Full MatrixSpace of 100 by 100 dense matrices over Integer Ring
-            sage: H, U = m.hermite_form(algorithm="flint", transformation=True)
-            sage: H == U*m
+            sage: H, U = m.hermite_form(algorithm="flint", transformation=True)  # long time
+            sage: H == U*m                                                       # long time
             True
         """
         key = 'hnf-%s-%s'%(include_zero_rows,transformation)
@@ -3434,17 +3434,18 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         EXAMPLES::
 
-            sage: A = matrix(ZZ, 2,3, [1..6]); A
-            [1 2 3]
-            [4 5 6]
-            sage: A.randomize()
-            sage: A
-            [-8  2  0]
-            [ 0  1 -1]
-            sage: A.randomize(x=-30,y=30)
-            sage: A
-            [  5 -19  24]
-            [ 24  23  -9]
+            sage: A = matrix(ZZ, 2,3, [1..6])
+            sage: ranks = [True, True, True]
+            sage: while any(ranks):
+            ....:    A.randomize()
+            ....:    ranks[A.rank()] = False
+
+            sage: mini = 0
+            sage: maxi = 0
+            sage: while mini != -30 and maxi != 30:
+            ....:     A.randomize(x=-30, y=30)
+            ....:     mini = min(min(A.list()), mini)
+            ....:     maxi = min(min(A.list()), maxi)
         """
         density = float(density)
         if density <= 0:
@@ -5531,7 +5532,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
         EXAMPLES::
 
-            sage: A = random_matrix(ZZ,3,3)
+            sage: A = matrix(ZZ, 3, 3, [-8, 2, 0, 0, 1, -1, 2, 1, -95])
             sage: As = singular(A); As
             -8     2     0
             0     1    -1

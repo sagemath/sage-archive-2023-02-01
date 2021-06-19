@@ -111,7 +111,7 @@ try:
         nthreads=4)
 except Exception as exception:
     log.warn(f"Exception while generating and cythonizing source files: {exception}")
-    extensions = None
+    raise
 
 # ########################################################
 # ## Distutils

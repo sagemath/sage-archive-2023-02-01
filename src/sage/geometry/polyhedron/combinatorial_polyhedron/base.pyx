@@ -2785,7 +2785,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         return (self.n_facets() == other.n_facets()
                 and self.Vrepresentation() == other.Vrepresentation()
                 and self.facet_names() == other_C.facet_names()
-                and self.equalities() == other_C.equalities()
+                and self.equations() == other_C.equations()
                 and self.dimension() == other.dimension()
                 and self.far_face_tuple() == other_C.far_face_tuple()
                 and self.incidence_matrix() == other.incidence_matrix())

@@ -3004,7 +3004,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         cdef size_t current_length = 1  # dynamically enlarge **edges
         cdef int output_dim_init = 1 if do_edges else dim - 2
 
-        cdef bint do_f_vector
+        cdef bint do_f_vector = False
         cdef size_t* f_vector
 
         if dim == 1 and (do_edges or self.n_facets() > 1):

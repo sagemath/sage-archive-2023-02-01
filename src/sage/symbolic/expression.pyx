@@ -1549,6 +1549,13 @@ cdef class Expression(CommutativeRingElement):
 
         (In spite of its name, this method also works in the complex case.)
 
+        .. warning::
+
+            The generic conversion mechanism is fragile. When rigorous results
+            are essential, it is recommended to call suitable methods of real
+            or complex balls instead. For example, `RBF(real(i + 1))` is better
+            expressed as `(CBF(i) + 1).real()`.
+
         EXAMPLES::
 
             sage: RBF(pi, 1/1000)
@@ -1566,6 +1573,18 @@ cdef class Expression(CommutativeRingElement):
 
             sage: CBF(gamma(15/2, 1)).identical(CBF(15/2).gamma(1))
             True
+            sage: a = RBF(abs(e+i)); (a, a.parent())
+            ([2.89638673159001 +/- 3.07e-15], Real ball field with 53 bits of precision)
+            sage: a = CBF(abs(e+i)); (a, a.parent())
+            ([2.89638673159001 +/- 3.07e-15], Complex ball field with 53 bits of precision)
+            sage: RBF(sin(7/12)^2 + real(exp(i*7/12))^2)
+            [1.0000000000000 +/- 1.12e-15]
+            sage: RBF(arg(sin(i+1)))
+            [0.454820233309950 +/- 7.08e-16]
+            sage: RBF(abs(i) + i)
+            Traceback (most recent call last):
+            ...
+            ValueError: nonzero imaginary part
         """
         # Note that we deliberately don't use _eval_self and don't try going
         # through RIF/CIF in order to avoid unsafe conversions.
@@ -1577,25 +1596,34 @@ cdef class Expression(CommutativeRingElement):
             except (TypeError, ValueError):
                 pass
         else:
+            C = R.complex_field()
             # Intended for BuiltinFunctions with a well-defined main argument
             args = [a.pyobject() if a.is_numeric() else a
                     for a in self.operands()]
             try:
                 args = operator._method_arguments(*args)
-                method = getattr(R(args[0]), operator.name())
-            except (AttributeError, TypeError):
+            except AttributeError:
                 pass
             else:
-                if callable(method):
-                    return method(*args[1:])
-            # Generic case: walk through the expression
+                # If R is a real field, prefer the method of real balls if it
+                # exists (sometimes leads to tighter bounds, and avoids
+                # confusing inconsistencies).
+                for T in ([R] if C is R else [R, C]):
+                    try:
+                        method = getattr(T(args[0]), operator.name())
+                    except (AttributeError, TypeError, ValueError):
+                        pass
+                    else:
+                        if callable(method):
+                            return method(*args[1:])
+            # Generic case: walk through the expression. In this case, we do
+            # not bother trying to stay in the real field.
             try:
-                res = self.operator()(*[R(a) for a in args])
+                res = self.operator()(*[C(a) for a in args])
             except (TypeError, ValueError):
                 pass
             else:
-                if res.parent() is R:
-                    return res
+                return R(res)
         # Typically more informative and consistent than the exceptions that
         # would propagate
         raise TypeError("unable to convert {!r} to a {!s}".format(

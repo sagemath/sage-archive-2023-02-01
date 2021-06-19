@@ -73,9 +73,9 @@ class OrderedSetPartition(ClonableArray,
 
     .. MATH::
 
-        \sum_n {T_n \over n!} x^n = {1 \over 2-e^x}.
+        \sum_n \frac{T_n}{n!} x^n = \frac{1}{2-e^x}.
 
-    (See sequence A000670 in OEIS.)
+    (See sequence :oeis:`A000670` in OEIS.)
 
     INPUT:
 

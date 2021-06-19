@@ -3,9 +3,8 @@ r"""
 Testing for databases at runtime
 """
 
-import os
 
-from . import StaticFile
+from . import StaticFile, PythonModule
 from sage.env import CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR
 
 CREMONA_DATA_DIRS = set([CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR])
@@ -64,3 +63,28 @@ class DatabaseJones(StaticFile):
         StaticFile.__init__(self, "John Jones's tables of number fields",
                             filename='jones/jones.sobj',
                             spkg="database_jones_numfield")
+
+
+class DatabaseKnotInfo(PythonModule):
+    r"""
+    A :class:`Feature` which describes the presence of the databases at the
+    web-pages `KnotInfo <https://knotinfo.math.indiana.edu/>`__ and
+    `LinkInfo <https://linkinfo.sitehost.iu.edu>`__.
+
+
+
+    EXAMPLES::
+
+        sage: from sage.features.databases import DatabaseKnotInfo
+        sage: DatabaseKnotInfo().is_present()  # optional: database_knotinfo
+        FeatureTestResult('sage.knots.knotinfo', True)
+    """
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.databases import DatabaseKnotInfo
+            sage: isinstance(DatabaseKnotInfo(), DatabaseKnotInfo)
+            True
+        """
+        PythonModule.__init__(self, 'database_knotinfo', spkg='database_knotinfo')

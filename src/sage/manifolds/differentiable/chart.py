@@ -435,17 +435,17 @@ class DiffChart(Chart):
             sage: ey = c_xy.frame()[1] ; ey
             Vector field d/dy on the 2-dimensional differentiable manifold M
             sage: ex(M.scalar_field(x)).display()
-            M --> R
-            (x, y) |--> 1
+            1: M --> R
+               (x, y) |--> 1
             sage: ex(M.scalar_field(y)).display()
-            M --> R
-            (x, y) |--> 0
+            zero: M --> R
+               (x, y) |--> 0
             sage: ey(M.scalar_field(x)).display()
-            M --> R
-            (x, y) |--> 0
+            zero: M --> R
+               (x, y) |--> 0
             sage: ey(M.scalar_field(y)).display()
-            M --> R
-            (x, y) |--> 1
+            1: M --> R
+               (x, y) |--> 1
 
         """
         return self._frame

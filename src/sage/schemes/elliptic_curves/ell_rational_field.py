@@ -3347,10 +3347,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Observe that this is a group homomorphism (modulo rounding error)::
 
             sage: z = CC.random_element()
-            sage: 2 * E.elliptic_exponential(z)
-            (-1.52184235874404 - 0.0581413944316544*I : 0.948655866506124 - 0.0381469928565030*I : 1.00000000000000)
-            sage: E.elliptic_exponential(2 * z)
-            (-1.52184235874404 - 0.0581413944316562*I : 0.948655866506128 - 0.0381469928565034*I : 1.00000000000000)
+            sage: v = 2 * E.elliptic_exponential(z)
+            sage: w = E.elliptic_exponential(2 * z)
+            sage: abs(v[0] - w[0]) + abs(v[1] - w[1])  # abs tol 1e-13
+            0.0
         """
         return self.period_lattice().elliptic_exponential(z)
 
@@ -4439,17 +4439,17 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         if self.conductor().is_squarefree():
             return self, Integer(1)
         j = self.j_invariant()
-        if j!=0 and j!=1728:
+        if j != 0 and j != 1728:
             # the constructor from j will give the minimal twist
             Et = constructor.EllipticCurve_from_j(j)
         else:
-            if j==0:  # divide c6 by largest cube
+            if j == 0:  # divide c6 by largest cube
                 c = -2*self.c6()
                 for p in c.support():
                     e = c.valuation(p)//3
                     c /= p**(3*e)
                 E1 = constructor.EllipticCurve([0,0,0,0,c])
-            elif j==1728: # divide c4 by largest square
+            else: # j=1728 ; divide c4 by largest square
                 c = -3*self.c4()
                 for p in c.support():
                     e = c.valuation(p)//2

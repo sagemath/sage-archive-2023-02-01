@@ -72,7 +72,6 @@ from sage.rings.real_mpfr import create_RealNumber as RealNumber
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.number_field.number_field import NumberField_quadratic
 from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
 
@@ -201,74 +200,76 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         # cyclotomic field is implemented.
         cdef Py_ssize_t k, c
         cdef NumberFieldElement v
+        cdef NumberFieldElement_quadratic qv
         cdef mpz_t numer, denom
         cdef fmpz_t ftmp
 
         # The i,j entry is the (i * self._ncols + j)'th column.
         c = i * self._ncols + j
 
-        if type(value) is NumberFieldElement_quadratic:
+        if self._degree == 2:
             # Must be coded differently, since elements of
             # quadratic number fields are stored differently.
+            qv = <NumberFieldElement_quadratic> value
             if self._n == 4:
                 fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 0, c),
-                        (<NumberFieldElement_quadratic>value).a)
+                             qv.a)
                 fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 0, c),
-                        (<NumberFieldElement_quadratic>value).denom)
+                             qv.denom)
                 fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 0, c))
 
                 fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 1, c),
-                        (<NumberFieldElement_quadratic>value).b)
+                             qv.b)
                 fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 1, c),
-                        (<NumberFieldElement_quadratic>value).denom)
+                             qv.denom)
                 fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 1, c))
             elif self._n == 3:
                 # mat[0,c] = (x.a + x.b) / x.denom
                 fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 0, c),
-                        (<NumberFieldElement_quadratic>value).a)
+                        qv.a)
 
                 # NOTE: it would be convenient here to have fmpz_add_mpz
                 fmpz_init(ftmp)
-                fmpz_set_mpz(ftmp, (<NumberFieldElement_quadratic>value).b)
+                fmpz_set_mpz(ftmp, qv.b)
                 fmpz_add(fmpq_mat_entry_num(self._matrix._matrix, 0, c),
                          fmpq_mat_entry_num(self._matrix._matrix, 0, c),
                          ftmp)
                 fmpz_clear(ftmp)
 
                 fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 0, c),
-                        (<NumberFieldElement_quadratic>value).denom)
+                             qv.denom)
                 fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 0, c))
 
                 # mat[1,c] = (2 x.b) / x.denom
                 fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 1, c),
-                        (<NumberFieldElement_quadratic>value).b)
+                             qv.b)
                 fmpz_mul_si(fmpq_mat_entry_num(self._matrix._matrix, 1, c),
                             fmpq_mat_entry_num(self._matrix._matrix, 1, c), 2)
                 fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 1, c),
-                        (<NumberFieldElement_quadratic>value).denom)
+                             qv.denom)
                 fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 1, c))
             else: # self._n is 6
                 fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 0, c),
-                        (<NumberFieldElement_quadratic>value).a)
+                             qv.a)
 
                 # NOTE: it would be convenient here to have fmpz_add_mpz
                 fmpz_init(ftmp)
-                fmpz_set_mpz(ftmp, (<NumberFieldElement_quadratic>value).b)
+                fmpz_set_mpz(ftmp, qv.b)
                 fmpz_sub(fmpq_mat_entry_num(self._matrix._matrix, 0, c),
                          fmpq_mat_entry_num(self._matrix._matrix, 0, c),
                          ftmp)
                 fmpz_clear(ftmp)
 
                 fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 0, c),
-                        (<NumberFieldElement_quadratic>value).denom)
+                             qv.denom)
                 fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 0, c))
 
                 fmpz_set_mpz(fmpq_mat_entry_num(self._matrix._matrix, 1, c),
-                        (<NumberFieldElement_quadratic>value).b)
+                             qv.b)
                 fmpz_mul_si(fmpq_mat_entry_num(self._matrix._matrix, 1, c),
                             fmpq_mat_entry_num(self._matrix._matrix, 1, c), 2)
                 fmpz_set_mpz(fmpq_mat_entry_den(self._matrix._matrix, 1, c),
-                        (<NumberFieldElement_quadratic>value).denom)
+                             qv.denom)
                 fmpq_canonicalise(fmpq_mat_entry(self._matrix._matrix, 1, c))
             return
 

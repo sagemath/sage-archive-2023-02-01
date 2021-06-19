@@ -957,6 +957,7 @@ class ChainComplex_class(Parent):
         except KeyError:
             pass
         # all differentials that are not 0x0 are in self._diff
+        # TODO: turn differentials into morphisms between free modules?
         return matrix(self.base_ring(), 0, 0)
 
     def dual(self):

@@ -10,7 +10,7 @@ EXAMPLES::
     sage: RealSet(0,1)
     (0, 1)
     sage: RealSet((0,1), [2,3])
-    (0, 1) + [2, 3]
+    (0, 1) ∪ [2, 3]
     sage: RealSet(-oo, oo)
     (-oo, +oo)
 
@@ -42,7 +42,7 @@ Instead, you can use the following construction functions::
 Relations containing symbols and numeric values or constants::
 
     sage: RealSet(x != 0)
-    (-oo, 0) + (0, +oo)
+    (-oo, 0) ∪ (0, +oo)
     sage: RealSet(x == pi)
     {pi}
     sage: RealSet(x < 1/2)
@@ -379,6 +379,31 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             s += '+oo'
         else:
             s += str(self.upper())
+        s +=  ']' if self._upper_closed else ')'
+        return s
+
+    def _latex_(self):
+        """
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: RealSet.open_closed(1/2, pi)._latex_()
+            '(\\frac{1}{2}, \\pi]'
+            sage: (RealSet.point(sqrt(2)))._latex_()
+            '\\{\\sqrt{2}\\}'
+        """
+        from sage.misc.latex import latex
+        if self.is_point():
+            # Converting to str avoids the extra whitespace
+            # that LatexExpr add on concenation. We do not need
+            # the whitespace because we are wrapping it in
+            # non-letter characters.
+            return r'\{' + str(latex(self.lower())) + r'\}'
+        s =  '[' if self._lower_closed else '('
+        s += str(latex(self.lower()))
+        s += ', '
+        s += str(latex(self.upper()))
         s +=  ']' if self._upper_closed else ')'
         return s
 
@@ -742,12 +767,12 @@ class RealSet(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: R = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3)); R
-            (0, 1] + [2, 3)
+            (0, 1] ∪ [2, 3)
 
         ::
 
             sage: RealSet(x != 0)
-            (-oo, 0) + (0, +oo)
+            (-oo, 0) ∪ (0, +oo)
             sage: RealSet(x == pi)
             {pi}
             sage: RealSet(x < 1/2)
@@ -882,9 +907,9 @@ class RealSet(UniqueRepresentation, Parent):
             sage: RealSet(i)      # interval
             (0, 1)
             sage: RealSet(i, (3,4))    # tuple of two numbers = open set
-            (0, 1) + (3, 4)
+            (0, 1) ∪ (3, 4)
             sage: RealSet(i, [3,4])    # list of two numbers = closed set
-            (0, 1) + [3, 4]
+            (0, 1) ∪ [3, 4]
 
         Real sets belong to a subcategory of topological spaces::
 
@@ -1128,9 +1153,9 @@ class RealSet(UniqueRepresentation, Parent):
             sage: RealSet((0, 1), [1, 2], (2, 3))
             (0, 3)
             sage: RealSet((0, 1), (1, 2), (2, 3))
-            (0, 1) + (1, 2) + (2, 3)
+            (0, 1) ∪ (1, 2) ∪ (2, 3)
             sage: RealSet([0, 1], [2, 3])
-            [0, 1] + [2, 3]
+            [0, 1] ∪ [2, 3]
             sage: RealSet((0, 2), (1, 3))
             (0, 3)
             sage: RealSet(0,0)
@@ -1158,7 +1183,7 @@ class RealSet(UniqueRepresentation, Parent):
 
     def _repr_(self):
         """
-        Return a string representation
+        Return a string representation of ``self``.
         
         OUTPUT:
 
@@ -1172,10 +1197,24 @@ class RealSet(UniqueRepresentation, Parent):
         if self.n_components() == 0:
             return '{}'
         else:
-            # Switch to u'\u222A' (cup sign) with Python 3
-            return ' + '.join(map(repr, self._intervals))
-            # return u' ∪ '.join(map(repr, self._intervals)) # py3 only
+            return ' ∪ '.join(map(repr, self._intervals))
 
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: latex(RealSet(0, 1))
+            (0, 1)
+            sage: latex((RealSet(0, 1).union(RealSet.unbounded_above_closed(2))))
+            (0, 1) \cup [2, +\infty)
+        """
+        from sage.misc.latex import latex
+        if self.n_components() == 0:
+            return r'\emptyset'
+        else:
+            return r' \cup '.join(latex(i) for i in self._intervals)
 
     def _sympy_condition_(self, variable):
         """
@@ -1492,26 +1531,26 @@ class RealSet(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
-            (0, 2) + [10, +oo)
+            (0, 2) ∪ [10, +oo)
             sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
-            (-oo, -10] + (1, 3)
+            (-oo, -10] ∪ (1, 3)
             sage: s1.intersection(s2)
             (1, 2)
             sage: s1 & s2    # syntactic sugar
             (1, 2)
 
             sage: s1 = RealSet((0, 1), (2, 3));  s1
-            (0, 1) + (2, 3)
+            (0, 1) ∪ (2, 3)
             sage: s2 = RealSet([0, 1], [2, 3]);  s2
-            [0, 1] + [2, 3]
+            [0, 1] ∪ [2, 3]
             sage: s3 = RealSet([1, 2]);  s3
             [1, 2]
             sage: s1.intersection(s2)
-            (0, 1) + (2, 3)
+            (0, 1) ∪ (2, 3)
             sage: s1.intersection(s3)
             {}
             sage: s2.intersection(s3)
-            {1} + {2}
+            {1} ∪ {2}
         """
         other = RealSet(*other)
         # TODO: this can be done in linear time since the intervals are already sorted
@@ -1534,12 +1573,12 @@ class RealSet(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
-            (0, 2) + [10, +oo)
+            (0, 2) ∪ [10, +oo)
             sage: s1.inf()
             0
 
             sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
-            (-oo, -10] + (1, 3)
+            (-oo, -10] ∪ (1, 3)
             sage: s2.inf()
             -Infinity
         """
@@ -1558,12 +1597,12 @@ class RealSet(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
-            (0, 2) + [10, +oo)
+            (0, 2) ∪ [10, +oo)
             sage: s1.sup()
             +Infinity
 
             sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
-            (-oo, -10] + (1, 3)
+            (-oo, -10] ∪ (1, 3)
             sage: s2.sup()
             3
         """
@@ -1582,17 +1621,17 @@ class RealSet(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: RealSet(0,1).complement()
-            (-oo, 0] + [1, +oo)
+            (-oo, 0] ∪ [1, +oo)
        
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
-            (0, 2) + [10, +oo)
+            (0, 2) ∪ [10, +oo)
             sage: s1.complement()
-            (-oo, 0] + [2, 10)
+            (-oo, 0] ∪ [2, 10)
 
             sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
-            (-oo, -10] + (1, 3)
+            (-oo, -10] ∪ (1, 3)
             sage: s2.complement()
-            (-10, 1] + [3, +oo)
+            (-10, 1] ∪ [3, +oo)
         """
         n = self.n_components()
         if n == 0:
@@ -1630,19 +1669,19 @@ class RealSet(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: s1 = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s1
-            (0, 2) + [10, +oo)
+            (0, 2) ∪ [10, +oo)
             sage: s2 = RealSet(1,3) + RealSet.unbounded_below_closed(-10);  s2
-            (-oo, -10] + (1, 3)
+            (-oo, -10] ∪ (1, 3)
             sage: s1.difference(s2)
-            (0, 1] + [10, +oo)
+            (0, 1] ∪ [10, +oo)
             sage: s1 - s2    # syntactic sugar
-            (0, 1] + [10, +oo)
+            (0, 1] ∪ [10, +oo)
             sage: s2.difference(s1)
-            (-oo, -10] + [2, 3)
+            (-oo, -10] ∪ [2, 3)
             sage: s2 - s1    # syntactic sugar
-            (-oo, -10] + [2, 3)
+            (-oo, -10] ∪ [2, 3)
             sage: s1.difference(1,11)
-            (0, 1] + [11, +oo)
+            (0, 1] ∪ [11, +oo)
         """
         other = RealSet(*other)
         return self.intersection(other.complement())
@@ -1664,7 +1703,7 @@ class RealSet(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: s = RealSet(0,2) + RealSet.unbounded_above_closed(10);  s
-            (0, 2) + [10, +oo)
+            (0, 2) ∪ [10, +oo)
             sage: s.contains(1)
             True
             sage: s.contains(0)
@@ -1758,7 +1797,7 @@ class RealSet(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: s1 = RealSet((0, 1), (2, 3));  s1
-            (0, 1) + (2, 3)
+            (0, 1) ∪ (2, 3)
             sage: s2 = RealSet([1, 2]);  s2
             [1, 2]
             sage: s1.is_disjoint_from(s2)
@@ -1863,15 +1902,15 @@ class RealSet(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: A = RealSet([0, 1/2], (2, infinity)); A
-            [0, 1/2] + (2, +oo)
+            [0, 1/2] ∪ (2, +oo)
             sage: 2 * A
-            [0, 1] + (4, +oo)
+            [0, 1] ∪ (4, +oo)
             sage: A * 100
-            [0, 50] + (200, +oo)
+            [0, 50] ∪ (200, +oo)
             sage: 1.5 * A
-            [0.000000000000000, 0.750000000000000] + (3.00000000000000, +oo)
+            [0.000000000000000, 0.750000000000000] ∪ (3.00000000000000, +oo)
             sage: (-2) * A
-            (-oo, -4) + [-1, 0]
+            (-oo, -4) ∪ [-1, 0]
         """
         if not isinstance(right, RealSet):
             return RealSet(*[e * right for e in self])
@@ -1887,8 +1926,8 @@ class RealSet(UniqueRepresentation, Parent):
         TESTS::
 
             sage: A = RealSet([0, 1/2], RealSet.unbounded_above_closed(2)); A
-            [0, 1/2] + [2, +oo)
+            [0, 1/2] ∪ [2, +oo)
             sage: pi * A
-            [0, 1/2*pi] + [2*pi, +oo)
+            [0, 1/2*pi] ∪ [2*pi, +oo)
         """
         return self * other

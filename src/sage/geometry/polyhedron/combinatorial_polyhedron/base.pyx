@@ -642,11 +642,11 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         # Give a constructor by list of facets.
         if not self.is_bounded():
-            return (CombinatorialPolyhedron, (self.facets(),
+            return (CombinatorialPolyhedron, (self.incidence_matrix(),
                     self.Vrepresentation(), self.Hrepresentation(),
                     True, self.far_face_tuple()))
         else:
-            return (CombinatorialPolyhedron, (self.facets(),
+            return (CombinatorialPolyhedron, (self.incidence_matrix(),
                     self.Vrepresentation(), self.Hrepresentation()))
 
     def _test_bitsets(self, tester=None, **options):
@@ -996,7 +996,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: C.facets()
             ()
         """
-        if unlikely(self.dimension() == 0):
+        if unlikely(self.dimension() <= 0):
             # Special attention for this trivial case.
             # Facets are defined to be nontrivial faces of codimension 1.
             # The empty face is trivial.
@@ -2773,6 +2773,21 @@ cdef class CombinatorialPolyhedron(SageObject):
         Return the far face as it was given on initialization.
         """
         return self._far_face_tuple
+
+    def __eq__(self, other):
+        r"""
+        Return whether ``self`` and ``other`` are equal.
+        """
+        if not isinstance(other, CombinatorialPolyhedron):
+            return False
+        cdef CombinatorialPolyhedron other_C = other
+        return (self.n_facets() == other.n_facets()
+                and self.Vrepresentation() == other.Vrepresentation()
+                and self.facet_names() == other_C.facet_names()
+                and self.equalities() == other_C.equalities()
+                and self.dimension() == other.dimension()
+                and self.far_face_tuple() == other_C.far_face_tuple()
+                and self.incidence_matrix() == other.incidence_matrix())
 
 
     # Methods to obtain a different combinatorial polyhedron.

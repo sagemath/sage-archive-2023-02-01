@@ -502,7 +502,7 @@ def hamming_upper_bound(n,q,d):
 
     .. MATH::
 
-         M \leq {q^n \over V(n,e)},
+         M \leq \frac{q^n}{V(n,e)},
 
 
 

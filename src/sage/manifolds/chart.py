@@ -318,9 +318,9 @@ class Chart(UniqueRepresentation, SageObject):
         self._restrictions = []  # to be set with method add_restrictions()
         #
         # The chart is added to the domain's atlas, as well as to all the
-        # atlases of the domain's supersets; moreover the fist defined chart
+        # atlases of the domain's supersets; moreover the first defined chart
         # is considered as the default chart
-        for sd in self._domain._supersets:
+        for sd in self._domain.open_supersets():
             # the chart is added in the top charts only if its coordinates have
             # not been used:
             for chart in sd._atlas:
@@ -346,13 +346,9 @@ class Chart(UniqueRepresentation, SageObject):
         # The null and one functions of the coordinates:
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
-        for dom in self._domain._supersets:
-            if hasattr(dom, '_zero_scalar_field'):
-                # dom is an open set
-                dom._zero_scalar_field._express[self] = self.function_ring().zero()
-            if hasattr(dom, '_one_scalar_field'):
-                # dom is an open set
-                dom._one_scalar_field._express[self] = self.function_ring().one()
+        for dom in self._domain.open_supersets():
+            dom._zero_scalar_field._express[self] = self.function_ring().zero()
+            dom._one_scalar_field._express[self] = self.function_ring().one()
 
     def _init_coordinates(self, coord_list):
         r"""
@@ -3010,7 +3006,7 @@ class CoordChange(SageObject):
         # is added to the subset (and supersets) dictionary:
         if chart1._domain == chart2._domain:
             domain = chart1._domain
-            for sdom in domain._supersets:
+            for sdom in domain.open_supersets():
                 sdom._coord_changes[(chart1, chart2)] = self
 
     def _repr_(self):

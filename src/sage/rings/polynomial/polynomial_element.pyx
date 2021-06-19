@@ -1347,6 +1347,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: cannot convert nonconstant polynomial
+
+            sage: x = polygen(QQ)
+            sage: A.<u> = NumberField(x^3 - 2)
+            sage: A(A['x'](u))
+            u
         """
         if self.degree() > 0:
             raise TypeError("cannot convert nonconstant polynomial")
@@ -7830,10 +7835,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(a + O(3^20), 1),
              (2*a + 2*a*3 + 2*a*3^2 + 2*a*3^3 + 2*a*3^4 + 2*a*3^5 + 2*a*3^6 + 2*a*3^7 + 2*a*3^8 + 2*a*3^9 + 2*a*3^10 + 2*a*3^11 + 2*a*3^12 + 2*a*3^13 + 2*a*3^14 + 2*a*3^15 + 2*a*3^16 + 2*a*3^17 + 2*a*3^18 + 2*a*3^19 + O(3^20),
               1)]
+
+        Check that :trac:`31710` is fixed::
+
+            sage: CBF['x'].zero().roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: taking the roots of the zero polynomial
         """
         from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()
-
 
         # If the base ring has a method _roots_univariate_polynomial,
         # try to use it. An exception is raised if the method does not

@@ -1169,7 +1169,7 @@ class InterfaceElement(Element):
             2
             sage: x = var('x')
             sage: giac(x)
-            x
+            sageVARx
             sage: giac(5)
             5
             sage: M = matrix(QQ,2,range(4))

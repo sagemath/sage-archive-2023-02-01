@@ -835,7 +835,7 @@ class TopologicalManifold(ManifoldSubset):
 
         We have then::
 
-            sage: A.subsets()  # random (set output)
+            sage: frozenset(A.subsets())  # random (set output)
             {Open subset B of the 2-dimensional topological manifold M,
              Open subset A of the 2-dimensional topological manifold M}
             sage: B.is_subset(A)

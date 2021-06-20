@@ -528,52 +528,61 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return False
 
-    def open_covers(self):
+    def open_covers(self, trivial=True):
         r"""
-        Return the list of open covers of the current subset.
+        Generate the open covers of the current subset.
 
         If the current subset, `A` say, is a subset of the manifold `M`, an
-        *open cover* of `A` is list (indexed set) `(U_i)_{i\in I}` of
-        open subsets of `M` such that
+        *open cover* of `A` is a :class:`ManifoldSubsetFiniteFamily` `F`
+        of open subsets `U \in F` of `M` such that
 
         .. MATH::
 
-            A \subset \bigcup_{i \in I} U_i.
+            A \subset \bigcup_{U \in F} U.
 
         If `A` is open, we ask that the above inclusion is actually an
         identity:
 
         .. MATH::
 
-            A = \bigcup_{i \in I} U_i.
+            A = \bigcup_{U \in F} U.
+
+        INPUT:
+
+        - ``trivial`` -- (default: ``True``) if ``self`` is open, include the trivial
+          open cover of ``self`` by itself
 
         EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
             sage: M.open_covers()
-            [[2-dimensional topological manifold M]]
+            <generator ...>
+            sage: list(M.open_covers())
+            [Set {M} of open subsets of the 2-dimensional topological manifold M]
             sage: U = M.open_subset('U')
-            sage: U.open_covers()
-            [[Open subset U of the 2-dimensional topological manifold M]]
+            sage: list(U.open_covers())
+            [Set {U} of open subsets of the 2-dimensional topological manifold M]
             sage: A = U.open_subset('A')
             sage: B = U.open_subset('B')
             sage: U.declare_union(A,B)
-            sage: U.open_covers()
-            [[Open subset U of the 2-dimensional topological manifold M],
-             [Open subset A of the 2-dimensional topological manifold M,
-              Open subset B of the 2-dimensional topological manifold M]]
+            sage: list(U.open_covers())
+            [Set {U} of open subsets of the 2-dimensional topological manifold M,
+             Set {A, B} of open subsets of the 2-dimensional topological manifold M]
+            sage: list(U.open_covers(trivial=False))
+            [Set {A, B} of open subsets of the 2-dimensional topological manifold M]
             sage: V = M.open_subset('V')
             sage: M.declare_union(U,V)
-            sage: M.open_covers()
-            [[2-dimensional topological manifold M],
-             [Open subset U of the 2-dimensional topological manifold M,
-              Open subset V of the 2-dimensional topological manifold M],
-             [Open subset A of the 2-dimensional topological manifold M,
-              Open subset B of the 2-dimensional topological manifold M,
-              Open subset V of the 2-dimensional topological manifold M]]
+            sage: list(M.open_covers())
+            [Set {M} of open subsets of the 2-dimensional topological manifold M,
+             Set {U, V} of open subsets of the 2-dimensional topological manifold M,
+             Set {A, B, V} of open subsets of the 2-dimensional topological manifold M]
 
         """
-        return list(self._open_covers)
+        for oc in self._open_covers:
+            if not trivial:
+                if len(oc) == 1 and next(iter(oc)) is self:
+                    continue
+            yield ManifoldSubsetFiniteFamily(oc)
 
     def open_supersets(self):
         r"""
@@ -596,17 +605,11 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
     def subsets(self):
         r"""
-        Return the set of subsets that have been defined on the
-        current subset.
-
-        OUTPUT:
-
-        - a Python set containing all the subsets that have been defined on
-          the current subset
+        Generate the subsets that have been defined on the current subset.
 
         .. NOTE::
 
-            To get the subsets as a list, used the method
+            To get the subsets as a list, use the method
             :meth:`list_of_subsets` instead.
 
         EXAMPLES:
@@ -616,17 +619,15 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: U = M.open_subset('U')
             sage: V = M.subset('V')
-            sage: M.subsets()  # random (set output)
+            sage: frozenset(M.subsets())  # random (set output)
             {Subset V of the 2-dimensional topological manifold M,
              2-dimensional topological manifold M,
              Open subset U of the 2-dimensional topological manifold M}
-            sage: type(M.subsets())
-            <... 'frozenset'>
             sage: U in M.subsets()
             True
 
         The method :meth:`list_of_subsets` returns a list (sorted
-        alphabetically by the subset names) instead of a set::
+        alphabetically by the subset names)::
 
             sage: M.list_of_subsets()
             [2-dimensional topological manifold M,
@@ -634,7 +635,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
              Subset V of the 2-dimensional topological manifold M]
 
         """
-        return frozenset(self._subsets)
+        yield from self._subsets
 
     def list_of_subsets(self):
         r"""
@@ -650,7 +651,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         .. NOTE::
 
-            To get the subsets as a Python set, used the method
+            To get the subsets as a Python set, use the method
             :meth:`subsets` instead.
 
         EXAMPLES:
@@ -665,9 +666,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
              Open subset U of the 2-dimensional topological manifold M,
              Subset V of the 2-dimensional topological manifold M]
 
-        The method :meth:`subsets` returns a set instead of a list::
+        The method :meth:`subsets` generates the subsets.  To create
+        a set::
 
-            sage: M.subsets()  # random (set output)
+            sage: frozenset(M.subsets())  # random (set output)
             {Subset V of the 2-dimensional topological manifold M,
              2-dimensional topological manifold M,
              Open subset U of the 2-dimensional topological manifold M}
@@ -790,8 +792,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
             for S in visited:
                 D.add_edges((vertex(S), open_cover_vertex(open_cover))
-                            for open_cover in S._open_covers
-                            if open_cover != [S])
+                            for open_cover in S.open_covers(trivial=False))
 
         return D
 

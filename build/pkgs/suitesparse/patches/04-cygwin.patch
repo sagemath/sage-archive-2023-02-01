@@ -472,6 +472,45 @@ index 056715de..4ba42157 100644
  	chmod 644 $(INSTALL_INCLUDE)/RBio.h
  	chmod 644 $(INSTALL_DOC)/RBIO_README.txt
  
+diff --git a/SLIP_LU/Lib/Makefile b/SLIP_LU/Lib/Makefile
+index 8b2221f1..b2153824 100644
+--- a/SLIP_LU/Lib/Makefile
++++ b/SLIP_LU/Lib/Makefile
+@@ -8,7 +8,7 @@
+ # To run a demo using the library
+ #       cd ../Demo ; make
+ 
+-LIBRARY = libsliplu
++LIBRARY = sliplu
+ VERSION = 1.0.2
+ SO_VERSION = 1
+ 
+@@ -63,19 +63,22 @@ $(AR_TARGET): $(OBJ)
+ #-------------------------------------------------------------------------------
+ 
+ # install SLIP_LU
+-install: $(AR_TARGET) $(INSTALL_LIB)/$(SO_TARGET)
++install: $(AR_TARGET) $(INSTALL_SO)
+ 
+-$(INSTALL_LIB)/$(SO_TARGET): $(OBJ)
++$(INSTALL_SO): $(OBJ)
+ 	@mkdir -p $(INSTALL_LIB)
++	@mkdir -p $(dir $(INSTALL_SO))
+ 	@mkdir -p $(INSTALL_INCLUDE)
+ 	@mkdir -p $(INSTALL_DOC)
+ 	$(CC) $(SO_OPTS) $^ -o $@ $(LDLIBS)
++ifneq ($(UNAME),Cygwin)
+ 	( cd $(INSTALL_LIB) ; ln -sf $(SO_TARGET) $(SO_PLAIN) )
+ 	( cd $(INSTALL_LIB) ; ln -sf $(SO_TARGET) $(SO_MAIN) )
++	chmod 755 $(INSTALL_LIB)/$(SO_TARGET)
++endif
+ 	$(CP) ../Include/SLIP_LU.h $(INSTALL_INCLUDE)
+ 	$(CP) ../Doc/SLIP_LU_UserGuide.pdf $(INSTALL_DOC)
+ 	$(CP) ../README.md $(INSTALL_DOC)/SLIP_LU_README.md
+-	chmod 755 $(INSTALL_LIB)/$(SO_TARGET)
+ 	chmod 644 $(INSTALL_INCLUDE)/SLIP_LU.h
+ 	chmod 644 $(INSTALL_DOC)/SLIP_LU_UserGuide.pdf
+ 	chmod 644 $(INSTALL_DOC)/SLIP_LU_README.md
 diff --git a/SPQR/Lib/Makefile b/SPQR/Lib/Makefile
 index 06c142ae..10e32007 100644
 --- a/SPQR/Lib/Makefile

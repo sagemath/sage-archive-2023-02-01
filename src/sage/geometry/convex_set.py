@@ -676,29 +676,6 @@ class ConvexSet_base(SageObject, Set_base):
                     tester.assertTrue(self.contains(point))
                     tester.assertTrue(point in self)
 
-    @abstract_method(optional=True)
-    def intersection(self, other):
-        r"""
-        Return the intersection of ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- another convex set
-
-        OUTPUT:
-
-        The intersection.
-
-        TESTS::
-
-            sage: from sage.geometry.convex_set import ConvexSet_base
-            sage: C = ConvexSet_base()
-            sage: C.intersection(C)
-            Traceback (most recent call last):
-            ...
-            TypeError: 'NotImplementedType' object is not callable
-        """
-
 
 class ConvexSet_closed(ConvexSet_base):
     r"""

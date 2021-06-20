@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 Subsets of Topological Manifolds
 
@@ -68,6 +69,7 @@ Families of subsets after the above operations::
 #*****************************************************************************
 
 from collections import defaultdict
+import itertools
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.superseded import deprecation
@@ -1296,12 +1298,96 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return self in other._subsets
 
-    def declare_union(self, dom1, dom2):
+    def declare_union(self, *subsets_or_families, disjoint=False):
         r"""
         Declare that the current subset is the union of two subsets.
 
         Suppose `U` is the current subset, then this method declares
-        that `U`
+        that `U = \bigcup_{S\in F} S`.
+
+        INPUT:
+
+        - ``subsets_or_families`` -- finitely many subsets or iterables of subsets
+        - ``disjoint`` -- (default: ``False``) whether to declare the subsets
+          pairwise disjoint
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: AB = M.subset('AB')
+            sage: A = AB.subset('A')
+            sage: B = AB.subset('B')
+            sage: def label(element):
+            ....:     try:
+            ....:         return element._name
+            ....:     except AttributeError:
+            ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            sage: P = M.subset_poset(open_covers=True); P
+            Finite poset containing 4 elements
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 8 graphics primitives
+
+            sage: AB.declare_union(A, B)
+            sage: A.union(B)
+            Subset AB of the 2-dimensional topological manifold M
+            sage: P = M.subset_poset(open_covers=True); P
+            Finite poset containing 4 elements
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 8 graphics primitives
+
+            sage: B1 = B.subset('B1', is_open=True)
+            sage: B2 = B.subset('B2', is_open=True)
+            sage: B.declare_union(B1, B2, disjoint=True)
+            sage: P = M.subset_poset(open_covers=True); P
+            Finite poset containing 9 elements
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 19 graphics primitives
+
+        .. PLOT::
+
+            def label(element):
+                try:
+                    return element._name
+                except AttributeError:
+                    return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            M = Manifold(2, 'M', structure='topological')
+            AB = M.subset('AB')
+            A = AB.subset('A')
+            B = AB.subset('B')
+            P = M.subset_poset(open_covers=True); P
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+            AB.declare_union(A, B)
+            A.union(B)
+            P = M.subset_poset(open_covers=True); P
+            g2 = P.plot(element_labels={element: label(element) for element in P})
+            B1 = B.subset('B1', is_open=True)
+            B2 = B.subset('B2', is_open=True)
+            B.declare_union(B1, B2, disjoint=True)
+            P = M.subset_poset(open_covers=True); P
+            g3 = P.plot(element_labels={element: label(element) for element in P})
+            sphinx_plot(graphics_array([g1, g2, g3]), figsize=(8, 3))
+
+        """
+        subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(*subsets_or_families)
+        if disjoint:
+            for U, V in itertools.combinations(subsets, 2):
+                U.intersection(V).declare_empty()
+        subsets = self._reduce_union_members(subsets)
+        if not subsets:
+            self.declare_empty()
+        elif len(subsets) == 1:
+            self.declare_equal(*subsets)
+        else:
+            subset_iter = iter(subsets)
+            first = next(subset_iter)
+            second = next(subset_iter)
+            self._declare_union_2_subsets(first, second.union(subset_iter))
+
+    def _declare_union_2_subsets(self, dom1, dom2):
+        r"""
+        Declare that the current subset is the union of two of its subsets.
+
+        Suppose `U` is the current subset, then this method declares that
 
         .. MATH::
 
@@ -1343,7 +1429,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                 for s in oc2:
                     if s not in oc:
                         oc.append(s)
-            self._open_covers.append(oc)
+                self._open_covers.append(oc)
 
     def declare_equal(self, *others):
         r"""
@@ -1992,13 +2078,17 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             res._def_chart = self._def_chart
         return res
 
-    def intersection(self, other, name=None, latex_name=None):
+    def intersection(self, *others, name=None, latex_name=None):
         r"""
-        Return the intersection of the current subset with another subset.
+        Return the intersection of the current subset with other subsets.
+
+        This method may return a previously constructed intersection instead
+        of creating a new subset.  In this case, ``name`` and ``latex_name``
+        are not used.
 
         INPUT:
 
-        - ``other`` -- another subset of the same manifold
+        - ``others`` -- other subsets of the same manifold
         - ``name`` -- (default: ``None``) name given to the intersection
           in the case the latter has to be created; the default is
           ``self._name`` inter ``other._name``
@@ -2009,7 +2099,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         OUTPUT:
 
         - instance of :class:`ManifoldSubset` representing the
-          subset that is the intersection of the current subset with ``other``
+          subset that is the intersection of the current subset with ``others``
 
         EXAMPLES:
 
@@ -2027,7 +2117,49 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: c.superset_family()
             Set {A, A_inter_B, B, M} of subsets of the 2-dimensional topological manifold M
 
-        Some checks::
+        Intersection of six subsets::
+
+            sage: T = Manifold(2, 'T', structure='topological')
+            sage: S = [T.subset(f'S{i}') for i in range(6)]
+            sage: [S[i].intersection(S[i+3]) for i in range(3)]
+            [Subset S0_inter_S3 of the 2-dimensional topological manifold T,
+             Subset S1_inter_S4 of the 2-dimensional topological manifold T,
+             Subset S2_inter_S5 of the 2-dimensional topological manifold T]
+            sage: inter_S_i = T.intersection(*S, name='inter_S_i'); inter_S_i
+            Subset inter_S_i of the 2-dimensional topological manifold T
+            sage: inter_S_i.superset_family()
+            Set {S0, S0_inter_S3, S0_inter_S3_inter_S1_inter_S4, S1, S1_inter_S4,
+                 S2, S2_inter_S5, S3, S4, S5, T, inter_S_i} of
+             subsets of the 2-dimensional topological manifold T
+
+        .. PLOT::
+
+            def label(element):
+                if isinstance(element, str):
+                    return element
+                try:
+                    return element._name.replace('_inter_', '∩')
+                except AttributeError:
+                    return '[' + ', '.join(sorted(label(x) for x in element)) + ']'
+
+            M = Manifold(2, 'M', structure='topological')
+            a = M.subset('A')
+            b = M.subset('B')
+            c = a.intersection(b); c
+            P = M.subset_poset(open_covers=True)
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+
+            T = Manifold(2, 'T', structure='topological')
+            from sage.typeset.unicode_art import unicode_subscript
+            S = [T.subset(f'S{unicode_subscript(i)}') for i in range(6)]
+            [S[i].intersection(S[i+3]) for i in range(3)]
+            T.intersection(*S, name='⋂ᵢSᵢ')
+            P = T.subset_poset(open_covers=True)
+            g2 = P.plot(element_labels={element: label(element) for element in P})
+
+            sphinx_plot(graphics_array([g1, g2]), figsize=(8, 3))
+
+        TESTS::
 
             sage: (a.intersection(b)).is_subset(a)
             True
@@ -2045,49 +2177,142 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             True
 
         """
-        if other._manifold != self._manifold:
-            raise ValueError("the two subsets do not belong to the same manifold")
-        # Particular cases:
-        if self is self._manifold:
-            return other
-        if other is self._manifold:
-            return self
-        if self in other._subsets:
-            return self
-        if other in self._subsets:
-            return other
-        # Generic case:
-        if other._name in self._intersections:
-            # the intersection has already been created:
-            return self._intersections[other._name]
-        else:
-            # the intersection must be created:
-            if latex_name is None:
-                if name is None:
-                    latex_name = self._latex_name + r'\cap ' + other._latex_name
-                else:
-                    latex_name = name
-            if name is None:
-                name = self._name + "_inter_" + other._name
-            if self._is_open and other._is_open:
-                res = self.open_subset(name, latex_name=latex_name)
-            else:
-                res = self.subset(name, latex_name=latex_name)
-            res._supersets.update(other._supersets)
-            for sd in other._supersets:
-                sd._subsets.add(res)
-            other._top_subsets.add(res)
-            self._intersections[other._name] = res
-            other._intersections[self._name] = res
+        subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others)
+        subset_iter = iter(self._reduce_intersection_members(subsets))
+        # _intersection_subset is able to build the intersection of several
+        # subsets directly; but because we cache only pairwise intersections,
+        # we build the intersection by a sequence of pairwise intersections.
+        res = next(subset_iter)
+        others = list(subset_iter)
+        if not others:
             return res
+        for other in others[:-1]:
+            res = res._intersection_subset(other)
+        # The last one gets the name
+        return res._intersection_subset(others[-1], name=name, latex_name=latex_name)
 
-    def union(self, other, name=None, latex_name=None):
+    @staticmethod
+    def _reduce_intersection_members(subsets):
         r"""
-        Return the union of the current subset with another subset.
+        Return a reduced set of subsets with the same intersection as the given subsets.
+
+        It is reduced with respect to two operations:
+
+        - replacing an inclusion chain by its minimal element
+
+        - replacing a pair of subsets with a declared intersection by the intersection
 
         INPUT:
 
-        - ``other`` -- another subset of the same manifold
+        - ``subsets`` -- a non-empty iterable of :class:`ManifoldSubset` instances
+          of the same manifold.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: B1 = A.subset('B1')
+            sage: B2 = A.subset('B2')
+            sage: C = B1.intersection(B2)
+            sage: M._reduce_intersection_members([A, M, A])
+            Set {A} of subsets of the 2-dimensional topological manifold M
+            sage: M._reduce_intersection_members([A, B1])
+            Set {B1} of subsets of the 2-dimensional topological manifold M
+            sage: M._reduce_intersection_members([B1, B2])
+            Set {B1_inter_B2} of subsets of the 2-dimensional topological manifold M
+            sage: M._reduce_intersection_members([])
+            Traceback (most recent call last):
+            ...
+            TypeError: input set must be nonempty
+
+        """
+        subsets = set(subsets)
+        if not subsets:
+            raise TypeError('input set must be nonempty')
+        def reduce():
+            # Greedily replace inclusion chains by their minimal element
+            # and pairs with declared intersections by their intersection
+            for U, V in itertools.combinations(subsets, 2):
+                if U.is_subset(V):
+                    subsets.remove(V)
+                    return True
+                if V.is_subset(U):
+                    subsets.remove(U)
+                    return True
+                try:
+                    UV = U._intersections[V._name]
+                except KeyError:
+                    pass
+                else:
+                    subsets.difference_update([U, V])
+                    subsets.add(UV)
+                    return True
+            return False
+        while reduce():
+            pass
+        assert subsets   # there must be a survivor
+        return ManifoldSubsetFiniteFamily(subsets)
+
+    def _intersection_subset(self, *others, name=None, latex_name=None):
+        r"""
+        Return a subset that is the intersection of ``self`` and ``others``.
+
+        The result is always a new subset of the manifold.  If the intersection
+        involves two subsets only, the result is stored in the dictionaries
+        of known intersections for later reuse by other methods.
+
+        INPUT:
+
+        - ``others`` -- an iterable of :class:`ManifoldSubset` instances
+          of the same manifold.
+        - ``name`` -- (default: ``None``) name given to the intersection; the
+          default is ``self._name`` inter [...] inter ``last_other._name``
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          intersection; the default is built upon the symbol `\cap`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: B1 = M.subset('B1')
+            sage: B2 = M.subset('B2')
+            sage: B3 = M.subset('B3')
+            sage: B1._intersection_subset(B2)
+            Subset B1_inter_B2 of the 2-dimensional topological manifold M
+            sage: B1._intersection_subset(B2, B3)
+            Subset B1_inter_B2_inter_B3 of the 2-dimensional topological manifold M
+
+        """
+        subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others)
+        if latex_name is None:
+            if name is None:
+                latex_name = r'\cap '.join(S._latex_name for S in subsets)
+            else:
+                latex_name = name
+        if name is None:
+            name = "_inter_".join(S._name for S in subsets)
+        if all(S.is_open() for S in subsets):
+            res = self.open_subset(name, latex_name=latex_name, supersets=subsets)
+        else:
+            res = self.subset(name, latex_name=latex_name)
+            res.declare_subset(subsets)
+            for S in subsets:
+                S._top_subsets.add(res)
+        if len(subsets) == 2:
+            S1, S2 = subsets
+            S1._intersections[S2._name] = S2._intersections[S1._name] = res
+        return res
+
+    def union(self, *others, name=None, latex_name=None):
+        r"""
+        Return the union of the current subset with other subsets.
+
+        This method may return a previously constructed union instead
+        of creating a new subset.  In this case, ``name`` and ``latex_name``
+        are not used.
+
+        INPUT:
+
+        - ``others`` -- other subsets of the same manifold
         - ``name`` -- (default: ``None``) name given to the union in the
           case the latter has to be created; the default is
           ``self._name`` union ``other._name``
@@ -2098,7 +2323,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         OUTPUT:
 
         - instance of :class:`ManifoldSubset` representing the
-          subset that is the union of the current subset with ``other``
+          subset that is the union of the current subset with ``others``
 
         EXAMPLES:
 
@@ -2116,7 +2341,49 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: c.superset_family()
             Set {A_union_B, M} of subsets of the 2-dimensional topological manifold M
 
-        Some checks::
+        Union of six subsets::
+
+            sage: T = Manifold(2, 'T', structure='topological')
+            sage: S = [T.subset(f'S{i}') for i in range(6)]
+            sage: [S[i].union(S[i+3]) for i in range(3)]
+            [Subset S0_union_S3 of the 2-dimensional topological manifold T,
+             Subset S1_union_S4 of the 2-dimensional topological manifold T,
+             Subset S2_union_S5 of the 2-dimensional topological manifold T]
+            sage: union_S_i = S[0].union(S[1:], name='union_S_i'); union_S_i
+            Subset union_S_i of the 2-dimensional topological manifold T
+            sage: T.subset_family()
+            Set {S0, S0_union_S3, S0_union_S3_union_S1_union_S4, S1,
+                 S1_union_S4, S2, S2_union_S5, S3, S4, S5, T, union_S_i}
+             of subsets of the 2-dimensional topological manifold T
+
+        .. PLOT::
+
+            def label(element):
+                if isinstance(element, str):
+                    return element
+                try:
+                    return element._name.replace('_union_', '∪')
+                except AttributeError:
+                    return '[' + ', '.join(sorted(label(x) for x in element)) + ']'
+
+            M = Manifold(2, 'M', structure='topological')
+            a = M.subset('A')
+            b = M.subset('B')
+            c = a.union(b); c
+            P = M.subset_poset(open_covers=True)
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+
+            T = Manifold(2, 'T', structure='topological')
+            from sage.typeset.unicode_art import unicode_subscript
+            S = [T.subset(f'S{unicode_subscript(i)}') for i in range(6)]
+            [S[i].union(S[i+3]) for i in range(3)]
+            union_S_i = S[0].union(S[1:], name='⋃ᵢSᵢ'); union_S_i
+            P = T.subset_poset(open_covers=True)
+            g2 = P.plot(element_labels={element: label(element) for element in P})
+
+            sphinx_plot(graphics_array([g1, g2]), figsize=(8, 3))
+
+        TESTS::
 
             sage: a.is_subset(a.union(b))
             True
@@ -2133,8 +2400,6 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: M.union(a) is M
             True
 
-        TESTS:
-
         Check that :trac:`30401` is fixed::
 
             sage: d = a.subset('D')
@@ -2143,58 +2408,133 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             True
 
         """
-        if other._manifold != self._manifold:
-            raise ValueError("the two subsets do not belong to the same manifold")
-        # Particular cases:
-        if (self is self._manifold) or (other is self._manifold):
-            return self._manifold
-        if self in other._subsets:
-            return other
-        if other in self._subsets:
-            return self
-        # Generic case:
-        if other._name in self._unions:
-            # the union has already been created:
-            return self._unions[other._name]
-        else:
-            # the union must be created:
-            if latex_name is None:
-                if name is None:
-                    latex_name = self._latex_name + r'\cup ' + other._latex_name
-                else:
-                    latex_name = name
-            if name is None:
-                name = self._name + "_union_" + other._name
-            res_open = self._is_open and other._is_open
-            res = self.superset(name, latex_name, is_open=res_open)
-            res._subsets.update(other._subsets)
-            res._top_subsets.add(self)
-            res._top_subsets.add(other)
-            for sd in other._subsets:
-                sd._supersets.add(res)
-            for sp in self._supersets:
-                if sp in other._supersets:
-                    sp._subsets.add(res)
-                    res._supersets.add(sp)
-            if res._is_open:
-                for chart in other._atlas:
-                    if chart not in res._atlas:
-                        res._atlas.append(chart)
-                for chart in other._top_charts:
-                    if chart not in res._top_charts:
-                        res._top_charts.append(chart)
-                res._coord_changes.update(other._coord_changes)
-            self._unions[other._name] = res
-            other._unions[self._name] = res
-            # Open covers of the union:
-            for oc1 in self._open_covers:
-                for oc2 in other._open_covers:
-                    oc = oc1[:]
-                    for s in oc2:
-                        if s not in oc:
-                            oc.append(s)
-                res._open_covers.append(oc)
+        subsets = ManifoldSubsetFiniteFamily.from_subsets_or_families(self, *others)
+        subsets = self._reduce_union_members(subsets)
+        assert subsets
+        subset_iter = iter(subsets)
+        res = next(subset_iter)
+        others = list(subset_iter)
+        if not others:
             return res
+        for other in others[:-1]:
+            res = res._union_subset(other)
+        # The last one gets the name
+        return res._union_subset(others[-1], name=name, latex_name=latex_name)
+
+    @staticmethod
+    def _reduce_union_members(subsets):
+        r"""
+        Return a reduced set of subsets with the same union as the given subsets.
+
+        It is reduced with respect to two operations:
+
+        - replacing an inclusion chain by its maximal element
+
+        - replacing a pair of subsets with a declared union by the union
+
+        INPUT:
+
+        - ``subsets`` -- an iterable of :class:`ManifoldSubset` instances
+          of the same manifold.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: B1 = A.subset('B1')
+            sage: B2 = A.subset('B2')
+            sage: B = B1.union(B2)
+            sage: M._reduce_union_members([])
+            {}
+            sage: M._reduce_union_members([B1, B])
+            Set {B1_union_B2} of subsets of the 2-dimensional topological manifold M
+            sage: M._reduce_union_members([A, B1, B2])
+            Set {A} of subsets of the 2-dimensional topological manifold M
+
+        """
+        subsets = set(subsets)
+        def reduce():
+            # Greedily replace inclusion chains by their maximal element
+            # and pairs with declared unions by their union
+            for U, V in itertools.combinations(subsets, 2):
+                if U.is_subset(V):
+                    subsets.remove(U)
+                    return True
+                if V.is_subset(U):
+                    subsets.remove(V)
+                    return True
+                try:
+                    UV = U._unions[V._name]
+                except KeyError:
+                    pass
+                else:
+                    subsets.difference_update([U, V])
+                    subsets.add(UV)
+                    return True
+            return False
+        while reduce():
+            pass
+        return ManifoldSubsetFiniteFamily(subsets)
+
+    def _union_subset(self, other, name=None, latex_name=None):
+        r"""
+        Return a subset of the manifold that is the union of ``self`` and ``other``.
+
+        The result is always a new subset of the manifold and is also
+        stored in ``self`` and ``other``'s dictionaries of known unions.
+
+        INPUT:
+
+        - ``other`` -- an instance of :class:`ManifoldSubset`
+        - ``name`` -- (default: ``None``) name given to the union; the default is
+          ``self._name`` union ``other._name``
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          union; the default is built upon the symbol `\cup`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: B1 = M.subset('B1')
+            sage: B2 = M.subset('B2')
+            sage: B1._union_subset(B2)
+            Subset B1_union_B2 of the 2-dimensional topological manifold M
+
+        """
+        if latex_name is None:
+            if name is None:
+                latex_name = r'\cup '.join(S._latex_name for S in (self, other))
+            else:
+                latex_name = name
+        if name is None:
+            name = "_union_".join(S._name for S in (self, other))
+        res_open = all(S.is_open() for S in (self, other))
+        res = self.superset(name, latex_name, is_open=res_open)
+        res.declare_superset(other)
+        res._top_subsets.add(self)
+        res._top_subsets.add(other)
+        self._unions[other._name] = other._unions[self._name] = res
+        for sp in self._supersets:
+            if sp in other._supersets:
+                sp._subsets.add(res)
+                res._supersets.add(sp)
+        if res._is_open:
+            for chart in other._atlas:
+                if chart not in res._atlas:
+                    res._atlas.append(chart)
+            for chart in other._top_charts:
+                if chart not in res._top_charts:
+                    res._top_charts.append(chart)
+            res._coord_changes.update(other._coord_changes)
+        # Open covers of the union:
+        for oc1 in self._open_covers:
+            for oc2 in other._open_covers:
+                oc = oc1[:]
+                for s in oc2:
+                    if s not in oc:
+                        oc.append(s)
+            res._open_covers.append(oc)
+        return res
+
 
     #### End of construction of new sets from self
 

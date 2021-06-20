@@ -3534,6 +3534,7 @@ class FunctionField_integral(FunctionField_simple):
         in some algorithms.
         """
         from sage.matrix.constructor import matrix
+        from .hermite_form_polynomial import reversed_hermite_form
 
         k = self.constant_base_field()
         K = self.base_field() # rational function field
@@ -3608,14 +3609,8 @@ class FunctionField_integral(FunctionField_simple):
         basis_V = [to_V(bvec) for bvec in _basis]
         l = lcm([vvec.denominator() for vvec in basis_V])
 
-        # Why do we have 'reversed' here? I don't know. But without it, the
-        # time to get hermite_form_reversed dramatically increases.
-        _mat = matrix([[coeff.numerator() for coeff in l*v] for v in reversed(basis_V)])
-
-        # compute the reversed hermite form
-        _mat.reverse_rows_and_columns()
-        _mat._hermite_form_euclidean(normalization=lambda p: ~p.lc())
-        _mat.reverse_rows_and_columns()
+        _mat = matrix([[coeff.numerator() for coeff in l*v] for v in basis_V])
+        reversed_hermite_form(_mat)
 
         basis = [fr_V(v) / l for v in _mat if not v.is_zero()]
         return basis

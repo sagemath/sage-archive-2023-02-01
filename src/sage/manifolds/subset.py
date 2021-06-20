@@ -65,11 +65,12 @@ Families of subsets after the above operations::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from collections import defaultdict
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.superseded import deprecation
 from sage.categories.sets_cat import Sets
-from sage.manifolds.family import ManifoldSubsetFiniteFamily
+from sage.manifolds.family import ManifoldObjectFiniteFamily, ManifoldSubsetFiniteFamily
 from sage.manifolds.point import ManifoldPoint
 
 class ManifoldSubset(UniqueRepresentation, Parent):
@@ -199,6 +200,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         self._open_covers = []  # list of open covers of self
         self._is_open = False   # a priori (may be redefined by subclasses)
         self._manifold = manifold  # the ambient manifold
+        self._has_defined_points = False
 
     def _repr_(self):
         r"""
@@ -517,7 +519,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return False
 
-    def open_covers(self, trivial=True):
+    def open_covers(self, trivial=True, supersets=False):
         r"""
         Generate the open covers of the current subset.
 
@@ -536,10 +538,18 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
             A = \bigcup_{U \in F} U.
 
+        .. NOTE::
+
+            To get the open covers as a family, sorted lexicographically by the
+            names of the subsets forming the open covers, use the method
+            :meth:`open_cover_family` instead.
+
         INPUT:
 
         - ``trivial`` -- (default: ``True``) if ``self`` is open, include the trivial
           open cover of ``self`` by itself
+        - ``supersets`` -- (default: ``False``) if ``True``, include open covers of
+          all the supersets; it can also be an iterable of supersets to include
 
         EXAMPLES::
 
@@ -567,11 +577,75 @@ class ManifoldSubset(UniqueRepresentation, Parent):
              Set {A, B, V} of open subsets of the 2-dimensional topological manifold M]
 
         """
-        for oc in self._open_covers:
-            if not trivial:
-                if len(oc) == 1 and next(iter(oc)) is self:
-                    continue
-            yield ManifoldSubsetFiniteFamily(oc)
+        if supersets is False:
+            supersets = [self]
+        elif supersets is True:
+            supersets = self._supersets
+        for superset in supersets:
+            for oc in superset._open_covers:
+                if not trivial:
+                    if any(x in supersets for x in oc):
+                        continue
+                yield ManifoldSubsetFiniteFamily(oc)
+
+    def open_cover_family(self, trivial=True, supersets=False):
+        r"""
+        Return the family of open covers of the current subset.
+
+        If the current subset, `A` say, is a subset of the manifold `M`, an
+        *open cover* of `A` is a :class:`ManifoldSubsetFiniteFamily` `F`
+        of open subsets `U \in F` of `M` such that
+
+        .. MATH::
+
+            A \subset \bigcup_{U \in F} U.
+
+        If `A` is open, we ask that the above inclusion is actually an
+        identity:
+
+        .. MATH::
+
+            A = \bigcup_{U \in F} U.
+
+        The family is sorted lexicographically by the names of the subsets
+        forming the open covers.
+
+        .. NOTE::
+
+            If you only need to iterate over the open covers in arbitrary
+            order, you can use the generator method :meth:`open_covers`
+            instead.
+
+        INPUT:
+
+        - ``trivial`` -- (default: ``True``) if ``self`` is open, include the trivial
+          open cover of ``self`` by itself
+        - ``supersets`` -- (default: ``False``) if ``True``, include open covers of
+          all the supersets; it can also be an iterable of supersets to include
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: M.open_cover_family()
+            Set {{M}} of objects of the 2-dimensional topological manifold M
+            sage: U = M.open_subset('U')
+            sage: U.open_cover_family()
+            Set {{U}} of objects of the 2-dimensional topological manifold M
+            sage: A = U.open_subset('A')
+            sage: B = U.open_subset('B')
+            sage: U.declare_union(A,B)
+            sage: U.open_cover_family()
+            Set {{A, B}, {U}} of objects of the 2-dimensional topological manifold M
+            sage: U.open_cover_family(trivial=False)
+            Set {{A, B}} of objects of the 2-dimensional topological manifold M
+            sage: V = M.open_subset('V')
+            sage: M.declare_union(U,V)
+            sage: M.open_cover_family()
+            Set {{A, B, V}, {M}, {U, V}} of objects of the 2-dimensional topological manifold M
+
+        """
+        return ManifoldObjectFiniteFamily(self.open_covers(
+            trivial=trivial, supersets=supersets))
 
     def open_supersets(self):
         r"""
@@ -741,7 +815,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return ManifoldSubsetFiniteFamily(self.subsets())
 
-    def subset_digraph(self, loops=False, open_covers=False, lower_bound=None):
+    def subset_digraph(self, loops=False, open_covers=False, points=False, lower_bound=None):
         r"""
         Return the digraph whose arcs represent subset relations among the subsets of ``self``.
 
@@ -749,8 +823,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         - ``loops`` -- (default: ``False``) whether to include the trivial containment
           of each subset in itself as loops of the digraph
-        - ``lower_bound`` -- (default: ``None``) only include supersets of this
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+        - ``points`` -- (default: ``False``) whether to include vertices for declared points;
+          this can also be an iterable for the points to include
+        - ``lower_bound`` -- (default: ``None``) only include supersets of this
 
         OUTPUT:
 
@@ -858,16 +934,41 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                 D.add_edges((vertex(S), open_cover_vertex(open_cover))
                             for open_cover in S.open_covers(trivial=False))
 
+        if points is not False:
+            subset_to_points = defaultdict(list)
+            if points is not True:
+                # Manifolds do not keep track of the points defined on them.
+                # Use the provided iterator.
+                def point_vertex(point):
+                    return point
+
+                for point in points:
+                    S = point.parent()
+                    subset_to_points[S].append(point)
+                    D.add_edge((point_vertex(point), vertex(S)))
+
+            # Add a placeholder vertex under each subset that has a defined
+            # point that we do not know about.
+            def anonymous_point_vertex(S):
+                return f"p{S._name}"
+
+            D.add_edges((anonymous_point_vertex(S), vertex(S))
+                        for S in visited
+                        if S.has_defined_points(subsets=False)
+                        and S not in subset_to_points)
+
         return D
 
-    def subset_poset(self, open_covers=False, lower_bound=None):
+    def subset_poset(self, open_covers=False, points=False, lower_bound=None):
         r"""
         Return the poset of the subsets of ``self``.
 
         INPUT:
 
-        - ``lower_bound`` -- (default: ``None``) only include supersets of this
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+        - ``points`` -- (default: ``False``) whether to include vertices for declared points;
+          this can also be an iterable for the points to include
+        - ``lower_bound`` -- (default: ``None``) only include supersets of this
 
         EXAMPLES::
 
@@ -899,7 +1000,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: P = M.subset_poset(open_covers=True); P
             Finite poset containing 6 elements
             sage: from sage.manifolds.subset import ManifoldSubsetFiniteFamily
-            sage: P.upper_covers(ManifoldSubsetFiniteFamily([VW]))
+            sage: sorted(P.upper_covers(ManifoldSubsetFiniteFamily([VW])), key=str)
             [(Set {V} of open subsets of the 3-dimensional differentiable manifold M,
               Set {W} of open subsets of the 3-dimensional differentiable manifold M),
              Set {M} of open subsets of the 3-dimensional differentiable manifold M]
@@ -931,7 +1032,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         """
         from sage.combinat.posets.posets import Poset
-        return Poset(self.subset_digraph(open_covers=open_covers, lower_bound=lower_bound))
+        return Poset(self.subset_digraph(open_covers=open_covers, points=points,
+                                         lower_bound=lower_bound))
 
     def supersets(self):
         r"""
@@ -981,7 +1083,7 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         return ManifoldSubsetFiniteFamily(self.supersets())
 
-    def superset_digraph(self, loops=False, open_covers=False, upper_bound=None):
+    def superset_digraph(self, loops=False, open_covers=False, points=False, upper_bound=None):
         """
         Return the digraph whose arcs represent subset relations among the supersets of ``self``.
 
@@ -989,8 +1091,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         - ``loops`` -- (default: ``False``) whether to include the trivial containment
           of each subset in itself as loops of the digraph
-        - ``upper_bound`` -- (default: ``None``) only include subsets of this
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+        - ``points`` -- (default: ``False``) whether to include vertices for declared points;
+          this can also be an iterable for the points to include
+        - ``upper_bound`` -- (default: ``None``) only include subsets of this
 
         EXAMPLES::
 
@@ -1003,16 +1107,19 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         if upper_bound is None:
             upper_bound = self._manifold
-        return upper_bound.subset_digraph(loops=loops, open_covers=open_covers, lower_bound=self)
+        return upper_bound.subset_digraph(loops=loops, open_covers=open_covers, points=points,
+                                          lower_bound=self)
 
-    def superset_poset(self, open_covers=False, upper_bound=None):
+    def superset_poset(self, open_covers=False, points=False, upper_bound=None):
         r"""
         Return the poset of the supersets of ``self``.
 
         INPUT:
 
-        - ``upper_bound`` -- (default: ``None``) only include subsets of this
         - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+        - ``points`` -- (default: ``False``) whether to include vertices for declared points;
+          this can also be an iterable for the points to include
+        - ``upper_bound`` -- (default: ``None``) only include subsets of this
 
         EXAMPLES::
 
@@ -1027,7 +1134,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         """
         if upper_bound is None:
             upper_bound = self._manifold
-        return upper_bound.subset_poset(open_covers=open_covers, lower_bound=self)
+        return upper_bound.subset_poset(open_covers=open_covers, points=points,
+                                        lower_bound=self)
 
     def get_subset(self, name):
         r"""
@@ -1150,6 +1258,185 @@ class ManifoldSubset(UniqueRepresentation, Parent):
                     if s not in oc:
                         oc.append(s)
             self._open_covers.append(oc)
+
+    def declare_empty(self):
+        r"""
+        Declare that ``self`` is the empty set.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A', is_open=True)
+            sage: AA = A.subset('AA')
+            sage: A
+            Open subset A of the 2-dimensional topological manifold M
+            sage: A.declare_empty()
+            sage: A.is_empty()
+            True
+
+        Empty sets do not allow to define points on them::
+
+            sage: A.point()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot define a point on the
+              Open subset A of the 2-dimensional topological manifold M
+              because it has been declared empty
+
+        Emptiness transfers to subsets::
+
+            sage: AA.is_empty()
+            True
+            sage: AA.point()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot define a point on the
+              Subset AA of the 2-dimensional topological manifold M
+              because it has been declared empty
+            sage: AD = A.subset('AD')
+            sage: AD.is_empty()
+            True
+
+        If points have already been defined on ``self`` (or its subsets),
+        it is an error to declare it to be empty::
+
+            sage: B = M.subset('B')
+            sage: b = B.point(name='b'); b
+            Point b on the 2-dimensional topological manifold M
+            sage: B.declare_empty()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot be empty because it has defined points
+
+        Emptiness is recorded as empty open covers::
+
+            sage: P = M.subset_poset(open_covers=True, points=[b])
+            sage: def label(element):
+            ....:     if isinstance(element, str):
+            ....:         return element
+            ....:     try:
+            ....:         return element._name
+            ....:     except AttributeError:
+            ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 14 graphics primitives
+
+        .. PLOT::
+
+            def label(element):
+                if isinstance(element, str):
+                    return element
+                try:
+                    return element._name
+                except AttributeError:
+                    return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            M = Manifold(2, 'M', structure='topological')
+            A = M.subset('A', is_open=True)
+            AA = A.subset('AA')
+            A.declare_empty()
+            AD = A.subset('AD')
+            B = M.subset('B')
+            b = B.point(name='b')
+            P = M.subset_poset(open_covers=True, points=[b])
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+            sphinx_plot(graphics_array([g1]), figsize=(8, 3))
+
+        """
+        if self.has_defined_points():
+            raise TypeError('cannot be empty because it has defined points')
+        for subset in self.subsets():
+            if not subset.is_empty():
+                subset._open_covers.append([])
+
+    def is_empty(self):
+        r"""
+        Return whether the current subset is empty.
+
+        By default, manifold subsets are considered nonempty: The method :meth:`point` can be
+        used to define points on it, either with or without coordinates some chart.
+
+        However, using :meth:`declare_empty`, a subset can be declared empty, and emptiness
+        transfers to all of its subsets.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A', is_open=True)
+            sage: AA = A.subset('AA')
+            sage: A.is_empty()
+            False
+            sage: A.declare_empty()
+            sage: A.is_empty()
+            True
+            sage: AA.is_empty()
+            True
+
+        """
+        if self.has_defined_points(subsets=False):
+            # Fast path, do not check subsets
+            return False
+        return any(not cover
+                   for cover in self.open_covers(trivial=False, supersets=True))
+
+    def declare_nonempty(self):
+        r"""
+        Declare that ``self`` is nonempty.
+
+        Once declared nonempty, ``self`` (or any of its supersets) cannot be declared empty.
+
+        This is equivalent to defining a point on ``self`` using :meth:`point`
+        but is cheaper than actually creating a :class:`~sage.manifolds.point.ManifoldPoint`
+        instance.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A', is_open=True)
+            sage: AA = A.subset('AA')
+            sage: AA.declare_nonempty()
+            sage: A.has_defined_points()
+            True
+            sage: A.declare_empty()
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot be empty because it has defined points
+
+        """
+        if self.has_defined_points(subsets=False):
+            # Fast path, do not check subsets
+            return
+        if self.is_empty():
+            raise TypeError('cannot be nonempty because it has already been declared empty')
+        self._has_defined_points = True
+
+    def has_defined_points(self, subsets=True):
+        r"""
+        Return whether any points have been defined on ``self`` or any of its subsets.
+
+        INPUT:
+
+        - ``subsets`` -- (default: ``True``) if ``False``, only consider points that have
+          been defined directly on ``self``; if ``True``, also consider points on all subsets.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A', is_open=True)
+            sage: AA = A.subset('AA')
+            sage: AA.point()
+            Point on the 2-dimensional topological manifold M
+            sage: AA.has_defined_points()
+            True
+            sage: A.has_defined_points(subsets=False)
+            False
+            sage: A.has_defined_points()
+            True
+
+        """
+        if subsets:
+            return any(subset._has_defined_points for subset in self.subsets())
+        else:
+            return self._has_defined_points
 
     def point(self, coords=None, chart=None, name=None, latex_name=None):
         r"""

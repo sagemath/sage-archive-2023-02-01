@@ -192,7 +192,7 @@ def Set(X=None):
         else:
             return Set_object(X)
 
-    if isinstance(X, Element):
+    if isinstance(X, Element) and not isinstance(X, Set_base):
         raise TypeError("Element has no defined underlying set")
 
     try:
@@ -308,6 +308,35 @@ class Set_base():
                 return Set([])
             return Set_object_symmetric_difference(self, X)
         raise TypeError("X (=%s) must be a Set" % X)
+
+    def _test_as_set_object(self, tester=None, **options):
+        r"""
+        Run the test suite of ``Set(self)`` unless it is identical to ``self``.
+
+        EXAMPLES:
+
+        Nothing is tested for instances of :class`Set_generic` (constructed
+        with the :func:`Set` constructor)::
+
+            sage: Set(ZZ)._test_as_set_object(verbose=True)
+
+        Instances of other subclasses of :class:`Set_base` run this method::
+
+            sage: Polyhedron()._test_as_set_object(verbose=True)
+            Running the test suite of Set(self)
+            running ._test_an_element() . . . pass
+            ...
+            running ._test_some_elements() . . . pass
+        """
+        if tester is None:
+            tester = self._tester(**options)
+        set_self = Set(self)
+        if set_self is not self:
+            from sage.misc.sage_unittest import TestSuite
+            tester.info("\n  Running the test suite of Set(self)")
+            TestSuite(set_self).run(verbose=tester._verbose,
+                                    prefix=tester._prefix + "  ")
+            tester.info(tester._prefix + " ", newline=False)
 
 
 class Set_boolean_operators:

@@ -1560,12 +1560,12 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: inverse_laplace(L, s, t)
         t*e^(a + 2*t)*sin(t)
 
-    Unable to compute solution with Maxima::
+    Heaviside step function can be handled with different interfaces.
+    Try with Maxima::
 
         sage: laplace(heaviside(t-1), t, s)
-        laplace(heaviside(t - 1), t, s)
+        e^(-s)/s
 
-    Heaviside step function can be handled with different interfaces.
     Try with giac::
 
         sage: laplace(heaviside(t-1), t, s, algorithm='giac')

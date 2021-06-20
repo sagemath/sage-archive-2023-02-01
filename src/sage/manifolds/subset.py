@@ -2535,6 +2535,129 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             res._open_covers.append(oc)
         return res
 
+    def complement(self, superset=None, name=None, latex_name=None, is_open=False):
+        r"""
+        Return the complement of ``self`` in the manifold or in ``superset``.
+
+        INPUT:
+
+        - ``superset`` -- (default: ``self.manifold()``) a superset of ``self``
+        - ``name`` -- (default: ``None``) name given to the complement in the
+          case the latter has to be created; the default is
+          ``superset._name`` minus ``self._name``
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          complement in the case the latter has to be created; the default
+          is built upon the symbol `\setminus`
+
+        OUTPUT:
+
+        - instance of :class:`ManifoldSubset` representing the
+          subset that is difference of ``superset`` minus ``self``
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: B1 = A.subset('B1')
+            sage: B2 = A.subset('B2')
+            sage: B1.complement()
+            Subset M_minus_B1 of the 2-dimensional topological manifold M
+            sage: B1.complement(A)
+            Subset A_minus_B1 of the 2-dimensional topological manifold M
+            sage: B1.complement(B2)
+            Traceback (most recent call last):
+            ...
+            TypeError: superset must be a superset of self
+
+        """
+        if superset is None:
+            superset = self.manifold()
+        elif not self.is_subset(superset):
+            raise TypeError("superset must be a superset of self")
+        return superset.difference(self,
+                                   name=name, latex_name=latex_name,
+                                   is_open=is_open)
+
+    def difference(self, other, name=None, latex_name=None, is_open=False):
+        r"""
+        Return the set difference of ``self`` minus ``other``.
+
+        INPUT:
+
+        - ``other`` -- another subset of the same manifold
+        - ``name`` -- (default: ``None``) name given to the difference in the
+          case the latter has to be created; the default is
+          ``self._name`` minus ``other._name``
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          difference in the case the latter has to be created; the default
+          is built upon the symbol `\setminus`
+
+        OUTPUT:
+
+        - instance of :class:`ManifoldSubset` representing the
+          subset that is difference of ``self`` minus ``other``
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: CA = M.difference(A); CA
+            Subset M_minus_A of the 2-dimensional topological manifold M
+            sage: latex(CA)
+            M\setminus A
+            sage: A.intersection(CA).is_empty()
+            True
+            sage: A.union(CA)
+            2-dimensional topological manifold M
+
+            sage: O = M.open_subset('O')
+            sage: CO = M.difference(O); CO
+            Subset M_minus_O of the 2-dimensional topological manifold M
+            sage: M.difference(O) is CO
+            True
+
+            sage: CO2 = M.difference(O, is_open=True, name='CO2'); CO2
+            Open subset CO2 of the 2-dimensional topological manifold M
+            sage: CO is CO2
+            False
+            sage: CO.is_subset(CO2) and CO2.is_subset(CO)
+            True
+            sage: M.difference(O, is_open=True)
+            Open subset CO2 of the 2-dimensional topological manifold M
+
+        """
+        # See if it has been created already
+        diffs = []
+        for diff_name, intersection in other._intersections.items():
+            if intersection.is_empty():
+                try:
+                    union = other._unions[diff_name]
+                except KeyError:
+                    pass
+                else:
+                    if union == self:
+                        diff = self.subset_family()[diff_name]
+                        if not is_open:
+                            return diff
+                        if diff.is_open():
+                            return diff
+                        # is_open=True but we found a subset that
+                        # is not known to be open - and we cannot
+                        # declare it open.
+                        diffs.append(diff)
+
+        if latex_name is None:
+            if name is None:
+                latex_name = r'\setminus '.join(S._latex_name for S in (self, other))
+            else:
+                latex_name = name
+        if name is None:
+            name = "_minus_".join(S._name for S in (self, other))
+
+        diff = self.subset(name=name, latex_name=latex_name, is_open=is_open)
+        diff.declare_equal(diffs)
+        self.declare_union(other, diff, disjoint=True)
+        return diff
 
     #### End of construction of new sets from self
 

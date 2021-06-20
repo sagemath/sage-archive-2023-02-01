@@ -78,6 +78,7 @@ Lists of subsets after the above operations::
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
+from sage.manifolds.family import ManifoldSubsetFiniteFamily
 from sage.manifolds.point import ManifoldPoint
 
 class ManifoldSubset(UniqueRepresentation, Parent):
@@ -673,6 +674,247 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         """
         return sorted(self._subsets, key=lambda x: x._name)
+
+    def subset_digraph(self, loops=False, open_covers=False, lower_bound=None):
+        r"""
+        Return the digraph whose arcs represent subset relations among the subsets of ``self``.
+
+        INPUT:
+
+        - ``loops`` -- (default: ``False``) whether to include the trivial containment
+          of each subset in itself as loops of the digraph
+        - ``lower_bound`` -- (default: ``None``) only include supersets of this
+        - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+
+        OUTPUT:
+
+        A digraph. Each vertex of the digraph is either:
+
+        - a :class:`ManifoldSubsetFiniteFamily` containing one instance of :class:`ManifoldSubset`.
+        - (if ``open_covers`` is ``True``) a tuple of :class:`ManifoldSubsetFiniteFamily` instances,
+          representing an open cover.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            sage: D = M.subset_digraph(); D
+            Digraph on 4 vertices
+            sage: D.edges(key=lambda e: (e[0]._name, e[1]._name))
+            [(Set {U} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {M} of open subsets of the 3-dimensional differentiable manifold M,
+              None),
+             (Set {V} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {M} of open subsets of the 3-dimensional differentiable manifold M,
+              None),
+             (Set {W} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {M} of open subsets of the 3-dimensional differentiable manifold M,
+              None)]
+            sage: D.plot(layout='acyclic')
+            Graphics object consisting of 8 graphics primitives
+            sage: def label(element):
+            ....:     try:
+            ....:         return element._name
+            ....:     except AttributeError:
+            ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            sage: D.relabel(label, inplace=False).plot(layout='acyclic')
+            Graphics object consisting of 8 graphics primitives
+
+            sage: VW = V.union(W)
+            sage: D = M.subset_digraph(); D
+            Digraph on 5 vertices
+            sage: D.relabel(label, inplace=False).plot(layout='acyclic')
+            Graphics object consisting of 12 graphics primitives
+
+        If ``open_covers`` is ``True``, the digraph includes a special vertex for
+        each nontrivial open cover of a subset::
+
+            sage: D = M.subset_digraph(open_covers=True)
+            sage: D.relabel(label, inplace=False).plot(layout='acyclic')
+            Graphics object consisting of 14 graphics primitives
+
+        .. PLOT::
+
+            def label(element):
+                try:
+                    return element._name
+                except AttributeError:
+                    return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            M = Manifold(3, 'M')
+            U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            D = M.subset_digraph()
+            g1 = D.relabel(label, inplace=False).plot(layout='acyclic')
+            VW = V.union(W)
+            D = M.subset_digraph()
+            g2 = D.relabel(label, inplace=False).plot(layout='acyclic')
+            D = M.subset_digraph(open_covers=True)
+            g3 = D.relabel(label, inplace=False).plot(layout='acyclic')
+            sphinx_plot(graphics_array([g1, g2, g3]), figsize=(8, 3))
+
+        """
+        from sage.graphs.digraph import DiGraph
+        D = DiGraph(multiedges=False, loops=loops)
+
+        def vertex(subset):
+            return ManifoldSubsetFiniteFamily([subset])
+
+        if lower_bound is not None:
+            if not lower_bound.is_subset(self):
+                return D
+        visited = set()
+        to_visit = [self]
+        while to_visit:
+            S = to_visit.pop()
+            if S in visited:
+                continue
+            visited.add(S)
+
+            if lower_bound is None:
+                subsets = S._subsets
+            else:
+                subsets = [subset for subset in S._subsets
+                           if lower_bound.is_subset(subset)]
+            subsets_without_S = [subset for subset in subsets
+                                 if subset is not S]
+            if loops:
+                D.add_edges((vertex(subset), vertex(S)) for subset in subsets)
+            else:
+                D.add_edges((vertex(subset), vertex(S)) for subset in subsets_without_S)
+
+            to_visit.extend(subsets_without_S)
+
+        if open_covers:
+
+            def open_cover_vertex(open_cover):
+                return tuple(sorted(ManifoldSubsetFiniteFamily([subset]) for subset in open_cover))
+
+            for S in visited:
+                D.add_edges((vertex(S), open_cover_vertex(open_cover))
+                            for open_cover in S._open_covers
+                            if open_cover != [S])
+
+        return D
+
+    def subset_poset(self, open_covers=False, lower_bound=None):
+        r"""
+        Return the poset of the subsets of ``self``.
+
+        INPUT:
+
+        - ``lower_bound`` -- (default: ``None``) only include supersets of this
+        - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            sage: P = M.subset_poset(); P
+            Finite poset containing 4 elements
+            sage: P.plot(element_labels={element: element._name for element in P})
+            Graphics object consisting of 8 graphics primitives
+            sage: VW = V.union(W)
+            sage: P = M.subset_poset(); P
+            Finite poset containing 5 elements
+            sage: P.maximal_elements()
+            [Set {M} of open subsets of the 3-dimensional differentiable manifold M]
+            sage: sorted(P.minimal_elements(), key=lambda v: v._name)
+             [Set {U} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {V} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {W} of open subsets of the 3-dimensional differentiable manifold M]
+            sage: from sage.manifolds.subset import ManifoldSubsetFiniteFamily
+            sage: sorted(P.lower_covers(ManifoldSubsetFiniteFamily([M])), key=str)
+             [Set {U} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {V_union_W} of open subsets of the 3-dimensional differentiable manifold M]
+            sage: P.plot(element_labels={element: element._name for element in P})
+            Graphics object consisting of 10 graphics primitives
+
+        If ``open_covers`` is ``True``, the poset includes a special vertex for
+        each nontrivial open cover of a subset::
+
+            sage: P = M.subset_poset(open_covers=True); P
+            Finite poset containing 6 elements
+            sage: from sage.manifolds.subset import ManifoldSubsetFiniteFamily
+            sage: P.upper_covers(ManifoldSubsetFiniteFamily([VW]))
+            [(Set {V} of open subsets of the 3-dimensional differentiable manifold M,
+              Set {W} of open subsets of the 3-dimensional differentiable manifold M),
+             Set {M} of open subsets of the 3-dimensional differentiable manifold M]
+            sage: def label(element):
+            ....:     try:
+            ....:         return element._name
+            ....:     except AttributeError:
+            ....:         return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            sage: P.plot(element_labels={element: label(element) for element in P})
+            Graphics object consisting of 12 graphics primitives
+
+        .. PLOT::
+
+            def label(element):
+                try:
+                    return element._name
+                except AttributeError:
+                    return '[' + ', '.join(sorted(x._name for x in element)) + ']'
+            M = Manifold(3, 'M')
+            U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            P = M.subset_poset()
+            g1 = P.plot(element_labels={element: label(element) for element in P})
+            VW = V.union(W)
+            P = M.subset_poset()
+            g2 = P.plot(element_labels={element: label(element) for element in P})
+            P = M.subset_poset(open_covers=True)
+            g3 = P.plot(element_labels={element: label(element) for element in P})
+            sphinx_plot(graphics_array([g1, g2, g3]), figsize=(8, 3))
+
+        """
+        from sage.combinat.posets.posets import Poset
+        return Poset(self.subset_digraph(open_covers=open_covers, lower_bound=lower_bound))
+
+    def superset_digraph(self, loops=False, open_covers=False, upper_bound=None):
+        """
+        Return the digraph whose arcs represent subset relations among the supersets of ``self``.
+
+        INPUT:
+
+        - ``loops`` -- (default: ``False``) whether to include the trivial containment
+          of each subset in itself as loops of the digraph
+        - ``upper_bound`` -- (default: ``None``) only include subsets of this
+        - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            sage: VW = V.union(W)
+            sage: P = V.superset_digraph(loops=False, upper_bound=VW); P
+            Digraph on 2 vertices
+
+        """
+        if upper_bound is None:
+            upper_bound = self._manifold
+        return upper_bound.subset_digraph(loops=loops, open_covers=open_covers, lower_bound=self)
+
+    def superset_poset(self, open_covers=False, upper_bound=None):
+        r"""
+        Return the poset of the supersets of ``self``.
+
+        INPUT:
+
+        - ``upper_bound`` -- (default: ``None``) only include subsets of this
+        - ``open_covers`` -- (default: ``False``) whether to include vertices for open covers
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M')
+            sage: U = M.open_subset('U'); V = M.open_subset('V'); W = M.open_subset('W')
+            sage: VW = V.union(W)
+            sage: P = V.superset_poset(); P
+            Finite poset containing 3 elements
+            sage: P.plot(element_labels={element: element._name for element in P})
+            Graphics object consisting of 6 graphics primitives
+
+        """
+        if upper_bound is None:
+            upper_bound = self._manifold
+        return upper_bound.subset_poset(open_covers=open_covers, lower_bound=self)
 
     def get_subset(self, name):
         r"""

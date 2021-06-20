@@ -156,6 +156,7 @@ def request_wolfram_alpha(input, verbose=False):
          'error',
          'host',
          'id',
+         'inputstring',
          'numpods',
          'parsetimedout',
          'parsetiming',

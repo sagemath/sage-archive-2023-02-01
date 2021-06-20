@@ -38,6 +38,60 @@ class ConvexSet_base(SageObject):
         """
         return self.dim() < 0
 
+    def is_finite(self):
+        r"""
+        Test whether ``self`` is a finite set.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: p.is_finite()
+            True
+            sage: q = Polyhedron(ambient_dim=2); q
+            The empty polyhedron in ZZ^2
+            sage: q.is_finite()
+            True
+            sage: r = Polyhedron(rays=[(1, 0)]); r
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: r.is_finite()
+            False
+        """
+        return self.dim() < 1
+
+    def cardinality(self):
+        """
+        Return the cardinality of this set.
+
+        OUTPUT:
+
+        Either an integer or ``Infinity``.
+
+        EXAMPLES::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: p.cardinality()
+            0
+            sage: q = Polyhedron(ambient_dim=2); q
+            The empty polyhedron in ZZ^2
+            sage: q.cardinality()
+            0
+            sage: r = Polyhedron(rays=[(1, 0)]); r
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: r.cardinality()
+            +Infinity
+        """
+        if self.dim() < 0:
+            return ZZ(0)
+        if self.dim() == 0:
+            return ZZ(1)
+        return infinity
+
     def is_universe(self):
         r"""
         Test whether ``self`` is the whole ambient space.

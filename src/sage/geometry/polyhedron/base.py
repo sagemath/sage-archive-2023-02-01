@@ -51,8 +51,10 @@ from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
+from sage.geometry.convex_set import ConvexSet_closed
 
 from .constructor import Polyhedron
+from sage.geometry.relative_interior import RelativeInterior
 from sage.categories.sets_cat import EmptySetError
 
 #########################################################################
@@ -98,7 +100,7 @@ def is_Polyhedron(X):
 
 
 #########################################################################
-class Polyhedron_base(Element):
+class Polyhedron_base(Element, ConvexSet_closed):
     """
     Base class for Polyhedron objects
 
@@ -2460,7 +2462,7 @@ class Polyhedron_base(Element):
 
     def Vrepresentation_space(self):
         r"""
-        Return the ambient vector space.
+        Return the ambient free module.
 
         OUTPUT:
 
@@ -2477,6 +2479,36 @@ class Polyhedron_base(Element):
         return self.parent().Vrepresentation_space()
 
     ambient_space = Vrepresentation_space
+
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+
+        It is the ambient free module (:meth:`Vrepresentation_space`) tensored
+        with a field.
+
+        INPUT:
+
+        - ``base_field`` -- (default: the fraction field of the base ring) a field.
+
+        EXAMPLES::
+
+            sage: poly_test = Polyhedron(vertices = [[1,0,0,0],[0,1,0,0]])
+            sage: poly_test.ambient_vector_space()
+            Vector space of dimension 4 over Rational Field
+            sage: poly_test.ambient_vector_space() is poly_test.ambient()
+            True
+
+            sage: poly_test.ambient_vector_space(AA)
+            Vector space of dimension 4 over Algebraic Real Field
+            sage: poly_test.ambient_vector_space(RR)
+            Vector space of dimension 4 over Real Field with 53 bits of precision
+            sage: poly_test.ambient_vector_space(SR)
+            Vector space of dimension 4 over Symbolic Ring
+        """
+        return self.Vrepresentation_space().vector_space(base_field=base_field)
+
+    ambient = ambient_vector_space
 
     def Hrepresentation_space(self):
         r"""
@@ -3269,6 +3301,37 @@ class Polyhedron_base(Element):
             accumulator += r.vector()
         accumulator.set_immutable()
         return accumulator
+
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self``.
+
+        If ``self`` is empty, no points are generated; no exception will be raised.
+
+        EXAMPLES::
+
+            sage: P = polytopes.simplex()
+            sage: P.an_element()            # indirect doctest
+            (1/4, 1/4, 1/4, 1/4)
+            sage: P.some_elements()         # indirect doctest
+            [(1/4, 1/4, 1/4, 1/4),
+             (0, 0, 0, 1),
+             (0, 0, 1/2, 1/2),
+             (0, 1/2, 1/4, 1/4),
+             (1/2, 1/4, 1/8, 1/8)]
+        """
+        if self.is_empty():
+            return
+        yield self.representative_point()
+        vertex_iter = iter(self.vertex_generator())
+        try:
+            p = next(vertex_iter).vector()
+            yield vector(p, immutable=True)
+            for i in range(4):
+                p = (p + next(vertex_iter).vector()) / 2
+                yield vector(p, immutable=True)
+        except StopIteration:
+            pass
 
     def a_maximal_chain(self):
         r"""
@@ -4781,6 +4844,11 @@ class Polyhedron_base(Element):
             sage: P1 * 2.0
             A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 2 vertices
 
+        An alias is :meth:`cartesian_product`::
+
+            sage: P1.cartesian_product(P2) == P1.product(P2)
+            True
+
         TESTS:
 
         Check that :trac:`15253` is fixed::
@@ -4830,6 +4898,8 @@ class Polyhedron_base(Element):
                                     Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     _mul_ = product
+
+    cartesian_product = product
 
     def _test_product(self, tester=None, **options):
         """
@@ -8550,6 +8620,46 @@ class Polyhedron_base(Element):
 
     __contains__ = contains
 
+    @cached_method
+    def interior(self):
+        """
+        The interior of ``self``.
+
+        OUTPUT:
+
+        - either an empty polyhedron or an instance of
+          :class:`~sage.geometry.relative_interior.RelativeInterior`
+
+        EXAMPLES:
+
+        If the polyhedron is full-dimensional, the result is the
+        same as that of :meth:`relative_interior`::
+
+            sage: P_full = Polyhedron(vertices=[[0,0],[1,1],[1,-1]])
+            sage: P_full.interior()
+            Relative interior of
+             a 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+
+        If the polyhedron is of strictly smaller dimension than the
+        ambient space, its interior is empty::
+
+            sage: P_lower = Polyhedron(vertices=[[0,1], [0,-1]])
+            sage: P_lower.interior()
+            The empty polyhedron in ZZ^2
+
+        TESTS::
+
+            sage: Empty = Polyhedron(ambient_dim=2); Empty
+            The empty polyhedron in ZZ^2
+            sage: Empty.interior() is Empty
+            True
+        """
+        if self.is_open():
+            return self
+        if not self.is_full_dimensional():
+            return self.parent().element_class(self.parent(), None, None)
+        return self.relative_interior()
+
     def interior_contains(self, point):
         """
         Test whether the interior of the polyhedron contains the
@@ -8606,6 +8716,71 @@ class Polyhedron_base(Element):
             if not H.interior_contains(p):
                 return False
         return True
+
+    def is_relatively_open(self):
+        r"""
+        Return whether ``self`` is relatively open.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (-1,0)]); P
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: P.is_relatively_open()
+            False
+
+            sage: P0 = Polyhedron(vertices=[[1, 2]]); P0
+            A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P0.is_relatively_open()
+            True
+
+            sage: Empty = Polyhedron(ambient_dim=2); Empty
+            The empty polyhedron in ZZ^2
+            sage: Empty.is_relatively_open()
+            True
+
+            sage: Line = Polyhedron(vertices=[(1, 1)], lines=[(1, 0)]); Line
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: Line.is_relatively_open()
+            True
+
+        """
+        return not self.inequalities()
+
+    @cached_method
+    def relative_interior(self):
+        """
+        Return the relative interior of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (-1,0)])
+            sage: ri_P = P.relative_interior(); ri_P
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: (0, 0) in ri_P
+            True
+            sage: (1, 0) in ri_P
+            False
+
+            sage: P0 = Polyhedron(vertices=[[1, 2]])
+            sage: P0.relative_interior() is P0
+            True
+
+            sage: Empty = Polyhedron(ambient_dim=2)
+            sage: Empty.relative_interior() is Empty
+            True
+
+            sage: Line = Polyhedron(vertices=[(1, 1)], lines=[(1, 0)])
+            sage: Line.relative_interior() is Line
+            True
+        """
+        if self.is_relatively_open():
+            return self
+        return RelativeInterior(self)
 
     def relative_interior_contains(self, point):
         """
@@ -9870,24 +10045,6 @@ class Polyhedron_base(Element):
             return tuple(matrices)
         else:
             return MatrixGroup(matrices)
-
-    def is_full_dimensional(self):
-        """
-        Return whether the polyhedron is full dimensional.
-
-        OUTPUT:
-
-        Boolean. Whether the polyhedron is not contained in any strict
-        affine subspace.
-
-        EXAMPLES::
-
-            sage: polytopes.hypercube(3).is_full_dimensional()
-            True
-            sage: Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)]).is_full_dimensional()
-            False
-        """
-        return self.dim() == self.ambient_dim()
 
     def is_combinatorially_isomorphic(self, other, algorithm='bipartite_graph'):
         r"""

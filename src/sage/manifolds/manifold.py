@@ -907,9 +907,7 @@ class TopologicalManifold(ManifoldSubset):
         if self.is_empty():
             self.declare_equal(resu)
         else:
-            resu._supersets.update(self._supersets)
-            for sd in self._supersets:
-                sd._subsets.add(resu)
+            self.declare_superset(resu)
         self._top_subsets.add(resu)
         # Charts on the result from the coordinate definition:
         for chart, restrictions in coord_def.items():

@@ -655,6 +655,7 @@ class TriangularModuleMorphism(ModuleMorphism):
             sage: phi = X.module_morphism(lt, triangular="lower", codomain=X,
             ....:                         inverse_on_support="compute")
             sage: loads(dumps(phi))
+            Generic endomorphism of X
             sage: phi._inverse_on_support
             <built-in method get of dict object at ...>
             sage: ldp = loads(dumps(phi._inverse_on_support))

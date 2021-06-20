@@ -527,7 +527,7 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: f = piecewise([((-oo, oo), x)]);  f
                 piecewise(x|-->x on (-oo, +oo); x)
                 sage: f.restriction([[-1,1], [3,3]])
-                piecewise(x|-->x on [-1, 1] + {3}; x)
+                piecewise(x|-->x on [-1, 1] ∪ {3}; x)
             """
             restricted_domain = RealSet(*restricted_domain)
             new_param = []
@@ -559,7 +559,7 @@ class PiecewiseFunction(BuiltinFunction):
                 ValueError: point 3 is not in the domain
 
                 sage: g = f.extension(0);  g
-                piecewise(x|-->x on (-1, 1), x|-->0 on (-oo, -1] + [1, +oo); x)
+                piecewise(x|-->x on (-1, 1), x|-->0 on (-oo, -1] ∪ [1, +oo); x)
                 sage: g(3)
                 0
 
@@ -583,7 +583,7 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: f = piecewise([((-1,1), x)]);  f
                 piecewise(x|-->x on (-1, 1); x)
                 sage: g = f.extension(0);  g
-                piecewise(x|-->x on (-1, 1), x|-->0 on (-oo, -1] + [1, +oo); x)
+                piecewise(x|-->x on (-1, 1), x|-->0 on (-oo, -1] ∪ [1, +oo); x)
                 sage: g(3)
                 0
                 sage: h = g.unextend_zero()
@@ -652,7 +652,7 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: f = piecewise([([0,1], 1), ((2,3), x)])
                 sage: g = piecewise([((1/2, 2), x)])
                 sage: f.piecewise_add(g).unextend_zero()
-                piecewise(x|-->1 on (0, 1/2], x|-->x + 1 on (1/2, 1], x|-->x on (1, 2) + (2, 3); x)
+                piecewise(x|-->1 on (0, 1/2], x|-->x + 1 on (1/2, 1], x|-->x on (1, 2) ∪ (2, 3); x)
             """
             points = ([minus_infinity] +
                       sorted(set(self.end_points() + other.end_points())) +

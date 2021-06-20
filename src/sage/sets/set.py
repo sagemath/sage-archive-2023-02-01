@@ -532,7 +532,28 @@ class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_opera
         """
         return iter(self.__object)
 
-    an_element = EnumeratedSets.ParentMethods.__dict__['_an_element_from_iterator']
+    _an_element_from_iterator = EnumeratedSets.ParentMethods.__dict__['_an_element_from_iterator']
+
+    def _an_element_(self):
+        """
+        Return an element of ``self``.
+
+        EXAMPLES::
+
+            sage: R = Set(RR)
+            sage: R.an_element()  # indirect doctest
+            1.00000000000000
+
+            sage: F = Set([1, 2, 3])
+            sage: F.an_element()
+            1
+        """
+        if self.__object is not self:
+            try:
+                return self.__object.an_element()
+            except (AttributeError, NotImplementedError):
+                pass
+        return self._an_element_from_iterator()
 
     def __contains__(self, x):
         """

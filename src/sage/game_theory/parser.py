@@ -155,8 +155,8 @@ class Parser():
         temporary files, calls lrs and stores the output in `lrs_output`
         (here slicing to get rid of some system parameters that get returned)::
 
-            sage: lrs_output[5:16]  # optional - lrslib
-            ['\n',
+            sage: lrs_output[:20]  # optional - lrslib
+            [...,
              '***** 4 4 rational\n',
              '2  0  1  2 \n',
              '1  1/2  1/2 -2 \n',
@@ -166,7 +166,8 @@ class Parser():
              '\n',
              '\n',
              '*Number of equilibria found: 2\n',
-             '*Player 1: vertices=3 bases=3 pivots=5\n']
+             '*Player 1: vertices=3 bases=3 pivots=5\n',
+             ...]
 
         The above is pretty messy, here is the output when we put it through
         the parser::
@@ -195,8 +196,8 @@ class Parser():
             sage: g2_file.close()
             sage: process = Popen(['lrsnash', g1_name, g2_name], stdout=PIPE, stderr=PIPE)  # optional - lrslib
             sage: lrs_output = [bytes_to_str(row) for row in process.stdout]  # optional - lrslib
-            sage: print(lrs_output[5:20])  # optional - lrslib
-            ['\n',
+            sage: print(lrs_output[:25])  # optional - lrslib
+            [...,
              '***** 5 5 rational\n',
              '2  1/7  0  6/7  23/7 \n',
              '2  0  1/6  5/6  10/3 \n',
@@ -210,7 +211,8 @@ class Parser():
              '\n',
              '\n',
              '*Number of equilibria found: 4\n',
-             '*Player 1: vertices=6 bases=7 pivots=10\n']
+             '*Player 1: vertices=6 bases=7 pivots=10\n',
+             ...]
 
             sage: nasheq = Parser(lrs_output).format_lrs()  # optional - lrslib
             sage: sorted(nasheq)  # optional - lrslib

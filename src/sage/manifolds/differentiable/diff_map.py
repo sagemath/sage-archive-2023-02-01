@@ -1071,9 +1071,9 @@ class DiffMap(ContinuousMap):
                         coord1 = chart1._xx
                         ff = tensor._express[chart2]
                         resu_fc.append( chart1.function(ff(*(phi(*coord1)))) )
-            dom_resu = resu_fc[0].parent()._chart._domain
+            dom_resu = resu_fc[0].parent()._chart.domain()
             for fc in resu_fc[1:]:
-                dom_resu = dom_resu.union(fc.parent()._chart._domain)
+                dom_resu = dom_resu.union(fc.parent()._chart.domain())
             resu = dom_resu.scalar_field(name=resu_name,
                                          latex_name=resu_latex_name)
             for fc in resu_fc:

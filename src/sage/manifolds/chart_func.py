@@ -1066,7 +1066,7 @@ class ChartFunction(AlgebraElement, ModuleElementWithMutability):
             # NB: for efficiency, we access directly to the "private" attributes
             # of other classes. A more conventional OOP writing would be
             # coordsi = coord - self._chart.domain().start_index()
-            coordsi = coord - self._chart._domain._sindex
+            coordsi = coord - self._chart.domain()._sindex
             if coordsi < 0 or coordsi >= self._nc:
                 raise ValueError("coordinate index out of range")
             return self._der[coordsi]

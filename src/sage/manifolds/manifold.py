@@ -1727,7 +1727,7 @@ class TopologicalManifold(ManifoldSubset):
                     # Try the default chart:
                     def_chart = self._def_chart
                     if def_chart is not None:
-                        if def_chart._domain is self:
+                        if def_chart.domain() is self:
                             self._orientation = [self._def_chart]
                     # Still no orientation? Choose arbitrary chart:
                     if not self._orientation:
@@ -1967,7 +1967,7 @@ class TopologicalManifold(ManifoldSubset):
         if isinstance(coord_expression, dict):
             # check validity of entry
             for chart in coord_expression:
-                if not chart._domain.is_subset(self):
+                if not chart.domain().is_subset(self):
                     raise ValueError("the {} is not defined ".format(chart) +
                                      "on some subset of the " + str(self))
         alg = self.scalar_field_algebra()

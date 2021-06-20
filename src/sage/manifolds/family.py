@@ -11,6 +11,10 @@ to their lexicographically ordered element names.
 The subclass :class:`ManifoldSubsetFiniteFamily` customizes the print
 representation further.
 
+AUTHORS:
+
+- Matthias Koeppe (2021): initial version
+
 """
 #*****************************************************************************
 #       Copyright (C) 2021 Matthias Koeppe <mkoeppe@math.ucdavis.edu>
@@ -215,6 +219,31 @@ class ManifoldSubsetFiniteFamily(ManifoldObjectFiniteFamily):
         TypeError: all open subsets must have the same manifold
 
     """
+
+    @classmethod
+    def from_subsets_or_families(cls, *subsets_or_families):
+        r"""
+        Construct a ManifoldSubsetFiniteFamily from given subsets or iterables of subsets.
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.family import ManifoldSubsetFiniteFamily
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: A = M.subset('A')
+            sage: Bs = (M.subset(f'B{i}') for i in range(5))
+            sage: Cs = ManifoldSubsetFiniteFamily([M.subset('C0'), M.subset('C1')])
+            sage: ManifoldSubsetFiniteFamily.from_subsets_or_families(A, Bs, Cs)
+            Set {A, B0, B1, B2, B3, B4, C0, C1} of subsets of the 2-dimensional topological manifold M
+        """
+        def generate_subsets():
+            from sage.manifolds.subset import ManifoldSubset
+            for arg in subsets_or_families:
+                if isinstance(arg, ManifoldSubset):
+                    yield arg
+                else:
+                    # arg must be an iterable of ManifoldSubset instances
+                    yield from arg
+        return cls(generate_subsets())
 
     def _repr_object_type(self):
         r"""

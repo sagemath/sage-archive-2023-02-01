@@ -310,8 +310,13 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2015-2020 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015      Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2016      Andrew Mathas
+#       Copyright (C) 2018      Florentin Jaffredo
+#       Copyright (C) 2019      Hans Fotsing Tetsing
+#       Copyright (C) 2019-2020 Michael Jung
+#       Copyright (C) 2021      Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -899,9 +904,12 @@ class TopologicalManifold(ManifoldSubset):
             Open subset U of the 2-dimensional topological manifold R^2
         """
         resu._calculus_method = self._calculus_method
-        resu._supersets.update(self._supersets)
-        for sd in self._supersets:
-            sd._subsets.add(resu)
+        if self.is_empty():
+            self.declare_equal(resu)
+        else:
+            resu._supersets.update(self._supersets)
+            for sd in self._supersets:
+                sd._subsets.add(resu)
         self._top_subsets.add(resu)
         # Charts on the result from the coordinate definition:
         for chart, restrictions in coord_def.items():

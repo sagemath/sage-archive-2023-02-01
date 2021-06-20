@@ -318,8 +318,9 @@ IF PY_PLATFORM == 'cygwin':
 
     def fix_for_ticket_30157():
         """
-        Cygwin-only workaround for an issue caused by the sqlite3 library.  See
-        trac:`30157`.
+        Cygwin-only workaround for an issue caused by the sqlite3 library.
+
+        See :trac:`30157`.
 
         The issue here is that when the sqlite3 library is first initialized
         it modifies Windows' default DLL search path order, which can possibly

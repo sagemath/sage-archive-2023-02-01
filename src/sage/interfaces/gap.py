@@ -1870,9 +1870,7 @@ def gap_console():
         sage: import subprocess as sp
         sage: from sage.interfaces.gap import gap_command
         sage: cmd = 'echo "quit;" | ' + gap_command(use_workspace_cache=False)[0]
-        sage: gap_startup = sp.check_output(cmd, shell=True,  # py2
-        ....:                               stderr=sp.STDOUT)
-        sage: gap_startup = sp.check_output(cmd, shell=True,  # py3
+        sage: gap_startup = sp.check_output(cmd, shell=True,
         ....:                               stderr=sp.STDOUT,
         ....:                               encoding='latin1')
         sage: 'www.gap-system.org' in gap_startup

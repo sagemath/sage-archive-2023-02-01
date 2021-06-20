@@ -10349,7 +10349,7 @@ class Polyhedron_base(Element):
             sage: AA(Pgonal.volume()^2) == (Pnormal.volume()^2)*AA(Adet)
             True
 
-        An other example with ``as_affine_map=True``::
+        Another example with ``as_affine_map=True``::
 
             sage: P = polytopes.permutahedron(4)
             sage: A, b = P.affine_hull_projection(orthonormal=True, as_affine_map=True, extend=True)
@@ -10715,6 +10715,153 @@ class Polyhedron_base(Element):
                 # Test that the extension is indeed minimal.
                 if self.base_ring() is not AA:
                     tester.assertFalse(data.polyhedron.base_ring() is AA)
+
+    def affine_hull_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
+                             ambient_chart=None, names=None, **kwds):
+        r"""
+        Return the affine hull of ``self`` as a manifold.
+
+        If ``self`` is full-dimensional, it is just the ambient Euclidean space.
+        Otherwise, it is a Riemannian submanifold of the ambient Euclidean space.
+
+        INPUT:
+
+        - ``ambient_space`` -- a :class:`~sage.manifolds.differentiable.examples.euclidean.EuclideanSpace`
+          of the ambient dimension (default: the manifold of ``ambient_chart``, if provided;
+          otherwise, a new instance of ``EuclideanSpace``).
+
+        - ``ambient_chart`` -- a chart on ``ambient_space``.
+
+        - ``names`` -- names for the coordinates on the affine hull.
+
+        - optional arguments accepted by :meth:`~sage.geometry.polyhedron.base.affine_hull_projection`.
+
+        The default chart is determined by the optional arguments of
+        :meth:`~sage.geometry.polyhedron.base.affine_hull_projection`.
+
+        EXAMPLES::
+
+            sage: triangle = Polyhedron([(1,0,0), (0,1,0), (0,0,1)]);  triangle
+            A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 3 vertices
+            sage: A = triangle.affine_hull_manifold(name='A'); A
+            2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
+            sage: A.embedding().display()
+            A --> E^3
+               (x0, x1) |--> (x, y, z) = (t0 + x0, t0 + x1, t0 - x0 - x1 + 1)
+            sage: A.embedding().inverse().display()
+            E^3 --> A
+               (x, y, z) |--> (x0, x1) = (x, y)
+            sage: A.adapted_chart()
+            [Chart (E^3, (x0_E3, x1_E3, t0_E3))]
+            sage: A.normal().display()
+            n = 1/3*sqrt(3) e_x + 1/3*sqrt(3) e_y + 1/3*sqrt(3) e_z
+            sage: A.induced_metric()       # Need to call this before volume_form
+            Riemannian metric gamma on the 2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
+            sage: A.volume_form()
+            2-form eps_gamma on the 2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
+
+        Orthogonal version::
+
+            sage: A = triangle.affine_hull_manifold(name='A', orthogonal=True); A
+            2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
+            sage: A.embedding().display()
+            A --> E^3
+               (x0, x1) |--> (x, y, z) = (t0 - 1/2*x0 - 1/3*x1 + 1, t0 + 1/2*x0 - 1/3*x1, t0 + 2/3*x1)
+            sage: A.embedding().inverse().display()
+            E^3 --> A
+               (x, y, z) |--> (x0, x1) = (-x + y + 1, -1/2*x - 1/2*y + z + 1/2)
+
+        Arrangement of affine hull of facets::
+
+            sage: D = polytopes.dodecahedron()
+            sage: E3 = EuclideanSpace(3)
+            sage: submanifolds = [
+            ....:     F.as_polyhedron().affine_hull_manifold(name=f'F{i}', orthogonal=True, ambient_space=E3)
+            ....:     for i, F in enumerate(D.facets())]
+            sage: sum(FM.plot({}, srange(-2, 2, 0.1), srange(-2, 2, 0.1), opacity=0.2)  # not tested
+            ....:     for FM in submanifolds) + D.plot()
+            Graphics3d Object
+
+        Full-dimensional case::
+
+            sage: cube = polytopes.cube(); cube
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
+            sage: cube.affine_hull_manifold()
+            Euclidean space E^3
+
+        """
+        if ambient_space is None:
+            if ambient_chart is not None:
+                ambient_space = ambient_chart.manifold()
+            else:
+                from sage.manifolds.differentiable.examples.euclidean import EuclideanSpace
+                ambient_space = EuclideanSpace(self.ambient_dim(), start_index=start_index)
+        if ambient_space.dimension() != self.ambient_dim():
+            raise ValueError('ambient_space and ambient_chart must match the ambient dimension')
+
+        if self.is_full_dimensional():
+            return ambient_space
+
+        if ambient_chart is None:
+            ambient_chart = ambient_space.default_chart()
+        CE = ambient_chart
+
+        from sage.manifolds.manifold import Manifold
+        if name is None:
+            name, latex_name = self._affine_hull_name_latex_name()
+        H = Manifold(self.dim(), name, ambient=ambient_space, structure="Riemannian",
+                     latex_name=latex_name, start_index=start_index)
+        if names is None:
+            names = tuple(f'x{i}' for i in range(self.dim()))
+        CH = H.chart(names=names)
+
+        data = self.affine_hull_projection(return_all_data=True, **kwds)
+        projection_matrix = data.projection_linear_map.matrix().transpose()
+        projection_translation_vector = data.projection_translation
+        section_matrix = data.section_linear_map.matrix().transpose()
+        section_translation_vector = data.section_translation
+
+        from sage.symbolic.ring import SR
+        # We use the slacks of the (linear independent) equations as the foliation parameters
+        foliation_parameters = vector(SR.var(f't{i}') for i in range(self.ambient_dim() - self.dim()))
+        normal_matrix = matrix(equation.A() for equation in self.equation_generator()).transpose()
+        slack_matrix = normal_matrix.pseudoinverse()
+
+        phi = H.diff_map(ambient_space, {(CH, CE):
+                                         (section_matrix * vector(CH._xx) + section_translation_vector
+                                          + normal_matrix * foliation_parameters).list()})
+        phi_inv = ambient_space.diff_map(H, {(CE, CH):
+                                             (projection_matrix * vector(CE._xx) + projection_translation_vector).list()})
+
+        foliation_scalar_fields = {parameter:
+                                   ambient_space.scalar_field({CE: slack_matrix.row(i) * (vector(CE._xx) - section_translation_vector)})
+                                   for i, parameter in enumerate(foliation_parameters)}
+
+        H.set_embedding(phi, inverse=phi_inv,
+                        var=list(foliation_parameters), t_inverse=foliation_scalar_fields)
+        return H
+
+    def _affine_hull_name_latex_name(self, name=None, latex_name=None):
+        r"""
+        Return the default name of the affine hull.
+
+        EXAMPLES::
+
+            sage: polytopes.cube()._affine_hull_name_latex_name('C', r'\square')
+            ('aff_C', '\\mathop{\\mathrm{aff}}(\\square)')
+
+            sage: Polyhedron(vertices=[[0, 1], [1, 0]])._affine_hull_name_latex_name()
+            ('aff_P', '\\mathop{\\mathrm{aff}}(P)')
+        """
+
+        if name is None:
+            name = 'P'
+        if latex_name is None:
+            latex_name = name
+        operator = 'aff'
+        aff_name = f'{operator}_{name}'
+        aff_latex_name = r'\mathop{\mathrm{' + operator + '}}(' + latex_name + ')'
+        return aff_name, aff_latex_name
 
     def _polymake_init_(self):
         """

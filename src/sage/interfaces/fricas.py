@@ -1461,6 +1461,23 @@ class FriCASElement(ExpectElement):
             sage: fricas(s).sage()                                              # optional - fricas
             1/3840*n^10 - 5/2304*n^9 + 5/1152*n^8 + 31/5760*n^7 - 229/11520*n^6 - 5/2304*n^5 + 1/36*n^4 - 1/960*n^3 - 1/80*n^2
 
+        Some checks for digamma and polygamma (:trac:`31853`)::
+
+            sage: fricas.digamma(1.0)                                           # optional - fricas
+            - 0.5772156649_0153286061
+            sage: psi(1.0)
+            -0.577215664901533
+            sage: fricas.polygamma(1, 1.0)                                      # optional - fricas
+            1.6449340668482269
+            sage: psi(1, 1).n()
+            1.64493406684823
+
+            sage: var("w")
+            w
+            sage: fricas.laplace(log(x), x, w).sage()                           # optional - fricas
+            -(euler_gamma + log(w))/w
+            sage: fricas(laplace(log(x), x, w)).sage()                          # optional - fricas
+            -(euler_gamma + log(w))/w
 
         Check that :trac:`25224` is fixed::
 

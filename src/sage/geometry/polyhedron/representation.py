@@ -280,13 +280,13 @@ class PolyhedronRepresentation(SageObject):
         Return an arbitrary but fixed number according to the internal
         storage order.
 
-        NOTES:
+        .. NOTE::
 
-        H-representation and V-representation objects are enumerated
-        independently. That is, amongst all vertices/rays/lines there
-        will be one with ``index()==0``, and amongst all
-        inequalities/equations there will be one with ``index()==0``,
-        unless the polyhedron is empty or spans the whole space.
+            H-representation and V-representation objects are enumerated
+            independently. That is, amongst all vertices/rays/lines there
+            will be one with ``index()==0``, and amongst all
+            inequalities/equations there will be one with ``index()==0``,
+            unless the polyhedron is empty or spans the whole space.
 
         EXAMPLES::
 
@@ -598,16 +598,16 @@ class Hrepresentation(PolyhedronRepresentation):
 
     def eval(self, Vobj):
         r"""
-        Evaluates the left hand side `A\vec{x}+b` on the given
+        Evaluate the left hand side `A\vec{x}+b` on the given
         vertex/ray/line.
 
-        NOTES:
+        .. NOTE::
 
-          * Evaluating on a vertex returns `A\vec{x}+b`
-          * Evaluating on a ray returns `A\vec{r}`. Only the sign or
-            whether it is zero is meaningful.
-          * Evaluating on a line returns `A\vec{l}`. Only whether it
-            is zero or not is meaningful.
+            * Evaluating on a vertex returns `A\vec{x}+b`
+            * Evaluating on a ray returns `A\vec{r}`. Only the sign or
+              whether it is zero is meaningful.
+            * Evaluating on a line returns `A\vec{l}`. Only whether it
+              is zero or not is meaningful.
 
         EXAMPLES::
 

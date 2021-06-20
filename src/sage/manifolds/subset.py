@@ -28,10 +28,8 @@ Two subsets on a manifold::
     Subset A of the 2-dimensional topological manifold M
     sage: b = M.subset('B'); b
     Subset B of the 2-dimensional topological manifold M
-    sage: M.list_of_subsets()
-    [Subset A of the 2-dimensional topological manifold M,
-     Subset B of the 2-dimensional topological manifold M,
-     2-dimensional topological manifold M]
+    sage: M.subset_family()
+    Set {A, B, M} of subsets of the 2-dimensional topological manifold M
 
 The intersection of the two subsets::
 
@@ -43,24 +41,16 @@ Their union::
     sage: d = a.union(b); d
     Subset A_union_B of the 2-dimensional topological manifold M
 
-Lists of subsets after the above operations::
+Families of subsets after the above operations::
 
-    sage: M.list_of_subsets()
-    [Subset A of the 2-dimensional topological manifold M,
-     Subset A_inter_B of the 2-dimensional topological manifold M,
-     Subset A_union_B of the 2-dimensional topological manifold M,
-     Subset B of the 2-dimensional topological manifold M,
-     2-dimensional topological manifold M]
-    sage: a.list_of_subsets()
-    [Subset A of the 2-dimensional topological manifold M,
-     Subset A_inter_B of the 2-dimensional topological manifold M]
-    sage: c.list_of_subsets()
-    [Subset A_inter_B of the 2-dimensional topological manifold M]
-    sage: d.list_of_subsets()
-    [Subset A of the 2-dimensional topological manifold M,
-     Subset A_inter_B of the 2-dimensional topological manifold M,
-     Subset A_union_B of the 2-dimensional topological manifold M,
-     Subset B of the 2-dimensional topological manifold M]
+    sage: M.subset_family()
+    Set {A, A_inter_B, A_union_B, B, M} of subsets of the 2-dimensional topological manifold M
+    sage: a.subset_family()
+    Set {A, A_inter_B} of subsets of the 2-dimensional topological manifold M
+    sage: c.subset_family()
+    Set {A_inter_B} of subsets of the 2-dimensional topological manifold M
+    sage: d.subset_family()
+    Set {A, A_inter_B, A_union_B, B} of subsets of the 2-dimensional topological manifold M
 
 """
 #*****************************************************************************
@@ -77,6 +67,7 @@ Lists of subsets after the above operations::
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.superseded import deprecation
 from sage.categories.sets_cat import Sets
 from sage.manifolds.family import ManifoldSubsetFiniteFamily
 from sage.manifolds.point import ManifoldPoint
@@ -125,10 +116,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         sage: B = M.subset('B', latex_name=r'\mathcal{B}'); B
         Subset B of the 2-dimensional topological manifold M
-        sage: M.list_of_subsets()
-        [Subset A of the 2-dimensional topological manifold M,
-         Subset B of the 2-dimensional topological manifold M,
-         2-dimensional topological manifold M]
+        sage: M.subset_family()
+        Set {A, B, M} of subsets of the 2-dimensional topological manifold M
 
     The manifold is itself a subset::
 
@@ -588,6 +577,11 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         r"""
         Generate the open supersets of ``self``.
 
+        .. NOTE::
+
+            To get the open supersets as a family, sorted by name, use the method
+            :meth:`open_superset_family` instead.
+
         EXAMPLES::
 
             sage: M = Manifold(2, 'M', structure='topological')
@@ -603,14 +597,43 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             if superset.is_open():
                 yield superset
 
+    def open_superset_family(self):
+        r"""
+        Return the family of open supersets of ``self``.
+
+        The family is sorted by the alphabetical names of the subsets.
+
+        OUTPUT:
+
+        - a :class:`ManifoldSubsetFiniteFamily` instance containing all the
+          open supersets that have been defined on the current subset
+
+        .. NOTE::
+
+            If you only need to iterate over the open supersets in arbitrary
+            order, you can use the generator method :meth:`open_supersets`
+            instead.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = U.subset('V')
+            sage: W = V.subset('W')
+            sage: W.open_superset_family()
+            Set {M, U} of open subsets of the 2-dimensional topological manifold M
+
+        """
+        return ManifoldSubsetFiniteFamily(self.open_supersets())
+
     def subsets(self):
         r"""
         Generate the subsets that have been defined on the current subset.
 
         .. NOTE::
 
-            To get the subsets as a list, use the method
-            :meth:`list_of_subsets` instead.
+            To get the subsets as a family, sorted by name, use the method
+            :meth:`subset_family` instead.
 
         EXAMPLES:
 
@@ -626,13 +649,11 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: U in M.subsets()
             True
 
-        The method :meth:`list_of_subsets` returns a list (sorted
+        The method :meth:`subset_family` returns a family (sorted
         alphabetically by the subset names)::
 
-            sage: M.list_of_subsets()
-            [2-dimensional topological manifold M,
-             Open subset U of the 2-dimensional topological manifold M,
-             Subset V of the 2-dimensional topological manifold M]
+            sage: M.subset_family()
+            Set {M, U, V} of subsets of the 2-dimensional topological manifold M
 
         """
         yield from self._subsets
@@ -651,8 +672,61 @@ class ManifoldSubset(UniqueRepresentation, Parent):
 
         .. NOTE::
 
-            To get the subsets as a Python set, use the method
-            :meth:`subsets` instead.
+            This method is deprecated.
+
+            To get the subsets as a :class:`ManifoldSubsetFiniteFamily`
+            instance (which sorts its elements alphabetically by name),
+            use :meth:`subset_family` instead.
+
+            To loop over the subsets in an arbitrary order, use the
+            generator method :meth:`subsets` instead.
+
+        EXAMPLES:
+
+        List of subsets of a 2-dimensional manifold (deprecated)::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = M.subset('V')
+            sage: M.list_of_subsets()
+            doctest:...: DeprecationWarning: the method list_of_subsets of ManifoldSubset
+             is deprecated; use subset_family or subsets instead...
+            [2-dimensional topological manifold M,
+             Open subset U of the 2-dimensional topological manifold M,
+             Subset V of the 2-dimensional topological manifold M]
+
+        Using :meth:`subset_family` instead (recommended when order matters)::
+
+            sage: M.subset_family()
+            Set {M, U, V} of subsets of the 2-dimensional topological manifold M
+
+        The method :meth:`subsets` generates the subsets in an unspecified order.
+        To create a set::
+
+            sage: frozenset(M.subsets())  # random (set output)
+            {Subset V of the 2-dimensional topological manifold M,
+             2-dimensional topological manifold M,
+             Open subset U of the 2-dimensional topological manifold M}
+
+        """
+        deprecation(31727, "the method list_of_subsets of ManifoldSubset is deprecated; use subset_family or subsets instead")
+        return sorted(self._subsets, key=lambda x: x._name)
+
+    def subset_family(self):
+        r"""
+        Return the family of subsets that have been defined on the current subset.
+
+        The family is sorted by the alphabetical names of the subsets.
+
+        OUTPUT:
+
+        - a :class:`ManifoldSubsetFiniteFamily` instance containing all the
+          subsets that have been defined on the current subset
+
+        .. NOTE::
+
+            If you only need to iterate over the subsets in arbitrary order,
+            you can use the generator method :meth:`subsets` instead.
 
         EXAMPLES:
 
@@ -661,21 +735,11 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: M = Manifold(2, 'M', structure='topological')
             sage: U = M.open_subset('U')
             sage: V = M.subset('V')
-            sage: M.list_of_subsets()
-            [2-dimensional topological manifold M,
-             Open subset U of the 2-dimensional topological manifold M,
-             Subset V of the 2-dimensional topological manifold M]
-
-        The method :meth:`subsets` generates the subsets.  To create
-        a set::
-
-            sage: frozenset(M.subsets())  # random (set output)
-            {Subset V of the 2-dimensional topological manifold M,
-             2-dimensional topological manifold M,
-             Open subset U of the 2-dimensional topological manifold M}
+            sage: M.subset_family()
+            Set {M, U, V} of subsets of the 2-dimensional topological manifold M
 
         """
-        return sorted(self._subsets, key=lambda x: x._name)
+        return ManifoldSubsetFiniteFamily(self.subsets())
 
     def subset_digraph(self, loops=False, open_covers=False, lower_bound=None):
         r"""
@@ -869,6 +933,54 @@ class ManifoldSubset(UniqueRepresentation, Parent):
         from sage.combinat.posets.posets import Poset
         return Poset(self.subset_digraph(open_covers=open_covers, lower_bound=lower_bound))
 
+    def supersets(self):
+        r"""
+        Generate the declared supersets of the current subset.
+
+        .. NOTE::
+
+            To get the supersets as a family, sorted by name, use the method
+            :meth:`superset_family` instead.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = M.subset('V')
+            sage: sorted(V.supersets(), key=lambda v: v._name)
+            [2-dimensional topological manifold M,
+             Subset V of the 2-dimensional topological manifold M]
+
+        """
+        yield from self._supersets
+
+    def superset_family(self):
+        r"""
+        Return the family of declared supersets of the current subset.
+
+        The family is sorted by the alphabetical names of the supersets.
+
+        OUTPUT:
+
+        - a :class:`ManifoldSubsetFiniteFamily` instance containing all the
+          supersets
+
+        .. NOTE::
+
+            If you only need to iterate over the supersets in arbitrary order,
+            you can use the generator method :meth:`supersets` instead.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = M.subset('V')
+            sage: V.superset_family()
+            Set {M, V} of subsets of the 2-dimensional topological manifold M
+
+        """
+        return ManifoldSubsetFiniteFamily(self.supersets())
+
     def superset_digraph(self, loops=False, open_covers=False, upper_bound=None):
         """
         Return the digraph whose arcs represent subset relations among the supersets of ``self``.
@@ -942,11 +1054,8 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: A = M.subset('A')
             sage: B = A.subset('B')
             sage: U = M.open_subset('U')
-            sage: M.list_of_subsets()
-            [Subset A of the 4-dimensional topological manifold M,
-             Subset B of the 4-dimensional topological manifold M,
-             4-dimensional topological manifold M,
-             Open subset U of the 4-dimensional topological manifold M]
+            sage: M.subset_family()
+            Set {A, B, M, U} of subsets of the 4-dimensional topological manifold M
             sage: M.get_subset('A')
             Subset A of the 4-dimensional topological manifold M
             sage: M.get_subset('A') is A
@@ -1278,13 +1387,10 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: a = M.subset('A')
             sage: b = a.superset('B'); b
             Subset B of the 2-dimensional topological manifold M
-            sage: b.list_of_subsets()
-            [Subset A of the 2-dimensional topological manifold M,
-             Subset B of the 2-dimensional topological manifold M]
-            sage: a._supersets # random (set output)
-            {Subset B of the 2-dimensional topological manifold M,
-             Subset A of the 2-dimensional topological manifold M,
-             2-dimensional topological manifold M}
+            sage: b.subset_family()
+            Set {A, B} of subsets of the 2-dimensional topological manifold M
+            sage: a.superset_family()
+            Set {A, B, M} of subsets of the 2-dimensional topological manifold M
 
         The superset of the whole manifold is itself::
 
@@ -1342,17 +1448,12 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: b = M.subset('B')
             sage: c = a.intersection(b); c
             Subset A_inter_B of the 2-dimensional topological manifold M
-            sage: a.list_of_subsets()
-            [Subset A of the 2-dimensional topological manifold M,
-             Subset A_inter_B of the 2-dimensional topological manifold M]
-            sage: b.list_of_subsets()
-            [Subset A_inter_B of the 2-dimensional topological manifold M,
-             Subset B of the 2-dimensional topological manifold M]
-            sage: c._supersets  # random (set output)
-            {Subset B of the 2-dimensional topological manifold M,
-             Subset A_inter_B of the 2-dimensional topological manifold M,
-             Subset A of the 2-dimensional topological manifold M,
-             2-dimensional topological manifold M}
+            sage: a.subset_family()
+            Set {A, A_inter_B} of subsets of the 2-dimensional topological manifold M
+            sage: b.subset_family()
+            Set {A_inter_B, B} of subsets of the 2-dimensional topological manifold M
+            sage: c.superset_family()
+            Set {A, A_inter_B, B, M} of subsets of the 2-dimensional topological manifold M
 
         Some checks::
 
@@ -1436,18 +1537,12 @@ class ManifoldSubset(UniqueRepresentation, Parent):
             sage: b = M.subset('B')
             sage: c = a.union(b); c
             Subset A_union_B of the 2-dimensional topological manifold M
-            sage: a._supersets  # random (set output)
-            set([subset 'A_union_B' of the 2-dimensional manifold 'M',
-                 2-dimensional manifold 'M',
-                 subset 'A' of the 2-dimensional manifold 'M'])
-            sage: b._supersets  # random (set output)
-            set([subset 'B' of the 2-dimensional manifold 'M',
-                 2-dimensional manifold 'M',
-                 subset 'A_union_B' of the 2-dimensional manifold 'M'])
-            sage: c._subsets  # random (set output)
-            set([subset 'A_union_B' of the 2-dimensional manifold 'M',
-                subset 'A' of the 2-dimensional manifold 'M',
-                subset 'B' of the 2-dimensional manifold 'M'])
+            sage: a.superset_family()
+            Set {A, A_union_B, M} of subsets of the 2-dimensional topological manifold M
+            sage: b.superset_family()
+            Set {A_union_B, B, M} of subsets of the 2-dimensional topological manifold M
+            sage: c.superset_family()
+            Set {A_union_B, M} of subsets of the 2-dimensional topological manifold M
 
         Some checks::
 

@@ -117,11 +117,8 @@ The inverse of the transition map is computed by the method
 
 At this stage, we have four open subsets on `S^2`::
 
-    sage: M.list_of_subsets()
-    [2-dimensional topological manifold S^2,
-     Open subset U of the 2-dimensional topological manifold S^2,
-     Open subset V of the 2-dimensional topological manifold S^2,
-     Open subset W of the 2-dimensional topological manifold S^2]
+    sage: M.subset_family()
+    Set {S^2, U, V, W} of open subsets of the 2-dimensional topological manifold S^2
 
 `W` is the open subset that is the complement of the two poles::
 
@@ -269,11 +266,8 @@ and we have::
 
 The following subsets and charts have been defined::
 
-    sage: M.list_of_subsets()
-    [Open subset A of the Complex 1-dimensional topological manifold C*,
-     Complex 1-dimensional topological manifold C*,
-     Open subset U of the Complex 1-dimensional topological manifold C*,
-     Open subset V of the Complex 1-dimensional topological manifold C*]
+    sage: M.subset_family()
+    Set {A, C*, U, V} of open subsets of the Complex 1-dimensional topological manifold C*
     sage: M.atlas()
     [Chart (U, (z,)), Chart (V, (w,)), Chart (A, (z,)), Chart (A, (w,))]
 

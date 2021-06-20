@@ -1586,7 +1586,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         If ``already_echelonized`` is ``False``, then the
         generators are put in reduced echelon form using
-        :meth:`echelonize`, and reindexed by `0,1,...`.
+        :meth:`echelonize`, and reindexed by `0, 1, \ldots`.
 
         .. WARNING::
 
@@ -1600,7 +1600,6 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         The basis of the submodule uses the same index set as the
         generators, and the lifting map sends `y_i` to `gens[i]`.
-
 
         .. SEEALSO::
 
@@ -1619,6 +1618,21 @@ class MatrixSpace(UniqueRepresentation, Parent):
             [
             [ 1  0]  [0 1]
             [-3  2], [3 1]
+            ]
+
+            sage: A = matrix([[1, 1], [0, -1]])
+            sage: B = matrix([[0, 1], [0, 2]])
+            sage: X = M.submodule([A, B])
+            sage: Xp = M.submodule([A, B], order=[(0,1), (1,1), (0,0)])
+            sage: [X.lift(b) for b in Xp.basis()]
+            [
+            [ 1  0]  [0 1]
+            [ 0 -3], [0 2]
+            ]
+            sage: [Xp.lift(b) for b in X.basis()]
+            [
+            [2/3   1]  [-1/3    0]
+            [  0   0], [   0    1]
             ]
         """
         support_order = self._compute_support_order(gens, support_order)

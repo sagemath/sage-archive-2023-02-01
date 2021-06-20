@@ -336,6 +336,17 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: x = C.basis()
                 sage: C.echelon_form([x[0] - x[1], 2*x[1] - 2*x[2], x[0] - x[2]])
                 [x[0] - x[2], x[1] - x[2]]
+
+            ::
+
+                sage: M = MatrixSpace(QQ, 3, 3)                                                                                     
+                sage: A = M([[0, 0, 2], [0, 0, 0], [0, 0, 0]])                                                                      
+                sage: M.echelon_form([A, A])                                                                                         
+                [
+                [0 0 1]
+                [0 0 0]
+                [0 0 0]
+                ]
             """
             if order is not None:
                 order = self._compute_support_order(elements, order)
@@ -394,7 +405,11 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: C.an_element()._vector_()
                 (2, 2, 3)
             """
-            dense_free_module = self.parent()._dense_free_module()
+            if order is None:
+                dense_free_module = self.parent()._dense_free_module()
+            else:
+                from sage.modules.free_module import FreeModule
+                dense_free_module = FreeModule(self.parent().base_ring(), len(order))
             # We slightly break encapsulation for speed reasons
             return dense_free_module.element_class(dense_free_module,
                                                    self.dense_coefficient_list(order),

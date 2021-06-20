@@ -720,6 +720,16 @@ class Polyhedron_base(Element):
             False
             sage: P == Q
             False
+
+        Test that we have fixed a problem revealed in :trac:`31701`,
+        where neither of the two polyhedra contains the other::
+
+            sage: P = Polyhedron(vertices=[(1, 1), (0, 0), (1, 2)])
+            sage: Q = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
+            sage: Q < P
+            False
+            sage: P > Q
+            False
          """
         if self._Vrepresentation is None or other._Vrepresentation is None:
             raise RuntimeError('some V representation is missing')
@@ -732,10 +742,12 @@ class Polyhedron_base(Element):
         c1 = other._is_subpolyhedron(self)
         if c0 and c1:
             return rich_to_bool(op, 0)
-        if c0:
+        elif c0:
             return rich_to_bool(op, -1)
-        else:
+        elif c1:
             return rich_to_bool(op, 1)
+        else:
+            return op == op_NE
 
     @coerce_binop
     def _is_subpolyhedron(self, other):

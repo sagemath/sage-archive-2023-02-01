@@ -13,10 +13,13 @@ Convex Sets
 # ****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.sets.set import Set_base
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.abstract_method import abstract_method
+from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
 
-class ConvexSet_base(SageObject):
+class ConvexSet_base(SageObject, Set_base):
     """
     Abstract base class for convex sets.
     """

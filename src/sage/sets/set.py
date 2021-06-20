@@ -43,6 +43,7 @@ from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
 from sage.structure.parent import Parent, Set_generic
 from sage.structure.richcmp import richcmp_method, richcmp, rich_to_bool
+from sage.misc.classcall_metaclass import ClasscallMetaclass
 
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -229,7 +230,7 @@ class Set_base():
             sage: sorted(Set(GF(7)) + Set(GF(3)), key=int)
             [0, 0, 1, 1, 2, 2, 3, 4, 5, 6]
         """
-        if isinstance(X, Set_generic):
+        if isinstance(X, (Set_generic, Set_base)):
             if self is X:
                 return self
             return Set_object_union(self, X)
@@ -258,7 +259,7 @@ class Set_base():
             sage: X
             {}
         """
-        if isinstance(X, Set_generic):
+        if isinstance(X, (Set_generic, Set_base)):
             if self is X:
                 return self
             return Set_object_intersection(self, X)
@@ -287,7 +288,7 @@ class Set_base():
             sage: X
             {0, 1, 2, b, b + 1, b + 2, 2*b, 2*b + 1, 2*b + 2}
         """
-        if isinstance(X, Set_generic):
+        if isinstance(X, (Set_generic, Set_base)):
             if self is X:
                 return Set([])
             return Set_object_difference(self, X)
@@ -303,7 +304,7 @@ class Set_base():
             sage: X
             {1, 2, 4}
         """
-        if isinstance(X, Set_generic):
+        if isinstance(X, (Set_generic, Set_base)):
             if self is X:
                 return Set([])
             return Set_object_symmetric_difference(self, X)
@@ -1179,7 +1180,7 @@ class Set_object_enumerated(Set_object):
         return Set_object_enumerated(self.set().symmetric_difference(other.set()))
 
 
-class Set_object_binary(Set_object):
+class Set_object_binary(Set_object, metaclass=ClasscallMetaclass):
     r"""
     An abstract common base class for sets defined by a binary operation (ex.
     :class:`Set_object_union`, :class:`Set_object_intersection`,
@@ -1200,9 +1201,32 @@ class Set_object_binary(Set_object):
         sage: Y = Set(ZZ)
         sage: from sage.sets.set import Set_object_binary
         sage: S = Set_object_binary(X, Y, "union", "\\cup"); S
-        Set-theoretic union of Set of elements of Vector space of dimension 2
-         over Rational Field and Set of elements of Integer Ring
+        Set-theoretic union of
+         Set of elements of Vector space of dimension 2 over Rational Field and
+         Set of elements of Integer Ring
     """
+
+    @staticmethod
+    def __classcall__(cls, X, Y, *args, **kwds):
+        r"""
+        Convert the operands to instances of :class:`Set_object` if necessary.
+
+        TESTS::
+
+            sage: from sage.sets.set import Set_object_binary
+            sage: X = QQ^2
+            sage: Y = ZZ
+            sage: Set_object_binary(X, Y, "union", "\\cup")
+            Set-theoretic union of
+             Set of elements of Vector space of dimension 2 over Rational Field and
+             Set of elements of Integer Ring
+        """
+        if not isinstance(X, Set_object):
+            X = Set(X)
+        if not isinstance(Y, Set_object):
+            Y = Set(Y)
+        return type.__call__(cls, X, Y, *args, **kwds)
+
     def __init__(self, X, Y, op, latex_op):
         r"""
         Initialization.

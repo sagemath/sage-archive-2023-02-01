@@ -625,9 +625,8 @@ class Section(ModuleElementWithMutability):
         if self.is_immutable():
             raise ValueError("the restrictions of an immutable element "
                              "cannot be changed")
-        self._restrictions[rst._domain] = rst.copy()
-        self._restrictions[rst._domain].set_name(name=self._name,
-                                                 latex_name=self._latex_name)
+        self._restrictions[rst._domain] = rst.copy(name=self._name,
+                                                   latex_name=self._latex_name)
         self._is_zero = False  # a priori
 
     def restrict(self, subdomain):

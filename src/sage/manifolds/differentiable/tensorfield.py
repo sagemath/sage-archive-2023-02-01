@@ -1019,9 +1019,8 @@ class TensorField(ModuleElementWithMutability):
         if self._domain is rst._domain:
             self.copy_from(rst)
         else:
-            self._restrictions[rst._domain] = rst.copy()
-            self._restrictions[rst._domain].set_name(name=self._name,
-                                            latex_name=self._latex_name)
+            self._restrictions[rst._domain] = rst.copy(name=self._name,
+                                                       latex_name=self._latex_name)
         self._is_zero = False  # a priori
 
     def restrict(self, subdomain, dest_map=None):

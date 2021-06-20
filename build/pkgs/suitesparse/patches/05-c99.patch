@@ -1,0 +1,13 @@
+diff --git a/SuiteSparse_config/SuiteSparse_config.mk b/SuiteSparse_config/SuiteSparse_config.mk
+index 5caa89dd..1a1658f5 100644
+--- a/SuiteSparse_config/SuiteSparse_config.mk
++++ b/SuiteSparse_config/SuiteSparse_config.mk
+@@ -154,7 +154,7 @@ SUITESPARSE_VERSION = 5.10.1
+ 
+     # The CF macro is used by SuiteSparse Makefiles as a combination of
+     # CFLAGS, CPPFLAGS, TARGET_ARCH, and system-dependent settings.
+-    CF ?= $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(OPTIMIZATION) -fexceptions -fPIC
++    CF ?= -std=c99 $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(OPTIMIZATION) -fexceptions -fPIC
+ 
+     #---------------------------------------------------------------------------
+     # code formatting (for Tcov on Linux only)

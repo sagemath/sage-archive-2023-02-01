@@ -62,7 +62,7 @@ cdef class CombinatorialPolyhedron(SageObject):
     cdef tuple _mem_tuple
 
     cdef FaceIterator _face_iter(self, bint dual, int dimension)
-    cdef int _compute_f_vector(self, bint compute_edges=*, given_dual=*) except -1
+    cdef int _compute_f_vector(self, size_t num_threads, size_t parallelization_depth) except -1
 
     cdef inline int _compute_edges(self, dual) except -1:
         return self._compute_edges_or_ridges(dual, True)
@@ -71,7 +71,10 @@ cdef class CombinatorialPolyhedron(SageObject):
         return self._compute_edges_or_ridges(dual, False)
 
     cdef int _compute_edges_or_ridges(self, bint dual, bint do_edges) except -1
-    cdef size_t _compute_edges_or_ridges_with_iterator(self, FaceIterator face_iter, bint do_atom_rep, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1
+    cdef size_t _compute_edges_or_ridges_with_iterator(
+            self, FaceIterator face_iter, const bint do_atom_rep, const bint do_f_vector,
+            size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt,
+            size_t* f_vector, MemoryAllocator mem) except -1
     cdef int _compute_face_lattice_incidences(self) except -1
 
     cdef inline int _set_edge(self, size_t a, size_t b, size_t ***edges_pt, size_t *counter_pt, size_t *current_length_pt, MemoryAllocator mem) except -1

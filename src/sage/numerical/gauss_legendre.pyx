@@ -11,9 +11,9 @@ We verify that `\int_0^1 n x^{n-1} \, dx = 1` for `n=1, \dots, 4`::
     sage: prec = 100
     sage: K = RealField(prec)
     sage: N = 4
-    sage: V = VectorSpace(K,N)
+    sage: V = VectorSpace(K, N)
     sage: f =  lambda x: V([(n+1)*x^n for n in range(N)])
-    sage: I = integrate_vector(f,prec)
+    sage: I = integrate_vector(f, prec)
     sage: max([c.abs() for c in I-V(N*[1])])
     0.00000000000000000000000000000
 
@@ -22,7 +22,7 @@ AUTHORS:
  - Nils Bruin (2017-06-06): initial version
  - Linden Disney-Hogg (2021-06-17): documentation and integrate_vector method changes
 
-NOTE::
+.. NOTE::
 
     The code here is directly based on mpmath (see http://mpmath.org), but has a highly
     optimized routine to compute the nodes.
@@ -74,11 +74,13 @@ def nodes(degree, prec):
     from this routine are actually more accurate than what the values the closed formula produces)::
 
         sage: from sage.numerical.gauss_legendre import nodes
-        sage: L1 = nodes(24,53)
-        sage: P = RR['x'](sage.functions.orthogonal_polys.legendre_P(24,x))
+        sage: L1 = nodes(24, 53)
+        sage: P = RR['x'](sage.functions.orthogonal_polys.legendre_P(24, x))
         sage: Pdif = P.diff()
-        sage: L2 = [((r+1)/2,1/(1-r^2)/Pdif(r)^2) for r,_ in RR['x'](P).roots()]
-        sage: all((a[0]-b[0]).abs() < 10^-15 and (a[1]-b[1]).abs() < 10^-9 for a,b in zip(L1,L2))
+        sage: L2 = [((r + 1)/2, 1/(1 - r^2)/Pdif(r)^2)
+                    for r, _ in RR['x'](P).roots()]
+        sage: all((a[0] - b[0]).abs() < 1e-15 and (a[1] - b[1]).abs() < 1e-9
+                  for a, b in zip(L1, L2))
         True
     """
     cdef long j,j1,n
@@ -163,11 +165,11 @@ def estimate_error(results, prec, epsilon):
         sage: from sage.numerical.gauss_legendre import estimate_error
         sage: prec = 200
         sage: K = RealField(prec)
-        sage: V = VectorSpace(K,2)
-        sage: a = V([1,-1])
-        sage: b = V([1,1/2])
-        sage: L = [a+2^(-2^i)*b for i in [0..5]]
-        sage: estimate_error(L,prec,K(2^(-prec)))
+        sage: V = VectorSpace(K, 2)
+        sage: a = V([1, -1])
+        sage: b = V([1, 1/2])
+        sage: L = [a + 2^(-2^i)*b for i in [0..5]]
+        sage: estimate_error(L, prec, K(2^(-prec)))
         2.328235...e-10
     """
     if len(results)==2:
@@ -213,12 +215,12 @@ def integrate_vector(f, prec, N=None, epsilon=None):
         sage: from sage.numerical.gauss_legendre import integrate_vector
         sage: prec = 200
         sage: K = RealField(prec)
-        sage: V = VectorSpace(K,2)
-        sage: epsilon = K(2^(-prec+4))
-        sage: f = lambda t:V((1+t^2,1/(1+t^2)))
-        sage: I = integrate_vector(f, prec, epsilon)
-        sage: J = V((4/3,pi/4))
-        sage: max(c.abs() for c in (I-J)) < epsilon
+        sage: V = VectorSpace(K, 2)
+        sage: epsilon = K(2^(-prec + 4))
+        sage: f = lambda t:V((1 + t^2, 1/(1 + t^2)))
+        sage: I = integrate_vector(f, prec, epsilon=epsilon)
+        sage: J = V((4/3, pi/4))
+        sage: max(c.abs() for c in (I - J)) < epsilon
         True
 
     We can also use complex-valued integrands::
@@ -226,12 +228,12 @@ def integrate_vector(f, prec, N=None, epsilon=None):
         sage: prec = 200
         sage: Kreal = RealField(prec)
         sage: K = ComplexField(prec)
-        sage: V = VectorSpace(K,2)
-        sage: epsilon = Kreal(2^(-prec+4))
-        sage: f = lambda t: V((t,K(exp(2*pi*t*K.0))))
-        sage: I = integrate_vector(f, prec, epsilon)
-        sage: J = V((1/2,0))
-        sage: max(c.abs() for c in (I-J)) < epsilon
+        sage: V = VectorSpace(K, 2)
+        sage: epsilon = Kreal(2^(-prec + 4))
+        sage: f = lambda t: V((t, K(exp(2*pi*t*K.0))))
+        sage: I = integrate_vector(f, prec, epsilon=epsilon)
+        sage: J = V((1/2, 0))
+        sage: max(c.abs() for c in (I - J)) < epsilon
         True
     """
     results = []

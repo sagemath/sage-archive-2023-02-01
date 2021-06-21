@@ -1,5 +1,10 @@
 r"""
 Orlik-Solomon Algebras
+
+AUTHORS:
+
+- William Slofstra, Travis Scrimshaw (2015): Initial version
+- Trevor Karn (2021-06-18): OrlikSolomonAlgebraInvariant
 """
 
 # ****************************************************************************
@@ -17,7 +22,8 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.algebras import Algebras
 from sage.sets.family import Family
-
+from sage.algebras.finite_dimensional_algebras.finite_dimensional_invariant_algebras import (
+    FiniteDimensionalInvariantAlgebra)
 
 class OrlikSolomonAlgebra(CombinatorialFreeModule):
     r"""
@@ -445,3 +451,75 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
         """
         return len(m)
 
+class OrlikSolomonAlgebraInvariant(FiniteDimensionalInvariantAlgebra):
+    r"""
+    When a group `G` acts on the groundset `E` of a matroid `M = (E,I)`, 
+    it induces an action of `G` by ring automorphisms on the Orlik-Solomon
+    algebra of `M`.
+
+    INPUT:
+
+    - ``R`` - a ring
+    - ``M`` - a matroid
+    - ``G`` - a group (which acts on the groundset of ``M``)
+    - ``action_on_groundset`` - an action of ``G`` on the groundset of ``M``
+
+    OUTPUT:
+
+    - ``OSG`` - the ``G``-invariant subalgebra of the Orlik-Solomon algebra 
+
+    The action on the groundset should be defined on the groundset without
+    any attempt to pass it to the Orlik-Solomon algebra. For example, if
+    the groundset is `\{1,2,...,n\}` there is a natural action of the 
+    symmetric group `S_n` on the groundset. We can encode this in the
+    """
+
+    def __init__(self, R, M, G, action_on_groundset, ordering = None):
+        """
+        EXAMPLES::
+
+            sage: M = matroids.Uniform(2,3)
+            sage: G = SymmetricGroup(3)
+            sage: action_on_groundset = lambda g,e: g(e+1)-1 #account for index shift
+            sage: from sage.algebras.orlik_solomon import OrlikSolomonAlgebraInvariant
+            sage: I = OrlikSolomonAlgebraInvariant(QQ, M, G, lambda g,x: g(x)); I
+            Symmetric group of order 3! as a permutation group-invariant
+             subalgebra of U(2, 3): Matroid of rank 2 on 3 elements with 
+             circuit-closures
+             {2: {{0, 1, 2}}}
+            sage: I.basis()
+            [OS{}, OS{0} + OS{1} + OS{2}]
+            sage: x = I.an_element(); x
+            
+
+        """
+        from sage.modules.with_basis.representation import Representation
+        from sage.categories.algebras import Algebras
+
+        self._M = M
+        self._G = G
+        self._ambient_orlik_solomon = M.orlik_solomon_algebra(R, ordering = ordering)
+
+        # Convert from an action on the groundset to an action by ring automorphisms
+        # on the Orlik-Solomon algebra by extending the action to generators indexed
+        # by the groundset.
+        OS = self._ambient_orlik_solomon # for readability
+        on_basis = lambda g,e: OS.prod([OS.monomial((action_on_groundset,)) for j in e])
+
+        rep = Representation(G, OS, on_basis, 
+                category = Algebras().FiniteDimensional().WithBasis())
+
+        self._representation = rep
+
+        super()._init_(R)
+
+        ## Overide and handle inputs to redirect to appropriate classes
+
+    def _repr_(self):
+        """
+        Return a string representation of ``self``.
+
+        EXAMPLES::
+        
+        """
+        return f"{self._G}-invariant subalgebra of Orlik-Solomon algebra of {self._M}"

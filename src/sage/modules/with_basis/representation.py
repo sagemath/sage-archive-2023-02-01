@@ -536,7 +536,7 @@ class RegularRepresentation(Representation):
             sage: R = G.regular_representation()
             sage: R._test_representation()  # indirect doctest
         """
-        return self.monomial(g*m)
+        return self._module.monomial(g*m)
 
     def _right_on_basis(self, g, m):
         """
@@ -548,7 +548,7 @@ class RegularRepresentation(Representation):
             sage: R = G.regular_representation(side="right")
             sage: R._test_representation()  # indirect doctest
         """
-        return self.monomial(m*g)
+        return self._modules.monomial(m*g)
 
 class TrivialRepresentation(Representation_abstract):
     """

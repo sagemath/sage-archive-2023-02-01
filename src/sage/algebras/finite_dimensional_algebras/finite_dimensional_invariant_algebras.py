@@ -94,17 +94,13 @@ class FiniteDimensionalInvariantAlgebra(FiniteDimensionalInvariantModule):
         if R._module not in Algebras().FiniteDimensional().WithBasis():
             raise NotImplementedError(f'{R._module} must be finite-dimensional with a basis')
 
-
         if 'category' not in kwargs:
             category = Algebras().FiniteDimensional().WithBasis()
             kwargs['category'] = category
-
         else:
             if 'FiniteDimensional' not in kwargs['category'].axioms():
-                print('FD')
                 raise ValueError("'category' keyword argument must be FiniteDimensional")
             if 'WithBasis' not in kwargs['category'].axioms():
-                print('WB')
                 raise ValueError("'category' keyword argument must be WithBasis")
 
         super().__init__(R, *args, **kwargs)

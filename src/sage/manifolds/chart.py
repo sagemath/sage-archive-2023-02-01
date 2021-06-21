@@ -3119,7 +3119,11 @@ class CoordChange(SageObject):
 
     def inverse(self):
         r"""
-        Compute the inverse coordinate transformation.
+        Return the inverse coordinate transformation.
+
+        If the inverse is not already known, it is computed here. If the
+        computation fails, the inverse can be set by hand via the method
+        :meth:`set_inverse`.
 
         OUTPUT:
 
@@ -3151,6 +3155,16 @@ class CoordChange(SageObject):
               Chart (M, (x, y))): Change of coordinates from Chart (M, (u, v)) to Chart (M, (x, y)),
              (Chart (M, (x, y)),
               Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
+
+        The result is cached::
+
+            sage: xy_to_uv.inverse() is uv_to_xy
+            True
+
+        We have as well::
+
+            sage: uv_to_xy.inverse() is xy_to_uv
+            True
 
         """
         from sage.symbolic.relation import solve
@@ -3232,6 +3246,7 @@ class CoordChange(SageObject):
                    "manually")
             x2_to_x1 = list_x2_to_x1[0]
         self._inverse = type(self)(self._chart2, self._chart1, *x2_to_x1)
+        self._inverse._inverse = self
         # Some cleaning: the local symbolic variables (xxxx0, xxxx1, ...) are
         # removed from the list of assumptions
         for asm in assumptions():
@@ -3334,7 +3349,14 @@ class CoordChange(SageObject):
               u == u  *passed*
               v == v  *passed*
 
-        TESTS::
+        TESTS:
+
+        Check that :trac:`31923` is fixed::
+
+            sage: X1_to_X2.inverse().inverse() is X1_to_X2
+            True
+
+        Check of keyword arguments::
 
             sage: X1_to_X2.set_inverse((u+v)/2, (u-v)/2, bla=3)
             Traceback (most recent call last):
@@ -3349,6 +3371,7 @@ class CoordChange(SageObject):
                             "argument".format(unknown_key))
         self._inverse = type(self)(self._chart2, self._chart1,
                                    *transformations)
+        self._inverse._inverse = self
         if check:
             infos = ["Check of the inverse coordinate transformation:"]
             x1 = self._chart1._xx

@@ -54,17 +54,22 @@ from sage.rings.real_mpfr cimport RealNumber, RealField_class
 @cached_function
 def nodes(degree, prec):
     r"""
-    Compute the integration nodes and weights for the Gauss-Legendre quadrature scheme using a version of the REC algorithm.
+    Compute the integration nodes and weights for the Gauss-Legendre quadrature
+    scheme
+
+    We use the recurrence relations for Legendre polynomials to compute their values.
+    This is a version of the algorithm that in [Neu2018]_ is called the REC algorithm.
 
     INPUT:
 
      - ``degree`` -- integer. The number of nodes. Must be 3 or even.
 
-     - ``prec`` -- integer (minimal value 53). Binary precision with which the nodes and weights are computed.
+     - ``prec`` -- integer (minimal value 53). Binary precision with which the 
+       nodes and weights are computed.
 
     OUTPUT:
 
-    A list of (node,weight) pairs.
+    A list of (node, weight) pairs.
 
     EXAMPLES:
 

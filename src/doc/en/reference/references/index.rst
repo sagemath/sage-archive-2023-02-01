@@ -4348,6 +4348,11 @@ REFERENCES:
              Proceedings of the National Academy of Sciences 36.1
              (1950): 48-49.
 
+.. [Neu2018] Christian Neurohr, *Efficient Integration on Riemann Surfaces &
+             Applications*,
+             PhD Thesis, Carl von Ossietzky Universität Oldenburg
+             http://oops.uni-oldenburg.de/3607.
+
 .. [New2003] Newman, M.E.J. *The Structure and function of complex
              networks*, SIAM Review vol. 45, no. 2 (2003), pp. 167-256.
              :doi:`10.1137/S003614450342480`.

@@ -7047,8 +7047,8 @@ class FiniteWord_class(Word_class):
         L = self.length()
         if L < 3:
             return True
-        for start in range(0, L - 2):
-            for end in range(start+3, L+1, 3):
+        for start in range(L - 2):
+            for end in range(start + 3, L + 1, 3):
                 if self[start:end].is_cube():
                     return False
         return True

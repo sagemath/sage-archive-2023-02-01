@@ -89,6 +89,8 @@ from sage.structure.richcmp import richcmp, richcmp_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.topological_spaces import TopologicalSpaces
+from sage.categories.sets_cat import Sets
+from sage.sets.set import Set_base, Set_boolean_operators, Set_add_sub_operators
 from sage.rings.all import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
@@ -749,7 +751,8 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         return self * other
 
 @richcmp_method
-class RealSet(UniqueRepresentation, Parent):
+class RealSet(UniqueRepresentation, Parent, Set_base,
+              Set_boolean_operators, Set_add_sub_operators):
 
     @staticmethod
     def __classcall__(cls, *args):
@@ -1513,9 +1516,6 @@ class RealSet(UniqueRepresentation, Parent):
         intervals = self._intervals + other._intervals
         return RealSet(*intervals)
     
-    __or__ = union
-    __add__ = union
-
     def intersection(self, *other):
         """
         Return the intersection of the two sets
@@ -1559,8 +1559,6 @@ class RealSet(UniqueRepresentation, Parent):
             for i2 in other._intervals:
                 intervals.append(i1.intersection(i2))
         return RealSet(*intervals)
-
-    __and__ = intersection
 
     def inf(self):
         """
@@ -1685,8 +1683,6 @@ class RealSet(UniqueRepresentation, Parent):
         """
         other = RealSet(*other)
         return self.intersection(other.complement())
-
-    __sub__ = difference
 
     def contains(self, x):
         """

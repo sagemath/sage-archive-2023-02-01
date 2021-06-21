@@ -442,6 +442,30 @@ class InternalRealInterval(UniqueRepresentation, Parent):
             upper_condition = true
         return lower_condition & upper_condition
 
+    def _sympy_(self):
+        r"""
+        Return the SymPy set corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: RealSet.open_closed(0, 1)[0]._sympy_()
+            Interval.Lopen(0, 1)
+            sage: RealSet.point(0)[0]._sympy_()
+            FiniteSet(0)
+            sage: RealSet.open(0,1)[0]._sympy_()
+            Interval.open(0, 1)
+            sage: RealSet.open(-oo,1)[0]._sympy_()
+            Interval.open(-oo, 1)
+            sage: RealSet.open(0, oo)[0]._sympy_()
+            Interval.open(0, oo)
+        """
+        from sympy import Interval
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return Interval(self.lower(), self.upper(),
+                        left_open=not self._lower_closed,
+                        right_open=not self._upper_closed)
+
     def closure(self):
         """
         Return the closure
@@ -1042,6 +1066,17 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             True
         """
         return len(self._intervals) == 0
+
+    def is_universe(self):
+        """
+        Return whether the set is the ambient space (the real line).
+
+        EXAMPLES::
+
+            sage: RealSet().ambient().is_universe()
+            True
+        """
+        return self == self.ambient()
 
     def get_interval(self, i):
         """
@@ -1952,3 +1987,35 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             [0, 1/2*pi] ∪ [2*pi, +oo)
         """
         return self * other
+
+    def _sympy_(self):
+        r"""
+        Return the SymPy set corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: RealSet()._sympy_()
+            EmptySet
+            sage: RealSet.point(5)._sympy_()
+            FiniteSet(5)
+            sage: (RealSet.point(1).union(RealSet.point(2)))._sympy_()
+            FiniteSet(1, 2)
+            sage: (RealSet(1, 2).union(RealSet.closed(3, 4)))._sympy_()
+            Union(Interval.open(1, 2), Interval(3, 4))
+            sage: RealSet(-oo, oo)._sympy_()
+            Reals
+
+        Infinities are not elements::
+
+            sage: import sympy
+            sage: RealSet(-oo, oo)._sympy_().contains(sympy.oo)
+            False
+        """
+        from sympy import Reals, Union
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        if self.is_universe():
+            return Reals
+        else:
+            return Union(*[interval._sympy_()
+                           for interval in self._intervals])

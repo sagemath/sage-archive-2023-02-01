@@ -67,6 +67,21 @@ def nodes(degree,prec):
         sage: L2=[( (r+1)/2,1/(1-r^2)/Pdif(r)^2) for r,_ in RR['x'](P).roots()]
         sage: all((a[0]-b[0]).abs() < 10^-15 and (a[1]-b[1]).abs() < 10^-9 for a,b in zip(L1,L2))
         True
+
+    TESTS::
+
+        sage: from sage.numerical.gauss_legendre import nodes
+        sage: nodes(1,100)
+        Traceback (most recent call last):
+        ...
+        ValueError: degree=1 not supported (degree must be 3 or even)
+
+        sage: from sage.numerical.gauss_legendre import nodes
+        sage: nodes(3,100)
+        [(0.11270166537925831148207346002, 0.27777777777777777777777777778),
+         (0.50000000000000000000000000000, 0.44444444444444444444444444444),
+         (0.88729833462074168851792653998, 0.27777777777777777777777777778)]
+
     """
     cdef long j,j1,n
     cdef RealNumber r,t1,t2,t3,t4,a,w

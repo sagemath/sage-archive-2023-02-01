@@ -87,6 +87,12 @@ def nodes(degree, prec):
         sage: all((a[0] - b[0]).abs() < 1e-15 and (a[1] - b[1]).abs() < 1e-9
                   for a, b in zip(L1, L2))
         True
+
+    .. TODO::
+
+        It may be worth testing if using the Arb algorithm for finding the
+        nodes and weights in ``arb/acb_calc/integrate_gl_auto_deg.c`` has better
+        performance.
     """
     cdef long j,j1,n
     cdef RealNumber r,t1,t2,t3,t4,a,w

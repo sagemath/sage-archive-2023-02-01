@@ -185,7 +185,7 @@ A continuous map `S^2 \to \RR` (scalar field)::
     sage: f.parent()
     Algebra of scalar fields on the 2-dimensional topological manifold S^2
     sage: f.parent().category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
 
 
 .. RUBRIC:: Example 2: the Riemann sphere as a topological manifold of
@@ -289,7 +289,7 @@ A constant map `\CC^* \rightarrow \CC`::
     Algebra of scalar fields on the Complex 1-dimensional topological
      manifold C*
     sage: f.parent().category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
 
 AUTHORS:
 
@@ -1864,7 +1864,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: CU = U.scalar_field_algebra() ; CU
             Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
             sage: CU.category()
-            Category of commutative algebras over Symbolic Ring
+            Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
             sage: CU.zero()
             Scalar field zero on the Open subset U of the 3-dimensional topological manifold M
 

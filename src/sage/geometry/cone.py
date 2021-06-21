@@ -981,6 +981,26 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
         """
         return self._lattice
 
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+
+        It is the ambient lattice (:meth:`lattice`) tensored with a field.
+
+        INPUT:
+
+        - ``base_field`` -- (default: the rationals) a field.
+
+        EXAMPLES::
+
+            sage: c = Cone([(1,0)])
+            sage: c.ambient_vector_space()
+            Vector space of dimension 2 over Rational Field
+            sage: c.ambient_vector_space(AA)
+            Vector space of dimension 2 over Algebraic Real Field
+        """
+        return self.lattice().vector_space(base_field=base_field)
+
     @cached_method
     def dual_lattice(self):
         r"""

@@ -2474,7 +2474,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
     def Vrepresentation_space(self):
         r"""
-        Return the ambient vector space.
+        Return the ambient free module.
 
         OUTPUT:
 
@@ -2491,6 +2491,36 @@ class Polyhedron_base(Element, ConvexSet_closed):
         return self.parent().Vrepresentation_space()
 
     ambient_space = Vrepresentation_space
+
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+
+        It is the ambient free module (:meth:`Vrepresentation_space`) tensored
+        with a field.
+
+        INPUT:
+
+        - ``base_field`` -- (default: the fraction field of the base ring) a field.
+
+        EXAMPLES::
+
+            sage: poly_test = Polyhedron(vertices = [[1,0,0,0],[0,1,0,0]])
+            sage: poly_test.ambient_vector_space()
+            Vector space of dimension 4 over Rational Field
+            sage: poly_test.ambient_vector_space() is poly_test.ambient()
+            True
+
+            sage: poly_test.ambient_vector_space(AA)
+            Vector space of dimension 4 over Algebraic Real Field
+            sage: poly_test.ambient_vector_space(RR)
+            Vector space of dimension 4 over Real Field with 53 bits of precision
+            sage: poly_test.ambient_vector_space(SR)
+            Vector space of dimension 4 over Symbolic Ring
+        """
+        return self.Vrepresentation_space().vector_space(base_field=base_field)
+
+    ambient = ambient_vector_space
 
     def Hrepresentation_space(self):
         r"""

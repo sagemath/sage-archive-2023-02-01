@@ -906,7 +906,17 @@ class ContinuousMap(Morphism):
             sage: R.point([3*pi/4]) in Phi_inv_Q1
             False
 
+        The identity map is handled specially::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: M.identity_map().preimage(M)
+            2-dimensional topological manifold M
+            sage: M.identity_map().preimage(M) is M
+            True
         """
+        if self._is_identity:
+            return codomain_subset
         from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
         return ManifoldSubsetPullback(self, codomain_subset=codomain_subset,
                                       name=name, latex_name=latex_name)

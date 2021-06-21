@@ -1305,9 +1305,16 @@ class FriCASElement(ExpectElement):
             sage: FriCASElement._parse_other("abc -1.23", 4)
             (-1.23, 8)
 
-        This function uses the symbol table to translate symbols
-        which are not function calls.  At least ``%pi`` is an
-        example showing that this may be necessary::
+        This function cannot us the symbol table to translate symbols
+        which are not function calls, as :trac:`31849` shows::
+
+            sage: var("D")
+            D
+            sage: integrate(D/x, x, algorithm="fricas")                         # optional - fricas
+            D*log(x)
+
+        However, it does have to check for constants, for example
+        ``%pi``::
 
             sage: FriCASElement._parse_other("%pi")
             (pi, 2)

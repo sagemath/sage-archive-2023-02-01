@@ -1549,7 +1549,7 @@ cdef class Expression(CommutativeRingElement):
 
         (In spite of its name, this method also works in the complex case.)
 
-        .. warning::
+        .. WARNING::
 
             The generic conversion mechanism is fragile. When rigorous results
             are essential, it is recommended to call suitable methods of real

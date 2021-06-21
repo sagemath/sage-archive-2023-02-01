@@ -174,6 +174,52 @@ def estimate_error(results,prec,epsilon):
         e.append(D4.exp())
     return max(e)
 
+def integrate_vector_N(f, prec, N=3):
+    r"""
+    Integrate a one-argument vector-valued function numerically using Gauss-Legendre,
+    setting the number of nodes.
+
+    This function uses the Gauss-Legendre quadrature scheme to approximate the 
+    integral `\int_0^1 f(t) \, dt`. It is different from ``integrate_vector``
+    by fixing the number of nodes to use, rather than aiming for a certain 
+    error.
+
+    INPUT:
+
+     - ``f`` -- callable. Vector-valued integrand.
+
+     - ``prec`` -- integer. Binary precision to be used.
+
+     - ``N`` -- integer (default: 3). Number of nodes to use.
+
+     OUTPUT: 
+
+     Vector approximating value of the integral. 
+
+     EXAMPLES::
+
+         sage: from sage.numerical.gauss_legendre import integrate_vector_N
+         sage: prec = 100
+         sage: K = RealField(prec)
+         sage: V = VectorSpace(K,1)
+         sage: f = lambda t: V([t])
+         sage: integrate_vector_N(f, prec, 4)
+         (0.50000000000000000000000000000)
+
+    .. NOTE::
+
+        The nodes and weights are calculated in the real field with ``prec`` 
+        bits of precision. If the the vector space in which ``f`` takes values
+        is over a field which is incomatible with this field (e.g. a finite
+        field) then a TypeError occurs. 
+
+    """
+    nodelist = nodes(N, prec)
+    I = nodelist[0][1]*f(nodelist[0][0])
+    for i in range(1,len(nodelist)):
+        I += nodelist[i][1]*f(nodelist[i][0])
+    return I
+
 def integrate_vector(f,prec,epsilon=None):
     r"""
     Integrate a one-argument vector-valued function numerically using Gauss-Legendre.

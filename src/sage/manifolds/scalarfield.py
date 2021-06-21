@@ -2555,7 +2555,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         INPUT:
 
         - ``codomain_subset`` -- an instance of
-          :class:`~sage.manifolds.subset.ManifoldSubset`
+          :class:`~sage.sets.real_set.RealSet`
         - ``name`` -- string; name (symbol) given to the subset
         - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
           denote the subset; if none are provided, it is set to ``name``
@@ -2576,7 +2576,12 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             False
             sage: M((0, 1)) in L
             True
+
+            sage: M.zero_scalar_field().preimage(RealSet.point(0)) is M
+            True
         """
+        if self.is_trivial_zero() and 0 in codomain_subset:
+            return self.domain()
         from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
         return ManifoldSubsetPullback(self, codomain_subset=codomain_subset,
                                       name=name, latex_name=latex_name)

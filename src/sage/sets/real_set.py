@@ -1684,6 +1684,31 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         other = RealSet(*other)
         return self.intersection(other.complement())
 
+    def symmetric_difference(self, *other):
+        r"""
+        Returns the symmetric difference of ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a :class:`RealSet` or data that defines one.
+
+        OUTPUT:
+
+        The set-theoretic symmetric difference of ``self`` and ``other``
+        as a new :class:`RealSet`.
+
+        EXAMPLES::
+
+            sage: s1 = RealSet(0,2); s1
+            (0, 2)
+            sage: s2 = RealSet.unbounded_above_open(1); s2
+            (1, +oo)
+            sage: s1.symmetric_difference(s2)
+            (0, 1] ∪ [2, +oo)
+        """
+        other = RealSet(*other)
+        return self.difference(other).union(other.difference(self))
+
     def contains(self, x):
         """
         Return whether `x` is contained in the set

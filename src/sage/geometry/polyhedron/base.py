@@ -53,6 +53,7 @@ from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 
 from .constructor import Polyhedron
+from sage.geometry.relative_interior import RelativeInterior
 from sage.categories.sets_cat import EmptySetError
 
 #########################################################################
@@ -8614,6 +8615,38 @@ class Polyhedron_base(Element):
 
     __contains__ = contains
 
+    @cached_method
+    def interior(self):
+        """
+        The interior of ``self``.
+
+        OUTPUT:
+
+        - either an empty polyhedron or an instance of
+          :class:`~sage.geometry.relative_interior.RelativeInterior`
+
+        EXAMPLES:
+
+        If the polyhedron is full-dimensional, the result is the
+        same as that of :meth:`relative_interior`::
+
+            sage: P_full = Polyhedron(vertices=[[0,0],[1,1],[1,-1]])
+            sage: P_full.interior()
+            Relative interior of
+             a 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+
+        If the polyhedron is of strictly smaller dimension than the
+        ambient space, its interior is empty::
+
+            sage: P_lower = Polyhedron(vertices=[[0,1], [0,-1]])
+            sage: P_lower.interior()
+            The empty polyhedron in ZZ^2
+
+        """
+        if not self.is_full_dimensional():
+            return self.parent().element_class(self.parent(), None, None)
+        return self.relative_interior()
+
     def interior_contains(self, point):
         """
         Test whether the interior of the polyhedron contains the
@@ -8670,6 +8703,71 @@ class Polyhedron_base(Element):
             if not H.interior_contains(p):
                 return False
         return True
+
+    def is_relatively_open(self):
+        r"""
+        Return whether ``self`` is relatively open.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (-1,0)]); P
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: P.is_relatively_open()
+            False
+
+            sage: P0 = Polyhedron(vertices=[[1, 2]]); P0
+            A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P0.is_relatively_open()
+            True
+
+            sage: Empty = Polyhedron(ambient_dim=2); Empty
+            The empty polyhedron in ZZ^2
+            sage: Empty.is_relatively_open()
+            True
+
+            sage: Line = Polyhedron(vertices=[(1, 1)], lines=[(1, 0)]); Line
+            A 1-dimensional polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: Line.is_relatively_open()
+            True
+
+        """
+        return not self.inequalities()
+
+    @cached_method
+    def relative_interior(self):
+        """
+        Return the relative interior of ``self``.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[(1,0), (-1,0)])
+            sage: ri_P = P.relative_interior(); ri_P
+            Relative interior of
+             a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: (0, 0) in ri_P
+            True
+            sage: (1, 0) in ri_P
+            False
+
+            sage: P0 = Polyhedron(vertices=[[1, 2]])
+            sage: P0.relative_interior() is P0
+            True
+
+            sage: Empty = Polyhedron(ambient_dim=2)
+            sage: Empty.relative_interior() is Empty
+            True
+
+            sage: Line = Polyhedron(vertices=[(1, 1)], lines=[(1, 0)])
+            sage: Line.relative_interior() is Line
+            True
+        """
+        if self.is_relatively_open():
+            return self
+        return RelativeInterior(self)
 
     def relative_interior_contains(self, point):
         """

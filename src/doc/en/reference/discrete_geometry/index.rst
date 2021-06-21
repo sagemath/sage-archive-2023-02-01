@@ -107,6 +107,7 @@ Miscellaneous
 
    sage/geometry/linear_expression
    sage/geometry/newton_polygon
+   sage/geometry/relative_interior
    sage/geometry/ribbon_graph
    sage/geometry/pseudolines
    sage/geometry/voronoi_diagram

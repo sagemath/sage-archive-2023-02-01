@@ -223,6 +223,7 @@ from sage.rings.all import QQ, ZZ
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.geometry.integral_points import parallelotope_points
+from sage.geometry.convex_set import ConvexSet_closed
 
 from sage.misc.lazy_import import lazy_import
 from sage.features import PythonModule
@@ -1019,6 +1020,8 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
         r"""
         Return the dimension of the ambient lattice of ``self``.
 
+        An alias is :meth:`ambient_dim`.
+
         OUTPUT:
 
         - integer.
@@ -1032,6 +1035,8 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
             1
         """
         return self.lattice().dimension()
+
+    ambient_dim = lattice_dim
 
     def nrays(self):
         r"""
@@ -1220,8 +1225,11 @@ class IntegralRayCollection(SageObject, Hashable, Iterable):
             sage: K.codim() == K.dual().lineality()
             True
         """
+        # same as ConvexSet_base.codim; the main point is the much more detailed
+        # docstring.
         return (self.lattice_dim() - self.dim())
 
+    codimension = codim
 
     def span(self, base_ring=None):
         r"""
@@ -1385,7 +1393,7 @@ def classify_cone_2d(ray0, ray1, check=True):
 # and ``ambient_ray_indices`` keyword parameters. See ``intersection`` method
 # for an example why this is needed.
 @richcmp_method
-class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
+class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_closed):
     r"""
     Create a convex rational polyhedral cone.
 
@@ -3273,6 +3281,21 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             return False
         return self.rays().matrix().elementary_divisors() == [1] * self.nrays()
 
+    def is_empty(self):
+        """
+        Return whether ``self`` is the empty set.
+
+        Because a cone always contains the origin, this method returns ``False``.
+
+        EXAMPLES::
+
+            sage: trivial_cone = cones.trivial(3)
+            sage: trivial_cone.is_empty()
+            False
+
+        """
+        return False
+
     def is_trivial(self):
         """
         Checks if the cone has no rays.
@@ -3290,6 +3313,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             0
         """
         return self.nrays() == 0
+
+    is_compact = is_trivial
 
     def is_strictly_convex(self):
         r"""
@@ -4530,6 +4555,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
         A cone is said to be solid if it has nonempty interior. That
         is, if its extreme rays span the entire ambient space.
 
+        An alias is :meth:`is_full_dimensional`.
+
         OUTPUT:
 
         ``True`` if this cone is solid, and ``False`` otherwise.
@@ -4568,6 +4595,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
             True
         """
         return (self.dim() == self.lattice_dim())
+
+    is_full_dimensional = is_solid
 
     def is_proper(self):
         r"""
@@ -4619,6 +4648,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
         r"""
         Check if this cone is equal to its ambient vector space.
 
+        An alias is :meth:`is_universe`.
+
         OUTPUT:
 
         ``True`` if this cone equals its entire ambient vector
@@ -4655,6 +4686,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container):
 
         """
         return self.linear_subspace() == self.lattice().vector_space()
+
+    is_universe = is_full_space
 
     def lineality(self):
         r"""

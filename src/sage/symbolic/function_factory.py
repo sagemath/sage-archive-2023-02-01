@@ -63,7 +63,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
                 sage: f._maxima_init_()
                 "'f"
             """
-            return "'%s"%self.name()
+            return "'%s" % self.name()
 
         def _fricas_init_(self):
             """
@@ -78,7 +78,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
                 sage: f._fricas_init_()
                 'operator("f")'
             """
-            return 'operator("%s")'%self.name()
+            return 'operator("%s")' % self.name()
 
         def _sympy_(self):
             from sympy import Function
@@ -104,7 +104,7 @@ def function_factory(name, nargs=0, latex_name=None, conversions=None,
         if func:
             if not callable(func):
                 raise ValueError(func_name + "_func" + " parameter must be callable")
-            setattr(NewSymbolicFunction, '_%s_'%func_name, func)
+            setattr(NewSymbolicFunction, '_%s_' % func_name, func)
 
     return NewSymbolicFunction()
 
@@ -148,14 +148,12 @@ def unpickle_function(name, nargs, latex_name, conversions, evalf_params_first,
     return function_factory(*args)
 
 
-def function(s, *args, **kwds):
+def function(s, **kwds):
     r"""
     Create a formal symbolic function with the name *s*.
 
     INPUT:
 
-    - ``args`` - arguments to the function, if specified returns the new
-      function evaluated at the given arguments (deprecated as of :trac:`17447`)
     - ``nargs=0`` - number of arguments the function accepts, defaults to
       variable number of arguments, or 0
     - ``latex_name`` - name used when printing in latex mode
@@ -201,7 +199,7 @@ def function(s, *args, **kwds):
         sage: foo(x, y) + foo(y, z)^2
         foo(y, z)^2 + foo(x, y)
 
-    In Sage 4.0, you need to use :meth:`substitute_function` to
+    You need to use :meth:`substitute_function` to
     replace all occurrences of a function with another::
 
         sage: g.substitute_function(cr, cos)
@@ -210,7 +208,7 @@ def function(s, *args, **kwds):
         sage: g.substitute_function(cr, (sin(x) + cos(x)).function(x))
         b*(cos(a) - sin(a))
 
-    In Sage 4.0, basic arithmetic with unevaluated functions is no
+    Basic arithmetic with unevaluated functions is no
     longer supported::
 
         sage: x = var('x')
@@ -339,7 +337,7 @@ def function(s, *args, **kwds):
     if not isinstance(s, str):
         raise TypeError("expect string as first argument")
 
-    # create the function
+    # create the function or functions
     if ',' in s:
         names = s.split(',')
     elif ' ' in s:
@@ -348,18 +346,11 @@ def function(s, *args, **kwds):
         names = [s]
     names = [sn.strip() for sn in names if sn.strip()]
 
-    funcs = [function_factory(name, **kwds) for name in names]
+    funcs = tuple(function_factory(name, **kwds) for name in names)
 
-    if len(args) > 0:
-        from sage.misc.superseded import deprecation
-        deprecation(17447, "Calling function('f',x) is deprecated. Use function('f')(x) instead.")
-        res = [f(*args) for f in funcs]
-    else:
-        res = funcs
-
-    if len(res) == 1:
-        return res[0]
-    return tuple(res)
+    if len(funcs) == 1:
+        return funcs[0]
+    return funcs
 
 
 def deprecated_custom_evalf_wrapper(func):

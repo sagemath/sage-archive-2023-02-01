@@ -1739,7 +1739,7 @@ class FriCASElement(ExpectElement):
 
         We can also convert FriCAS's polynomials to Sage polynomials::
 
-            sage: a = fricas(x^2 + 1); a.typeOf()                               # optional - fricas
+            sage: a = fricas("x^2 + 1"); a.typeOf()                             # optional - fricas
             Polynomial(Integer)
             sage: a.sage()                                                      # optional - fricas
             x^2 + 1

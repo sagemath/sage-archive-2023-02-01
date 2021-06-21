@@ -3543,6 +3543,72 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         return '{' + ', '.join(x._mathematica_init_() for x in self.list()) + '}'
 
+    def _sympy_(self):
+        """
+        Return a SymPy column vector (matrix) corresponding to ``self``.
+
+        OUTPUT:
+
+        - An instance of either an ``ImmutableMatrix`` or ``ImmutableSparseMatrix``,
+          regardless of whether ``self`` is mutable or not.
+
+        EXAMPLES::
+
+            sage: v = vector([1, 2, 3]); v
+            (1, 2, 3)
+            sage: sv = v._sympy_(); sv
+            Matrix([
+            [1],
+            [2],
+            [3]])
+            sage: type(sv)
+            <class 'sympy.matrices.immutable.ImmutableDenseMatrix'>
+
+            sage: w = vector({1: 1, 5: -1}, sparse=True)
+            sage: sw = w._sympy_(); sw
+            Matrix([
+            [ 0],
+            [ 1],
+            [ 0],
+            [ 0],
+            [ 0],
+            [-1]])
+            sage: type(sw)
+            <class 'sympy.matrices.immutable.ImmutableSparseMatrix'>
+
+        If ``self`` was immutable, then converting the result to Sage gives
+        back ``self``::
+
+            sage: immv = vector([1, 2, 3], immutable=True)
+            sage: immv._sympy_()._sage_() is immv
+            True
+
+        If ``self`` was mutable, then converting back to Sage creates a new
+        matrix (column vector)::
+
+            sage: sv._sage_()
+            [1]
+            [2]
+            [3]
+            sage: sv._sage_() is v
+            False
+            sage: sv._sage_() == v
+            False
+        """
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        from sympy.matrices import ImmutableMatrix, ImmutableSparseMatrix
+        if self.is_sparse():
+            matrix = ImmutableSparseMatrix(self._degree, 1,
+                                           {(i, 0): v
+                                            for i, v in self.dict(copy=False).items()})
+        else:
+            matrix = ImmutableMatrix(self._degree, 1,
+                                     self.list(copy=False))
+        if self.is_immutable():
+            matrix._sage_object = self
+        return matrix
+
     def nonzero_positions(self):
         """
         Return the sorted list of integers ``i`` such that ``self[i] != 0``.

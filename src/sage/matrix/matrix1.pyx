@@ -524,6 +524,97 @@ cdef class Matrix(Matrix0):
         """
         return scilab(self._scilab_init_())
 
+    def _sympy_(self):
+        r"""
+        Return a SymPy matrix corresponding to ``self``.
+
+        OUTPUT:
+
+        - An instance of either an ``ImmutableMatrix`` or ``ImmutableSparseMatrix``,
+          regardless of whether ``self`` is mutable or not.
+
+        EXAMPLES::
+
+            sage: A = matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]]); A
+            [1 2 3]
+            [4 5 6]
+            [7 8 9]
+            sage: sA = A._sympy_(); sA
+            Matrix([
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9]])
+            sage: type(sA)
+            <class 'sympy.matrices.immutable.ImmutableDenseMatrix'>
+
+            sage: I = MatrixSpace(QQ, 5, 5, sparse=True).identity_matrix()
+            sage: sI = I._sympy_(); sI
+            Matrix([
+            [1, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0],
+            [0, 0, 1, 0, 0],
+            [0, 0, 0, 1, 0],
+            [0, 0, 0, 0, 1]])
+            sage: type(sI)
+            <class 'sympy.matrices.immutable.ImmutableSparseMatrix'>
+
+        If ``self`` was immutable, then converting the result to Sage gives
+        back ``self``::
+
+            sage: immA = matrix([[1, 2, 3], [4, 5, 6], [7, 8, 9]], immutable=True)
+            sage: immA._sympy_()._sage_() is immA
+            True
+
+        If ``self`` was mutable, then converting back to Sage creates a new matrix::
+
+            sage: sA._sage_() is A
+            False
+            sage: sA._sage_() == A
+            True
+
+        Symbolic matrices are supported::
+
+            sage: M = matrix([[sin(x), cos(x)], [-cos(x), sin(x)]]); M
+            [ sin(x)  cos(x)]
+            [-cos(x)  sin(x)]
+            sage: sM = M._sympy_(); sM
+            Matrix([
+            [ sin(x), cos(x)],
+            [-cos(x), sin(x)]])
+            sage: sM.subs(x, pi/4)
+            Matrix([
+            [ sqrt(2)/2, sqrt(2)/2],
+            [-sqrt(2)/2, sqrt(2)/2]])
+
+        TESTS:
+
+        Dense 0-column/0-row matrices::
+
+            sage: ZeroCol = matrix(QQ, 3, 0, sparse=False); ZeroCol
+            []
+            sage: sZeroCol = ZeroCol._sympy_(); sZeroCol
+            Matrix(3, 0, [])
+
+            sage: ZeroRow = matrix(QQ, 0, 2, sparse=False); ZeroRow
+            []
+            sage: sZeroRow = ZeroRow._sympy_(); sZeroRow
+            Matrix(0, 2, [])
+
+        """
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        from sympy.matrices import ImmutableMatrix, ImmutableSparseMatrix
+        if self.is_sparse():
+            matrix = ImmutableSparseMatrix(self.nrows(), self.ncols(),
+                                           self.dict(copy=False))
+        else:
+            if not self.nrows() or not self.ncols():
+                matrix = ImmutableMatrix(self.nrows(), self.ncols(), ())
+            else:
+                matrix = ImmutableMatrix(self.rows())
+        if self.is_immutable():
+            matrix._sage_object = self
+        return matrix
 
     def _sage_input_(self, sib, coerce):
         r"""

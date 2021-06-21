@@ -53,14 +53,14 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         sage: r_squared = M.scalar_field(x^2+y^2)
         sage: r_squared.set_immutable()
-        sage: cl_I = RealSet((1, 4)); cl_I
-        (1, 4)
-        sage: cl_O = ManifoldSubsetPullback(r_squared, None, I); cl_O
-        Subset f_inv_I of the 2-dimensional topological manifold R^2
+        sage: cl_I = RealSet([1, 4]); cl_I
+        [1, 4]
+        sage: cl_O = ManifoldSubsetPullback(r_squared, None, cl_I); cl_O
+        Subset f_inv_[1, 4] of the 2-dimensional topological manifold R^2
         sage: M.point((0, 0)) in cl_O
-        True
-        sage: M.point((1, 1)) in cl_O
         False
+        sage: M.point((0, 1)) in cl_O
+        True
 
     Pulling back an open real interval gives an open subset::
 
@@ -558,10 +558,10 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: r_squared = M.scalar_field(x^2+y^2)
             sage: r_squared.set_immutable()
-            sage: cl_I = RealSet((1, 4)); cl_I
-            (1, 4)
-            sage: cl_O = ManifoldSubsetPullback(r_squared, None, I); cl_O
-            Subset f_inv_I of the 2-dimensional topological manifold R^2
+            sage: cl_I = RealSet([1, 4]); cl_I
+            [1, 4]
+            sage: cl_O = ManifoldSubsetPullback(r_squared, None, cl_I); cl_O
+            Subset f_inv_[1, 4] of the 2-dimensional topological manifold R^2
             sage: TestSuite(cl_O).run(skip='_test_elements')
 
         """

@@ -2513,7 +2513,7 @@ cdef class Polynomial_rational_flint(Polynomial):
     # Alias for discriminant
     disc = discriminant
 
-    def is_easy_sn_an(self, num_trials=50, assume_irreducible=False):
+    def galois_group_davenport_smith_test(self, num_trials=50, assume_irreducible=False):
         """
         Use the Davenport-Smith test to attempt to certify that `f` has Galois group A_n or S_n.
  
@@ -2521,18 +2521,20 @@ cdef class Polynomial_rational_flint(Polynomial):
         
         By default, we first check that `f` is irreducible. For extra efficiency, one can override this
         by specifying `assume_irreducible=True`; this yields undefined results if `f` is not irreducible.
+        
+        A corresponding function in Magma is `IsEasySnAn`.
 
         EXAMPLES::
 
             sage: P.<x> = QQ[]
             sage: u = x^7 + x + 1
-            sage: u.is_easy_sn_an()                                                         
+            sage: u.galois_group_davenport_smith_test()                                                         
             1
             sage: u = x^7 - x^4 - x^3 + 3*x^2 - 1                                           
-            sage: u.is_easy_sn_an()                                                         
+            sage: u.galois_group_davenport_smith_test()                                                         
             2
             sage: u = x^7 - 2
-            sage: u.is_easy_sn_an()                                                         
+            sage: u.galois_group_davenport_smith_test()                                                         
             0
 
         """

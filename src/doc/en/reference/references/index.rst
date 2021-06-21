@@ -3042,7 +3042,7 @@ REFERENCES:
               for morphisms of PN. Mathematics of Computation, 84:291 (2015), 289-308.
 
 .. [Hutz2019] \B. Hutz. Multipliers and invariants of endomorphisms of projective
-              space in dimension greater than 1
+              space in dimension greater than 1, :arxiv:`1908.03184`, 2019.
 
 .. [Huy2005] \D. Huybrechts : *Complex Geometry*, Springer (Berlin)
              (2005).

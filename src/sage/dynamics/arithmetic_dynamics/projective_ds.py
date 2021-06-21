@@ -4595,30 +4595,70 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         OUTPUT: a list of elements in the base ring, unless ``return_polynomial``
                 is ``True``, in which case a polynomial in ``w`` and ``t`` is returned.
 
+                If this map is defined over `\mathbb{P}^N`, where `N > 1`, then
+                the first element of the list is the degree of the polynomial in `w` and
+                the second element is the degree of the polynomial in `t`. The rest of the
+                list are the coefficients of `w` and `t`, in lexographical order with `w > t`.
+
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([512*x^5 - 378128*x^4*y + 76594292*x^3*y^2 - 4570550136*x^2*y^3 - 2630045017*x*y^4\
-            + 28193217129*y^5, 512*y^5])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + x*y + y^2, y^2 + x*y])
             sage: f.sigma_invariants(1)
-            [19575526074450617/1048576, -9078122048145044298567432325/2147483648,
-            -2622661114909099878224381377917540931367/1099511627776,
-            -2622661107937102104196133701280271632423/549755813888,
-            338523204830161116503153209450763500631714178825448006778305/72057594037927936, 0]
+            [3, 3, 1]
 
-        ::
+        If ``return_polynomial`` is ``True``, then following [Hutz2019]_
+        we return a two variable polynomial in `w` and `t`::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 + 2*y^2, y^2])
             sage: poly = f.sigma_invariants(1, return_polynomial=True); poly
             w^3 - 3*w^2*t + 2*w^2 + 3*w*t^2 - 4*w*t + 8*w - t^3 + 2*t^2 - 8*t
 
-        From the full polynomial, we can easily get the one variable polynomial whose coefficients
-        are symmetric functions in the multipliers::
+        From the full polynomial, we can easily recover the one variable polynomial whose coefficients
+        are symmetric functions in the multipliers, up to sign::
 
-            sage: w, t = poly.variabls()
-            sage: poly.subs({w:0})
-            -t^3 + 2*t^2 - 8*t
+            sage: w, t = poly.variables()
+            sage: poly.specialization({w:0}).monic()
+            t^3 - 2*t^2 + 8*t
+            sage: f.sigma_invariants(1)
+            [2, 8, 0]
+
+        For dynamical systems on `\mathbb{P}^N`, where `N > 1`, the full polynomial
+        is needed to distinguish the conjugacy class. We can, however, still return
+        a list in this case. Here, the first element of the list is the degree in `w` and
+        the second element is the degree in `t`. The rest of the list are the coefficients
+        of the polynomial, sorted in lexographical order with `w > t`::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2, z^2, y^2])
+            sage: f.sigma_invariants(1)
+            [3, 6, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, -3, -2, 4, 0,
+            0, 3, 4, -8, -8, 0, -1, -2, 4, 8, 0, 0, 0]
+
+        When calculating the sigma invariants for `\mathbb{P}^N`, with `N > 1`,
+        the default algorithm loses information about multiplicities. Note that
+        the following call to sigma invariants returns a degree 6 polynomial in `w`::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
+            sage: f.sigma_invariants(1, return_polynomial=True)
+            w^6 - 6*w^5*t^2 + 8*w^5*t - 4*w^5 + 15*w^4*t^4 - 40*w^4*t^3 + 40*w^4*t^2 -
+            16*w^4*t - 20*w^3*t^6 + 80*w^3*t^5 - 120*w^3*t^4 + 80*w^3*t^3 - 16*w^3*t^2 +
+            15*w^2*t^8 - 80*w^2*t^7 + 160*w^2*t^6 - 144*w^2*t^5 + 48*w^2*t^4 - 6*w*t^10 +
+            40*w*t^9 - 100*w*t^8 + 112*w*t^7 - 48*w*t^6 + t^12 - 8*t^11 + 24*t^10 -
+            32*t^9 + 16*t^8
+
+        Setting ``chow`` to ``True``, while much slower, accounts correctly for multiplicities.
+        Note that the following returns a degree 7 polynomial in `w`::
+
+            sage: f.sigma_invariants(1, return_polynomial=True, chow=True)
+            w^7 - 7*w^6*t^2 + 10*w^6*t - 4*w^6 + 21*w^5*t^4 - 60*w^5*t^3 + 60*w^5*t^2 -
+            24*w^5*t - 35*w^4*t^6 + 150*w^4*t^5 - 240*w^4*t^4 + 176*w^4*t^3 - 48*w^4*t^2 +
+            35*w^3*t^8 - 200*w^3*t^7 + 440*w^3*t^6 - 464*w^3*t^5 + 224*w^3*t^4 -
+            32*w^3*t^3 - 21*w^2*t^10 + 150*w^2*t^9 - 420*w^2*t^8 + 576*w^2*t^7 -
+            384*w^2*t^6 + 96*w^2*t^5 + 7*w*t^12 - 60*w*t^11 + 204*w*t^10 - 344*w*t^9 +
+            288*w*t^8 - 96*w*t^7 - t^14 + 10*t^13 - 40*t^12 + 80*t^11 - 80*t^10 + 32*t^9
 
         ::
 
@@ -4681,10 +4721,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2 + x*y + y^2, y^2 + x*y])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([512*x^5 - 378128*x^4*y + 76594292*x^3*y^2 - 4570550136*x^2*y^3 - 2630045017*x*y^4\
+            + 28193217129*y^5, 512*y^5])
             sage: f.sigma_invariants(1)
-            [3, 3, 1]
+            [19575526074450617/1048576, -9078122048145044298567432325/2147483648,
+            -2622661114909099878224381377917540931367/1099511627776,
+            -2622661107937102104196133701280271632423/549755813888,
+            338523204830161116503153209450763500631714178825448006778305/72057594037927936, 0]
 
         ::
 
@@ -4719,6 +4763,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 + (t/(t^2+1))*y^2, y^2], P)
             sage: f.sigma_invariants(1)
             [2, 4*t/(t^2 + 1), 0]
+
+        ::
+
+            sage: R.<w> = QQ[]
+            sage: N.<n> = NumberField(w^2 + 1)
+            sage: P.<x,y,z> = ProjectiveSpace(N, 2)
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
+            sage: f.sigma_invariants(1) == f.change_ring(QQ).sigma_invariants(1)
+            True
         """
         n = ZZ(n)
         if n < 1:
@@ -4788,9 +4841,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 return sigma_polynomial
             sigmas = []
             sigma_dictionary = dict([list(reversed(i)) for i in list(sigma_polynomial)])
-            degree = sigma_polynomial.degree()
-            for i in range(degree, -1, -1):
-                for j in range(degree-j, -1, -1):
+            degree_w, degree_t = sigma_polynomial.degrees()
+            w, t = sigma_polynomial.variables()
+            sigmas += [degree_w, degree_t]
+            for i in range(degree_w, -1, -1):
+                for j in range(degree_t, -1, -1):
                     sigmas.append(sigma_dictionary.pop(w**i*t**j, 0))
             return sigmas
         if not type in ['point', 'cycle']:

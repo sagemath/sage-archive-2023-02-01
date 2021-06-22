@@ -20,8 +20,6 @@ from sage.categories.finite_dimensional_modules_with_basis import FiniteDimensio
 from sage.categories.groups import Groups
 from sage.sets.family import Family
 
-import operator
-
 class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
     r"""
     Construct the `S`-invariant submodule of `M`. When a semigroup `S` acts on a module
@@ -95,12 +93,37 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
     def __init__(self, R, *args, **kwargs):
         """
-
-
         TESTS::
+            
+            sage: G = QQ # a group that is not finitely generated
+            sage: M = CombinatorialFreeModule(QQ, [1,2,3])
+            sage: on_basis = lambda g,m: M.term(m) # trivial rep'n
+            sage: from sage.modules.with_basis.representation import Representation
+            sage: R = Representation(G,M,on_basis)
+            sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+            sage: I = FiniteDimensionalInvariantModule(R)
+            Traceback (most recent call last):
+            ...
+            ValueError: Rational Field is not finitely generated
 
+            sage: G = SymmetricGroup(3)
+            sage: M = PolynomialRing(QQ, ['x1','x2','x3'])
+            sage: on_basis = lambda g,m: M.prod(M('x'+str(g(Integer(x[-1])))) for x in m.support())
+            sage: f = M('x1')*M('x3')
+            sage: g = G.an_element(); g
+            (2,3)
+            sage: on_basis(g,f)
+            x1*x2
+            sage: R = Representation(G, M, on_basis)
+            sage: I = FiniteDimensionalInvariantModule(R)
+            Traceback (most recent call last):
+            ...
+            ValueError: Multivariate Polynomial Ring in x1, x2, x3
+             over Rational Field is not finite-dimensional
 
-
+            sage: #from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+            sage: #I
+            sage: #TestSuite(I).run()
         """
         self._semigroup_representation = R
         self._semigroup = R.semigroup()
@@ -108,49 +131,39 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         if self._semigroup not in FinitelyGeneratedSemigroups:
             raise ValueError(f'{self._semigroup} is not finitely generated')
 
-        self._ambient_module = R._module
-
-        if self._ambient_module not in FiniteDimensionalModulesWithBasis:
-            raise ValueError(f'{self._ambient_module} is not finite dimensional')
-
-        try:
-            self._on_ambient_basis = R._on_basis
-        except:
-            self._on_ambient_basis = operator.mul
-
-        try:
-            amb_basis = R._on_basis
-            def _invariant_map(g, x):
-                return self._amb_basis(g, *x.support()) - x
-        except AttributeError:
-            def _invariant_map(g, x):
-                return g*x - x
-
-        self._side = kwargs.pop('side', R.side())
-
-        unitriangular = kwargs.pop('unitriangular', False)
-        category = kwargs.pop('category', R.category().Subobjects())
+        if self._semigroup_representation._module not in (
+            FiniteDimensionalModulesWithBasis):
+            raise ValueError(
+                f'{self._semigroup_representation._module
+                } is not finite dimensional')
 
         # The left/right multiplication is taken care of
         # by self._semigroup_representation, so here
-        # we can just pass the left multiplication
-        def _invariant_map(g,x):
-            return(self._on_ambient_basis(g, *x.support()) - x)
-
+        # we can just pass the left multiplication.
+        # This means that the side argument of annihilator_basis
+        # (see below) will always be side = 'left'
+        if self._semigroup_representation.side() == 'left':
+            def _invariant_map(g, x):
+                return g*x - x
+        elif self._semigroup_representation.side() == 'right':
+            def _invariant_map(g, x):
+                return x*g - x
         
         self._invariant_map = _invariant_map
         
+        category = kwargs.pop('category', R.category().Subobjects())
+
         # Give the intersection of kernels of the map `s*x-x` to determine when
         # `s*x = x` for all generators `s` of `S`
-        basis = self._ambient_module.annihilator_basis(
+        basis = self._semigroup_representation.annihilator_basis(
                     self._semigroup.gens(),
                     action = self._invariant_map,
                     side = 'left')
 
         super().__init__(Family(basis),
-                        support_order = self._ambient_module._compute_support_order(basis),
+                        support_order = self._semigroup_representation._compute_support_order(basis),
                         ambient = self._semigroup_representation,
-                        unitriangular = unitriangular,#is this right?
+                        unitriangular = False,#is this right?
                         category = category,
                         *args, **kwargs)
 
@@ -162,14 +175,14 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             sage: G = CyclicPermutationGroup(3)
             sage: from sage.modules.with_basis.representation import Representation
             sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
-            sage: R = Representation(G,M,lambda g,x: M.term(g(x)))
+            sage: R = Representation(G,M,lambda g,x: M.monomial(g(x)))
             sage: FiniteDimensionalInvariantModule(R)
             (Cyclic group of order 3 as a permutation group)-invariant submodule of
              Free module generated by {1, 2, 3} over Rational Field
 
         """
 
-        return f"({self._semigroup})-invariant submodule of {self._ambient_module}"
+        return f"({self._semigroup})-invariant submodule of {self._semigroup_representation._module}"
 
 
     def semigroup(self):
@@ -198,7 +211,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
         return self._action_on_basis(args)
 
-    def _test_
+    # def _test_
 
     class Element(SubmoduleWithBasis.Element):
 
@@ -277,8 +290,8 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         """
         pass
 
-    class Element
+    # class Element
 
-        _lmul_
-        _rmul_
-        _acted_upon_
+    #     _lmul_
+    #     _rmul_
+    #     _acted_upon_

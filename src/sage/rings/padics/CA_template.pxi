@@ -449,6 +449,14 @@ cdef class CAElement(pAdicTemplateElement):
             1 + 14*19^2 + 11*19^3 + 13*19^4 + O(19^5)
             sage: (a.log() * 19/7).exp()
             1 + 14*19^2 + 11*19^3 + 13*19^4 + O(19^5)
+
+        Check that :trac:`31875` is fixed::
+
+            sage: R(1)^R(0)
+            1 + O(19^5)
+            sage: S.<a> = ZqCA(4)
+            sage: S(1)^S(0)
+            1 + O(2^20)
         """
         cdef long relprec, val, rval
         cdef mpz_t tmp
@@ -464,7 +472,7 @@ cdef class CAElement(pAdicTemplateElement):
         elif self.parent() is _right.parent():
             ## For extension elements, we need to switch to the
             ## fraction field sometimes in highly ramified extensions.
-            exact_exp = False
+            exact_exp = (<CAElement>_right)._is_exact_zero()
             pright = _right
         else:
             self, _right = canonical_coercion(self, _right)

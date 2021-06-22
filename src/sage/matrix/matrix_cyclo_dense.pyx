@@ -1011,23 +1011,30 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         The following doctests are all indirect::
 
             sage: MS = MatrixSpace(CyclotomicField(10), 4, 4)
-            sage: A = MS.random_element(); A
+            sage: A = MS.random_element(); A  # random
             [    -2*zeta10^3 + 2*zeta10^2 - zeta10    zeta10^3 + 2*zeta10^2 - zeta10 + 1                                     0 -2*zeta10^3 + zeta10^2 - 2*zeta10 + 2]
             [                                    0       -zeta10^3 + 2*zeta10^2 - zeta10                         -zeta10^3 + 1                     zeta10^3 + zeta10]
             [                         1/2*zeta10^2                       -2*zeta10^2 + 2      -1/2*zeta10^3 + 1/2*zeta10^2 + 2             2*zeta10^3 - zeta10^2 - 2]
             [                                    1                          zeta10^2 + 2                            2*zeta10^2                          2*zeta10 - 2]
+            sage: A.parent() is MS
+            True
+
+        ::
+
             sage: B = MS.random_element(density=0.5)
-            sage: B._rational_matrix()
-            [   0    0    0    0    1    0    0    2    0    2    0    0    0    0    0    0]
-            [   0    0    0    0    0    0    0    0   -1   -2    0    0    0    0    0    2]
-            [   0   -1    0    0   -1    0    0    0    0    0    0    0    0    0   -2   -1]
-            [   0    0    0    0    0    0    0    2 -1/2  1/2    0    0    0    0   -1    0]
+            sage: all(a in (-2, -1, -1/2, 0, 1/2, 1, 2) for a in B._rational_matrix().list())
+            True
+            sage: while set(B._rational_matrix().list()) != set((-2, -1, -1/2, 0, 1/2, 1, 2)):
+            ....:     B = MS.random_element(density=0.5)
+
+        ::
+
             sage: C = MS.random_element(density=0.5, num_bound=20, den_bound=20)
-            sage: C._rational_matrix()
-            [     0      0   8/11  -10/3  -11/7      8      1     -3      0      0      1      0      0      0      0      0]
-            [     0      0 -11/17  -3/13   -5/6   17/3 -19/17   -4/5      0      0      9      0      0      0      0      0]
-            [     0      0    -11   -3/2  -5/12   8/11      0  -3/19      0      0   -5/6      0      0      0      0      0]
-            [     0      0      0    5/8  -5/11   -5/4   6/11    2/3      0      0 -16/11      0      0      0      0      0]
+            sage: all(abs(a.denominator()) <= 20 and abs(a.numerator()) <= 20 for a in C._rational_matrix().list())
+            True
+            sage: while not (any(abs(a.denominator()) == 20 for a in C._rational_matrix().list())
+            ....:         and any(abs(a.numerator()) == 20 for a in C._rational_matrix().list())):
+            ....:     C = MS.random_element(density=0.5, num_bound=20, den_bound=20)
         """
         cdef Py_ssize_t i
         cdef Matrix_rational_dense mat = self._matrix
@@ -1672,7 +1679,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         cdef int i
         cdef Matrix_cyclo_dense res
         cdef bint is_square
-        
+
         verbose("entering _echelon_form_multimodular",
                 level=echelon_verbose_level)
 

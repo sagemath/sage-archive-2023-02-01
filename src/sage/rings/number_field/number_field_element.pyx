@@ -1635,7 +1635,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: Q.<X> = K[]
             sage: L.<b> = NumberField(X^4 + a)
             sage: t = (-a).is_norm(L, element=True); t
-            (True, b^3 + 1)
+            (True, -b^3 - 1)
             sage: t[1].norm(K)
             -a
 
@@ -1750,11 +1750,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: Q.<X> = K[]
             sage: L.<b> = NumberField(X^4 + a)
             sage: t = (-a)._rnfisnorm(L); t
-            (b^3 + 1, 1)
+            (-b^3 - 1, 1)
             sage: t[0].norm(K)
             -a
             sage: t = K(3)._rnfisnorm(L); t
-            (-b^3 - a*b^2 - a^2*b + 1, 3*a^2 - 3*a + 6)
+            (b^3 + a*b^2 + a^2*b - 1, 3*a^2 - 3*a + 6)
             sage: t[0].norm(K)*t[1]
             3
 

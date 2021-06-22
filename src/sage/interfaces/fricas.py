@@ -1281,8 +1281,7 @@ class FriCASElement(ExpectElement):
 
     @staticmethod
     def _parse_other(s, start=0, make_fun=False):
-        """
-        Parse the initial part of a string, assuming that it is an
+        """Parse the initial part of a string, assuming that it is an
         atom, but not a string.
 
         Symbols and numbers must not contain ``FriCASElement._WHITESPACE`` and
@@ -1305,8 +1304,10 @@ class FriCASElement(ExpectElement):
             sage: FriCASElement._parse_other("abc -1.23", 4)
             (-1.23, 8)
 
-        This function cannot us the symbol table to translate symbols
-        which are not function calls, as :trac:`31849` shows::
+        This function cannot use the symbol table to translate
+        symbols which are not function calls, as :trac:`31849` shows
+        - ``D`` would erroneously be interpreted as differential
+        then::
 
             sage: var("D")
             D

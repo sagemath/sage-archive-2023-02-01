@@ -586,12 +586,6 @@ if [ "$UNAME" = "CYGWIN" -a -n "$SAGE_LOCAL" ]; then
     LD_LIBRARY_PATH="$SAGE_LOCAL/bin:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 fi
 
-# See trac 7186 -- this is needed if ecl is moved
-if [ -n "$SAGE_LOCAL" ]; then
-    ECLDIR="$SAGE_LOCAL/lib/ecl/" && export ECLDIR
-fi
-
-
 # Handle parallel building/testing/...
 case "$SAGE_NUM_THREADS,$SAGE_NUM_THREADS_PARALLEL" in
     [1-9][0-9]*,[1-9][0-9]*)

@@ -103,8 +103,14 @@ class PolyhedronRepresentation(SageObject):
         """
         Compare two representation objects
 
-        They are equal if and only if they define the same
-        vertex/ray/line or inequality/equation in the ambient space,
+        This method defines a linear order on the H/V-representation objects.
+        The order is first determined by the types of the objects,
+        such that inequality < equation < vertex < ray < line.
+        Then, representation objects with the same type are ordered
+        lexicographically according to their canonical vectors.
+
+        Thus, two representation objects are equal if and only if they define
+        the same vertex/ray/line or inequality/equation in the ambient space,
         regardless of the polyhedron that they belong to.
 
         INPUT:
@@ -132,6 +138,10 @@ class PolyhedronRepresentation(SageObject):
             sage: ieq != Polyhedron([(0,1,0)]).Vrepresentation(0)
             True
 
+            sage: H = Polyhedron(vertices=[(4,0)], rays=[(1,1)], lines=[(-1,1)])
+            sage: H.vertices()[0] < H.rays()[0] < H.lines()[0]
+            True
+
         TESTS:
 
         Check :trac:`30954`::
@@ -143,9 +153,8 @@ class PolyhedronRepresentation(SageObject):
         """
         if not isinstance(other, PolyhedronRepresentation):
             return NotImplemented
-        if type(self) != type(other):
-            return NotImplemented
-        return richcmp(self._vector*self._comparison_scalar(), other._vector*other._comparison_scalar(), op)
+        return richcmp((self.type(), self._vector*self._comparison_scalar()),
+                (other.type(), other._vector*other._comparison_scalar()), op)
 
     def _comparison_scalar(self):
         r"""
@@ -280,13 +289,13 @@ class PolyhedronRepresentation(SageObject):
         Return an arbitrary but fixed number according to the internal
         storage order.
 
-        NOTES:
+        .. NOTE::
 
-        H-representation and V-representation objects are enumerated
-        independently. That is, amongst all vertices/rays/lines there
-        will be one with ``index()==0``, and amongst all
-        inequalities/equations there will be one with ``index()==0``,
-        unless the polyhedron is empty or spans the whole space.
+            H-representation and V-representation objects are enumerated
+            independently. That is, amongst all vertices/rays/lines there
+            will be one with ``index()==0``, and amongst all
+            inequalities/equations there will be one with ``index()==0``,
+            unless the polyhedron is empty or spans the whole space.
 
         EXAMPLES::
 
@@ -601,11 +610,13 @@ class Hrepresentation(PolyhedronRepresentation):
         Evaluates the left hand side `A\vec{x}+b` on the given
         vertex/ray/line.
 
-        NOTES:
+        .. NOTES:
 
           * Evaluating on a vertex returns `A\vec{x}+b`
+
           * Evaluating on a ray returns `A\vec{r}`. Only the sign or
             whether it is zero is meaningful.
+
           * Evaluating on a line returns `A\vec{l}`. Only whether it
             is zero or not is meaningful.
 
@@ -1084,9 +1095,9 @@ class Equation(Hrepresentation):
         boundary) defined by the inequality contains the given
         vertex/ray/line.
 
-        NOTE:
+        .. NOTE::
 
-        Return False for any equation.
+            Return False for any equation.
 
         EXAMPLES::
 
@@ -1382,7 +1393,7 @@ class Vertex(Vrepresentation):
             sage: v.__repr__()
             'A vertex at (1, 0)'
         """
-        return 'A vertex at ' + repr(self.vector());
+        return 'A vertex at ' + repr(self.vector())
 
     def homogeneous_vector(self, base_ring=None):
         """
@@ -1499,7 +1510,7 @@ class Ray(Vrepresentation):
             sage: a._repr_()
             'A ray in the direction (0, 1)'
         """
-        return 'A ray in the direction ' + repr(self.vector());
+        return 'A ray in the direction ' + repr(self.vector())
 
     def homogeneous_vector(self, base_ring=None):
         """
@@ -1597,7 +1608,7 @@ class Line(Vrepresentation):
             sage: a.__repr__()
             'A line in the direction (0, 1, 0)'
         """
-        return 'A line in the direction ' + repr(self.vector());
+        return 'A line in the direction ' + repr(self.vector())
 
     def homogeneous_vector(self, base_ring=None):
         """

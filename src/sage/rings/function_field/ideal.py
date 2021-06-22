@@ -110,6 +110,8 @@ from sage.matrix.constructor import matrix
 
 from .divisor import divisor
 
+from .hermite_form_polynomial import reversed_hermite_form
+
 
 class FunctionFieldIdeal(Element):
     """
@@ -1591,10 +1593,7 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
         M = block_matrix([[I,I],[A,O],[O,B]])
 
         # reversed Hermite form
-        M.reverse_rows_and_columns()
-        U = M._hermite_form_euclidean(transformation=True,
-                                      normalization=lambda p: ~p.lc())
-        U.reverse_rows_and_columns()
+        U = reversed_hermite_form(M, transformation=True)
 
         vecs = [U[i][:n] for i in range(n)]
 

@@ -156,6 +156,7 @@ def request_wolfram_alpha(input, verbose=False):
          'error',
          'host',
          'id',
+         'inputstring',
          'numpods',
          'parsetimedout',
          'parsetiming',
@@ -434,7 +435,7 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
 
 
 def giac_integrator(expression, v, a=None, b=None):
-    """
+    r"""
     Integration using Giac
 
     EXAMPLES::
@@ -449,6 +450,15 @@ def giac_integrator(expression, v, a=None, b=None):
 
         sage: giac_integrator(e^(-x^2)*log(x), x)
         integrate(e^(-x^2)*log(x), x)
+
+    Check that :trac:`30133` is fixed::
+
+        sage: ee = SR.var('e')
+        sage: giac_integrator(ee^x, x)
+        e^x/log(e)
+        sage: y = SR.var('π')
+        sage: giac_integrator(cos(y), y)
+        sin(π)
     """
     ex = expression._giac_()
     if a is None:

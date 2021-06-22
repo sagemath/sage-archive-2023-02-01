@@ -2637,9 +2637,9 @@ cdef class RelaxedElement_random(RelaxedElementWithDigits):
 
         It is guaranteed that `a` and `b` are equal at any precision::
 
-            sage: a[:30]
+            sage: a[:30]   # random
             ...?343214211432220241412003314311
-            sage: b[:30]
+            sage: b[:30]   # random
             ...?343214211432220241412003314311
 
             sage: a == b

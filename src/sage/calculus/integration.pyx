@@ -27,15 +27,15 @@ AUTHORS:
 # ****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
-from sage.rings.real_double import RDF
+from memory_allocator cimport MemoryAllocator
+import inspect
 
+from sage.rings.real_double import RDF
 from sage.libs.gsl.all cimport *
 from sage.misc.sageinspect import sage_getargspec
 from sage.ext.fast_eval cimport FastDoubleFunc
 from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
 from sage.ext.fast_callable import fast_callable
-from sage.ext.memory_allocator cimport MemoryAllocator
-import inspect
 
 
 cdef class PyFunctionWrapper:
@@ -136,7 +136,7 @@ def numerical_integral(func, a, b=None,
         sage: (sin(x)^3+sin(x)).integral(x,0,pi)
         10/3
 
-    If we want to change the error tolerances and gauss rule used::
+    If we want to change the error tolerances and Gauss rule used::
 
         sage: f = x^2
         sage: numerical_integral(f, 0, 1, max_points=200, eps_abs=1e-7, eps_rel=1e-7, rule=4)

@@ -498,7 +498,7 @@ class DiGraph(GenericGraph):
         sage: type(J_imm._backend) == type(G_imm._backend)
         True
 
-    From a a list of vertices and a list of edges::
+    From a list of vertices and a list of edges::
 
         sage: G = DiGraph([[1,2,3],[(1,2)]]); G
         Digraph on 3 vertices
@@ -3317,12 +3317,28 @@ class DiGraph(GenericGraph):
             ...
             ValueError: `self` should be an acyclic graph
 
+        TESTS:
+
+        :trac:`31681` is fixed::
+
+            sage: H = DiGraph({0: [1], 'X': [1]}, format='dict_of_lists')
+            sage: pos = H.layout_acyclic_dummy(rankdir='up')
+            sage: pos['X'][1] == 0 and pos[0][1] == 0
+            True
+            sage: pos[1][1] == 1
+            True
         """
         if heights is None:
             if not self.is_directed_acyclic():
                 raise ValueError("`self` should be an acyclic graph")
             levels = self.level_sets()
-            levels = [sorted(z) for z in levels]
+            # Sort vertices in each level in best effort mode
+            for i in range(len(levels)):
+                try:
+                    l = sorted(levels[i])
+                    levels[i] = l
+                except:
+                    continue
             if rankdir=='down' or rankdir=='left':
                 levels.reverse()
             heights = {i: levels[i] for i in range(len(levels))}

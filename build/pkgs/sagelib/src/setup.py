@@ -5,8 +5,11 @@ from __future__ import print_function
 import os
 import sys
 import time
+# Import setuptools before importing distutils, so that setuptools
+# can replace distutils by its own vendored copy.
+import setuptools
 from distutils import log
-from distutils.core import setup
+from setuptools import setup
 
 # Work around a Cython problem in Python 3.8.x on macOS
 # https://github.com/cython/cython/issues/3262
@@ -18,12 +21,18 @@ if os.uname().sysname == 'Darwin':
 ### Set source directory
 #########################################################
 
+# PEP 517 builds do not have . in sys.path
+sys.path.insert(0, os.path.dirname(__file__))
+
 import sage.env
 sage.env.SAGE_SRC = os.getcwd()
 from sage.env import *
 
 from sage_setup.excepthook import excepthook
 sys.excepthook = excepthook
+
+from sage_setup.setenv import setenv
+setenv()
 
 #########################################################
 ### Configuration
@@ -87,14 +96,8 @@ from sage_setup.command.sage_install import sage_install_and_clean
 ### Distutils
 #########################################################
 
-code = setup(name = 'sage',
-      version     =  SAGE_VERSION,
-      description = 'Sage: Open Source Mathematics Software',
-      license     = 'GNU Public License (GPL)',
-      author      = 'William Stein et al.',
-      author_email= 'https://groups.google.com/group/sage-support',
-      url         = 'https://www.sagemath.org',
-      packages    = python_packages,
+code = setup(
+      packages = python_packages,
       package_data = {
           'sage.libs.gap': ['sage.gaprc'],
           'sage.interfaces': ['sage-maxima.lisp'],
@@ -131,7 +134,6 @@ code = setup(name = 'sage',
                  'bin/sage-runtests',          # because it is useful for doctesting user scripts too
                  'bin/sage-fixdoctests',       # likewise
                  'bin/sage-coverage',          # because it is useful for coverage-testing user scripts too
-                 'bin/sage-coverageall',       # likewise
                  'bin/sage-cython',            # deprecated, might be used in user package install scripts
                  ## Helper scripts invoked by sage script
                  ## (they would actually belong to something like libexec)

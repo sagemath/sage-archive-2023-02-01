@@ -324,7 +324,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
     @cached_method
     def an_element(self):
         r"""
-        Returns a Polyhedron.
+        Return a Polyhedron.
 
         EXAMPLES::
 
@@ -336,7 +336,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         one = self.base_ring().one()
         p = [zero] * self.ambient_dim()
         points = [p]
-        for i in range(0, self.ambient_dim()):
+        for i in range(self.ambient_dim()):
             p = [zero] * self.ambient_dim()
             p[i] = one
             points.append(p)
@@ -345,7 +345,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
     @cached_method
     def some_elements(self):
         r"""
-        Returns a list of some elements of the semigroup.
+        Return a list of some elements of the semigroup.
 
         EXAMPLES::
 
@@ -365,8 +365,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
                 self.element_class(self, None, [[], []])]
         points = []
         R = self.base_ring()
-        for i in range(0, self.ambient_dim() + 5):
-            points.append([R(i*j^2) for j in range(0, self.ambient_dim())])
+        for i in range(self.ambient_dim() + 5):
+            points.append([R(i*j^2) for j in range(self.ambient_dim())])
         return [
             self.element_class(self, [points[0:self.ambient_dim()+1], [], []], None),
             self.element_class(self, [points[0:1], points[1:self.ambient_dim()+1], []], None),

@@ -1495,7 +1495,7 @@ def sage_getargspec(obj):
     The following produced a syntax error before the patch at :trac:`11913`,
     see also :trac:`26906`::
 
-        sage: sage.misc.sageinspect.sage_getargspec(r.lm)
+        sage: sage.misc.sageinspect.sage_getargspec(r.lm)                         # optional - rpy2
         ArgSpec(args=['self'], varargs='args', keywords='kwds', defaults=None)
 
     The following was fixed in :trac:`16309`::
@@ -2242,7 +2242,7 @@ def sage_getsourcelines(obj):
 
         sage: cachedfib = cached_function(fibonacci)
         sage: sage_getsourcelines(cachedfib)[0][0]
-        'def fibonacci(n, algorithm="pari") -> Integral:\n'
+        'def fibonacci(n, algorithm="pari") -> Integer:\n'
         sage: sage_getsourcelines(type(cachedfib))[0][0]
         'cdef class CachedFunction(object):\n'
 
@@ -2276,11 +2276,10 @@ def sage_getsourcelines(obj):
         ([...'class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
         ...)
         sage: x = var('x')
-        sage: sage_getsourcelines(x)
-        (['cdef class Expression(CommutativeRingElement):\n',
-          '    cpdef object pyobject(self):\n',
-        ...)
-        sage: sage_getsourcelines(x)[0][-1]    # last line
+        sage: lines, lineno = sage_getsourcelines(x); lines[0:2]
+        ['cdef class Expression(CommutativeRingElement):\n',
+         '    cpdef object pyobject(self):\n']
+        sage: lines[-1]    # last line
         '        return S\n'
 
     We show some enhancements provided by :trac:`11768`. First, we

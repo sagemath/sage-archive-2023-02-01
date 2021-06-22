@@ -1,4 +1,8 @@
-# distutils: libraries = ntl
+# distutils: libraries = NTL_LIBRARIES
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 """
 Number Field Elements
@@ -21,14 +25,14 @@ AUTHORS:
   CM fields
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004, 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import operator
 
@@ -67,7 +71,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.rational cimport Rational
 from sage.rings.infinity import infinity
 from sage.categories.fields import Fields
-
+from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
 
 from sage.structure.element cimport Element, FieldElement
@@ -123,7 +127,6 @@ def __create__NumberFieldElement_version0(parent, poly):
         See https://trac.sagemath.org/25848 for details.
         a^2 + a + 1
     """
-    from sage.misc.superseded import deprecation
     deprecation(25848, '__create__NumberFieldElement_version0() is deprecated')
     return NumberFieldElement(parent, poly)
 
@@ -354,7 +357,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: cf4(one)
             1
             sage: type(cf4(1))
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
             sage: cf33 = CyclotomicField(33) ; z33 = cf33.0
             sage: cf66 = CyclotomicField(66) ; z66 = cf66.0
             sage: z33._lift_cyclotomic_element(cf66)
@@ -753,11 +756,11 @@ cdef class NumberFieldElement(FieldElement):
         return repr(self.__pari__(name=name))
 
     def __getitem__(self, n):
-        """
-        Return the n-th coefficient of this number field element, written
+        r"""
+        Return the ``n``-th coefficient of this number field element, written
         as a polynomial in the generator.
 
-        Note that `n` must be between 0 and `d-1`, where
+        Note that ``n`` must be between `0` and `d-1`, where
         `d` is the degree of the number field.
 
         EXAMPLES::
@@ -777,11 +780,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: c[-1]
             Traceback (most recent call last):
             ...
-            IndexError: index must be between 0 and degree minus 1.
+            IndexError: index must be between 0 and degree minus 1
             sage: c[4]
             Traceback (most recent call last):
             ...
-            IndexError: index must be between 0 and degree minus 1.
+            IndexError: index must be between 0 and degree minus 1
 
         The list method implicitly calls ``__getitem__``::
 
@@ -791,8 +794,11 @@ cdef class NumberFieldElement(FieldElement):
             True
         """
         if n < 0 or n >= self.number_field().degree():     # make this faster.
-            raise IndexError("index must be between 0 and degree minus 1.")
-        return self.polynomial()[n]
+            raise IndexError("index must be between 0 and degree minus 1")
+        cdef list coeffs = self._coefficients()
+        if n >= len(coeffs):
+            return QQ.zero()
+        return coeffs[n]
 
     cpdef _richcmp_(left, right, int op):
         r"""
@@ -1629,7 +1635,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: Q.<X> = K[]
             sage: L.<b> = NumberField(X^4 + a)
             sage: t = (-a).is_norm(L, element=True); t
-            (True, b^3 + 1)
+            (True, -b^3 - 1)
             sage: t[1].norm(K)
             -a
 
@@ -1744,11 +1750,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: Q.<X> = K[]
             sage: L.<b> = NumberField(X^4 + a)
             sage: t = (-a)._rnfisnorm(L); t
-            (b^3 + 1, 1)
+            (-b^3 - 1, 1)
             sage: t[0].norm(K)
             -a
             sage: t = K(3)._rnfisnorm(L); t
-            (-b^3 - a*b^2 - a^2*b + 1, 3*a^2 - 3*a + 6)
+            (b^3 + a*b^2 + a^2*b - 1, 3*a^2 - 3*a + 6)
             sage: t[0].norm(K)*t[1]
             3
 
@@ -2151,7 +2157,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: (u^14).is_square()
             True
         """
-        v = self.sqrt(all=True)
+        v = self.sqrt(all=True, extend=False)
         t = len(v) > 0
         if root:
             if t:
@@ -2180,9 +2186,17 @@ cdef class NumberFieldElement(FieldElement):
         infinity = sage.rings.infinity.infinity
         return self.parent().quadratic_defect(self, P, check=check) == infinity
 
-    def sqrt(self, all=False):
+    def sqrt(self, all=False, extend=True):
         """
-        Returns the square root of this number in the given number field.
+        Return the square root of this number in the given number field.
+
+        INPUT:
+
+        - ``all`` -- optional boolean (default ``False``); whether to return
+          both square roots
+
+        - ``extend`` -- optional boolean (default ``True``); whether to extend
+          the field by adding the square roots if needed
 
         EXAMPLES::
 
@@ -2195,7 +2209,7 @@ cdef class NumberFieldElement(FieldElement):
             9*a
             sage: K(49).sqrt()
             7
-            sage: K(1+a).sqrt()
+            sage: K(1+a).sqrt(extend=False)
             Traceback (most recent call last):
             ...
             ValueError: a + 1 not a square in Number Field in a with defining polynomial x^2 - 3
@@ -2216,24 +2230,45 @@ cdef class NumberFieldElement(FieldElement):
             sage: (a^4 + a^2 - 3*a + 2).sqrt()
             a^3 - a^2
 
+        Using the ``extend`` keyword::
+
+            sage: K = QuadraticField(-5)
+            sage: z = K(-7).sqrt(extend=True); z
+            sqrt(-7)
+            sage: CyclotomicField(4)(4).sqrt(extend=False)
+            2
+
+        If ``extend=False`` an error is raised, if ``self`` is not a square::
+
+            sage: K = QuadraticField(-5)
+            sage: K(-7).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: -7 not a square in Number Field in a with defining polynomial x^2 + 5 with a = 2.236067977499790?*I
+
         ALGORITHM: Use PARI to factor `x^2` - ``self`` in `K`.
         """
         # For now, use pari's factoring abilities
-        R = self.number_field()['t']
+        K = self.number_field()
+        R = K['t']
         f = R([-self, 0, 1])
         roots = f.roots()
-        if all:
-            return [r[0] for r in roots]
-        elif roots:
-            return roots[0][0]
-        else:
+        if extend and not roots:
             try:
                 # This is what integers, rationals do...
                 from sage.functions.other import sqrt
                 from sage.symbolic.ring import SR
-                return sqrt(SR(self))
+                root = sqrt(SR(self))
+                roots = [[root, 1], [-root, 1]]
             except TypeError:
                 raise ValueError("%s not a square in %s"%(self, self._parent))
+        if all:
+            return [r[0] for r in roots]
+        elif roots:
+            return roots[0][0]
+
+        if extend is False:
+            raise ValueError("%s not a square in %s" % (self, self._parent))
 
     def nth_root(self, n, all=False):
         r"""
@@ -2622,7 +2657,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: int(1/I)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial to int
+            TypeError: cannot convert nonconstant polynomial
             sage: int(I*I)
             -1
 
@@ -2632,7 +2667,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial to int
+            TypeError: cannot convert nonconstant polynomial
             sage: int(K(9390283))
             9390283
 
@@ -2757,6 +2792,10 @@ cdef class NumberFieldElement(FieldElement):
             sage: E = C.algebraic_closure()
             sage: E(a)
             -4.949886207424724? - 0.2195628712241434?*I
+
+            sage: NF.<sqrt2> = QuadraticField(2)
+            sage: AA(sqrt2)
+            1.414213562373095?
         """
         if self.is_rational():
             return parent(self._rational_())

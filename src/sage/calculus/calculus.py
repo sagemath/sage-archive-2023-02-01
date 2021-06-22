@@ -393,6 +393,14 @@ see :trac:`9538`::
     f1
     sage: sage.calculus.calculus.maxima('f1')
     f1
+
+To check that :trac:`14821` is fixed::
+
+    sage: H = exp(-1.0 * x)
+    sage: H.integral(x, 0, 1)
+    0.6321205588285577
+    sage: integral(exp(-300.0/(-0.064*x+14.0)),x,0.0,120.0)
+    4.62770039817000e-9
 """
 
 import re
@@ -401,7 +409,7 @@ from sage.rings.all import RR, Integer, CC, QQ, RealDoubleElement
 from sage.rings.real_mpfr import create_RealNumber
 
 from sage.misc.latex import latex
-from sage.misc.parser import Parser
+from sage.misc.parser import Parser, LookupNameMaker
 
 from sage.symbolic.ring import var, SR, is_SymbolicVariable
 from sage.symbolic.expression import Expression
@@ -412,7 +420,8 @@ from sage.symbolic.integration.integral import (indefinite_integral,
 from sage.libs.pynac.pynac import symbol_table
 
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.interfaces.maxima_lib','maxima')
+lazy_import('sage.interfaces.maxima_lib', 'maxima')
+from types import FunctionType
 
 
 ########################################################
@@ -536,7 +545,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
         sage: assumptions() # check the assumptions were really forgotten
         []
 
-    This summation only Mathematica can perform::
+    A summation performed by Mathematica::
 
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'mathematica')     # optional - mathematica
         pi*coth(pi)
@@ -546,13 +555,10 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'giac')
         (pi*e^(2*pi) - pi*e^(-2*pi))/(e^(2*pi) + e^(-2*pi) - 2)
 
-    SymPy can't solve that summation::
+    The same summation is solved by SymPy::
 
         sage: symbolic_sum(1/(1+k^2), k, -oo, oo, algorithm = 'sympy')
-        Traceback (most recent call last):
-        ...
-        AttributeError: Unable to convert SymPy result (=Sum(1/(k**2 + 1),
-        (k, -oo, oo))) into Sage
+        pi/tanh(pi)
 
     SymPy and Maxima 5.39.0 can do the following (see
     :trac:`22005`)::
@@ -654,6 +660,7 @@ def symbolic_sum(expression, v, a, b, algorithm='maxima', hold=False):
 
     else:
         raise ValueError("unknown algorithm: %s" % algorithm)
+
 
 def nintegral(ex, x, a, b,
               desired_relative_error='1e-8',
@@ -1081,7 +1088,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
 
             for degree in degree_list:
 
-                f = QQ[var](algdep(a, degree)) # TODO: use the known_bits parameter?
+                f = QQ[var](algdep(a, degree))  # TODO: use the known_bits parameter?
                 # If indeed we have found a minimal polynomial,
                 # it should be accurate to a much higher precision.
                 error = abs(f(aa))
@@ -1428,8 +1435,10 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         raise ValueError("Unknown algorithm: %s" % algorithm)
     return ex.parent()(l)
 
+
 # lim is alias for limit
 lim = limit
+
 
 ###################################################################
 # Laplace transform
@@ -1551,12 +1560,12 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: inverse_laplace(L, s, t)
         t*e^(a + 2*t)*sin(t)
 
-    Unable to compute solution with Maxima::
+    Heaviside step function can be handled with different interfaces.
+    Try with Maxima::
 
         sage: laplace(heaviside(t-1), t, s)
-        laplace(heaviside(t - 1), t, s)
+        e^(-s)/s
 
-    Heaviside step function can be handled with different interfaces.
     Try with giac::
 
         sage: laplace(heaviside(t-1), t, s, algorithm='giac')
@@ -1812,6 +1821,7 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
 
+
 ###################################################################
 # symbolic evaluation "at" a point
 ###################################################################
@@ -1918,6 +1928,7 @@ def dummy_diff(*args):
         args[i] = Integer(args[i])
     return f.diff(*args)
 
+
 def dummy_integrate(*args):
     """
     This function is called to create formal wrappers of integrals that
@@ -1938,6 +1949,7 @@ def dummy_integrate(*args):
     else:
         return indefinite_integral(*args, hold=True)
 
+
 def dummy_laplace(*args):
     """
     This function is called to create formal wrappers of laplace transforms
@@ -1953,6 +1965,7 @@ def dummy_laplace(*args):
     """
     return _laplace(args[0], var(repr(args[1])), var(repr(args[2])))
 
+
 def dummy_inverse_laplace(*args):
     """
     This function is called to create formal wrappers of inverse laplace
@@ -1967,6 +1980,7 @@ def dummy_inverse_laplace(*args):
         ilt(F(s), s, t)
     """
     return _inverse_laplace(args[0], var(repr(args[1])), var(repr(args[2])))
+
 
 #######################################################
 #
@@ -1991,6 +2005,7 @@ def _laplace_latex_(self, *args):
 
     """
     return "\\mathcal{L}\\left(%s\\right)" % (', '.join(latex(x) for x in args))
+
 
 def _inverse_laplace_latex_(self, *args):
     r"""
@@ -2019,23 +2034,17 @@ _inverse_laplace = function_factory('ilt',
 ######################################i################
 
 
-
-
-#######################################################
-
 # Conversion dict for special maxima objects
 # c,k1,k2 are from ode2()
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',\
-            '%c' : '_C', '%k1' : '_K1', '%k2' : '_K2',
-            'e':'_e', 'i':'_i', 'I':'_I'}
+symtable = {'%pi': 'pi', '%e': 'e', '%i': 'I',
+            '%gamma': 'euler_gamma',
+            '%c': '_C', '%k1': '_K1', '%k2': '_K2',
+            'e': '_e', 'i': '_i', 'I': '_I'}
 
 
+maxima_qp = re.compile(r"\?\%[\w]*")  # e.g., ?%jacobi_cd
 
-maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
-
-maxima_qp = re.compile(r"\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
-
-maxima_var = re.compile(r"[a-z|A-Z|0-9|_\%]*")  # e.g., %jacobi_cd
+maxima_var = re.compile(r"[\w\%]*")  # e.g., %jacobi_cd
 
 sci_not = re.compile(r"(-?(?:0|[1-9]\d*))(\.\d+)?([eE][-+]\d+)")
 
@@ -2044,6 +2053,34 @@ polylog_ex = re.compile(r'li\[([^\[\]]*)\]\(')
 maxima_polygamma = re.compile(r"psi\[([^\[\]]*)\]\(")  # matches psi[n]( where n is a number
 
 maxima_hyper = re.compile(r"\%f\[\d+,\d+\]")  # matches %f[m,n]
+
+
+def _is_function(v):
+    r"""
+    Return whether a symbolic element is a function, not a variable.
+
+    TESTS::
+
+        sage: from sage.calculus.calculus import _is_function
+        sage: _is_function(x)
+        False
+        sage: _is_function(sin)
+        True
+
+    Check that :trac:`31756` is fixed::
+
+        sage: from sage.libs.pynac.pynac import symbol_table
+        sage: _is_function(symbol_table['mathematica']['Gamma'])
+        True
+
+        sage: from sage.libs.pynac.pynac import register_symbol
+        sage: foo = lambda x: x^2 + 1
+        sage: register_symbol(foo, dict(mathematica='Foo'))  # optional - mathematica
+        sage: mathematica('Foo[x]').sage()                   # optional - mathematica
+        x^2 + 1
+    """
+    # note that Sage variables are callable, so we only check the type
+    return isinstance(v, Function) or isinstance(v, FunctionType)
 
 
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
@@ -2132,8 +2169,10 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         sage: sefms('%inf')
         +Infinity
     """
-    global _syms
-    syms = symbol_table.get('maxima', {}).copy()
+    var_syms = {k: v for k, v in symbol_table.get('maxima', {}).items()
+                if not _is_function(v)}
+    function_syms = {k: v for k, v in symbol_table.get('maxima', {}).items()
+                     if _is_function(v)}
 
     if not len(x):
         raise RuntimeError("invalid symbolic expression -- ''")
@@ -2144,25 +2183,23 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     s = maxima._eval_line('_tmp_;')
 
-    formal_functions = maxima_tick.findall(s)
-    if len(formal_functions):
-        for X in formal_functions:
-            try:
-                syms[X[1:]] = _syms[X[1:]]
-            except KeyError:
-                syms[X[1:]] = function_factory(X[1:])
-        # You might think there is a potential very subtle bug if 'foo
-        # is in a string literal -- but string literals should *never*
-        # ever be part of a symbolic expression.
-        s = s.replace("'","")
+    # We don't actually implement a parser for maxima expressions.
+    # Instead we simply transform the string until it is a valid
+    # sagemath expression and parse that.
+
+    # Remove ticks in front of symbolic functions. You might think
+    # there is a potential very subtle bug if 'foo is in a string
+    # literal -- but string literals should *never* ever be part of a
+    # symbolic expression.
+    s = s.replace("'","")
 
     delayed_functions = maxima_qp.findall(s)
     if len(delayed_functions):
         for X in delayed_functions:
-            if X == '?%at': # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
+            if X == '?%at':  # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
                 pass
             else:
-                syms[X[2:]] = function_factory(X[2:])
+                function_syms[X[2:]] = function_factory(X[2:])
         s = s.replace("?%", "")
 
     s = maxima_hyper.sub('hypergeometric', s)
@@ -2181,13 +2218,13 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     s = s.replace("%","")
 
-    s = s.replace("#","!=") # a lot of this code should be refactored somewhere...
+    s = s.replace("#","!=")  # a lot of this code should be refactored somewhere...
     #we apply the square-bracket replacing patterns repeatedly
     #to ensure that nested brackets get handled (from inside to out)
     while True:
         olds = s
         s = polylog_ex.sub('polylog(\\1,', s)
-        s = maxima_polygamma.sub(r'psi(\g<1>,', s) # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
+        s = maxima_polygamma.sub(r'psi(\g<1>,', s)  # this replaces psi[n](foo) with psi(n,foo), ensuring that derivatives of the digamma function are parsed properly below
         if s == olds:
             break
 
@@ -2197,15 +2234,15 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s.replace("!==", "!=")
 
     #replace %union from to_poly_solve with a list
-    if s[0:5]=='union':
+    if s[0:5] == 'union':
         s = s[5:]
-        s = s[s.find("(")+1:s.rfind(")")]
-        s = "[" + s + "]" # turn it into a string that looks like a list
+        s = s[s.find("(") + 1:s.rfind(")")]
+        s = "[" + s + "]"  # turn it into a string that looks like a list
 
     #replace %solve from to_poly_solve with the expressions
-    if s[0:5]=='solve':
+    if s[0:5] == 'solve':
         s = s[5:]
-        s = s[s.find("(")+1:s.find("]")+1]
+        s = s[s.find("(") + 1:s.find("]") + 1]
 
     #replace all instances of Maxima's scientific notation
     #with regular notation
@@ -2216,29 +2253,25 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s.replace(s[start:end], r)
         search = sci_not.search(s)
 
-    # have to do this here, otherwise maxima_tick catches it
-    syms['diff'] = dummy_diff
-    syms['integrate'] = dummy_integrate
-    syms['laplace'] = dummy_laplace
-    syms['ilt'] = dummy_inverse_laplace
-    syms['at'] = at
+    function_syms['diff'] = dummy_diff
+    function_syms['integrate'] = dummy_integrate
+    function_syms['laplace'] = dummy_laplace
+    function_syms['ilt'] = dummy_inverse_laplace
+    function_syms['at'] = at
 
     global is_simplified
     try:
         # use a global flag so all expressions obtained via
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
-        _syms = symbol_table['functions'].copy()
-        try:
-            global _augmented_syms
-            _augmented_syms = syms
-            return SRM_parser.parse_sequence(s)
-        finally:
-            _augmented_syms = {}
+        SRM_parser._variable_constructor().set_names(var_syms)
+        SRM_parser._callable_constructor().set_names(function_syms)
+        return SRM_parser.parse_sequence(s)
     except SyntaxError:
-        raise TypeError("unable to make sense of Maxima expression '%s' in Sage"%s)
+        raise TypeError("unable to make sense of Maxima expression '%s' in Sage" % s)
     finally:
         is_simplified = False
+
 
 # Comma format options for Maxima
 def mapped_opts(v):
@@ -2287,20 +2320,13 @@ def maxima_options(**kwds):
 # We keep two dictionaries syms_cur and syms_default to keep the current symbol
 # table and the state of the table at startup respectively. These are used by
 # the restore() function (see sage.misc.reset).
-#
-# The dictionary _syms is used as a lookup table for the system function
-# registry by _find_func() below. It gets updated by
-# symbolic_expression_from_string() before calling the parser.
-_syms = syms_cur = symbol_table.get('functions', {})
+
+syms_cur = symbol_table.get('functions', {})
 syms_default = dict(syms_cur)
 
-# This dictionary is used to pass a lookup table other than the system registry
-# to the parser. A global variable is necessary since the parser calls the
-# _find_var() and _find_func() functions below without extra arguments.
-_augmented_syms = {}
 
 
-def _find_var(name):
+def _find_var(name, interface=None):
     """
     Function to pass to Parser for constructing
     variables from strings.  For internal use.
@@ -2312,21 +2338,21 @@ def _find_var(name):
         y
         sage: sage.calculus.calculus._find_var('I')
         I
+        sage: sage.calculus.calculus._find_var(repr(maxima(y)), interface='maxima')
+        y
+        sage: sage.calculus.calculus._find_var(repr(giac(y)), interface='giac')
+        y
     """
-    try:
-        res = _augmented_syms[name]
-    except KeyError:
-        pass
+    if interface == 'maxima':
+        if name.startswith("_SAGE_VAR_"):
+            return var(name[10:])
+    elif interface == 'giac':
+        if name.startswith('sageVAR'):
+            return var(name[7:])
     else:
-        # _augmented_syms might contain entries pointing to functions if
-        # previous computations polluted the maxima workspace
-        if not isinstance(res, Function):
-            return res
-
-    try:
-        return SR.symbols[name]
-    except KeyError:
-        pass
+        v = SR.symbols.get(name)
+        if v is not None:
+            return v
 
     # try to find the name in the global namespace
     # needed for identifiers like 'e', etc.
@@ -2336,7 +2362,8 @@ def _find_var(name):
     except (KeyError, TypeError):
         return var(name)
 
-def _find_func(name, create_when_missing = True):
+
+def _find_func(name, create_when_missing=True):
     """
     Function to pass to Parser for constructing
     functions from strings.  For internal use.
@@ -2355,31 +2382,31 @@ def _find_func(name, create_when_missing = True):
         sage: s(0)
         0
     """
-    try:
-        func = _augmented_syms.get(name)
-        if func is None:
-            func = _syms[name]
-        if not isinstance(func, Expression):
-            return func
-    except KeyError:
-        pass
+    f = symbol_table['functions'].get(name)
+    if f is not None:
+        return f
+
     import sage.all
     try:
-        func = SR(sage.all.__dict__[name])
-        if not isinstance(func, Expression):
-            return func
+        f = SR(sage.all.__dict__[name])
+        if not isinstance(f, Expression):
+            return f
     except (KeyError, TypeError):
         if create_when_missing:
             return function_factory(name)
         else:
             return None
 
+parser_make_var = LookupNameMaker({}, fallback=_find_var)
+parser_make_function = LookupNameMaker({}, fallback=_find_func)
+
 SR_parser = Parser(make_int      = lambda x: SR(Integer(x)),
                    make_float    = lambda x: SR(create_RealNumber(x)),
-                   make_var      = _find_var,
-                   make_function = _find_func)
+                   make_var      = parser_make_var,
+                   make_function = parser_make_function)
 
-def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
+
+def symbolic_expression_from_string(s, syms=None, accept_sequence=False, *, parser=None):
     """
     Given a string, (attempt to) parse it and return the
     corresponding Sage symbolic expression.  Normally used
@@ -2389,12 +2416,14 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
 
     - ``s`` - a string
 
-    - ``syms`` - (default: None) dictionary of
+    - ``syms`` - (default: {}) dictionary of
       strings to be regarded as symbols or functions
 
     - ``accept_sequence`` - (default: False) controls whether
       to allow a (possibly nested) set of lists and tuples
       as input
+
+    - ``parser`` -- (default: ``SR_parser``) parser for internal use
 
     EXAMPLES::
 
@@ -2410,48 +2439,34 @@ def symbolic_expression_from_string(s, syms=None, accept_sequence=False):
         0.3333333333333333333333333333
         sage: sage.calculus.calculus.symbolic_expression_from_string(str(RealField(100)(10^-500/3)))
         3.333333333333333333333333333e-501
+
+    The Giac interface uses a different parser (:trac:`30133`)::
+
+        sage: from sage.calculus.calculus import SR_parser_giac
+        sage: sage.calculus.calculus.symbolic_expression_from_string(repr(giac(SR.var('e'))), parser=SR_parser_giac)
+        e
     """
-    global _syms
-    _syms = symbol_table['functions'].copy()
-    parse_func = SR_parser.parse_sequence if accept_sequence else SR_parser.parse_expression
     if syms is None:
-        return parse_func(s)
-    else:
-        try:
-            global _augmented_syms
-            _augmented_syms = syms
-            return parse_func(s)
-        finally:
-            _augmented_syms = {}
+        syms = {}
+    if parser is None:
+        parser = SR_parser
+    parse_func = parser.parse_sequence if accept_sequence else parser.parse_expression
+    # this assumes that the parser has constructors of type `LookupNameMaker`
+    parser._variable_constructor().set_names({k: v for k, v in syms.items()
+                                              if not _is_function(v)})
+    parser._callable_constructor().set_names({k: v for k, v in syms.items()
+                                              if _is_function(v)})
+    return parse_func(s)
 
-def _find_Mvar(name):
-    """
-    Function to pass to Parser for constructing
-    variables from strings.  For internal use.
 
-    EXAMPLES::
-
-        sage: y = var('y')
-        sage: sage.calculus.calculus._find_var('y')
-        y
-        sage: sage.calculus.calculus._find_var('I')
-        I
-    """
-    if name[:10] == "_SAGE_VAR_":
-        return var(name[10:])
-    res = _augmented_syms.get(name)
-    if res is not None and not isinstance(res, Function):
-        return res
-
-    # try to find the name in the global namespace
-    # needed for identifiers like 'e', etc.
-    import sage.all
-    try:
-        return SR(sage.all.__dict__[name])
-    except (KeyError, TypeError):
-        return var(name)
+parser_make_Mvar = LookupNameMaker({}, fallback=lambda x: _find_var(x, interface='maxima'))
 
 SRM_parser = Parser(make_int      = lambda x: SR(Integer(x)),
                     make_float    = lambda x: SR(RealDoubleElement(x)),
-                    make_var      = _find_Mvar,
-                    make_function = _find_func)
+                    make_var      = parser_make_Mvar,
+                    make_function = parser_make_function)
+
+SR_parser_giac = Parser(make_int      = lambda x: SR(Integer(x)),
+                        make_float    = lambda x: SR(create_RealNumber(x)),
+                        make_var      = LookupNameMaker({}, fallback=lambda x: _find_var(x, interface='giac')),
+                        make_function = parser_make_function)

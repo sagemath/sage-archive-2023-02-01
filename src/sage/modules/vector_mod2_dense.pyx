@@ -132,7 +132,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
         """
         self._entries = NULL
-        self._is_mutable = 1
+        self._is_immutable = 0
         if not parent is None:
             self._init(parent.degree(), parent)
 
@@ -297,7 +297,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             sage: loads(dumps(e)) == e
             True
         """
-        return unpickle_v0, (self._parent, self.list(), self._degree, self._is_mutable)
+        return unpickle_v0, (self._parent, self.list(), self._degree,
+                             self._is_immutable)
 
     cpdef _add_(self, right):
         """
@@ -483,7 +484,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             v[i] = switch[mzd_read_bit(self._entries, 0, i)]
         return v
 
-def unpickle_v0(parent, entries, degree, is_mutable):
+def unpickle_v0(parent, entries, degree, is_immutable):
     """
     EXAMPLES::
 
@@ -504,6 +505,6 @@ def unpickle_v0(parent, entries, degree, is_mutable):
             mzd_write_bit(v._entries, 0, i, xi%2)
         else:
             mzd_write_bit(v._entries, 0, i, entries[i]%2)
-    v._is_mutable = int(is_mutable)
+    v._is_immutable = int(is_immutable)
     return v
 

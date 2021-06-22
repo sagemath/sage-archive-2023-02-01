@@ -42,19 +42,8 @@ x = SR.var('x')
 # It is important that this file is lazily imported for this to work
 from sage.repl.user_globals import get_global
 
-# Get a bunch of functions from the user globals. In SageNB, this will
-# refer to SageNB functions; in Jupyter, this will refer to Jupyter
-# functions. In the command-line and for doctests, we import the
-# SageNB functions as fall-back.
-for name in ("interact", "checkbox", "input_box", "input_grid",
-        "range_slider", "selector", "slider", "text_control"):
-    try:
-        obj = get_global(name)
-    except NameError:
-        import sagenb.notebook.interact
-        obj = sagenb.notebook.interact.__dict__[name]
-    globals()[name] = obj
-
+from sage.repl.ipython_kernel.all_jupyter import (interact, checkbox,
+    input_box, input_grid, range_slider, selector, slider, text_control)
 
 def library_interact(f):
     """
@@ -192,7 +181,9 @@ def definite_integral(
     x = SR.var('x')
     f = symbolic_expression(f).function(x)
     g = symbolic_expression(g).function(x)
-    f_plot = Graphics(); g_plot = Graphics(); h_plot = Graphics();
+    f_plot = Graphics()
+    g_plot = Graphics()
+    h_plot = Graphics()
     text = ""
 
     # Plot function f.
@@ -1718,7 +1709,7 @@ def polar_prime_spiral(
                  (begin_curve, ceil(sqrt(end-start))), color=hue(0.8), thickness = .3) #Pink Line
 
             b = 1
-            c = c2;
+            c = c2
             g = symbolic_expression(a*m**2+b*m+c).function(m)
             r = symbolic_expression(sqrt(g(m))).function(m)
             theta = symbolic_expression(r(m)- m*sqrt(a)).function(m)

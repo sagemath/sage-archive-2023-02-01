@@ -27,7 +27,7 @@ cdef struct face_list_s:
 ctypedef face_list_s face_list_t[1]
 
 #############################################################################
-# Face List Initalization
+# Face List Initialization
 #############################################################################
 
 cdef inline int face_list_init(face_list_t faces, size_t n_faces, size_t n_atoms, size_t n_coatoms, MemoryAllocator mem) except -1:
@@ -103,6 +103,42 @@ cdef inline int add_face_deep(face_list_t faces, face_t face) except -1:
     face_copy(faces.faces[faces.n_faces], face)
     faces.n_faces += 1
 
+cdef inline void face_list_delete_faces_by_array(face_list_t faces, bint *delete):
+    r"""
+    Remove face ``i`` if and only if ``delete[i]`` decreasing ``faces.n_faces``.
+
+    .. WARNING::
+
+        ``delete`` is assumed to be of length ``faces.n_faces``.
+    """
+    cdef size_t n_newfaces = 0
+    cdef size_t i
+    for i in range(faces.n_faces):
+        if not delete[i]:
+            faces.faces[n_newfaces][0] = faces.faces[i][0]
+            n_newfaces += 1
+
+    faces.n_faces = n_newfaces
+
+cdef inline void face_list_delete_faces_by_face(face_list_t faces, face_t face):
+    r"""
+    Remove all faces such that the ``i``-th bit in ``face`` is not set
+    descreasing ``faces.n_faces``.
+
+    .. WARNING::
+
+        ``face`` is assumed to contain ``self.n_faces`` atoms.
+    """
+    cdef size_t n_newfaces = 0
+    cdef size_t i
+    for i in range(faces.n_faces):
+        if face_atom_in(face, i):
+            faces.faces[n_newfaces][0] = faces.faces[i][0]
+            n_newfaces += 1
+
+    faces.n_faces = n_newfaces
+
+
 #############################################################################
 # Face Comparison
 #############################################################################
@@ -158,14 +194,17 @@ cdef inline bint is_contained_in_one_fused(face_t face, face_list_t faces, algor
             return True
     return False
 
-cdef inline bint is_not_maximal_fused(face_list_t faces, size_t j, algorithm_variant algorithm) nogil:
+cdef inline bint is_not_maximal_fused(face_list_t faces, size_t j, algorithm_variant algorithm, bint* is_not_new_face) nogil:
     """
     Return whether face ``j`` is not maximal in ``faces``.
     """
     cdef size_t i
     if algorithm_variant is standard:
         for i in range(j):
-            if face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
+            if (not is_not_new_face[i]) and face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
+                # It suffices to check those faces, that are maximal.
+                # This way, if multiple identical faces are maximal,
+                # exactly the last one is considered maximal.
                 return True
         for i in range(j+1, faces.n_faces):
             if face_issubset_fused(faces.faces[j], faces.faces[i], algorithm):
@@ -247,7 +286,7 @@ cdef inline size_t get_next_level_fused(
 
     cdef size_t j
     for j in range(n_faces):
-        if (is_not_maximal_fused(new_faces, j, algorithm) or  # Step 2
+        if (is_not_maximal_fused(new_faces, j, algorithm, is_not_new_face) or  # Step 2
                 is_contained_in_one_fused(new_faces.faces[j], visited_all, algorithm)):  # Step 3
             is_not_new_face[j] = True
 

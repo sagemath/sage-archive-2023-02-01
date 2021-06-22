@@ -2447,7 +2447,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
     Generic element of a module with mutability.
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent, is_immutable=False):
         """
         EXAMPLES::
 
@@ -2456,7 +2456,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
             <type 'sage.modules.free_module_element.FreeModuleElement'>
         """
         self._parent = parent
-        self._is_mutable = 1
+        self._is_immutable = is_immutable
 
     def set_immutable(self):
         """
@@ -2473,7 +2473,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
             ...
             ValueError: vector is immutable; please change a copy instead (use copy())
         """
-        self._is_mutable = 0
+        self._is_immutable = 1
 
     cpdef bint is_mutable(self):
         """
@@ -2488,7 +2488,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
             sage: v.is_mutable()
             False
         """
-        return self._is_mutable
+        return not self._is_immutable
 
     cpdef bint is_immutable(self):
         """
@@ -2503,7 +2503,7 @@ cdef class ModuleElementWithMutability(ModuleElement):
             sage: v.is_immutable()
             True
         """
-        return not self._is_mutable
+        return self._is_immutable
 
 ########################################################################
 # Monoid

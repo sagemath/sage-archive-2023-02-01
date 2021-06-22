@@ -1235,30 +1235,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return -2
         return result
 
-    def __float__(self):
-        """
-        EXAMPLES::
-
-            sage: P = PolynomialRing(ZZ, 'x')([1])
-            sage: float(P)
-            1.0
-        """
-        if self.degree() > 0:
-            raise TypeError("cannot coerce nonconstant polynomial to float")
-        return float(self.get_coeff_c(0))
-
-    def __int__(self):
-        """
-        EXAMPLES::
-
-            sage: P = PolynomialRing(ZZ, 'x')([3])
-            sage: int(P)
-            3
-        """
-        if self.degree() > 0:
-            raise TypeError("cannot coerce nonconstant polynomial to int")
-        return int(self.get_coeff_c(0))
-
     def _im_gens_(self, codomain, im_gens, base_map=None):
         """
         Return the image of this element under the morphism defined by
@@ -1300,9 +1276,69 @@ cdef class Polynomial(CommutativeAlgebraElement):
             i -= 1
         return result
 
-    def _integer_(self, ZZ):
+    def _scalar_conversion(self, R):
         r"""
+        Generic conversion of constant polynomial to the ring ``R``.
+
+        Ideally such conversions should go through
+        :class:`ConstantPolynomialSection`. However, it does not work when
+        there are additional conversions involved.
+
         EXAMPLES::
+
+            sage: a = QQ['x'](1/5)
+            sage: QQ(a)
+            1/5
+            sage: AA(a)
+            1/5
+            sage: QQbar(a)
+            1/5
+            sage: RDF(a)
+            0.2
+            sage: CDF(a)
+            0.2
+            sage: RR(a)
+            0.200000000000000
+            sage: CC(a)
+            0.200000000000000
+            sage: RBF(a)
+            [0.2000000000000000 +/- 4.45e-17]
+            sage: CBF(a)
+            [0.2000000000000000 +/- 4.45e-17]
+            sage: RIF(a)
+            0.2000000000000000?
+            sage: CIF(a)
+            0.2000000000000000?
+            sage: float(a)
+            0.2
+            sage: complex(a)
+            (0.2+0j)
+
+            sage: b = AA['x'](AA(2/3).sqrt())
+            sage: AA(b)
+            0.8164965809277260?
+            sage: RR(b)
+            0.816496580927726
+            sage: RBF(b)
+            [0.816496580927726 +/- 2.44e-16]
+            sage: RIF(b)
+            0.8164965809277260?
+            sage: float(b)
+            0.816496580927726
+
+            sage: c = QQbar['x'](QQbar(-2/5).sqrt())
+            sage: QQbar(c)
+            0.6324555320336758?*I
+            sage: CDF(c)
+            0.6324555320336758*I
+            sage: CC(c)
+            0.632455532033676*I
+            sage: CBF(c)
+            [0.632455532033676 +/- 3.96e-16]*I
+            sage: CIF(c)
+            0.6324555320336758?*I
+            sage: complex(c)
+            0.6324555320336758j
 
             sage: K.<x> = Frac(RR['x'])
             sage: ZZ(2*x/x)              # indirect doctest
@@ -1310,17 +1346,57 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: ZZ(x)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial
+            TypeError: cannot convert nonconstant polynomial
 
-        .. NOTE::
-
-            The original example has been moved to :meth:`section` of
-            :class:`sage.categories.map.FormalCompositeMap` by :trac:`27081`
-            since coercion doesn't need :meth:`_integer_` for it, any more.
+            sage: x = polygen(QQ)
+            sage: A.<u> = NumberField(x^3 - 2)
+            sage: A(A['x'](u))
+            u
         """
         if self.degree() > 0:
-            raise TypeError("cannot coerce nonconstant polynomial")
-        return ZZ(self.get_coeff_c(0))
+            raise TypeError("cannot convert nonconstant polynomial")
+        return R(self.get_coeff_c(0))
+
+    _real_double_ = _scalar_conversion
+    _complex_double_ = _scalar_conversion
+    _mpfr_ = _scalar_conversion
+    _complex_mpfr_ = _scalar_conversion
+    _real_mpfi_ = _scalar_conversion
+    _complex_mpfi_ = _scalar_conversion
+    _arb_ = _scalar_conversion
+    _acb_ = _scalar_conversion
+    _integer_ = _scalar_conversion
+    _algebraic_ = _scalar_conversion
+
+    def __int__(self):
+        """
+        EXAMPLES::
+
+            sage: P = PolynomialRing(ZZ, 'x')([3])
+            sage: int(P)
+            3
+        """
+        return self._scalar_conversion(int)
+
+    def __float__(self):
+        """
+        EXAMPLES::
+
+            sage: P = PolynomialRing(ZZ, 'x')([1])
+            sage: float(P)
+            1.0
+        """
+        return self._scalar_conversion(float)
+
+    def __complex__(self):
+        r"""
+        EXAMPLES::
+
+            sage: p = PolynomialRing(QQbar, 'x')(1+I)
+            sage: complex(p)
+            (1+1j)
+        """
+        return self._scalar_conversion(complex)
 
     def _rational_(self):
         r"""
@@ -1334,9 +1410,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ...
             TypeError: not a constant polynomial
         """
-        if self.degree() > 0:
-            raise TypeError("not a constant polynomial")
-        return sage.rings.rational.Rational(self.get_coeff_c(0))
+        return self._scalar_conversion(sage.rings.rational.Rational)
 
     def _symbolic_(self, R):
         """
@@ -3237,8 +3311,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: K.<z> = CyclotomicField(3)
             sage: R.<x> = K[]
             sage: f = x^2 + z
-            sage: f.change_ring(K.embeddings(CC)[0])
-            x^2 - 0.500000000000000 - 0.866025403784439*I
+            sage: f.change_ring(K.embeddings(CC)[1])
+            x^2 - 0.500000000000000 - 0.866025403784438*I
 
         ::
 
@@ -6283,6 +6357,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.libs.gap.libgap import libgap
         return self._gap_(libgap)
 
+    def _giac_init_(self):
+        r"""
+        Return a Giac string representation of this polynomial.
+
+        TESTS::
+
+            sage: R.<x> = GF(101)['e,i'][]
+            sage: f = R('e*i') * x + x^2
+            sage: f._giac_init_()
+            '((1)*1)*sageVARx^2+((1)*sageVARe*sageVARi)*sageVARx'
+            sage: giac(f)
+            sageVARx^2+sageVARe*sageVARi*sageVARx
+            sage: giac(R.zero())
+            0
+        """
+        g = 'sageVAR' + self.variable_name()
+        s = '+'.join('(%s)*%s' % (self.monomial_coefficient(m)._giac_init_(),
+                                  m._repr(g)) for m in self.monomials())
+        return s if s else '0'
+
     ######################################################################
 
     @coerce_binop
@@ -7550,7 +7644,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-3.5074662110434039?e451, 1)]
             sage: p = bigc*x + 1
             sage: p.roots(ring=RR)
-            [(0.000000000000000, 1)]
+            [(-2.85106096489671e-452, 1)]
             sage: p.roots(ring=AA)
             [(-2.8510609648967059?e-452, 1)]
             sage: p.roots(ring=QQbar)
@@ -7761,10 +7855,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(a + O(3^20), 1),
              (2*a + 2*a*3 + 2*a*3^2 + 2*a*3^3 + 2*a*3^4 + 2*a*3^5 + 2*a*3^6 + 2*a*3^7 + 2*a*3^8 + 2*a*3^9 + 2*a*3^10 + 2*a*3^11 + 2*a*3^12 + 2*a*3^13 + 2*a*3^14 + 2*a*3^15 + 2*a*3^16 + 2*a*3^17 + 2*a*3^18 + 2*a*3^19 + O(3^20),
               1)]
+
+        Check that :trac:`31710` is fixed::
+
+            sage: CBF['x'].zero().roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: taking the roots of the zero polynomial
         """
         from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()
-
 
         # If the base ring has a method _roots_univariate_polynomial,
         # try to use it. An exception is raised if the method does not

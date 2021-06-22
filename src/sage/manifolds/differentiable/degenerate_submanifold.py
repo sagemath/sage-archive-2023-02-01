@@ -12,7 +12,7 @@ for instance in Differential Geometry (especially in geometry of
 lightlike submanifold) and in General Relativity. In geometry of lightlike
 submanifolds, according to the dimension `r` of the radical distribution
 (see below for definition of radical distribution), degenerate submanifolds
-have been classify into 4 subgroups: `r`-lightlike submanifolds, Coisotropic
+have been classified into 4 subgroups: `r`-lightlike submanifolds, Coisotropic
 submanifolds, Isotropic submanifolds and Totally lightlike submanifolds.
 (See the book of Krishan L. Duggal and Aurel Bejancu [DS2010]_.)
 
@@ -426,7 +426,8 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
     def set_transverse(self, rigging=None, normal=None):
         r"""
         For setting a transversal distribution of the degenerate submanifold.
-        according to the type of the submanifold amoung the 4 possible types,
+
+        According to the type of the submanifold among the 4 possible types,
         one must enter a list of normal transversal vector fields and/or a
         list of transversal and not normal vector fields spanning a transverse
         distribution.
@@ -502,7 +503,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
                 rig.append(u)
                 l2 += 1
         if l1+l2!=self._codim:
-            raise ValueError("lenght of the transverse must be {}".format(self._codim))
+            raise ValueError("length of the transverse must be {}".format(self._codim))
         self._transverse['normal'] = tuple(nor)
         self._transverse['rigging'] = tuple(rig)
 
@@ -565,7 +566,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
                 raise ValueError("a different screen distribution with the "
                                  "same name had already been set")
         if len(screen)+len(rad)!=self._dim:
-            raise ValueError("total lenght screen+rad must be {}".format(self._dim))
+            raise ValueError("total length screen+rad must be {}".format(self._dim))
         frame = self.default_frame()
         im = self.immersion()
         g = self.ambient_metric().along(im)

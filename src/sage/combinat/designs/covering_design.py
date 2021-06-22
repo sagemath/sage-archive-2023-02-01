@@ -128,18 +128,18 @@ def trivial_covering_design(v, k, t):
         1   3   4
         2   3   4
 
-    NOTES:
+    .. NOTE::
 
-    Cases are:
+        Cases are:
 
-    * `t=0`: This could be empty, but it's a useful convention to have
-      one block (which is empty if $k=0$).
+        * `t=0`: This could be empty, but it's a useful convention to have
+          one block (which is empty if $k=0$).
 
-    * `t=1` : This contains `\lceil v/k \rceil` blocks:
-      `[0, ..., k-1], [k, ..., 2k-1], ...`.  The last block wraps around if
-      `k` does not divide `v`.
+        * `t=1` : This contains `\lceil v/k \rceil` blocks:
+          `[0, ..., k-1], [k, ..., 2k-1], ...`.  The last block wraps around if
+          `k` does not divide `v`.
 
-    * anything else: Just use every `k`-subset of `[0, 1,..., v-1]`.
+        * anything else: Just use every `k`-subset of `[0, 1,..., v-1]`.
 
     """
     if t == 0:  # single block [0, ..., k-1]
@@ -188,7 +188,7 @@ class CoveringDesign(SageObject):
     - ``method``, ``creator``, ``timestamp`` -- database information
     """
 
-    def __init__(self, v=0, k=0, t=0, size=0, points=[], blocks=[],
+    def __init__(self, v=0, k=0, t=0, size=0, points=None, blocks=None,
                  low_bd=0, method='', creator='', timestamp=''):
         """
         EXAMPLES::
@@ -215,6 +215,10 @@ class CoveringDesign(SageObject):
         self.__method = method
         self.__creator = creator
         self.__timestamp = timestamp
+        if points is None:
+            points = []
+        if blocks is None:
+            blocks = []
         self.__incidence_structure = IncidenceStructure(points, blocks)
 
     def __repr__(self):

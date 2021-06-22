@@ -15252,6 +15252,5 @@ def setup_latex_preamble():
         True
     """
     latex.add_package_to_preamble_if_available('tikz')
-    latex.add_to_mathjax_avoid_list("tikz")
     if latex.has_file("tikz.sty"):
         latex.add_to_preamble(r'\usetikzlibrary{automata}')

@@ -26,7 +26,7 @@ mkdir -p "$OUTPUT_DIR"
 shopt -s extglob
 
 for SYSTEM in arch debian fedora cygwin homebrew conda; do
-    SYSTEM_PACKAGES=$(echo $(${STRIP_COMMENTS} build/pkgs/$SYSTEM.txt))
+    SYSTEM_PACKAGES=
     OPTIONAL_SYSTEM_PACKAGES=
     SAGELIB_SYSTEM_PACKAGES=
     SAGELIB_OPTIONAL_SYSTEM_PACKAGES=

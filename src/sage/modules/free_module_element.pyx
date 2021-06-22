@@ -179,8 +179,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
     - ``degree`` -- an integer specifying the number of
       entries in the vector or free module element
 
-    - ``sparse`` -- boolean, whether the result should be a sparse
-      vector
+    - ``sparse`` -- boolean, whether the result should be a sparse vector
 
     - ``immutable`` -- boolean (default: ``False``); whether the result
       should be an immutable vector
@@ -298,7 +297,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         the principal ideal domain Integer Ring
 
     Here we illustrate the creation of sparse vectors by using a
-    dictionary. ::
+    dictionary::
 
         sage: vector({1:1.1, 3:3.14})
         (0.000000000000000, 1.10000000000000, 0.000000000000000, 3.14000000000000)
@@ -359,7 +358,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         Vector space of dimension 10 over Complex Double Field
         sage: parent(vector(RR, x))
         Vector space of dimension 10 over Real Field with 53 bits of precision
-        sage: v = numpy.random.randn(10) * numpy.complex(0,1)
+        sage: v = numpy.random.randn(10) * complex(0,1)
         sage: w = vector(v)
         sage: parent(w)
         Vector space of dimension 10 over Complex Double Field
@@ -454,24 +453,31 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
         sage: v.is_immutable()
         True
         sage: import numpy as np
-        sage: w = np.array([1, 2, pi], np.float)
+        sage: w = np.array([1, 2, pi], float)
         sage: v = vector(w, immutable=True)
         sage: v.is_immutable()
         True
-        sage: w = np.array([i, 2, 3], np.complex)
+        sage: w = np.array([i, 2, 3], complex)
         sage: v = vector(w, immutable=True)
         sage: v.is_immutable()
         True
+
+    TESTS:
+
+    We check that :trac:`31470` is fixed::
+
+        sage: k.<a> = GF(5^3)
+        sage: S.<x> = k['x', k.frobenius_endomorphism()]
+        sage: vector(S, 3)
+        ...
+        (0, 0, 0)
     """
+    from sage.modules.free_module import FreeModule
     # We first efficiently handle the important special case of the zero vector
     # over a ring. See trac 11657.
     # !! PLEASE DO NOT MOVE THIS CODE LOWER IN THIS FUNCTION !!
     if arg2 is None and is_Ring(arg0) and (isinstance(arg1, (int, long, Integer))):
-        if sparse:
-            from .free_module import FreeModule
-            M = FreeModule(arg0, arg1, sparse=True)
-        else:
-            M = arg0 ** arg1
+        M = FreeModule(arg0, arg1, bool(sparse))
         v = M.zero_vector()
         if immutable:
             v.set_immutable()
@@ -559,12 +565,7 @@ def vector(arg0, arg1=None, arg2=None, sparse=None, immutable=False):
 
     v, R = prepare(v, R, degree)
 
-    if sparse:
-        from .free_module import FreeModule
-        M = FreeModule(R, len(v), sparse=True)
-    else:
-        M = R ** len(v)
-
+    M = FreeModule(R, len(v), bool(sparse))
     w = M(v)
     if immutable:
         w.set_immutable()
@@ -890,7 +891,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
         """
         self._parent = parent
         self._degree = parent.degree()
-        self._is_mutable = 1
+        self._is_immutable = 0
 
     def _giac_init_(self):
         """
@@ -911,7 +912,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: P.<x> = ZZ[]
             sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x])
             sage: giac(v)
-            [x^2+2,2*x+1,-2*x^2+4*x]
+            [sageVARx^2+2,2*sageVARx+1,-2*sageVARx^2+4*sageVARx]
         """
         return self.list()
 
@@ -1094,7 +1095,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v.set_immutable()
             sage: v.__hash__()   # random output
         """
-        if self._is_mutable:
+        if not self._is_immutable:
             raise TypeError("mutable vectors are unhashable")
         return hash(tuple(self))
 
@@ -1792,7 +1793,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: v
             (5, 2/3, 8)
         """
-        if not self._is_mutable:
+        if self._is_immutable:
             raise ValueError("vector is immutable; please change a copy instead (use copy())")
         cdef Py_ssize_t d = self._degree
         cdef Py_ssize_t start, stop, step, slicelength
@@ -3991,7 +3992,7 @@ def make_FreeModuleElement_generic_dense_v1(parent, entries, degree, is_mutable)
     v._entries = entries
     v._parent = parent
     v._degree = degree
-    v._is_mutable = is_mutable
+    v._is_immutable = not is_mutable
     return v
 
 cdef class FreeModuleElement_generic_dense(FreeModuleElement):
@@ -4035,7 +4036,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         """
         cdef type t = type(self)
         cdef FreeModuleElement_generic_dense x = t.__new__(t)
-        x._is_mutable = 1
+        x._is_immutable = 0
         x._parent = self._parent
         x._entries = v
         x._degree = self._degree
@@ -4257,7 +4258,8 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             sage: v.__reduce__()
             (<cyfunction make_FreeModuleElement_generic_dense_v1 at ...>, (Vector space of dimension 4 over Symbolic Ring, [-1, 0, 3, pi], 4, True))
         """
-        return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries, self._degree, self._is_mutable))
+        return (make_FreeModuleElement_generic_dense_v1, (self._parent, self._entries,
+                                                          self._degree, not self._is_immutable))
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -4431,7 +4433,7 @@ def make_FreeModuleElement_generic_sparse_v1(parent, entries, degree, is_mutable
     v._entries = entries
     v._parent = parent
     v._degree = degree
-    v._is_mutable = is_mutable
+    v._is_immutable = not is_mutable
     return v
 
 
@@ -4478,7 +4480,7 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         """
         cdef type t = type(self)
         cdef FreeModuleElement_generic_sparse x = t.__new__(t)
-        x._is_mutable = 1
+        x._is_immutable = 0
         x._parent = self._parent
         x._entries = v
         x._degree = self._degree
@@ -4816,7 +4818,8 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
             sage: v.__reduce__()
             (<cyfunction make_FreeModuleElement_generic_sparse_v1 at ...>, (Sparse vector space of dimension 3 over Symbolic Ring, {0: 1, 1: 2/3, 2: pi}, 3, True))
         """
-        return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries, self._degree, self._is_mutable))
+        return (make_FreeModuleElement_generic_sparse_v1, (self._parent, self._entries,
+                                                           self._degree, not self._is_immutable))
 
     @cython.cdivision(True)
     def __getitem__(self, i):

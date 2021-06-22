@@ -166,10 +166,13 @@ cdef maxima
 from sage.calculus.calculus import symbolic_expression_from_maxima_string, maxima
 
 cdef class Matrix_symbolic_dense(Matrix_generic_dense):
-    def eigenvalues(self):
+    def eigenvalues(self, extend=True):
         """
         Compute the eigenvalues by solving the characteristic
         polynomial in maxima.
+
+        The argument ``extend`` is ignored but kept for compatibility with
+        other matrix classes.
 
         EXAMPLES::
 
@@ -177,6 +180,15 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             sage: a.eigenvalues()
             [-1/2*sqrt(33) + 5/2, 1/2*sqrt(33) + 5/2]
 
+        TESTS:
+
+        Check for :trac:`31700`::
+
+            sage: m = matrix([[cos(pi/5), sin(pi/5)], [-sin(pi/5), cos(pi/5)]])
+            sage: t = linear_transformation(m)
+            sage: t.eigenvalues()
+            [1/4*sqrt(5) - 1/4*sqrt(2*sqrt(5) - 10) + 1/4,
+             1/4*sqrt(5) + 1/4*sqrt(2*sqrt(5) - 10) + 1/4]
         """
         maxima_evals = self._maxima_(maxima).eigenvalues()._sage_()
         if not len(maxima_evals):
@@ -275,6 +287,12 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             ...
             NotImplementedError: generalized eigenvector decomposition is
             implemented for RDF and CDF, but not for Symbolic Ring
+
+        Check that :trac:`23332` is fixed::
+
+            sage: matrix([[x, x^2], [1, 0]]).eigenvectors_left()
+            [(-1/2*x*(sqrt(5) - 1), [(1, -1/2*x*(sqrt(5) + 1))], 1),
+             (1/2*x*(sqrt(5) + 1), [(1, 1/2*x*(sqrt(5) - 1))], 1)]
         """
         if other is not None:
             raise NotImplementedError('generalized eigenvector decomposition '
@@ -334,6 +352,12 @@ cdef class Matrix_symbolic_dense(Matrix_generic_dense):
             ...
             NotImplementedError: generalized eigenvector decomposition is
             implemented for RDF and CDF, but not for Symbolic Ring
+
+        Check that :trac:`23332` is fixed::
+
+            sage: matrix([[x, x^2], [1, 0]]).eigenvectors_right()
+            [(-1/2*x*(sqrt(5) - 1), [(1, -1/2*(sqrt(5) + 1)/x)], 1),
+             (1/2*x*(sqrt(5) + 1), [(1, 1/2*(sqrt(5) - 1)/x)], 1)]
         """
         return self.transpose().eigenvectors_left(other=other)
 

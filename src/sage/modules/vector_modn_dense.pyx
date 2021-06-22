@@ -164,7 +164,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
 
     def __cinit__(self, parent=None, x=None, coerce=True, copy=True):
         self._entries = NULL
-        self._is_mutable = 1
+        self._is_immutable = 0
         if not parent is None:
             self._init(parent.degree(), parent, parent.base_ring().order())
 
@@ -274,7 +274,8 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
 
 
     def __reduce__(self):
-        return unpickle_v1, (self._parent, self.list(), self._degree, self._p, self._is_mutable)
+        return unpickle_v1, (self._parent, self.list(), self._degree,
+                             self._p, not self._is_immutable)
 
     cpdef _add_(self, right):
         cdef Vector_modn_dense z, r
@@ -374,5 +375,5 @@ def unpickle_v1(parent, entries, degree, p, is_mutable):
     v._init(degree, parent, p)
     for i from 0 <= i < degree:
         v._entries[i] = entries[i]
-    v._is_mutable = is_mutable
+    v._is_immutable = not is_mutable
     return v

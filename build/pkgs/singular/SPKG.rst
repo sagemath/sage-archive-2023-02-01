@@ -35,8 +35,6 @@ Dependencies
 Special Update/Build Instructions
 ---------------------------------
 
-See spkg-src to create the source tarball.
-
 Other notes:
 
 -  If the environment variable SAGE_DEBUG is set to "yes", then

@@ -457,7 +457,7 @@ def matrix(*args, **kwds):
     Check conversion from numpy::
 
         sage: import numpy
-        sage: n = numpy.array([[numpy.complex(0,1),numpy.complex(0,2)],[3,4]],complex)
+        sage: n = numpy.array([[complex(0,1),complex(0,2)],[3,4]],complex)
         sage: m = matrix(n); m; m.parent()
         [1.0*I 2.0*I]
         [  3.0   4.0]
@@ -573,6 +573,13 @@ def matrix(*args, **kwds):
 
         sage: matrix(ZZ, [[0] for i in range(10^5)]).is_zero()
         True
+
+    Check :trac:`24459`::
+
+        sage: Matrix(ZZ, sys.maxsize, sys.maxsize)
+        Traceback (most recent call last):
+        ...
+        RuntimeError...
 
     Test a simple ``_matrix_`` method. Note that we are ignoring
     ``base`` which is inefficient but allowed::

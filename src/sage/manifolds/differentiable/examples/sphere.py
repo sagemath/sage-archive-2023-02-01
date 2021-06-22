@@ -253,8 +253,9 @@ class Sphere(PseudoRiemannianSubmanifold):
     Each `n`-sphere is a compact manifold and a complete metric space::
 
         sage: S2.category()
-        Join of Category of compact topological spaces and Category of
-         smooth manifolds over Real Field with 53 bits of precision and
+        Join of Category of compact topological spaces and Category of smooth
+         manifolds over Real Field with 53 bits of precision and Category of
+         connected manifolds over Real Field with 53 bits of precision and
          Category of complete metric spaces
 
     If not stated otherwise, each `n`-sphere is automatically endowed with
@@ -274,12 +275,9 @@ class Sphere(PseudoRiemannianSubmanifold):
         sage: stereoN, stereoS = S2.coordinate_charts('stereographic')
         sage: stereoN, stereoS
         (Chart (S^2-{NP}, (y1, y2)), Chart (S^2-{SP}, (yp1, yp2)))
-        sage: S2.open_covers()
-        [[2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3],
-         [Open subset S^2-{NP} of the 2-sphere S^2 of radius 1 smoothly
-          embedded in the Euclidean space E^3,
-          Open subset S^2-{SP} of the 2-sphere S^2 of radius 1 smoothly
-          embedded in the Euclidean space E^3]]
+        sage: list(S2.open_covers())
+        [Set {S^2} of open subsets of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3,
+         Set {S^2-{NP}, S^2-{SP}} of open subsets of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3]
 
     .. NOTE::
 
@@ -377,7 +375,7 @@ class Sphere(PseudoRiemannianSubmanifold):
                     latex_name += r'({})'.format(center._latex_name)
         if category is None:
             category = Manifolds(RR).Smooth() & MetricSpaces().Complete() & \
-                       TopologicalSpaces().Compact()
+                       TopologicalSpaces().Compact().Connected()
         # initialize
         PseudoRiemannianSubmanifold.__init__(self, n, name,
                                              ambient=ambient_space,
@@ -500,11 +498,10 @@ class Sphere(PseudoRiemannianSubmanifold):
         TESTS::
 
             sage: S2 = manifolds.Sphere(2)
-            sage: S2.open_covers()
-            [[2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3],
-             [Open subset S^2-{NP} of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3,
-              Open subset S^2-{SP} of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3]]
-            sage: S2.subsets()  # random
+            sage: list(S2.open_covers())
+            [Set {S^2} of open subsets of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3,
+             Set {S^2-{NP}, S^2-{SP}} of open subsets of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3]
+            sage: frozenset(S2.subsets())  # random
             frozenset({Euclidean 2-sphere S^2 of radius 1,
              Open subset A of the Euclidean 2-sphere S^2 of radius 1,
              Open subset S^2-{NP,SP} of the Euclidean 2-sphere S^2 of radius 1,

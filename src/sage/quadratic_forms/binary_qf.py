@@ -1230,7 +1230,7 @@ class BinaryQF(SageObject):
                 a = selfred._a
                 ao = otherred._a
                 assert otherred._b == b
-                # p. 359 of Conway-Sloane [Co1999]_
+                # p. 359 of Conway-Sloane [CS1999]_
                 # but `2b` in their notation is `b` in our notation
                 is_properly_equiv = ((a-ao) % b == 0)
                 if proper:

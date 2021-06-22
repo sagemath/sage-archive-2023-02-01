@@ -295,15 +295,21 @@ Likewise for :envvar:`CXXFLAGS`, :envvar:`FCFLAGS`, and :envvar:`F77FLAGS`.
 
     .. CODE-BLOCK:: text
 
-        exec sage-python23 spkg-install.py
+        exec python3 spkg-install.py
 
-   In more detail: ``sage-bootstrap-python`` runs the version of Python
-   pre-installed on the machine. Use this if the package may be
-   installed before Sage has built its own Python. ``sage-python23``
-   runs the version of Python built by Sage, either Python 2 or 3,
-   depending on how the build was configured; you should use this
-   script if you are installing a Python package, to make sure that
-   the libraries are installed in the right place.
+   In more detail: ``sage-bootstrap-python`` runs a version of Python
+   pre-installed on the machine, which is a build prerequisite of Sage.
+   Note that ``sage-bootstrap-python`` accepts a wide range of Python
+   versions, Python >= 2.6 and >= 3.4, see ``SAGE_ROOT/build/tox.ini``
+   for details.  You should only use ``sage-bootstrap-python`` for
+   installation tasks that must be able to run before Sage has made
+   ``python3`` available.  It must not be used for running ``pip`` or
+   ``setup.py`` for any package.
+
+   ``python3`` runs the version of Python managed by Sage (either its
+   own installation of Python 3 from an SPKG or a venv over a system
+   python3.  You should use this if you are installing a Python package
+   to make sure that the libraries are installed in the right place.
 
    By the way, there is also a script ``sage-python``. This should be
    used at runtime, for example in scripts in ``SAGE_LOCAL/bin`` which
@@ -379,9 +385,9 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
 
 - ``sdh_configure [...]``: Runs ``./configure`` with arguments
   ``--prefix="$SAGE_LOCAL"``, ``--libdir="$SAGE_LOCAL/lib"``,
-  ``--disable-maintainer-mode``, and
-  ``--disable-dependency-tracking``. Additional arguments to
-  ``./configure`` may be given as arguments.
+  ``--disable-static``, ``--disable-maintainer-mode``, and
+  ``--disable-dependency-tracking``. Additional arguments to ``./configure``
+  may be given as arguments.
 
 - ``sdh_make [...]``: Runs ``$MAKE`` with the default target.
    Additional arguments to ``$MAKE`` may be given as arguments.
@@ -539,16 +545,56 @@ Where ``sdh_pip_install`` is a function provided by ``sage-dist-helpers`` that
 points to the correct ``pip`` for the Python used by Sage, and includes some
 default flags needed for correct installation into Sage.
 
-If pip will not work but a command like ``python setup.py install``
-will, then the ``spkg-install.in`` script template should call
+If pip will not work but a command like ``python3 setup.py install``
+will, you may use ``sdh_setup_bdist_wheel``, followed by
+``sdh_store_and_pip_install_wheel .``.
+
+For ``spkg-check.in`` script templates, make sure to call
 ``sage-python23`` rather than ``python``. This will ensure that the
-correct version of Python is used to build and install the
-package. The same holds for ``spkg-check.in`` script templates; for
-example, the ``scipy`` ``spkg-check.in`` file contains the line
+correct version of Python is used to check the package.
+The same holds for ; for example, the ``scipy`` ``spkg-check.in``
+file contains the line
 
 .. CODE-BLOCK:: bash
 
     exec sage-python23 spkg-check.py
+
+All normal Python packages must have a file ``install-requires.txt``.
+If a Python package is available on PyPI, this file must contain the
+name of the package as it is known to PyPI.  Optionally,
+``install-requires.txt`` can encode version constraints (such as lower
+and upper bounds).  The constraints are in the format of the
+``install_requires`` key of `setup.cfg
+<https://setuptools.readthedocs.io/en/latest/userguide/declarative_config.html>`_
+or `setup.py
+<https://packaging.python.org/discussions/install-requires-vs-requirements/#id5>`_.
+
+The files may include comments (starting with ``#``) that explain why a particular lower
+bound is warranted or why we wish to include or reject certain versions.
+
+For example:
+
+.. CODE-BLOCK:: bash
+
+    $ cat build/pkgs/sphinx/package-version.txt
+    3.1.2.p0
+    $ cat build/pkgs/sphinx/install-requires.txt
+    # gentoo uses 3.2.1
+    sphinx >=3, <3.3
+
+The comments may include links to Trac tickets, as in the following example:
+
+.. CODE-BLOCK:: bash
+
+    $ cat build/pkgs/packaging/install-requires.txt
+    packaging >=18.0
+    # Trac #30975: packaging 20.5 is known to work but we have to silence "DeprecationWarning: Creating a LegacyVersion"
+
+The currently encoded version constraints are merely a starting point.
+Developers and downstream packagers are invited to refine the version
+constraints based on their experience and tests.  When a package
+update is made in order to pick up a critical bug fix from a newer
+version, then the lower bound should be adjusted.
 
 
 .. _section-spkg-SPKG-txt:

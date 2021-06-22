@@ -240,7 +240,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             sage: p.function()
             x + 1
             sage: p_form = p.get_form(nab); p_form.display_expansion()
-            p(TM, nabla_g) = [1] + [0] + [0] + [0] + [0]
+            p(TM, nabla_g) = 1
 
         .. SEEALSO::
 

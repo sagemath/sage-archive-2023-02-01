@@ -5,7 +5,11 @@ from .PyPolyBoRi import (BooleSet, Polynomial,
 
 
 def all_monomials_of_degree_d_old(d, variables):
+    """
+    Return monomials of degree d in the given variables.
 
+    Obsolete version ?
+    """
     if d == 0:
         return BooleConstant(1)
 
@@ -26,6 +30,9 @@ def all_monomials_of_degree_d_old(d, variables):
 
 
 def all_monomials_of_degree_d(d, variables):
+    """
+    Return monomials of degree d in the given variables.
+    """
     variables = Monomial(variables)
     variables = list(variables.variables())
     if not variables:
@@ -57,6 +64,9 @@ def all_monomials_of_degree_d(d, variables):
 
 
 def power_set(variables):
+    """
+    Return all subsets of the given variables.
+    """
     if not variables:
         return BooleConstant(1)
     variables = sorted(set(variables), reverse=True, key=top_index)

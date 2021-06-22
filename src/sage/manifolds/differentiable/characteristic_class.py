@@ -109,6 +109,7 @@ potential `A(t)`::
     sage: nab[0, 0].display()
     connection (0,0) of bundle connection nabla^E w.r.t. Local frame
      (E|_M, (e_0)) = I*A(t) dx
+    sage: nab.set_immutable()
 
 The Chern character is then given by::
 
@@ -116,8 +117,12 @@ The Chern character is then given by::
     Characteristic class ch of additive type associated to e^x on the
      Differentiable complex vector bundle E -> M of rank 1 over the base space
      2-dimensional Lorentzian manifold M
+
+The corresponding characteristic form w.r.t. the bundle connection can be
+obtained via :meth:`get_form`.
+
     sage: ch_form = ch.get_form(nab); ch_form.display_expansion()
-    ch(E, nabla^E) = [1] + [0] + [1/2*d(A)/dt/pi dt/\dx]
+    ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt/\dx
 
 .. _multiplicative:
 
@@ -182,6 +187,7 @@ is given by `1+|z|^2`::
     sage: omega = U.one_form(name='omega')
     sage: omega[c_comp.frame(),1,c_comp] = zbar/(1+z*zbar)
     sage: nab[e, 1, 1] = omega
+    sage: nab.set_immutable()
 
 Now, the Chern class can be constructed::
 
@@ -191,7 +197,7 @@ Now, the Chern class can be constructed::
      base space 2-dimensional differentiable manifold CP^1
     sage: c_form = c.get_form(nab)
     sage: c_form.display_expansion(c_comp.frame(), chart=c_comp)
-    c(gamma^1, nabla) = [1] + [0] + [1/2*I/(pi + pi*z^2*zbar^2 + 2*pi*z*zbar) dz/\dzbar]
+    c(gamma^1, nabla) = 1 + 1/2*I/(pi + pi*z^2*zbar^2 + 2*pi*z*zbar) dz/\dzbar
 
 Since `U` and `\CC\mathbf{P}^1` differ only by a point and therefore a null
 set, it is enough to integrate the top form over the domain `U`::
@@ -296,8 +302,7 @@ Now the representative of the Euler class with respect to the connection
     sage: cmatrices = {eU: cmatrix_U, eV: cmatrix_V}
     sage: e_class_form = e_class.get_form(nab, cmatrices)
     sage: e_class_form.display_expansion()
-    e(TS2, nabla_g) = [0] + [0] + [2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 +
-     2*(pi + pi*x^2)*y^2) dx/\dy]
+    e(TS2, nabla_g) = 2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 + 2*(pi + pi*x^2)*y^2) dx/\dy
 
 Let us check whether this form represents the Euler class correctly::
 
@@ -320,8 +325,10 @@ that our form actually represents the Euler class appropriately.
 #******************************************************************************
 
 from sage.structure.unique_representation import UniqueRepresentation
+from sage.misc.cachefunc import cached_method
 from sage.structure.sage_object import SageObject
 from sage.symbolic.ring import SR
+from sage.rings.rational_field import QQ
 
 ################################################################################
 ## Separate functions
@@ -473,7 +480,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
         self._coeff_list = self._get_coeff_list()
         self._init_derived()
 
-    def _get_coeff_list(self):
+    def _get_coeff_list(self, distinct_real=True):
         r"""
         Return the list of coefficients of the Taylor expansion at zero of the
         function.
@@ -491,7 +498,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
         def_var = self._func.default_variable()
         # Use a complex variable without affecting the old one:
         new_var = SR.symbol('x_char_class_', domain='complex')
-        if self._vbundle._field_type == 'real':
+        if self._vbundle._field_type == 'real' and distinct_real:
             if self._class_type == 'additive':
                 func = self._func.subs({def_var: new_var ** 2}) / 2
             elif self._class_type == 'multiplicative':
@@ -507,6 +514,9 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
                         self._func.subs({def_var: -new_var})) / 2
         else:
             func = self._func.subs({def_var: new_var})
+
+        if self._vbundle._field_type == 'real' and not distinct_real:
+            pow_range = pow_range // 2
 
         return func.taylor(new_var, 0, pow_range).coefficients(sparse=False)
 
@@ -623,6 +633,106 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
         """
         return self._func
 
+    @cached_method
+    def sequence(self, ring=QQ):
+        r"""
+        Return the multiplicative/additive sequence (depending on the class
+        type of ``self``) of ``self.function`` in terms of elementary symmetric
+        functions `e_i`.
+
+        If `f(x)` is the function with respect to ``self`` then its
+        multiplicative sequence is given by
+
+        .. MATH::
+
+            \Pi_{i = 1}^n f(x_i) = \sum^n_{i=0} c_i \, e_i(x_1, \ldots, x_n)
+
+        whereas its additive sequence is given by
+
+        .. MATH::
+
+            \sum_{i = 1}^n f(x_i) = \sum^n_{i=0} c_i \, e_i(x_1, \ldots, x_n).
+
+        Here, `e_i` denotes the `i`-th elementary symmetric function.
+
+        INPUT:
+
+        - ``ring`` -- (default: ``QQ``) the base ring of the symmetric
+          function ring; in most cases, one can assume ``QQ`` which is
+          supposed to work faster, if it doesn't work, try ``SR`` instead.
+
+        OUTPUT:
+
+        - a symmetric function in the elementary symmetric basis represented
+          by an instance of
+          :class:`~sage.combinat.sf.elementary.SymmetricFunctionAlgebra_elementary`
+
+        EXAMPLES:
+
+        Consider the multiplicative sequence of the `\hat{A}` class::
+
+            sage: M = Manifold(8, 'M')
+            sage: A = M.tangent_bundle().characteristic_class('AHat')
+            sage: A.sequence()
+            e[] - 1/24*e[1] + 7/5760*e[1, 1] - 1/1440*e[2]
+
+        This is an element of the symmetric functions over the rational field::
+
+            sage: A.sequence().parent()
+            Symmetric Functions over Rational Field in the elementary basis
+
+        To get the sequence as an element of usual polynomial ring, we can do
+        the following::
+
+            sage: P = PolynomialRing(QQ, 'e', 3)
+            sage: poly = P(sum(c * prod(P.gens()[i] for i in p)
+            ....:          for p, c in A.sequence()))
+            sage: poly
+            7/5760*e1^2 - 1/24*e1 - 1/1440*e2 + 1
+
+        Get an additive sequence::
+
+            sage: E = M.vector_bundle(2, 'E', field='complex')
+            sage: ch = E.characteristic_class('ChernChar')
+            sage: ch.sequence()
+            2*e[] + e[1] + 1/2*e[1, 1] + 1/6*e[1, 1, 1] + 1/24*e[1, 1, 1, 1]
+             - e[2] - 1/2*e[2, 1] - 1/6*e[2, 1, 1] + 1/12*e[2, 2] + 1/2*e[3]
+             + 1/6*e[3, 1] - 1/6*e[4]
+
+        .. SEEALSO::
+
+            See :class:`~sage.combinat.sf.elementary.SymmetricFunctionAlgebra_elementary`
+            for detailed information about elementary symmetric functions.
+
+        """
+        if self._class_type == 'Pfaffian':
+            return NotImplementedError('this functionality is not supported '
+                                       'for characteristic classes of '
+                                       'Pfaffian type')
+
+        from sage.combinat.sf.sf import SymmetricFunctions
+        from sage.misc.misc_c import prod
+
+        Sym = SymmetricFunctions(ring)
+
+        coeff = self._get_coeff_list(distinct_real=False)
+        from sage.combinat.partition import Partitions
+        m = Sym.m()
+        if self._class_type == 'multiplicative':
+            # Get the multiplicative sequence in the monomial basis:
+            mon_pol = m._from_dict({p: prod(ring(coeff[i]) for i in p)
+                                    for k in range(len(coeff))
+                                    for p in Partitions(k)})
+        elif self._class_type == 'additive':
+            # Express the additive sequence in the monomial basis, the 0th
+            # order term must be treated separately:
+
+            m_dict = {Partitions(0)([]): self._vbundle._rank * ring(coeff[0])}
+            m_dict.update({Partitions(k)([k]): ring(coeff[k]) for k in range(1, len(coeff))})
+            mon_pol = m._from_dict(m_dict)
+        # Convert to elementary symmetric polynomials:
+        return Sym.e()(mon_pol)
+
     def get_form(self, connection, cmatrices=None):
         r"""
         Return the form representing ``self`` with respect to the given
@@ -671,9 +781,18 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: omega = M.one_form(name='omega')
             sage: A = function('A')
             sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+            sage: nab.set_immutable()
             sage: nab[0, 0].display()
             connection (0,0) of bundle connection nabla^E w.r.t. Local frame
              (E|_M, (e_0)) = I*A(t) dx
+
+        .. NOTE::
+
+            The characteristic form is strongly linked to the connection
+            which is why we must make the connection unchangeable,
+            i.e. immutable, with the command
+            :meth:`sage.manifolds.differentiable.bundle_connection.BundleConnection.set_immutable`
+            before we can use :meth:`get_form`.
 
         The Chern character is then given by::
 
@@ -691,7 +810,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: ch_form.display()
             ch(E, nabla^E) = ch_0(E, nabla^E) + zero + ch_1(E, nabla^E)
             sage: ch_form.display_expansion()
-            ch(E, nabla^E) = [1] + [0] + [1/2*d(A)/dt/pi dt/\dx]
+            ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt/\dx
 
         Due to long computation times, the form is saved::
 

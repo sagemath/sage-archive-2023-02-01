@@ -55,7 +55,7 @@ class NumberFieldHomomorphism_im_gens(RingHomomorphism_im_gens):
               Defn: z |--> z^2,
              Ring endomorphism of Cyclotomic Field of order 5 and degree 4
               Defn: z |--> z^3)
-            sage: (tau4, ~tau4)
+            sage: (tau3, ~tau3)
             (Ring endomorphism of Cyclotomic Field of order 5 and degree 4
               Defn: z |--> z^3,
              Ring endomorphism of Cyclotomic Field of order 5 and degree 4

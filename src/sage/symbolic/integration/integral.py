@@ -901,8 +901,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         4
 
         sage: f = sqrt(x + 1/x^2)
-        sage: integrate(f, x)
-        1/3*(2*sqrt(x^3 + 1) - log(sqrt(x^3 + 1) + 1) + log(abs(sqrt(x^3 + 1) - 1)))*sgn(x)
+        sage: actual = integrate(f, x)
+        sage: expected = (1/3*(2*sqrt(x^3 + 1) - log(sqrt(x^3 + 1) + 1)
+        ....:             + log(abs(sqrt(x^3 + 1) - 1)))*sgn(x))
+        sage: bool(actual == expected)
+        True
 
         sage: g = abs(sin(x)*cos(x))
         sage: g.integrate(x, 0, 2*pi)
@@ -912,7 +915,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         2*sqrt(x*sgn(x))/sgn(x)
 
         sage: integrate(sgn(x) - sgn(1-x), x)
-        x*(sgn(x) - sgn(-x + 1)) + sgn(-x + 1)
+        abs(x - 1) + abs(x)
 
         sage: integrate(1 / (1 + abs(x-5)), x, -5, 6)
         log(11) + log(2)
@@ -972,6 +975,15 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: f = (I*a*tan(d*x + c) + a)^3*tan(d*x + c)
         sage: integrate(f, x, algorithm="fricas")  # optional - fricas
         -2/3*(24*a^3*e^(4*I*d*x + 4*I*c) + 33*a^3*e^(2*I*d*x + 2*I*c) + 13*a^3 + 6*(a^3*e^(6*I*d*x + 6*I*c) + 3*a^3*e^(4*I*d*x + 4*I*c) + 3*a^3*e^(2*I*d*x + 2*I*c) + a^3)*log(e^(2*I*d*x + 2*I*c) + 1))/(d*e^(6*I*d*x + 6*I*c) + 3*d*e^(4*I*d*x + 4*I*c) + 3*d*e^(2*I*d*x + 2*I*c) + d)
+
+    The fundamental theorem of calculus holds for elliptic integrals
+    of the second kind, :trac:`26563`::
+
+        sage: x,m = SR.var('x,m', domain='real')    # long time
+        sage: integrate(elliptic_e(x,m).diff(x), x) # long time
+        elliptic_e(x, m)
+
+
     """
     expression, v, a, b = _normalize_integral_input(expression, v, a, b)
     if algorithm is not None:

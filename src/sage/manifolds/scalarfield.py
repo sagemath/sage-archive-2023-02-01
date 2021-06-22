@@ -2547,7 +2547,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         return self._express[chart](*(p._coordinates[chart]))
 
     def preimage(self, codomain_subset, name=None, latex_name=None):
-        """
+        r"""
         Return the preimage of ``codomain_subset``.
 
         An alias is :meth:`pullback`.
@@ -2583,7 +2583,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         if self.is_trivial_zero() and 0 in codomain_subset:
             return self.domain()
         from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
-        return ManifoldSubsetPullback(self, codomain_subset=codomain_subset,
+        return ManifoldSubsetPullback(self, codomain_subset,
                                       name=name, latex_name=latex_name)
 
     pullback = preimage

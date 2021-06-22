@@ -14,21 +14,20 @@ Manifold Subsets Defined as Pullbacks of Subsets under Continuous Maps
 # ****************************************************************************
 
 from sage.categories.sets_cat import Sets, EmptySetError
-from sage.categories.modules_with_basis import ModulesWithBasis as FreeModules
 from sage.categories.metric_spaces import MetricSpaces
-from sage.modules.free_module import is_FreeModule
+from sage.modules.free_module import is_FreeModule, FreeModule
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.symbolic.ring import SR
 from sage.modules.free_module_element import vector
 from sage.manifolds.subset import ManifoldSubset
-from sage.manifolds.continuous_map import ContinuousMap
 from sage.manifolds.chart import Chart
 from sage.manifolds.scalarfield import ScalarField
 from sage.sets.real_set import RealSet
 from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.geometry.relative_interior import RelativeInterior
+
 
 class ManifoldSubsetPullback(ManifoldSubset):
 
@@ -55,7 +54,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
         sage: r_squared.set_immutable()
         sage: cl_I = RealSet([1, 4]); cl_I
         [1, 4]
-        sage: cl_O = ManifoldSubsetPullback(r_squared, None, cl_I); cl_O
+        sage: cl_O = ManifoldSubsetPullback(r_squared, cl_I); cl_O
         Subset f_inv_[1, 4] of the 2-dimensional topological manifold R^2
         sage: M.point((0, 0)) in cl_O
         False
@@ -66,7 +65,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         sage: I = RealSet((1, 4)); I
         (1, 4)
-        sage: O = ManifoldSubsetPullback(r_squared, None, I); O
+        sage: O = ManifoldSubsetPullback(r_squared, I); O
         Open subset f_inv_(1, 4) of the 2-dimensional topological manifold R^2
         sage: M.point((1, 0)) in O
         False
@@ -77,7 +76,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [2, 1]]); P
         A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
-        sage: S = ManifoldSubsetPullback(c_cart, None, P); S
+        sage: S = ManifoldSubsetPullback(c_cart, P); S
         Subset x_y_inv_P of the 2-dimensional topological manifold R^2
         sage: M((1, 2)) in S
         True
@@ -88,7 +87,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         sage: int_P = P.interior(); int_P
         Relative interior of a 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
-        sage: int_S = ManifoldSubsetPullback(c_cart, None, int_P, name='int_S'); int_S
+        sage: int_S = ManifoldSubsetPullback(c_cart, int_P, name='int_S'); int_S
         Open subset int_S of the 2-dimensional topological manifold R^2
         sage: M((0, 0)) in int_S
         False
@@ -120,14 +119,14 @@ class ManifoldSubsetPullback(ManifoldSubset):
          to the 3-dimensional topological manifold M
         sage: phi_without_t.expr()
         (u, v, u^2 + v^2)
-        sage: D = ManifoldSubsetPullback(phi_without_t, codomain_subset=S); D
+        sage: D = ManifoldSubsetPullback(phi_without_t, S); D
         Subset f_inv_S of the 2-dimensional topological submanifold N embedded in the 3-dimensional topological manifold M
         sage: N.point((2,0)) in D
         False
 
     """
     @staticmethod
-    def __classcall_private__(cls, map, inverse=None, codomain_subset=None,
+    def __classcall_private__(cls, map, codomain_subset, inverse=None,
                               name=None, latex_name=None):
         """
         Normalize arguments and delegate to other constructors.
@@ -139,9 +138,9 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
             sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [3, 4]]); P
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
-            sage: S = ManifoldSubsetPullback(c_cart, None, P); S
+            sage: S = ManifoldSubsetPullback(c_cart, P); S
             Subset x_y_inv_P of the 2-dimensional topological manifold R^2
-            sage: S is ManifoldSubsetPullback(c_cart, None, P)
+            sage: S is ManifoldSubsetPullback(c_cart, P)
             True
 
         """
@@ -162,13 +161,6 @@ class ManifoldSubsetPullback(ManifoldSubset):
             if is_mutable:
                 inverse = inverse.copy()
                 inverse.set_immutable()
-
-        if codomain_subset is None:
-            try:
-                codomain_subset = map.codomain()
-            except AttributeError:
-                if isinstance(codomain_subset, Chart):
-                    codomain_subset = FreeModule(self.base_field(), map.domain().dimension())
 
         if inverse is None:
             if isinstance(map, Chart):
@@ -212,7 +204,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
                 return map.domain().open_subset(name=name, latex_name=latex_name,
                                                 coord_def=coord_def)
 
-        self = super().__classcall__(cls, map, inverse, codomain_subset, name, latex_name)
+        self = super().__classcall__(cls, map, codomain_subset, inverse, name, latex_name)
 
         return self
 
@@ -361,10 +353,10 @@ class ManifoldSubsetPullback(ManifoldSubset):
         if interval.lower() != minus_infinity:
             if interval.lower_closed():
                 condition = (expr >= interval.lower())
-                negation  = (expr <  interval.lower())
+                negation = (expr < interval.lower())
             else:
-                condition = (expr >  interval.lower())
-                negation  = (expr <= interval.lower())
+                condition = (expr > interval.lower())
+                negation = (expr <= interval.lower())
             if negation:
                 # known to be false
                 return ()
@@ -375,10 +367,10 @@ class ManifoldSubsetPullback(ManifoldSubset):
         if interval.upper() != infinity:
             if interval.upper_closed():
                 condition = (expr <= interval.upper())
-                negation  = (expr >  interval.upper())
+                negation = (expr > interval.upper())
             else:
-                condition = (expr <  interval.upper())
-                negation  = (expr >= interval.upper())
+                condition = (expr < interval.upper())
+                negation = (expr >= interval.upper())
             if negation:
                 # known to be false
                 return ()
@@ -472,7 +464,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
             if constraint.is_inequality():
                 if relint:
-                    condition = (constraint.eval(expr) >  0)
+                    condition = (constraint.eval(expr) > 0)
                 else:
                     condition = (constraint.eval(expr) >= 0)
             else:
@@ -546,8 +538,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
         raise NotImplementedError
 
-
-    def __init__(self, map, inverse, codomain_subset, name, latex_name):
+    def __init__(self, map, codomain_subset, inverse, name, latex_name):
         r"""
         Construct a manifold subset that is a pullback.
 
@@ -560,7 +551,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: r_squared.set_immutable()
             sage: cl_I = RealSet([1, 4]); cl_I
             [1, 4]
-            sage: cl_O = ManifoldSubsetPullback(r_squared, None, cl_I); cl_O
+            sage: cl_O = ManifoldSubsetPullback(r_squared, cl_I); cl_O
             Subset f_inv_[1, 4] of the 2-dimensional topological manifold R^2
             sage: TestSuite(cl_O).run(skip='_test_elements')
 
@@ -587,7 +578,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: c_cart.<x,y,z> = M.chart() # Cartesian coordinates on R^3
             sage: Cube = polytopes.cube(); Cube
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
-            sage: McCube = ManifoldSubsetPullback(c_cart, None, Cube, name='McCube'); McCube
+            sage: McCube = ManifoldSubsetPullback(c_cart, Cube, name='McCube'); McCube
             Subset McCube of the 3-dimensional topological manifold R^3
             sage: p = McCube.an_element(); p
             Point on the 3-dimensional topological manifold R^3
@@ -595,7 +586,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             (0, 0, 0)
 
             sage: Empty = Polyhedron(ambient_dim=3)
-            sage: McEmpty = ManifoldSubsetPullback(c_cart, None, Empty, name='McEmpty'); McEmpty
+            sage: McEmpty = ManifoldSubsetPullback(c_cart, Empty, name='McEmpty'); McEmpty
             Subset McEmpty of the 3-dimensional topological manifold R^3
             sage: McEmpty.an_element()
             Traceback (most recent call last):
@@ -618,7 +609,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: c_cart.<x,y,z> = M.chart() # Cartesian coordinates on R^3
             sage: Cube = polytopes.cube(); Cube
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
-            sage: McCube = ManifoldSubsetPullback(c_cart, None, Cube, name='McCube'); McCube
+            sage: McCube = ManifoldSubsetPullback(c_cart, Cube, name='McCube'); McCube
             Subset McCube of the 3-dimensional topological manifold R^3
             sage: L = list(McCube.some_elements()); L
             [Point on the 3-dimensional topological manifold R^3,
@@ -636,7 +627,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
              (0, -5/8, 3/4)]
 
             sage: Empty = Polyhedron(ambient_dim=3)
-            sage: McEmpty = ManifoldSubsetPullback(c_cart, None, Empty, name='McEmpty'); McEmpty
+            sage: McEmpty = ManifoldSubsetPullback(c_cart, Empty, name='McEmpty'); McEmpty
             Subset McEmpty of the 3-dimensional topological manifold R^3
             sage: list(McEmpty.some_elements())
             []
@@ -672,7 +663,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             [-1, -1, -1],
             [-1, 1, -1],
             [-1, 1, 1]]
-            sage: McCube = ManifoldSubsetPullback(c_cart, None, Cube, name='McCube'); McCube
+            sage: McCube = ManifoldSubsetPullback(c_cart, Cube, name='McCube'); McCube
             Subset McCube of the 3-dimensional topological manifold R^3
             sage: p = M.point((0, 0, 0)); p
             Point on the 3-dimensional topological manifold R^3
@@ -714,7 +705,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
             sage: P.is_open()
             False
-            sage: McP = ManifoldSubsetPullback(c_cart, None, P, name='McP'); McP
+            sage: McP = ManifoldSubsetPullback(c_cart, P, name='McP'); McP
             Subset McP of the 2-dimensional topological manifold R^2
             sage: McP.is_open()
             False
@@ -737,7 +728,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: r_squared.set_immutable()
             sage: cl_I = RealSet([1, 2]); cl_I
             [1, 2]
-            sage: cl_O = ManifoldSubsetPullback(r_squared, None, cl_I); cl_O
+            sage: cl_O = ManifoldSubsetPullback(r_squared, cl_I); cl_O
             Subset f_inv_[1, 2] of the 2-dimensional topological manifold R^2
             sage: cl_O.is_closed()
             True
@@ -746,7 +737,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
             sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [3, 4]]); P
             A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
-            sage: McP = ManifoldSubsetPullback(c_cart, None, P, name='McP'); McP
+            sage: McP = ManifoldSubsetPullback(c_cart, P, name='McP'); McP
             Subset McP of the 2-dimensional topological manifold R^2
             sage: McP.is_closed()
             True
@@ -757,7 +748,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             Vector space of degree 2 and dimension 1 over Real Field with 53 bits of precision
             Basis matrix:
             [1.00000000000000 2.00000000000000]
-            sage: McV = ManifoldSubsetPullback(c_cart, None, V, name='McV'); McV
+            sage: McV = ManifoldSubsetPullback(c_cart, V, name='McV'); McV
             Subset McV of the 2-dimensional topological manifold R^2
             sage: McV.is_closed()
             True
@@ -769,7 +760,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             Echelon basis matrix:
             [1 0]
             [0 5]
-            sage: McW = ManifoldSubsetPullback(c_cart, None, W, name='McW'); McW
+            sage: McW = ManifoldSubsetPullback(c_cart, W, name='McW'); McW
             Subset McW of the 2-dimensional topological manifold R^2
             sage: McW.is_closed()
             True
@@ -777,7 +768,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
         The pullback of finite sets is closed::
 
             sage: F = Family([vector(QQ, [1, 2], immutable=True), vector(QQ, [2, 3], immutable=True)])
-            sage: McF = ManifoldSubsetPullback(c_cart, None, F, name='McF'); McF
+            sage: McF = ManifoldSubsetPullback(c_cart, F, name='McF'); McF
             Subset McF of the 2-dimensional topological manifold R^2
             sage: McF.is_closed()
             False
@@ -835,7 +826,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: r_squared.set_immutable()
             sage: I = RealSet.open_closed(1, 2); I
             (1, 2]
-            sage: O = ManifoldSubsetPullback(r_squared, None, I); O
+            sage: O = ManifoldSubsetPullback(r_squared, I); O
             Subset f_inv_(1, 2] of the 2-dimensional topological manifold R^2
             sage: latex(O)
             f^{-1}((1, 2])
@@ -851,8 +842,8 @@ class ManifoldSubsetPullback(ManifoldSubset):
             codomain_subset_closure = self._codomain_subset.closure()
         except AttributeError:
             return super().closure()
-        closure = ManifoldSubsetPullback(self._map, self._inverse,
-                                         codomain_subset_closure,
+        closure = ManifoldSubsetPullback(self._map, codomain_subset_closure,
+                                         inverse=self._inverse,
                                          name=name, latex_name=latex_name)
         closure.declare_superset(self)
         return closure

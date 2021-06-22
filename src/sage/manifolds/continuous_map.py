@@ -918,7 +918,7 @@ class ContinuousMap(Morphism):
         if self._is_identity:
             return codomain_subset
         from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
-        return ManifoldSubsetPullback(self, codomain_subset=codomain_subset,
+        return ManifoldSubsetPullback(self, codomain_subset,
                                       name=name, latex_name=latex_name)
 
     pullback = preimage

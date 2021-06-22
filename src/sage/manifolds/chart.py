@@ -1001,7 +1001,6 @@ class Chart(UniqueRepresentation, SageObject):
 
         EXAMPLES::
 
-            sage: from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
             sage: M = Manifold(2, 'R^2', structure='topological')
             sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
 
@@ -1068,7 +1067,7 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         from .subsets.pullback import ManifoldSubsetPullback
-        return ManifoldSubsetPullback(self, None, codomain_subset,
+        return ManifoldSubsetPullback(self, codomain_subset,
                                       name=name, latex_name=latex_name)
 
     pullback = preimage

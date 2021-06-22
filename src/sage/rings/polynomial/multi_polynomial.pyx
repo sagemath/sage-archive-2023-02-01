@@ -1118,6 +1118,26 @@ cdef class MPolynomial(CommutativeRingElement):
 
         return '%s!(%s)'%(R.name(), s)
 
+    def _giac_init_(self):
+        r"""
+        Return a Giac string representation of this polynomial.
+
+        TESTS::
+
+            sage: R.<x,y,z> = GF(101)['e,i'][]
+            sage: f = R('e*i') * x + y^2
+            sage: f._giac_init_()
+            '((1)*1)*sageVARy^2+((1)*sageVARe*sageVARi)*sageVARx'
+            sage: giac(f)
+            sageVARy^2+sageVARe*sageVARi*sageVARx
+            sage: giac(R.zero())
+            0
+        """
+        g = ['sageVAR' + x for x in self.parent().variable_names()]
+        s = '+'.join('(%s)*%s' % (c._giac_init_(),
+                                  m._repr_with_changed_varnames(g))
+                     for c, m in self)
+        return s if s else '0'
 
     def gradient(self):
         r"""

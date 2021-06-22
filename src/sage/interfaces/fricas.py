@@ -1476,6 +1476,23 @@ class FriCASElement(ExpectElement):
             sage: fricas(s).sage()                                              # optional - fricas
             1/3840*n^10 - 5/2304*n^9 + 5/1152*n^8 + 31/5760*n^7 - 229/11520*n^6 - 5/2304*n^5 + 1/36*n^4 - 1/960*n^3 - 1/80*n^2
 
+        Some checks for digamma and polygamma (:trac:`31853`)::
+
+            sage: fricas.digamma(1.0)                                           # optional - fricas
+            - 0.5772156649_0153286061
+            sage: psi(1.0)
+            -0.577215664901533
+            sage: fricas.polygamma(1, 1.0)                                      # optional - fricas
+            1.6449340668482269
+            sage: psi(1, 1).n()
+            1.64493406684823
+
+            sage: var("w")
+            w
+            sage: fricas.laplace(log(x), x, w).sage()                           # optional - fricas
+            -(euler_gamma + log(w))/w
+            sage: fricas(laplace(log(x), x, w)).sage()                          # optional - fricas
+            -(euler_gamma + log(w))/w
 
         Check that :trac:`25224` is fixed::
 
@@ -1585,12 +1602,14 @@ class FriCASElement(ExpectElement):
             sage: fricas(A).D(x).sage() - diff(A, x)                            # optional - fricas
             0
 
-        Check that :trac:`31849` is fixed::
+        Check that :trac:`31858` is fixed::
 
-            sage: var("D")
-            D
-            sage: integrate(D/x, x, algorithm="fricas")                         # optional - fricas
-            D*log(x)
+            sage: fricas.Gamma(3/2).sage()                                      # optional - fricas
+            1/2*sqrt(pi)
+            sage: fricas.Gamma(3/4).sage()                                      # optional - fricas
+            gamma(3/4)
+            sage: fricas.Gamma(3, 2).sage()                                     # optional - fricas
+            gamma(3, 2)
 
         """
         from sage.libs.pynac.pynac import register_symbol
@@ -1599,6 +1618,7 @@ class FriCASElement(ExpectElement):
         from sage.functions.trig import sin, cos, tan, cot, sec, csc
         from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
         from sage.functions.other import abs
+        from sage.functions.gamma import gamma
         from sage.misc.functional import symbolic_sum, symbolic_prod
         from sage.symbolic.constants import I, pi
         register_symbol(pi, {'fricas': 'pi'}) # pi is also a function in fricas
@@ -1614,6 +1634,7 @@ class FriCASElement(ExpectElement):
         register_symbol(coth, {'fricas': 'coth'})
         register_symbol(sech, {'fricas': 'sech'})
         register_symbol(csch, {'fricas': 'csch'})
+        register_symbol(gamma, {'fricas': 'Gamma'})
         register_symbol(lambda x, y: x + y, {'fricas': '+'})
         register_symbol(lambda x, y: x - y, {'fricas': '-'})
         register_symbol(lambda x, y: x * y, {'fricas': '*'})

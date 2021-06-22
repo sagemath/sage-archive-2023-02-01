@@ -446,7 +446,7 @@ def complementary_spaces_modp(N,p,k0,n,elldash,LWBModp,bound):
     """
     CompSpacesCode = []
     ell = dimension_modular_forms(N,k0 + n*(p-1))
-    TotalBasisModp = matrix(GF(p),ell,elldash); # zero matrix
+    TotalBasisModp = matrix(GF(p), ell, elldash)  # zero matrix
 
     for i in range(n+1):
         NewBasisCodemi = random_new_basis_modp(N,p,k0 + i*(p-1),LWBModp,TotalBasisModp,elldash,bound)
@@ -751,8 +751,8 @@ def higher_level_UpGj(p, N, klist, m, modformsring, bound, extra_data=False):
         T = matrix(S,ell,elldash)
         for i in range(ell):
             ei = R(e[i].list())
-            Gkdivei = Gkdiv*ei; # act by G^kdiv
-            for j in range(0, elldash):
+            Gkdivei = Gkdiv*ei  # act by G^kdiv
+            for j in range(elldash):
                 T[i,j] = Gkdivei[p*j]
 
         verbose("done steps 4b and 5", t)

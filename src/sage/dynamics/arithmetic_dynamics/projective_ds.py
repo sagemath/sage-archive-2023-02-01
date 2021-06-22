@@ -52,6 +52,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from typing_extensions import final
 from sage.arith.misc import is_prime
 from sage.categories.fields import Fields
 from sage.categories.function_fields import FunctionFields
@@ -69,6 +70,7 @@ from sage.modules.free_module_element import vector
 from sage.rings.all import Integer
 from sage.arith.all import gcd, lcm, next_prime, binomial, primes, moebius
 from sage.categories.finite_fields import FiniteFields
+from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
 from sage.rings.complex_mpfr import ComplexField
 from sage.rings.finite_rings.finite_field_constructor import (is_FiniteField, GF,
                                                               is_PrimeFiniteField)
@@ -4351,7 +4353,55 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2])
+            sage: sorted(f.multiplier_spectra(2, type='point'))
+            [0, 1, 1, 1, 9]
+            sage: sorted(f.multiplier_spectra(2, type='cycle'))
+            [0, 1, 1, 9]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2, z^2, y^2])
+            sage: f.multiplier_spectra(1)
+            [
+            [                       2 1 - 1.732050807568878?*I]
+            [                       0                       -2],
+            [                       2 1 + 1.732050807568878?*I]  [ 0  0]  [ 0  0]
+            [                       0                       -2], [ 0 -2], [ 0 -2],
+            [ 0  0]  [0 0]  [ 2 -2]
+            [ 0 -2], [0 0], [ 0 -2]
+            ]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2, z^2, y^2])
+            sage: f.multiplier_spectra(2, formal=True)
+            [
+            [4 0]  [4 0]  [4 0]  [4 0]  [4 0]  [4 0]  [4 0]  [4 0]  [0 0]  [0 0]
+            [0 4], [0 0], [0 0], [0 4], [0 4], [0 0], [0 0], [0 4], [0 0], [0 0],
+            [4 0]  [4 0]  [4 0]  [4 0]
+            [0 4], [0 4], [0 0], [0 0]
+            ]
+
+        ::
+
+            sage: set_verbose(None)
+            sage: z = QQ['z'].0
+            sage: K.<w> = NumberField(z^4 - 4*z^2 + 1,'z')
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
+            sage: f = DynamicalSystem_projective([x^2 - w/4*y^2, y^2])
+            sage: sorted(f.multiplier_spectra(2, formal=False, type='cycle'))
+            [0,
+             0.0681483474218635? - 1.930649271699173?*I,
+             0.0681483474218635? + 1.930649271699173?*I,
+             5.931851652578137? + 0.?e-49*I]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([4608*x^10 - 2910096*x^9*y + 325988068*x^8*y^2 + 31825198932*x^7*y^3 - 4139806626613*x^6*y^4\
             - 44439736715486*x^5*y^5 + 2317935971590902*x^4*y^6 - 15344764859590852*x^3*y^7 + 2561851642765275*x^2*y^8\
             + 113578270285012470*x*y^9 - 150049940203963800*y^10, 4608*y^10])
@@ -4370,29 +4420,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: set_verbose(None)
-            sage: z = QQ['z'].0
-            sage: K.<w> = NumberField(z^4 - 4*z^2 + 1,'z')
-            sage: P.<x,y> = ProjectiveSpace(K,1)
-            sage: f = DynamicalSystem_projective([x^2 - w/4*y^2, y^2])
-            sage: sorted(f.multiplier_spectra(2, formal=False, type='cycle'))
-            [0,
-             0.0681483474218635? - 1.930649271699173?*I,
-             0.0681483474218635? + 1.930649271699173?*I,
-             5.931851652578137? + 0.?e-49*I]
-
-        ::
-
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2])
-            sage: sorted(f.multiplier_spectra(2, formal=False, type='cycle'))
-            [0, 1, 1, 9]
-            sage: sorted(f.multiplier_spectra(2, formal=False, type='point'))
-            [0, 1, 1, 1, 9]
-
-        ::
-
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 - 7/4*y^2, y^2])
             sage: f.multiplier_spectra(3, formal=True, type='cycle')
             [1, 1]
@@ -4401,7 +4429,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^4 + 3*y^4, 4*x^2*y^2])
             sage: f.multiplier_spectra(1, use_algebraic_closure=False)
             [0,
@@ -4418,7 +4446,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(GF(5),1)
+            sage: P.<x,y> = ProjectiveSpace(GF(5), 1)
             sage: f = DynamicalSystem_projective([x^4 + 2*y^4, 4*x^2*y^2])
             sage: f.multiplier_spectra(1, use_algebraic_closure=False)
             [0, 3*a + 3, 2*a + 1, 1, 1]
@@ -4459,6 +4487,27 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 + y^2, y^2])
             sage: sorted(f.multiplier_spectra(1))
             [0, 3, 6]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2, z^2, y^2])
+            sage: g = f.change_ring(QQbar)
+            sage: f.multiplier_spectra(1) == g.multiplier_spectra(1)
+            True
+
+        ::
+
+            sage: K.<w> = QuadraticField(5)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: f = DynamicalSystem_projective([x^2 + w*x*y + y^2, y^2, z^2])
+            sage: f.multiplier_spectra(1)
+            [
+            [1.000000000000000? - 1.572302755514847?*I                                         0]  [1.000000000000000? - 1.572302755514847?*I 0.618033988749895? - 1.757887921270715?*I]  [1.000000000000000? + 1.572302755514847?*I                                         0]  [1.000000000000000? + 1.572302755514847?*I 0.618033988749895? + 1.757887921270715?*I]
+            [                                        0                                         0], [                                        0                                         2], [                                        0                                         0], [                                        0                                         2],
+            [0 0]  [0 0]  [                 2 2.236067977499790?]
+            [0 0], [0 0], [                 0                  0]
+            ]
         """
         PS = self.domain()
         n = Integer(n)
@@ -4469,13 +4518,62 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise NotImplementedError("not implemented for subschemes")
 
         K = FractionField(self.codomain().base_ring())
-        if True:
-            K = FractionField(self.codomain().base_ring())
-            X = self.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
+        if PS.dimension_relative() > 1:
+            K = self.domain().base_ring()
+            number_field = False
+            finite_field = False
+
+            # if we are already using an algebraic closure, we move the
+            # map into a finite extension and set use_algebraic_closure to True
+            # in order to get a scheme defined over a finite extension
+            if K is QQbar:
+                K, pnts, embd = number_field_elements_from_algebraics([tup[0] for poly in self.defining_polynomials() for tup in list(poly)])
+                CR = self.domain().coordinate_ring().change_ring(K)
+                new_polys = []
+                counter = 0
+                for poly in self.defining_polynomials():
+                    new_poly = CR(0)
+                    for tup in poly:
+                        new_poly += pnts[counter]*CR(tup[1])
+                        counter += 1
+                    new_polys.append(new_poly)
+                f = DynamicalSystem_projective(new_polys)
+                use_algebraic_closure = True
+                number_field = True
+            elif isinstance(K, AlgebraicClosureFiniteField_generic):
+                final_degree = ZZ(1)
+                for poly in self.defining_polynomials():
+                    for tup in list(poly):
+                        final_degree = final_degree.lcm(tup[0]._level)
+                K = GF(K.characteristic()**final_degree)
+                CR = self.domain().coordinate_ring().change_ring(K)
+                new_polys = []
+                for poly in self.defining_polynomials():
+                    new_poly = CR(0)
+                    for tup in poly:
+                        deg = tup[1].degrees()
+                        var = CR(1)
+                        for i in range(len(deg)):
+                            var *= CR.gens()[i]**deg[i]
+                        coeff = tup[0].as_finite_field_element()[1]
+                        new_poly += coeff*var
+                    new_polys.append(new_poly)
+                f = DynamicalSystem_projective(new_polys)
+                use_algebraic_closure = True
+                finite_field = True
+            else:
+                f = self
+            X = f.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
             if use_algebraic_closure:
+                if K in NumberFields():
+                    number_field = True
+                if K in FiniteFields():
+                    finite_field = True
+                if not(number_field or finite_field):
+                    raise NotImplementedError('Only implemented for number fields, QQbar, finite fields, and algebraic closures of finite fields')
                 Kbar = K.algebraic_closure()
                 if Kbar.has_coerce_map_from(K):
-                    f = self.change_ring(Kbar)
+                    f = f.change_ring(Kbar)
                     rat_points = X.rational_points(F=Kbar)
                     embedding = Kbar
                 else:
@@ -4501,12 +4599,34 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             points = []
             for point in rat_points:
                 if use_algebraic_closure:
-                    K_prime, pnt_lst, embd = number_field_elements_from_algebraics(list(point) + [embedding(tup[0]) for poly in X.defining_polynomials() for tup in list(poly)])
-                    K_embeds = K.embeddings(K_prime)
-                    X_k = X.change_ring(K_embeds[0])
-                    new_point = X_k.ambient_space()(pnt_lst[:PS.dimension_relative()+1])
-                    for i in range(X_k.multiplicity(new_point)):
-                        points.append(PS(point))
+                    if number_field:
+                        K2, pnt_lst, embd = number_field_elements_from_algebraics(list(point))
+                        if K2 is QQ:
+                            for i in range(X.multiplicity(pnt_lst)):
+                                points.append(PS(point))
+                        elif K is QQ:
+                            X_k = X.change_ring(K2)
+                            for i in range(X_k.multiplicity(pnt_lst)):
+                                points.append(PS(point))
+                        else:
+                            _, K_embed, K2_embed, _ = K.composite_fields(K2, both_maps=True)[0]
+                            X_k = X.change_ring(K_embed)
+                            pnt_lst = [K2_embed(pnt) for pnt in pnt_lst]
+                            new_point = X_k.ambient_space()(pnt_lst)
+                            for i in range(X_k.multiplicity(new_point)):
+                                points.append(PS(point))
+                    else:
+                        final_degree = K.degree()
+                        new_point = []
+                        for num in list(point):
+                            ff_num = num.as_finite_field_element()[1]
+                            new_point.append(ff_num)
+                            degree = ff_num.parent().degree()
+                            final_degree = final_degree.lcm(degree)
+                        K_prime = GF(K.characteristic()**final_degree)
+                        X_k = X.change_ring(K_prime)
+                        for i in range(X_k.multiplicity(new_point)):
+                            points.append(PS(point))
                 else:
                     for i in range(X.multiplicity(point)):
                         points.append(point)

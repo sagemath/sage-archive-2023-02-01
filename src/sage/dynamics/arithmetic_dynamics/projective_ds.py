@@ -4467,43 +4467,83 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             raise ValueError("period must be a positive integer")
         if not is_ProjectiveSpace(PS):
             raise NotImplementedError("not implemented for subschemes")
-        if (PS.dimension_relative() > 1):
-            raise NotImplementedError("only implemented for dimension 1")
 
         K = FractionField(self.codomain().base_ring())
-        if use_algebraic_closure:
-            Kbar = K.algebraic_closure()
-            if Kbar.has_coerce_map_from(K):
-                f = self.change_ring(Kbar)
-            else:
-                embeds = K.embeddings(Kbar)
-                if embeds:
-                    f = self.change_ring(embeds[0])
+        if True:
+            K = FractionField(self.codomain().base_ring())
+            X = self.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
+            if use_algebraic_closure:
+                Kbar = K.algebraic_closure()
+                if Kbar.has_coerce_map_from(K):
+                    f = self.change_ring(Kbar)
+                    rat_points = X.rational_points(F=Kbar)
+                    embedding = Kbar
                 else:
-                    raise ValueError("no embeddings of base field to algebraic closure")
+                    embeds = K.embeddings(Kbar)
+                    embedding = embeds[0]
+                    if embeds:
+                        X2 = X.change_ring(embedding)
+                        rat_points = X2.rational_points()
+                        f = self.change_ring(embedding)
+                    else:
+                        raise ValueError("no embeddings of base field to algebraic closure")
+            else:
+                if PS.dimension_relative() == 1:
+                    embedding = self.field_of_definition_periodic(n, formal=formal, return_embedding=True)[1]
+                    X = X.change_ring(embedding)
+                    rat_points = X.rational_points()
+                    f = self.change_ring(embedding)
+                else:
+                    rat_points = X.rational_points()
+                    f = self
+                    embedding = f.base_ring()
+            PS = f.domain()
+            points = []
+            for point in rat_points:
+                if use_algebraic_closure:
+                    K_prime, pnt_lst, embd = number_field_elements_from_algebraics(list(point) + [embedding(tup[0]) for poly in X.defining_polynomials() for tup in list(poly)])
+                    K_embeds = K.embeddings(K_prime)
+                    X_k = X.change_ring(K_embeds[0])
+                    new_point = X_k.ambient_space()(pnt_lst[:PS.dimension_relative()+1])
+                    for i in range(X_k.multiplicity(new_point)):
+                        points.append(PS(point))
+                else:
+                    for i in range(X.multiplicity(point)):
+                        points.append(point)
         else:
-            embedding = self.field_of_definition_periodic(n, formal=formal, return_embedding=True)[1]
-            f = self.change_ring(embedding)
+            if use_algebraic_closure:
+                Kbar = K.algebraic_closure()
+                if Kbar.has_coerce_map_from(K):
+                    f = self.change_ring(Kbar)
+                else:
+                    embeds = K.embeddings(Kbar)
+                    if embeds:
+                        f = self.change_ring(embeds[0])
+                    else:
+                        raise ValueError("no embeddings of base field to algebraic closure")
+            elif PS.dimension_relative() == 1:
+                embedding = self.field_of_definition_periodic(n, formal=formal, return_embedding=True)[1]
+                f = self.change_ring(embedding)
 
-        PS = f.domain()
-        if not formal:
-            G = f.nth_iterate_map(n)
-            F = G[0]*PS.gens()[1] - G[1]*PS.gens()[0]
-        else:
-            # periodic points of formal period n are the roots of the nth dynatomic polynomial
-            F = f.dynatomic_polynomial(n)
+            PS = f.domain()
+            if not formal:
+                G = f.nth_iterate_map(n)
+                F = G[0]*PS.gens()[1] - G[1]*PS.gens()[0]
+            else:
+                # periodic points of formal period n are the roots of the nth dynatomic polynomial
+                F = f.dynatomic_polynomial(n)
 
-        other_roots = F.parent()(F([(f.domain().gens()[0]),1])).univariate_polynomial().roots(ring=f.base_ring())
+            other_roots = F.parent()(F([(f.domain().gens()[0]),1])).univariate_polynomial().roots(ring=f.base_ring())
 
-        points = []
+            points = []
 
-        minfty = min(ex[1] for ex in F.exponents()) # include the point at infinity with the right multiplicity
-        for i in range(minfty):
-            points.append(PS([1,0]))
+            minfty = min(ex[1] for ex in F.exponents()) # include the point at infinity with the right multiplicity
+            for i in range(minfty):
+                points.append(PS([1,0]))
 
-        for R in other_roots:
-            for i in range(R[1]):
-                points.append(PS([R[0],1])) # include copies of higher multiplicity roots
+            for R in other_roots:
+                for i in range(R[1]):
+                    points.append(PS([R[0],1])) # include copies of higher multiplicity roots
 
         if type == 'cycle':
             # should include one representative point per cycle, included with the right multiplicity
@@ -4522,7 +4562,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     Q = f(Q)
             points = newpoints
 
-        multipliers = [f.multiplier(pt,n)[0,0] for pt in points]
+        if PS.dimension_relative() > 1:
+            multipliers = [f.multiplier(pt,n) for pt in points]
+        else:
+            multipliers = [f.multiplier(pt,n)[0,0] for pt in points]
 
         return multipliers
 

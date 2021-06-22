@@ -28,7 +28,7 @@ class Polyhedron_ZZ(Polyhedron_QQ):
 
         sage: p = Polyhedron([(0,0)], base_ring=ZZ);  p
         A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
-        sage: TestSuite(p).run(skip='_test_pickling')
+        sage: TestSuite(p).run()
     """
     _base_ring = ZZ
 

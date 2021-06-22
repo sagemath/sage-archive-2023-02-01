@@ -260,12 +260,15 @@ sdh_store_wheel() {
 
 sdh_store_and_pip_install_wheel() {
     sdh_store_wheel "$@"
-    if [ -n "$SAGE_DESTDIR" ]; then
-        local sudo=""
+    if [ -n "$SAGE_SUDO" ]; then
+        # Trac #29585: Do the SAGE_DESTDIR staging of the wheel installation
+        # ONLY if SAGE_SUDO is set (in that case, we still do the staging so
+        # that we do not invoke pip as root).
+        local sudo="$SAGE_SUDO"
         # --no-warn-script-location: Suppress a warning caused by --root
         local root="--root=$SAGE_DESTDIR --no-warn-script-location"
     else
-        local sudo="$SAGE_SUDO"
+        local sudo=""
         local root=""
     fi
     $sudo sage-pip-install $root "$wheel" || \

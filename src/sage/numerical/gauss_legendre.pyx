@@ -200,7 +200,7 @@ def estimate_error(results, prec, epsilon):
         e.append(D4.exp())
     return max(e)
 
-def integrate_vector(f, prec, N=None, epsilon=None):
+def integrate_vector(f, prec, epsilon=None):
     r"""
     Integrate a one-argument vector-valued function numerically using Gauss-Legendre.
 
@@ -212,8 +212,6 @@ def integrate_vector(f, prec, N=None, epsilon=None):
      - ``f`` -- callable. Vector-valued integrand.
 
      - ``prec`` -- integer. Binary precision to be used.
-
-     - ``N`` -- integer. Number of nodes to use. If specificed, the target error ``epsilon`` is ignored. 
 
      - ``epsilon`` -- multiprecision float (default: `2^{(-\text{prec}+3)}`). Target error bound.
 
@@ -250,12 +248,6 @@ def integrate_vector(f, prec, N=None, epsilon=None):
     results = []
     cdef long degree = 3
     Rout = RealField(prec)
-    if N is not None:
-        nodelist = nodes(N,prec)
-        I = nodelist[0][1]*f(nodelist[0][0])
-        for i in range(1,len(nodelist)):
-            I += nodelist[i][1]*f(nodelist[i][0])
-        return I
 
     if epsilon is None:
         epsilon = Rout(2)**(-prec+3)

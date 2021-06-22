@@ -26,7 +26,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
     `M`, the invariant module is the collection of elements `m` in `M` such that
     `s \cdot m = m` for all `s \in S.
 
-    ..MATH::
+    .. MATH::
 
         M^S = \{m \in M : s\cdot m = m,\, \forall s \in S \}
 
@@ -78,6 +78,22 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         sage: [I.lift(b).to_vector() for b in I.basis()]
         [(1, 1, 1, 1, 1, 1)]
 
+        sage: G = CyclicPermutationGroup(3)
+        sage: M = algebras.Exterior(QQ, 'x', 3)
+        sage: from sage.modules.with_basis.representation import Representation
+        sage: on_basis = lambda g,m: M.prod([M.monomial((g(j+1)-1,)) for j in m]) #cyclically permute generators
+        sage: from sage.categories.algebras import Algebras
+        sage: R = Representation(G, M, on_basis, category=Algebras(QQ).WithBasis().FiniteDimensional())
+        sage: I = FiniteDimensionalInvariantModule(R)
+        sage: [I.lift(b) for b in I.basis()]
+        [1, x0 + x1 + x2, x0*x1 - x0*x2 + x1*x2, x0*x1*x2]
+        sage: B = I.basis()
+        sage: m = 3*B[0] + 2*B[1] + 7*B[3]
+        sage: I.lift(m)
+        7*x0*x1*x2 + 2*x0 + 2*x1 + 2*x2 + 3
+        sage: m^2
+        42*B[3] + 12*B[1] + 9*B[0]
+
     .. NOTE:: 
 
         The current implementation works when `S` is a finitely-generated semigroup,
@@ -95,47 +111,27 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         """
         TESTS::
             
-            sage: G = QQ # a group that is not finitely generated
+            sage: G = GroupExp()(QQ) # a group that is not finitely generated
             sage: M = CombinatorialFreeModule(QQ, [1,2,3])
             sage: on_basis = lambda g,m: M.term(m) # trivial rep'n
             sage: from sage.modules.with_basis.representation import Representation
-            sage: R = Representation(G,M,on_basis)
+            sage: R = Representation(G, M, on_basis)
             sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
             sage: I = FiniteDimensionalInvariantModule(R)
             Traceback (most recent call last):
             ...
-            ValueError: Rational Field is not finitely generated
+            ValueError: Multiplicative form of Rational Field is not finitely generated
 
-            sage: G = SymmetricGroup(3)
-            sage: M = PolynomialRing(QQ, ['x1','x2','x3'])
-            sage: on_basis = lambda g,m: M.prod(M('x'+str(g(Integer(x[-1])))) for x in m.support())
-            sage: f = M('x1')*M('x3')
-            sage: g = G.an_element(); g
-            (2,3)
-            sage: on_basis(g,f)
-            x1*x2
-            sage: R = Representation(G, M, on_basis)
-            sage: I = FiniteDimensionalInvariantModule(R)
-            Traceback (most recent call last):
-            ...
-            ValueError: Multivariate Polynomial Ring in x1, x2, x3
-             over Rational Field is not finite-dimensional
-
-            sage: #from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
-            sage: #I
-            sage: #TestSuite(I).run()
         """
+
         self._semigroup_representation = R
         self._semigroup = R.semigroup()
 
         if self._semigroup not in FinitelyGeneratedSemigroups:
             raise ValueError(f'{self._semigroup} is not finitely generated')
 
-        if self._semigroup_representation._module not in (
-            FiniteDimensionalModulesWithBasis):
-            raise ValueError(
-                f'{self._semigroup_representation._module
-                } is not finite dimensional')
+        if self._semigroup_representation._module not in FiniteDimensionalModulesWithBasis:
+            raise ValueError(f'{self._semigroup_representation._module} is not finite dimensional')
 
         # The left/right multiplication is taken care of
         # by self._semigroup_representation, so here
@@ -205,13 +201,28 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
         return self._semigroup
 
-    def action_on_basis(self,*args):
-        if len(args) == 0:
-            return self._action_on_basis
+    def semigroup_representation(self):
+        """
+        Return the underlying representation of the invariant module.
 
-        return self._action_on_basis(args)
+        EXAMPLES::
 
-    # def _test_
+            sage: G = SymmetricGroup(3)
+            sage: M = CombinatorialFreeModule(QQ, [1,2,3], prefix='M')
+            sage: action = lambda g,x: M.term(g(x))
+            sage: from sage.modules.with_basis.representation import Representation
+            sage: R = Representation(G, M, action); R
+            Representation of Symmetric group of order 3! as a permutation group indexed by {1, 2, 3} over Rational Field
+            sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+            sage: I = FiniteDimensionalInvariantModule(R)
+            sage: I.semigroup_representation()
+            Representation of Symmetric group of order 3! as a permutation group indexed by {1, 2, 3} over Rational Field
+
+        """
+
+        return self._semigroup_representation
+
+    #def _test_
 
     class Element(SubmoduleWithBasis.Element):
 
@@ -228,7 +239,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 sage:        #### multiply group element
             """
 
-            if right in self.parent()._semigroup and self.parent()._side == 'right':
+            if right in self.parent()._semigroup and self.parent()._semigroup_representation._side == 'right':
                 return self
 
             return super()._lmul_(right)
@@ -241,7 +252,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 sage: ### create invariant module
                 sage: ### multiply group element
             """
-            if left in self.parent()._semigroup and self.parent()._side == 'left':
+            if left in self.parent()._semigroup and self.parent()._semigroup_representation._side == 'left':
                 return self
 
             return super()._rmul_(left)
@@ -252,14 +263,16 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
             """
 
-            if scalar in self.parent()._semigroup and self_on_left == (self.parent()._side == 'right'):
+            if scalar in self.parent()._semigroup and self_on_left == (self.parent()._semigroup_representation._side == 'right'):
 
                 return self
 
             return None
 
 
-# Group action should be lifted on the module 
+# Group action should be lifted on the module because????
+
+# Confused about the representatoin vs lift to module business.
 
 class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
     r"""

@@ -121,6 +121,7 @@ class PolyhedronFace(SageObject):
         (An inequality (1, 1, 1) x + 1 >= 0,)
         sage: face.ambient_Vrepresentation()
         (A vertex at (-1, 0, 0), A vertex at (0, -1, 0), A vertex at (0, 0, -1))
+        sage: TestSuite(face).run()
     """
 
     def __init__(self, polyhedron, V_indices, H_indices):
@@ -350,7 +351,9 @@ class PolyhedronFace(SageObject):
         if not isinstance(other, PolyhedronFace):
             return NotImplemented
         if self._polyhedron is not other._polyhedron:
-            return NotImplemented
+            if (self._polyhedron.Vrepresentation() != other._polyhedron.Vrepresentation()
+                    or self._polyhedron.Hrepresentation() != other._polyhedron.Hrepresentation()):
+                return NotImplemented
         return richcmp(self._ambient_Vrepresentation_indices,
                        other._ambient_Vrepresentation_indices, op)
 

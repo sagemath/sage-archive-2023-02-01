@@ -4886,10 +4886,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Let f and g be two polynomials. Then this function returns the
         monic least common multiple of f and g.
         """
-        f = self*other
-        g = self.gcd(other)
-        q = f//g
-        return ~(q.leading_coefficient())*q
+        try:
+            f = self*other
+            g = self.gcd(other)
+            q = f//g
+            return ~(q.leading_coefficient())*q
+        except:
+            return 0
 
     def _lcm(self, other):
         """

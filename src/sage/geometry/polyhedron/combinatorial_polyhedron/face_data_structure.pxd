@@ -151,6 +151,14 @@ cdef inline long face_next_atom(face_t face, mp_bitcnt_t n):
     """
     return bitset_next(face.atoms, n)
 
+cdef inline long face_first_missing_atom(face_t face):
+    """
+    Return the index of the first atom not in ``face``.
+
+    In case there are none, return ``-1``.
+    """
+    return bitset_first_in_complement(face.atoms)
+
 cdef inline long face_len_atoms(face_t face) nogil:
     """
     Calculate the number of atoms in the face.

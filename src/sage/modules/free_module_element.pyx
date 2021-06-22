@@ -912,7 +912,7 @@ cdef class FreeModuleElement(Vector):   # abstract base class
             sage: P.<x> = ZZ[]
             sage: v = vector(P, 3, [x^2 + 2, 2*x + 1, -2*x^2 + 4*x])
             sage: giac(v)
-            [x^2+2,2*x+1,-2*x^2+4*x]
+            [sageVARx^2+2,2*sageVARx+1,-2*sageVARx^2+4*sageVARx]
         """
         return self.list()
 

@@ -423,9 +423,14 @@ class InterfaceInit(Converter):
             sage: ii = InterfaceInit(gp)
             sage: ii.symbol(x)
             'x'
+            sage: g = InterfaceInit(giac)
+            sage: g.symbol(x)
+            'sageVARx'
         """
         if self.interface.name()=='maxima':
             return '_SAGE_VAR_'+repr(SR(ex))
+        elif self.interface.name() == 'giac':
+            return 'sageVAR' + repr(SR(ex))
         else:
             return repr(SR(ex))
 

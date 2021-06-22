@@ -914,9 +914,23 @@ class ContinuousMap(Morphism):
             2-dimensional topological manifold M
             sage: M.identity_map().preimage(M) is M
             True
+
+        Another trivial case::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: D1 = M.open_subset('D1', coord_def={X: x^2+y^2<1}) # the open unit disk
+            sage: D2 = M.open_subset('D2', coord_def={X: x^2+y^2<4})
+            sage: f = Hom(D1,D2)({(X.restrict(D1), X.restrict(D2)): (2*x, 2*y)}, name='f')
+            sage: f.preimage(D2)
+            Open subset D1 of the 2-dimensional topological manifold M
+            sage: f.preimage(M)
+            Open subset D1 of the 2-dimensional topological manifold M
         """
         if self._is_identity:
             return codomain_subset
+        if self._codomain.is_subset(codomain_subset):
+            return self._domain
         from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
         return ManifoldSubsetPullback(self, codomain_subset,
                                       name=name, latex_name=latex_name)

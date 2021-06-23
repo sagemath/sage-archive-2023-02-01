@@ -550,7 +550,7 @@ class RecurrenceParser(object):
         self.k = k
         self.coefficient_ring = coefficient_ring
 
-    def _parse_recurrence_(self, equations, function, var):
+    def parse_recurrence(self, equations, function, var):
         r"""
         Parse recurrence relations as admissible in :meth:`from_recurrence`.
 
@@ -583,7 +583,7 @@ class RecurrenceParser(object):
             n
             sage: function('f')
             f
-            sage: RP._parse_recurrence_([
+            sage: RP.parse_recurrence([
             ....:     f(4*n) == f(2*n) + 2*f(2*n + 1) + 3*f(2*n - 2),
             ....:     f(4*n + 1) == 4*f(2*n) + 5*f(2*n + 1) + 6*f(2*n - 2),
             ....:     f(4*n + 2) == 7*f(2*n) + 8*f(2*n + 1) + 9*f(2*n - 2),
@@ -595,7 +595,7 @@ class RecurrenceParser(object):
 
         Stern--Brocot Sequence::
 
-            sage: RP._parse_recurrence_([
+            sage: RP.parse_recurrence([
             ....:    f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
             ....:    f(0) == 0, f(1) == 1], f, n)
             (1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1})
@@ -608,28 +608,28 @@ class RecurrenceParser(object):
 
         The following tests check that the equations are well-formed::
 
-            sage: RP._parse_recurrence_([], f, n)
+            sage: RP.parse_recurrence([], f, n)
             Traceback (most recent call last):
             ...
             ValueError: List of recurrence equations is empty.
 
         ::
 
-            sage: RP._parse_recurrence_([f(4*n + 1)], f, n)
+            sage: RP.parse_recurrence([f(4*n + 1)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: f(4*n + 1) is not an equation with ==.
 
         ::
 
-            sage: RP._parse_recurrence_([42], f, n)
+            sage: RP.parse_recurrence([42], f, n)
             Traceback (most recent call last):
             ...
             ValueError: 42 is not a symbolic expression.
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) + 1 == f(n)], f, n)
+            sage: RP.parse_recurrence([f(2*n) + 1 == f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(2*n) + 1 in the equation f(2*n) + 1 == f(n) is
@@ -637,7 +637,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n, 5) == 3], f, n)
+            sage: RP.parse_recurrence([f(2*n, 5) == 3], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(2*n, 5) in the equation f(2*n, 5) == 3 does not
@@ -645,7 +645,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f() == 3], f, n)
+            sage: RP.parse_recurrence([f() == 3], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f() in the equation f() == 3 does not have one
@@ -653,7 +653,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(1/n + 1) == f(n)], f, n)
+            sage: RP.parse_recurrence([f(1/n + 1) == f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(1/n + 1) in the equation f(1/n + 1) == f(n):
@@ -661,7 +661,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n + 1/2) == f(n)], f, n)
+            sage: RP.parse_recurrence([f(2*n + 1/2) == f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(2*n + 1/2) in the equation f(2*n + 1/2) == f(n):
@@ -669,7 +669,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(4*n^2) == f(2*n^2)], f, n)
+            sage: RP.parse_recurrence([f(4*n^2) == f(2*n^2)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(4*n^2) in the equation f(4*n^2) == f(2*n^2):
@@ -677,7 +677,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(42) == 1/2], f, n)
+            sage: RP.parse_recurrence([f(42) == 1/2], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Initial value 1/2 given by the equation f(42) == (1/2)
@@ -685,14 +685,14 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(42) == 0, f(42) == 1], f, n)
+            sage: RP.parse_recurrence([f(42) == 0, f(42) == 1], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Initial value f(42) is given twice.
 
         ::
 
-            sage: RP._parse_recurrence_([f(42) == f(n)], f, n)
+            sage: RP.parse_recurrence([f(42) == f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Initial value f(n) given by the equation f(42) == f(n)
@@ -700,7 +700,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(4*n) == f(n), f(2*n) == f(n)], f, n)
+            sage: RP.parse_recurrence([f(4*n) == f(n), f(2*n) == f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(2*n) in the equation f(2*n) == f(n): 2 does not
@@ -709,7 +709,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(3*n + 1) == f(n)], f, n)
+            sage: RP.parse_recurrence([f(3*n + 1) == f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(3*n + 1) in the equation f(3*n + 1) == f(n):
@@ -717,7 +717,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(n + 1) == f(n)], f, n)
+            sage: RP.parse_recurrence([f(n + 1) == f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(n + 1) in the equation f(n + 1) == f(n):
@@ -725,14 +725,14 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == f(n), f(2*n) == 0], f, n)
+            sage: RP.parse_recurrence([f(2*n) == f(n), f(2*n) == 0], f, n)
             Traceback (most recent call last):
             ...
             ValueError: There are more than one recurrence relation for f(2*n).
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n + 2) == f(n)], f, n)
+            sage: RP.parse_recurrence([f(2*n + 2) == f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(2*n + 2) in the equation f(2*n + 2) == f(n):
@@ -740,7 +740,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n - 1) == f(n)], f, n)
+            sage: RP.parse_recurrence([f(2*n - 1) == f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(2*n - 1) in the equation f(2*n - 1) == f(n):
@@ -748,7 +748,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == 2*n], f, n)
+            sage: RP.parse_recurrence([f(2*n) == 2*n], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term 2*n in the equation f(2*n) == 2*n does not
@@ -756,7 +756,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == 1/2*f(n)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == 1/2*f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term 1/2*f(n) in the equation f(2*n) == 1/2*f(n):
@@ -764,21 +764,21 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == 1/f(n)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == 1/f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: 1/f(n) is not a valid right hand side.
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == 2*n*f(n)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == 2*n*f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: 2*n*f(n) is not a valid right hand side.
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == 2*f(n, 5)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == 2*f(n, 5)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(n, 5) in the equation f(2*n) == 2*f(n, 5)
@@ -786,14 +786,14 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == 2*f()], f, n)
+            sage: RP.parse_recurrence([f(2*n) == 2*f()], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f() in the equation f(2*n) == 2*f() has no argument.
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == 1/f(n) + 2*f(n)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == 1/f(n) + 2*f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term 1/f(n) in the equation f(2*n) == 1/f(n) + 2*f(n)
@@ -801,7 +801,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == 2*f(1/n)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == 2*f(1/n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(1/n) in the equation f(2*n) == 2*f(1/n):
@@ -809,7 +809,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == f(n + 1/2)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == f(n + 1/2)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(n + 1/2) in the equation f(2*n) == f(n + 1/2):
@@ -817,7 +817,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == f(1/2*n)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == f(1/2*n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(1/2*n) in the equation f(2*n) == f(1/2*n):
@@ -825,7 +825,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == f(n^2 + 1)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == f(n^2 + 1)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(n^2 + 1) in the equation f(2*n) == f(n^2 + 1):
@@ -833,7 +833,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == f(1)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == f(1)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(1) in the equation f(2*n) == f(1):
@@ -841,7 +841,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(4*n) == f(2*n) + f(n)], f, n)
+            sage: RP.parse_recurrence([f(4*n) == f(2*n) + f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(n) in the equation f(4*n) == f(2*n) + f(n):
@@ -850,7 +850,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(4*n) == f(2*n), f(4*n + 1) == f(n)],
+            sage: RP.parse_recurrence([f(4*n) == f(2*n), f(4*n + 1) == f(n)],
             ....:     f, n)
             Traceback (most recent call last):
             ...
@@ -860,7 +860,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(4*n) == f(3*n)], f, n)
+            sage: RP.parse_recurrence([f(4*n) == f(3*n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(3*n) in the equation f(4*n) == f(3*n): 3 is not
@@ -868,7 +868,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == f(4*n)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == f(4*n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(4*n) in the equation f(2*n) == f(4*n):
@@ -876,7 +876,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == f(2*n)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == f(2*n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Term f(2*n) in the equation f(2*n) == f(2*n):
@@ -884,14 +884,14 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(2*n) == f(n)], f, n)
+            sage: RP.parse_recurrence([f(2*n) == f(n)], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Recurrence relations for [f(2*n + 1)] are missing.
 
         ::
 
-            sage: RP._parse_recurrence_([f(4*n) == f(n), f(4*n + 3) == 0], f, n)
+            sage: RP.parse_recurrence([f(4*n) == f(n), f(4*n + 3) == 0], f, n)
             Traceback (most recent call last):
             ...
             ValueError: Recurrence relations for [f(4*n + 1), f(4*n + 2)]
@@ -899,20 +899,20 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._parse_recurrence_([f(42) == 0], f, n)
+            sage: RP.parse_recurrence([f(42) == 0], f, n)
             Traceback (most recent call last):
             ...
             ValueError: No recurrence relations are given.
 
         ::
 
-            sage: RP._parse_recurrence_(
+            sage: RP.parse_recurrence(
             ....:     [f(4*n + r) == f(n) for r in srange(4)], f, n)
             (2, 0, {(0, 0): 1, (1, 0): 1, (2, 0): 1, (3, 0): 1}, {})
 
         ::
 
-            sage: RP._parse_recurrence_(
+            sage: RP.parse_recurrence(
             ....:     [f(8*n) == f(n)] +
             ....:     [f(8*n + r) == f(2*n) for r in srange(1,8)], f, n)
             Traceback (most recent call last):
@@ -923,7 +923,7 @@ class RecurrenceParser(object):
 
         Finally, also for the zero-sequence the output is as expected::
 
-            sage: RP._parse_recurrence_([f(2*n) == 0, f(2*n + 1) == 0], f, n)
+            sage: RP.parse_recurrence([f(2*n) == 0, f(2*n + 1) == 0], f, n)
             (1, 0, {}, {})
         """
         from sage.arith.srange import srange
@@ -939,7 +939,7 @@ class RecurrenceParser(object):
         initial_values = {}
         remainders = set()
 
-        def _parse_multiplication_(op, eq):
+        def parse_multiplication(op, eq):
             operands = op.operands()
             assert op.operator() == mul_vararg and len(operands) == 2
             if operands[1].operator() == function:
@@ -951,9 +951,9 @@ class RecurrenceParser(object):
                                  'does not contain %s.'
                                  % (op, eq, function)) from None
 
-        def _parse_one_summand_(summand, eq):
+        def parse_one_summand(summand, eq):
             if summand.operator() == mul_vararg:
-                coeff, op = _parse_multiplication_(summand, eq)
+                coeff, op = parse_multiplication(summand, eq)
             elif summand.operator() == function:
                 coeff, op = 1, summand
             else:
@@ -1067,7 +1067,7 @@ class RecurrenceParser(object):
                         raise ValueError("%s is not a valid right hand side."
                                          % (right_side,)) from None
                     for summand in summands:
-                        coeff, new_m, d = _parse_one_summand_(summand, eq)
+                        coeff, new_m, d = parse_one_summand(summand, eq)
                         if coeff not in base_ring:
                             raise ValueError("Term %s in the equation %s: "
                                              "%s is not a valid coefficient "
@@ -1109,7 +1109,7 @@ class RecurrenceParser(object):
 
         return (M, m, coeffs, initial_values)
 
-    def _get_parameters_from_recurrence_(self, M, m, coeffs, initial_values,
+    def get_parameters_from_recurrence(self, M, m, coeffs, initial_values,
                                          offset):
         r"""
         Determine parameters from recurrence relations as admissible in
@@ -1150,7 +1150,7 @@ class RecurrenceParser(object):
 
             sage: from sage.combinat.k_regular_sequence import RecurrenceParser
             sage: RP = RecurrenceParser(2, ZZ)
-            sage: RP._get_parameters_from_recurrence_(2, 1,
+            sage: RP.get_parameters_from_recurrence(2, 1,
             ....: {(0, -2): 3, (0, 0): 1, (0, 1): 2, (1, -2): 6, (1, 0): 4,
             ....: (1, 1): 5, (2, -2): 9, (2, 0): 7, (2, 1): 8, (3, -2): 12,
             ....: (3, 0): 10, (3, 1): 11}, {0: 1, 1: 2, 2: 1, 3: 4}, 0)
@@ -1168,14 +1168,14 @@ class RecurrenceParser(object):
 
         TESTS::
 
-            sage: RP._get_parameters_from_recurrence_(1, 0, {(0, 0): 1}, {}, 0)
+            sage: RP.get_parameters_from_recurrence(1, 0, {(0, 0): 1}, {}, 0)
             Traceback (most recent call last):
             ...
             ValueError: No initial values are given.
 
         ::
 
-            sage: RP._get_parameters_from_recurrence_(1, 0,
+            sage: RP.get_parameters_from_recurrence(1, 0,
             ....: {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 1/2, 1: 2*i}, 0)
             Traceback (most recent call last):
             ...
@@ -1183,20 +1183,20 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._get_parameters_from_recurrence_(1, 0, {(0, 0): 1},
+            sage: RP.get_parameters_from_recurrence(1, 0, {(0, 0): 1},
             ....: {0: 1, 1: 0}, 0)
             recurrence_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
             coeffs={(0, 0): 1}, initial_values={0: 1, 1: 0}, offset=0, n1=0)
 
         Finally, also for the zero-sequence the output is as expected::
 
-            sage: RP._get_parameters_from_recurrence_(1, 0, {}, {0: 0}, 0)
+            sage: RP.get_parameters_from_recurrence(1, 0, {}, {0: 0}, 0)
             recurrence_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
             coeffs={}, initial_values={0: 0}, offset=0, n1=0)
 
         ::
 
-            sage: RP._get_parameters_from_recurrence_(1, 0,
+            sage: RP.get_parameters_from_recurrence(1, 0,
             ....: {(0, 0): 0, (1, 1): 0}, {0: 0}, 0)
             recurrence_rules(M=1, m=0, l=0, u=0, ll=0, uu=0, dim=1,
             coeffs={(0, 0): 0, (1, 1): 0}, initial_values={0: 0},
@@ -1239,7 +1239,7 @@ class RecurrenceParser(object):
             k**(M-1) - k**m + uu + (n1 > 0)*k**(M-1)*(k*(n1 - 1) + k - 1), # for matrix W
             k**m*offset + u,
             max(keys_initial))
-        initial_values = self._get_values_from_recurrence_(
+        initial_values = self.get_values_from_recurrence(
             M=M, m=m, l=l, u=u, ll=ll, coeffs=coeffs,
             initial_values=initial_values, last_value_needed=last_value_needed,
             offset=offset)
@@ -1252,7 +1252,7 @@ class RecurrenceParser(object):
                                 coeffs=coeffs, initial_values=initial_values,
                                 offset=offset, n1=n1)
 
-    def _get_values_from_recurrence_(self, *, M, m, l, u, ll, coeffs,
+    def get_values_from_recurrence(self, *, M, m, l, u, ll, coeffs,
                                      initial_values, last_value_needed, offset):
         r"""
         Determine enough values of the corresponding recursive sequence by
@@ -1289,7 +1289,7 @@ class RecurrenceParser(object):
 
             sage: from sage.combinat.k_regular_sequence import RecurrenceParser
             sage: RP = RecurrenceParser(2, ZZ)
-            sage: RP._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            sage: RP.get_values_from_recurrence(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     initial_values={0: 0, 1: 1, 2: 1}, last_value_needed=20,
             ....:     offset=0)
@@ -1304,7 +1304,7 @@ class RecurrenceParser(object):
 
         For the equations `f(2n) = f(n)` and `f(2n + 1) = f(n) + f(n + 1)`::
 
-            sage: RP._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            sage: RP.get_values_from_recurrence(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     initial_values={0: 0, 1: 2}, last_value_needed=20,
             ....:     offset=0)
@@ -1314,7 +1314,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            sage: RP.get_values_from_recurrence(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     initial_values={}, last_value_needed=20, offset=0)
             Traceback (most recent call last):
@@ -1323,7 +1323,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            sage: RP.get_values_from_recurrence(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     initial_values={0: 0}, last_value_needed=20, offset=0)
             Traceback (most recent call last):
@@ -1332,7 +1332,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            sage: RP.get_values_from_recurrence(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     initial_values={0: 0, 2: 1}, last_value_needed=20,
             ....:     offset=0)
@@ -1342,7 +1342,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._get_values_from_recurrence_(M=1, m=0, l=0, u=1, ll=0,
+            sage: RP.get_values_from_recurrence(M=1, m=0, l=0, u=1, ll=0,
             ....:     coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     initial_values={0: 0, 1: 2, 2:0}, last_value_needed=20,
             ....:     offset=0)
@@ -1353,7 +1353,7 @@ class RecurrenceParser(object):
 
         ::
 
-            sage: RP._get_values_from_recurrence_(M=1, m=0, l=-2, u=2, ll=-2,
+            sage: RP.get_values_from_recurrence(M=1, m=0, l=-2, u=2, ll=-2,
             ....:     coeffs={(0, -2): 1, (0, 2): 1, (1, -2): 1, (1, 2): 1},
             ....:     initial_values={0: 0, 1: 2, 2: 4, 3: 3, 4: 2},
             ....:     last_value_needed=20, offset=2)
@@ -1363,14 +1363,14 @@ class RecurrenceParser(object):
 
         Finally, also for the zero-sequence the output is as expected::
 
-            sage: RP._get_values_from_recurrence_(M=1, m=0, l=0, u=0, ll=0,
+            sage: RP.get_values_from_recurrence(M=1, m=0, l=0, u=0, ll=0,
             ....:     coeffs={}, initial_values={}, last_value_needed=10,
             ....:     offset=0)
             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
 
         ::
 
-            sage: RP._get_values_from_recurrence_(M=1, m=0, l=0, u=0, ll=0,
+            sage: RP.get_values_from_recurrence(M=1, m=0, l=0, u=0, ll=0,
             ....:     coeffs={(0, 0): 0, (1, 1): 0}, initial_values={},
             ....:     last_value_needed=10, offset=0)
             {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0}
@@ -1386,13 +1386,13 @@ class RecurrenceParser(object):
         missing_values = []
 
         @cached_function
-        def _coeff_(r, k):
+        def coeff(r, k):
             try:
                 return coeffs[(r, k)]
             except KeyError:
                 return 0
 
-        def _f_n_(n):
+        def f(n):
             f_n = values[n]
             if f_n is not None and f_n != "pending":
                 return f_n
@@ -1404,12 +1404,12 @@ class RecurrenceParser(object):
                 q, r = ZZ(n).quo_rem(k**M)
                 if q < offset:
                     missing_values.append(n)
-                return sum([_coeff_(r, j)*_f_n_(k**m*q + j)
+                return sum([coeff(r, j)*f(k**m*q + j)
                             for j in srange(l, u + 1)
-                            if _coeff_(r, j)])
+                            if coeff(r, j)])
 
         for n in srange(last_value_needed + 1):
-            values.update({n: _f_n_(n)})
+            values.update({n: f(n)})
 
         if missing_values:
             raise ValueError("Initial values for arguments in %s are missing."
@@ -1418,7 +1418,7 @@ class RecurrenceParser(object):
         for n in keys_initial:
             q, r = ZZ(n).quo_rem(k**M)
             if (q >= offset and
-                values[n] != sum([_coeff_(r, j)*values[k**m*q + j]
+                values[n] != sum([coeff(r, j)*values[k**m*q + j]
                                   for j in srange(l, u + 1)])):
                 raise ValueError("Initial value for argument %s does not match with "
                                  "the given recurrence relations."
@@ -1429,7 +1429,7 @@ class RecurrenceParser(object):
         return values
 
     @cached_method
-    def _get_ind_from_recurrence_(self, M, m, ll, uu):
+    def get_ind_from_recurrence(self, M, m, ll, uu):
         r"""
         Determine the index operator corresponding to the recursive
         sequence as defined in [HKL2021]_.
@@ -1457,7 +1457,7 @@ class RecurrenceParser(object):
 
             sage: from sage.combinat.k_regular_sequence import RecurrenceParser
             sage: RP = RecurrenceParser(2, ZZ)
-            sage: RP._get_ind_from_recurrence_(3, 1, -3, 3)
+            sage: RP.get_ind_from_recurrence(3, 1, -3, 3)
             {(0, 0): 0, (1, -1): 3, (1, -2): 2, (1, -3): 1,
             (1, 0): 4, (1, 1): 5, (1, 2): 6, (1, 3): 7, (2, -1): 10,
             (2, -2): 9, (2, -3): 8, (2, 0): 11, (2, 1): 12, (2, 2): 13,
@@ -1487,14 +1487,14 @@ class RecurrenceParser(object):
 
         return ind
 
-    def _v_eval_n_from_recurrence_(self, recurrence_rules, n):
+    def v_eval_n_from_recurrence(self, recurrence_rules, n):
         r"""
         Return the vector `v(n)` as given in [HKL2021]_, Theorem A.
 
         INPUT:
 
         - ``recurrence_rules`` -- a namedtuple generated by
-          :meth:`_get_parameters_from_recurrence_`
+          :meth:`get_parameters_from_recurrence`
 
         - ``n`` -- an integer
 
@@ -1508,10 +1508,10 @@ class RecurrenceParser(object):
 
             sage: from sage.combinat.k_regular_sequence import RecurrenceParser
             sage: RP = RecurrenceParser(2, ZZ)
-            sage: SB_rules = RP._get_parameters_from_recurrence_(
+            sage: SB_rules = RP.get_parameters_from_recurrence(
             ....:     1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     {0: 0, 1: 1, 2: 1}, 0)
-            sage: RP._v_eval_n_from_recurrence_(SB_rules, 0)
+            sage: RP.v_eval_n_from_recurrence(SB_rules, 0)
             (0, 1, 1)
 
         .. SEEALSO::
@@ -1528,12 +1528,12 @@ class RecurrenceParser(object):
         uu = recurrence_rules.uu
         dim = recurrence_rules.dim - recurrence_rules.n1
         initial_values = recurrence_rules.initial_values
-        ind = self._get_ind_from_recurrence_(M, m, ll, uu)
+        ind = self.get_ind_from_recurrence(M, m, ll, uu)
 
         return vector(
             [initial_values[k**ind[i][0]*n + ind[i][1]] for i in srange(dim)])
 
-    def _get_matrix_from_recurrence_(self, recurrence_rules, rem,
+    def get_matrix_from_recurrence(self, recurrence_rules, rem,
                                      correct_offset=True):
         r"""
         Construct the matrix for remainder ``rem`` of the linear
@@ -1542,7 +1542,7 @@ class RecurrenceParser(object):
         INPUT:
 
         - ``recurrence_rules`` -- a namedtuple generated by
-          :meth:`_get_parameters_from_recurrence_`
+          :meth:`get_parameters_from_recurrence`
 
         - ``rem`` -- an integer between ``0`` and ``k - 1``
 
@@ -1566,7 +1566,7 @@ class RecurrenceParser(object):
             n
             sage: function('f')
             f
-            sage: M, m, coeffs, initial_values = RP._parse_recurrence_([
+            sage: M, m, coeffs, initial_values = RP.parse_recurrence([
             ....:     f(8*n) == -1*f(2*n - 1) + 1*f(2*n + 1),
             ....:     f(8*n + 1) == -11*f(2*n - 1) + 10*f(2*n) + 11*f(2*n + 1),
             ....:     f(8*n + 2) == -21*f(2*n - 1) + 20*f(2*n) + 21*f(2*n + 1),
@@ -1577,9 +1577,9 @@ class RecurrenceParser(object):
             ....:     f(8*n + 7) == -71*f(2*n - 1) + 70*f(2*n) + 71*f(2*n + 1),
             ....:     f(0) == 0, f(1) == 1, f(2) == 2, f(3) == 3, f(4) == 4,
             ....:     f(5) == 5, f(6) == 6, f(7) == 7], f, n)
-            sage: rules = RP._get_parameters_from_recurrence_(
+            sage: rules = RP.get_parameters_from_recurrence(
             ....:     M, m, coeffs, initial_values, 0)
-            sage: RP._get_matrix_from_recurrence_(rules, 0, False)
+            sage: RP.get_matrix_from_recurrence(rules, 0, False)
             [  0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0   0]
@@ -1597,7 +1597,7 @@ class RecurrenceParser(object):
             [  0   0   0 -31  30  31   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0 -41  40  41   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0 -51  50  51   0   0   0   0   0   0   0   0   0   0   0]
-            sage: RP._get_matrix_from_recurrence_(rules, 1, False)
+            sage: RP.get_matrix_from_recurrence(rules, 1, False)
             [  0   0   0   0   0   1   0   0   0   0   0   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0   0]
             [  0   0   0   0   0   0   0   0   0   0   0   1   0   0   0   0   0]
@@ -1618,21 +1618,21 @@ class RecurrenceParser(object):
 
         Stern--Brocot Sequence::
 
-            sage: SB_rules = RP._get_parameters_from_recurrence_(
+            sage: SB_rules = RP.get_parameters_from_recurrence(
             ....:     1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     {0: 0, 1: 1, 2: 1}, 0)
-            sage: RP._get_matrix_from_recurrence_(SB_rules, 0)
+            sage: RP.get_matrix_from_recurrence(SB_rules, 0)
             [1 0 0]
             [1 1 0]
             [0 1 0]
-            sage: RP._get_matrix_from_recurrence_(SB_rules, 1)
+            sage: RP.get_matrix_from_recurrence(SB_rules, 1)
             [1 1 0]
             [0 1 0]
             [0 1 1]
 
         Number of Unbordered Factors in the Thue--Morse Sequence::
 
-            sage: M, m, coeffs, initial_values = RP._parse_recurrence_([
+            sage: M, m, coeffs, initial_values = RP.parse_recurrence([
             ....:     f(8*n) == 2*f(4*n),
             ....:     f(8*n + 1) == f(4*n + 1),
             ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
@@ -1646,9 +1646,9 @@ class RecurrenceParser(object):
             ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
             ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
             ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n)
-            sage: UB_rules = RP._get_parameters_from_recurrence_(
+            sage: UB_rules = RP.get_parameters_from_recurrence(
             ....:     M, m, coeffs, initial_values, 3)
-            sage: RP._get_matrix_from_recurrence_(UB_rules, 0)
+            sage: RP.get_matrix_from_recurrence(UB_rules, 0)
             [ 0  1  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  1  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  1  0  0  0  0  0  0  0  0  0  0  0]
@@ -1665,7 +1665,7 @@ class RecurrenceParser(object):
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  1  0  0]
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  0  0  0  0  0  0  0  0  1  0]
-            sage: RP._get_matrix_from_recurrence_(UB_rules, 1)
+            sage: RP.get_matrix_from_recurrence(UB_rules, 1)
             [ 0  0  1  0  0  0  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  1  0  0  0  0  0  0  0  0  0  0]
             [ 0  0  0  0  0  0  1  0  0  0  0  0  0  0  0  0]
@@ -1704,12 +1704,12 @@ class RecurrenceParser(object):
         n1 = recurrence_rules.n1
         dim_without_corr = dim - n1
         coeffs = recurrence_rules.coeffs
-        ind = self._get_ind_from_recurrence_(M, m, ll, uu)
+        ind = self.get_ind_from_recurrence(M, m, ll, uu)
 
         mat = Matrix(base_ring, 0, dim_without_corr)
 
         @cached_function
-        def _coeff_(r, k):
+        def coeff(r, k):
             try:
                 return coeffs[(r, k)]
             except KeyError:
@@ -1724,10 +1724,10 @@ class RecurrenceParser(object):
                 dd = d // k**M
                 if rem_d < k**M:
                     lambd = l - ind[(m, (k**m)*dd + l)]
-                    return _coeff_(rem_d, kk + lambd)
+                    return coeff(rem_d, kk + lambd)
                 else:
                     lambd = l - ind[(m, k**m*dd + k**m + l)]
-                    return _coeff_(rem_d - k**M, kk + lambd)
+                    return coeff(rem_d - k**M, kk + lambd)
 
         mat = Matrix(base_ring, dim_without_corr, dim_without_corr, entry)
 
@@ -1737,8 +1737,8 @@ class RecurrenceParser(object):
             W = Matrix(base_ring, dim_without_corr, 0)
             for i in srange(n1):
                 W = W.augment(
-                    self._v_eval_n_from_recurrence_(recurrence_rules, k*i + rem) -
-                    mat*self._v_eval_n_from_recurrence_(recurrence_rules, i))
+                    self.v_eval_n_from_recurrence(recurrence_rules, k*i + rem) -
+                    mat*self.v_eval_n_from_recurrence(recurrence_rules, i))
 
             J = Matrix(base_ring, 0, n1)
             for i in srange(n1):
@@ -1748,7 +1748,7 @@ class RecurrenceParser(object):
             return Mat(block_matrix([[mat, W],
                                      [zero_matrix(n1, dim_without_corr), J]]))
 
-    def _get_left_from_recurrence_(self, dim):
+    def get_left_from_recurrence(self, dim):
         r"""
         Construct the vector ``left`` of the linear representation of
         recursive sequences.
@@ -1765,7 +1765,7 @@ class RecurrenceParser(object):
 
             sage: from sage.combinat.k_regular_sequence import RecurrenceParser
             sage: RP = RecurrenceParser(2, ZZ)
-            sage: RP._get_left_from_recurrence_(5)
+            sage: RP.get_left_from_recurrence(5)
             (1, 0, 0, 0, 0)
 
         .. SEEALSO::
@@ -1776,7 +1776,7 @@ class RecurrenceParser(object):
 
         return vector([1] + (dim - 1)*[0])
 
-    def _get_right_from_recurrence_(self, recurrence_rules):
+    def get_right_from_recurrence(self, recurrence_rules):
         r"""
         Construct the vector ``right`` of the linear
         representation of the sequence induced by ``recurrence_rules``.
@@ -1784,7 +1784,7 @@ class RecurrenceParser(object):
         INPUT:
 
         - ``recurrence_rules`` -- a namedtuple generated by
-          :meth:`_get_parameters_from_recurrence_`
+          :meth:`get_parameters_from_recurrence`
 
         OUTPUT:
 
@@ -1804,15 +1804,15 @@ class RecurrenceParser(object):
             n
             sage: function('f')
             f
-            sage: SB_rules = RP._get_parameters_from_recurrence_(
+            sage: SB_rules = RP.get_parameters_from_recurrence(
             ....:     1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1},
             ....:     {0: 0, 1: 1, 2: 1}, 0)
-            sage: RP._get_right_from_recurrence_(SB_rules)
+            sage: RP.get_right_from_recurrence(SB_rules)
             (0, 1, 1)
 
         Number of Unbordered Factors in the Thue--Morse Sequence::
 
-            sage: M, m, coeffs, initial_values = RP._parse_recurrence_([
+            sage: M, m, coeffs, initial_values = RP.parse_recurrence([
             ....:     f(8*n) == 2*f(4*n),
             ....:     f(8*n + 1) == f(4*n + 1),
             ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
@@ -1826,15 +1826,15 @@ class RecurrenceParser(object):
             ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
             ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
             ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n)
-            sage: UB_rules = RP._get_parameters_from_recurrence_(
+            sage: UB_rules = RP.get_parameters_from_recurrence(
             ....:     M, m, coeffs, initial_values, 3)
-            sage: RP._get_right_from_recurrence_(UB_rules)
+            sage: RP.get_right_from_recurrence(UB_rules)
             (1, 1, 2, 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, 1, 0, 0)
         """
         from sage.modules.free_module_element import vector
 
         n1 = recurrence_rules.n1
-        right = self._v_eval_n_from_recurrence_(recurrence_rules, 0)
+        right = self.v_eval_n_from_recurrence(recurrence_rules, 0)
 
         if n1 >= 1:
             right = vector(list(right) + [1] + (n1 - 1)*[0])
@@ -1845,14 +1845,14 @@ class RecurrenceParser(object):
         from sage.arith.srange import srange
 
         k = self.k
-        M, m, coeffs, initial_values = self._parse_recurrence_(equations, function, var)
-        recurrence_rules = self._get_parameters_from_recurrence_(
+        M, m, coeffs, initial_values = self.parse_recurrence(equations, function, var)
+        recurrence_rules = self.get_parameters_from_recurrence(
             M, m, coeffs, initial_values, offset)
 
-        mu = [self._get_matrix_from_recurrence_(recurrence_rules, rem)
+        mu = [self.get_matrix_from_recurrence(recurrence_rules, rem)
               for rem in srange(k)]
 
-        left = self._get_left_from_recurrence_(recurrence_rules.dim)
-        right = self._get_right_from_recurrence_(recurrence_rules)
+        left = self.get_left_from_recurrence(recurrence_rules.dim)
+        right = self.get_right_from_recurrence(recurrence_rules)
 
         return (left, mu, right)

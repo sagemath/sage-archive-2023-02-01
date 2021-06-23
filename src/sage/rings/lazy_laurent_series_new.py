@@ -36,6 +36,9 @@ class LLS(ModuleElement):
         P = self.parent()
         return P.element_class(P, LLS_inv(self._aux))
     
+    def v(self):
+        return LLS_inv(self._aux).valuation(self._aux)
+    
     def approximate_series(self, prec, name=None):
         """
         Return the Laurent series with absolute precision ``prec`` approximated
@@ -388,7 +391,7 @@ class LLS_aux():
             self._offset = approximate_valuation
             self._iter = self.iterate_coefficients()
 
-    def __getitem__(self, n):
+    def __getitem__(self, n, s=None):
         if self._approximate_valuation is infinity:
             return ZZ.zero()
         elif n < self._approximate_valuation:
@@ -400,7 +403,7 @@ class LLS_aux():
             try:
                 c = self._cache[n]
             except KeyError:
-                c = self.get_coefficient(n)
+                c = self.get_coefficient(n, s)
                 self._cache[n] = c
 
         else:
@@ -414,6 +417,68 @@ class LLS_aux():
             c = self._cache[i]
 
         return c
+    
+    def valuation(self, series):
+        print("I am not even being called.")
+        """
+        Return the valuation of the series.
+
+        This method determines the valuation of the series by looking for a
+        nonzero coefficient. Hence if the series happens to be zero, then it
+        may run forever.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: s = 1/(1 - z) - 1/(1 - 2*z)
+            sage: s.valuation()
+            1
+            sage: t = z - z
+            sage: t.valuation()
+            +Infinity
+        """
+        if series._constant is not None:
+            n = series._approximate_valuation
+            m = series._constant[1]
+            while n <= m:
+                if series[n] != 0:
+                    series._approximate_valuation = n
+                    return n
+                n += 1
+            return infinity
+
+        elif series._is_sparse:
+            print("Yahaan")
+            if series._constant is None:
+                n = series._approximate_valuation
+                cache = series._cache
+                while True:
+                    if n in cache:
+                        if cache[n]:
+                            series._approximate_valuation = n
+                            return n
+                        n += 1
+                    else:
+                        if series[n] != 0:
+                            series._approximate_valuation = n
+                            return n
+                        n += 1
+
+        else:
+            if series._constant is None:
+                n = series._approximate_valuation
+                cache = series._cache
+                while True:
+                    if n - series._offset < len(cache):
+                        if cache[n - series._offset]:
+                            series._approximate_valuation = n
+                            return n
+                        n += 1
+                    else:
+                        if series[n] != 0:
+                            series._approximate_valuation = n
+                            return n
+                        n += 1
     
 
 class LLS_coefficient_function(LLS_aux):
@@ -442,7 +507,7 @@ class LLS_coefficient_function(LLS_aux):
         self._coefficient_function = coefficient_function
         super().__init__(is_sparse, approximate_valuation, constant)
 
-    def get_coefficient(self, n):
+    def get_coefficient(self, n, s=None):
         return self._coefficient_function(n)
 
     def iterate_coefficients(self):
@@ -480,7 +545,7 @@ class LLS_mul(LLS_aux):
         super().__init__(left._is_sparse, a, c)
 
 
-    def get_coefficient(self, n):
+    def get_coefficient(self, n, s=None):
         """
         Return the `n`-th coefficient of the series ``s``.
 
@@ -542,7 +607,7 @@ class LLS_add(LLS_aux):
         
         super().__init__(left._is_sparse, a, c)
     
-    def get_coefficient(self, n):
+    def get_coefficient(self, n, s=None):
         """
         Return the `n`-th coefficient of the series ``s``.
 
@@ -596,7 +661,7 @@ class LLS_sub(LLS_aux):
         
         super().__init__(left._is_sparse, a, c)
     
-    def get_coefficient(self, n):
+    def get_coefficient(self, n, s=None):
         """
         Return the `n`-th coefficient of the series ``s``.
 
@@ -646,7 +711,7 @@ class LLS_rmul(LLS_aux):
         
         super().__init__(series._is_sparse, a, c)
     
-    def get_coefficient(self, n):
+    def get_coefficient(self, n, s=None):
         """
         Return the `n`-th coefficient of the series ``s``.
 
@@ -693,7 +758,7 @@ class LLS_neg(LLS_aux):
         
         super().__init__(series._is_sparse, a, c)
     
-    def get_coefficient(self, n):
+    def get_coefficient(self, n, s=None):
         """
         Return the `n`-th coefficient of the series ``s``.
 
@@ -731,16 +796,89 @@ class LLS_inv(LLS_aux):
             True
         """
         self._series = series
-        self._v = series.valuation()
+        super().__init__(series._is_sparse, series._approximate_valuation, series._constant)
+        print("I came here")
+        self._approximate_valuation = -self.valuation(series)
+        print('approx val', self._approximate_valuation)
+        print("Even this happened.")
+        self._v = self.valuation(series)
         self._ainv = ~series[self._v]
-        self._zero = series.base_ring().zero()
+        print('yeh bhi ho gaya')
+        self._zero = ZZ.zero()
 
         if self._v is infinity:
             raise ZeroDivisionError('cannot invert zero')
-        
-        super().__init__(series._is_sparse, -v, series._constant)
+
+        # self._v = series.valuation()
+        # self._ainv = ~series[self._v]
+        # self._zero = series.base_ring().zero()
+
+        # if self._v is infinity:
+        #     raise ZeroDivisionError('cannot invert zero')
+        # print("Came here")
     
-    def get_coefficient(self, s, n):
+    # def valuation(self, series):
+
+    #     """
+    #     Return the valuation of the series.
+
+    #     This method determines the valuation of the series by looking for a
+    #     nonzero coefficient. Hence if the series happens to be zero, then it
+    #     may run forever.
+
+    #     EXAMPLES::
+
+    #         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+    #         sage: s = 1/(1 - z) - 1/(1 - 2*z)
+    #         sage: s.valuation()
+    #         1
+    #         sage: t = z - z
+    #         sage: t.valuation()
+    #         +Infinity
+    #     """
+    #     if series._constant is not None:
+    #         n = series._approximate_valuation
+    #         m = series._constant[1]
+    #         while n <= m:
+    #             if series[n] != 0:
+    #                 series._approximate_valuation = n
+    #                 return n
+    #             n += 1
+    #         return infinity
+
+    #     elif series._is_sparse:
+    #         if series._constant is None:
+    #             n = series._approximate_valuation
+    #             cache = series._cache
+    #             while True:
+    #                 if n in cache:
+    #                     if cache[n]:
+    #                         series._approximate_valuation = n
+    #                         return n
+    #                     n += 1
+    #                 else:
+    #                     if series[n] != 0:
+    #                         series._approximate_valuation = n
+    #                         return n
+    #                     n += 1
+
+    #     else:
+    #         if series._constant is None:
+    #             n = series._approximate_valuation
+    #             cache = series._cache
+    #             while True:
+    #                 if n - series._offset < len(cache):
+    #                     if cache[n - series._offset]:
+    #                         series._approximate_valuation = n
+    #                         return n
+    #                     n += 1
+    #                 else:
+    #                     if series[n] != 0:
+    #                         series._approximate_valuation = n
+    #                         return n
+    #                     n += 1
+    
+    def get_coefficient(self, n, s):
         """
         Return the `n`-th coefficient of the series ``s``.
 
@@ -751,11 +889,29 @@ class LLS_inv(LLS_aux):
             sage: f.coefficient(2)
             -1
         """
-
+        print("This gets called first.")
+        # print("Came here as well")
+        # v = self.valuation()
+        # print("Valuation was found")
+        # self._approximate_valuation = -v
+        # ainv = ~self._series[v]
+        # zero = ZZ.zero()
+        # if v is infinity:
+        #     raise ZeroDivisionError('cannot invert zero')
+        # if n == -v:
+        #     return ainv
+        # c = zero
+        # for k in range(-v, n):
+        #     c += s[k] * self._series[n + v - k]
+        # return -c * ainv
         v = self._v
+        print('v is', v)
+        print('n is', n)
         if n == -v:
+            print("It came here")
             return self._ainv
-        c = self._zero
+        c = ZZ.zero()
+        print('s is', s)
         for k in range(-v, n):
             c += s[k] * self._series[n + v - k]
         return -c * self._ainv

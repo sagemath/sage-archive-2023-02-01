@@ -4327,11 +4327,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         User can also specify to compute the ``n`` multiplier spectra
         instead which includes the multipliers of all periodic points
         of period ``n``. The map must be defined over
-        projective space of dimension 1 over a number field or finite field.
+        projective space over a number field or finite field.
 
-        The computations can be done either over the algebraic closure of the
-        base field or over the minimal extension of the base field that
-        contains the critical points.
+        By default, the computations are done over the algebraic closure of the
+        base field. If the map is defined over projective space of dimension 1,
+        the computation can be done over the minimal extension of the base field that
+        contains the critical points. Otherwise, it will be done over the base ring
+        of the map.
 
         INPUT:
 
@@ -4346,8 +4348,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           per point or one per cycle
 
        - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
-          algebraic closure. If False, uses the smallest extension of the base field
-          containing all the critical points.
+          algebraic closure. If False, and he map is defined over projective space of
+          dimension 1, uses the smallest extension of the base field
+          containing all the critical points. If the map is defined over projective space
+          of dimension greater than 1, then the base ring of the map is used.
 
         OUTPUT: a list of field elements
 
@@ -4455,7 +4459,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
             sage: f = DynamicalSystem_projective([x^5 + 3*y^5, 4*x^3*y^2])
             sage: f.multiplier_spectra(1)
             [0,
@@ -4468,14 +4472,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         ::
 
             sage: K = GF(3).algebraic_closure()
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: f = DynamicalSystem_projective([x^5 + 2*y^5, 4*x^3*y^2])
             sage: f.multiplier_spectra(1)
             [0, z3 + 2, z3 + 1, z3, 1, 1]
 
         TESTS::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: f.multiplier_spectra(1)
             [1, 1, 1]
@@ -4483,7 +4487,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         ::
 
             sage: F.<a> = GF(7)
-            sage: P.<x,y>=ProjectiveSpace(F,1)
+            sage: P.<x,y>=ProjectiveSpace(F, 1)
             sage: f = DynamicalSystem_projective([x^2 + y^2, y^2])
             sage: sorted(f.multiplier_spectra(1))
             [0, 3, 6]
@@ -4517,54 +4521,22 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if not is_ProjectiveSpace(PS):
             raise NotImplementedError("not implemented for subschemes")
 
-        K = FractionField(self.codomain().base_ring())
         if PS.dimension_relative() > 1:
             K = self.domain().base_ring()
-            number_field = False
-            finite_field = False
 
             # if we are already using an algebraic closure, we move the
             # map into a finite extension and set use_algebraic_closure to True
             # in order to get a scheme defined over a finite extension
-            if K is QQbar:
-                K, pnts, embd = number_field_elements_from_algebraics([tup[0] for poly in self.defining_polynomials() for tup in list(poly)])
-                CR = self.domain().coordinate_ring().change_ring(K)
-                new_polys = []
-                counter = 0
-                for poly in self.defining_polynomials():
-                    new_poly = CR(0)
-                    for tup in poly:
-                        new_poly += pnts[counter]*CR(tup[1])
-                        counter += 1
-                    new_polys.append(new_poly)
-                f = DynamicalSystem_projective(new_polys)
+            if K is QQbar or isinstance(K, AlgebraicClosureFiniteField_generic):
+                f = self.reduce_base_field()
+                K = f.base_ring()
                 use_algebraic_closure = True
-                number_field = True
-            elif isinstance(K, AlgebraicClosureFiniteField_generic):
-                final_degree = ZZ(1)
-                for poly in self.defining_polynomials():
-                    for tup in list(poly):
-                        final_degree = final_degree.lcm(tup[0]._level)
-                K = GF(K.characteristic()**final_degree)
-                CR = self.domain().coordinate_ring().change_ring(K)
-                new_polys = []
-                for poly in self.defining_polynomials():
-                    new_poly = CR(0)
-                    for tup in poly:
-                        deg = tup[1].degrees()
-                        var = CR(1)
-                        for i in range(len(deg)):
-                            var *= CR.gens()[i]**deg[i]
-                        coeff = tup[0].as_finite_field_element()[1]
-                        new_poly += coeff*var
-                    new_polys.append(new_poly)
-                f = DynamicalSystem_projective(new_polys)
-                use_algebraic_closure = True
-                finite_field = True
             else:
                 f = self
             X = f.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
             if use_algebraic_closure:
+                number_field = False
+                finite_field = False
                 if K in NumberFields():
                     number_field = True
                 if K in FiniteFields():
@@ -4631,6 +4603,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     for i in range(X.multiplicity(point)):
                         points.append(point)
         else:
+            K = FractionField(self.codomain().base_ring())
             if use_algebraic_closure:
                 Kbar = K.algebraic_closure()
                 if Kbar.has_coerce_map_from(K):

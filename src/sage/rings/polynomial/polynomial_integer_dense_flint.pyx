@@ -847,8 +847,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: h == (6*x + 47)*(7*x^2 - 2*x + 38)*(3*x^3 + 2*x + 1)
             True
         """
-        g = self.gcd(right)
-        return (self//g)*right
+        try:
+            g = self.gcd(right)
+            return (self//g)*right
+        except ZeroDivisionError:
+            return 0
 
 
     @coerce_binop

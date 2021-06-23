@@ -4891,7 +4891,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             g = self.gcd(other)
             q = f//g
             return ~(q.leading_coefficient())*q
-        except:
+        except ZeroDivisionError:
             return 0
 
     def _lcm(self, other):

@@ -379,17 +379,20 @@ class HTMLFragmentFactory(SageObject):
         """
         return 'Create HTML output (see html? for details)'
 
-    def __call__(self, obj, concatenate=True):
+    def __call__(self, obj, concatenate=True, strict=False):
         r"""
         Construct a HTML fragment
 
         INPUT:
 
-        - ``obj`` -- anything. An object for which you want a HTML
+        - ``obj`` -- anything. An object for which you want an HTML
           representation.
 
         - ``concatenate`` -- if ``True``, combine HTML representations of
           elements of the container ``obj``
+
+        - ``strict`` -- if ``True``, construct an HTML representation of
+          ``obj`` even if ``obj`` is a string
 
         OUTPUT:
 
@@ -407,8 +410,12 @@ class HTMLFragmentFactory(SageObject):
 
             sage: html('<a href="http://sagemath.org">sagemath</a>')
             <a href="http://sagemath.org">sagemath</a>
+
+            sage: html('<a href="http://sagemath.org">sagemath</a>', strict=True)
+            <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<a|\phantom{\verb!x!}\verb|href="http://sagemath.org">sagemath</a>|\]</html>
         """
-        if isinstance(obj, str):
+        # string obj is interpreted as an HTML in not strict mode
+        if isinstance(obj, str) and not strict:
             return HtmlFragment(math_parse(obj))
 
         # prefer dedicated _html_() method

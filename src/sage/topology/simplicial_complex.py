@@ -2305,7 +2305,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
 
             sage: simplicial_complexes.Torus().homology(generators=True, algorithm='no_chomp')
             {0: [],
-             1: [(Z, (1, 2) - (1, 6) + (2, 6)), (Z, (3, 4) - (3, 6) + (4, 6))],
+             1: [(Z, (2, 4) - (2, 6) + (4, 6)), (Z, (1, 4) - (1, 6) + (4, 6))],
              2: [(Z,
                (0, 1, 2) - (0, 1, 5) + (0, 2, 6) - (0, 3, 4) + (0, 3, 5) - (0, 4, 6) - (1, 2, 4) + (1, 3, 4) - (1, 3, 6) + (1, 5, 6) - (2, 3, 5) + (2, 3, 6) + (2, 4, 5) - (4, 5, 6))]}
         """

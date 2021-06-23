@@ -139,6 +139,7 @@ cdef class PolyhedronFaceLattice:
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
         self._equalities = C.equalities()
+        self._bounded = C.is_bounded()
 
         # copy f_vector for later use
         f_vector = C.f_vector()

@@ -1,5 +1,5 @@
 cimport cython
-from sage.ext.memory_allocator  cimport MemoryAllocator
+from memory_allocator           cimport MemoryAllocator
 from sage.structure.sage_object cimport SageObject
 from .list_of_faces             cimport ListOfFaces
 from .face_data_structure       cimport face_t
@@ -24,6 +24,7 @@ cdef class CombinatorialFace(SageObject):
 
     # some copies from ``CombinatorialPolyhedron``
     cdef tuple _ambient_Vrep, _ambient_facets, _equalities
+    cdef bint _ambient_bounded
 
     # Atoms and coatoms are the vertices/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms vertices and vice versa.

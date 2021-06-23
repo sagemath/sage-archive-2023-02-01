@@ -273,10 +273,9 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
         if sys.platform == 'cygwin':
             # Later down we take the first matching DLL found, so search
             # SAGE_LOCAL first so that it takes precedence
-            search_directories = [
-                Path(SAGE_LOCAL) / 'bin',
-                Path(sysconfig.get_config_var('BINDIR')),
-            ]
+            if SAGE_LOCAL:
+                search_directories.append(Path(SAGE_LOCAL) / 'bin')
+            search_directories.append(Path(sysconfig.get_config_var('BINDIR')))
             # Note: The following is not very robust, since if there are multible
             # versions for the same library this just selects one more or less
             # at arbitrary. However, practically speaking, on Cygwin, there
@@ -288,7 +287,8 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
             else:
                 ext = 'so'
 
-            search_directories = [Path(SAGE_LOCAL) / 'lib']
+            if SAGE_LOCAL:
+                search_directories.append(Path(SAGE_LOCAL) / 'lib')
             libdir = sysconfig.get_config_var('LIBDIR')
             if libdir is not None:
                 libdir = Path(libdir)

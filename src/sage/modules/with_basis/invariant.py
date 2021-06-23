@@ -95,8 +95,12 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         3 + 2*x0 + 7*x0*x1*x2 + 2*x1 + 2*x2
         sage: m^2
         9*B[0] + 12*B[1] + 42*B[3]
+        sage: m+m
+        6*B[0] + 4*B[1] + 14*B[3]
         sage: I.lift(m+m)
         6 + 4*x0 + 14*x0*x1*x2 + 4*x1 + 4*x2
+        sage: 7*m
+        21*B[0] + 14*B[1] + 49*B[3]
         sage: I.lift(7*m)
         21 + 14*x0 + 49*x0*x1*x2 + 14*x1 + 14*x2
 
@@ -232,51 +236,241 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
     class Element(SubmoduleWithBasis.Element):
 
         def _mul_(self, other):
-            P = self.parent()
-            return P.retract(P.lift(self) * P.lift(other))
-
-        # lmul -- self*right
-        def _lmul_(self, right):
             """
             EXAMPLES::
 
-                sage:        #### create invariant module
-                sage:        #### multiply group element
+                sage: M = CombinatorialFreeModule(QQ,[1,2,3],prefix='M');
+                sage: G = CyclicPermutationGroup(3); G.rename('G')
+                sage: g = G.an_element(); g
+                (1,2,3)
+                sage: from sage.modules.with_basis.representation import Representation
+                sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+                sage: R = Representation(G,M,lambda g,x:M.monomial(g(x))); R.rename('R')
+                sage: I = FiniteDimensionalInvariantModule(R)
+                sage: B = I.basis()
+                sage: [I.lift(b) for b in B]
+                [M[1] + M[2] + M[3]]
+                sage: v = B[0]
+                sage: v*v
+                Traceback (most recent call last):
+                ...
+                TypeError: unsupported operand parent(s) for *: 'R' and 'R'
+                sage: (1/2)*v
+                1/2*B[0]
+                sage: v*(1/2)
+                1/2*B[0]
+
+                sage: G = CyclicPermutationGroup(3); G.rename('G')
+                sage: M = algebras.Exterior(QQ, 'x', 3)
+                sage: from sage.modules.with_basis.representation import Representation
+                sage: on_basis = lambda g,m: M.prod([M.monomial((g(j+1)-1,)) for j in m]) #cyclically permute generators
+                sage: from sage.categories.algebras import Algebras
+                sage: R = Representation(G, M, on_basis, category=Algebras(QQ).WithBasis().FiniteDimensional(), side = 'right')
+                sage: I = FiniteDimensionalInvariantModule(R); I.rename('I')
+                sage: B = I.basis()
+                sage: v = B[0] + 2*B[1]; I.lift(v)
+                1 + 2*x0 + 2*x1 + 2*x2
+                sage: w = B[2]; I.lift(w)
+                x0*x1 - x0*x2 + x1*x2
+                sage: v*w
+                B[2] + 6*B[3]
+                sage: I.lift(v*w)
+                x0*x1 + 6*x0*x1*x2 - x0*x2 + x1*x2 
+                sage: w*v
+                B[2] + 6*B[3]
+                sage: (1/2)*v
+                1/2*B[0] + B[1]
+                sage: w*(1/2)
+                1/2*B[2]
+                sage: g = G((1,3,2))
+                sage: v*g
+                B[0] + 2*B[1]
+                sage: w*g
+                B[2]
+                sage: g*v
+                Traceback (most recent call last):
+                ...
+                TypeError: unsupported operand parent(s) for *: 'G' and 'I'
+
+                sage: R = Representation(G, M, on_basis, category=Algebras(QQ).WithBasis().FiniteDimensional())
+                sage: I = FiniteDimensionalInvariantModule(R); I.rename('I')
+                sage: B = I.basis()
+                sage: v = B[0] + 2*B[1]; I.lift(v)
+                1 + 2*x0 + 2*x1 + 2*x2
+                sage: w = B[2]; I.lift(w)
+                x0*x1 - x0*x2 + x1*x2
+                sage: v*w
+                B[2] + 6*B[3]
+                sage: I.lift(v*w)
+                x0*x1 + 6*x0*x1*x2 - x0*x2 + x1*x2 
+                sage: w*v
+                B[2] + 6*B[3]
+                sage: (1/2)*v
+                1/2*B[0] + B[1]
+                sage: w*(1/2)
+                1/2*B[2]
+                sage: g = G((1,3,2))
+                sage: v*v
+                B[0] + 4*B[1]
+                sage: g*w
+                B[2]
+                sage: v*g
+                Traceback (most recent call last):
+                ...
+                TypeError: unsupported operand parent(s) for *: 'I' and 'G'
+
+            """
+            P = self.parent()
+            try:
+                return P.retract(P.lift(self) * P.lift(other))
+            except:
+                return P.retract(P.lift(self)*other)
+
+        def _lmul_(self, right):
+            """
+            Give the product of ``self*right``
+
+            EXAMPLES::
+
+                sage: M = CombinatorialFreeModule(QQ,[1,2,3])
+                sage: G = CyclicPermutationGroup(3)
+                sage: g = G.an_element(); g
+                (1,2,3)
+                sage: from sage.modules.with_basis.representation import Representation
+                sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+                sage: R = Representation(G,M,lambda g,x: M.monomial(g(x)), side = 'right')
+                sage: I = FiniteDimensionalInvariantModule(R)
+                sage: v = I.an_element(); v
+                2*B[0]
+                sage: v*g
+                2*B[0]
+                sage: [v*g for g in G.list()]
+                [2*B[0], 2*B[0], 2*B[0]]
+
+                sage: G = CyclicPermutationGroup(3)
+                sage: M = algebras.Exterior(QQ, 'x', 3)
+                sage: from sage.modules.with_basis.representation import Representation
+                sage: on_basis = lambda g,m: M.prod([M.monomial((g(j+1)-1,)) for j in m]) #cyclically permute generators
+                sage: from sage.categories.algebras import Algebras
+                sage: R = Representation(G, M, on_basis, category=Algebras(QQ).WithBasis().FiniteDimensional(), side = 'right')
+                sage: I = FiniteDimensionalInvariantModule(R)
+                sage: B = I.basis()
+                sage: [I.lift(b) for b in B]
+                [1, x0 + x1 + x2, x0*x1 - x0*x2 + x1*x2, x0*x1*x2]
+                sage: [[b*g for g in G] for b in B]
+                [[B[0], B[0], B[0]],
+                 [B[1], B[1], B[1]],
+                 [B[2], B[2], B[2]],
+                 [B[3], B[3], B[3]]]
+                sage: 3*I.basis()[0]
+                3*B[0]
+                sage: 3*B[0] + B[1]*2
+                3*B[0] + 2*B[1]
+
             """
 
-            if right in self.parent()._semigroup and self.parent()._semigroup_representation._side == 'right':
+            if right in self.parent()._semigroup and self.parent()._semigroup_representation.side() == 'right':
                 return self
 
             elif right in self.parent()._semigroup_representation._module.base_ring():
-                P = self.parent()
-                return P.retract(P.lift(self)*right)
+                # This preserves the structure of the invariant as a 
+                # ``.base_ring()``-module
+                return self._mul_(right)
 
             return super()._lmul_(right)
 
-        # rmul -- left * self
         def _rmul_(self, left):
             """
+            Give the product of ``left * self``
+
             EXAMPLES::
 
-                sage: ### create invariant module
-                sage: ### multiply group element
+                sage: M = CombinatorialFreeModule(QQ,[1,2,3])
+                sage: G = CyclicPermutationGroup(3)
+                sage: g = G.an_element(); g
+                (1,2,3)
+                sage: from sage.modules.with_basis.representation import Representation
+                sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+                sage: R = Representation(G,M,lambda g,x: M.monomial(g(x)))
+                sage: I = FiniteDimensionalInvariantModule(R)
+                sage: v = I.an_element(); v
+                2*B[0]
+                sage: g*v
+                2*B[0]
+                sage: [g*v for g in G.list()]
+                [2*B[0], 2*B[0], 2*B[0]]
+
+                sage: G = CyclicPermutationGroup(3)
+                sage: M = algebras.Exterior(QQ, 'x', 3)
+                sage: on_basis = lambda g,m: M.prod([M.monomial((g(j+1)-1,)) for j in m]) #cyclically permute generators
+                sage: from sage.categories.algebras import Algebras
+                sage: R = Representation(G, M, on_basis, category=Algebras(QQ).WithBasis().FiniteDimensional())
+                sage: I = FiniteDimensionalInvariantModule(R)
+                sage: B = I.basis()
+                sage: [I.lift(b) for b in B]
+                [1, x0 + x1 + x2, x0*x1 - x0*x2 + x1*x2, x0*x1*x2]
+                sage: [[g*b for g in G] for b in B]
+                [[B[0], B[0], B[0]], 
+                 [B[1], B[1], B[1]], 
+                 [B[2], B[2], B[2]], 
+                 [B[3], B[3], B[3]]]
+                sage: 3*I.basis()[0]
+                3*B[0]
+                sage: 3*B[0] + B[1]*2
+                3*B[0] + 2*B[1]
             """
-            if left in self.parent()._semigroup and self.parent()._semigroup_representation._side == 'left':
+            if left in self.parent()._semigroup and self.parent()._semigroup_representation.side() == 'left':
                 return self
 
             elif left in self.parent()._semigroup_representation._module.base_ring():
-                P = self.parent()
-                return P.retract(left*P.lift(self))
+                return self._mul_(left)
 
             return super()._rmul_(left)
 
         def _acted_upon_(self, scalar, self_on_left = False):
             """
             EXAMPLES::
+                
+                sage: G = CyclicPermutationGroup(3)
+                sage: M = CombinatorialFreeModule(QQ,[1,2,3])
+                sage: from sage.modules.with_basis.representation import Representation
+                sage: R = Representation(G, M, lambda g,x: M.monomial(g(x)))
+                sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+                sage: I = FiniteDimensionalInvariantModule(R)
+                sage: B = I.basis()
+                sage: [b._acted_upon_(G((1,3,2))) for b in B]
+                [B[0]]
+
+                sage: R = Representation(G, M, lambda g,x: M.monomial(g(x)), side = 'right')
+                sage: I = FiniteDimensionalInvariantModule(R)
+                sage: B = I.basis()
+                sage: [b._acted_upon_(G((1,3,2)), self_on_left = True) for b in B]
+                [B[0]]
+
+                sage: R = G.regular_representation(QQ)
+                sage: I = FiniteDimensionalInvariantModule(R)
+                sage: B = I.basis()
+                sage: [I.lift(b) for b in B]
+                [() + (1,2,3) + (1,3,2)]
+                sage: B[0]._acted_upon_(G((1,3,2)))
+                B[0]
+                sage: B[0]._acted_upon_(G((1,3,2)), self_on_left=True) == None
+                True
+
+                sage: R = G.regular_representation(QQ, side = 'right')
+                sage: I = FiniteDimensionalInvariantModule(R)
+                sage: B = I.basis()
+                sage: [I.lift(b) for b in B]
+                [() + (1,2,3) + (1,3,2)]
+                sage: g = G((1,3,2))
+                sage: B[0]._acted_upon_(g, self_on_left = True)
+                B[0]
+                sage: B[0]._acted_upon_(g, self_on_left = False) == None
+                True
 
             """
 
-            if scalar in self.parent()._semigroup and self_on_left == (self.parent()._semigroup_representation._side == 'right'):
+            if scalar in self.parent()._semigroup and self_on_left == (self.parent()._semigroup_representation.side() == 'right'):
 
                 return self
 
@@ -293,31 +487,29 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
     `M`, the `\chi`-twisted invariant submodule of `M` is the isotypic component of the representation
     `M` corresponding to the irreducible character `\chi`.
 
-    .. MATH::
+    .. NOTE: 
 
-        M^S = \{m \in M : s\cdot m = m,\, \forall s \in S \}
+        The current implementation works when `S` is a finitely-generated semigroup,
+        and when `M` is a finite-dimensional free module with a distinguished basis.
+#     """
 
-    NOTE: The current implementation works when `S` is a finitely-generated semigroup,
-    and when `M` is a finite-dimensional free module with a distinguished basis.
-    """
+#     def __init__(self, R, character = 'trivial'):
 
-    def __init__(self, R, character = 'trivial'):
+#         super.__init__(R)
 
-        super.__init__(R)
+#         if character != 'trivial':
 
-        if character != 'trivial':
-
-            pass
+#             pass
 
 
-    def projection(self, element):
-        """
-        Give the projection of element (in `self.module()`) onto self
-        """
-        pass
+#     def projection(self, element):
+#         """
+#         Give the projection of element (in `self.module()`) onto self
+#         """
+#         pass
 
-    # class Element
+#     # class Element
 
-    #     _lmul_
-    #     _rmul_
-    #     _acted_upon_
+#     #     _lmul_
+#     #     _rmul_
+#     #     _acted_upon_

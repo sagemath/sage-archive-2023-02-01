@@ -77,6 +77,8 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         sage: I = FiniteDimensionalInvariantModule(R)
         sage: [I.lift(b).to_vector() for b in I.basis()]
         [(1, 1, 1, 1, 1, 1)]
+        sage: [I.lift(3*b).to_vector() for b in I.basis()]
+        [(3, 3, 3, 3, 3, 3)]
 
         sage: G = CyclicPermutationGroup(3)
         sage: M = algebras.Exterior(QQ, 'x', 3)
@@ -90,9 +92,13 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         sage: B = I.basis()
         sage: m = 3*B[0] + 2*B[1] + 7*B[3]
         sage: I.lift(m)
-        7*x0*x1*x2 + 2*x0 + 2*x1 + 2*x2 + 3
+        3 + 2*x0 + 7*x0*x1*x2 + 2*x1 + 2*x2
         sage: m^2
-        42*B[3] + 12*B[1] + 9*B[0]
+        9*B[0] + 12*B[1] + 42*B[3]
+        sage: I.lift(m+m)
+        6 + 4*x0 + 14*x0*x1*x2 + 4*x1 + 4*x2
+        sage: I.lift(7*m)
+        21 + 14*x0 + 49*x0*x1*x2 + 14*x1 + 14*x2
 
     .. NOTE:: 
 
@@ -127,11 +133,10 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         self._semigroup_representation = R
         self._semigroup = R.semigroup()
 
+        # A check for self._semigroup_representation._module not in FiniteDimensionalModulesWithBasis
+        # is not required, because a ``Representation`` cannot be built without a basis
         if self._semigroup not in FinitelyGeneratedSemigroups:
             raise ValueError(f'{self._semigroup} is not finitely generated')
-
-        if self._semigroup_representation._module not in FiniteDimensionalModulesWithBasis:
-            raise ValueError(f'{self._semigroup_representation._module} is not finite dimensional')
 
         # The left/right multiplication is taken care of
         # by self._semigroup_representation, so here
@@ -242,6 +247,10 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             if right in self.parent()._semigroup and self.parent()._semigroup_representation._side == 'right':
                 return self
 
+            elif right in self.parent()._semigroup_representation._module.base_ring():
+                P = self.parent()
+                return P.retract(P.lift(self)*right)
+
             return super()._lmul_(right)
 
         # rmul -- left * self
@@ -254,6 +263,10 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             """
             if left in self.parent()._semigroup and self.parent()._semigroup_representation._side == 'left':
                 return self
+
+            elif left in self.parent()._semigroup_representation._module.base_ring():
+                P = self.parent()
+                return P.retract(left*P.lift(self))
 
             return super()._rmul_(left)
 

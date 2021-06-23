@@ -4117,20 +4117,20 @@ class BTerm(TermWithCoefficient):
 
         EXAMPLES::
 
-        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-        sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
-        sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-        sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
 
-        sage: G = MonomialGrowthGroup(ZZ, 'x')
-        sage: BT = BTermMonoid(TermMonoid, G, QQ)
-        sage: t1 = BT(x, 3, valid_from={'m': 20}); t2 = BT(x, 1, valid_from={'m': 10});
-        sage: t1
-        BTerm with coefficient 3, growth x and valid for m >= 20
-        sage: t1.can_absorb(t2)
-        True
-        sage: t1.absorb(t2)
-        BTerm with coefficient 61/20, growth x and valid for m >= 20
+            sage: G = MonomialGrowthGroup(ZZ, 'x')
+            sage: BT = BTermMonoid(TermMonoid, G, QQ)
+            sage: t1 = BT(x, 3, valid_from={'m': 20}); t2 = BT(x, 1, valid_from={'m': 10});
+            sage: t1
+            BTerm with coefficient 3, growth x and valid for m >= 20
+            sage: t1.can_absorb(t2)
+            True
+            sage: t1.absorb(t2)
+            BTerm with coefficient 61/20, growth x and valid for m >= 20
         """
         coeff_new = self.coefficient + other.coefficient / self.valid_from[next(iter(self.valid_from))]
         return self.parent()(self.growth, coeff_new, valid_from=self.valid_from)

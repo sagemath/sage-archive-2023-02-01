@@ -73,9 +73,10 @@ from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.matrix.constructor import Matrix
 from sage.matrix.special import block_matrix
 from sage.misc.cachefunc import cached_method
+from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.modules.free_module import VectorSpace
-from sage.numerical.gauss_legendre import integrate_vector
+from sage.numerical.gauss_legendre import integrate_vector#, integrate_vector_N To be included when ticket #32014 is accepted. 
 from sage.rings.complex_mpfr import ComplexField, CDF
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1481,6 +1482,70 @@ class RiemannSurface(object):
                 raise ValueError("computed regular differentials do not match stored genus")
             self._differentials = generators
         return self._differentials
+
+    def _bounding_data(self, differentials):
+        r"""
+        Compute the data required to bound a differential on a circle.
+
+        Given a differential, one can bound it on a circular region using its
+        derivative and its minimal polynomial (in the coordinate of the base).
+
+        INPUT:
+
+        - ``differentials`` -- The differentials for which to compute the bounding data.
+
+        OUTPUT:
+
+        A tuple containing the polynomial ring the minimal polynomial lies in,
+        as well as a list containing the differential, its derivative, the
+        minimal polynomial, and ``a0_info`` for each differential. Here
+        ``a0_info`` is the leading coefficient and roots of the leading order
+        term of the minimal polynomial.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<z,w> = QQ[]
+            sage: f = w^2 - (z^3-1)
+            sage: S = RiemannSurface(f)
+            sage: S._bounding_data(S.cohomology_basis())
+            (Multivariate Polynomial Ring in z, g over Complex Field with 53 bits of precision,
+             [(1/(2*w),
+               (-3*z^2*g)/(2*z^3 - 2),
+               z^3*g^2 - g^2 - 0.250000000000000,
+               (1.00000000000000,
+                [1.00000000000000,
+                 -0.500000000000000 - 0.866025403784439*I,
+                 -0.500000000000000 + 0.866025403784439*I]))])
+
+        """
+        # This copies previous work by NB, outputting the zipped list required for a certified line integral. 
+        P = PolynomialRing(QQ,'Z')
+        k = P.fraction_field()
+        KP = PolynomialRing(k,'W') #W->fraction field
+        fZW = self.f(P.gen(0),KP.gen(0))
+        L = k.extension(fZW,'Wb')
+        dfdw_L = self._dfdw(P.gen(0),L.gen(0))
+        integrand_list = [h/self._dfdw for h in differentials]
+        # minpoly_univ gives the minimal polynomial for h, in variable x, with coefficients given by polynomials 
+        # with coefficients in P (i.e. rational polynomials in Z).
+        minpoly_univ = [(h(P.gen(0),L.gen(0))/dfdw_L).minpoly().numerator() for h in differentials]
+        QQzg = PolynomialRing(QQ,['z','g'])
+        # The following line changes the variables in these minimal polynomials as Z -> z, x -> G, then evaluates
+        # at G = QQzg.gens(1) ( = g )
+        minpoly_list = [QQzg['G']([c(QQzg.gen(0)) for c in list(h)])(QQzg.gen(1)) for h in minpoly_univ]
+        # h(z,g)=0 --> dg/dz = - dhdz/dhdg
+        dgdz_list = [ -h.derivative(QQzg.gen(0))/h.derivative(QQzg.gen(1)) for h in minpoly_list]
+        
+        CCzg = self._CCz.extend_variables('g')
+        CCminpoly_list = [CCzg(h) for h in minpoly_list]
+        a0_list = [self._CC['Z'](h.leading_coefficient()) for h in minpoly_univ]
+        a0_info = [(a0.leading_coefficient(),flatten([[r]*n for r,n in a0.roots()])) for a0 in a0_list]
+        # Note that we are assuming here that the root finder is working correctly, which will need
+        # some thought.
+            
+        return CCzg, list(zip(integrand_list,dgdz_list,CCminpoly_list,a0_info))
+    
 
     def matrix_of_integral_values(self, differentials):
         r"""

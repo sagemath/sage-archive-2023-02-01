@@ -1,2 +1,2 @@
 cd src
-eval sdh_pip_install $(eval sdh_prefix_args "--global-option" build --skip-npm) .
+eval sdh_pip_install $(eval sdh_prefix_args "--build-option" build --skip-npm) .

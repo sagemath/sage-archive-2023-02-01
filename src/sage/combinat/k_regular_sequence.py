@@ -1137,8 +1137,7 @@ class RecurrenceParser(object):
 
         return (M, m, coeffs, initial_values)
 
-    def parameters(self, M, m, coeffs, initial_values,
-                                         offset):
+    def parameters(self, M, m, coeffs, initial_values, offset):
         r"""
         Determine parameters from recurrence relations as admissible in
         :meth:`kRegularSequenceSpace.from_recurrence`.
@@ -1281,7 +1280,7 @@ class RecurrenceParser(object):
                                 offset=offset, n1=n1)
 
     def values(self, *, M, m, l, u, ll, coeffs,
-                                     initial_values, last_value_needed, offset):
+               initial_values, last_value_needed, offset):
         r"""
         Determine enough values of the corresponding recursive sequence by
         applying the recurrence relations given in :meth:`kRegularSequenceSpace.from_recurrence`
@@ -1561,8 +1560,7 @@ class RecurrenceParser(object):
         return vector(
             [initial_values[k**ind[i][0]*n + ind[i][1]] for i in srange(dim)])
 
-    def matrix(self, recurrence_rules, rem,
-                                     correct_offset=True):
+    def matrix(self, recurrence_rules, rem, correct_offset=True):
         r"""
         Construct the matrix for remainder ``rem`` of the linear
         representation of the sequence represented by ``recurrence_rules``.
@@ -1918,8 +1916,7 @@ class RecurrenceParser(object):
 
         k = self.k
         M, m, coeffs, initial_values = self.parse_recurrence(equations, function, var)
-        recurrence_rules = self.parameters(
-            M, m, coeffs, initial_values, offset)
+        recurrence_rules = self.parameters(M, m, coeffs, initial_values, offset)
 
         mu = [self.matrix(recurrence_rules, rem)
               for rem in srange(k)]

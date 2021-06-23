@@ -849,7 +849,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
 
         TESTS:
 
-        Check that :trac:``32033`` has been fixed::
+        Check that :trac:`32033` has been fixed::
 
             sage: R.<t> = ZZ[]
             sage: lcm(R(0), R(0))

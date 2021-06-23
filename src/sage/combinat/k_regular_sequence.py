@@ -400,7 +400,9 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         - ``offset`` -- an integer (default: ``0``). See explanation for ``equations`` above.
 
-        OUTPUT: A :class:`kRegularSequence`.
+        OUTPUT:
+
+        A :class:`kRegularSequence`.
 
         EXAMPLES:
 
@@ -546,21 +548,47 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
 
 class RecurrenceParser(object):
+    r"""
+    A parser for symbolic recurrence relations that allow
+    the construction of a `k`-linear representation
+    for the sequence satisfying these recurrence relations.
+
+    This is used by :meth:`kRegularSequenceSpace.from_recurrence`
+    to construct a :class:`kRegularSequence`.
+    """
     def __init__(self, k, coefficient_ring):
+        r"""
+        See :class:`RecurrenceParser`.
+
+        INPUT:
+
+        - ``k`` -- an integer at least `2` specifying the base
+
+        - ``coefficient_ring`` -- a ring.
+
+        These are the same parameters used when creating
+        a :class:`kRegularSequenceSpace`.
+
+        TESTS::
+
+            sage: from sage.combinat.k_regular_sequence import RecurrenceParser
+            sage: RecurrenceParser(2, ZZ)
+            <sage.combinat.k_regular_sequence.RecurrenceParser object at 0x...>
+        """
         self.k = k
         self.coefficient_ring = coefficient_ring
 
     def parse_recurrence(self, equations, function, var):
         r"""
-        Parse recurrence relations as admissible in :meth:`from_recurrence`.
+        Parse recurrence relations as admissible in :meth:`kRegularSequenceSpace.from_recurrence`.
 
         INPUT:
 
-        - ``equations`` -- see :meth:`from_recurrence`
+        - ``equations`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
-        - ``function`` -- see :meth:`from_recurrence`
+        - ``function`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
-        - ``var`` -- see :meth:`from_recurrence`
+        - ``var`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
         OUTPUT:
 
@@ -602,7 +630,7 @@ class RecurrenceParser(object):
 
         .. SEEALSO::
 
-            :meth:`from_recurrence`
+            :meth:`kRegularSequenceSpace.from_recurrence`
 
         TESTS:
 
@@ -1113,15 +1141,15 @@ class RecurrenceParser(object):
                                          offset):
         r"""
         Determine parameters from recurrence relations as admissible in
-        :meth:`from_recurrence`.
+        :meth:`kRegularSequenceSpace.from_recurrence`.
 
         INPUT:
 
         - ``M``, ``m``, ``offset`` -- parameters of the recursive sequences,
-          see [HKL2021]_, Definition 3.1, as well as :meth:`from_recurrence`
+          see [HKL2021]_, Definition 3.1, as well as :meth:`kRegularSequenceSpace.from_recurrence`
 
         - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
-          coefficient `c_{r,j}` as given in :meth:`from_recurrence`.
+          coefficient `c_{r,j}` as given in :meth:`kRegularSequenceSpace.from_recurrence`.
           If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``,
           then it is assumed to be zero.
 
@@ -1164,7 +1192,7 @@ class RecurrenceParser(object):
 
         .. SEEALSO::
 
-            :meth:`from_recurrence`
+            :meth:`kRegularSequenceSpace.from_recurrence`
 
         TESTS::
 
@@ -1256,7 +1284,7 @@ class RecurrenceParser(object):
                                      initial_values, last_value_needed, offset):
         r"""
         Determine enough values of the corresponding recursive sequence by
-        applying the recurrence relations given in :meth:`from_recurrence`
+        applying the recurrence relations given in :meth:`kRegularSequenceSpace.from_recurrence`
         to the values given in ``initial_values``.
 
         INPUT:
@@ -1268,7 +1296,7 @@ class RecurrenceParser(object):
           see [HKL2021]_, Theorem A
 
         - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
-          coefficient `c_{r,j}` as given in :meth:`from_recurrence`.
+          coefficient `c_{r,j}` as given in :meth:`kRegularSequenceSpace.from_recurrence`.
           If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``,
           then it is assumed to be zero.
 
@@ -1298,7 +1326,7 @@ class RecurrenceParser(object):
 
         .. SEEALSO::
 
-            :meth:`from_recurrence`
+            :meth:`kRegularSequenceSpace.from_recurrence`
 
         TESTS:
 
@@ -1468,7 +1496,7 @@ class RecurrenceParser(object):
 
         .. SEEALSO::
 
-            :meth:`from_recurrence`
+            :meth:`kRegularSequenceSpace.from_recurrence`
         """
         from sage.arith.srange import srange
 
@@ -1516,7 +1544,7 @@ class RecurrenceParser(object):
 
         .. SEEALSO::
 
-            :meth:`from_recurrence`
+            :meth:`kRegularSequenceSpace.from_recurrence`
         """
         from sage.arith.srange import srange
         from sage.modules.free_module_element import vector
@@ -1685,7 +1713,7 @@ class RecurrenceParser(object):
 
         .. SEEALSO::
 
-            :meth:`from_recurrence`
+            :meth:`kRegularSequenceSpace.from_recurrence`
         """
         from sage.arith.srange import srange
         from sage.matrix.constructor import Matrix
@@ -1770,7 +1798,7 @@ class RecurrenceParser(object):
 
         .. SEEALSO::
 
-            :meth:`from_recurrence`
+            :meth:`kRegularSequenceSpace.from_recurrence`
         """
         from sage.modules.free_module_element import vector
 
@@ -1792,7 +1820,7 @@ class RecurrenceParser(object):
 
         .. SEEALSO::
 
-            :meth:`from_recurrence`
+            :meth:`kRegularSequenceSpace.from_recurrence`
 
         TESTS:
 
@@ -1842,6 +1870,44 @@ class RecurrenceParser(object):
         return right
 
     def __call__(self, equations, function, var, offset=0):
+        r"""
+        Construct a `k`-linear representation that fulfills the recurrence relations
+        given in ``equations``.
+
+        This is the main method of :class:`RecurrenceParser` and
+        is called by :meth:`kRegularSequenceSpace.from_recurrence`
+        to construct a :class:`kRegularSequence`.
+
+        INPUT:
+
+        All parameters are explained in the high-level method
+        :meth:`kRegularSequenceSpace.from_recurrence`
+
+        OUTPUT:
+
+        A linear representation ``(left, mu, right)``.
+
+        Many examples can be found in
+        :meth:`kRegularSequenceSpace.from_recurrence`.
+
+        TESTS::
+
+            sage: from sage.combinat.k_regular_sequence import RecurrenceParser
+            sage: RP = RecurrenceParser(2, ZZ)
+            sage: var('n')
+            n
+            sage: function('f')
+            f
+            sage: RP([f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
+            ....:     f(0) == 0, f(1) == 1], f, n)
+            ((1, 0, 0),
+             [
+              [1 0 0]  [1 1 0]
+              [1 1 0]  [0 1 0]
+              [0 1 0], [0 1 1]
+             ],
+             (0, 1, 1))
+        """
         from sage.arith.srange import srange
 
         k = self.k

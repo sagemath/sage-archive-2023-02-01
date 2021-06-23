@@ -932,7 +932,7 @@ class RecurrenceParser(object):
         from sage.symbolic.operators import add_vararg, mul_vararg, operator
 
         k = self.k
-        base_ring = self.coefficient_ring
+        coefficient_ring = self.coefficient_ring
         M = None
         m = None
         coeffs = {}
@@ -1011,7 +1011,7 @@ class RecurrenceParser(object):
                                  "%s is not a polynomial in %s of degree smaller than 2."
                                  % (left_side, eq, polynomial_left, var)) from None
             if polynomial_left in ZZ:
-                if right_side in base_ring:
+                if right_side in coefficient_ring:
                     if (polynomial_left in initial_values.keys() and
                         initial_values[polynomial_left] != right_side):
                         raise ValueError("Initial value %s is given twice."
@@ -1020,7 +1020,7 @@ class RecurrenceParser(object):
                 else:
                     raise ValueError("Initial value %s given by the equation %s "
                                      "is not in %s."
-                                     % (right_side, eq, base_ring)) from None
+                                     % (right_side, eq, coefficient_ring)) from None
             else:
                 [r, base_power_M] = list(polynomial_left)
                 M_new = log(base_power_M, base=k)
@@ -1068,11 +1068,11 @@ class RecurrenceParser(object):
                                          % (right_side,)) from None
                     for summand in summands:
                         coeff, new_m, d = parse_one_summand(summand, eq)
-                        if coeff not in base_ring:
+                        if coeff not in coefficient_ring:
                             raise ValueError("Term %s in the equation %s: "
                                              "%s is not a valid coefficient "
                                              "since it is not in %s."
-                                             % (summand, eq, coeff, base_ring)) from None
+                                             % (summand, eq, coeff, coefficient_ring)) from None
                         if m is not None and m != new_m:
                             raise ValueError(("Term {0} in the equation {1}: "
                                               "{2} does not equal {3}. Expected "
@@ -1206,7 +1206,7 @@ class RecurrenceParser(object):
 
         from sage.functions.other import ceil, floor
 
-        base_ring = self.coefficient_ring
+        coefficient_ring = self.coefficient_ring
         k = self.k
         keys_coeffs = coeffs.keys()
         indices_right = [key[1] for key in keys_coeffs if coeffs[key]]
@@ -1230,10 +1230,10 @@ class RecurrenceParser(object):
             raise ValueError("No initial values are given.") from None
         keys_initial = initial_values.keys()
         values_not_in_ring = [n for n in keys_initial
-                              if initial_values[n] not in base_ring]
+                              if initial_values[n] not in coefficient_ring]
         if values_not_in_ring:
             raise ValueError("Initial values for arguments in %s are not in %s."
-                             % (values_not_in_ring, base_ring)) from None
+                             % (values_not_in_ring, coefficient_ring)) from None
 
         last_value_needed = max(
             k**(M-1) - k**m + uu + (n1 > 0)*k**(M-1)*(k*(n1 - 1) + k - 1), # for matrix W
@@ -1693,7 +1693,7 @@ class RecurrenceParser(object):
         from sage.matrix.special import block_matrix, zero_matrix
         from sage.modules.free_module_element import vector
 
-        base_ring = self.coefficient_ring
+        coefficient_ring = self.coefficient_ring
         k = self.k
         M = recurrence_rules.M
         m = recurrence_rules.m
@@ -1706,7 +1706,7 @@ class RecurrenceParser(object):
         coeffs = recurrence_rules.coeffs
         ind = self.ind(M, m, ll, uu)
 
-        mat = Matrix(base_ring, 0, dim_without_corr)
+        mat = Matrix(coefficient_ring, 0, dim_without_corr)
 
         @cached_function
         def coeff(r, k):
@@ -1729,22 +1729,22 @@ class RecurrenceParser(object):
                     lambd = l - ind[(m, k**m*dd + k**m + l)]
                     return coeff(rem_d - k**M, kk + lambd)
 
-        mat = Matrix(base_ring, dim_without_corr, dim_without_corr, entry)
+        mat = Matrix(coefficient_ring, dim_without_corr, dim_without_corr, entry)
 
         if n1 == 0 or not correct_offset:
             return mat
         else:
-            W = Matrix(base_ring, dim_without_corr, 0)
+            W = Matrix(coefficient_ring, dim_without_corr, 0)
             for i in srange(n1):
                 W = W.augment(
                     self.v_eval_n(recurrence_rules, k*i + rem) -
                     mat*self.v_eval_n(recurrence_rules, i))
 
-            J = Matrix(base_ring, 0, n1)
+            J = Matrix(coefficient_ring, 0, n1)
             for i in srange(n1):
                 J = J.stack(vector([int(j*k == i - rem) for j in srange(n1)]))
 
-            Mat = MatrixSpace(base_ring, dim, dim)
+            Mat = MatrixSpace(coefficient_ring, dim, dim)
             return Mat(block_matrix([[mat, W],
                                      [zero_matrix(n1, dim_without_corr), J]]))
 

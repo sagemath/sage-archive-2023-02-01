@@ -366,6 +366,182 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         except OverflowError:
             raise ValueError('value {} of index is negative'.format(n)) from None
 
+    def from_recurrence(self, equations, function, var, offset=0):
+        r"""
+        Construct a `k`-regular sequence that fulfills the recurrence relations
+        given in ``equations``.
+
+        INPUT:
+
+        - ``equations`` -- A list of equations where the elements have
+          either the form
+
+          - `f(k^M n + r) = c_{r,l} f(k^m n + l) + c_{r,l + 1} f(k^m n
+            + l + 1) + ... + c_{r,u} f(k^m n + u)` for some integers
+            `0 \leq r < k^M`, `M > m \geq 0` and `l \leq u`, and some
+            coefficients `c_{r,j}` from the (semi)ring ``coefficents``
+            of the corresponding :class:`kRegularSequenceSpace`, valid
+            for all integers `n \geq \text{offset}` for some integer
+            `\text{offset} \geq \max(-l/k^m, 0)` (default: ``0``), and
+            there is an equation of this form (with the same
+            parameters `M` and `m`) for all `r`
+
+          or the form
+
+          - ``f(k) == t`` for some integer ``k`` and some ``t`` from the (semi)ring
+            ``coefficients``.
+
+          The recurrence relations above uniquely determine a `k`-regular sequence;
+          see [HKL2021]_ for further information.
+
+        - ``function`` -- symbolic function ``f`` occuring in the equations
+
+        - ``var`` -- symbolic variable (``n`` in the above description of ``equations``)
+
+        - ``offset`` -- an integer (default: ``0``). See explanation for ``equations`` above.
+
+        OUTPUT: A :class:`kRegularSequence`.
+
+        EXAMPLES:
+
+        Stern--Brocot Sequence::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: var('n')
+            n
+            sage: function('f')
+            f
+            sage: Seq2.from_recurrence([
+            ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
+            ....:     f(0) == 0, f(1) == 1], f, n)
+            2-regular sequence 0, 1, 1, 2, 1, 3, 2, 3, 1, 4, ...
+
+        Number of Odd Entries in Pascal's Triangle::
+
+            sage: Seq2.from_recurrence([
+            ....:     f(2*n) == 3*f(n), f(2*n + 1) == 2*f(n) + f(n + 1),
+            ....:     f(0) == 0, f(1) == 1], f, n)
+            2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
+
+        Number of Unbordered Factors in the Thue--Morse Sequence::
+
+            sage: Seq2.from_recurrence([
+            ....:     f(8*n) == 2*f(4*n),
+            ....:     f(8*n + 1) == f(4*n + 1),
+            ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
+            ....:     f(8*n + 3) == -f(4*n + 1) + f(4*n + 2),
+            ....:     f(8*n + 4) == 2*f(4*n + 2),
+            ....:     f(8*n + 5) == f(4*n + 3),
+            ....:     f(8*n + 6) == -f(4*n + 1) + f(4*n + 2) + f(4*n + 3),
+            ....:     f(8*n + 7) == 2*f(4*n + 1) + f(4*n + 3),
+            ....:     f(0) == 1, f(1) == 2, f(2) == 2, f(3) == 4, f(4) == 2,
+            ....:     f(5) == 4, f(6) == 6, f(7) == 0, f(8) == 4, f(9) == 4,
+            ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
+            ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
+            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n, 3)
+            2-regular sequence 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, ...
+
+        Number of Non-Zero Elements in the Generalized Pascal's Triangle (see [LRS2017]_)::
+
+            sage: Seq2 = kRegularSequenceSpace(2, QQ)
+            sage: Seq2.from_recurrence([
+            ....:     f(4*n) == 5/3*f(2*n) - 1/3*f(2*n + 1),
+            ....:     f(4*n + 1) == 4/3*f(2*n) + 1/3*f(2*n + 1),
+            ....:     f(4*n + 2) == 1/3*f(2*n) + 4/3*f(2*n + 1),
+            ....:     f(4*n + 3) == -1/3*f(2*n) + 5/3*f(2*n + 1),
+            ....:     f(0) == 1, f(1) == 2], f, n)
+            2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
+
+        TESTS::
+
+            sage: Seq2.from_recurrence([
+            ....:     f(4*n) == f(2*n),
+            ....:     f(4*n + 1) == f(2*n),
+            ....:     f(4*n + 2) == f(2*n),
+            ....:     f(4*n + 3) == f(2*n + 1024),
+            ....:     f(0) == 1, f(1) == 1], f, n, 2)
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial values for arguments in [2, ..., 2044] are missing.
+
+        ::
+
+            sage: S = Seq2.from_recurrence([
+            ....:     f(4*n) == f(2*n),
+            ....:     f(4*n + 1) == f(2*n),
+            ....:     f(4*n + 2) == f(2*n),
+            ....:     f(4*n + 3) == f(2*n + 16),
+            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3, f(4) == 4,
+            ....:     f(5) == 5, f(6) == 6, f(7) == 7, f(16) == 4, f(18) == 4,
+            ....:     f(20) == 4, f(22) == 4, f(24) == 6, f(26) == 6, f(28) == 6],
+            ....:     f, n, 2)
+            sage: all([S[4*i] == S[2*i] and
+            ....:      S[4*i + 1] == S[2*i] and
+            ....:      S[4*i + 2] == S[2*i] and
+            ....:      S[4*i + 3] == S[2*i + 16] for i in srange(2, 100)])
+            True
+
+        ::
+
+            sage: S = Seq2.from_recurrence([
+            ....:     f(4*n) == f(2*n),
+            ....:     f(4*n + 1) == f(2*n),
+            ....:     f(4*n + 2) == f(2*n),
+            ....:     f(4*n + 3) == f(2*n - 16),
+            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3, f(4) == 4,
+            ....:     f(5) == 5, f(6) == 6, f(7) == 7, f(8) == 8, f(9) == 9,
+            ....:     f(10) == 10, f(11) == 11, f(12) == 12, f(13) == 13,
+            ....:     f(14) == 14, f(15) == 15, f(16) == 16, f(17) == 17,
+            ....:     f(18) == 18, f(19) == 19, f(20) == 20, f(21) == 21,
+            ....:     f(22) == 22, f(23) == 23, f(24) == 24, f(25) == 25,
+            ....:     f(26) == 26, f(27) == 27, f(28) == 28, f(29) == 29,
+            ....:     f(30) == 30, f(31) == 31], f, n, 8)
+            sage: all([S[4*i] == S[2*i] and
+            ....:      S[4*i + 1] == S[2*i] and
+            ....:      S[4*i + 2] == S[2*i] and
+            ....:      S[4*i + 3] == S[2*i - 16] for i in srange(8, 100)])
+            True
+
+        Same test with different variable and function names::
+
+            sage: var('m')
+            m
+            sage: function('g')
+            g
+            sage: T = Seq2.from_recurrence([
+            ....:     g(4*m) == g(2*m),
+            ....:     g(4*m + 1) == g(2*m),
+            ....:     g(4*m + 2) == g(2*m),
+            ....:     g(4*m + 3) == g(2*m - 16),
+            ....:     g(0) == 1, g(1) == 1, g(2) == 2, g(3) == 3, g(4) == 4,
+            ....:     g(5) == 5, g(6) == 6, g(7) == 7, g(8) == 8, g(9) == 9,
+            ....:     g(10) == 10, g(11) == 11, g(12) == 12, g(13) == 13,
+            ....:     g(14) == 14, g(15) == 15, g(16) == 16, g(17) == 17,
+            ....:     g(18) == 18, g(19) == 19, g(20) == 20, g(21) == 21,
+            ....:     g(22) == 22, g(23) == 23, g(24) == 24, g(25) == 25,
+            ....:     g(26) == 26, g(27) == 27, g(28) == 28, g(29) == 29,
+            ....:     g(30) == 30, g(31) == 31], g, m, 8)
+            sage: all([S[i] == T[i] for i in srange(1000)])
+            True
+
+        Zero-sequence with non-zero initial values::
+
+            sage: Seq2.from_recurrence([
+            ....:     f(2*n) == 0, f(2*n + 1) == 0,
+            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n)
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial value for argument 0 does not match with the given recurrence relations.
+
+        ::
+
+            sage: Seq2.from_recurrence([
+            ....:     f(2*n) == 0, f(2*n + 1) == 0,
+            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n, 2)
+            2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
+        """
+
+
     def _parse_recurrence_(self, equations, function, var):
         r"""
         Parse recurrence relations as admissible in :meth:`from_recurrence`.
@@ -1649,180 +1825,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         return right
 
-    def from_recurrence(self, equations, function, var, offset=0):
-        r"""
-        Construct a `k`-regular sequence that fulfills the recurrence relations
-        given in ``equations``.
 
-        INPUT:
-
-        - ``equations`` -- A list of equations where the elements have
-          either the form
-
-          - `f(k^M n + r) = c_{r,l} f(k^m n + l) + c_{r,l + 1} f(k^m n
-            + l + 1) + ... + c_{r,u} f(k^m n + u)` for some integers
-            `0 \leq r < k^M`, `M > m \geq 0` and `l \leq u`, and some
-            coefficients `c_{r,j}` from the (semi)ring ``coefficents``
-            of the corresponding :class:`kRegularSequenceSpace`, valid
-            for all integers `n \geq \text{offset}` for some integer
-            `\text{offset} \geq \max(-l/k^m, 0)` (default: ``0``), and
-            there is an equation of this form (with the same
-            parameters `M` and `m`) for all `r`
-
-          or the form
-
-          - ``f(k) == t`` for some integer ``k`` and some ``t`` from the (semi)ring
-            ``coefficients``.
-
-          The recurrence relations above uniquely determine a `k`-regular sequence;
-          see [HKL2021]_ for further information.
-
-        - ``function`` -- symbolic function ``f`` occuring in the equations
-
-        - ``var`` -- symbolic variable (``n`` in the above description of ``equations``)
-
-        - ``offset`` -- an integer (default: ``0``). See explanation for ``equations`` above.
-
-        OUTPUT: A :class:`kRegularSequence`.
-
-        EXAMPLES:
-
-        Stern--Brocot Sequence::
-
-            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
-            sage: var('n')
-            n
-            sage: function('f')
-            f
-            sage: Seq2.from_recurrence([
-            ....:     f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
-            ....:     f(0) == 0, f(1) == 1], f, n)
-            2-regular sequence 0, 1, 1, 2, 1, 3, 2, 3, 1, 4, ...
-
-        Number of Odd Entries in Pascal's Triangle::
-
-            sage: Seq2.from_recurrence([
-            ....:     f(2*n) == 3*f(n), f(2*n + 1) == 2*f(n) + f(n + 1),
-            ....:     f(0) == 0, f(1) == 1], f, n)
-            2-regular sequence 0, 1, 3, 5, 9, 11, 15, 19, 27, 29, ...
-
-        Number of Unbordered Factors in the Thue--Morse Sequence::
-
-            sage: Seq2.from_recurrence([
-            ....:     f(8*n) == 2*f(4*n),
-            ....:     f(8*n + 1) == f(4*n + 1),
-            ....:     f(8*n + 2) == f(4*n + 1) + f(4*n + 3),
-            ....:     f(8*n + 3) == -f(4*n + 1) + f(4*n + 2),
-            ....:     f(8*n + 4) == 2*f(4*n + 2),
-            ....:     f(8*n + 5) == f(4*n + 3),
-            ....:     f(8*n + 6) == -f(4*n + 1) + f(4*n + 2) + f(4*n + 3),
-            ....:     f(8*n + 7) == 2*f(4*n + 1) + f(4*n + 3),
-            ....:     f(0) == 1, f(1) == 2, f(2) == 2, f(3) == 4, f(4) == 2,
-            ....:     f(5) == 4, f(6) == 6, f(7) == 0, f(8) == 4, f(9) == 4,
-            ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
-            ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
-            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n, 3)
-            2-regular sequence 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, ...
-
-        Number of Non-Zero Elements in the Generalized Pascal's Triangle (see [LRS2017]_)::
-
-            sage: Seq2 = kRegularSequenceSpace(2, QQ)
-            sage: Seq2.from_recurrence([
-            ....:     f(4*n) == 5/3*f(2*n) - 1/3*f(2*n + 1),
-            ....:     f(4*n + 1) == 4/3*f(2*n) + 1/3*f(2*n + 1),
-            ....:     f(4*n + 2) == 1/3*f(2*n) + 4/3*f(2*n + 1),
-            ....:     f(4*n + 3) == -1/3*f(2*n) + 5/3*f(2*n + 1),
-            ....:     f(0) == 1, f(1) == 2], f, n)
-            2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
-
-        TESTS::
-
-            sage: Seq2.from_recurrence([
-            ....:     f(4*n) == f(2*n),
-            ....:     f(4*n + 1) == f(2*n),
-            ....:     f(4*n + 2) == f(2*n),
-            ....:     f(4*n + 3) == f(2*n + 1024),
-            ....:     f(0) == 1, f(1) == 1], f, n, 2)
-            Traceback (most recent call last):
-            ...
-            ValueError: Initial values for arguments in [2, ..., 2044] are missing.
-
-        ::
-
-            sage: S = Seq2.from_recurrence([
-            ....:     f(4*n) == f(2*n),
-            ....:     f(4*n + 1) == f(2*n),
-            ....:     f(4*n + 2) == f(2*n),
-            ....:     f(4*n + 3) == f(2*n + 16),
-            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3, f(4) == 4,
-            ....:     f(5) == 5, f(6) == 6, f(7) == 7, f(16) == 4, f(18) == 4,
-            ....:     f(20) == 4, f(22) == 4, f(24) == 6, f(26) == 6, f(28) == 6],
-            ....:     f, n, 2)
-            sage: all([S[4*i] == S[2*i] and
-            ....:      S[4*i + 1] == S[2*i] and
-            ....:      S[4*i + 2] == S[2*i] and
-            ....:      S[4*i + 3] == S[2*i + 16] for i in srange(2, 100)])
-            True
-
-        ::
-
-            sage: S = Seq2.from_recurrence([
-            ....:     f(4*n) == f(2*n),
-            ....:     f(4*n + 1) == f(2*n),
-            ....:     f(4*n + 2) == f(2*n),
-            ....:     f(4*n + 3) == f(2*n - 16),
-            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3, f(4) == 4,
-            ....:     f(5) == 5, f(6) == 6, f(7) == 7, f(8) == 8, f(9) == 9,
-            ....:     f(10) == 10, f(11) == 11, f(12) == 12, f(13) == 13,
-            ....:     f(14) == 14, f(15) == 15, f(16) == 16, f(17) == 17,
-            ....:     f(18) == 18, f(19) == 19, f(20) == 20, f(21) == 21,
-            ....:     f(22) == 22, f(23) == 23, f(24) == 24, f(25) == 25,
-            ....:     f(26) == 26, f(27) == 27, f(28) == 28, f(29) == 29,
-            ....:     f(30) == 30, f(31) == 31], f, n, 8)
-            sage: all([S[4*i] == S[2*i] and
-            ....:      S[4*i + 1] == S[2*i] and
-            ....:      S[4*i + 2] == S[2*i] and
-            ....:      S[4*i + 3] == S[2*i - 16] for i in srange(8, 100)])
-            True
-
-        Same test with different variable and function names::
-
-            sage: var('m')
-            m
-            sage: function('g')
-            g
-            sage: T = Seq2.from_recurrence([
-            ....:     g(4*m) == g(2*m),
-            ....:     g(4*m + 1) == g(2*m),
-            ....:     g(4*m + 2) == g(2*m),
-            ....:     g(4*m + 3) == g(2*m - 16),
-            ....:     g(0) == 1, g(1) == 1, g(2) == 2, g(3) == 3, g(4) == 4,
-            ....:     g(5) == 5, g(6) == 6, g(7) == 7, g(8) == 8, g(9) == 9,
-            ....:     g(10) == 10, g(11) == 11, g(12) == 12, g(13) == 13,
-            ....:     g(14) == 14, g(15) == 15, g(16) == 16, g(17) == 17,
-            ....:     g(18) == 18, g(19) == 19, g(20) == 20, g(21) == 21,
-            ....:     g(22) == 22, g(23) == 23, g(24) == 24, g(25) == 25,
-            ....:     g(26) == 26, g(27) == 27, g(28) == 28, g(29) == 29,
-            ....:     g(30) == 30, g(31) == 31], g, m, 8)
-            sage: all([S[i] == T[i] for i in srange(1000)])
-            True
-
-        Zero-sequence with non-zero initial values::
-
-            sage: Seq2.from_recurrence([
-            ....:     f(2*n) == 0, f(2*n + 1) == 0,
-            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n)
-            Traceback (most recent call last):
-            ...
-            ValueError: Initial value for argument 0 does not match with the given recurrence relations.
-
-        ::
-
-            sage: Seq2.from_recurrence([
-            ....:     f(2*n) == 0, f(2*n + 1) == 0,
-            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n, 2)
-            2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
-        """
         from sage.arith.srange import srange
 
         k = self.k

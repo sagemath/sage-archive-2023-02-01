@@ -236,7 +236,6 @@ sdh_pip_install() {
     echo "Installing $PKG_NAME"
     mkdir -p dist
     rm -f dist/*.whl
-    for a in "$@"; do echo "*** pip wheel arg: $a"; done
     python3 -m pip wheel --use-feature=in-tree-build --wheel-dir=dist --no-binary :all: --verbose --no-deps --no-index --isolated --no-build-isolation "$@" || \
         sdh_die "Error building a wheel for $PKG_NAME"
 

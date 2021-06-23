@@ -25,5 +25,3 @@ PILLOW_BUILD_EXT="--debug --disable-jpeg $PILLOW_BUILD_EXT"
 eval sdh_pip_install \
      $(eval sdh_prefix_args "--global-option" build_ext $PILLOW_BUILD_EXT) \
      .
-
-exit 1

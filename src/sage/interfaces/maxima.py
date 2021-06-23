@@ -484,7 +484,7 @@ import shlex
 
 from random import randrange
 
-from sage.env import DOT_SAGE, SAGE_LOCAL, MAXIMA
+from sage.env import MAXIMA
 from sage.misc.misc import ECL_TMP
 
 from .expect import (Expect, ExpectElement, gc_disabled)

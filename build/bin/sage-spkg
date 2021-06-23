@@ -532,9 +532,12 @@ __EOF__
 }
 
 
-WRAPPED_SCRIPTS="build install check preinst postinst prerm postrm"
-INSTALLED_SCRIPTS="prerm postrm"
+INSTALLED_SCRIPTS="prerm piprm postrm"
+WRAPPED_SCRIPTS="build install check preinst postinst $INSTALLED_SCRIPTS"
 
+# Prepare script for uninstallation of pacakges that use sdh_pip_install
+# or sdh_store_and_pip_install_wheel.
+echo 'sdh_pip_uninstall -r $SAGE_SPKG_SCRIPTS/$PKG_BASE/spkg-piprm-requirements.txt' > spkg-piprm.in
 
 for script in $WRAPPED_SCRIPTS; do
     # 'Installed' scripts are not run immediately out of the package build
@@ -707,6 +710,14 @@ unset SAGE_DESTDIR_LOCAL
 # $SAGE_SPKG_SCRIPTS; they are not included in the package's manifest, but are
 # removed by sage-spkg-uninstall
 INSTALLED_SCRIPTS_DEST="$SAGE_SPKG_SCRIPTS/$PKG_BASE"
+
+if [ -f spkg-piprm-requirements.txt ]; then
+    INSTALLED_SCRIPTS="$INSTALLED_SCRIPTS piprm-requirements.txt"
+else
+    # No packages to uninstall with pip, so remove the prepared uninstall script
+    rm -f spkg-piprm spkg-piprm.in
+fi
+
 for script in $INSTALLED_SCRIPTS; do
     script="spkg-$script"
 

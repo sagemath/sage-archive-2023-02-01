@@ -21,13 +21,13 @@ AUTHORS:
 - MuPAD-Combinat developers (algorithms and design inspiration)
 - Travis Scrimshaw (2013-02-03): Removed ``CombinatorialClass``
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen       <mhansen@gmail.com>
 #                     2009 Nicolas M. Thiery <nthiery at users.sf.net>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#              http://www.gnu.org/licenses/
-#*****************************************************************************
+#              https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -2018,4 +2018,3 @@ def composition_iterator_fast(n):
 
 from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.composition', 'Composition_class', Composition)
-

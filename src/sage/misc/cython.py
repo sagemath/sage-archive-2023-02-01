@@ -22,16 +22,16 @@ import builtins
 import os
 import sys
 import shutil
-import pkgconfig
 
 from sage.env import (SAGE_LOCAL, cython_aliases,
-                      sage_include_directories, get_cblas_pc_module_name)
+                      sage_include_directories)
 from sage.misc.misc import SPYX_TMP, sage_makedirs
 from .temporary_file import tmp_filename
 from sage.repl.user_globals import get_globals
 from sage.misc.sage_ostools import restore_cwd, redirection
 from sage.cpython.string import str_to_bytes
 from sage.misc.cachefunc import cached_function
+
 
 @cached_function
 def _standard_libs_libdirs_incdirs_aliases():
@@ -69,6 +69,7 @@ def _standard_libs_libdirs_incdirs_aliases():
 # these sequence numbers in a dict.
 #
 ################################################################
+
 
 sequence_number = {}
 
@@ -328,10 +329,8 @@ def cython(filename, verbose=0, compile_message=False,
         # probability thereof, especially in normal practice.
         dll_filename = os.path.splitext(pyxfile)[0] + '.dll'
         image_base = _compute_dll_image_base(dll_filename)
-        extra_link_args.extend([
-                '-Wl,--disable-auto-image-base',
-                '-Wl,--image-base=0x{:x}'.format(image_base)
-        ])
+        extra_link_args.extend(['-Wl,--disable-auto-image-base',
+                                '-Wl,--image-base=0x{:x}'.format(image_base)])
 
     ext = Extension(name,
                     sources=[pyxfile],

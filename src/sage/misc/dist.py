@@ -97,7 +97,7 @@ def install_scripts(directory=None, ignore_existing=False):
     from sage.env import SAGE_LOCAL
 
     if not SAGE_LOCAL:
-        print(f"Error: This installation of Sage does not use SAGE_LOCAL, so install_scripts makes no sense."
+        print(f"Error: This installation of Sage does not use SAGE_LOCAL, so install_scripts makes no sense.")
         return
 
     script_created = False

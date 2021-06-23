@@ -163,7 +163,7 @@ from sage.plot.line import line
 from sage.plot.scatter_plot import scatter_plot
 
 from sage.libs.pynac.pynac import symbol_table
-from sage.calculus.calculus import symbolic_expression_from_string
+from sage.calculus.calculus import symbolic_expression_from_string, SR_parser_giac
 from sage.symbolic.ring import SR
 from sage.symbolic.expression import Expression
 from sage.symbolic.expression_conversions import InterfaceInit
@@ -1573,7 +1573,7 @@ cdef class Pygen(GiacMethods_base):
            sage: f(4)
            6
            sage: f(x)
-           Gamma(x)
+           Gamma(sageVARx)
            sage: (f(x)).sage()
            gamma(x)
 
@@ -1633,13 +1633,30 @@ cdef class Pygen(GiacMethods_base):
             sage: u,v=var('u,v');a=libgiac('cos(u+v)').texpand()
             sage: simplify(SR(a)+sin(u)*sin(v))
             cos(u)*cos(v)
+
+        TESTS:
+
+        Check that variables and constants are not mixed up (:trac:`30133`)::
+
+            sage: ee, ii, pp = SR.var('e,i,pi')
+            sage: libgiac(ee * ii * pp).sage().variables()
+            (e, i, pi)
+            sage: libgiac(e * i * pi).sage().variables()
+            ()
+            sage: libgiac.integrate(ee^x, x).sage()
+            e^x/log(e)
+            sage: y = SR.var('π')
+            sage: libgiac.integrate(cos(y), y).sage()
+            sin(π)
         """
         if isinstance(R,SR.__class__):
            # Try to convert some functions names to the symbolic ring
            lsymbols = symbol_table['giac'].copy()
            #lsymbols.update(locals)
            try:
-              result=symbolic_expression_from_string(self.__str__(),lsymbols,accept_sequence=True)
+              result = symbolic_expression_from_string(self.__str__(), lsymbols,
+                                                       accept_sequence=True,
+                                                       parser=SR_parser_giac)
               return result
 
            except Exception:

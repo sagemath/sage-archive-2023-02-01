@@ -625,9 +625,8 @@ class Section(ModuleElementWithMutability):
         if self.is_immutable():
             raise ValueError("the restrictions of an immutable element "
                              "cannot be changed")
-        self._restrictions[rst._domain] = rst.copy()
-        self._restrictions[rst._domain].set_name(name=self._name,
-                                                 latex_name=self._latex_name)
+        self._restrictions[rst._domain] = rst.copy(name=self._name,
+                                                   latex_name=self._latex_name)
         self._is_zero = False  # a priori
 
     def restrict(self, subdomain):
@@ -1885,9 +1884,7 @@ class Section(ModuleElementWithMutability):
             if other._smodule != self._smodule:
                 return False
             # Non-trivial open covers of the domain:
-            open_covers = self._domain.open_covers()[1:]  # the open cover 0
-                                                          # is trivial
-            for oc in open_covers:
+            for oc in self._domain.open_covers(trivial=False):
                 resu = True
                 for dom in oc:
                     try:

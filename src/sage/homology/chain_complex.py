@@ -1271,7 +1271,7 @@ class ChainComplex_class(Parent):
             sage: C_k = ChainComplex({0:d0, 1:d1, 2:d2}, degree=-1)
             sage: C_k.homology(generators=true, algorithm='no_chomp')
             {0: [(Z, Chain(0:(1)))],
-             1: [(C2, Chain(1:(1, 0, 0))), (Z, Chain(1:(0, 0, 1)))],
+             1: [(C2, Chain(1:(0, 1, -1))), (Z, Chain(1:(0, 1, 0)))],
              2: []}
 
         From a torus using a field::

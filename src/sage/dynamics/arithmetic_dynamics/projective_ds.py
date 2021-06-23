@@ -4486,6 +4486,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
+            sage: K = GF(3).algebraic_closure()
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: f = DynamicalSystem_projective([x^2 + 2*y^2, 4*x*y, z^2])
+            sage: f.multiplier_spectra(1)
+            [
+            [0 0]  [1 0]  [1 0]  [1 0]  [2 0]  [2 0]  [2 0]
+            [0 0], [0 0], [0 0], [0 0], [0 1], [0 1], [0 1]
+            ]
+
+        ::
+
             sage: F.<a> = GF(7)
             sage: P.<x,y>=ProjectiveSpace(F, 1)
             sage: f = DynamicalSystem_projective([x^2 + y^2, y^2])

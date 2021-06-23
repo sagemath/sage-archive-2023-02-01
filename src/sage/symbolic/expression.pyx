@@ -2849,28 +2849,42 @@ cdef class Expression(CommutativeRingElement):
 
     def is_square(self):
         """
-        Return ``True`` if ``self`` is a perfect square.
+        Return ``True`` if ``self`` is the square of another symbolic expression.
+
+        This is ``True`` for all constant, non-relational expressions
+        (containing no variables or comparison), and not implemented
+        otherwise.
 
         EXAMPLES::
 
-            sage: f(n,m) = n*2 + m
-            sage: f(2,1).is_square()
-            False
-            sage: f(3,3).is_square()
-            True
-            sage: f(n,m).is_square()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: is_square() not implemented for non numeric elements of Symbolic Ring
-            sage: SR(42).is_square()
-            False
             sage: SR(4).is_square()
             True
+            sage: SR(5).is_square()
+            True
+            sage: pi.is_square()
+            True
+            sage: x.is_square()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_square() not implemented for non-constant
+            or relational elements of Symbolic Ring
+            sage: r = SR(4) == SR(5)
+            sage: r.is_square()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_square() not implemented for non-constant
+            or relational elements of Symbolic Ring
+
         """
+        if self.is_constant() and not self.is_relational():
+            # The square root of any "number" is in SR... just call
+            # sqrt() on it.
+            return True
+
         try:
             obj = self.pyobject()
         except TypeError as e:
-            raise NotImplementedError("is_square() not implemented for non numeric elements of Symbolic Ring")
+            raise NotImplementedError("is_square() not implemented for non-constant or relational elements of Symbolic Ring")
 
         return obj.is_square()
 
@@ -10013,8 +10027,8 @@ cdef class Expression(CommutativeRingElement):
             sage: a = RR.random_element()
             sage: b = RR.random_element()
             sage: f = SR(a + b*I)
-            sage: bool(f.rectform() == a + b*I)
-            True
+            sage: abs(f.rectform() - (a + b*I))  # abs tol 1e-16
+            0.0
 
         If we decompose a complex number into its real and imaginary
         parts, they should correspond to the real and imaginary terms
@@ -10023,9 +10037,8 @@ cdef class Expression(CommutativeRingElement):
             sage: z = CC.random_element()
             sage: a = z.real_part()
             sage: b = z.imag_part()
-            sage: bool(SR(z).rectform() == a + b*I)
-            True
-
+            sage: abs(SR(z).rectform() - (a + b*I))  # abs tol 1e-16
+            0.0
         """
         return self.maxima_methods().rectform()
 
@@ -10227,10 +10240,10 @@ cdef class Expression(CommutativeRingElement):
             1/3*x*hypergeometric((), (2, 3), x) + hypergeometric((), (1, 2), x)
             sage: (2*hypergeometric((), (), x)).simplify_hypergeometric()
             2*e^x
-            sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)
+            sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)  # not tested, unstable
             ....:  .simplify_hypergeometric())
             laguerre(-laguerre(-e^x, x), x)
-            sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)
+            sage: (nest(lambda y: hypergeometric([y], [1], x), 3, 1)  # not tested, unstable
             ....:  .simplify_hypergeometric(algorithm='sage'))
             hypergeometric((hypergeometric((e^x,), (1,), x),), (1,), x)
             sage: hypergeometric_M(1, 3, x).simplify_hypergeometric()

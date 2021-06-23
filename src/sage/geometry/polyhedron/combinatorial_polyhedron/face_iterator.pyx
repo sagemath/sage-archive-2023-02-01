@@ -1,3 +1,5 @@
+# distutils: extra_compile_args = OPENMP_CFLAGS
+# distutils: extra_link_args = OPENMP_CFLAGS
 r"""
 Face iterator for polyhedra
 
@@ -183,6 +185,8 @@ from .base                  cimport CombinatorialPolyhedron
 from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face, PolyhedronFace
 from .face_list_data_structure cimport *
 
+from cython.parallel cimport prange, threadid
+
 cdef extern from "Python.h":
     int unlikely(int) nogil  # Defined by Cython
 
@@ -253,8 +257,14 @@ cdef class FaceIterator_base(SageObject):
             self.atoms = C.bitrep_Vrep()
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
-        self._equalities = C.equalities()
+        self._n_facets = C.bitrep_facets().n_faces()
+        self._equations = C.equations()
+        if self._equations:
+            self._n_equations = len(self._equations)
+        else:
+            self._n_equations = 0
         self._bounded = C.is_bounded()
+        self._far_face[0] = C._far_face[0]
 
         self.structure.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
         self.structure.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces(), sizeof(size_t))
@@ -300,7 +310,7 @@ cdef class FaceIterator_base(SageObject):
             # needs to be at most ``n_facets - 1``.
             # Hence it is fine to use the first entry already for the far face,
             # as ``self.visited_all`` holds ``n_facets`` pointers.
-            add_face_shallow(self.structure.visited_all[self.structure.dimension-1], C._far_face)
+            add_face_shallow(self.structure.visited_all[self.structure.dimension-1], self._far_face)
 
         # Initialize ``first_time``.
         self.structure.first_time = <bint *> self._mem.allocarray(self.structure.dimension, sizeof(bint))
@@ -308,6 +318,8 @@ cdef class FaceIterator_base(SageObject):
 
         self.structure.yet_to_visit = self.coatoms.n_faces()
         self.structure._index = 0
+
+        self.structure.n_coatoms = self.coatoms.n_faces()
 
         if C.is_bounded() and ((dual and C.is_simplicial()) or (not dual and C.is_simple())):
             # We are in the comfortable situation that for our iterator
@@ -342,15 +354,15 @@ cdef class FaceIterator_base(SageObject):
             sage: C = P.combinatorial_polyhedron()
             sage: it = C.face_iter(dual=False)
             sage: face = next(it)
-            sage: face.ambient_H_indices()
+            sage: face.ambient_H_indices(add_equations=False)
             (8,)
             sage: face = next(it)
-            sage: face.ambient_H_indices()
+            sage: face.ambient_H_indices(add_equations=False)
             (7,)
             sage: it.only_subfaces()
             sage: it.reset()
             sage: face = next(it)
-            sage: face.ambient_H_indices()
+            sage: face.ambient_H_indices(add_equations=False)
             (8,)
         """
         if self.structure.dimension == 0 or self.coatoms.n_faces() == 0:
@@ -485,15 +497,14 @@ cdef class FaceIterator_base(SageObject):
             ...
             ValueError: only possible when not in dual mode
 
-        Cannot run ``ignore_subfaces`` after ``only_subfaces::
+        Ignoring the same face as was requested to visit only consumes the iterator::
 
             sage: it = C.face_iter(dual=False)
             sage: _ = next(it)
             sage: it.only_subfaces()
             sage: it.ignore_subfaces()
-            Traceback (most recent call last):
-            ...
-            ValueError: cannot ignore a face after setting iterator to only visit subsets
+            sage: list(it)
+            []
 
         Face iterator must be set to a face first::
 
@@ -520,7 +531,8 @@ cdef class FaceIterator_base(SageObject):
             sage: it = C.face_iter(dual=True)
             sage: n_faces_with_non_simplex_quotient = 1
             sage: for face in it:
-            ....:     if face.n_ambient_Hrepresentation() > C.dimension() - face.dimension() + 1:
+            ....:     n_facets = face.n_ambient_Hrepresentation(add_equations=False)
+            ....:     if n_facets > C.dimension() - face.dimension() + 1:
             ....:         n_faces_with_non_simplex_quotient += 1
             ....:     else:
             ....:         it.ignore_supfaces()
@@ -541,7 +553,7 @@ cdef class FaceIterator_base(SageObject):
             raise ValueError("only possible when in dual mode")
         self.ignore_subsets()
 
-    def meet_of_facets(self, *indices):
+    def meet_of_Hrep(self, *indices):
         r"""
         Construct the meet of the facets indicated by the indices.
 
@@ -553,36 +565,36 @@ cdef class FaceIterator_base(SageObject):
 
             sage: P = polytopes.cube()
             sage: it = P.face_generator()
-            sage: it.meet_of_facets(1,2)
+            sage: it.meet_of_Hrep(1,2)
             A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
-            sage: it.meet_of_facets(1,2).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2).ambient_H_indices()
             (1, 2)
-            sage: it.meet_of_facets(1,3).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,3).ambient_H_indices()
             (1, 3)
-            sage: it.meet_of_facets(1,5).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,5).ambient_H_indices()
             (0, 1, 2, 3, 4, 5)
 
             sage: P = polytopes.cross_polytope(4)
             sage: it = P.face_generator()
-            sage: it.meet_of_facets().ambient_H_indices()
+            sage: it.meet_of_Hrep().ambient_H_indices()
             ()
-            sage: it.meet_of_facets(1,3).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,3).ambient_H_indices()
             (1, 2, 3, 4)
-            sage: it.meet_of_facets(1,2).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2).ambient_H_indices()
             (1, 2)
-            sage: it.meet_of_facets(1,6).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,6).ambient_H_indices()
             (1, 6)
-            sage: it.meet_of_facets(1,2,6).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2,6).ambient_H_indices()
             (1, 2, 6, 7)
-            sage: it.meet_of_facets(1,2,5,6).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2,5,6).ambient_H_indices()
             (0, 1, 2, 3, 4, 5, 6, 7)
 
             sage: s = cones.schur(4)
             sage: C = CombinatorialPolyhedron(s)
             sage: it = C.face_iter()
-            sage: it.meet_of_facets(1,2).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2).ambient_H_indices()
             (1, 2)
-            sage: it.meet_of_facets(1,2,3).ambient_H_indices()
+            sage: it.meet_of_Hrep(1,2,3).ambient_H_indices()
             Traceback (most recent call last):
             ...
             IndexError: coatoms out of range
@@ -594,15 +606,38 @@ cdef class FaceIterator_base(SageObject):
             sage: _ = next(it), next(it)
             sage: next(it).ambient_V_indices()
             (15, 16, 17, 18, 19)
-            sage: it.meet_of_facets(9,11)
+            sage: it.meet_of_Hrep(9,11)
             Traceback (most recent call last):
             ...
             ValueError: please reset the face iterator
             sage: it.reset()
-            sage: it.meet_of_facets(9,11).ambient_H_indices()
+            sage: it.meet_of_Hrep(9,11).ambient_H_indices()
             (9, 11)
 
+        TESTS:
+
+        Check that things work fine, if the face iterator was never properly initialized::
+
+            sage: P = Polyhedron()
+            sage: P.meet_of_Hrep()
+            A -1-dimensional face of a Polyhedron in ZZ^0
+            sage: P = Polyhedron([[0,0]])
+            sage: P.meet_of_Hrep()
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P.meet_of_Hrep(0)
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P = Polyhedron(lines=[[1]])
+            sage: P.meet_of_Hrep()
+            A 1-dimensional face of a Polyhedron in ZZ^1 defined as the convex hull of 1 vertex and 1 line
+            sage: P = Polyhedron(lines=[[1, 1]])
+            sage: P.meet_of_Hrep()
+            A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: P.meet_of_Hrep(0)
+            A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
         """
+        # Ignore equations.
+        indices = [i for i in indices
+                   if not (self._n_facets <= i < self._n_facets + self._n_equations)]
         if self.dual:
             return self._join_of_atoms(*indices)
         else:
@@ -619,7 +654,7 @@ cdef class FaceIterator_base(SageObject):
         .. NOTE::
 
             In the case of unbounded polyhedra, the smallest face containing given Vrepresentatives
-            may not te well defined.
+            may not be well defined.
 
         EXAMPLES::
 
@@ -696,6 +731,42 @@ cdef class FaceIterator_base(SageObject):
             A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
             sage: it.join_of_Vrep(1,2)
             A 2-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 rays
+
+        TESTS:
+
+        Check that things work fine, if the face iterator was never properly initialized::
+
+            sage: P = Polyhedron()
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^0
+            sage: P = Polyhedron([[0,0]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^2
+            sage: P.join_of_Vrep(0)
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P = Polyhedron(lines=[[1]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^1
+            sage: P.join_of_Vrep(0)
+            A 1-dimensional face of a Polyhedron in ZZ^1 defined as the convex hull of 1 vertex and 1 line
+            sage: P = Polyhedron(lines=[[1, 1]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^2
+            sage: P.Vrepresentation()
+            (A line in the direction (1, 1), A vertex at (0, 0))
+            sage: P.join_of_Vrep(0)
+            A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: P.join_of_Vrep(1)
+            A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: P = Polyhedron(lines=[[1, 0], [0, 1]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^2
+            sage: P.join_of_Vrep(0)
+            A 2-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 lines
+            sage: P.join_of_Vrep(0, 1)
+            A 2-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 lines
+            sage: P.join_of_Vrep(0, 1, 2)
+            A 2-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 lines
         """
         if not self.dual:
             return self._join_of_atoms(*indices)
@@ -710,7 +781,7 @@ cdef class FaceIterator_base(SageObject):
 
         .. SEEALSO::
 
-            :meth:`meet_of_facets`,
+            :meth:`meet_of_Hrep`,
             :meth:`join_of_Vrep`.
 
         EXAMPLES:
@@ -755,7 +826,7 @@ cdef class FaceIterator_base(SageObject):
             sage: it._meet_of_coatoms(-1)
             Traceback (most recent call last):
             ...
-            OverflowError: can't convert negative value to size_t
+            IndexError: coatoms out of range
             sage: it._meet_of_coatoms(100)
             Traceback (most recent call last):
             ...
@@ -790,18 +861,19 @@ cdef class FaceIterator_base(SageObject):
 
         cdef ListOfFaces face_mem = ListOfFaces(1, n_atoms, n_coatoms)
         cdef face_t face = face_mem.data.faces[0]
-        cdef size_t i
+        cdef int i
+        cdef size_t j
 
         # Initialize the full polyhedron.
-        for i in range(n_atoms):
-            face_add_atom(face, i)
+        for j in range(n_atoms):
+            face_add_atom(face, j)
 
         for i in indices:
             if not 0 <= i < n_coatoms:
                 raise IndexError("coatoms out of range")
             face_intersection(face, face, coatoms.data.faces[i])
 
-        if not self._bounded and face_issubset(face, self.structure.visited_all[self.structure.dimension-1].faces[0]):
+        if not self._bounded and face_issubset(face, self._far_face):
             # The meet is contained in the far face and therefore is the empty face.
             face_clear(face)
 
@@ -818,7 +890,7 @@ cdef class FaceIterator_base(SageObject):
 
         .. SEEALSO::
 
-            :meth:`meet_of_facets`,
+            :meth:`meet_of_Hrep`,
             :meth:`join_of_Vrep`.
 
         EXAMPLES:
@@ -896,9 +968,10 @@ cdef class FaceIterator_base(SageObject):
         cdef ListOfFaces face_mem = ListOfFaces(2, n_atoms, n_coatoms)
         cdef face_t face = face_mem.data.faces[0]
         cdef face_t pseudo_face = face_mem.data.faces[1]
+        cdef int j
         cdef size_t i
 
-        if not all(i in range(n_atoms) for i in indices):
+        if not all(0 <= j < n_atoms for j in indices):
             raise IndexError("atoms out of range")
 
         # Initialize a pseudo_face as indicated by the indices.
@@ -917,7 +990,7 @@ cdef class FaceIterator_base(SageObject):
         if not indices:
             # The neutral element of the join.
             face_clear(face)
-        elif not self._bounded and face_issubset(face, self.structure.visited_all[self.structure.dimension-1].faces[0]):
+        elif not self._bounded and face_issubset(face, self._far_face):
             # The join is not well-defined.
             # We allow for unbounded polyhedra to compute the join, even with rays.
             # However, the result is not necesarrily well-defined.
@@ -941,7 +1014,10 @@ cdef class FaceIterator_base(SageObject):
         if unlikely(self.structure.face_status == 0):
             raise ValueError("iterator not set to a face yet")
         if unlikely(self.structure.face_status == 3):
-            raise ValueError("cannot ignore a face after setting iterator to only visit subsets")
+            # The iterator is consumed, if it was just set to visit only subsets
+            # next thing to ignore subsets.
+            self.structure.current_dimension = self.structure.dimension
+            return 0
         if unlikely(self.structure.face_status == 2):
             # Nothing to do.
             return 0
@@ -978,9 +1054,9 @@ cdef class FaceIterator_base(SageObject):
             sage: P = polytopes.Birkhoff_polytope(4)
             sage: C = P.combinatorial_polyhedron()
             sage: it = C.face_iter()
-            sage: next(it).ambient_H_indices()
+            sage: next(it).ambient_H_indices(add_equations=False)
             (15,)
-            sage: next(it).ambient_H_indices()
+            sage: next(it).ambient_H_indices(add_equations=False)
             (14,)
             sage: it.only_subfaces()
             sage: all(14 in f.ambient_H_indices() for f in it)
@@ -1157,6 +1233,10 @@ cdef class FaceIterator_base(SageObject):
         Iterate until the current face is ``face``.
 
         The value can then be obtained with :meth:`current`.
+
+        The iterator is assumed to be newly initialized or reset.
+        See :meth:`FaceIterator_base._join_of_atoms` and
+        :meth:`FaceIterator_base._meet_of_coatoms`.
         """
         cdef size_t n_atoms = face_len_atoms(face)
 
@@ -1805,11 +1885,14 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
 # Nogil definitions of crucial functions.
 
-cdef inline int next_dimension(iter_t structure) nogil except -1:
+cdef inline int next_dimension(iter_t structure, size_t parallelization_depth=0) nogil except -1:
     r"""
     See :meth:`FaceIterator.next_dimension`.
+
+    ``parallelization_depth`` determines when to stop,
+    e.g. if it is ``1`` it will stop after having yield all faces of a facet
     """
-    cdef int max_dim = structure.highest_dimension
+    cdef int max_dim = structure.highest_dimension - parallelization_depth
     structure.face_status = 0
     while (not next_face_loop(structure)) and (structure.current_dimension <= max_dim):
         sig_check()
@@ -1823,7 +1906,8 @@ cdef inline int next_face_loop(iter_t structure) nogil except -1:
     if unlikely(structure.current_dimension == structure.dimension):
         # The function is not supposed to be called,
         # just prevent it from crashing.
-        raise StopIteration
+        # Actually raising an error here results in a bad branch prediction.
+        return -1
 
     # Getting ``[faces, n_faces, n_visited_all]`` according to dimension.
     cdef face_list_t* faces = &structure.new_faces[structure.current_dimension]
@@ -1903,3 +1987,234 @@ cdef inline size_t n_atom_rep(iter_t structure) nogil except -1:
 
     # The face was not initialized properly.
     raise LookupError("``FaceIterator`` does not point to a face")
+
+# Parallel iteration over the faces.
+# Currently only the f-vector is implemented, but slight
+# modifications would allow collecting other information as well.
+
+cdef struct parallel_f_s:
+    # A structure carrying things that each thread should have exclusive access to.
+    size_t* f_vector
+    size_t* current_job_id
+
+    # Keep track so that we can easily go from one job to the next.
+    size_t* original_n_faces
+    size_t* original_n_visited_all
+
+ctypedef parallel_f_s parallel_f_t[1]
+
+cdef int parallel_f_vector(iter_t* structures, size_t num_threads, size_t parallelization_depth, size_t *f_vector) except -1:
+    """
+    Compute the ``f_vector`` in parallel.
+
+    INPUT:
+
+    - ``structures`` -- one structure per thread
+
+    - ``num_threads`` -- the number of threads to use
+
+    - ``parallelization_depth`` -- the codimension at which the threads are released
+
+    - ``f_vector`` -- where the ``f_vector`` is output
+    """
+    # One job per face of codimension ``parallelization_depth``.
+    cdef size_t n_jobs = structures[0].n_coatoms ** parallelization_depth
+    cdef size_t i
+    cdef int j
+    cdef int dim = structures[0].dimension
+    f_vector[0] = 1         # Face iterator will only visit proper faces.
+    f_vector[dim + 1] = 1   # Face iterator will only visit proper faces.
+    if dim <= 0 or structures[0].n_coatoms == 0:
+        # Iterator assumes at least one face and at least dimension 1.
+        return 0
+
+    if num_threads == 0:
+        num_threads = 1
+
+    cdef size_t thread_id
+    cdef MemoryAllocator mem = MemoryAllocator()
+
+    # Setting up for each thread some storage space.
+    cdef parallel_f_t* parallel_structs = \
+            <parallel_f_t*> mem.allocarray(num_threads, sizeof(parallel_f_t))
+
+    for i in range(num_threads):
+        # Partial f-vectors.
+        parallel_structs[i].f_vector = \
+                <size_t*> mem.calloc(dim+2, sizeof(size_t))
+        parallel_structs[i].current_job_id = \
+                <size_t*> mem.calloc(parallelization_depth+1, sizeof(size_t))
+
+        # Keeping back of the original number of faces allows faster starting the next job.
+        parallel_structs[i].original_n_faces = \
+                <size_t*> mem.calloc(parallelization_depth+1, sizeof(size_t))
+        parallel_structs[i].original_n_faces[0] = \
+                structures[0].new_faces[dim - 1].n_faces
+
+        parallel_structs[i].original_n_visited_all = \
+                <size_t*> mem.calloc(parallelization_depth+1, sizeof(size_t))
+        parallel_structs[i].original_n_visited_all[0] = \
+                structures[0].visited_all[dim - 1].n_faces
+
+    for i in prange(n_jobs, schedule='dynamic', chunksize=1,
+                    num_threads=num_threads, nogil=True):
+        _parallel_f_vector(structures[threadid()],
+                           parallelization_depth,
+                           parallel_structs[threadid()],
+                           i)
+
+    # Gather the results.
+    for i in range(num_threads):
+        for j in range(structures[0].dimension + 2):
+            f_vector[j] += parallel_structs[i].f_vector[j]
+
+cdef int _parallel_f_vector(iter_t structure, size_t parallelization_depth,
+                            parallel_f_t parallel_struct, size_t job_id) nogil except -1:
+    """
+    Set up a job and then visit all faces.
+    """
+    cdef int max_dimension = structure.dimension - parallelization_depth
+    cdef int d
+    if prepare_face_iterator_for_partial_job(structure, parallelization_depth,
+                                             parallel_struct, job_id):
+        d = next_dimension(structure, parallelization_depth)
+        while (d < max_dimension):
+            parallel_struct.f_vector[d+1] += 1
+            d = next_dimension(structure, parallelization_depth)
+
+cdef inline int prepare_face_iterator_for_partial_job(
+        iter_t structure, size_t parallelization_depth,
+        parallel_f_t parallel_struct, size_t job_id) nogil except -1:
+    """
+    Set ``structure`` according to ``job_id``.
+
+    ``job_id`` should be thought of as its digits with base ``structure.n_coatoms``
+    padded to ``parallelization_depth``.
+
+    The first digit determines which facet to visit.
+    The next digit determines which facet of the facet should be visited.
+
+    OUTPUT: ``1`` if the job exists and ``0`` otherwise.
+
+    In addition, the first job treating a face will "visit" this face
+    and increase the corresponding entry of the f-vector.
+    """
+    cdef int d
+    cdef size_t current_depth
+    if (not structure.first_time[structure.current_dimension]
+            and structure.current_dimension == structure.dimension - parallelization_depth):
+        # Act as if we had not visited faces in the last depth.
+        # Set ``current_job_id[parallelization_depth - 1] = 0``.
+        d = structure.dimension - parallelization_depth
+        current_depth = parallelization_depth
+
+        # Recover all faces.
+        structure.new_faces[d].n_faces = \
+                parallel_struct.original_n_faces[current_depth -1]
+        structure.visited_all[d].n_faces = \
+                parallel_struct.original_n_visited_all[current_depth -1]
+        structure.first_time[d] = True
+        structure.yet_to_visit = 0  # just to be on the safe side
+
+        parallel_struct.current_job_id[current_depth -1] = 0
+
+        # If the job does not exist, we will set the next value to ``-1``.
+        if parallel_struct.original_n_faces[current_depth -1] == 0:
+            parallel_struct.current_job_id[current_depth] = -1
+        else:
+            parallel_struct.current_job_id[current_depth] = 0
+
+    cdef size_t n_coatoms = structure.n_coatoms
+    cdef size_t job_id_c
+    cdef size_t i
+    cdef size_t diff
+    cdef size_t new_faces_counter
+
+    for current_depth in range(1, parallelization_depth + 1):
+        d = structure.dimension - current_depth
+
+        # Get the corresponding digit of ``job_id``.
+        job_id_c = get_digit(job_id, current_depth - 1, parallelization_depth, n_coatoms)
+
+        # Set ``current_job_id[current_depth - 1]`` to ``job_id_c`` if possible.
+
+        if job_id_c != parallel_struct.current_job_id[current_depth - 1]:
+            # Set ``current_job_id[current_depth -1] = 0``.
+            structure.current_dimension = d
+            structure.new_faces[d].n_faces = parallel_struct.original_n_faces[current_depth -1]
+            structure.visited_all[d].n_faces = parallel_struct.original_n_visited_all[current_depth -1]
+            parallel_struct.current_job_id[current_depth -1] = 0
+
+            # If the job does not exist, we will set the next value to ``-1``.
+            if parallel_struct.original_n_faces[current_depth -1] == 0:
+                parallel_struct.current_job_id[current_depth] = -1
+            else:
+                parallel_struct.current_job_id[current_depth] = 0
+
+            structure.first_time[d] = True
+            structure.yet_to_visit = 0  # just to be on the safe side
+
+        if parallel_struct.current_job_id[current_depth] == -1:
+            # The job does not exist.
+            return 0
+
+        if job_id_c > parallel_struct.current_job_id[current_depth -1]:
+            if job_id_c >= structure.new_faces[d].n_faces:
+                # The job does not exist.
+                return 0
+
+            for i in range(job_id_c):
+                # Fast forwarding the jobs.
+                add_face_shallow(structure.visited_all[d], structure.new_faces[d].faces[structure.new_faces[d].n_faces -1])
+                structure.new_faces[d].n_faces -= 1
+
+            parallel_struct.current_job_id[current_depth -1] = job_id_c
+
+        # Apparently the face exists. We add it to the f-vector, if it is the very first job for the face.
+        if job_id == 0 or get_digit(job_id -1, current_depth -1, parallelization_depth, n_coatoms) != job_id_c:
+            # Visit ``structure.new_faces[d].faces[structure.new_faces[d].n_faces - 1]
+            parallel_struct.f_vector[d + 1] += 1
+
+        if structure.current_dimension == d:
+            structure.yet_to_visit = 0
+
+            if structure.new_faces[d].n_faces == 0:
+                # The job will not exist.
+                parallel_struct.current_job_id[current_depth] = -1
+                return 0
+
+            new_faces_counter = get_next_level(
+                structure.new_faces[d], structure.new_faces[d-1], structure.visited_all[d])
+
+            if new_faces_counter:
+                # Setting the variables correctly, for the next call.
+                structure.current_dimension -= 1
+                structure.first_time[d-1] = True
+                structure.visited_all[d-1][0] = structure.visited_all[d][0]
+                structure.yet_to_visit = new_faces_counter
+                for i in range(current_depth, parallelization_depth + 1):
+                    parallel_struct.current_job_id[i] = 0
+                parallel_struct.original_n_faces[current_depth] = new_faces_counter
+                parallel_struct.original_n_visited_all[current_depth] = structure.visited_all[d-1].n_faces
+            else:
+                # The job does not exist.
+                parallel_struct.current_job_id[current_depth] = -1
+                return 0
+
+    if structure.current_dimension != structure.dimension - parallelization_depth - 1:
+        return 0
+
+    return 1
+
+cdef inline size_t get_digit(size_t job_id, size_t pos, size_t padto, size_t base) nogil:
+    """
+    Get the digit ``pos`` of ``job_id`` with base ``base``
+    padding the number of digits to ``pad_to``.
+
+    Digits are enumerated started with ``0``.
+    """
+    # Remove the last ``parallelization_depth - pos - 1`` digits.
+    cdef size_t current_output = job_id / base ** (padto - pos - 1)
+
+    # Remove all digits before our current digit, which is digit ``pos``.
+    return current_output % base

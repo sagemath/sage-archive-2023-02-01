@@ -12,7 +12,7 @@ for instance in Differential Geometry (especially in geometry of
 lightlike submanifold) and in General Relativity. In geometry of lightlike
 submanifolds, according to the dimension `r` of the radical distribution
 (see below for definition of radical distribution), degenerate submanifolds
-have been classify into 4 subgroups: `r`-lightlike submanifolds, Coisotropic
+have been classified into 4 subgroups: `r`-lightlike submanifolds, Coisotropic
 submanifolds, Isotropic submanifolds and Totally lightlike submanifolds.
 (See the book of Krishan L. Duggal and Aurel Bejancu [DS2010]_.)
 

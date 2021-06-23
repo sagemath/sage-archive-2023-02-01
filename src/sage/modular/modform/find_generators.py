@@ -176,7 +176,7 @@ class ModularFormsRing(Parent):
         The ring of modular forms (of weights 0 or at least 2) for a congruence
         subgroup of `{\rm SL}_2(\ZZ)`, with coefficients in a specified base ring.
 
-        INPUT:
+        INPUTS:
 
         - ``group`` -- a congruence subgroup of `{\rm SL}_2(\ZZ)`, or a
           positive integer `N` (interpreted as `\Gamma_0(N)`)
@@ -266,19 +266,136 @@ class ModularFormsRing(Parent):
         """
         return self.__base_ring
 
-    def _element_constructor_(self, f):
-        if isinstance(f, GradedModularFormElement):
-            mf_dict = f._dictionnary()
-        if is_ModularFormElement(f):
-            if f.group() == self.group() and self.base_ring().has_coerce_map_from(f.base_ring()):
-                mf_dict = {f.weight():f}
+    def _element_constructor_(self, forms_datas):
+        r"""
+        The call method of self.
+
+        TESTS::
+
+            sage: M = ModularFormsRing(1)
+            sage: E4 = ModularForms(1,4).0; E6 = ModularForms(1,6).0
+            sage: M([E4, E6])
+            2 - 264*q - 14472*q^2 - 116256*q^3 - 515208*q^4 - 1545264*q^5 + O(q^6)
+            sage: M([E4, E4])
+            2 + 480*q + 4320*q^2 + 13440*q^3 + 35040*q^4 + 60480*q^5 + O(q^6)
+            sage: M({4:E4, 6:E6})
+            2 - 264*q - 14472*q^2 - 116256*q^3 - 515208*q^4 - 1545264*q^5 + O(q^6)
+            sage: M(E4)
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+            sage: f = ModularForms(3, 10).0
+            sage: M(f)
+            Traceback (most recent call last)
+            ...
+            ValueError: The group (Congruence Subgroup Gamma0(3)) and/or the base ring (Rational Field) of the modular form is not consistant with the base space: Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field
+            sage: M = ModularFormsRing(1, base_ring=ZZ)
+            sage: M(ModularForms(1,4).0)
+            Traceback (most recent call last)
+            ...
+            ValueError: The group (Modular Group SL(2,Z)) and/or the base ring (Rational Field) of the modular form is not consistant with the base space: Ring of modular forms for Modular Group SL(2,Z) with coefficients in Integer Ring
+            sage: M = ModularFormsRing(1)
+            sage: E4 = ModularForms(1,4).0
+            sage: E4
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+            sage: M({6:E4})
+            Traceback (most recent call last)
+            ...
+            ValueError: At least one key (6) of the defining dictionary does not correspond to the weight of its value (1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)). Real weight: 4
+            sage: M({4:'f'})
+            Traceback (most recent call last)
+            ...
+            ValueError: At least one value (f) of the defining dictionary is not a `ModularFormElement`
+            sage: M({4.:E4})
+            Traceback (most recent call last)
+            ...
+            ValueError: At least one key (4.00000000000000) of the defining dictionary is not an integer
+            sage: M({0:E4})
+            Traceback (most recent call last)
+            ...
+            ValueError: The value corresponding to the weight 0 (1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)) should live in the base ring: Rational Field
+            sage: M([E4, x])
+            Traceback (most recent call last)
+            ...
+            ValueError: At least one list item is not a `ModularFormElement` (x)
+            sage: M(x)
+            Traceback (most recent call last)
+            ...
+            ValueError: The defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary
+        """
+        if isinstance(forms_datas, (dict, list)):
+            return self.element_class(self, forms_datas)
+        if isinstance(forms_datas, self.element_class):
+            forms_dictionary = forms_datas.__forms_dictionary
+        elif is_ModularFormElement(forms_datas):
+            if forms_datas.group() == self.group() and self.base_ring().has_coerce_map_from(forms_datas.base_ring()):
+                forms_dictionary = {forms_datas.weight():forms_datas}
             else:
-                raise ValueError('The modular form must have the same group and the same base ring as self')
-        if f in self.base_ring():
-            mf_dict = {0:f}
-        return GradedModularFormElement(self, mf_dict)
+                raise ValueError('The group (%s) and/or the base ring (%s) of the modular form is not consistant with the base space: %s'%(forms_datas.group(), forms_datas.base_ring(), self))
+        elif forms_datas in self.base_ring():
+            forms_dictionary = {0:forms_datas}
+        else:
+            raise ValueError('The defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary')
+        return self.element_class(self, forms_dictionary)
+
+    def zero(self):
+        r"""
+        Return the zero element of this ring.
+
+        EXAMPLES::
+
+            sage: M = ModularFormsRing(1)
+            sage: zer = M.zero(); zer
+            0
+            sage: zer.is_zero()
+            True
+            sage: E4 = ModularForms(1,4).0; E4
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+            sage: E4 + zer
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+            sage: zer * E4
+            0
+            sage: E4 * zer
+            0
+        """
+        return self.element_class(self, {})
+
+    def one(self):
+        r"""
+        Return the one element of this ring.
+
+        EXAMPLES::
+
+            sage: M = ModularFormsRing(1)
+            sage: u = M.one(); u
+            1
+            sage: u.is_one()
+            True
+            sage: u + u
+            2
+            sage: E4 = ModularForms(1,4).0; E4
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+            sage: E4 * u
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+        """
+        return self.element_class(self, {0:1})
 
     def _coerce_map_from_(self, M):
+        r"""
+        Implement coercion.
+
+        TESTS::
+
+            sage: M = ModularFormsRing(1)
+            sage: E6 = ModularForms(1,6).0
+            sage: D = ModularForms(1,12).1
+            sage: M(D) + E6
+            2 - 282744/691*q + 122757768/691*q^2 + 11521760544/691*q^3 + 274576933512/691*q^4 + 3198130142256/691*q^5 + O(q^6)
+            sage: D + M(E6)
+            2 - 282744/691*q + 122757768/691*q^2 + 11521760544/691*q^3 + 274576933512/691*q^4 + 3198130142256/691*q^5 + O(q^6)
+            sage: 14 + M(D)
+            15 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + 3199218815520/691*q^5 + O(q^6)
+            sage: M(D) + 53
+            54 + 65520/691*q + 134250480/691*q^2 + 11606736960/691*q^3 + 274945048560/691*q^4 + 3199218815520/691*q^5 + O(q^6)
+        """
         if is_ModularFormsSpace(M):
             if M.group() == self.group() and self.has_coerce_map_from(M.base_ring()):
                 return True

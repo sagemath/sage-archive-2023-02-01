@@ -21,6 +21,7 @@ AUTHORS:
 
 - Alexandre Zotine, Nils Bruin (2017-06-10): initial version
 - Nils Bruin, Jeroen Sijsling (2018-01-05): algebraization, isomorphisms
+- Linden Disney-Hogg, Nils Bruin (2021-06-23): efficient integration
 
 EXAMPLES:
 
@@ -1556,7 +1557,7 @@ class RiemannSurface(object):
         r"""
         Perform vectorized integration along a straight path.
 
-        Using the error bounds for Gauss-Legendre integration found in [Neu2019]_
+        Using the error bounds for Gauss-Legendre integration found in [Neu2018]_
         and the method for bounding an algebraic integrand on a circular domain
         developed by Gao, calculates (semi-)rigorously the integral of a list of 
         differentials along an edge of the upstairs graph
@@ -1599,7 +1600,7 @@ class RiemannSurface(object):
         .. NOTE::
 
             Uses data that ``homology_basis`` initializes. In practice is it is 
-            more efficient to set ``diferentials`` to a fast-callable version 
+            more efficient to set ``differentials`` to a fast-callable version 
             of differentials to speed up execution. 
 
         .. TODO::
@@ -1642,43 +1643,43 @@ class RiemannSurface(object):
         alpha = self._RR(0.912) 
         # alpha set manually for scaling purposes. Basic benchmarking shows 
         # that ~0.9 is a sensible value. 
-        E_global = self._RR(2^(-self._prec+3)) # Is this really the accuracy I want?
-    
+        E_global = self._RR(2**(-self._prec+3))
+        
         while True:
             for i in range(len(centres_t)):
                 if not good[i]:
                     ct = centres_t[i]
                     rt = radii_t[i]
                     cz = (1-ct)*z0+ct*z1 # This is the central z-value of our ball.
-                    distances = [abs(cz-b) for b in self.branch_locus] # Distance to the discriminant points 
+                    distances = [(cz-b).abs() for b in self.branch_locus] # Distance to the discriminant points 
                     rho_z = min(distances) 
                     rho_t = rho_z/(z1-z0).abs()
                     if rho_t > rt:
                         rho_t = alpha*rho_t+(1-alpha)*rt #sqrt(rho_t*rt)
                         rho_z = rho_t*(z1-z0).abs()
                         delta_z = (alpha*rho_t+(1-alpha)*rt)*(z1-z0).abs()
-                        expr = rho_t/rt+sqrt((rho_t/rt)^2-1) # Note this is really exp(arcosh(rho_t/rt))
+                        expr = rho_t/rt+((rho_t/rt)**2-1).sqrt(self._prec) # Note this is really exp(arcosh(rho_t/rt))
                         exprs.insert(i,expr)
                         good[i] = True
                         N = 3
                         cw = zwt(ct)[1]
-                    
+                        
                         for g, dgdz, minpoly,(a0lc,a0roots) in bounding_data_list:
-                            z_1 = abs(a0lc)*prod(abs(cz-r)-rho_z for r in a0roots)
+                            z_1 = a0lc.abs()*prod((cz-r).abs()-rho_z for r in a0roots)
                             n = minpoly.degree(CCzg.gen(1))
                             # Note the structure of the code is currently s.t 'z' has to be the variable in 
                             # the minpolys. 
                             ai_new = [(minpoly.coefficient({CCzg.gen(1):i}))(z=cz+self._CCz.gen(0)) for i 
                                       in range(n)]
-                            ai_pos = [ self._RRz([abs(c) for c in h.list()]) for h in ai_new]
+                            ai_pos = [ self._RRz([c.abs() for c in h.list()]) for h in ai_new]
                             m = [a(rho_z)/z_1 for a in ai_pos]
                             l = len(m) 
-                            M_tilde = 2*max(abs(m[i])^(1/(l-i)) for i in range(l))
+                            M_tilde = 2*max((m[i].abs())**(1/(l-i)) for i in range(l))
                             cg = g(cz,cw)
                             cdgdz = dgdz(cz,cg)
-                            Delta = delta_z*abs(cdgdz)+ delta_z^2*M_tilde/(rho_z*(rho_z-delta_z))
+                            Delta = delta_z*cdgdz.abs()+ (delta_z**2)*M_tilde/(rho_z*(rho_z-delta_z))
                             M = Delta #+ abs(cg)
-                            N_required = ceil(log(64*M/(15*(1-1/expr)*E_global))/(2*log(expr)))
+                            N_required = ((64*M/(15*(1-1/expr)*E_global)).log()/(2*expr.log())).ceil()
                             N = max(N,N_required)
                     
                         Ns.append(N)
@@ -1699,7 +1700,7 @@ class RiemannSurface(object):
         K = 2 
         # The parameter K could be tuned, but basic benchmarking seems to show
         # that 2 is a sensible choice
-        Ns = [(K*ceil(sqrt(N)/K))^2 for N in Ns] 
+        Ns = [(K*(N.sqrt(self._prec)/K).ceil())**2 for N in Ns] 
         # Rounding is sensible as it allows the cache of nodes in 
         # sage.numerical.gauss_legendre to be used.
         # Quadratic rounding can be shown to be a sensible choice through the 

@@ -4888,7 +4888,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         TESTS:
 
-        Check that :trac:``32033`` has been fixed::
+        Check that :trac:`32033` has been fixed::
 
             sage: R.<t> = GF(3)[]
             sage: lcm(R(0), R(0))

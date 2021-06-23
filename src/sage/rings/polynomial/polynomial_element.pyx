@@ -4906,17 +4906,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
             q = f//g
             return ~(q.leading_coefficient())*q
         except ZeroDivisionError:
-            return 0
+            P = f.parent()
+            return P.zero()
 
     def _lcm(self, other):
         """
         Let f and g be two polynomials. Then this function returns the
         monic least common multiple of f and g.
         """
-        f = self*other
-        g = self.gcd(other)
-        q = f//g
-        return ~(q.leading_coefficient())*q  # make monic  (~ is inverse in python)
+        try:
+            f = self*other
+            g = self.gcd(other)
+            q = f//g
+            return ~(q.leading_coefficient())*q  # make monic  (~ is inverse in python)
+        except ZeroDivisionError:
+            P = f.parent()
+            return P.zero()
 
     def is_primitive(self, n=None, n_prime_divs=None):
         """

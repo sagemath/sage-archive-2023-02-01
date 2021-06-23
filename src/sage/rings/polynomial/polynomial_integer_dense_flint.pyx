@@ -859,7 +859,8 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             g = self.gcd(right)
             return (self//g)*right
         except ZeroDivisionError:
-            return 0
+            P = self.parent()
+            return P.zero()
 
 
     @coerce_binop

@@ -366,7 +366,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         except OverflowError:
             raise ValueError('value {} of index is negative'.format(n)) from None
 
-    def from_recurrence(self, equations, function, var, offset=0):
+    def from_recurrence(self, *args, **kwds):
         r"""
         Construct a `k`-regular sequence that fulfills the recurrence relations
         given in ``equations``.
@@ -540,7 +540,15 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n, 2)
             2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
         """
+        RP = RecurrenceParser(self.k, self.coefficient_ring())
+        left, mu, right = RP(*args, **kwds)
+        return self(mu, left, right)
 
+
+class RecurrenceParser(object):
+    def __init__(self, k, coefficient_ring):
+        self.k = k
+        self.coefficient_ring = coefficient_ring
 
     def _parse_recurrence_(self, equations, function, var):
         r"""
@@ -923,7 +931,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.symbolic.operators import add_vararg, mul_vararg, operator
 
         k = self.k
-        base_ring = self.base()
+        base_ring = self.coefficient_ring
         M = None
         m = None
         coeffs = {}
@@ -1196,7 +1204,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         from sage.functions.other import ceil, floor
 
-        base_ring = self.base_ring()
+        base_ring = self.coefficient_ring
         k = self.k
         keys_coeffs = coeffs.keys()
         indices_right = [key[1] for key in keys_coeffs if coeffs[key]]
@@ -1679,7 +1687,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         from sage.matrix.special import block_matrix, zero_matrix
         from sage.modules.free_module_element import vector
 
-        base_ring = self.base_ring()
+        base_ring = self.coefficient_ring
         k = self.k
         M = recurrence_rules.M
         m = recurrence_rules.m
@@ -1825,7 +1833,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         return right
 
-
+    def __call__(self, equations, function, var, offset=0):
         from sage.arith.srange import srange
 
         k = self.k
@@ -1836,7 +1844,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         mu = [self._get_matrix_from_recurrence_(recurrence_rules, rem)
               for rem in srange(k)]
 
-        seq = self(mu, self._get_left_from_recurrence_(recurrence_rules.dim),
-                   self._get_right_from_recurrence_(recurrence_rules))
+        left = self._get_left_from_recurrence_(recurrence_rules.dim)
+        right = self._get_right_from_recurrence_(recurrence_rules)
 
-        return seq
+        return (left, mu, right)

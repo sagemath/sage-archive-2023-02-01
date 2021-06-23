@@ -4097,11 +4097,9 @@ class BTerm(TermWithCoefficient):
             sage: t1 = BT(x^3, 3, valid_from={'x': 20}); t2 = BT(x^2, 1, valid_from={'x': 10})
             sage: t3 = BT(x, 5, valid_from={'x': 5})
             sage: t1.can_absorb(t2)
-            False
+            True
             sage: t2.can_absorb(t1)
-            False
-            sage: t3.can_absorb(t1)
-            False
+            True
 
         TESTS::
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
@@ -4112,15 +4110,8 @@ class BTerm(TermWithCoefficient):
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = BTermMonoid(TermMonoid, G, QQ)
             sage: t1 = BT(x, 3, valid_from={'x': 20}); t2 = BT(x^3, 5, valid_from={'x': 5})
-            sage: t3 = BT(x, 3, valid_from={'x': 20})
             sage: t2.absorb(t1)
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: BTerm with coefficient 5, growth x^3 and
-            valid for x >= 5 cannot absorb BTerm with coefficient 3,
-            growth x and valid for x >= 20
-            sage: t3.absorb(t1)
-            BTerm with coefficient 63/20, growth x and valid for x >= 20
+            BTerm with coefficient 2003/400, growth x^3 and valid for x >= 20
         """
         if not isinstance(other, BTerm):
             return False
@@ -4128,8 +4119,8 @@ class BTerm(TermWithCoefficient):
             raise NotImplementedError('Multivariate BTerms are not implemented.')
 
         for key in self.valid_from.keys():
-            if key in other.valid_from.keys() and self.valid_from[key] >= other.valid_from[key]:
-                return (self.growth == other.growth)
+            if key in other.valid_from.keys():
+                return True
             else:
                 return False
 
@@ -4150,16 +4141,27 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = BTermMonoid(TermMonoid, G, QQ)
-            sage: t1 = BT(x, 3, valid_from={'x': 20}); t2 = BT(x, 1, valid_from={'x': 10});
+            sage: t1 = BT(x^3, 4, valid_from={'x': 10}); t2 = BT(x, 5, valid_from={'x': 20})
             sage: t1
-            BTerm with coefficient 3, growth x and valid for x >= 20
+            BTerm with coefficient 4, growth x^3 and valid for x >= 10
             sage: t1.can_absorb(t2)
             True
             sage: t1.absorb(t2)
-            BTerm with coefficient 61/20, growth x and valid for x >= 20
+            BTerm with coefficient 321/80, growth x^3 and valid for x >= 20
+            sage: t2.absorb(t1)
+            BTerm with coefficient 321/80, growth x^3 and valid for x >= 20
         """
-        coeff_new = self.coefficient + other.coefficient / self.valid_from[next(iter(self.valid_from))]
-        return self.parent()(self.growth, coeff_new, valid_from=self.valid_from)
+        variable_name = next(iter(self.valid_from))
+        valid_from_new = {variable_name: max(self.valid_from[variable_name], other.valid_from[variable_name])}
+        if (self.growth.exponent >= other.growth.exponent):
+            coeff_max = self.coefficient
+            coeff_min = other.coefficient
+        else:
+            coeff_max = other.coefficient
+            coeff_min = self.coefficient
+        coeff_new = coeff_max + (coeff_min / self.growth._find_minimum_(other.growth, valid_from_new[variable_name]))
+        growth_new = max(self.growth, other.growth)
+        return self.parent()(growth_new, coeff_new, valid_from=valid_from_new)
 
 
 class BTermMonoid(TermWithCoefficientMonoid):

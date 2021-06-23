@@ -1611,6 +1611,9 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         raise NotImplementedError('singularity analysis of {} '
                                   'not implemented '.format(self))
 
+    def _find_minimum_(self, other, valid_from):
+        raise NotImplementedError('find minimum for {} '
+                                  'not implemented '.format(self))
 
 class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
     r"""
@@ -3307,6 +3310,23 @@ class MonomialGrowthElement(GenericGrowthElement):
         else:
             raise NotImplementedError(
                 'singularity analysis of {} not implemented'.format(self))
+
+    def _find_minimum_(self, other, valid_from_bound):
+        r"""
+        Calculate the minimum needed for the new coefficient of an absorb BTerm
+
+        INPUT:
+
+        - ``other`` -- a BTerm
+
+        - ``valid_from_bound`` -- the value from a valid_from variable
+
+        OUTPUT:
+
+        The minimum
+        """
+        exponent_new = max(self.exponent, other.exponent) - min(self.exponent, other.exponent)
+        return valid_from_bound ** exponent_new
 
 
 class MonomialGrowthGroup(GenericGrowthGroup):

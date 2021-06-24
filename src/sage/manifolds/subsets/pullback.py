@@ -36,7 +36,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
 
     INPUT:
 
-    - ``map`` - an instance of :class:`ContinuousMap`,
+    - ``map`` - an instance of :class:`~sage.manifolds.continuous_map.ContinuousMap`,
       :class:`ScalarField`, or :class:`Chart`
 
     - ``codomain_subset`` - an instance of :class:`~sage.manifolds.subset.ManifoldSubset`,

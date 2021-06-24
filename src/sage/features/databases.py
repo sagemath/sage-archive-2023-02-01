@@ -30,9 +30,13 @@ class DatabaseConwayPolynomials(StaticFile):
             sage: isinstance(DatabaseConwayPolynomials(), DatabaseConwayPolynomials)
             True
         """
+        if CONWAY_POLYNOMIALS_DATA_DIR:
+            search_path = [CONWAY_POLYNOMIALS_DATA_DIR]
+        else:
+            search_path = []
         StaticFile.__init__(self, "Frank Luebeck's database of Conway polynomials",
                             filename='conway_polynomials.p',
-                            search_path=[CONWAY_POLYNOMIALS_DATA_DIR],
+                            search_path=search_path,
                             spkg='conway_polynomials')
 
 

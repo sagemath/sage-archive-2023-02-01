@@ -347,7 +347,7 @@ class RiemannSurface(object):
 
     - ``error_bound`` -- (default: ``'heuristic'``). String specifing the 
       error bound method to use when calculating the integrals of differentials. 
-      The options are ``'heuristic'`` and ``'deterministic'``, the latter of
+      The options are ``'heuristic'`` and ``'rigorous'``, the latter of
       which is often the most efficient. 
 
     EXAMPLES::
@@ -1553,7 +1553,7 @@ class RiemannSurface(object):
         # some thought.
         return CCzg, list(zip(integrand_list,dgdz_list,CCminpoly_list,a0_info))
 
-    def deterministic_line_integral(self, upstairs_edge, differentials, bounding_data):
+    def rigorous_line_integral(self, upstairs_edge, differentials, bounding_data):
         r"""
         Perform vectorized integration along a straight path.
 
@@ -1593,7 +1593,7 @@ class RiemannSurface(object):
             sage: _ = S.homology_basis()
             sage: differentials = S.cohomology_basis()
             sage: bounding_data = S._bounding_data(differentials)
-            sage: S.deterministic_line_integral([(0,0), (1,0)], differentials, 
+            sage: S.rigorous_line_integral([(0,0), (1,0)], differentials, 
                                                 bounding_data)
             (1.80277751848459e-16 - 0.352971844594760*I)
 
@@ -1737,7 +1737,7 @@ class RiemannSurface(object):
 
         - ``error_bound`` -- (default: ``'heuristic'``). String specifying the
           error bound method to use. The options are ``'heuristic'`` and 
-          ``'deterministic'``.
+          ``'rigorous'``.
 
         OUTPUT:
 
@@ -1780,9 +1780,9 @@ class RiemannSurface(object):
 
         if error_bound=="heuristic":
             line_int = lambda edge: self.simple_vector_line_integral(edge,fcd)
-        elif error_bound=="deterministic":
+        elif error_bound=="rigorous":
             bd = self._bounding_data(differentials)
-            line_int = lambda edge: self.deterministic_line_integral(edge,fcd,bd)
+            line_int = lambda edge: self.rigorous_line_integral(edge,fcd,bd)
         else:
             raise ValueError("Invalid error_bound method")
 

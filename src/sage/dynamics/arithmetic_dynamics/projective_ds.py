@@ -3903,7 +3903,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         minimal = kwds.pop('minimal', True)
         return_scheme = kwds.pop('return_scheme', False)
         if formal and N == 2:
-            X = PS.subscheme(f.dynatomic_polynomial([m,n]))
+            X = PS.subscheme([f.dynatomic_polynomial([m,n])] + list(dom.defining_polynomials()))
         else:
             F_1 = f.nth_iterate_map(n+m)
             F_2 = f.nth_iterate_map(m)
@@ -3946,14 +3946,18 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 deformed_polys = [poly + t*Pt.gens()[-1]**d for poly in new_f.defining_polynomials()[:-1]]
                 deformed_polys += [new_f.defining_polynomials()[-1]]
                 f_deformed = DynamicalSystem(deformed_polys)
-                Ideal = f_deformed.preperiodic_points(m, n, return_scheme=True).defining_ideal()
-                L = [poly.specialization({t:0}) for poly in Ideal.gens()]
+
+                # after deforming by the parameter, the preperiodic points with multiplicity
+                # will seperate into different points. we can now calculate the minimal preperiodic
+                # points with the parameter, and then specialize to get the formal preperiodic points
+                ideal = f_deformed.preperiodic_points(m, n, return_scheme=True).defining_ideal()
+                L = [poly.specialization({t:0}) for poly in ideal.gens()]
                 X = PS.subscheme(L)
                 subs_list = mat.inverse()*vector(CR.gens())
                 subs = {}
                 for i in range(len(subs_list)):
                     subs[PS.gens()[i]] = subs_list[i]
-                X = PS.subscheme([poly.subs(subs) for poly in X.defining_polynomials()])
+                X = PS.subscheme([poly.subs(subs) for poly in X.defining_polynomials()] + list(dom.defining_polynomials()))
             if minimal and not formal:
                 Sn = []
                 for k in ZZ(n).divisors():
@@ -3969,7 +3973,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         Ik *= f.preperiodic_points(m-1, n, return_scheme=True, minimal=False).defining_ideal()
                     psi = UnflatteningMorphism(flatCR, CR)
                     In = flatCR.ideal([phi(i) for i in X.defining_polynomials()])
-                    X = PS.subscheme(flatCR.ideal([psi(i) for i in In.saturation(Ik)[0].gens()]))
+                    X = PS.subscheme([psi(i) for i in In.saturation(Ik)[0].gens()])
                 else:
                     Ik = CR.ideal(1)
                     for k in Sn:
@@ -4236,7 +4240,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 raise TypeError("ring must be finite to generate cyclegraph")
         elif algorithm == 'variety':
             if formal and N == 2:
-                X = PS.subscheme(f.dynatomic_polynomial(n))
+                X = PS.subscheme([f.dynatomic_polynomial(n)] + list(dom.defining_polnomials()))
             else:
                 F = f.nth_iterate_map(n)
                 L = [F[i]*CR.gen(j) - F[j]*CR.gen(i) for i in range(N)
@@ -4280,13 +4284,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         deformed_polys = [poly + t*Pt.gens()[-1]**d for poly in new_f.defining_polynomials()[:-1]]
                         deformed_polys += [new_f.defining_polynomials()[-1]]
                         f_deformed = DynamicalSystem(deformed_polys)
-                        Ideal = f_deformed.periodic_points(n, return_scheme=True).defining_ideal()
-                        L = [poly.specialization({t:0}) for poly in Ideal.gens()]
+
+                        # after deforming by the parameter, the preperiodic points with multiplicity
+                        # will seperate into different points. we can now calculate the minimal preperiodic
+                        # points with the parameter, and then specialize to get the formal periodic points
+                        ideal = f_deformed.periodic_points(n, return_scheme=True).defining_ideal()
+                        L = [poly.specialization({t:0}) for poly in ideal.gens()]
                         subs_list = mat.inverse()*vector(CR.gens())
                         subs = {}
                         for i in range(len(subs_list)):
                             subs[PS.gens()[i]] = subs_list[i]
-                        X = PS.subscheme([poly.subs(subs) for poly in L])
+                        X = PS.subscheme([poly.subs(subs) for poly in L] + list(dom.defining_polynomials()))
                 if minimal and n != 1 and not formal:
                     Sn = []
                     for k in ZZ(n).divisors():
@@ -4300,7 +4308,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                             Ik *= f.periodic_points(k, return_scheme=True, minimal=False).defining_ideal()
                         psi = UnflatteningMorphism(flatCR, CR)
                         In = flatCR.ideal([phi(i) for i in X.defining_polynomials()])
-                        X = PS.subscheme(flatCR.ideal([psi(i) for i in In.saturation(Ik)[0].gens()]))
+                        X = PS.subscheme([psi(i) for i in In.saturation(Ik)[0].gens()])
                     else:
                         Ik = CR.ideal(1)
                         for k in Sn:

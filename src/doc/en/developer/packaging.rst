@@ -385,9 +385,9 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
 
 - ``sdh_configure [...]``: Runs ``./configure`` with arguments
   ``--prefix="$SAGE_LOCAL"``, ``--libdir="$SAGE_LOCAL/lib"``,
-  ``--disable-maintainer-mode``, and
-  ``--disable-dependency-tracking``. Additional arguments to
-  ``./configure`` may be given as arguments.
+  ``--disable-static``, ``--disable-maintainer-mode``, and
+  ``--disable-dependency-tracking``. Additional arguments to ``./configure``
+  may be given as arguments.
 
 - ``sdh_make [...]``: Runs ``$MAKE`` with the default target.
    Additional arguments to ``$MAKE`` may be given as arguments.

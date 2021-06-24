@@ -168,6 +168,8 @@ The extrinsic curvature as a tensor field on the submanifold::
 AUTHORS:
 
 - Florentin Jaffredo (2018): initial version
+- Eric Gourgoulhon (2018-2019): add documentation
+- Matthias Koeppe (2021): open subsets of submanifolds
 
 REFERENCES:
 
@@ -177,7 +179,9 @@ REFERENCES:
 """
 
 # *****************************************************************************
-#  Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
+#  Copyright (C) 2018      Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
+#  Copyright (C) 2018-2019 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#  Copyright (C) 2021      Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -382,6 +386,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
              3-dimensional Lorentzian manifold M
 
         """
+        if self is not self._manifold:
+            return "Open subset {} of the {}".format(self._name, self._manifold)
         if self._ambient is None:
             return super(PseudoRiemannianManifold, self).__repr__()
         if self._embedded:
@@ -389,6 +395,82 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
                 self._dim, self._structure.name, self._name, self._ambient)
         return "{}-dimensional {} submanifold {} immersed in the {}".format(
                 self._dim, self._structure.name, self._name, self._ambient)
+
+    def open_subset(self, name, latex_name=None, coord_def={}, supersets=None):
+        r"""
+        Create an open subset of ``self``.
+
+        An open subset is a set that is (i) included in the manifold and (ii)
+        open with respect to the manifold's topology. It is a differentiable
+        manifold by itself. Moreover, equipped with the restriction of the
+        manifold metric to itself, it is a pseudo-Riemannian manifold.
+
+        As ``self`` is a submanifold of its ambient manifold,
+        the new open subset is also considered a submanifold of that.
+        Hence the returned object is an instance of
+        :class:`PseudoRiemannianSubmanifold`.
+
+        INPUT:
+
+        - ``name`` -- name given to the open subset
+        - ``latex_name`` --  (default: ``None``) LaTeX symbol to denote the
+          subset; if none is provided, it is set to ``name``
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts in the manifold's atlas and values the symbolic expressions
+          formed by the coordinates to define the subset.
+        - ``supersets`` -- (default: only ``self``) list of sets that the
+          new open subset is a subset of
+
+        OUTPUT:
+
+        - instance of :class:`PseudoRiemannianSubmanifold` representing the
+          created open subset
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', structure="Riemannian")
+            sage: N = Manifold(2, 'N', ambient=M, structure="Riemannian"); N
+            2-dimensional Riemannian submanifold N immersed in the
+             3-dimensional Riemannian manifold M
+            sage: S = N.subset('S'); S
+            Subset S of the
+             2-dimensional Riemannian submanifold N immersed in the
+              3-dimensional Riemannian manifold M
+            sage: O = N.subset('O', is_open=True); O  # indirect doctest
+            Open subset O of the
+             2-dimensional Riemannian submanifold N immersed in the
+              3-dimensional Riemannian manifold M
+
+            sage: phi = N.diff_map(M)
+            sage: N.set_embedding(phi)
+            sage: N
+            2-dimensional Riemannian submanifold N embedded in the
+             3-dimensional Riemannian manifold M
+            sage: S = N.subset('S'); S
+            Subset S of the
+             2-dimensional Riemannian submanifold N embedded in the
+              3-dimensional Riemannian manifold M
+            sage: O = N.subset('O', is_open=True); O  # indirect doctest
+            Open subset O of the
+             2-dimensional Riemannian submanifold N embedded in the
+              3-dimensional Riemannian manifold M
+
+        """
+        resu = PseudoRiemannianSubmanifold(self._dim, name,
+                                           ambient=self._ambient,
+                                           metric_name=self._metric_name,
+                                           signature=self._metric_signature,
+                                           base_manifold=self._manifold,
+                                           diff_degree=self._diff_degree,
+                                           latex_name=latex_name,
+                                           metric_latex_name=self._metric_latex_name,
+                                           start_index=self._sindex)
+        if supersets is None:
+            supersets = [self]
+        for superset in supersets:
+            superset._init_open_subset(resu, coord_def=coord_def)
+        return resu
 
     def ambient_metric(self):
         r"""

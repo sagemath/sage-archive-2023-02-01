@@ -40,7 +40,6 @@ from sage.homology.simplicial_set import AbstractSimplex, SimplicialSet
 from sage.libs.ecl import EclObject, ecl_eval, EclListIterator
 from sage.features.kenzo import Kenzo
 
-
 # defining the auxiliary functions as wrappers over the kenzo ones
 kenzo_names = ['add',
                'array-dimensions',
@@ -107,7 +106,12 @@ kenzo_names = ['add',
 # example __sphere__ is defined as EclObject("sphere"). Hyphens
 # are replaced with underscores to get valid Python identifiers.
 if Kenzo().is_present():
-    ecl_eval("(require :kenzo)")
+    from sage.env import KENZO_FAS
+    if KENZO_FAS:
+        ecl_eval("(require :kenzo \"{}\")".format(KENZO_FAS))
+    else:
+        ecl_eval("(require :kenzo)")
+
     ecl_eval("(in-package :cat)")
     ecl_eval("(setf *HOMOLOGY-VERBOSE* nil)")
     for s in kenzo_names:

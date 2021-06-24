@@ -4348,12 +4348,18 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           per point or one per cycle
 
        - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
-          algebraic closure. If False, and he map is defined over projective space of
+          algebraic closure. Using the algebraic closure can sometimes lead to numerical instability
+          and extraneous errors. For most accurate results, set to ``False``.
+          If False, and he map is defined over projective space of
           dimension 1, uses the smallest extension of the base field
           containing all the critical points. If the map is defined over projective space
           of dimension greater than 1, then the base ring of the map is used.
 
-        OUTPUT: a list of field elements
+        OUTPUT:
+
+        A list of field elements if the domain of the map is projective space of
+        dimension 1. If the domain of the map is projective space of dimension
+        greater than 1, a list of matrices
 
         EXAMPLES::
 
@@ -4544,6 +4550,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 use_algebraic_closure = True
             else:
                 f = self
+
+            # in order to calculate multiplicity, we need to have a scheme defined
+            # over a finite extension, not an algebraic closure
             X = f.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
             if use_algebraic_closure:
                 number_field = False
@@ -4560,11 +4569,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     rat_points = X.rational_points(F=Kbar)
                 else:
                     embeds = K.embeddings(Kbar)
-                    embedding = embeds[0]
                     if embeds:
-                        X2 = X.change_ring(embedding)
+                        X2 = X.change_ring(embeds[0])
                         rat_points = X2.rational_points()
-                        f = self.change_ring(embedding)
+                        f = self.change_ring(embeds[0])
                     else:
                         raise ValueError("no embeddings of base field to algebraic closure")
             else:
@@ -4575,14 +4583,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             for point in rat_points:
                 if use_algebraic_closure:
                     if number_field:
-                        K2, pnt_lst, embd = number_field_elements_from_algebraics(list(point))
-                        if K2 is QQ:
+                        # in order to calculate multiplicity, the point must be defined over a finite extension
+                        K2, pnt_lst, _ = number_field_elements_from_algebraics(list(point))
+                        # we coerce if we can
+                        if K.has_coerce_map_from(K2):
                             for i in range(X.multiplicity(pnt_lst)):
                                 points.append(PS(point))
-                        elif K is QQ:
+                        elif K2.has_coerce_map_from(K):
                             X_k = X.change_ring(K2)
                             for i in range(X_k.multiplicity(pnt_lst)):
                                 points.append(PS(point))
+                        # otherwise, we need to calculate a composite field
                         else:
                             _, K_embed, K2_embed, _ = K.composite_fields(K2, both_maps=True)[0]
                             X_k = X.change_ring(K_embed)
@@ -4591,6 +4602,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                             for i in range(X_k.multiplicity(new_point)):
                                 points.append(PS(point))
                     else:
+                        # we find a finite extension which point the point
+                        # and X coerce into
                         final_degree = K.degree()
                         new_point = []
                         for num in list(point):

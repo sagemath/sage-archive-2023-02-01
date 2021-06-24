@@ -1070,6 +1070,27 @@ REFERENCES:
              *Reverse-Engineering the S-Box of Streebog, Kuznyechik and STRIBOBr1*; in
              EuroCrypt'16, pp. 372-402.
 
+.. [Br1910] Bruckner, "Uber die Ableitung der allgemeinen Polytope und
+            die nach Isomorphismus verschiedenen Typen der allgemeinen
+            Achtzelle (Oktatope)", Verhand. Konik. Akad. Wetenschap,
+            Erste Sectie, 10 (1910)
+
+.. [Br2000] Kenneth S. Brown, *Semigroups, rings, and Markov chains*,
+            :arxiv:`math/0006145v1`.
+
+
+.. [BR2000a] \P. Barreto and V. Rijmen,
+             *The ANUBIS Block Cipher*; in
+             First Open NESSIE Workshop, (2000).
+
+.. [BR2000b] \P. Barreto and V. Rijmen,
+             *The Khazad legacy-level Block Cipher*; in
+             First Open NESSIE Workshop, (2000).
+
+.. [BR2000c] \P. Barreto and V. Rijmen,
+             *The Whirlpool hashing function*; in
+             First Open NESSIE Workshop, (2000).
+
 .. [BR2010] Matthew Baker and Robert Rumely. Potential theory and dynamics on the
             Berkovich projective line. Mathematical Surveys and Monographs,
             Volumne 159. 2010.
@@ -1077,6 +1098,13 @@ REFERENCES:
 .. [BR2010a] Jean Berstel and Christophe Reutenauer,
              *Noncommutative Rational Series With Applications*.
              Cambridge, 2010.
+
+.. [BR2010b] Valérie Berthé and Michel Rigo, editors. Combinatorics, automata,
+             and number theory, volume 135. Cambridge: Cambridge University Press, 2010.
+
+.. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
+            http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
+
 
 .. [Brandes01] Ulrik Brandes,
                A faster algorithm for betweenness centrality,
@@ -1110,33 +1138,6 @@ REFERENCES:
 
 .. [Bro2016] \A.E. Brouwer,
              Personal communication, 2016.
-
-.. [Br1910] Bruckner, "Uber die Ableitung der allgemeinen Polytope und
-            die nach Isomorphismus verschiedenen Typen der allgemeinen
-            Achtzelle (Oktatope)", Verhand. Konik. Akad. Wetenschap,
-            Erste Sectie, 10 (1910)
-
-.. [Br2000] Kenneth S. Brown, *Semigroups, rings, and Markov chains*,
-            :arxiv:`math/0006145v1`.
-
-
-.. [BR2000a] \P. Barreto and V. Rijmen,
-             *The ANUBIS Block Cipher*; in
-             First Open NESSIE Workshop, (2000).
-
-.. [BR2000b] \P. Barreto and V. Rijmen,
-             *The Khazad legacy-level Block Cipher*; in
-             First Open NESSIE Workshop, (2000).
-
-.. [BR2000c] \P. Barreto and V. Rijmen,
-             *The Whirlpool hashing function*; in
-             First Open NESSIE Workshop, (2000).
-
-.. [BR2010]  Valérie Berthé and Michel Rigo, editors. Combinatorics, automata,
-             and number theory, volume 135. Cambridge: Cambridge University Press, 2010.
-
-.. [Br2016] *Bresenham's Line Algorithm*, Python, 26 December 2016.
-            http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 
 .. [Bro1982] \A. Brouwer,
              *Polarities of G. Higman's symmetric design and a strongly regular

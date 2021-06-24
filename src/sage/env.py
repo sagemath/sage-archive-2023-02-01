@@ -219,6 +219,7 @@ CBLAS_PC_MODULES = var("CBLAS_PC_MODULES", "cblas:openblas:blas")
 ECL_CONFIG = var("ECL_CONFIG", "ecl-config")
 NTL_INCDIR = var("NTL_INCDIR")
 NTL_LIBDIR = var("NTL_LIBDIR")
+LIE_INFO_DIR = var("LIE_INFO_DIR", join(SAGE_LOCAL, "lib". "LiE"))
 
 # OpenMP
 OPENMP_CFLAGS = var("OPENMP_CFLAGS", "")

@@ -2891,17 +2891,21 @@ cdef class CombinatorialPolyhedron(SageObject):
             from sage.misc.prandom import randrange
 
             if self.n_vertices():
+                # We obtain a chain containing a random vertex.
                 i = randrange(self.n_vertices())
                 b = self.a_maximal_chain(Vindex=i)
                 test_a_chain(b)
                 tester.assertTrue(all(i in f.ambient_V_indices() for f in b))
 
             if self.n_facets():
+                # We obtain a chain containing a random facet.
                 i = randrange(self.n_facets())
                 b = self.a_maximal_chain(Hindex=i)
                 test_a_chain(b)
                 tester.assertTrue(all(i in f.ambient_H_indices() for f in b))
 
+                # We obtain a chain containing that facet
+                # and a random vertex contained in it.
                 facet = self.facets(names=False)[i]
                 j = facet[randrange(len(facet))]
                 b = self.a_maximal_chain(Vindex=j, Hindex=i)

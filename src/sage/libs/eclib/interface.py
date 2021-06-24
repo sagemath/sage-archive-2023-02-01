@@ -553,7 +553,9 @@ class mwrank_EllipticCurve(SageObject):
 
             sage: E = mwrank_EllipticCurve([0, 0, 0, -1002231243161, 0])
             sage: E.gens()
-            [[-1001107, -4004428, 1]]
+            [[-1001107, -4004428, 1]] # 64-bit
+            ...                       # 32-bit
+            [[-1001107, -4004428, 1]] # 32-bit
             sage: E.saturate()
             sage: E.gens()
             [[-1001107, -4004428, 1]]

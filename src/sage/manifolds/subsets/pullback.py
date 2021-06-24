@@ -771,7 +771,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: McF = ManifoldSubsetPullback(c_cart, F, name='McF'); McF
             Subset McF of the 2-dimensional topological manifold R^2
             sage: McF.is_closed()
-            False
+            True
 
         """
         if self.manifold().dimension() == 0:
@@ -798,6 +798,8 @@ class ManifoldSubsetPullback(ManifoldSubset):
                 if self._codomain_subset.rank() == self._codomain_subset.base_extend(RR).dimension():
                     # Discrete subgroup of R^n
                     return True
+        elif self._codomain_subset in Sets().Finite():
+            return True
         else:
             if hasattr(self._codomain_subset, 'is_topologically_closed'):
                 try:

@@ -72,15 +72,11 @@ rm -f "$SAGE_LOCAL/lib/python"
 rm -f "$SAGE_LOCAL"/lib/lib"$PKG_BASE"*
 
 
-if [ "$PKG_BASE" = "python2" ]; then
-    PYTHON_CONFIGURE="$PYTHON_CONFIGURE --enable-unicode=ucs4"
-else
     # Note: --without-ensurepip ensures that setuptools+pip are *not* installed
     # automatically when installing python3. They will be installed instead by
     # the separate setuptools and pip packages; see
     # https://trac.sagemath.org/ticket/23398
     PYTHON_CONFIGURE="$PYTHON_CONFIGURE --without-ensurepip"
-fi
 
 sdh_configure --enable-shared $PYTHON_CONFIGURE
 

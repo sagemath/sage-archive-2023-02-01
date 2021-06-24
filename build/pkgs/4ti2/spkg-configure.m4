@@ -5,6 +5,7 @@ SAGE_SPKG_CONFIGURE([4ti2], [
         m4_foreach([prog], [hilbert,markov,graver,zsolve,qsolve,rays,ppi,circuits,groebner], [
             AC_CHECK_PROGS([FOURTITWO_]m4_toupper(prog), prog [4ti2-]prog)
             AS_VAR_IF([FOURTITWO_]m4_toupper(prog), [""], [sage_spkg_install_4ti2=yes])
+            AC_SUBST([FOURTITWO_]m4_toupper(prog))
         ])
         dnl Adapted from https://github.com/latte-int/latte/blob/master/m4/4ti2-check.m4
         AC_MSG_CHECKING(for library 4ti2gmp)

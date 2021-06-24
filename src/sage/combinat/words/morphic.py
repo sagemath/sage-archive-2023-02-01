@@ -239,7 +239,7 @@ class WordDatatype_morphic(WordDatatype_callable):
 
     def _func(self, key):
         """
-        Returns a letter of a fixed point of a morphism on position ``key``.
+        Return a letter of a fixed point of a morphism on position ``key``.
 
         INPUT:
 
@@ -283,7 +283,7 @@ class WordDatatype_morphic(WordDatatype_callable):
 
     def __iter__(self):
         r"""
-        Returns an iterator of the letters of the fixed point of ``self``
+        Return an iterator of the letters of the fixed point of ``self``
         starting with ``letter``.
 
         If w is the iterated word, then this iterator: outputs the elements

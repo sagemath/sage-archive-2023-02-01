@@ -4558,7 +4558,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 if Kbar.has_coerce_map_from(K):
                     f = f.change_ring(Kbar)
                     rat_points = X.rational_points(F=Kbar)
-                    embedding = Kbar
                 else:
                     embeds = K.embeddings(Kbar)
                     embedding = embeds[0]
@@ -4569,15 +4568,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     else:
                         raise ValueError("no embeddings of base field to algebraic closure")
             else:
-                if PS.dimension_relative() == 1:
-                    embedding = self.field_of_definition_periodic(n, formal=formal, return_embedding=True)[1]
-                    X = X.change_ring(embedding)
-                    rat_points = X.rational_points()
-                    f = self.change_ring(embedding)
-                else:
-                    rat_points = X.rational_points()
-                    f = self
-                    embedding = f.base_ring()
+                rat_points = X.rational_points()
+                f = self
             PS = f.domain()
             points = []
             for point in rat_points:

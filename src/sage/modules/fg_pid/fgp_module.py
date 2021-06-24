@@ -1271,8 +1271,11 @@ class FGP_Module_class(Module):
             sage: V = span([[1/2,0,0],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W; Q
             Finitely generated module V/W over Integer Ring with invariants (4, 12)
-            sage: Q.coordinate_vector(Q.0 - Q.1)
-            (1, -1)
+            sage: Q.coordinate_vector(Q.0 - Q.1, reduce=True)
+            (1, 11)
+            sage: a, b = Q.coordinate_vector(Q.0 - Q.1)
+            sage: (a % 4, b % 12)
+            (1, 11)
 
             sage: O, X = Q.optimized()
             sage: O.V()
@@ -1285,14 +1288,16 @@ class FGP_Module_class(Module):
             (0, 8)
             sage: Q.coordinate_vector(x, reduce=True)
             (0, 8)
-            sage: Q.coordinate_vector(-x, reduce=False) # random
-            (0, -8)
+            sage: a, b = Q.coordinate_vector(-x, reduce=False)
+            sage: (a % 4, b % 12)
+            (0, 4)
             sage: x == 8*Q.1
             True
             sage: x = Q(V.1); x
             (0, 11)
-            sage: Q.coordinate_vector(x)
-            (0, -1)
+            sage: a, b = Q.coordinate_vector(x)
+            sage: (a % 4, b % 12)
+            (0, 11)
             sage: x == -Q.1
             True
             sage: x = Q(V.2); x

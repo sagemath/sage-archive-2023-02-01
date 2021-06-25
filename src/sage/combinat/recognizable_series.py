@@ -75,6 +75,8 @@ Classes and Methods
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from functools import wraps
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import experimental
 from sage.structure.element import Element
@@ -295,6 +297,75 @@ class PrefixClosedSet(object):
                 for p in self.elements
                 for a in self.words.iterate_by_length(1)
                 if p + a not in self.elements]
+
+
+def minimize_result(operation):
+    r"""
+    A decorator for operations that enables control of
+    automatic minimization on the result.
+
+    INPUT:
+
+    - ``operation`` -- a method
+
+    OUTPUT:
+
+    A method with the following additional argument:
+
+    - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+      If ``True``, then :meth:`minimized` is called after the operation,
+      if ``False``, then not. If this argument is ``None``, then
+      the default specified by the parent's ``minimize_results`` is used.
+
+    TESTS::
+
+        sage: from sage.combinat.recognizable_series import minimize_result
+        sage: class P(object):
+        ....:     pass
+        sage: p = P()
+        sage: class S(object):
+        ....:     def __init__(self, s):
+        ....:         self.s = s
+        ....:     def __repr__(self):
+        ....:         return self.s
+        ....:     def parent(self):
+        ....:         return p
+        ....:     def minimized(self):
+        ....:         return S(self.s + ' minimized')
+        ....:     @minimize_result
+        ....:     def operation(self):
+        ....:         return S(self.s + ' result')
+
+        sage: p.minimize_results = True
+        sage: S('some').operation()
+        some result minimized
+        sage: S('some').operation(minimize=True)
+        some result minimized
+        sage: S('some').operation(minimize=False)
+        some result
+
+        sage: p.minimize_results = False
+        sage: S('some').operation()
+        some result
+        sage: S('some').operation(minimize=True)
+        some result minimized
+        sage: S('some').operation(minimize=False)
+        some result
+    """
+    @wraps(operation)
+    def minimized(self, *args, **kwds):
+        minimize = kwds.pop('minimize', None)
+        if minimize is None:
+            minimize = self.parent().minimize_results
+
+        result = operation(self, *args, **kwds)
+
+        if minimize:
+            result = result.minimized()
+
+        return result
+
+    return minimized
 
 
 class RecognizableSeries(Element):
@@ -1023,8 +1094,8 @@ class RecognizableSeries(Element):
         """
         return self.mu.first().nrows()
 
-
-    def _add_(self, other, minimize=True):
+    @minimize_result
+    def _add_(self, other):
         r"""
         Return the sum of this recognizable series and the ``other``
         recognizable series.
@@ -1034,8 +1105,10 @@ class RecognizableSeries(Element):
         - ``other`` -- a :class:`RecognizableSeries` with the same parent
           as this recognizable series.
 
-        - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the operation.
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
 
         OUTPUT:
 
@@ -1067,10 +1140,7 @@ class RecognizableSeries(Element):
             vector(tuple(self.left) + tuple(other.left)),
             vector(tuple(self.right) + tuple(other.right)))
 
-        if minimize:
-            return result.minimized()
-        else:
-            return result
+        return result
 
 
     def _neg_(self):
@@ -1165,8 +1235,8 @@ class RecognizableSeries(Element):
         P = self.parent()
         return P.element_class(P, self.mu, other*self.left, self.right)
 
-
-    def hadamard_product(self, other, minimize=True):
+    @minimize_result
+    def hadamard_product(self, other):
         r"""
         Return the Hadamard product of this recognizable series
         and the ``other`` recognizable series, i.e., multiply the two
@@ -1177,8 +1247,10 @@ class RecognizableSeries(Element):
         - ``other`` -- a :class:`RecognizableSeries` with the same parent
           as this recognizable series.
 
-        - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the operation.
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
 
         OUTPUT:
 
@@ -1259,10 +1331,7 @@ class RecognizableSeries(Element):
             vector(self.left.outer_product(other.left).list()),
             vector(self.right.outer_product(other.right).list()))
 
-        if minimize:
-            return result.minimized()
-        else:
-            return result
+        return result
 
 
 
@@ -1349,7 +1418,8 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
     def __normalize__(cls,
                       coefficient_ring=None,
                       alphabet=None, indices=None,
-                      category=None):
+                      category=None,
+                      minimize_results=True):
         r"""
         Normalizes the input in order to ensure a unique
         representation.
@@ -1405,10 +1475,10 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         from sage.categories.modules import Modules
         category = category or Modules(coefficient_ring)
 
-        return (coefficient_ring, indices, category)
+        return (coefficient_ring, indices, category, minimize_results)
 
     @experimental(trac_number=21202)
-    def __init__(self, coefficient_ring, indices, category):
+    def __init__(self, coefficient_ring, indices, category, minimize_results):
         r"""
         See :class:`RecognizableSeriesSpace` for details.
 
@@ -1421,12 +1491,17 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         - ``category`` -- (default: ``None``) the category of this
           space
 
+        - ``minimize_results`` -- (default: ``True``) a boolean. If set, then
+          :meth:`RecognizableSeries.minimized` is automatically called
+          after performing operations.
+
         TESTS::
 
             sage: RecognizableSeriesSpace(ZZ, [0, 1])
             Space of recognizable series on {0, 1} with coefficients in Integer Ring
         """
         self._indices_ = indices
+        self._minimize_results_ = minimize_results
         super(RecognizableSeriesSpace, self).__init__(
             category=category, base=coefficient_ring)
 
@@ -1479,6 +1554,24 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
             Integer Ring
         """
         return self.base()
+
+    @property
+    def minimize_results(self):
+        r"""
+        A boolean indicating whether
+        :meth:`RecognizableSeries.minimized` is automatically called
+        after performing operations.
+
+        TESTS::
+
+            sage: RecognizableSeriesSpace(ZZ, [0, 1]).minimize_results
+            True
+            sage: RecognizableSeriesSpace(ZZ, [0, 1], minimize_results=True).minimize_results
+            True
+            sage: RecognizableSeriesSpace(ZZ, [0, 1], minimize_results=False).minimize_results
+            False
+        """
+        return self._minimize_results_
 
     def _repr_(self):
         r"""

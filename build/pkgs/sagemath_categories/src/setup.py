@@ -1,1 +1,0 @@
-../../sagemath_objects/src/setup.py

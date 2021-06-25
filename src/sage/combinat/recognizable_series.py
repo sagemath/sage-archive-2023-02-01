@@ -656,7 +656,6 @@ class RecognizableSeries(Element):
             result = result * self.right
         return result
 
-
     __getitem__ = coefficient_of_word
 
     @cached_method
@@ -1080,7 +1079,6 @@ class RecognizableSeries(Element):
         P = self.parent()
         return P.element_class(P, mu_prime, left_prime, right_prime)
 
-
     def dimension(self):
         r"""
         Return the dimension of this recognizable series.
@@ -1103,7 +1101,7 @@ class RecognizableSeries(Element):
         INPUT:
 
         - ``other`` -- a :class:`RecognizableSeries` with the same parent
-          as this recognizable series.
+          as this recognizable series
 
         - ``minimize`` -- (default: ``None``) a boolean or ``None``.
           If ``True``, then :meth:`minimized` is called after the operation,
@@ -1142,14 +1140,13 @@ class RecognizableSeries(Element):
 
         return result
 
-
     def _neg_(self):
         r"""
         Return the additive inverse of this recognizable series.
 
         OUTPUT:
 
-        A :class:`RecognizableSeries`.
+        A :class:`RecognizableSeries`
 
         EXAMPLES::
 
@@ -1165,7 +1162,6 @@ class RecognizableSeries(Element):
         P = self.parent()
         return P.element_class(P, self.mu, -self.left, self.right)
 
-
     def _rmul_(self, other):
         r"""
         Multiply this recognizable series from the right
@@ -1173,11 +1169,11 @@ class RecognizableSeries(Element):
 
         INPUT:
 
-        - ``other`` -- an element of the coefficient (semi-)ring.
+        - ``other`` -- an element of the coefficient (semi-)ring
 
         OUTPUT:
 
-        A :class:`RecognizableSeries`.
+        A :class:`RecognizableSeries`
 
         EXAMPLES::
 
@@ -1196,7 +1192,6 @@ class RecognizableSeries(Element):
         P = self.parent()
         return P.element_class(P, self.mu, self.left, self.right*other)
 
-
     def _lmul_(self, other):
         r"""
         Multiply this recognizable series from the left
@@ -1204,11 +1199,11 @@ class RecognizableSeries(Element):
 
         INPUT:
 
-        - ``other`` -- an element of the coefficient (semi-)ring.
+        - ``other`` -- an element of the coefficient (semi-)ring
 
         OUTPUT:
 
-        A :class:`RecognizableSeries`.
+        A :class:`RecognizableSeries`
 
         EXAMPLES:
 
@@ -1245,7 +1240,7 @@ class RecognizableSeries(Element):
         INPUT:
 
         - ``other`` -- a :class:`RecognizableSeries` with the same parent
-          as this recognizable series.
+          as this recognizable series
 
         - ``minimize`` -- (default: ``None``) a boolean or ``None``.
           If ``True``, then :meth:`minimized` is called after the operation,
@@ -1254,7 +1249,7 @@ class RecognizableSeries(Element):
 
         OUTPUT:
 
-        A :class:`RecognizableSeries`.
+        A :class:`RecognizableSeries`
 
         EXAMPLES::
 
@@ -1332,7 +1327,6 @@ class RecognizableSeries(Element):
             vector(self.right.outer_product(other.right).list()))
 
         return result
-
 
 
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):
@@ -1600,7 +1594,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        A :class:`RecognizableSeries`.
+        A :class:`RecognizableSeries`
 
         EXAMPLES::
 

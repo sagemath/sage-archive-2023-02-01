@@ -223,6 +223,8 @@ ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysign
 $RUN make \${USE_MAKEFLAGS} base-toolchain $ENDRUN
 
 FROM with-base-toolchain as with-targets-pre
+# Need this because it is part of sagelib-build-deps
+ADD src/sage_setup src/sage_setup
 ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"

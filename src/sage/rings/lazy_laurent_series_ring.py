@@ -141,12 +141,15 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ...
             IndexError: there is only one generator
         """
+        # Always a sparse implementation.
         if n != 0:
             raise IndexError("there is only one generator")
 
-        op = LazyLaurentSeriesOperator_gen(self)
+        op = lambda n: self.base_ring().one() if n == 1 else self.base_ring().zero()
         c = (self.base_ring().zero(), 2)
-        return self.element_class(self, coefficient=op, valuation=1, constant=c)
+        aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=1, constant=c)
+
+        return self.element_class(self, aux)
 
     def ngens(self):
         """
@@ -194,7 +197,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 op = LazyLaurentSeriesOperator_polynomial(self, poly)
                 a = poly.valuation()
                 c = (self.base_ring().zero(), poly.degree() + 1)
-                return self.element_class(self, coefficient=op, valuation=a, constant=c)
+                aux = LLS_coefficient_function(op, True, a, c)
+                return self.element_class(self, aux)
 
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
 
@@ -214,11 +218,13 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         R = self.base_ring()
 
-        op = LazyLaurentSeriesOperator_constant(self, R(x))
+        # op = LazyLaurentSeriesOperator_constant(self, R(x))
+        op = lambda n: R(x) if n == 0 else self.base_ring().zero()
 
-        return self.element_class(self, coefficient=op, valuation=0, constant=(R.zero(), 1))
+        aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=0, constant=(R.zero(), 1))
+        return self.element_class(self, aux)
 
-    def _an_element_(self):
+    def _an_element_(self, is_sparse=True):
         """
         Return a Laurent series in this ring.
 
@@ -231,14 +237,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         N = 10
 
         e = self.base_ring().an_element()
-
-        def r(s, i):
-            return self.base_ring().an_element()
+        
+        op = lambda i: self.base_ring().an_element()
 
         n = random.randint(-N,N)
         m = random.randint(0,N)
 
-        return self.element_class(self, coefficient=r, valuation=n, constant=(e,n+m))
+        aux = LLS_coefficient_function(op, is_sparse, n, (e, n + m))
+        return self.element_class(self, aux)
 
     def one(self):
         """
@@ -271,9 +277,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``coefficient`` -- Python function that computes coefficients
+        - ``coefficient_function`` -- Python function that computes coefficients
 
-        - ``valuation`` -- integer; approximate valuation of the series
+        - ``approximate_valuation`` -- integer; approximate valuation of the series
 
         - ``constant`` -- either ``None`` or pair of an element of the base ring and an integer
 

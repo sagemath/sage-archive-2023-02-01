@@ -391,7 +391,7 @@ class LLS_aux():
             self._offset = approximate_valuation
             self._iter = self.iterate_coefficients()
 
-    def __getitem__(self, n, s=None):
+    def __getitem__(self, n):
         if self._approximate_valuation is infinity:
             return ZZ.zero()
         elif n < self._approximate_valuation:
@@ -403,7 +403,7 @@ class LLS_aux():
             try:
                 c = self._cache[n]
             except KeyError:
-                c = self.get_coefficient(n, s)
+                c = self.get_coefficient(n)
                 self._cache[n] = c
 
         else:

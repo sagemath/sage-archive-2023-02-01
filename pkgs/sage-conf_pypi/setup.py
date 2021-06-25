@@ -1,14 +1,16 @@
 import os
 import sys
 import shutil
+import sysconfig
 
 from setuptools import setup
 from distutils.command.build_scripts import build_scripts as distutils_build_scripts
-from distutils.command.build_py import build_py as distutils_build_py
+from setuptools.command.build_py import build_py as setuptools_build_py
+from setuptools.command.egg_info import egg_info as setuptools_egg_info
 from distutils.errors import (DistutilsSetupError, DistutilsModuleError,
                               DistutilsOptionError)
 
-class build_py(distutils_build_py):
+class build_py(setuptools_build_py):
 
     def run(self):
         DOT_SAGE = os.environ.get('DOT_SAGE', os.path.join(os.environ.get('HOME'), '.sage'))
@@ -52,7 +54,7 @@ class build_py(distutils_build_py):
         # TODO: A target to only build wheels of tricky packages
         # (that use native libraries shared with other packages).
         SETMAKE = 'if [ -z "$MAKE" ]; then export MAKE="make -j$(PATH=build/bin:$PATH build/bin/sage-build-num-threads | cut -d" " -f 2)"; fi'
-        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build'
+        cmd = f'cd {SAGE_ROOT} && {SETENV} && {SETMAKE} && $MAKE V=0 build-local'
         if os.system(cmd) != 0:
             raise DistutilsSetupError("make build-local failed")
 

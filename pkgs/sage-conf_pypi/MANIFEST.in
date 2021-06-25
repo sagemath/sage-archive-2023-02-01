@@ -1,3 +1,4 @@
+include VERSION.txt
 graft sage_root
 # These sources are not needed because individual distributions of these are made.
 prune sage_root/build/pkgs/*/src*

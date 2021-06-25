@@ -79,7 +79,7 @@ from functools import wraps
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import experimental
-from sage.structure.element import Element
+from sage.structure.element import ModuleElement
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 
@@ -368,7 +368,7 @@ def minimize_result(operation):
     return minimized
 
 
-class RecognizableSeries(Element):
+class RecognizableSeries(ModuleElement):
     def __init__(self, parent, mu, left, right):
         r"""
         A recognizable series.
@@ -1183,19 +1183,39 @@ class RecognizableSeries(Element):
             sage: Seq2 = kRegularSequenceSpace(2, ZZ)
             sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
             ....:          vector([1, 0]), vector([1, 1]))
-            sage: M = E * 2  # indirect doctest
+            sage: M = 2 * E  # indirect doctest
             sage: M
             2-regular sequence 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, ...
             sage: M.linear_representation()
-            ((1, 0),
+            ((2, 0),
              Finite family {0: [0 1]
                                [0 1],
                             1: [0 0]
                                [0 1]},
-             (2, 2))
+             (1, 1))
+
+        TESTS:
+
+        We test that ``_rmul_`` and ``_lmul_`` are actually called::
+
+            sage: def print_name(f):
+            ....:     def f_with_printed_name(*args, **kwds):
+            ....:         print(f.__name__)
+            ....:         return f(*args, **kwds)
+            ....:     return f_with_printed_name
+
+            sage: E._rmul_ = print_name(E._rmul_)
+            sage: E._lmul_ = print_name(E._lmul_)
+            sage: 2 * E
+            _rmul_
+            2-regular sequence 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, ...
+            sage: E * 2
+            _lmul_
+            _lmul_
+            2-regular sequence 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, ...
         """
         P = self.parent()
-        return P.element_class(P, self.mu, self.left, self.right*other)
+        return P.element_class(P, self.mu, other*self.left, self.right)
 
     def _lmul_(self, other):
         r"""
@@ -1210,11 +1230,28 @@ class RecognizableSeries(Element):
 
         A :class:`RecognizableSeries`
 
-        EXAMPLES:
+        EXAMPLES::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: E = Seq2((Matrix([[0, 1], [0, 1]]), Matrix([[0, 0], [0, 1]])),
+            ....:          vector([1, 0]), vector([1, 1]))
+            sage: M = E * 2 # indirect doctest
+            sage: M
+            2-regular sequence 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, ...
+            sage: M.linear_representation()
+            ((1, 0),
+             Finite family {0: [0 1]
+                               [0 1],
+                            1: [0 0]
+                               [0 1]},
+             (2, 2))
+
+        TESTS:
 
         The following is not tested, as `MS^i` for integers `i` does
         not work, thus ``vector([m])`` fails. (See :trac:`21317` for
         details.)
+
         ::
 
             sage: MS = MatrixSpace(ZZ,2,2)
@@ -1225,15 +1262,10 @@ class RecognizableSeries(Element):
             sage: S  # not tested
             sage: M = m * S  # not tested indirect doctest
             sage: M  # not tested
-            2-regular sequence 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, ...
-            sage: M.mu[0], M.mu[1], M.left, M.right  # not tested
-            (
-            [0 1]  [0 0]
-            [0 1], [0 1], (1, 0), (2, 2)
-            )
+            sage: M.linear_representation()  # not tested
         """
         P = self.parent()
-        return P.element_class(P, self.mu, other*self.left, self.right)
+        return P.element_class(P, self.mu, self.left, self.right*other)
 
     @minimize_result
     def hadamard_product(self, other):

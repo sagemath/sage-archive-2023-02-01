@@ -745,6 +745,10 @@ ex power::subs(const exmap & m, unsigned options) const
         if (!are_ex_trivially_equal(basis, subsed_basis)
 	 || !are_ex_trivially_equal(exponent, subsed_exponent)) {
 		ex p = power(subsed_basis, subsed_exponent);
+		if (!is_exactly_a<power>(p)) {
+		    // trac 30378 and 31530: do not over-substitute
+	        return p;
+	    }
                 ex t = ex_to<power>(p).subs_one_level(m, options);
                 if ((t-*this).is_zero())
                         return p;

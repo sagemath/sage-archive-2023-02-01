@@ -255,7 +255,7 @@ cdef object si2sa_NF(number *n, ring *_ring, object base):
         sage: f.lc()
         1024*a
         sage: type(f.lc())
-        <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+        <class 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
     """
     cdef poly *z
     cdef number *c

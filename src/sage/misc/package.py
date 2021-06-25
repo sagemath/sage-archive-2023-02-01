@@ -356,8 +356,6 @@ def installed_packages(exclude_pip=True):
         [...'alabaster', ...'sage_conf', ...]
         sage: installed_packages()['alabaster']  # optional - build, random
         '0.7.12'
-        sage: installed_packages()['sage_conf'] == sage.env.SAGE_VERSION # optional - build
-        True
 
     .. SEEALSO::
 

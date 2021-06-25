@@ -103,6 +103,42 @@ cdef inline int add_face_deep(face_list_t faces, face_t face) except -1:
     face_copy(faces.faces[faces.n_faces], face)
     faces.n_faces += 1
 
+cdef inline void face_list_delete_faces_by_array(face_list_t faces, bint *delete):
+    r"""
+    Remove face ``i`` if and only if ``delete[i]`` decreasing ``faces.n_faces``.
+
+    .. WARNING::
+
+        ``delete`` is assumed to be of length ``faces.n_faces``.
+    """
+    cdef size_t n_newfaces = 0
+    cdef size_t i
+    for i in range(faces.n_faces):
+        if not delete[i]:
+            faces.faces[n_newfaces][0] = faces.faces[i][0]
+            n_newfaces += 1
+
+    faces.n_faces = n_newfaces
+
+cdef inline void face_list_delete_faces_by_face(face_list_t faces, face_t face):
+    r"""
+    Remove all faces such that the ``i``-th bit in ``face`` is not set
+    descreasing ``faces.n_faces``.
+
+    .. WARNING::
+
+        ``face`` is assumed to contain ``self.n_faces`` atoms.
+    """
+    cdef size_t n_newfaces = 0
+    cdef size_t i
+    for i in range(faces.n_faces):
+        if face_atom_in(face, i):
+            faces.faces[n_newfaces][0] = faces.faces[i][0]
+            n_newfaces += 1
+
+    faces.n_faces = n_newfaces
+
+
 #############################################################################
 # Face Comparison
 #############################################################################

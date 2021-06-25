@@ -266,15 +266,25 @@ class MixedForm(AlgebraElement):
             'Mixed differential form F on the 3-dimensional differentiable
              manifold M'
 
+        Check whether :trac:`31784` is fixed::
+
+            sage: E3 = EuclideanSpace(3)
+            sage: S2 = E3.sphere()
+            sage: iota = S2.embedding()
+            sage: Omega = S2.mixed_form_algebra(dest_map=iota)
+            sage: Omega(1)
+            Mixed differential form one along the 2-sphere S^2 of radius 1
+             smoothly embedded in the Euclidean space E^3 with values on the
+             Euclidean space E^3 via the map iota
+
         """
         desc = "Mixed differential form "
         if self._name is not None:
             desc += self._name + " "
         if self._dest_map is self._domain.identity_map():
-            desc += "on the {}".format(self._domain)
+            desc += f"on the {self._domain}"
         else:
-            desc += "along the {} with values on the {} "
-            desc += desc.format(self._domain, self._ambient_domain)
+            desc += f"along the {self._domain} with values on the {self._ambient_domain} "
             if self._dest_map._name is None:
                 dm_name = "unnamed map"
             else:
@@ -589,8 +599,6 @@ class MixedForm(AlgebraElement):
             return True
         self._is_zero = True
         return False
-
-    __nonzero__ = __bool__  # For Python2 compatibility
 
     def _richcmp_(self, other, op):
         r"""

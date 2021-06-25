@@ -940,7 +940,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         sage: result = integrate(sgn(x) - sgn(1-x), x)
         ...
         sage: result
-        x*(sgn(x) - sgn(-x + 1)) + sgn(-x + 1)
+        abs(x - 1) + abs(x)
 
         sage: result = integrate(1 / (1 + abs(x-5)), x, -5, 6)
         ...

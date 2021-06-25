@@ -20,8 +20,6 @@ from IPython.lib.lexers import IPythonConsoleLexer, IPyLexer
 extensions = ['sage_docbuild.ext.inventory_builder',
               'sage_docbuild.ext.multidocs',
               'sage_docbuild.ext.sage_autodoc',
-              'sphinx.ext.graphviz',
-              'sphinx.ext.inheritance_diagram',
               'sphinx.ext.todo',
               'sphinx.ext.extlinks',
               'IPython.sphinxext.ipython_directive',
@@ -156,12 +154,6 @@ pygments_style = 'sphinx'
 highlighting.lexers['ipycon'] = IPythonConsoleLexer(in1_regex=r'sage: ', in2_regex=r'[.][.][.][.]: ')
 highlighting.lexers['ipython'] = IPyLexer()
 highlight_language = 'ipycon'
-
-# GraphViz includes dot, neato, twopi, circo, fdp.
-graphviz_dot = 'dot'
-inheritance_graph_attrs = { 'rankdir' : 'BT' }
-inheritance_node_attrs = { 'height' : 0.5, 'fontsize' : 12, 'shape' : 'oval' }
-inheritance_edge_attrs = {}
 
 # Extension configuration
 # -----------------------

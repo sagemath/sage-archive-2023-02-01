@@ -1,2 +1,2 @@
-sdh_configure --with-pari
+cd src
 sdh_make_install

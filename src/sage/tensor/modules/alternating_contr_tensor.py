@@ -76,7 +76,7 @@ class AlternatingContrTensor(FreeModuleTensor):
         2nd exterior power of the Rank-3 free module M over the Integer Ring
         sage: a[1,2], a[2,3] = 4, -3
         sage: a.display(e)
-        a = 4 e_1/\e_2 - 3 e_2/\e_3
+        a = 4 e_1∧e_2 - 3 e_2∧e_3
 
     The alternating contravariant tensor acting on the dual basis elements::
 
@@ -161,22 +161,22 @@ class AlternatingContrTensor(FreeModuleTensor):
     course the exterior product::
 
         sage: s = a.wedge(b) ; s
-        Alternating contravariant tensor a/\b of degree 3 on the Rank-3 free
+        Alternating contravariant tensor a∧b of degree 3 on the Rank-3 free
          module M over the Integer Ring
         sage: s.parent()
         3rd exterior power of the Rank-3 free module M over the Integer Ring
         sage: s.display(e)
-        a/\b = 6 e_1/\e_2/\e_3
+        a∧b = 6 e_1∧e_2∧e_3
         sage: s[1,2,3] == a[1,2]*b[3] + a[2,3]*b[1] + a[3,1]*b[2]
         True
 
     The exterior product is nilpotent on module elements::
 
         sage: s = b.wedge(b) ; s
-        Alternating contravariant tensor b/\b of degree 2 on the Rank-3 free
+        Alternating contravariant tensor b∧b of degree 2 on the Rank-3 free
          module M over the Integer Ring
         sage: s.display(e)
-        b/\b = 0
+        b∧b = 0
 
     """
     def __init__(self, fmodule, degree, name=None, latex_name=None):
@@ -340,7 +340,7 @@ class AlternatingContrTensor(FreeModuleTensor):
             sage: a = M.alternating_contravariant_tensor(2, 'a', latex_name=r'\alpha')
             sage: a[0,1], a[0,2], a[1,2] = 3, 2, -1
             sage: a.display()
-            a = 3 e_0/\e_1 + 2 e_0/\e_2 - e_1/\e_2
+            a = 3 e_0∧e_1 + 2 e_0∧e_2 - e_1∧e_2
             sage: latex(a.display())  # display in the notebook
             \alpha = 3 e_{0}\wedge e_{1} + 2 e_{0}\wedge e_{2} -e_{1}\wedge e_{2}
 
@@ -350,7 +350,7 @@ class AlternatingContrTensor(FreeModuleTensor):
             sage: b = M.alternating_contravariant_tensor(3, 'b')
             sage: b[0,1,2] = 4
             sage: b.display()
-            b = 4 e_0/\e_1/\e_2
+            b = 4 e_0∧e_1∧e_2
             sage: latex(b.display())
             b = 4 e_{0}\wedge e_{1}\wedge e_{2}
 
@@ -371,11 +371,11 @@ class AlternatingContrTensor(FreeModuleTensor):
             ....:                      basis=e)
             sage: f = e.new_basis(aut, 'f')
             sage: a.display(f)
-            a = -2 f_0/\f_1 - f_0/\f_2 - 3 f_1/\f_2
+            a = -2 f_0∧f_1 - f_0∧f_2 - 3 f_1∧f_2
             sage: a.disp(f)     # shortcut notation
-            a = -2 f_0/\f_1 - f_0/\f_2 - 3 f_1/\f_2
+            a = -2 f_0∧f_1 - f_0∧f_2 - 3 f_1∧f_2
             sage: b.display(f)
-            b = -4 f_0/\f_1/\f_2
+            b = -4 f_0∧f_1∧f_2
 
         The output format can be set via the argument ``output_formatter``
         passed at the module construction::
@@ -386,14 +386,14 @@ class AlternatingContrTensor(FreeModuleTensor):
             sage: a = N.alternating_contravariant_tensor(2, 'a')
             sage: a[1,2], a[1,3], a[2,3] = 1/3, 5/2, 4
             sage: a.display()  # default format (53 bits of precision)
-            a = 0.333333333333333 e_1/\e_2 + 2.50000000000000 e_1/\e_3
-             + 4.00000000000000 e_2/\e_3
+            a = 0.333333333333333 e_1∧e_2 + 2.50000000000000 e_1∧e_3
+             + 4.00000000000000 e_2∧e_3
 
         The output format is then controlled by the argument ``format_spec`` of
         the method :meth:`display`::
 
             sage: a.display(format_spec=10)  # 10 bits of precision
-            a = 0.33 e_1/\e_2 + 2.5 e_1/\e_3 + 4.0 e_2/\e_3
+            a = 0.33 e_1∧e_2 + 2.5 e_1∧e_3 + 4.0 e_2∧e_3
 
         """
         from sage.misc.latex import latex
@@ -419,7 +419,7 @@ class AlternatingContrTensor(FreeModuleTensor):
                 for k in range(self._tensor_rank):
                     bases_txt.append(basis[ind[k]]._name)
                     bases_latex.append(latex(basis[ind[k]]))
-                basis_term_txt = "/\\".join(bases_txt)
+                basis_term_txt = "\u2227".join(bases_txt)
                 basis_term_latex = r"\wedge ".join(bases_latex)
                 coef_txt = repr(coef)
                 if coef_txt == "1":
@@ -483,7 +483,7 @@ class AlternatingContrTensor(FreeModuleTensor):
         OUTPUT:
 
         - instance of :class:`AlternatingContrTensor` representing the
-          exterior product ``self/\other``
+          exterior product ``self ∧ other``
 
         EXAMPLES:
 
@@ -494,10 +494,10 @@ class AlternatingContrTensor(FreeModuleTensor):
             sage: a = M([1,-3,4], basis=e, name='A')
             sage: b = M([2,-1,2], basis=e, name='B')
             sage: c = a.wedge(b) ; c
-            Alternating contravariant tensor A/\B of degree 2 on the Rank-3
+            Alternating contravariant tensor A∧B of degree 2 on the Rank-3
              free module M over the Integer Ring
             sage: c.display()
-            A/\B = 5 e_0/\e_1 - 6 e_0/\e_2 - 2 e_1/\e_2
+            A∧B = 5 e_0∧e_1 - 6 e_0∧e_2 - 2 e_1∧e_2
             sage: latex(c)
             A\wedge B
             sage: latex(c.display())
@@ -514,10 +514,10 @@ class AlternatingContrTensor(FreeModuleTensor):
 
             sage: d = M([-1,2,4], basis=e, name='D')
             sage: s = d.wedge(c) ; s
-            Alternating contravariant tensor D/\A/\B of degree 3 on the Rank-3
+            Alternating contravariant tensor D∧A∧B of degree 3 on the Rank-3
              free module M over the Integer Ring
             sage: s.display()
-            D/\A/\B = 34 e_0/\e_1/\e_2
+            D∧A∧B = 34 e_0∧e_1∧e_2
 
         Test of the computation::
 
@@ -567,7 +567,7 @@ class AlternatingContrTensor(FreeModuleTensor):
                 sname = '(' + sname + ')'
             if not is_atomic(oname):
                 oname = '(' + oname + ')'
-            result._name = sname + '/\\' + oname
+            result._name = sname + '\u2227' + oname
         if self._latex_name is not None and other._latex_name is not None:
             slname = self._latex_name
             olname = other._latex_name
@@ -645,7 +645,7 @@ class AlternatingContrTensor(FreeModuleTensor):
             sage: c = a.interior_product(b); c
             Alternating form i_A B of degree 2 on the Rank-4 free module M over the Integer Ring
             sage: c.display()
-            i_A B = 3 e^1/\e^2 + 3 e^1/\e^3 - 3 e^1/\e^4 + 9 e^2/\e^3 - 8 e^2/\e^4 + e^3/\e^4
+            i_A B = 3 e^1∧e^2 + 3 e^1∧e^3 - 3 e^1∧e^4 + 9 e^2∧e^3 - 8 e^2∧e^4 + e^3∧e^4
             sage: latex(c)
             \iota_{A} B
             sage: c == a.contract(b)
@@ -670,7 +670,7 @@ class AlternatingContrTensor(FreeModuleTensor):
             sage: c = a.interior_product(b); c
             Alternating form i_A B of degree 2 on the Rank-4 free module M over the Integer Ring
             sage: c.display()
-            i_A B = 20 e^1/\e^2 - 40 e^1/\e^3 - 10 e^1/\e^4 + 30 e^2/\e^3 + 50 e^2/\e^4 + 20 e^3/\e^4
+            i_A B = 20 e^1∧e^2 - 40 e^1∧e^3 - 10 e^1∧e^4 + 30 e^2∧e^3 + 50 e^2∧e^4 + 20 e^3∧e^4
             sage: c == a.contract(0, 1, b, 0, 1)
             True
 

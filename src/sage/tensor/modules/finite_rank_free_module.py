@@ -1044,14 +1044,14 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Alternating contravariant tensor of degree 2 on the Rank-3
              free module M over the Integer Ring
             sage: M.exterior_power(2).an_element().display()
-            e_0/\e_1
+            e_0∧e_1
             sage: M.exterior_power(3)
             3rd exterior power of the Rank-3 free module M over the Integer Ring
             sage: M.exterior_power(3).an_element()
             Alternating contravariant tensor of degree 3 on the Rank-3
              free module M over the Integer Ring
             sage: M.exterior_power(3).an_element().display()
-            e_0/\e_1/\e_2
+            e_0∧e_1∧e_2
 
         See
         :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerFreeModule`
@@ -1117,13 +1117,13 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: M.dual_exterior_power(2).an_element()
             Alternating form of degree 2 on the Rank-3 free module M over the Integer Ring
             sage: M.dual_exterior_power(2).an_element().display()
-            e^0/\e^1
+            e^0∧e^1
             sage: M.dual_exterior_power(3)
             3rd exterior power of the dual of the Rank-3 free module M over the Integer Ring
             sage: M.dual_exterior_power(3).an_element()
             Alternating form of degree 3 on the Rank-3 free module M over the Integer Ring
             sage: M.dual_exterior_power(3).an_element().display()
-            e^0/\e^1/\e^2
+            e^0∧e^1∧e^2
 
         See
         :class:`~sage.tensor.modules.ext_pow_free_module.ExtPowerDualFreeModule`
@@ -1531,7 +1531,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             Alternating form of degree 2 on the
              Rank-3 free module M over the Integer Ring
             sage: t.display(e)
-            4 e^0/\e^1 + 5 e^1/\e^2
+            4 e^0∧e^1 + 5 e^1∧e^2
 
         """
         from .comp import CompWithSym, CompFullyAntiSym
@@ -1611,7 +1611,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: a.set_comp(e)[0,1] = 2
             sage: a.set_comp(e)[1,2] = -3
             sage: a.display(e)
-            a = 2 e_0/\e_1 - 3 e_1/\e_2
+            a = 2 e_0∧e_1 - 3 e_1∧e_2
 
         An alternating contravariant tensor of degree 1 is simply
         an element of the module::
@@ -1666,7 +1666,7 @@ class FiniteRankFreeModule(UniqueRepresentation, Parent):
             sage: a.set_comp(e)[0,1] = 2
             sage: a.set_comp(e)[1,2] = -3
             sage: a.display(e)
-            a = 2 e^0/\e^1 - 3 e^1/\e^2
+            a = 2 e^0∧e^1 - 3 e^1∧e^2
 
         An alternating form of degree 1 is a linear form::
 

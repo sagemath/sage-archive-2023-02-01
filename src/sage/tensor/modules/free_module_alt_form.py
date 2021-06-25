@@ -75,7 +75,7 @@ class FreeModuleAltForm(FreeModuleTensor):
         2nd exterior power of the dual of the Rank-3 free module M over the Integer Ring
         sage: a[1,2], a[2,3] = 4, -3
         sage: a.display(e)
-        a = 4 e^1/\e^2 - 3 e^2/\e^3
+        a = 4 e^1∧e^2 - 3 e^2∧e^3
 
     The alternating form acting on the basis elements::
 
@@ -194,13 +194,13 @@ class FreeModuleAltForm(FreeModuleTensor):
     product::
 
         sage: s = a.wedge(b) ; s
-        Alternating form a/\b of degree 3 on the Rank-3 free module M over the
+        Alternating form a∧b of degree 3 on the Rank-3 free module M over the
          Integer Ring
         sage: s.parent()
         3rd exterior power of the dual of the Rank-3 free module M over the
          Integer Ring
         sage: s.display(e)
-        a/\b = 6 e^1/\e^2/\e^3
+        a∧b = 6 e^1∧e^2∧e^3
         sage: s[1,2,3] == a[1,2]*b[3] + a[2,3]*b[1] + a[3,1]*b[2]
         True
 
@@ -409,7 +409,7 @@ class FreeModuleAltForm(FreeModuleTensor):
                 for k in range(self._tensor_rank):
                     bases_txt.append(cobasis[ind[k]]._name)
                     bases_latex.append(latex(cobasis[ind[k]]))
-                basis_term_txt = "/\\".join(bases_txt)
+                basis_term_txt = "\u2227".join(bases_txt)
                 basis_term_latex = r"\wedge ".join(bases_latex)
                 coef_txt = repr(coef)
                 if coef_txt == "1":
@@ -496,7 +496,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: b = M.alternating_form(2, 'b', latex_name=r'\beta')
             sage: b[0,1], b[0,2], b[1,2] = 3, 2, -1
             sage: b.display()
-            b = 3 e^0/\e^1 + 2 e^0/\e^2 - e^1/\e^2
+            b = 3 e^0∧e^1 + 2 e^0∧e^2 - e^1∧e^2
             sage: latex(b.display())  # display in the notebook
             \beta = 3 e^{0}\wedge e^{1} + 2 e^{0}\wedge e^{2} -e^{1}\wedge e^{2}
 
@@ -505,7 +505,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: c = M.alternating_form(3, 'c')
             sage: c[0,1,2] = 4
             sage: c.display()
-            c = 4 e^0/\e^1/\e^2
+            c = 4 e^0∧e^1∧e^2
             sage: latex(c.display())
             c = 4 e^{0}\wedge e^{1}\wedge e^{2}
 
@@ -530,9 +530,9 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: a.disp(f)     # shortcut notation
             a = 4 f^0 + f^1 + 3 f^2
             sage: b.display(f)
-            b = -2 f^0/\f^1 - f^0/\f^2 - 3 f^1/\f^2
+            b = -2 f^0∧f^1 - f^0∧f^2 - 3 f^1∧f^2
             sage: c.display(f)
-            c = -4 f^0/\f^1/\f^2
+            c = -4 f^0∧f^1∧f^2
 
         The output format can be set via the argument ``output_formatter``
         passed at the module construction::
@@ -543,14 +543,14 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: b = N.alternating_form(2, 'b')
             sage: b[1,2], b[1,3], b[2,3] = 1/3, 5/2, 4
             sage: b.display()  # default format (53 bits of precision)
-            b = 0.333333333333333 e^1/\e^2 + 2.50000000000000 e^1/\e^3
-             + 4.00000000000000 e^2/\e^3
+            b = 0.333333333333333 e^1∧e^2 + 2.50000000000000 e^1∧e^3
+             + 4.00000000000000 e^2∧e^3
 
         The output format is then controlled by the argument ``format_spec`` of
         the method :meth:`display`::
 
             sage: b.display(format_spec=10)  # 10 bits of precision
-            b = 0.33 e^1/\e^2 + 2.5 e^1/\e^3 + 4.0 e^2/\e^3
+            b = 0.33 e^1∧e^2 + 2.5 e^1∧e^3 + 4.0 e^2∧e^3
 
         Check that the bug reported in :trac:`22520` is fixed::
 
@@ -559,7 +559,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: a = M.alternating_form(2)
             sage: a[0,1] = SR.var('t', domain='real')
             sage: a.display()
-            t e^0/\e^1
+            t e^0∧e^1
 
         """
         from sage.misc.latex import latex
@@ -588,7 +588,7 @@ class FreeModuleAltForm(FreeModuleTensor):
         OUTPUT:
 
         - instance of :class:`FreeModuleAltForm` representing the exterior
-          product ``self/\other``
+          product ``self ∧ other``
 
         EXAMPLES:
 
@@ -601,10 +601,10 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: b = M.linear_form('B')
             sage: b[:] = [2,-1,2]
             sage: c = a.wedge(b) ; c
-            Alternating form A/\B of degree 2 on the Rank-3 free module M
+            Alternating form A∧B of degree 2 on the Rank-3 free module M
              over the Integer Ring
             sage: c.display()
-            A/\B = 5 e^0/\e^1 - 6 e^0/\e^2 - 2 e^1/\e^2
+            A∧B = 5 e^0∧e^1 - 6 e^0∧e^2 - 2 e^1∧e^2
             sage: latex(c)
             A\wedge B
             sage: latex(c.display())
@@ -620,10 +620,10 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: d = M.linear_form('D')
             sage: d[:] = [-1,2,4]
             sage: s = d.wedge(c) ; s
-            Alternating form D/\A/\B of degree 3 on the Rank-3 free module M
+            Alternating form D∧A∧B of degree 3 on the Rank-3 free module M
              over the Integer Ring
             sage: s.display()
-            D/\A/\B = 34 e^0/\e^1/\e^2
+            D∧A∧B = 34 e^0∧e^1∧e^2
 
         Test of the computation::
 
@@ -683,7 +683,7 @@ class FreeModuleAltForm(FreeModuleTensor):
                 sname = '(' + sname + ')'
             if not is_atomic(oname):
                 oname = '(' + oname + ')'
-            result._name = sname + '/\\' + oname
+            result._name = sname + '\u2227' + oname
         if self._latex_name is not None and other._latex_name is not None:
             slname = self._latex_name
             olname = other._latex_name
@@ -774,7 +774,7 @@ class FreeModuleAltForm(FreeModuleTensor):
             sage: c = a.interior_product(b); c
             Alternating contravariant tensor i_A B of degree 2 on the Rank-3 free module M over the Integer Ring
             sage: c.display()
-            i_A B = 15 e_1/\e_2 - 20 e_1/\e_3 - 10 e_2/\e_3
+            i_A B = 15 e_1∧e_2 - 20 e_1∧e_3 - 10 e_2∧e_3
             sage: c == a.contract(b)
             True
 

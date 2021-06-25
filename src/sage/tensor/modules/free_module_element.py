@@ -179,10 +179,10 @@ class FiniteRankFreeModuleElement(AlternatingContrTensor):
     Exterior product::
 
         sage: s = a.wedge(b) ; s
-        Alternating contravariant tensor a/\b of degree 2 on the Rank-3 free
+        Alternating contravariant tensor a∧b of degree 2 on the Rank-3 free
          module M over the Integer Ring
         sage: s.display()
-        a/\b = -2 e_0/\e_1 - 6 e_0/\e_2 + 7 e_1/\e_2
+        a∧b = -2 e_0∧e_1 - 6 e_0∧e_2 + 7 e_1∧e_2
 
     """
     def __init__(self, fmodule, name=None, latex_name=None):

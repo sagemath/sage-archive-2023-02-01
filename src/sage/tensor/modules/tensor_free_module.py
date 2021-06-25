@@ -227,7 +227,7 @@ class TensorFreeModule(FiniteRankFreeModule):
          Integer Ring
         sage: a[0,1], a[1,2] = 4, -3
         sage: a.display(e)
-        a = 4 e^0/\e^1 - 3 e^1/\e^2
+        a = 4 e^0∧e^1 - 3 e^1∧e^2
         sage: a.parent() is L2
         True
         sage: ta = T02(a) ; ta

@@ -415,6 +415,8 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{2308}{\lceil}
     \DeclareUnicodeCharacter{2309}{\rceil}
     \DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
+    \DeclareUnicodeCharacter{2227}{\ensuremath{\wedge}}
+    \DeclareUnicodeCharacter{22C0}{\ensuremath{\bigwedge}}
 
     \DeclareUnicodeCharacter{2070}{\ensuremath{{}^0}}
     \DeclareUnicodeCharacter{00B9}{\ensuremath{{}^1}}

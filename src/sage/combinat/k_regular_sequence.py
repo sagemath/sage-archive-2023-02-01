@@ -749,4 +749,4 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         try:
             return W(n.digits(self.k))
         except OverflowError:
-            raise ValueError('value {} of index is negative'.format(n))
+            raise ValueError('value {} of index is negative'.format(n)) from None

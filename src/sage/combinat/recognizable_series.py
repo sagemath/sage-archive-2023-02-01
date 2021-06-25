@@ -1332,16 +1332,16 @@ class RecognizableSeries(Element):
         from sage.modules.free_module_element import vector
         P = self.parent()
 
+        def tensor_product(left, right):
+            T = left.tensor_product(right)
+            T.subdivide()
+            return T
         result = P.element_class(
             P,
-            dict((a,
-                  Matrix(tuple(
-                      srow.outer_product(orow).list()
-                      for srow in self.mu[a].rows()
-                      for orow in other.mu[a].rows())))
+            dict((a, tensor_product(self.mu[a], other.mu[a]))
                  for a in P.alphabet()),
-            vector(self.left.outer_product(other.left).list()),
-            vector(self.right.outer_product(other.right).list()))
+            vector(tensor_product(Matrix(self.left), Matrix(other.left))),
+            vector(tensor_product(Matrix(self.right), Matrix(other.right))))
 
         return result
 

@@ -96,6 +96,7 @@ Classes and Methods
 
 from .recognizable_series import RecognizableSeries
 from .recognizable_series import RecognizableSeriesSpace
+from .recognizable_series import minimize_result
 from sage.misc.cachefunc import cached_method
 
 
@@ -276,7 +277,8 @@ class kRegularSequence(RecognizableSeries):
         from itertools import count
         return iter(self[n] for n in count())
 
-    def subsequence(self, a, b, minimize=True):
+    @minimize_result
+    def subsequence(self, a, b):
         r"""
         Return the subsequence with indices `an+b` of this
         `k`-regular sequence.
@@ -291,8 +293,10 @@ class kRegularSequence(RecognizableSeries):
           `b_j \mapsto c_j`. If so, the result will be the sum
           of all `c_j(an+b_j)`.
 
-        - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the operation.
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
 
         OUTPUT:
 
@@ -460,10 +464,7 @@ class kRegularSequence(RecognizableSeries):
                         if c >= 0 else dim*(zero,)
                         for c in kernel), tuple())))
 
-        if minimize:
-            return result.minimized()
-        else:
-            return result
+        return result
 
     def backward_differences(self, **kwds):
         r"""
@@ -472,8 +473,10 @@ class kRegularSequence(RecognizableSeries):
 
         INPUT:
 
-        - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the operation.
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
 
         OUTPUT:
 
@@ -511,8 +514,10 @@ class kRegularSequence(RecognizableSeries):
 
         INPUT:
 
-        - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the operation.
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
 
         OUTPUT:
 
@@ -539,7 +544,8 @@ class kRegularSequence(RecognizableSeries):
         """
         return self.subsequence(1, {1: 1, 0: -1}, **kwds)
 
-    def partial_sums(self, include_n=False, minimize=True):
+    @minimize_result
+    def partial_sums(self, include_n=False):
         r"""
         Return the sequence of partial sums of this
         `k`-regular sequence. That is, the `n`th entry of the result
@@ -551,8 +557,10 @@ class kRegularSequence(RecognizableSeries):
           the `n`th entry of the result is the sum of the entries up
           to index `n` (included).
 
-        - ``minimize`` -- (default: ``True``) a boolean. If set, then
-          :meth:`minimized` is called after the operation.
+        - ``minimize`` -- (default: ``None``) a boolean or ``None``.
+          If ``True``, then :meth:`minimized` is called after the operation,
+          if ``False``, then not. If this argument is ``None``, then
+          the default specified by the parent's ``minimize_results`` is used.
 
         OUTPUT:
 
@@ -620,10 +628,7 @@ class kRegularSequence(RecognizableSeries):
                    (dim*(0,) if include_n else tuple(-self.left))),
             vector(2*tuple(self.right)))
 
-        if minimize:
-            return result.minimized()
-        else:
-            return result
+        return result
 
 
 class kRegularSequenceSpace(RecognizableSeriesSpace):

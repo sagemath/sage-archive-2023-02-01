@@ -920,10 +920,14 @@ ex power::expand(unsigned options) const
 			const ex& e = m.recombine_pair_to_ex(elem);
 			if (e.is_positive())
 				prodseq.push_back(pow(e, exponent).expand(options));
-			else if (e.info(info_flags::negative)) {
-				prodseq.push_back(pow(-e, exponent).expand(options));
-				possign = !possign;
-			} else
+// 			we delete the following 'else if' clause because it can lead to
+// 			an infinite loop (see sagemath :trac:`30688`)
+// 			TODO: find a bug-free treatment of negative factors
+// 			else if (e.info(info_flags::negative)) {
+// 				prodseq.push_back(pow(-e, exponent).expand(options));
+// 				possign = !possign;
+// 			}
+			else
 				powseq.push_back(elem);
 		}
 

@@ -1207,6 +1207,11 @@ REFERENCES:
                using return words," Advances in Applied Mathematics
                42 (2009) 60-74.
 
+.. [BSZ2019] Nils Bruin, Jeroen Sijsling, and Alexandre Zotine, 
+             *Numerical Computation of Endomorphism Rings of Jacobians*
+             The Open Book Series, Vol. 2 (2019), No. 1, pp. 155-171
+             https://msp.org/obs/2019/2-1/p10.xhtml
+
 .. [BUVO2007] Johannes Buchmann, Ullrich Vollmer: Binary Quadratic Forms,
               An Algorithmic Approach, Algorithms and Computation in Mathematics,
               Volume 20, Springer (2007)

@@ -1,5 +1,5 @@
 # distutils: libraries = mtx
-# sage_setup: distribution = sage-meataxe
+# sage_setup: distribution = sagemath-meataxe
 
 r"""
 Dense Matrices over `\mathbb F_q`, with `q<255`.

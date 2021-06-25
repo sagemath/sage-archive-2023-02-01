@@ -1,4 +1,4 @@
-# sage_setup: distribution = sage-primecount
+# sage_setup: distribution = sagemath-primecount
 
 r"""
 Interface to the primecount library

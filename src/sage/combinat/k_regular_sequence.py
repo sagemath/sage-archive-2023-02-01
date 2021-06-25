@@ -97,7 +97,6 @@ Classes and Methods
 from .recognizable_series import RecognizableSeries
 from .recognizable_series import RecognizableSeriesSpace
 from sage.misc.cachefunc import cached_method
-from six import iteritems
 
 
 def pad_right(T, length, zero=0):
@@ -409,7 +408,7 @@ class kRegularSequence(RecognizableSeries):
 
         if a == 0:
             return sum(c_j * self[b_j] * self.parent().one_hadamard()
-                       for b_j, c_j in iteritems(b))
+                       for b_j, c_j in b.items())
         elif a == 1 and len(b) == 1 and zero in b:
             return b[zero] * self
         elif a < 0:
@@ -457,7 +456,7 @@ class kRegularSequence(RecognizableSeries):
                  for r in A),
             sum(c_j * vector(
                     pad_right(pad(tuple(self.left), b_j), ndim, zero=zero))
-                for b_j, c_j in iteritems(b)),
+                for b_j, c_j in b.items()),
             vector(sum((tuple(self.__getitem__(c, multiply_left=False))
                         if c >= 0 else dim*(zero,)
                         for c in kernel), tuple())))

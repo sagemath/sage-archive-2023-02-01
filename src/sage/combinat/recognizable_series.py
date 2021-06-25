@@ -1126,8 +1126,11 @@ class RecognizableSeries(Element):
             sage: I = E + O  # indirect doctest
             sage: I
             2-regular sequence 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ...
-            sage: I.mu[0], I.mu[1], I.left, I.right
-            ([1], [1], (1), (1))
+            sage: I.linear_representation()
+            ((1),
+             Finite family {0: [1],
+                            1: [1]},
+             (1))
         """
         from sage.modules.free_module_element import vector
         P = self.parent()
@@ -1183,11 +1186,13 @@ class RecognizableSeries(Element):
             sage: M = E * 2  # indirect doctest
             sage: M
             2-regular sequence 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, ...
-            sage: M.mu[0], M.mu[1], M.left, M.right
-            (
-            [0 1]  [0 0]
-            [0 1], [0 1], (1, 0), (2, 2)
-            )
+            sage: M.linear_representation()
+            ((1, 0),
+             Finite family {0: [0 1]
+                               [0 1],
+                            1: [0 0]
+                               [0 1]},
+             (2, 2))
         """
         P = self.parent()
         return P.element_class(P, self.mu, self.left, self.right*other)
@@ -1275,41 +1280,53 @@ class RecognizableSeries(Element):
             sage: CE = C.hadamard_product(E)
             sage: CE
             2-regular sequence 0, 0, 2, 0, 4, 0, 6, 0, 8, 0, ...
-            sage: CE.mu[0], CE.mu[1], CE.left, CE.right
-            (
-            [0 1 0]  [ 0  0  0]
-            [0 2 0]  [ 0  0  1]
-            [0 2 1], [ 0 -2  3], (1, 0, 0), (0, 0, 2)
-            )
+            sage: CE.linear_representation()
+            ((1, 0, 0),
+             Finite family {0: [0 1 0]
+                               [0 2 0]
+                               [0 2 1],
+                            1: [ 0  0  0]
+                               [ 0  0  1]
+                               [ 0 -2  3]},
+             (0, 0, 2))
 
             sage: Z = E.hadamard_product(O)
             sage: Z
             2-regular sequence 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...
-            sage: Z.mu[0], Z.mu[1], Z.left, Z.right
-            ([], [], (), ())
+            sage: Z.linear_representation()
+            ((),
+             Finite family {0: [],
+                            1: []},
+             ())
 
         TESTS::
 
             sage: EC = E.hadamard_product(C, minimize=False)
             sage: EC
             2-regular sequence 0, 0, 2, 0, 4, 0, 6, 0, 8, 0, ...
-            sage: EC.mu[0], EC.mu[1], EC.left, EC.right
-            (
-            [0 0 2 0]  [ 0  0  0  0]
-            [0 0 2 1]  [ 0  0  0  0]
-            [0 0 2 0]  [ 0  0  0  1]
-            [0 0 2 1], [ 0  0 -2  3], (1, 0, 0, 0), (0, 1, 0, 1)
-            )
+            sage: EC.linear_representation()
+            ((1, 0, 0, 0),
+             Finite family {0: [0 0 2 0]
+                               [0 0 2 1]
+                               [0 0 2 0]
+                               [0 0 2 1],
+                            1: [ 0  0  0  0]
+                               [ 0  0  0  0]
+                               [ 0  0  0  1]
+                               [ 0  0 -2  3]},
+             (0, 1, 0, 1))
             sage: MEC = EC.minimized()
             sage: MEC
             2-regular sequence 0, 0, 2, 0, 4, 0, 6, 0, 8, 0, ...
-            sage: MEC.mu[0], MEC.mu[1], MEC.left, MEC.right
-            (
-            [0 1 0]  [ 0  0  0]
-            [0 2 0]  [ 0  0  1]
-            [0 2 1], [ 0 -2  3], (1, 0, 0), (0, 0, 2)
-            )
-
+            sage: MEC.linear_representation()
+            ((1, 0, 0),
+             Finite family {0: [0 1 0]
+                               [0 2 0]
+                               [0 2 1],
+                            1: [ 0  0  0]
+                               [ 0  0  1]
+                               [ 0 -2  3]},
+             (0, 0, 2))
         """
         from sage.matrix.constructor import Matrix
         from sage.modules.free_module_element import vector

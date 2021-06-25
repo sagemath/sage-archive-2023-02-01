@@ -40,6 +40,15 @@ class LLS(ModuleElement):
     def apply_to_coefficients(self, newfunction):
         P = self.parent()
         return P.element_class(P, LLS_apply_coeff(self._aux, newfunction))
+    
+    def change_ring(self, ring):
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        Q = LazyLaurentSeriesRing(ring, names=self.parent().variable_name())
+        return Q.element_class(Q, LLS_coefficient_function(self._aux._coefficient_function, self._aux._is_sparse, self._aux._approximate_valuation, self._aux._constant))
+
+    def truncate(self, d):
+        P = self.parent()
+        return P.element_class(P, LLS_trunc(self._aux, d))
 
     def __pow__(self, n):
         """
@@ -844,5 +853,53 @@ class LLS_apply_coeff(LLS_aux):
         n = self._offset
         while True:
             c = self._function(self._series[n])
+            yield c
+            n += 1
+
+
+class LLS_trunc(LLS_aux):
+    """
+        Return this series with its terms of degree >= ``d`` truncated.
+
+        INPUT:
+
+        - ``d`` -- integer
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: alpha = 1/(1-z)
+            sage: alpha
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: beta = alpha.truncate(5)
+            sage: beta
+            1 + z + z^2 + z^3 + z^4
+            sage: alpha - beta
+            z^5 + z^6 + z^7 + z^8 + z^9 + z^10 + z^11 + ...
+    """
+    def __init__(self, series, d):
+        self._series = series
+        self._d = d
+        self._zero = ZZ.zero()
+        a = series._approximate_valuation
+        c = (ZZ.zero(), d)
+        super().__init__(series._is_sparse, a, c)
+    
+    def get_coefficient(self, n):
+        if n <= self._d:
+            c = self._series[n]
+            return c
+        else:
+            c = self._zero
+            return c
+    
+    def iterate_coefficients(self):
+        n = self._offset
+        while True:
+            c = self._function(self._series[n])
+            if n <= self._d:
+                c = self._series[n]
+            else:
+                c = self._zero
             yield c
             n += 1

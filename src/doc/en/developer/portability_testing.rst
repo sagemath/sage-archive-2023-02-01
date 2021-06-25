@@ -358,7 +358,7 @@ Finally, to build and test...::
   ENV MAKE="make -j${NUMPROC}"
   ARG USE_MAKEFLAGS="-k"
   RUN make ${USE_MAKEFLAGS} base-toolchain
-  ARG TARGETS_PRE="sagelib-build-deps"
+  ARG TARGETS_PRE="all-sage-local"
   RUN make ${USE_MAKEFLAGS} ${TARGETS_PRE}
   ADD src src
   ARG TARGETS="build ptest"
@@ -462,7 +462,7 @@ might not work on all platforms, ``surf``, which was marked as
   Step 2/28 : FROM ${BASE_IMAGE}
    ---> 549b9b86cb8d
   ...
-  Step 24/28 : ARG TARGETS_PRE="sagelib-build-deps"
+  Step 24/28 : ARG TARGETS_PRE="all-sage-local"
    ---> Running in 17d0ddb5ad7b
   Removing intermediate container 17d0ddb5ad7b
    ---> 7b51411520c3
@@ -637,7 +637,7 @@ for a non-silent build (``make V=1``), use::
   [mkoeppe@sage sage]$ EXTRA_DOCKER_BUILD_ARGS="--build-arg USE_MAKEFLAGS=\"V=1\"" \
     tox -e docker-ubuntu-bionic-standard
 
-By default, tox uses ``TARGETS_PRE=sagelib-build-deps`` and
+By default, tox uses ``TARGETS_PRE=all-sage-local`` and
 ``TARGETS=build``, leading to a complete build of Sage without the
 documentation.  If you pass positional arguments to tox (separated
 from tox options by ``--``), then both ``TARGETS_PRE`` and ``TARGETS``

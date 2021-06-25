@@ -1629,7 +1629,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
         from sage.modules.free_module_element import vector
         from sage.rings.integer_ring import ZZ
 
-        one = ZZ(1)
+        one = self.coefficient_ring()(1)
         return self(dict((a, Matrix([[one]])) for a in self.alphabet()),
                     vector([one]), vector([one]))
 

@@ -1194,7 +1194,10 @@ class RecognizableSeries(ModuleElement):
                                [0 1]},
              (1, 1))
 
-        TESTS:
+        TESTS::
+
+            sage: 1 * E is E
+            True
 
         We test that ``_rmul_`` and ``_lmul_`` are actually called::
 
@@ -1214,6 +1217,8 @@ class RecognizableSeries(ModuleElement):
             _lmul_
             2-regular sequence 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, ...
         """
+        if other.is_one():
+            return self
         P = self.parent()
         return P.element_class(P, self.mu, other*self.left, self.right)
 
@@ -1246,7 +1251,10 @@ class RecognizableSeries(ModuleElement):
                                [0 1]},
              (2, 2))
 
-        TESTS:
+        TESTS::
+
+            sage: E * 1 is E
+            True
 
         The following is not tested, as `MS^i` for integers `i` does
         not work, thus ``vector([m])`` fails. (See :trac:`21317` for
@@ -1264,6 +1272,8 @@ class RecognizableSeries(ModuleElement):
             sage: M  # not tested
             sage: M.linear_representation()  # not tested
         """
+        if other.is_one():
+            return self
         P = self.parent()
         return P.element_class(P, self.mu, self.left, self.right*other)
 

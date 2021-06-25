@@ -1,1 +1,1 @@
-../sage_conf/README.rst
+../sage-conf/README.rst

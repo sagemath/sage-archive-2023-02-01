@@ -66,7 +66,7 @@ class build_py(setuptools_build_py):
         self.distribution.py_modules.append('sage_conf')
         shutil.copyfile(os.path.join(SAGE_ROOT, 'src', 'bin', 'sage-env-config'),
                         os.path.join(HERE, 'bin', 'sage-env-config'))
-        distutils_build_py.run(self)
+        setuptools_build_py.run(self)
 
 class build_scripts(distutils_build_scripts):
 

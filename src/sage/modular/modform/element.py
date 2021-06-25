@@ -27,6 +27,8 @@ Class hierarchy:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from . import defaults
+
 import sage.modular.hecke.element as element
 
 from sage.arith.all import lcm, divisors, moebius, sigma, factor, crt
@@ -40,7 +42,7 @@ from sage.modular.modsym.modsym import ModularSymbols
 from sage.modular.modsym.p1list import lift_to_sl2z
 from sage.modular.modsym.space import is_ModularSymbolsSpace
 from sage.modules.free_module_element import vector
-from sage.rings.all import ZZ, QQ, Integer, RealField, ComplexField
+from sage.rings.all import ZZ, QQ, Integer, RealField, ComplexField, PowerSeriesRing
 from sage.rings.fast_arith import prime_range
 from sage.rings.morphism import RingHomomorphism
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
@@ -3059,7 +3061,7 @@ class GradedModularFormElement(ModuleElement):
         INPUTS:
 
         - ``parents`` - an object of the class ModularFormsRing
-        - ``forms_data`` - a dictionary ``{k_1:f_1, k_2:f_2, ..., k_n:f_n}`` where `f_i` is a modular form of weight `k_i`
+        - ``forms_data`` - a dictionary ``{k_1:f_1, k_2:f_2, ..., k_n:f_n}`` or a list [f_1, f_2,..., f_n] where `f_i` is a modular form of weight `k_i`
         
         OUTPUT:
 
@@ -3069,20 +3071,13 @@ class GradedModularFormElement(ModuleElement):
 
         sage: M = ModularFormsRing(1)
         sage: TestSuite(M).run()
-        sage: M05 = ModularFormsRing(Gamma0(5))
-        sage: TestSuite(M05).run()
-        sage: MM15 = ModularFormsRing(Gamma1(5))
-        sage: TestSuite(M15).run()
         """
         forms_dictionary = {}
         if isinstance(forms_datas, dict):
             for k,f in forms_datas.items():
                 if isinstance(k, (int, Integer)):
                     if k == 0:
-                        if f in parent.base_ring():
-                            forms_dictionary[k] = f
-                        else:
-                            raise ValueError('The value corresponding to the weight 0 (%s) should live in the base ring: %s'%(f, parent.base_ring()))
+                        forms_dictionary[k] = parent.base_ring().coerce(f)
                     elif is_ModularFormElement(f):
                         if f.weight() == k:
                             if f.group() == parent.group() and parent.base_ring().has_coerce_map_from(f.base_ring()):
@@ -3102,17 +3097,29 @@ class GradedModularFormElement(ModuleElement):
                         forms_dictionary[f.weight()] = forms_dictionary.get(f.weight(), 0) + f
                     else:
                         raise ValueError('The group and/or the base ring of at least one modular form (%s) is not consistant with the base space'%(f))
-                elif f in parent.base_ring():
-                    forms_dictionary[0] = forms_dictionary.get(0, 0) + f
                 else:
-                    raise ValueError('At least one list item is not a `ModularFormElement` (%s)'%(f))
+                    forms_dictionary[k] = parent.base_ring().coerce(f)
         else:
             raise ValueError('The defining data structure should be a list or a dictionary')
-        self.__forms_dictionary = {k:v for k,v in forms_dictionary.items() if v!=0} #remove the zero values
+        self.__forms_dictionary = {k:f for k,f in forms_dictionary.items() if not f.is_zero()} #remove the zero values
         Element.__init__(self, parent)
 
     def __bool__(self):
-        return bool(self._forms_dictionary)
+        r"""
+        Return "True" if ``self`` is non-zero and "False" otherwise.
+
+        EXAMPLES::
+
+            sage: M = ModularFormsRing(1)
+            sage: bool(M(0))
+            False
+            sage: bool(M(1))
+            True
+            sage: bool(M(ModularForms(1,6).0))
+            True
+
+        """
+        return bool(self.__forms_dictionary)
 
     def is_zero(self):
         r"""
@@ -3123,11 +3130,13 @@ class GradedModularFormElement(ModuleElement):
             sage: M = ModularFormsRing(1)
             sage: M(0).is_zero()
             True
+            sage: M(1/2).is_zero()
+            False
             sage: E6 = ModularForms(1,6).0
             sage: M(E6).is_zero()
             False
         """
-        return not len(self.__forms_dictionary)
+        return not len(self.__forms_dictionary) #the dictionnary is empty if the form is zero
     
     def is_one(self):
         r"""
@@ -3155,6 +3164,10 @@ class GradedModularFormElement(ModuleElement):
         EXAMPLES::
 
             sage: M = ModularFormsRing(1)
+            sage: zer = M(0); zer.q_expansion()
+            0
+            sage: M(5/7).q_expansion()
+            5/7
             sage: E4 = ModularForms(1, 4).0; E4
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
             sage: E6 = ModularForms(1, 6).0; E6
@@ -3166,7 +3179,9 @@ class GradedModularFormElement(ModuleElement):
             sage: F.q_expansion(10)
             2 - 264*q - 14472*q^2 - 116256*q^3 - 515208*q^4 - 1545264*q^5 - 3997728*q^6 - 8388672*q^7 - 16907400*q^8 - 29701992*q^9 + O(q^10)
         """
-        return self[0] + sum(f.q_expansion(prec) for k, f in self.__forms_dictionary.items() if k != 0)
+        # We sum the two cases: (weight 0) + (weights k \neq 0)
+        Pow = PowerSeriesRing(self.base_ring(), name=defaults.DEFAULT_VARIABLE)
+        return Pow(self.__forms_dictionary.get(0, Pow.zero())) + sum(f.q_expansion(prec) for k, f in self.__forms_dictionary.items() if k != 0)
 
     qexp = q_expansion #alias
 
@@ -3206,8 +3221,8 @@ class GradedModularFormElement(ModuleElement):
             sage: F.homogeneous_component(4)
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
         """
-        return self.__forms_dictionary.get(weight, self.base_ring().zero()) #TODO: fix the error E4 + QQ(0)
-    homogeneous_component = __getitem__ #alias of __getitem__. graded_component? graded_term?
+        return self.__forms_dictionary.get(weight, self.parent().zero()) #TODO: fix the error E4 + QQ(0)
+    homogeneous_component = __getitem__ #alias
 
     def __call__(self, x, prec=None):
         r"""
@@ -3222,14 +3237,17 @@ class GradedModularFormElement(ModuleElement):
             sage: q = F.q_expansion().parent().gen()
             sage: F(q^2)
             3 + 216*q^2 + 47448*q^4 + 933984*q^6 + 7411032*q^8 + 35955216*q^10 + O(q^12)
+            sage: G = M(113/19)
+            sage: G(q)
+            113/19
         """
-        return sum(self[k](x, prec) for k in self.__forms_dictionary)
+        return self.q_expansion(prec)(x)
     
     def _add_(self, other):
         r"""
         Addition of two ``GradedModularFormElement``.
 
-        TEST::
+        TESTS::
 
             sage: M = ModularFormsRing(1)
             sage: f4 = ModularForms(1, 4).0; f6 = ModularForms(1, 6).0; f8 = ModularForms(1, 8).0
@@ -3244,7 +3262,7 @@ class GradedModularFormElement(ModuleElement):
             Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field
             sage: g = ModularForms(Gamma1(7), 12).0
             sage: F+g #sum of two forms of different type
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             TypeError: unsupported operand parent(s) for +: 'Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field' and 'Modular Forms space of dimension 25 for Congruence Subgroup Gamma1(7) of weight 12 over Rational Field'
         """
@@ -3270,7 +3288,6 @@ class GradedModularFormElement(ModuleElement):
         GM = self.__class__
         f_self = self.__forms_dictionary
         minus_self = {k:-f for k,f in f_self.items()}
-        #minus_self = {k:-self.__forms_dictionary[k] for k in self.__forms_dictionary}
         return GM(self.parent(), minus_self)
 
     def _mul_(self, other):
@@ -3301,21 +3318,20 @@ class GradedModularFormElement(ModuleElement):
         TESTS::
 
             sage: M = ModularFormsRing(1)
-            sage: E4 = M(ModularForms(1, 4).0)
+            sage: E4 = M(ModularForms(1, 4).0); E4
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
             sage: 42 * E4
             42 + 10080*q + 90720*q^2 + 282240*q^3 + 735840*q^4 + 1270080*q^5 + O(q^6)
             sage: 1/5 * E4
             1/5 + 48*q + 432*q^2 + 1344*q^3 + 3504*q^4 + 6048*q^5 + O(q^6)
             sage: I*E4
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: 'Number Field in I with defining polynomial x^2 + 1 with I = 1*I' and 'Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field'
+            TypeError: unsupported operand parent(s) for *: 'Number Field in I with defining polynomial x^2 + 1 with I = 1*I' and 'Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field'
         """
         GM = self.__class__
         f_self = self.__forms_dictionary
         f_mul = {k:c*f for k,f in f_self.items()}
-        #f_mul = { k_self:c*f_self[k_self] for k_self in f_self.keys()}
         return GM(self.parent(), f_mul)
 
     def _rmul_(self, c):
@@ -3334,8 +3350,28 @@ class GradedModularFormElement(ModuleElement):
         GM = self.__class__
         f_self = self.__forms_dictionary
         f_mul = {k:f*c for k,f in f_self.items()}
-        #f_mul = { k_self:f_self[k_self]*c for k_self in f_self.keys()}
         return GM(self.parent(), f_mul)
+
+    def _richcmp_(self, other, op):
+        r"""
+        Compare self with other.
+
+        TESTS::
+
+            sage: M = ModularFormsRing(1)
+            sage: M(1) == M(1)
+            True
+            sage: M(1) == M(2)
+            False
+            sage: E4 = ModularForms(1,4).0
+            sage: M(E4) == M(E4)
+            True
+            sage: E6 = ModularForms(1,6).0
+            sage: M(E4) == M(E6)
+            False
+        """
+        from sage.structure.richcmp import richcmp
+        return richcmp(self.__forms_dictionary, other.__forms_dictionary, op)
 
     def weights(self):
         r"""

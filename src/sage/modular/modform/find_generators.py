@@ -284,12 +284,12 @@ class ModularFormsRing(Parent):
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
             sage: f = ModularForms(3, 10).0
             sage: M(f)
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: The group (Congruence Subgroup Gamma0(3)) and/or the base ring (Rational Field) of the modular form is not consistant with the base space: Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field
             sage: M = ModularFormsRing(1, base_ring=ZZ)
             sage: M(ModularForms(1,4).0)
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: The group (Modular Group SL(2,Z)) and/or the base ring (Rational Field) of the modular form is not consistant with the base space: Ring of modular forms for Modular Group SL(2,Z) with coefficients in Integer Ring
             sage: M = ModularFormsRing(1)
@@ -297,27 +297,27 @@ class ModularFormsRing(Parent):
             sage: E4
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
             sage: M({6:E4})
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: At least one key (6) of the defining dictionary does not correspond to the weight of its value (1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)). Real weight: 4
             sage: M({4:'f'})
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: At least one value (f) of the defining dictionary is not a `ModularFormElement`
             sage: M({4.:E4})
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: At least one key (4.00000000000000) of the defining dictionary is not an integer
             sage: M({0:E4})
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
-            ValueError: The value corresponding to the weight 0 (1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)) should live in the base ring: Rational Field
+            TypeError: no canonical coercion from Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field to Rational Field
             sage: M([E4, x])
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
-            ValueError: At least one list item is not a `ModularFormElement` (x)
+            TypeError: no canonical coercion from Symbolic Ring to Rational Field
             sage: M(x)
-            Traceback (most recent call last)
+            Traceback (most recent call last):
             ...
             ValueError: The defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary
         """
@@ -448,10 +448,9 @@ class ModularFormsRing(Parent):
             Modular Forms space of dimension 11 for Congruence Subgroup Gamma0(13) of weight 10 over Rational Field
             sage: ModularFormsRing(Gamma1(13)).modular_forms_of_weight(3)
             Modular Forms space of dimension 20 for Congruence Subgroup Gamma1(13) of weight 3 over Rational Field
-            sage: ModularFormsRing(7, base_ring=GF(7^2)).modular_forms_of_weight(8)
-            Modular Forms space of dimension 5 for Congruence Subgroup Gamma0(7) of weight 8 over Finite Field in z2 of size 7^2
         """
-        return ModularForms(self.group(), weight, base_ring=self.base_ring())
+        #return ModularForms(self.group(), weight, base_ring=self.base_ring()) # fix the error caused by this? -> new ticket
+        return ModularForms(self.group(), weight)
 
     def generators(self, maxweight=8, prec=10, start_gens=[], start_weight=2):
         r"""

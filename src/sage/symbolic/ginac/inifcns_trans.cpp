@@ -130,21 +130,28 @@ static ex exp_eval(const ex & x)
                 if (is_ex_the_function(x_red, log))
                         return arg;
                 // exp(asinh(num)) etc.
+                // see https://en.wikipedia.org/wiki/Hyperbolic_functions#Inverse_functions_as_logarithms
                 if (is_exactly_a<numeric>(arg)) {
+                        // exp(asinh(x)) -> x + sqrt(x^2 + 1)
                         if (is_ex_the_function(x_red, asinh))
                                 return arg + sqrt(power(arg, _ex2) + _ex1);
+                        // exp(acosh(x)) -> x + sqrt(x^2 - 1)
                         if (is_ex_the_function(x_red, acosh))
                                 return arg + sqrt(power(arg, _ex2) - _ex1);
+                        // exp(atanh(x)) -> sqrt((1 + x)/(1 - x))
                         if (is_ex_the_function(x_red, atanh))
-                                return sqrt((arg+_ex1) / (arg-_ex1));
+                                return sqrt((_ex1 + arg) / (_ex1 - x));
+                        // exp(acoth(x)) -> sqrt((x + 1)/(x - 1))
                         if (is_ex_the_function(x_red, acoth))
-                                return sqrt((arg-_ex1) / (arg+_ex1));
+                                return sqrt((arg + _ex1) / (arg - _ex1));
+                        // exp(asech(x)) -> 1/x + sqrt(1 - x^2)/x
                         if (is_ex_the_function(x_red, asech))
                                 return (_ex1/arg +
-                                        sqrt(_ex1-power(arg, _ex2))/arg);
+                                        sqrt(_ex1 - power(arg, _ex2))/arg);
+                        // exp(acsch(x)) -> 1/x + sqrt(1 + 1/x^2)
                         if (is_ex_the_function(x_red, acsch))
                                 return (_ex1/arg +
-                                        sqrt(_ex1+power(arg, _ex2))/arg);
+                                        sqrt(_ex1 + _ex1/power(arg, _ex2)));
                 }
         }
 
@@ -179,24 +186,31 @@ static ex exp_eval(const ex & x)
                         if (is_ex_the_function(fac, log))
                                 return power(arg, c);
                         // exp(c*asinh(ex)) etc.
+                        // see https://en.wikipedia.org/wiki/Hyperbolic_functions#Inverse_functions_as_logarithms
+                        // exp(asinh(x)) -> x + sqrt(x^2 + 1)
                         if (is_ex_the_function(fac, asinh))
                                 return power(arg + sqrt(power(arg, _ex2) + 1),
-                                                c);
+                                             c);
+                        // exp(acosh(x)) -> x + sqrt(x^2 - 1)
                         if (is_ex_the_function(fac, acosh))
                                 return power(arg + sqrt(power(arg, _ex2) - 1),
-                                                c);
+                                             c);
+                        // exp(atanh(x)) -> sqrt((1 + x)/(1 - x))
                         if (is_ex_the_function(fac, atanh))
-                                return power((arg+_ex1) / (arg-_ex1), c/2);
+                                return power((_ex1 + arg) / (_ex1 - arg), c/2);
+                        // exp(acoth(x)) -> sqrt((x + 1)/(x - 1))
                         if (is_ex_the_function(fac, acoth))
-                                return power((arg-_ex1) / (arg+_ex1), c/2);
+                                return power((arg + _ex1) / (arg - _ex1), c/2);
+                        // exp(asech(x)) -> 1/x + sqrt(1 - x^2)/x
                         if (is_ex_the_function(fac, asech))
                                 return power(_ex1/arg +
-                                        sqrt(_ex1-power(arg, _ex2))/arg,
-                                        c);
+                                             sqrt(_ex1 - power(arg, _ex2))/arg,
+                                             c);
+                        // exp(acsch(x)) -> 1/x + sqrt(1 + 1/x^2)
                         if (is_ex_the_function(fac, acsch))
                                 return power(_ex1/arg +
-                                        sqrt(_ex1+power(arg, _ex2))/arg,
-                                        c);
+                                             sqrt(_ex1 + _ex1/power(arg, _ex2)),
+                                             c);
                 }
         }
 

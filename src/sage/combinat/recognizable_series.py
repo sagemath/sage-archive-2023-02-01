@@ -923,11 +923,11 @@ class RecognizableSeries(ModuleElement):
 
         INPUT:
 
-        - ``other`` -- an object.
+        - ``other`` -- an object
 
         OUTPUT:
 
-        A boolean.
+        A boolean
 
         .. NOTE::
 
@@ -977,11 +977,11 @@ class RecognizableSeries(ModuleElement):
 
         INPUT:
 
-        - ``other`` -- an object.
+        - ``other`` -- an object
 
         OUTPUT:
 
-        A boolean.
+        A boolean
 
         .. NOTE::
 
@@ -1524,6 +1524,7 @@ class RecognizableSeries(ModuleElement):
 
         return result
 
+
 def _pickle_RecognizableSeriesSpace(coefficients, indices, category):
     r"""
     Pickle helper.
@@ -1847,7 +1848,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        A :class:`recognizable_series`.
+        A :class:`recognizable_series`
 
         EXAMPLES::
 
@@ -1873,7 +1874,7 @@ class RecognizableSeriesSpace(UniqueRepresentation, Parent):
 
         OUTPUT:
 
-        An iterator.
+        An iterator
 
         EXAMPLES::
 

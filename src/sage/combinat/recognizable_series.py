@@ -1159,8 +1159,8 @@ class RecognizableSeries(Element):
             sage: -E
             2-regular sequence -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, ...
             sage: Z = E - E
-            sage: Z.mu[0], Z.mu[1], Z.left, Z.right
-            ([], [], (), ())
+            sage: Z.is_trivial_zero()
+            True
         """
         P = self.parent()
         return P.element_class(P, self.mu, -self.left, self.right)

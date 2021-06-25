@@ -106,15 +106,15 @@ def pad_right(T, length, zero=0):
 
     INPUT:
 
-    - ``T`` -- A tuple, list or other iterable.
+    - ``T`` -- A tuple, list or other iterable
 
-    - ``length`` -- a nonnegative integer.
+    - ``length`` -- a nonnegative integer
 
-    - ``zero`` -- (default: ``0``) the elements to pad with.
+    - ``zero`` -- (default: ``0``) the elements to pad with
 
     OUTPUT:
 
-    An object of the same type as ``T``.
+    An object of the same type as ``T``
 
     EXAMPLES::
 
@@ -276,7 +276,6 @@ class kRegularSequence(RecognizableSeries):
         from itertools import count
         return iter(self[n] for n in count())
 
-
     def subsequence(self, a, b, minimize=True):
         r"""
         Return the subsequence with indices `an+b` of this
@@ -284,9 +283,9 @@ class kRegularSequence(RecognizableSeries):
 
         INPUT:
 
-        - ``a`` -- a nonnegative integer.
+        - ``a`` -- a nonnegative integer
 
-        - ``b`` -- an integer.
+        - ``b`` -- an integer
 
           Alternatively, this is allowed to be a dictionary
           `b_j \mapsto c_j`. If so, the result will be the sum
@@ -297,7 +296,7 @@ class kRegularSequence(RecognizableSeries):
 
         OUTPUT:
 
-        A :class:`kRegularSequence`.
+        A :class:`kRegularSequence`
 
         .. NOTE::
 
@@ -466,7 +465,6 @@ class kRegularSequence(RecognizableSeries):
         else:
             return result
 
-
     def backward_differences(self, **kwds):
         r"""
         Return the sequence of backward differences of this
@@ -479,7 +477,7 @@ class kRegularSequence(RecognizableSeries):
 
         OUTPUT:
 
-        A :class:`kRegularSequence`.
+        A :class:`kRegularSequence`
 
         .. NOTE::
 
@@ -506,7 +504,6 @@ class kRegularSequence(RecognizableSeries):
         """
         return self.subsequence(1, {0: 1, -1: -1}, **kwds)
 
-
     def forward_differences(self, **kwds):
         r"""
         Return the sequence of forward differences of this
@@ -519,7 +516,7 @@ class kRegularSequence(RecognizableSeries):
 
         OUTPUT:
 
-        A :class:`kRegularSequence`.
+        A :class:`kRegularSequence`
 
         EXAMPLES::
 
@@ -542,7 +539,6 @@ class kRegularSequence(RecognizableSeries):
         """
         return self.subsequence(1, {1: 1, 0: -1}, **kwds)
 
-
     def partial_sums(self, include_n=False, minimize=True):
         r"""
         Return the sequence of partial sums of this
@@ -560,7 +556,7 @@ class kRegularSequence(RecognizableSeries):
 
         OUTPUT:
 
-        A :class:`kRegularSequence`.
+        A :class:`kRegularSequence`
 
         EXAMPLES::
 

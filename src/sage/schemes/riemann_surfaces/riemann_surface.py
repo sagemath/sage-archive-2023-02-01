@@ -77,7 +77,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.modules.free_module import VectorSpace
-from sage.numerical.gauss_legendre import integrate_vector#, integrate_vector_N To be included when ticket #32014 is accepted. 
+from sage.numerical.gauss_legendre import integrate_vector, integrate_vector_N
 from sage.rings.complex_mpfr import ComplexField, CDF
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -1545,7 +1545,7 @@ class RiemannSurface(object):
         # h(z,g)=0 --> dg/dz = - dhdz/dhdg
         dgdz_list = [ -h.derivative(QQzg.gen(0))/h.derivative(QQzg.gen(1)) for h in minpoly_list]
         
-        CCzg = self._CCz.extend_variables('g')
+        CCzg = PolynomialRing(self._CC,['z','g'])
         CCminpoly_list = [CCzg(h) for h in minpoly_list]
         a0_list = [self._CC['Z'](h.leading_coefficient()) for h in minpoly_univ]
         a0_info = [(a0.leading_coefficient(),flatten([[r]*n for r,n in a0.roots()])) for a0 in a0_list]
@@ -1834,6 +1834,23 @@ class RiemannSurface(object):
             Full MatrixSpace of 3 by 6 dense matrices over Complex Field with 30 bits of precision
             sage: M.rank()
             3
+
+        One can check that the two methods give similar answers::
+        
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<x,y> = QQ[]
+            sage: f = y^2 - x^3 + 1
+            sage: S = RiemannSurface(f, error_bound="rigorous")
+            sage: T = RiemannSurface(f)
+            sage: S.riemann_matrix()
+            [-0.500000000000000 + 0.866025403784439*I]
+            sage: T.riemann_matrix()
+            [-0.500000000000000 + 0.866025403784438*I]
+
+        and that in this example the rigorous method accurate to more digits::
+
+            sage: (sqrt(3)/2).n(53)
+            0.866025403784439
         """
         #differentials = [fast_callable(omega, domain=self._CC)
         #                 for omega in self.cohomology_basis()]

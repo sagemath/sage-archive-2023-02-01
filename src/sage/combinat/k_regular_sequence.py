@@ -352,7 +352,10 @@ class kRegularSequence(RecognizableSeries):
 
             sage: C.subsequence(0, 4)
             2-regular sequence 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, ...
-            sage: C.subsequence(1, 0) is C
+
+        ::
+
+            sage: C.subsequence(1, 0, minimize=False) is C
             True
 
         The following test that the range for `c` in the code

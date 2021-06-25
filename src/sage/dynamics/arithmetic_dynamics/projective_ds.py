@@ -73,8 +73,9 @@ from sage.rings.complex_mpfr import ComplexField
 from sage.rings.finite_rings.finite_field_constructor import (is_FiniteField, GF,
                                                               is_PrimeFiniteField)
 from sage.rings.finite_rings.integer_mod_ring import Zmod
-from sage.rings.fraction_field import (FractionField, is_FractionField)
+from sage.rings.fraction_field import (FractionField, is_FractionField, FractionField_1poly_field)
 from sage.rings.fraction_field_element import is_FractionFieldElement, FractionFieldElement
+from sage.rings.function_field.function_field import is_FunctionField
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.flatten import FlatteningMorphism, UnflatteningMorphism
 from sage.rings.morphism import RingHomomorphism_im_gens
@@ -3895,14 +3896,19 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             f = self.change_ring(R)
             R = f.base_ring() #in the case when R is an embedding
+        if isinstance(R, FractionField_1poly_field) or is_FunctionField(R):
+            raise NotImplementedError('Periodic points not implemented for function fields.'
+            + 'Clear denominators and use the polynomial ring instead.')
         CR = f.coordinate_ring()
         dom = f.domain()
         PS = f.codomain().ambient_space()
+        if dom != PS:
+            f = DynamicalSystem(f.defining_polynomials())
         N = PS.dimension_relative() + 1
         formal = kwds.pop('formal', False)
         minimal = kwds.pop('minimal', True)
         return_scheme = kwds.pop('return_scheme', False)
-        if formal and N == 2:
+        if formal and N == 2 and dom == PS:
             X = PS.subscheme([f.dynatomic_polynomial([m,n])] + list(dom.defining_polynomials()))
         else:
             F_1 = f.nth_iterate_map(n+m)
@@ -3982,6 +3988,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         Ik *= f.preperiodic_points(m-1, n, return_scheme=True, minimal=False).defining_ideal()
                     In = X.defining_ideal()
                     X = PS.subscheme(In.saturation(Ik)[0])
+        if dom != PS:
+            X = PS.subscheme(list(X.defining_ideal().gens()) + list(dom.defining_ideal().gens()))
         if return_scheme:  # this includes the indeterminacy locus points!
             return X
         if X.dimension() <= 0:
@@ -4218,11 +4226,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             R = self.base_ring()
         else:
             f = self.change_ring(R)
-            R = f.base_ring()
+            R = f.base_ring() #in the case when R is an embedding
+        if isinstance(R, FractionField_1poly_field) or is_FunctionField(R):
+            raise NotImplementedError('Periodic points not implemented for fraction function fields.'
+            + 'Clear denominators and use the polynomial ring instead.')
         CR = f.coordinate_ring()
         dom = f.domain()
         PS = f.codomain().ambient_space()
         N = PS.dimension_relative() + 1
+        if dom != PS:
+            f = DynamicalSystem(f.defining_polynomials())
         if algorithm == 'cyclegraph':
             if R in FiniteFields():
                 g = f.cyclegraph()
@@ -4240,13 +4253,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 raise TypeError("ring must be finite to generate cyclegraph")
         elif algorithm == 'variety':
             if formal and N == 2:
-                X = PS.subscheme([f.dynatomic_polynomial(n)] + list(dom.defining_polnomials()))
+                X = PS.subscheme([f.dynatomic_polynomial(n)])
             else:
                 F = f.nth_iterate_map(n)
                 L = [F[i]*CR.gen(j) - F[j]*CR.gen(i) for i in range(N)
                     for j in range(i+1, N)]
                 L = [t for t in L if t != 0]
-                X = PS.subscheme(L + list(dom.defining_polynomials()))
+                X = PS.subscheme(L)
                 if formal:
                     if N > 2:
                         hyperplane_at_infinity = PS.subscheme(CR.gens()[-1])
@@ -4294,7 +4307,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         subs = {}
                         for i in range(len(subs_list)):
                             subs[PS.gens()[i]] = subs_list[i]
-                        X = PS.subscheme([poly.subs(subs) for poly in L] + list(dom.defining_polynomials()))
+                        X = PS.subscheme([poly.subs(subs) for poly in L])
                 if minimal and n != 1 and not formal:
                     Sn = []
                     for k in ZZ(n).divisors():
@@ -4315,6 +4328,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                             Ik *= f.periodic_points(k, return_scheme=True, minimal=False).defining_ideal()
                         In = X.defining_ideal()
                         X = PS.subscheme(In.saturation(Ik)[0])
+            if dom != PS:
+                X = PS.subscheme(list(X.defining_ideal().gens()) + list(dom.defining_ideal().gens()))
             if return_scheme:  # this includes the indeterminacy locus points!
                 return X
             if X.dimension() <= 0:

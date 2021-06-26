@@ -4456,7 +4456,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: Term specification 'icecream' has to be either
-            'exact' or 'O' or 'B' or an instance of an existing term.
+            'exact', 'O', 'B' or an instance of an existing term.
             sage: TermMonoid.create_key_and_extra_args('O', ZZ)
             Traceback (most recent call last):
             ...
@@ -4471,7 +4471,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         elif term_monoid == 'B':
             term_class = self.BTermMonoid
         else:
-            raise ValueError("Term specification '%s' has to be either 'exact' or 'O' or 'B' "
+            raise ValueError("Term specification '%s' has to be either 'exact', 'O', 'B' "
                              "or an instance of an existing term." % term_monoid)
 
         if asymptotic_ring is not None and \

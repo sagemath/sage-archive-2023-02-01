@@ -4119,8 +4119,8 @@ class BTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: BT = TermMonoid('B', GrowthGroup('x^ZZ'), QQ)
-            sage: t1 = BT(x^3, 3, valid_from={'x': 20}); t2 = BT(x^2, 1, valid_from={'x': 10})
-            sage: t3 = BT(x, 5, valid_from={'x': 5})
+            sage: t1 = BT(x^3, 3, valid_from={'x': 20})
+            sage: t2 = BT(x^2, 1, valid_from={'x': 10})
             sage: t1.can_absorb(t2)
             True
             sage: t2.can_absorb(t1)

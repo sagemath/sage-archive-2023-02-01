@@ -4047,8 +4047,8 @@ class BTerm(TermWithCoefficient):
         try:
             coefficient = parent.coefficient_ring(coefficient)
         except (ValueError, TypeError):
-            raise ValueError(f'{coefficient} is not a coefficient in \
-                             {parent.coefficient_ring}.')
+            raise ValueError(f'{coefficient} is not a coefficient in '
+                             f'{parent.coefficient_ring}.')
 
         if not coefficient:
             raise ZeroCoefficientError(
@@ -4090,8 +4090,8 @@ class BTerm(TermWithCoefficient):
         valid_from_string = ' and '.join(f'{variable} >= {value}'
                                          for variable, value in self.valid_from.items())
 
-        return f'BTerm with coefficient {self.coefficient}, growth {self.growth} ' + \
-               f'and valid for {valid_from_string}'
+        return (f'BTerm with coefficient {self.coefficient}, growth {self.growth} '
+                f'and valid for {valid_from_string}')
 
     def can_absorb(self, other):
         r"""
@@ -4239,8 +4239,8 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: TermMonoid('B', G, QQ)._repr_()
             'BTerm Monoid x^ZZ with coefficients in Rational Field'
         """
-        return f'BTerm Monoid {self.growth_group._repr_short_()} with ' + \
-               f'coefficients in {self.coefficient_ring}'
+        return (f'BTerm Monoid {self.growth_group._repr_short_()} with '
+                f'coefficients in {self.coefficient_ring}')
 
     def _create_element_(self, growth, coefficient, **kwds):
         r"""

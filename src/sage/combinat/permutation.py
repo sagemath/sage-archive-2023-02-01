@@ -2861,7 +2861,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,2,3,4]).fixed_points()
             [1, 2, 3, 4]
         """
-        return [i + 1 for i in range(len(self)) if i + 1 == self[i]]
+        return [i for i, v in enumerate(self, start=1) if i == v]
 
     def number_of_fixed_points(self) -> Integer:
         r"""
@@ -4373,7 +4373,7 @@ class Permutation(CombinatorialElement):
             sage: d[3]
             3
         """
-        return {i + 1: self[i] for i in range(len(self))}
+        return dict(enumerate(self, start=1))
 
     def action(self, a):
         r"""

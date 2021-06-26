@@ -3991,7 +3991,7 @@ class BTerm(TermWithCoefficient):
     - ``coefficient`` -- an element of the parent's coefficient ring
 
     - ``valid_from`` -- dictionary mapping variable names to lower bounds
-      for the corresponding vriable. the bound by this term is valid when
+      for the corresponding variable. The bound implied by this term is valid when
       all variables are at least their corresponding lower bound
 
     EXAMPLES::
@@ -4099,15 +4099,15 @@ class BTerm(TermWithCoefficient):
 
         INPUT:
 
-        - ``other`` -- an asymptotic term.
+        - ``other`` -- an asymptotic term
 
         OUTPUT:
 
-        A boolean.
+        A boolean
 
         .. NOTE::
 
-            An :class:`BTerm` can absorb another BTerm
+            A :class:`BTerm` can absorb another BTerm
             with equal growth.
 
             See the :ref:`module description <term_absorption>` for a
@@ -4155,7 +4155,7 @@ class BTerm(TermWithCoefficient):
 
         INPUT:
 
-        - ``other`` -- an asymptotic term.
+        - ``other`` -- an asymptotic term
 
         EXAMPLES::
 

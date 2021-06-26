@@ -65,11 +65,13 @@ AS_BOX([Checking whether SageMath should install SPKG $1...]) >& AS_MESSAGE_LOG_
 AC_ARG_WITH([system-]SPKG_NAME,
        AS_HELP_STRING(--with-system-SPKG_NAME={no|yes (default)|force (exit with an error if no usable version is found)},
            [detect and use an existing system SPKG_NAME]),
-       [AS_VAR_SET(SPKG_USE_SYSTEM, [$withval])],
-       [AS_VAR_SET(SPKG_USE_SYSTEM, [yes])]
+       [AS_VAR_SET(SPKG_USE_SYSTEM, [$withval])]
 )
 
 AS_VAR_SET([sage_spkg_name], SPKG_NAME)
+
+dnl Default value for most packages
+AS_VAR_SET_IF([SPKG_USE_SYSTEM], [], [AS_VAR_SET([SPKG_USE_SYSTEM], [yes])])
 
 dnl The default is not to install a package, unless a check below finds that we should.
 AS_VAR_SET(SPKG_INSTALL, [no])

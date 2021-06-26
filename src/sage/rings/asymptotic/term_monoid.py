@@ -4018,6 +4018,31 @@ class BTerm(TermWithCoefficient):
     def __init__(self, parent, growth, coefficient, valid_from):
         r"""
         See :class:`BTerm` for more information.
+
+        TESTS::
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+            sage: G = MonomialGrowthGroup(ZZ, 'x');
+            sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
+            sage: BT_QQ(x^3, 3, valid_from={'m': 20})
+            Traceback (most recent call last):
+            ...
+            ValueError: BTerm has valid_from variables defined which do
+            not occur in the term.
+            sage: BT_QQ(x^3, 0, valid_from={'x': 20})
+            Traceback (most recent call last):
+            ...
+            ZeroCoefficientError: Zero coefficient 0 is not allowed in
+            BTerm Monoid x^ZZ with coefficients in Rational Field.
+
+            sage: BT_ZZ = BTermMonoid(TermMonoid, G, ZZ)
+            sage: BT_ZZ(x, 1/2, valid_from={'x': 20})
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/2 is not a coefficient in Integer Ring.
         """
         try:
             coefficient = parent.coefficient_ring(coefficient)

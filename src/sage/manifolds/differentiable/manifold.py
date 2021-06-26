@@ -1434,7 +1434,7 @@ class DifferentiableManifold(TopologicalManifold):
             Tensor field of type (2,1) on the Open subset U of the
              3-dimensional differentiable manifold M
             sage: TU.an_element().display()
-            2 d/dx*d/dx*dx
+            2 d/dx⊗d/dx⊗dx
 
         """
         return self.vector_field_module(dest_map=dest_map).tensor_module(*tensor_type)
@@ -1860,7 +1860,7 @@ class DifferentiableManifold(TopologicalManifold):
             Tensor field T of type (2,0) on the 2-dimensional differentiable
              manifold M
             sage: t.display()
-            T = (x + 1) d/dx*d/dx - y d/dx*d/dy + x*y d/dy*d/dy
+            T = (x + 1) d/dx⊗d/dx - y d/dx⊗d/dy + x*y d/dy⊗d/dy
 
         The type `(2,0)` tensor fields on `M` form the set
         `\mathcal{T}^{(2,0)}(M)`, which is a module over the algebra `C^k(M)`
@@ -2141,7 +2141,7 @@ class DifferentiableManifold(TopologicalManifold):
             2-vector field H on the 3-dimensional differentiable manifold M
             sage: h[0,1], h[0,2], h[1,2] = x+y, x*z, -3
             sage: h.display()
-            H = (x + y) d/dx/\d/dy + x*z d/dx/\d/dz - 3 d/dy/\d/dz
+            H = (x + y) d/dx∧d/dy + x*z d/dx∧d/dz - 3 d/dy∧d/dz
 
         For more examples, see
         :class:`~sage.manifolds.differentiable.multivectorfield.MultivectorField`
@@ -2246,7 +2246,7 @@ class DifferentiableManifold(TopologicalManifold):
             2-form F on the 3-dimensional differentiable manifold M
             sage: f[0,1], f[1,2] = x+y, x*z
             sage: f.display()
-            F = (x + y) dx/\dy + x*z dy/\dz
+            F = (x + y) dx∧dy + x*z dy∧dz
 
         For more examples, see
         :class:`~sage.manifolds.differentiable.diff_form.DiffForm` and
@@ -3986,11 +3986,11 @@ class DifferentiableManifold(TopologicalManifold):
             sage: g[1,1], g[1,2], g[2,2] = (x^2 + z^2)/(x^2 + y^2 + z^2), \
             ....: - y*z/(x^2 + y^2 + z^2), (x^2 + y^2)/(x^2 + y^2 + z^2)
             sage: g.disp()
-            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx*dx - x*y/(x^2 + y^2 + z^2) dx*dy
-            - x*z/(x^2 + y^2 + z^2) dx*dz - x*y/(x^2 + y^2 + z^2) dy*dx
-            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy*dy - y*z/(x^2 + y^2 + z^2) dy*dz
-            - x*z/(x^2 + y^2 + z^2) dz*dx - y*z/(x^2 + y^2 + z^2) dz*dy
-            + (x^2 + y^2)/(x^2 + y^2 + z^2) dz*dz
+            g = (y^2 + z^2)/(x^2 + y^2 + z^2) dx⊗dx - x*y/(x^2 + y^2 + z^2) dx⊗dy
+            - x*z/(x^2 + y^2 + z^2) dx⊗dz - x*y/(x^2 + y^2 + z^2) dy⊗dx
+            + (x^2 + z^2)/(x^2 + y^2 + z^2) dy⊗dy - y*z/(x^2 + y^2 + z^2) dy⊗dz
+            - x*z/(x^2 + y^2 + z^2) dz⊗dx - y*z/(x^2 + y^2 + z^2) dz⊗dy
+            + (x^2 + y^2)/(x^2 + y^2 + z^2) dz⊗dz
 
         .. SEEALSO::
 
@@ -4041,7 +4041,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: g
             Riemannian metric g on the 2-dimensional differentiable manifold H^2
             sage: g.display()
-            g = y^(-2) dx*dx + y^(-2) dy*dy
+            g = y^(-2) dx⊗dx + y^(-2) dy⊗dy
             sage: g.signature()
             2
 
@@ -4102,7 +4102,7 @@ class DifferentiableManifold(TopologicalManifold):
             Lorentzian metric g on the 4-dimensional differentiable manifold M
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
             sage: g.display()
-            g = -dt*dt + dx*dx + dy*dy + dz*dz
+            g = -dt⊗dt + dx⊗dx + dy⊗dy + dz⊗dz
             sage: g.signature()
             2
 
@@ -4112,7 +4112,7 @@ class DifferentiableManifold(TopologicalManifold):
             Lorentzian metric g on the 4-dimensional differentiable manifold M
             sage: g[0,0], g[1,1], g[2,2], g[3,3] = 1, -1, -1, -1
             sage: g.display()
-            g = dt*dt - dx*dx - dy*dy - dz*dz
+            g = dt⊗dt - dx⊗dx - dy⊗dy - dz⊗dz
             sage: g.signature()
             -2
 

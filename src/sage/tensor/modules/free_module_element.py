@@ -162,7 +162,7 @@ class FiniteRankFreeModuleElement(AlternatingContrTensor):
     Tensor product::
 
         sage: s = a*b ; s
-        Type-(2,0) tensor a⨂b on the Rank-3 free module M over the Integer Ring
+        Type-(2,0) tensor a⊗b on the Rank-3 free module M over the Integer Ring
         sage: s.symmetries()
         no symmetry;  no antisymmetry
         sage: s[:]
@@ -170,7 +170,7 @@ class FiniteRankFreeModuleElement(AlternatingContrTensor):
         [ 2 -2  1]
         [ 6 -6  3]
         sage: s = a*s ; s
-        Type-(3,0) tensor a⨂a⨂b on the Rank-3 free module M over the Integer Ring
+        Type-(3,0) tensor a⊗a⊗b on the Rank-3 free module M over the Integer Ring
         sage: s[:]
         [[[0, 0, 0], [0, 0, 0], [0, 0, 0]],
          [[0, 0, 0], [2, -2, 1], [6, -6, 3]],

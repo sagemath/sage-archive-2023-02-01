@@ -149,14 +149,14 @@ class FreeModuleAltForm(FreeModuleTensor):
     the tensor product::
 
         sage: c = b*b ; c
-        Symmetric bilinear form  b⨂b on the Rank-3 free module M over the
+        Symmetric bilinear form  b⊗b on the Rank-3 free module M over the
          Integer Ring
         sage: c.parent()
         Free module of type-(0,2) tensors on the Rank-3 free module M over the
          Integer Ring
         sage: c.display(e)
-        b⨂b = 4 e^1⨂e^1 - 2 e^1⨂e^2 + 6 e^1⨂e^3 - 2 e^2⨂e^1 + e^2⨂e^2
-         - 3 e^2⨂e^3 + 6 e^3⨂e^1 - 3 e^3⨂e^2 + 9 e^3⨂e^3
+        b⊗b = 4 e^1⊗e^1 - 2 e^1⊗e^2 + 6 e^1⊗e^3 - 2 e^2⊗e^1 + e^2⊗e^2
+         - 3 e^2⊗e^3 + 6 e^3⊗e^1 - 3 e^3⊗e^2 + 9 e^3⊗e^3
 
     the contractions::
 
@@ -175,8 +175,8 @@ class FreeModuleAltForm(FreeModuleTensor):
         Free module of type-(0,2) tensors on the Rank-3 free module M over the
          Integer Ring
         sage: s.display(e)
-        4 e^1⨂e^1 + 10 e^1⨂e^2 + 6 e^1⨂e^3 - 14 e^2⨂e^1 + e^2⨂e^2
-         - 12 e^2⨂e^3 + 6 e^3⨂e^1 + 6 e^3⨂e^2 + 9 e^3⨂e^3
+        4 e^1⊗e^1 + 10 e^1⊗e^2 + 6 e^1⊗e^3 - 14 e^2⊗e^1 + e^2⊗e^2
+         - 12 e^2⊗e^3 + 6 e^3⊗e^1 + 6 e^3⊗e^2 + 9 e^3⊗e^3
 
     Note that tensor arithmetics preserves the alternating character if both
     operands are alternating::

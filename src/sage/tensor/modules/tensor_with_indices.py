@@ -613,7 +613,7 @@ class TensorWithIndices(SageObject):
             sage: ai = TensorWithIndices(a, '^ij')
             sage: bi = TensorWithIndices(b, '_k')
             sage: s = ai.__mul__(bi) ; s  # no repeated indices ==> tensor product
-            Type-(2,1) tensor a⨂b on the 3-dimensional vector space M over the
+            Type-(2,1) tensor a⊗b on the 3-dimensional vector space M over the
              Rational Field
             sage: s == a*b
             True

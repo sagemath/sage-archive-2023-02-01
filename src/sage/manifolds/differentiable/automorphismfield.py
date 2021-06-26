@@ -112,10 +112,10 @@ class AutomorphismField(TensorField):
     At this stage, the automorphism field `a` is fully defined::
 
         sage: a.display(eU)
-        a = d/dx*dx + x d/dx*dy + 2 d/dy*dy
+        a = d/dx⊗dx + x d/dx⊗dy + 2 d/dy⊗dy
         sage: a.display(eV)
-        a = (1/4*u + 1/4*v + 3/2) d/du*du + (-1/4*u - 1/4*v - 1/2) d/du*dv
-         + (1/4*u + 1/4*v - 1/2) d/dv*du + (-1/4*u - 1/4*v + 3/2) d/dv*dv
+        a = (1/4*u + 1/4*v + 3/2) d/du⊗du + (-1/4*u - 1/4*v - 1/2) d/du⊗dv
+         + (1/4*u + 1/4*v - 1/2) d/dv⊗du + (-1/4*u - 1/4*v + 3/2) d/dv⊗dv
 
     In particular, we may ask for its inverse on the whole manifold `M`::
 
@@ -123,10 +123,10 @@ class AutomorphismField(TensorField):
         Field of tangent-space automorphisms a^(-1) on the 2-dimensional
          differentiable manifold M
         sage: ia.display(eU)
-        a^(-1) = d/dx*dx - 1/2*x d/dx*dy + 1/2 d/dy*dy
+        a^(-1) = d/dx⊗dx - 1/2*x d/dx⊗dy + 1/2 d/dy⊗dy
         sage: ia.display(eV)
-        a^(-1) = (-1/8*u - 1/8*v + 3/4) d/du*du + (1/8*u + 1/8*v + 1/4) d/du*dv
-         + (-1/8*u - 1/8*v + 1/4) d/dv*du + (1/8*u + 1/8*v + 3/4) d/dv*dv
+        a^(-1) = (-1/8*u - 1/8*v + 3/4) d/du⊗du + (1/8*u + 1/8*v + 1/4) d/du⊗dv
+         + (-1/8*u - 1/8*v + 1/4) d/dv⊗du + (1/8*u + 1/8*v + 3/4) d/dv⊗dv
 
     Equivalently, one can use the power minus one to get the inverse::
 
@@ -283,7 +283,7 @@ class AutomorphismField(TensorField):
             sage: a.set_comp(e_uv)[0,0] = u+v
             sage: a.set_comp(e_uv)[1,1] = u+v
             sage: a.display(e_uv)
-            a = (u + v) d/du*du + (u + v) d/dv*dv
+            a = (u + v) d/du⊗du + (u + v) d/dv⊗dv
 
         Setting the components in a new frame::
 
@@ -293,7 +293,7 @@ class AutomorphismField(TensorField):
             sage: a.set_comp(e)[0,1] = u*v
             sage: a.set_comp(e)[1,0] = u*v
             sage: a.display(e)
-            a = u*v e_0*e^1 + u*v e_1*e^0
+            a = u*v e_0⊗e^1 + u*v e_1⊗e^0
 
         Since the frames ``e`` and ``e_uv`` are defined on the same domain, the
         components w.r.t. ``e_uv`` have been erased::
@@ -360,7 +360,7 @@ class AutomorphismField(TensorField):
             sage: a.add_comp(e_uv)[0,0] = u+v
             sage: a.add_comp(e_uv)[1,1] = u+v
             sage: a.display(e_uv)
-            a = (u + v) d/du*du + (u + v) d/dv*dv
+            a = (u + v) d/du⊗du + (u + v) d/dv⊗dv
 
         Setting the components in a new frame::
 
@@ -370,12 +370,12 @@ class AutomorphismField(TensorField):
             sage: a.add_comp(e)[0,1] = u*v
             sage: a.add_comp(e)[1,0] = u*v
             sage: a.display(e)
-            a = u*v e_0*e^1 + u*v e_1*e^0
+            a = u*v e_0⊗e^1 + u*v e_1⊗e^0
 
         The components with respect to ``e_uv`` are kept::
 
             sage: a.display(e_uv)
-            a = (u + v) d/du*du + (u + v) d/dv*dv
+            a = (u + v) d/du⊗du + (u + v) d/dv⊗dv
 
         Since the identity map is a special element, its components cannot be
         changed::
@@ -696,15 +696,15 @@ class AutomorphismField(TensorField):
             Field of tangent-space automorphisms on the 2-dimensional
              differentiable manifold M
             sage: s.display(e_xy)
-            -(x^4 - 10*x^2*y^2 + y^4)/(x^4 + 2*x^2*y^2 + y^4) d/dx*dx
-             - 6*(x^3*y - x*y^3)/(x^4 + 2*x^2*y^2 + y^4) d/dx*dy
-             + 6*(x^3*y - x*y^3)/(x^4 + 2*x^2*y^2 + y^4) d/dy*dx
-             - 2*(x^4 - 4*x^2*y^2 + y^4)/(x^4 + 2*x^2*y^2 + y^4) d/dy*dy
+            -(x^4 - 10*x^2*y^2 + y^4)/(x^4 + 2*x^2*y^2 + y^4) d/dx⊗dx
+             - 6*(x^3*y - x*y^3)/(x^4 + 2*x^2*y^2 + y^4) d/dx⊗dy
+             + 6*(x^3*y - x*y^3)/(x^4 + 2*x^2*y^2 + y^4) d/dy⊗dx
+             - 2*(x^4 - 4*x^2*y^2 + y^4)/(x^4 + 2*x^2*y^2 + y^4) d/dy⊗dy
             sage: s.display(e_uv)
-            -(u^4 - 6*u^2*v^2 + v^4)/(u^4 + 2*u^2*v^2 + v^4) d/du*du
-             + 8*(u^3*v - u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/du*dv
-             - 4*(u^3*v - u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv*du
-            - 2*(u^4 - 6*u^2*v^2 + v^4)/(u^4 + 2*u^2*v^2 + v^4) d/dv*dv
+            -(u^4 - 6*u^2*v^2 + v^4)/(u^4 + 2*u^2*v^2 + v^4) d/du⊗du
+             + 8*(u^3*v - u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/du⊗dv
+             - 4*(u^3*v - u*v^3)/(u^4 + 2*u^2*v^2 + v^4) d/dv⊗du
+            - 2*(u^4 - 6*u^2*v^2 + v^4)/(u^4 + 2*u^2*v^2 + v^4) d/dv⊗dv
             sage: w = M.vector_field(name='w')
             sage: w[e_xy, :] = [3, 1]
             sage: w.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
@@ -1359,14 +1359,14 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             sage: a = M.automorphism_field([[1+exp(y), x*y], [0, 1+x^2]],
             ....:                          name='a')
             sage: a.display()
-            a = (e^y + 1) d/dx*dx + x*y d/dx*dy + (x^2 + 1) d/dy*dy
+            a = (e^y + 1) d/dx⊗dx + x*y d/dx⊗dy + (x^2 + 1) d/dy⊗dy
             sage: p = M.point((-2,3), name='p') ; p
             Point p on the 2-dimensional differentiable manifold M
             sage: ap = a.at(p) ; ap
             Automorphism a of the Tangent space at Point p on the
              2-dimensional differentiable manifold M
             sage: ap.display()
-            a = (e^3 + 1) d/dx*dx - 6 d/dx*dy + 5 d/dy*dy
+            a = (e^3 + 1) d/dx⊗dx - 6 d/dx⊗dy + 5 d/dy⊗dy
             sage: ap.parent()
             General linear group of the Tangent space at Point p on the
              2-dimensional differentiable manifold M
@@ -1382,7 +1382,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             sage: idp is M.tangent_space(p).identity_map()
             True
             sage: idp.display()
-            Id = d/dx*dx + d/dy*dy
+            Id = d/dx⊗dx + d/dy⊗dy
             sage: idp.parent()
             General linear group of the Tangent space at Point p on the
              2-dimensional differentiable manifold M

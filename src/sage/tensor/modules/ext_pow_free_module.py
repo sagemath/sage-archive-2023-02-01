@@ -211,7 +211,7 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
         sage: ta = T20(a) ; ta
         Type-(2,0) tensor a on the Rank-3 free module M over the Integer Ring
         sage: ta.display(e)
-        a = 3 e_0⨂e_1 - e_0⨂e_2 - 3 e_1⨂e_0 + 4 e_1⨂e_2 + e_2⨂e_0 - 4 e_2⨂e_1
+        a = 3 e_0⊗e_1 - e_0⊗e_2 - 3 e_1⊗e_0 + 4 e_1⊗e_2 + e_2⊗e_0 - 4 e_2⊗e_1
         sage: a.display(e)
         a = 3 e_0∧e_1 - e_0∧e_2 + 4 e_1∧e_2
         sage: ta.symmetries()  # the antisymmetry is of course preserved
@@ -606,7 +606,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
         sage: ta = T02(a) ; ta
         Type-(0,2) tensor a on the Rank-3 free module M over the Integer Ring
         sage: ta.display(e)
-        a = 3 e^0⨂e^1 - e^0⨂e^2 - 3 e^1⨂e^0 + 4 e^1⨂e^2 + e^2⨂e^0 - 4 e^2⨂e^1
+        a = 3 e^0⊗e^1 - e^0⊗e^2 - 3 e^1⊗e^0 + 4 e^1⊗e^2 + e^2⊗e^0 - 4 e^2⊗e^1
         sage: a.display(e)
         a = 3 e^0∧e^1 - e^0∧e^2 + 4 e^1∧e^2
         sage: ta.symmetries() # the antisymmetry is of course preserved

@@ -115,7 +115,7 @@ class AlternatingContrTensor(FreeModuleTensor):
     the tensor product::
 
         sage: c = b*b ; c
-        Type-(2,0) tensor b⨂b on the Rank-3 free module M over the
+        Type-(2,0) tensor b⊗b on the Rank-3 free module M over the
          Integer Ring
         sage: c.symmetries()
         symmetry: (0, 1); no antisymmetry
@@ -123,8 +123,8 @@ class AlternatingContrTensor(FreeModuleTensor):
         Free module of type-(2,0) tensors on the Rank-3 free module M
          over the Integer Ring
         sage: c.display(e)
-        b⨂b = 4 e_1⨂e_1 - 2 e_1⨂e_2 + 6 e_1⨂e_3 - 2 e_2⨂e_1 + e_2⨂e_2
-         - 3 e_2⨂e_3 + 6 e_3⨂e_1 - 3 e_3⨂e_2 + 9 e_3⨂e_3
+        b⊗b = 4 e_1⊗e_1 - 2 e_1⊗e_2 + 6 e_1⊗e_3 - 2 e_2⊗e_1 + e_2⊗e_2
+         - 3 e_2⊗e_3 + 6 e_3⊗e_1 - 3 e_3⊗e_2 + 9 e_3⊗e_3
 
     the contractions::
 
@@ -142,8 +142,8 @@ class AlternatingContrTensor(FreeModuleTensor):
         Free module of type-(2,0) tensors on the Rank-3 free module M
          over the Integer Ring
         sage: s.display(e)
-        4 e_1⨂e_1 + 10 e_1⨂e_2 + 6 e_1⨂e_3 - 14 e_2⨂e_1 + e_2⨂e_2
-         - 12 e_2⨂e_3 + 6 e_3⨂e_1 + 6 e_3⨂e_2 + 9 e_3⨂e_3
+        4 e_1⊗e_1 + 10 e_1⊗e_2 + 6 e_1⊗e_3 - 14 e_2⊗e_1 + e_2⊗e_2
+         - 12 e_2⊗e_3 + 6 e_3⊗e_1 + 6 e_3⊗e_2 + 9 e_3⊗e_3
 
     Note that tensor arithmetics preserves the alternating character if
     both operands are alternating::

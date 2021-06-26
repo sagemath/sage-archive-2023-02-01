@@ -405,7 +405,8 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{2248}{\approx}
     \DeclareUnicodeCharacter{2260}{\neq}
     \DeclareUnicodeCharacter{00B1}{\pm}
-    \DeclareUnicodeCharacter{2A02}{\ensuremath{\otimes}}
+    \DeclareUnicodeCharacter{2A02}{\otimes}
+    \DeclareUnicodeCharacter{2297}{\ensuremath{\otimes}}
     \DeclareUnicodeCharacter{2A01}{\oplus}
     \DeclareUnicodeCharacter{00BD}{\nicefrac{1}{2}}
     \DeclareUnicodeCharacter{00D7}{\times}

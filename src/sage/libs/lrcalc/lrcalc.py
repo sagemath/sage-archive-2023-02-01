@@ -197,6 +197,15 @@ import lrcalc
 
 def _lrcalc_dict_to_sage(result):
     return dict({_Partitions(i):Integer(k) for i,k in result.items()})
+    r"""
+    Translate from lrcalc output format to Sage expected format.
+
+    TESTS::
+
+        sage: from sage.libs.lrcalc.lrcalc import mult
+        sage: mult([2,1],[3,2,1],3) # indirect doctest
+        {[3, 3, 3]: 1, [4, 3, 2]: 1, [4, 4, 1]: 1, [5, 2, 2]: 1, [5, 3, 1]: 1}
+    """
 
 def lrcoef_unsafe(outer, inner1, inner2):
     r"""

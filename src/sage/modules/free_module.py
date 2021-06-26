@@ -1570,7 +1570,8 @@ done from the right side.""")
             return
         R     = self.base_ring()
         iters = [iter(R) for _ in range(len(G))]
-        for x in iters: next(x)     # put at 0
+        for x in iters:
+            next(x)     # put at 0
         zero  = R(0)
         v = [zero for _ in range(len(G))]
         n = 0
@@ -3001,9 +3002,11 @@ class FreeModule_generic_pid(FreeModule_generic):
 
         # standard algorithm for computing intersection of general submodule
         if self.dimension() <= other.dimension():
-            V1 = self; V2 = other
+            V1 = self
+            V2 = other
         else:
-            V1 = other; V2 = self
+            V1 = other
+            V2 = self
         A1 = V1.basis_matrix()
         A2 = V2.basis_matrix()
         S  = A1.stack(A2)
@@ -3846,13 +3849,15 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         # standard algorithm for computing intersection of general subspaces
         if self.dimension() <= other.dimension():
-            V1 = self; V2 = other
+            V1 = self
+            V2 = other
         else:
-            V1 = other; V2 = self
+            V1 = other
+            V2 = self
         A1 = V1.basis_matrix()
         A2 = V2.basis_matrix()
-        S  = A1.stack(A2)
-        K  = S.kernel()
+        S = A1.stack(A2)
+        K = S.kernel()
         n = int(V1.dimension())
         B = [A1.linear_combination_of_rows(v.list()[:n]) for v in K.basis()]
         return self.ambient_vector_space().submodule(B, check=False)

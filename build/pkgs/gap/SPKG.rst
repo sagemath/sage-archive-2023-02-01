@@ -31,7 +31,7 @@ Dependencies
 ------------
 
 -  Readline
--  MPIR
+-  GMP
 
 
 Special Update/Build Instructions
@@ -56,6 +56,3 @@ update GAP, please also update and use the spkg-src script.
 
 Patches
 ~~~~~~~
-
--  writeandcheck.patch: fix infinite loop in writeandcheck() when
-   writing an error message fails.

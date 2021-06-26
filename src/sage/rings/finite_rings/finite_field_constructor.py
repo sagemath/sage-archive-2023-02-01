@@ -285,14 +285,14 @@ class FiniteFieldFactory(UniqueFactory):
     (a generator of the multiplicative group), use
     ``modulus="primitive"`` if you need this::
 
-        sage: K.<a> = GF(5^40)
+        sage: K.<a> = GF(5^45)
         sage: a.multiplicative_order()
-        189478062869360049565633138
+        7105427357601001858711242675781
         sage: a.is_square()
         True
-        sage: K.<b> = GF(5^40, modulus="primitive")
+        sage: K.<b> = GF(5^45, modulus="primitive")
         sage: b.multiplicative_order()
-        9094947017729282379150390624
+        28421709430404007434844970703124
 
     The modulus must be irreducible::
 

@@ -113,7 +113,10 @@ AS_VAR_IF(SPKG_INSTALL, [no], [
                     AC_MSG_NOTICE(m4_normalize([will use system package and not install SPKG ]SPKG_NAME))
                 ], [
                     AS_VAR_IF(SPKG_USE_SYSTEM, [force], [
-                        AC_MSG_ERROR(m4_normalize([given --with-system-]SPKG_NAME[=force but no system package could be used]))
+                        AS_VAR_APPEND([SAGE_SPKG_ERRORS], ["
+    Given --with-system-]SPKG_NAME[=force, but no system package could be used.
+    That's an error.  Please install the indicated package to continue.
+    (To override this error, use ./configure --without-system-]SPKG_NAME[)"])
                     ], [
                         AC_MSG_NOTICE(m4_normalize([no suitable system package found for SPKG ]SPKG_NAME))
                     ])

@@ -1643,7 +1643,7 @@ class RiemannSurface(object):
         alpha = self._RR(0.912) 
         # alpha set manually for scaling purposes. Basic benchmarking shows 
         # that ~0.9 is a sensible value. 
-        E_global = self._RR(2**(-self._prec+3))
+        E_global = self._RR(2)**(-self._prec+3)
         
         while True:
             for i in range(len(centres_t)):
@@ -1674,7 +1674,7 @@ class RiemannSurface(object):
                             ai_pos = [ self._RRz([c.abs() for c in h.list()]) for h in ai_new]
                             m = [a(rho_z)/z_1 for a in ai_pos]
                             l = len(m) 
-                            M_tilde = 2*max((m[i].abs())**(1/(l-i)) for i in range(l))
+                            M_tilde = 2*max((m[i].abs())**(1/self._RR(l-i)) for i in range(l))
                             cg = g(cz,cw)
                             cdgdz = dgdz(cz,cg)
                             Delta = delta_z*cdgdz.abs()+ (delta_z**2)*M_tilde/(rho_z*(rho_z-delta_z))

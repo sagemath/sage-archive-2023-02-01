@@ -543,7 +543,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
         """
         RP = RecurrenceParser(self.k, self.coefficient_ring())
-        left, mu, right = RP(*args, **kwds)
+        mu, left, right = RP(*args, **kwds)
         return self(mu, left, right)
 
 
@@ -1904,12 +1904,12 @@ class RecurrenceParser(object):
             f
             sage: RP([f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
             ....:     f(0) == 0, f(1) == 1], f, n)
-            ((1, 0, 0),
-             [
+            ([
               [1 0 0]  [1 1 0]
               [1 1 0]  [0 1 0]
               [0 1 0], [0 1 1]
              ],
+             (1, 0, 0),
              (0, 1, 1))
         """
         from sage.arith.srange import srange
@@ -1924,4 +1924,4 @@ class RecurrenceParser(object):
         left = self.left(recurrence_rules)
         right = self.right(recurrence_rules)
 
-        return (left, mu, right)
+        return (mu, left, right)

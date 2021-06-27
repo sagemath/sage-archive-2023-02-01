@@ -54,7 +54,7 @@ the 2-sphere admits an induced metric::
 
     sage: h = S2_r.induced_metric()
     sage: h.display()
-    gamma = r^2 dtheta*dtheta + r^2*sin(theta)^2 dphi*dphi
+    gamma = r^2 dtheta⊗dtheta + r^2*sin(theta)^2 dphi⊗dphi
 
 The induced metric is also known as the *first fundamental form* (see
 :meth:`~sage.manifolds.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold.first_fundamental_form`)::
@@ -70,7 +70,7 @@ The *second fundamental form* encodes the extrinsic curvature of the
     Field of symmetric bilinear forms K on the 2-sphere S^2_r of radius r
      smoothly embedded in the Euclidean space E^3
     sage: K.display()
-    K = r dtheta*dtheta + r*sin(theta)^2 dphi*dphi
+    K = r dtheta⊗dtheta + r*sin(theta)^2 dphi⊗dphi
 
 One quantity that can be derived from the second fundamental form is the
 Gaussian curvature::
@@ -159,7 +159,7 @@ a volume form::
 
     sage: h = S1c.induced_metric()
     sage: h.display()
-    gamma = dchi*dchi
+    gamma = dchi⊗dchi
     sage: eps = h.volume_form()
     sage: eps.display()
     eps_gamma = -dchi

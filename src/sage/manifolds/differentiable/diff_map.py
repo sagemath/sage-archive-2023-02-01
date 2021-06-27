@@ -887,12 +887,12 @@ class DiffMap(ContinuousMap):
             sage: g = N.sym_bilin_form_field(name='g')
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
             sage: g.display()
-            g = dx*dx + dy*dy + dz*dz
+            g = dx⊗dx + dy⊗dy + dz⊗dz
             sage: pg = Phi.pullback(g) ; pg
             Field of symmetric bilinear forms Phi^*(g) on the Open subset U of
              the 2-dimensional differentiable manifold S^2
             sage: pg.display()
-            Phi^*(g) = dth*dth + sin(th)^2 dph*dph
+            Phi^*(g) = dth⊗dth + sin(th)^2 dph⊗dph
 
         Parallel computation::
 
@@ -901,7 +901,7 @@ class DiffMap(ContinuousMap):
            Field of symmetric bilinear forms Phi^*(g) on the Open subset U of
             the 2-dimensional differentiable manifold S^2
            sage: pg.display()
-           Phi^*(g) = dth*dth + sin(th)^2 dph*dph
+           Phi^*(g) = dth⊗dth + sin(th)^2 dph⊗dph
            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
 
@@ -910,7 +910,7 @@ class DiffMap(ContinuousMap):
             sage: a = N.diff_form(3, name='A')
             sage: a[1,2,3] = f
             sage: a.display()
-            A = x*y*z dx/\dy/\dz
+            A = x*y*z dx∧dy∧dz
             sage: pa = Phi.pullback(a) ; pa
             3-form Phi^*(A) on the Open subset U of the 2-dimensional
              differentiable manifold S^2

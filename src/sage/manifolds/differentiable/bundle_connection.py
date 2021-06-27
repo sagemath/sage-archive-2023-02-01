@@ -213,15 +213,15 @@ class BundleConnection(SageObject, Mutability):
         ....:     for j in E.irange():
         ....:         print(Omega(i ,j, e).display())
         curvature (1,1) of bundle connection nabla w.r.t. Local frame
-         (E|_M, (e_1,e_2)) = -(x^3 - x*y)*z dx/\dy + (-x^4*z + x*z^2) dx/\dz +
-         (-x^3*y*z + x^2*z^2) dy/\dz
+         (E|_M, (e_1,e_2)) = -(x^3 - x*y)*z dx∧dy + (-x^4*z + x*z^2) dx∧dz +
+         (-x^3*y*z + x^2*z^2) dy∧dz
          curvature (1,2) of bundle connection nabla w.r.t. Local frame
-         (E|_M, (e_1,e_2)) = -x dx/\dz - y dy/\dz
+         (E|_M, (e_1,e_2)) = -x dx∧dz - y dy∧dz
          curvature (2,1) of bundle connection nabla w.r.t. Local frame
-         (E|_M, (e_1,e_2)) = 2*x dx/\dy + 3*x^2 dx/\dz
+         (E|_M, (e_1,e_2)) = 2*x dx∧dy + 3*x^2 dx∧dz
          curvature (2,2) of bundle connection nabla w.r.t. Local frame
-         (E|_M, (e_1,e_2)) = (x^3 - x*y)*z dx/\dy + (x^4*z - x*z^2) dx/\dz +
-         (x^3*y*z - x^2*z^2) dy/\dz
+         (E|_M, (e_1,e_2)) = (x^3 - x*y)*z dx∧dy + (x^4*z - x*z^2) dx∧dz +
+         (x^3*y*z - x^2*z^2) dy∧dz
 
     The derived forms certainly obey the structure equations, see
     :meth:`curvature_form` for details::
@@ -1019,7 +1019,7 @@ class BundleConnection(SageObject, Mutability):
              frame (E|_M, (e_1)) on the 2-dimensional differentiable manifold M
             sage: curv.display()
             curvature (1,1) of bundle connection nabla w.r.t. Local frame
-             (E|_M, (e_1)) = dx/\dy
+             (E|_M, (e_1)) = dx∧dy
 
         """
         if frame is None:

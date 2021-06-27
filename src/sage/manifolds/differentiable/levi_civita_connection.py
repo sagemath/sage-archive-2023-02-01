@@ -129,7 +129,7 @@ class LeviCivitaConnection(AffineConnection):
         sage: g = M.metric('g')
         sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2
         sage: g.display()
-        g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+        g = dr⊗dr + r^2 dth⊗dth + r^2*sin(th)^2 dph⊗dph
         sage: nab = g.connection(name='nabla', latex_name=r'\nabla') ; nab
         Levi-Civita connection nabla associated with the Riemannian metric g on
          the 3-dimensional differentiable manifold R^3
@@ -426,7 +426,7 @@ class LeviCivitaConnection(AffineConnection):
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2], g[3,3] = 1, r^2 , (r*sin(th))^2
             sage: g.display()
-            g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+            g = dr⊗dr + r^2 dth⊗dth + r^2*sin(th)^2 dph⊗dph
             sage: nab = g.connection()
             sage: gam = nab.coef() ; gam
             3-indices components w.r.t. Coordinate frame (R^3, (d/dr,d/dth,d/dph)),
@@ -702,7 +702,7 @@ class LeviCivitaConnection(AffineConnection):
             sage: g = M.metric('g')
             sage: g[1,1], g[2,2] = 1, sin(th)^2
             sage: g.display() # standard metric on S^2:
-            g = dth*dth + sin(th)^2 dph*dph
+            g = dth⊗dth + sin(th)^2 dph⊗dph
             sage: nab = g.connection() ; nab
             Levi-Civita connection nabla_g associated with the Riemannian
              metric g on the 2-dimensional differentiable manifold S^2
@@ -710,7 +710,7 @@ class LeviCivitaConnection(AffineConnection):
             Field of symmetric bilinear forms Ric(g) on the 2-dimensional
              differentiable manifold S^2
             sage: ric.display()
-            Ric(g) = dth*dth + sin(th)^2 dph*dph
+            Ric(g) = dth⊗dth + sin(th)^2 dph⊗dph
 
         Checking that the Ricci tensor of the Levi-Civita connection associated
         to Schwarzschild metric is identically zero (as a solution of the
@@ -723,8 +723,8 @@ class LeviCivitaConnection(AffineConnection):
             sage: g[0,0], g[1,1] = -(1-2*m/r), 1/(1-2*m/r)
             sage: g[2,2], g[3,3] = r^2, (r*sin(th))^2
             sage: g.display()
-            g = (2*m/r - 1) dt*dt - 1/(2*m/r - 1) dr*dr + r^2 dth*dth
-             + r^2*sin(th)^2 dph*dph
+            g = (2*m/r - 1) dt⊗dt - 1/(2*m/r - 1) dr⊗dr + r^2 dth⊗dth
+             + r^2*sin(th)^2 dph⊗dph
             sage: nab = g.connection() ; nab
             Levi-Civita connection nabla_g associated with the Lorentzian
              metric g on the 4-dimensional differentiable manifold M

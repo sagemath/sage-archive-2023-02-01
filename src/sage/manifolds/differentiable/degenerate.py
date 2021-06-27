@@ -187,7 +187,7 @@ class DegenerateManifold(DifferentiableManifold):
 
             sage: g[1,1], g[2,2] = -1, 1
             sage: g.display()
-            g = -dx*dx + dy*dy
+            g = -dx⊗dx + dy⊗dy
             sage: g[:]
             [-1  0  0]
             [ 0  1  0]
@@ -202,7 +202,7 @@ class DegenerateManifold(DifferentiableManifold):
             sage: dx, dy = X.coframe()[1], X.coframe()[2]
             sage: b = dx*dx + dy*dy
             sage: b
-            Field of symmetric bilinear forms dx*dx+dy*dy on the 3-dimensional
+            Field of symmetric bilinear forms dx⊗dx+dy⊗dy on the 3-dimensional
             degenerate_metric manifold M
 
         We then use the metric method
@@ -212,7 +212,7 @@ class DegenerateManifold(DifferentiableManifold):
 
             sage: g.set(b)
             sage: g.display()
-            g = dx*dx + dy*dy
+            g = dx⊗dx + dy⊗dy
 
         Another metric can be defined on ``M`` by specifying a metric name
         distinct from that chosen at the creation of the manifold (which
@@ -223,7 +223,7 @@ class DegenerateManifold(DifferentiableManifold):
             degenerate metric h on the 3-dimensional degenerate_metric manifold M
             sage: h[1,1], h[2,2], h[3,3] = 1+y^2, 1+z^2, 1+x^2
             sage: h.display()
-            h = (y^2 + 1) dx*dx + (z^2 + 1) dy*dy + (x^2 + 1) dz*dz
+            h = (y^2 + 1) dx⊗dx + (z^2 + 1) dy⊗dy + (x^2 + 1) dz⊗dz
 
         The metric tensor ``h`` is distinct from the metric entering in the
         definition of the degenerate manifold ``M``::
@@ -314,7 +314,7 @@ class DegenerateManifold(DifferentiableManifold):
             degenerate metric g on the Open subset U of the 3-dimensional
             degenerate_metric manifold M
             sage: gU.display()
-            g = -dx*dx + dy*dy
+            g = -dx⊗dx + dy⊗dy
             sage: gU is g.restrict(U)
             True
 
@@ -326,7 +326,7 @@ class DegenerateManifold(DifferentiableManifold):
             Open subset V of the 3-dimensional degenerate_metric manifold M
             sage: gV = V.metric()
             sage: gV.display()
-            g = -dx*dx + dy*dy
+            g = -dx⊗dx + dy⊗dy
             sage: gV is g.restrict(V)
             True
 

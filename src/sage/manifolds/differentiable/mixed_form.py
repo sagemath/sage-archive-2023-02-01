@@ -90,14 +90,14 @@ class MixedForm(AlgebraElement):
         sage: eta = M.diff_form(2, name='eta'); eta
         2-form eta on the 2-dimensional differentiable manifold M
         sage: eta[e_xy,0,1] = y^2*x; eta.display()
-        eta = x*y^2 dx/\dy
+        eta = x*y^2 dx∧dy
 
     The components of the mixed form ``F`` can be set very easily::
 
         sage: A[:] = [f, omega, eta]; A.display() # display names
         A = f + omega + eta
         sage: A.display_expansion() # display in coordinates
-        A = x + x*y dx + x*y^2 dx/\dy
+        A = x + x*y dx + x*y^2 dx∧dy
         sage: A[0]
         Scalar field f on the 2-dimensional differentiable manifold M
         sage: A[0] is f
@@ -121,29 +121,29 @@ class MixedForm(AlgebraElement):
     via the wedge product::
 
         sage: C = x*A; C
-        Mixed differential form x/\A on the 2-dimensional differentiable
+        Mixed differential form x∧A on the 2-dimensional differentiable
          manifold M
         sage: C.display_expansion()
-        x/\A = x^2 + x^2*y dx + x^2*y^2 dx/\dy
+        x∧A = x^2 + x^2*y dx + x^2*y^2 dx∧dy
         sage: D = A+C; D
-        Mixed differential form A+x/\A on the 2-dimensional differentiable
+        Mixed differential form A+x∧A on the 2-dimensional differentiable
          manifold M
         sage: D.display_expansion()
-        A+x/\A = x^2 + x + (x^2 + x)*y dx + (x^2 + x)*y^2 dx/\dy
+        A+x∧A = x^2 + x + (x^2 + x)*y dx + (x^2 + x)*y^2 dx∧dy
         sage: E = A*C; E
-        Mixed differential form A/\(x/\A) on the 2-dimensional differentiable
+        Mixed differential form A∧(x∧A) on the 2-dimensional differentiable
          manifold M
         sage: E.display_expansion()
-        A/\(x/\A) = x^3 + 2*x^3*y dx + 2*x^3*y^2 dx/\dy
+        A∧(x∧A) = x^3 + 2*x^3*y dx + 2*x^3*y^2 dx∧dy
 
     Coercions are fully implemented::
 
         sage: F = omega*A
         sage: F.display_expansion()
-        omega/\A = x^2*y dx
+        omega∧A = x^2*y dx
         sage: G = omega+A
         sage: G.display_expansion()
-        omega+A = x + 2*x*y dx + x*y^2 dx/\dy
+        omega+A = x + 2*x*y dx + x*y^2 dx∧dy
 
     Moreover, it is possible to compute the exterior derivative of a
     mixed form::
@@ -151,7 +151,7 @@ class MixedForm(AlgebraElement):
         sage: dA = A.exterior_derivative(); dA.display()
         dA = zero + df + domega
         sage: dA.display_expansion()
-        dA = dx - x dx/\dy
+        dA = dx - x dx∧dy
 
     Initialize a mixed form on a 2-dimensional non-parallelizable differentiable
     manifold::
@@ -178,13 +178,13 @@ class MixedForm(AlgebraElement):
         omega = x*y dx
         sage: A[2].set_name('eta')
         sage: A[2][e_uv,0,1] = u*v^2; A[2].display(e_uv)
-        eta = u*v^2 du/\dv
+        eta = u*v^2 du∧dv
         sage: A.add_comp_by_continuation(e_uv, W, c_uv)
         sage: A.display_expansion(e_uv)
-        A = 1/2*u + 1/2*v + (1/8*u^2 - 1/8*v^2) du + (1/8*u^2 - 1/8*v^2) dv + u*v^2 du/\dv
+        A = 1/2*u + 1/2*v + (1/8*u^2 - 1/8*v^2) du + (1/8*u^2 - 1/8*v^2) dv + u*v^2 du∧dv
         sage: A.add_comp_by_continuation(e_xy, W, c_xy)
         sage: A.display_expansion(e_xy)
-        A = x + x*y dx + (-2*x^3 + 2*x^2*y + 2*x*y^2 - 2*y^3) dx/\dy
+        A = x + x*y dx + (-2*x^3 + 2*x^2*y + 2*x*y^2 - 2*y^3) dx∧dy
 
     Since zero and one are special elements, their components cannot be
     changed::
@@ -367,7 +367,7 @@ class MixedForm(AlgebraElement):
             sage: omega.add_comp_by_continuation(e_uv, W, c_uv) # continuation onto M
             sage: eta = M.diff_form(2, name='eta')
             sage: eta[e_uv,0,1] = u*v; eta.display(e_uv)
-            eta = u*v du/\dv
+            eta = u*v du∧dv
             sage: eta.add_comp_by_continuation(e_xy, W, c_xy) # continuation onto M
             sage: F = M.mixed_form([0, omega, eta], name='F'); F
             Mixed differential form F on the 2-dimensional differentiable
@@ -375,9 +375,9 @@ class MixedForm(AlgebraElement):
             sage: F.display() # display names of homogeneous components
             F = zero + omega + eta
             sage: F.display_expansion(e_uv)
-            F = (1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv + u*v du/\dv
+            F = (1/4*u + 1/4*v) du + (1/4*u + 1/4*v) dv + u*v du∧dv
             sage: F.display_expansion(e_xy)
-            F = x dx + (2*x^2 - 2*y^2) dx/\dy
+            F = x dx + (2*x^2 - 2*y^2) dx∧dy
 
         """
         from sage.misc.latex import latex
@@ -427,7 +427,7 @@ class MixedForm(AlgebraElement):
                     for k in range(rst._tensor_rank):
                         bases_txt.append(cobasis[ind[k]]._name)
                         bases_latex.append(latex(cobasis[ind[k]]))
-                    basis_term_txt = "/\\".join(bases_txt)
+                    basis_term_txt = "\u2227".join(bases_txt)
                     basis_term_latex = r"\wedge ".join(bases_latex)
                     coef_txt = repr(coef)
                     if coef_txt == "1":
@@ -867,31 +867,31 @@ class MixedForm(AlgebraElement):
             sage: mu = M.diff_form(2, name='mu')
             sage: mu[0,2] = z
             sage: mu.display()
-            mu = z dx/\dz
+            mu = z dx∧dz
             sage: A = M.mixed_form([f, omega, mu, 0], name='A')
             sage: A.display_expansion()
-            A = x + x dx + z dx/\dz
+            A = x + x dx + z dx∧dz
             sage: B = M.mixed_form([g, eta, mu, 0], name='B')
             sage: B.display_expansion()
-            B = y + y dy + z dx/\dz
+            B = y + y dy + z dx∧dz
 
         The wedge product of ``A`` and ``B`` yields::
 
             sage: C = A.wedge(B); C
-            Mixed differential form A/\B on the 3-dimensional differentiable
+            Mixed differential form A∧B on the 3-dimensional differentiable
              manifold M
             sage: C.display_expansion()
-            A/\B = x*y + x*y dx + x*y dy + x*y dx/\dy + (x + y)*z dx/\dz - y*z dx/\dy/\dz
+            A∧B = x*y + x*y dx + x*y dy + x*y dx∧dy + (x + y)*z dx∧dz - y*z dx∧dy∧dz
             sage: D = B.wedge(A); D # Don't even try, it's not commutative!
-            Mixed differential form B/\A on the 3-dimensional differentiable
+            Mixed differential form B∧A on the 3-dimensional differentiable
              manifold M
             sage: D.display_expansion() # I told you so!
-            B/\A = x*y + x*y dx + x*y dy - x*y dx/\dy + (x + y)*z dx/\dz - y*z dx/\dy/\dz
+            B∧A = x*y + x*y dx + x*y dy - x*y dx∧dy + (x + y)*z dx∧dz - y*z dx∧dy∧dz
 
         Alternatively, the multiplication symbol can be used::
 
             sage: A*B
-            Mixed differential form A/\B on the 3-dimensional differentiable
+            Mixed differential form A∧B on the 3-dimensional differentiable
              manifold M
             sage: A*B == C
             True
@@ -899,9 +899,9 @@ class MixedForm(AlgebraElement):
         Yet, the multiplication includes coercions::
 
             sage: E = x*A; E.display_expansion()
-            x/\A = x^2 + x^2 dx + x*z dx/\dz
+            x∧A = x^2 + x^2 dx + x*z dx∧dz
             sage: F = A*eta; F.display_expansion()
-            A/\eta = x*y dy + x*y dx/\dy - y*z dx/\dy/\dz
+            A∧eta = x*y dy + x*y dx∧dy - y*z dx∧dy∧dz
 
         """
         # Case zero:
@@ -919,7 +919,7 @@ class MixedForm(AlgebraElement):
         # Compose name:
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)
-        resu._name = format_mul_txt(self._name, '/\\', other._name)
+        resu._name = format_mul_txt(self._name, '\u2227', other._name)
         resu._latex_name = format_mul_latex(self._latex_name, r'\wedge ',
                                             other._latex_name)
         return resu
@@ -949,10 +949,10 @@ class MixedForm(AlgebraElement):
             omega = x*y dx
             sage: F = M.mixed_form([0, omega, 0], name='F')
             sage: A = x*F*y; A
-            Mixed differential form y/\(x/\F) on the 2-dimensional
+            Mixed differential form y∧(x∧F) on the 2-dimensional
              differentiable manifold M
             sage: A.display_expansion()
-            y/\(x/\F) = x^2*y^2 dx
+            y∧(x∧F) = x^2*y^2 dx
 
         """
         try:
@@ -972,7 +972,7 @@ class MixedForm(AlgebraElement):
         from sage.misc.latex import latex
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)
-        resu._name = format_mul_txt(repr(other), '/\\', self._name)
+        resu._name = format_mul_txt(repr(other), '\u2227', self._name)
         resu._latex_name = format_mul_latex(latex(other), r'\wedge ',
                                             self._latex_name)
         return resu
@@ -1017,7 +1017,7 @@ class MixedForm(AlgebraElement):
             sage: a = M.diff_form(2, 'a')
             sage: a[1,2], a[1,3], a[2,3] = z+y^2, z+x, x^2
             sage: a.disp()
-            a = (y^2 + z) dx/\dy + (x + z) dx/\dz + x^2 dy/\dz
+            a = (y^2 + z) dx∧dy + (x + z) dx∧dz + x^2 dy∧dz
             sage: F = M.mixed_form([f, 0, a, 0], name='F'); F.display()
             F = f + zero + a + zero
             sage: dF = F.exterior_derivative()
@@ -1025,7 +1025,7 @@ class MixedForm(AlgebraElement):
             dF = zero + df + dzero + da
             sage: dF = F.exterior_derivative()
             sage: dF.display_expansion()
-            dF = 2*z dz + (2*x + 1) dx/\dy/\dz
+            dF = 2*z dz + (2*x + 1) dx∧dy∧dz
 
         Due to long calculation times, the result is cached::
 
@@ -1143,7 +1143,7 @@ class MixedForm(AlgebraElement):
             sage: A[1:3] = [a, b]; A.display()
             A = f + a + b
             sage: A.display_expansion()
-            A = x + y dx + x*y dx/\dy
+            A = x + y dx + x*y dx∧dy
 
         """
         if self is self.parent().one() or self is self.parent().zero():
@@ -1323,7 +1323,7 @@ class MixedForm(AlgebraElement):
              2-form eta on the Open subset V of the 2-dimensional
              differentiable manifold M]
             sage: FV.display_expansion(e_uv)
-            F = u^2/(u^4 + 2*u^2*v^2 + v^4) - (u^2*v^2 - v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du - 2*u*v^3/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) dv - u^2*v^2/(u^12 + 6*u^10*v^2 + 15*u^8*v^4 + 20*u^6*v^6 + 15*u^4*v^8 + 6*u^2*v^10 + v^12) du/\dv
+            F = u^2/(u^4 + 2*u^2*v^2 + v^4) - (u^2*v^2 - v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du - 2*u*v^3/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) dv - u^2*v^2/(u^12 + 6*u^10*v^2 + 15*u^8*v^4 + 20*u^6*v^6 + 15*u^4*v^8 + 6*u^2*v^10 + v^12) du∧dv
 
         """
         resu = type(self)(subdomain.mixed_form_algebra(dest_map=dest_map),
@@ -1377,9 +1377,9 @@ class MixedForm(AlgebraElement):
             sage: F.add_comp_by_continuation(e_uv, W, c_uv)
             sage: F.add_comp_by_continuation(e_xy, W, c_xy) # Now, F is fully defined
             sage: F.display_expansion(e_xy)
-            F = x + x dx - x*y/(x^8 + 4*x^6*y^2 + 6*x^4*y^4 + 4*x^2*y^6 + y^8) dx/\dy
+            F = x + x dx - x*y/(x^8 + 4*x^6*y^2 + 6*x^4*y^4 + 4*x^2*y^6 + y^8) dx∧dy
             sage: F.display_expansion(e_uv)
-            F = u/(u^2 + v^2) - (u^3 - u*v^2)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) du - 2*u^2*v/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) dv + u*v du/\dv
+            F = u/(u^2 + v^2) - (u^3 - u*v^2)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) du - 2*u^2*v/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) dv + u*v du∧dv
 
         """
         if chart is None:

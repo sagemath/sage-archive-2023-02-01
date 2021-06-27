@@ -23,7 +23,7 @@ Then set the metric to be the hyperbolic one::
     sage: g = M.metric()
     sage: g[0,0], g[1,1] = 1/y^2, 1/y^2
     sage: g.display()
-    g = y^(-2) dx*dx + y^(-2) dy*dy
+    g = y^(-2) dx⊗dx + y^(-2) dy⊗dy
 
 Pick an initial point and an initial tangent vector::
 

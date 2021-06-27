@@ -1192,8 +1192,6 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         self._is_zero = True
         return False
 
-    __nonzero__ = __bool__   # For Python2 compatibility
-
     def is_trivial_zero(self):
         r"""
         Check if ``self`` is trivially equal to zero without any
@@ -2072,9 +2070,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         if not rst._domain.is_subset(self._domain):
             raise ValueError("the domain of the declared restriction is not " +
                              "a subset of the field's domain")
-        self._restrictions[rst._domain] = rst.copy()
-        self._restrictions[rst._domain].set_name(name=self._name,
-                                                 latex_name=self._latex_name)
+        self._restrictions[rst._domain] = rst.copy(name=self._name,
+                                                   latex_name=self._latex_name)
         for chart, expr in rst._express.items():
             intersection = chart._domain.intersection(rst._domain)
             self._express[chart.restrict(intersection)] = expr
@@ -3661,6 +3658,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         """
         for rst in self._restrictions.values():
             rst.set_immutable()
+        for func in self._express.values():
+            func.set_immutable()
         super().set_immutable()
 
     @cached_method

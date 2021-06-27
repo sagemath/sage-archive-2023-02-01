@@ -1936,8 +1936,8 @@ class Function_prod(BuiltinFunction):
             sage: isinstance(r.operator(),
             ....:     sage.functions.other.Function_prod) # known bug
             True
-            sage: giac(sprod(m, m, 1, n))
-            n!
+            sage: giac(sprod(m, m, 1, n)).sage()
+            factorial(n)
         """
         BuiltinFunction.__init__(self, "product", nargs=4,
                                conversions=dict(maxima='product',

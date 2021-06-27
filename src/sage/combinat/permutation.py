@@ -232,6 +232,7 @@ Classes and methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from __future__ import annotations
 from typing import Iterator
 
 from sage.structure.parent import Parent

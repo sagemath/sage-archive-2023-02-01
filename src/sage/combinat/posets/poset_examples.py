@@ -154,7 +154,7 @@ class Posets(metaclass=ClasscallMetaclass):
         return FinitePosets_n(n)
 
     @staticmethod
-    def BooleanLattice(n, facade=None):
+    def BooleanLattice(n, facade=None, element_label=None):
         """
         Return the Boolean lattice containing `2^n` elements.
 
@@ -163,11 +163,22 @@ class Posets(metaclass=ClasscallMetaclass):
           facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
           the :func:`~sage.combinat.posets.posets.Poset` constructor
+        - ``element_label`` (string, default ``None``) -- what to label
+          the elements of the poset by. If ``None`` label the elements
+          `0, 1, 2, \ldots, 2^n-1`. If ``'subsets'``, give the minimal
+          element the label ``Set({})`` and the maximal element
+          ``Set({1,2,...,n})``. Elements inbeween will be a subset of
+          `1, 2, \ldots, n``.
 
         EXAMPLES::
 
             sage: posets.BooleanLattice(5)
             Finite lattice containing 32 elements
+
+            sage: posets.BooleanLattice(2)._list
+            (0, 1, 2, 3)
+            sage: sorted(posets.BooleanLattice(2, element_label='subsets')._list)
+            ({}, {1}, {2}, {1,2})
         """
         try:
             n = Integer(n)
@@ -179,6 +190,12 @@ class Posets(metaclass=ClasscallMetaclass):
             return LatticePoset( ([0], []) )
         if n == 1:
             return LatticePoset( ([0,1], [[0,1]]) )
+
+        if element_label == 'subsets':
+            return FiniteLatticePoset((Subsets(n), lambda x,y: x.issubset(y))
+                                      category = FiniteLatticePosets(),
+                                      facade = facade)
+
         L = [[Integer(x|(1<<y)) for y in range(n) if x&(1<<y)==0] for
              x in range(2**n)]
         D = DiGraph({v: L[v] for v in range(2**n)})

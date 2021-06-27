@@ -20,6 +20,10 @@ class LLS(ModuleElement):
     def _add_(self, other):
         P = self.parent()
         return P.element_class(P, LLS_add(self._aux, other._aux))
+
+    def _div_(self, other):
+        P = self.parent()
+        return P.element_class(P, LLS_div(self._aux, other._aux))
     
     def _rmul_(self, scalar):
         P = self.parent()
@@ -777,7 +781,7 @@ class LLS_inv(LLS_aux):
 
         if self._v is infinity:
             raise ZeroDivisionError('cannot invert zero')
-
+        
     def get_coefficient(self, n):
         """
         Return the `n`-th coefficient of the series ``s``.
@@ -793,9 +797,8 @@ class LLS_inv(LLS_aux):
         if n == -v:
             return self._ainv
         c = ZZ.zero()
-        print('s is', s)
         for k in range(-v, n):
-            c += s[k] * self._series[n + v - k]
+            c += self[k] * self._series[n + v - k]
         return -c * self._ainv
 
     def iterate_coefficients(self):
@@ -808,7 +811,7 @@ class LLS_inv(LLS_aux):
                 continue
             c = self._zero
             for k in range(-v, n):
-                c += s[k] * self._series[n + v - k]
+                c += self[k] * self._series[n + v - k]
             yield -c * self._ainv
             n += 1
 
@@ -902,4 +905,66 @@ class LLS_trunc(LLS_aux):
             else:
                 c = self._zero
             yield c
+            n += 1
+
+
+class LLS_div(LLS_aux):
+    """
+        Return ``self`` divided by ``other``.
+
+        INPUT:
+
+        - ``other`` -- nonzero series
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: z/(1 - z)
+            z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + ...
+    """
+    def __init__(self, left, right):
+        
+        self._left = left
+        self._right = right
+
+        # if right.is_zero():
+        #     raise ZeroDivisionError("division by zero series")
+
+        # if left.is_zero():
+        #     return ZZ.zero()
+
+        super().__init__(left._is_sparse, left._approximate_valuation, None)
+
+        self._approximate_valuation = left.valuation(left) - right.valuation(right)
+
+        lv = left.valuation(left)
+        rv = right.valuation(right)
+        self._lv = lv
+        self._rv = rv
+        self._ainv = ~right[rv]
+    
+    def get_coefficient(self, n):
+        lv = self._lv
+        rv = self._rv
+
+        if n == lv - rv:
+            return self._left[lv]/self._right[rv]
+        c = self._left[n + rv]
+        for k in range(lv - rv, n):
+            c -= self._left[k] * self._right[n + rv - k]
+        return c * self._ainv
+    
+    def iterate_coefficients(self):
+        n = self._offset
+        lv = self._lv
+        rv = self._rv
+        while True:
+            if n == lv - rv:
+                yield self._left[lv]/self._right[rv]
+                n += 1
+                continue
+            c = self._left[n + rv]
+            for k in range(lv - rv, n):
+                c -= self._left[k] * self._right[n + rv - k]
+            yield c * self._ainv
             n += 1

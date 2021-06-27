@@ -5889,7 +5889,7 @@ REFERENCES:
 .. [ZBLRYV2015] \W. Zhang, Z. Bao, D. Lin, V. Rijmen, B. Yang, and I. Verbauwhede,
                 *RECTANGLE: A bit-slice lightweight block cipher suitable for
                 multiple platforms*; in
-                SCience China Information Sciences, (2015), pp. 1-15.
+                Science China Information Sciences, (2015), pp. 1-15.
 
 .. [ZBN1997] \C. Zhu, R. H. Byrd and J. Nocedal. L-BFGS-B: Algorithm
              778: L-BFGS-B, FORTRAN routines for large scale bound
@@ -5897,18 +5897,19 @@ REFERENCES:
              Mathematical Software, Vol 23, Num. 4, pp.550--560, 1997.
 
 .. [ZDYBXJZ2019] \W. Zhang, T. Ding, B. Yang, Z. Bao, Z. Xiang, F. Ji, X. Zhao.
-                 "KNOT: Algorithm Speci cationsand Supporting Document"
+                 *KNOT: Algorithm Specifications and Supporting Document*
                  https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/KNOT-spec.pdf
 
-.. [Zei2011] Doron Zeilberger. "The C-finite ansatz." The Ramanujan Journal
-             (2011): 1-10.
+.. [Zei2011] Doron Zeilberger. *The C-finite ansatz*. The Ramanujan Journal
+             (2011): 1-10. :doi:`10.1007/s11139-012-9406-6`
 
-.. [Zha2019] Bin Zhang. "Fountain: A Lightweight Authenticated Cipher(v1)"
+.. [Zha2019] Bin Zhang. *Fountain: A Lightweight Authenticated Cipher (v1)*
              https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/fountain-spec.pdf
 
 .. [Zhedanov1991] \A.S. Zhedanov.
                   *"Hidden symmetry" of the Askey–Wilson polynomials*,
                   Theoret. and Math. Phys. **89** (1991), 1146--1157.
+                  :doi:`10.1007/BF01015906`
 
 .. [ZF2012] Jin-Xin Zhou and Yan-Quan Feng. *Cubic Vertex-Transitive
             Non-Cayley Graphs of Order 8p*. The Electronic Journal of
@@ -5916,18 +5917,19 @@ REFERENCES:
 
 .. [Zie1998] \G. M. Ziegler. *Shelling polyhedral 3-balls and
              4-polytopes*. Discrete Comput. Geom. 19 (1998), 159-174.
+             :doi:`10.1007/PL00009339`
 
 .. [Zie2007] \G. M. Ziegler. *Lectures on polytopes*, Volume
              152 of Graduate Texts in Mathematics, 7th printing of 1st edition, Springer, 2007.
 
 .. [ZJRRS2019] \M. R. Z'aba, N. Jamil, M. S. Rohmad, H. A. Rani, S. Shamsuddin
-           "TheCiliPadiFamily of LightweightAuthenticated Encryption"
+           *The CiliPadi Family of Lightweight Authenticated Encryption*
            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/cilipadi-spec.pdf
 
-.. [Zor2008] \A. Zorich "Explicit Jenkins-Strebel representatives of
-             all strata of Abelian and quadratic differentials",
+.. [Zor2008] \A. Zorich. *Explicit Jenkins-Strebel representatives of
+             all strata of Abelian and quadratic differentials*,
              Journal of Modern Dynamics, vol. 2, no 1, 139-185 (2008)
-             (http://www.math.psu.edu/jmd)
+             (http://www.math.psu.edu/jmd) :doi:`10.3934/jmd.2008.2.139`
 
 .. [Zor] Anton Zorich, "Generalized Permutation software"
          (http://perso.univ-rennes1.fr/anton.zorich)
@@ -5936,6 +5938,6 @@ REFERENCES:
             *Dual canonical bases for the quantum special linear group
             and invariant subalgebras*.
             Lett. Math. Phys. **73** (2005), pp. 165-181.
-            :arxiv:`math/0509651`.
+            :arxiv:`math/0509651`, :doi:`10.1007/s11005-005-0015-9`
 
 .. include:: ../footer.txt

@@ -7140,6 +7140,38 @@ class FiniteWord_class(Word_class):
         else:
             return False
 
+    def minimal_conjugate(self):
+        r"""
+        Return the lexicographically minimal conjugate of this word (see
+        :wikipedia:`Lexicographically_minimal_string_rotation`).
+
+        EXAMPLES::
+
+            sage: Word('213').minimal_conjugate()
+            word: 132
+            sage: Word('11').minimal_conjugate()
+            word: 11
+            sage: Word('12112').minimal_conjugate()
+            word: 11212
+            sage: Word('211').minimal_conjugate()
+            word: 112
+            sage: Word('211211211').minimal_conjugate()
+            word: 112112112
+
+        TESTS::
+
+            sage: Word().minimal_conjugate()
+            word:
+        """
+        if not self:
+            return self
+        p = self.primitive()
+        q = self.length() // p.length()
+        end = 0
+        for factor in (p ** 2).lyndon_factorization():
+            end += factor.length()
+            if end >= p.length():
+                return factor ** q
 
 #######################################################################
 

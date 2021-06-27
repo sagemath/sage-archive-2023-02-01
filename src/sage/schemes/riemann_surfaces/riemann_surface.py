@@ -345,8 +345,8 @@ class RiemannSurface(object):
       For a nonsingular plane curve of degree `d`, an appropriate set is given
       by the monomials of degree up to `d-3`.
 
-    - ``error_bound`` -- (default: ``'heuristic'``). String specifing the 
-      error bound method to use when calculating the integrals of differentials. 
+    - ``integration_method`` -- (default: ``'heuristic'``). String specifing the 
+      integration method to use when calculating the integrals of differentials. 
       The options are ``'heuristic'`` and ``'rigorous'``, the latter of
       which is often the most efficient. 
 
@@ -402,7 +402,7 @@ class RiemannSurface(object):
         sage: tau.algdep(6).degree() == 2
         True
     """
-    def __init__(self, f, prec=53, certification=True, differentials=None, error_bound="heuristic"):
+    def __init__(self, f, prec=53, certification=True, differentials=None, integration_method="heuristic"):
         r"""
         TESTS::
 
@@ -414,7 +414,7 @@ class RiemannSurface(object):
         # Initializations.
         self._prec = prec
         self._certification = certification
-        self._error_bound = error_bound
+        self._integration_method = integration_method
         self._R = f.parent()
         if len(self._R.gens()) != 2:
             raise ValueError('only bivariate polynomials supported.')
@@ -1721,7 +1721,7 @@ class RiemannSurface(object):
 
         return 2*output*z1_minus_z0
 
-    def matrix_of_integral_values(self, differentials, error_bound="heuristic"):
+    def matrix_of_integral_values(self, differentials, integration_method="heuristic"):
         r"""
         Compute the path integrals of the given differentials along the homology
         basis.
@@ -1735,8 +1735,8 @@ class RiemannSurface(object):
 
         - ``differentials`` -- a list of polynomials.
 
-        - ``error_bound`` -- (default: ``'heuristic'``). String specifying the
-          error bound method to use. The options are ``'heuristic'`` and 
+        - ``integration_method`` -- (default: ``'heuristic'``). String specifying
+          the integration method to use. The options are ``'heuristic'`` and 
           ``'rigorous'``.
 
         OUTPUT:
@@ -1778,13 +1778,13 @@ class RiemannSurface(object):
 
         fcd = [fast_callable(omega, domain=self._CC) for omega in differentials]
 
-        if error_bound=="heuristic":
+        if integration_method=="heuristic":
             line_int = lambda edge: self.simple_vector_line_integral(edge,fcd)
-        elif error_bound=="rigorous":
+        elif integration_method=="rigorous":
             bd = self._bounding_data(differentials)
             line_int = lambda edge: self.rigorous_line_integral(edge,fcd,bd)
         else:
-            raise ValueError("Invalid error_bound method")
+            raise ValueError("Invalid integration method")
 
         #integral_dict = {upstairs_edge:
         #                 self.simple_vector_line_integral(upstairs_edge,
@@ -1840,7 +1840,7 @@ class RiemannSurface(object):
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<x,y> = QQ[]
             sage: f = y^2 - x^3 + 1
-            sage: S = RiemannSurface(f, error_bound="rigorous")
+            sage: S = RiemannSurface(f, integration_method="rigorous")
             sage: T = RiemannSurface(f)
             sage: S.riemann_matrix()
             [-0.500000000000000 + 0.866025403784439*I]
@@ -1855,7 +1855,7 @@ class RiemannSurface(object):
         #differentials = [fast_callable(omega, domain=self._CC)
         #                 for omega in self.cohomology_basis()]
         differentials = self.cohomology_basis()
-        return self.matrix_of_integral_values(differentials, self._error_bound)
+        return self.matrix_of_integral_values(differentials, self._integration_method)
 
     def riemann_matrix(self):
         r"""

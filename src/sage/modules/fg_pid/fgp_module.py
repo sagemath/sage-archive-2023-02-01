@@ -1698,8 +1698,13 @@ class FGP_Module_class(Module):
 
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
-            sage: Q.random_element()
-            (1, 5)
+            sage: Q.random_element().parent() is Q
+            True
+            sage: Q.cardinality()
+            48
+            sage: S = set()
+            sage: while len(S) < 48:
+            ....:     S.add(Q.random_element())
         """
         return self(self._V.random_element(*args, **kwds))
 
@@ -1921,7 +1926,23 @@ def random_fgp_module(n, R=ZZ, finite=False):
 
         sage: import sage.modules.fg_pid.fgp_module as fgp
         sage: fgp.random_fgp_module(4)
-        Finitely generated module V/W over Integer Ring with invariants (4)
+        Finitely generated module V/W over Integer Ring with invariants (...)
+
+    In most cases the cardinality is small or infinite::
+
+        sage: for g in (1, 2, 3, +Infinity):
+        ....:     while fgp.random_fgp_module(4).cardinality() != 1:
+        ....:         pass
+
+    One can force a finite module::
+
+        sage: fgp.random_fgp_module(4, finite=True).is_finite()
+        True
+
+    Larger finite modules appear::
+
+        sage: while fgp.random_fgp_module(4, finite=True).cardinality() < 100:
+        ....:     pass
     """
     K = R.fraction_field()
     V = K**n
@@ -1948,9 +1969,18 @@ def random_fgp_morphism_0(*args, **kwds):
     EXAMPLES::
 
         sage: import sage.modules.fg_pid.fgp_module as fgp
-        sage: fgp.random_fgp_morphism_0(4)
-        Morphism from module over Integer Ring with invariants (4,) to module with invariants (4,) that sends the generators to [(0)]
+        sage: mor = fgp.random_fgp_morphism_0(4)
+        sage: mor.domain() == mor.codomain()
+        True
+        sage: fgp.is_FGP_Module(mor.domain())
+        True
 
+    Each generator is sent to a random multiple of itself::
+
+        sage: gens = mor.domain().gens()
+        sage: im_gens = mor.im_gens()
+        sage: all(im_gens[i] == sum(im_gens[i])*gens[i] for i in range(len(gens)))
+        True
     """
     A = random_fgp_module(*args, **kwds)
     return A.hom([ZZ.random_element() * g for g in A.smith_form_gens()])

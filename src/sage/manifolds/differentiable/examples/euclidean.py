@@ -675,10 +675,6 @@ class EuclideanSpace(PseudoRiemannianManifold):
         if names is not None and symbols is None:
             if n == 2:
                 names = list(names)
-                symbols = ''
-                for x in names:
-                    symbols += x + ' '
-                symbols = symbols[:-1]
                 if coordinates == 'polar':
                     if names[1] in ['p', 'ph', 'phi']:
                         names[1] += ':\\phi'
@@ -698,16 +694,13 @@ class EuclideanSpace(PseudoRiemannianManifold):
                     if names[1] in ['p', 'ph', 'phi']:
                         names[1] = names[1] + ':\\phi'
 
-            symbols = ''
-            for x in names:
-                symbols += x + ' '
-            symbols = symbols[:-1]
+            symbols = ' '.join(x for x in names)
 
         # Technical bit for UniqueRepresentation
         from sage.misc.prandom import getrandbits
         from time import time
         if unique_tag is None:
-            unique_tag = getrandbits(128)*time()
+            unique_tag = getrandbits(128) * time()
 
         if n == 2:
             return EuclideanPlane(name=name, latex_name=latex_name,

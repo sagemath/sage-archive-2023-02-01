@@ -480,6 +480,23 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         """
         return InternalRealInterval(self._lower, False, self._upper, False)
         
+    def boundary_points(self):
+        """
+        Generate the boundary points of ``self``
+
+        EXAMPLES::
+
+            sage: list(RealSet.open_closed(-oo, 1)[0].boundary_points())
+            [1]
+            sage: list(RealSet.open(1, 2)[0].boundary_points())
+            [1, 2]
+
+        """
+        if self._lower != minus_infinity:
+            yield self._lower
+        if self._upper != infinity:
+            yield self._upper
+
     def is_connected(self, other):
         """
         Test whether two intervals are connected
@@ -1700,6 +1717,91 @@ class RealSet(UniqueRepresentation, Parent):
         if i.upper_closed():
             return i.upper()
         return (i.lower() + i.upper())/ZZ(2)
+
+    def is_open(self):
+        """
+        Return whether ``self`` is an open set.
+
+        EXAMPLES::
+
+            sage: RealSet().is_open()
+            True
+            sage: RealSet.point(1).is_open()
+            False
+            sage: RealSet((1, 2)).is_open()
+            True
+            sage: RealSet([1, 2], (3, 4)).is_open()
+            False
+
+        """
+        return all(not i.lower_closed()
+                   and not i.upper_closed()
+                   for i in self._intervals)
+
+    def is_closed(self):
+        """
+        Return whether ``self`` is a closed set.
+
+        EXAMPLES::
+
+            sage: RealSet().is_closed()
+            True
+            sage: RealSet.point(1).is_closed()
+            True
+            sage: RealSet([1, 2]).is_closed()
+            True
+            sage: RealSet([1, 2], (3, 4)).is_closed()
+            False
+        """
+        return all((i.lower_closed() or i.lower() is minus_infinity)
+                   and (i.upper_closed() or i.upper() is infinity)
+                   for i in self._intervals)
+
+    def closure(self):
+        """
+        Return the topological closure of ``self``.
+
+        EXAMPLES::
+
+            sage: RealSet(-oo, oo).closure()
+            (-oo, +oo)
+            sage: RealSet((1, 2), (2, 3)).closure()
+            [1, 3]
+        """
+        return RealSet(*[i.closure() for i in self._intervals])
+
+    def interior(self):
+        """
+        Return the topological interior of ``self``.
+
+        EXAMPLES::
+
+            sage: RealSet(-oo, oo).interior()
+            (-oo, +oo)
+            sage: RealSet.point(2).interior()
+            {}
+            sage: RealSet([1, 2], (3, 4)).interior()
+            (1, 2) ∪ (3, 4)
+        """
+        return RealSet(*[i.interior() for i in self._intervals])
+
+    def boundary(self):
+        """
+        Return the topological boundary of ``self``.
+
+        EXAMPLES::
+
+            sage: RealSet(-oo, oo).boundary()
+            {}
+            sage: RealSet.point(2).boundary()
+            {2}
+            sage: RealSet([1, 2], (3, 4)).boundary()
+            {1} ∪ {2} ∪ {3} ∪ {4}
+            sage: RealSet((1, 2), (2, 3)).boundary()
+            {1} ∪ {2} ∪ {3}
+
+        """
+        return RealSet(*[RealSet.point(x) for i in self._intervals for x in i.boundary_points()])
 
     def is_disjoint_from(self, *other):
         """

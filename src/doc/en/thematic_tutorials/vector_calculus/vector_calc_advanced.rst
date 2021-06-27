@@ -128,7 +128,7 @@ The default metric tensor of `\mathbb{E}^3` is::
     sage: g
     Riemannian metric g on the Euclidean space E^3
     sage: g.display()
-    g = dx*dx + dy*dy + dz*dz
+    g = dx⊗dx + dy⊗dy + dz⊗dz
     sage: g[:]
     [1 0 0]
     [0 1 0]
@@ -139,7 +139,7 @@ Cartesian one. Of course, we may ask for display with respect to other
 frames::
 
     sage: g.display(spherical_frame)
-    g = e^r*e^r + e^th*e^th + e^ph*e^ph
+    g = e^r⊗e^r + e^th⊗e^th + e^ph⊗e^ph
     sage: g[spherical_frame, :]
     [1 0 0]
     [0 1 0]
@@ -159,7 +159,7 @@ contrary, in the coordinate frame
 which is not orthonormal, some components differ from 0 or 1::
 
     sage: g.display(spherical.frame())
-    g = dr*dr + (x^2 + y^2 + z^2) dth*dth + (x^2 + y^2) dph*dph
+    g = dr⊗dr + (x^2 + y^2 + z^2) dth⊗dth + (x^2 + y^2) dph⊗dph
 
 Note that the components are expressed in terms of the default chart, namely
 the Cartesian one. To have them displayed in terms of the spherical chart, we
@@ -167,12 +167,12 @@ have to provide the latter as the second argument of the method
 ``display()``::
 
     sage: g.display(spherical.frame(), spherical)
-    g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+    g = dr⊗dr + r^2 dth⊗dth + r^2*sin(th)^2 dph⊗dph
 
 Since SageMath 8.8, a shortcut is::
 
     sage: g.display(spherical)
-    g = dr*dr + r^2 dth*dth + r^2*sin(th)^2 dph*dph
+    g = dr⊗dr + r^2 dth⊗dth + r^2*sin(th)^2 dph⊗dph
 
 The matrix view of the components is obtained via the square bracket operator::
 
@@ -184,9 +184,9 @@ The matrix view of the components is obtained via the square bracket operator::
 Similarly, for cylindrical coordinates, we have::
 
     sage: g.display(cylindrical_frame)
-    g = e^rh*e^rh + e^ph*e^ph + e^z*e^z
+    g = e^rh⊗e^rh + e^ph⊗e^ph + e^z⊗e^z
     sage: g.display(cylindrical)
-    g = drh*drh + rh^2 dph*dph + dz*dz
+    g = drh⊗drh + rh^2 dph⊗dph + dz⊗dz
     sage: g[cylindrical.frame(), :, cylindrical]
     [   1    0    0]
     [   0 rh^2    0]
@@ -232,11 +232,11 @@ Levi-Civita tensor (also called *volume form*) associated with `g`
     sage: epsilon is E.volume_form()
     True
     sage: epsilon.display()
-    epsilon = dx/\dy/\dz
+    epsilon = dx∧dy∧dz
     sage: epsilon.display(spherical)
-    epsilon = r^2*sin(th) dr/\dth/\dph
+    epsilon = r^2*sin(th) dr∧dth∧dph
     sage: epsilon.display(cylindrical)
-    epsilon = rh drh/\dph/\dz
+    epsilon = rh drh∧dph∧dz
 
 Checking that all orthonormal frames introduced above are right-handed::
 

@@ -528,7 +528,7 @@ The default metric tensor of `\mathbb{E}^2` is::
     sage: g
     Riemannian metric g on the Euclidean plane E^2
     sage: g.display()
-    g = e^r*e^r + e^ph*e^ph
+    g = e^r⊗e^r + e^ph⊗e^ph
 
 In the above display, ``e^r`` = `e^r` and ``e^ph`` = `e^\phi` are the 1-forms
 defining the coframe dual to the orthonormal polar frame `(e_r, e_\phi)`,
@@ -541,9 +541,9 @@ Of course, we may ask for some display with respect to frames different from
 the default one::
 
     sage: g.display(cartesian.frame())
-    g = dx*dx + dy*dy
+    g = dx⊗dx + dy⊗dy
     sage: g.display(polar.frame())
-    g = dr*dr + r^2 dph*dph
+    g = dr⊗dr + r^2 dph⊗dph
     sage: g[:]
     [1 0]
     [0 1]

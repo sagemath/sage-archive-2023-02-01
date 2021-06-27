@@ -215,7 +215,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             sage: g[3,3] = 1
             sage: g[4,4] = 1
             sage: g.display()
-            g = -dt*dt + dx*dx + dy*dy + dz*dz
+            g = -dt⊗dt + dx⊗dx + dy⊗dy + dz⊗dz
 
         Let us introduce the corresponding Levi-Civita connection::
 
@@ -711,7 +711,7 @@ class TensorBundle(DifferentiableVectorBundle):
             Tensor field t of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: t.display()
-            t = d/dx*dx + x d/dx*dy + 2 d/dy*dy
+            t = d/dx⊗dx + x d/dx⊗dy + 2 d/dy⊗dy
 
         An example of use with the arguments ``comp`` and ``domain``::
 

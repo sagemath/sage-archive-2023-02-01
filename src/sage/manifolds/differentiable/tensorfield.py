@@ -173,7 +173,7 @@ class TensorField(ModuleElementWithMutability):
         sage: eU = c_xy.frame()
         sage: t[eU,:] = [[1,0], [-2,3]]
         sage: t.display(eU)
-        t = dx*dx - 2 dy*dx + 3 dy*dy
+        t = dx⊗dx - 2 dy⊗dx + 3 dy⊗dy
 
     To set the components of `t` on `V` consistently, we copy the expressions
     of the components in the common subset `W`::
@@ -196,10 +196,10 @@ class TensorField(ModuleElementWithMutability):
     and the union of the domains of eU and eV being the whole manifold::
 
         sage: t.display(eV)  # long time
-        t = (u^4 - 4*u^3*v + 10*u^2*v^2 + 4*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du*du
-         - 4*(u^3*v + 2*u^2*v^2 - u*v^3)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du*dv
-         + 2*(u^4 - 2*u^3*v - 2*u^2*v^2 + 2*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) dv*du
-         + (3*u^4 + 4*u^3*v - 2*u^2*v^2 - 4*u*v^3 + 3*v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) dv*dv
+        t = (u^4 - 4*u^3*v + 10*u^2*v^2 + 4*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du⊗du
+         - 4*(u^3*v + 2*u^2*v^2 - u*v^3)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) du⊗dv
+         + 2*(u^4 - 2*u^3*v - 2*u^2*v^2 + 2*u*v^3 + v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) dv⊗du
+         + (3*u^4 + 4*u^3*v - 2*u^2*v^2 - 4*u*v^3 + 3*v^4)/(u^8 + 4*u^6*v^2 + 6*u^4*v^4 + 4*u^2*v^6 + v^8) dv⊗dv
 
     Let us consider two vector fields, `a` and `b`, on `S^2`::
 
@@ -282,17 +282,17 @@ class TensorField(ModuleElementWithMutability):
 
         sage: t = M.tensor_field(0, 2, {eU:  [[1,0], [-2,3]]}, name='t')
         sage: t.display(eU)
-        t = dx*dx - 2 dy*dx + 3 dy*dy
+        t = dx⊗dx - 2 dy⊗dx + 3 dy⊗dy
         sage: t.add_comp_by_continuation(eV, W, chart=c_uv)  # long time
         sage: t.display(eV)  # long time
         t = (u**4 - 4*u**3*v + 10*u**2*v**2 + 4*u*v**3 + v**4)/(u**8 +
-         4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8) du*du +
+         4*u**6*v**2 + 6*u**4*v**4 + 4*u**2*v**6 + v**8) du⊗du +
          4*u*v*(-u**2 - 2*u*v + v**2)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4
-         + 4*u**2*v**6 + v**8) du*dv + 2*(u**4 - 2*u**3*v - 2*u**2*v**2
+         + 4*u**2*v**6 + v**8) du⊗dv + 2*(u**4 - 2*u**3*v - 2*u**2*v**2
          + 2*u*v**3 + v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
-         4*u**2*v**6 + v**8) dv*du + (3*u**4 + 4*u**3*v - 2*u**2*v**2 -
+         4*u**2*v**6 + v**8) dv⊗du + (3*u**4 + 4*u**3*v - 2*u**2*v**2 -
          4*u*v**3 + 3*v**4)/(u**8 + 4*u**6*v**2 + 6*u**4*v**4 +
-         4*u**2*v**6 + v**8) dv*dv
+         4*u**2*v**6 + v**8) dv⊗dv
 
     The default coordinate representations of tensor components are now
     SymPy objects::
@@ -418,12 +418,12 @@ class TensorField(ModuleElementWithMutability):
             sage: t[e_xy,:] = [[1+x^2, x*y], [0, 1+y^2]]
             sage: t.add_comp_by_continuation(e_uv, W, c_uv)
             sage: t.display(e_xy)
-            t = (x^2 + 1) dx*dx + x*y dx*dy + (y^2 + 1) dy*dy
+            t = (x^2 + 1) dx⊗dx + x*y dx⊗dy + (y^2 + 1) dy⊗dy
             sage: t.display(e_uv)
-            t = (3/16*u^2 + 1/16*v^2 + 1/2) du*du
-             + (-1/16*u^2 + 1/4*u*v + 1/16*v^2) du*dv
-             + (1/16*u^2 + 1/4*u*v - 1/16*v^2) dv*du
-             + (1/16*u^2 + 3/16*v^2 + 1/2) dv*dv
+            t = (3/16*u^2 + 1/16*v^2 + 1/2) du⊗du
+             + (-1/16*u^2 + 1/4*u*v + 1/16*v^2) du⊗dv
+             + (1/16*u^2 + 1/4*u*v - 1/16*v^2) dv⊗du
+             + (1/16*u^2 + 3/16*v^2 + 1/2) dv⊗dv
             sage: TestSuite(t).run(skip='_test_pickling')
 
         Construction with ``DifferentiableManifold.tensor_field``::
@@ -758,18 +758,18 @@ class TensorField(ModuleElementWithMutability):
             sage: t = M.tensor_field(1, 1, name='t')
             sage: t._init_components([[1+x, x*y], [-2, y^2]])
             sage: t.display()
-            t = (x + 1) d/dx*dx + x*y d/dx*dy - 2 d/dy*dx + y^2 d/dy*dy
+            t = (x + 1) d/dx⊗dx + x*y d/dx⊗dy - 2 d/dy⊗dx + y^2 d/dy⊗dy
             sage: Y.<u,v> = M.chart()
             sage: t._init_components([[2*u, 3*v], [u+v, -u]], frame=Y.frame(),
             ....:                    chart=Y)
             sage: t.display(Y)
-            t = 2*u d/du*du + 3*v d/du*dv + (u + v) d/dv*du - u d/dv*dv
+            t = 2*u d/du⊗du + 3*v d/du⊗dv + (u + v) d/dv⊗du - u d/dv⊗dv
             sage: t._init_components({X.frame(): [[2*x, 1-y],[0, x]]})
             sage: t.display()
-            t = 2*x d/dx*dx + (-y + 1) d/dx*dy + x d/dy*dy
+            t = 2*x d/dx⊗dx + (-y + 1) d/dx⊗dy + x d/dy⊗dy
             sage: t._init_components({(Y.frame(), Y): [[2*u, 0],[v^3, u+v]]})
             sage: t.display(Y)
-            t = 2*u d/du*du + v^3 d/dv*du + (u + v) d/dv*dv
+            t = 2*u d/du⊗du + v^3 d/dv⊗du + (u + v) d/dv⊗dv
 
         TESTS:
 
@@ -979,7 +979,7 @@ class TensorField(ModuleElementWithMutability):
             sage: s[0,0,1] = x+y
             sage: t.set_restriction(s)
             sage: t.display(c_xy.frame())
-            t = (x + y) d/dx*dx*dy
+            t = (x + y) d/dx⊗dx⊗dy
             sage: t.restrict(U) == s
             True
 
@@ -1212,7 +1212,7 @@ class TensorField(ModuleElementWithMutability):
             3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: t._set_comp_unsafe(e_uv)[1,0,1] = u+v
             sage: t.display(e_uv)
-            t = (u + v) d/dv*du*dv
+            t = (u + v) d/dv⊗du⊗dv
 
         Setting the components in a new frame (``e``)::
 
@@ -1221,7 +1221,7 @@ class TensorField(ModuleElementWithMutability):
             3-indices components w.r.t. Vector frame (V, (e_0,e_1))
             sage: t._set_comp_unsafe(e)[0,1,1] = u*v
             sage: t.display(e)
-            t = u*v e_0*e^1*e^1
+            t = u*v e_0⊗e^1⊗e^1
 
         Since the frames ``e`` and ``e_uv`` are defined on the same domain, the
         components w.r.t. ``e_uv`` have been erased::
@@ -1274,7 +1274,7 @@ class TensorField(ModuleElementWithMutability):
             3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: t.set_comp(e_uv)[1,0,1] = u+v
             sage: t.display(e_uv)
-            t = (u + v) d/dv*du*dv
+            t = (u + v) d/dv⊗du⊗dv
 
         Setting the components in a new frame (``e``)::
 
@@ -1283,7 +1283,7 @@ class TensorField(ModuleElementWithMutability):
             3-indices components w.r.t. Vector frame (V, (e_0,e_1))
             sage: t.set_comp(e)[0,1,1] = u*v
             sage: t.display(e)
-            t = u*v e_0*e^1*e^1
+            t = u*v e_0⊗e^1⊗e^1
 
         Since the frames ``e`` and ``e_uv`` are defined on the same domain, the
         components w.r.t. ``e_uv`` have been erased::
@@ -1350,7 +1350,7 @@ class TensorField(ModuleElementWithMutability):
             3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: t._add_comp_unsafe(e_uv)[1,0,1] = u+v
             sage: t.display(e_uv)
-            t = (u + v) d/dv*du*dv
+            t = (u + v) d/dv⊗du⊗dv
 
         Setting the components in a new frame::
 
@@ -1359,12 +1359,12 @@ class TensorField(ModuleElementWithMutability):
             3-indices components w.r.t. Vector frame (V, (e_0,e_1))
             sage: t._add_comp_unsafe(e)[0,1,1] = u*v
             sage: t.display(e)
-            t = u*v e_0*e^1*e^1
+            t = u*v e_0⊗e^1⊗e^1
 
         The components with respect to ``e_uv`` are kept::
 
             sage: t.display(e_uv)
-            t = (u + v) d/dv*du*dv
+            t = (u + v) d/dv⊗du⊗dv
 
         """
         if basis is None:
@@ -1408,7 +1408,7 @@ class TensorField(ModuleElementWithMutability):
             3-indices components w.r.t. Coordinate frame (V, (d/du,d/dv))
             sage: t.add_comp(e_uv)[1,0,1] = u+v
             sage: t.display(e_uv)
-            t = (u + v) d/dv*du*dv
+            t = (u + v) d/dv⊗du⊗dv
 
         Setting the components in a new frame::
 
@@ -1417,12 +1417,12 @@ class TensorField(ModuleElementWithMutability):
             3-indices components w.r.t. Vector frame (V, (e_0,e_1))
             sage: t.add_comp(e)[0,1,1] = u*v
             sage: t.display(e)
-            t = u*v e_0*e^1*e^1
+            t = u*v e_0⊗e^1⊗e^1
 
         The components with respect to ``e_uv`` are kept::
 
             sage: t.display(e_uv)
-            t = (u + v) d/dv*du*dv
+            t = (u + v) d/dv⊗du⊗dv
 
         Since zero is a special element, its components cannot be changed::
 
@@ -1741,10 +1741,10 @@ class TensorField(ModuleElementWithMutability):
             sage: t[e_xy,:] = [[x, 1], [y, 0]]
             sage: t.add_comp_by_continuation(e_uv, W, c_uv)
             sage: t.display(e_xy)
-            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            t = x d/dx⊗dx + d/dx⊗dy + y d/dy⊗dx
             sage: t.display(e_uv)
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            t = (1/2*u + 1/2) d/du⊗du + (1/2*u - 1/2) d/du⊗dv
+              + (1/2*v + 1/2) d/dv⊗du + (1/2*v - 1/2) d/dv⊗dv
 
         Since ``e_xy`` is ``M``'s default frame, the argument ``e_xy`` can
         be omitted::
@@ -1752,14 +1752,14 @@ class TensorField(ModuleElementWithMutability):
             sage: e_xy is M.default_frame()
             True
             sage: t.display()
-            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            t = x d/dx⊗dx + d/dx⊗dy + y d/dy⊗dx
 
         Similarly, since ``e_uv`` is ``V``'s default frame, the argument ``e_uv``
         can be omitted when considering the restriction of ``t`` to ``V``::
 
             sage: t.restrict(V).display()
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            t = (1/2*u + 1/2) d/du⊗du + (1/2*u - 1/2) d/du⊗dv
+              + (1/2*v + 1/2) d/dv⊗du + (1/2*v - 1/2) d/dv⊗dv
 
         If the coordinate expression of the components are to be displayed in
         a chart distinct from the default one on the considered domain, then
@@ -1770,11 +1770,11 @@ class TensorField(ModuleElementWithMutability):
         *same* vector frame ``e_uv.restrict(W)``::
 
             sage: t.display(e_uv.restrict(W))  # W's default chart assumed
-            t = (1/2*x + 1/2*y + 1/2) d/du*du + (1/2*x + 1/2*y - 1/2) d/du*dv
-              + (1/2*x - 1/2*y + 1/2) d/dv*du + (1/2*x - 1/2*y - 1/2) d/dv*dv
+            t = (1/2*x + 1/2*y + 1/2) d/du⊗du + (1/2*x + 1/2*y - 1/2) d/du⊗dv
+              + (1/2*x - 1/2*y + 1/2) d/dv⊗du + (1/2*x - 1/2*y - 1/2) d/dv⊗dv
             sage: t.display(e_uv.restrict(W), c_uv.restrict(W))
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            t = (1/2*u + 1/2) d/du⊗du + (1/2*u - 1/2) d/du⊗dv
+              + (1/2*v + 1/2) d/dv⊗du + (1/2*v - 1/2) d/dv⊗dv
 
         As a shortcut, one can pass just a chart to ``display``. It is then
         understood that the expansion is to be performed with respect to the
@@ -1782,21 +1782,21 @@ class TensorField(ModuleElementWithMutability):
         command can be abridged to::
 
             sage: t.display(c_uv.restrict(W))
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            t = (1/2*u + 1/2) d/du⊗du + (1/2*u - 1/2) d/du⊗dv
+              + (1/2*v + 1/2) d/dv⊗du + (1/2*v - 1/2) d/dv⊗dv
 
         and one has::
 
             sage: t.display(c_xy)
-            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            t = x d/dx⊗dx + d/dx⊗dy + y d/dy⊗dx
             sage: t.display(c_uv)
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            t = (1/2*u + 1/2) d/du⊗du + (1/2*u - 1/2) d/du⊗dv
+              + (1/2*v + 1/2) d/dv⊗du + (1/2*v - 1/2) d/dv⊗dv
             sage: t.display(c_xy.restrict(W))
-            t = x d/dx*dx + d/dx*dy + y d/dy*dx
+            t = x d/dx⊗dx + d/dx⊗dy + y d/dy⊗dx
             sage: t.restrict(W).display(c_uv.restrict(W))
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            t = (1/2*u + 1/2) d/du⊗du + (1/2*u - 1/2) d/du⊗dv
+              + (1/2*v + 1/2) d/dv⊗du + (1/2*v - 1/2) d/dv⊗dv
 
         One can ask for the display with respect to a frame in which ``t`` has
         not been initialized yet (this will automatically trigger the use of
@@ -1808,16 +1808,16 @@ class TensorField(ModuleElementWithMutability):
             sage: [f[i].display() for i in M.irange()]
             [f_0 = (v + 1) d/du, f_1 = -u^2 d/du + (-u + 1) d/dv]
             sage: t.display(f)
-            t = -1/2*(u^2*v + 1)/(u - 1) f_0*f^0
-              - 1/2*(2*u^3 - 5*u^2 - (u^4 + u^3 - u^2)*v + 3*u - 1)/((u - 1)*v + u - 1) f_0*f^1
-              - 1/2*(v^2 + 2*v + 1)/(u - 1) f_1*f^0
-              + 1/2*(u^2 + (u^2 + u - 1)*v - u + 1)/(u - 1) f_1*f^1
+            t = -1/2*(u^2*v + 1)/(u - 1) f_0⊗f^0
+              - 1/2*(2*u^3 - 5*u^2 - (u^4 + u^3 - u^2)*v + 3*u - 1)/((u - 1)*v + u - 1) f_0⊗f^1
+              - 1/2*(v^2 + 2*v + 1)/(u - 1) f_1⊗f^0
+              + 1/2*(u^2 + (u^2 + u - 1)*v - u + 1)/(u - 1) f_1⊗f^1
 
         A shortcut of ``display()`` is ``disp()``::
 
             sage: t.disp(e_uv)
-            t = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv
-              + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            t = (1/2*u + 1/2) d/du⊗du + (1/2*u - 1/2) d/du⊗dv
+              + (1/2*v + 1/2) d/dv⊗du + (1/2*v - 1/2) d/dv⊗dv
 
         """
         if frame is None:
@@ -2026,13 +2026,13 @@ class TensorField(ModuleElementWithMutability):
             sage: t = M.tensor_field(1, 1, name='t')
             sage: t.__setitem__((e_xy, 0, 1), x+y^2)
             sage: t.display(e_xy)
-            t = (y^2 + x) d/dx*dy
+            t = (y^2 + x) d/dx⊗dy
             sage: t.__setitem__((0, 1), x+y^2)  # same as above since e_xy is the default frame on M
             sage: t.display()
-            t = (y^2 + x) d/dx*dy
+            t = (y^2 + x) d/dx⊗dy
             sage: t.__setitem__(slice(None), [[x+y, -2], [3*y^2, x*y]])
             sage: t.display()
-            t = (x + y) d/dx*dx - 2 d/dx*dy + 3*y^2 d/dy*dx + x*y d/dy*dy
+            t = (x + y) d/dx⊗dx - 2 d/dx⊗dy + 3*y^2 d/dy⊗dx + x*y d/dy⊗dy
 
         """
         if isinstance(args, list):  # case of [[...]] syntax
@@ -2084,7 +2084,7 @@ class TensorField(ModuleElementWithMutability):
             sage: s = M.tensor_field(1, 1, name='s')
             sage: s.copy_from(t)
             sage: s.display(e_xy)
-            s = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            s = (x + y) d/dx⊗dx + 2 d/dy⊗dx + (-y + 1) d/dy⊗dy
             sage: s == t
             True
 
@@ -2092,9 +2092,9 @@ class TensorField(ModuleElementWithMutability):
 
             sage: t[e_xy,0,0] = -1
             sage: t.display(e_xy)
-            t = -d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            t = -d/dx⊗dx + 2 d/dy⊗dx + (-y + 1) d/dy⊗dy
             sage: s.display(e_xy)
-            s = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            s = (x + y) d/dx⊗dx + 2 d/dy⊗dx + (-y + 1) d/dy⊗dy
             sage: s == t
             False
 
@@ -2146,7 +2146,7 @@ class TensorField(ModuleElementWithMutability):
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            (x + y) d/dx⊗dx + 2 d/dy⊗dx + (-y + 1) d/dy⊗dy
             sage: s == t
             True
 
@@ -2154,9 +2154,9 @@ class TensorField(ModuleElementWithMutability):
 
             sage: t[e_xy,0,0] = -1
             sage: t.display(e_xy)
-            t = -d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            t = -d/dx⊗dx + 2 d/dy⊗dx + (-y + 1) d/dy⊗dy
             sage: s.display(e_xy)
-            (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            (x + y) d/dx⊗dx + 2 d/dy⊗dx + (-y + 1) d/dy⊗dy
             sage: s == t
             False
 
@@ -2370,7 +2370,7 @@ class TensorField(ModuleElementWithMutability):
             Tensor field +t of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            +t = (x + y) d/dx*dx + 2 d/dy*dx + (-y + 1) d/dy*dy
+            +t = (x + y) d/dx⊗dx + 2 d/dy⊗dx + (-y + 1) d/dy⊗dy
 
         """
         resu = self._new_instance()
@@ -2406,16 +2406,16 @@ class TensorField(ModuleElementWithMutability):
             sage: t[e_xy, :] = [[x, -x], [y, -y]]
             sage: t.add_comp_by_continuation(e_uv, U.intersection(V), c_uv)
             sage: t.display(e_xy)
-            t = x d/dx*dx - x d/dx*dy + y d/dy*dx - y d/dy*dy
+            t = x d/dx⊗dx - x d/dx⊗dy + y d/dy⊗dx - y d/dy⊗dy
             sage: t.display(e_uv)
-            t = u d/du*dv + v d/dv*dv
+            t = u d/du⊗dv + v d/dv⊗dv
             sage: s = t.__neg__(); s
             Tensor field -t of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            -t = -x d/dx*dx + x d/dx*dy - y d/dy*dx + y d/dy*dy
+            -t = -x d/dx⊗dx + x d/dx⊗dy - y d/dy⊗dx + y d/dy⊗dy
             sage: s.display(e_uv)
-            -t = -u d/du*dv - v d/dv*dv
+            -t = -u d/du⊗dv - v d/dv⊗dv
             sage: s == -t  # indirect doctest
             True
 
@@ -2466,11 +2466,11 @@ class TensorField(ModuleElementWithMutability):
             Tensor field a+b of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: a.display(e_xy)
-            a = x d/dx*dx + d/dx*dy + y d/dy*dx
+            a = x d/dx⊗dx + d/dx⊗dy + y d/dy⊗dx
             sage: b.display(e_xy)
-            b = 2 d/dx*dx + y d/dx*dy + x d/dy*dx - x d/dy*dy
+            b = 2 d/dx⊗dx + y d/dx⊗dy + x d/dy⊗dx - x d/dy⊗dy
             sage: s.display(e_xy)
-            a+b = (x + 2) d/dx*dx + (y + 1) d/dx*dy + (x + y) d/dy*dx - x d/dy*dy
+            a+b = (x + 2) d/dx⊗dx + (y + 1) d/dx⊗dy + (x + y) d/dy⊗dx - x d/dy⊗dy
             sage: s == a + b  # indirect doctest
             True
             sage: z = a.parent().zero(); z
@@ -2537,11 +2537,11 @@ class TensorField(ModuleElementWithMutability):
             Tensor field a-b of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: a.display(e_xy)
-            a = x d/dx*dx + d/dx*dy + y d/dy*dx
+            a = x d/dx⊗dx + d/dx⊗dy + y d/dy⊗dx
             sage: b.display(e_xy)
-            b = 2 d/dx*dx + y d/dx*dy + x d/dy*dx - x d/dy*dy
+            b = 2 d/dx⊗dx + y d/dx⊗dy + x d/dy⊗dx - x d/dy⊗dy
             sage: s.display(e_xy)
-            a-b = (x - 2) d/dx*dx + (-y + 1) d/dx*dy + (-x + y) d/dy*dx + x d/dy*dy
+            a-b = (x - 2) d/dx⊗dx + (-y + 1) d/dx⊗dy + (-x + y) d/dy⊗dx + x d/dy⊗dy
             sage: s == a - b
             True
             sage: z = a.parent().zero()
@@ -2612,13 +2612,13 @@ class TensorField(ModuleElementWithMutability):
             Tensor field f*a of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: a.display(e_xy)
-            a = x d/dx*dx + d/dx*dy + y d/dy*dx
+            a = x d/dx⊗dx + d/dx⊗dy + y d/dy⊗dx
             sage: s.display(e_xy)
-            f*a = x/(x^2 + y^2 + 1) d/dx*dx + 1/(x^2 + y^2 + 1) d/dx*dy + y/(x^2 + y^2 + 1) d/dy*dx
+            f*a = x/(x^2 + y^2 + 1) d/dx⊗dx + 1/(x^2 + y^2 + 1) d/dx⊗dy + y/(x^2 + y^2 + 1) d/dy⊗dx
             sage: a.display(e_uv)
-            a = (1/2*u + 1/2) d/du*du + (1/2*u - 1/2) d/du*dv + (1/2*v + 1/2) d/dv*du + (1/2*v - 1/2) d/dv*dv
+            a = (1/2*u + 1/2) d/du⊗du + (1/2*u - 1/2) d/du⊗dv + (1/2*v + 1/2) d/dv⊗du + (1/2*v - 1/2) d/dv⊗dv
             sage: s.display(e_uv)
-            f*a = (u + 1)/(u^2 + v^2 + 2) d/du*du + (u - 1)/(u^2 + v^2 + 2) d/du*dv + (v + 1)/(u^2 + v^2 + 2) d/dv*du + (v - 1)/(u^2 + v^2 + 2) d/dv*dv
+            f*a = (u + 1)/(u^2 + v^2 + 2) d/du⊗du + (u - 1)/(u^2 + v^2 + 2) d/du⊗dv + (v + 1)/(u^2 + v^2 + 2) d/dv⊗du + (v - 1)/(u^2 + v^2 + 2) d/dv⊗dv
             sage: s == f*a  # indirect doctest
             True
             sage: z = a.parent().zero(); z
@@ -2692,13 +2692,13 @@ class TensorField(ModuleElementWithMutability):
             Tensor field of type (2,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            a*b = x^2 d/dx*d/dx*dx + x d/dx*d/dx*dy + x*y d/dx*d/dy*dx
-             + y d/dx*d/dy*dy + x*y d/dy*d/dx*dx + y^2 d/dy*d/dy*dx
+            a⊗b = x^2 d/dx⊗d/dx⊗dx + x d/dx⊗d/dx⊗dy + x*y d/dx⊗d/dy⊗dx
+             + y d/dx⊗d/dy⊗dy + x*y d/dy⊗d/dx⊗dx + y^2 d/dy⊗d/dy⊗dx
             sage: s.display(e_uv)
-            a*b = (1/2*u^2 + 1/2*u) d/du*d/du*du + (1/2*u^2 - 1/2*u) d/du*d/du*dv
-             + 1/2*(u + 1)*v d/du*d/dv*du + 1/2*(u - 1)*v d/du*d/dv*dv
-             + (1/2*u*v + 1/2*u) d/dv*d/du*du + (1/2*u*v - 1/2*u) d/dv*d/du*dv
-             + (1/2*v^2 + 1/2*v) d/dv*d/dv*du + (1/2*v^2 - 1/2*v) d/dv*d/dv*dv
+            a⊗b = (1/2*u^2 + 1/2*u) d/du⊗d/du⊗du + (1/2*u^2 - 1/2*u) d/du⊗d/du⊗dv
+             + 1/2*(u + 1)*v d/du⊗d/dv⊗du + 1/2*(u - 1)*v d/du⊗d/dv⊗dv
+             + (1/2*u*v + 1/2*u) d/dv⊗d/du⊗du + (1/2*u*v - 1/2*u) d/dv⊗d/du⊗dv
+             + (1/2*v^2 + 1/2*v) d/dv⊗d/dv⊗du + (1/2*v^2 - 1/2*v) d/dv⊗d/dv⊗dv
 
         Multiplication on the right by a scalar field::
 
@@ -2708,12 +2708,12 @@ class TensorField(ModuleElementWithMutability):
             Tensor field f*a of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            f*a = x^2*y d/dx*dx + x*y d/dx*dy + x*y^2 d/dy*dx
+            f*a = x^2*y d/dx⊗dx + x*y d/dx⊗dy + x*y^2 d/dy⊗dx
             sage: s.display(e_uv)
-            f*a = (1/8*u^3 - 1/8*(u + 1)*v^2 + 1/8*u^2) d/du*du
-             + (1/8*u^3 - 1/8*(u - 1)*v^2 - 1/8*u^2) d/du*dv
-             + (1/8*u^2*v - 1/8*v^3 + 1/8*u^2 - 1/8*v^2) d/dv*du
-             + (1/8*u^2*v - 1/8*v^3 - 1/8*u^2 + 1/8*v^2) d/dv*dv
+            f*a = (1/8*u^3 - 1/8*(u + 1)*v^2 + 1/8*u^2) d/du⊗du
+             + (1/8*u^3 - 1/8*(u - 1)*v^2 - 1/8*u^2) d/du⊗dv
+             + (1/8*u^2*v - 1/8*v^3 + 1/8*u^2 - 1/8*v^2) d/dv⊗du
+             + (1/8*u^2*v - 1/8*v^3 - 1/8*u^2 + 1/8*v^2) d/dv⊗dv
             sage: s == f*a
             True
 
@@ -2723,10 +2723,10 @@ class TensorField(ModuleElementWithMutability):
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            2*x d/dx*dx + 2 d/dx*dy + 2*y d/dy*dx
+            2*x d/dx⊗dx + 2 d/dx⊗dy + 2*y d/dy⊗dx
             sage: s.display(e_uv)
-            (u + 1) d/du*du + (u - 1) d/du*dv + (v + 1) d/dv*du
-             + (v - 1) d/dv*dv
+            (u + 1) d/du⊗du + (u - 1) d/du⊗dv + (v + 1) d/dv⊗du
+             + (v - 1) d/dv⊗dv
             sage: s.restrict(U) == 2*a.restrict(U)
             True
             sage: s.restrict(V) == 2*a.restrict(V)
@@ -2742,12 +2742,12 @@ class TensorField(ModuleElementWithMutability):
             Tensor field f*a of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            f*a = x**2*y d/dx*dx + x*y d/dx*dy + x*y**2 d/dy*dx
+            f*a = x**2*y d/dx⊗dx + x*y d/dx⊗dy + x*y**2 d/dy⊗dx
             sage: s.display(e_uv)
-            f*a = (u**3/8 + u**2/8 - u*v**2/8 - v**2/8) d/du*du + (u**3/8 -
-            u**2/8 - u*v**2/8 + v**2/8) d/du*dv + (u**2*v/8 + u**2/8 -
-            v**3/8 - v**2/8) d/dv*du + (u**2*v/8 - u**2/8 - v**3/8 +
-            v**2/8) d/dv*dv
+            f*a = (u**3/8 + u**2/8 - u*v**2/8 - v**2/8) d/du⊗du + (u**3/8 -
+            u**2/8 - u*v**2/8 + v**2/8) d/du⊗dv + (u**2*v/8 + u**2/8 -
+            v**3/8 - v**2/8) d/dv⊗du + (u**2*v/8 - u**2/8 - v**3/8 +
+            v**2/8) d/dv⊗dv
             sage: s == f*a
             True
 
@@ -2825,8 +2825,8 @@ class TensorField(ModuleElementWithMutability):
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            (x^3 + x*y^2 + x) d/dx*dx + (x^2 + y^2 + 1) d/dx*dy
-             + (y^3 + (x^2 + 1)*y) d/dy*dx
+            (x^3 + x*y^2 + x) d/dx⊗dx + (x^2 + y^2 + 1) d/dx⊗dy
+             + (y^3 + (x^2 + 1)*y) d/dy⊗dx
             sage: f*s == a
             True
 
@@ -2836,10 +2836,10 @@ class TensorField(ModuleElementWithMutability):
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: s.display(e_xy)
-            1/2*x d/dx*dx + 1/2 d/dx*dy + 1/2*y d/dy*dx
+            1/2*x d/dx⊗dx + 1/2 d/dx⊗dy + 1/2*y d/dy⊗dx
             sage: s.display(e_uv)
-            (1/4*u + 1/4) d/du*du + (1/4*u - 1/4) d/du*dv
-             + (1/4*v + 1/4) d/dv*du + (1/4*v - 1/4) d/dv*dv
+            (1/4*u + 1/4) d/du⊗du + (1/4*u - 1/4) d/du⊗dv
+             + (1/4*v + 1/4) d/dv⊗du + (1/4*v - 1/4) d/dv⊗dv
             sage: s == a/2
             True
             sage: 2*s == a
@@ -3573,9 +3573,9 @@ class TensorField(ModuleElementWithMutability):
             Tensor field of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: lt.display(e_xy)
-            d/dx*dx - x d/dx*dy + (-y - 1) d/dy*dy
+            d/dx⊗dx - x d/dx⊗dy + (-y - 1) d/dy⊗dy
             sage: lt.display(e_uv)
-            -1/2*u d/du*du + (1/2*u + 1) d/du*dv + (-1/2*v + 1) d/dv*du + 1/2*v d/dv*dv
+            -1/2*u d/du⊗du + (1/2*u + 1) d/du⊗dv + (-1/2*v + 1) d/dv⊗du + 1/2*v d/dv⊗dv
 
         The result is cached::
 
@@ -3680,10 +3680,10 @@ class TensorField(ModuleElementWithMutability):
             sage: a = M.tensor_field(1, 1, {eU: [[1+y,x], [0,x+y]]}, name='a')
             sage: a.add_comp_by_continuation(eV, W, chart=c_uv)
             sage: a.display(eU)
-            a = (y + 1) d/dx*dx + x d/dx*dy + (x + y) d/dy*dy
+            a = (y + 1) d/dx⊗dx + x d/dx⊗dy + (x + y) d/dy⊗dy
             sage: a.display(eV)
-            a = (u + 1/2) d/du*du + (-1/2*u - 1/2*v + 1/2) d/du*dv
-             + 1/2 d/dv*du + (1/2*u - 1/2*v + 1/2) d/dv*dv
+            a = (u + 1/2) d/du⊗du + (-1/2*u - 1/2*v + 1/2) d/du⊗dv
+             + 1/2 d/dv⊗du + (1/2*u - 1/2*v + 1/2) d/dv⊗dv
             sage: p = M.point((2,3), chart=c_xy, name='p')
             sage: ap = a.at(p) ; ap
             Type-(1,1) tensor a on the Tangent space at Point p on the
@@ -3692,9 +3692,9 @@ class TensorField(ModuleElementWithMutability):
             Free module of type-(1,1) tensors on the Tangent space at Point p
              on the 2-dimensional differentiable manifold M
             sage: ap.display(eU.at(p))
-            a = 4 d/dx*dx + 2 d/dx*dy + 5 d/dy*dy
+            a = 4 d/dx⊗dx + 2 d/dx⊗dy + 5 d/dy⊗dy
             sage: ap.display(eV.at(p))
-            a = 11/2 d/du*du - 3/2 d/du*dv + 1/2 d/dv*du + 7/2 d/dv*dv
+            a = 11/2 d/du⊗du - 3/2 d/du⊗dv + 1/2 d/dv⊗du + 7/2 d/dv⊗dv
             sage: p.coord(c_uv) # to check the above expression
             (5, -1)
 
@@ -4112,11 +4112,11 @@ class TensorField(ModuleElementWithMutability):
         Divergence of a type-``(2,0)`` tensor field::
 
             sage: t = v*w; t
-            Tensor field v*w of type (2,0) on the Euclidean plane E^2
+            Tensor field v⊗w of type (2,0) on the Euclidean plane E^2
             sage: s = t.div(); s
-            Vector field div(v*w) on the Euclidean plane E^2
+            Vector field div(v⊗w) on the Euclidean plane E^2
             sage: s.display()
-            div(v*w) = -y e_x + x e_y
+            div(v⊗w) = -y e_x + x e_y
 
         """
         n_con = self._tensor_type[0] # number of contravariant indices = k

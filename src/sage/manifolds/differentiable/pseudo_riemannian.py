@@ -77,10 +77,10 @@ change-of-coordinate formulas::
 At this stage, the metric `g` is well defined in all `S^2`::
 
     sage: g.display(eU)
-    g = 4/(x^2 + y^2 + 1)^2 dx*dx + 4/(x^2 + y^2 + 1)^2 dy*dy
+    g = 4/(x^2 + y^2 + 1)^2 dx⊗dx + 4/(x^2 + y^2 + 1)^2 dy⊗dy
     sage: g.display(eV)
-    g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du*du
-     + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv*dv
+    g = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du⊗du
+     + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) dv⊗dv
 
 The expression in frame ``eV`` can be given a shape similar to that in frame
 ``eU``, by factorizing the components::
@@ -90,7 +90,7 @@ The expression in frame ``eV`` can be given a shape similar to that in frame
     sage: g[eV, 1, 1].factor()
     4/(u^2 + v^2 + 1)^2
     sage: g.display(eV)
-    g = 4/(u^2 + v^2 + 1)^2 du*du + 4/(u^2 + v^2 + 1)^2 dv*dv
+    g = 4/(u^2 + v^2 + 1)^2 du⊗du + 4/(u^2 + v^2 + 1)^2 dv⊗dv
 
 Let us consider a scalar field `f` on `S^2`::
 
@@ -143,7 +143,7 @@ manifold, we can get the metric on it via the method ``metric()``::
     Riemannian metric g on the Open subset U of the 2-dimensional Riemannian
      manifold S^2
     sage: gU.display()
-    g = 4/(x^2 + y^2 + 1)^2 dx*dx + 4/(x^2 + y^2 + 1)^2 dy*dy
+    g = 4/(x^2 + y^2 + 1)^2 dx⊗dx + 4/(x^2 + y^2 + 1)^2 dy⊗dy
 
 Of course, ``gU`` is nothing but the restriction of `g` to `U`::
 
@@ -173,7 +173,7 @@ and initialize it to the Minkowskian value::
 
     sage: g[0,0], g[1,1], g[2,2], g[3,3] = -1, 1, 1, 1
     sage: g.display()
-    g = -dt*dt + dx*dx + dy*dy + dz*dz
+    g = -dt⊗dt + dx⊗dx + dy⊗dy + dz⊗dz
     sage: g[:]
     [-1  0  0  0]
     [ 0  1  0  0]
@@ -507,7 +507,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
 
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
             sage: g.display()
-            g = dx*dx + dy*dy + dz*dz
+            g = dx⊗dx + dy⊗dy + dz⊗dz
 
         Alternatively, the metric can be initialized from a given field of
         nondegenerate symmetric bilinear forms; we may create the former
@@ -518,7 +518,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             sage: dx, dy, dz = X.coframe()[1], X.coframe()[2], X.coframe()[3]
             sage: b = dx*dx + dy*dy + dz*dz
             sage: b
-            Field of symmetric bilinear forms dx*dx+dy*dy+dz*dz on the
+            Field of symmetric bilinear forms dx⊗dx+dy⊗dy+dz⊗dz on the
              3-dimensional Riemannian manifold M
 
         We then use the metric method
@@ -528,7 +528,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
 
             sage: g.set(b)
             sage: g.display()
-            g = dx*dx + dy*dy + dz*dz
+            g = dx⊗dx + dy⊗dy + dz⊗dz
 
         Another metric can be defined on ``M`` by specifying a metric name
         distinct from that chosen at the creation of the manifold (which
@@ -539,7 +539,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             Riemannian metric h on the 3-dimensional Riemannian manifold M
             sage: h[1,1], h[2,2], h[3,3] = 1+y^2, 1+z^2, 1+x^2
             sage: h.display()
-            h = (y^2 + 1) dx*dx + (z^2 + 1) dy*dy + (x^2 + 1) dz*dz
+            h = (y^2 + 1) dx⊗dx + (z^2 + 1) dy⊗dy + (x^2 + 1) dz⊗dz
 
         The metric tensor ``h`` is distinct from the metric entering in the
         definition of the Riemannian manifold ``M``::
@@ -638,7 +638,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             sage: eps = M.volume_form(); eps
             3-form eps_g on the 3-dimensional Riemannian manifold M
             sage: eps.display()
-            eps_g = dx/\dy/\dz
+            eps_g = dx∧dy∧dz
 
         Raising the first index::
 
@@ -646,8 +646,8 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             Tensor field of type (1,2) on the 3-dimensional Riemannian
              manifold M
             sage: eps1.display()
-            d/dx*dy*dz - d/dx*dz*dy - d/dy*dx*dz + d/dy*dz*dx + d/dz*dx*dy
-             - d/dz*dy*dx
+            d/dx⊗dy⊗dz - d/dx⊗dz⊗dy - d/dy⊗dx⊗dz + d/dy⊗dz⊗dx + d/dz⊗dx⊗dy
+             - d/dz⊗dy⊗dx
             sage: eps1.symmetries()
             no symmetry; antisymmetry: (1, 2)
 
@@ -657,8 +657,8 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             Tensor field of type (2,1) on the 3-dimensional Riemannian
              manifold M
             sage: eps2.display()
-            d/dx*d/dy*dz - d/dx*d/dz*dy - d/dy*d/dx*dz + d/dy*d/dz*dx
-             + d/dz*d/dx*dy - d/dz*d/dy*dx
+            d/dx⊗d/dy⊗dz - d/dx⊗d/dz⊗dy - d/dy⊗d/dx⊗dz + d/dy⊗d/dz⊗dx
+             + d/dz⊗d/dx⊗dy - d/dz⊗d/dy⊗dx
             sage: eps2.symmetries()
             no symmetry; antisymmetry: (0, 1)
 
@@ -667,7 +667,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             sage: eps3 = M.volume_form(3); eps3
             3-vector field on the 3-dimensional Riemannian manifold M
             sage: eps3.display()
-            d/dx/\d/dy/\d/dz
+            d/dx∧d/dy∧d/dz
 
         """
         return self.metric().volume_form(contra=contra)
@@ -722,7 +722,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             sage: gU = U.metric(); gU
             Riemannian metric g on the Open subset U of the 2-dimensional Riemannian manifold M
             sage: gU.display()
-            g = dx*dx + dy*dy
+            g = dx⊗dx + dy⊗dy
             sage: gU is g.restrict(U)
             True
 
@@ -734,7 +734,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             Open subset V of the 2-dimensional Riemannian manifold M
             sage: gV = V.metric()
             sage: gV.display()
-            g = dx*dx + dy*dy
+            g = dx⊗dx + dy⊗dy
             sage: gV is g.restrict(V)
             True
 

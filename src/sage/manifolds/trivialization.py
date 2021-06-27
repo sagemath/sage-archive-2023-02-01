@@ -97,9 +97,9 @@ class Trivialization(UniqueRepresentation, SageObject):
          the Open subset W of the 2-dimensional topological manifold S^2 with
          values in the real vector bundle E of rank 2
         sage: aut.display(fU.restrict(W))
-        phi_U^(-1)*phi_V = (phi_U^*e_1)*(phi_U^*e^2) + (phi_U^*e_2)*(phi_U^*e^1)
+        phi_U^(-1)*phi_V = (phi_U^*e_1)⊗(phi_U^*e^2) + (phi_U^*e_2)⊗(phi_U^*e^1)
         sage: aut.display(fV.restrict(W))
-        phi_U^(-1)*phi_V = (phi_V^*e_1)*(phi_V^*e^2) + (phi_V^*e_2)*(phi_V^*e^1)
+        phi_U^(-1)*phi_V = (phi_V^*e_1)⊗(phi_V^*e^2) + (phi_V^*e_2)⊗(phi_V^*e^1)
 
     The automorphisms are listed in the frame changes of the vector bundle::
 
@@ -551,8 +551,8 @@ class TransitionMap(SageObject):
              sections on the Open subset W of the 2-dimensional topological
              manifold S^2 with values in the real vector bundle E of rank 2
             sage: aut.display(phi_U.frame().restrict(W))
-            phi_U^(-1)*phi_V = (phi_U^*e_1)*(phi_U^*e^2) +
-             (phi_U^*e_2)*(phi_U^*e^1)
+            phi_U^(-1)*phi_V = (phi_U^*e_1)⊗(phi_U^*e^2) +
+             (phi_U^*e_2)⊗(phi_U^*e^1)
 
         """
         return self._automorphism

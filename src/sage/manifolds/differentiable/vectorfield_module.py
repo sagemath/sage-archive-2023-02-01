@@ -2115,7 +2115,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             Tensor field t of type (1,1) on the 2-dimensional differentiable
              manifold M
             sage: t.display()
-            t = (x + 1) d/dx*dx - y d/dx*dy + x*y d/dy*dx + (-y^2 + 2) d/dy*dy
+            t = (x + 1) d/dx⊗dx - y d/dx⊗dy + x*y d/dy⊗dx + (-y^2 + 2) d/dy⊗dy
 
         The same set of components transformed into a type-`(0,2)`
         tensor field::
@@ -2124,7 +2124,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
             Tensor field t of type (0,2) on the 2-dimensional differentiable
              manifold M
             sage: t.display()
-            t = (x + 1) dx*dx - y dx*dy + x*y dy*dx + (-y^2 + 2) dy*dy
+            t = (x + 1) dx⊗dx - y dx⊗dy + x*y dy⊗dx + (-y^2 + 2) dy⊗dy
 
         """
         from sage.tensor.modules.comp import (CompWithSym, CompFullyAntiSym)

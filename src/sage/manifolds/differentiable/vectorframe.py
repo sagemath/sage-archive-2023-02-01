@@ -1404,12 +1404,12 @@ class VectorFrame(FreeModuleBasis):
             Automorphism of the Tangent space at Point p on the 2-dimensional
              differentiable manifold M
             sage: Tp.change_of_basis(ep, fp).display()
-            5 d/dx*dx + 2 d/dy*dy
+            5 d/dx⊗dx + 2 d/dy⊗dy
             sage: Tp.change_of_basis(fp, ep)
             Automorphism of the Tangent space at Point p on the 2-dimensional
              differentiable manifold M
             sage: Tp.change_of_basis(fp, ep).display()
-            1/5 d/dx*dx + 1/2 d/dy*dy
+            1/5 d/dx⊗dx + 1/2 d/dy⊗dy
 
         The dual bases::
 

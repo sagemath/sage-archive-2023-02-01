@@ -916,7 +916,7 @@ class DiffScalarField(ScalarField):
             sage: sf = f.hodge_dual(g) ; sf
             3-form *f on the 3-dimensional differentiable manifold M
             sage: sf.display()
-            *f = F(x, y, z) dx/\dy/\dz
+            *f = F(x, y, z) dx∧dy∧dz
             sage: ssf = sf.hodge_dual(g) ; ssf
             Scalar field **f on the 3-dimensional differentiable manifold M
             sage: ssf.display()
@@ -979,7 +979,7 @@ class DiffScalarField(ScalarField):
 
             sage: a = M.multivector_field(2, name='a')
             sage: a[0,1] = x*y ; a.display()
-            a = x*y d/dx/\d/dy
+            a = x*y d/dx∧d/dy
             sage: s = f.bracket(a); s
             Vector field -i_df a on the 2-dimensional differentiable manifold M
             sage: s.display()
@@ -1028,7 +1028,7 @@ class DiffScalarField(ScalarField):
             sage: s = f.wedge(a); s
             2-form f*a on the 2-dimensional differentiable manifold M
             sage: s.display()
-            f*a = (x*y^3 + x^2*y) dx/\dy
+            f*a = (x*y^3 + x^2*y) dx∧dy
 
         """
         return self * other
@@ -1138,7 +1138,7 @@ class DiffScalarField(ScalarField):
             sage: h = M.lorentzian_metric('h')
             sage: h[1,1], h[2,2] = -1, 1/(1+r^2)
             sage: h.display(M.polar_coordinates().frame())
-            h = -dr*dr + r^2/(r^2 + 1) dphi*dphi
+            h = -dr⊗dr + r^2/(r^2 + 1) dphi⊗dphi
             sage: v = f.gradient(h); v
             Vector field grad_h(f) on the Euclidean plane E^2
             sage: v.display()

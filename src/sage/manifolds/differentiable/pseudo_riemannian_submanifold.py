@@ -88,7 +88,7 @@ Finally, we initialize the metric of `M` to be that of Minkowski space::
     sage: g = M.metric()
     sage: g[0,0], g[1,1], g[2,2] = -1, 1, 1
     sage: g.display()
-    g = -dw*dw + dx*dx + dy*dy
+    g = -dw⊗dw + dx⊗dx + dy⊗dy
 
 With this, the declaration the ambient manifold and its foliation parametrized
 by `t` is finished, and calculations can be performed.
@@ -117,7 +117,7 @@ Let us compute the induced metric (or first fundamental form)::
 
     sage: gamma = N.induced_metric()  # long time
     sage: gamma.display()  # long time
-    gamma = b^2 drh*drh + b^2*sinh(rh)^2 dth*dth
+    gamma = b^2 drh⊗drh + b^2*sinh(rh)^2 dth⊗dth
     sage: gamma[:]  # long time
     [           b^2              0]
     [             0 b^2*sinh(rh)^2]
@@ -487,7 +487,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.ambient_metric()
             Riemannian metric g on the Euclidean space E^3
             sage: N.ambient_metric().display()
-            g = dx*dx + dy*dy + dz*dz
+            g = dx⊗dx + dy⊗dy + dz⊗dz
             sage: N.ambient_metric() is M.metric()
             True
 
@@ -1132,12 +1132,12 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             Field of symmetric bilinear forms K on the 1-dimensional Riemannian
              submanifold N embedded in the Euclidean plane E^2
             sage: N.second_fundamental_form().display()  # long time
-            K = -4/(x^4 + 8*x^2 + 16) dx*dx
+            K = -4/(x^4 + 8*x^2 + 16) dx⊗dx
 
         An alias is ``extrinsic_curvature``::
 
             sage: N.extrinsic_curvature().display()  # long time
-            K = -4/(x^4 + 8*x^2 + 16) dx*dx
+            K = -4/(x^4 + 8*x^2 + 16) dx⊗dx
 
         An example with a non-Euclidean ambient metric::
 
@@ -1154,7 +1154,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             Field of symmetric bilinear forms K on the 1-dimensional Riemannian
              submanifold N embedded in the 2-dimensional Riemannian manifold M
             sage: N.second_fundamental_form().display()
-            K = 2*sqrt(u^4 + 2*u^2 + 2)*u/(u^6 + 3*u^4 + 4*u^2 + 2) du*du
+            K = 2*sqrt(u^4 + 2*u^2 + 2)*u/(u^6 + 3*u^4 + 4*u^2 + 2) du⊗du
 
         """
         if self._ambient._dim - self._dim != 1:
@@ -1708,7 +1708,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             Tensor field of type (1,1) on the 1-dimensional Riemannian
              submanifold N embedded in the Euclidean plane E^2
             sage: N.shape_operator().display()  # long time
-            -d/dx*dx
+            -d/dx⊗dx
 
         """
         if self._ambient._dim - self._dim != 1:

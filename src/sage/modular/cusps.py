@@ -36,6 +36,7 @@ from sage.misc.fast_methods import Singleton
 from sage.structure.element import Element, is_InfinityElement
 from sage.structure.richcmp import richcmp
 
+from sage.libs.pari import pari
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
 from sage.structure.element import is_Matrix
 
@@ -982,6 +983,20 @@ class Cusp(Element):
         # Now that we've computed the Galois action, we efficiently
         # construct the corresponding cusp as a Cusp object.
         return Cusp(a, b, check=False)
+
+    def __pari__(self):
+        """
+        Return a PARI representation of ``self``.
+
+        EXAMPLES::
+
+            Cusp(1, 0).__pari__()
+            +oo
+            Cusp(3, 2).__pari__()
+            3/2
+        """
+        b = self.__b
+        return pari(self.__a / b) if b else pari.oo()
 
 
 class Cusps_class(Singleton, Parent):

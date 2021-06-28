@@ -156,7 +156,7 @@ class VectorField(MultivectorField):
         sage: s = v(f) ; s
         Scalar field v(f) on the 2-dimensional differentiable manifold M
         sage: s.display()
-        v(f): M --> R
+        v(f): M → R
         on U: (x, y) ↦ 2*x^2 - 2*y^2 + 2*x + 2*y
         on V: (t, u) ↦ 2*t*u + 2*t
 
@@ -179,21 +179,21 @@ class VectorField(MultivectorField):
         Scalar field v(f) on the Open subset W of the 2-dimensional
          differentiable manifold M
         sage: s.display()
-        v(f): W --> R
+        v(f): W → R
            (x, y) ↦ 2*x^2 - 2*y^2 + 2*x + 2*y
            (t, u) ↦ 2*t*u + 2*t
         sage: s = v.restrict(U)(f) ; s
         Scalar field v(f) on the Open subset U of the 2-dimensional
          differentiable manifold M
         sage: s.display()
-        v(f): U --> R
+        v(f): U → R
            (x, y) ↦ 2*x^2 - 2*y^2 + 2*x + 2*y
         on W: (t, u) ↦ 2*t*u + 2*t
         sage: s = v.restrict(U)(f.restrict(V)) ; s
         Scalar field v(f) on the Open subset W of the 2-dimensional
          differentiable manifold M
         sage: s.display()
-        v(f): W --> R
+        v(f): W → R
            (x, y) ↦ 2*x^2 - 2*y^2 + 2*x + 2*y
            (t, u) ↦ 2*t*u + 2*t
 
@@ -333,7 +333,7 @@ class VectorField(MultivectorField):
             sage: s = a.__call__(f); s
             Scalar field a(f) on the 2-dimensional differentiable manifold M
             sage: s.display()
-            a(f): M --> R
+            a(f): M → R
             on U: (x, y) ↦ 2*(x^2 + y^2)/(x^4 + 2*x^2*y^2 + y^4 + 1)
             on V: (u, v) ↦ 2*(u^2 + v^2)/(u^4 + 2*u^2*v^2 + v^4 + 1)
             sage: s == f.differential()(a)
@@ -632,7 +632,7 @@ class VectorField(MultivectorField):
             sage: F = S2.diff_map(R3, {(XS, X3): [sin(th)*cos(ph),
             ....:                       sin(th)*sin(ph), cos(th)]}, name='F')
             sage: F.display() # the standard embedding of S^2 into R^3
-            F: S^2 --> R^3
+            F: S^2 → R^3
             on U: (th, ph) ↦ (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
             sage: v = XS.frame()[1] ; v  # the coordinate vector d/dphi
             Vector field d/dph on the Open subset U of the 2-dimensional
@@ -1091,7 +1091,7 @@ class VectorField(MultivectorField):
             sage: s = u.dot_product(v); s
             Scalar field u.v on the Euclidean plane E^2
             sage: s.display()
-            u.v: E^2 --> R
+            u.v: E^2 → R
                (x, y) ↦ 2*x*y
 
         A shortcut alias of ``dot_product`` is ``dot``::
@@ -1112,7 +1112,7 @@ class VectorField(MultivectorField):
             sage: s = u.dot_product(v, metric=h); s
             Scalar field h(u,v) on the Euclidean plane E^2
             sage: s.display()
-            h(u,v): E^2 --> R
+            h(u,v): E^2 → R
                (x, y) ↦ -(x^3*y - x*y^3)/((x^2 + 1)*y^2 + x^2 + 1)
 
         Scalar product of two vector fields along a curve (a lemniscate of
@@ -1131,7 +1131,7 @@ class VectorField(MultivectorField):
             sage: s = u.dot_product(v); s
             Scalar field u.v on the Real interval (0, 2*pi)
             sage: s.display()
-            u.v: (0, 2*pi) --> R
+            u.v: (0, 2*pi) → R
                t ↦ sin(t)^2
 
         Scalar product between a vector field along the curve and a vector
@@ -1141,7 +1141,7 @@ class VectorField(MultivectorField):
             sage: s = u.dot_product(e_x); s
             Scalar field u.e_x on the Real interval (0, 2*pi)
             sage: s.display()
-            u.e_x: (0, 2*pi) --> R
+            u.e_x: (0, 2*pi) → R
                t ↦ cos(t)
 
         """
@@ -1210,7 +1210,7 @@ class VectorField(MultivectorField):
             sage: s = v.norm(); s
             Scalar field |v| on the Euclidean plane E^2
             sage: s.display()
-            |v|: E^2 --> R
+            |v|: E^2 → R
                (x, y) ↦ sqrt(x^2 + y^2)
 
         The global function :func:`~sage.misc.functional.norm` can be used
@@ -1226,7 +1226,7 @@ class VectorField(MultivectorField):
             sage: s = v.norm(metric=h); s
             Scalar field |v|_h on the Euclidean plane E^2
             sage: s.display()
-            |v|_h: E^2 --> R
+            |v|_h: E^2 → R
                (x, y) ↦ sqrt((2*x^2 + 1)*y^2 + x^2)/(sqrt(x^2 + 1)*sqrt(y^2 + 1))
 
         Norm of the tangent vector field to a curve (a lemniscate of Gerono)::
@@ -1239,7 +1239,7 @@ class VectorField(MultivectorField):
             sage: s = v.norm(); s
             Scalar field |C'| on the Real interval (0, 2*pi)
             sage: s.display()
-            |C'|: (0, 2*pi) --> R
+            |C'|: (0, 2*pi) → R
                t ↦ sqrt(4*cos(t)^4 - 3*cos(t)^2 + 1)
 
         """
@@ -1578,7 +1578,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
         Differentiable map Phi from the 1-dimensional differentiable manifold R
          to the 2-dimensional differentiable manifold M
         sage: Phi.display()
-        Phi: R --> M
+        Phi: R → M
            t ↦ (x, y) = (cos(t), sin(t))
         sage: w = R.vector_field(-sin(t), cos(t), dest_map=Phi, name='w') ; w
         Vector field w along the 1-dimensional differentiable manifold R with
@@ -1729,7 +1729,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
             sage: v(f)
             Scalar field on the 2-dimensional differentiable manifold M
             sage: v(f).display()
-            M --> R
+            M → R
             (x, y) ↦ 2*x^2*y - y^3
 
         """

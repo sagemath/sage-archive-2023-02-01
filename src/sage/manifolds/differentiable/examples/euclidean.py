@@ -259,7 +259,7 @@ A scalar field on ``E``::
     sage: f = E.scalar_field(x*y, name='f'); f
     Scalar field f on the Euclidean plane E^2
     sage: f.display()
-    f: E^2 --> R
+    f: E^2 → R
        (x, y) ↦ x*y
        (r, ph) ↦ r^2*cos(ph)*sin(ph)
 
@@ -283,7 +283,7 @@ The dot product of two vector fields::
     sage: s = v.dot(w); s
     Scalar field v.grad(f) on the Euclidean plane E^2
     sage: s.display()
-    v.grad(f): E^2 --> R
+    v.grad(f): E^2 → R
        (x, y) ↦ x^2 - y^2
        (r, ph) ↦ (2*cos(ph)^2 - 1)*r^2
     sage: s.expr()
@@ -299,7 +299,7 @@ The divergence of the vector field ``v``::
     sage: s = div(v); s
     Scalar field div(v) on the Euclidean plane E^2
     sage: s.display()
-    div(v): E^2 --> R
+    div(v): E^2 → R
        (x, y) ↦ 0
        (r, ph) ↦ 0
 
@@ -327,7 +327,7 @@ The Euclidean norm of ``v``::
     sage: s = norm(v); s
     Scalar field |v| on the Euclidean space E^3
     sage: s.display()
-    |v|: E^3 --> R
+    |v|: E^3 → R
        (x, y, z) ↦ sqrt(x^2 + y^2)
     sage: s.expr()
     sqrt(x^2 + y^2)
@@ -338,7 +338,7 @@ The divergence of ``v`` is zero::
     sage: div(v)
     Scalar field div(v) on the Euclidean space E^3
     sage: div(v).display()
-    div(v): E^3 --> R
+    div(v): E^3 → R
        (x, y, z) ↦ 0
 
 while its curl is a constant vector field along `e_z`::
@@ -1034,7 +1034,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
         The embedding into Euclidean space::
 
             sage: S2_2.embedding().display()
-            iota: S^2_2(c) --> E^3
+            iota: S^2_2(c) → E^3
             on A: (theta, phi) ↦ (x, y, z) = (2*cos(phi)*sin(theta) + 1,
                                                  2*sin(phi)*sin(theta) + 2,
                                                  2*cos(theta) + 3)
@@ -1310,7 +1310,7 @@ class EuclideanPlane(EuclideanSpace):
         pol_to_cart = chart_pol.transition_map(chart_cart,
                                                [r*cos(ph), r*sin(ph)])
         pol_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y,x), check=False)
-        # Automorphism Cartesian frame --> orthonormal polar frame:
+        # Automorphism Cartesian frame → orthonormal polar frame:
         oframe = self._polar_frame
         cframe = chart_cart.frame()
         sframe = chart_pol.frame()
@@ -1325,7 +1325,7 @@ class EuclideanPlane(EuclideanSpace):
         for i in self.irange():
             for j in self.irange():
                 cmp_cf[[i,j]] = cmp_of[[i,j]]
-        # Automorphism orthonormal polar frame --> Cartesian frame:
+        # Automorphism orthonormal polar frame → Cartesian frame:
         oframe_to_cframe = chg[(sframe, cframe)] * chg[(oframe, sframe)]
         # oframe_to_cframe has been computed only in sframe;
         # its components in oframe are computed by
@@ -1902,7 +1902,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         spher_to_cart.set_inverse(sqrt(x**2+y**2+z**2),
                                   atan2(sqrt(x**2+y**2),z), atan2(y, x),
                                   check=False)
-        # Automorphism Cartesian frame --> orthonormal spherical frame:
+        # Automorphism Cartesian frame → orthonormal spherical frame:
         oframe = self._spherical_frame
         cframe = chart_cart.frame()
         sframe = chart_spher.frame()
@@ -1917,7 +1917,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         for i in self.irange():
             for j in self.irange():
                 cmp_cf[[i,j]] = cmp_of[[i,j]]
-        # Automorphism orthonormal spherical frame --> Cartesian frame:
+        # Automorphism orthonormal spherical frame → Cartesian frame:
         oframe_to_cframe = chg[(sframe, cframe)] * chg[(oframe, sframe)]
         # oframe_to_cframe has been computed only in sframe;
         # its components in oframe are computed by
@@ -1979,7 +1979,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         cylind_to_cart = chart_cylind.transition_map(chart_cart,
                                                      [rh*cos(ph), rh*sin(ph), z])
         cylind_to_cart.set_inverse(sqrt(x**2+y**2), atan2(y, x), z, check=False)
-        # Automorphism Cartesian frame --> orthonormal cylindrical frame:
+        # Automorphism Cartesian frame → orthonormal cylindrical frame:
         oframe = self._cylindrical_frame
         cframe = chart_cart.frame()
         sframe = chart_cylind.frame()
@@ -1994,7 +1994,7 @@ class Euclidean3dimSpace(EuclideanSpace):
         for i in self.irange():
             for j in self.irange():
                 cmp_cf[[i,j]] = cmp_of[[i,j]]
-        # Automorphism orthonormal cylindrical frame --> Cartesian frame:
+        # Automorphism orthonormal cylindrical frame → Cartesian frame:
         oframe_to_cframe = chg[(sframe, cframe)] * chg[(oframe, sframe)]
         # oframe_to_cframe has been computed only in sframe;
         # its components in oframe are computed by
@@ -2511,7 +2511,7 @@ class Euclidean3dimSpace(EuclideanSpace):
             sage: s = triple_product(u, v, w); s
             Scalar field epsilon(u,v,w) on the Euclidean space E^3
             sage: s.display()
-            epsilon(u,v,w): E^3 --> R
+            epsilon(u,v,w): E^3 → R
                (x, y, z) ↦ x^3*y + x*y^3 - 2*x*y*z^2
             sage: s.expr()
             x^3*y + x*y^3 - 2*x*y*z^2

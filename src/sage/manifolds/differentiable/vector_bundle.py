@@ -410,7 +410,7 @@ class TensorBundle(DifferentiableVectorBundle):
         Differentiable map Phi from the 1-dimensional differentiable manifold R
          to the 2-dimensional differentiable manifold M
         sage: Phi.display()
-        Phi: R --> M
+        Phi: R → M
            t ↦ (x, y) = (cos(t), sin(t))
         sage: PhiTM = R.tangent_bundle(dest_map=Phi); PhiTM
         Tangent bundle Phi^*TM over the 1-dimensional differentiable manifold R
@@ -961,7 +961,7 @@ class TensorBundle(DifferentiableVectorBundle):
             Differentiable map Phi from the 1-dimensional differentiable
              manifold R to the 2-dimensional differentiable manifold M
             sage: Phi.display()
-            Phi: R --> M
+            Phi: R → M
                t ↦ (x, y) = (cos(t), sin(t))
             sage: PhiT11 = R.tensor_bundle(1, 1, dest_map=Phi); PhiT11
             Tensor bundle Phi^*T^(1,1)M over the 1-dimensional differentiable
@@ -1464,7 +1464,7 @@ class TensorBundle(DifferentiableVectorBundle):
             Differentiable map Phi from the 1-dimensional differentiable
              manifold R to the 2-dimensional differentiable manifold M
             sage: Phi.display()
-            Phi: R --> M
+            Phi: R → M
                t ↦ (x, y) = (cos(t), sin(t))
                 sage: PhiT11 = R.tensor_bundle(1, 1, dest_map=Phi)
             sage: PhiT11.ambient_domain()
@@ -1493,7 +1493,7 @@ class TensorBundle(DifferentiableVectorBundle):
             Differentiable map Phi from the 1-dimensional differentiable
              manifold R to the 2-dimensional differentiable manifold M
             sage: Phi.display()
-            Phi: R --> M
+            Phi: R → M
                t ↦ (x, y) = (cos(t), sin(t))
             sage: PhiT11 = R.tensor_bundle(1, 1, dest_map=Phi)
             sage: PhiT11.destination_map()

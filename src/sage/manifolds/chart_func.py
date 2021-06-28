@@ -454,7 +454,7 @@ class ChartFunction(AlgebraElement, ModuleElementWithMutability):
             sage: f = fc.scalar_field() ; f
             Scalar field on the 2-dimensional topological manifold M
             sage: f.display()
-            M --> R
+            M → R
             (x, y) ↦ 2*y^3 + x
             sage: f.coord_function(c_xy) is fc
             True

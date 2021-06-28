@@ -140,7 +140,7 @@ class Section(ModuleElementWithMutability):
         sage: f = M.scalar_field(y^2-x^2, name='f')
         sage: f.add_expr_by_continuation(c_uv, W)
         sage: f.display()
-        f: M --> R
+        f: M → R
         on U: (x, y) ↦ -x^2 + y^2
         on V: (u, v) ↦ -u*v
         sage: b = f*s; b
@@ -1195,7 +1195,7 @@ class Section(ModuleElementWithMutability):
         (scalar fields) do not have values on the whole manifold::
 
             sage: sorted(s._components.values())[0]._comp[(1,)].display()
-            S^2 --> R
+            S^2 → R
             on U: (x, y) ↦ x
             on W: (u, v) ↦ u/(u^2 + v^2)
 
@@ -1212,7 +1212,7 @@ class Section(ModuleElementWithMutability):
         The definition of ``s`` is now complete::
 
             sage: sorted(s._components.values())[0]._comp[(2,)].display()
-            S^2 --> R
+            S^2 → R
             on U: (x, y) ↦ y
             on V: (u, v) ↦ v/(u^2 + v^2)
 
@@ -2228,7 +2228,7 @@ class Section(ModuleElementWithMutability):
             sage: g = M.scalar_field({c_xy: 1/(1+x^2+y^2)}, name='g')
             sage: g.add_expr_by_continuation(c_uv, U.intersection(V))
             sage: g.display()
-            g: M --> R
+            g: M → R
             on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
             on V: (u, v) ↦ 2/(u^2 + v^2 + 2)
             sage: t = s._rmul_(g); t

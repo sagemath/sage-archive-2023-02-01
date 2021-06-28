@@ -97,7 +97,7 @@ Let us consider a scalar field `f` on `S^2`::
     sage: f = M.scalar_field({stereoN: 1/(1+x^2+y^2)}, name='f')
     sage: f.add_expr_by_continuation(stereoS, W)
     sage: f.display()
-    f: S^2 --> R
+    f: S^2 → R
     on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
     on V: (u, v) ↦ (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -125,7 +125,7 @@ as ``f.laplacian()`` or, thanks to the above import, as ``laplacian(f)``::
     sage: Df
     Scalar field Delta(f) on the 2-dimensional Riemannian manifold S^2
     sage: Df.display()
-    Delta(f): S^2 --> R
+    Delta(f): S^2 → R
     on U: (x, y) ↦ (x^2 + y^2 - 1)/(x^2 + y^2 + 1)
     on V: (u, v) ↦ -(u^2 + v^2 - 1)/(u^2 + v^2 + 1)
 
@@ -207,7 +207,7 @@ Scalar products are taken with respect to the metric tensor::
 `u` is a unit timelike vector, i.e. its scalar square is identically `-1`::
 
     sage: s.display()
-    u.u: M --> R
+    u.u: M → R
        (t, x, y, z) ↦ -1
     sage: s.expr()
     -1
@@ -220,7 +220,7 @@ Let us consider a unit spacelike vector::
     sage: v.display()
     v = sinh(t) d/dt + cosh(t) d/dx
     sage: v.dot(v).display()
-    v.v: M --> R
+    v.v: M → R
        (t, x, y, z) ↦ 1
     sage: v.dot(v).expr()
     1
@@ -228,7 +228,7 @@ Let us consider a unit spacelike vector::
 `u` and `v` are orthogonal vectors with respect to Minkowski metric::
 
     sage: u.dot(v).display()
-        u.v: M --> R
+        u.v: M → R
        (t, x, y, z) ↦ 0
     sage: u.dot(v).expr()
     0
@@ -238,7 +238,7 @@ The divergence of `u` is::
     sage: s = u.div(); s
     Scalar field div(u) on the 4-dimensional Lorentzian manifold M
     sage: s.display()
-    div(u): M --> R
+    div(u): M → R
        (t, x, y, z) ↦ sinh(t)
 
 while its d'Alembertian is::

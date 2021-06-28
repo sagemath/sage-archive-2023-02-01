@@ -473,7 +473,7 @@ class AutomorphismField(TensorField):
             sage: s = a(z, w); s
             Scalar field a(z,w) on the 2-dimensional differentiable manifold M
             sage: s.display()
-            a(z,w): M --> R
+            a(z,w): M → R
             on U: (x, y) ↦ x + 3*y
             on V: (u, v) ↦ (u + 3*v)/(u^2 + v^2)
             sage: s.restrict(U) == a.restrict(U)(z.restrict(U), w.restrict(U))
@@ -1121,7 +1121,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             sage: s = a.__call__(z, v); s
             Scalar field a(z,v) on the 2-dimensional differentiable manifold M
             sage: s.display()
-            a(z,v): M --> R
+            a(z,v): M → R
                (x, y) ↦ 2*x*y^2 + x
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: s = a.__call__(v.restrict(U)); s
@@ -1131,7 +1131,7 @@ class AutomorphismFieldParal(FreeModuleAutomorphism, TensorFieldParal):
             Scalar field a(z,v) on the Open subset U of the 2-dimensional
              differentiable manifold M
             sage: s.display()
-            a(z,v): U --> R
+            a(z,v): U → R
                (x, y) ↦ 2*x*y^2 + x
 
         """

@@ -138,7 +138,7 @@ A shortcut alias of
 ::
 
     sage: s.display()
-    v.w: E^2 --> R
+    v.w: E^2 → R
        (x, y) ↦ -y*w_x(x, y) + x*w_y(x, y)
 
 The symbolic expression representing the scalar field `v\cdot w` is obtained
@@ -152,7 +152,7 @@ The Euclidean norm of the vector field `v` is a scalar field on
 
     sage: s = norm(v)
     sage: s.display()
-    |v|: E^2 --> R
+    |v|: E^2 → R
        (x, y) ↦ sqrt(x^2 + y^2)
 
 Again, the corresponding symbolic expression is obtained via
@@ -242,7 +242,7 @@ The divergence of a vector field is returned by the function
     sage: div(v)
     Scalar field div(v) on the Euclidean plane E^2
     sage: div(v).display()
-    div(v): E^2 --> R
+    div(v): E^2 → R
        (x, y) ↦ 0
 
 In the present case, `\mathrm{div}\, v` vanishes identically::
@@ -253,7 +253,7 @@ In the present case, `\mathrm{div}\, v` vanishes identically::
 On the contrary, the divergence of `w` is::
 
     sage: div(w).display()
-    div(w): E^2 --> R
+    div(w): E^2 → R
        (x, y) ↦ d(w_x)/dx + d(w_y)/dy
     sage: div(w).expr()
     diff(w_x(x, y), x) + diff(w_y(x, y), y)
@@ -298,7 +298,7 @@ The Laplace operator `\Delta` is obtained by the function
 :func:`~sage.manifolds.operators.laplacian`; it acts on scalar fields::
 
     sage: laplacian(F).display()
-    Delta(F): E^2 --> R
+    Delta(F): E^2 → R
        (x, y) ↦ d^2(f)/dx^2 + d^2(f)/dy^2
 
 as well as on vector fields::
@@ -375,11 +375,11 @@ We may check that `(e_r, e_\phi)` is an orthonormal frame::
 Scalar fields can be expressed in terms of polar coordinates::
 
     sage: F.display()
-    F: E^2 --> R
+    F: E^2 → R
        (x, y) ↦ f(x, y)
        (r, ph) ↦ f(r*cos(ph), r*sin(ph))
     sage: F.display(polar)
-    F: E^2 --> R
+    F: E^2 → R
        (r, ph) ↦ f(r*cos(ph), r*sin(ph))
 
 and we may ask for the components of vector fields in terms of the polar
@@ -408,7 +408,7 @@ Let us define a generic scalar field in terms of polar coordinates::
 
     sage: H = E.scalar_field({polar: function('h')(r,ph)}, name='H')
     sage: H.display(polar)
-    H: E^2 --> R
+    H: E^2 → R
        (r, ph) ↦ h(r, ph)
 
 The gradient of `H` is then::
@@ -441,7 +441,7 @@ Let us define a generic vector field in terms of polar coordinates::
 Its divergence is::
 
     sage: div(u).display(polar)
-    div(u): E^2 --> R
+    div(u): E^2 → R
        (r, ph) ↦ (r*d(u_r)/dr + u_r(r, ph) + d(u_ph)/dph)/r
     sage: div(u).expr(polar)
     (r*diff(u_r(r, ph), r) + u_r(r, ph) + diff(u_ph(r, ph), ph))/r
@@ -577,7 +577,7 @@ Vector fields act as derivations on scalar fields::
     sage: v(F)
     Scalar field v(F) on the Euclidean plane E^2
     sage: v(F).display()
-    v(F): E^2 --> R
+    v(F): E^2 → R
        (x, y) ↦ -y*d(f)/dx + x*d(f)/dy
        (r, ph) ↦ -r*sin(ph)*d(f)/d(r*cos(ph)) + r*cos(ph)*d(f)/d(r*sin(ph))
     sage: v(F) == v.dot(grad(F))

@@ -117,7 +117,7 @@ class ContinuousMap(Morphism):
         sage: type(Phi)
         <class 'sage.manifolds.manifold_homset.TopologicalManifoldHomset_with_category.element_class'>
         sage: Phi.display()
-        Phi: S^2 --> R^3
+        Phi: S^2 → R^3
         on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
         on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
@@ -143,14 +143,14 @@ class ContinuousMap(Morphism):
     defined on the manifold `S^2` as it is known in only one chart::
 
         sage: Phi1.display()
-        Phi: S^2 --> R^3
+        Phi: S^2 → R^3
         on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
 
     The definition can be completed by using :meth:`add_expr`::
 
         sage: Phi1.add_expr(c_uv, c_cart, [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2), (1-u^2-v^2)/(1+u^2+v^2)])
         sage: Phi1.display()
-        Phi: S^2 --> R^3
+        Phi: S^2 → R^3
         on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
         on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
@@ -188,7 +188,7 @@ class ContinuousMap(Morphism):
         Continuous map Psi from the 3-dimensional topological manifold R^3
          to the 2-dimensional topological manifold R^2
         sage: Psi.display()
-        Psi: R^3 --> R^2
+        Psi: R^3 → R^2
            (X, Y, Z) ↦ (xP, yP) = (-X/(Z - 1), -Y/(Z - 1))
 
     Then we compose ``Psi`` with ``Phi``, thereby getting a map
@@ -208,7 +208,7 @@ class ContinuousMap(Morphism):
     as its coordinate expression reveals::
 
         sage: ster.display()
-        S^2 --> R^2
+        S^2 → R^2
         on U: (x, y) ↦ (xP, yP) = (x, y)
         on V: (u, v) ↦ (xP, yP) = (u/(u^2 + v^2), v/(u^2 + v^2))
 
@@ -242,7 +242,7 @@ class ContinuousMap(Morphism):
         sage: Phi.parent() is Hom(R, R2)
         True
         sage: Phi.display()
-        Phi: R --> R^2
+        Phi: R → R^2
            t ↦ (x, y) = (cos(t), sin(t))
 
     An example of homeomorphism between the unit open disk and the
@@ -261,7 +261,7 @@ class ContinuousMap(Morphism):
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()
-        Phi: D --> R^2
+        Phi: D → R^2
            (x, y) ↦ (x, y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
 
     The image of a point::
@@ -278,7 +278,7 @@ class ContinuousMap(Morphism):
         Homeomorphism Phi^(-1) from the 2-dimensional topological manifold R^2
          to the Open subset D of the 2-dimensional topological manifold R^2
         sage: Phi.inverse().display()
-        Phi^(-1): R^2 --> D
+        Phi^(-1): R^2 → D
            (x, y) ↦ (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
 
     Equivalently, one may use the notations ``^(-1)`` or ``~`` to
@@ -301,7 +301,7 @@ class ContinuousMap(Morphism):
     The coordinate expression of the inverse homeomorphism::
 
         sage: (~Phi).display()
-        Phi^(-1): R^2 --> D
+        Phi^(-1): R^2 → D
            (x, y) ↦ (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
 
     A special case of homeomorphism: the identity map of the open unit disk::
@@ -333,7 +333,7 @@ class ContinuousMap(Morphism):
     The coordinate expression of the identity map::
 
         sage: id.display()
-        Id_D: D --> D
+        Id_D: D → D
            (x, y) ↦ (x, y)
 
     The identity map is its own inverse::
@@ -359,7 +359,7 @@ class ContinuousMap(Morphism):
             Continuous map f from the 2-dimensional topological manifold M
              to the 3-dimensional topological manifold N
             sage: f.display()
-            f: M --> N
+            f: M → N
                (x, y) ↦ (u, v, w) = (x + y, x*y, x - y)
             sage: TestSuite(f).run()
 
@@ -368,7 +368,7 @@ class ContinuousMap(Morphism):
             sage: f = Hom(M,M)({}, is_identity=True) ; f
             Identity map Id_M of the 2-dimensional topological manifold M
             sage: f.display()
-            Id_M: M --> M
+            Id_M: M → M
                (x, y) ↦ (x, y)
             sage: TestSuite(f).run()
 
@@ -737,7 +737,7 @@ class ContinuousMap(Morphism):
             sage: Y.<u,v> = N.chart()
             sage: a = M.continuous_map(N, {(X,Y): (x, y)})
             sage: a.display()
-            M --> N
+            M → N
                (x, y) ↦ (u, v) = (x, y)
             sage: a.is_identity()
             False
@@ -793,7 +793,7 @@ class ContinuousMap(Morphism):
             Continuous map from the 3-dimensional topological manifold M
              to the 4-dimensional topological manifold Q
             sage: s.display()
-            M --> Q
+            M → Q
                (x, y, z) ↦ (a, b, c, d) = ((x*y + 1)*z + x + y, x*y*z^2 + (x^2*y + x*y^2)*z, x + y + z + 1, -x*y*z + 2)
             sage: s == f*g
             True
@@ -898,7 +898,7 @@ class ContinuousMap(Morphism):
             Continuous map from the 2-dimensional topological manifold M
              to itself
             sage: s.display()
-            M --> M
+            M → M
                (x, y) ↦ (x - y + 3, -(x + 2)*y + x + 2)
             sage: s == f*g
             True
@@ -1017,7 +1017,7 @@ class ContinuousMap(Morphism):
             sage: J = R.open_interval(2*pi, 6*pi)
             sage: h = J.continuous_map(I, ((t-2*pi)/2,), name='h')
             sage: h.display()
-            h: (2*pi, 6*pi) --> (0, 2*pi)
+            h: (2*pi, 6*pi) → (0, 2*pi)
                t ↦ t = -pi + 1/2*t
             sage: latex(h.display())
             \begin{array}{llcl} h:& \left(2 \, \pi, 6 \, \pi\right) &
@@ -1039,10 +1039,10 @@ class ContinuousMap(Morphism):
             ....:    (c_uv, c_cart): [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2), (1-u^2-v^2)/(1+u^2+v^2)]},
             ....:   name='Phi', latex_name=r'\Phi')
             sage: Phi.display(c_xy, c_cart)
-            Phi: S^2 --> R^3
+            Phi: S^2 → R^3
             on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
             sage: Phi.display(c_uv, c_cart)
-            Phi: S^2 --> R^3
+            Phi: S^2 → R^3
             on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
         The LaTeX output of that embedding is::
@@ -1061,7 +1061,7 @@ class ContinuousMap(Morphism):
         ``c_cart``)::
 
             sage: Phi.display(c_xy)
-            Phi: S^2 --> R^3
+            Phi: S^2 → R^3
             on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
 
         Similarly, if the argument ``chart1`` is omitted, the display is
@@ -1069,7 +1069,7 @@ class ContinuousMap(Morphism):
         map is known or computable via some change of coordinates::
 
             sage: Phi.display(chart2=c_cart)
-            Phi: S^2 --> R^3
+            Phi: S^2 → R^3
             on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
             on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
@@ -1078,7 +1078,7 @@ class ContinuousMap(Morphism):
         computable via some change of coordinates::
 
             sage: Phi.display()
-            Phi: S^2 --> R^3
+            Phi: S^2 → R^3
             on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
             on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
@@ -1086,13 +1086,13 @@ class ContinuousMap(Morphism):
         is omitted::
 
             sage: Phi.restrict(U).display()
-            Phi: U --> R^3
+            Phi: U → R^3
                (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
 
         A shortcut of ``display()`` is ``disp()``::
 
             sage: Phi.disp()
-            Phi: S^2 --> R^3
+            Phi: S^2 → R^3
             on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1), (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
             on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1), -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
@@ -1101,7 +1101,7 @@ class ContinuousMap(Morphism):
             sage: M.set_calculus_method('sympy')
             sage: N.set_calculus_method('sympy')
             sage: Phi.display(c_xy, c_cart)
-            Phi: S^2 --> R^3
+            Phi: S^2 → R^3
             on U: (x, y) ↦ (X, Y, Z) = (2*x/(x**2 + y**2 + 1),
              2*y/(x**2 + y**2 + 1), (x**2 + y**2 - 1)/(x**2 + y**2 + 1))
             sage: latex(Phi.display(c_xy, c_cart))
@@ -1160,7 +1160,8 @@ class ContinuousMap(Morphism):
             symbol = ''
         else:
             symbol = self._name + ': '
-        result._txt = symbol + self._domain._name + ' --> ' + \
+        # Unicode character '\u2192' is '→'; see ticket #30473
+        result._txt = symbol + self._domain._name + ' \u2192 ' + \
                      self._codomain._name + '\n'
         if self._latex_name is None:
             symbol = ''
@@ -1221,7 +1222,7 @@ class ContinuousMap(Morphism):
             sage: Phi = M.continuous_map(N, (u*v, u/v, u+v), name='Phi',
             ....:                        latex_name=r'\Phi')
             sage: Phi.display()
-            Phi: M --> N
+            Phi: M → N
                (u, v) ↦ (x, y, z) = (u*v, u/v, u + v)
             sage: Phi.coord_functions(c_uv, c_xyz)
             Coordinate functions (u*v, u/v, u + v) on the Chart (M, (u, v))
@@ -1426,7 +1427,7 @@ class ContinuousMap(Morphism):
             sage: Phi = M.continuous_map(N, (u*v, u/v, u+v), name='Phi',
             ....:                        latex_name=r'\Phi')
             sage: Phi.display()
-            Phi: M --> N
+            Phi: M → N
                (u, v) ↦ (x, y, z) = (u*v, u/v, u + v)
             sage: Phi.expr(c_uv, c_xyz)
             (u*v, u/v, u + v)
@@ -1528,7 +1529,7 @@ class ContinuousMap(Morphism):
             sage: rot = U.continuous_map(U, ((x - sqrt(3)*y)/2, (sqrt(3)*x + y)/2),
             ....:                        name='R')
             sage: rot.display(c_cart, c_cart)
-            R: U --> U
+            R: U → U
                (x, y) ↦ (-1/2*sqrt(3)*y + 1/2*x, 1/2*sqrt(3)*x + 1/2*y)
 
         Let us use the method :meth:`set_expr` to set the
@@ -1536,7 +1537,7 @@ class ContinuousMap(Morphism):
 
             sage: rot.set_expr(c_spher, c_spher, (r, ph+pi/3))
             sage: rot.display(c_spher, c_spher)
-            R: U --> U
+            R: U → U
                (r, ph) ↦ (r, 1/3*pi + ph)
 
         The expression in Cartesian coordinates has been erased::
@@ -1550,7 +1551,7 @@ class ContinuousMap(Morphism):
         to :meth:`display`::
 
             sage: rot.display(c_cart, c_cart)
-            R: U --> U
+            R: U → U
                (x, y) ↦ (-1/2*sqrt(3)*y + 1/2*x, 1/2*sqrt(3)*x + 1/2*y)
 
             sage: rot._coord_expression  # random (dictionary output)
@@ -1662,7 +1663,7 @@ class ContinuousMap(Morphism):
             sage: rot = U.continuous_map(U, ((x - sqrt(3)*y)/2, (sqrt(3)*x + y)/2),
             ....:                        name='R')
             sage: rot.display(c_cart, c_cart)
-            R: U --> U
+            R: U → U
                (x, y) ↦ (-1/2*sqrt(3)*y + 1/2*x, 1/2*sqrt(3)*x + 1/2*y)
 
         If we calculate the expression in terms of spherical coordinates,
@@ -1670,7 +1671,7 @@ class ContinuousMap(Morphism):
         in ``arctan2`` simplifications::
 
             sage: rot.display(c_spher, c_spher)
-            R: U --> U
+            R: U → U
                (r, ph) ↦ (r, arctan2(1/2*(sqrt(3)*cos(ph) + sin(ph))*r, -1/2*(sqrt(3)*sin(ph) - cos(ph))*r))
 
         Therefore, we use the method :meth:`add_expr` to set the
@@ -1678,7 +1679,7 @@ class ContinuousMap(Morphism):
 
             sage: rot.add_expr(c_spher, c_spher, (r, ph+pi/3))
             sage: rot.display(c_spher, c_spher)
-            R: U --> U
+            R: U → U
                (r, ph) ↦ (r, 1/3*pi + ph)
 
         The call to :meth:`add_expr` has not deleted the expression in
@@ -1705,7 +1706,7 @@ class ContinuousMap(Morphism):
         a call to :meth:`display`::
 
             sage: rot.display(c_cart, c_cart)
-            R: U --> U
+            R: U → U
                (x, y) ↦ (-1/2*sqrt(3)*y + 1/2*x, 1/2*sqrt(3)*x + 1/2*y)
 
             sage: rot._coord_expression # random (dictionary output)
@@ -1775,7 +1776,7 @@ class ContinuousMap(Morphism):
             sage: Phi = D.continuous_map(M, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],
             ....:                        name='Phi', latex_name=r'\Phi')
             sage: Phi.display()
-            Phi: D --> R^2
+            Phi: D → R^2
                (x, y) ↦ (x, y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
             sage: c_xy_D = c_xy.restrict(D)
             sage: U = D.open_subset('U', coord_def={c_xy_D: x^2+y^2>1/2}) # the annulus 1/2 < r < 1
@@ -1792,7 +1793,7 @@ class ContinuousMap(Morphism):
             sage: Phi.restrict(U).domain()
             Open subset U of the 2-dimensional topological manifold R^2
             sage: Phi.restrict(U).display()
-            Phi: U --> R^2
+            Phi: U → R^2
                (x, y) ↦ (x, y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
 
         The result is cached::
@@ -1943,7 +1944,7 @@ class ContinuousMap(Morphism):
             sage: rot.inverse()
             Homeomorphism R^(-1) of the 2-dimensional topological manifold R^2
             sage: rot.inverse().display()
-            R^(-1): R^2 --> R^2
+            R^(-1): R^2 → R^2
                (x, y) ↦ (1/2*sqrt(3)*y + 1/2*x, -1/2*sqrt(3)*x + 1/2*y)
 
         Checking that applying successively the homeomorphism and its
@@ -1985,13 +1986,13 @@ class ContinuousMap(Morphism):
             sage: s = M.homeomorphism(M, {(c_xy, c_uv): [x, y], (c_uv, c_xy): [u, v]},
             ....:                     name='s')
             sage: s.display()
-            s: M --> M
+            s: M → M
             on U: (x, y) ↦ (u, v) = (x, y)
             on V: (u, v) ↦ (x, y) = (u, v)
             sage: si = s.inverse(); si
             Homeomorphism s^(-1) of the 2-dimensional topological manifold M
             sage: si.display()
-            s^(-1): M --> M
+            s^(-1): M → M
             on U: (x, y) ↦ (u, v) = (x, y)
             on V: (u, v) ↦ (x, y) = (u, v)
 

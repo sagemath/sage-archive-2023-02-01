@@ -77,7 +77,7 @@ Plot the geodesic after interpolating the solution ``sol``::
     sage: c.codomain()
     2-dimensional Riemannian manifold M
     sage: c.display()
-    c: (0, 10) --> M
+    c: (0, 10) → M
 
 In particular, its value at `t=1` is::
 

@@ -171,7 +171,7 @@ class AffineConnection(SageObject):
         sage: nab[[1,1,2]]
         Scalar field on the 3-dimensional differentiable manifold M
         sage: nab[[1,1,2]].display()
-        M --> R
+        M → R
         (x, y, z) ↦ x^2
         sage: nab[[1,1,2]].coord_function() is nab[1,1,2]
         True

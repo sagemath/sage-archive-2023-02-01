@@ -232,7 +232,7 @@ def Torus(R=2, r=1, names=None):
         sage: T.atlas()
         [Chart (T, (theta, phi))]
         sage: T.embedding().display()
-        T --> E^3
+        T → E^3
            (theta, phi) ↦ (X, Y, Z) = ((cos(theta) + 3)*cos(phi),
                                           (cos(theta) + 3)*sin(phi),
                                           sin(theta))

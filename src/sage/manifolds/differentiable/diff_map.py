@@ -122,7 +122,7 @@ class DiffMap(ContinuousMap):
         sage: type(Phi)
         <class 'sage.manifolds.differentiable.manifold_homset.DifferentiableManifoldHomset_with_category.element_class'>
         sage: Phi.display()
-        Phi: S^2 --> R^3
+        Phi: S^2 → R^3
         on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
          (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
         on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
@@ -152,7 +152,7 @@ class DiffMap(ContinuousMap):
     on the manifold `S^2`, being known in only one chart::
 
         sage: Phi1.display()
-        Phi: S^2 --> R^3
+        Phi: S^2 → R^3
         on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
          (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
 
@@ -162,7 +162,7 @@ class DiffMap(ContinuousMap):
         sage: Phi1.add_expr(c_uv, c_cart, [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2),
         ....:                              (1-u^2-v^2)/(1+u^2+v^2)])
         sage: Phi1.display()
-        Phi: S^2 --> R^3
+        Phi: S^2 → R^3
         on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
          (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
         on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
@@ -231,7 +231,7 @@ class DiffMap(ContinuousMap):
         Differentiable map Psi from the 3-dimensional differentiable manifold
          R^3 to the 2-dimensional differentiable manifold R^2
         sage: Psi.display()
-        Psi: R^3 --> R^2
+        Psi: R^3 → R^2
            (X, Y, Z) ↦ (xP, yP) = (-X/(Z - 1), -Y/(Z - 1))
 
     Then we compose ``Psi`` with ``Phi``, thereby getting a map
@@ -251,7 +251,7 @@ class DiffMap(ContinuousMap):
     its coordinate expression reveals::
 
         sage: ster.display()
-        S^2 --> R^2
+        S^2 → R^2
         on U: (x, y) ↦ (xP, yP) = (x, y)
         on V: (u, v) ↦ (xP, yP) = (u/(u^2 + v^2), v/(u^2 + v^2))
 
@@ -280,7 +280,7 @@ class DiffMap(ContinuousMap):
         sage: Phi.parent() is Hom(R, R2)
         True
         sage: Phi.display()
-        Phi: R --> R^2
+        Phi: R → R^2
            t ↦ (x, y) = (cos(t), sin(t))
 
     An example of diffeomorphism between the unit open disk and the Euclidean
@@ -300,7 +300,7 @@ class DiffMap(ContinuousMap):
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()
-        Phi: D --> R^2
+        Phi: D → R^2
            (x, y) ↦ (x, y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
 
     The image of a point::
@@ -318,7 +318,7 @@ class DiffMap(ContinuousMap):
         Diffeomorphism Phi^(-1) from the 2-dimensional differentiable manifold R^2
          to the Open subset D of the 2-dimensional differentiable manifold R^2
         sage: Phi.inverse().display()
-        Phi^(-1): R^2 --> D
+        Phi^(-1): R^2 → D
            (x, y) ↦ (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
 
     Equivalently, one may use the notations ``^(-1)`` or ``~`` to get the
@@ -341,7 +341,7 @@ class DiffMap(ContinuousMap):
     The coordinate expression of the inverse diffeomorphism::
 
         sage: (~Phi).display()
-        Phi^(-1): R^2 --> D
+        Phi^(-1): R^2 → D
            (x, y) ↦ (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
 
     A special case of diffeomorphism: the identity map of the open unit disk::
@@ -373,7 +373,7 @@ class DiffMap(ContinuousMap):
     The coordinate expression of the identity map::
 
         sage: id.display()
-        Id_D: D --> D
+        Id_D: D → D
            (x, y) ↦ (x, y)
 
     The identity map is its own inverse::
@@ -399,7 +399,7 @@ class DiffMap(ContinuousMap):
             Differentiable map f from the 2-dimensional differentiable manifold
              M to the 3-dimensional differentiable manifold N
             sage: f.display()
-            f: M --> N
+            f: M → N
                (x, y) ↦ (u, v, w) = (x + y, x*y, x - y)
             sage: TestSuite(f).run()
 
@@ -408,7 +408,7 @@ class DiffMap(ContinuousMap):
             sage: f = Hom(M,M)({}, is_identity=True) ; f
             Identity map Id_M of the 2-dimensional differentiable manifold M
             sage: f.display()
-            Id_M: M --> M
+            Id_M: M → M
                (x, y) ↦ (x, y)
             sage: TestSuite(f).run()
 
@@ -821,7 +821,7 @@ class DiffMap(ContinuousMap):
             sage: Phi = M.diff_map(N, {(X,Y): (x-2*y, x*y, x^2-y^3)}, name='Phi',
             ....:                  latex_name = r'\Phi')
             sage: Phi.display()
-            Phi: M --> N
+            Phi: M → N
                (x, y) ↦ (u, v, w) = (x - 2*y, x*y, -y^3 + x^2)
             sage: J = Phi.jacobian_matrix(X, Y) ; J
             [     1     -2]
@@ -873,13 +873,13 @@ class DiffMap(ContinuousMap):
             sage: f = N.scalar_field(x*y*z, name='f') ; f
             Scalar field f on the 3-dimensional differentiable manifold R^3
             sage: f.display()
-            f: R^3 --> R
+            f: R^3 → R
                (x, y, z) ↦ x*y*z
             sage: pf = Phi.pullback(f) ; pf
             Scalar field Phi^*(f) on the Open subset U of the 2-dimensional
              differentiable manifold S^2
             sage: pf.display()
-            Phi^*(f): U --> R
+            Phi^*(f): U → R
                (th, ph) ↦ cos(ph)*cos(th)*sin(ph)*sin(th)^2
 
         Pullback on `S^2` of the standard Euclidean metric on `R^3`::

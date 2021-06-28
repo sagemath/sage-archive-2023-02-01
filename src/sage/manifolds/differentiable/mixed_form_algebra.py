@@ -454,7 +454,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
               To:   Free module Omega^1(M) of 1-forms on the 2-dimensional
                differentiable manifold M
             sage: f = M.scalar_field(x, name='f'); f.display()
-            f: M --> R
+            f: M → R
                (x, y) ↦ x
             sage: d0(f).display()
             df = dx

@@ -114,7 +114,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         ....:                    name='f') ; f
         Scalar field f on the 2-dimensional topological manifold M
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -142,7 +142,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
     the coordinates `(u,v)` on `W=U\cap V`::
 
         sage: g.display()
-        g: U → R
+        g: U → ℝ
            (x, y) ↦ x*y
         on W: (u, v) ↦ u*v/(u^4 + 2*u^2*v^2 + v^4)
 
@@ -157,7 +157,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
         sage: f.add_expr((u^2+v^2)/(1+u^2+v^2), chart=c_uv)
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -168,7 +168,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: f.add_expr(1/(1+x^2+y^2), chart=c_xy)
         sage: f.add_expr((u^2+v^2)/(1+u^2+v^2), chart=c_uv)
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -180,7 +180,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field f on the 2-dimensional topological manifold M
         sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -191,7 +191,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field h on the Open subset U of the 2-dimensional topological
          manifold M
         sage: h.display()
-        h: U → R
+        h: U → ℝ
            (x, y) ↦ H(x, y)
         on W: (u, v) ↦ H(u/(u^2 + v^2), v/(u^2 + v^2))
 
@@ -236,7 +236,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: c = M.scalar_field(2, chart='all', name='c') ; c
         Scalar field c on the 2-dimensional topological manifold M
         sage: c.display()
-        c: M → R
+        c: M → ℝ
         on U: (x, y) ↦ 2
         on V: (u, v) ↦ 2
 
@@ -253,7 +253,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: c = M.constant_scalar_field(a, name='c') ; c
         Scalar field c on the 2-dimensional topological manifold M
         sage: c.display()
-        c: M → R
+        c: M → ℝ
         on U: (x, y) ↦ a
         on V: (u, v) ↦ a
 
@@ -262,7 +262,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: zer = M.constant_scalar_field(0) ; zer
         Scalar field zero on the 2-dimensional topological manifold M
         sage: zer.display()
-        zero: M → R
+        zero: M → ℝ
         on U: (x, y) ↦ 0
         on V: (u, v) ↦ 0
 
@@ -371,7 +371,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: sqrt(f)
         Scalar field sqrt(f) on the 2-dimensional topological manifold M
         sage: sqrt(f).display()
-        sqrt(f): M → R
+        sqrt(f): M → ℝ
         on U: (x, y) ↦ 1/sqrt(x^2 + y^2 + 1)
         on V: (u, v) ↦ sqrt(u^2 + v^2)/sqrt(u^2 + v^2 + 1)
 
@@ -380,7 +380,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: tan(f)
         Scalar field tan(f) on the 2-dimensional topological manifold M
         sage: tan(f).display()
-        tan(f): M → R
+        tan(f): M → ℝ
         on U: (x, y) ↦ sin(1/(x^2 + y^2 + 1))/cos(1/(x^2 + y^2 + 1))
         on V: (u, v) ↦ sin((u^2 + v^2)/(u^2 + v^2 + 1))/cos((u^2 + v^2)/(u^2 + v^2 + 1))
 
@@ -404,7 +404,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f + c ; s
         Scalar field f+c on the 2-dimensional topological manifold M
         sage: s.display()
-        f+c: M → R
+        f+c: M → ℝ
         on U: (x, y) ↦ (a*x^2 + a*y^2 + a + 1)/(x^2 + y^2 + 1)
         on V: (u, v) ↦ ((a + 1)*u^2 + (a + 1)*v^2 + a)/(u^2 + v^2 + 1)
 
@@ -413,7 +413,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f - c ; s
         Scalar field f-c on the 2-dimensional topological manifold M
         sage: s.display()
-        f-c: M → R
+        f-c: M → ℝ
         on U: (x, y) ↦ -(a*x^2 + a*y^2 + a - 1)/(x^2 + y^2 + 1)
         on V: (u, v) ↦ -((a - 1)*u^2 + (a - 1)*v^2 + a)/(u^2 + v^2 + 1)
 
@@ -436,7 +436,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f + 1 ; s
         Scalar field f+1 on the 2-dimensional topological manifold M
         sage: s.display()
-        f+1: M → R
+        f+1: M → ℝ
         on U: (x, y) ↦ (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (2*u^2 + 2*v^2 + 1)/(u^2 + v^2 + 1)
         sage: (f+1)-1 == f
@@ -455,13 +455,13 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f + x; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ (x^3 + x*y^2 + x + 1)/(x^2 + y^2 + 1)
         on W: (u, v) ↦ (u^4 + v^4 + u^3 + (2*u^2 + u)*v^2 + u)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2)
         sage: s = f + u; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on W: (x, y) ↦ (x^3 + (x + 1)*y^2 + x^2 + x)/(x^4 + y^4 + (2*x^2 + 1)*y^2 + x^2)
         on V: (u, v) ↦ (u^3 + (u + 1)*v^2 + u^2 + u)/(u^2 + v^2 + 1)
 
@@ -479,7 +479,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s.domain()
         Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
-        f+g: U → R
+        f+g: U → ℝ
            (x, y) ↦ (x*y^3 + (x^3 + x)*y + 1)/(x^2 + y^2 + 1)
         on W: (u, v) ↦ (u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6 + u*v^3
          + (u^3 + u)*v)/(u^6 + v^6 + (3*u^2 + 1)*v^4 + u^4 + (3*u^4 + 2*u^2)*v^2)
@@ -510,7 +510,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = 2*f ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ 2/(x^2 + y^2 + 1)
         on V: (u, v) ↦ 2*(u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -519,7 +519,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = a*f ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ a/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (u^2 + v^2)*a/(u^2 + v^2 + 1)
 
@@ -529,13 +529,13 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = x*f; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ x/(x^2 + y^2 + 1)
         on W: (u, v) ↦ u/(u^2 + v^2 + 1)
         sage: s = u*f; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on W: (x, y) ↦ x/(x^4 + y^4 + (2*x^2 + 1)*y^2 + x^2)
         on V: (u, v) ↦ (u^2 + v^2)*u/(u^2 + v^2 + 1)
 
@@ -556,7 +556,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f*f ; s
         Scalar field f*f on the 2-dimensional topological manifold M
         sage: s.display()
-        f*f: M → R
+        f*f: M → ℝ
         on U: (x, y) ↦ 1/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
         on V: (u, v) ↦ (u^4 + 2*u^2*v^2 + v^4)/(u^4 + v^4 + 2*(u^2 + 1)*v^2
          + 2*u^2 + 1)
@@ -564,7 +564,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field g*h on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        g*h: U → R
+        g*h: U → ℝ
            (x, y) ↦ x*y*H(x, y)
         on W: (u, v) ↦ u*v*H(u/(u^2 + v^2), v/(u^2 + v^2))/(u^4 + 2*u^2*v^2 + v^4)
 
@@ -580,7 +580,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field f*g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        f*g: U → R
+        f*g: U → ℝ
            (x, y) ↦ x*y/(x^2 + y^2 + 1)
         on W: (u, v) ↦ u*v/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2)
         sage: s == f.restrict(U)*g
@@ -591,21 +591,21 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f/c ; s
         Scalar field f/c on the 2-dimensional topological manifold M
         sage: s.display()
-        f/c: M → R
+        f/c: M → ℝ
         on U: (x, y) ↦ 1/(a*x^2 + a*y^2 + a)
         on V: (u, v) ↦ (u^2 + v^2)/(a*u^2 + a*v^2 + a)
         sage: s = g/h ; s
         Scalar field g/h on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        g/h: U → R
+        g/h: U → ℝ
            (x, y) ↦ x*y/H(x, y)
         on W: (u, v) ↦ u*v/((u^4 + 2*u^2*v^2 + v^4)*H(u/(u^2 + v^2), v/(u^2 + v^2)))
         sage: s = f/g ; s
         Scalar field f/g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        f/g: U → R
+        f/g: U → ℝ
            (x, y) ↦ 1/(x*y^3 + (x^3 + x)*y)
         on W: (u, v) ↦ (u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6)/(u*v^3 + (u^3 + u)*v)
         sage: s == f.restrict(U)/g
@@ -618,7 +618,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ x^2 + (x - 1)*y
         on W: (u, v) ↦ -(v^3 - u^2 + (u^2 - u)*v)/(u^4 + 2*u^2*v^2 + v^4)
 
@@ -628,7 +628,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ x^2*y
         on W: (u, v) ↦ u^2*v/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6)
 
@@ -638,14 +638,14 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ y
         on W: (u, v) ↦ v/(u^2 + v^2)
         sage: s = x/g ; s
         Scalar field on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ 1/y
         on W: (u, v) ↦ (u^2 + v^2)/v
 
@@ -663,7 +663,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         ....:                    name='f') ; f
         Scalar field f on the 2-dimensional topological manifold M
         sage: f.display()  # notice the SymPy display of exponents
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x**2 + y**2 + 1)
         on V: (u, v) ↦ (u**2 + v**2)/(u**2 + v**2 + 1)
         sage: type(f.coord_function(c_xy).expr())
@@ -673,7 +673,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
         sage: g = U.scalar_field({c_xy: x*y}, name='g')
         sage: g.display() # again notice the SymPy display of exponents
-        g: U → R
+        g: U → ℝ
            (x, y) ↦ x*y
         on W: (u, v) ↦ u*v/(u**4 + 2*u**2*v**2 + v**4)
 
@@ -682,7 +682,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: f = M.scalar_field(1/(1+x^2+y^2), chart=c_xy, name='f')
         sage: f.add_expr((u^2+v^2)/(1+u^2+v^2), chart=c_uv)
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x**2 + y**2 + 1)
         on V: (u, v) ↦ (u**2 + v**2)/(u**2 + v**2 + 1)
 
@@ -692,7 +692,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: f.add_expr(1/(1+x^2+y^2), chart=c_xy)
         sage: f.add_expr((u^2+v^2)/(1+u^2+v^2), chart=c_uv)
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x**2 + y**2 + 1)
         on V: (u, v) ↦ (u**2 + v**2)/(u**2 + v**2 + 1)
 
@@ -701,7 +701,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: f = M.scalar_field(1/(1+x^2+y^2), chart=c_xy, name='f')
         sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x**2 + y**2 + 1)
         on V: (u, v) ↦ (u**2 + v**2)/(u**2 + v**2 + 1)
 
@@ -712,7 +712,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field h on the Open subset U of the 2-dimensional topological
          manifold M
         sage: h.display()
-        h: U → R
+        h: U → ℝ
            (x, y) ↦ H(x, y)
         on W: (u, v) ↦ H(u/(u**2 + v**2), v/(u**2 + v**2))
 
@@ -750,7 +750,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
         sage: c = M.constant_scalar_field(2, name='c')
         sage: c.display()
-        c: M → R
+        c: M → ℝ
         on U: (x, y) ↦ 2
         on V: (u, v) ↦ 2
         sage: type(c.expr(c_xy))
@@ -762,7 +762,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         a
         sage: c = M.constant_scalar_field(a, name='c')
         sage: c.display()
-        c: M → R
+        c: M → ℝ
         on U: (x, y) ↦ a
         on V: (u, v) ↦ a
         sage: type(c.expr(c_xy))
@@ -773,7 +773,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: zer = M.constant_scalar_field(0) ; zer
         Scalar field zero on the 2-dimensional topological manifold M
         sage: zer.display()
-        zero: M → R
+        zero: M → ℝ
         on U: (x, y) ↦ 0
         on V: (u, v) ↦ 0
         sage: type(zer.expr(c_xy))
@@ -830,7 +830,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: sqrt(f)
         Scalar field sqrt(f) on the 2-dimensional topological manifold M
         sage: sqrt(f).display()
-        sqrt(f): M → R
+        sqrt(f): M → ℝ
         on U: (x, y) ↦ 1/sqrt(x**2 + y**2 + 1)
         on V: (u, v) ↦ sqrt(u**2 + v**2)/sqrt(u**2 + v**2 + 1)
 
@@ -839,7 +839,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: tan(f)
         Scalar field tan(f) on the 2-dimensional topological manifold M
         sage: tan(f).display()
-        tan(f): M → R
+        tan(f): M → ℝ
         on U: (x, y) ↦ tan(1/(x**2 + y**2 + 1))
         on V: (u, v) ↦ tan((u**2 + v**2)/(u**2 + v**2 + 1))
 
@@ -863,7 +863,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f + c ; s
         Scalar field f+c on the 2-dimensional topological manifold M
         sage: s.display()
-        f+c: M → R
+        f+c: M → ℝ
         on U: (x, y) ↦ (a*x**2 + a*y**2 + a + 1)/(x**2 + y**2 + 1)
         on V: (u, v) ↦ (a*u**2 + a*v**2 + a + u**2 + v**2)/(u**2 + v**2 + 1)
 
@@ -872,7 +872,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f - c ; s
         Scalar field f-c on the 2-dimensional topological manifold M
         sage: s.display()
-        f-c: M → R
+        f-c: M → ℝ
         on U: (x, y) ↦ (-a*x**2 - a*y**2 - a + 1)/(x**2 + y**2 + 1)
         on V: (u, v) ↦ (-a*u**2 - a*v**2 - a + u**2 + v**2)/(u**2 + v**2 + 1)
 
@@ -895,7 +895,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f + 1 ; s
         Scalar field f+1 on the 2-dimensional topological manifold M
         sage: s.display()
-        f+1: M → R
+        f+1: M → ℝ
         on U: (x, y) ↦ (x**2 + y**2 + 2)/(x**2 + y**2 + 1)
         on V: (u, v) ↦ (2*u**2 + 2*v**2 + 1)/(u**2 + v**2 + 1)
         sage: (f+1)-1 == f
@@ -914,13 +914,13 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f + x; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ (x**3 + x*y**2 + x + 1)/(x**2 + y**2 + 1)
         on W: (u, v) ↦ (u**4 + u**3 + 2*u**2*v**2 + u*v**2 + u + v**4)/(u**4 + 2*u**2*v**2 + u**2 + v**4 + v**2)
         sage: s = f + u; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on W: (x, y) ↦ (x**3 + x**2 + x*y**2 + x + y**2)/(x**4 + 2*x**2*y**2 + x**2 + y**4 + y**2)
         on V: (u, v) ↦ (u**3 + u**2 + u*v**2 + u + v**2)/(u**2 + v**2 + 1)
 
@@ -938,7 +938,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s.domain()
         Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
-        f+g: U → R
+        f+g: U → ℝ
            (x, y) ↦ (x**3*y + x*y**3 + x*y + 1)/(x**2 + y**2 + 1)
         on W: (u, v) ↦ (u**6 + 3*u**4*v**2 + u**3*v + 3*u**2*v**4 + u*v**3 + u*v + v**6)/(u**6 + 3*u**4*v**2 + u**4 + 3*u**2*v**4 + 2*u**2*v**2 + v**6 + v**4)
 
@@ -953,7 +953,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = 2*f ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ 2/(x**2 + y**2 + 1)
         on V: (u, v) ↦ 2*(u**2 + v**2)/(u**2 + v**2 + 1)
 
@@ -962,7 +962,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = a*f ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ a/(x**2 + y**2 + 1)
         on V: (u, v) ↦ a*(u**2 + v**2)/(u**2 + v**2 + 1)
 
@@ -972,13 +972,13 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = x*f; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ x/(x**2 + y**2 + 1)
         on W: (u, v) ↦ u/(u**2 + v**2 + 1)
         sage: s = u*f; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on W: (x, y) ↦ x/(x**4 + 2*x**2*y**2 + x**2 + y**4 + y**2)
         on V: (u, v) ↦ u*(u**2 + v**2)/(u**2 + v**2 + 1)
 
@@ -999,7 +999,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f*f ; s
         Scalar field f*f on the 2-dimensional topological manifold M
         sage: s.display()
-        f*f: M → R
+        f*f: M → ℝ
         on U: (x, y) ↦ 1/(x**4 + 2*x**2*y**2 + 2*x**2 + y**4 + 2*y**2 + 1)
         on V: (u, v) ↦ (u**4 + 2*u**2*v**2 + v**4)/(u**4 + 2*u**2*v**2 + 2*u**2 + v**4 + 2*v**2 + 1)
 
@@ -1007,7 +1007,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field g*h on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        g*h: U → R
+        g*h: U → ℝ
            (x, y) ↦ x*y*H(x, y)
         on W: (u, v) ↦ u*v*H(u/(u**2 + v**2), v/(u**2 + v**2))/(u**4 + 2*u**2*v**2 + v**4)
 
@@ -1023,7 +1023,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field f*g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        f*g: U → R
+        f*g: U → ℝ
            (x, y) ↦ x*y/(x**2 + y**2 + 1)
         on W: (u, v) ↦ u*v/(u**4 + 2*u**2*v**2 + u**2 + v**4 + v**2)
 
@@ -1035,14 +1035,14 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = f/c ; s
         Scalar field f/c on the 2-dimensional topological manifold M
         sage: s.display()
-        f/c: M → R
+        f/c: M → ℝ
         on U: (x, y) ↦ 1/(a*(x**2 + y**2 + 1))
         on V: (u, v) ↦ (u**2 + v**2)/(a*(u**2 + v**2 + 1))
         sage: s = g/h ; s
         Scalar field g/h on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        g/h: U → R
+        g/h: U → ℝ
            (x, y) ↦ x*y/H(x, y)
         on W: (u, v) ↦ u*v/((u**4 + 2*u**2*v**2 + v**4)*H(u/(u**2 + v**2), v/(u**2 + v**2)))
 
@@ -1050,7 +1050,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field f/g on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        f/g: U → R
+        f/g: U → ℝ
            (x, y) ↦ 1/(x*y*(x**2 + y**2 + 1))
         on W: (u, v) ↦ (u**6 + 3*u**4*v**2 + 3*u**2*v**4 + v**6)/(u*v*(u**2 + v**2 + 1))
         sage: s == f.restrict(U)/g
@@ -1062,7 +1062,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: s = g + x^2 - y ; s
         Scalar field on the Open subset U of the 2-dimensional topological manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ x**2 + x*y - y
         on W: (u, v) ↦ (-u**2*v + u**2 + u*v - v**3)/(u**4 + 2*u**2*v**2 + v**4)
 
@@ -1073,7 +1073,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ x**2*y
         on W: (u, v) ↦ u**2*v/(u**6 + 3*u**4*v**2 + 3*u**2*v**4 + v**6)
 
@@ -1083,14 +1083,14 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Scalar field on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ y
         on W: (u, v) ↦ v/(u**2 + v**2)
         sage: s = x/g ; s
         Scalar field on the Open subset U of the 2-dimensional topological
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ 1/y
         on W: (u, v) ↦ u**2/v + v
 
@@ -1634,12 +1634,12 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: c_xy.<x,y> = M.chart()
             sage: f = M.scalar_field(x*y^2, name='f')
             sage: f.display()
-            f: M → R
+            f: M → ℝ
                (x, y) ↦ x*y^2
             sage: g = M.scalar_field(name='g')
             sage: g.copy_from(f)
             sage: g.display()
-            g: M → R
+            g: M → ℝ
                (x, y) ↦ x*y^2
             sage: f == g
             True
@@ -1648,10 +1648,10 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
             sage: f.set_expr(x-y)
             sage: f.display()
-            f: M → R
+            f: M → ℝ
                (x, y) ↦ x - y
             sage: g.display()
-            g: M → R
+            g: M → ℝ
                (x, y) ↦ x*y^2
             sage: f == g
             False
@@ -1999,7 +1999,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         chart ``c_xy``, i.e. `U`::
 
             sage: f.display()
-            f: S^2 → R
+            f: S^2 → ℝ
             on U: (x, y) ↦ arctan(x^2 + y^2)
             on W: (u, v) ↦ arctan(1/(u^2 + v^2))
 
@@ -2008,7 +2008,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         `(x,y)` thanks to the transition map between the two charts::
 
             sage: f.display(c_uv.restrict(W))
-            f: S^2 → R
+            f: S^2 → ℝ
             on W: (u, v) ↦ arctan(1/(u^2 + v^2))
 
         We use this fact to extend the definition of `f` to the open
@@ -2019,7 +2019,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         Then, `f` is known on the whole sphere::
 
             sage: f.display()
-            f: S^2 → R
+            f: S^2 → ℝ
             on U: (x, y) ↦ arctan(x^2 + y^2)
             on V: (u, v) ↦ arctan(1/(u^2 + v^2))
 
@@ -2056,7 +2056,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: g = U.scalar_field(x^2+y)
             sage: f.set_restriction(g)
             sage: f.display()
-            f: M → R
+            f: M → ℝ
             on U: (x, y) ↦ x^2 + y
             sage: f.restrict(U) == g
             True
@@ -2102,13 +2102,13 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: c_xy.<x,y> = M.chart()
             sage: f = M.scalar_field(sqrt(x+1), name='f')
             sage: f.display()
-            f: M → R
+            f: M → ℝ
                (x, y) ↦ sqrt(x + 1)
             sage: latex(f.display())
             \begin{array}{llcl} f:& M & \longrightarrow & \mathbb{R} \\ & \left(x, y\right) & \longmapsto & \sqrt{x + 1} \end{array}
             sage: g = M.scalar_field(function('G')(x, y), name='g')
             sage: g.display()
-            g: M → R
+            g: M → ℝ
                (x, y) ↦ G(x, y)
             sage: latex(g.display())
             \begin{array}{llcl} g:& M & \longrightarrow & \mathbb{R} \\ & \left(x, y\right) & \longmapsto & G\left(x, y\right) \end{array}
@@ -2116,7 +2116,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         A shortcut of ``display()`` is ``disp()``::
 
             sage: f.disp()
-            f: M → R
+            f: M → ℝ
                (x, y) ↦ sqrt(x + 1)
 
         In case the scalar field is piecewise-defined, the ``display()``
@@ -2127,7 +2127,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: U = M.open_subset('U')
             sage: f.set_expr(y^2, c_xy.restrict(U))
             sage: f.display()
-            f: M → R
+            f: M → ℝ
             on U: (x, y) ↦ y^2
             sage: latex(f.display())
             \begin{array}{llcl} f:& M & \longrightarrow & \mathbb{R} \\ \mbox{on}\ U : & \left(x, y\right) & \longmapsto & y^{2} \end{array}
@@ -2166,12 +2166,10 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         field = self._domain.base_field()
         field_type = self._domain.base_field_type()
         if field_type == 'real':
-#            field_name = '\u211D'  # Unicode character 'ℝ'
-            field_name = 'R'
+            field_name = '\u211D'  # Unicode character 'ℝ'; see ticket #30473
             field_latex_name = r'\mathbb{R}'
         elif field_type == 'complex':
-#            field_name = '\2102' # Unicode character 'ℂ'
-            field_name = 'C'
+            field_name = '\u2102'  # Unicode character 'ℂ'; see ticket #30473
             field_latex_name = r'\mathbb{C}'
         else:
             field_name = str(field)
@@ -2247,7 +2245,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             Scalar field f on the Open subset U of the 2-dimensional
              topological manifold M
             sage: f_U.display()
-            f: U → R
+            f: U → ℝ
                (x, y) ↦ cos(x*y)
             sage: f.parent()
             Algebra of scalar fields on the 2-dimensional topological
@@ -2576,7 +2574,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: g = f.__neg__(); g
             Scalar field -f on the 2-dimensional topological manifold M
             sage: g.display()
-            -f: M → R
+            -f: M → ℝ
                (x, y) ↦ -x - y
             sage: g.__neg__() == f
             True
@@ -2616,7 +2614,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: s = f._add_(g); s
             Scalar field f+g on the 2-dimensional topological manifold M
             sage: s.display()
-            f+g: M → R
+            f+g: M → ℝ
                (x, y) ↦ (x + 1)*y + x
             sage: s == f+g
             True
@@ -2665,7 +2663,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: s = f._sub_(g); s
             Scalar field f-g on the 2-dimensional topological manifold M
             sage: s.display()
-            f-g: M → R
+            f-g: M → ℝ
                (x, y) ↦ -(x - 1)*y + x
             sage: s == f-g
             True
@@ -2716,7 +2714,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: s = f._mul_(g); s
             Scalar field f*g on the 2-dimensional topological manifold M
             sage: s.display()
-            f*g: M → R
+            f*g: M → ℝ
                (x, y) ↦ x^2*y + x*y^2
             sage: s == f*g
             True
@@ -2770,7 +2768,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: s = f._div_(g); s
             Scalar field f/g on the 2-dimensional topological manifold M
             sage: s.display()
-            f/g: M → R
+            f/g: M → ℝ
                (x, y) ↦ (x + y)/(x*y)
             sage: s == f/g
             True
@@ -2830,14 +2828,14 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: s = f._lmul_(2); s
             Scalar field on the 2-dimensional topological manifold M
             sage: s.display()
-            M → R
+            M → ℝ
             (x, y) ↦ 2*x + 2*y
             sage: s == 2 * f
             True
             sage: s == f * 2
             True
             sage: f._lmul_(pi).display()
-            M → R
+            M → ℝ
             (x, y) ↦ pi*(x + y)
             sage: f._lmul_(pi) == pi*f
             True
@@ -2952,7 +2950,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: g = exp(f) ; g
             Scalar field exp(f) on the 2-dimensional topological manifold M
             sage: g.display()
-            exp(f): M → R
+            exp(f): M → ℝ
                (x, y) ↦ e^(x + y)
             sage: latex(g)
             \exp\left(\Phi\right)
@@ -2961,7 +2959,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
             sage: f = M.scalar_field({X: 2*ln(1+x^2)}, name='f')
             sage: exp(f).display()
-            exp(f): M → R
+            exp(f): M → ℝ
                (x, y) ↦ x^4 + 2*x^2 + 1
 
         The inverse function is :meth:`log`::
@@ -2999,7 +2997,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: g = log(f) ; g
             Scalar field ln(f) on the 2-dimensional topological manifold M
             sage: g.display()
-            ln(f): M → R
+            ln(f): M → ℝ
                (x, y) ↦ log(x + y)
             sage: latex(g)
             \ln\left(\Phi\right)
@@ -3039,7 +3037,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             {\Phi}^{ \pi }
             sage: g.display()
-            f^pi: M → R
+            f^pi: M → ℝ
                (x, y) ↦ (x + y)^pi
 
         The global function ``pow`` can be used::
@@ -3094,7 +3092,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \sqrt{\Phi}
             sage: g.display()
-            sqrt(f): M → R
+            sqrt(f): M → ℝ
                (x, y) ↦ sqrt(x^2 + y^2 + 1)
 
         Some tests::
@@ -3130,7 +3128,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \cos\left(\Phi\right)
             sage: g.display()
-            cos(f): M → R
+            cos(f): M → ℝ
                (x, y) ↦ cos(x*y)
 
         Some tests::
@@ -3165,7 +3163,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \sin\left(\Phi\right)
             sage: g.display()
-            sin(f): M → R
+            sin(f): M → ℝ
                (x, y) ↦ sin(x*y)
 
         Some tests::
@@ -3200,7 +3198,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \tan\left(\Phi\right)
             sage: g.display()
-            tan(f): M → R
+            tan(f): M → ℝ
                (x, y) ↦ sin(x*y)/cos(x*y)
 
         Some tests::
@@ -3237,7 +3235,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \arccos\left(\Phi\right)
             sage: g.display()
-            arccos(f): M → R
+            arccos(f): M → ℝ
                (x, y) ↦ arccos(x*y)
 
         The notation ``acos`` can be used as well::
@@ -3281,7 +3279,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \arcsin\left(\Phi\right)
             sage: g.display()
-            arcsin(f): M → R
+            arcsin(f): M → ℝ
                (x, y) ↦ arcsin(x*y)
 
         The notation ``asin`` can be used as well::
@@ -3325,7 +3323,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \arctan\left(\Phi\right)
             sage: g.display()
-            arctan(f): M → R
+            arctan(f): M → ℝ
                (x, y) ↦ arctan(x*y)
 
         The notation ``atan`` can be used as well::
@@ -3369,7 +3367,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \cosh\left(\Phi\right)
             sage: g.display()
-            cosh(f): M → R
+            cosh(f): M → ℝ
                (x, y) ↦ cosh(x*y)
 
         Some test::
@@ -3402,7 +3400,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \sinh\left(\Phi\right)
             sage: g.display()
-            sinh(f): M → R
+            sinh(f): M → ℝ
                (x, y) ↦ sinh(x*y)
 
         Some test::
@@ -3435,7 +3433,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \tanh\left(\Phi\right)
             sage: g.display()
-            tanh(f): M → R
+            tanh(f): M → ℝ
                (x, y) ↦ sinh(x*y)/cosh(x*y)
 
         Some tests::
@@ -3471,7 +3469,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \,\mathrm{arccosh}\left(\Phi\right)
             sage: g.display()
-            arccosh(f): M → R
+            arccosh(f): M → ℝ
                (x, y) ↦ arccosh(x*y)
 
         The notation ``acosh`` can be used as well::
@@ -3514,7 +3512,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \,\mathrm{arcsinh}\left(\Phi\right)
             sage: g.display()
-            arcsinh(f): M → R
+            arcsinh(f): M → ℝ
                (x, y) ↦ arcsinh(x*y)
 
         The notation ``asinh`` can be used as well::
@@ -3557,7 +3555,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: latex(g)
             \,\mathrm{arctanh}\left(\Phi\right)
             sage: g.display()
-            arctanh(f): M → R
+            arctanh(f): M → ℝ
                (x, y) ↦ arctanh(x*y)
 
         The notation ``atanh`` can be used as well::

@@ -92,12 +92,12 @@ are :class:`scalar fields
     sage: t[[1,1]]
     Scalar field on the 2-dimensional differentiable manifold M
     sage: t[[1,1]].display()
-    M → R
+    M → ℝ
     (x, y) ↦ x^2
     sage: t[[1,2]]
     Scalar field zero on the 2-dimensional differentiable manifold M
     sage: t[[1,2]].display()
-    zero: M → R
+    zero: M → ℝ
        (x, y) ↦ 0
 
 A direct access to the coordinate expression of some component is obtained
@@ -217,7 +217,7 @@ fields; in the present case, ``T`` being of type `(1,1)`, it acts on pairs
     sage: t(a,v)
     Scalar field T(a,V) on the 2-dimensional differentiable manifold M
     sage: t(a,v).display()
-    T(a,V): M → R
+    T(a,V): M → ℝ
        (x, y) ↦ x^2*y^2 + 2*x + y
        (u, v) ↦ 1/16*u^4 - 1/8*u^2*v^2 + 1/16*v^4 + 3/2*u + 1/2*v
     sage: latex(t(a,v))
@@ -1335,7 +1335,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
 
             sage: f = M.scalar_field(x^3 + x*y^2)
             sage: w.lie_der(v)(f).display()
-            M → R
+            M → ℝ
             (x, y) ↦ -(x + 2)*y^3 + 3*x^3 - x*y^2 + 5*(x^3 - 2*x^2)*y
             sage: w.lie_der(v)(f) == v(w(f)) - w(v(f))  # rhs = commutator [v,w] acting on f
             True
@@ -1658,7 +1658,7 @@ class TensorFieldParal(FreeModuleTensor, TensorField):
             sage: s = t.__call__(a,v); s
             Scalar field t(a,v) on the 2-dimensional differentiable manifold M
             sage: s.display()
-            t(a,v): M → R
+            t(a,v): M → ℝ
                (x, y) ↦ -x^3 + y^3 + (x^3 - 3*x - 3)*y - y^2 + 6*x
             sage: s.coord_function() == sum(sum(t[i,j]*a[i]*v[j] for j in [0..1])
             ....:                           for i in [0..1])

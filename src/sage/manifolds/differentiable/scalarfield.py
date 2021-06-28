@@ -109,7 +109,7 @@ class DiffScalarField(ScalarField):
         ....:                    name='f') ; f
         Scalar field f on the 2-dimensional differentiable manifold M
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -137,7 +137,7 @@ class DiffScalarField(ScalarField):
     the coordinates `(u,v)` on `W=U\cap V`::
 
         sage: g.display()
-        g: U → R
+        g: U → ℝ
            (x, y) ↦ x*y
         on W: (u, v) ↦ u*v/(u^4 + 2*u^2*v^2 + v^4)
 
@@ -153,7 +153,7 @@ class DiffScalarField(ScalarField):
 
         sage: f.add_expr((u^2+v^2)/(1+u^2+v^2), chart=c_uv)
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -164,7 +164,7 @@ class DiffScalarField(ScalarField):
         sage: f.add_expr(1/(1+x^2+y^2), chart=c_xy)
         sage: f.add_expr((u^2+v^2)/(1+u^2+v^2), chart=c_uv)
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -177,7 +177,7 @@ class DiffScalarField(ScalarField):
         Scalar field f on the 2-dimensional differentiable manifold M
         sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
         sage: f.display()
-        f: M → R
+        f: M → ℝ
         on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -188,7 +188,7 @@ class DiffScalarField(ScalarField):
         Scalar field h on the Open subset U of the 2-dimensional differentiable
          manifold M
         sage: h.display()
-        h: U → R
+        h: U → ℝ
            (x, y) ↦ H(x, y)
         on W: (u, v) ↦ H(u/(u^2 + v^2), v/(u^2 + v^2))
 
@@ -235,7 +235,7 @@ class DiffScalarField(ScalarField):
         sage: c = M.scalar_field(2, chart='all', name='c') ; c
         Scalar field c on the 2-dimensional differentiable manifold M
         sage: c.display()
-        c: M → R
+        c: M → ℝ
         on U: (x, y) ↦ 2
         on V: (u, v) ↦ 2
 
@@ -252,7 +252,7 @@ class DiffScalarField(ScalarField):
         sage: c = M.constant_scalar_field(a, name='c') ; c
         Scalar field c on the 2-dimensional differentiable manifold M
         sage: c.display()
-        c: M → R
+        c: M → ℝ
         on U: (x, y) ↦ a
         on V: (u, v) ↦ a
 
@@ -261,7 +261,7 @@ class DiffScalarField(ScalarField):
         sage: zer = M.constant_scalar_field(0) ; zer
         Scalar field zero on the 2-dimensional differentiable manifold M
         sage: zer.display()
-        zero: M → R
+        zero: M → ℝ
         on U: (x, y) ↦ 0
         on V: (u, v) ↦ 0
 
@@ -328,7 +328,7 @@ class DiffScalarField(ScalarField):
         sage: sqrt(f)
         Scalar field sqrt(f) on the 2-dimensional differentiable manifold M
         sage: sqrt(f).display()
-        sqrt(f): M → R
+        sqrt(f): M → ℝ
         on U: (x, y) ↦ 1/sqrt(x^2 + y^2 + 1)
         on V: (u, v) ↦ sqrt(u^2 + v^2)/sqrt(u^2 + v^2 + 1)
 
@@ -337,7 +337,7 @@ class DiffScalarField(ScalarField):
         sage: tan(f)
         Scalar field tan(f) on the 2-dimensional differentiable manifold M
         sage: tan(f).display()
-        tan(f): M → R
+        tan(f): M → ℝ
         on U: (x, y) ↦ sin(1/(x^2 + y^2 + 1))/cos(1/(x^2 + y^2 + 1))
         on V: (u, v) ↦ sin((u^2 + v^2)/(u^2 + v^2 + 1))/cos((u^2 + v^2)/(u^2 + v^2 + 1))
 
@@ -362,7 +362,7 @@ class DiffScalarField(ScalarField):
         sage: s = f + c ; s
         Scalar field f+c on the 2-dimensional differentiable manifold M
         sage: s.display()
-        f+c: M → R
+        f+c: M → ℝ
         on U: (x, y) ↦ (a*x^2 + a*y^2 + a + 1)/(x^2 + y^2 + 1)
         on V: (u, v) ↦ ((a + 1)*u^2 + (a + 1)*v^2 + a)/(u^2 + v^2 + 1)
 
@@ -371,7 +371,7 @@ class DiffScalarField(ScalarField):
         sage: s = f - c ; s
         Scalar field f-c on the 2-dimensional differentiable manifold M
         sage: s.display()
-        f-c: M → R
+        f-c: M → ℝ
         on U: (x, y) ↦ -(a*x^2 + a*y^2 + a - 1)/(x^2 + y^2 + 1)
         on V: (u, v) ↦ -((a - 1)*u^2 + (a - 1)*v^2 + a)/(u^2 + v^2 + 1)
 
@@ -394,7 +394,7 @@ class DiffScalarField(ScalarField):
         sage: s = f + 1 ; s
         Scalar field f+1 on the 2-dimensional differentiable manifold M
         sage: s.display()
-        f+1: M → R
+        f+1: M → ℝ
         on U: (x, y) ↦ (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (2*u^2 + 2*v^2 + 1)/(u^2 + v^2 + 1)
         sage: (f+1)-1 == f
@@ -413,13 +413,13 @@ class DiffScalarField(ScalarField):
         sage: s = f + x; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ (x^3 + x*y^2 + x + 1)/(x^2 + y^2 + 1)
         on W: (u, v) ↦ (u^4 + v^4 + u^3 + (2*u^2 + u)*v^2 + u)/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2)
         sage: s = f + u; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on W: (x, y) ↦ (x^3 + (x + 1)*y^2 + x^2 + x)/(x^4 + y^4 + (2*x^2 + 1)*y^2 + x^2)
         on V: (u, v) ↦ (u^3 + (u + 1)*v^2 + u^2 + u)/(u^2 + v^2 + 1)
 
@@ -437,7 +437,7 @@ class DiffScalarField(ScalarField):
         sage: s.domain()
         Open subset U of the 2-dimensional differentiable manifold M
         sage: s.display()
-        f+g: U → R
+        f+g: U → ℝ
            (x, y) ↦ (x*y^3 + (x^3 + x)*y + 1)/(x^2 + y^2 + 1)
         on W: (u, v) ↦ (u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6 + u*v^3
          + (u^3 + u)*v)/(u^6 + v^6 + (3*u^2 + 1)*v^4 + u^4 + (3*u^4 + 2*u^2)*v^2)
@@ -468,7 +468,7 @@ class DiffScalarField(ScalarField):
         sage: s = 2*f ; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ 2/(x^2 + y^2 + 1)
         on V: (u, v) ↦ 2*(u^2 + v^2)/(u^2 + v^2 + 1)
 
@@ -477,7 +477,7 @@ class DiffScalarField(ScalarField):
         sage: s = a*f ; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ a/(x^2 + y^2 + 1)
         on V: (u, v) ↦ (u^2 + v^2)*a/(u^2 + v^2 + 1)
 
@@ -487,13 +487,13 @@ class DiffScalarField(ScalarField):
         sage: s = x*f; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ x/(x^2 + y^2 + 1)
         on W: (u, v) ↦ u/(u^2 + v^2 + 1)
         sage: s = u*f; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on W: (x, y) ↦ x/(x^4 + y^4 + (2*x^2 + 1)*y^2 + x^2)
         on V: (u, v) ↦ (u^2 + v^2)*u/(u^2 + v^2 + 1)
 
@@ -514,14 +514,14 @@ class DiffScalarField(ScalarField):
         sage: s = f*f ; s
         Scalar field f*f on the 2-dimensional differentiable manifold M
         sage: s.display()
-        f*f: M → R
+        f*f: M → ℝ
         on U: (x, y) ↦ 1/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
         on V: (u, v) ↦ (u^4 + 2*u^2*v^2 + v^4)/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
         sage: s = g*h ; s
         Scalar field g*h on the Open subset U of the 2-dimensional
          differentiable manifold M
         sage: s.display()
-        g*h: U → R
+        g*h: U → ℝ
            (x, y) ↦ x*y*H(x, y)
         on W: (u, v) ↦ u*v*H(u/(u^2 + v^2), v/(u^2 + v^2))/(u^4 + 2*u^2*v^2 + v^4)
 
@@ -537,7 +537,7 @@ class DiffScalarField(ScalarField):
         Scalar field f*g on the Open subset U of the 2-dimensional
          differentiable manifold M
         sage: s.display()
-        f*g: U → R
+        f*g: U → ℝ
            (x, y) ↦ x*y/(x^2 + y^2 + 1)
         on W: (u, v) ↦ u*v/(u^4 + v^4 + (2*u^2 + 1)*v^2 + u^2)
         sage: s == f.restrict(U)*g
@@ -548,21 +548,21 @@ class DiffScalarField(ScalarField):
         sage: s = f/c ; s
         Scalar field f/c on the 2-dimensional differentiable manifold M
         sage: s.display()
-        f/c: M → R
+        f/c: M → ℝ
         on U: (x, y) ↦ 1/(a*x^2 + a*y^2 + a)
         on V: (u, v) ↦ (u^2 + v^2)/(a*u^2 + a*v^2 + a)
         sage: s = g/h ; s
         Scalar field g/h on the Open subset U of the 2-dimensional
          differentiable manifold M
         sage: s.display()
-        g/h: U → R
+        g/h: U → ℝ
            (x, y) ↦ x*y/H(x, y)
         on W: (u, v) ↦ u*v/((u^4 + 2*u^2*v^2 + v^4)*H(u/(u^2 + v^2), v/(u^2 + v^2)))
         sage: s = f/g ; s
         Scalar field f/g on the Open subset U of the 2-dimensional
          differentiable manifold M
         sage: s.display()
-        f/g: U → R
+        f/g: U → ℝ
            (x, y) ↦ 1/(x*y^3 + (x^3 + x)*y)
         on W: (u, v) ↦ (u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6)/(u*v^3 + (u^3 + u)*v)
         sage: s == f.restrict(U)/g
@@ -575,7 +575,7 @@ class DiffScalarField(ScalarField):
         Scalar field on the Open subset U of the 2-dimensional differentiable
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ x^2 + (x - 1)*y
         on W: (u, v) ↦ -(v^3 - u^2 + (u^2 - u)*v)/(u^4 + 2*u^2*v^2 + v^4)
 
@@ -585,7 +585,7 @@ class DiffScalarField(ScalarField):
         Scalar field on the Open subset U of the 2-dimensional differentiable
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ x^2*y
         on W: (u, v) ↦ u^2*v/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6)
 
@@ -595,14 +595,14 @@ class DiffScalarField(ScalarField):
         Scalar field on the Open subset U of the 2-dimensional differentiable
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ y
         on W: (u, v) ↦ v/(u^2 + v^2)
         sage: s = x/g ; s
         Scalar field on the Open subset U of the 2-dimensional differentiable
          manifold M
         sage: s.display()
-        U → R
+        U → ℝ
         (x, y) ↦ 1/y
         on W: (u, v) ↦ (u^2 + v^2)/v
 
@@ -863,7 +863,7 @@ class DiffScalarField(ScalarField):
 
             sage: f.set_expr(x^2 + y^2)
             sage: f.lie_der(v).display()
-            M → R
+            M → ℝ
             (x, y) ↦ 0
 
         """
@@ -920,7 +920,7 @@ class DiffScalarField(ScalarField):
             sage: ssf = sf.hodge_dual(g) ; ssf
             Scalar field **f on the 3-dimensional differentiable manifold M
             sage: ssf.display()
-            **f: M → R
+            **f: M → ℝ
                (x, y, z) ↦ F(x, y, z)
             sage: ssf == f # must hold for a Riemannian metric
             True
@@ -970,7 +970,7 @@ class DiffScalarField(ScalarField):
             sage: s = f.bracket(g); s
             Scalar field zero on the 2-dimensional differentiable manifold M
             sage: s.display()
-            zero: M → R
+            zero: M → ℝ
                (x, y) ↦ 0
 
         while the Schouten-Nijenhuis bracket of a scalar field `f` with a
@@ -1201,7 +1201,7 @@ class DiffScalarField(ScalarField):
             sage: s = f.laplacian(); s
             Scalar field Delta(f) on the Euclidean plane E^2
             sage: s.display()
-            Delta(f): E^2 → R
+            Delta(f): E^2 → ℝ
                (x, y) ↦ d^2(F)/dx^2 + d^2(F)/dy^2
 
         The function :func:`~sage.manifolds.operators.laplacian` from the
@@ -1220,7 +1220,7 @@ class DiffScalarField(ScalarField):
             sage: s = f.laplacian(h); s
             Scalar field Delta_h(f) on the Euclidean plane E^2
             sage: s.display()
-            Delta_h(f): E^2 → R
+            Delta_h(f): E^2 → ℝ
                (x, y) ↦ (y^4*d^2(F)/dy^2 + y^3*d(F)/dy
                + (2*(x^2 + 1)*d^2(F)/dy^2 - d^2(F)/dx^2)*y^2
                + (x^2 + 1)*y*d(F)/dy + x*d(F)/dx - (x^2 + 1)*d^2(F)/dx^2
@@ -1303,7 +1303,7 @@ class DiffScalarField(ScalarField):
             sage: s = f.dalembertian(); s
             Scalar field Box(f) on the 4-dimensional Lorentzian manifold M
             sage: s.display()
-            Box(f): M → R
+            Box(f): M → ℝ
                (t, x, y, z) ↦ 6*t^2*y - 2*y^3 - 12*x*z^2 + 2
 
         The function :func:`~sage.manifolds.operators.dalembertian` from the

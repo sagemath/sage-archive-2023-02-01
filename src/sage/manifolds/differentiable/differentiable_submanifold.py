@@ -135,7 +135,7 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
            (x, y, z) ↦ (u, v) = (x, y)
         sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
         sage: phi_inv_t.display()
-        M → R
+        M → ℝ
         (x, y, z) ↦ -x^2 - y^2 + z
 
     `\phi` can then be declared as an embedding `N\to M`::

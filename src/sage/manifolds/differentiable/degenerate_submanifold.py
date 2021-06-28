@@ -1243,7 +1243,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: Sc = S.screen('Sc', (U,V), xi);  # long time
             sage: K = S.gauss_curvature();         # long time
             sage: K.display()                      # long time
-            S → R
+            S → ℝ
             (u, v, w) ↦ 0
 
         """
@@ -1366,7 +1366,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             Scalar field on the degenerate hypersurface S embedded in 4-dimensional
             differentiable manifold M
             sage: m.display()                      # long time
-            S → R
+            S → ℝ
             (u, v, w) ↦ 0
 
         """
@@ -1504,7 +1504,7 @@ class Screen(VectorFieldModule):
     Those vector fields are normalized by `g(\xi,N)=1`::
 
         sage: g.along(Phi)(xi, N).display()  # long time
-        g(xi,N): H → R
+        g(xi,N): H → ℝ
         (ht, hth, hph) ↦ 1
 
     """

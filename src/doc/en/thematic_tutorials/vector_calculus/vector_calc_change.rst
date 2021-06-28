@@ -423,7 +423,7 @@ transformations, the expression of `f` in terms of other coordinates is
 automatically computed::
 
     sage: f.display()
-    f: E^3 → R
+    f: E^3 → ℝ
        (x, y, z) ↦ x^2 + y^2 - z^2
        (r, th, ph) ↦ -2*r^2*cos(th)^2 + r^2
        (rh, ph, z) ↦ rh^2 - z^2
@@ -431,10 +431,10 @@ automatically computed::
 We can limit the output to a single coordinate system::
 
     sage: f.display(cartesian)
-    f: E^3 → R
+    f: E^3 → ℝ
        (x, y, z) ↦ x^2 + y^2 - z^2
     sage: f.display(cylindrical)
-    f: E^3 → R
+    f: E^3 → ℝ
        (rh, ph, z) ↦ rh^2 - z^2
 
 The coordinate expression in a given coordinate system is obtained via the
@@ -468,7 +468,7 @@ The computation of the expressions of `g` in the other coordinate systems is
 triggered by the method ``display()``::
 
     sage: g.display()
-    g: E^3 → R
+    g: E^3 → ℝ
        (x, y, z) ↦ x^2 + y^2 + z^2
        (r, th, ph) ↦ r^2
        (rh, ph, z) ↦ rh^2 + z^2

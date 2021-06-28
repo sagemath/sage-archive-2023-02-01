@@ -99,7 +99,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: CM.an_element()
         Scalar field on the 2-dimensional topological manifold M
         sage: CM.an_element().display()  # this sample element is a constant field
-        M → R
+        M → ℝ
         on U: (x, y) ↦ 2
         on V: (u, v) ↦ 2
 
@@ -109,7 +109,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         Scalar field on the Open subset W of the 2-dimensional topological
          manifold M
         sage: CW.an_element().display()  # this sample element is a constant field
-        W → R
+        W → ℝ
         (x, y) ↦ 2
         (u, v) ↦ 2
 
@@ -118,7 +118,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: CM.zero()
         Scalar field zero on the 2-dimensional topological manifold M
         sage: CM.zero().display()
-        zero: M → R
+        zero: M → ℝ
         on U: (x, y) ↦ 0
         on V: (u, v) ↦ 0
 
@@ -128,7 +128,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         Scalar field zero on the Open subset W of the 2-dimensional
          topological manifold M
         sage: CW.zero().display()
-        zero: W → R
+        zero: W → ℝ
            (x, y) ↦ 0
            (u, v) ↦ 0
 
@@ -137,7 +137,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: CM.one()
         Scalar field 1 on the 2-dimensional topological manifold M
         sage: CM.one().display()
-        1: M → R
+        1: M → ℝ
         on U: (x, y) ↦ 1
         on V: (u, v) ↦ 1
 
@@ -147,7 +147,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         Scalar field 1 on the Open subset W of the 2-dimensional topological
          manifold M
         sage: CW.one().display()
-        1: W → R
+        1: W → ℝ
           (x, y) ↦ 1
           (u, v) ↦ 1
 
@@ -157,7 +157,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: f = CM({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)}); f
         Scalar field on the 2-dimensional topological manifold M
         sage: f.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ arctan(x^2 + y^2)
         on V: (u, v) ↦ 1/2*pi - arctan(u^2 + v^2)
         sage: f.parent()
@@ -207,7 +207,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         Scalar field on the Open subset W of the
          2-dimensional topological manifold M
         sage: fW.display()
-        W → R
+        W → ℝ
           (x, y) ↦ arctan(x^2 + y^2)
           (u, v) ↦ 1/2*pi - arctan(u^2 + v^2)
 
@@ -225,7 +225,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         Algebra of scalar fields on the Open subset W of the
          2-dimensional topological manifold M
         sage: s.display()
-        W → R
+        W → ℝ
           (x, y) ↦ 2*arctan(x^2 + y^2)
           (u, v) ↦ pi - 2*arctan(u^2 + v^2)
 
@@ -239,12 +239,12 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: h = CM(pi*sqrt(2)) ; h
         Scalar field on the 2-dimensional topological manifold M
         sage: h.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ sqrt(2)*pi
         on V: (u, v) ↦ sqrt(2)*pi
         sage: a = var('a')
         sage: h = CM(a); h.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ a
         on V: (u, v) ↦ a
 
@@ -252,11 +252,11 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     manifold's charts, the outcome is initialized only on the chart domain::
 
         sage: h = CM(a+x); h.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ a + x
         on W: (u, v) ↦ (a*u^2 + a*v^2 + u)/(u^2 + v^2)
         sage: h = CM(a+u); h.display()
-        M → R
+        M → ℝ
         on W: (x, y) ↦ (a*x^2 + a*y^2 + x)/(x^2 + y^2)
         on V: (u, v) ↦ a + u
 
@@ -265,7 +265,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     in order to avoid any ambiguity::
 
         sage: h = CM(x+u); h.display()
-        M → R
+        M → ℝ
 
     TESTS:
 
@@ -275,7 +275,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: s = f + h ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ sqrt(2)*pi + arctan(x^2 + y^2)
         on V: (u, v) ↦ 1/2*pi*(2*sqrt(2) + 1) - arctan(u^2 + v^2)
 
@@ -284,7 +284,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: s = f - h ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ -sqrt(2)*pi + arctan(x^2 + y^2)
         on V: (u, v) ↦ -1/2*pi*(2*sqrt(2) - 1) - arctan(u^2 + v^2)
 
@@ -293,7 +293,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: s = f*h ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ sqrt(2)*pi*arctan(x^2 + y^2)
         on V: (u, v) ↦ 1/2*sqrt(2)*(pi^2 - 2*pi*arctan(u^2 + v^2))
 
@@ -302,7 +302,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: s = f/h ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ 1/2*sqrt(2)*arctan(x^2 + y^2)/pi
         on V: (u, v) ↦ 1/4*sqrt(2)*(pi - 2*arctan(u^2 + v^2))/pi
 
@@ -321,7 +321,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         Scalar field on the Open subset W of the 2-dimensional topological
          manifold M
         sage: s.display()
-        W → R
+        W → ℝ
         (x, y) ↦ arctan(x^2 + y^2)^2
         (u, v) ↦ 1/4*pi^2 - pi*arctan(u^2 + v^2) + arctan(u^2 + v^2)^2
         sage: s/f == fW
@@ -332,7 +332,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         sage: s = 2*f ; s
         Scalar field on the 2-dimensional topological manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ 2*arctan(x^2 + y^2)
         on V: (u, v) ↦ pi - 2*arctan(u^2 + v^2)
 
@@ -434,12 +434,12 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             sage: f = CM({X: x+y^2}); f
             Scalar field on the 2-dimensional topological manifold M
             sage: f.display()
-            M → R
+            M → ℝ
             (x, y) ↦ y^2 + x
             sage: f = CM({X: x+y^2}, name='f'); f
             Scalar field f on the 2-dimensional topological manifold M
             sage: f.display()
-            f: M → R
+            f: M → ℝ
                (x, y) ↦ y^2 + x
             sage: U = M.open_subset('U', coord_def={X: x>0})
             sage: CU = U.scalar_field_algebra()
@@ -447,7 +447,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             Scalar field f on the Open subset U of the 2-dimensional topological
              manifold M
             sage: fU.display()
-            f: U → R
+            f: U → ℝ
                (x, y) ↦ y^2 + x
 
         """
@@ -491,7 +491,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             sage: f = CM._an_element_(); f
             Scalar field on the 2-dimensional topological manifold M
             sage: f.display()
-            M → R
+            M → ℝ
             (x, y) ↦ 2
 
         """
@@ -581,7 +581,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             sage: z = CM.zero(); z
             Scalar field zero on the 2-dimensional topological manifold M
             sage: z.display()
-            zero: M → R
+            zero: M → ℝ
                (x, y) ↦ 0
 
         The result is cached::
@@ -615,7 +615,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
             sage: h = CM.one(); h
             Scalar field 1 on the 2-dimensional topological manifold M
             sage: h.display()
-            1: M → R
+            1: M → ℝ
                (x, y) ↦ 1
 
         The result is cached::

@@ -173,7 +173,7 @@ A continuous map `S^2 \to \RR` (scalar field)::
     sage: f
     Scalar field f on the 2-dimensional topological manifold S^2
     sage: f.display()
-    f: S^2 → R
+    f: S^2 → ℝ
     on U: (x, y) ↦ arctan(x^2 + y^2)
     on V: (u, v) ↦ 1/2*pi - arctan(u^2 + v^2)
     sage: f(p)
@@ -276,7 +276,7 @@ A constant map `\CC^* \rightarrow \CC`::
     sage: f = M.constant_scalar_field(3+2*I, name='f'); f
     Scalar field f on the Complex 1-dimensional topological manifold C*
     sage: f.display()
-    f: C* → C
+    f: C* → ℂ
     on U: z ↦ 2*I + 3
     on V: w ↦ 2*I + 3
     sage: f(O)
@@ -1933,7 +1933,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
             Scalar field F on the Open subset U of the 3-dimensional topological manifold M
             sage: f.display()
-            F: U → R
+            F: U → ℝ
                (x, y, z) ↦ cos(y)*sin(x) + z
             sage: f.parent()
             Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
@@ -1944,14 +1944,14 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: f = U.scalar_field(sin(x)*cos(y) + z, chart=c_xyz, name='F')
             sage: f.display()
-            F: U → R
+            F: U → ℝ
                (x, y, z) ↦ cos(y)*sin(x) + z
 
         Equivalent definition with a dictionary of coordinate expression(s)::
 
             sage: f = U.scalar_field({c_xyz: sin(x)*cos(y) + z}, name='F')
             sage: f.display()
-            F: U → R
+            F: U → ℝ
                (x, y, z) ↦ cos(y)*sin(x) + z
 
         See the documentation of class
@@ -2009,7 +2009,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: f = M.constant_scalar_field(-1) ; f
             Scalar field on the 2-dimensional topological manifold M
             sage: f.display()
-            M → R
+            M → ℝ
             on U: (x, y) ↦ -1
             on V: (u, v) ↦ -1
 
@@ -2046,7 +2046,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: f = M.zero_scalar_field() ; f
             Scalar field zero on the 2-dimensional topological manifold M
             sage: f.display()
-            zero: M → R
+            zero: M → ℝ
                (x, y) ↦ 0
             sage: f.parent()
             Algebra of scalar fields on the 2-dimensional topological manifold M
@@ -2074,7 +2074,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: f = M.one_scalar_field(); f
             Scalar field 1 on the 2-dimensional topological manifold M
             sage: f.display()
-            1: M → R
+            1: M → ℝ
                (x, y) ↦ 1
             sage: f.parent()
             Algebra of scalar fields on the 2-dimensional topological manifold M
@@ -2481,7 +2481,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: parent(f.expr())
             Symbolic Ring
             sage: f.display()
-            F: M → R
+            F: M → ℝ
                (x, y) ↦ x^2 + cos(y)*sin(x)
 
         If we change the calculus method to SymPy, it becomes a SymPy object
@@ -2495,14 +2495,14 @@ class TopologicalManifold(ManifoldSubset):
             sage: parent(f.expr())
             <class 'sympy.core.add.Add'>
             sage: f.display()
-            F: M → R
+            F: M → ℝ
                (x, y) ↦ x**2 + sin(x)*cos(y)
 
         Back to the Symbolic Ring::
 
             sage: M.set_calculus_method('SR')
             sage: f.display()
-            F: M → R
+            F: M → ℝ
                (x, y) ↦ x^2 + cos(y)*sin(x)
 
         The calculus method chosen via ``set_calculus_method()`` applies to any

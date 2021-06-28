@@ -259,7 +259,7 @@ A scalar field on ``E``::
     sage: f = E.scalar_field(x*y, name='f'); f
     Scalar field f on the Euclidean plane E^2
     sage: f.display()
-    f: E^2 → R
+    f: E^2 → ℝ
        (x, y) ↦ x*y
        (r, ph) ↦ r^2*cos(ph)*sin(ph)
 
@@ -283,7 +283,7 @@ The dot product of two vector fields::
     sage: s = v.dot(w); s
     Scalar field v.grad(f) on the Euclidean plane E^2
     sage: s.display()
-    v.grad(f): E^2 → R
+    v.grad(f): E^2 → ℝ
        (x, y) ↦ x^2 - y^2
        (r, ph) ↦ (2*cos(ph)^2 - 1)*r^2
     sage: s.expr()
@@ -299,7 +299,7 @@ The divergence of the vector field ``v``::
     sage: s = div(v); s
     Scalar field div(v) on the Euclidean plane E^2
     sage: s.display()
-    div(v): E^2 → R
+    div(v): E^2 → ℝ
        (x, y) ↦ 0
        (r, ph) ↦ 0
 
@@ -327,7 +327,7 @@ The Euclidean norm of ``v``::
     sage: s = norm(v); s
     Scalar field |v| on the Euclidean space E^3
     sage: s.display()
-    |v|: E^3 → R
+    |v|: E^3 → ℝ
        (x, y, z) ↦ sqrt(x^2 + y^2)
     sage: s.expr()
     sqrt(x^2 + y^2)
@@ -338,7 +338,7 @@ The divergence of ``v`` is zero::
     sage: div(v)
     Scalar field div(v) on the Euclidean space E^3
     sage: div(v).display()
-    div(v): E^3 → R
+    div(v): E^3 → ℝ
        (x, y, z) ↦ 0
 
 while its curl is a constant vector field along `e_z`::
@@ -2511,7 +2511,7 @@ class Euclidean3dimSpace(EuclideanSpace):
             sage: s = triple_product(u, v, w); s
             Scalar field epsilon(u,v,w) on the Euclidean space E^3
             sage: s.display()
-            epsilon(u,v,w): E^3 → R
+            epsilon(u,v,w): E^3 → ℝ
                (x, y, z) ↦ x^3*y + x*y^3 - 2*x*y*z^2
             sage: s.expr()
             x^3*y + x*y^3 - 2*x*y*z^2

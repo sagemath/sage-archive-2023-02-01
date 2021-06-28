@@ -873,13 +873,13 @@ class DiffMap(ContinuousMap):
             sage: f = N.scalar_field(x*y*z, name='f') ; f
             Scalar field f on the 3-dimensional differentiable manifold R^3
             sage: f.display()
-            f: R^3 → R
+            f: R^3 → ℝ
                (x, y, z) ↦ x*y*z
             sage: pf = Phi.pullback(f) ; pf
             Scalar field Phi^*(f) on the Open subset U of the 2-dimensional
              differentiable manifold S^2
             sage: pf.display()
-            Phi^*(f): U → R
+            Phi^*(f): U → ℝ
                (th, ph) ↦ cos(ph)*cos(th)*sin(ph)*sin(th)^2
 
         Pullback on `S^2` of the standard Euclidean metric on `R^3`::

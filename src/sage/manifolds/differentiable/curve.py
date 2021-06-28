@@ -266,7 +266,7 @@ class DifferentiableCurve(DiffMap):
         sage: norm(T)
         Scalar field |C'| on the Real interval (0, 6*pi)
         sage: norm(T).display()
-        |C'|: (0, 6*pi) → R
+        |C'|: (0, 6*pi) → ℝ
            s ↦ 1
 
     Vector fields along `C` are defined by the method

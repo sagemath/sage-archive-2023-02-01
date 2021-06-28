@@ -77,7 +77,7 @@ Gaussian curvature::
 
     sage: K = S2_r.gauss_curvature()
     sage: K.display()
-    S^2_r → R
+    S^2_r → ℝ
     on A: (theta, phi) ↦ r^(-2)
 
 As we have seen, spherical coordinates are initialized by default. To

@@ -106,7 +106,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: CM.an_element()
         Scalar field on the 2-dimensional differentiable manifold M
         sage: CM.an_element().display()  # this sample element is a constant field
-        M → R
+        M → ℝ
         on U: (x, y) ↦ 2
         on V: (u, v) ↦ 2
 
@@ -116,7 +116,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         Scalar field on the Open subset W of the 2-dimensional differentiable
          manifold M
         sage: CW.an_element().display()  # this sample element is a constant field
-        W → R
+        W → ℝ
         (x, y) ↦ 2
         (u, v) ↦ 2
 
@@ -125,7 +125,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: CM.zero()
         Scalar field zero on the 2-dimensional differentiable manifold M
         sage: CM.zero().display()
-        zero: M → R
+        zero: M → ℝ
         on U: (x, y) ↦ 0
         on V: (u, v) ↦ 0
 
@@ -135,7 +135,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         Scalar field zero on the Open subset W of the 2-dimensional
          differentiable manifold M
         sage: CW.zero().display()
-        zero: W → R
+        zero: W → ℝ
            (x, y) ↦ 0
            (u, v) ↦ 0
 
@@ -144,7 +144,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: CM.one()
         Scalar field 1 on the 2-dimensional differentiable manifold M
         sage: CM.one().display()
-        1: M → R
+        1: M → ℝ
         on U: (x, y) ↦ 1
         on V: (u, v) ↦ 1
 
@@ -154,7 +154,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         Scalar field 1 on the Open subset W of the 2-dimensional differentiable
          manifold M
         sage: CW.one().display()
-        1: W → R
+        1: W → ℝ
         (x, y) ↦ 1
         (u, v) ↦ 1
 
@@ -165,7 +165,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: f = CM({c_xy: atan(x^2+y^2), c_uv: pi/2 - atan(u^2+v^2)}); f
         Scalar field on the 2-dimensional differentiable manifold M
         sage: f.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ arctan(x^2 + y^2)
         on V: (u, v) ↦ 1/2*pi - arctan(u^2 + v^2)
         sage: f.parent()
@@ -217,7 +217,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         Scalar field on the Open subset W of the 2-dimensional differentiable
          manifold M
         sage: fW.display()
-        W → R
+        W → ℝ
         (x, y) ↦ arctan(x^2 + y^2)
         (u, v) ↦ 1/2*pi - arctan(u^2 + v^2)
 
@@ -235,7 +235,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         Algebra of differentiable scalar fields on the Open subset W of the
          2-dimensional differentiable manifold M
         sage: s.display()
-        W → R
+        W → ℝ
         (x, y) ↦ 2*arctan(x^2 + y^2)
         (u, v) ↦ pi - 2*arctan(u^2 + v^2)
 
@@ -251,12 +251,12 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: h = CM(pi*sqrt(2)) ; h
         Scalar field on the 2-dimensional differentiable manifold M
         sage: h.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ sqrt(2)*pi
         on V: (u, v) ↦ sqrt(2)*pi
         sage: a = var('a')
         sage: h = CM(a); h.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ a
         on V: (u, v) ↦ a
 
@@ -264,11 +264,11 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     manifold's charts, the outcome is initialized only on the chart domain::
 
         sage: h = CM(a+x); h.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ a + x
         on W: (u, v) ↦ (a*u^2 + a*v^2 + u)/(u^2 + v^2)
         sage: h = CM(a+u); h.display()
-        M → R
+        M → ℝ
         on W: (x, y) ↦ (a*x^2 + a*y^2 + x)/(x^2 + y^2)
         on V: (u, v) ↦ a + u
 
@@ -277,7 +277,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     in order to avoid any ambiguity::
 
         sage: h = CM(x+u); h.display()
-        M → R
+        M → ℝ
 
     .. RUBRIC:: TESTS OF THE ALGEBRA LAWS:
 
@@ -287,7 +287,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: s = f + h ; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ sqrt(2)*pi + arctan(x^2 + y^2)
         on V: (u, v) ↦ 1/2*pi*(2*sqrt(2) + 1) - arctan(u^2 + v^2)
 
@@ -296,7 +296,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: s = f - h ; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ -sqrt(2)*pi + arctan(x^2 + y^2)
         on V: (u, v) ↦ -1/2*pi*(2*sqrt(2) - 1) - arctan(u^2 + v^2)
 
@@ -305,7 +305,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: s = f*h ; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ sqrt(2)*pi*arctan(x^2 + y^2)
         on V: (u, v) ↦ 1/2*sqrt(2)*(pi^2 - 2*pi*arctan(u^2 + v^2))
 
@@ -314,7 +314,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: s = f/h ; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ 1/2*sqrt(2)*arctan(x^2 + y^2)/pi
         on V: (u, v) ↦ 1/4*sqrt(2)*(pi - 2*arctan(u^2 + v^2))/pi
 
@@ -333,7 +333,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         Scalar field on the Open subset W of the 2-dimensional differentiable
          manifold M
         sage: s.display()
-        W → R
+        W → ℝ
         (x, y) ↦ arctan(x^2 + y^2)^2
         (u, v) ↦ 1/4*pi^2 - pi*arctan(u^2 + v^2) + arctan(u^2 + v^2)^2
         sage: s/f == fW
@@ -344,7 +344,7 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
         sage: s = 2*f ; s
         Scalar field on the 2-dimensional differentiable manifold M
         sage: s.display()
-        M → R
+        M → ℝ
         on U: (x, y) ↦ 2*arctan(x^2 + y^2)
         on V: (u, v) ↦ pi - 2*arctan(u^2 + v^2)
 

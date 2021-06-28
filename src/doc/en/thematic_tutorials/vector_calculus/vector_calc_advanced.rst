@@ -242,7 +242,7 @@ Checking that all orthonormal frames introduced above are right-handed::
 
     sage: ex, ey, ez = E.cartesian_frame()[:]
     sage: epsilon(ex, ey, ez).display()
-    epsilon(e_x,e_y,e_z): E^3 → R
+    epsilon(e_x,e_y,e_z): E^3 → ℝ
        (x, y, z) ↦ 1
        (r, th, ph) ↦ 1
        (rh, ph, z) ↦ 1
@@ -252,7 +252,7 @@ Checking that all orthonormal frames introduced above are right-handed::
     sage: epsilon(*spherical_frame)
     Scalar field epsilon(e_r,e_th,e_ph) on the Euclidean space E^3
     sage: epsilon(*spherical_frame).display()
-    epsilon(e_r,e_th,e_ph): E^3 → R
+    epsilon(e_r,e_th,e_ph): E^3 → ℝ
        (x, y, z) ↦ 1
        (r, th, ph) ↦ 1
        (rh, ph, z) ↦ 1
@@ -260,7 +260,7 @@ Checking that all orthonormal frames introduced above are right-handed::
 ::
 
     sage: epsilon(*cylindrical_frame).display()
-    epsilon(e_rh,e_ph,e_z): E^3 → R
+    epsilon(e_rh,e_ph,e_z): E^3 → ℝ
        (x, y, z) ↦ 1
        (r, th, ph) ↦ 1
        (rh, ph, z) ↦ 1
@@ -273,7 +273,7 @@ Let `f` be a scalar field on `\mathbb{E}^3`::
 
     sage: f = E.scalar_field(x^2+y^2 - z^2, name='f')
     sage: f.display()
-    f: E^3 → R
+    f: E^3 → ℝ
        (x, y, z) ↦ x^2 + y^2 - z^2
        (r, th, ph) ↦ -2*r^2*cos(th)^2 + r^2
        (rh, ph, z) ↦ rh^2 - z^2
@@ -283,7 +283,7 @@ Vector fields act as derivations on scalar fields::
     sage: v(f)
     Scalar field v(f) on the Euclidean space E^3
     sage: v(f).display()
-    v(f): E^3 → R
+    v(f): E^3 → ℝ
        (x, y, z) ↦ -2*z^3
        (r, th, ph) ↦ -2*r^3*cos(th)^3
        (rh, ph, z) ↦ -2*z^3

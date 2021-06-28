@@ -58,7 +58,7 @@ field on `M`::
 
     sage: phi_inv_t = M.scalar_field({E: w-sqrt(x^2+y^2+b^2)})
     sage: phi_inv_t.display()
-    M → R
+    M → ℝ
     (w, x, y) ↦ w - sqrt(b^2 + x^2 + y^2)
 
 One can check that the inverse is correct with::
@@ -133,14 +133,14 @@ Check that the hypersurface is indeed spacelike, i.e. that its normal is
 timelike::
 
     sage: N.ambient_metric()(N.normal(), N.normal()).display()  # long time
-    g(n,n): M → R
+    g(n,n): M → ℝ
        (w, x, y) ↦ -1
        (rh_M, th_M, t_M) ↦ -1
 
 The lapse function is::
 
     sage: N.lapse().display()  # long time
-    N: M → R
+    N: M → ℝ
        (w, x, y) ↦ sqrt(b^2 + x^2 + y^2)/b
        (rh_M, th_M, t_M) ↦ cosh(rh_M)
 
@@ -947,7 +947,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             sage: N.lapse()
             Scalar field N on the Euclidean space E^3
             sage: N.lapse().display()
-            N: E^3 → R
+            N: E^3 → ℝ
                (x, y, z) ↦ 1
                (th_E3, ph_E3, r_E3) ↦ 1
 
@@ -1395,7 +1395,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         which is constant and equal to 1 (the norm of the unit normal vector)::
 
             sage: gnn.display()
-            E^3 → R
+            E^3 → ℝ
             (x, y, z) ↦ 1
             (th_E3, ph_E3, r_E3) ↦ 1
 
@@ -1469,7 +1469,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             Scalar field on the 1-dimensional Riemannian submanifold N embedded
              in the Euclidean plane E^2
             sage: N.gauss_curvature().display()  # long time
-            N → R
+            N → ℝ
             on U: x ↦ -1
             on V: y ↦ -1
 
@@ -1596,7 +1596,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             [Scalar field k_0 on the 1-dimensional Riemannian submanifold N
              embedded in the Euclidean plane E^2]
             sage: N.principal_curvatures(stereoN)[0].display()  # long time
-            k_0: N → R
+            k_0: N → ℝ
             on U: x ↦ -1
             on W: y ↦ -1
 
@@ -1654,7 +1654,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             Scalar field on the 1-dimensional Riemannian submanifold N
              embedded in the Euclidean plane E^2
             sage: N.mean_curvature().display()  # long time
-            N → R
+            N → ℝ
             on U: x ↦ -1
             on V: y ↦ -1
 

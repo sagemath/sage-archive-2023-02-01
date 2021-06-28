@@ -219,7 +219,7 @@ class TensorField(ModuleElementWithMutability):
         sage: f = t(a,b); f
         Scalar field t(a,b) on the 2-dimensional differentiable manifold S^2
         sage: f.display()  # long time
-        t(a,b): S^2 → R
+        t(a,b): S^2 → ℝ
         on U: (x, y) ↦ -2*x*y - y^2 - 3*x
         on V: (u, v) ↦ -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
 
@@ -230,14 +230,14 @@ class TensorField(ModuleElementWithMutability):
         Scalar field t(a,b) on the Open subset U of the 2-dimensional
          differentiable manifold S^2
         sage: s.display()  # long time
-        t(a,b): U → R
+        t(a,b): U → ℝ
            (x, y) ↦ -2*x*y - y^2 - 3*x
         on W: (u, v) ↦ -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
         sage: s = t(a.restrict(U), b.restrict(W)) ; s  # long time
         Scalar field t(a,b) on the Open subset W of the 2-dimensional
          differentiable manifold S^2
         sage: s.display()  # long time
-        t(a,b): W → R
+        t(a,b): W → ℝ
            (x, y) ↦ -2*x*y - y^2 - 3*x
            (u, v) ↦ -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
 
@@ -248,7 +248,7 @@ class TensorField(ModuleElementWithMutability):
         Scalar field t(a,b) on the Open subset V of the 2-dimensional
          differentiable manifold S^2
         sage: s.display()  # long time
-        t(a,b): V → R
+        t(a,b): V → ℝ
            (u, v) ↦ -(3*u^3 + (3*u + 1)*v^2 + 2*u*v)/(u^4 + 2*u^2*v^2 + v^4)
         on W: (x, y) ↦ -2*x*y - y^2 - 3*x
 
@@ -320,7 +320,7 @@ class TensorField(ModuleElementWithMutability):
 
         sage: f = t(a,b)
         sage: f.display()  # long time
-        t(a,b): S^2 → R
+        t(a,b): S^2 → ℝ
         on U: (x, y) ↦ -2*x*y - 3*x - y**2
         on V: (u, v) ↦ -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
 
@@ -329,12 +329,12 @@ class TensorField(ModuleElementWithMutability):
 
         sage: s = t(a.restrict(U), b)
         sage: s.display()  # long time
-        t(a,b): U → R
+        t(a,b): U → ℝ
            (x, y) ↦ -2*x*y - 3*x - y**2
         on W: (u, v) ↦ -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
         sage: s = t(a.restrict(U), b.restrict(W))  # long time
         sage: s.display()  # long time
-        t(a,b): W → R
+        t(a,b): W → ℝ
            (x, y) ↦ -2*x*y - 3*x - y**2
            (u, v) ↦ -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
 
@@ -343,7 +343,7 @@ class TensorField(ModuleElementWithMutability):
 
         sage: s = t.restrict(V)(a,b)  # long time
         sage: s.display()  # long time
-        t(a,b): V → R
+        t(a,b): V → ℝ
            (u, v) ↦ -(3*u**3 + 3*u*v**2 + 2*u*v + v**2)/(u**4 + 2*u**2*v**2 + v**4)
         on W: (x, y) ↦ -2*x*y - 3*x - y**2
 
@@ -1586,7 +1586,7 @@ class TensorField(ModuleElementWithMutability):
         (scalar fields) do not have values on the whole manifold::
 
             sage: sorted(v._components.values())[0]._comp[(0,)].display()
-            S → R
+            S → ℝ
             on U: (x, y) ↦ x
             on W: (xp, yp) ↦ xp/(xp^2 + yp^2)
 
@@ -1604,7 +1604,7 @@ class TensorField(ModuleElementWithMutability):
         The definition of ``v`` is now complete::
 
             sage: sorted(v._components.values())[0]._comp[(2,)].display()
-            S → R
+            S → ℝ
             on U: (x, y) ↦ x^2 + y^2
             on V: (xp, yp) ↦ 1/(xp^2 + yp^2)
 
@@ -1979,7 +1979,7 @@ class TensorField(ModuleElementWithMutability):
             sage: t.__getitem__('^a_a')  # trace
             Scalar field on the 2-dimensional differentiable manifold M
             sage: t.__getitem__('^a_a').display()
-            M → R
+            M → ℝ
             on U: (x, y) ↦ (x + 1)*y + x
 
         """
@@ -2605,7 +2605,7 @@ class TensorField(ModuleElementWithMutability):
             sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2)}, name='f')
             sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
             sage: f.display()
-            f: M → R
+            f: M → ℝ
             on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
             on V: (u, v) ↦ 2/(u^2 + v^2 + 2)
             sage: s = a._rmul_(f); s
@@ -2818,7 +2818,7 @@ class TensorField(ModuleElementWithMutability):
             sage: f = M.scalar_field({c_xy: 1/(1+x^2+y^2)}, name='f')
             sage: f.add_expr_by_continuation(c_uv, U.intersection(V))
             sage: f.display()
-            f: M → R
+            f: M → ℝ
             on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
             on V: (u, v) ↦ 2/(u^2 + v^2 + 2)
             sage: s = a.__truediv__(f); s
@@ -2901,7 +2901,7 @@ class TensorField(ModuleElementWithMutability):
             sage: s = t.__call__(a,w); s
             Scalar field t(a,w) on the 2-dimensional differentiable manifold M
             sage: s.display()
-            t(a,w): M → R
+            t(a,w): M → ℝ
             on U: (x, y) ↦ x*y^4 + x*y^3 + x^2*y - x*y^2 - x^2
             on V: (u, v) ↦ 1/32*u^5 - 1/32*(3*u + 2)*v^4 + 1/32*v^5
              + 1/16*u^4 + 1/16*(u^2 + 2*u - 4)*v^3 + 1/16*(u^3 - 4)*v^2
@@ -3064,7 +3064,7 @@ class TensorField(ModuleElementWithMutability):
             sage: s = a.trace() ; s
             Scalar field on the 2-dimensional differentiable manifold M
             sage: s.display()
-            M → R
+            M → ℝ
             on U: (x, y) ↦ y + 1
             on V: (u, v) ↦ 1/2*u - 1/2*v + 1
             sage: s == a.trace(0,1) # explicit mention of the positions
@@ -3320,7 +3320,7 @@ class TensorField(ModuleElementWithMutability):
             sage: s = a.contract(b) ; s
             Scalar field on the 2-dimensional differentiable manifold M
             sage: s.display()
-            M → R
+            M → ℝ
             on U: (x, y) ↦ (x + 1)*y^2 + x*y
             on V: (u, v) ↦ 1/8*u^3 - 1/8*u*v^2 + 1/8*v^3 + 1/2*u^2 - 1/8*(u^2 + 4*u)*v
             sage: s == a['_i']*b['^i'] # use of index notation
@@ -3335,7 +3335,7 @@ class TensorField(ModuleElementWithMutability):
             sage: s = a.contract(b) ; s
             Scalar field zero on the 2-dimensional differentiable manifold M
             sage: s.display()
-            zero: M → R
+            zero: M → ℝ
             on U: (x, y) ↦ 0
             on V: (u, v) ↦ 0
 
@@ -4058,7 +4058,7 @@ class TensorField(ModuleElementWithMutability):
             sage: s = v.divergence(); s
             Scalar field div(v) on the Euclidean plane E^2
             sage: s.display()
-            div(v): E^2 → R
+            div(v): E^2 → ℝ
                (x, y) ↦ 2
 
         A shortcut alias of ``divergence`` is ``div``::
@@ -4082,7 +4082,7 @@ class TensorField(ModuleElementWithMutability):
             sage: s = v.div(h); s
             Scalar field div_h(v) on the Euclidean plane E^2
             sage: s.display()
-            div_h(v): E^2 → R
+            div_h(v): E^2 → ℝ
                (x, y) ↦ (x^2 + y^2 + 2)/(x^2 + y^2 + 1)
 
         The standard formula
@@ -4103,10 +4103,10 @@ class TensorField(ModuleElementWithMutability):
 
             sage: w = M.vector_field(-y, x, name='w')
             sage: w.div().display()
-            div(w): E^2 → R
+            div(w): E^2 → ℝ
                (x, y) ↦ 0
             sage: w.div(h).display()
-            div_h(w): E^2 → R
+            div_h(w): E^2 → ℝ
                (x, y) ↦ 0
 
         Divergence of a type-``(2,0)`` tensor field::

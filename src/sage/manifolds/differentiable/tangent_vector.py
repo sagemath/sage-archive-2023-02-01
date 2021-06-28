@@ -88,7 +88,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         sage: f = M.scalar_field(function('F')(x,y), name='f')
         sage: f.display()
-        f: M → R
+        f: M → ℝ
            (x, y) ↦ F(x, y)
 
     The tangent vector `v` maps `f` to the real number
@@ -109,7 +109,7 @@ class TangentVector(FiniteRankFreeModuleElement):
     then the product `f g` is also a scalar field on `M`::
 
         sage: (f*g).display()
-        f*g: M → R
+        f*g: M → ℝ
            (x, y) ↦ F(x, y)*G(x, y)
 
     and we have the derivation law `v(f g) = v(f) g(p) + f(p) v(g)`::

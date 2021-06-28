@@ -78,6 +78,7 @@ Representation theory
 
 - :ref:`sage.combinat.root_system.weyl_characters`
 - :ref:`sage.combinat.root_system.fusion_ring`
+- :ref:`sage.combinat.root_system.f_matrix`
 - :ref:`sage.combinat.root_system.integrable_representations`
 - :ref:`sage.combinat.root_system.branching_rules`
 - :ref:`sage.combinat.root_system.hecke_algebra_representation`

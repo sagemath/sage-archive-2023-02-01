@@ -2411,6 +2411,10 @@ numeric & operator/=(numeric & lh, const numeric & rh)
         }
         switch (lh.t) {
         case LONG: {
+                if (rh.v._long == -1) { // use multiplication to avoid possible overflow
+                        lh *= -1;
+                        return lh;
+                }
                 auto ld = std::div(lh.v._long, rh.v._long);
                 if (ld.rem == 0) {
                         lh.v._long = ld.quot;

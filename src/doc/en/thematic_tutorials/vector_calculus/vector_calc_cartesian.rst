@@ -153,7 +153,7 @@ which admits ``dot()`` as a shortcut alias::
     Scalar field u.v on the Euclidean space E^3
     sage: s.display()
     u.v: E^3 --> R
-       (x, y, z) |--> -y*u_x(x, y, z) + x*u_y(x, y, z) + sin(x*y*z)*u_z(x, y, z)
+       (x, y, z) ↦ -y*u_x(x, y, z) + x*u_y(x, y, z) + sin(x*y*z)*u_z(x, y, z)
 
 It maps points of `\mathbb{E}^3` to real numbers::
 
@@ -182,7 +182,7 @@ It is a scalar field on `\mathbb{E}^3`::
     Scalar field |u| on the Euclidean space E^3
     sage: s.display()
     |u|: E^3 --> R
-       (x, y, z) |--> sqrt(u_x(x, y, z)^2 + u_y(x, y, z)^2 + u_z(x, y, z)^2)
+       (x, y, z) ↦ sqrt(u_x(x, y, z)^2 + u_y(x, y, z)^2 + u_z(x, y, z)^2)
     sage: s.expr()
     sqrt(u_x(x, y, z)^2 + u_y(x, y, z)^2 + u_z(x, y, z)^2)
 
@@ -273,7 +273,7 @@ function of `(x,y,z)`::
     sage: F = E.scalar_field(function('f')(x,y,z), name='F')
     sage: F.display()
     F: E^3 --> R
-       (x, y, z) |--> f(x, y, z)
+       (x, y, z) ↦ f(x, y, z)
 
 The value of `F` at a point::
 
@@ -288,7 +288,7 @@ The gradient of `F`::
     grad(F) = d(f)/dx e_x + d(f)/dy e_y + d(f)/dz e_z
     sage: norm(grad(F)).display()
     |grad(F)|: E^3 --> R
-       (x, y, z) |--> sqrt((d(f)/dx)^2 + (d(f)/dy)^2 + (d(f)/dz)^2)
+       (x, y, z) ↦ sqrt((d(f)/dx)^2 + (d(f)/dy)^2 + (d(f)/dz)^2)
 
 
 Divergence
@@ -299,7 +299,7 @@ The divergence of the vector field `u`::
     sage: s = div(u)
     sage: s.display()
     div(u): E^3 --> R
-       (x, y, z) |--> d(u_x)/dx + d(u_y)/dy + d(u_z)/dz
+       (x, y, z) ↦ d(u_x)/dx + d(u_y)/dy + d(u_z)/dz
 
 For `v` and `w`, we have::
 
@@ -361,7 +361,7 @@ The divergence of a curl is always zero::
 
     sage: div(curl(u)).display()
     div(curl(u)): E^3 --> R
-       (x, y, z) |--> 0
+       (x, y, z) ↦ 0
 
 An identity valid for any scalar field `F` and any vector field `u` is
 
@@ -383,7 +383,7 @@ The Laplacian `\Delta F` of a scalar field `F` is another scalar field::
     sage: s = laplacian(F)
     sage: s.display()
     Delta(F): E^3 --> R
-       (x, y, z) |--> d^2(f)/dx^2 + d^2(f)/dy^2 + d^2(f)/dz^2
+       (x, y, z) ↦ d^2(f)/dx^2 + d^2(f)/dy^2 + d^2(f)/dz^2
 
 The following identity holds:
 

@@ -1244,7 +1244,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             sage: K = S.gauss_curvature();         # long time
             sage: K.display()                      # long time
             S --> R
-            (u, v, w) |--> 0
+            (u, v, w) ↦ 0
 
         """
         if self._ambient._dim-self._dim != 1:
@@ -1367,7 +1367,7 @@ class DegenerateSubmanifold(DegenerateManifold, DifferentiableSubmanifold):
             differentiable manifold M
             sage: m.display()                      # long time
             S --> R
-            (u, v, w) |--> 0
+            (u, v, w) ↦ 0
 
         """
         if self._codim != 1:
@@ -1505,7 +1505,7 @@ class Screen(VectorFieldModule):
 
         sage: g.along(Phi)(xi, N).display()  # long time
         g(xi,N): H --> R
-        (ht, hth, hph) |--> 1
+        (ht, hth, hph) ↦ 1
 
     """
 

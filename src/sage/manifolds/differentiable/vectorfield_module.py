@@ -1224,7 +1224,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
          I to the 2-dimensional differentiable manifold R^2
         sage: Phi.display()
         Phi: I --> R^2
-           t |--> (x, y) = (cos(t), sin(t))
+           t ↦ (x, y) = (cos(t), sin(t))
         sage: XIM = I.vector_field_module(dest_map=Phi) ; XIM
         Free module X(I,Phi) of vector fields along the 1-dimensional
          differentiable manifold I mapped into the 2-dimensional differentiable

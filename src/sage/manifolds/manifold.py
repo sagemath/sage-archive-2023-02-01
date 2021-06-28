@@ -174,8 +174,8 @@ A continuous map `S^2 \to \RR` (scalar field)::
     Scalar field f on the 2-dimensional topological manifold S^2
     sage: f.display()
     f: S^2 --> R
-    on U: (x, y) |--> arctan(x^2 + y^2)
-    on V: (u, v) |--> 1/2*pi - arctan(u^2 + v^2)
+    on U: (x, y) ↦ arctan(x^2 + y^2)
+    on V: (u, v) ↦ 1/2*pi - arctan(u^2 + v^2)
     sage: f(p)
     arctan(5)
     sage: f(N)
@@ -277,8 +277,8 @@ A constant map `\CC^* \rightarrow \CC`::
     Scalar field f on the Complex 1-dimensional topological manifold C*
     sage: f.display()
     f: C* --> C
-    on U: z |--> 2*I + 3
-    on V: w |--> 2*I + 3
+    on U: z ↦ 2*I + 3
+    on V: w ↦ 2*I + 3
     sage: f(O)
     2*I + 3
     sage: f(i)
@@ -1934,7 +1934,7 @@ class TopologicalManifold(ManifoldSubset):
             Scalar field F on the Open subset U of the 3-dimensional topological manifold M
             sage: f.display()
             F: U --> R
-               (x, y, z) |--> cos(y)*sin(x) + z
+               (x, y, z) ↦ cos(y)*sin(x) + z
             sage: f.parent()
             Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
             sage: f in U.scalar_field_algebra()
@@ -1945,14 +1945,14 @@ class TopologicalManifold(ManifoldSubset):
             sage: f = U.scalar_field(sin(x)*cos(y) + z, chart=c_xyz, name='F')
             sage: f.display()
             F: U --> R
-               (x, y, z) |--> cos(y)*sin(x) + z
+               (x, y, z) ↦ cos(y)*sin(x) + z
 
         Equivalent definition with a dictionary of coordinate expression(s)::
 
             sage: f = U.scalar_field({c_xyz: sin(x)*cos(y) + z}, name='F')
             sage: f.display()
             F: U --> R
-               (x, y, z) |--> cos(y)*sin(x) + z
+               (x, y, z) ↦ cos(y)*sin(x) + z
 
         See the documentation of class
         :class:`~sage.manifolds.scalarfield.ScalarField` for more
@@ -2010,8 +2010,8 @@ class TopologicalManifold(ManifoldSubset):
             Scalar field on the 2-dimensional topological manifold M
             sage: f.display()
             M --> R
-            on U: (x, y) |--> -1
-            on V: (u, v) |--> -1
+            on U: (x, y) ↦ -1
+            on V: (u, v) ↦ -1
 
         We have::
 
@@ -2047,7 +2047,7 @@ class TopologicalManifold(ManifoldSubset):
             Scalar field zero on the 2-dimensional topological manifold M
             sage: f.display()
             zero: M --> R
-               (x, y) |--> 0
+               (x, y) ↦ 0
             sage: f.parent()
             Algebra of scalar fields on the 2-dimensional topological manifold M
             sage: f is M.scalar_field_algebra().zero()
@@ -2075,7 +2075,7 @@ class TopologicalManifold(ManifoldSubset):
             Scalar field 1 on the 2-dimensional topological manifold M
             sage: f.display()
             1: M --> R
-               (x, y) |--> 1
+               (x, y) ↦ 1
             sage: f.parent()
             Algebra of scalar fields on the 2-dimensional topological manifold M
             sage: f is M.scalar_field_algebra().one()
@@ -2358,7 +2358,7 @@ class TopologicalManifold(ManifoldSubset):
              the 2-dimensional topological manifold N
             sage: Phi.display()
             Phi: M --> N
-               (x, y) |--> (X, Y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
+               (x, y) ↦ (X, Y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
 
         The inverse homeomorphism::
 
@@ -2367,7 +2367,7 @@ class TopologicalManifold(ManifoldSubset):
              manifold N to the 2-dimensional topological manifold M
             sage: (Phi^(-1)).display()
             Phi^(-1): N --> M
-               (X, Y) |--> (x, y) = (X/sqrt(X^2 + Y^2 + 1), Y/sqrt(X^2 + Y^2 + 1))
+               (X, Y) ↦ (x, y) = (X/sqrt(X^2 + Y^2 + 1), Y/sqrt(X^2 + Y^2 + 1))
 
         See the documentation of
         :class:`~sage.manifolds.continuous_map.ContinuousMap` for more
@@ -2427,7 +2427,7 @@ class TopologicalManifold(ManifoldSubset):
              manifolds over Complex Field with 53 bits of precision
             sage: id.display()
             Id_M: M --> M
-               (x, y) |--> (x, y)
+               (x, y) ↦ (x, y)
 
         The identity map acting on a point::
 
@@ -2482,7 +2482,7 @@ class TopologicalManifold(ManifoldSubset):
             Symbolic Ring
             sage: f.display()
             F: M --> R
-               (x, y) |--> x^2 + cos(y)*sin(x)
+               (x, y) ↦ x^2 + cos(y)*sin(x)
 
         If we change the calculus method to SymPy, it becomes a SymPy object
         instead::
@@ -2496,14 +2496,14 @@ class TopologicalManifold(ManifoldSubset):
             <class 'sympy.core.add.Add'>
             sage: f.display()
             F: M --> R
-               (x, y) |--> x**2 + sin(x)*cos(y)
+               (x, y) ↦ x**2 + sin(x)*cos(y)
 
         Back to the Symbolic Ring::
 
             sage: M.set_calculus_method('SR')
             sage: f.display()
             F: M --> R
-               (x, y) |--> x^2 + cos(y)*sin(x)
+               (x, y) ↦ x^2 + cos(y)*sin(x)
 
         The calculus method chosen via ``set_calculus_method()`` applies to any
         chart defined subsequently on the manifold::

@@ -140,7 +140,7 @@ coordinates; in this example, we consider a unspecified function of
     sage: F = E.scalar_field(function('f')(r,th,ph), name='F')
     sage: F.display()
     F: E^3 --> R
-       (r, th, ph) |--> f(r, th, ph)
+       (r, th, ph) ↦ f(r, th, ph)
 
 The value of `F` at a point::
 
@@ -155,7 +155,7 @@ The gradient of `F`::
     grad(F) = d(f)/dr e_r + d(f)/dth/r e_th + d(f)/dph/(r*sin(th)) e_ph
     sage: norm(grad(F)).display()
     |grad(F)|: E^3 --> R
-       (r, th, ph) |--> sqrt((r^2*(d(f)/dr)^2 + (d(f)/dth)^2)*sin(th)^2
+       (r, th, ph) ↦ sqrt((r^2*(d(f)/dr)^2 + (d(f)/dth)^2)*sin(th)^2
         + (d(f)/dph)^2)/(r*sin(th))
 
 
@@ -167,7 +167,7 @@ The divergence of a vector field::
     sage: s = div(u)
     sage: s.display()
     div(u): E^3 --> R
-       (r, th, ph) |--> ((r*d(u_r)/dr + 2*u_r(r, th, ph)
+       (r, th, ph) ↦ ((r*d(u_r)/dr + 2*u_r(r, th, ph)
         + d(u_theta)/dth)*sin(th) + cos(th)*u_theta(r, th, ph)
         + d(u_phi)/dph)/(r*sin(th))
     sage: s.expr().expand()
@@ -211,7 +211,7 @@ The divergence of a curl is always zero::
 
     sage: div(curl(u)).display()
     div(curl(u)): E^3 --> R
-       (r, th, ph) |--> 0
+       (r, th, ph) ↦ 0
 
 
 Laplacian
@@ -222,7 +222,7 @@ The Laplacian of a scalar field::
     sage: s = laplacian(F)
     sage: s.display()
     Delta(F): E^3 --> R
-       (r, th, ph) |--> ((r^2*d^2(f)/dr^2 + 2*r*d(f)/dr
+       (r, th, ph) ↦ ((r^2*d^2(f)/dr^2 + 2*r*d(f)/dr
         + d^2(f)/dth^2)*sin(th)^2 + cos(th)*sin(th)*d(f)/dth
         + d^2(f)/dph^2)/(r^2*sin(th)^2)
     sage: s.expr().expand()
@@ -333,7 +333,7 @@ The gradient::
     sage: F = E.scalar_field(function('f')(rh,ph,z), name='F')
     sage: F.display()
     F: E^3 --> R
-       (rh, ph, z) |--> f(rh, ph, z)
+       (rh, ph, z) ↦ f(rh, ph, z)
     sage: grad(F)
     Vector field grad(F) on the Euclidean space E^3
     sage: grad(F).display()
@@ -344,7 +344,7 @@ The divergence::
     sage: s = div(u)
     sage: s.display()
     div(u): E^3 --> R
-       (rh, ph, z) |--> (rh*d(u_rho)/drh + rh*d(u_z)/dz + u_rho(rh, ph, z) + d(u_phi)/dph)/rh
+       (rh, ph, z) ↦ (rh*d(u_rho)/drh + rh*d(u_z)/dz + u_rho(rh, ph, z) + d(u_phi)/dph)/rh
     sage: s.expr().expand()
     u_rho(rh, ph, z)/rh + diff(u_phi(rh, ph, z), ph)/rh + diff(u_rho(rh, ph, z), rh)
      + diff(u_z(rh, ph, z), z)
@@ -363,7 +363,7 @@ The Laplacian of a scalar field::
     sage: s = laplacian(F)
     sage: s.display()
     Delta(F): E^3 --> R
-       (rh, ph, z) |--> (rh^2*d^2(f)/drh^2 + rh^2*d^2(f)/dz^2 + rh*d(f)/drh
+       (rh, ph, z) ↦ (rh^2*d^2(f)/drh^2 + rh^2*d^2(f)/dz^2 + rh*d(f)/drh
         + d^2(f)/dph^2)/rh^2
     sage: s.expr().expand()
     diff(f(rh, ph, z), rh)/rh + diff(f(rh, ph, z), ph, ph)/rh^2

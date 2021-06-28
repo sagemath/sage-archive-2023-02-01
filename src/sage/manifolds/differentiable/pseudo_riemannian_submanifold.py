@@ -40,7 +40,7 @@ One can then define the embedding `\phi_t`::
     ....:                              b*sinh(rh)*sin(th)]})
     sage: phi.display()
     N --> M
-       (rh, th) |--> (w, x, y) = (b*cosh(rh) + t, b*cos(th)*sinh(rh),
+       (rh, th) ↦ (w, x, y) = (b*cosh(rh) + t, b*cos(th)*sinh(rh),
                                   b*sin(th)*sinh(rh))
 
 as well as its inverse (when considered as a diffeomorphism onto its image)::
@@ -50,7 +50,7 @@ as well as its inverse (when considered as a diffeomorphism onto its image)::
     ....:                                  atan2(y,x)]})
     sage: phi_inv.display()
     M --> N
-       (w, x, y) |--> (rh, th) = (log(sqrt((b^2 + x^2 + y^2)/b^2 - 1)
+       (w, x, y) ↦ (rh, th) = (log(sqrt((b^2 + x^2 + y^2)/b^2 - 1)
                                   + sqrt(b^2 + x^2 + y^2)/b), arctan2(y, x))
 
 and the partial inverse expressing the foliation parameter `t` as a scalar
@@ -59,13 +59,13 @@ field on `M`::
     sage: phi_inv_t = M.scalar_field({E: w-sqrt(x^2+y^2+b^2)})
     sage: phi_inv_t.display()
     M --> R
-    (w, x, y) |--> w - sqrt(b^2 + x^2 + y^2)
+    (w, x, y) ↦ w - sqrt(b^2 + x^2 + y^2)
 
 One can check that the inverse is correct with::
 
     sage: (phi*phi_inv).display()
     M --> M
-       (w, x, y) |--> ((b^2 + x^2 + y^2 + sqrt(b^2 + x^2 + y^2)*(t + sqrt(x^2 +
+       (w, x, y) ↦ ((b^2 + x^2 + y^2 + sqrt(b^2 + x^2 + y^2)*(t + sqrt(x^2 +
      y^2)) + sqrt(x^2 + y^2)*t)/(sqrt(b^2 + x^2 + y^2) + sqrt(x^2 + y^2)), x, y)
 
 The first item of the 3-uple in the right-hand does not appear as `w` because
@@ -134,15 +134,15 @@ timelike::
 
     sage: N.ambient_metric()(N.normal(), N.normal()).display()  # long time
     g(n,n): M --> R
-       (w, x, y) |--> -1
-       (rh_M, th_M, t_M) |--> -1
+       (w, x, y) ↦ -1
+       (rh_M, th_M, t_M) ↦ -1
 
 The lapse function is::
 
     sage: N.lapse().display()  # long time
     N: M --> R
-       (w, x, y) |--> sqrt(b^2 + x^2 + y^2)/b
-       (rh_M, th_M, t_M) |--> cosh(rh_M)
+       (w, x, y) ↦ sqrt(b^2 + x^2 + y^2)/b
+       (rh_M, th_M, t_M) ↦ cosh(rh_M)
 
 while the shift vector is::
 
@@ -948,8 +948,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             Scalar field N on the Euclidean space E^3
             sage: N.lapse().display()
             N: E^3 --> R
-               (x, y, z) |--> 1
-               (th_E3, ph_E3, r_E3) |--> 1
+               (x, y, z) ↦ 1
+               (th_E3, ph_E3, r_E3) ↦ 1
 
         """
         if self._dim_foliation == 0:
@@ -1396,8 +1396,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
             sage: gnn.display()
             E^3 --> R
-            (x, y, z) |--> 1
-            (th_E3, ph_E3, r_E3) |--> 1
+            (x, y, z) ↦ 1
+            (th_E3, ph_E3, r_E3) ↦ 1
 
         """
         if self._ambient._dim - self._dim != 1:
@@ -1470,8 +1470,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
              in the Euclidean plane E^2
             sage: N.gauss_curvature().display()  # long time
             N --> R
-            on U: x |--> -1
-            on V: y |--> -1
+            on U: x ↦ -1
+            on V: y ↦ -1
 
         """
         if self._ambient._dim - self._dim != 1:
@@ -1597,8 +1597,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
              embedded in the Euclidean plane E^2]
             sage: N.principal_curvatures(stereoN)[0].display()  # long time
             k_0: N --> R
-            on U: x |--> -1
-            on W: y |--> -1
+            on U: x ↦ -1
+            on W: y ↦ -1
 
         """
         if self._ambient._dim - self._dim != 1:
@@ -1655,8 +1655,8 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
              embedded in the Euclidean plane E^2
             sage: N.mean_curvature().display()  # long time
             N --> R
-            on U: x |--> -1
-            on V: y |--> -1
+            on U: x ↦ -1
+            on V: y ↦ -1
 
         """
         if self._ambient._dim - self._dim != 1:

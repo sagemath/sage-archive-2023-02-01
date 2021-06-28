@@ -260,8 +260,8 @@ A scalar field on ``E``::
     Scalar field f on the Euclidean plane E^2
     sage: f.display()
     f: E^2 --> R
-       (x, y) |--> x*y
-       (r, ph) |--> r^2*cos(ph)*sin(ph)
+       (x, y) ↦ x*y
+       (r, ph) ↦ r^2*cos(ph)*sin(ph)
 
 The value of ``f`` at point ``p``::
 
@@ -284,8 +284,8 @@ The dot product of two vector fields::
     Scalar field v.grad(f) on the Euclidean plane E^2
     sage: s.display()
     v.grad(f): E^2 --> R
-       (x, y) |--> x^2 - y^2
-       (r, ph) |--> (2*cos(ph)^2 - 1)*r^2
+       (x, y) ↦ x^2 - y^2
+       (r, ph) ↦ (2*cos(ph)^2 - 1)*r^2
     sage: s.expr()
     x^2 - y^2
 
@@ -300,8 +300,8 @@ The divergence of the vector field ``v``::
     Scalar field div(v) on the Euclidean plane E^2
     sage: s.display()
     div(v): E^2 --> R
-       (x, y) |--> 0
-       (r, ph) |--> 0
+       (x, y) ↦ 0
+       (r, ph) ↦ 0
 
 .. _EuclideanSpace_example2:
 
@@ -328,7 +328,7 @@ The Euclidean norm of ``v``::
     Scalar field |v| on the Euclidean space E^3
     sage: s.display()
     |v|: E^3 --> R
-       (x, y, z) |--> sqrt(x^2 + y^2)
+       (x, y, z) ↦ sqrt(x^2 + y^2)
     sage: s.expr()
     sqrt(x^2 + y^2)
 
@@ -339,7 +339,7 @@ The divergence of ``v`` is zero::
     Scalar field div(v) on the Euclidean space E^3
     sage: div(v).display()
     div(v): E^3 --> R
-       (x, y, z) |--> 0
+       (x, y, z) ↦ 0
 
 while its curl is a constant vector field along `e_z`::
 
@@ -1035,7 +1035,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
 
             sage: S2_2.embedding().display()
             iota: S^2_2(c) --> E^3
-            on A: (theta, phi) |--> (x, y, z) = (2*cos(phi)*sin(theta) + 1,
+            on A: (theta, phi) ↦ (x, y, z) = (2*cos(phi)*sin(theta) + 1,
                                                  2*sin(phi)*sin(theta) + 2,
                                                  2*cos(theta) + 3)
 
@@ -2512,7 +2512,7 @@ class Euclidean3dimSpace(EuclideanSpace):
             Scalar field epsilon(u,v,w) on the Euclidean space E^3
             sage: s.display()
             epsilon(u,v,w): E^3 --> R
-               (x, y, z) |--> x^3*y + x*y^3 - 2*x*y*z^2
+               (x, y, z) ↦ x^3*y + x*y^3 - 2*x*y*z^2
             sage: s.expr()
             x^3*y + x*y^3 - 2*x*y*z^2
             sage: latex(s)

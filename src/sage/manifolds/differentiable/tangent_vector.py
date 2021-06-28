@@ -89,7 +89,7 @@ class TangentVector(FiniteRankFreeModuleElement):
         sage: f = M.scalar_field(function('F')(x,y), name='f')
         sage: f.display()
         f: M --> R
-           (x, y) |--> F(x, y)
+           (x, y) ↦ F(x, y)
 
     The tangent vector `v` maps `f` to the real number
     `v^i \left. \frac{\partial F}{\partial x^i} \right|_p`::
@@ -110,7 +110,7 @@ class TangentVector(FiniteRankFreeModuleElement):
 
         sage: (f*g).display()
         f*g: M --> R
-           (x, y) |--> F(x, y)*G(x, y)
+           (x, y) ↦ F(x, y)*G(x, y)
 
     and we have the derivation law `v(f g) = v(f) g(p) + f(p) v(g)`::
 
@@ -426,7 +426,7 @@ class TangentVector(FiniteRankFreeModuleElement):
             ....:                                 cos(th)]}, name='F')
             sage: F.display() # the standard embedding of S^2 into R^3
             F: S^2 --> R^3
-            on U: (th, ph) |--> (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
+            on U: (th, ph) ↦ (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
             sage: p = U.point((pi/4, 7*pi/4), name='p')
             sage: v = XS.frame()[1].at(p) ; v  # the coordinate vector d/dphi at p
             Tangent vector d/dph at Point p on the 2-dimensional differentiable

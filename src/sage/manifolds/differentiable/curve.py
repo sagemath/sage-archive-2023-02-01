@@ -131,7 +131,7 @@ class DifferentiableCurve(DiffMap):
 
         sage: c.display()
         c: (0, 2*pi) --> M
-           t |--> (x, y) = (sin(t), 1/2*sin(2*t))
+           t ↦ (x, y) = (sin(t), 1/2*sin(2*t))
 
     Another map method is using the usual call syntax, which returns
     the image of a point in the curve's domain::
@@ -161,7 +161,7 @@ class DifferentiableCurve(DiffMap):
         Curve c in the 2-dimensional differentiable manifold M
         sage: c.display()
         c: (0, 2*pi) --> M
-           t |--> (x, y) = (sin(t), 1/2*sin(2*t))
+           t ↦ (x, y) = (sin(t), 1/2*sin(2*t))
 
     Since ``X`` is the default chart on ``M``, it can be omitted::
 
@@ -169,7 +169,7 @@ class DifferentiableCurve(DiffMap):
         Curve c in the 2-dimensional differentiable manifold M
         sage: c.display()
         c: (0, 2*pi) --> M
-           t |--> (x, y) = (sin(t), 1/2*sin(2*t))
+           t ↦ (x, y) = (sin(t), 1/2*sin(2*t))
 
     Note that a curve in `M` can also be created as a differentiable
     map `I \to M`::
@@ -237,12 +237,12 @@ class DifferentiableCurve(DiffMap):
         Differentiable map from the Real number line R to itself
         sage: s.display()
         R --> R
-           t |--> cos(t^2)
+           t ↦ cos(t^2)
         sage: s = f*g ; s
         Differentiable map from the Real number line R to itself
         sage: s.display()
         R --> R
-           t |--> cos(t)^2
+           t ↦ cos(t)^2
 
     .. RUBRIC:: Curvature and torsion of a curve in a Riemannian manifold
 
@@ -267,7 +267,7 @@ class DifferentiableCurve(DiffMap):
         Scalar field |C'| on the Real interval (0, 6*pi)
         sage: norm(T).display()
         |C'|: (0, 6*pi) --> R
-           s |--> 1
+           s ↦ 1
 
     Vector fields along `C` are defined by the method
     :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.vector_field`
@@ -817,7 +817,7 @@ class DifferentiableCurve(DiffMap):
             ....:                      sin(th)*sin(ph), cos(th)]}, name='F')
             sage: F.display()
             F: S^2 --> R^3
-            on U: (th, ph) |--> (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
+            on U: (th, ph) ↦ (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
             sage: c = S2.curve([2*atan(exp(-t/10)), t], (t, -oo, +oo), name='c')
             sage: graph_c = c.plot(mapping=F, max_range=40,
             ....:                  plot_points=200, thickness=2, label_axes=False)  # 3D plot

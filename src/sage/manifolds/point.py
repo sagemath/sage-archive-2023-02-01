@@ -918,7 +918,7 @@ class ManifoldPoint(Element):
             ....:                           sin(th)*sin(ph), cos(th)]}, name='F')
             sage: F.display()
             F: S^2 --> M
-            on U: (th, ph) |--> (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
+            on U: (th, ph) ↦ (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
             sage: g = p.plot(chart=X, mapping=F)
             sage: gS2 = XS.plot(chart=X, mapping=F, number_values=9)
             sage: g + gS2

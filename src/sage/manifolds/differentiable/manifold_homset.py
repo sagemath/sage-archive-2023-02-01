@@ -108,7 +108,7 @@ class DifferentiableManifoldHomset(TopologicalManifoldHomset):
          3-dimensional differentiable manifold N
         sage: f.display()
         M --> N
-           (x, y) |--> (u, v, w) = (0, 0, 0)
+           (x, y) ↦ (u, v, w) = (0, 0, 0)
 
     The test suite is passed::
 
@@ -146,7 +146,7 @@ class DifferentiableManifoldHomset(TopologicalManifoldHomset):
         True
         sage: E.one().display()
         Id_M: M --> M
-           (x, y) |--> (x, y)
+           (x, y) ↦ (x, y)
 
     The test suite is passed by ``E``::
 
@@ -273,7 +273,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         Curve in the 2-dimensional differentiable manifold M
         sage: c.display()
         R --> M
-           t |--> (x, y) = (1/(t^2 + 1) - 1/2, 0)
+           t ↦ (x, y) = (1/(t^2 + 1) - 1/2, 0)
 
     The test suite is passed::
 
@@ -299,7 +299,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
          manifold M
         sage: c.display()
         (0, 1) --> U
-           t |--> (x, y) = (1/(t^2 + 1) - 1/2, 0)
+           t ↦ (x, y) = (1/(t^2 + 1) - 1/2, 0)
 
     The set of curves `\RR \longrightarrow \RR` is a set of (manifold)
     endomorphisms::
@@ -328,13 +328,13 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         True
         sage: E.one().display()
         Id_R: R --> R
-           t |--> t
+           t ↦ t
 
     A "typical" element of the monoid::
 
         sage: E.an_element().display()
         R --> R
-           t |--> 1/(t^2 + 1) - 1/2
+           t ↦ 1/(t^2 + 1) - 1/2
 
     The test suite is passed by ``E``::
 
@@ -361,10 +361,10 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
         Identity map Id_(0, 1) of the Real interval (0, 1)
         sage: EI.one().display()
         Id_(0, 1): (0, 1) --> (0, 1)
-           t |--> t
+           t ↦ t
         sage: EI.an_element().display()
         (0, 1) --> (0, 1)
-           t |--> 1/2/(t^2 + 1) + 1/4
+           t ↦ 1/2/(t^2 + 1) + 1/4
 
     The test suite is passed by ``EI``::
 
@@ -464,7 +464,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
             Curve in the 3-dimensional differentiable manifold M
             sage: c.display()
             R --> M
-               t |--> (x, y, z) = (1/(t^2 + 1) - 1/2, 0, 0)
+               t ↦ (x, y, z) = (1/(t^2 + 1) - 1/2, 0, 0)
 
         ::
 
@@ -473,7 +473,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
             Curve in the 3-dimensional differentiable manifold M
             sage: c.display()
             (0, pi) --> M
-               t |--> (x, y, z) = (1/(t^2 + 1) - 1/2, 0, 0)
+               t ↦ (x, y, z) = (1/(t^2 + 1) - 1/2, 0, 0)
 
         ::
 
@@ -481,7 +481,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
             Differentiable map from the Real interval (0, pi) to itself
             sage: c.display()
             (0, pi) --> (0, pi)
-               t |--> 1/4*pi + 1/2*pi/(t^2 + 1)
+               t ↦ 1/4*pi + 1/2*pi/(t^2 + 1)
 
         """
         from sage.rings.infinity import Infinity

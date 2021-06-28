@@ -622,8 +622,8 @@ class TransitionMap(SageObject):
              2-dimensional topological manifold S^2
             sage: det.display()
             det(phi_U^(-1)*phi_V): W --> R
-                 (x, y) |--> -1
-                 (u, v) |--> -1
+                 (x, y) ↦ -1
+                 (u, v) ↦ -1
 
         """
         aut = self._automorphism
@@ -675,20 +675,20 @@ class TransitionMap(SageObject):
 
             sage: matrix[0,0].display()
             zero: W --> R
-                (x, y) |--> 0
-                (u, v) |--> 0
+                (x, y) ↦ 0
+                (u, v) ↦ 0
             sage: matrix[0,1].display()
             1: W --> R
-             (x, y) |--> 1
-             (u, v) |--> 1
+             (x, y) ↦ 1
+             (u, v) ↦ 1
             sage: matrix[1,0].display()
             1: W --> R
-             (x, y) |--> 1
-             (u, v) |--> 1
+             (x, y) ↦ 1
+             (u, v) ↦ 1
             sage: matrix[1,1].display()
             zero: W --> R
-                (x, y) |--> 0
-                (u, v) |--> 0
+                (x, y) ↦ 0
+                (u, v) ↦ 0
 
         """
         return self._automorphism.matrix(self._frame1)

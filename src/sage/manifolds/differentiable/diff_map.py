@@ -123,9 +123,9 @@ class DiffMap(ContinuousMap):
         <class 'sage.manifolds.differentiable.manifold_homset.DifferentiableManifoldHomset_with_category.element_class'>
         sage: Phi.display()
         Phi: S^2 --> R^3
-        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
+        on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
          (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
-        on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
+        on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
          -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
     It is possible to create the map via the method
@@ -153,7 +153,7 @@ class DiffMap(ContinuousMap):
 
         sage: Phi1.display()
         Phi: S^2 --> R^3
-        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
+        on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
          (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
 
     The definition can be completed by means of the method
@@ -163,9 +163,9 @@ class DiffMap(ContinuousMap):
         ....:                              (1-u^2-v^2)/(1+u^2+v^2)])
         sage: Phi1.display()
         Phi: S^2 --> R^3
-        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
+        on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
          (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
-        on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
+        on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
          -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
     At this stage, ``Phi1`` and ``Phi`` are fully equivalent::
@@ -232,7 +232,7 @@ class DiffMap(ContinuousMap):
          R^3 to the 2-dimensional differentiable manifold R^2
         sage: Psi.display()
         Psi: R^3 --> R^2
-           (X, Y, Z) |--> (xP, yP) = (-X/(Z - 1), -Y/(Z - 1))
+           (X, Y, Z) ↦ (xP, yP) = (-X/(Z - 1), -Y/(Z - 1))
 
     Then we compose ``Psi`` with ``Phi``, thereby getting a map
     `S^2\rightarrow \RR^2`::
@@ -252,8 +252,8 @@ class DiffMap(ContinuousMap):
 
         sage: ster.display()
         S^2 --> R^2
-        on U: (x, y) |--> (xP, yP) = (x, y)
-        on V: (u, v) |--> (xP, yP) = (u/(u^2 + v^2), v/(u^2 + v^2))
+        on U: (x, y) ↦ (xP, yP) = (x, y)
+        on V: (u, v) ↦ (xP, yP) = (u/(u^2 + v^2), v/(u^2 + v^2))
 
     If its codomain is 1-dimensional, a differentiable map must be
     defined by a single symbolic expression for each pair of charts, and not
@@ -281,7 +281,7 @@ class DiffMap(ContinuousMap):
         True
         sage: Phi.display()
         Phi: R --> R^2
-           t |--> (x, y) = (cos(t), sin(t))
+           t ↦ (x, y) = (cos(t), sin(t))
 
     An example of diffeomorphism between the unit open disk and the Euclidean
     plane `\RR^2`::
@@ -301,7 +301,7 @@ class DiffMap(ContinuousMap):
         True
         sage: Phi.display()
         Phi: D --> R^2
-           (x, y) |--> (x, y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
+           (x, y) ↦ (x, y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
 
     The image of a point::
 
@@ -319,7 +319,7 @@ class DiffMap(ContinuousMap):
          to the Open subset D of the 2-dimensional differentiable manifold R^2
         sage: Phi.inverse().display()
         Phi^(-1): R^2 --> D
-           (x, y) |--> (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
+           (x, y) ↦ (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
 
     Equivalently, one may use the notations ``^(-1)`` or ``~`` to get the
     inverse::
@@ -342,7 +342,7 @@ class DiffMap(ContinuousMap):
 
         sage: (~Phi).display()
         Phi^(-1): R^2 --> D
-           (x, y) |--> (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
+           (x, y) ↦ (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
 
     A special case of diffeomorphism: the identity map of the open unit disk::
 
@@ -374,7 +374,7 @@ class DiffMap(ContinuousMap):
 
         sage: id.display()
         Id_D: D --> D
-           (x, y) |--> (x, y)
+           (x, y) ↦ (x, y)
 
     The identity map is its own inverse::
 
@@ -400,7 +400,7 @@ class DiffMap(ContinuousMap):
              M to the 3-dimensional differentiable manifold N
             sage: f.display()
             f: M --> N
-               (x, y) |--> (u, v, w) = (x + y, x*y, x - y)
+               (x, y) ↦ (u, v, w) = (x + y, x*y, x - y)
             sage: TestSuite(f).run()
 
         The identity map::
@@ -409,7 +409,7 @@ class DiffMap(ContinuousMap):
             Identity map Id_M of the 2-dimensional differentiable manifold M
             sage: f.display()
             Id_M: M --> M
-               (x, y) |--> (x, y)
+               (x, y) ↦ (x, y)
             sage: TestSuite(f).run()
 
         """
@@ -745,7 +745,7 @@ class DiffMap(ContinuousMap):
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
             sage: J[2][0].display()
-            (x, y) |--> 2*x
+            (x, y) ↦ 2*x
 
         In contrast, the method :meth:`jacobian_matrix` leads directly to
         symbolic expressions::
@@ -822,7 +822,7 @@ class DiffMap(ContinuousMap):
             ....:                  latex_name = r'\Phi')
             sage: Phi.display()
             Phi: M --> N
-               (x, y) |--> (u, v, w) = (x - 2*y, x*y, -y^3 + x^2)
+               (x, y) ↦ (u, v, w) = (x - 2*y, x*y, -y^3 + x^2)
             sage: J = Phi.jacobian_matrix(X, Y) ; J
             [     1     -2]
             [     y      x]
@@ -874,13 +874,13 @@ class DiffMap(ContinuousMap):
             Scalar field f on the 3-dimensional differentiable manifold R^3
             sage: f.display()
             f: R^3 --> R
-               (x, y, z) |--> x*y*z
+               (x, y, z) ↦ x*y*z
             sage: pf = Phi.pullback(f) ; pf
             Scalar field Phi^*(f) on the Open subset U of the 2-dimensional
              differentiable manifold S^2
             sage: pf.display()
             Phi^*(f): U --> R
-               (th, ph) |--> cos(ph)*cos(th)*sin(ph)*sin(th)^2
+               (th, ph) ↦ cos(ph)*cos(th)*sin(ph)*sin(th)^2
 
         Pullback on `S^2` of the standard Euclidean metric on `R^3`::
 

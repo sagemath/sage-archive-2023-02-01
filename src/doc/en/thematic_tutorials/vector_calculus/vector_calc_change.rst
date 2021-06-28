@@ -424,18 +424,18 @@ automatically computed::
 
     sage: f.display()
     f: E^3 --> R
-       (x, y, z) |--> x^2 + y^2 - z^2
-       (r, th, ph) |--> -2*r^2*cos(th)^2 + r^2
-       (rh, ph, z) |--> rh^2 - z^2
+       (x, y, z) ↦ x^2 + y^2 - z^2
+       (r, th, ph) ↦ -2*r^2*cos(th)^2 + r^2
+       (rh, ph, z) ↦ rh^2 - z^2
 
 We can limit the output to a single coordinate system::
 
     sage: f.display(cartesian)
     f: E^3 --> R
-       (x, y, z) |--> x^2 + y^2 - z^2
+       (x, y, z) ↦ x^2 + y^2 - z^2
     sage: f.display(cylindrical)
     f: E^3 --> R
-       (rh, ph, z) |--> rh^2 - z^2
+       (rh, ph, z) ↦ rh^2 - z^2
 
 The coordinate expression in a given coordinate system is obtained via the
 method :meth:`~sage.manifolds.scalarfield.ScalarField.expr`::
@@ -469,9 +469,9 @@ triggered by the method ``display()``::
 
     sage: g.display()
     g: E^3 --> R
-       (x, y, z) |--> x^2 + y^2 + z^2
-       (r, th, ph) |--> r^2
-       (rh, ph, z) |--> rh^2 + z^2
+       (x, y, z) ↦ x^2 + y^2 + z^2
+       (r, th, ph) ↦ r^2
+       (rh, ph, z) ↦ rh^2 + z^2
 
 
 How to express a vector field in various frames

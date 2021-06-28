@@ -167,8 +167,8 @@ class PseudoRiemannianMetric(TensorField):
         Scalar field g(a,b) on the 2-dimensional differentiable manifold S^2
         sage: s.display()
         g(a,b): S^2 --> R
-        on U: (x, y) |--> 8*x/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
-        on V: (u, v) |--> 8*(u^3 + u*v^2)/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
+        on U: (x, y) ↦ 8*x/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
+        on V: (u, v) ↦ 8*(u^3 + u*v^2)/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
 
     The inverse metric is::
 
@@ -309,8 +309,8 @@ class PseudoRiemannianMetric(TensorField):
         Scalar field r(g) on the 2-dimensional differentiable manifold S^2
         sage: r.display()
         r(g): S^2 --> R
-        on U: (x, y) |--> 2
-        on V: (u, v) |--> 2
+        on U: (x, y) ↦ 2
+        on V: (u, v) ↦ 2
 
     In dimension 2, the Riemann tensor can be expressed entirely in terms of
     the Ricci scalar `r`:
@@ -1157,7 +1157,7 @@ class PseudoRiemannianMetric(TensorField):
              differentiable manifold S^2
             sage: g.ricci_scalar().display() # The Ricci scalar is constant:
             r(g): U --> R
-               (th, ph) |--> 2/a^2
+               (th, ph) ↦ 2/a^2
 
         """
         if self._ricci_scalar is None:
@@ -1864,7 +1864,7 @@ class PseudoRiemannianMetric(TensorField):
             Scalar field **f on the 3-dimensional differentiable manifold M
             sage: ssf.display()
             **f: M --> R
-               (x, y, z) |--> F(x, y, z)
+               (x, y, z) ↦ F(x, y, z)
             sage: ssf == f # must hold for a Riemannian metric
             True
 
@@ -1887,7 +1887,7 @@ class PseudoRiemannianMetric(TensorField):
             Scalar field **f on the 4-dimensional differentiable manifold M
             sage: ssf.display()
             **f: M --> R
-               (t, x, y, z) |--> -f0
+               (t, x, y, z) ↦ -f0
             sage: ssf == -f  # must hold for a Lorentzian metric
             True
 
@@ -2514,7 +2514,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
              differentiable manifold S^2
             sage: g.ricci_scalar().display() # The Ricci scalar is constant:
             r(g): U --> R
-               (th, ph) |--> 2/a^2
+               (th, ph) ↦ 2/a^2
 
         """
         if self._ricci_scalar is None:
@@ -2621,7 +2621,7 @@ class DegenerateMetric(TensorField):
         sage: v[0], v[1], v[2] = x , y, z
         sage: g(v, v).disp()
         M --> R
-        (x, y, z) |--> 0
+        (x, y, z) ↦ 0
 
     """
 
@@ -2937,7 +2937,7 @@ class DegenerateMetricParal(DegenerateMetric, TensorFieldParal):
         sage: v[0], v[1], v[2] = x , y, z
         sage: g(v, v).disp()
         M --> R
-        (x, y, z) |--> 0
+        (x, y, z) ↦ 0
 
     """
 

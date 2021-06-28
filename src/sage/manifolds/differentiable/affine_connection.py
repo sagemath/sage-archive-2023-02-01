@@ -165,14 +165,14 @@ class AffineConnection(SageObject):
         sage: nab[1,1,2]
         x^2
         sage: nab[1,1,2].display()
-        (x, y, z) |--> x^2
+        (x, y, z) ↦ x^2
         sage: type(nab[1,1,2])
         <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
         sage: nab[[1,1,2]]
         Scalar field on the 3-dimensional differentiable manifold M
         sage: nab[[1,1,2]].display()
         M --> R
-        (x, y, z) |--> x^2
+        (x, y, z) ↦ x^2
         sage: nab[[1,1,2]].coord_function() is nab[1,1,2]
         True
 

@@ -436,16 +436,16 @@ class DiffChart(Chart):
             Vector field d/dy on the 2-dimensional differentiable manifold M
             sage: ex(M.scalar_field(x)).display()
             1: M --> R
-               (x, y) |--> 1
+               (x, y) ↦ 1
             sage: ex(M.scalar_field(y)).display()
             zero: M --> R
-               (x, y) |--> 0
+               (x, y) ↦ 0
             sage: ey(M.scalar_field(x)).display()
             zero: M --> R
-               (x, y) |--> 0
+               (x, y) ↦ 0
             sage: ey(M.scalar_field(y)).display()
             1: M --> R
-               (x, y) |--> 1
+               (x, y) ↦ 1
 
         """
         return self._frame
@@ -485,16 +485,16 @@ class DiffChart(Chart):
             Vector field d/dy on the 2-dimensional differentiable manifold M
             sage: dx(ex).display()
             dx(d/dx): M --> R
-               (x, y) |--> 1
+               (x, y) ↦ 1
             sage: dx(ey).display()
             dx(d/dy): M --> R
-               (x, y) |--> 0
+               (x, y) ↦ 0
             sage: dy(ex).display()
             dy(d/dx): M --> R
-               (x, y) |--> 0
+               (x, y) ↦ 0
             sage: dy(ey).display()
             dy(d/dy): M --> R
-               (x, y) |--> 1
+               (x, y) ↦ 1
 
         """
         return self._coframe

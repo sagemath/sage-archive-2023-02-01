@@ -447,8 +447,8 @@ class MultivectorField(TensorField):
             Scalar field i_a b on the 2-dimensional differentiable manifold S^2
             sage: s.display()
             i_a b: S^2 --> R
-            on U: (x, y) |--> 8*x*y/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
-            on V: (u, v) |--> 8*u*v/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
+            on U: (x, y) ↦ 8*x*y/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
+            on V: (u, v) ↦ 8*u*v/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
 
         Some checks::
 
@@ -1002,7 +1002,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             Scalar field a(b,c) on the 2-dimensional differentiable manifold M
             sage: s.display()
             a(b,c): M --> R
-               (x, y) |--> -x*y^3 + 2*x*y^2 + (x^3 + x^2)*y
+               (x, y) ↦ -x*y^3 + 2*x*y^2 + (x^3 + x^2)*y
             sage: s == a[[0,1]]*(b[[0]]*c[[1]] - b[[1]]*c[[0]])
             True
             sage: s == a(b,c)  # indirect doctest
@@ -1131,7 +1131,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             Scalar field i_a b on the 4-dimensional differentiable manifold M
             sage: s.display()
             i_a b: M --> R
-               (t, x, y, z) |--> x^2*z - x*z^2 + 2*t^2 + (x + 3)*y - y^2
+               (t, x, y, z) ↦ x^2*z - x*z^2 + 2*t^2 + (x + 3)*y - y^2
                 - 3*x + 2
 
         In this case, we have `\iota_a b = a^i b_i = a(b) = b(a)`::
@@ -1286,7 +1286,7 @@ class MultivectorFieldParal(AlternatingContrTensor, TensorFieldParal):
             Scalar field -i_df a on the 3-dimensional differentiable manifold M
             sage: s.display()
             -i_df a: M --> R
-               (x, y, z) |--> x*y - y^2 - (x + 2*y + 1)*z + z^2
+               (x, y, z) ↦ x*y - y^2 - (x + 2*y + 1)*z + z^2
 
         Check that `[f,a] = - \iota_{\mathrm{d}f} a = - \mathrm{d}f(a)`::
 

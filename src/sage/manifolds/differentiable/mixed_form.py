@@ -171,8 +171,8 @@ class MixedForm(AlgebraElement):
         sage: A[0].set_expr(x, c_xy)
         sage: A[0].display()
         f: M --> R
-        on U: (x, y) |--> x
-        on W: (u, v) |--> 1/2*u + 1/2*v
+        on U: (x, y) ↦ x
+        on W: (u, v) ↦ 1/2*u + 1/2*v
         sage: A[1].set_name('omega')
         sage: A[1][0] = y*x; A[1].display(e_xy)
         omega = x*y dx
@@ -851,11 +851,11 @@ class MixedForm(AlgebraElement):
             sage: f = M.scalar_field(x, name='f')
             sage: f.display()
             f: M --> R
-               (x, y, z) |--> x
+               (x, y, z) ↦ x
             sage: g = M.scalar_field(y, name='g')
             sage: g.display()
             g: M --> R
-               (x, y, z) |--> y
+               (x, y, z) ↦ y
             sage: omega = M.diff_form(1, name='omega')
             sage: omega[0] = x
             sage: omega.display()
@@ -1013,7 +1013,7 @@ class MixedForm(AlgebraElement):
             sage: f = M.scalar_field(z^2, name='f')
             sage: f.disp()
             f: M --> R
-                (x, y, z) |--> z^2
+                (x, y, z) ↦ z^2
             sage: a = M.diff_form(2, 'a')
             sage: a[1,2], a[1,3], a[2,3] = z+y^2, z+x, x^2
             sage: a.disp()
@@ -1078,8 +1078,8 @@ class MixedForm(AlgebraElement):
             sage: f.add_expr_by_continuation(c_uv, W)
             sage: f.display()
             f: M --> R
-            on U: (x, y) |--> x
-            on V: (u, v) |--> 1/2*u + 1/2*v
+            on U: (x, y) ↦ x
+            on V: (u, v) ↦ 1/2*u + 1/2*v
             sage: omega = M.diff_form(1, name='omega')
             sage: omega[e_xy,0] = x
             sage: omega.add_comp_by_continuation(e_uv, W, c_uv)

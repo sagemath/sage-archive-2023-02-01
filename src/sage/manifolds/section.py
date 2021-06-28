@@ -141,8 +141,8 @@ class Section(ModuleElementWithMutability):
         sage: f.add_expr_by_continuation(c_uv, W)
         sage: f.display()
         f: M --> R
-        on U: (x, y) |--> -x^2 + y^2
-        on V: (u, v) |--> -u*v
+        on U: (x, y) ↦ -x^2 + y^2
+        on V: (u, v) ↦ -u*v
         sage: b = f*s; b
         Section f*s on the 2-dimensional topological manifold M with values
          in the real vector bundle E of rank 2
@@ -1196,8 +1196,8 @@ class Section(ModuleElementWithMutability):
 
             sage: sorted(s._components.values())[0]._comp[(1,)].display()
             S^2 --> R
-            on U: (x, y) |--> x
-            on W: (u, v) |--> u/(u^2 + v^2)
+            on U: (x, y) ↦ x
+            on W: (u, v) ↦ u/(u^2 + v^2)
 
         To fix that, we extend the components from ``W`` to ``V`` first, using
         :meth:`add_comp_by_continuation`::
@@ -1213,8 +1213,8 @@ class Section(ModuleElementWithMutability):
 
             sage: sorted(s._components.values())[0]._comp[(2,)].display()
             S^2 --> R
-            on U: (x, y) |--> y
-            on V: (u, v) |--> v/(u^2 + v^2)
+            on U: (x, y) ↦ y
+            on V: (u, v) ↦ v/(u^2 + v^2)
 
         """
         if self.is_immutable():
@@ -2229,8 +2229,8 @@ class Section(ModuleElementWithMutability):
             sage: g.add_expr_by_continuation(c_uv, U.intersection(V))
             sage: g.display()
             g: M --> R
-            on U: (x, y) |--> 1/(x^2 + y^2 + 1)
-            on V: (u, v) |--> 2/(u^2 + v^2 + 2)
+            on U: (x, y) ↦ 1/(x^2 + y^2 + 1)
+            on V: (u, v) ↦ 2/(u^2 + v^2 + 2)
             sage: t = s._rmul_(g); t
             Section g*s on the 2-dimensional topological manifold M with values
              in the real vector bundle E of rank 2

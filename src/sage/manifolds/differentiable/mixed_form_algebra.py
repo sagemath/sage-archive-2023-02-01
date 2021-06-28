@@ -455,7 +455,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
                differentiable manifold M
             sage: f = M.scalar_field(x, name='f'); f.display()
             f: M --> R
-               (x, y) |--> x
+               (x, y) ↦ x
             sage: d0(f).display()
             df = dx
 

@@ -181,8 +181,8 @@ A differentiable scalar field on the sphere::
     Scalar field f on the 2-dimensional differentiable manifold S^2
     sage: f.display()
     f: S^2 --> R
-    on U: (x, y) |--> arctan(x^2 + y^2)
-    on V: (u, v) |--> 1/2*pi - arctan(u^2 + v^2)
+    on U: (x, y) ↦ arctan(x^2 + y^2)
+    on V: (u, v) ↦ 1/2*pi - arctan(u^2 + v^2)
     sage: f(p)
     arctan(5)
     sage: f(N)
@@ -227,8 +227,8 @@ Vector fields act on scalar fields::
     Scalar field w(f) on the 2-dimensional differentiable manifold S^2
     sage: w(f).display()
     w(f): S^2 --> R
-    on U: (x, y) |--> 2*(x^2 + y^2)/(x^4 + 2*x^2*y^2 + y^4 + 1)
-    on V: (u, v) |--> 2*(u^2 + v^2)/(u^4 + 2*u^2*v^2 + v^4 + 1)
+    on U: (x, y) ↦ 2*(x^2 + y^2)/(x^4 + 2*x^2*y^2 + y^4 + 1)
+    on V: (u, v) ↦ 2*(u^2 + v^2)/(u^4 + 2*u^2*v^2 + v^4 + 1)
     sage: w(f) == f.differential()(w)
     True
 
@@ -358,8 +358,8 @@ A constant map `\CC^* \rightarrow \CC`::
     Scalar field f on the 1-dimensional complex manifold C*
     sage: f.display()
     f: C* --> C
-    on U: z |--> 2*I + 3
-    on V: w |--> 2*I + 3
+    on U: z ↦ 2*I + 3
+    on V: w ↦ 2*I + 3
     sage: f(O)
     2*I + 3
     sage: f(i)
@@ -393,8 +393,8 @@ Since `f` is constant, `v(f)` is vanishing::
 
     sage: v(f).display()
     zero: C* --> C
-    on U: z |--> 0
-    on V: w |--> 0
+    on U: z ↦ 0
+    on V: w ↦ 0
 
 The value of the vector field `v` at the point `\infty` is a vector tangent to
 the Riemann sphere::
@@ -1028,7 +1028,7 @@ class DifferentiableManifold(TopologicalManifold):
              to the 2-dimensional differentiable manifold N
             sage: Phi.display()
             Phi: M --> N
-               (x, y) |--> (X, Y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
+               (x, y) ↦ (X, Y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
 
         The inverse diffeomorphism::
 
@@ -1037,7 +1037,7 @@ class DifferentiableManifold(TopologicalManifold):
              manifold N to the 2-dimensional differentiable manifold M
             sage: (Phi^(-1)).display()
             Phi^(-1): N --> M
-               (X, Y) |--> (x, y) = (X/sqrt(X^2 + Y^2 + 1), Y/sqrt(X^2 + Y^2 + 1))
+               (X, Y) ↦ (x, y) = (X/sqrt(X^2 + Y^2 + 1), Y/sqrt(X^2 + Y^2 + 1))
 
         See the documentation of class
         :class:`~sage.manifolds.differentiable.diff_map.DiffMap` for more

@@ -45,7 +45,7 @@ following command::
      embedded in the Euclidean space E^3 to the Euclidean space E^3
     sage: i.display()
     iota: S^2_r --> E^3
-    on A: (theta, phi) |--> (x, y, z) = (r*cos(phi)*sin(theta),
+    on A: (theta, phi) ↦ (x, y, z) = (r*cos(phi)*sin(theta),
                                          r*sin(phi)*sin(theta),
                                          r*cos(theta))
 
@@ -78,7 +78,7 @@ Gaussian curvature::
     sage: K = S2_r.gauss_curvature()
     sage: K.display()
     S^2_r --> R
-    on A: (theta, phi) |--> r^(-2)
+    on A: (theta, phi) ↦ r^(-2)
 
 As we have seen, spherical coordinates are initialized by default. To
 initialize stereographic coordinates retrospectively, we can use the following
@@ -127,9 +127,9 @@ The embedding takes now the following form in all coordinates::
 
     sage: S1c.embedding().display()
     iota: S^1(c) --> E^2
-    on A: chi |--> (x, y) = (cos(chi) + 1, sin(chi))
-    on S^1(c)-{NP}: y1 |--> (x, y) = (2*y1/(y1^2 + 1) + 1, (y1^2 - 1)/(y1^2 + 1))
-    on S^1(c)-{SP}: yp1 |--> (x, y) = (2*yp1/(yp1^2 + 1) + 1, -(yp1^2 - 1)/(yp1^2 + 1))
+    on A: chi ↦ (x, y) = (cos(chi) + 1, sin(chi))
+    on S^1(c)-{NP}: y1 ↦ (x, y) = (2*y1/(y1^2 + 1) + 1, (y1^2 - 1)/(y1^2 + 1))
+    on S^1(c)-{SP}: yp1 ↦ (x, y) = (2*yp1/(yp1^2 + 1) + 1, -(yp1^2 - 1)/(yp1^2 + 1))
 
 Since the sphere is a hypersurface, we can get a normal vector field by using
 ``normal``::
@@ -409,7 +409,7 @@ class Sphere(PseudoRiemannianSubmanifold):
              embedded in the Euclidean space E^3 to the Euclidean space E^3
             sage: i.display()
             iota: S^2 --> E^3
-             on A: (theta, phi) |--> (x, y, z) = (cos(phi)*sin(theta),
+             on A: (theta, phi) ↦ (x, y, z) = (cos(phi)*sin(theta),
              sin(phi)*sin(theta), cos(theta))
 
         """
@@ -711,8 +711,8 @@ class Sphere(PseudoRiemannianSubmanifold):
             [Chart (S^1(c)-{NP}, (a,)), Chart (S^1(c)-{SP}, (ap,))]
             sage: S1.embedding().display()
             iota: S^1(c) --> E^2
-            on S^1(c)-{NP}: a |--> (x, y) = (2*a/(a^2 + 1) + 1, (a^2 - 1)/(a^2 + 1))
-            on S^1(c)-{SP}: ap |--> (x, y) = (2*ap/(ap^2 + 1) + 1, -(ap^2 - 1)/(ap^2 + 1))
+            on S^1(c)-{NP}: a ↦ (x, y) = (2*a/(a^2 + 1) + 1, (a^2 - 1)/(a^2 + 1))
+            on S^1(c)-{SP}: ap ↦ (x, y) = (2*ap/(ap^2 + 1) + 1, -(ap^2 - 1)/(ap^2 + 1))
 
         Initialize a 2-sphere from scratch::
 
@@ -830,7 +830,7 @@ class Sphere(PseudoRiemannianSubmanifold):
 
             sage: S2.embedding().display()
             iota: S^2 --> E^3
-             on A: (theta, phi) |--> (x, y, z) =
+             on A: (theta, phi) ↦ (x, y, z) =
                                      (cos(phi)*sin(theta),
                                       sin(phi)*sin(theta),
                                       cos(theta))
@@ -842,7 +842,7 @@ class Sphere(PseudoRiemannianSubmanifold):
             Chart (A, (chi, theta, phi))
             sage: S3.embedding().display()
             iota: S^3 --> E^4
-            on A: (chi, theta, phi) |--> (x1, x2, x3, x4) =
+            on A: (chi, theta, phi) ↦ (x1, x2, x3, x4) =
                                          (cos(phi)*sin(chi)*sin(theta),
                                           sin(chi)*sin(phi)*sin(theta),
                                           cos(theta)*sin(chi),
@@ -1165,7 +1165,7 @@ class Sphere(PseudoRiemannianSubmanifold):
 
             sage: S2c.embedding().display()
             iota: S^2(c) --> E^3
-            on A: (theta, phi) |--> (x, y, z) = (cos(phi)*sin(theta) + 1,
+            on A: (theta, phi) ↦ (x, y, z) = (cos(phi)*sin(theta) + 1,
                                                  sin(phi)*sin(theta) + 2,
                                                  cos(theta) + 3)
 

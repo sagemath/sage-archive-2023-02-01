@@ -704,8 +704,8 @@ class DiffForm(TensorField):
             Scalar field *eps_g on the 2-dimensional differentiable manifold S^2
             sage: seps.display()
             *eps_g: S^2 --> R
-            on U: (x, y) |--> 1
-            on V: (u, v) |--> 1
+            on U: (x, y) ↦ 1
+            on V: (u, v) ↦ 1
 
         Hodge dual of a 1-form in the Euclidean space `R^3`::
 
@@ -816,8 +816,8 @@ class DiffForm(TensorField):
             Scalar field i_a b on the 2-dimensional differentiable manifold S^2
             sage: s.display()
             i_a b: S^2 --> R
-            on U: (x, y) |--> 8*x*y/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
-            on V: (u, v) |--> 8*u*v/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
+            on U: (x, y) ↦ 8*x*y/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1)
+            on V: (u, v) ↦ 8*u*v/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1)
 
         Some checks::
 
@@ -1159,8 +1159,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
         Scalar field omega(V) on the 3-dimensional differentiable manifold R3
         sage: om(v).display()
         omega(V): R3 --> R
-           (x, y, z) |--> 2*x*y + (5*x - 3*y)*z
-           (r, th, ph) |--> 2*r^2*cos(ph)*sin(ph)*sin(th)^2 + r^2*(5*cos(ph)
+           (x, y, z) ↦ 2*x*y + (5*x - 3*y)*z
+           (r, th, ph) ↦ 2*r^2*cos(ph)*sin(ph)*sin(th)^2 + r^2*(5*cos(ph)
                             - 3*sin(ph))*cos(th)*sin(th)
         sage: latex(om(v))
         \omega\left(V\right)
@@ -1324,7 +1324,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
             Scalar field a(u,v) on the 2-dimensional differentiable manifold M
             sage: s.display()
             a(u,v): M --> R
-               (x, y) |--> -x*y^3 + 2*x*y^2 + (x^3 + x^2)*y
+               (x, y) ↦ -x*y^3 + 2*x*y^2 + (x^3 + x^2)*y
             sage: s == a[[0,1]]*(u[[0]]*v[[1]] - u[[1]]*v[[0]])
             True
             sage: s == a(u,v)  # indirect doctest
@@ -1575,7 +1575,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
             Scalar field i_a b on the 3-dimensional differentiable manifold M
             sage: s.display()
             i_a b: M --> R
-               (x, y, z) |--> 2*x*y^3 - 2*z^3 - 6*x - 6*z
+               (x, y, z) ↦ 2*x*y^3 - 2*z^3 - 6*x - 6*z
             sage: s == a.contract(0,1,b,0,1)
             True
 

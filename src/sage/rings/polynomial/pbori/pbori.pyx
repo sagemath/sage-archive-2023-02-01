@@ -640,10 +640,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
 
         Any boolean monomial is contained in the ring::
 
-            sage: e = B.random_element(); e
-            a*b + a*c + a + b*d + 1
-            sage: e.lt()
-            a*b
+            sage: e = B.random_element()
+            sage: e.parent() is B
+            True
             sage: e.lt().parent()
             MonomialMonoid of Boolean PolynomialRing in a, b, c, d
             sage: e.lt() in B   # indirect doctest
@@ -1159,29 +1158,47 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         EXAMPLES::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: P.random_element(degree=3, terms=4)
-            x*y*z + x*z + x + y*z
+            sage: f = P.random_element(degree=3, terms=4)
+            sage: f.degree() <= 3
+            True
+            sage: len(f.terms())
+            4
 
         ::
 
-            sage: P.random_element(degree=1, terms=2)
-            z + 1
+            sage: f = P.random_element(degree=1, terms=2)
+            sage: f.degree() <= 1
+            True
+            sage: len(f.terms())
+            2
 
         In corner cases this function will return fewer terms by default::
 
             sage: P = BooleanPolynomialRing(2,'y')
-            sage: P.random_element()
-            y0*y1 + y0
+            sage: f = P.random_element()
+            sage: len(f.terms())
+            2
 
             sage: P = BooleanPolynomialRing(1,'y')
-            sage: P.random_element()
-            y
+            sage: f = P.random_element()
+            sage: len(f.terms())
+            1
 
         We return uniformly random polynomials up to degree 2::
 
+            sage: from collections import defaultdict
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
-            sage: B.random_element(terms=Infinity)
-            a*b + a*c + a*d + b*c + b*d + d
+            sage: counter = 0.0
+            sage: dic = defaultdict(Integer)
+            sage: def more_terms():
+            ....:     global counter, dic
+            ....:     for t in B.random_element(terms=Infinity).terms():
+            ....:         counter += 1.0
+            ....:         dic[t] += 1
+
+            sage: more_terms()
+            sage: while any(abs(dic[t]/counter - 1.0/11) > 0.01 for t in dic):
+            ....:     more_terms()
 
         TESTS::
 
@@ -1191,11 +1208,19 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
             ...
             ValueError: Given degree should be less than or equal to number of variables (3)
 
-            sage: P.random_element(degree=1, terms=5)
-            y + 1
+            sage: f = P.random_element(degree=1, terms=5)
+            sage: f.degree() <= 1
+            True
+            sage: len(f.terms())
+            2
 
-            sage: P.random_element(degree=2, terms=5, vars_set=(0,1))
-            x*y + y
+            sage: f = P.random_element(degree=2, terms=5, vars_set=(0,1))
+            sage: f.degree() <= 2
+            True
+            sage: len(f.terms())
+            2
+            sage: all(t in [x, y, x*y, P(1)] for t in f.terms())
+            True
 
         We test that :trac:`13845` is fixed::
 
@@ -1272,10 +1297,9 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         EXAMPLES::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
-            x + y
-            sage: P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
-            0
+            sage: f = P._random_uniform_rec(2, [1, 3, 4], (0,1), True, 2)
+            sage: all(t in [x, y, x*y, P(1)] for t in f.terms())
+            True
         """
         from sage.rings.integer import Integer
         from sage.rings.integer_ring import ZZ
@@ -1310,8 +1334,12 @@ cdef class BooleanPolynomialRing(MPolynomialRing_base):
         EXAMPLES::
 
             sage: P.<x,y,z> = BooleanPolynomialRing(3)
-            sage: [P._random_monomial_uniform([1, 3, 4], (0,1)) for _ in range(10)]
-            [x*y, x*y, x, x, x, x*y, x, y, x*y, 1]
+            sage: f = [P._random_monomial_uniform([1, 3, 4], (0,1)) for _ in range(10)]
+            sage: all(t in [x, y, x*y, P(1)] for t in f)
+            True
+            sage: f = [P._random_monomial_uniform([1, 3, 4], (0,2)) for _ in range(10)]
+            sage: all(t in [x, z, x*z, P(1)] for t in f)
+            True
         """
         from sage.rings.integer_ring import ZZ
         from sage.combinat.combination import from_rank
@@ -4785,8 +4813,10 @@ cdef class BooleanPolynomialIterator:
         EXAMPLES::
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
-            sage: list(B.random_element()) # indirect doctest
-            [a*b, a*c, a, b*d, 1]
+            sage: f = B.random_element()
+            sage: entries = list(f)  # indirect doctest
+            sage: sum(entries) == f
+            True
         """
         return self
 

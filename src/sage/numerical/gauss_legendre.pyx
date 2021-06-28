@@ -83,9 +83,9 @@ def nodes(degree, prec):
         sage: P = RR['x'](sage.functions.orthogonal_polys.legendre_P(24, x))
         sage: Pdif = P.diff()
         sage: L2 = [((r + 1)/2, 1/(1 - r^2)/Pdif(r)^2)
-                    for r, _ in RR['x'](P).roots()]
+        ....:        for r, _ in RR['x'](P).roots()]
         sage: all((a[0] - b[0]).abs() < 1e-15 and (a[1] - b[1]).abs() < 1e-9
-                  for a, b in zip(L1, L2))
+        ....:      for a, b in zip(L1, L2))
         True
 
     .. TODO::

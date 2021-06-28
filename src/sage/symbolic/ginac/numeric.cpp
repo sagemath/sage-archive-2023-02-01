@@ -1414,6 +1414,25 @@ const numeric numeric::sub(const numeric &other) const {
         }
 }
 
+#if defined __has_builtin
+#  if __has_builtin (__builtin_smull_overflow)
+#    define smull_overflow __builtin_smull_overflow
+#  endif
+#endif
+
+#if !defined smull_overflow
+static int smull_overflow(long a, long b, long *result) {
+        static long lsqrt = std::lround(std::sqrt(std::numeric_limits<long>::max()));
+        if (-lsqrt < a and a < lsqrt and -lsqrt < b and b < lsqrt) {
+                // Will not overflow.
+                *result = a * b;
+                return 0;
+        }
+        // May overflow.
+        return 1;
+}
+#endif
+
 /** Numerical multiplication method.  Multiplies *this and argument and returns
  *  result as a numeric object. */
 const numeric numeric::mul(const numeric &other) const {
@@ -1433,7 +1452,7 @@ const numeric numeric::mul(const numeric &other) const {
         switch (t) {
         case LONG: {
                 long result;
-                if (!__builtin_smull_overflow(v._long, other.v._long, & result))
+                if (!smull_overflow(v._long, other.v._long, & result))
                         return result;
                 // the multiplication overflowed, so use mpz
                 mpz_t bigint;
@@ -2319,7 +2338,7 @@ numeric & operator*=(numeric & lh, const numeric & rh)
         switch (lh.t) {
         case LONG: {
                 long result;
-                if (!__builtin_smull_overflow(lh.v._long, rh.v._long, & result)) {
+                if (!smull_overflow(lh.v._long, rh.v._long, & result)) {
                         lh.v._long = result;
                         lh.hash = (lh.v._long==-1) ? -2 : lh.v._long;
                         return lh;

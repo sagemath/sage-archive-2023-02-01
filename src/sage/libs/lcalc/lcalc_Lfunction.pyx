@@ -307,18 +307,21 @@ cdef class Lfunction:
         return returnvalue
 
     #The default values are from L.h. See L.h
-    def find_zeros_via_N(self, count=0, do_negative=False, max_refine=1025,
-                         rank=-1, test_explicit_formula=0):
+    def find_zeros_via_N(self, count=0, start=0, max_refine=1025, rank=-1):
         """
-        Finds ``count`` number of zeros with positive imaginary part
-        starting at real axis. This function also verifies that all
-        the zeros have been found.
+        Find ``count`` zeros (in order of increasing magnitude) and output
+        their imaginary parts. This function verifies that no zeros
+        are missed, and that all values output are indeed zeros.
+
+        If this L-function is self-dual (if its Dirichlet coefficients
+        are real, up to a tolerance of 1e-6), then only the zeros with
+        positive imaginary parts are output. Their conjugates, which
+        are also zeros, are not output.
 
         INPUT:
 
         - ``count`` - number of zeros to be found
-        - ``do_negative`` - (default: False) False to ignore zeros below the
-          real axis.
+        - ``start`` - (default: 0) how many initial zeros to skip
         - ``max_refine`` - when some zeros are found to be missing, the step
           size used to find zeros is refined. max_refine gives an upper limit
           on when lcalc should give up. Use default value unless you know
@@ -326,13 +329,9 @@ cdef class Lfunction:
         - ``rank`` - integer (default: -1) analytic rank of the L-function.
           If -1 is passed, then we attempt to compute it. (Use default if in
           doubt)
-        - ``test_explicit_formula`` - integer (default: 0) If nonzero, test
-          the explicit formula for additional confidence that all the zeros
-          have been found and are accurate. This is still being tested, so
-          using the default is recommended.
 
         OUTPUT:
-        
+
         list -- A list of the imaginary parts of the zeros that have been found
 
         EXAMPLES::
@@ -356,14 +355,14 @@ cdef class Lfunction:
             sage: L.find_zeros_via_N(3)
             [14.1347251417..., 21.0220396387..., 25.0108575801...]
         """
-        cdef Integer count_I = Integer(count)
-        cdef Integer do_negative_I = Integer(do_negative)
-        cdef RealNumber max_refine_R = RRR(max_refine)
-        cdef Integer rank_I = Integer(rank)
-        cdef Integer test_explicit_I = Integer(test_explicit_formula)
+
+        # This is the default value for message_stamp, but we have to
+        # pass it explicitly since we're passing in the next argument,
+        # our &result pointer.
+        cdef const char* message_stamp = ""
         cdef doublevec result
         sig_on()
-        self.__find_zeros_via_N_v(mpz_get_si(count_I.value), mpz_get_si(do_negative_I.value), mpfr_get_d(max_refine_R.value, MPFR_RNDN), mpz_get_si(rank_I.value), mpz_get_si(test_explicit_I.value), &result)
+        self.__find_zeros(count, start, max_refine, rank, message_stamp, &result)
         sig_off()
         returnvalue = []
         for i in range(result.size()):

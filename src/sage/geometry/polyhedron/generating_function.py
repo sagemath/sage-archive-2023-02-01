@@ -655,7 +655,7 @@ def _generating_function_via_Omega_(inequalities, B, skip_indices=()):
         assert numerator.parent() == L
         terms = tuple(l**c * t for c, t in zip(it_coeffs, terms))
     assert all(y == t for y, t in
-               (zip(B.gens(), terms)[i] for i in skip_indices))
+               (tuple(zip(B.gens(), terms))[i] for i in skip_indices))
     terms = tuple(t for i, t in enumerate(terms)
                   if i not in skip_indices)
 
@@ -1202,7 +1202,7 @@ class EliminateByEquations(TransformHrepresentation):
 
         gens = (1,) + B.gens()
         z = tuple(gens[i] for i in indices)
-        gens_cols = zip(gens, TE.columns())
+        gens_cols = tuple(zip(gens, TE.columns()))
         rules_pre = iter((y, y * prod(zz**(-c) for zz, c in zip(z, col)))
                          for y, col in (gens_cols[i] for i in indicesn))
         self.factor = next(rules_pre)[1]

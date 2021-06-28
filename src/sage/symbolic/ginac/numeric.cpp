@@ -1432,11 +1432,10 @@ const numeric numeric::mul(const numeric &other) const {
         }
         switch (t) {
         case LONG: {
-                static long lsqrt = std::lround(std::sqrt(
-                                        std::numeric_limits<long>::max()));
-                if (std::abs(v._long) < lsqrt
-                    and std::abs(other.v._long) < lsqrt)
-                        return v._long * other.v._long;
+                long result;
+                if (!__builtin_smull_overflow(v._long, other.v._long, & result))
+                        return result;
+                // the multiplication overflowed, so use mpz
                 mpz_t bigint;
                 mpz_init_set_si(bigint, v._long);
                 mpz_mul_si(bigint, bigint, other.v._long);
@@ -1480,6 +1479,8 @@ const numeric numeric::div(const numeric &other) const {
         case LONG: {
                 if (v._long == 1 and other.v._long == 2)
                         return *_num1_2_p;
+                if (other.v._long == -1)  // use multiplication to avoid possible overflow
+                        return *this * -1;
                 auto ld = std::div(v._long, other.v._long);
                 if (ld.rem == 0)
                         return ld.quot;
@@ -2067,7 +2068,10 @@ const numeric numeric::negative() const {
         verbose("operator-");
         switch (t) {
         case LONG:
-                return -v._long;
+                if (v._long != std::numeric_limits<long>::min())
+                        return -v._long;
+                else  // use multiplication to avoid negation overflow
+                        return -1 * *this;
         case MPZ:
                 mpz_t bigint;
                 mpz_init_set(bigint, v._bigint);
@@ -2314,13 +2318,13 @@ numeric & operator*=(numeric & lh, const numeric & rh)
         }
         switch (lh.t) {
         case LONG: {
-                static long lsqrt = std::lround(std::sqrt(
-                                        std::numeric_limits<long>::max()));
-                if (std::abs(lh.v._long) < lsqrt
-                    and std::abs(rh.v._long) < lsqrt) {
-                        lh.v._long *= rh.v._long;
+                long result;
+                if (!__builtin_smull_overflow(lh.v._long, rh.v._long, & result)) {
+                        lh.v._long = result;
+                        lh.hash = (lh.v._long==-1) ? -2 : lh.v._long;
                         return lh;
                 }
+                // the multiplication overflowed, so use mpz
                 lh.t = MPZ;
                 mpz_init_set_si(lh.v._bigint, lh.v._long);
                 mpz_mul_si(lh.v._bigint, lh.v._bigint, rh.v._long);
@@ -4222,7 +4226,9 @@ const ex numeric::sqrt_as_ex() const
 const numeric numeric::abs() const {
         switch (t) {
         case LONG:
-                return std::labs(v._long);
+                if (*this >= 0)
+                        return *this;
+                return negative();
         case MPZ: {
                 mpz_t bigint;
                 mpz_init(bigint);

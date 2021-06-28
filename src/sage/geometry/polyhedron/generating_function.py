@@ -25,7 +25,7 @@ Functions
 """
 
 # *****************************************************************************
-# Copyright (C) 2016 Daniel Krenn <dev@danielkrenn.at>
+# Copyright (C) 2016, 2021 Daniel Krenn <dev@danielkrenn.at>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -33,10 +33,6 @@ Functions
 # (at your option) any later version.
 # http://www.gnu.org/licenses/
 # *****************************************************************************
-
-from __future__ import print_function
-from __future__ import absolute_import
-from six import iteritems
 
 Hrepresentation_str_options = {'prefix': 'b', 'style': 'positive'}
 
@@ -664,7 +660,7 @@ def _generating_function_via_Omega_(inequalities, B, skip_indices=()):
     def decode_factor(factor):
         D = factor.dict()
         assert len(D) == 1
-        exponent, coefficient = next(iteritems(D))
+        exponent, coefficient = next(iter(D.items()))
         return coefficient, exponent
 
     while repr(numerator.parent().gen()).startswith(mu):
@@ -1369,7 +1365,7 @@ class TransformMod(TransformHrepresentation):
         n = len(B.gens()) + 1
 
         D = {(i, i): 1 for i in range(n)}
-        for i, mr in iteritems(mod):
+        for i, mr in mod.items():
             D[(i+1, i+1)] = mr[0]
             D[(i+1, 0)] = mr[1]
         T = matrix(ZZ, n, n, D)

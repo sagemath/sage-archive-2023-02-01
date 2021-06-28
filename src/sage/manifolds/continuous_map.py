@@ -1137,37 +1137,38 @@ class ContinuousMap(Morphism):
                 expression = expression[0]
                 coord_func = coord_func[0]
             if chart1._domain == self._domain:
-                result._txt += "   "
-                result._latex += " & "
+                result._txt += '   '
+                result._latex += ' & '
             else:
-                result._txt += "on " + chart1._domain._name + ": "
-                result._latex += r"\mbox{on}\ " + latex(chart1._domain) + \
-                                r": & "
-            result._txt += repr(coords1) + " |--> "
-            result._latex += latex(coords1) + r"& \longmapsto & "
+                result._txt += 'on ' + chart1._domain._name + ': '
+                result._latex += r'\mbox{on}\ ' + latex(chart1._domain) + \
+                                r': & '
+            # Unicode character '\u2227' is '↦'; see ticket #30473
+            result._txt += repr(coords1) + ' \u21A6 '
+            result._latex += latex(coords1) + r'& \longmapsto & '
             if chart2 == chart1:
-                result._txt += repr(expression) + "\n"
-                result._latex += latex(coord_func) + r"\\"
+                result._txt += repr(expression) + '\n'
+                result._latex += latex(coord_func) + r'\\'
             else:
-                result._txt += repr(coords2) + " = " + \
-                              repr(expression) + "\n"
-                result._latex += latex(coords2) + " = " + \
-                                latex(coord_func) + r"\\"
+                result._txt += repr(coords2) + ' = ' + \
+                              repr(expression) + '\n'
+                result._latex += latex(coords2) + ' = ' + \
+                                latex(coord_func) + r'\\'
 
         result = FormattedExpansion()
         if self._name is None:
-            symbol = ""
+            symbol = ''
         else:
-            symbol = self._name + ": "
-        result._txt = symbol + self._domain._name + " --> " + \
-                     self._codomain._name + "\n"
+            symbol = self._name + ': '
+        result._txt = symbol + self._domain._name + ' --> ' + \
+                     self._codomain._name + '\n'
         if self._latex_name is None:
-            symbol = ""
+            symbol = ''
         else:
-            symbol = self._latex_name + ":"
-        result._latex = r"\begin{array}{llcl} " + symbol + r"&" + \
-                       latex(self._domain) + r"& \longrightarrow & " + \
-                       latex(self._codomain) + r"\\"
+            symbol = self._latex_name + ':'
+        result._latex = r'\begin{array}{llcl} ' + symbol + r'&' + \
+                       latex(self._domain) + r'& \longrightarrow & ' + \
+                       latex(self._codomain) + r'\\'
         if chart1 is None:
             if chart2 is None:
                 for ch1 in self._domain._top_charts:
@@ -1183,7 +1184,7 @@ class ContinuousMap(Morphism):
             else:
                 _display_expression(self, chart1, chart2, result)
         result._txt = result._txt[:-1]
-        result._latex = result._latex[:-2] + r"\end{array}"
+        result._latex = result._latex[:-2] + r'\end{array}'
         return result
 
     disp = display

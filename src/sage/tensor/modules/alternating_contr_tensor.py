@@ -419,53 +419,54 @@ class AlternatingContrTensor(FreeModuleTensor):
                 for k in range(self._tensor_rank):
                     bases_txt.append(basis[ind[k]]._name)
                     bases_latex.append(latex(basis[ind[k]]))
-                basis_term_txt = "\u2227".join(bases_txt)
-                basis_term_latex = r"\wedge ".join(bases_latex)
+                # Unicode character '\u2227' is '∧'; see ticket #30473
+                basis_term_txt = '\u2227'.join(bases_txt)
+                basis_term_latex = r'\wedge '.join(bases_latex)
                 coef_txt = repr(coef)
-                if coef_txt == "1":
+                if coef_txt == '1':
                     terms_txt.append(basis_term_txt)
                     terms_latex.append(basis_term_latex)
-                elif coef_txt == "-1":
-                    terms_txt.append("-" + basis_term_txt)
-                    terms_latex.append("-" + basis_term_latex)
+                elif coef_txt == '-1':
+                    terms_txt.append('-' + basis_term_txt)
+                    terms_latex.append('-' + basis_term_latex)
                 else:
                     coef_latex = latex(coef)
                     if is_atomic(coef_txt):
-                        terms_txt.append(coef_txt + " " + basis_term_txt)
+                        terms_txt.append(coef_txt + ' ' + basis_term_txt)
                     else:
-                        terms_txt.append("(" + coef_txt + ") " +
+                        terms_txt.append('(' + coef_txt + ') ' +
                                          basis_term_txt)
                     if is_atomic(coef_latex):
                         terms_latex.append(coef_latex + basis_term_latex)
                     else:
-                        terms_latex.append(r"\left(" + coef_latex + \
-                                           r"\right)" + basis_term_latex)
+                        terms_latex.append(r'\left(' + coef_latex + \
+                                           r'\right)' + basis_term_latex)
         if not terms_txt:
-            expansion_txt = "0"
+            expansion_txt = '0'
         else:
             expansion_txt = terms_txt[0]
             for term in terms_txt[1:]:
-                if term[0] == "-":
-                    expansion_txt += " - " + term[1:]
+                if term[0] == '-':
+                    expansion_txt += ' - ' + term[1:]
                 else:
-                    expansion_txt += " + " + term
+                    expansion_txt += ' + ' + term
         if not terms_latex:
-            expansion_latex = "0"
+            expansion_latex = '0'
         else:
             expansion_latex = terms_latex[0]
             for term in terms_latex[1:]:
-                if term[0] == "-":
+                if term[0] == '-':
                     expansion_latex += term
                 else:
-                    expansion_latex += "+" + term
+                    expansion_latex += '+' + term
         if self._name is None:
             resu_txt = expansion_txt
         else:
-            resu_txt = self._name + " = " + expansion_txt
+            resu_txt = self._name + ' = ' + expansion_txt
         if self._latex_name is None:
             resu_latex = expansion_latex
         else:
-            resu_latex = latex(self) + " = " + expansion_latex
+            resu_latex = latex(self) + ' = ' + expansion_latex
         return FormattedExpansion(resu_txt, resu_latex)
 
     disp = display

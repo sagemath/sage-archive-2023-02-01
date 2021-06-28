@@ -23,15 +23,14 @@ AUTHORS:
 - Julian Rüth (2016-11-10): initial version
 
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .valuation import DiscreteValuation, DiscretePseudoValuation
 from sage.misc.abstract_method import abstract_method
@@ -228,6 +227,70 @@ class MappedValuation_base(DiscretePseudoValuation):
         f = self._base_valuation.lift(F)
         return self._from_base_domain(f)
 
+    def simplify(self, x, error=None, force=False):
+        r"""
+        Return a simplified version of ``x``.
+
+        Produce an element which differs from ``x`` by an element of
+        valuation strictly greater than the valuation of ``x`` (or strictly
+        greater than ``error`` if set.)
+        
+        If ``force`` is not set, then expensive simplifications may be avoided.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+
+            sage: v = K.valuation(0)
+            sage: w = v.extensions(L)[0]
+
+        As :meth:`_relative_size` misses the bloated term ``x^32``, the
+        following term does not get simplified::
+
+            sage: w.simplify(y + x^32)
+            y + x^32
+
+        In this case the simplification can be forced but this should not
+        happen as a default as the recursive simplification can be quite
+        costly::
+
+            sage: w.simplify(y + x^32, force=True)
+            y
+
+        """
+        return self._from_base_domain(self._base_valuation.simplify(self._to_base_domain(x), error=error, force=force))
+
+    def _relative_size(self, x):
+        r"""
+        Return an estimate on the coefficient size of ``x``.
+
+        The number returned is an estimate on the factor between the number of
+        bits used by ``x`` and the minimal number of bits used by an element
+        congruent to ``x``.
+
+        This can be used by :meth:`simplify` to decide whether simplification
+        of coefficients is going to lead to a significant shrinking of the
+        coefficients of ``x``.
+
+        EXAMPLES::
+
+            sage: K.<x> = FunctionField(QQ)
+            sage: R.<y> = K[]
+            sage: L.<y> = K.extension(y^2 - x)
+            sage: v = K.valuation(0)
+            sage: w = v.extensions(L)[0]
+
+        In this example, the method misses the size of the bloated term
+        ``x^32``::
+
+            sage: w._relative_size(y + x^32)
+            1
+
+        """
+        return self._base_valuation._relative_size(self._to_base_domain(x))
+
     def _to_base_residue_ring(self, F):
         r"""
         Return ``F``, an element of :meth:`~sage.rings.valuation.valuation_space.DiscretePseudoValuationSpace.ElementMethods.residue_ring`,
@@ -265,6 +328,23 @@ class MappedValuation_base(DiscretePseudoValuation):
 
         """
         return self.residue_ring().coerce(F)
+
+    def element_with_valuation(self, s):
+        r"""
+        Return an element with valuation ``s``.
+
+        EXAMPLES::
+
+            sage: K = QQ
+            sage: R.<t> = K[]
+            sage: L.<t> = K.extension(t^2 + 1)
+            sage: v = valuations.pAdicValuation(QQ, 5)
+            sage: u,uu = v.extensions(L)
+            sage: u.element_with_valuation(1)
+            5
+
+        """
+        return self._from_base_domain(self._base_valuation.element_with_valuation(s))
 
     def _test_to_from_base_domain(self, **options):
         r"""

@@ -1,18 +1,15 @@
 """
 Root system data for super type A
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function, absolute_import
-from six.moves import range
-from six import iteritems
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.rings.all import ZZ
 from sage.misc.cachefunc import cached_method
@@ -30,8 +27,11 @@ class AmbientSpace(ambient_space.AmbientSpace):
         sage: AL = R.ambient_space(); AL
         Ambient space of the Root system of type ['A', [2, 1]]
         sage: AL.basis()
-        Finite family {-2: (0, 1, 0, 0, 0), 2: (0, 0, 0, 0, 1), -3: (1, 0, 0, 0, 0),
-        -1: (0, 0, 1, 0, 0), 1: (0, 0, 0, 1, 0)}
+        Finite family {-3: (1, 0, 0, 0, 0),
+         -2: (0, 1, 0, 0, 0),
+         -1: (0, 0, 1, 0, 0),
+         1: (0, 0, 0, 1, 0),
+         2: (0, 0, 0, 0, 1)}
     """
     def __init__(self, root_system, base_ring, index_set=None):
         """
@@ -236,7 +236,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
                 for j in range(1, ct.n + 2)]
 
     def fundamental_weight(self, i):
-        """
+        r"""
         Return the fundamental weight `\Lambda_i` of ``self``.
 
         EXAMPLES::
@@ -275,7 +275,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
         if i <= 0:
             return self.sum(self.monomial(j) for j in range(-m-1,i))
         return (self.sum(self.monomial(j) for j in range(-m-1,1))
-                - self.sum(self.monomial(j) for j in range(0,i+1))
+                - self.sum(self.monomial(j) for j in range(i+1))
                 - 2*self.sum(self.monomial(j) for j in range(i+1,n+2)))
 
     def simple_coroot(self, i):
@@ -323,7 +323,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
             lambdacheck_mc = lambdacheck._monomial_coefficients
 
             result = self.parent().base_ring().zero()
-            for t,c in iteritems(lambdacheck_mc):
+            for t,c in lambdacheck_mc.items():
                 if t not in self_mc:
                     continue
                 if t > 0:
@@ -372,7 +372,7 @@ class AmbientSpace(ambient_space.AmbientSpace):
             dep = V.linear_dependence([self._vector_()] +
                                       [al[i]._vector_() for i in P.index_set()])[0]
             I = P.index_set()
-            return P.sum((-c/dep[0]) * h[I[i]] for i,c in dep[1:].iteritems())
+            return P.sum((-c/dep[0]) * h[I[i]] for i,c in dep[1:].items())
 
         def has_descent(self, i, positive=False):
             """
@@ -582,7 +582,7 @@ class CartanType(SuperCartanType_standard):
         EXAMPLES::
 
             sage: CartanType(['A', [2,3]]).symmetrizer()
-            Finite family {0: 1, 1: -1, 2: -1, 3: -1, -1: 1, -2: 1}
+            Finite family {-2: 1, -1: 1, 0: 1, 1: -1, 2: -1, 3: -1}
         """
         from sage.sets.family import Family
         def ell(i): return ZZ.one() if i <= 0 else -ZZ.one()
@@ -629,11 +629,11 @@ class CartanType(SuperCartanType_standard):
         """
         from .dynkin_diagram import DynkinDiagram_class
         g = DynkinDiagram_class(self, odd_isotropic_roots=[0])
-        for i in range(0, self.m):
+        for i in range(self.m):
             g.add_edge(-i-1, -i)
         for i in range(1, self.n):
             g.add_edge(i, i+1)
-        g.add_vertex(0) # Usually there, but not when m == n == 0
+        g.add_vertex(0)  # Usually there, but not when m == n == 0
         if self.m > 0:
             g.add_edge(-1, 0)
         if self.n > 0:
@@ -697,11 +697,11 @@ class CartanType(SuperCartanType_standard):
             A1|2
             sage: f={1:2,2:1,0:0,-1:-1}
             sage: ct.relabel(f)
-            ['A', [1, 2]] relabelled by {0: 0, 1: 2, 2: 1, -1: -1}
+            ['A', [1, 2]] relabelled by {-1: -1, 0: 0, 1: 2, 2: 1}
             sage: ct.relabel(f).dynkin_diagram()
             O---X---O---O
             -1  0   2   1
-            A1|2 relabelled by {0: 0, 1: 2, 2: 1, -1: -1}
+            A1|2 relabelled by {-1: -1, 0: 0, 1: 2, 2: 1}
         """
         from . import type_relabel
         return type_relabel.CartanType(self, relabelling)
@@ -826,4 +826,3 @@ class CartanType(SuperCartanType_standard):
         ret += "{!s:4}".format(label(0))
         ret += "".join("{!s:4}".format(label(i)) for i in range(1,self.n+1))
         return ret
-

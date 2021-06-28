@@ -16,8 +16,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from six import iteritems
-
 from sage.misc.cachefunc import cached_method
 #from sage.misc.lazy_attribute import lazy_attribute
 from sage.structure.indexed_generators import (IndexedGenerators,
@@ -96,7 +94,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
 
         sage: L = LieAlgebra(QQ, 'x,y', {('x','y'):{'x':1}})
         sage: L.basis()
-        Finite family {'y': y, 'x': x}
+        Finite family {'x': x, 'y': y}
     """
     @staticmethod
     def __classcall_private__(cls, R, s_coeff, names=None, index_set=None, **kwds):
@@ -126,7 +124,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             try:
                 s_coeff = {(d[k[0]], d[k[1]]): [(d[x], y) for x,y in get_pairs(s_coeff[k])]
                            for k in s_coeff}
-            except KeyError:
+            except (KeyError, ValueError):
                 # At this point we assume they are given by the index set
                 pass
 
@@ -371,6 +369,30 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
         """
         return list(self.basis()) + [self.sum(self.basis())]
 
+    def change_ring(self, R):
+        r"""
+        Return a Lie algebra with identical structure coefficients over ``R``.
+
+        INPUT:
+
+        - ``R`` -- a ring
+
+        EXAMPLES::
+
+            sage: L.<x,y,z> = LieAlgebra(ZZ, {('x','y'): {'z':1}})
+            sage: L.structure_coefficients()
+            Finite family {('x', 'y'): z}
+            sage: LQQ = L.change_ring(QQ)
+            sage: LQQ.structure_coefficients()
+            Finite family {('x', 'y'): z}
+            sage: LSR = LQQ.change_ring(SR)
+            sage: LSR.structure_coefficients()
+            Finite family {('x', 'y'): z}
+        """
+        return LieAlgebraWithStructureCoefficients(
+            R, self.structure_coefficients(),
+            names=self.variable_names(), index_set=self.indices())
+
     class Element(StructureCoefficientsElement):
         def _sorted_items_for_printing(self):
             """
@@ -398,7 +420,7 @@ class LieAlgebraWithStructureCoefficients(FinitelyGeneratedLieAlgebra, IndexedGe
             """
             print_options = self.parent().print_options()
             pos_to_index = dict(enumerate(self.parent()._indices))
-            v = [(pos_to_index[k], c) for k, c in iteritems(self.value)]
+            v = [(pos_to_index[k], c) for k, c in self.value.items()]
             try:
                 v.sort(key=lambda monomial_coeff:
                             print_options['sorting_key'](monomial_coeff[0]),

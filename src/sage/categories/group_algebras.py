@@ -143,7 +143,7 @@ class GroupAlgebras(AlgebrasCategory):
                 ## some matrix groups assume that coercion is only valid to
                 ## other matrix groups. This is a workaround
                 ## call _element_constructor_ to coerce group elements
-                #try :
+                #try:
                 self._populate_coercion_lists_(coerce_list=[self.group()])
 
         def _latex_(self):
@@ -394,8 +394,12 @@ class GroupAlgebras(AlgebrasCategory):
                 sage: B.central_form()
                 4*B[()] + 3*B[(1,2)] + 2*B[(1,2)(3,4)] + 2*B[(1,2,3)] + B[(1,2,3,4)]
 
+            The following test fails due to a bug involving combinatorial free modules and
+            the coercion system (see :trac:`28544`)::
+
                 sage: QG = GroupAlgebras(QQ).example(PermutationGroup([[(1,2,3),(4,5)],[(3,4)]]))
-                sage: sum(i for i in QG.basis()).central_form()
+                sage: s = sum(i for i in QG.basis())
+                sage: s.central_form()   # not tested
                 B[()] + B[(4,5)] + B[(3,4,5)] + B[(2,3)(4,5)] + B[(2,3,4,5)] + B[(1,2)(3,4,5)] + B[(1,2,3,4,5)]
 
             .. SEEALSO::

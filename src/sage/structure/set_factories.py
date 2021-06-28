@@ -183,7 +183,7 @@ Here is an example::
 
     sage: selfpolicy = SelfParentPolicy(XYPairs, NewXYPair)
     sage: SelfS = XYPairs(policy=selfpolicy)
-    sage: el = SelfS.an_element();
+    sage: el = SelfS.an_element()
     sage: el.parent() is SelfS
     True
 
@@ -196,7 +196,7 @@ Now all subsets are the parent of the elements that they create::
     sage: el2.parent() is SelfS2
     True
 
-3 - Finaly, a common use case is to construct simple python object which are
+3 - Finally, a common use case is to construct simple python object which are
 not Sage :class:`sage.structure.Element`. As an example, we show how to build
 a parent ``TupleS`` which construct pairs as tuple. The corresponding policy
 is called :class:`BareFunctionPolicy`. It takes two parameters:
@@ -1037,7 +1037,7 @@ class ParentWithSetFactory(Parent):
             sage: S._test_subset()
         """
         tester = self._tester(**options)
-        tester.assertTrue(self.subset() is self)
+        tester.assertIs(self.subset(), self)
 
     @abstract_method
     def check_element(self, x, check):

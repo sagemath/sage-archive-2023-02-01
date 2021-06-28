@@ -1,3 +1,9 @@
+# distutils: language = c++
+# distutils: libraries = NTL_LIBRARIES
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 """
 Matrices over Cyclotomic Fields
 
@@ -36,7 +42,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from cysignals.signals cimport sig_on, sig_off
 
@@ -63,7 +68,7 @@ from .misc import matrix_integer_dense_rational_reconstruction
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.arith.all import previous_prime, binomial
-from sage.rings.all import RealNumber
+from sage.rings.real_mpfr import create_RealNumber as RealNumber
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -72,7 +77,7 @@ from sage.rings.number_field.number_field_element cimport NumberFieldElement
 from sage.rings.number_field.number_field_element_quadratic cimport NumberFieldElement_quadratic
 
 from sage.structure.proof.proof import get_flag as get_proof_flag
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 import math
 
 from sage.matrix.matrix_modn_dense_double import MAX_MODULUS as MAX_MODULUS_modn_dense_double
@@ -403,6 +408,26 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         return x
 
+    cdef bint get_is_zero_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+        r"""
+        Return 1 if the entry ``(i, j)`` is zero, otherwise 0.
+
+        EXAMPLES::
+
+            sage: K.<z> = CyclotomicField(3)
+            sage: A = matrix(K, 4, 3, [0, -z, -2, -2*z + 2, 2*z, z, z, 1-z, 2+3*z, z, 1+z, 0])
+            sage: A.zero_pattern_matrix()  # indirect doctest
+            [1 0 0]
+            [0 0 0]
+            [0 0 0]
+            [0 0 1]
+        """
+        cdef int a
+        for a in range(self._degree):
+            if not self._matrix.get_is_zero_unsafe(a, j+i*self._ncols):
+                return False
+        return True
+
     def _pickle(self):
         """
         Used for pickling matrices. This function returns the
@@ -455,7 +480,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
     # x * cdef _sub_
     #   * cdef _mul_
     # x * cdef _lmul_    -- scalar multiplication
-    # x * cpdef _cmp_
+    # x * cpdef _richcmp_
     # x * __neg__
     #   * __invert__
     # x * __copy__
@@ -737,15 +762,16 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         EXAMPLES:
 
-        We create a cyclotomic matrix.::
+        We create a cyclotomic matrix::
 
             sage: W.<z> = CyclotomicField(5)
             sage: A = matrix(W, 2, 2, [1,2/3*z+z^2,-z,1+z/2])
 
-        We make a copy of A.::
+        We make a copy of A::
+
             sage: C = A.__copy__()
 
-        We make another reference to A.::
+        We make another reference to A::
 
             sage: B = A
 
@@ -755,7 +781,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             sage: A[0,0]
             10
 
-        Changing the copy does not change A.::
+        Changing the copy does not change A::
 
             sage: C[0,0] = 20
             sage: C[0,0]
@@ -1263,7 +1289,8 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         if algorithm == 'multimodular':
             f = self._charpoly_multimodular(var, proof=proof)
         elif algorithm == 'pari':
-            f = self._charpoly_over_number_field(var)
+            paripoly = self.__pari__().charpoly()
+            f = self.base_ring()[var](paripoly)
         elif algorithm == 'hessenberg':
             f = self._charpoly_hessenberg(var)
         else:
@@ -1487,6 +1514,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             [4, 9, 1, 3]
 
         The reduction matrix is cached::
+
             sage: w._reduction_matrix(7) is w._reduction_matrix(7)
             True
         """
@@ -1500,7 +1528,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             pass
         K = self.base_ring()
         phi = K.defining_polynomial()
-        from sage.rings.all import GF
+        from sage.rings.finite_rings.finite_field_constructor import FiniteField as GF
         from .constructor import matrix
         F = GF(p)
         aa = [a for a, _ in phi.change_ring(F).roots()]
@@ -1557,7 +1585,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
         A degenerate case with the degree 1 cyclotomic field::
 
-            sage: A = matrix(CyclotomicField(1),2,3,[1,2,3,4,5,6]);
+            sage: A = matrix(CyclotomicField(1),2,3,[1,2,3,4,5,6])
             sage: A.echelon_form()
             [ 1  0 -1]
             [ 0  1  2]
@@ -1602,15 +1630,17 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
 
     def _echelon_form_multimodular(self, num_primes=10, height_guess=None):
         """
-        Use a multimodular algorithm to find the echelon form of self.
+        Use a multimodular algorithm to find the echelon form of ``self``.
 
         INPUT:
-            num_primes -- number of primes to work modulo
-            height_guess -- guess for the height of the echelon form
-                            of self
+
+        - num_primes -- number of primes to work modulo
+
+        - height_guess -- guess for the height of the echelon form of self
 
         OUTPUT:
-            matrix in reduced row echelon form
+
+        - matrix in reduced row echelon form
 
         EXAMPLES::
 
@@ -1640,8 +1670,10 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         """
         cdef int i
         cdef Matrix_cyclo_dense res
-
-        verbose("entering _echelon_form_multimodular", level=echelon_verbose_level)
+        cdef bint is_square
+        
+        verbose("entering _echelon_form_multimodular",
+                level=echelon_verbose_level)
 
         denom = self._matrix.denominator()
         A = denom * self
@@ -1649,7 +1681,7 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         # This bound is chosen somewhat arbitrarily. Changing it affects the
         # runtime, not the correctness of the result.
         if height_guess is None:
-            height_guess = (A.coefficient_bound()+100)*1000000
+            height_guess = (A.coefficient_bound() + 100) * 1000000
 
         # This is all setup to keep track of various data
         # in the loop below.
@@ -1659,16 +1691,17 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
         n = self._base_ring._n()
         height_bound = self._ncols * height_guess * A.coefficient_bound() + 1
         mod_p_ech_ls = []
-        max_pivots = []
+        max_pivots = tuple()
         is_square = self._nrows == self._ncols
 
-        verbose("using height bound %s"%height_bound, level=echelon_verbose_level)
+        verbose("using height bound %s" % height_bound,
+                level=echelon_verbose_level)
 
         while True:
             # Generate primes to use, and find echelon form
             # modulo those primes.
             while found < num_primes or prod <= height_bound:
-                if (n == 1) or p%n == 1:
+                if (n == 1) or p % n == 1:
                     try:
                         mod_p_ech, piv_ls = A._echelon_form_one_prime(p)
                     except ValueError:
@@ -1705,13 +1738,14 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             if found > num_primes:
                 num_primes = found
 
-            verbose("computed echelon form mod %s primes"%num_primes,
+            verbose("computed echelon form mod %s primes" % num_primes,
                     level=echelon_verbose_level)
-            verbose("current product of primes used: %s"%prod,
+            verbose("current product of primes used: %s" % prod,
                     level=echelon_verbose_level)
 
             # Use CRT to lift back to ZZ
-            mat_over_ZZ = matrix(ZZ, self._base_ring.degree(), self._nrows * self._ncols)
+            mat_over_ZZ = matrix(ZZ, self._base_ring.degree(),
+                                 self._nrows * self._ncols)
             _lift_crt(mat_over_ZZ, mod_p_ech_ls)
             # note: saving the CRT intermediate MultiModularBasis does
             # not seem to affect the runtime at all
@@ -1719,8 +1753,10 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
             # Attempt to use rational reconstruction to find
             # our echelon form
             try:
-                verbose("attempting rational reconstruction ...", level=echelon_verbose_level)
-                res = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense, self.parent(),
+                verbose("attempting rational reconstruction ...",
+                        level=echelon_verbose_level)
+                res = Matrix_cyclo_dense.__new__(Matrix_cyclo_dense,
+                                                 self.parent(),
                                                  None, None, None)
                 res._matrix = <Matrix_rational_dense>matrix_integer_dense_rational_reconstruction(mat_over_ZZ, prod)
 
@@ -1742,11 +1778,12 @@ cdef class Matrix_cyclo_dense(Matrix_dense):
                 # prod) to guarantee its correctness, so loop.
 
                 num_primes += echelon_primes_increment
-                verbose("height not sufficient to determine echelon form", level=echelon_verbose_level)
+                verbose("height not sufficient to determine echelon form",
+                        level=echelon_verbose_level)
                 continue
 
             verbose("found echelon form with %s primes, whose product is %s"%(num_primes, prod), level=echelon_verbose_level)
-            self.cache('pivots', tuple(max_pivots))
+            self.cache('pivots', max_pivots)
             return res
 
     def _echelon_form_one_prime(self, p):

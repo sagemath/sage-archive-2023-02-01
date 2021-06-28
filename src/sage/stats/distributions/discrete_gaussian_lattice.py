@@ -53,8 +53,6 @@ EXAMPLES::
 # those of the authors and should not be interpreted as representing official
 # policies, either expressed or implied, of the FreeBSD Project.
 #*****************************************************************************/
-from __future__ import absolute_import
-from six.moves import range
 
 from sage.functions.log import exp
 from sage.functions.other import ceil
@@ -178,7 +176,7 @@ class DiscreteGaussianDistributionLatticeSampler(SageObject):
             try:
                 precision = ZZ(sigma.precision())
             except AttributeError:
-                pass
+                return 53
         precision = max(53, precision)
         return precision
 

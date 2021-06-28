@@ -16,7 +16,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -293,8 +292,8 @@ class QuantumGroupRepresentations(Category_module):
                 """
                 F = self.parent()
                 mc = self.monomial_coefficients(copy=False)
-                return F.linear_combination( (F.e_on_basis(i, m), c)
-                                             for m,c in mc.iteritems() )
+                return F.linear_combination((F.e_on_basis(i, m), c)
+                                            for m, c in mc.items())
 
             def f(self, i):
                 r"""
@@ -325,8 +324,8 @@ class QuantumGroupRepresentations(Category_module):
                 """
                 F = self.parent()
                 mc = self.monomial_coefficients(copy=False)
-                return F.linear_combination( (F.f_on_basis(i, m), c)
-                                             for m,c in mc.iteritems() )
+                return F.linear_combination((F.f_on_basis(i, m), c)
+                                            for m, c in mc.items())
 
             def K(self, i, power=1):
                 r"""
@@ -356,8 +355,8 @@ class QuantumGroupRepresentations(Category_module):
                 """
                 F = self.parent()
                 mc = self.monomial_coefficients(copy=False)
-                return F.linear_combination( (F.K_on_basis(i, m, power), c)
-                                             for m,c in mc.iteritems() )
+                return F.linear_combination((F.K_on_basis(i, m, power), c)
+                                             for m, c in mc.items())
 
     class TensorProducts(TensorProductsCategory):
         """

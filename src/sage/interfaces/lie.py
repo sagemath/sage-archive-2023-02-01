@@ -285,19 +285,19 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
 
-from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement, AsciiArtString
-from sage.misc.all import prod
+from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from sage.interfaces.interface import AsciiArtString
+from sage.misc.misc_c import prod
 from sage.env import DOT_SAGE, SAGE_LOCAL
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.docs.instancedoc import instancedoc
 import os
 
 
-COMMANDS_CACHE = '%s/lie_commandlist_cache.sobj'%DOT_SAGE
-HELP_CACHE = '%s/lie_helpdict_cache.sobj'%DOT_SAGE
+COMMANDS_CACHE = '%s/lie_commandlist_cache.sobj' % DOT_SAGE
+HELP_CACHE = '%s/lie_helpdict_cache.sobj' % DOT_SAGE
+
 
 class LiE(ExtraTabCompletion, Expect):
     r"""
@@ -440,7 +440,7 @@ class LiE(ExtraTabCompletion, Expect):
                 help_text = ""
                 prev_command = line[1:i]
 
-                #Add the commad
+                #Add the command
                 if t in commands:
                     commands[t].append(line[1:i])
                 else:
@@ -688,9 +688,9 @@ class LiE(ExtraTabCompletion, Expect):
             sage: lie.get('x')       # optional - lie
             '2'
         """
-        cmd = '%s=%s'%(var,value)
+        cmd = '%s=%s' % (var,value)
         out = self.eval(cmd)
-        i = min( out.find('not defined'), out.find('\(in'), out.find('Argument types') )
+        i = min( out.find('not defined'), out.find(r'\(in'), out.find('Argument types') )
         if i != -1:
             raise RuntimeError(out)
 
@@ -705,7 +705,7 @@ class LiE(ExtraTabCompletion, Expect):
             '2'
 
         """
-        s = self.eval('%s'%var)
+        s = self.eval('%s' % var)
         return s
 
     def get_using_file(self, var):

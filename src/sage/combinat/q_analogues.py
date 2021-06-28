@@ -13,14 +13,13 @@ r"""
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import division
 
 from sage.misc.cachefunc import cached_function
 from sage.misc.all import prod
 from sage.structure.element import parent
 from sage.rings.all import ZZ
 from sage.combinat.dyck_word import DyckWords
-from sage.combinat.partition import Partition
+from sage.combinat.partition import _Partitions
 
 
 def q_int(n, q=None):
@@ -61,9 +60,14 @@ def q_int(n, q=None):
 
     We check that :trac:`15805` is fixed::
 
-        sage: from sage.combinat.q_analogues import q_int
         sage: q_int(0).parent()
         Univariate Polynomial Ring in q over Integer Ring
+
+    We check that :trac:`25715` is fixed::
+
+        sage: q_int(0, 3r)
+        0
+
     """
     if n not in ZZ:
         raise ValueError('%s must be an integer' % n)
@@ -71,18 +75,26 @@ def q_int(n, q=None):
     if q is None:
         q = ZZ['q'].gen()
     if n == 0:  # Special case
-        return q.parent().zero()
-    if n >= 0:
+        return parent(q)(0)
+    if n > 0:
         return sum(q**i for i in range(n))
     return -q**n*sum(q**i for i in range(-n))
 
 
 def q_factorial(n, q=None):
-    """
-    Returns the `q`-analogue of the factorial `n!`.
+    r"""
+    Return the `q`-analogue of the factorial `n!`.
 
-    If `q` is unspecified, then it defaults to using the generator `q` for
-    a univariate polynomial ring over the integers.
+    This is the product
+
+    .. MATH::
+
+        [1]_q [2]_q \cdots [n]_q
+        = 1 \cdot (1+q) \cdot (1+q+q^2) \cdots (1+q+q^2+\cdots+q^{n-1}) .
+
+    If `q` is unspecified, then this function defaults to
+    using the generator `q` for a univariate polynomial
+    ring over the integers.
 
     EXAMPLES::
 
@@ -99,12 +111,19 @@ def q_factorial(n, q=None):
         sage: q_factorial(-2)
         Traceback (most recent call last):
         ...
-        ValueError: Argument (-2) must be a nonnegative integer.
+        ValueError: argument (-2) must be a nonnegative integer
+
+    TESTS::
+
+        sage: q_factorial(0).parent()
+        Univariate Polynomial Ring in q over Integer Ring
     """
-    if n in ZZ and n >= 0:
-        return prod(q_int(i, q) for i in range(1, n + 1))
-    else:
-        raise ValueError("Argument (%s) must be a nonnegative integer." % n)
+    if n in ZZ:
+        if n == 0:
+            return q_int(1, q)
+        elif n >= 1:
+            return prod(q_int(i, q) for i in range(1, n + 1))
+    raise ValueError("argument (%s) must be a nonnegative integer" % n)
 
 
 def q_binomial(n, k, q=None, algorithm='auto'):
@@ -291,7 +310,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
 
     AUTHORS:
 
-    - Frederic Chapoton, David Joyner and William Stein
+    - Frédéric Chapoton, David Joyner and William Stein
     """
     # sanity checks
     n = ZZ(n)
@@ -351,8 +370,8 @@ def q_binomial(n, k, q=None, algorithm='auto'):
                 return q_binomial(n, k)(q)
     if algorithm == 'cyclotomic':
         from sage.rings.polynomial.cyclotomic import cyclotomic_value
-        return prod(cyclotomic_value(d,q)
-                    for d in range(2,n+1)
+        return prod(cyclotomic_value(d, q)
+                    for d in range(2, n + 1)
                     if (n//d) != (k//d) + ((n-k)//d))
     else:
         raise ValueError("unknown algorithm {!r}".format(algorithm))
@@ -428,6 +447,7 @@ def q_multinomial(seq, q=None, binomial_algorithm='auto'):
         binomials.append(q_binomial(partial_sum, elem, q=q, algorithm=binomial_algorithm))
     return prod(binomials)
 
+
 gaussian_multinomial = q_multinomial
 
 
@@ -456,23 +476,27 @@ def q_catalan_number(n, q=None):
         sage: q_catalan_number(-2)
         Traceback (most recent call last):
         ...
-        ValueError: Argument (-2) must be a nonnegative integer.
+        ValueError: argument (-2) must be a nonnegative integer
 
     TESTS::
 
         sage: q_catalan_number(3).parent()
         Univariate Polynomial Ring in q over Integer Ring
+        sage: q_catalan_number(0).parent()
+        Univariate Polynomial Ring in q over Integer Ring
     """
-    if n in ZZ and n >= 0:
-        return (prod(q_int(j, q) for j in range(n + 2, 2 * n + 1)) //
-                prod(q_int(j, q) for j in range(2, n + 1)))
-    else:
-        raise ValueError("Argument (%s) must be a nonnegative integer." % n)
+    if n in ZZ:
+        if n in {0, 1}:
+            return q_int(1, q)
+        elif n >= 2:
+            return (prod(q_int(j, q) for j in range(n + 2, 2 * n + 1)) //
+                    prod(q_int(j, q) for j in range(2, n + 1)))
+    raise ValueError("argument (%s) must be a nonnegative integer" % n)
 
 
 def qt_catalan_number(n):
     """
-    Returns the `q,t`-Catalan number of index `n`.
+    Return the `q,t`-Catalan number of index `n`.
 
     EXAMPLES::
 
@@ -495,7 +519,7 @@ def qt_catalan_number(n):
         ValueError: Argument (-2) must be a nonnegative integer.
     """
     if n in ZZ and n >= 0:
-        ZZqt = ZZ['q','t']
+        ZZqt = ZZ['q', 't']
         d = {}
         for dw in DyckWords(n):
             tup = (dw.area(), dw.bounce())
@@ -556,6 +580,11 @@ def q_pochhammer(n, a, q=None):
         sage: q_pochhammer(0, var('a'))
         1
 
+    We check that :trac:`25715` is fixed::
+
+        sage: q_pochhammer(0, 3r)
+        1
+
     REFERENCES:
 
     - :wikipedia:`Q-Pochhammer_symbol`
@@ -564,84 +593,84 @@ def q_pochhammer(n, a, q=None):
         q = ZZ['q'].gen()
     if n not in ZZ:
         raise ValueError("{} must be an integer".format(n))
-    R = q.parent()
-    one = R.one()
+    R = parent(q)
+    one = R(1)
     if n < 0:
-        return R.prod(one / (one - a/q**-k) for k in range(1,-n+1))
+        return R.prod(one / (one - a/q**-k) for k in range(1, -n+1))
     return R.prod((one - a*q**k) for k in range(n))
 
 
-@cached_function
-def q_jordan(t, q):
+@cached_function(key=lambda t, q: (_Partitions(t), q))
+def q_jordan(t, q=None):
     r"""
-    INPUT:
-
-    -  `t` -- a partition of an integer
-
-    -  `q` -- an integer or an indeterminate
-
-    OUTPUT:
+    Return the `q`-Jordan number of `t`.
 
     If `q` is the power of a prime number, the output is the number of
-    complete flags in `F_q^N` (where `N` is the size of `t`) stable
-    under a linear nilpotent endomorphism `f` whose Jordan type is
+    complete flags in `\GF{q}^N` (where `N` is the size of `t`) stable
+    under a linear nilpotent endomorphism `f_t` whose Jordan type is
     given by `t`, i.e. such that for all `i`:
 
     .. MATH::
 
-        \dim (\ker f^i) = t[0] + \cdots + t[i-1]
+        \dim (\ker f_t^i) = t[0] + \cdots + t[i-1]
 
-    If `q` is an indeterminate, the output is a polynomial whose
-    values at powers of prime numbers are the previous numbers.
+    If `q` is unspecified, then it defaults to using the generator `q` for
+    a univariate polynomial ring over the integers.
 
     The result is cached.
+
+    INPUT:
+
+    -  ``t`` -- an integer partition, or an argument accepted by
+       :class:`Partition`
+
+    - ``q`` -- (default: ``None``) the variable `q`; if ``None``, then use a
+      default variable in `\ZZ[q]`
 
     EXAMPLES::
 
         sage: from sage.combinat.q_analogues import q_jordan
-        sage: [q_jordan(mu,2) for mu in Partitions(5)]
+        sage: [q_jordan(mu, 2) for mu in Partitions(5)]
         [9765, 1029, 213, 93, 29, 9, 1]
-        sage: [q_jordan(mu,2) for mu in Partitions(6)]
+        sage: [q_jordan(mu, 2) for mu in Partitions(6)]
         [615195, 40635, 5643, 2331, 1491, 515, 147, 87, 47, 11, 1]
-
-        sage: q=PolynomialRing(ZZ,'q').gen()
-        sage: q_jordan(Partition([3,2,1]),q)
+        sage: q_jordan([3,2,1])
         16*q^4 + 24*q^3 + 14*q^2 + 5*q + 1
+        sage: q_jordan([2,1], x)
+        2*x + 1
 
     If the partition is trivial (i.e. has only one part), we get
     the `q`-factorial (in this case, the nilpotent endomorphism is
     necessarily `0`)::
 
         sage: from sage.combinat.q_analogues import q_factorial
-        sage: q_jordan(Partition([5]),3) == q_factorial(5,3)
+        sage: q_jordan([5]) == q_factorial(5)
         True
-        sage: q_jordan(Partition([11]),5) == q_factorial(11,5)
+        sage: q_jordan([11], 5) == q_factorial(11, 5)
         True
 
     TESTS::
 
-        sage: q_jordan(Partition([4,3,1]),1)
-        Traceback (most recent call last):
-        ...
-        ValueError: q must not be equal to 1
+        sage: all(multinomial(mu.conjugate()) == q_jordan(mu, 1) for mu in Partitions(6))
+        True
 
     AUTHOR:
 
     - Xavier Caruso (2012-06-29)
     """
-    if q == 1:
-        raise ValueError("q must not be equal to 1")
+    if q is None:
+        q = ZZ['q'].gen()
 
-    if len(t) == 0:
-        return 1
+    if all(part == 0 for part in t):
+        return parent(q)(1)
     tj = 0
-    res = 0
-    for i in range(len(t)-1,-1,-1):
+    res = parent(q)(0)
+    for i in range(len(t)-1, -1, -1):
         ti = t[i]
         if ti > tj:
-            tp = t.to_list()
+            tp = list(t)
             tp[i] -= 1
-            res += q_jordan(Partition(tp),q) * ((q**ti - q**tj) // (q-1))
+            res += q_jordan(tp, q) * q**tj * q_int(ti - tj, q)
             tj = ti
     return res
 
@@ -754,6 +783,15 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
         sage: q_subgroups_of_abelian_group([2], [1,1], algorithm='delsarte')
         0
 
+    Check that :trac:`25715` is fixed::
+
+        sage: parent(q_subgroups_of_abelian_group([2], [1], algorithm='delsarte'))
+        Univariate Polynomial Ring in q over Integer Ring
+        sage: q_subgroups_of_abelian_group([7,7,1], [])
+        1
+        sage: q_subgroups_of_abelian_group([7,7,1], [0,0])
+        1
+
     REFERENCES:
 
     .. [Bu87] Butler, Lynne M. *A unimodality result in the enumeration
@@ -768,15 +806,18 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
     AUTHORS:
 
     - Amritanshu Prasad (2013-06-07): Implemented the Delsarte algorithm
-    - Tomer Bauer (2013-09-26): Implemented the Birkhoff algorithm
+    - Tomer Bauer (2013, 2018): Implemented the Birkhoff algorithm and refactoring
     """
     if q is None:
         q = ZZ['q'].gen()
-    la_c = Partition(la).conjugate()
-    mu_c = Partition(mu).conjugate()
+    la_c = _Partitions(la).conjugate()
+    mu_c = _Partitions(mu).conjugate()
     k = mu_c.length()
+    if not mu_c:
+        # There is only one trivial subgroup
+        return parent(q)(1)
     if not la_c.contains(mu_c):
-        return q.parent().zero()
+        return parent(q)(0)
 
     if algorithm == 'delsarte':
         def F(args):
@@ -784,7 +825,7 @@ def q_subgroups_of_abelian_group(la, mu, q=None, algorithm='birkhoff'):
             F1 = prod(args[i]**mu_c[i+1] * prd(i) for i in range(k-1))
             return F1 * prod(args[k-1]-q**i for i in range(mu_c[k-1]))
 
-        return F([q**ss for ss in la_c[:k]])/F([q**rr for rr in mu_c])
+        return F([q**ss for ss in la_c[:k]])//F([q**rr for rr in mu_c])
 
     if algorithm == 'birkhoff':
         fac1 = q**(sum(mu_c[i+1] * (la_c[i]-mu_c[i]) for i in range(k-1)))
@@ -839,6 +880,11 @@ def q_stirling_number1(n, k, q=None):
         ...
         ValueError: q-Stirling numbers are not defined for n < 0
 
+    We check that :trac:`25715` is fixed::
+
+        sage: q_stirling_number1(2,1,1r)
+        1
+
     REFERENCES:
 
     - [Ca1948]_
@@ -847,15 +893,15 @@ def q_stirling_number1(n, k, q=None):
     """
     if q is None:
         q = ZZ['q'].gen()
-    A = q.parent()
     if n < 0:
         raise ValueError('q-Stirling numbers are not defined for n < 0')
     if n == 0 == k:
-        return A.one()
+        return parent(q)(1)
     if k > n or k < 1:
-        return A.zero()
+        return parent(q)(0)
     return (q_stirling_number1(n - 1, k - 1, q=q) +
-            q_int(n - 1) * q_stirling_number1(n - 1, k, q=q))
+            q_int(n - 1, q=q) * q_stirling_number1(n - 1, k, q=q))
+
 
 @cached_function
 def q_stirling_number2(n, k, q=None):
@@ -896,19 +942,24 @@ def q_stirling_number2(n, k, q=None):
         ...
         ValueError: q-Stirling numbers are not defined for n < 0
 
+    We check that :trac:`25715` is fixed::
+
+        sage: q_stirling_number2(1,0).parent()
+        Univariate Polynomial Ring in q over Integer Ring
+        sage: q_stirling_number2(2,1,3r)
+        1
+
     REFERENCES:
 
     - [Mil1978]_
-
     """
     if q is None:
         q = ZZ['q'].gen()
-    A = q.parent()
     if n < 0:
         raise ValueError('q-Stirling numbers are not defined for n < 0')
     if n == 0 == k:
-        return A.one()
-    if k > n or k < 0:
-        return A.zero()
+        return parent(q)(1)
+    if k > n or k <= 0:
+        return parent(q)(0)
     return (q**(k-1)*q_stirling_number2(n - 1, k - 1, q=q) +
-            q_int(k) * q_stirling_number2(n - 1, k, q=q))
+            q_int(k, q=q) * q_stirling_number2(n - 1, k, q=q))

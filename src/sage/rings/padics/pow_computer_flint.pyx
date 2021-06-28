@@ -1,5 +1,9 @@
-from __future__ import absolute_import
-
+# distutils: libraries = gmp NTL_LIBRARIES
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: language = c++
 from cysignals.memory cimport sig_malloc, sig_free
 from cysignals.signals cimport sig_on, sig_off
 
@@ -219,15 +223,25 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             try:
                 fmpz_poly_init2(self.modulus, length)
                 try:
-                    for i in range(1,cache_limit+2):
+                    fmpz_poly_init2(self.powhelper_oneunit, length)
+                    try:
+                        fmpz_poly_init2(self.powhelper_teichdiff, length)
                         try:
-                            fmpz_poly_init2(self._moduli[i], length)
+                            for i in range(1,cache_limit+2):
+                                try:
+                                    fmpz_poly_init2(self._moduli[i], length)
+                                except BaseException:
+                                    i-=1
+                                    while i:
+                                        fmpz_poly_clear(self._moduli[i])
+                                        i-=1
+                                    raise
                         except BaseException:
-                            i-=1
-                            while i:
-                                fmpz_poly_clear(self._moduli[i])
-                                i-=1
+                            fmpz_poly_clear(self.powhelper_teichdiff)
                             raise
+                    except BaseException:
+                        fmpz_poly_clear(self.powhelper_oneunit)
+                        raise
                 except BaseException:
                     fmpz_poly_clear(self.modulus)
                     raise
@@ -285,6 +299,8 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
         if self.__allocated >= 8:
             fmpz_clear(self.q)
             fmpz_poly_clear(self.modulus)
+            fmpz_poly_clear(self.powhelper_oneunit)
+            fmpz_poly_clear(self.powhelper_teichdiff)
             for i in range(1, self.cache_limit + 1):
                 fmpz_poly_clear(self._moduli[i])
             sig_free(self._moduli)
@@ -349,12 +365,11 @@ cdef class PowComputer_flint_1step(PowComputer_flint):
             return (op == Py_EQ)
         if op != Py_NE:
             return NotImplemented
-        # return cmp(self.polynomial(), other.polynomial())
         return False
 
     cdef fmpz_poly_t* get_modulus(self, unsigned long k):
         """
-        Returns the defining polynomial reduced modulo `p^k`.
+        Return the defining polynomial reduced modulo `p^k`.
 
         The same warnings apply as for
         :meth:`sage.rings.padics.pow_computer.PowComputer_class.pow_mpz_t_tmp`.
@@ -478,6 +493,8 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
         fmpz_poly_init(self.poly_cinv2)
         fmpz_poly_init(self.poly_flint_rep)
         fmpz_poly_init(self.poly_matmod)
+        fmpz_poly_init(self.shift_rem)
+        fmpz_poly_init(self.aliasing)
         mpz_init(self.mpz_cpow)
         mpz_init(self.mpz_ctm)
         mpz_init(self.mpz_cconv)
@@ -518,6 +535,8 @@ cdef class PowComputer_flint_unram(PowComputer_flint_1step):
             fmpz_poly_clear(self.poly_cinv2)
             fmpz_poly_clear(self.poly_flint_rep)
             fmpz_poly_clear(self.poly_matmod)
+            fmpz_poly_clear(self.shift_rem)
+            fmpz_poly_clear(self.aliasing)
 
     def __init__(self, Integer prime, long cache_limit, long prec_cap, long ram_prec_cap, bint in_field, poly=None):
         """

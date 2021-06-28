@@ -1,5 +1,5 @@
 """
-Construction of finite atomic and coatomic lattices from incidences.
+Construction of finite atomic and coatomic lattices from incidences
 
 This module provides the function :func:`lattice_from_incidences` for
 computing finite atomic and coatomic lattices in the sense of
@@ -14,7 +14,6 @@ example, the face lattice of a polyhedron.
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.graphs.digraph import DiGraph
 from sage.combinat.posets.lattices import FiniteLatticePoset
@@ -44,7 +43,7 @@ def lattice_from_incidences(atom_to_coatoms, coatom_to_atoms,
       implementation will just return these two tuples as a tuple;
 
     - ``required_atoms`` -- list of atoms (default:None). Each
-      non-empty "face" requires at least on of the specified atoms
+      non-empty "face" requires at least one of the specified atoms
       present. Used to ensure that each face has a vertex.
 
     - ``key`` -- any hashable value (default: None). It is passed down
@@ -170,7 +169,7 @@ def lattice_from_incidences(atom_to_coatoms, coatom_to_atoms,
             L.add_edge(q, g)                    # 14
 
     # End of algorithm, now construct a FiniteLatticePoset.
- 
+
     # In principle, it is recommended to use Poset or in this case perhaps
     # even LatticePoset, but it seems to take several times more time
     # than the above computation, makes unnecessary copies, and crashes.

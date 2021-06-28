@@ -21,17 +21,20 @@ REFERENCES:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.manifolds.continuous_map import ContinuousMap
+from sage.parallel.decorate import parallel
+from sage.parallel.parallelism import Parallelism
+
 
 class DiffMap(ContinuousMap):
     r"""
@@ -292,9 +295,8 @@ class DiffMap(ContinuousMap):
          manifold R^2
         sage: Phi.parent()
         Set of Morphisms from Open subset D of the 2-dimensional differentiable
-         manifold R^2 to 2-dimensional differentiable manifold R^2 in Join of
-         Category of subobjects of sets and Category of smooth manifolds over
-         Real Field with 53 bits of precision
+         manifold R^2 to 2-dimensional differentiable manifold R^2 in Category
+         of smooth manifolds over Real Field with 53 bits of precision
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()
@@ -760,7 +762,8 @@ class DiffMap(ContinuousMap):
             True
 
         """
-        dom1 = self._domain; dom2 = self._codomain
+        dom1 = self._domain
+        dom2 = self._codomain
         if chart1 is None:
             chart1 = dom1._def_chart
         if chart2 is None:
@@ -873,35 +876,46 @@ class DiffMap(ContinuousMap):
             f: R^3 --> R
                (x, y, z) |--> x*y*z
             sage: pf = Phi.pullback(f) ; pf
-            Scalar field Phi_*(f) on the Open subset U of the 2-dimensional
+            Scalar field Phi^*(f) on the Open subset U of the 2-dimensional
              differentiable manifold S^2
             sage: pf.display()
-            Phi_*(f): U --> R
+            Phi^*(f): U --> R
                (th, ph) |--> cos(ph)*cos(th)*sin(ph)*sin(th)^2
 
         Pullback on `S^2` of the standard Euclidean metric on `R^3`::
 
-            sage: g = N.sym_bilin_form_field('g')
+            sage: g = N.sym_bilin_form_field(name='g')
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
             sage: g.display()
             g = dx*dx + dy*dy + dz*dz
             sage: pg = Phi.pullback(g) ; pg
-            Field of symmetric bilinear forms Phi_*(g) on the Open subset U of
+            Field of symmetric bilinear forms Phi^*(g) on the Open subset U of
              the 2-dimensional differentiable manifold S^2
             sage: pg.display()
-            Phi_*(g) = dth*dth + sin(th)^2 dph*dph
+            Phi^*(g) = dth*dth + sin(th)^2 dph*dph
+
+        Parallel computation::
+
+           sage: Parallelism().set('tensor', nproc=2)
+           sage: pg = Phi.pullback(g) ; pg
+           Field of symmetric bilinear forms Phi^*(g) on the Open subset U of
+            the 2-dimensional differentiable manifold S^2
+           sage: pg.display()
+           Phi^*(g) = dth*dth + sin(th)^2 dph*dph
+           sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
+
 
         Pullback on `S^2` of a 3-form on `R^3`::
 
-            sage: a = N.diff_form(3, 'A')
+            sage: a = N.diff_form(3, name='A')
             sage: a[1,2,3] = f
             sage: a.display()
             A = x*y*z dx/\dy/\dz
             sage: pa = Phi.pullback(a) ; pa
-            3-form Phi_*(A) on the Open subset U of the 2-dimensional
+            3-form Phi^*(A) on the Open subset U of the 2-dimensional
              differentiable manifold S^2
             sage: pa.display() # should be zero (as any 3-form on a 2-dimensional manifold)
-            Phi_*(A) = 0
+            Phi^*(A) = 0
 
         """
         from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
@@ -932,11 +946,11 @@ class DiffMap(ContinuousMap):
             resu_name = None
             resu_latex_name = None
             if diff_map._name is not None and tensor._name is not None:
-                resu_name = diff_map._name + '_*(' + tensor._name + ')'
+                resu_name = diff_map._name + '^*(' + tensor._name + ')'
             if (diff_map._latex_name is not None and
                 tensor._latex_name is not None):
-                resu_latex_name = '{' + diff_map._latex_name + '}_*' + \
-                                  tensor._latex_name
+                resu_latex_name = '{' + diff_map._latex_name + '}^*' \
+                                  + tensor._latex_name
             fmodule1 = dom1.vector_field_module()
             ring1 = fmodule1._ring
             si1 = fmodule1._sindex
@@ -945,6 +959,10 @@ class DiffMap(ContinuousMap):
             resu = fmodule1.tensor((0,ncov), name=resu_name,
                                    latex_name=resu_latex_name, sym=tensor._sym,
                                    antisym=tensor._antisym)
+
+            nproc = Parallelism().get('tensor')
+            ind_old_list = list(dom2.manifold().index_generator(ncov))
+
             for frame2 in tensor._components:
                 if isinstance(frame2, CoordFrame):
                     chart2 = frame2._chart
@@ -977,15 +995,48 @@ class DiffMap(ContinuousMap):
                             # X2 coordinates expressed in terms of
                             # X1 ones via the diff. map:
                             coord2_1 = phi(*(chart1._xx))
-                            for ind_new in ptcomp.non_redundant_index_generator():
-                                res = 0
-                                for ind_old in dom2.manifold().index_generator(ncov):
-                                    ff = tcomp[[ind_old]].coord_function(chart2)
-                                    t = chart1.function(ff(*coord2_1))
-                                    for i in range(ncov):
-                                        t *= jacob[ind_old[i]-si2, ind_new[i]-si1]
-                                    res += t
-                                ptcomp[ind_new] = res
+
+                            if nproc != 1:
+                                # Parallel computation
+                                lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+                                ind_list = [ind for ind in ptcomp.non_redundant_index_generator()]
+                                ind_step = max(1, int(len(ind_list)/nproc/2))
+                                local_list = lol(ind_list, ind_step)
+                                # list of input parameters
+                                listParalInput = [(tcomp,chart1,chart2,coord2_1,jacob,
+                                                   ind_old_list,si1,si2,ncov,ind_part) for ind_part  in local_list]
+
+                                @parallel(p_iter='multiprocessing', ncpus=nproc)
+                                def paral_comp(tcomp,chart1,chart2,coord2_1,jacob,
+                                               ind_old_list,si1,si2,ncov,local_list_ind):
+                                    partial = []
+                                    for ind_new in local_list_ind:
+                                        res = 0
+                                        for ind_old in ind_old_list:
+                                            ff = tcomp[[ind_old]].coord_function(chart2)
+                                            t = chart1.function(ff(*coord2_1))
+                                            for i in range(ncov):
+                                                t *= jacob[ind_old[i]-si2, ind_new[i]-si1]
+                                            res += t
+                                        partial.append([ind_new, res])
+                                    return partial
+
+                                for ii, val in paral_comp(listParalInput):
+                                    for jj in val:
+                                        ptcomp[[jj[0]]] = jj[1]
+
+                            else:
+                                # Sequential computation
+                                for ind_new in ptcomp.non_redundant_index_generator():
+                                    res = 0
+                                    for ind_old in ind_old_list:
+                                        ff = tcomp[[ind_old]].coord_function(chart2)
+                                        t = chart1.function(ff(*coord2_1))
+                                        for i in range(ncov):
+                                            t *= jacob[ind_old[i]-si2, ind_new[i]-si1]
+                                        res += t
+                                    ptcomp[ind_new] = res
+
                             resu._components[frame1] = ptcomp
                 return resu
         # End of function _pullback_chart
@@ -1006,10 +1057,10 @@ class DiffMap(ContinuousMap):
         resu_name = None
         resu_latex_name = None
         if self._name is not None and tensor._name is not None:
-            resu_name = self._name + '_*(' + tensor._name + ')'
+            resu_name = self._name + '^*(' + tensor._name + ')'
         if self._latex_name is not None and tensor._latex_name is not None:
-            resu_latex_name = "{" + self._latex_name + '}_*' + \
-                              tensor._latex_name
+            resu_latex_name = '{' + self._latex_name + '}^*' \
+                              + tensor._latex_name
         if ncov == 0:
             # Case of a scalar field
             resu_fc = []
@@ -1034,7 +1085,8 @@ class DiffMap(ContinuousMap):
                                 "fields on {}".format(dom2))
             resu_rst = []
             for chart_pair in self._coord_expression:
-                chart1 = chart_pair[0]; chart2 = chart_pair[1]
+                chart1 = chart_pair[0]
+                chart2 = chart_pair[1]
                 ch2dom = chart2._domain
                 if ch2dom.is_subset(tdom):
                     self_r = self.restrict(chart1._domain, subcodomain=ch2dom)
@@ -1095,11 +1147,11 @@ class DiffMap(ContinuousMap):
             sage: v.display()
             v = d/dph
             sage: pv = Phi.pushforward(v); pv
-            Vector field Phi^*(v) along the Open subset U of the 2-dimensional
+            Vector field Phi_*(v) along the Open subset U of the 2-dimensional
              differentiable manifold S^2 with values on the 3-dimensional
              differentiable manifold R^3
             sage: pv.display()
-            Phi^*(v) = -sin(ph)*sin(th) d/dx + cos(ph)*sin(th) d/dy
+            Phi_*(v) = -sin(ph)*sin(th) d/dx + cos(ph)*sin(th) d/dy
 
         Pushforward of a vector field on the real line to the `\RR^3`, via a
         helix embedding::
@@ -1112,10 +1164,10 @@ class DiffMap(ContinuousMap):
             sage: u.display()
             u = d/dt
             sage: pu = Psi.pushforward(u); pu
-            Vector field Psi^*(u) along the Real number line R with values on
+            Vector field Psi_*(u) along the Real number line R with values on
              the 3-dimensional differentiable manifold R^3
             sage: pu.display()
-            Psi^*(u) = -sin(t) d/dx + cos(t) d/dy + d/dz
+            Psi_*(u) = -sin(t) d/dx + cos(t) d/dy + d/dz
 
         """
         from sage.tensor.modules.comp import (Components, CompWithSym,
@@ -1142,9 +1194,10 @@ class DiffMap(ContinuousMap):
             raise NotImplementedError("the case of a non-parallelizable " +
                                       "domain is not implemented yet")
         # A pair of charts (chart1, chart2) where the computation
-        # is feasable is searched, privileging the default chart of the
+        # is feasible is searched, privileging the default chart of the
         # map's domain for chart1
-        chart1 = None; chart2 = None
+        chart1 = None
+        chart2 = None
         def_chart1 = dom1.default_chart()
         def_chart2 = self._codomain.default_chart()
         if (def_chart1._frame in tensor._components
@@ -1220,9 +1273,10 @@ class DiffMap(ContinuousMap):
         resu_name = None
         resu_latex_name = None
         if self._name is not None and tensor._name is not None:
-            resu_name = self._name + '^*(' + tensor._name + ')'
+            resu_name = self._name + '_*(' + tensor._name + ')'
         if self._latex_name is not None and tensor._latex_name is not None:
-            resu_latex_name = self._latex_name + '^*' + tensor._latex_name
+            resu_latex_name = '{' + self._latex_name + '}_*' \
+                              + tensor._latex_name
         # Creation of the result with the components obtained above:
         resu = fmodule2.tensor_from_comp((ncon, 0), ptcomp, name=resu_name,
                                          latex_name=resu_latex_name)

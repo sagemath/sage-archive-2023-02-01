@@ -5,7 +5,6 @@ Finite fields that are implemented using Zech logs and the
 cardinality must be less than `2^{16}`. By default, Conway polynomials are
 used as minimal polynomial.
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2010-2012 David Roe
@@ -222,7 +221,7 @@ class FiniteField_givaro(FiniteField):
 
             sage: P.<x> = PowerSeriesRing(GF(3^3, 'a'))
             sage: P.random_element(5)
-            2*a + 2 + (a^2 + a + 2)*x + (2*a + 1)*x^2 + (2*a^2 + a)*x^3 + 2*a^2*x^4 + O(x^5)
+            a^2 + (2*a^2 + a)*x + x^2 + (2*a^2 + 2*a + 2)*x^3 + (a^2 + 2*a + 2)*x^4 + O(x^5)
         """
         return self._cache.random_element()
 
@@ -265,7 +264,7 @@ class FiniteField_givaro(FiniteField):
         'little endian'::
 
             sage: k = GF(2**8, 'a')
-            sage: e = k.vector_space().gen(1); e
+            sage: e = k.vector_space(map=False).gen(1); e
             (0, 1, 0, 0, 0, 0, 0, 0)
             sage: k(e)
             a
@@ -319,13 +318,17 @@ class FiniteField_givaro(FiniteField):
         PARI elements are interpreted as finite field elements; this PARI
         flexibility is (absurdly!) liberal::
 
-            sage: k = GF(2**8, 'a')
+            sage: k.<a> = GF(2^8)
             sage: k(pari('Mod(1,2)'))
             1
             sage: k(pari('Mod(2,3)'))
             a
             sage: k(pari('Mod(1,3)*a^20'))
             a^7 + a^5 + a^4 + a^2
+            sage: k(pari('O(x)'))
+            Traceback (most recent call last):
+            ...
+            TypeError: unable to convert PARI t_SER to Finite Field in a of size 2^8
 
         We can coerce from PARI finite field implementations::
 

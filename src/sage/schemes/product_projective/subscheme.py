@@ -254,7 +254,8 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
                 PP = X.ambient_space()
                 I = X.defining_ideal().radical()
                 #check if the irrelevant ideal of any component is in the radical
-                if any([all([t in I for t in PS.gens()]) for PS in PP.components()]):
+                if any(all(t in I for t in PS.gens())
+                       for PS in PP.components()):
                     self.__dimension = -1
                 else:
                     self.__dimension = I.dimension() - PP.num_components()
@@ -379,8 +380,8 @@ class AlgebraicScheme_subscheme_product_projective(AlgebraicScheme_subscheme_pro
             sage: PP.<x,y,u,v> = ProductProjectiveSpaces(QQ, [1,1])
             sage: G = PP.subscheme([(x^2 + 1/4*y^2)*v - y^2*u])
             sage: D = PP.subscheme([x*v - y*u])
-            sage: G.intersection(D).rational_points()
-            [(1 : 0 , 1 : 0), (1/2 : 1 , 1/2 : 1)]
+            sage: sorted(G.intersection(D).rational_points())
+            [(1/2 : 1 , 1/2 : 1), (1 : 0 , 1 : 0)]
             sage: Q = PP([1/2,1,1/2,1])
             sage: G.intersection_multiplicity(D, Q)
             2

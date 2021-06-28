@@ -16,12 +16,11 @@ Test of the :mod:`~sage.structure.factory` module
 #
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
 
 from sage.structure.factory import UniqueFactory
 
 
-class A:
+class A(object):
     # something we can weakref
     pass
 
@@ -46,7 +45,7 @@ class UniqueFactoryTester(UniqueFactory):
             sage: test_factory = UniqueFactoryTester('foo')
             sage: test_factory.create_object('version', key=(1, 2, 4))
             Making object (1, 2, 4)
-            <sage.structure.test_factory.A instance at ...>
+            <sage.structure.test_factory.A object at ...>
         """
         print("Making object", key)
         return A()

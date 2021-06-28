@@ -19,7 +19,7 @@ differentiable curves that are defined as autoparallel curves with respect to
 a certain affine connection.
 
 The subclass :class:`IntegratedGeodesicSet` is devoted to differentiable
-curves that are defined as geodesics with respect to to a certain metric.
+curves that are defined as geodesics with respect to a certain metric.
 
 AUTHORS:
 
@@ -49,7 +49,6 @@ from sage.manifolds.differentiable.curve import DifferentiableCurve
 from sage.manifolds.differentiable.integrated_curve import IntegratedCurve
 from sage.manifolds.differentiable.integrated_curve import IntegratedAutoparallelCurve
 from sage.manifolds.differentiable.integrated_curve import IntegratedGeodesic
-from sage.misc.cachefunc import cached_method
 
 class DifferentiableManifoldHomset(TopologicalManifoldHomset):
     r"""
@@ -234,9 +233,9 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
     INPUT:
 
     - ``domain`` --
-      :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+      :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`
       if an open interval `I \subset \RR` (domain of the morphisms),
-      or :class:`~sage.manifolds.differentiable.real_line.RealLine`
+      or :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`
       if `I = \RR`
     - ``codomain`` --
       :class:`~sage.manifolds.differentiable.manifold.DifferentiableManifold`;
@@ -307,7 +306,8 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
         sage: E = Hom(R, R) ; E
         Set of Morphisms from Real number line R to Real number line R in
-         Category of smooth manifolds over Real Field with 53 bits of precision
+         Category of smooth connected manifolds over Real Field with 53 bits of
+         precision
         sage: E.category()
         Category of endsets of topological spaces
         sage: E.is_endomorphism_set()
@@ -345,8 +345,9 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
         sage: EI = Hom(I, I) ; EI
         Set of Morphisms from Real interval (0, 1) to Real interval (0, 1) in
-         Join of Category of subobjects of sets and
-             Category of smooth manifolds over Real Field with 53 bits of precision
+         Join of Category of subobjects of sets and Category of smooth manifolds
+         over Real Field with 53 bits of precision and Category of connected
+         manifolds over Real Field with 53 bits of precision
         sage: EI.category()
         Category of endsets of subobjects of sets and topological spaces
         sage: EI is End(I)
@@ -390,24 +391,24 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
             True
             sage: H = Hom(R, R); H
             Set of Morphisms from Real number line R to Real number line R in
-             Category of smooth manifolds over Real Field with 53 bits of
-             precision
+             Category of smooth connected manifolds over Real Field with 53 bits
+             of precision
             sage: TestSuite(H).run()
             sage: I = R.open_interval(-1, 2)
             sage: H = Hom(I, M); H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Join of Category of subobjects of
-             sets and Category of smooth manifolds over Real Field with 53 bits
-             of precision
+             differentiable manifold M in Category of smooth manifolds over Real
+             Field with 53 bits of precision
             sage: TestSuite(H).run()
             sage: H = Hom(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval (-1, 2)
              in Join of Category of subobjects of sets and Category of smooth
-             manifolds over Real Field with 53 bits of precision
+             manifolds over Real Field with 53 bits of precision and Category of
+             connected manifolds over Real Field with 53 bits of precision
             sage: TestSuite(H).run()
 
         """
-        from sage.manifolds.differentiable.real_line import OpenInterval
+        from sage.manifolds.differentiable.examples.real_line import OpenInterval
         if not isinstance(domain, OpenInterval):
             raise TypeError("{} is not an open real interval".format(domain))
         DifferentiableManifoldHomset.__init__(self, domain, codomain, name=name,
@@ -526,7 +527,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
     INPUT:
 
     - ``domain`` --
-      :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+      :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`
       open interval `I \subset \RR` with finite boundaries (domain of
       the morphisms)
     - ``codomain`` --
@@ -565,9 +566,8 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: I = R.open_interval(-1, 2)
         sage: H = IntegratedCurveSet(I, M) ; H
         Set of Morphisms from Real interval (-1, 2) to 2-dimensional
-         differentiable manifold M in Category of homsets of subobjects
-         of sets and topological spaces which actually are integrated
-         curves
+         differentiable manifold M in Category of homsets of topological spaces
+         which actually are integrated curves
         sage: eqns_rhs = [1,1]
         sage: vels = X.symbolic_velocities()
         sage: t = var('t')
@@ -610,9 +610,8 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         sage: J = R.open_interval(a, b)
         sage: H = IntegratedCurveSet(J, M) ; H
         Set of Morphisms from Real interval (a, b) to 2-dimensional
-         differentiable manifold M in Category of homsets of subobjects
-         of sets and topological spaces which actually are integrated
-         curves
+         differentiable manifold M in Category of homsets of topological spaces
+         which actually are integrated curves
 
     A "typical" element of ``H`` is a curve in ``M``::
 
@@ -718,9 +717,8 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually
-             are integrated curves
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated curves
             sage: TestSuite(H).run()
             sage: H = IntegratedCurveSet(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval
@@ -769,9 +767,8 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually
-             are integrated curves
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated curves
 
         """
         description = "Set of Morphisms "
@@ -783,7 +780,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
 
     def _element_constructor_(self, equations_rhs, velocities,
                  curve_parameter, initial_tangent_vector, chart=None,
-                 name=None, latex_name=None, verbose=False):
+                 name=None, latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct an element of ``self``, i.e. an integrated curve
         `I \to M`, where `I` is a real interval and `M` some
@@ -815,7 +812,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         # Standard construction
         return self.element_class(self, equations_rhs, velocities,
                 curve_parameter, initial_tangent_vector, chart=chart,
-                name=name, latex_name=latex_name, verbose=verbose)
+                name=name, latex_name=latex_name, verbose=verbose, across_charts=across_charts)
 
     def _an_element_(self):
         r"""
@@ -858,7 +855,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: p = c(1) ; p
             Point on the 2-dimensional differentiable manifold M
             sage: p.coordinates()     # abs tol 1e-12
-            (0.22732435599328793, 0.0)
+            (0.2273243562383228, 0.0)
             sage: H = IntegratedCurveSet(I, I)
             sage: c = H._an_element_() ; c
             Integrated curve in the Real interval (-1, 2)
@@ -880,7 +877,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()     # abs tol 1e-12
-            (0.840986533989932,)
+            (0.8409865343211089,)
 
         """
 
@@ -891,8 +888,6 @@ class IntegratedCurveSet(DifferentiableCurveSet):
         dom = self.domain()
         t = dom.canonical_coordinate()
         t_min = dom.lower_bound() # this is either an expression or a
-        # finite value thanks to tests in '__init__'
-        t_max = dom.upper_bound() # this is either an expression or a
         # finite value thanks to tests in '__init__'
 
         codom = self.codomain()
@@ -969,9 +964,9 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             Traceback (most recent call last):
             ...
             TypeError: Set of Morphisms from Real interval (-1, 2) to
-             3-dimensional differentiable manifold M in Category of
-             homsets of subobjects of sets and topological spaces which
-             actually are integrated curves is not a monoid
+             3-dimensional differentiable manifold M in Category of homsets of
+             topological spaces which actually are integrated curves is not a
+             monoid
             sage: H = IntegratedCurveSet(I, I)
             sage: H.one()
             Traceback (most recent call last):
@@ -997,7 +992,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
     INPUT:
 
     - ``domain`` --
-      :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+      :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`
       open interval `I \subset \RR` with finite boundaries (domain of
       the morphisms)
     - ``codomain`` --
@@ -1037,9 +1032,9 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         sage: I = R.open_interval(-1, 2)
         sage: H = IntegratedAutoparallelCurveSet(I, M) ; H
         Set of Morphisms from Real interval (-1, 2) to 2-dimensional
-         differentiable manifold M in Category of homsets of subobjects
-         of sets and topological spaces which actually are integrated
-         autoparallel curves with respect to a certain affine connection
+         differentiable manifold M in Category of homsets of topological spaces
+         which actually are integrated autoparallel curves with respect to a
+         certain affine connection
         sage: nab = M.affine_connection('nabla')
         sage: nab[0,1,0], nab[0,0,1] = 1,2
         sage: nab.torsion()[:]
@@ -1161,10 +1156,9 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually are
-             integrated autoparallel curves with respect to a certain
-             affine connection
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated autoparallel curves with
+             respect to a certain affine connection
             sage: TestSuite(H).run()
             sage: H = IntegratedAutoparallelCurveSet(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval
@@ -1214,10 +1208,9 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually
-             are integrated autoparallel curves with respect to a certain
-             affine connection
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated autoparallel curves with
+             respect to a certain affine connection
 
         """
 
@@ -1231,7 +1224,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
 
     def _element_constructor_(self, affine_connection, curve_parameter,
                     initial_tangent_vector, chart=None, name=None,
-                    latex_name=None, verbose=False):
+                    latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct an element of ``self``, i.e. an integrated
         autoparallel curve `I \to M`, where `I` is a real interval and
@@ -1265,7 +1258,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         # Standard construction
         return self.element_class(self, affine_connection,
                  curve_parameter, initial_tangent_vector, chart=chart,
-                 name=name,latex_name=latex_name, verbose=verbose)
+                 name=name,latex_name=latex_name, verbose=verbose, across_charts=across_charts)
 
     def _an_element_(self):
         r"""
@@ -1312,7 +1305,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: p = c(1) ; p
             Point on the 2-dimensional differentiable manifold M
             sage: p.coordinates()     # abs tol 1e-12
-            (0.1749660043664451, -0.2499999999999998)
+            (0.1749660044707089, -0.25)
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, I)
             sage: c = H._an_element_() ; c
@@ -1338,7 +1331,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()     # abs tol 1e-12
-            (1.0565635215890166,)
+            (1.0565635217644918,)
 
         """
 
@@ -1358,7 +1351,6 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
         dim = codom.dim()
         i0 = codom.start_index()
         chart2 = codom.default_chart()
-        x = chart2[:][0]
         # In case the codomain coincides with the domain,
         # it is important to distinguish between the canonical
         # coordinate, and the curve parameter since, in such a
@@ -1463,7 +1455,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
     INPUT:
 
     - ``domain`` --
-      :class:`~sage.manifolds.differentiable.real_line.OpenInterval`
+      :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`
       open interval `I \subset \RR` with finite boundaries (domain of
       the morphisms)
     - ``codomain`` --
@@ -1501,9 +1493,9 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         sage: I = R.open_interval(-1, 2)
         sage: H = IntegratedGeodesicSet(I, M) ; H
         Set of Morphisms from Real interval (-1, 2) to 2-dimensional
-         differentiable manifold M in Category of homsets of subobjects
-         of sets and topological spaces which actually are integrated
-         geodesics with respect to a certain metric
+         differentiable manifold M in Category of homsets of topological spaces
+         which actually are integrated geodesics with respect to a certain
+         metric
         sage: g = M.metric('g')
         sage: g[0,0], g[1,1], g[0,1] = 1, 1, 2
         sage: t = var('t')
@@ -1621,9 +1613,9 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually
-             are integrated geodesics with respect to a certain metric
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated geodesics with respect to a
+             certain metric
             sage: TestSuite(H).run()
             sage: H = IntegratedGeodesicSet(I, I); H
             Set of Morphisms from Real interval (-1, 2) to Real interval
@@ -1672,9 +1664,9 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
-             differentiable manifold M in Category of homsets of
-             subobjects of sets and topological spaces which actually
-             are integrated geodesics with respect to a certain metric
+             differentiable manifold M in Category of homsets of topological
+             spaces which actually are integrated geodesics with respect to a
+             certain metric
 
         """
         description = "Set of Morphisms "
@@ -1686,7 +1678,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
 
     def _element_constructor_(self, metric, curve_parameter,
                     initial_tangent_vector, chart=None, name=None,
-                    latex_name=None, verbose=False):
+                    latex_name=None, verbose=False, across_charts=False):
         r"""
         Construct an element of ``self``, i.e. an integrated geodesic
         `I \to M`, where `I` is a real interval and
@@ -1718,7 +1710,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
         # Standard construction
         return self.element_class(self, metric, curve_parameter,
                  initial_tangent_vector, chart=chart, name=name,
-                 latex_name=latex_name, verbose=verbose)
+                 latex_name=latex_name, verbose=verbose, across_charts=across_charts)
 
     def _an_element_(self):
         r"""
@@ -1769,7 +1761,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: p = c(3) ; p
             Point on the 4-dimensional differentiable manifold M
             sage: p.coordinates()     # abs tol 1e-12
-            (0.2307056927167852, 0.0, 0.0, 0.0)
+            (0.23070569283209164, 0.0, 0.0, 0.0)
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, I)
             sage: c = H._an_element_() ; c
@@ -1795,7 +1787,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: p = c(1) ; p
             Point on the Real number line R
             sage: p.coordinates()     # abs tol 1e-12
-            (1.0565635215890166,)
+            (1.0565635217644918,)
 
         """
 

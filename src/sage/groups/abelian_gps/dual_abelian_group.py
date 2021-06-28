@@ -62,7 +62,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function
 
 from sage.rings.infinity import infinity
 from sage.structure.category_object import normalize_names
@@ -208,8 +207,7 @@ class DualAbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
             sage: Fd._latex_()
             '$\\mathrm{DualAbelianGroup}( AbelianGroup ( 3, (2, 2, 2) ) )$'
         """
-        s = "$\mathrm{DualAbelianGroup}( AbelianGroup ( %s, %s ) )$"%(self.ngens(), self.gens_orders())
-        return s
+        return r"$\mathrm{DualAbelianGroup}( AbelianGroup ( %s, %s ) )$" % (self.ngens(), self.gens_orders())
 
     def random_element(self):
         """

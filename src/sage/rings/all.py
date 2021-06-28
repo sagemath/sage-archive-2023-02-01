@@ -1,17 +1,16 @@
 """
 Rings
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+from sage.misc.lazy_import import lazy_import
 
 # Ring base classes
 from .ring import (Ring, Field, CommutativeRing, IntegralDomain,
@@ -98,8 +97,8 @@ from .real_mpfi import (RealIntervalField,
                        RealInterval)
 
 # Complex numbers
-from .complex_field import ComplexField
-from .complex_number import (create_ComplexNumber as ComplexNumber)
+from .complex_mpfr import ComplexField
+from .complex_mpfr import create_ComplexNumber as ComplexNumber
 Complexes = ComplexField
 from .complex_interval_field import ComplexIntervalField
 from .complex_interval import (create_ComplexIntervalFieldElement as ComplexIntervalFieldElement)
@@ -110,6 +109,8 @@ from .complex_mpc import MPComplexField
 
 from sage.rings.complex_arb import ComplexBallField, CBF
 
+lazy_import("sage.rings.imaginary_unit", "I")
+
 # Power series rings
 from .power_series_ring import PowerSeriesRing
 from .power_series_ring_element import PowerSeries
@@ -117,6 +118,16 @@ from .power_series_ring_element import PowerSeries
 # Laurent series ring in one variable
 from .laurent_series_ring import LaurentSeriesRing
 from .laurent_series_ring_element import LaurentSeries
+
+# Lazy Laurent series ring
+lazy_import('sage.rings.lazy_laurent_series_ring', 'LazyLaurentSeriesRing')
+
+# Tate algebras
+from .tate_algebra import TateAlgebra
+
+# Puiseux series ring
+from .puiseux_series_ring import PuiseuxSeriesRing
+from .puiseux_series_ring_element import PuiseuxSeries
 
 # Pseudo-ring of PARI objects.
 from .pari_ring import PariRing, Pari
@@ -128,6 +139,9 @@ from .big_oh import O
 from .fraction_field import FractionField
 Frac = FractionField
 
+# Localization
+from .localization import Localization
+
 # c-finite sequences
 from .cfinite_sequence import CFiniteSequence, CFiniteSequences
 
@@ -138,15 +152,14 @@ from .monomials import monomials
 CC = ComplexField()
 CIF = ComplexIntervalField()
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.invariant_theory', 'invariant_theory')
+# invariant theory
+from .invariants.all import *
 
 from .fast_arith import prime_range
 
 # continued fractions
-from sage.rings.continued_fraction import (farey, convergents,
-    continued_fraction, continued_fraction_list,
-    Hirzebruch_Jung_continued_fraction_list)
+from sage.rings.continued_fraction import (continued_fraction,
+                                           continued_fraction_list)
 
 # asymptotic ring
 from .asymptotic.all import *

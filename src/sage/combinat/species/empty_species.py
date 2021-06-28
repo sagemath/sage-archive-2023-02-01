@@ -1,7 +1,6 @@
 """
 Empty Species
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008 Florent Hivert <Florent.Hivert@univ-rouen,fr>,
 #
@@ -129,7 +128,7 @@ class EmptySpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
     def _structures(self, structure_class, labels):
         """
-        Thanks to the couting optimisation, this is never called... Otherwise
+        Thanks to the counting optimisation, this is never called... Otherwise
         this should return an empty iterator.
 
         EXAMPLES::

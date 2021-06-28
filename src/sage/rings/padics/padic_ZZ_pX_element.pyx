@@ -1,3 +1,9 @@
+# distutils: libraries = NTL_LIBRARIES gmp m
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: language = c++
 """
 `p`-Adic ``ZZ_pX Element``
 
@@ -19,7 +25,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.ext.stdsage cimport PY_NEW
 from cpython.list cimport *
@@ -77,9 +82,9 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             sage: S.<x> = ZZ[]
             sage: W.<w> = R.ext(x^5 + 25*x^3 - 15*x - 5)
             sage: W([1,2,3,4]) #indirect doctest
-            1 + 2*w + 3*w^2 + 4*w^3 + O(w^25)
+            1 + 2*w + 3*w^2 + 4*w^3
             sage: W([5,10,15,20])
-            w^5 + 4*w^6 + w^7 + w^8 + 2*w^9 + 4*w^10 + 2*w^11 + 3*w^13 + 2*w^15 + w^16 + 2*w^17 + 2*w^18 + w^19 + 4*w^20 + w^21 + 4*w^22 + 4*w^23 + 2*w^24 + O(w^25)
+            w^5 + 4*w^6 + w^7 + w^8 + 2*w^9 + 4*w^10 + 2*w^11 + 3*w^13 + 2*w^15 + w^16 + 2*w^17 + 2*w^18 + w^19 + 4*w^20 + w^21 + 4*w^22 + 4*w^23 + 2*w^24
         """
         cdef ntl_ZZ_pContext_class ctx
         L, min_val, ctx = preprocess_list(self, L)
@@ -301,7 +306,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
                     else:
                         ans[j].append(zero)
             for j from 0 <= j < prec:
-                while len(ans[j]) > 0:
+                while ans[j]:
                     if ans[j][-1] == 0:
                         ans[j].pop()
                     else:
@@ -332,19 +337,19 @@ cdef class pAdicZZpXElement(pAdicExtElement):
                     break
                 self.prime_pow.eis_shift(&shifter, &shifter, self.prime_pow.e, self.prime_pow.capdiv(prec - i))
             zerotest = 0
-        while len(ans) > 0:
+        while ans:
             if ans[-1] == zerotest:
                 ans.pop()
             else:
                 break
-        while len(ans) > 0:
+        while ans:
             if ans[0] == zerotest:
                 ans.pop(0)
             else:
                 break
         return ans
 
-    def norm(self, base = None):
+    def norm(self, base=None):
         """
         Return the absolute or relative norm of this element.
 
@@ -357,7 +362,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         norm from L to ``base``.
 
         In all other cases, the norm is the absolute norm down to
-        `\mathbb{Q}_p` or `\mathbb{Z}_p`.
+        `\QQ_p` or `\ZZ_p`.
 
         EXAMPLES::
 
@@ -385,9 +390,9 @@ cdef class pAdicZZpXElement(pAdicExtElement):
            sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
            sage: W.<w> = R.ext(f)
            sage: ((1+2*w)^5).norm()
-           1 + 5^2 + O(5^5)
+           1 + 5^2
            sage: ((1+2*w)).norm()^5
-           1 + 5^2 + O(5^5)
+           1 + 5^2
 
         Check that :trac:`11586` has been resolved::
 
@@ -429,7 +434,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
         norm from `L` to ``base``.
 
         In all other cases, the norm is the absolute norm down to
-        `\mathbb{Q}_p` or `\mathbb{Z}_p`.
+        `\QQ_p` or `\ZZ_p`.
 
         EXAMPLES::
 
@@ -467,11 +472,11 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             sage: a = (2+3*w)^7
             sage: b = (6+w^3)^5
             sage: a.trace()
-            3*5 + 2*5^2 + 3*5^3 + 2*5^4 + O(5^5)
+            3*5 + 2*5^2 + 3*5^3 + 2*5^4
             sage: a.trace() + b.trace()
-            4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
+            4*5 + 5^2 + 5^3 + 2*5^4
             sage: (a+b).trace()
-            4*5 + 5^2 + 5^3 + 2*5^4 + O(5^5)
+            4*5 + 5^2 + 5^3 + 2*5^4
         """
         if base is not None:
             if base is self.parent():
@@ -539,8 +544,7 @@ cdef class pAdicZZpXElement(pAdicExtElement):
             sage: R.<u> = K[]
             sage: L.<u> = K.extension(u^2 + 1)
             sage: L(R.gen())
-            u + O(3^20)
-
+            u
         """
         if shift != 0:
             raise NotImplementedError
@@ -587,11 +591,14 @@ def _test_preprocess_list(R, L):
         sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1/5,mod(2,625),ntl_ZZ_p(3,25)])
         ([1, 10, 15], -1, NTL modulus 125)
         sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3)])
-        ([1, 10, 1], -1, NTL modulus 625)
+        ([1, 10, 25], -1, NTL modulus 625)
         sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3),0])
-        ([1, 10, 1, 0], -1, NTL modulus 625)
+        ([1, 10, 25, 0], -1, NTL modulus 625)
         sage: _test_preprocess_list(ZqCA(25,names='a',implementation="NTL"), [1/5,mod(2,625),Zp(5)(5,3),mod(0,3125)])
-        ([1, 10, 1, 0], -1, NTL modulus 625)
+        ([1, 10, 25, 0], -1, NTL modulus 625)
+        sage: T.<a> = Qp(5).extension(x^2-5)
+        sage: _test_preprocess_list(T, [5^-1 + O(5)])
+        ([1], -1, NTL modulus 25)
     """
     return preprocess_list(R(0), L)
 
@@ -636,7 +643,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
             elif isinstance(L[i], Integer) or isinstance(L[i], Rational) or isinstance(L[i], (int, long)):
                 L[i] = ntl_ZZ_p(L[i]*pshift_m, ctx)
             elif isinstance(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime):
-                L[i] = ntl_ZZ_p((L[i] << min_val).lift(), ctx)
+                L[i] = ntl_ZZ_p((L[i] >> min_val).lift(), ctx)
             elif is_IntegerMod(L[i]):
                 L[i] = ntl_ZZ_p(L[i].lift()*pshift_m, ctx)
             elif (L[i].modulus_context() is not ctx) or min_val != zero:
@@ -654,7 +661,7 @@ cdef preprocess_list(pAdicZZpXElement elt, L):
             elif isinstance(L[i], Integer) or isinstance(L[i], Rational) or isinstance(L[i], (int, long)):
                 L[i] = ntl_ZZ_p(L[i]//pshift_m, ctx)
             elif isinstance(L[i], pAdicGenericElement) and L[i]._is_base_elt(elt.prime_pow.prime):
-                L[i] = ntl_ZZ_p((L[i] << min_val).lift(), ctx)
+                L[i] = ntl_ZZ_p((L[i] >> min_val).lift(), ctx)
             elif is_IntegerMod(L[i]):
                 L[i] = ntl_ZZ_p(L[i].lift()//pshift_m, ctx)
             elif (L[i].modulus_context() is not ctx) or min_val != zero:

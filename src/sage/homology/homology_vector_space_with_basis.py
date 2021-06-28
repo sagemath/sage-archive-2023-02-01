@@ -14,7 +14,6 @@ AUTHORS:
 
 - John H. Palmieri, Travis Scrimshaw (2015-09)
 """
-from __future__ import absolute_import
 
 ########################################################################
 #       Copyright (C) 2015 John H. Palmieri <palmieri@math.washington.edu>
@@ -107,25 +106,29 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
     This works with simplicial, cubical, and `\Delta`-complexes, and
     also simplicial sets::
 
-        sage: Klein_c = cubical_complexes.KleinBottle()
-        sage: H = Klein_c.cohomology_ring(GF(2))
+        sage: Torus_c = cubical_complexes.Torus()
+        sage: H = Torus_c.cohomology_ring(GF(2))
         sage: x,y = H.basis(1)
         sage: x.cup_product(x)
-        h^{2,0}
-        sage: x.cup_product(y)
         0
-        sage: y.cup_product(y)
+        sage: x.cup_product(y)
         h^{2,0}
+        sage: y.cup_product(y)
+        0
 
         sage: Klein_d = delta_complexes.KleinBottle()
         sage: H = Klein_d.cohomology_ring(GF(2))
-        sage: u,v = H.basis(1)
+        sage: u,v = sorted(H.basis(1))
         sage: u.cup_product(u)
         h^{2,0}
         sage: u.cup_product(v)
         0
         sage: v.cup_product(v)
         h^{2,0}
+
+    An isomorphism between the rings for the cubical model and the
+    `\Delta`-complex model can be obtained by sending `x` to `u+v`,
+    `y` to `v`. ::
 
         sage: X = simplicial_sets.RealProjectiveSpace(6)
         sage: H_X = X.cohomology_ring(GF(2))
@@ -333,7 +336,7 @@ class HomologyVectorSpaceWithBasis(CombinatorialFreeModule):
 
     @cached_method
     def _to_cycle_on_basis(self, i):
-        """
+        r"""
         Return the (co)cycle representative of the basis element
         indexed by ``i``.
 
@@ -548,7 +551,7 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: T = cubical_complexes.Torus()
             sage: x,y = T.cohomology_ring(QQ).basis(1)
             sage: x.cup_product(y)
-            -h^{2,0}
+            h^{2,0}
             sage: x.cup_product(x)
             0
 
@@ -583,7 +586,6 @@ class CohomologyRing(HomologyVectorSpaceWithBasis):
             sage: a.cup_product(y)
             0
         """
-        B = self.basis()
         scomplex = self.complex()
         base_ring = self.base_ring()
         deg_left = li[0]

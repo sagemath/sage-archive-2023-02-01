@@ -1,5 +1,5 @@
 r"""
-Bounds for Parameters of Codes
+Bounds for parameters of codes
 
 This module provided some upper and lower bounds for the parameters
 of codes.
@@ -163,7 +163,6 @@ on k, given n, d, q, (b) seek bounds on R, delta, q (assuming n is
     - mrrw2_bound_asymp(delta,q), "second" asymptotic
       McEliese-Rumsey-Rodemich-Welsh bound for the information rate.
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Joyner <wdj@usna.edu>
@@ -288,13 +287,15 @@ def codesize_upper_bound(n,d,q,algorithm=None):
         sub = singleton_upper_bound(n,q,d)
         return min([eub,hub,pub,sub])
 
-def dimension_upper_bound(n,d,q,algorithm=None):
-    r"""
-    Returns an upper bound for the dimension of a linear code.
 
-    Returns an upper bound `B(n,d) = B_q(n,d)` for the
+def dimension_upper_bound(n, d, q, algorithm=None):
+    r"""
+    Return an upper bound for the dimension of a linear code.
+
+    Return an upper bound `B(n,d) = B_q(n,d)` for the
     dimension of a linear code of length n, minimum distance d over a
     field of size q.
+
     Parameter "algorithm" has the same meaning as in :func:`codesize_upper_bound`
 
     EXAMPLES::
@@ -317,10 +318,10 @@ def dimension_upper_bound(n,d,q,algorithm=None):
     """
     _check_n_q_d(n, q, d)
     q = ZZ(q)
-    if algorithm=="LP":
-        return delsarte_bound_additive_hamming_space(n,d,q)
-    else:       # algorithm==None or algorithm=="gap":
-        return int(log(codesize_upper_bound(n,d,q,algorithm=algorithm),q))
+    if algorithm == "LP":
+        return delsarte_bound_additive_hamming_space(n, d, q)
+    # algorithm == None or algorithm == "gap":
+    return int(ZZ(codesize_upper_bound(n, d, q, algorithm=algorithm)).log(q))
 
 
 def volume_hamming(n,q,r):
@@ -397,7 +398,7 @@ def griesmer_upper_bound(n,q,d,algorithm=None):
 
     Returns the Griesmer upper bound for the number of elements in a
     largest linear code of minimum distance `d` in `\GF{q}^n`, cf. [HP2003]_.
-    If the method is "gap", it wraps GAP's ``UpperBoundGriesmer``. 
+    If the method is "gap", it wraps GAP's ``UpperBoundGriesmer``.
 
     The bound states:
 
@@ -454,7 +455,7 @@ def elias_upper_bound(n,q,d,algorithm=None):
 
     Returns the Elias upper bound for number of elements in the largest
     code of minimum distance `d` in `\GF{q}^n`, cf. [HP2003]_.
-    If the method is "gap", it wraps GAP's ``UpperBoundElias``. 
+    If the method is "gap", it wraps GAP's ``UpperBoundElias``.
 
     EXAMPLES::
 
@@ -580,7 +581,7 @@ def entropy(x, q=2):
         sage: codes.bounds.entropy(0, 2)
         0
         sage: codes.bounds.entropy(1/5,4).factor()
-        1/10*(log(5) + log(3) - 4*log(4/5))/log(2)
+        1/10*(log(3) - 4*log(4/5) - log(1/5))/log(2)
         sage: codes.bounds.entropy(1, 3)
         log(2)/log(3)
 

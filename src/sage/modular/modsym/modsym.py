@@ -36,9 +36,9 @@ over a bigger field. In each case we also decompose the space using
     (x - 3) * (x - 1/2*sqrt5 + 1/2)^2 * (x + 1/2*sqrt5 + 1/2)^2
     sage: M.decomposition(2)
     [
-    Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5,
-    Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5,
-    Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5
+    Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?,
+    Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?,
+    Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
     ]
 
 We compute some Hecke operators and do a consistency check::
@@ -60,7 +60,7 @@ This test catches a tricky corner case for spaces with character::
 
     sage: ModularSymbols(DirichletGroup(20).1**3, weight=3, sign=1).cuspidal_subspace()
     Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 6 and level 20, weight 3, character [1, -zeta4], sign 1, over Cyclotomic Field of order 4 and degree 2
-    
+
 This tests the bugs reported in :trac:`20932`::
 
     sage: chi = kronecker_character(3*34603)
@@ -72,7 +72,7 @@ This tests the bugs reported in :trac:`20932`::
 """
 
 #*****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -87,8 +87,6 @@ This tests the bugs reported in :trac:`20932`::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 import weakref
 
@@ -182,6 +180,7 @@ def ModularSymbols_clear_cache():
     global _cache
     _cache = {}
 
+
 def ModularSymbols(group  = 1,
                    weight = 2,
                    sign   = 0,
@@ -194,7 +193,7 @@ def ModularSymbols(group  = 1,
     INPUT:
 
     - ``group`` - A congruence subgroup or a Dirichlet character eps.
-    - ``weight`` - int, the weight, which must be = 2.
+    - ``weight`` - int, the weight, which must be >= 2.
     - ``sign`` - int, The sign of the involution on modular symbols
       induced by complex conjugation. The default is 0, which means
       "no sign", i.e., take the whole space.
@@ -346,8 +345,9 @@ def ModularSymbols(group  = 1,
     key = canonical_parameters(group, weight, sign, base_ring)
 
     if use_cache and key in _cache:
-         M = _cache[key]()
-         if not (M is None): return M
+        M = _cache[key]()
+        if M is not None:
+            return M
 
     (group, weight, sign, base_ring) = key
 

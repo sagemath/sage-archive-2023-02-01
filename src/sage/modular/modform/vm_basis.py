@@ -1,4 +1,4 @@
-"""
+r"""
 The Victor Miller Basis
 
 This module contains functions for quick calculation of a basis of
@@ -17,7 +17,6 @@ TESTS::
     sage: ModularSymbols(1, 36, 1).cuspidal_submodule().q_expansion_basis(30) == victor_miller_basis(36, 30, cusp_only=True)
     True
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -27,14 +26,13 @@ from __future__ import absolute_import
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 import math
 
 from sage.rings.all import QQ, ZZ, Integer, \
         PolynomialRing, PowerSeriesRing, O as bigO
 from sage.structure.all import Sequence
 from sage.libs.flint.fmpz_poly import Fmpz_poly
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 
 from .eis_series_cython import eisenstein_series_poly
 
@@ -265,8 +263,9 @@ def _delta_poly(prec=10):
 
     return f
 
+
 def _delta_poly_modulo(N, prec=10):
-    """
+    r"""
     Return the q-expansion of `\Delta` modulo `N`. Used internally by
     the :func:`~delta_qexp` function. See the docstring of :func:`~delta_qexp`
     for more information.
@@ -322,7 +321,7 @@ def _delta_poly_modulo(N, prec=10):
 
 
 def delta_qexp(prec=10, var='q', K=ZZ) :
-    """
+    r"""
     Return the `q`-expansion of the weight 12 cusp form `\Delta` as a power
     series with coefficients in the ring K (`= \ZZ` by default).
 

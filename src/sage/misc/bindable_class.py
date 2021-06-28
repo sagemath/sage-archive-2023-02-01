@@ -12,14 +12,13 @@ Bindable classes
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function
 
 import functools
-from sage.misc import six
 from sage.misc.nested_class import NestedClassMetaclass
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 
-class BindableClass(six.with_metaclass(ClasscallMetaclass)):
+
+class BindableClass(metaclass=ClasscallMetaclass):
     """
     Bindable classes
 
@@ -36,18 +35,18 @@ class BindableClass(six.with_metaclass(ClasscallMetaclass)):
         sage: from sage.misc.nested_class import NestedClassMetaclass
         sage: class Outer:
         ....:     __metaclass__ = NestedClassMetaclass # just a workaround for Python misnaming nested classes
-        ...
+        ....:
         ....:     class Inner:
         ....:         def __init__(self, *args):
         ....:             print(args)
-        ...
+        ....:
         ....:     def f(self, *args):
         ....:         print("{} {}".format(self, args))
-        ...
+        ....:
         ....:     @staticmethod
         ....:     def f_static(*args):
         ....:         print(args)
-        ...
+
         sage: outer = Outer()
 
     By default, when ``Inner`` is a class nested in ``Outer``,
@@ -87,7 +86,7 @@ class BindableClass(six.with_metaclass(ClasscallMetaclass)):
         sage: from sage.misc.bindable_class import BindableClass
         sage: class Outer:
         ....:     __metaclass__ = NestedClassMetaclass # just a workaround for Python misnaming nested classes
-        ...
+        ....:
         ....:     class Inner(BindableClass):
         ....:         " some documentation "
         ....:         def __init__(self, outer, *args):
@@ -157,7 +156,8 @@ class BindableClass(six.with_metaclass(ClasscallMetaclass)):
         return BoundClass(cls, instance)
         # We probably do not need to use sage_wraps, since
         # sageinspect already supports partial functions
-        #return sage_wraps(cls)(BoundClass(cls, instance))
+        # return sage_wraps(cls)(BoundClass(cls, instance))
+
 
 class BoundClass(functools.partial):
     """
@@ -215,7 +215,7 @@ class BoundClass(functools.partial):
         sage: class mypartial(functools.partial):
         ....:     def __init__(self, f, i, j):
         ....:         functools.partial.__init__(self, f, i, j)
-        sage: g = mypartial(f, 2, 3)
+        sage: g = mypartial(f, 2, 3)  # py2; on Python 3 this is an error
         Traceback (most recent call last):
         ...
         DeprecationWarning: object.__init__() takes no parameters
@@ -231,7 +231,7 @@ class BoundClass(functools.partial):
         sage: g()
         8
     """
-    __doc__ = None # See warning above
+    __doc__ = None  # See warning above
 
     def __init__(self, *args):
         super(BoundClass, self).__init__()
@@ -247,7 +247,8 @@ class BoundClass(functools.partial):
             sage: x.Inner
             <bound class 'sage.misc.bindable_class.Outer.Inner' of <sage.misc.bindable_class.Outer object at ...>>
         """
-        return "<bound %s of %s>"%(repr(self.func)[1:-1], self.args[0])
+        return "<bound %s of %s>" % (repr(self.func)[1:-1], self.args[0])
+
 
 ##############################################################################
 # Test classes
@@ -258,8 +259,9 @@ class Inner2(BindableClass):
     Some documentation for Inner2
     """
 
+
 # We need NestedClassMetaclass to work around a Python pickling bug
-class Outer(six.with_metaclass(NestedClassMetaclass)):
+class Outer(metaclass=NestedClassMetaclass):
     """
     A class with a bindable nested class, for testing purposes
     """

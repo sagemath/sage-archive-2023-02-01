@@ -4,19 +4,25 @@ Homomorphisms of Lie Algebras
 AUTHORS:
 
 - Travis Scrimshaw (07-15-2013): Initial implementation
+- Eero Hakavuori (08-09-2018): Morphisms defined by a generating subset
 """
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
+#                2018 Eero Hakavuori <eero.hakavuori at gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#******************************************************************************
+#                  https://www.gnu.org/licenses/
+# *****************************************************************************
 
 from sage.misc.cachefunc import cached_method
 from sage.categories.morphism import Morphism
 from sage.categories.morphism import SetMorphism
-from sage.categories.homset import Homset
+from sage.categories.homset import Homset, Hom
 from sage.structure.sequence import Sequence, Sequence_generic
+from sage.structure.element import get_coercion_model
+from sage.structure.richcmp import richcmp
+from sage.matrix.constructor import matrix
+from itertools import combinations
 
 # TODO: Refactor out common functionality with RingHomomorphism_im_gens
 class LieAlgebraHomomorphism_im_gens(Morphism):
@@ -28,6 +34,18 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
     homomorphism (of Lie algebras) if `f([x, y]) = [f(x), f(y)]` for all
     `x, y \in \mathfrak{g}`. Thus homomorphisms are completely determined
     by the image of the generators of `\mathfrak{g}`.
+
+    INPUT:
+
+    - ``parent`` -- a homset between two Lie algebras
+    - ``im_gens`` -- the image of the generators of the domain
+    - ``base_map`` -- a homomorphism to apply to the coefficients.
+      It should be a map from the base ring of the domain to the
+      base ring of the codomain.
+      Note that if base_map is nontrivial then the result will
+      not be a morphism in the category of lie algebras over
+      the base ring.
+    - ``check`` -- whether to run checks on the validity of the defining data
 
     EXAMPLES::
 
@@ -44,8 +62,35 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
           Defn: x |--> x
                 y |--> y
                 z |--> z
+
+    You can provide a base map, creating a semilinear map that (sometimes)
+    preserves the Lie bracket::
+
+        sage: R.<x> = ZZ[]
+        sage: K.<i> = NumberField(x^2 + 1)
+        sage: cc = K.hom([-i])
+        sage: L.<X,Y,Z,W> = LieAlgebra(K, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+        sage: M.<A,B,C,D> = LieAlgebra(K, {('A','B'): {'C':1}, ('A','C'): {'D':1}})
+        sage: phi = L.morphism({X:A, Y:B, Z:C, W:D}, base_map=cc)
+        sage: phi(X)
+        A
+        sage: phi(i*X)
+        -i*A
+        sage: all(phi(x.bracket(y)) == phi(x).bracket(phi(y)) for x,y in cartesian_product_iterator([[X,Y,Z,W],[X,Y,Z,W]]))
+        True
+
+    Note that the Lie bracket should still be preserved, even though the map is no longer linear
+    over the base ring::
+
+        sage: L.<X,Y,Z,W> = LieAlgebra(K, {('X','Y'): {'Z':i}, ('X','Z'): {'W':1}})
+        sage: M.<A,B,C,D> = LieAlgebra(K, {('A','B'): {'C':-i}, ('A','C'): {'D':1}})
+        sage: phi = L.morphism({X:A, Y:B, Z:C, W:D}, base_map=cc)
+        sage: phi(X.bracket(Y))
+        -i*C
+        sage: phi(X).bracket(phi(Y))
+        -i*C
     """
-    def __init__(self, parent, im_gens, check=True):
+    def __init__(self, parent, im_gens, base_map=None, check=True):
         """
         EXAMPLES::
 
@@ -67,14 +112,17 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
         if check:
             if len(im_gens) != len(parent.domain().lie_algebra_generators()):
                 raise ValueError("number of images must equal number of generators")
+            if base_map is not None and not (base_map.domain() is parent.domain().base_ring() and parent.codomain().base_ring().has_coerce_map_from(base_map.codomain())):
+                raise ValueError("Invalid base homomorphism")
             # TODO: Implement a (meaningful) _is_valid_homomorphism_()
-            #if not parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens):
+            #if not parent.domain()._is_valid_homomorphism_(parent.codomain(), im_gens, base_map=base_map):
             #    raise ValueError("relations do not all (canonically) map to 0 under map determined by images of generators.")
         if not im_gens.is_immutable():
             import copy
             im_gens = copy.copy(im_gens)
             im_gens.set_immutable()
-        self.__im_gens = im_gens
+        self._im_gens = im_gens
+        self._base_map = base_map
 
     def _repr_type(self):
         """
@@ -108,7 +156,52 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             sage: f.im_gens()
             [x, y, z]
         """
-        return list(self.__im_gens)
+        return list(self._im_gens)
+
+    def base_map(self):
+        """
+        Return the map on the base ring that is part of the defining
+        data for this morphism.  May return ``None`` if a coercion is used.
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: L.<X,Y,Z,W> = LieAlgebra(K, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+            sage: M.<A,B> = LieAlgebra(K, abelian=True)
+            sage: phi = L.morphism({X: A, Y: B}, base_map=cc)
+            sage: phi(X)
+            A
+            sage: phi(i*X)
+            -i*A
+            sage: phi.base_map()
+            Ring endomorphism of Number Field in i with defining polynomial x^2 + 1
+              Defn: i |--> -i
+        """
+        return self._base_map
+
+    def _richcmp_(self, other, op):
+        """
+        Rich comparisons.
+
+        EXAMPLES::
+
+            sage: L = LieAlgebra(QQ, 'x,y,z')
+            sage: Lyn = L.Lyndon()
+            sage: H = L.Hall()
+            sage: x,y,z = H.gens()
+            sage: f = Hom(Lyn, H)([x,y,z])
+            sage: g = Hom(Lyn, H)([x,y,z])
+            sage: h = Hom(Lyn, H)([y,x,z])
+            sage: f == g
+            True
+            sage: f is g
+            False
+            sage: f != h
+            True
+        """
+        return richcmp((self._im_gens, self._base_map), (other._im_gens, other._base_map), op)
 
     def __hash__(self):
         """
@@ -123,7 +216,7 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             sage: hash(phi) == hash(phi)
             True
         """
-        return hash(self.__im_gens)
+        return hash((self._im_gens, self._base_map))
 
     def _repr_defn(self):
         """
@@ -141,8 +234,11 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             z |--> z
         """
         D = self.domain()
-        ig = self.__im_gens
-        return '\n'.join(['%s |--> %s'%(x, ig[i]) for i, x in enumerate(D.gens())])
+        s = '\n'.join('%s |--> %s' % (x, gen)
+                      for gen, x in zip(self._im_gens, D.gens()))
+        if s and self._base_map is not None:
+            s += '\nwith map of base ring'
+        return s
 
     def _call_(self, x):
         """
@@ -160,7 +256,8 @@ class LieAlgebraHomomorphism_im_gens(Morphism):
             [x, [[x, z], [y, z]]] + [x, [[[x, z], z], y]]
              + [[x, y], [[x, z], z]] + [[x, [y, z]], [x, z]]
         """
-        return x._im_gens_(self.codomain(), self.im_gens())
+        return x._im_gens_(self.codomain(), self.im_gens(), base_map=self.base_map())
+
 
 class LieAlgebraHomset(Homset):
     """
@@ -173,7 +270,7 @@ class LieAlgebraHomset(Homset):
     """
     def __init__(self, X, Y, category=None, base=None, check=True):
         """
-        Initalize ``self``.
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -233,6 +330,15 @@ class LieAlgebraHomset(Homset):
         """
         if isinstance(im_gens, Morphism):
             return im_gens
+        from sage.categories.lie_algebras import LieAlgebras
+        if (self.domain() in LieAlgebras.FiniteDimensional.WithBasis
+            and self.codomain() in LieAlgebras.FiniteDimensional.WithBasis):
+            try:
+                return LieAlgebraMorphism_from_generators(self.domain(), im_gens,
+                                                          codomain=self.codomain(),
+                                                          check=check)
+            except (TypeError, ValueError):
+                pass
         return LieAlgebraHomomorphism_im_gens(self, im_gens)
 
     @cached_method
@@ -255,3 +361,294 @@ class LieAlgebraHomset(Homset):
 
     _an_element_ = zero
 
+class LieAlgebraMorphism_from_generators(LieAlgebraHomomorphism_im_gens):
+    r"""
+    A morphism between two Lie algebras defined by images of a
+    generating set as a Lie algebra.
+
+    This is the Lie algebra morphism `\phi \colon L \to K` defined on
+    the chosen basis of `L` to that of `K` be using the image of some
+    generating set (as a Lie algebra) of `L`.
+
+    INPUT:
+
+    - ``on_generators`` -- dictionary ``{X: Y}`` of the images `Y`
+      in ``codomain`` of elements `X` of ``domain``
+    - ``codomain`` -- a Lie algebra (optional); this is inferred
+      from the values of ``on_generators`` if not given
+    - ``base_map`` -- a homomorphism to apply to the coefficients.
+      It should be a map from the base ring of the domain to the
+      base ring of the codomain.
+      Note that if base_map is nontrivial then the result will
+      not be a morphism in the category of lie algebras over
+      the base ring.
+    - ``check`` -- (default: ``True``) boolean; if ``False`` the
+      values  on the Lie brackets implied by ``on_generators`` will
+      not be checked for contradictory values
+
+    EXAMPLES:
+
+    A reflection of one horizontal vector in the Heisenberg algebra::
+
+        sage: L.<X,Y,Z> = LieAlgebra(QQ, {('X','Y'): {'Z':1}})
+        sage: phi = L.morphism({X:-X, Y:Y}); phi
+        Lie algebra endomorphism of Lie algebra on 3 generators (X, Y, Z) over Rational Field
+          Defn: X |--> -X
+                Y |--> Y
+                Z |--> -Z
+
+    There is no Lie algebra morphism that reflects one horizontal vector,
+    but not the vertical one::
+
+        sage: L.morphism({X:-X, Y:Y, Z:Z})
+        Traceback (most recent call last):
+        ...
+        ValueError: this does not define a Lie algebra morphism;
+         contradictory values for brackets of length 2
+
+    Checking for mistakes can be disabled, which can produce
+    invalid results::
+
+        sage: phi = L.morphism({X:-X, Y:Y, Z:Z}, check=False); phi
+        Lie algebra endomorphism of Lie algebra on 3 generators (X, Y, Z) over Rational Field
+          Defn: X |--> -X
+                Y |--> Y
+                Z |--> Z
+        sage: L[phi(X), phi(Y)] == phi(L[X,Y])
+        False
+
+    The set of keys must generate the Lie algebra::
+
+        sage: L.morphism({X: X})
+        Traceback (most recent call last):
+        ...
+        ValueError: [X] is not a generating set of Lie algebra on 3 generators
+        (X, Y, Z) over Rational Field
+
+    Over non-fields, generating subsets are more restricted::
+
+        sage: L.<X,Y,Z> = LieAlgebra(ZZ, {('X','Y'): {'Z':2}})
+        sage: L.morphism({X: X, Y: Y})
+        Traceback (most recent call last):
+        ...
+        ValueError: [X, Y] is not a generating set of Lie algebra on 3
+        generators (X, Y, Z) over Integer Ring
+
+    The generators do not have to correspond to the defined generating
+    set of the domain::
+
+        sage: L.<X,Y,Z,W> = LieAlgebra(QQ, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+        sage: K.<A,B,C> = LieAlgebra(QQ, {('A','B'): {'C':2}})
+        sage: phi = L.morphism({X+2*Y: A, X-Y: B}); phi
+        Lie algebra morphism:
+          From: Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
+          To:   Lie algebra on 3 generators (A, B, C) over Rational Field
+          Defn: X |--> 1/3*A + 2/3*B
+                Y |--> 1/3*A - 1/3*B
+                Z |--> -2/3*C
+                W |--> 0
+        sage: phi(X+2*Y)
+        A
+        sage: phi(X)
+        1/3*A + 2/3*B
+        sage: phi(W)
+        0
+        sage: phi(Z)
+        -2/3*C
+        sage: all(K[phi(p), phi(q)] == phi(L[p,q])
+        ....:     for p in L.basis() for q in L.basis())
+        True
+
+    A quotient type Lie algebra morphism::
+
+        sage: K.<A,B> = LieAlgebra(SR, abelian=True)
+        sage: L.morphism({X: A, Y: B})
+        Lie algebra morphism:
+          From: Lie algebra on 4 generators (X, Y, Z, W) over Rational Field
+          To:   Abelian Lie algebra on 2 generators (A, B) over Symbolic Ring
+          Defn: X |--> A
+                Y |--> B
+                Z |--> 0
+                W |--> 0
+    """
+    def __init__(self, on_generators, domain=None, codomain=None, check=True, base_map=None, category=None):
+        r"""
+        Initialize ``self``.
+
+        The keys of ``on_generators`` need to generate ``domain``
+        as a Lie algebra.
+
+        .. TODO::
+
+            It might be possible to extract an explicit bracket relation that
+            fails whenever some linear system fails to be solved. This would
+            allow outputting an even more explicit error.
+
+        TESTS:
+
+        Test suite for a morphism::
+
+            sage: L.<X,Y,Z,W> = LieAlgebra(QQ, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+            sage: K.<A,B,C> = LieAlgebra(QQ, {('A','B'): {'C':2}})
+            sage: phi = L.morphism({X+2*Y: A, X-Y: B})
+            sage: TestSuite(phi).run(skip=['_test_category'])
+
+        Failure of inferring codomain::
+
+            sage: L.<X> = LieAlgebra(QQ, abelian=True)
+            sage: L.morphism({X: int(1)})
+            Traceback (most recent call last):
+            ...
+            TypeError: codomain <type 'int'> is not a Lie algebra
+
+            sage: from sage.algebras.lie_algebras.morphism import LieAlgebraMorphism_from_generators
+            sage: LieAlgebraMorphism_from_generators({ZZ(1): X})
+            Traceback (most recent call last):
+            ...
+            TypeError: domain Integer Ring is not a Lie algebra
+            sage: LieAlgebraMorphism_from_generators({})
+            Traceback (most recent call last):
+            ...
+            ValueError: no elements to infer domain from
+            sage: LieAlgebraMorphism_from_generators({}, domain=L)
+            Traceback (most recent call last):
+            ...
+            ValueError: no elements to infer codomain from
+
+        We check that we can specify a base map to get a semi-linear morphism of Lie algebras::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<i> = NumberField(x^2 + 1)
+            sage: cc = K.hom([-i])
+            sage: L.<X,Y,Z> = LieAlgebra(K, {('X','Y'): {'Z':i}})
+            sage: M.<A,B,C> = LieAlgebra(K, {('A','B'): {'C':-i}})
+            sage: phi = L.morphism({X:A, Y:B, Z:C}, base_map=cc)
+            sage: phi(Z)
+            C
+            sage: phi(i*Z)
+            -i*C
+        """
+        from sage.categories.lie_algebras import LieAlgebras
+
+        cm = get_coercion_model()
+        if domain is None:
+            if not on_generators:
+                raise ValueError("no elements to infer domain from")
+            domain = cm.common_parent(*on_generators)
+            if domain not in LieAlgebras:
+                raise TypeError("domain %s is not a Lie algebra" % domain)
+        if codomain is None:
+            if not on_generators:
+                raise ValueError("no elements to infer codomain from")
+            codomain = cm.common_parent(*list(on_generators.values()))
+            if codomain not in LieAlgebras:
+                raise TypeError("codomain %s is not a Lie algebra" % codomain)
+
+        # If the base map is nontrivial, ideally we would have machinery
+        # here to determine how the base map affects the category of the
+        # resulting morphism.  But for now it's not clear how to do this,
+        # so we leave the category as the default for now.
+        parent = Hom(domain, codomain, category=category)
+        m = domain.module()
+        cm = codomain.module()
+
+        spanning_set = [X.to_vector() for X in on_generators]
+        im_gens = [Y.to_vector() for Y in on_generators.values()]
+
+        if not im_gens:
+            LieAlgebraHomomorphism_im_gens.__init__(self, parent, [], base_map=base_map, check=check)
+            return
+
+        # helper function to solve linear systems Ax = b, where both x and b
+        # are vectors of vectors
+        def solve_linear_system(A, b, check):
+            R = cm.base_ring()
+            A_inv = A.solve_left(matrix.identity(A.ncols()))
+
+            if check:
+                # Verify validity of solution x = A_inv*b. Since b is a vector of
+                # vectors, need to expand the matrix product by hand.
+                M = A * A_inv
+                for Mi, bk in zip(M.rows(), b):
+                    test_bk = sum((R(Mij) * bj for Mij,bj in zip(Mi,b)), cm.zero())
+                    if test_bk != bk:
+                        raise ValueError("contradictory linear system")
+
+            return [sum((R(Aij) * bk for Aij,bk in zip(Ai,b)), cm.zero())
+                    for Ai in A_inv.rows()]
+
+        bracketlength = 1
+        n = 0
+        while True:
+            sm = m.submodule(spanning_set)
+            A = matrix(sm.base_ring(), [sm.coordinate_vector(X) for X in spanning_set])
+            if base_map is not None:
+                A = A.apply_map(base_map)
+            try:
+                im_gens = solve_linear_system(A, im_gens, check)
+            except ValueError:
+                raise ValueError("this does not define a Lie algebra morphism; "
+                                 "contradictory values for brackets of length %d"
+                                 % bracketlength)
+
+            spanning_set = list(sm.basis())
+            if n == len(spanning_set):
+                # no increase in dimension => no further values will be computed
+                break
+
+            # compute brackets and repeat
+            bracketlength += 1
+            n = len(spanning_set)
+            for i,j in combinations(range(n), 2):
+                # add the value of the bracket to known images
+                Z = domain.bracket(spanning_set[i], spanning_set[j])
+                imZ = codomain.bracket(im_gens[i], im_gens[j])
+                spanning_set.append(Z.to_vector())
+                im_gens.append(imZ.to_vector())
+
+        # verify that sm is the full module m
+        if not sm.has_coerce_map_from(m):
+            raise ValueError("%s is not a generating set of %s"
+                             % (list(on_generators), domain))
+
+        A = matrix(m.base_ring(), spanning_set)
+        im_gens = solve_linear_system(A, im_gens, check)
+
+        LieAlgebraHomomorphism_im_gens.__init__(self, parent, im_gens, base_map=base_map, check=check)
+
+    def _call_(self, x):
+        """
+        Evaluate this homomorphism at ``x``.
+
+        EXAMPLES::
+
+            sage: L.<X,Y,Z,W> = LieAlgebra(QQ, {('X','Y'): {'Z':1}, ('X','Z'): {'W':1}})
+            sage: K.<A,B> = LieAlgebra(SR, abelian=True)
+            sage: phi = L.morphism({X: A, Y: B})
+            sage: phi(X)
+            A
+            sage: phi(Y)
+            B
+            sage: phi(Z)
+            0
+            sage: phi(W)
+            0
+            sage: phi(-X + 3*Y)
+            -A + 3*B
+
+            sage: K.<A,B,C> = LieAlgebra(QQ, {('A','B'): {'C':2}})
+            sage: phi = L.morphism({X+2*Y: A, X-Y: B})
+            sage: phi(X)
+            1/3*A + 2/3*B
+            sage: phi(Y)
+            1/3*A - 1/3*B
+            sage: phi(3*X+Y)
+            4/3*A + 5/3*B
+            sage: phi(3/2*W-Z+Y)
+            1/3*A - 1/3*B + 2/3*C
+        """
+        C = self.codomain()
+        bh = self._base_map
+        if bh is None:
+            bh = lambda t: t
+        return C.sum(bh(c) * self._im_gens[i] for i, c in (x.to_vector()).items())

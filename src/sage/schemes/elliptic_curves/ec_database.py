@@ -65,7 +65,6 @@ See also the functions cremona_curves() and cremona_optimal_curves()
 which enable easy looping through the Cremona elliptic curve database.
 
 """
-from __future__ import absolute_import
 
 import os
 from ast import literal_eval
@@ -168,6 +167,5 @@ class EllipticCurves:
                 break
         return v
 
+
 elliptic_curves = EllipticCurves()
-
-

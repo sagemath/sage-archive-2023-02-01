@@ -61,7 +61,6 @@ Note that the function is recomputed each time::
 #THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 #OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-from __future__ import print_function, absolute_import
 
 from cpython.object cimport PyObject_Call, PyObject_RichCompare
 
@@ -115,7 +114,7 @@ def lazy_string(f, *args, **kwargs):
         sage: s == 'this is a test'
         determining string representation
         True
-        sage: unicode(s)
+        sage: unicode(s)  # py2
         determining string representation
         u'this is a test'
 
@@ -188,7 +187,7 @@ cdef class _LazyString(object):
         sage: s == 'this is a test'
         determining string representation
         True
-        sage: unicode(s)
+        sage: unicode(s)  # py2
         determining string representation
         u'this is a test'
 
@@ -348,7 +347,7 @@ cdef class _LazyString(object):
             sage: from sage.misc.lazy_string import lazy_string
             sage: f = lambda: "laziness"
             sage: s = lazy_string(f)
-            sage: unicode(s) # indirect doctest
+            sage: unicode(s)  # indirect doctest py2 only
             u'laziness'
         """
         return unicode(self.val())

@@ -138,14 +138,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #
 ##########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
 
 from .expect import Expect, ExpectElement, ExpectFunction, FunctionElement
-from sage.misc.misc import verbose
+from sage.misc.verbose import verbose
 from sage.interfaces.tab_completion import ExtraTabCompletion
 from sage.libs.pari.all import pari
-import sage.rings.complex_field
+import sage.rings.complex_mpfr
 from sage.docs.instancedoc import instancedoc
 
 
@@ -250,12 +248,11 @@ class Gp(ExtraTabCompletion, Expect):
         self._eval_line('default(breakloop,0);')
         # list of directories where gp will look for scripts (only current working directory)
         self._eval_line('default(path,".");')
-        # location of elldata, seadata, galdata
-        self._eval_line('default(datadir, "$SAGE_LOCAL/share/pari");')
         # executable for gp ?? help
-        self._eval_line('default(help, "$SAGE_LOCAL/bin/gphelp -detex");')
+        self._eval_line('default(help, "gphelp -detex");')
         # logfile disabled since Expect already logs
         self._eval_line('default(log,0);')
+        self._eval_line("default(nbthreads,1);")
         # set random seed
         self.set_seed(self._seed)
 
@@ -883,7 +880,6 @@ class GpElement(ExpectElement):
             True
             sage: gp(E.sage()) == E
             False
-
         """
         return repr(self)
 
@@ -893,10 +889,10 @@ class GpElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: gp(I).sage()
+            sage: gp(SR(I)).sage()
             i
-            sage: gp(I).sage().parent()
-            Number Field in i with defining polynomial x^2 + 1
+            sage: gp(SR(I)).sage().parent()
+            Number Field in i with defining polynomial x^2 + 1 with i = 1*I
 
         ::
 
@@ -910,7 +906,17 @@ class GpElement(ExpectElement):
             [3 4]
             sage: gp(M).sage() == M
             True
+
+        Conversion of strings::
+
+           sage: s = gp('"foo"')
+           sage: s.sage()
+           'foo'
+           sage: type(s.sage())
+           <type 'str'>
         """
+        if self.is_string():
+            return str(self)
         return pari(str(self)).sage()
 
     def is_string(self):
@@ -923,20 +929,8 @@ class GpElement(ExpectElement):
             True
             sage: gp('[1,2,3]').is_string()
             False
-
         """
-        return repr(self.type())=='t_STR'
-
-    def __long__(self):
-        """
-        Return Python long.
-
-        EXAMPLES::
-
-            sage: long(gp(10))
-            10L
-        """
-        return long(str(self))
+        return repr(self.type()) == 't_STR'
 
     def __float__(self):
         """
@@ -949,7 +943,7 @@ class GpElement(ExpectElement):
         """
         return float(pari(str(self)))
 
-    def bool(self):
+    def __bool__(self):
         """
         EXAMPLES::
 
@@ -963,6 +957,8 @@ class GpElement(ExpectElement):
         P = self._check_valid()
         return P.eval('%s != 0'%(self.name())) == '1'
 
+    __nonzero__ = __bool__
+
     def _complex_mpfr_field_(self, CC):
         """
         Return ComplexField element of self.
@@ -973,7 +969,7 @@ class GpElement(ExpectElement):
 
         EXAMPLES::
 
-            sage: z = gp(1+15*I); z
+            sage: z = gp(SR(1+15*I)); z
             1 + 15*I
             sage: z._complex_mpfr_field_(CC)
             1.00000000000000 + 15.0000000000000*I
@@ -1000,7 +996,7 @@ class GpElement(ExpectElement):
         """
         # Retrieving values from another computer algebra system is
         # slow anyway, right?
-        cc_val = self._complex_mpfr_field_(sage.rings.complex_field.ComplexField())
+        cc_val = self._complex_mpfr_field_(sage.rings.complex_mpfr.ComplexField())
         return CDF(cc_val)
 
     def __len__(self):

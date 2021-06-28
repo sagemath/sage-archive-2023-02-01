@@ -43,8 +43,6 @@ by developers producing new classes, not casual users.
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-from __future__ import absolute_import
-from six.moves import range
 
 from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
@@ -123,7 +121,7 @@ class GenericCellComplex(SageObject):
         the keys are integers, representing dimension, and the value
         associated to an integer `d` is the set of `d`-cells.  If the
         optional argument ``subcomplex`` is present, then return only
-        the faces which are *not* in the subcomplex.
+        the cells which are *not* in the subcomplex.
 
         :param subcomplex: a subcomplex of this cell complex.  Return
            the cells which are not in this subcomplex.
@@ -179,7 +177,7 @@ class GenericCellComplex(SageObject):
         """
         List of cells of dimension ``n`` of this cell complex.
         If the optional argument ``subcomplex`` is present, then
-        return the ``n``-dimensional faces which are *not* in the
+        return the ``n``-dimensional cells which are *not* in the
         subcomplex.
 
         :param n: the dimension
@@ -187,6 +185,11 @@ class GenericCellComplex(SageObject):
         :param subcomplex: a subcomplex of this cell complex. Return
            the cells which are not in this subcomplex.
         :type subcomplex: optional, default ``None``
+
+        .. NOTE::
+
+            The resulting list need not be sorted. If you want a sorted
+            list of `n`-cells, use :meth:`_n_cells_sorted`.
 
         EXAMPLES::
 
@@ -200,6 +203,40 @@ class GenericCellComplex(SageObject):
         else:
             # don't barf if someone asks for n_cells in a dimension where there are none
             return []
+
+    def _n_cells_sorted(self, n, subcomplex=None):
+        """
+        Sorted list of cells of dimension ``n`` of this cell complex.
+        If the optional argument ``subcomplex`` is present, then
+        return the ``n``-dimensional cells which are *not* in the
+        subcomplex.
+
+        :param n: the dimension
+        :type n: non-negative integer
+        :param subcomplex: a subcomplex of this cell complex. Return
+           the cells which are not in this subcomplex.
+        :type subcomplex: optional, default ``None``
+
+        EXAMPLES::
+
+            sage: S = Set(range(1,5))
+            sage: Z = SimplicialComplex(S.subsets())
+            sage: Z
+            Simplicial complex with vertex set (1, 2, 3, 4) and facets {(1, 2, 3, 4)}
+            sage: Z._n_cells_sorted(2)
+            [(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]
+            sage: K = SimplicialComplex([[1,2,3], [2,3,4]])
+            sage: Z._n_cells_sorted(2, subcomplex=K)
+            [(1, 2, 4), (1, 3, 4)]
+            sage: S = SimplicialComplex([[complex(i), complex(1)]])
+            sage: S._n_cells_sorted(0)
+            [((1+0j),), (1j,)]
+        """
+        n_cells = self.n_cells(n, subcomplex)
+        try:
+            return sorted(n_cells)
+        except TypeError:
+            return sorted(n_cells, key=str)
 
     def f_vector(self):
         """
@@ -497,12 +534,14 @@ class GenericCellComplex(SageObject):
             sage: cubical_complexes.KleinBottle().homology(1, base_ring=GF(2))
             Vector space of dimension 2 over Finite Field of size 2
 
-        If CHomP is installed, Sage can compute generators of homology
-        groups::
+        Sage can compute generators of homology groups::
 
             sage: S2 = simplicial_complexes.Sphere(2)
-            sage: S2.homology(dim=2, generators=True, base_ring=GF(2))  # optional - CHomP
-            (Vector space of dimension 1 over Finite Field of size 2, [(0, 1, 2) + (0, 1, 3) + (0, 2, 3) + (1, 2, 3)])
+            sage: S2.homology(dim=2, generators=True, base_ring=GF(2), algorithm='no_chomp')
+            [(Vector space of dimension 1 over Finite Field of size 2, (0, 1, 2) + (0, 1, 3) + (0, 2, 3) + (1, 2, 3))]
+
+        Note: the answer may be formatted differently if the optional
+        package CHomP is installed.
 
         When generators are computed, Sage returns a pair for each
         dimension: the group and the list of generators.  For
@@ -511,8 +550,15 @@ class GenericCellComplex(SageObject):
         complexes, each generator is a linear combination of cubes::
 
             sage: S2_cub = cubical_complexes.Sphere(2)
-            sage: S2_cub.homology(dim=2, generators=True)  # optional - CHomP
-            (Z, [-[[0,1] x [0,1] x [0,0]] + [[0,1] x [0,1] x [1,1]] - [[0,0] x [0,1] x [0,1]] - [[0,1] x [1,1] x [0,1]] + [[0,1] x [0,0] x [0,1]] + [[1,1] x [0,1] x [0,1]]])
+            sage: S2_cub.homology(dim=2, generators=True, algorithm='no_chomp')
+            [(Z,
+             [0,0] x [0,1] x [0,1] - [0,1] x [0,0] x [0,1] + [0,1] x [0,1] x [0,0] - [0,1] x [0,1] x [1,1] + [0,1] x [1,1] x [0,1] - [1,1] x [0,1] x [0,1])]
+
+        Similarly for simpicial sets::
+
+            sage: S = simplicial_sets.Sphere(2)
+            sage: S.homology(generators=True)
+            {0: [], 1: 0, 2: [(Z, sigma_2)]}
         """
         from sage.interfaces.chomp import have_chomp, homcubes, homsimpl
         from sage.homology.cubical_complex import CubicalComplex
@@ -566,13 +612,31 @@ class GenericCellComplex(SageObject):
             return self._homology_(dim, subcomplex=subcomplex,
                                    cohomology=cohomology, base_ring=base_ring,
                                    verbose=verbose, algorithm=algorithm,
-                                   reduced=reduced, **kwds)
+                                   reduced=reduced, generators=generators,
+                                   **kwds)
 
         C = self.chain_complex(cochain=cohomology, augmented=reduced,
                                dimensions=dims, subcomplex=subcomplex,
                                base_ring=base_ring, verbose=verbose)
         answer = C.homology(base_ring=base_ring, generators=generators,
                             verbose=verbose, algorithm=algorithm)
+
+        if generators:
+            # Try to convert chain complex information to topological
+            # chain information.
+            for i in answer:
+                H_with_gens = answer[i]
+                if H_with_gens:
+                    chains = self.n_chains(i, base_ring=base_ring)
+                    new_H = []
+                    for (H, gen) in H_with_gens:
+                        v = gen.vector(i)
+                        new_gen = chains.zero()
+                        for (coeff, chain) in zip(v, chains.gens()):
+                            new_gen += coeff * chain
+                        new_H.append((H, new_gen))
+                    answer[i] = new_H
+
         if dim is None:
             dim = range(self.dimension() + 1)
         zero = HomologyGroup(0, base_ring)
@@ -758,7 +822,7 @@ class GenericCellComplex(SageObject):
             sage: list(simplicial_complexes.Sphere(2).n_chains(1, QQ, cochains=True).basis())
             [\chi_(0, 1), \chi_(0, 2), \chi_(0, 3), \chi_(1, 2), \chi_(1, 3), \chi_(2, 3)]
         """
-        n_cells = tuple(self.n_cells(n))
+        n_cells = tuple(self._n_cells_sorted(n))
         if cochains:
             return Cochains(self, n, n_cells, base_ring)
         else:
@@ -868,7 +932,7 @@ class GenericCellComplex(SageObject):
 
             For all but the smallest complexes, this is likely to be
             slower than :meth:`cohomology` (with field coefficients),
-            possibly by several orders of magnitute. This and its
+            possibly by several orders of magnitude. This and its
             companion :meth:`homology_with_basis` carry extra
             information which allows computation of cup products, for
             example, but because of speed issues, you may only wish to
@@ -1016,8 +1080,8 @@ class GenericCellComplex(SageObject):
 
             sage: P = SimplicialComplex([[0, 1], [1,2], [2,3]]).face_poset(); P
             Finite poset containing 7 elements
-            sage: P.list()
-            [(3,), (2,), (2, 3), (1,), (1, 2), (0,), (0, 1)]
+            sage: sorted(P.list())
+            [(0,), (0, 1), (1,), (1, 2), (2,), (2, 3), (3,)]
 
             sage: S2 = cubical_complexes.Sphere(2)
             sage: S2.face_poset()

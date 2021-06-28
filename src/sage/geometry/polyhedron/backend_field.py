@@ -20,7 +20,6 @@ EXAMPLES::
      An inequality (1, -0.5773502691896258?) x + 0 >= 0,
      An inequality (0, 1.154700538379252?) x + 0 >= 0)
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
@@ -63,8 +62,12 @@ class Polyhedron_field(Polyhedron_base):
         sage: P1 = Polyhedron([[0,1],[1,1],[1,-phi+1]])
         sage: P2 = Polyhedron(ieqs=[[-1,-phi,0]])
         sage: P1.intersection(P2)
-        The empty polyhedron in (Number Field in phi with defining polynomial
-        x^2 - x - 1)^2
+        The empty polyhedron in (Number Field in phi with defining polynomial x^2 - x - 1 with phi = 1.618033988749895?)^2
+
+    Check that :trac:`28654` is fixed::
+
+        sage: Polyhedron(lines=[[1]], backend='field')
+        A 1-dimensional polyhedron in QQ^1 defined as the convex hull of 1 vertex and 1 line
     """
     def _is_zero(self, x):
         """
@@ -132,6 +135,32 @@ class Polyhedron_field(Polyhedron_base):
         """
         return x > 0
 
+    def _init_from_Vrepresentation_and_Hrepresentation(self, Vrep, Hrep):
+        """
+        Construct polyhedron from V-representation and H-representation data.
+
+        See :class:`Polyhedron_base` for a description of ``Vrep`` and ``Hrep``.
+
+        .. WARNING::
+
+            The representation is assumed to be correct.
+            It is not checked.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_field
+            sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
+            sage: parent = Polyhedra_field(AA, 1, 'field')
+            sage: Vrep = [[[0], [1]], [], []]
+            sage: Hrep = [[[0, 1], [1, -1]], []]
+            sage: p = Polyhedron_field(parent, Vrep, Hrep,
+            ....:                      Vrep_minimal=True, Hrep_minimal=True)  # indirect doctest
+            sage: p
+            A 1-dimensional polyhedron in AA^1 defined as the convex hull of 2 vertices
+        """
+        self._init_Vrepresentation(*Vrep)
+        self._init_Hrepresentation(*Hrep)
+
     def _init_from_Vrepresentation(self, vertices, rays, lines,
                                    minimize=True, verbose=False):
         """
@@ -197,6 +226,32 @@ class Polyhedron_field(Polyhedron_base):
         self._init_Vrepresentation_backend(V)
         self._init_Hrepresentation_backend(H)
 
+    def _init_Vrepresentation(self, vertices, rays, lines):
+        """
+        Create the Vrepresentation objects from the given minimal data.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_field
+            sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
+            sage: parent = Polyhedra_field(AA, 1, 'field')
+            sage: Vrep = [[[0], [1]], [], []]
+            sage: Hrep = [[[0, 1], [1, -1]], []]
+            sage: p = Polyhedron_field(parent, Vrep, Hrep,     # indirect doctest
+            ....:                      Vrep_minimal=True, Hrep_minimal=True)
+            sage: p.vertices_list()
+            [[0], [1]]
+        """
+        self._Vrepresentation = []
+        parent = self.parent()
+        for v in vertices:
+            parent._make_Vertex(self, v)
+        for r in rays:
+            parent._make_Ray(self, r)
+        for l in lines:
+            parent._make_Line(self, l)
+        self._Vrepresentation = tuple(self._Vrepresentation)
+
     def _init_Vrepresentation_backend(self, Vrep):
         """
         Create the V-representation objects from the double description.
@@ -214,15 +269,31 @@ class Polyhedron_field(Polyhedron_base):
              A vertex at (1.414213562373095?, 0),
              A vertex at (4.000000000000000?, 0.372677996249965?))
         """
-        self._Vrepresentation = []
+        self._init_Vrepresentation(Vrep.vertices, Vrep.rays, Vrep.lines)
+
+    def _init_Hrepresentation(self, inequalities, equations):
+        """
+        Create the Vrepresentation objects from the given minimal data.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_field
+            sage: from sage.geometry.polyhedron.backend_field import Polyhedron_field
+            sage: parent = Polyhedra_field(AA, 1, 'field')
+            sage: Vrep = [[[0], [1]], [], []]
+            sage: Hrep = [[[0, 1], [1, -1]], []]
+            sage: p = Polyhedron_field(parent, Vrep, Hrep,     # indirect doctest
+            ....:                      Vrep_minimal=True, Hrep_minimal=True)
+            sage: p.inequalities_list()
+            [[0, 1], [1, -1]]
+        """
+        self._Hrepresentation = []
         parent = self.parent()
-        for v in Vrep.vertices:
-            parent._make_Vertex(self, v)
-        for r in Vrep.rays:
-            parent._make_Ray(self, r)
-        for l in Vrep.lines:
-            parent._make_Line(self, l)
-        self._Vrepresentation = tuple(self._Vrepresentation)
+        for ieq in inequalities:
+            parent._make_Inequality(self, ieq)
+        for eqn in equations:
+            parent._make_Equation(self, eqn)
+        self._Hrepresentation = tuple(self._Hrepresentation)
 
     def _init_Hrepresentation_backend(self, Hrep):
         """
@@ -241,13 +312,7 @@ class Polyhedron_field(Polyhedron_base):
              A vertex at (1.414213562373095?, 0),
              A vertex at (4.000000000000000?, 0.372677996249965?))
         """
-        self._Hrepresentation = []
-        parent = self.parent()
-        for ieq in Hrep.inequalities:
-            parent._make_Inequality(self, ieq)
-        for eqn in Hrep.equations:
-            parent._make_Equation(self, eqn)
-        self._Hrepresentation = tuple(self._Hrepresentation)
+        self._init_Hrepresentation(Hrep.inequalities, Hrep.equations)
 
     def _init_empty_polyhedron(self):
         """

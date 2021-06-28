@@ -80,7 +80,6 @@ overview can also be found in Section 4.6 of [Rüt2014]_.
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.abstract_method import abstract_method
 from .valuation import DiscretePseudoValuation, InfiniteDiscretePseudoValuation
@@ -635,7 +634,7 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
             sage: w.reduce((t + 5) / 13) # indirect doctest
             8
             sage: u._approximation
-            [ Gauss valuation induced by 13-adic valuation, v(t + 70) = 2 ]
+            [ Gauss valuation induced by 13-adic valuation, v(t - 29/2) = 2 ]
 
         ALGORITHM:
 
@@ -879,9 +878,9 @@ class MacLaneLimitValuation(LimitValuation_generic, InfiniteDiscretePseudoValuat
         # simplification of f
 
         if error is None:
-            error = self.upper_bound(f)
+            error = self(f) if force else self.upper_bound(f)
 
-        return self._approximation.simplify(f, error, force=force)
+        return self._approximation.simplify(f, error=error, force=force)
 
     def lower_bound(self, f):
         r"""

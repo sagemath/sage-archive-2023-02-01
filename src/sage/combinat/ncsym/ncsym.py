@@ -5,16 +5,14 @@ AUTHORS:
 
 - Travis Scrimshaw (08-04-2013): Initial version
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from six.moves import range
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.misc.cachefunc import cached_method
-#from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -122,7 +120,7 @@ def nesting(la, nu):
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
-        [0 0 0 0 0 0 0 1 0 0 0 0 0 0 0]
+        [0 0 0 0 0 0 0 0 1 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
         [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0]
@@ -387,7 +385,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                 if s == t:
                     return False
                 for p in s:
-                    if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
+                    if len([z for z in t if z.intersection(p)]) != 1:
                         return False
                 return True
 
@@ -425,7 +423,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                                  remove_zeros=False)
 
         def from_symmetric_function(self, f):
-            """
+            r"""
             Return the image of the symmetric function ``f`` in ``self``.
 
             This is performed by converting to the monomial basis and
@@ -1270,7 +1268,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _p_to_m_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{p}_A` in terms of the monomial basis.
 
             INPUT:
@@ -1295,7 +1293,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _p_to_e_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{p}_A` in terms of the elementary basis.
 
             INPUT:
@@ -1323,7 +1321,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _p_to_h_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{p}_A` in terms of the homogeneous basis.
 
             INPUT:
@@ -1351,7 +1349,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _p_to_x_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{p}_A` in terms of the `\mathbf{x}` basis.
 
             INPUT:
@@ -1433,7 +1431,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
             return self.tensor_square().sum_of_monomials(L1 + L2)
 
         def internal_coproduct_on_basis(self, A):
-            """
+            r"""
             Return the internal coproduct of a powersum basis element.
 
             The internal coproduct is defined by
@@ -1675,7 +1673,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _cp_to_m_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{cp}_A` in terms of the monomial basis.
 
             INPUT:
@@ -1700,22 +1698,6 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                                 remove_zeros=False)
 
     cp = coarse_powersum
-
-    def q(self):
-        """
-        Old name for the `\mathbf{cp}`-basis. Deprecated in :trac:`18371`.
-
-        EXAMPLES::
-
-            sage: NCSym = SymmetricFunctionsNonCommutingVariables(QQ)
-            sage: NCSym.q()
-            doctest:...: DeprecationWarning: q is deprecated, use instead cp or coarse_powersum.
-            See http://trac.sagemath.org/18371 for details.
-            Symmetric functions in non-commuting variables over the Rational Field in the coarse_powersum basis
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(18371, 'q is deprecated, use instead cp or coarse_powersum.')
-        return self.cp()
 
     class x_basis(NCSymBasis_abstract):
         r"""
@@ -1759,7 +1741,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
 
         @cached_method
         def _x_to_p_on_basis(self, A):
-            """
+            r"""
             Return `\mathbf{x}_A` in terms of the powersum basis.
 
             INPUT:
@@ -1782,7 +1764,7 @@ class SymmetricFunctionsNonCommutingVariables(UniqueRepresentation, Parent):
                 if s == t:
                     return False
                 for p in s:
-                    if len([ z for z in list(t) if z.intersection(p) != Set([]) ]) != 1:
+                    if len([z for z in t if z.intersection(p)]) != 1:
                         return False
                 return True
 

@@ -10,7 +10,7 @@ AUTHORS:
 - David Roe
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007-2013 David Roe <roed.math@gmail.com>
 #                               William Stein <wstein@gmail.com>
 #
@@ -20,7 +20,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six import iteritems
 
 from sage.rings.padics.local_generic import LocalGeneric
 from sage.rings.padics.padic_generic import pAdicGeneric
@@ -30,7 +29,9 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import infinity, SignError
 from .lattice_precision import PrecisionLattice, PrecisionModule
+from sage.rings.padics.precision_error import PrecisionError
 from .padic_lattice_element import pAdicLatticeElement, pAdicLatticeCapElement, pAdicLatticeFloatElement
+
 
 class CappedAbsoluteGeneric(LocalGeneric):
     def is_capped_absolute(self):
@@ -124,7 +125,7 @@ class FixedModGeneric(LocalGeneric):
             sage: R.is_fixed_mod()
             True
             sage: R(5^7,absprec=9)
-            5^7 + O(5^15)
+            5^7
             sage: S = ZpCA(5, 15)
             sage: S.is_fixed_mod()
             False
@@ -508,7 +509,7 @@ class pAdicLatticeGeneric(pAdicGeneric):
         Elements of a parent with some label do not coerce to a parent
         with a different label. However conversions are allowed.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: R = ZpLC(5)
             sage: R.label()  # no label by default
@@ -566,6 +567,11 @@ class pAdicLatticeGeneric(pAdicGeneric):
             1 + O(2^10)
             sage: x - y
             O(2^50)
+
+        TESTS::
+
+            sage: R(x, prec=5)
+            1 + O(2^5)
         """
         # We first try the _copy method which is sharp on precision
         try:
@@ -662,7 +668,7 @@ class pAdicLatticeGeneric(pAdicGeneric):
         ans = len(elts)*[None]
         selfprec = self._precision
         # First the elements with precision lattice
-        for (prec, L) in iteritems(elt_by_prec):
+        for (prec, L) in elt_by_prec.items():
             if prec is selfprec:
                 # Here, we use the _copy method in order
                 # to be sharp on precision
@@ -740,6 +746,100 @@ class pAdicRingGeneric(pAdicGeneric, EuclideanDomain):
         """
         return 1
 
+    def _xgcd_univariate_polynomial(self, f, g):
+        """
+        Extended gcd for univariate polynomial rings over ``self``.
+
+        Should not be called directly. Use ``f.xgcd(g)`` instead.
+
+        INPUT:
+
+         - ``f``, ``g`` - the polynomials of which to take the xgcd
+
+        OUTPUT:
+
+         - A tuple (a, b, c) which satisfies ``a = b*f + c*g``. There
+           is no guarantee that a, b, and c are minimal.
+
+        .. WARNING::
+
+            The computations are performed using the standard Euclidean
+            algorithm which might produce mathematically incorrect results in
+            some cases. See :trac:`13439`.
+
+        EXAMPLES::
+
+            sage: R.<x> = Zp(3,3)[]
+            sage: f = x + 1
+            sage: f.xgcd(f^2)
+            ((1 + O(3^3))*x + 1 + O(3^3), 1 + O(3^3), 0)
+
+        We check that :trac:`13439` has been fixed::
+
+            sage: R.<x> = Zp(3,3)[]
+            sage: f = 3*x + 7
+            sage: g = 5*x + 9
+            sage: f.xgcd(f*g)
+            ((3 + O(3^4))*x + 1 + 2*3 + O(3^3), 1 + O(3^3), 0)
+
+            sage: R.<x> = Zp(3)[]
+            sage: f = 357555295953*x + 257392844
+            sage: g = 225227399*x - 511940255230575
+            sage: f.xgcd(f*g)
+            ((3^9 + O(3^29))*x + 2 + 2*3 + 3^2 + 2*3^5 + 3^6 + 3^7
+             + 3^8 + 3^10 + 3^11 + 2*3^13 + 3^14 + 3^16 + 2*3^19 +
+            O(3^20), 1 + 2*3^2 + 3^4 + 2*3^5 + 3^6 + 3^7 +
+             2*3^8 + 2*3^10 + 2*3^12 + 3^13 + 3^14 + 3^15 + 2*3^17
+             + 3^18 + O(3^20), 0)
+
+        We check low precision computations::
+
+            sage: R.<x> = Zp(3,1)[]
+            sage: h = 3*x + 7
+            sage: i = 4*x + 9
+            sage: h.xgcd(h*i)
+            ((3 + O(3^2))*x + 1 + O(3), 1 + O(3), 0)
+        """
+        from sage.misc.stopgap import stopgap
+        stopgap("Extended gcd computations over p-adic fields are performed using the standard Euclidean algorithm which might produce mathematically incorrect results in some cases.", 13439)
+
+        base_ring = f.base_ring()
+        fracfield = base_ring.fraction_field()
+        f_field = f.change_ring(fracfield)
+        g_field = g.change_ring(fracfield)
+        xgcd = fracfield._xgcd_univariate_polynomial(f_field,g_field)
+        lcm = base_ring(1)
+        for f in xgcd:
+            for i in f:
+                lcm = (i.denominator()).lcm(lcm)
+        returnlst = []
+        for f in xgcd:
+            f *= lcm
+            returnlst.append(f.change_ring(base_ring))
+        return tuple(returnlst)
+
+    def _gcd_univariate_polynomial(self, f, g):
+        """
+        gcd for univariate polynomial rings over ``self``.
+
+        INPUT:
+
+         - ``f``, ``g`` - the polynomials of which to take the gcd
+
+        OUTPUT: A polynomial
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(27)
+            sage: K.<x> = R[]
+            sage: h = 3*x + a
+            sage: i = 4*x + 2
+            sage: h.gcd(h*i)
+            (3 + O(3^21))*x + a + O(3^20)
+        """
+        return self._xgcd_univariate_polynomial(f, g)[0]
+
+
 def is_pAdicField(R):
     """
     Returns ``True`` if and only if ``R`` is a `p`-adic field.
@@ -752,6 +852,7 @@ def is_pAdicField(R):
         True
     """
     return isinstance(R, pAdicFieldGeneric)
+
 
 class pAdicFieldGeneric(pAdicGeneric, Field):
     pass
@@ -800,13 +901,17 @@ class pAdicFloatingPointFieldGeneric(pAdicFieldGeneric, FloatingPointFieldGeneri
     pass
 
 class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
-    def construction(self):
+    def construction(self, forbid_frac_field=False):
         """
         Returns the functorial construction of self, namely,
         completion of the rational numbers with respect a given prime.
 
         Also preserves other information that makes this field unique
         (e.g. precision, rounding, print mode).
+
+        INPUT:
+
+        - ``forbid_frac_field`` -- ignored, for compatibility with other p-adic types.
 
         EXAMPLES::
 
@@ -852,7 +957,7 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
             sage: ZpCA(5,6).random_element()
             4*5^2 + 5^3 + O(5^6)
             sage: ZpFM(5,6).random_element()
-            2 + 4*5^2 + 2*5^4 + 5^5 + O(5^6)
+            2 + 4*5^2 + 2*5^4 + 5^5
         """
         if (algorithm == 'default'):
             if self.is_capped_relative():
@@ -949,7 +1054,7 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
                 raise TypeError("Members of the list of generators must be elements of self.")
         return self
 
-    def construction(self):
+    def construction(self, forbid_frac_field=False):
         """
         Returns the functorial construction of ``self``, namely,
         completion of the rational numbers with respect a given prime.
@@ -957,11 +1062,30 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
         Also preserves other information that makes this field unique
         (e.g. precision, rounding, print mode).
 
+        INPUT:
+
+        - ``forbid_frac_field`` -- require a completion functor rather
+          than a fraction field functor.  This is used in the
+          :meth:`sage.rings.padics.local_generic.LocalGeneric.change` method.
+
         EXAMPLES::
 
             sage: K = Qp(17, 8, print_mode='val-unit', print_sep='&')
             sage: c, L = K.construction(); L
+            17-adic Ring with capped relative precision 8
+            sage: c
+            FractionField
+            sage: c(L)
+            17-adic Field with capped relative precision 8
+            sage: K == c(L)
+            True
+
+        We can get a completion functor by forbidding the fraction field::
+
+            sage: c, L = K.construction(forbid_frac_field=True); L
             Rational Field
+            sage: c
+            Completion[17, prec=8]
             sage: c(L)
             17-adic Field with capped relative precision 8
             sage: K == c(L)
@@ -977,8 +1101,11 @@ class pAdicFieldBaseGeneric(pAdicBaseGeneric, pAdicFieldGeneric):
             sage: S._precision_cap()
             (31, 41)
         """
-        from sage.categories.pushout import CompletionFunctor
-        extras = {'print_mode':self._printer.dict(), 'type':self._prec_type(), 'names':self._names}
-        if hasattr(self, '_label'):
-            extras['label'] = self._label
-        return (CompletionFunctor(self.prime(), self._precision_cap(), extras), QQ)
+        from sage.categories.pushout import FractionField, CompletionFunctor
+        if forbid_frac_field:
+            extras = {'print_mode':self._printer.dict(), 'type':self._prec_type(), 'names':self._names}
+            if hasattr(self, '_label'):
+                extras['label'] = self._label
+            return (CompletionFunctor(self.prime(), self._precision_cap(), extras), QQ)
+        else:
+            return FractionField(), self.integer_ring()

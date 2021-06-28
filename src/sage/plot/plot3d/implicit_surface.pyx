@@ -76,7 +76,6 @@ AUTHORS:
 # n^3 memory when it reads the JVXL file, but that might be on a different
 # computer; Tachyon would only allocate memory proportional to the
 # output size.)
-from __future__ import absolute_import
 
 cimport numpy as np
 import numpy as np
@@ -87,6 +86,7 @@ from sage.plot.plot3d.base import RenderParams, default_texture
 from sage.plot.plot3d.index_face_set cimport IndexFaceSet
 from sage.rings.all import RDF
 from sage.plot.misc import setup_for_eval_on_grid
+from sage.plot.colors import check_color_data
 
 from sage.libs.gsl.math cimport gsl_isnan
 
@@ -973,8 +973,9 @@ cdef class ImplicitSurface(IndexFaceSet):
             IndexFaceSet.__init__(self, [], [], **kwds)
         else:
             # case of a color depending on parameters
-            self.color_function = color_data[0]
-            self.colormap = color_data[1]
+            cf, cm = check_color_data(color_data)
+            self.color_function = cf
+            self.colormap = cm
             IndexFaceSet.__init__(self, [], [], texture_list=[], **kwds)
         from sage.ext.fast_eval import fast_float
 
@@ -1142,6 +1143,30 @@ cdef class ImplicitSurface(IndexFaceSet):
         """
         self.triangulate()
         return IndexFaceSet.json_repr(self, render_params)
+
+    def threejs_repr(self, render_params):
+        r"""
+        Return a represention of the surface suitable for plotting with three.js.
+
+        EXAMPLES::
+
+            sage: from sage.plot.plot3d.implicit_surface import ImplicitSurface
+            sage: _ = var('x,y,z')
+            sage: G = ImplicitSurface(x + y + z, (x,-1, 1), (y,-1, 1), (z,-1, 1))
+            sage: G.threejs_repr(G.default_render_params())
+            [('surface',
+              {'color': '#6666ff',
+               'faces': [[0, 1, 2],
+                ...
+               'opacity': 1.0,
+               'vertices': [{'x': ...,
+                 'y': -0.9743589743589...,
+                 'z': -0.02564102564102...},
+                ...
+                {'x': -1.0, 'y': 0.9487179487179..., 'z': 0.05128205128205...}]})]
+        """
+        self.triangulate()
+        return IndexFaceSet.threejs_repr(self, render_params)
 
     def triangulate(self, force=False):
         """

@@ -6,7 +6,6 @@ AUTHORS:
 - Jonas Jermann (2013): initial version
 
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2013-2014 Jonas Jermann <jjermann2@gmail.com>
@@ -17,8 +16,7 @@ from __future__ import absolute_import
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.all import i
-from sage.rings.all import ZZ, QQ, infinity, AlgebraicField
+from sage.rings.all import ZZ, QQ, infinity, AlgebraicField, I
 from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
 from sage.rings.power_series_ring import is_PowerSeriesRing
 from sage.rings.laurent_series_ring import is_LaurentSeriesRing
@@ -121,7 +119,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         """
 
         from sage.misc.latex import latex
-        return "{}_{{ n={} }}({},\ {})({})".format(self._analytic_type.latex_space_name(), self._group.n(), self._weight, self._ep, latex(self._base_ring))
+        return r"{}_{{ n={} }}({},\ {})({})".format(self._analytic_type.latex_space_name(), self._group.n(), self._weight, self._ep, latex(self._base_ring))
 
     def _element_constructor_(self, el):
         r"""
@@ -348,10 +346,9 @@ class FormsSpace_abstract(FormsRing_abstract):
     @cached_method
     def one(self):
         r"""
-        Return the one element from the corresponding space
-        of constant forms.
+        Return the one element from the corresponding space of constant forms.
 
-        Note: The one element does not lie in ``self`` in general.
+        .. NOTE:: The one element does not lie in ``self`` in general.
 
         EXAMPLES::
 
@@ -363,28 +360,6 @@ class FormsSpace_abstract(FormsRing_abstract):
             ModularForms(n=3, k=0, ep=1) over Integer Ring
         """
         return self.extend_type("holo", ring=True)(1).reduce()
-
-    def one_element(self):
-        r"""
-        Return the one element from the corresponding space
-        of constant forms.
-
-        Note: The one element does not lie in ``self`` in general.
-
-        EXAMPLES::
-
-            sage: from sage.modular.modform_hecketriangle.space import CuspForms
-            sage: MF = CuspForms(k=12)
-            sage: (MF.Delta()^(-1)).parent()
-            MeromorphicModularForms(n=3, k=-12, ep=1) over Integer Ring
-            sage: MF.one_element()
-            doctest:...: DeprecationWarning: .one_element() is deprecated. Use .one() instead.
-            See http://trac.sagemath.org/17694 for details.
-            1 + O(q^5)
-        """
-        from sage.misc.superseded import deprecation
-        deprecation(17694, ".one_element() is deprecated. Use .one() instead.")
-        return self.one()
 
     def is_ambient(self):
         r"""
@@ -399,7 +374,6 @@ class FormsSpace_abstract(FormsRing_abstract):
             sage: MF.subspace([MF.gen(0)]).is_ambient()
             False
         """
-
         return self._ambient_space == self
 
     def ambient_space(self):
@@ -728,7 +702,7 @@ class FormsSpace_abstract(FormsRing_abstract):
                 l2 = num % n
                 l1 = ((num-l2)/n).numerator()
         else:
-            raise ValueError("Invalid or non-occuring weight k={}, ep={}!".format(k,ep))
+            raise ValueError("Invalid or non-occurring weight k={}, ep={}!".format(k,ep))
         return (l1, l2)
 
     # TODO: this only makes sense for modular forms,
@@ -783,7 +757,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         if (gamma.is_translation()):
             return ZZ(1)
         elif (gamma.is_reflection()):
-            return self._ep * (t/AlgebraicField()(i))**self._weight
+            return self._ep * (t/AlgebraicField()(I))**self._weight
         else:
             L = [v for v in gamma.word_S_T()[0]]
             aut_f = ZZ(1)
@@ -1861,7 +1835,7 @@ class FormsSpace_abstract(FormsRing_abstract):
         # of the column size until A has maximal rank:
         if (A.rank() < column_size):
             if (incr_prec_by == 0):
-                from sage.misc.misc import verbose
+                from sage.misc.verbose import verbose
                 verbose("Encountered a base change matrix with not-yet-maximal rank (rare, please report)!")
             incr_prec_by += column_size//ZZ(5) + 1
             return self._quasi_form_matrix(min_exp=min_exp, order_1=order_1, incr_prec_by=incr_prec_by)
@@ -2243,7 +2217,7 @@ class FormsSpace_abstract(FormsRing_abstract):
 
         - ``denom_factor``    -- An integer (default: 1) whose factor might occur in
                                  the denominator of the given Laurent coefficients
-                                 (in addition to naturally occuring factors).
+                                 (in addition to naturally occurring factors).
 
         OUTPUT:
 
@@ -2364,7 +2338,7 @@ class FormsSpace_abstract(FormsRing_abstract):
             cor_exp = max(-first_exp, 0)
             m += cor_exp
 
-            if (self.group().is_arithmetic()):
+            if self.group().is_arithmetic():
                 return ZZ(1/dvalue)**m
 
             hecke_n = self.hecke_n()

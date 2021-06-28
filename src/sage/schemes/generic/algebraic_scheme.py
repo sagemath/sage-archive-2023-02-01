@@ -79,38 +79,41 @@ Let us look at one affine patch, for example the one where `x_0=1` ::
     sage: patch
     Closed subscheme of Affine Space of dimension 3
     over Rational Field defined by:
-      -x0^2 + x1,
-      -x0*x1 + x2,
-      -x1^2 + x0*x2
+      -x1^2 + x2,
+      -x1*x2 + x3,
+      -x2^2 + x1*x3
     sage: patch.embedding_morphism()
     Scheme morphism:
       From: Closed subscheme of Affine Space of dimension 3
       over Rational Field defined by:
-      -x0^2 + x1,
-      -x0*x1 + x2,
-      -x1^2 + x0*x2
+      -x1^2 + x2,
+      -x1*x2 + x3,
+      -x2^2 + x1*x3
       To:   Closed subscheme of Projective Space of dimension 3
       over Rational Field defined by:
       x1^2 - x0*x2,
       x1*x2 - x0*x3,
       x2^2 - x1*x3
-      Defn: Defined on coordinates by sending (x0, x1, x2) to
-            (1 : x0 : x1 : x2)
+      Defn: Defined on coordinates by sending (x1, x2, x3) to
+            (1 : x1 : x2 : x3)
 
 
 AUTHORS:
 
-- David Kohel (2005): initial version.
-- William Stein (2005): initial version.
-- Andrey Novoseltsev (2010-05-17): subschemes of toric varieties.
-- Volker Braun (2010-12-24): documentation of schemes and
-  refactoring. Added coordinate neighborhoods and is_smooth()
-- Ben Hutz (2014): subschemes of Cartesian products of projective space
-- Ben Hutz (2017): split subschemes types into respective folders
-"""
-from __future__ import absolute_import
+- David Kohel, William Stein (2005): initial version
 
-#*****************************************************************************
+- Andrey Novoseltsev (2010-05-17): subschemes of toric varieties
+
+- Volker Braun (2010-12-24): documentation of schemes and refactoring; added
+  coordinate neighborhoods and is_smooth()
+
+- Ben Hutz (2014): subschemes of Cartesian products of projective space
+
+- Ben Hutz (2017): split subschemes types into respective folders
+
+"""
+
+# ****************************************************************************
 #       Copyright (C) 2010 Volker Braun <vbraun.name@gmail.com>
 #       Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
 #       Copyright (C) 2010 Andrey Novoseltsev <novoselt@gmail.com>
@@ -119,24 +122,11 @@ from __future__ import absolute_import
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-
-#*** A quick overview over the class hierarchy:
-# class AlgebraicScheme(scheme.Scheme)
-#    class AlgebraicScheme_subscheme
-#       class AlgebraicScheme_subscheme_affine
-#       class AlgebraicScheme_subscheme_projective
-#       class AlgebraicScheme_subscheme_toric
-#          class AlgebraicScheme_subscheme_affine_toric
-#    class AlgebraicScheme_quasi
-
-
-from sage.combinat.tuple import UnorderedTuples
 
 from sage.categories.number_fields import NumberFields
-from sage.categories.morphism import Morphism
 
 from sage.rings.all import ZZ, QQbar
 from sage.rings.ideal import is_Ideal
@@ -146,8 +136,10 @@ from sage.rings.number_field.order import is_NumberFieldOrder
 
 from sage.misc.latex import latex
 from sage.misc.misc import is_iterator
+
 from sage.structure.all import Sequence
 from sage.structure.richcmp import richcmp, richcmp_method
+
 from sage.calculus.functions import jacobian
 
 from sage.arith.all import gcd, lcm
@@ -156,9 +148,6 @@ import sage.schemes.affine
 from . import ambient_space
 from . import scheme
 
-
-
-#*******************************************************************
 def is_AlgebraicScheme(x):
     """
     Test whether ``x`` is an algebraic scheme.
@@ -217,8 +206,19 @@ def is_AlgebraicScheme(x):
     return isinstance(x, AlgebraicScheme)
 
 
+# ****************************************************************************
+# A quick overview over the class hierarchy:
+#
+# class AlgebraicScheme(scheme.Scheme)
+#    class AlgebraicScheme_subscheme
+#       class AlgebraicScheme_subscheme_affine
+#       class AlgebraicScheme_subscheme_projective
+#       class AlgebraicScheme_subscheme_toric
+#          class AlgebraicScheme_subscheme_affine_toric
+#    class AlgebraicScheme_quasi
+# ****************************************************************************
 
-#*******************************************************************
+
 class AlgebraicScheme(scheme.Scheme):
     """
     An algebraic scheme presented as a subscheme in an ambient space.
@@ -227,7 +227,6 @@ class AlgebraicScheme(scheme.Scheme):
     defined by equations in affine, projective, or toric ambient
     spaces.
     """
-
     def __init__(self, A):
         """
         TESTS::
@@ -401,7 +400,7 @@ class AlgebraicScheme(scheme.Scheme):
             sage: nbhd = X.neighborhood(p)
             sage: nbhd
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -x0^2*x1 - 2*x0*x1
+              -y^2*z - 2*y*z
 
         Note that `p=(1,1,0)` is a singular point of `X`. So the
         neighborhood of `p` is not just affine space. The
@@ -418,11 +417,11 @@ class AlgebraicScheme(scheme.Scheme):
             sage: nbhd.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -x0^2*x1 - 2*x0*x1
+              -y^2*z - 2*y*z
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
               x^2*z - y^2*z
-              Defn: Defined on coordinates by sending (x0, x1) to
-                    (1 : x0 + 1 : x1)
+              Defn: Defined on coordinates by sending (y, z) to
+                    (1 : y + 1 : z)
 
         A couple more examples::
 
@@ -480,8 +479,8 @@ class AlgebraicScheme(scheme.Scheme):
             sage: p = [1,-1,3,4]
             sage: nbhd = X.neighborhood(p); nbhd
             Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
-              x0^2*x2^2 - x1^2*x2^2 + 6*x0^2*x2 - 6*x1^2*x2 + 2*x0*x2^2 +
-              2*x1*x2^2 - 7*x0^2 + 7*x1^2 + 12*x0*x2 + 12*x1*x2 - 14*x0 - 14*x1
+              w^2*y^2 - x^2*y^2 + 6*w^2*y - 6*x^2*y + 2*w*y^2 +
+              2*x*y^2 - 7*w^2 + 7*x^2 + 12*w*y + 12*x*y - 14*w - 14*x
             sage: nbhd.embedding_center()
             (0, 0, 0)
             sage: nbhd.embedding_morphism()(nbhd.embedding_center())
@@ -489,12 +488,12 @@ class AlgebraicScheme(scheme.Scheme):
             sage: nbhd.embedding_morphism()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 3 over Rational Field defined by:
-              x0^2*x2^2 - x1^2*x2^2 + 6*x0^2*x2 - 6*x1^2*x2 + 2*x0*x2^2 +
-              2*x1*x2^2 - 7*x0^2 + 7*x1^2 + 12*x0*x2 + 12*x1*x2 - 14*x0 - 14*x1
+              w^2*y^2 - x^2*y^2 + 6*w^2*y - 6*x^2*y + 2*w*y^2 +
+              2*x*y^2 - 7*w^2 + 7*x^2 + 12*w*y + 12*x*y - 14*w - 14*x
               To:   Closed subscheme of Projective Space of dimension 3 over Rational Field defined by:
               w^2*y^2 - x^2*y^2 - w^2*z^2 + x^2*z^2
-              Defn: Defined on coordinates by sending (x0, x1, x2) to
-                    (x0 + 1 : x1 - 1 : x2 + 3 : 4)
+              Defn: Defined on coordinates by sending (w, x, y) to
+                    (w + 1 : x - 1 : y + 3 : 4)
         """
         if '_embedding_center' in self.__dict__:
             return self._embedding_center
@@ -591,8 +590,6 @@ class AlgebraicScheme(scheme.Scheme):
         return self.__A._point(*args, **kwds)
 
 
-
-#*******************************************************************
 class AlgebraicScheme_quasi(AlgebraicScheme):
     """
     The quasi-affine or quasi-projective scheme `X - Y`, where `X` and `Y`
@@ -827,10 +824,21 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
                 return True
         raise TypeError("Coordinates %s do not define a point on %s"%(v,self))
 
-    def rational_points(self, F=None, bound=0):
+    def rational_points(self, **kwds):
         """
         Return the set of rational points on this algebraic scheme
         over the field `F`.
+
+        INPUT:
+
+        kwds:
+
+        - ``bound`` - integer (optional, default=0). The bound for the coordinates for
+          subschemes with dimension at least 1.
+
+        - ``F`` - field (optional, default=base ring). The field to compute
+          the rational points over.
+
 
         EXAMPLES::
 
@@ -840,7 +848,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             sage: U = T.complement(S)
             sage: U.rational_points()
             [(2, 4), (3, 2), (4, 2), (5, 4), (6, 1)]
-            sage: U.rational_points(GF(7^2, 'b'))
+            sage: U.rational_points(F=GF(7^2, 'b'))
             [(2, 4), (3, 2), (4, 2), (5, 4), (6, 1), (b, b + 4), (b + 1, 3*b + 5), (b + 2, 5*b + 1),
             (b + 3, 6), (b + 4, 2*b + 6), (b + 5, 4*b + 1), (b + 6, 6*b + 5), (2*b, 4*b + 2),
             (2*b + 1, b + 3), (2*b + 2, 5*b + 6), (2*b + 3, 2*b + 4), (2*b + 4, 6*b + 4),
@@ -852,6 +860,8 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             (5*b + 6, b + 3), (6*b, b + 4), (6*b + 1, 6*b + 5), (6*b + 2, 4*b + 1), (6*b + 3, 2*b + 6),
             (6*b + 4, 6), (6*b + 5, 5*b + 1), (6*b + 6, 3*b + 5)]
         """
+        F = kwds.get('F', None)
+        bound = kwds.get('bound', 0)
         if F is None:
             F = self.base_ring()
 
@@ -871,8 +881,6 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
         return pts
 
 
-
-#*******************************************************************
 @richcmp_method
 class AlgebraicScheme_subscheme(AlgebraicScheme):
     """
@@ -1206,7 +1214,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             w^5 - 2*z^3*v^2
             ]
 
-        We verify that the irrelevant ideal isn't accidently returned
+        We verify that the irrelevant ideal is not accidentally returned
         (see :trac:`6920`)::
 
             sage: PP.<x,y,z,w> = ProjectiveSpace(3,QQ)
@@ -1330,19 +1338,11 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         * the defining polynomials of the algebraic scheme. Note that
           some authors do not include these in the definition of the
           Jacobian ideal. An example of a reference that does include
-          the defining equations is [LazarsfeldJacobian]_.
+          the defining equations is [Laz2004]_, p. 181.
 
         OUTPUT:
 
         An ideal in the coordinate ring of the ambient space.
-
-        REFERENCES:
-
-        ..  [LazarsfeldJacobian]
-            Robert Lazarsfeld:
-            Positivity in algebraic geometry II;
-            Positivity for Vector Bundles, and Multiplier Ideals,
-            page 181.
 
         EXAMPLES::
 
@@ -1623,7 +1623,6 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         psi = right.ambient_space().coordinate_ring().hom(list(CR.gens()[n:]), CR)
         return AS.subscheme([phi(t) for t in self.defining_polynomials()] + [psi(t) for t in right.defining_polynomials()])
 
-
     __add__ = union
 
     def intersection(self, other):
@@ -1702,9 +1701,54 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             raise ValueError("other (=%s) must be in the same ambient space as self"%other)
         return AlgebraicScheme_quasi(other, self)
 
-    def rational_points(self, bound=0, F=None):
+    def rational_points(self, **kwds):
         """
         Return the rational points on the algebraic subscheme.
+
+        For a dimension 0 subscheme, if the base ring is a numerical field
+        such as the ComplexField the results returned could be very far from correct.
+        If the polynomials defining the subscheme are defined over a number field, you
+        will get better results calling rational points with `F` defined as the number
+        field and the base ring as the field of definition. If the base ring
+        is a number field, the embedding into ``F`` must be known.
+
+        In the case of numerically approximated points, the points are returned over as
+        points of the ambient space.
+
+        For a dimension greater than 0 scheme, depending on bound size, either the
+        points in the ambient space are enumerated or a sieving algorithm lifting points
+        modulo primes is used. See the documentation in homset for the details of the
+        sieving algorithm.
+
+        INPUT:
+
+        kwds:
+
+        - ``bound`` - integer (optional, default=0). The bound for the coordinates for
+          subschemes with dimension at least 1.
+
+        - ``prec`` - integer (optional, default=53). The precision to use to
+          compute the elements of bounded height for number fields.
+
+        - ``F`` - field (optional, default=base ring). The field to compute
+          the rational points over.
+
+        - ``point_tolerance`` - positive real number (optional, default=10^(-10)).
+          For numerically inexact fields, two points are considered the same
+          if their coordinates are within tolerance.
+
+        - ``zero_tolerance`` - positive real number (optional, default=10^(-10)).
+          For numerically inexact fields, points are on the subscheme if they
+          satisfy the equations to within tolerance.
+
+        - ``tolerance`` - a rational number in (0,1] used in doyle-krumm algorithm-4
+
+        OUTPUT: list of points in subscheme or ambient space
+
+        .. WARNING::
+
+           For numerically inexact fields such as ComplexField or RealField the
+           list of points returned is very likely to be incomplete at best.
 
         EXAMPLES:
 
@@ -1714,7 +1758,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: K.<v> = NumberField(u^2 + 3)
             sage: A.<x,y> = ProjectiveSpace(K,1)
             sage: X=A.subscheme(x^2 - y^2)
-            sage: X.rational_points(3)
+            sage: X.rational_points(bound=3)
             [(-1 : 1), (1 : 1)]
 
         One can enumerate points up to a given bound on a projective scheme
@@ -1743,21 +1787,44 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             [(0 : 1 : 0), (0 : 1 : 1), (0 : 6 : 1), (2 : 0 : 1),
              (4 : 0 : 1), (6 : 1 : 1), (6 : 6 : 1)]
 
+        ::
+
+            sage: K.<v> = QuadraticField(-3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: X = P.subscheme([x^2 - v^2*x*z, y*x-v*z^2])
+            sage: X.rational_points(F=CC)
+            [(-3.00000000000000 : -0.577350269189626*I : 1.00000000000000),
+             (0.000000000000000 : 1.00000000000000 : 0.000000000000000)]
+
+        ::
+
+            sage: K.<v> = QuadraticField(3)
+            sage: A.<x,y> = AffineSpace(K, 2)
+            sage: X = A.subscheme([x^2 - v^2*y, y*x-v])
+            sage: X.rational_points(F=RR)
+            [(1.73205080756888, 1.00000000000000)]
+
         .. TODO::
 
             Implement Stoll's model in weighted projective space to
             resolve singularities and find two points (1 : 1 : 0) and
             (-1 : 1 : 0) at infinity.
         """
-        if F is None:
+        F = kwds.pop('F', None)
+        if F is None: #sometimes None is passed in
             F = self.base_ring()
-        X = self.base_extend(F)(F)
         if F in NumberFields() or F == ZZ:
+            X = self.base_extend(F)(F)
             try:
-                return X.points(bound=bound) # checks for proper bound done in points functions
+                return X.points(**kwds) # checks for proper bound done in points functions
             except TypeError:
                 raise TypeError("Unable to enumerate points over %s."%F)
+        elif (self.base_ring() in NumberFields() or self.base_ring() == ZZ)\
+          and hasattr(F, 'precision'):
+            #we are numerically approximating number field points
+            return self(self.base_ring()).numerical_points(F=F, **kwds)
         try:
+            X = self.base_extend(F)(F)
             return X.points()
         except TypeError:
             raise TypeError("Unable to enumerate points over %s."%F)
@@ -1853,7 +1920,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             Closed subscheme of Projective Space of dimension 1 over Complex Field
             with 53 bits of precision defined by:
               x^2 + (0.623489801858734 + 0.781831482468030*I)*y^2
-            sage: X.change_ring(K).change_ring(K.embeddings(QQbar)[0])
+            sage: X.change_ring(K).change_ring(K.embeddings(QQbar)[3])
             Closed subscheme of Projective Space of dimension 1 over Algebraic Field defined by:
               x^2 + (-0.9009688679024191? - 0.4338837391175581?*I)*y^2
 

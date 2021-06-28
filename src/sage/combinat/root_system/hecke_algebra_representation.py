@@ -80,10 +80,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
 
     REFERENCES:
 
-    .. [HST2008] \F. Hivert, A. Schilling, N. Thiery,
-       *Hecke group algebras as quotients of affine Hecke algebras at level 0*,
-       Journal of Combinatorial Theory, Series A 116 (2009) 844-863
-       (:arxiv:`0804.3781`)
+    - [HST2008]_
     """
     def __init__(self, domain, on_basis, cartan_type, q1, q2, q=ZZ.one(), side="right"):
         r"""
@@ -358,7 +355,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
             sage: q1, q2 = K.gens()
             sage: KW = W.algebra(K)
             sage: x = KW.an_element(); x
-            2*12321 + 3*1231 + 123 + e
+            123 + 3*32 + 2*3 + e
 
             sage: T = KW.demazure_lusztig_operators(q1,q2)
             sage: T12 = T.Tw( (1,2) )
@@ -602,6 +599,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         # (co)weight space, because the alcove walks currently uses
         # rho_classical and, in type BC, the later does not have
         # integral coefficients:
+
         # sage: RootSystem(["BC",2,2]).coweight_lattice().rho_classical()
 
         # On the other hand, at this point we need the expression of
@@ -626,7 +624,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
         # and Macdonald polynomials)
         if self._side == "left":
             word = tuple([x for x in reversed(word)])
-            signs= tuple([x for x in reversed(signs)])
+            signs = tuple([x for x in reversed(signs)])
         # The power of q implements the fact that Y^\deltacheck = 1/q.
         # The classical simple coroots have no \deltacheck term.
         # alpha[0] has a \deltacheck with coefficient one
@@ -745,7 +743,7 @@ class HeckeAlgebraRepresentation(WithEqualityById, SageObject):
              -2121 + 212,
              (q2/(q1-q2))*2121 + (q2/(-q1+q2))*121 + (q2/(-q1+q2))*212 - 12 + ((-q2)/(-q1+q2))*21 + 2,
              ((-q2^2)/(-q1^2+q1*q2-q2^2))*2121 - 121 + (q2^2/(-q1^2+q1*q2-q2^2))*212 + 21,
-             ((q1^2+q2^2)/(-q1^2+q1*q2-q2^2))*2121 + ((-q1^2-q2^2)/(-q1^2+q1*q2-q2^2))*121 + ((-q2^2)/(-q1^2+q1*q2-q2^2))*212 + (q2^2/(-q1^2+q1*q2-q2^2))*12 - 21 + 1,
+             ((-q1^2-q2^2)/(q1^2-q1*q2+q2^2))*2121 + ((-q1^2-q2^2)/(-q1^2+q1*q2-q2^2))*121 + ((-q2^2)/(-q1^2+q1*q2-q2^2))*212 + (q2^2/(-q1^2+q1*q2-q2^2))*12 - 21 + 1,
              2121,
              (q2/(-q1+q2))*2121 + ((-q2)/(-q1+q2))*121 - 212 + 12,
              -2121 + 121]
@@ -801,7 +799,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
         classical operators `T_1, \ldots, T_n` from `T` and `T_Y` coincide.
     """
     def __init__(self, T, T_Y = None, normalized = True):
-        """
+        r"""
         INPUT:
 
         - ``T`` -- a family `(T_i)_{i\in I}` implementing the action of
@@ -947,7 +945,7 @@ class CherednikOperatorsEigenvectors(UniqueRepresentation, SageObject):
 
     @abstract_method
     def affine_retract(self, mu):
-        """
+        r"""
         Retract `\mu` from a space admitting an action of the affine Weyl group.
 
         EXAMPLES::

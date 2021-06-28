@@ -62,7 +62,7 @@ Some more examples::
 
 from sage.structure.element import Element
 from sage.structure.richcmp import richcmp, op_NE
-from sage.symbolic.all import I
+from sage.symbolic.constants import I
 from sage.misc.latex import latex
 from sage.structure.element import is_Matrix
 from sage.matrix.constructor import matrix
@@ -480,8 +480,8 @@ class HyperbolicPoint(Element):
 
             sage: p = HyperbolicPlane().UHP().random_element()
             sage: A = p.symmetry_involution()
-            sage: A*p == p
-            True
+            sage: p.dist(A*p)  # abs tol 1e-10
+            0
 
             sage: A.preserves_orientation()
             True
@@ -528,10 +528,10 @@ class HyperbolicPoint(Element):
                 bd_pic = self._model.get_background_graphic(bd_min=p - 1,
                                                             bd_max=p + 1)
                 pic = bd_pic + pic
-        else: # It is an interior point
+        else:  # It is an interior point
             if p in RR:
                 p = CC(p)
-            elif hasattr(p, 'iteritems') or hasattr(p, '__iter__'):
+            elif hasattr(p, 'items') or hasattr(p, '__iter__'):
                 p = [numerical_approx(k) for k in p]
             else:
                 p = numerical_approx(p)
@@ -540,6 +540,7 @@ class HyperbolicPoint(Element):
                 bd_pic = self.parent().get_background_graphic()
                 pic = bd_pic + pic
         return pic
+
 
 class HyperbolicPointUHP(HyperbolicPoint):
     r"""
@@ -588,7 +589,7 @@ class HyperbolicPointUHP(HyperbolicPoint):
             sage: HyperbolicPlane().UHP().get_point(infinity).show()
             Traceback (most recent call last):
             ...
-            NotImplementedError: can't draw the point infinity
+            NotImplementedError: can...t draw the point infinity
         """
         p = self.coordinates()
         if p == infinity:

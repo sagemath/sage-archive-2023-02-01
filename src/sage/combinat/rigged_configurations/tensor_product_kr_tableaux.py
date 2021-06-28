@@ -124,7 +124,6 @@ class HighestWeightTensorKRT(UniqueRepresentation):
             sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['D',4,1], [[2,1]])
             sage: from sage.combinat.rigged_configurations.tensor_product_kr_tableaux import HighestWeightTensorKRT
             sage: for x in HighestWeightTensorKRT(KRT): x
-            ...
             [[1], [2]]
             [[1], [-1]]
         """
@@ -329,9 +328,9 @@ class TensorProductOfKirillovReshetikhinTableaux(FullTensorProductOfRegularCryst
 
             sage: KRT = crystals.TensorProductOfKirillovReshetikhinTableaux(['A', 3, 1], [[2,1], [1,1]])
             sage: g = KRT.__iter__()
-            sage: next(g)
+            sage: next(g)         # random
             [[2], [3]] (X) [[1]]
-            sage: next(g)
+            sage: next(g)         # random
             [[2], [4]] (X) [[1]]
         """
         index_set = self._cartan_type.classical().index_set()

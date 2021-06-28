@@ -24,7 +24,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-from __future__ import print_function
 
 from sage.misc.cachefunc import cached_in_parent_method, cached_method
 from sage.structure.unique_representation import UniqueRepresentation
@@ -118,8 +117,7 @@ class CrystalOfLSPaths(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [Littelmann95] \P. Littelmann, Paths and root operators in representation
-       theory. Ann. of Math. (2) 142 (1995), no. 3, 499-525.
+    .. [Li1995b]_
     """
 
     @staticmethod
@@ -912,9 +910,11 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
 
             .. MATH::
 
-                \pi(t) = \sum_{u'=1}^{u-1} (\sigma_{u'} - \sigma_{u'-1}) \nu_{u'} + (t-\sigma_{u-1}) \nu_{u}
+                \pi(t) = \sum_{u'=1}^{u-1} (\sigma_{u'} - \sigma_{u'-1}) \nu_{u'}
+                + (t-\sigma_{u-1}) \nu_{u}
 
-            for `0<\sigma_1<\sigma_2<\cdots<\sigma_s=1` and `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
+            for `0 < \sigma_1 < \sigma_2 < \cdots < \sigma_s=1` and
+            `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
             This method returns the tuple of `(\sigma_1,\ldots,\sigma_s)`.
 
             EXAMPLES::
@@ -949,17 +949,21 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
         @cached_in_parent_method
         def weyl_group_representation(self):
             r"""
-            Transforms the weights in the LS path ``self`` to elements in the Weyl group.
+            Transform the weights in the LS path ``self`` to elements
+            in the Weyl group.
 
             Each LS path can be written as the piecewise linear map:
 
             .. MATH::
 
-                \pi(t) = \sum_{u'=1}^{u-1} (\sigma_{u'} - \sigma_{u'-1}) \nu_{u'} + (t-\sigma_{u-1}) \nu_{u}
+                \pi(t) = \sum_{u'=1}^{u-1} (\sigma_{u'} - \sigma_{u'-1}) \nu_{u'}
+                + (t-\sigma_{u-1}) \nu_{u}
 
-            for `0<\sigma_1<\sigma_2<\cdots<\sigma_s=1` and `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
-            Each weight `\nu_u` is also associated to a Weyl group element. This method returns the list
-            of Weyl group elements associated to the `\nu_u` for `1\le u\le s`.
+            for `0 < \sigma_1 < \sigma_2 < \cdots < \sigma_s = 1` and
+            `\sigma_{u-1} \le t \le \sigma_{u}` and `1 \le u \le s`.
+            Each weight `\nu_u` is also associated to a Weyl group element.
+            This method returns the list of Weyl group elements associated
+            to the `\nu_u` for `1\le u\le s`.
 
             EXAMPLES::
 
@@ -1027,12 +1031,6 @@ class CrystalOfProjectedLevelZeroLSPaths(CrystalOfLSPaths):
                 \mathrm{wt}(x_u,x_{u+1}) \rangle.
 
             For more information, see [LNSSS2013]_.
-
-            REFERENCES:
-
-            .. [LNSSS2013] \C. Lenart, S. Naito, D. Sagaki, A. Schilling, M. Shimozono,
-               *A uniform model for Kirillov-Reshetikhin crystals. Extended abstract.*
-               DMTCS proc, to appear ( :arXiv:`1211.6019` )
 
             .. NOTE::
 
@@ -1193,10 +1191,7 @@ class InfinityCrystalOfLSPaths(UniqueRepresentation, Parent):
 
     REFERENCES:
 
-    .. [LZ11] Bin Li and Hechun Zhang.
-       *Path realization of crystal* `B(\infty)`.
-       Front. Math. China, **6** (4), (2011) pp. 689--706.
-       :doi:`10.1007/s11464-010-0073-x`
+    - [LZ2011]_
     """
     @staticmethod
     def __classcall_private__(cls, cartan_type):

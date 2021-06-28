@@ -21,10 +21,10 @@ Integers
 
 .. SEEALSO::
 
-    - :ref:`sage.sets.integer_range`
-    - :ref:`sage.sets.positive_integers`
-    - :ref:`sage.sets.non_negative_integers`
-    - :ref:`sage.sets.primes`
+    - :mod:`sage.sets.integer_range`
+    - :mod:`sage.sets.positive_integers`
+    - :mod:`sage.sets.non_negative_integers`
+    - :mod:`sage.sets.primes`
 
 Rationals
 ---------

@@ -1,3 +1,4 @@
+# distutils: libraries = CYGWIN_SQLITE3_LIBS
 """
 Miscellaneous operating system functions
 """
@@ -7,6 +8,7 @@ from cpython.exc cimport PyErr_SetFromErrno
 
 import os
 import contextlib
+
 
 def have_program(program, path=None):
     """
@@ -30,9 +32,12 @@ def have_program(program, path=None):
         True
         sage: have_program('there_is_not_a_program_with_this_name')
         False
-        sage: have_program('sage', path=SAGE_ROOT)
+        sage: from sage.env import SAGE_VENV
+        sage: have_program('sage', os.path.join(SAGE_VENV, 'bin'))
         True
-        sage: have_program('ls', path=SAGE_ROOT)
+        sage: have_program('sage', '/there_is_not_a_path_with_this_name')
+        False
+        sage: have_program('there_is_not_a_program_with_this_name', os.path.join(SAGE_LOCAL, 'bin'))
         False
     """
     if path is None:
@@ -56,14 +61,14 @@ def restore_cwd(chdir=None):
     - ``chdir`` -- optionally change directories to the given directory
       upon entering the context manager
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: import os
         sage: from sage.misc.sage_ostools import restore_cwd
         sage: from sage.misc.misc import SAGE_TMP
         sage: cwd = os.getcwd()
         sage: with restore_cwd(str(SAGE_TMP)):
-        ....:     print(os.getcwd() == SAGE_TMP)
+        ....:     print(os.getcwd() == os.path.realpath(SAGE_TMP))
         True
         sage: cwd == os.getcwd()
         True
@@ -130,28 +135,28 @@ cdef class redirection:
         sage: with redirection(sys.stdout, open(fn, 'w')):
         ....:     print("hello world!")
         sage: with open(fn) as f:
-        ....:     sys.stdout.write(f.read())
+        ....:     _ = sys.stdout.write(f.read())
         hello world!
 
     We can do the same using a file descriptor as source::
 
         sage: fd = sys.stdout.fileno()
-        sage: with redirection(fd, open(fn, 'w')):
-        ....:     _ = os.write(fd, "hello world!\n")
+        sage: with redirection(fd, open(fn, 'wb')):
+        ....:     _ = os.write(fd, b"hello world!\n")
         sage: with open(fn) as f:
-        ....:     sys.stdout.write(f.read())
+        ....:     _ = sys.stdout.write(f.read())
         hello world!
 
     The converse also works::
 
         sage: with open(fn, 'w') as f:
-        ....:     f.write("This goes to the file\n")
+        ....:     _ = f.write("This goes to the file\n")
         ....:     with redirection(f, sys.stdout, close=False):
-        ....:         f.write("This goes to stdout\n")
-        ....:     f.write("This goes to the file again\n")
+        ....:         _ = f.write("This goes to stdout\n")
+        ....:     _ = f.write("This goes to the file again\n")
         This goes to stdout
         sage: with open(fn) as f:
-        ....:     sys.stdout.write(f.read())
+        ....:     _ = sys.stdout.write(f.read())
         This goes to the file
         This goes to the file again
 
@@ -165,8 +170,8 @@ cdef class redirection:
         sage: with r:
         ....:     print("Line 2")
         sage: with f:
-        ....:     f.seek(0)
-        ....:     sys.stdout.write(f.read())
+        ....:     _ = f.seek(0)
+        ....:     _ = sys.stdout.write(f.read())
         Line 1
         Line 2
 
@@ -176,16 +181,16 @@ cdef class redirection:
         sage: with redirection(sys.stdout, open(fn, 'w')):
         ....:     _ = subprocess.call(["echo", "hello world"])
         sage: with open(fn) as f:
-        ....:     sys.stdout.write(f.read())
+        ....:     _ = sys.stdout.write(f.read())
         hello world
 
     TESTS::
 
-        sage: from six.moves import cStringIO as StringIO
-        sage: redirection(sys.stdout, StringIO())
+        sage: import io
+        sage: redirection(sys.stdout, io.StringIO())
         Traceback (most recent call last):
         ...
-        TypeError: <...> must be a Python file or an integer
+        io.UnsupportedOperation: fileno
 
     The redirection is removed and the destination file is closed even
     in the case of errors::
@@ -300,3 +305,43 @@ cdef class redirection:
             if self.close_dest:
                 self.dest_file.close()
                 self.dest_fd = -1
+
+
+IF PY_PLATFORM == 'cygwin':
+    from libc.stddef cimport wchar_t
+
+    cdef extern from "Windows.h":
+        int SetDllDirectoryW(wchar_t* lpPathName)
+
+    cdef extern from "sqlite3.h":
+        int sqlite3_initialize()
+
+    def fix_for_ticket_30157():
+        """
+        Cygwin-only workaround for an issue caused by the sqlite3 library.  See
+        trac:`30157`.
+
+        The issue here is that when the sqlite3 library is first initialized
+        it modifies Windows' default DLL search path order, which can possibly
+        break the correct search path for subsequent DLL loads.
+
+        This workaround ensures that the sqlite3 library is initialized very
+        early on (this does not add any significant overhead) and then
+        immediately undoes its deleterious effects.  In particular, calling
+        SetDllDirectoryW(NULL) restores the default DLL search path.
+
+        To be clear, there's no reason sqlite3 needs this to function
+        correctly; it's just a poorly-considered hack that attempted to work
+        around a problem that doesn't affect us.
+
+        Returns 0 if it succeeeds or a non-zero value if not.
+        """
+
+        ret = sqlite3_initialize()
+
+        if ret != 0:
+            # Library initialization failed for some reason
+            return ret
+
+        # SetDllDirectory returns 1 if it succeeds.
+        return not SetDllDirectoryW(NULL)

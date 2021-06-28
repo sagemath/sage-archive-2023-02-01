@@ -1,7 +1,6 @@
 r"""
 Congruence Subgroup `\Gamma(N)`
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 # This program is free software: you can redistribute it and/or modify
@@ -10,7 +9,6 @@ from __future__ import absolute_import
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from .congroup_generic import CongruenceSubgroup
 from sage.misc.all import prod
@@ -76,7 +74,7 @@ class Gamma_class(CongruenceSubgroup):
     def _latex_(self):
         r"""
         Return the \LaTeX representation of self.
-        
+
         EXAMPLES::
 
             sage: Gamma(20)._latex_()
@@ -235,7 +233,8 @@ class Gamma_class(CongruenceSubgroup):
 
         TESTS::
 
-            sage: G = Gamma(50); all([c == G.reduce_cusp(c) for c in G.cusps()])
+            sage: G = Gamma(50)
+            sage: all(c == G.reduce_cusp(c) for c in G.cusps())
             True
         """
         N = self.level()

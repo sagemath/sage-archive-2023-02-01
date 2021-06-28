@@ -53,7 +53,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 import types
 
@@ -61,6 +60,7 @@ from .sage_object cimport SageObject
 
 cdef sage_version
 from sage.version import version as sage_version
+from sage.cpython.string cimport bytes_to_str
 
 sage_version = sage_version.split('.')
 for i in range(len(sage_version)):
@@ -258,9 +258,10 @@ cdef class UniqueFactory(SageObject):
 
     The factory only knows about the pickling protocol used by new style
     classes. Hence, again, pickling and unpickling fails to use the cache,
-    even though the "factory data" are now available::
+    even though the "factory data" are now available (this is not the case
+    on Python 3 which *only* has new style classes)::
 
-        sage: loads(dumps(d)) is d
+        sage: loads(dumps(d)) is d  # py2
         False
         sage: d._factory_data
         (<__main__.MyFactory object at ...>,
@@ -348,12 +349,12 @@ cdef class UniqueFactory(SageObject):
             sage: from sage.structure.test_factory import test_factory
             sage: _ = test_factory(1,2,3); _
             Making object (1, 2, 3)
-            <sage.structure.test_factory.A instance at ...>
+            <sage.structure.test_factory.A object at ...>
 
         It already created one, so don't re-create::
 
             sage: test_factory(1,2,3)
-            <sage.structure.test_factory.A instance at ...>
+            <sage.structure.test_factory.A object at ...>
             sage: test_factory(1,2,3) is test_factory(1,2,3)
             True
 
@@ -378,7 +379,7 @@ cdef class UniqueFactory(SageObject):
             sage: from sage.structure.test_factory import test_factory
             sage: a = test_factory.get_object(3.0, 'a', {}); a
             Making object a
-            <sage.structure.test_factory.A instance at ...>
+            <sage.structure.test_factory.A object at ...>
             sage: test_factory.get_object(3.0, 'a', {}) is test_factory.get_object(3.0, 'a', {})
             True
             sage: test_factory.get_object(3.0, 'a', {}) is test_factory.get_object(3.1, 'a', {})
@@ -492,12 +493,12 @@ cdef class UniqueFactory(SageObject):
             sage: from sage.structure.test_factory import test_factory
             sage: test_factory.create_object(0, (1,2,3))
             Making object (1, 2, 3)
-            <sage.structure.test_factory.A instance at ...>
+            <sage.structure.test_factory.A object at ...>
             sage: test_factory('a')
             Making object ('a',)
-            <sage.structure.test_factory.A instance at ...>
+            <sage.structure.test_factory.A object at ...>
             sage: test_factory('a') # NOT called again
-            <sage.structure.test_factory.A instance at ...>
+            <sage.structure.test_factory.A object at ...>
         """
         raise NotImplementedError
 
@@ -536,8 +537,9 @@ cdef class UniqueFactory(SageObject):
 
         EXAMPLES::
 
-            sage: V = FreeModule(ZZ, 5)
-            sage: factory, data = FreeModule.reduce_data(V)
+            sage: from sage.modules.free_module import FreeModuleFactory_with_standard_basis as F
+            sage: V = F(ZZ, 5)
+            sage: factory, data = F.reduce_data(V)
             sage: factory(*data)
             Ambient free module of rank 5 over the principal ideal domain Integer Ring
             sage: factory(*data) is V
@@ -633,8 +635,9 @@ def generic_factory_unpickle(factory, *args):
 
     EXAMPLES::
 
-        sage: V = FreeModule(ZZ, 5)
-        sage: func, data = FreeModule.reduce_data(V)
+        sage: from sage.modules.free_module import FreeModuleFactory_with_standard_basis as F
+        sage: V = F(ZZ, 5)
+        sage: func, data = F.reduce_data(V)
         sage: func is sage.structure.factory.generic_factory_unpickle
         True
         sage: sage.structure.factory.generic_factory_unpickle(*data) is V
@@ -745,6 +748,7 @@ def lookup_global(name):
         sage: lookup_global('sage.rings.all.ZZ')
         Integer Ring
     """
+    name = bytes_to_str(name, encoding='ASCII')
     try:
         return factory_unpickles[name]
     except KeyError:

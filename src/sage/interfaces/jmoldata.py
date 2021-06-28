@@ -18,11 +18,10 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
-from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 
-from sage.env import SAGE_LOCAL
+from sage.env import JMOL_DIR
 from sage.misc.temporary_file import tmp_filename
 from sage.cpython.string import bytes_to_str
 
@@ -30,6 +29,7 @@ import os
 import re
 import subprocess
 import sys
+from pathlib import Path
 
 class JmolData(SageObject):
     r"""
@@ -67,8 +67,8 @@ class JmolData(SageObject):
         except (subprocess.CalledProcessError, OSError):
             return False
 
-        java_version = re.search('version.*([1][.][789]|"\d+")', version)
-        return java_version is not None
+        java_version_number = int(re.sub(r'.*version "(0\.|1\.)?(\d*)[\s\S]*', r'\2', version, flags=re.S))
+        return java_version_number >= 7
 
     def export_image(self,
         targetfile,
@@ -149,7 +149,7 @@ class JmolData(SageObject):
             True
         """
         # Set up paths, file names and scripts
-        jmolpath = os.path.join(SAGE_LOCAL, "share", "jmol", "JmolData.jar")
+        jmolpath = os.path.join(JMOL_DIR, "JmolData.jar")
         target_native = targetfile
 
         if sys.platform == 'cygwin':
@@ -178,5 +178,5 @@ class JmolData(SageObject):
                 "-J", launchscript, "-j", imagescript],
                 stdout=jout, stderr=jout, env=env)
         if not os.path.isfile(targetfile):
-            raise RuntimeError("Jmol failed to create file %s, see %s for details"%(repr(targetfile), repr(scratchout)))
+            raise RuntimeError(f"Jmol failed to create file {targetfile}: {Path(scratchout).read_text()}")
         os.unlink(scratchout)

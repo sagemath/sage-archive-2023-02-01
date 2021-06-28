@@ -74,12 +74,11 @@ docstring::
     ....:     "Metaclass doc"
     ....:     def _instancedoc_(self):
     ....:         return "Docstring for {}".format(self)
-    sage: from six import with_metaclass
-    sage: class T(with_metaclass(Meta, object)):
+    sage: class T(metaclass=Meta):
     ....:     pass
     sage: print(T.__doc__)
     Docstring for <class '__main__.T'>
-    sage: class U(with_metaclass(Meta, object)):
+    sage: class U(metaclass=Meta):
     ....:     "Special doc for U"
     sage: print(U.__doc__)
     Special doc for U
@@ -114,7 +113,7 @@ Check that inheritance works (after passing the subclass to
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from cpython.object cimport PyObject, PyTypeObject
@@ -311,11 +310,16 @@ def instancedoc(cls):
         Traceback (most recent call last):
         ...
         TypeError: expected type, got 7
+
         sage: class OldStyle: pass
-        sage: instancedoc(OldStyle)
+        sage: instancedoc(OldStyle)  # py2
         Traceback (most recent call last):
         ...
         TypeError: expected type, got <class __main__.OldStyle at ...>
+        sage: instancedoc(OldStyle)  # py3
+        Traceback (most recent call last):
+        ...
+        TypeError: instancedoc requires <class '__main__.OldStyle'> to have an '_instancedoc_' attribute
     """
     cdef PyTypeObject* tp = TypeObject(cls)
     try:

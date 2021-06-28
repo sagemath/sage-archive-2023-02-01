@@ -12,7 +12,6 @@ Cython helper methods to compute integral points in polyhedra.
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from cysignals.signals cimport sig_check
 import copy
@@ -23,7 +22,7 @@ from sage.rings.all import QQ, RR, ZZ
 from sage.rings.integer cimport Integer
 from sage.arith.all import gcd, lcm
 from sage.combinat.permutation import Permutation
-from sage.misc.all import prod, uniq
+from sage.misc.all import prod
 from sage.modules.free_module import FreeModule
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
@@ -367,7 +366,7 @@ cpdef rectangular_box_points(list box_min, list box_max,
 
     - ``polyhedron`` -- A
       :class:`~sage.geometry.polyhedron.base.Polyhedron_base`, a PPL
-      :class:`~sage.libs.ppl.C_Polyhedron`, or ``None`` (default).
+      :class:`~ppl.polyhedron.C_Polyhedron`, or ``None`` (default).
 
     - ``count_only`` -- Boolean (default: ``False``). Whether to
       return only the total number of vertices, and not their
@@ -492,7 +491,7 @@ cpdef rectangular_box_points(list box_min, list box_max,
 
     Using a PPL polyhedron::
 
-        sage: from sage.libs.ppl import Variable, Generator_System, C_Polyhedron, point
+        sage: from ppl import Variable, Generator_System, C_Polyhedron, point
         sage: gs = Generator_System()
         sage: x = Variable(0); y = Variable(1); z = Variable(2)
         sage: gs.insert(point(0*x + 1*y + 0*z))
@@ -508,19 +507,19 @@ cpdef rectangular_box_points(list box_min, list box_max,
 
         sage: cube = polytopes.cube()
         sage: cube.Hrepresentation(0)
-        An inequality (0, 0, -1) x + 1 >= 0
+        An inequality (-1, 0, 0) x + 1 >= 0
         sage: cube.Hrepresentation(1)
         An inequality (0, -1, 0) x + 1 >= 0
         sage: cube.Hrepresentation(2)
-        An inequality (-1, 0, 0) x + 1 >= 0
+        An inequality (0, 0, -1) x + 1 >= 0
         sage: rectangular_box_points([0]*3, [1]*3, cube, return_saturated=True)
         (((0, 0, 0), frozenset()),
-         ((0, 0, 1), frozenset({0})),
+         ((0, 0, 1), frozenset({2})),
          ((0, 1, 0), frozenset({1})),
-         ((0, 1, 1), frozenset({0, 1})),
-         ((1, 0, 0), frozenset({2})),
+         ((0, 1, 1), frozenset({1, 2})),
+         ((1, 0, 0), frozenset({0})),
          ((1, 0, 1), frozenset({0, 2})),
-         ((1, 1, 0), frozenset({1, 2})),
+         ((1, 1, 0), frozenset({0, 1})),
          ((1, 1, 1), frozenset({0, 1, 2})))
 
     TESTS:
@@ -1135,7 +1134,7 @@ cdef class InequalityCollection:
 
         EXAMPLES::
 
-            sage: from sage.libs.ppl import Variable, Generator_System, C_Polyhedron, point
+            sage: from ppl import Variable, Generator_System, C_Polyhedron, point
             sage: gs = Generator_System()
             sage: x = Variable(0); y = Variable(1); z = Variable(2)
             sage: gs.insert(point(0*x + 0*y + 1*z))
@@ -1156,8 +1155,8 @@ cdef class InequalityCollection:
         cdef list A
         cdef int index
         for index,c in enumerate(polyhedron.minimized_constraints()):
-            A = perm_action(permutation, list(c.coefficients()))
-            b = c.inhomogeneous_term()
+            A = perm_action(permutation, [Integer(mpz) for mpz in c.coefficients()])
+            b = Integer(c.inhomogeneous_term())
             try:
                 H = Inequality_int(A, b, max_abs_coordinates, index)
                 self.ineqs_int.append(H)

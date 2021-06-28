@@ -86,7 +86,6 @@ AUTHORS:
 Classes and Methods
 ===================
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 # Copyright (C) 2015 Daniel Krenn <dev@danielkrenn.at>
@@ -99,9 +98,10 @@ from __future__ import absolute_import
 #*****************************************************************************
 
 from .ring import SymbolicRing, SR
-
-
+from sage.categories.pushout import ConstructionFunctor
 from sage.structure.factory import UniqueFactory
+
+
 class SymbolicSubringFactory(UniqueFactory):
     r"""
     A factory creating a symbolic subring.
@@ -385,6 +385,7 @@ class GenericSymbolicSubring(SymbolicRing):
             False
 
         ::
+
             sage: from sage.symbolic.subring import SymbolicSubring
             sage: C = SymbolicSubring(no_variables=True)
             sage: C.has_coerce_map_from(ZZ)  # indirect doctest
@@ -410,9 +411,7 @@ class GenericSymbolicSubring(SymbolicRing):
             # Workaround; can be deleted once #19231 is fixed
             return False
 
-        from sage.rings.real_mpfr import mpfr_prec_min
-        from sage.rings.all import (ComplexField,
-                                    RLF, CLF, AA, QQbar, InfinityRing)
+        from sage.rings.all import RLF, CLF, AA, QQbar, InfinityRing
         from sage.rings.real_mpfi import is_RealIntervalField
         from sage.rings.complex_interval_field import is_ComplexIntervalField
 
@@ -429,7 +428,7 @@ class GenericSymbolicSubring(SymbolicRing):
               is_RealIntervalField(P) or is_ComplexIntervalField(P)):
             return True
 
-        elif ComplexField(mpfr_prec_min()).has_coerce_map_from(P):
+        elif P._is_numerical():
             return P not in (RLF, CLF, AA, QQbar)
 
     def __eq__(self, other):
@@ -472,8 +471,23 @@ class GenericSymbolicSubring(SymbolicRing):
         """
         return not self == other
 
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
 
-from sage.categories.pushout import ConstructionFunctor
+        EXAMPLES::
+
+            sage: from sage.symbolic.subring import SymbolicSubring
+            sage: A = SymbolicSubring(accepting_variables=('a',))
+            sage: B = SymbolicSubring(accepting_variables=('b',))
+            sage: hash(A) == hash(A)
+            True
+            sage: hash(A) == hash(B)
+            False
+        """
+        return hash(tuple(sorted(self._vars_)))
+
+
 class GenericSymbolicSubringFunctor(ConstructionFunctor):
     r"""
     A base class for the functors constructing symbolic subrings.
@@ -775,7 +789,6 @@ class SymbolicSubringAcceptingVarsFunctor(GenericSymbolicSubringFunctor):
             if not (self.vars & other.vars):
                 return other
 
-
     def _apply_functor(self, R):
         """
         Apply this functor to the given symbolic ring `R`.
@@ -1037,7 +1050,6 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
         """
         return 'Symbolic Constants Subring'
 
-
     def has_valid_variable(self, variable):
         r"""
         Return whether the given ``variable`` is valid in this subring.
@@ -1062,7 +1074,6 @@ class SymbolicConstantsSubring(SymbolicSubringAcceptingVars):
             False
         """
         return False
-
 
     def _an_element_(self):
         r"""

@@ -67,11 +67,11 @@ For general help, enter ``Sandpile.help()``, ``SandpileConfig.help()``, and
 A weighted directed graph given as a Python dictionary::
 
     sage: from sage.sandpiles import *
-    sage: g = {0: {},                    \
-               1: {0: 1, 2: 1, 3: 1},    \
-               2: {1: 1, 3: 1, 4: 1},    \
-               3: {1: 1, 2: 1, 4: 1},    \
-               4: {2: 1, 3: 1}}
+    sage: g = {0: {},
+    ....:      1: {0: 1, 2: 1, 3: 1},
+    ....:      2: {1: 1, 3: 1, 4: 1},
+    ....:      3: {1: 1, 2: 1, 4: 1},
+    ....:      4: {2: 1, 3: 1}}
 
 The associated sandpile with 0 chosen as the sink::
 
@@ -250,7 +250,6 @@ Distribution of avalanche sizes::
     ....:     m = m.add_random()
     ....:     m, f = m.stabilize(True)
     ....:     a.append(sum(f.values()))
-    ....:
     sage: p = list_plot([[log(i+1),log(a.count(i))] for i in [0..max(a)] if a.count(i)])
     sage: p.axes_labels(['log(N)','log(D(N))'])
     sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
@@ -307,18 +306,22 @@ Working with sandpile divisors::
     (2, 1, 0, 0, 0, -1)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2011 David Perkinson <davidp@reed.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function, division
-from six.moves import zip, range
+# ****************************************************************************
+
+from sage.misc.superseded import deprecation
 
 from collections import Counter
 from copy import deepcopy
 from inspect import getdoc
+from textwrap import dedent
+
+from IPython.lib import pretty
+
 import os  # CHECK: possibly unnecessary after removing 4ti2-dependent methods
 from sage.calculus.functional import derivative
 from sage.combinat.integer_vector import integer_vectors_nk_fast_iter
@@ -330,20 +333,69 @@ from sage.functions.log import exp
 from sage.functions.other import binomial
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.graphs.all import DiGraph, Graph
+from sage.graphs.digraph_generators import digraphs
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.homology.simplicial_complex import SimplicialComplex
 from sage.interfaces.singular import singular
 from sage.matrix.constructor import matrix, identity_matrix
-from sage.misc.all import prod, det, tmp_filename, random, randint, exists, denominator
+from sage.misc.all import prod, det, tmp_filename, exists, denominator
 from sage.arith.srange import xsrange
 from sage.modules.free_module_element import vector
 from sage.plot.colors import rainbow
 from sage.arith.all import falling_factorial, lcm
 from sage.rings.all import Integer, PolynomialRing, QQ, ZZ
-from sage.symbolic.all import I, pi
+from sage.symbolic.constants import I, pi
+from sage.symbolic.ring import SR
 
 # TODO: remove the following line once 4ti2 functions are removed
-path_to_zsolve = os.path.join(SAGE_LOCAL,'bin','zsolve')
+path_to_zsolve = os.path.join(SAGE_LOCAL, 'bin', 'zsolve')
+
+
+
+def _sandpile_help(cls, usage, verbose=True):
+    """
+    Prints help text for classes in this module; see the ``help()`` methods on
+    individual classes in this module for example usage.
+    """
+
+    # We collect the first sentence of each docstring.  The sentence is,
+    # by definition, from the beginning of the string to the first
+    # occurrence of a period or question mark.  If neither of these appear
+    # in the string, take the sentence to be the empty string.  If the
+    # latter occurs, something should be changed.
+    from sage.misc.sagedoc import detex
+    methods = []
+    for attr in sorted(vars(cls)):
+        if attr[0] != '_':
+            doc = getdoc(getattr(cls, attr))
+            period = doc.find('.')
+            question = doc.find('?')
+            if period == -1 and question == -1:
+                doc = ''  # Neither appears!
+            else:
+                if period == -1:
+                    period = len(doc) + 1
+                if question == -1:
+                    question = len(doc) + 1
+                if period < question:
+                    doc = doc.split('.')[0]
+                    doc = detex(doc).strip() + '.'
+                else:
+                    doc = doc.split('?')[0]
+                    doc = detex(doc).strip() + '?'
+            methods.append((attr, doc))
+
+    print(usage)
+    print()
+
+    mlen = max(len(attr) for attr, doc in methods)
+    if verbose:
+        for attr, doc in methods:
+            print(attr.ljust(mlen), '--', doc)
+    else:
+        for attr, _ in methods:
+            print(attr)
+
 
 class Sandpile(DiGraph):
     """
@@ -443,42 +495,11 @@ class Sandpile(DiGraph):
             zero_config              -- The all-zero configuration.
             zero_div                 -- The all-zero divisor.
         """
-        # We collect the first sentence of each docstring.  The sentence is,
-        # by definition, from the beginning of the string to the first
-        # occurrence of a period or question mark.  If neither of these appear
-        # in the string, take the sentence to be the empty string.  If the
-        # latter occurs, something should be changed.
-        from sage.misc.sagedoc import detex
-        methods = []
-        for i in sorted(Sandpile.__dict__):
-            if i[0]!='_':
-                s = eval('getdoc(Sandpile.' + i +')')
-                period = s.find('.')
-                question = s.find('?')
-                if period==-1 and question==-1:
-                    s = ''  # Neither appears!
-                else:
-                    if period==-1:
-                        period = len(s) + 1
-                    if question==-1:
-                        question = len(s) + 1
-                    if period < question:
-                        s = s.split('.')[0]
-                        s = detex(s).strip() + '.'
-                    else:
-                        s = s.split('?')[0]
-                        s = detex(s).strip() + '?'
-                methods.append([i,s])
-        print('For detailed help with any method FOO listed below,')
-        print('enter "Sandpile.FOO?" or enter "S.FOO?" for any Sandpile S.')
-        print('')
-        mlen = max([len(i[0]) for i in methods])
-        if verbose:
-            for i in methods:
-                print(i[0].ljust(mlen), '--', i[1])
-        else:
-            for i in methods:
-                print(i[0])
+
+        _sandpile_help(Sandpile, dedent("""\
+            For detailed help with any method FOO listed below,
+            enter "Sandpile.FOO?" or enter "S.FOO?" for any Sandpile S."""),
+            verbose=verbose)
 
     def __init__(self, g, sink=None):
         r"""
@@ -510,8 +531,8 @@ class Sandpile(DiGraph):
 
         ::
 
-            sage: g = {'a': {'a':2, 'b':1, 'c':3}, 'b': {'a':1, 'd':1},\
-                       'c': {'a':1,'d': 1}, 'd': {'b':1, 'c':1}}
+            sage: g = {'a': {'a':2, 'b':1, 'c':3}, 'b': {'a':1, 'd':1},
+            ....:      'c': {'a':1,'d': 1}, 'd': {'b':1, 'c':1}}
             sage: G = Sandpile(g,'d')
 
         Here is a square with unweighted edges.  In this example, the graph is
@@ -1061,8 +1082,8 @@ class Sandpile(DiGraph):
 
         EXAMPLES::
 
-            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1}, \
-                       3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
+            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1},
+            ....:      3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
             sage: S = Sandpile(g,0)
             sage: S._set_burning_config()
         """
@@ -1102,8 +1123,8 @@ class Sandpile(DiGraph):
 
         EXAMPLES::
 
-            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1}, \
-                       3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
+            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1},
+            ....:      3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
             sage: S = Sandpile(g,0)
             sage: S.burning_config()
             {1: 2, 2: 0, 3: 1, 4: 1, 5: 0}
@@ -1154,8 +1175,8 @@ class Sandpile(DiGraph):
 
         EXAMPLES::
 
-            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1},\
-            3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
+            sage: g = {0:{},1:{0:1,3:1,4:1},2:{0:1,3:1,5:1},
+            ....:      3:{2:1,5:1},4:{1:1,3:1},5:{2:1,3:1}}
             sage: S = Sandpile(g,0)
             sage: S.burning_config()
             {1: 2, 2: 0, 3: 1, 4: 1, 5: 0}
@@ -1654,7 +1675,7 @@ class Sandpile(DiGraph):
         """
         Compute the avalanche polynomial.  See ``self.avalanche_polynomial`` for details.
 
-        Examples::
+        EXAMPLES::
 
             sage: s = sandpiles.Complete(4)
             sage: s._set_avalanche_polynomial()
@@ -1986,7 +2007,7 @@ class Sandpile(DiGraph):
         r"""
         Find representatives for the elements of the Jacobian group.
 
-        EXAMPLES:
+        EXAMPLES::
 
             sage: s = sandpiles.Complete(3)
             sage: s._set_jacobian_representatives()
@@ -2579,13 +2600,13 @@ class Sandpile(DiGraph):
         # convert the resolution to a list of Sage poly matrices
         result = []
         zero = self._ring.gens()[0]*0
-        for i in range(1,len(res)+1):
+        for i in range(1, len(res)+1):
             syz_mat = []
-            new = [res[i][j] for j in range(1,res[i].size()+1)]
+            new = [res[i][j] for j in range(1, int(res[i].size())+1)]
             for j in range(self._betti[i]):
                 row = new[j].transpose().sage_matrix(self._ring)
                 row = [r for r in row[0]]
-                if len(row)<self._betti[i-1]:
+                if len(row) < self._betti[i-1]:
                     row += [zero]*(self._betti[i-1]-len(row))
                 syz_mat.append(row)
             syz_mat = matrix(self._ring, syz_mat).transpose()
@@ -2699,7 +2720,8 @@ class Sandpile(DiGraph):
             [1, 6, 9, 4]
         """
         if verbose:
-            print(singular.eval('print(betti(%s),"betti")' % self._singular_resolution.name()))
+            print(singular.eval('print(betti(%s), "betti")' %
+                                self._singular_resolution.name()))
         else:
             return self._betti
 
@@ -2716,7 +2738,18 @@ class Sandpile(DiGraph):
 
             sage: S = Sandpile({0: {}, 1: {2: 2}, 2: {0: 4, 1: 1}}, 0)
             sage: S.solve()
-            [[-0.707107 + 0.707107*I, 0.707107 - 0.707107*I], [-0.707107 - 0.707107*I, 0.707107 + 0.707107*I], [-I, -I], [I, I], [0.707107 + 0.707107*I, -0.707107 - 0.707107*I], [0.707107 - 0.707107*I, -0.707107 + 0.707107*I], [1, 1], [-1, -1]]
+            [[-0.707107000000000 + 0.707107000000000*I,
+              0.707107000000000 - 0.707107000000000*I],
+             [-0.707107000000000 - 0.707107000000000*I,
+              0.707107000000000 + 0.707107000000000*I],
+             [-I, -I],
+             [I, I],
+             [0.707107000000000 + 0.707107000000000*I,
+              -0.707107000000000 - 0.707107000000000*I],
+             [0.707107000000000 - 0.707107000000000*I,
+              -0.707107000000000 + 0.707107000000000*I],
+             [1, 1],
+             [-1, -1]]
             sage: len(_)
             8
             sage: S.group_order()
@@ -2728,24 +2761,20 @@ class Sandpile(DiGraph):
             group.  Generators for this group are given exactly by ``points()``.
         """
         singular.setring(self._ring._singular_())
-        v = [singular.var(i) for i in range(1,singular.nvars(self._ring))]
-        vars = '('
-        for i in v:
-            vars += str(i)
-            vars += ','
-        vars = vars[:-1]  # to get rid of the final ,
-        vars += ')'
+        v = [singular.var(i) for i in range(1, int(singular.nvars(self._ring)))]
+        vars_ = '({})'.format(','.join(str(i) for i in v))
+
         L = singular.subst(self._ideal,
-                singular.var(singular.nvars(self._ring)),1)
-        R = singular.ring(0,vars,'lp')
-        K = singular.fetch(self._ring,L)
+                singular.var(singular.nvars(self._ring)), 1)
+        _ = singular.ring(0, vars_, 'lp')
+        K = singular.fetch(self._ring, L)
         K = singular.groebner(K)
         singular.LIB('solve.lib')
-        M = K.solve(5,1)
+        M = K.solve(5, 1)
         singular.setring(M)
         sol= singular('SOL').sage_structured_str_list()
         sol = sol[0][0]
-        sol = [map(eval,[j.replace('i','I') for j in k]) for k in sol]
+        sol = [[SR(j) for j in k] for k in sol]
         return sol
 
     def _set_points(self):
@@ -2898,49 +2927,18 @@ class SandpileConfig(dict):
             unstable               -- The unstable vertices.
             values                 -- The values of the configuration as a list.
         """
-        # We collect the first sentence of each docstring.  The sentence is,
-        # by definition, from the beginning of the string to the first
-        # occurrence of a period or question mark.  If neither of these appear
-        # in the string, take the sentence to be the empty string.  If the
-        # latter occurs, something should be changed.
-        from sage.misc.sagedoc import detex
-        methods = []
-        for i in sorted(SandpileConfig.__dict__):
-            if i[0]!='_':
-                s = eval('getdoc(SandpileConfig.' + i +')')
-                period = s.find('.')
-                question = s.find('?')
-                if period==-1 and question==-1:
-                    s = ''  # Neither appears!
-                else:
-                    if period==-1:
-                        period = len(s) + 1
-                    if question==-1:
-                        question = len(s) + 1
-                    if period < question:
-                        s = s.split('.')[0]
-                        s = detex(s).strip() + '.'
-                    else:
-                        s = s.split('?')[0]
-                        s = detex(s).strip() + '?'
-                methods.append([i,s])
-        print('Shortcuts for SandpileConfig operations:')
-        print('~c    -- stabilize')
-        print('c & d -- add and stabilize')
-        print('c * c -- add and find equivalent recurrent')
-        print('c^k   -- add k times and find equivalent recurrent')
-        print('         (taking inverse if k is negative)')
-        print("")
-        print('For detailed help with any method FOO listed below,')
-        print('enter "SandpileConfig.FOO?" or enter "c.FOO?" for any SandpileConfig c.')
-        print('')
-        mlen = max([len(i[0]) for i in methods])
-        if verbose:
-            for i in methods:
-                print(i[0].ljust(mlen), '--', i[1])
-        else:
-            for i in methods:
-                print(i[0])
+
+        _sandpile_help(SandpileConfig, dedent("""\
+            Shortcuts for SandpileConfig operations:
+            ~c    -- stabilize
+            c & d -- add and stabilize
+            c * c -- add and find equivalent recurrent
+            c^k   -- add k times and find equivalent recurrent
+                     (taking inverse if k is negative)
+
+            For detailed help with any method FOO listed below,
+            enter "SandpileConfig.FOO?" or enter "c.FOO?" for any SandpileConfig c."""),
+            verbose=verbose)
 
     def __init__(self, S, c):
         r"""
@@ -3484,8 +3482,9 @@ class SandpileConfig(dict):
 
     def values(self):
         r"""
-        The values of the configuration as a list.  The list is sorted in the
-        order of the vertices.
+        The values of the configuration as a list.
+
+        The list is sorted in the order of the vertices.
 
         OUTPUT:
 
@@ -3495,14 +3494,14 @@ class SandpileConfig(dict):
 
         EXAMPLES::
 
-            sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
-            sage: c = SandpileConfig(S, {'b':1, 1:2})
+            sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
+            sage: c = SandpileConfig(S, {'b':1, 'c':2})
             sage: c
-            {1: 2, 'b': 1}
+            {'b': 1, 'c': 2}
             sage: c.values()
-            [2, 1]
+            [1, 2]
             sage: S.nonsink_vertices()
-            [1, 'b']
+            ['b', 'c']
         """
         return [self[v] for v in self._vertices]
 
@@ -3770,7 +3769,6 @@ class SandpileConfig(dict):
             ....:     m = m.add_random()
             ....:     m, f = m.stabilize(True)
             ....:     a.append(sum(f.values()))
-            ....:
             sage: p = list_plot([[log(i+1),log(a.count(i))] for i in [0..max(a)] if a.count(i)])
             sage: p.axes_labels(['log(N)','log(D(N))'])
             sage: t = text("Distribution of avalanche sizes", (2,2), rgbcolor=(1,0,0))
@@ -4191,6 +4189,15 @@ class SandpileConfig(dict):
         else:
             T.show(**kwds)
 
+
+# Note: There ought to be a better way to do this: sage.repl.display is
+# intended to help extend pretty-printing capabilities but it still doesn't
+# provide an interface to do something as simple as this (in this case we are
+# informing IPython that SandpileConfig, being a dict subclass, should be
+# pretty-printed in the same way a dict)
+pretty.for_type(SandpileConfig, pretty.for_type(dict, None))
+
+
 ###############################################
 ########### SandpileDivisor Class #############
 ###############################################
@@ -4250,42 +4257,11 @@ class SandpileDivisor(dict):
             weierstrass_pts        -- The Weierstrass points (vertices).
             weierstrass_rank_seq   -- The Weierstrass rank sequence at the given vertex.
         """
-        # We collect the first sentence of each docstring.  The sentence is,
-        # by definition, from the beginning of the string to the first
-        # occurrence of a period or question mark.  If neither of these appear
-        # in the string, take the sentence to be the empty string.  If the
-        # latter occurs, something should be changed.
-        from sage.misc.sagedoc import detex
-        methods = []
-        for i in sorted(SandpileDivisor.__dict__):
-            if i[0]!='_':
-                s = eval('getdoc(SandpileDivisor.' + i +')')
-                period = s.find('.')
-                question = s.find('?')
-                if period==-1 and question==-1:
-                    s = ''  # Neither appears!
-                else:
-                    if period==-1:
-                        period = len(s) + 1
-                    if question==-1:
-                        question = len(s) + 1
-                    if period < question:
-                        s = s.split('.')[0]
-                        s = detex(s).strip() + '.'
-                    else:
-                        s = s.split('?')[0]
-                        s = detex(s).strip() + '?'
-                methods.append([i,s])
-        print('For detailed help with any method FOO listed below,')
-        print('enter "SandpileDivisor.FOO?" or enter "D.FOO?" for any SandpileDivisor D.')
-        print('')
-        mlen = max([len(i[0]) for i in methods])
-        if verbose:
-            for i in methods:
-                print(i[0].ljust(mlen), '--', i[1])
-        else:
-            for i in methods:
-                print(i[0])
+
+        _sandpile_help(SandpileDivisor, dedent("""\
+            For detailed help with any method FOO listed below,
+            enter "SandpileDivisor.FOO?" or enter "D.FOO?" for any SandpileDivisor D."""),
+            verbose=verbose)
 
     def __init__(self, S, D):
         r"""
@@ -4785,8 +4761,9 @@ class SandpileDivisor(dict):
 
     def values(self):
         r"""
-        The values of the divisor as a list.  The list is sorted in the order of
-        the vertices.
+        The values of the divisor as a list.
+
+        The list is sorted in the order of the vertices.
 
         OUTPUT:
 
@@ -4796,14 +4773,14 @@ class SandpileDivisor(dict):
 
         EXAMPLES::
 
-            sage: S = Sandpile({'a':[1,'b'], 'b':[1,'a'], 1:['a']},'a')
-            sage: D = SandpileDivisor(S, {'a':0, 'b':1, 1:2})
+            sage: S = Sandpile({'a':['c','b'], 'b':['c','a'], 'c':['a']},'a')
+            sage: D = SandpileDivisor(S, {'a':0, 'b':1, 'c':2})
             sage: D
-            {'a': 0, 1: 2, 'b': 1}
+            {'a': 0, 'b': 1, 'c': 2}
             sage: D.values()
-            [2, 0, 1]
+            [0, 1, 2]
             sage: S.vertices()
-            [1, 'a', 'b']
+            ['a', 'b', 'c']
         """
         return [self[v] for v in self._vertices]
 
@@ -5160,41 +5137,39 @@ class SandpileDivisor(dict):
         lin_sys_zinhom= lin_sys + '.zinhom'
         lin_sys_log = lin_sys + '.log'
 
-        mat_file = open(lin_sys_mat,'w')
-        mat_file.write(str(n)+' ')
-        mat_file.write(str(n)+'\n')
-        for r in L:
-            mat_file.write(''.join(map(str,r)))
-            mat_file.write('\n')
-        mat_file.close()
+        with open(lin_sys_mat, 'w') as mat_file:
+            mat_file.write(str(n)+' ')
+            mat_file.write(str(n)+'\n')
+            for r in L:
+                mat_file.write(''.join(map(str,r)))
+                mat_file.write('\n')
         # relations file
-        rel_file = open(lin_sys_rel,'w')
-        rel_file.write('1 ')
-        rel_file.write(str(n)+'\n')
-        rel_file.write(''.join(['>']*n))
-        rel_file.write('\n')
-        rel_file.close()
+        with open(lin_sys_rel, 'w') as rel_file:
+            rel_file.write('1 ')
+            rel_file.write(str(n)+'\n')
+            rel_file.write('>'*n)
+            rel_file.write('\n')
         # right-hand side file
-        rhs_file = open(lin_sys_rhs,'w')
-        rhs_file.write('1 ')
-        rhs_file.write(str(n)+'\n')
-        rhs_file.write(''.join([str(-i) for i in self.values()]))
-        rhs_file.write('\n')
-        rhs_file.close()
+        with open(lin_sys_rhs, 'w') as rhs_file:
+            rhs_file.write('1 ')
+            rhs_file.write(str(n)+'\n')
+            rhs_file.write(''.join(str(-i) for i in self.values()))
+            rhs_file.write('\n')
         # sign file
-        sign_file = open(lin_sys_sign,'w')
-        sign_file.write('1 ')
-        sign_file.write(str(n)+'\n')
-        """
-        Conjecture: taking only 1s just below is OK, i.e., looking for solutions
-        with nonnegative entries.  The Laplacian has kernel of dimension 1,
-        generated by a nonnegative vector.  I would like to say that translating
-        by this vector, we transform any solution into a nonnegative solution.
-        What if the vector in the kernel does not have full support though?
-        """
-        sign_file.write(''.join(['2']*n))  # so maybe a 1 could go here
-        sign_file.write('\n')
-        sign_file.close()
+        with open(lin_sys_sign, 'w') as sign_file:
+            sign_file.write('1 ')
+            sign_file.write(str(n)+'\n')
+            """
+            Conjecture: taking only 1s just below is OK, i.e.,
+            looking for solutions with nonnegative entries.  The
+            Laplacian has kernel of dimension 1, generated by a
+            nonnegative vector.  I would like to say that translating
+            by this vector, we transform any solution into a
+            nonnegative solution.  What if the vector in the kernel
+            does not have full support though?
+            """
+            sign_file.write('2'*n)  # so maybe a 1 could go here
+            sign_file.write('\n')
         # compute
         try:
             os.system(path_to_zsolve+' -q ' + lin_sys + ' > ' + lin_sys_log)
@@ -6100,6 +6075,10 @@ class SandpileDivisor(dict):
             T.relabel(a)
         T.show(**kwds)
 
+
+# See note about this after the definition of SandpileConfig
+pretty.for_type(SandpileDivisor, pretty.for_type(dict, None))
+
 #######################################
 ######### Some test graphs ############
 #######################################
@@ -6122,13 +6101,13 @@ def sandlib(selector=None):
             sage: from sage.sandpiles.sandpile import sandlib
             sage: sandlib()
               Sandpiles in the sandlib:
-                 kite : generic undirected graphs with 5 vertices
+                 ci1 : complete intersection, non-DAG but equivalent to a DAG
                  generic : generic digraph with 6 vertices
                  genus2 : Undirected graph of genus 2
-                 ci1 : complete intersection, non-DAG but equivalent to a DAG
+                 gor : Gorenstein but not a complete intersection
+                 kite : generic undirected graphs with 5 vertices
                  riemann-roch1 : directed graph with postulation 9 and 3 maximal weight superstables
                  riemann-roch2 : directed graph with a superstable not majorized by a maximal superstable
-                 gor : Gorenstein but not a complete intersection
             sage: S = sandlib('gor')
             sage: S.resolution()
             'R^1 <-- R^5 <-- R^5 <-- R^1'
@@ -6187,7 +6166,7 @@ def sandlib(selector=None):
     if selector is None:
         print('')
         print('  Sandpiles in the sandlib:')
-        for i in sandpiles:
+        for i in sorted(sandpiles):
             print('    ', i, ':', sandpiles[i]['description'])
         print("")
     elif selector not in sandpiles:
@@ -6198,7 +6177,6 @@ def sandlib(selector=None):
 #################################################
 ########## Some useful functions ################
 #################################################
-
 
 
 def triangle_sandpile(n):
@@ -6221,7 +6199,7 @@ def triangle_sandpile(n):
         sage: T.group_order()
         135418115000
     """
-    T = {'sink':{}}
+    T = {(-1, -1):{}}
     for i in range(n):
         for j in range(n-i):
             T[(i,j)] = {}
@@ -6236,16 +6214,17 @@ def triangle_sandpile(n):
                 T[(i,j)][(i+1,j-1)] = 1
             d = len(T[(i,j)])
             if d<6:
-                T[(i,j)]['sink'] = 6-d
-    T = Sandpile(T,'sink')
+                T[(i,j)][(-1, -1)] = 6-d
+    T = Sandpile(T, (-1, -1))
     pos = {}
     for x in T.nonsink_vertices():
         coords = list(x)
         coords[0]+=QQ(1)/2*coords[1]
         pos[x] = coords
-    pos['sink'] = (-1,-1)
+    pos[(-1, -1)] = (-1,-1)
     T.set_pos(pos)
     return T
+
 
 def aztec_sandpile(n):
     r"""
@@ -6262,31 +6241,10 @@ def aztec_sandpile(n):
     EXAMPLES::
 
         sage: from sage.sandpiles.sandpile import aztec_sandpile
-        sage: aztec_sandpile(2)
-        {'sink': {(-3/2, -1/2): 2,
-          (-3/2, 1/2): 2,
-          (-1/2, -3/2): 2,
-          (-1/2, 3/2): 2,
-          (1/2, -3/2): 2,
-          (1/2, 3/2): 2,
-          (3/2, -1/2): 2,
-          (3/2, 1/2): 2},
-         (-3/2, -1/2): {'sink': 2, (-3/2, 1/2): 1, (-1/2, -1/2): 1},
-         (-3/2, 1/2): {'sink': 2, (-3/2, -1/2): 1, (-1/2, 1/2): 1},
-         (-1/2, -3/2): {'sink': 2, (-1/2, -1/2): 1, (1/2, -3/2): 1},
-         (-1/2, -1/2): {(-3/2, -1/2): 1,
-          (-1/2, -3/2): 1,
-          (-1/2, 1/2): 1,
-          (1/2, -1/2): 1},
-         (-1/2, 1/2): {(-3/2, 1/2): 1, (-1/2, -1/2): 1, (-1/2, 3/2): 1, (1/2, 1/2): 1},
-         (-1/2, 3/2): {'sink': 2, (-1/2, 1/2): 1, (1/2, 3/2): 1},
-         (1/2, -3/2): {'sink': 2, (-1/2, -3/2): 1, (1/2, -1/2): 1},
-         (1/2, -1/2): {(-1/2, -1/2): 1, (1/2, -3/2): 1, (1/2, 1/2): 1, (3/2, -1/2): 1},
-         (1/2, 1/2): {(-1/2, 1/2): 1, (1/2, -1/2): 1, (1/2, 3/2): 1, (3/2, 1/2): 1},
-         (1/2, 3/2): {'sink': 2, (-1/2, 3/2): 1, (1/2, 1/2): 1},
-         (3/2, -1/2): {'sink': 2, (1/2, -1/2): 1, (3/2, 1/2): 1},
-         (3/2, 1/2): {'sink': 2, (1/2, 1/2): 1, (3/2, -1/2): 1}}
-        sage: Sandpile(aztec_sandpile(2),'sink').group_order()
+        sage: T = aztec_sandpile(2)
+        sage: sorted(len(v) for u, v in T.items())
+        [3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 8]
+        sage: Sandpile(T,(0, 0)).group_order()
         4542720
 
     .. NOTE::
@@ -6295,7 +6253,7 @@ def aztec_sandpile(n):
         vertices have edges to the sink so that each vertex has degree 4.
     """
     aztec_sandpile = {}
-    half = QQ(1)/2
+    half = QQ((1, 2))
     for i in xsrange(n):
         for j in xsrange(n-i):
             aztec_sandpile[(half+i,half+j)] = {}
@@ -6303,7 +6261,7 @@ def aztec_sandpile(n):
             aztec_sandpile[(half+i,-half-j)] = {}
             aztec_sandpile[(-half-i,-half-j)] = {}
     non_sinks = list(aztec_sandpile)
-    aztec_sandpile['sink'] = {}
+    aztec_sandpile[(0, 0)] = {}
     for vert in non_sinks:
         weight = abs(vert[0]) + abs(vert[1])
         x = vert[0]
@@ -6321,9 +6279,10 @@ def aztec_sandpile(n):
                 aztec_sandpile[vert][(x,y-1)] = 1
             if len(aztec_sandpile[vert]) < 4:
                 out_degree = 4 - len(aztec_sandpile[vert])
-                aztec_sandpile[vert]['sink'] = out_degree
-                aztec_sandpile['sink'][vert] = out_degree
+                aztec_sandpile[vert][(0, 0)] = out_degree
+                aztec_sandpile[(0, 0)][vert] = out_degree
     return aztec_sandpile
+
 
 def random_DAG(num_verts, p=0.5, weight_max=1):
     r"""
@@ -6348,7 +6307,10 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
 
     EXAMPLES::
 
+        sage: from sage.sandpiles.sandpile import random_DAG
         sage: d = DiGraph(random_DAG(5, .5)); d
+        doctest:...: DeprecationWarning: method random_DAG is deprecated. Please use digraphs.RandomDirectedAcyclicGraph instead.
+        See https://trac.sagemath.org/30479 for details.
         Digraph on 5 vertices
 
     TESTS:
@@ -6356,34 +6318,26 @@ def random_DAG(num_verts, p=0.5, weight_max=1):
     Check that we can construct a random DAG with the
     default arguments (:trac:`12181`)::
 
+        sage: from sage.sandpiles.sandpile import random_DAG
         sage: g = random_DAG(5);DiGraph(g)
         Digraph on 5 vertices
 
     Check that bad inputs are rejected::
 
+        sage: from sage.sandpiles.sandpile import random_DAG
         sage: g = random_DAG(5,1.1)
         Traceback (most recent call last):
         ...
-        ValueError: The parameter p must satisfy 0 < p <= 1.
+        ValueError: the probability p must be in [0..1]
         sage: g = random_DAG(5,0.1,-1)
         Traceback (most recent call last):
         ...
-        ValueError: The parameter weight_max must be positive.
+        ValueError: parameter weight_max must be a positive integer
     """
-    if not(0 < p and p <= 1):
-        raise ValueError("The parameter p must satisfy 0 < p <= 1.")
-    weight_max=ZZ(weight_max)
-    if not(0 < weight_max):
-        raise ValueError("The parameter weight_max must be positive.")
-    g = {0:{}}
-    for i in range(1,num_verts):
-        out_edges = {}
-        while out_edges == {}:
-            for j in range(i):
-                if p > random():
-                    out_edges[j] = randint(1,weight_max)
-        g[i] = out_edges
-    return g
+    deprecation(30479, "method random_DAG is deprecated. Please use "
+                       "digraphs.RandomDirectedAcyclicGraph instead.")
+    D = digraphs.RandomDirectedAcyclicGraph(num_verts, p, weight_max=weight_max)
+    return D.to_dictionary(edge_labels=True)
 
 
 def glue_graphs(g, h, glue_g, glue_h):
@@ -6409,15 +6363,15 @@ def glue_graphs(g, h, glue_g, glue_h):
         sage: glue_x = {1: 1, 3: 2}
         sage: glue_y = {0: 1, 1: 2, 3: 1}
         sage: z = glue_graphs(x,y,glue_x,glue_y); z
-        {0: {},
-         'x0': {0: 1, 'x1': 1, 'x3': 2, 'y1': 2, 'y3': 1},
+        {'sink': {},
+         'x0': {'sink': 1, 'x1': 1, 'x3': 2, 'y1': 2, 'y3': 1},
          'x1': {'x0': 1},
          'x2': {'x0': 1, 'x1': 1},
          'x3': {'x0': 1, 'x1': 1, 'x2': 1},
-         'y1': {0: 2},
+         'y1': {'sink': 2},
          'y2': {'y1': 2},
-         'y3': {0: 1, 'y2': 1}}
-        sage: S = Sandpile(z,0)
+         'y3': {'sink': 1, 'y2': 1}}
+        sage: S = Sandpile(z,'sink')
         sage: S.h_vector()
         [1, 6, 17, 31, 41, 41, 31, 17, 6, 1]
         sage: S.resolution()
@@ -6429,7 +6383,7 @@ def glue_graphs(g, h, glue_g, glue_h):
         `g` and `h`.  The sink of `g` is replaced by a vertex that
         is connected to the vertices of `g` as specified by ``glue_g``
         the vertices of `h` as specified in ``glue_h``.  The sink of the glued
-        graph is `0`.
+        graph is ``'sink'``.
 
         Both ``glue_g`` and ``glue_h`` are dictionaries with entries of the form
         ``v:w`` where ``v`` is the vertex to be connected to and ``w`` is the weight
@@ -6444,7 +6398,7 @@ def glue_graphs(g, h, glue_g, glue_h):
         if h[i] == {}:
             h_sink = i
             break
-    k = {0: {}}  # the new graph dictionary, starting with the sink
+    k = {'sink': {}}  # the new graph dictionary, starting with the sink
     for i in g:
         if i != g_sink:
             new_edges = {}
@@ -6456,7 +6410,7 @@ def glue_graphs(g, h, glue_g, glue_h):
             new_edges = {}
             for j in h[i]:
                 if j == h_sink:
-                    new_edges[0] = h[i][j]
+                    new_edges['sink'] = h[i][j]
                 else:
                     new_edges['y'+str(j)] = h[i][j]
             k['y'+str(i)] = new_edges
@@ -6466,11 +6420,12 @@ def glue_graphs(g, h, glue_g, glue_h):
         new_edges['x'+str(i)] = glue_g[i]
     for i in glue_h:
         if i == h_sink:
-            new_edges[0] = glue_h[i]
+            new_edges['sink'] = glue_h[i]
         else:
             new_edges['y'+str(i)] = glue_h[i]
     k['x'+str(g_sink)] = new_edges
     return k
+
 
 def firing_graph(S, eff):
     r"""
@@ -6566,15 +6521,15 @@ def admissible_partitions(S, k):
         sage: S = sandpiles.Cycle(4)
         sage: P = [admissible_partitions(S, i) for i in [2,3,4]]
         sage: P
-        [[{{0}, {1, 2, 3}},
-          {{0, 2, 3}, {1}},
+        [[{{0, 2, 3}, {1}},
+          {{0, 3}, {1, 2}},
           {{0, 1, 3}, {2}},
-          {{0, 1, 2}, {3}},
+          {{0}, {1, 2, 3}},
           {{0, 1}, {2, 3}},
-          {{0, 3}, {1, 2}}],
-         [{{0}, {1}, {2, 3}},
+          {{0, 1, 2}, {3}}],
+         [{{0, 3}, {1}, {2}},
+          {{0}, {1}, {2, 3}},
           {{0}, {1, 2}, {3}},
-          {{0, 3}, {1}, {2}},
           {{0, 1}, {2}, {3}}],
          [{{0}, {1}, {2}, {3}}]]
         sage: for p in P:

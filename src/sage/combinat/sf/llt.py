@@ -14,8 +14,7 @@ REFERENCES:
    Adv. Stud. Pure Math., vol. 28, Kinokuniya, Tokyo, 2000, pp 155-220
    :arxiv:`math/9809122v3` [math.q-alg]
 """
-from __future__ import absolute_import
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>
 #                     2012 Mike Zabrocki <mike.zabrocki@gmail.com>
 #
@@ -28,8 +27,8 @@ from __future__ import absolute_import
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.structure.unique_representation import UniqueRepresentation
 from . import sfa
 import sage.combinat.ribbon_tableau as ribbon_tableau
@@ -250,7 +249,8 @@ class LLT_class(UniqueRepresentation):
         if skp in _Partitions:
             m = (sum(skp) / self.level()).floor()
             if m == 0:
-                raise ValueError("level (%=) must divide %s "%(sum(skp), self.level()))
+                raise ValueError("level (%s=) must divide %s " % (sum(skp),
+                                                                  self.level()))
             mu = Partitions( ZZ(sum(skp) / self.level()) )
 
         elif isinstance(skp, list) and skp[0] in sage.combinat.skew_partition.SkewPartitions():
@@ -543,7 +543,7 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
         """
         return self._llt
 
-    def _multiply(self, left, right):
+    def product(self, left, right):
         r"""
         Convert to the monomial basis, do the multiplication there, and
         convert back to the basis ``self``.
@@ -555,18 +555,18 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
 
         OUTPUT:
 
-        - returns the product of ``left`` and ``right`` expanded in the basis ``self``
+        the product of ``left`` and ``right`` expanded in the basis ``self``
 
         EXAMPLES::
 
             sage: HSp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hspin()
-            sage: HSp3._multiply(HSp3([1]), HSp3([2]))
+            sage: HSp3.product(HSp3([1]), HSp3([2]))
             HSp3[2, 1] + (-t+1)*HSp3[3]
             sage: HCosp3 = SymmetricFunctions(FractionField(QQ['t'])).llt(3).hcospin()
-            sage: HCosp3._multiply(HCosp3([1]), HSp3([2]))
+            sage: HCosp3.product(HCosp3([1]), HSp3([2]))
             1/t*HCosp3[2, 1] + ((t-1)/t)*HCosp3[3]
         """
-        return self( self._m(left) * self._m(right) )
+        return self(self._m(left) * self._m(right))
 
     def _m_cache(self, n):
         r"""
@@ -601,6 +601,7 @@ class LLT_generic(sfa.SymmetricFunctionAlgebra_generic):
 
     class Element(sfa.SymmetricFunctionAlgebra_generic.Element):
         pass
+
 
 # the H-spin basis
 class LLT_spin(LLT_generic):
@@ -638,7 +639,7 @@ class LLT_spin(LLT_generic):
         self._self_to_m_cache = hsp_to_m_cache[level]
         self._m_to_self_cache = m_to_hsp_cache[level]
 
-        LLT_generic.__init__(self, llt, prefix="HSp%s"%level)
+        LLT_generic.__init__(self, llt, prefix="HSp%s" % level)
 
 
     def _to_m(self, part):
@@ -707,7 +708,7 @@ class LLT_cospin(LLT_generic):
             m_to_hcosp_cache[level] = {}
         self._self_to_m_cache = hcosp_to_m_cache[level]
         self._m_to_self_cache = m_to_hcosp_cache[level]
-        LLT_generic.__init__(self, llt, prefix= "HCosp%s"%level)
+        LLT_generic.__init__(self, llt, prefix="HCosp%s" % level)
 
     def _to_m(self, part):
         r"""

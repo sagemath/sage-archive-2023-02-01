@@ -79,12 +79,10 @@ Various timings using a Python class::
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-
 
 from sage.structure.list_clone import ClonableArray
 from sage.structure.list_clone_demo import IncreasingArrays
-from sage.structure.list_clone_timings_cy import *
+
 
 class IncreasingArraysPy(IncreasingArrays):
 

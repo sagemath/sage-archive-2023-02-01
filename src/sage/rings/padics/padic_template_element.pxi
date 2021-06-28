@@ -37,7 +37,6 @@ from sage.rings.rational import Rational
 from sage.rings.padics.precision_error import PrecisionError
 from sage.rings.padics.misc import trim_zeros
 from sage.structure.element import canonical_coercion
-from sage.misc.superseded import deprecation
 import itertools
 
 cdef long maxordp = (1L << (sizeof(long) * 8 - 2)) - 1
@@ -124,7 +123,15 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
                 x = Rational(x)
         elif isinstance(x, pAdicGenericElement):
             if not ((<pAdicGenericElement>x)._is_base_elt(self.prime_pow.prime) or x.parent() is self.parent()):
-                raise NotImplementedError("conversion between padic extensions not implemented")
+                if x.parent().modulus().change_ring(self.base_ring()) == self.parent().modulus():
+                    x = x.polynomial().change_ring(self.base_ring()).list()
+                else:
+                    x = self.base_ring()(x)
+                    if x.is_zero():
+                        absprec = min(absprec, x.precision_absolute()*self.prime_pow.e)
+                        x = []
+                    else:
+                        x = [x]
         elif sage.rings.finite_rings.integer_mod.is_IntegerMod(x):
             if not Integer(self.prime_pow.prime).divides(x.parent().order()):
                 raise TypeError("p does not divide modulus %s"%x.parent().order())
@@ -345,9 +352,9 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         Fixed modulus elements don't raise errors::
 
             sage: R = ZpFM(5); a = R(5); a.lift_to_precision(7)
-            5 + O(5^20)
+            5
             sage: a.lift_to_precision(10000)
-            5 + O(5^20)
+            5
 
         """
         if absprec is None:
@@ -384,7 +391,7 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
 
         Different lift modes affect the choice of `a_i`.  When
         ``lift_mode`` is ``'simple'``, the resulting `a_i` will be
-        non-negative: if the residue field is `\mathbb{F}_p` then they
+        non-negative: if the residue field is `\GF{p}` then they
         will be integers with `0 \le a_i < p`; otherwise they will be
         a list of integers in the same range giving the coefficients
         of a polynomial in the indeterminant representing the maximal
@@ -541,29 +548,6 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
             else:
                 return expansion[n]
 
-    def list(self, lift_mode = 'simple', start_val = None):
-        r"""
-        Returns the list of coefficients in a `\pi`-adic expansion of this element.
-
-        EXAMPLES::
-
-            sage: R = Zp(7,6); a = R(12837162817); a
-            3 + 4*7 + 4*7^2 + 4*7^4 + O(7^6)
-            sage: L = a.list(); L
-            doctest:warning
-            ...
-            DeprecationWarning: list is deprecated. Please use expansion instead.
-            See http://trac.sagemath.org/14825 for details.
-            [3, 4, 4, 0, 4, 0]
-
-        .. SEEALSO::
-
-            :meth:`expansion`
-
-        """
-        deprecation(14825, "list is deprecated. Please use expansion instead.")
-        return list(self.expansion(lift_mode=lift_mode, start_val=start_val))
-
     def teichmuller_expansion(self, n = None):
         r"""
         Returns an iterator over coefficients `a_0, a_1, \dots, a_n` such that
@@ -611,77 +595,6 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         """
         return self.expansion(n, lift_mode='teichmuller')
 
-    def teichmuller_list(self):
-        r"""
-        Returns the list of coefficients in the Teichmuller expansion of this element.
-
-        EXAMPLES::
-
-            sage: R = Qp(5,5); R(70).teichmuller_list()[1]
-            doctest:warning
-            ...
-            DeprecationWarning: teichmuller_list is deprecated. Please use teichmuller_expansion instead.
-            See http://trac.sagemath.org/14825 for details.
-            3 + 3*5 + 2*5^2 + 3*5^3 + O(5^4)
-
-        .. SEEALSO::
-
-            :meth:`teichmuller_expansion`
-
-        """
-        deprecation(14825, "teichmuller_list is deprecated. Please use teichmuller_expansion instead.")
-        return list(self.teichmuller_expansion())
-
-    def padded_list(self, n, lift_mode = 'simple'):
-        """
-        Returns a list of coefficients of the uniformizer `\pi`
-        starting with `\pi^0` up to `\pi^n` exclusive (padded with
-        zeros if needed).
-
-        For a field element of valuation `v`, starts at `\pi^v`
-        instead.
-
-        INPUT:
-
-        - ``n`` - an integer
-
-        - ``lift_mode`` - 'simple', 'smallest' or 'teichmuller'
-
-        EXAMPLES::
-
-            sage: R = Zp(7,4,'capped-abs'); a = R(2*7+7**2); a.padded_list(5)
-            doctest:warning
-            ...
-            DeprecationWarning: padded_list is deprecated.  Please use expansion or Integer.digits with the padto keyword instead.
-            See http://trac.sagemath.org/14825 for details.
-            [0, 2, 1, 0, 0]
-            sage: R = Zp(7,4,'fixed-mod'); a = R(2*7+7**2); a.padded_list(5)
-            [0, 2, 1, 0, 0]
-
-        For elements with positive valuation, this function will
-        return a list with leading 0s if the parent is not a field::
-
-            sage: R = Zp(7,3,'capped-rel'); a = R(2*7+7**2); a.padded_list(5)
-            [0, 2, 1, 0, 0]
-            sage: R = Qp(7,3); a = R(2*7+7**2); a.padded_list(5)
-            [2, 1, 0, 0]
-            sage: a.padded_list(3)
-            [2, 1]
-        """
-        deprecation(14825, "padded_list is deprecated.  Please use expansion or Integer.digits with the padto keyword instead.")
-        L = list(self.expansion(lift_mode=lift_mode))
-        if lift_mode == 'simple' or lift_mode == 'smallest':
-            # defined in the linkage file.
-            zero = _expansion_zero
-        else:
-            zero = self.parent()(0,0)
-        if self.prime_pow.in_field == 1:
-            if self._is_exact_zero():
-                n = 0
-            else:
-                n -= self.valuation()
-        return list(itertools.chain(itertools.islice(L, n), itertools.repeat(zero, n - len(L))))
-
     def _ext_p_list(self, pos):
         """
         Returns the p-adic expansion of the unit part.  Used in printing.
@@ -705,6 +618,12 @@ cdef class pAdicTemplateElement(pAdicGenericElement):
         This is the `p`-adic element `u` in the same ring so that this
         element is `\pi^v u`, where `\pi` is a uniformizer and `v` is
         the valuation of this element.
+
+        EXAMPLES::
+
+            sage: R.<a> = Zq(125)
+            sage: (5*a).unit_part()
+            a + O(5^20)
         """
         raise NotImplementedError
 
@@ -844,7 +763,6 @@ cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowCompute
     an Integer congruent to the given exponent
 
     """
-    ####### NOTE:  this function needs to be updated for extension elements. #######
     cdef Integer right, p = prime_pow.prime
     cdef long exp_val
     cdef bint isbase
@@ -852,11 +770,13 @@ cdef Integer exact_pow_helper(long *ansrelprec, long relprec, _right, PowCompute
         _right = Integer(_right)
     if isinstance(_right, Integer):
         right = <Integer> _right
-        exp_val = mpz_get_si((<Integer>right.valuation(p)).value)
+        # Be careful: prime_pow.e is assumed to be the absolute index of ramification!
+        exp_val = mpz_get_si((<Integer>(right.valuation(p) * prime_pow.e)).value)
     elif isinstance(_right, Rational):
         raise NotImplementedError
     ansrelprec[0] = relprec + exp_val
-    if exp_val > 0 and mpz_cmp_ui(p.value, 2) == 0 and relprec == 1:
+    # Over Z_2 or Q_2, the square of an odd number is congruent to 1 mod 8
+    if exp_val > 0 and prime_pow.deg == 1 and mpz_cmp_ui(p.value, 2) == 0 and relprec == 1:
         ansrelprec[0] += 1
 
     return right
@@ -903,43 +823,36 @@ cdef long padic_pow_helper(celement result, celement base, long base_val, long b
     if base_val != 0:
         raise ValueError("in order to raise to a p-adic exponent, base must be a unit")
     ####### NOTE:  this function needs to be updated for extension elements. #######
-    cdef celement oneunit, teichdiff
     cdef long loga_val, loga_aprec, bloga_val, bloga_aprec
     cdef Integer expcheck, right
+    cteichmuller(prime_pow.powhelper_oneunit, base, base_relprec, prime_pow)
+    cdivunit(prime_pow.powhelper_oneunit, base, prime_pow.powhelper_oneunit, base_relprec, prime_pow)
+    csetone(prime_pow.powhelper_teichdiff, prime_pow)
+    csub(prime_pow.powhelper_teichdiff, prime_pow.powhelper_oneunit, prime_pow.powhelper_teichdiff, base_relprec, prime_pow)
+    ## For extension elements in ramified extensions, the computation of the
+    ## valuation and precision of log(a) is more complicated)
+    loga_val = cvaluation(prime_pow.powhelper_teichdiff, base_relprec, prime_pow)
+    loga_aprec = base_relprec
+    # valuation of b*log(a)
+    bloga_val = loga_val + right_val
+    bloga_aprec = bloga_val + min(right_relprec, loga_aprec - loga_val)
+    if bloga_aprec > prime_pow.ram_prec_cap:
+        bloga_aprec = prime_pow.ram_prec_cap
+    expcheck = PY_NEW(Integer)
+    mpz_sub_ui(expcheck.value, prime_pow.prime.value, 1)
+    mpz_mul_si(expcheck.value, expcheck.value, bloga_val)
+    if mpz_cmp_ui(expcheck.value, prime_pow.e) <= 0:
+        raise ValueError("exponential does not converge")
+    right = PY_NEW(Integer)
     try:
-        cconstruct(oneunit, prime_pow)
-        cconstruct(teichdiff, prime_pow)
-        cteichmuller(oneunit, base, base_relprec, prime_pow)
-        cdivunit(oneunit, base, oneunit, base_relprec, prime_pow)
-        csetone(teichdiff, prime_pow)
-        csub(teichdiff, oneunit, teichdiff, base_relprec, prime_pow)
-        ## For extension elements in ramified extensions, the computation of the
-        ## valuation and precision of log(a) is more complicated)
-        loga_val = cvaluation(teichdiff, base_relprec, prime_pow)
-        loga_aprec = base_relprec
-        # valuation of b*log(a)
-        bloga_val = loga_val + right_val
-        bloga_aprec = bloga_val + min(right_relprec, loga_aprec - loga_val)
-        if bloga_aprec > prime_pow.ram_prec_cap:
-            bloga_aprec = prime_pow.ram_prec_cap
-        expcheck = PY_NEW(Integer)
-        mpz_sub_ui(expcheck.value, prime_pow.prime.value, 1)
-        mpz_mul_si(expcheck.value, expcheck.value, bloga_val)
-        if mpz_cmp_ui(expcheck.value, prime_pow.e) <= 0:
-            raise ValueError("exponential does not converge")
-        right = PY_NEW(Integer)
-        try:
-            cconv_mpz_t_out(right.value, right_unit, right_val, right_relprec, prime_pow)
-        except ValueError:
-            # Here we need to use the exp(b log(a)) definition,
-            # since we can't convert the exponent to an integer
-            raise NotImplementedError("exponents with negative valuation not yet supported")
-        ## For extension elements in ramified extensions
-        ## the following precision might need to be changed.
-        cpow(result, oneunit, right.value, bloga_aprec, prime_pow)
-    finally:
-        cdestruct(oneunit, prime_pow)
-        cdestruct(teichdiff, prime_pow)
+        cconv_mpz_t_out(right.value, right_unit, right_val, right_relprec, prime_pow)
+    except ValueError:
+        # Here we need to use the exp(b log(a)) definition,
+        # since we can't convert the exponent to an integer
+        raise NotImplementedError("exponents with negative valuation not yet supported")
+    ## For extension elements in ramified extensions
+    ## the following precision might need to be changed.
+    cpow(result, prime_pow.powhelper_oneunit, right.value, bloga_aprec, prime_pow)
     return bloga_aprec
 
 cdef _zero(expansion_mode mode, teich_ring):
@@ -1002,6 +915,10 @@ cdef class ExpansionIter(object):
             R = elt.parent()
             self.tracks_prec = R.is_capped_relative() or R.is_capped_absolute()
             self.teich_ring = R.maximal_unramified_subextension().integer_ring()
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(elt.prime_pow.modulus)
+            self.tmp = <celement>polyt.__new__(polyt)
+            self.curvalue = <celement>polyt.__new__(polyt)
         cconstruct(self.tmp, elt.prime_pow)
         cconstruct(self.curvalue, elt.prime_pow)
         elt._get_unit(self.curvalue)
@@ -1072,12 +989,11 @@ cdef class ExpansionIter(object):
             prec = self.curpower+1 if self.tracks_prec else pp.ram_prec_cap
             cteichmuller(self.tmp, self.curvalue, prec, pp)
             if ciszero(self.tmp, pp):
-                cshift_notrunc(self.curvalue, self.curvalue, -1, prec-1, pp)
+                cshift_notrunc(self.curvalue, self.curvalue, -1, prec-1, pp, True)
                 return _zero(teichmuller_mode, self.teich_ring)
             else:
                 csub(self.curvalue, self.curvalue, self.tmp, prec, pp)
-                cshift_notrunc(self.curvalue, self.curvalue, -1, prec-1, pp)
-                creduce(self.curvalue, self.curvalue, prec-1, pp)
+                cshift_notrunc(self.curvalue, self.curvalue, -1, prec-1, pp, True)
                 return self.teich_ring(self.elt._new_with_value(self.tmp, prec))
         else:
             return cexpansion_next(self.curvalue, self.mode, self.curpower, pp)
@@ -1119,6 +1035,9 @@ cdef class ExpansionIterable(object):
             5-adic expansion of 3 + 4*5 + 4*5^2 + 2*5^3 + O(5^4)
         """
         self.elt = elt
+        IF CELEMENT_IS_PY_OBJECT:
+            polyt = type(elt.prime_pow.modulus)
+            self.tmp = <celement>polyt.__new__(polyt)
         cconstruct(self.tmp, elt.prime_pow)
         self.prec = prec
         self.val_shift = val_shift
@@ -1208,7 +1127,10 @@ cdef class ExpansionIterable(object):
             -2
         """
         if isinstance(n, slice):
-            return itertools.islice(iter(self), n.start, n.stop, n.step)
+            start = int(n.start) if n.start is not None else None
+            stop = int(n.stop) if n.stop is not None else None
+            step = int(n.step) if n.step is not None else None
+            return itertools.islice(iter(self), start, stop, step)
         cdef long m = n - self.val_shift
         cdef celement value
         if n < 0:

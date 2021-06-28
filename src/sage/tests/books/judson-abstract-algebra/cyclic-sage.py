@@ -95,10 +95,6 @@ r"""
 ~~~~~~~~~~~~~~~~~~~~~~ ::
 
     sage: G([2])
-    doctest:...: DeprecationWarning: The default behaviour changed! If you
-    *really* want a linear combination of smith generators, use
-    .linear_combination_of_smith_form_gens.
-    See http://trac.sagemath.org/16261 for details.
     (2)
 
 ~~~~~~~~~~~~~~~~~~~~~~ ::

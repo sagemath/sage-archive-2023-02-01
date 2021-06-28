@@ -25,7 +25,6 @@ from sage.categories.enumerated_sets import EnumeratedSets
 from sage.structure.list_clone import ClonableArray
 from sage.structure.parent import Parent
 from sage.combinat.integer_lists.base import IntegerListsBackend
-from six import get_method_function
 
 
 class IntegerList(ClonableArray):
@@ -129,7 +128,7 @@ class IntegerLists(Parent):
         EXAMPLES::
 
             sage: C = IntegerListsLex(2, length=3)
-            sage: D = IntegerListsLex(2, length=3); L = D.list();
+            sage: D = IntegerListsLex(2, length=3); L = D.list()
             sage: E = IntegerListsLex(2, min_length=3)
             sage: F = IntegerListsLex(2, length=3, element_constructor=list)
             sage: G = IntegerListsLex(4, length=3)
@@ -174,9 +173,9 @@ class IntegerLists(Parent):
         a = self._element_constructor_
         b = other._element_constructor_
         if ismethod(a):
-            a = get_method_function(a)
+            a = a.__func__
         if ismethod(b):
-            b = get_method_function(b)
+            b = b.__func__
         return a == b
 
     def __ne__(self, other):
@@ -186,7 +185,7 @@ class IntegerLists(Parent):
         EXAMPLES::
 
             sage: C = IntegerListsLex(2, length=3)
-            sage: D = IntegerListsLex(2, length=3); L = D.list();
+            sage: D = IntegerListsLex(2, length=3); L = D.list()
             sage: E = IntegerListsLex(2, max_length=3)
             sage: C != D
             False
@@ -194,6 +193,22 @@ class IntegerLists(Parent):
             True
         """
         return not self == other
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: C = IntegerListsLex(2, length=3)
+            sage: D = IntegerListsLex(2, max_length=3)
+            sage: hash(C) == hash(C)
+            True
+        """
+        a = self._element_constructor_
+        if ismethod(a):
+            a = a.__func__
+        return hash((self.__class__, a))
 
     def __iter__(self):
         """

@@ -35,16 +35,12 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.categories.homset import HomsetWithBase
 from sage.structure.factory import UniqueFactory
+from sage.structure.parent import Set_generic
 
-from sage.rings.all import ZZ, QQ, CommutativeRing
-from sage.arith.all import gcd
-
-from sage.rings.rational_field import is_RationalField
-from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
+from sage.rings.all import ZZ
 from sage.rings.ring import CommutativeRing
 
 from sage.schemes.generic.scheme import AffineScheme, is_AffineScheme
@@ -275,7 +271,6 @@ class SchemeHomset_generic(HomsetWithBase):
             (4, 5)
         """
         # Homset (base of HomsetWithBase) overrides __call__ @#$
-        from sage.structure.parent import Set_generic
         return Set_generic.__call__(self, *args, **kwds)
 
     def _repr_(self):
@@ -582,7 +577,8 @@ class SchemeHomset_points(SchemeHomset_generic):
                 if not isinstance(source, AlgebraicScheme_subscheme):
                     return False
                 if target.ambient_space() == source.ambient_space():
-                    if all([g in source.defining_ideal() for g in target.defining_polynomials()]):
+                    if all(g in source.defining_ideal()
+                           for g in target.defining_polynomials()):
                         return self.domain().coordinate_ring().has_coerce_map_from(other.domain().coordinate_ring())
             else:
                 #if the target is an ambient space, we can coerce if the base rings coerce

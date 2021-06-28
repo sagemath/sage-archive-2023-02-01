@@ -30,17 +30,13 @@ EXAMPLES::
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from six.moves import range
-
-from builtins import zip
 
 from sage.structure.sage_object import SageObject
 from sage.combinat.words.word_options import word_options
 from itertools import islice, groupby
 from sage.rings.all import Integers, ZZ, Infinity
 from sage.structure.richcmp import (richcmp_method, rich_to_bool,
-                                    richcmp, op_LT, op_GT)
+                                    richcmp_item)
 
 
 @richcmp_method
@@ -75,7 +71,6 @@ class Word_class(SageObject):
             sage: Word(lambda x:x%3)._repr_()
             'word: 0120120120120120120120120120120120120120...'
         """
-        global word_options
         if word_options['old_repr']:
             return "Word over %s" % (str(self.parent().alphabet())[17:])
         return word_options['identifier'] + self.string_rep()
@@ -122,10 +117,9 @@ class Word_class(SageObject):
             sage: print(w)
             0123401234012340123401234012340123401234...
         """
-        global word_options
         l = word_options['truncate_length']
-        letters = list(islice(self, l+1))
-        if len(letters) == l+1:
+        letters = list(islice(self, int(l + 1)))
+        if len(letters) == l + 1:
             letters.pop()
             suffix = "..."
         else:
@@ -241,22 +235,22 @@ class Word_class(SageObject):
             sage: len(Word(lambda n:n))
             Traceback (most recent call last):
             ...
-            TypeError: Python len method can not return a non integer value (=+Infinity): use length method instead.
+            TypeError: Python len method cannot return a non integer value (=+Infinity): use length method instead.
             sage: len(Word(iter('a'*200)))
             Traceback (most recent call last):
             ...
-            TypeError: Python len method can not return a non integer value (=None): use length method instead.
+            TypeError: Python len method cannot return a non integer value (=None): use length method instead.
 
         For words of unknown length::
 
             sage: len(Word(iter('a'*200), length='unknown'))
             Traceback (most recent call last):
             ...
-            TypeError: Python len method can not return a non integer value (=None): use length method instead.
+            TypeError: Python len method cannot return a non integer value (=None): use length method instead.
         """
         L = self.length()
         if L is None or L is Infinity:
-            msg = "Python len method can not return a non integer value (=%s): "%L
+            msg = "Python len method cannot return a non integer value (=%s): "%L
             msg += "use length method instead."
             raise TypeError(msg)
         return int(L)
@@ -310,8 +304,6 @@ class Word_class(SageObject):
 
             sage: Words([0,1,2])([0,1,0,1]) ==  Words([0,1])([0,1,0,1])
             True
-            sage: Words('abc')('abab') == Words([0,9])([0,0,9])
-            False
             sage: Word('ababa') == Words('abcd')('ababa')
             True
 
@@ -376,10 +368,9 @@ class Word_class(SageObject):
                 else:
                     key_cs = cmp_key(cs)
                     key_co = cmp_key(co)
-                    if key_cs < key_co:
-                        return rich_to_bool(op, -1)
-                    elif key_cs > key_co:
-                        return rich_to_bool(op, 1)
+                    res = richcmp_item(key_cs, key_co, op)
+                    if res is not NotImplemented:
+                        return res
 
     def _longest_common_prefix_iterator(self, other):
         r"""
@@ -707,7 +698,7 @@ class Word_class(SageObject):
             sage: t[:10].lex_less(t)
             True
         """
-        return richcmp(self, other, op_LT)
+        return self < other
 
     def lex_greater(self, other):
         r"""
@@ -737,7 +728,7 @@ class Word_class(SageObject):
             sage: t.lex_greater(t[:10])
             True
         """
-        return richcmp(self, other, op_GT)
+        return self > other
 
     def apply_morphism(self, morphism):
         r"""
@@ -1323,7 +1314,7 @@ class Word_class(SageObject):
 
     def _finite_differences_iterator(self, mod=None):
         r"""
-        Iterator over the diffences of consecutive letters of self.
+        Iterator over the differences of consecutive letters of ``self``.
 
         INPUT:
 
@@ -1373,25 +1364,33 @@ class Word_class(SageObject):
         if mod in (None, 0):
             i = iter(self)
             j = iter(self)
-            next(j)
-            while True:
-                yield next(j) - next(i)
+
+            try:
+                next(j)
+                while True:
+                    yield next(j) - next(i)
+            except StopIteration:
+                return
 
         elif mod in ZZ:
             Zn = Integers(mod)
             i = iter(self)
             j = iter(self)
-            next(j)
-            while True:
-                yield Zn(next(j) - next(i))
+
+            try:
+                next(j)
+                while True:
+                    yield Zn(next(j) - next(i))
+            except StopIteration:
+                return
 
         else:
             raise TypeError('mod(=%s) must be None or an integer'%mod)
 
     def finite_differences(self, mod=None):
         r"""
-        Returns the word obtained by the diffences of consecutive letters
-        of self.
+        Return the word obtained by the differences of consecutive letters
+        of ``self``.
 
         INPUT:
 
@@ -1547,6 +1546,75 @@ class Word_class(SageObject):
         from sage.combinat.words.word import Word
         return Word(it, alphabet=alphabet, length=length, datatype='iter')
 
+    def first_occurrence(self, other, start=0):
+        r"""
+        Return the position of the first occurrence of ``other`` in ``self``.
+
+        If ``other`` is not a factor of ``self``, it returns ``None``
+        or loops forever when ``self`` is an infinite word.
+
+        INPUT:
+
+        - ``other`` -- a finite word
+        - ``start`` -- integer (default:``0``), where the search starts
+
+        OUTPUT:
+
+        integer or ``None``
+
+        EXAMPLES::
+
+            sage: w = Word('01234567890123456789')
+            sage: w.first_occurrence(Word('3456'))
+            3
+            sage: w.first_occurrence(Word('3456'), start=7)
+            13
+
+        When the factor is not present, ``None`` is returned::
+
+            sage: w.first_occurrence(Word('3456'), start=17) is None
+            True
+            sage: w.first_occurrence(Word('3333')) is None
+            True
+
+        Also works for searching a finite word in an infinite word::
+
+            sage: w = Word('0123456789')^oo
+            sage: w.first_occurrence(Word('3456'))
+            3
+            sage: w.first_occurrence(Word('3456'), start=1000)
+            1003
+
+        But it will loop for ever if the factor is not found::
+
+            sage: w.first_occurrence(Word('3333')) # not tested -- infinite loop
+
+        The empty word occurs in a word::
+
+            sage: Word('123').first_occurrence(Word(''), 0)
+            0
+            sage: Word('').first_occurrence(Word(''), 0)
+            0
+        """
+        lf = other.length()
+        lm = self.length()
+        if lf == 0:
+            return start
+        elif lm == 0:
+            return None
+        occ = other.last_position_dict()
+        suff = other.good_suffix_table()
+        s = start
+        while s <= lm - lf:
+            for j in range(lf-1, -1, -1):
+                a = self[s+j]
+                if other[j] != a:
+                    s += max(suff[j + 1], j - occ.get(a,-1))
+                    break
+            else:
+                return s
+        return None
+
     def factor_occurrences_iterator(self, fact):
         r"""
         Returns an iterator over all occurrences (including overlapping ones)
@@ -1571,15 +1639,22 @@ class Word_class(SageObject):
             12
             sage: next(it)
             24
+
+        ::
+
+            sage: u = Word('121')
+            sage: w = Word('121213211213')
+            sage: list(w.factor_occurrences_iterator(u))
+            [0, 2, 8]
         """
         if fact.is_empty():
             raise NotImplementedError("The factor must be non empty")
         if not fact.is_finite():
             raise ValueError("The factor must be finite")
-        p = fact._pos_in(self, 0)
+        p = self.first_occurrence(fact, start=0)
         while p is not None:
             yield p
-            p = fact._pos_in(self, p+1)
+            p = self.first_occurrence(fact, start=p+1)
 
     def return_words_iterator(self, fact):
         r"""
@@ -1620,11 +1695,14 @@ class Word_class(SageObject):
             word: 011010010110
         """
         it = self.factor_occurrences_iterator(fact)
-        i = next(it)
-        while True:
-            j = next(it)
-            yield self[i:j]
-            i = j
+        try:
+            i = next(it)
+            while True:
+                j = next(it)
+                yield self[i:j]
+                i = j
+        except StopIteration:
+            return
 
     def complete_return_words_iterator(self, fact):
         r"""
@@ -1668,9 +1746,12 @@ class Word_class(SageObject):
         """
         it = self.factor_occurrences_iterator(fact)
         L = fact.length()
-        i = next(it)
-        while True:
-            j = next(it)
-            yield self[i:j+L]
-            i = j
+        try:
+            i = next(it)
+            while True:
+                j = next(it)
+                yield self[i:j+L]
+                i = j
+        except StopIteration:
+            return
 

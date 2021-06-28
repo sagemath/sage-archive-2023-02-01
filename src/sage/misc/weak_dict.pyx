@@ -106,8 +106,7 @@ Note that Sage's weak value dictionary is actually an instance of
 
 See :trac:`13394` for a discussion of some of the design considerations.
 """
-
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Simon King <simon.king@uni-jena.de>
 #                          Nils Bruin <nbruin@sfu.ca>
 #                          Julian Rueth <julian.rueth@fsfe.org>
@@ -116,17 +115,14 @@ See :trac:`13394` for a discussion of some of the design considerations.
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-
-from __future__ import absolute_import, print_function
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 import weakref
-import six
 from weakref import KeyedRef
 from copy import deepcopy
 
-from cpython.dict cimport *
+from cpython.dict cimport PyDict_SetItem, PyDict_Next
 from cpython.tuple cimport PyTuple_GET_SIZE, PyTuple_New
 from cpython.weakref cimport PyWeakref_NewRef
 from cpython.object cimport PyObject_Hash
@@ -135,9 +131,9 @@ from sage.cpython.dict_del_by_value cimport *
 
 cdef extern from "Python.h":
     PyObject* Py_None
-    #we need this redefinition because we want to be able to call
-    #PyWeakref_GetObject with borrowed references. This is the recommended
-    #strategy according to Cython/Includes/cpython/__init__.pxd
+    # we need this redefinition because we want to be able to call
+    # PyWeakref_GetObject with borrowed references. This is the recommended
+    # strategy according to Cython/Includes/cpython/__init__.pxd
     PyObject* PyWeakref_GetObject(PyObject *ref)
     int PyTuple_SetItem(PyObject *op, Py_ssize_t i, PyObject *newitem) except -1
 
@@ -179,7 +175,7 @@ cdef class WeakValueDictEraser:
             sage: len(D)
             1
             sage: del v
-            sage: len(D) #indirect doctest
+            sage: len(D)  # indirect doctest
             0
         """
         self.D = PyWeakref_NewRef(D, None)
@@ -206,15 +202,15 @@ cdef class WeakValueDictEraser:
             sage: len(D)
             1
             sage: del v
-            sage: len(D) #indirect doctest
+            sage: len(D)  # indirect doctest
             0
         """
         cdef WeakValueDictionary D = <object> PyWeakref_GetObject(<PyObject*> self.D)
         if D is None:
             return
-        #The situation is the following:
-        #in the underlying dictionary, we have stored a KeyedRef r
-        #under a key k. The attribute r.key is the hash of k.
+        # The situation is the following:
+        # in the underlying dictionary, we have stored a KeyedRef r
+        # under a key k. The attribute r.key is the hash of k.
         if D._guard_level:
             D._pending_removals.append(r)
         else:
@@ -351,10 +347,10 @@ cdef class WeakValueDictionary(dict):
             True
         """
         try:
-            data = six.iteritems(data)
+            data = data.items()
         except AttributeError:
             pass
-        for (k, v) in data:
+        for k, v in data:
             self._set_item(k, v)
 
     def __copy__(self):
@@ -379,11 +375,11 @@ cdef class WeakValueDictionary(dict):
         """
         Return a copy of this dictionary using copies of the keys.
 
-        NOTE:
+        .. NOTE::
 
-        The values of the dictionary are not copied, since we can not copy the
-        external strong references to the values, which are decisive for
-        garbage collection.
+            The values of the dictionary are not copied, since we
+            cannot copy the external strong references to the values,
+            which are decisive for garbage collection.
 
         EXAMPLES::
 
@@ -552,8 +548,8 @@ cdef class WeakValueDictionary(dict):
         """
         PyDict_SetItem(self, k, KeyedRef(v, self.callback, hash(k)))
 
-    #def __delitem__(self, k):
-    #we do not really have to override this method.
+    # def __delitem__(self, k):
+    # we do not really have to override this method.
 
     def pop(self, k):
         """
@@ -593,8 +589,8 @@ cdef class WeakValueDictionary(dict):
         cdef PyObject* outref = PyWeakref_GetObject(wr)
         if outref == Py_None:
             raise KeyError(k)
-        #we turn the output into a new reference before deleting the item,
-        #because the deletion can cause any kind of havoc.
+        # we turn the output into a new reference before deleting the item,
+        # because the deletion can cause any kind of havoc.
         out = <object>outref
         del self[k]
         return out
@@ -750,9 +746,9 @@ cdef class WeakValueDictionary(dict):
         cdef PyObject* wr = PyDict_GetItemWithError(self, k)
         return (wr != NULL) and (PyWeakref_GetObject(wr) != Py_None)
 
-    #def __len__(self):
-    #since GC is not deterministic, neither is the length of a WeakValueDictionary,
-    #so we might as well just return the normal dictionary length.
+    # def __len__(self):
+    # since GC is not deterministic, neither is the length of a WeakValueDictionary,
+    # so we might as well just return the normal dictionary length.
 
     def __iter__(self):
         """
@@ -784,9 +780,9 @@ cdef class WeakValueDictionary(dict):
         try:
             self._enter_iter()
             while PyDict_Next(self, &pos, &key, &wr):
-                #this check does not really say anything: by the time
-                #the key makes it to the customer, it may have already turned
-                #invalid. It's a cheap check, though.
+                # this check does not really say anything: by the time
+                # the key makes it to the customer, it may have already turned
+                # invalid. It's a cheap check, though.
                 if PyWeakref_GetObject(wr)!=Py_None:
                     yield <object>key
         finally:
@@ -930,9 +926,9 @@ cdef class WeakValueDictionary(dict):
             ....:     def __init__(self, n):
             ....:         self.n = n
             ....:     def __hash__(self):
-            ....:         if self.n%2:
-            ....:             return 5
-            ....:         return 3
+            ....:         if self.n % 2:
+            ....:             return int(5)
+            ....:         return int(3)
             ....:     def __repr__(self):
             ....:         return "[%s]" % self.n
             ....:     def __lt__(self, other):
@@ -996,9 +992,9 @@ cdef class WeakValueDictionary(dict):
             ....:     def __init__(self, n):
             ....:         self.n = n
             ....:     def __hash__(self):
-            ....:         if self.n%2:
-            ....:             return 5
-            ....:         return 3
+            ....:         if self.n % 2:
+            ....:             return int(5)
+            ....:         return int(3)
             ....:     def __repr__(self):
             ....:         return "[%s]" % self.n
             ....:     def __lt__(self, other):
@@ -1025,7 +1021,6 @@ cdef class WeakValueDictionary(dict):
              ([7], <7>),
              ([8], <8>),
              ([9], <9>)]
-
         """
         return list(self.iteritems())
 
@@ -1050,7 +1045,6 @@ cdef class WeakValueDictionary(dict):
             sage: del i
             sage: len(D.keys())
             0
-
         """
         self._guard_level += 1
         return 0
@@ -1077,12 +1071,11 @@ cdef class WeakValueDictionary(dict):
             sage: del i
             sage: len(D.keys())
             0
-
         """
         self._guard_level -= 1
-        #when the guard_level drops to zero, we try to remove all the
-        #pending removals. Note that this could trigger another iterator
-        #to become active, in which case we should back off.
+        # when the guard_level drops to zero, we try to remove all the
+        # pending removals. Note that this could trigger another iterator
+        # to become active, in which case we should back off.
         while (not self._guard_level) and self._pending_removals:
             self.callback(self._pending_removals.pop())
         return 0

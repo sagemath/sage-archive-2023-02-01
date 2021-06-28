@@ -1,7 +1,6 @@
 """
 Classical Ciphers
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
@@ -10,7 +9,6 @@ from __future__ import absolute_import
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from six.moves import range
 
 from .cipher import SymmetricKeyCipher
 from sage.monoids.string_monoid_element import StringMonoidElement
@@ -484,7 +482,7 @@ class TranspositionCipher(SymmetricKeyCipher):
         EXAMPLES::
 
             sage: S = AlphabeticStrings()
-            sage: E = TranspositionCryptosystem(S,15);
+            sage: E = TranspositionCryptosystem(S,15)
             sage: m = S("THECATANDTHEHAT")
             sage: G = E.key_space()
             sage: G

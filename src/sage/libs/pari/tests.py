@@ -20,8 +20,8 @@ The following example caused Sage to crash before
 
     sage: R.<theta> = QQ[]
     sage: K.<a> = NumberField(theta^2 + 1)
-    sage: K.galois_group(type='pari')
-    Galois group PARI group [2, -1, 1, "S2"] of degree 2 of the Number Field in a with defining polynomial theta^2 + 1
+    sage: K.absolute_polynomial().galois_group(pari_group=True)
+    PARI group [2, -1, 1, "S2"] of degree 2
 
 Before :trac:`15654`, this used to take a very long time.
 Now it takes much less than a second::
@@ -164,9 +164,6 @@ Deprecation checks::
     4
     sage: pari('9234.1').sizedigit()
     5
-    sage: pari(8).bernvec()
-    doctest:...: DeprecationWarning: the PARI/GP function bernvec() is obsolete: use repeated calls to bernfrac() instead
-    [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
     sage: [pari(2*n).bernfrac() for n in range(9)]
     [1, 1/6, -1/30, 1/42, -1/30, 5/66, -691/2730, 7/6, -3617/510]
     sage: e = pari([0,1,1,-2,0]).ellinit()
@@ -225,13 +222,13 @@ Polynomial functions::
     sage: f = pari("x^2 + y^3 + x*y")
     sage: f
     x^2 + y*x + y^3
-    sage: f.polcoeff(1)
+    sage: f.polcoef(1)
     y
-    sage: f.polcoeff(3)
+    sage: f.polcoef(3)
     0
-    sage: f.polcoeff(3, "y")
+    sage: f.polcoef(3, "y")
     1
-    sage: f.polcoeff(1, "y")
+    sage: f.polcoef(1, "y")
     x
 
     sage: pari("x^2 + 1").poldisc()
@@ -545,10 +542,14 @@ Basic functions::
     0
     sage: pari(-1/2).sign()
     -1
-    sage: pari(I).sign()
+    sage: pari(SR(I)).sign()
     Traceback (most recent call last):
     ...
     PariError: incorrect type in gsigne (t_COMPLEX)
+    sage: pari(I).sign()
+    Traceback (most recent call last):
+    ...
+    PariError: incorrect type in gsigne (t_POLMOD)
 
     sage: y = pari('y')
     sage: x = pari('9') + y - y
@@ -932,18 +933,18 @@ Linear algebra::
     sage: B = pari('[1,2]~')
     sage: M = pari('[1,2;3,4]')
     sage: M.matsolvemod(D, B)
-    [-2, 0]~
+    [10, 0]~
     sage: M.matsolvemod(3, 1)
-    [-1, 1]~
+    [2, 1]~
     sage: M.matsolvemod(pari('[3,0]~'), pari('[1,2]~'))
     [6, -4]~
     sage: M2 = pari('[1,10;9,18]')
     sage: M2.matsolvemod(3, pari('[2,3]~'), 1)
-    [[0, -1]~, [-1, -2; 1, -1]]
+    [[2, 0]~, [3, 2; 0, 1]]
     sage: M2.matsolvemod(9, pari('[2,3]~'))
     0
     sage: M2.matsolvemod(9, pari('[2,45]~'), 1)
-    [[1, 1]~, [-1, -4; 1, -5]]
+    [[2, 0]~, [9, 8; 0, 1]]
 
     sage: pari('[1,2,3;4,5,6;7,8,9]').matker()
     [1; -2; 1]
@@ -1200,7 +1201,7 @@ Elliptic curves::
     [0, 1/2, 0, -3/4, 0, 2, -3/2, 0, -9/16, 40, -116, 117/4, 256000/117, Vecsmall([1]), [Vecsmall([64, 1])], [0, 0, 0, 0, 0, 0, 0, 0]]
     sage: pari([0,0.5,0,-0.75,0]).ellinit()
     [0, 0.500000000000000, 0, -0.750000000000000, 0, 2.00000000000000, -1.50000000000000, 0, -0.562500000000000, 40.0000000000000, -116.000000000000, 29.2500000000000, 2188.03418803419, Vecsmall([0]), [Vecsmall([64, 1])], [0, 0, 0, 0]]
-    sage: pari([0,I,0,1,0]).ellinit()
+    sage: pari([0,SR(I),0,1,0]).ellinit()
     [0, I, 0, 1, 0, 4*I, 2, 0, -1, -64, 352*I, -80, 16384/5, Vecsmall([0]), [Vecsmall([64, 0])], [0, 0, 0, 0]]
     sage: x = SR.symbol('x')
     sage: pari([0,x,0,2*x,1]).ellinit()
@@ -1339,9 +1340,9 @@ Elliptic curves::
     sage: e = pari([0,1,1,-2,0]).ellinit()
     sage: e.ellordinate(0)
     [0, -1]
-    sage: e.ellordinate(I)
+    sage: e.ellordinate(SR(I))
     [0.582203589721741 - 1.38606082464177*I, -1.58220358972174 + 1.38606082464177*I]
-    sage: e.ellordinate(I, precision=128)[0].sage()
+    sage: e.ellordinate(SR(I), precision=128)[0].sage()
     0.58220358972174117723338947874993600727 - 1.3860608246417697185311834209833653345*I
     sage: e.ellordinate(1+3*5^1+O(5^3))
     [4*5 + 5^2 + O(5^3), 4 + 3*5^2 + O(5^3)]
@@ -1364,9 +1365,9 @@ Elliptic curves::
     [0]
     sage: e.ellmul(p, 2)
     [1/4, -7/8]
-    sage: q = e.ellmul(p, 1+I); q
+    sage: q = e.ellmul(p, SR(1+I)); q
     [-2*I, 1 + I]
-    sage: e.ellmul(q, 1-I)
+    sage: e.ellmul(q, SR(1-I))
     [1/4, -7/8]
     sage: for D in [-7, -8, -11, -12, -16, -19, -27, -28]:  # long time (1s)
     ....:     hcpol = hilbert_class_polynomial(D)
@@ -1419,15 +1420,15 @@ Elliptic curves::
     sage: e.ellztopoint(0)
     [0]
 
-    sage: pari(I).ellj()
+    sage: pari(SR(I)).ellj()
     1728.00000000000
-    sage: pari(3*I).ellj()
+    sage: pari(SR(3*I)).ellj()
     153553679.396729
     sage: pari('quadgen(-3)').ellj()
     0.E-54
     sage: pari('quadgen(-7)').ellj(precision=256).sage()
     -3375.000000000000000000000000000000000000000000000000000000000000000000000000
-    sage: pari(-I).ellj()
+    sage: pari(SR(-I)).ellj()
     Traceback (most recent call last):
     ...
     PariError: domain error in modular function: Im(argument) <= 0
@@ -1524,12 +1525,12 @@ General number fields::
 
     sage: G = pari(x^4 + 1).galoisinit()
     sage: G.galoisfixedfield(G[5][1], flag=2)
-    [x^2 - 2, Mod(-x^3 + x, x^4 + 1), [x^2 - y*x + 1, x^2 + y*x + 1]]
+    [y^2 - 2, Mod(-x^3 + x, x^4 + 1), [x^2 - y*x + 1, x^2 + y*x + 1]]
     sage: G.galoisfixedfield(G[5][5:7])
     [x^4 + 1, Mod(x, x^4 + 1)]
     sage: L = G.galoissubgroups()
     sage: G.galoisfixedfield(L[3], flag=2, v='z')
-    [x^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
+    [z^2 + 2, Mod(x^3 + x, x^4 + 1), [x^2 - z*x - 1, x^2 + z*x - 1]]
 
     sage: G = pari(x^6 + 108).galoisinit()
     sage: L = G.galoissubgroups()
@@ -1693,7 +1694,7 @@ General number fields::
     sage: F.__pari__().nfisisom(GG.pari_nf())
     [1/2*y^2]
     sage: F.pari_nf().nfisisom(GG.__pari__()[0])
-    [y^2]
+    [1/2*y^2]
     sage: H = NumberField(x^2-2,'alpha')
     sage: F.__pari__().nfisisom(H.__pari__())
     0
@@ -1715,7 +1716,7 @@ General number fields::
 
     sage: nf = pari('x^2 + 1').nfinit()
     sage: nf.nfrootsof1()
-    [4, x]
+    [4, [0, 1]~]
 
     sage: x = ZZ['xx1'].0; pari(x)
     xx1

@@ -9,13 +9,12 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #
 ################################################################################
-from __future__ import absolute_import
-from six.moves import range
 
 from sage.groups.old import Group
+from sage.categories.groups import Groups
 from sage.rings.all import ZZ
 from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
@@ -29,9 +28,10 @@ from sage.structure.element import parent
 
 from .arithgroup_element import ArithmeticSubgroupElement, M2Z as Mat2Z
 
+
 def is_ArithmeticSubgroup(x):
     r"""
-    Return True if x is of type ArithmeticSubgroup.
+    Return ``True`` if ``x`` is of type :class:`ArithmeticSubgroup`.
 
     EXAMPLES::
 
@@ -41,7 +41,6 @@ def is_ArithmeticSubgroup(x):
         sage: is_ArithmeticSubgroup(Gamma0(4))
         True
     """
-
     return isinstance(x, ArithmeticSubgroup)
 
 
@@ -63,9 +62,9 @@ class ArithmeticSubgroup(Group):
 
             sage: G = Gamma1(7)
             sage: G.category() # indirect doctest
-            Category of groups
+            Category of infinite groups
         """
-        Group.__init__(self)
+        Group.__init__(self, category=Groups().Infinite())
 
     def _repr_(self):
         r"""
@@ -685,6 +684,7 @@ class ArithmeticSubgroup(Group):
         r"""
         Return a sorted list of inequivalent cusps for self, i.e. a set of
         representatives for the orbits of self on `\mathbb{P}^1(\QQ)`.
+
         These should be returned in a reduced form where this makes sense.
 
         INPUT:
@@ -708,19 +708,20 @@ class ArithmeticSubgroup(Group):
         """
         try:
             return copy(self._cusp_list[algorithm])
-        except (AttributeError,KeyError):
+        except (AttributeError, KeyError):
             self._cusp_list = {}
 
         from .congroup_sl2z import is_SL2Z
-        if is_SL2Z(self):
-            s = [Cusp(1,0)]
-
         if algorithm == 'default':
-            s = self._find_cusps()
+            if is_SL2Z(self):
+                s = [Cusp(1, 0)]
+            else:
+                s = self._find_cusps()
         elif algorithm == 'modsym':
-            s = sorted([self.reduce_cusp(c) for c in self.modular_symbols().cusps()])
+            s = sorted(self.reduce_cusp(c)
+                       for c in self.modular_symbols().cusps())
         else:
-            raise ValueError("unknown algorithm: %s"%algorithm)
+            raise ValueError("unknown algorithm: %s" % algorithm)
 
         self._cusp_list[algorithm] = s
         return copy(s)
@@ -1125,12 +1126,13 @@ class ArithmeticSubgroup(Group):
         2.
 
         For dimensions of spaces of modular forms with character for Gamma1, use
-        the standalone function dimension_modular_forms().
+        the dimension_modular_forms method of the Gamma1 class, or the standalone
+        function dimension_modular_forms().
 
-        For weight 1 modular forms this function only works in cases where one
-        can prove solely in terms of Riemann-Roch theory that there aren't any
-        cusp forms (i.e. when the number of regular cusps is strictly greater
-        than the degree of the canonical divisor). Otherwise a
+        For weight 1 modular forms this generic implementation only works in
+        cases where one can prove solely via Riemann-Roch theory that there
+        aren't any cusp forms (i.e. when the number of regular cusps is
+        strictly greater than the degree of the canonical divisor). Otherwise a
         NotImplementedError is raised.
 
         EXAMPLES::
@@ -1141,63 +1143,40 @@ class ArithmeticSubgroup(Group):
             1
             sage: Gamma1(4).dimension_modular_forms(1) # irregular cusp
             1
-            sage: Gamma1(31).dimension_modular_forms(1)
+            sage: Gamma(13).dimension_modular_forms(1)
             Traceback (most recent call last):
             ...
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
-
-        k = ZZ(k)
-        if k < 0: return ZZ(0)
-        if k == 0: return ZZ(1)
-
-        if not (k % 2):
-            # k even
-
-            return (k-1) * (self.genus() - 1) + (k // ZZ(4))*self.nu2() + (k // ZZ(3))*self.nu3() + (k // ZZ(2))*self.ncusps()
-
-        else:
-            # k odd
-            if self.is_even():
-                return ZZ(0)
-            else:
-                e_reg = self.nregcusps()
-                e_irr = self.nirregcusps()
-
-                if k > 1:
-                    return (k-1)*(self.genus()-1) + (k // ZZ(3)) * self.nu3() + (k * e_reg)/ZZ(2) + (k-1)/ZZ(2) * e_irr
-                else:
-                    if e_reg > 2*self.genus() - 2:
-                        return e_reg / ZZ(2)
-                    else:
-                        raise NotImplementedError("Computation of dimensions of weight 1 modular forms spaces not implemented in general")
+        return self.dimension_cusp_forms(k) + self.dimension_eis(k)
 
     def dimension_cusp_forms(self, k=2):
         r"""
         Return the dimension of the space of weight k cusp forms for this
-        group. This is given by a standard formula in terms of k and various
-        invariants of the group; see Diamond + Shurman, "A First Course in
-        Modular Forms", section 3.5 and 3.6. If k is not given, default to k =
-        2.
+        group. For `k \ge 2`, this is given by a standard formula in terms of k
+        and various invariants of the group; see Diamond + Shurman, "A First
+        Course in Modular Forms", section 3.5 and 3.6. If k is not given,
+        default to k = 2.
 
         For dimensions of spaces of cusp forms with character for Gamma1, use
-        the standalone function dimension_cusp_forms().
+        the dimension_cusp_forms method of the Gamma1 class, or the standalone
+        function dimension_cusp_forms().
 
-        For weight 1 cusp forms this function only works in cases where one can
-        prove solely in terms of Riemann-Roch theory that there aren't any cusp
-        forms (i.e. when the number of regular cusps is strictly greater than
-        the degree of the canonical divisor). Otherwise a NotImplementedError is
-        raised.
+        For weight 1 cusp forms this generic implementation only works in cases
+        where one can prove solely via Riemann-Roch theory that there aren't
+        any cusp forms (i.e. when the number of regular cusps is strictly
+        greater than the degree of the canonical divisor). Otherwise a
+        NotImplementedError is raised.
 
         EXAMPLES::
 
             sage: Gamma1(31).dimension_cusp_forms(2)
             26
-            sage: Gamma1(3).dimension_cusp_forms(1)
+            sage: Gamma(5).dimension_cusp_forms(1)
             0
             sage: Gamma1(4).dimension_cusp_forms(1) # irregular cusp
             0
-            sage: Gamma1(31).dimension_cusp_forms(1)
+            sage: Gamma(13).dimension_cusp_forms(1)
             Traceback (most recent call last):
             ...
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
@@ -1253,7 +1232,6 @@ class ArithmeticSubgroup(Group):
             sage: GammaH(33, [4]).dimension_eis(1)
             4
         """
-
         if k < 0: return ZZ(0)
         if k == 0: return ZZ(1)
 

@@ -211,9 +211,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
-from six import string_types
 
 import re
 import sys
@@ -223,7 +220,7 @@ from .expect import console, Expect, ExpectElement, ExpectFunction, FunctionElem
 PROMPT = ">>>"
 
 SAGE_REF = "_sage_ref"
-SAGE_REF_RE = re.compile('%s\d+' % SAGE_REF)
+SAGE_REF_RE = re.compile(r'%s\d+' % SAGE_REF)
 
 from sage.env import SAGE_EXTCODE, DOT_SAGE
 import sage.misc.misc
@@ -376,7 +373,7 @@ class Magma(ExtraTabCompletion, Expect):
             sage: m.set_seed(1) # optional - magma
             1
             sage: [m.Random(100) for i in range(5)] # optional - magma
-            [95, 20, 61, 59, 24]
+            [13, 55, 84, 100, 37]
         """
         if seed is None:
             seed = self.rand_seed()
@@ -459,7 +456,7 @@ class Magma(ExtraTabCompletion, Expect):
             sage: magma._post_process_from_file("Hello")
             ''
         """
-        if not isinstance(s, string_types):
+        if not isinstance(s, str):
             raise RuntimeError("Error evaluating object in %s:\n%s" % (self, s))
         # Chop off the annoying "Loading ... " message that Magma
         # always outputs no matter what.
@@ -1512,7 +1509,6 @@ class Magma(ExtraTabCompletion, Expect):
                         N.append(x[:i])
                 except RuntimeError as msg:  # weird internal problems in Magma type system
                     print('Error -- %s' % msg)
-                    pass
             if verbose:
                 print("Done! (%s seconds)" % sage.misc.misc.cputime(tm))
             N = sorted(set(N))
@@ -1566,11 +1562,9 @@ class Magma(ExtraTabCompletion, Expect):
 
         INPUT:
 
+        -  ``type`` -- string (e.g. 'Groebner')
 
-        -  ``type`` - string (e.g. 'Groebner')
-
-        -  ``level`` - integer = 0
-
+        -  ``level`` -- integer >= 0
 
         EXAMPLES::
 
@@ -1578,35 +1572,11 @@ class Magma(ExtraTabCompletion, Expect):
             sage: magma.get_verbose("Groebner")         # optional - magma
             2
         """
-        self.SetVerbose(type, level)
-
-    def SetVerbose(self, type, level):
-        """
-        Set the verbosity level for a given algorithm class etc. in Magma.
-
-        INPUT:
-
-
-        -  ``type`` - string (e.g. 'Groebner'), see Magma
-           documentation
-
-        -  ``level`` - integer = 0
-
-
-        .. note::
-
-           This method is provided to be consistent with the Magma
-           naming convention.
-
-        ::
-
-            sage: magma.SetVerbose("Groebner", 2)      # optional - magma
-            sage: magma.GetVerbose("Groebner")         # optional - magma
-            2
-        """
         if level < 0:
             raise TypeError("level must be >= 0")
         self.eval('SetVerbose("%s",%d)' % (type, level))
+
+    SetVerbose = set_verbose
 
     def get_verbose(self, type):
         """
@@ -1625,32 +1595,43 @@ class Magma(ExtraTabCompletion, Expect):
             sage: magma.get_verbose("Groebner")           # optional - magma
             2
         """
-        return self.GetVerbose(type)
+        return int(self.eval('GetVerbose("%s")' % type))
 
-    def GetVerbose(self, type):
+    GetVerbose = get_verbose
+
+    def set_nthreads(self, n):
         """
-        Get the verbosity level of a given algorithm class etc. in Magma.
+        Set the number of threads used for parallelized algorithms in Magma.
 
         INPUT:
 
-
-        -  ``type`` - string (e.g. 'Groebner'), see Magma
-           documentation
-
-
-        .. note::
-
-           This method is provided to be consistent with the Magma
-           naming convention.
+        - ``n`` - number of threads
 
         EXAMPLES::
 
-            sage: magma.SetVerbose("Groebner", 2)      # optional - magma
-            sage: magma.GetVerbose("Groebner")         # optional - magma
+            sage: magma.set_nthreads(2)                #optional - magma
+            sage: magma.get_nthreads()                 #optional - magma
             2
         """
-        return int(self.eval('GetVerbose("%s")' % type))
+        if n < 1:
+            raise TypeError("no. of threads must be >= 1")
+        self.eval('SetNthreads(%d)' % (n))
 
+    SetNthreads = set_nthreads
+
+    def get_nthreads(self):
+        """
+        Get the number of threads used in Magma.
+
+        EXAMPLES::
+
+            sage: magma.set_nthreads(2)                #optional - magma
+            sage: magma.get_nthreads()                 #optional - magma
+            2
+        """
+        return int(self.eval('GetNthreads()'))
+
+    GetNthreads = get_nthreads
 
 @instancedoc
 class MagmaFunctionElement(FunctionElement):
@@ -2001,7 +1982,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: m.sage()                           # optional - magma
             [1 2 3]
             [4 5 6]
-
+            
         Multivariate polynomials::
 
             sage: R.<x,y,z> = QQ[]                   # optional - magma
@@ -2076,6 +2057,21 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: R = Zmod(137)
             sage: magma(R).sage()  # optional - magma
             Ring of integers modulo 137
+            
+        TESTS:
+        
+        Tests for :trac:`30341`::
+
+            sage: P.<t> = PolynomialRing(QQ)
+            sage: l = [-27563611963/4251528, -48034411/104976, -257/54, 1]
+            sage: u = P(l)
+            sage: u == P(magma(u).sage()) # optional - magma
+            True
+            
+            sage: P.<x,y> = PolynomialRing(QQ, 2)
+            sage: u = x + 27563611963/4251528*y
+            sage: magma(u).sage() # optional - magma
+            x + 27563611963/4251528*y
         """
         z, preparse = self.Sage(nvals=2)
         s = str(z)
@@ -2205,7 +2201,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         return self.__gen_names
 
     def evaluate(self, *args):
-        """
+        r"""
         Evaluate self at the inputs.
 
         INPUT:
@@ -2280,7 +2276,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
             sage: V                                             # optional - magma
             Full Vector space of degree 2 over GF(3)
             sage: w = V.__iter__(); w                           # optional - magma
-            <generator object __iter__ at ...>
+            <generator object ...__iter__ at ...>
             sage: next(w)                                       # optional - magma
             (0 0)
             sage: next(w)                                       # optional - magma
@@ -2667,7 +2663,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
         """
         return self.parent().bar_call(self, 'sub', gens)
 
-    def quo(self, gens):
+    def quo(self, gens, **args):
         """
         Return the quotient of self by the given object or list of
         generators.
@@ -2676,6 +2672,7 @@ class MagmaElement(ExtraTabCompletion, ExpectElement):
 
 
         -  ``gens`` - object or list/tuple of generators
+        - further named arguments that are ignored
 
 
         OUTPUT:
@@ -2777,38 +2774,17 @@ def magma_console():
     console('sage-native-execute magma')
 
 
-def magma_version():
-    """
-    Return the version of Magma that you have in your PATH on your
-    computer.
-
-    OUTPUT:
-
-
-    -  ``numbers`` - 3-tuple: major, minor, etc.
-
-    -  ``string`` - version as a string
-
-
-    EXAMPLES::
-
-        sage: magma_version()       # random, optional - magma
-        ((2, 14, 9), 'V2.14-9')
-    """
-    from sage.misc.superseded import deprecation
-    deprecation(20388, 'This function has been deprecated. Use magma.version() instead.')
-    return magma.version()
-
-
 class MagmaGBLogPrettyPrinter:
     """
     A device which filters Magma Groebner basis computation logs.
     """
     cmd_inpt = re.compile("^>>>$")
-    app_inpt = re.compile("^Append\(~_sage_, 0\);$")
+    app_inpt = re.compile("^Append\\(~_sage_, 0\\);$")
 
-    deg_curr = re.compile("^Basis length\: (\d+), queue length\: (\d+), step degree\: (\d+), num pairs\: (\d+)$")
-    pol_curr = re.compile("^Number of pair polynomials\: (\d+), at (\d+) column\(s\), .*")
+    deg_curr = re.compile(
+        "^Basis length\\: (\\d+), queue length\\: (\\d+), step degree\\: (\\d+), num pairs\\: (\\d+)$"
+    )
+    pol_curr = re.compile("^Number of pair polynomials\\: (\\d+), at (\\d+) column\\(s\\), .*")
 
     def __init__(self, verbosity=1, style='magma'):
         """
@@ -2837,10 +2813,6 @@ class MagmaGBLogPrettyPrinter:
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Cyclic(P)
             sage: _ = I.groebner_basis('magma',prot=True) # indirect doctest, optional - magma, not tested
-
-            Homogeneous weights search
-            Number of variables: 3, nullity: 1
-            Exact search time: 0.000
             ********************
             FAUGERE F4 ALGORITHM
             ********************
@@ -2883,6 +2855,8 @@ class MagmaGBLogPrettyPrinter:
             Highest degree reached during computation:  3.
         """
         self.verbosity = verbosity
+        if style not in ['sage', 'magma']:
+            raise ValueError('style must be sage or magma')
         self.style = style
 
         self.curr_deg = 0    # current degree
@@ -2899,12 +2873,20 @@ class MagmaGBLogPrettyPrinter:
             sage: P.<x,y,z> = GF(32003)[]
             sage: I = sage.rings.ideal.Katsura(P)
             sage: _ = I.groebner_basis('magma',prot=True) # indirect doctest, optional - magma
-            <BLANKLINE>
-            Homogeneous weights search
+            ********************
+            FAUGERE F4 ALGORITHM
+            ********************
             ...
             Total Faugere F4 time: ..., real time: ...
         """
         verbosity, style = self.verbosity, self.style
+
+        if isinstance(s, bytes):
+            # sys.stdout.encoding can be None or something else
+            if isinstance(sys.stdout.encoding, str):
+                s = s.decode(sys.stdout.encoding)
+            else:
+                s = s.decode("UTF-8")
 
         if self.storage:
             s = self.storage + s

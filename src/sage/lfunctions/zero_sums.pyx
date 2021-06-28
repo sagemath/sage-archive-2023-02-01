@@ -15,9 +15,8 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.sage_object cimport SageObject
 from sage.rings.integer_ring import ZZ
@@ -29,7 +28,7 @@ from sage.functions.log import log, exp
 from sage.functions.other import real, imag
 from sage.symbolic.constants import pi, euler_gamma
 from sage.libs.pari.all import pari
-from sage.misc.all import verbose
+from sage.misc.verbose import verbose
 from sage.parallel.decorate import parallel
 from sage.parallel.ncpus import ncpus as num_cpus
 from sage.libs.flint.ulong_extras cimport n_is_prime
@@ -486,16 +485,16 @@ cdef class LFunctionZeroSum_abstract(SageObject):
         - ``function`` -- string (default: "sincsquared_fast") - the function
           `f(x)` as described above. Currently implemented options for `f` are
 
-          - ``sincquared`` -- `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`
+          - ``sincsquared`` -- `f(x) = \left(\frac{\sin(\pi x)}{\pi x}\right)^2`
 
           - ``gaussian``   -- `f(x) = e^{-x^2}`
 
-          - ``sincquared_fast`` -- Same as "sincsquared", but implementation
+          - ``sincsquared_fast`` -- Same as "sincsquared", but implementation
             optimized for elliptic curve `L`-functions, and tau must be 0. self
             must be attached to an elliptic curve over `\QQ` given by its global
             minimal model, otherwise the returned result will be incorrect.
 
-          - ``sincquared_parallel`` -- Same as "sincsquared_fast", but optimized
+          - ``sincsquared_parallel`` -- Same as "sincsquared_fast", but optimized
             for parallel computation with large (>2.0) `\Delta` values. self must
             be attached to an elliptic curve over `\QQ` given by its global minimal
             model, otherwise the returned result will be incorrect.
@@ -551,20 +550,20 @@ cdef class LFunctionZeroSum_abstract(SageObject):
 
         """
 
-        # If Delta>6.95, then exp(2*pi*Delta)>sys.maxint, so we get overflow
+        # If Delta>6.95, then exp(2*pi*Delta)>sys.maxsize, so we get overflow
         # when summing over the logarithmic derivative coefficients
         if Delta > 6.95:
             raise ValueError("Delta value too large; will result in overflow")
 
-        if function=="sincsquared_parallel":
+        if function == "sincsquared_parallel":
             return self._zerosum_sincsquared_parallel(Delta=Delta,ncpus=ncpus)
-        elif function=="sincsquared_fast":
+        elif function == "sincsquared_fast":
             return self._zerosum_sincsquared_fast(Delta=Delta)
-        elif function=="sincsquared":
+        elif function == "sincsquared":
             return self._zerosum_sincsquared(Delta=Delta,tau=tau)
-        elif function=="gaussian":
+        elif function == "gaussian":
             return self._zerosum_gaussian(Delta=Delta)
-        elif function=="cauchy":
+        elif function == "cauchy":
             return self._zerosum_cauchy(Delta=Delta,tau=tau)
         else:
             raise ValueError("Input function not recognized.")
@@ -1158,7 +1157,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             sage: print((E.rank(),Z._zerosum_sincsquared_fast(Delta=1))) # tol 1.0e-13
             (1, 1.0103840698356263)
             sage: E = EllipticCurve("121a")
-            sage: Z = LFunctionZeroSum(E);
+            sage: Z = LFunctionZeroSum(E)
             sage: print((E.rank(),Z._zerosum_sincsquared_fast(Delta=1.5))) # tol 1.0e-13
             (0, 0.0104712060086507)
 
@@ -1267,7 +1266,8 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         r"""
         Method called by self._zerosum_sincsquared_parallel() to determine
         the optimal residue class breakdown when sieving for primes.
-        Returns a list of small primes, the product thereof, and a list of
+
+        Return a list of small primes, the product thereof, and a list of
         residues coprime to the product.
 
         INPUT:
@@ -1442,7 +1442,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
             1.0103840698356263
             sage: E = EllipticCurve("121a"); print(E.rank())
             0
-            sage: Z = LFunctionZeroSum(E);
+            sage: Z = LFunctionZeroSum(E)
             sage: print(Z._zerosum_sincsquared_parallel(Delta=1.5,ncpus=2)) # tol 1.0e-11
             0.01047120600865063
 
@@ -1576,7 +1576,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
         - ``root_number`` -- (default: "compute") String or integer
 
           - ``"compute"`` -- the root number of self is computed and used to
-            (possibly) lower ther analytic rank estimate by 1.
+            (possibly) lower the analytic rank estimate by 1.
           - ``"ignore"`` -- the above step is omitted
           - ``1`` -- this value is assumed to be the root number of
             self. This is passable so that rank estimation can be done for
@@ -1622,7 +1622,7 @@ cdef class LFunctionZeroSum_EllipticCurve(LFunctionZeroSum_abstract):
 
             :func:`LFunctionZeroSum`
             :meth:`EllipticCurve.root_number`
-            :func:`set_verbose`
+            :func:`~sage.misc.verbose.set_verbose`
 
         EXAMPLES:
 

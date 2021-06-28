@@ -7,8 +7,6 @@ Root system data for (untwisted) type A affine
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
-from __future__ import absolute_import
 
 from .cartan_type import CartanType_standard_untwisted_affine, CartanType_simply_laced
 class CartanType(CartanType_standard_untwisted_affine):
@@ -205,7 +203,7 @@ class CartanType(CartanType_standard_untwisted_affine):
         return self
 
     def _default_folded_cartan_type(self):
-        """
+        r"""
         Return the default folded Cartan type.
 
         In general, this just returns ``self`` in ``self`` with `\sigma` as
@@ -222,4 +220,3 @@ class CartanType(CartanType_standard_untwisted_affine):
         if self.n == 1:
             return CartanTypeFolded(self, ['A', 3, 1], [[0,2], [1,3]])
         return CartanTypeFolded(self, self, [[i] for i in self.index_set()])
-

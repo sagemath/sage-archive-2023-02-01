@@ -45,15 +45,13 @@ AUTHORS:
 
 - Florent Hivert
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2010 Florent Hivert <Florent.Hivert@univ-rouen.fr>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
-import sage
 from sage.structure.list_clone cimport ClonableIntArray
 from sage.structure.parent cimport Parent
 from sage.arith.power cimport generic_power
@@ -315,8 +313,8 @@ cdef class FiniteSetMap_MN(ClonableIntArray):
             sage: FiniteSetMaps(4, 3)([1, 0, 2, 1]).fibers()
             {0: {1}, 1: {0, 3}, 2: {2}}
             sage: F = FiniteSetMaps(["a", "b", "c"])
-            sage: F.from_dict({"a": "b", "b": "a", "c": "b"}).fibers()
-            {'a': {'b'}, 'b': {'a', 'c'}}
+            sage: F.from_dict({"a": "b", "b": "a", "c": "b"}).fibers() == {'a': {'b'}, 'b': {'a', 'c'}}
+            True
         """
         return fibers(self, self.domain())
 
@@ -443,10 +441,10 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
     - ``parent._m`` contains the cardinality of the domain
     - ``parent._n`` contains the cardinality of the codomain
     - ``parent._unrank_domain`` and ``parent._rank_domain`` is a pair of
-      reciprocal rank and unrank functions beween the domain and
+      reciprocal rank and unrank functions between the domain and
       ``range(parent._m)``.
     - ``parent._unrank_codomain`` and ``parent._rank_codomain`` is a pair of
-      reciprocal rank and unrank functions beween the codomain and
+      reciprocal rank and unrank functions between the codomain and
       ``range(parent._n)``.
     """
 
@@ -499,8 +497,8 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
         EXAMPLES::
 
             sage: F = FiniteSetMaps(["a", "b", "c"])
-            sage: F.from_dict({"a": "b", "b": "a", "c": "b"}).image_set()
-            {'a', 'b'}
+            sage: sorted(F.from_dict({"a": "b", "b": "a", "c": "b"}).image_set())
+            ['a', 'b']
             sage: F = FiniteSetMaps(["a", "b", "c"])
             sage: F(lambda x: "c").image_set()
             {'c'}
@@ -599,7 +597,8 @@ cdef class FiniteSetMap_Set(FiniteSetMap_MN):
             sage: F._from_list_([0, 2])
             map: a -> 3, b -> 5
         """
-        return "map: "+", ".join([("%s -> %s"%(i, self(i))) for i in self.domain()])
+        return "map: " + ", ".join("%s -> %s" % (i, self(i))
+                                   for i in self.domain())
 
 
 cdef class FiniteSetEndoMap_N(FiniteSetMap_MN):

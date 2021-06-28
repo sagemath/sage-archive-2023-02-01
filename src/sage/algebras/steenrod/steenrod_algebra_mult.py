@@ -197,7 +197,6 @@ representing a sum of admissible monomials.
 #  Copyright (C) 2008-2010 John H. Palmieri <palmieri@math.washington.edu>
 #  Distributed under the terms of the GNU General Public License (GPL)
 #*****************************************************************************
-from six.moves import range
 
 from sage.misc.cachefunc import cached_function
 
@@ -226,12 +225,12 @@ def milnor_multiplication(r,s):
     EXAMPLES::
 
         sage: from sage.algebras.steenrod.steenrod_algebra_mult import milnor_multiplication
-        sage: milnor_multiplication((2,), (1,))
-        {(0, 1): 1, (3,): 1}
-        sage: milnor_multiplication((4,), (2,1))
-        {(0, 3): 1, (2, 0, 1): 1, (6, 1): 1}
-        sage: milnor_multiplication((2,4), (0,1))
-        {(2, 0, 0, 1): 1, (2, 5): 1}
+        sage: milnor_multiplication((2,), (1,)) == {(0, 1): 1, (3,): 1}
+        True
+        sage: sorted(milnor_multiplication((4,), (2,1)).items())
+        [((0, 3), 1), ((2, 0, 1), 1), ((6, 1), 1)]
+        sage: sorted(milnor_multiplication((2,4), (0,1)).items())
+        [((2, 0, 0, 1), 1), ((2, 5), 1)]
 
     These examples correspond to the following product computations:
 
@@ -394,14 +393,14 @@ def milnor_multiplication_odd(m1,m2,p):
     EXAMPLES::
 
         sage: from sage.algebras.steenrod.steenrod_algebra_mult import milnor_multiplication_odd
-        sage: milnor_multiplication_odd(((0,2),(5,)), ((1,),(1,)), 5)
-        {((0, 1, 2), (0, 1)): 4, ((0, 1, 2), (6,)): 4}
+        sage: sorted(milnor_multiplication_odd(((0,2),(5,)), ((1,),(1,)), 5).items())
+        [(((0, 1, 2), (0, 1)), 4), (((0, 1, 2), (6,)), 4)]
         sage: milnor_multiplication_odd(((0,2,4),()), ((1,3),()), 7)
         {((0, 1, 2, 3, 4), ()): 6}
         sage: milnor_multiplication_odd(((0,2,4),()), ((1,5),()), 7)
         {((0, 1, 2, 4, 5), ()): 1}
-        sage: milnor_multiplication_odd(((),(6,)), ((),(2,)), 3)
-        {((), (0, 2)): 1, ((), (4, 1)): 1, ((), (8,)): 1}
+        sage: sorted(milnor_multiplication_odd(((),(6,)), ((),(2,)), 3).items())
+        [(((), (0, 2)), 1), (((), (4, 1)), 1), (((), (8,)), 1)]
 
     These examples correspond to the following product computations:
 
@@ -450,7 +449,7 @@ def milnor_multiplication_odd(m1,m2,p):
         for mono in old_answer:
             if k not in mono[0]:
                 q_mono = set(mono[0])
-                if len(q_mono) > 0:
+                if q_mono:
                     ind = len(q_mono.intersection(range(k,1+max(q_mono))))
                 else:
                     ind = 0
@@ -466,7 +465,7 @@ def milnor_multiplication_odd(m1,m2,p):
             for i in range(1,1+len(mono[1])):
                 if (k+i not in mono[0]) and (p**k <= mono[1][i-1]):
                     q_mono = set(mono[0])
-                    if len(q_mono) > 0:
+                    if q_mono:
                         ind = len(q_mono.intersection(range(k+i,1+max(q_mono))))
                     else:
                         ind = 0
@@ -480,11 +479,11 @@ def milnor_multiplication_odd(m1,m2,p):
                     p_mono = list(mono[1])
                     p_mono[i-1] = p_mono[i-1] - p**k
 
-                    # The next two lines were added so that p_mono won't
+                    # The next two lines were added so that p_mono will not
                     # have trailing zeros. This makes p_mono uniquely
                     # determined by P(*p_mono).
 
-                    while len(p_mono)>0 and p_mono[-1] == 0:
+                    while p_mono and p_mono[-1] == 0:
                         p_mono.pop()
 
                     answer[(q_mono, tuple(p_mono))] = F(coeff)
@@ -739,8 +738,8 @@ def adem(a, b, c=0, p=2, generic=None):
         {(3, 1): 1}
         sage: adem(4,2)
         {(4, 2): 1}
-        sage: adem(4,4)
-        {(6, 2): 1, (7, 1): 1}
+        sage: adem(4,4) == {(6, 2): 1, (7, 1): 1}
+        True
 
     If `p` is given and is odd, then with two inputs `a` and `b`, the
     Adem relation for `P^a P^b` is computed.  With three inputs `a`,
@@ -760,17 +759,20 @@ def adem(a, b, c=0, p=2, generic=None):
         {(0, 3, 0, 1, 0): 1}
         sage: adem(1,0,1, p=7)
         {(0, 2, 0): 2}
-        sage: adem(1,1,1, p=5)
-        {(0, 2, 1): 1, (1, 2, 0): 1}
-        sage: adem(1,1,2, p=5)
-        {(0, 3, 1): 1, (1, 3, 0): 2}
+        sage: adem(1,1,1, p=5) == {(0, 2, 1): 1, (1, 2, 0): 1}
+        True
+        sage: adem(1,1,2, p=5) == {(0, 3, 1): 1, (1, 3, 0): 2}
+        True
     """
     if generic is None:
-        generic = False if p==2 else True
+        generic = (p != 2)
     if not generic:
-        if b == 0: return {(a,): 1}
-        elif a == 0: return {(b,): 1}
-        elif a >= 2*b: return {(a,b): 1}
+        if b == 0:
+            return {(a,): 1}
+        elif a == 0:
+            return {(b,): 1}
+        elif a >= 2*b:
+            return {(a,b): 1}
         result = {}
         for c in range(1 + a//2):
             if binomial_mod2(b-c-1, a-2*c) == 1:

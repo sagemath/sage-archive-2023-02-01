@@ -294,7 +294,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
             sage: a.residue(2)
             8
             sage: a % 7^2
-            0
+            1 + 7 + O(7^4)
 
             sage: b = K(1/7)
             sage: b.residue()
@@ -375,7 +375,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
         NOTE::
 
             The function does not check that its argument ``self`` is
-            1 in the residue field. If this assumption is not fullfiled
+            1 in the residue field. If this assumption is not fulfilled
             the behaviour of the function is not specified.
 
         ALGORITHM:
@@ -415,8 +415,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
             sage: r = Zp(5,prec=4,type='fixed-mod')(6)
             sage: r._log_binary_splitting(5)
-            5 + 2*5^2 + 4*5^3 + O(5^4)
-
+            5 + 2*5^2 + 4*5^3
         """
         cdef unsigned long p
         cdef unsigned long prec = min(aprec, self.relprec)
@@ -451,7 +450,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
             The function does not check that its argument ``self`` is
             the disk of convergence of ``exp``. If this assumption is not
-            fullfiled the behaviour of the function is not specified.
+            fulfilled the behaviour of the function is not specified.
 
         ALGORITHM:
 
@@ -518,7 +517,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
             The function does not check that its argument ``self`` is
             the disk of convergence of ``exp``. If this assumption is not
-            fullfiled the behaviour of the function is not specified.
+            fulfilled the behaviour of the function is not specified.
 
         ALGORITHM:
 
@@ -559,6 +558,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
         sig_off()
 
         return ans
+
 
 def unpickle_pcre_v1(R, unit, ordp, relprec):
     """

@@ -1,7 +1,7 @@
 from .types cimport GF2X_c, GF2_c, GF2XModulus_c, vec_GF2_c, ZZ_c
 
 
-cdef extern from "ntlwrap.cpp":
+cdef extern from "ntlwrap.h":
     long *GF2XHexOutput_c "(&GF2X::HexOutput)" # work-around for Cython bug
 
     int GF2X_IsOne "IsOne"(GF2X_c x)
@@ -21,6 +21,7 @@ cdef extern from "ntlwrap.cpp":
     void GF2X_LeftShift "LeftShift"( GF2X_c r, GF2X_c a, long offset)
     void GF2X_RightShift "RightShift"( GF2X_c r, GF2X_c a, long offset)
 
+    void GF2X_trunc "trunc"(GF2X_c r, GF2X_c a, long n)
     void GF2X_DivRem "DivRem"(GF2X_c q, GF2X_c r, GF2X_c a, GF2X_c b)
     void GF2X_div "div" (GF2X_c q, GF2X_c a, GF2X_c b)
     void GF2X_rem "rem" (GF2X_c r, GF2X_c a, GF2X_c b)

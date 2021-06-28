@@ -19,12 +19,11 @@ AUTHOR:
 #
 #                  http://www.gnu.org/licenses/
 # *************************************************************************
-from __future__ import absolute_import
 
 from sage.categories.morphism import Morphism, is_Morphism
 from .fgp_module import DEBUG
 from sage.structure.richcmp import richcmp, op_NE
-
+from sage.misc.cachefunc import cached_method
 
 class FGP_Morphism(Morphism):
     """
@@ -132,6 +131,7 @@ class FGP_Morphism(Morphism):
             self.domain().base_ring(), self.domain().invariants(), self.codomain().invariants(),
             list(self.im_gens()))
 
+    @cached_method
     def im_gens(self):
         """
         Return tuple of the images of the generators of the domain
@@ -146,10 +146,7 @@ class FGP_Morphism(Morphism):
             sage: phi.im_gens() is phi.im_gens()
             True
         """
-        try: return self.__im_gens
-        except AttributeError: pass
-        self.__im_gens = tuple([self(x) for x in self.domain().gens()])
-        return self.__im_gens
+        return tuple([self(x) for x in self.domain().gens()])
 
     def _richcmp_(self, right, op):
         """
@@ -229,7 +226,7 @@ class FGP_Morphism(Morphism):
 
             sage: V = span([[1/2,1,1],[3/2,2,1],[0,0,1]],ZZ); W = V.span([2*V.0+4*V.1, 9*V.0+12*V.1, 4*V.2])
             sage: Q = V/W
-            sage: phi = Q.hom([Q.0+3*Q.1, -Q.1]);
+            sage: phi = Q.hom([Q.0+3*Q.1, -Q.1])
             sage: phi(Q.0) == Q.0 + 3*Q.1
             True
 

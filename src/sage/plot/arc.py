@@ -15,7 +15,6 @@ Arcs of circles and ellipses
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.plot.primitive import GraphicPrimitive
 from sage.plot.colors import to_mpl_color
@@ -48,7 +47,7 @@ class Arc(GraphicPrimitive):
 
         sage: from sage.plot.arc import Arc
         sage: print(Arc(0,0,1,1,pi/4,pi/4,pi/2,{}))
-        Arc with center (0.0,0.0) radii (1.0,1.0) angle 0.785398163397 inside the sector (0.785398163397,1.57079632679)
+        Arc with center (0.0,0.0) radii (1.0,1.0) angle 0.78539816339... inside the sector (0.78539816339...,1.5707963267...)
     """
     def __init__(self, x, y, r1, r2, angle, s1, s2, options):
         """
@@ -65,12 +64,12 @@ class Arc(GraphicPrimitive):
             True
             sage: A[0].r2 == 1
             True
-            sage: bool(A[0].angle == pi/4)
-            True
+            sage: A[0].angle
+            0.7853981633974483
             sage: bool(A[0].s1 == 0)
             True
-            sage: bool(A[0].s2 == pi)
-            True
+            sage: A[0].s2
+            3.141592653589793
 
         TESTS::
 

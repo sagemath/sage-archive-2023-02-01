@@ -29,15 +29,14 @@ Inductive valuations are originally discussed in [Mac1936I]_ and [Mac1936II]_.
 An introduction is also given in Chapter 4 of [Rüt2014]_.
 
 """
-#*****************************************************************************
-#       Copyright (C) 2016-2017 Julian Rüth <julian.rueth@fsfe.org>
+# ****************************************************************************
+#       Copyright (C) 2016-2018 Julian Rüth <julian.rueth@fsfe.org>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from .valuation import DiscreteValuation, InfiniteDiscretePseudoValuation
 from .developing_valuation import DevelopingValuation
@@ -122,7 +121,7 @@ class InductiveValuation(DevelopingValuation):
             sage: v = GaussValuation(S)
             sage: f = 3*x + 2
             sage: h = v.equivalence_reciprocal(f); h
-            (2 + O(3^5))
+            2 + O(3^5)
             sage: v.is_equivalent(f*h, 1)
             True
 
@@ -245,9 +244,9 @@ class InductiveValuation(DevelopingValuation):
             sage: S.<x> = Qp(3,5)[]
             sage: v = GaussValuation(S)
             sage: v.equivalence_unit(2)
-            (3^2 + O(3^7))
+            3^2 + O(3^7)
             sage: v.equivalence_unit(-2)
-            (3^-2 + O(3^3))
+            3^-2 + O(3^3)
 
         Note that this might fail for negative ``s`` if the domain is not
         defined over a field::
@@ -530,8 +529,10 @@ class InductiveValuation(DevelopingValuation):
 
         """
         tester = self._tester(**options)
-        tester.assertTrue(isinstance(self, InfiniteInductiveValuation) != isinstance(self, FiniteInductiveValuation))
-        tester.assertTrue(isinstance(self, FinalInductiveValuation) != isinstance(self, NonFinalInductiveValuation))
+        tester.assertNotEqual(isinstance(self, InfiniteInductiveValuation),
+                              isinstance(self, FiniteInductiveValuation))
+        tester.assertNotEqual(isinstance(self, FinalInductiveValuation),
+                              isinstance(self, NonFinalInductiveValuation))
 
 
 class FiniteInductiveValuation(InductiveValuation, DiscreteValuation):
@@ -664,7 +665,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         from .augmented_valuation import AugmentedValuation
         return AugmentedValuation(self, phi, mu, check)
 
-    def mac_lane_step(self, G, principal_part_bound=None, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds_and_caches=False, coefficients=None, valuations=None, check=True):
+    def mac_lane_step(self, G, principal_part_bound=None, assume_squarefree=False, assume_equivalence_irreducible=False, report_degree_bounds_and_caches=False, coefficients=None, valuations=None, check=True, allow_equivalent_key=True):
         r"""
         Perform an approximation step towards the squarefree monic non-constant
         integral polynomial ``G`` which is not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`.
@@ -674,7 +675,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         INPUT:
 
-        - ``G`` -- a sqaurefree monic non-constant integral polynomial ``G``
+        - ``G`` -- a squarefree monic non-constant integral polynomial ``G``
           which is not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`
 
         - ``principal_part_bound`` -- an integer or ``None`` (default:
@@ -698,6 +699,54 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
           non-constant  integral polynomial and not an :meth:`equivalence unit <InductiveValuation.is_equivalence_unit>`
           (default: ``True``)
 
+        - ``allow_equivalent_key`` -- whether to return valuations which end in
+          essentially the same key polynomial as this valuation but have a
+          higher valuation assigned to that key polynomial (default: ``True``)
+
+        EXAMPLES:
+
+        We can use this method to perform the individual steps of
+        :meth:`~sage.rings.valuation.valuation.DiscreteValuation.mac_lane_approximants`::
+
+            sage: R.<x> = QQ[]
+            sage: v = QQ.valuation(2)
+            sage: f = x^36 + 1160/81*x^31 + 9920/27*x^30 + 1040/81*x^26 + 52480/81*x^25 + 220160/81*x^24 - 5120/81*x^21 - 143360/81*x^20 - 573440/81*x^19 + 12451840/81*x^18 - 266240/567*x^16 - 20316160/567*x^15 - 198737920/189*x^14 - 1129840640/81*x^13 - 1907359744/27*x^12 + 8192/81*x^11 + 655360/81*x^10 + 5242880/21*x^9 + 2118123520/567*x^8 + 15460204544/567*x^7 + 6509559808/81*x^6 - 16777216/567*x^2 - 268435456/567*x - 1073741824/567
+            sage: v.mac_lane_approximants(f)
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 2056) = 23/2 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 11/9 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 2/5, v(x^5 + 4) = 7/2 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^10 + 8*x^5 + 64) = 7 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^5 + 8) = 5 ]]
+
+        Starting from the Gauss valuation, a MacLane step branches off with
+        some linear key polynomials in the above example::
+
+            sage: v0 = GaussValuation(R, v)
+            sage: V1 = sorted(v0.mac_lane_step(f)); V1
+            [[ Gauss valuation induced by 2-adic valuation, v(x) = 2/5 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 11/9 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3 ]]
+
+        The computation of MacLane approximants would now perform a MacLane
+        step on each of these branches, note however, that a direct call to
+        this method might produce some unexpected results::
+
+            sage: V1[1].mac_lane_step(f)
+            [[ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^5 + 8) = 5 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^10 + 8*x^5 + 64) = 7 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 11/9 ]]
+
+        Note how this detected the two augmentations of ``V1[1]`` but also two
+        other valuations that we had seen in the previous step and that are
+        greater than ``V1[1]``. To ignore such trivial augmentations, we can
+        set ``allow_equivalent_key``::
+
+            sage: V1[1].mac_lane_step(f, allow_equivalent_key=False)
+            [[ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^5 + 8) = 5 ],
+             [ Gauss valuation induced by 2-adic valuation, v(x) = 3/5, v(x^10 + 8*x^5 + 64) = 7 ]]
+
         TESTS::
 
             sage: K.<x> = FunctionField(QQ)
@@ -712,6 +761,15 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: eta2
             [ Gauss valuation induced by Valuation on rational function field induced by [ Gauss valuation induced by 3-adic valuation, v(x) = 1/3 ], v(y + x) = 2/3 ]
 
+        Check that :trac:`26066` has been resolved::
+
+            sage: R.<x> = QQ[]
+            sage: v = QQ.valuation(2)
+            sage: v = GaussValuation(R, v).augmentation(x+1, 1/2)
+            sage: f = x^4 - 30*x^2 - 75
+            sage: v.mac_lane_step(f)
+            [[ Gauss valuation induced by 2-adic valuation, v(x + 1) = 3/4 ]]
+
         """
         G = self.domain().coerce(G)
 
@@ -719,8 +777,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             raise ValueError("G must not be constant")
 
         from itertools import islice
-        from sage.misc.misc import verbose
-        verbose("Augmenting %s towards %s"%(self, G), level=10)
+        from sage.misc.verbose import verbose
+        verbose("Augmenting %s towards %s" % (self, G), level=10)
 
         if not G.is_monic():
             raise ValueError("G must be monic")
@@ -728,12 +786,14 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         if coefficients is None:
             coefficients = self.coefficients(G)
             if principal_part_bound:
-                coefficients = islice(coefficients, 0, principal_part_bound + 1, 1)
+                coefficients = islice(coefficients, 0,
+                                      int(principal_part_bound) + 1, 1)
             coefficients = list(coefficients)
         if valuations is None:
             valuations = self.valuations(G, coefficients=coefficients)
             if principal_part_bound:
-                valuations = islice(valuations, 0, principal_part_bound + 1, 1)
+                valuations = islice(valuations, 0,
+                                    int(principal_part_bound) + 1, 1)
             valuations = list(valuations)
 
         if check and min(valuations) < 0:
@@ -771,21 +831,28 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     assert len(F) == 1
                     break
 
-                if phi == self.phi():
-                    # a factor phi in the equivalence decomposition means that we
-                    # found an actual factor of G, i.e., we can set
-                    # v(phi)=infinity
-                    # However, this should already have happened in the last step
-                    # (when this polynomial had -infinite slope in the Newton
-                    # polygon.)
-                    if self.is_gauss_valuation(): # unless in the first step
-                        pass
-                    else:
+                if not allow_equivalent_key and self.phi().degree() == phi.degree():
+                    # We ignore augmentations that could have been detected in
+                    # the previous MacLane step, see [Rüt2014, Theorem 4.33],
+                    # i.e., we ignore key polynomials that are equivalent to
+                    # the current key in the sense of that theorem.
+                    if self.is_equivalent(self.phi(), phi):
                         continue
 
-                verbose("Determining the augmentation of %s for %s"%(self, phi), level=11)
+                verbose("Determining the augmentation of %s for %s" % (self, phi), level=11)
+
+                base = self
+                if phi.degree() == base.phi().degree():
+                    # very frequently, the degree of the key polynomials
+                    # stagnate for a bit while the valuation of the key
+                    # polynomial is slowly increased.
+                    # In this case, we can drop previous key polynomials
+                    # of the same degree. (They have no influence on the
+                    # phi-adic expansion.)
+                    if not base.is_gauss_valuation():
+                        base = base._base_valuation
                 old_mu = self(phi)
-                w = self.augmentation(phi, old_mu, check=False)
+                w = base.augmentation(phi, old_mu, check=False)
 
                 # we made some experiments here: instead of computing the
                 # coefficients again from scratch, update the coefficients when
@@ -797,12 +864,14 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
                 w_coefficients = w.coefficients(G)
                 if principal_part_bound:
-                    w_coefficients = islice(w_coefficients, 0, principal_part_bound + 1, 1)
+                    w_coefficients = islice(w_coefficients, 0,
+                                            int(principal_part_bound) + 1, 1)
                 w_coefficients = list(w_coefficients)
 
                 w_valuations = w.valuations(G, coefficients=w_coefficients)
                 if principal_part_bound:
-                    w_valuations = islice(w_valuations, 0, principal_part_bound + 1, 1)
+                    w_valuations = islice(w_valuations, 0,
+                                          int(principal_part_bound) + 1, 1)
                 w_valuations = list(w_valuations)
 
                 from sage.geometry.newton_polygon import NewtonPolygon
@@ -821,18 +890,15 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     new_mu = old_mu - slope
                     new_valuations = [val - (j*slope if slope is not -infinity else (0 if j == 0 else -infinity))
                                       for j,val in enumerate(w_valuations)]
-                    base = self
-                    if phi.degree() == base.phi().degree():
-                        # very frequently, the degree of the key polynomials
-                        # stagnate for a bit while the valuation of the key
-                        # polynomial is slowly increased.
-                        # In this case, we can drop previous key polynomials
-                        # of the same degree. (They have no influence on the
-                        # phi-adic expansion.)
-                        assert new_mu > self(phi)
-                        if not base.is_gauss_valuation():
-                            base = base._base_valuation
+                    if phi.degree() == self.phi().degree():
+                        assert new_mu > self(phi), "the valuation of the key polynomial must increase when the degree stagnates"
+                    # phi has already been simplified internally by the
+                    # equivalence_decomposition method but we can now possibly
+                    # simplify it further as we know exactly up to which
+                    # precision it needs to be defined.
+                    phi = base.simplify(phi, new_mu, force=True)
                     w = base.augmentation(phi, new_mu, check=False)
+                    verbose("Augmented %s to %s"%(self, w), level=13)
                     assert slope is -infinity or 0 in w.newton_polygon(G).slopes(repetition=False)
 
                     from sage.rings.all import ZZ
@@ -842,7 +908,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     assert degree_bound >= phi.degree()
                     ret.append((w, degree_bound, multiplicities[slope], w_coefficients, new_valuations))
 
-        assert ret
+        if len(ret) == 0:
+            assert not allow_equivalent_key, "a MacLane step produced no augmentation"
+            assert 0 not in self.newton_polygon(G).slopes(), "a MacLane step produced no augmentation but the valuation given to the key polynomial was correct, i.e., it appears to come out of a call to mac_lane_approximants"
+
+        assert ret, "a MacLane step produced no augmentations"
         if not report_degree_bounds_and_caches:
             ret = [v for v,_,_,_,_ in ret]
         return ret
@@ -1191,7 +1261,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             sage: V = v1.mac_lane_step(G)
             sage: v2 = V[0]
             sage: F = v2.equivalence_decomposition(G); F
-            (x^4 + 2*x^2 + alpha^4 + alpha^3 + 1)^3 * (x^4 + 2*x^2 + 1/2*alpha^4 + alpha^3 + 5*alpha + 1)^3 * (x^4 + 2*x^2 + 3/2*alpha^4 + alpha^3 + 5*alpha + 1)^3
+            (x^4 + 2*alpha + 1)^3 * (x^4 + 1/2*alpha^4 + alpha + 1)^3 * (x^4 + 1/2*alpha^4 + 3*alpha + 1)^3
             sage: v2.is_equivalent(F.prod(), G)
             True
 
@@ -1211,11 +1281,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             v = self.extension(domain)
             ret = v.equivalence_decomposition(v.domain()(f))
             return Factorization([(self._eliminate_denominators(g), e)
-                                  for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()))
+                                  for (g,e) in ret], unit=self._eliminate_denominators(ret.unit()), sort=False)
 
         valuation, phi_divides, F = self._equivalence_reduction(f, coefficients=coefficients, valuations=valuations, degree_bound=degree_bound)
         F = F.factor()
-        from sage.misc.misc import verbose
+        from sage.misc.verbose import verbose
         verbose("%s factors as %s = %s in reduction"%(f, F.prod(), F), level=20)
 
         unit = self.domain().one()
@@ -1240,7 +1310,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
             for g,e in F:
                 v_g = self(g)
                 unit *= self._pow(self.equivalence_unit(-v_g, reciprocal=True), e, error=-v_g*e, effective_degree=0)
-            unit = self.simplify(unit, effective_degree=0)
+            unit = self.simplify(unit, effective_degree=0, force=True)
 
         if phi_divides:
             for i,(g,e) in enumerate(F):
@@ -1311,7 +1381,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         degree = self.effective_degree(f)
         if degree == 0:
-            raise ValueError("equivalence units can not have a minimal representative")
+            raise ValueError("equivalence units cannot have a minimal representative")
 
         e = list(self.coefficients(f))[degree]
         h = self.equivalence_reciprocal(e).map_coefficients(lambda c:_lift_to_maximal_precision(c))
@@ -1459,7 +1529,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                 g = self._eliminate_denominators(f)
             except ValueError:
                 continue
-            tester.assertTrue(g.parent() is self.domain())
+            tester.assertIs(g.parent(), self.domain())
             tester.assertTrue(w.is_equivalent(f, g))
 
     def _test_lift_to_key(self, **options):
@@ -1525,7 +1595,8 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         tester = self._tester(**options)
         S = tester.some_elements(self.domain().some_elements())
         for f in S:
-            if f.is_constant(): continue
+            if f.is_constant():
+                continue
             is_equivalence_irreducible = self.is_equivalence_irreducible(f)
             F = self.equivalence_decomposition(f)
             tester.assertEqual(is_equivalence_irreducible, len(F)==0 or (len(F)==1 and F[0][1]==1))
@@ -1539,7 +1610,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
 class FinalInductiveValuation(InductiveValuation):
     r"""
-    Abstract base class for an inductive valuation which can not be augmented further.
+    Abstract base class for an inductive valuation which cannot be augmented further.
 
     TESTS::
 
@@ -1549,7 +1620,6 @@ class FinalInductiveValuation(InductiveValuation):
         sage: from sage.rings.valuation.inductive_valuation import FinalInductiveValuation
         sage: isinstance(w, FinalInductiveValuation)
         True
-
     """
 
 

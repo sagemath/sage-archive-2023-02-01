@@ -10,16 +10,13 @@ AUTHOR:
 Functions and Methods
 ----------------------
 """
-from six.moves import range
 
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
-from sage.misc.decorators import rename_keyword
-
 
 def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=False):
-    """
+    r"""
     Numerically find a root of ``f`` on the closed interval `[a,b]`
     (or `[b,a]`) if possible, where ``f`` is a function in the one variable.
     Note: this function only works in fixed (machine) precision, it is not
@@ -54,8 +51,8 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         sage: f = (x+17)*(x-3)*(x-1/8)^3
         sage: find_root(f, 0,4)
         2.999999999999995
-        sage: find_root(f, 0,1)  # note -- precision of answer isn't very good on some machines.
-        0.124999...
+        sage: find_root(f, 0,1)  # abs tol 1e-6 (note -- precision of answer isn't very good on some machines)
+        0.124999
         sage: find_root(f, -20,-10)
         -17.0
 
@@ -77,6 +74,32 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
 
         sage: plot(f,2,2.01)
         Graphics object consisting of 1 graphics primitive
+
+    The following example was added due to :trac:`4942` and demonstrates that
+    the function need not be defined at the endpoints::
+
+        sage: find_root(x^2*log(x,2)-1,0, 2)  # abs tol 1e-6
+        1.41421356237
+
+    The following is an example, again from :trac:`4942` where Brent's method
+    fails. Currently no other method is implemented, but at least we
+    acknowledge the fact that the algorithm fails::
+
+        sage: find_root(1/(x-1)+1,0, 2)
+        0.0
+        sage: find_root(1/(x-1)+1,0.00001, 2)
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: Brent's method failed to find a zero for f on the interval
+
+    An example of a function which evaluates to NaN on the entire interval::
+
+        sage: f(x) = 0.0 / max(0, x)
+        sage: find_root(f, -1, 0)
+        Traceback (most recent call last):
+        ...
+        RuntimeError: f appears to have no zero on the interval
+
     """
     try:
         return f.find_root(a=a,b=b,xtol=xtol,rtol=rtol,maxiter=maxiter,full_output=full_output)
@@ -87,6 +110,7 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
         a, b = b, a
     left = f(a)
     right = f(b)
+
     if left > 0 and right > 0:
         # Refine further -- try to find a point where this
         # function is negative in the interval
@@ -114,9 +138,35 @@ def find_root(f, a, b, xtol=10e-13, rtol=2.0**-50, maxiter=100, full_output=Fals
             raise RuntimeError("f appears to have no zero on the interval")
         a = s
 
+    # Fixing :trac:`4942` - if the answer on any of the endpoints is NaN,
+    # we restrict to looking between minimum and maximum values in the segment
+    # Note - this could be used in all cases, but it requires some more
+    # computation
+
+    if (left != left) or (right != right):
+        minval, s_1 = find_local_minimum(f, a, b)
+        maxval, s_2 = find_local_maximum(f, a, b)
+        if ((minval > 0) or (maxval < 0) or
+           (minval != minval) or (maxval != maxval)):
+            raise RuntimeError("f appears to have no zero on the interval")
+        a = min(s_1, s_2)
+        b = max(s_1, s_2)
+
     import scipy.optimize
-    return scipy.optimize.brentq(f, a, b,
+    brentqRes = scipy.optimize.brentq(f, a, b,
                                  full_output=full_output, xtol=xtol, rtol=rtol, maxiter=maxiter)
+    # A check following :trac:`4942`, to ensure we actually found a root
+    # Maybe should use a different tolerance here?
+    # The idea is to take roughly the derivative and multiply by estimated
+    # value of the root
+    root = 0
+    if full_output:
+        root = brentqRes[0]
+    else:
+        root = brentqRes
+    if abs(f(root)) > max(abs(root * rtol * (right - left) / (b - a)), 1e-6):
+        raise NotImplementedError("Brent's method failed to find a zero for f on the interval")
+    return brentqRes
 
 def find_local_maximum(f, a, b, tol=1.48e-08, maxfun=500):
     """
@@ -210,9 +260,9 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
     actually test)::
 
         sage: plot(f, (x,-2.5, -1)).ymin()
-        -2.1827...
+        -2.182...
         sage: plot(f, (x,-2.5, 2)).ymin()
-        -2.1827...
+        -2.182...
 
     ALGORITHM:
 
@@ -229,13 +279,14 @@ def find_local_minimum(f, a, b, tol=1.48e-08, maxfun=500):
         return f.find_local_minimum(a=a, b=b, tol=tol, maxfun=maxfun)
     except AttributeError:
         pass
-    a = float(a); b = float(b)
+    a = float(a)
+    b = float(b)
     import scipy.optimize
     xmin, fval, iter, funcalls = scipy.optimize.fminbound(f, a, b, full_output=1, xtol=tol, maxfun=maxfun)
     return fval, xmin
 
-@rename_keyword(deprecation=23062, disp='verbose')
-def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
+
+def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
              verbose=False, **args):
     r"""
     This function is an interface to a variety of algorithms for computing
@@ -292,7 +343,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         sage: minimize(f, [.1,.3,.4]) # abs tol 1e-6
         (1.0, 1.0, 1.0)
 
-    Try the newton-conjugate gradient method; the gradient and hessian are 
+    Try the newton-conjugate gradient method; the gradient and hessian are
     computed automatically::
 
         sage: minimize(f, [.1, .3, .4], algorithm="ncg") # abs tol 1e-6
@@ -333,7 +384,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
     """
     from sage.symbolic.expression import Expression
     from sage.ext.fast_eval import fast_callable
-    import scipy
+    import numpy
     from scipy import optimize
     if isinstance(func, Expression):
         var_list=func.variables()
@@ -342,7 +393,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
         f=lambda p: fast_f(*p)
         gradient_list=func.gradient()
         fast_gradient_functions=[fast_callable(gradient_list[i], vars=var_names, domain=float)  for i in range(len(gradient_list))]
-        gradient=lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+        gradient=lambda p: numpy.array([ a(*p) for a in fast_gradient_functions])
     else:
         f=func
 
@@ -365,7 +416,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default", \
                 hess=func.hessian()
                 hess_fast= [ [fast_callable(a, vars=var_names, domain=float) for a in row] for row in hess]
                 hessian=lambda p: [[a(*p) for a in row] for row in hess_fast]
-                hessian_p=lambda p,v: scipy.dot(scipy.array(hessian(p)),v)
+                hessian_p=lambda p,v: scipy.dot(numpy.array(hessian(p)),v)
                 min = optimize.fmin_ncg(f, [float(_) for _ in x0], fprime=gradient, \
                       fhess=hessian, fhess_p=hessian_p, disp=verbose, **args)
     return vector(RDF, min)
@@ -452,7 +503,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         (805.985..., 1005.985...)
     """
     from sage.symbolic.expression import Expression
-    import scipy
+    import numpy
     from scipy import optimize
     function_type = type(lambda x,y: x+y)
 
@@ -463,13 +514,13 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         f = lambda p: fast_f(*p)
         gradient_list = func.gradient()
         fast_gradient_functions = [gi._fast_float_(*var_names) for gi in gradient_list]
-        gradient = lambda p: scipy.array([ a(*p) for a in fast_gradient_functions])
+        gradient = lambda p: numpy.array([ a(*p) for a in fast_gradient_functions])
         if isinstance(cons, Expression):
             fast_cons = cons._fast_float_(*var_names)
-            cons = lambda p: scipy.array([fast_cons(*p)])
+            cons = lambda p: numpy.array([fast_cons(*p)])
         elif isinstance(cons, list) and isinstance(cons[0], Expression):
             fast_cons = [ci._fast_float_(*var_names) for ci in cons]
-            cons = lambda p: scipy.array([a(*p) for a in fast_cons])
+            cons = lambda p: numpy.array([a(*p) for a in fast_cons])
     else:
         f = func
 
@@ -486,15 +537,15 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
                 else:
                     min = optimize.fmin_tnc(f, x0, approx_grad=True, bounds=cons, messages=0, **args)[0]
         elif isinstance(cons[0], function_type) or isinstance(cons[0], Expression):
-            min = optimize.fmin_cobyla(f, x0, cons, iprint=0, **args)
+            min = optimize.fmin_cobyla(f, x0, cons, **args)
     elif isinstance(cons, function_type) or isinstance(cons, Expression):
-        min = optimize.fmin_cobyla(f, x0, cons, iprint=0, **args)
+        min = optimize.fmin_cobyla(f, x0, cons, **args)
     return vector(RDF, min)
 
 
-def linear_program(c,G,h,A=None,b=None,solver=None):
-    """
-    Solves the dual linear programs:
+def linear_program(c, G, h, A=None, b=None, solver=None):
+    r"""
+    Solve the dual linear programs:
 
     - Minimize  `c'x` subject to `Gx + s = h`, `Ax = b`, and `s \geq 0` where
       `'` denotes transpose.
@@ -636,9 +687,10 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     EXAMPLES:
 
-    First we create some data points of a sine function with some random
+    First we create some data points of a sine function with some "random"
     perturbations::
 
+        sage: set_random_seed(0)
         sage: data = [(i, 1.2 * sin(0.5*i-0.2) + 0.1 * normalvariate(0, 1)) for i in xsrange(0, 4*pi, 0.2)]
         sage: var('a, b, c, x')
         (a, b, c, x)

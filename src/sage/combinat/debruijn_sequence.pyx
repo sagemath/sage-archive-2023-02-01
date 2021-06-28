@@ -64,7 +64,7 @@ AUTHOR:
 #                         http://www.gnu.org/licenses/
 #*******************************************************************************
 
-include "sage/data_structures/bitset.pxi"
+from sage.data_structures.bitset_base cimport *
 
 def debruijn_sequence(int k, int n):
     """
@@ -330,7 +330,7 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
 
         - ``seq`` -- A sequence of integers.
 
-        EXAMPLES:
+        EXAMPLES::
 
            sage: Sequences =  DeBruijnSequences(2, 3)
            sage: Sequences.an_element() in Sequences
@@ -350,12 +350,7 @@ class DeBruijnSequences(UniqueRepresentation, Parent):
 
         ALGORITHM:
 
-        The formula for cardinality is `k!^{k^{n-1}}/k^n` [1]_.
-
-        REFERENCES:
-
-        .. [1] Rosenfeld, Vladimir Raphael, 2002: Enumerating De Bruijn
-          Sequences. *Communications in Math. and in Computer Chem.*
+        The formula for cardinality is `k!^{k^{n-1}}/k^n` [Ros2002]_.
         """
         k = ZZ(self.k)
         n = ZZ(self.n)

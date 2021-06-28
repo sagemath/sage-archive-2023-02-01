@@ -24,7 +24,7 @@ children. Providing such methods is the whole purpose of the
 As a result, the :class:`AbstractTree` class is not meant to be
 instantiated, but extended. It is expected that classes extending this one may
 also inherit from classes representing iterables, for instance
-:class:`ClonableArray` or :class:`~sage.structure.list_clone.ClonableList`
+:class:`~sage.structure.list_clone.ClonableArray` or :class:`~sage.structure.list_clone.ClonableList`
 
 **Constrained Trees**
 
@@ -62,8 +62,6 @@ incoherent with the data structure.
 - Florent Hivert (2010-2011): initial revision
 - Frédéric Chapoton (2011): contributed some methods
 """
-# python3
-from __future__ import division, absolute_import
 
 from sage.structure.list_clone import ClonableArray
 from sage.rings.integer import Integer
@@ -822,7 +820,21 @@ class AbstractTree(object):
                    o
             sage: [T.node_number_at_depth(i) for i in range(6)]
             [1, 3, 4, 2, 1, 0]
+
+        TESTS:
+
+        Check that the empty tree has no nodes (:trac:`29134`)::
+
+            sage: T = BinaryTree()
+            sage: T
+            .
+            sage: T.is_empty()
+            True
+            sage: [T.node_number_at_depth(i) for i in range(3)]
+            [0, 0, 0]
         """
+        if self.is_empty():
+            return Integer(0)
         if depth == 0:
             return Integer(1)
         return sum(son.node_number_at_depth(depth - 1) for son in self)
@@ -1016,11 +1028,11 @@ class AbstractTree(object):
             yield ()
             for i, t in enumerate(self):
                 for p in t.paths():
-                    yield (i,)+p
+                    yield (i,) + p
 
     def node_number(self):
         """
-        The number of nodes of ``self``.
+        Return the number of nodes of ``self``.
 
         .. SEEALSO::
 
@@ -1057,7 +1069,7 @@ class AbstractTree(object):
 
     def depth(self):
         """
-        The depth of ``self``.
+        Return the depth of ``self``.
 
         EXAMPLES::
 
@@ -1321,7 +1333,7 @@ class AbstractTree(object):
 
     def canonical_labelling(self, shift=1):
         """
-        Returns a labelled version of ``self``.
+        Return a labelled version of ``self``.
 
         The actual canonical labelling is currently unspecified. However, it
         is guaranteed to have labels in `1...n` where `n` is the number of
@@ -1394,7 +1406,7 @@ class AbstractTree(object):
             raise ValueError("the width of the tree is too large")
         if self.node_number() == 1:
             return "0"
-        return "".join(["%x" % len(self)] + [u.to_hexacode() for u in self])
+        return ("%x" % len(self)) + "".join(u.to_hexacode() for u in self)
 
     def tree_factorial(self):
         r"""
@@ -1451,10 +1463,9 @@ class AbstractTree(object):
             \end{tikzpicture}}
         """
         ###############################################################################
-        # # use to load tikz in the preamble (one for *view* and one for *notebook*)
+        # load tikz in the preamble for *view*
         from sage.misc.latex import latex
         latex.add_package_to_preamble_if_available("tikz")
-        latex.add_to_mathjax_avoid_list("tikz")
         ###############################################################################
         # latex environnement : TikZ
         begin_env = "\\begin{tikzpicture}[auto]\n"
@@ -1798,7 +1809,7 @@ class AbstractClonableTree(AbstractTree):
 
     An abstract class for trees with clone protocol (see
     :mod:`~sage.structure.list_clone`). It is expected that classes extending
-    this one may also inherit from classes like :class:`ClonableArray` or
+    this one may also inherit from classes like :class:`~sage.structure.list_clone.ClonableArray` or
     :class:`~sage.structure.list_clone.ClonableList` depending whether one
     wants to build trees where adding a child is allowed.
 
@@ -1847,7 +1858,7 @@ class AbstractClonableTree(AbstractTree):
 
     def __setitem__(self, idx, value):
         """
-        Substitute a subtree
+        Substitute a subtree.
 
         .. NOTE::
 
@@ -1911,7 +1922,7 @@ class AbstractClonableTree(AbstractTree):
             sage: with x.clone() as x:
             ....:     x[0] = OrderedTree([[]])
             Traceback (most recent call last):
-            ....:
+            ...
             IndexError: list assignment index out of range
 
             sage: x = OrderedTree([]); x = OrderedTree([x,x]); x = OrderedTree([x,x]); x = OrderedTree([x,x])
@@ -2094,7 +2105,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def _repr_(self):
         """
-        Returns the string representation of ``self``
+        Return the string representation of ``self``.
 
         TESTS::
 
@@ -2115,8 +2126,8 @@ class AbstractLabelledTree(AbstractTree):
 
         INPUT:
 
-        - ``path`` -- None (default) or a path (list or tuple of children index
-                     in the tree)
+        - ``path`` -- ``None`` (default) or a path (list or tuple of
+          children index in the tree)
 
         OUTPUT: the label of the subtree indexed by ``path``
 
@@ -2188,7 +2199,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def __eq__(self, other):
         """
-        Tests if ``self`` is equal to ``other``
+        Test if ``self`` is equal to ``other``
 
         TESTS::
 
@@ -2213,7 +2224,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def _hash_(self):
         """
-        Returns the hash value for ``self``
+        Return the hash value for ``self``
 
         TESTS::
 
@@ -2278,7 +2289,7 @@ class AbstractLabelledTree(AbstractTree):
 
     def as_digraph(self):
         """
-        Returns a directed graph version of ``self``.
+        Return a directed graph version of ``self``.
 
         .. WARNING::
 
@@ -2293,7 +2304,7 @@ class AbstractLabelledTree(AbstractTree):
            sage: t1.as_digraph()
            Digraph on 3 vertices
 
-           sage: t = BinaryTree([[None, None],[[],None]]);
+           sage: t = BinaryTree([[None, None],[[],None]])
            sage: lt = t.canonical_labelling()
            sage: lt.as_digraph()
            Digraph on 4 vertices
@@ -2316,12 +2327,12 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
     This class takes care of modification for the label by the clone protocol.
 
     .. NOTE:: Due to the limitation of Cython inheritance, one cannot inherit
-       here from :class:`ClonableArray`, because it would prevent us to
+       here from :class:`~sage.structure.list_clone.ClonableArray`, because it would prevent us to
        inherit later from :class:`~sage.structure.list_clone.ClonableList`.
     """
     def set_root_label(self, label):
         """
-        Sets the label of the root of ``self``
+        Set the label of the root of ``self``.
 
         INPUT: ``label`` -- any Sage object
 
@@ -2377,7 +2388,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
     def set_label(self, path, label):
         """
-        Changes the label of subtree indexed by ``path`` to ``label``
+        Change the label of subtree indexed by ``path`` to ``label``.
 
         INPUT:
 
@@ -2428,7 +2439,7 @@ class AbstractLabelledClonableTree(AbstractLabelledTree,
 
     def map_labels(self, f):
         """
-        Applies the function `f` to the labels of ``self``
+        Apply the function `f` to the labels of ``self``
 
         This method returns a copy of ``self`` on which the function `f` has
         been applied on all labels (a label `x` is replaced by `f(x)`).
@@ -2476,6 +2487,8 @@ def from_hexacode(ch, parent=None, label='@'):
         sage: from sage.combinat.abstract_tree import from_hexacode
         sage: from_hexacode('12000', LabelledOrderedTrees())
         @[@[@[], @[]]]
+        sage: from_hexacode('12000')
+        @[@[@[], @[]]]
 
         sage: from_hexacode('1200', LabelledOrderedTrees())
         @[@[@[], @[]]]
@@ -2496,7 +2509,7 @@ def from_hexacode(ch, parent=None, label='@'):
         [[[], []]]
     """
     if parent is None:
-        from sage.combinat.rooted_tree import LabelledOrderedTrees
+        from sage.combinat.ordered_tree import LabelledOrderedTrees
         parent = LabelledOrderedTrees()
     return _from_hexacode_aux(ch, parent, label)[0]
 

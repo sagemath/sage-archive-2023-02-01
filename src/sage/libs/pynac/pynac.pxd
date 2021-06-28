@@ -1,7 +1,9 @@
 # distutils: language = c++
 # distutils: libraries = pynac gmp
 # distutils: extra_compile_args = -std=c++11 SINGULAR_CFLAGS
-# pynac/basic.h includes factory/factory.h so this ^ is needed to find it
+# distutils: include_dirs = SINGULAR_INCDIR
+# pynac/basic.h includes
+#   factory/factory.h    so this ^ is needed to find it
 """
 Declarations for pynac, a Python frontend for ginac
 
@@ -28,7 +30,7 @@ Check that we can externally cimport this (:trac:`18825`)::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from cpython cimport PyObject
+from cpython.object cimport PyObject
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 from libcpp.string cimport string as stdstring

@@ -7,7 +7,7 @@ AUTHORS:
 
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2010 Joris Vankerschaver <joris.vankerschaver@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -19,18 +19,13 @@ AUTHORS:
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.symbolic.ring import SR
 from sage.structure.element import RingElement, AlgebraElement
 from sage.rings.integer import Integer
 from sage.combinat.permutation import Permutation
-
-
-import six
 
 
 def sort_subscript(subscript):
@@ -369,7 +364,7 @@ class DifferentialForm(AlgebraElement):
         True
 
 
-    NOTES:
+    .. NOTE::
 
         Differential forms are stored behind the screens as dictionaries,
         where the keys are the subscripts of the non-zero components, and
@@ -477,12 +472,12 @@ class DifferentialForm(AlgebraElement):
             subscript = tuple(subscript)
 
         dim = self.parent().base_space().dim()
-        if any([s >= dim for s in subscript]):
+        if any(s >= dim for s in subscript):
             raise ValueError("Index out of bounds.")
 
         if len(subscript) != self._degree:
-            raise TypeError("%s is not a subscript of degree %s" %\
-                (subscript, self._degree))
+            raise TypeError("%s is not a subscript of degree %s" %
+                            (subscript, self._degree))
 
         sign, subscript = sort_subscript(subscript)
 
@@ -522,12 +517,12 @@ class DifferentialForm(AlgebraElement):
             subscript = tuple(subscript)
 
         dim = self.parent().base_space().dim()
-        if any([s >= dim for s in subscript]):
+        if any(s >= dim for s in subscript):
             raise ValueError("Index out of bounds.")
 
         if len(subscript) != self._degree:
-            raise TypeError("%s is not a subscript of degree %s" %\
-                (subscript, self._degree))
+            raise TypeError("%s is not a subscript of degree %s" %
+                            (subscript, self._degree))
 
         sign, subscript = sort_subscript(subscript)
         self._components[subscript] = sign*SR(fun)
@@ -643,9 +638,8 @@ class DifferentialForm(AlgebraElement):
                 # over both dictionaries in one go and compare (key, value)
                 # pairs as we go along.
 
-                for (key1, val1), (key2, val2) in \
-                        zip(six.iteritems(self._components), \
-                            six.iteritems(other._components)):
+                for (key1, val1), (key2, val2) in zip(self._components.items(),
+                                                      other._components.items()):
                     if key1 != key2 or str(val1) != str(val2):
                         return False
                 return True
@@ -816,7 +810,7 @@ class DifferentialForm(AlgebraElement):
             sage: f[1] = 1
             sage: f[2] = 0
             sage: f._dump_all()
-            {(2,): 0, (0,): 0, (1,): 1}
+            {(0,): 0, (1,): 1, (2,): 0}
             sage: f._cleanup()
             sage: f._dump_all()
             {(1,): 1}
@@ -853,7 +847,7 @@ class DifferentialForm(AlgebraElement):
             sage: f
             e^cos(x)*dy + sin(log(y))*dz
             sage: f._dump_all()
-            {(2,): sin(log(y)), (1,): e^cos(x)}
+            {(1,): e^cos(x), (2,): sin(log(y))}
             sage: g = DifferentialForm(F, 2)
             sage: g[1, 2] = x+y+z
             sage: g
@@ -862,8 +856,8 @@ class DifferentialForm(AlgebraElement):
             {(1, 2): x + y + z}
 
         """
-        print(self._components)
-
+        from pprint import pprint
+        pprint(self._components)
 
     def diff(self):
         r"""

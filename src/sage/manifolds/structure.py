@@ -60,8 +60,9 @@ class TopologicalStructure(Singleton):
         """
         return cat
 
+
 class RealTopologicalStructure(Singleton):
-    """
+    r"""
     The structure of a topological manifold over `\RR`.
     """
     chart = RealChart
@@ -109,8 +110,9 @@ class DifferentialStructure(Singleton):
         """
         return cat
 
+
 class RealDifferentialStructure(Singleton):
-    """
+    r"""
     The structure of a differentiable manifold over `\RR`.
     """
     chart = RealDiffChart
@@ -200,6 +202,30 @@ class LorentzianStructure(Singleton):
             sage: from sage.manifolds.structure import LorentzianStructure
             sage: from sage.categories.manifolds import Manifolds
             sage: LorentzianStructure().subcategory(Manifolds(RR))
+            Category of manifolds over Real Field with 53 bits of precision
+
+        """
+        return cat
+
+class DegenerateStructure(Singleton):
+    """
+    The structure of a degenerate manifold.
+    """
+    chart = RealDiffChart
+    name = "degenerate_metric"
+    scalar_field_algebra = DiffScalarFieldAlgebra
+    homset =  DifferentiableManifoldHomset
+
+    def subcategory(self, cat):
+        """
+        Return the subcategory of ``cat`` corresponding to the structure
+        of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.structure import DegenerateStructure
+            sage: from sage.categories.manifolds import Manifolds
+            sage: DegenerateStructure().subcategory(Manifolds(RR))
             Category of manifolds over Real Field with 53 bits of precision
 
         """

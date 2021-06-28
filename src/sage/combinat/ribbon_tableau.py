@@ -1,7 +1,7 @@
 r"""
 Ribbon Tableaux
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 Mike Hansen <mhansen@gmail.com>,
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -13,10 +13,8 @@ Ribbon Tableaux
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-# python3
-from __future__ import division, print_function, absolute_import
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.parent import Parent
 from sage.structure.element import parent
@@ -30,11 +28,11 @@ from sage.combinat.skew_partition import SkewPartition, SkewPartitions
 from sage.combinat.skew_tableau import SkewTableau, SkewTableaux, SemistandardSkewTableaux
 from sage.combinat.tableau import Tableaux
 from sage.combinat.partition import Partition, _Partitions
-from sage.misc.superseded import deprecated_function_alias
 from . import permutation
 import functools
 
 from sage.combinat.permutation import to_standard
+
 
 class RibbonTableau(SkewTableau):
     r"""
@@ -94,7 +92,7 @@ class RibbonTableau(SkewTableau):
             return RibbonTableaux().from_expr(expr)
 
         try:
-            rt = map(tuple, rt)
+            rt = [tuple(row) for row in rt]
         except TypeError:
             raise TypeError("each element of the ribbon tableau must be an iterable")
         if not all(row for row in rt):
@@ -120,8 +118,8 @@ class RibbonTableau(SkewTableau):
         l = 0
         t = 0
         for k in range(len(tableau)):
-            t += len([ x for x in tableau[k] if x is not None and x > -1])
-            l += len([ x for x in tableau[k] if x is not None and x > 0])
+            t += len([x for x in tableau[k] if x is not None and x > -1])
+            l += len([x for x in tableau[k] if x is not None and x > 0])
 
         if l == 0:
             return t
@@ -145,14 +143,12 @@ class RibbonTableau(SkewTableau):
             word: 2041100030
         """
         from sage.combinat.words.word import Word
-        w = []
-        for row in reversed(self):
-            w += row
-        return Word(w)
+        return Word([letter for row in reversed(self) for letter in row])
 
 #####################
 # Ribbon Tableaux   #
 #####################
+
 
 class RibbonTableaux(UniqueRepresentation, Parent):
     r"""
@@ -272,7 +268,7 @@ class RibbonTableaux(UniqueRepresentation, Parent):
 
     Element = RibbonTableau
     options = Tableaux.options
-    global_options = deprecated_function_alias(18555, options)
+
 
 class RibbonTableaux_shape_weight_length(RibbonTableaux):
     """
@@ -334,11 +330,12 @@ class RibbonTableaux_shape_weight_length(RibbonTableaux):
             sage: RibbonTableaux([[2,1],[]], [1,1,1], 1)
             Ribbon tableaux of shape [2, 1] / [] and weight [1, 1, 1] with 1-ribbons
         """
-        return "Ribbon tableaux of shape %s and weight %s with %s-ribbons"%(repr(self._shape), list(self._weight), self._length)
+        return "Ribbon tableaux of shape %s and weight %s with %s-ribbons" % (repr(self._shape), list(self._weight), self._length)
 
     def __contains__(self, x):
         """
         Note that this just checks to see if ``x`` appears in ``self``.
+
         This should be improved to provide actual checking.
 
         EXAMPLES::
@@ -411,6 +408,7 @@ class RibbonTableaux_shape_weight_length(RibbonTableaux):
         wt = [i for i in self._weight if i != 0]
         return Integer(graph_implementation_rec(self._shape, wt, self._length, count_rec)[0])
 
+
 def insertion_tableau(skp, perm, evaluation, tableau, length):
     """
     INPUT:
@@ -455,7 +453,7 @@ def insertion_tableau(skp, perm, evaluation, tableau, length):
     tableau = SkewTableau(expr=tableau).to_expr()[1]
 
     for k in range(len(tableau)):
-        tableau[-(k+1)] += [0]* ( skp[0][k] - partc[k] - len(tableau[-(k+1)]))
+        tableau[-(k+1)] += [0] * ( skp[0][k] - partc[k] - len(tableau[-(k+1)]))
 
     ## We construct a tableau from the southwest corner to the northeast one
     tableau = [[0] * (skp[0][k] - partc[k])
@@ -505,12 +503,13 @@ def count_rec(nexts, current, part, weight, length):
         sage: count_rec([[4], [1]], [[[4, 2, 2], [0, 0, 2, 0]], [[4, 3, 1], [0, 2, 0, 0]]], [[4, 3, 3], []], [2, 1, 1, 1], 2)
         [5]
     """
-    if current == []:
+    if not current:
         return [0]
-    if nexts != []:
-        return [sum(sum(j for j in i) for i in nexts)]
+    if nexts:
+        return [sum(j for i in nexts for j in i)]
     else:
         return [len(current)]
+
 
 def list_rec(nexts, current, part, weight, length):
     """
@@ -550,11 +549,11 @@ def list_rec(nexts, current, part, weight, length):
         return [[part[1],[]]]
 
     ## Test if the current nodes is not an empty node
-    if current == []:
+    if not current:
         return []
 
     ## Test if the current nodes drive us to new solutions
-    if nexts != []:
+    if nexts:
         res = []
         for i in range(len(current)):
             for j in range(len(nexts[i])):
@@ -657,6 +656,7 @@ def spin_polynomial_square(part, weight, length):
     t = R.gen()
     return R(graph_implementation_rec(part, weight, length, functools.partial(spin_rec,t))[0])
 
+
 def spin_polynomial(part, weight, length):
     """
     Returns the spin polynomial associated to ``part``, ``weight``, and
@@ -685,6 +685,7 @@ def spin_polynomial(part, weight, length):
     t = SR.var('t')
     coeffs = sp.list()
     return sum(c * t**(QQ(i)/2) for i,c in enumerate(coeffs))
+
 
 def cospin_polynomial(part, weight, length):
     """
@@ -756,8 +757,8 @@ def graph_implementation_rec(skp, weight, length, function):
     outer = skp[1]
     outer_len = len(outer)
 
-    ## Some tests in order to know if the shape and the weight are compatible.
-    if weight != [] and weight[-1] <= len(partp):
+    # Some tests in order to know if the shape and the weight are compatible.
+    if weight and weight[-1] <= len(partp):
         perms = permutation.Permutations([0]*(len(partp)-weight[-1]) + [length]*(weight[-1])).list()
     else:
         return function([], [], skp, weight, length)
@@ -794,7 +795,6 @@ def graph_implementation_rec(skp, weight, length, function):
         return function(a, selection, skp, weight, length)
 
 ##############################################################
-
 
 
 class MultiSkewTableau(CombinatorialElement):
@@ -998,6 +998,7 @@ class MultiSkewTableaux(UniqueRepresentation, Parent):
 
     Element = MultiSkewTableau
 
+
 class SemistandardMultiSkewTableaux(MultiSkewTableaux):
     """
     Semistandard multi skew tableaux.
@@ -1136,6 +1137,7 @@ class SemistandardMultiSkewTableaux(MultiSkewTableaux):
                 restmp.append( S.from_shape_and_word(parts[i], w) )
             yield self.element_class(self, restmp)
 
+
 class RibbonTableau_class(RibbonTableau):
     """
     This exists solely for unpickling ``RibbonTableau_class`` objects.
@@ -1158,4 +1160,3 @@ from sage.misc.persist import register_unpickle_override
 register_unpickle_override('sage.combinat.ribbon_tableau', 'RibbonTableau_class', RibbonTableau_class)
 register_unpickle_override('sage.combinat.ribbon_tableau', 'RibbonTableaux_shapeweightlength', RibbonTableaux)
 register_unpickle_override('sage.combinat.ribbon_tableau', 'SemistandardMultiSkewTtableaux_shapeweight', SemistandardMultiSkewTableaux)
-

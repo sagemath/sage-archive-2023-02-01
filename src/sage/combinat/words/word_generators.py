@@ -8,7 +8,7 @@ AUTHORS:
 - Sebastien Labbe (2008-12-17): merged into sage
 - Arnaud Bergeron (2008-12-17): merged into sage
 - Amy Glen (2008-12-17): merged into sage
-- Sebastien Labbe (2009-12-19): Added S-adic words (:trac:`7543`)
+- Sébastien Labbé (2009-12-19): Added S-adic words (:trac:`7543`)
 
 USE:
 
@@ -41,7 +41,7 @@ EXAMPLES::
     sage: t = words.ThueMorseWord(); t
     word: 0110100110010110100101100110100110010110...
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Franco Saliola <saliola@gmail.com>,
 #                          Sebastien Labbe <slabqc@gmail.com>,
 #                          Arnaud Bergeron <abergeron@gmail.com>,
@@ -51,11 +51,8 @@ EXAMPLES::
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-
-from six.moves import range
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from itertools import cycle, count
 from random import randint
@@ -292,8 +289,12 @@ class LowerChristoffelWord(FiniteWord_list):
                 break
             u = v
         w1, w2 = self[:index+1], self[index+1:]
-        return Factorization([LowerChristoffelWord(w1.count(1),w1.count(0)),
-                LowerChristoffelWord(w2.count(1),w2.count(0))])
+        w10 = w1.number_of_letter_occurrences(0)
+        w11 = w1.number_of_letter_occurrences(1)
+        w20 = w2.number_of_letter_occurrences(0)
+        w21 = w2.number_of_letter_occurrences(1)
+        return Factorization([LowerChristoffelWord(w11,w10),
+                              LowerChristoffelWord(w21,w20)])
 
     def __reduce__(self):
         r"""
@@ -420,13 +421,13 @@ class WordGenerator(object):
         W = InfiniteWords(alphabet)
         alphabet = W.alphabet()
         m = alphabet.cardinality()
-        if base < 2 or m < 2 :
-            raise ValueError("base (=%s) and len(alphabet) (=%s) must be at least 2"%(base, m))
+        if base < 2 or m < 2:
+            raise ValueError("base (=%s) and len(alphabet) (=%s) must be at least 2" % (base, m))
         from functools import partial
         f = partial(self._ThueMorseWord_nth_digit, alphabet=alphabet, base=base)
         return W(f, datatype='callable')
 
-    def _ThueMorseWord_nth_digit(self, n, alphabet=(0,1), base=2):
+    def _ThueMorseWord_nth_digit(self, n, alphabet=(0, 1), base=2):
         r"""
         Returns the `n`-th letter of the (Generalized) Thue-Morse word.
 
@@ -477,10 +478,10 @@ class WordGenerator(object):
                 if n == 0:
                     return alphabet[tn & 1]
                 n &= n - 1
-        elif base < 2 or m < 2 :
-            raise ValueError("base (=%s) and len(alphabet) (=%s) must be at least 2"%(base, m))
+        elif base < 2 or m < 2:
+            raise ValueError("base (=%s) and len(alphabet) (=%s) must be at least 2" % (base, m))
         else:
-            return alphabet[ZZ(sum(ZZ(n).digits(base = base))).mod(m)]
+            return alphabet[ZZ(sum(ZZ(n).digits(base=base))).mod(m)]
 
     def FibonacciWord(self, alphabet=(0, 1), construction_method="recursive"):
         r"""
@@ -593,7 +594,7 @@ class WordGenerator(object):
             sage: from sage.combinat.words.word_generators import WordGenerator
             sage: from itertools import islice
             sage: it = WordGenerator()._FibonacciWord_RecursiveConstructionIterator()
-            sage: list(islice(it,13))
+            sage: list(islice(it,13r))
             [0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1]
         """
         Fib0 = [0]
@@ -738,7 +739,7 @@ class WordGenerator(object):
 
         INPUT:
 
-        -  ``slope`` - the slope of the word. It can be one of the following :
+        -  ``slope`` - the slope of the word. It can be one of the following:
 
            -  real number in `]0, 1[`
 
@@ -839,9 +840,7 @@ class WordGenerator(object):
 
         ::
 
-            sage: words.CharacteristicSturmianWord(1/golden_ratio^2, bits=30)
-            doctest:...: DeprecationWarning: the argument 'bits' is deprecated
-            See http://trac.sagemath.org/14567 for details.
+            sage: words.CharacteristicSturmianWord(1/golden_ratio^2)
             word: 0100101001001010010100100101001001010010...
             sage: _.length()
             +Infinity
@@ -873,10 +872,6 @@ class WordGenerator(object):
             sage: u[1:-1] == v[:-2]
             True
         """
-        if bits is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(14567, "the argument 'bits' is deprecated")
-
         if len(set(alphabet)) != 2:
             raise TypeError("alphabet does not contain two distinct elements")
 
@@ -941,21 +936,32 @@ class WordGenerator(object):
             sage: Word(words._CharacteristicSturmianWord_LetterIterator(cf))
             word: 0100100101001001001010010010010100100101...
         """
-        if next(cf) != 0:
-            raise ValueError("The first term of the continued fraction expansion must be zero.")
+        try:
+            if next(cf) != 0:
+                raise ValueError("The first term of the continued fraction expansion must be zero.")
+        except StopIteration:
+            return
+
         s0 = [1]
         s1 = [0]
-        e = next(cf)
+        try:
+            e = next(cf)
+        except StopIteration:
+            return
+
         if not e >= 1:
             raise ValueError("The second term of the continued fraction expansion must be larger or equal to 1.")
         s1, s0 = s1*(e-1) + s0, s1
         n = 0
         while True:
-            for i in s1[n:]:
-                n += 1
-                yield alphabet[i]
-            else:
-                s1, s0 = s1*next(cf) + s0, s1
+            try:
+                for i in s1[n:]:
+                    n += 1
+                    yield alphabet[i]
+                else:
+                    s1, s0 = s1*next(cf) + s0, s1
+            except StopIteration:
+                return
 
     def KolakoskiWord(self, alphabet=(1,2)):
         r"""
@@ -972,6 +978,9 @@ class WordGenerator(object):
         Note that `K_{a,b} \neq K_{b,a}`. On the other hand, the
         words `K_{a,b}` and `K_{b,a}` are the unique two words over `A`
         that are fixed by `\Delta`.
+
+        Also note that the Kolakoski word is also known as the
+        Oldenburger word.
 
         INPUT:
 
@@ -1056,7 +1065,7 @@ class WordGenerator(object):
         -  ``a`` - positive integer (default: 1), the first letter occurring
            in the returned Kolakoski word.
         -  ``b`` - positive integer (default: 2), the second and last letter
-           occuring in the returned Kolakoski word.
+           occurring in the returned Kolakoski word.
 
         OUTPUT:
 
@@ -1083,7 +1092,7 @@ class WordGenerator(object):
             w.pop(0)
         w.pop(0)
         # Letters swap function
-        bar = lambda x : a if x == b else b
+        bar = lambda x: a if x == b else b
         current_letter = bar(w[-1])
         # Now we are ready to go in the recursive part
         while True:
@@ -1229,7 +1238,7 @@ class WordGenerator(object):
         Note that an infinite word is *episturmian* if it has the same set
         of factors as some epistandard word.
 
-        See for instance [DJP01]_, [JP02]_, and [GJ07]_.
+        See for instance [DJP2001]_, [JP2002]_, and [GJ2007]_.
 
         INPUT:
 
@@ -1258,14 +1267,6 @@ class WordGenerator(object):
             Traceback (most recent call last):
             ...
             TypeError: directive_word is not a word, so it cannot be used to build an episturmian word
-
-        REFERENCES:
-
-        .. [JP02] \J. Justin, G. Pirillo, Episturmian words and episturmian
-           morphisms, Theoret. Comput. Sci. 276 (2002) 281--313.
-
-        .. [GJ07] \A. Glen, J. Justin, Episturmian words: a survey, Preprint,
-           2007, :arxiv:`0801.1655`.
         """
         if not isinstance(directive_word, Word_class):
            raise TypeError("directive_word is not a word, so it cannot be used to build an episturmian word")
@@ -1295,7 +1296,7 @@ class WordGenerator(object):
 
             sage: import itertools
             sage: it = words._StandardEpisturmianWord_LetterIterator(Word('ab'))
-            sage: list(itertools.islice(it, 13))
+            sage: list(itertools.islice(it, 13r))
             ['a', 'b', 'a', 'a', 'b', 'a', 'b', 'a', 'a', 'b', 'a', 'a', 'b']
         """
         if isinstance(directive_word, FiniteWord_class):
@@ -1317,7 +1318,7 @@ class WordGenerator(object):
         This function finds and returns the minimal smooth prefix of length
         ``n``.
 
-        See [BMP07]_ for a definition.
+        See [BMP2007]_ for a definition.
 
         INPUT:
 
@@ -1336,12 +1337,6 @@ class WordGenerator(object):
 
             sage: words.MinimalSmoothPrefix(10)
             word: 1212212112
-
-        REFERENCES:
-
-        .. [BMP07] \S. Brlek, G. Melançon, G. Paquin, Properties of the extremal
-           infinite smooth words, Discrete Math. Theor. Comput. Sci. 9 (2007)
-           33--49.
         """
         tab = []
         W = FiniteWords([1, 2])
@@ -1359,8 +1354,8 @@ class WordGenerator(object):
         return W(w)
 
     def RandomWord(self, n, m=2, alphabet=None):
-        """
-        Returns a random word of length `n` over the given `m`-letter
+        r"""
+        Return a random word of length `n` over the given `m`-letter
         alphabet.
 
         INPUT:
@@ -1585,7 +1580,7 @@ class WordGenerator(object):
 
         EXAMPLES:
 
-        Let's define three morphisms and compute the first nested succesive
+        Let's define three morphisms and compute the first nested successive
         prefixes of the `s`-adic word::
 
             sage: m1 = WordMorphism('e->gh,f->hg')
@@ -1618,10 +1613,10 @@ class WordGenerator(object):
 
         A less trivial infinite `s`-adic word::
 
-            sage: m = WordMorphism({4:tm,5:fib})
+            sage: D = {4:tm,5:fib}
             sage: tmword = words.ThueMorseWord([4,5])
-            sage: w = m(tmword)
-            sage: Word(words._s_adic_iterator(w, repeat('a')))
+            sage: it = (D[a] for a in tmword)
+            sage: Word(words._s_adic_iterator(it, repeat('a')))
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
         The morphism `\sigma: a \mapsto ba, b \mapsto b` cannot satisfy the
@@ -1695,7 +1690,7 @@ class WordGenerator(object):
 
         EXAMPLES:
 
-        Let's define three morphisms and compute the first nested succesive
+        Let us define three morphisms and compute the first nested successive
         prefixes of the `s`-adic word::
 
             sage: m1 = WordMorphism('e->gh,f->hg')
@@ -1745,8 +1740,10 @@ class WordGenerator(object):
 
         A less trivial infinite `s`-adic word::
 
-            sage: t = words.ThueMorseWord([tm,fib])
-            sage: words.s_adic(t, repeat('a'))
+            sage: D = {4:tm,5:fib}
+            sage: tmword = words.ThueMorseWord([4,5])
+            sage: it = (D[a] for a in tmword)
+            sage: words.s_adic(it, repeat('a'))
             word: abbaababbaabbaabbaababbaababbaabbaababba...
 
         The same thing using a sequence of indices::
@@ -1777,11 +1774,11 @@ class WordGenerator(object):
             sage: from sage.misc.prandom import randint
             sage: def it():
             ....:   while True: yield randint(0,1)
-            sage: words.s_adic(it(), repeat('a'), [tm,fib])
+            sage: words.s_adic(it(), repeat('a'), [tm,fib])  # random
             word: abbaabababbaababbaabbaababbaabababbaabba...
-            sage: words.s_adic(it(), repeat('a'), [tm,fib])
+            sage: words.s_adic(it(), repeat('a'), [tm,fib])  # random
             word: abbaababbaabbaababbaababbaabbaababbaabba...
-            sage: words.s_adic(it(), repeat('a'), [tm,fib])
+            sage: words.s_adic(it(), repeat('a'), [tm,fib])  # random
             word: abaaababaabaabaaababaabaaababaaababaabaa...
 
         An example where the sequences cycle on two morphisms and two
@@ -1851,7 +1848,7 @@ class WordGenerator(object):
             sage: w.parent()
             Finite words over {'a', 'b'}
             sage: type(w)
-            <class 'sage.combinat.words.word.FiniteWord_iter_with_caching'>
+            <class 'sage.combinat.words.word.FiniteWord_callable_with_caching'>
 
         ::
 
@@ -1896,7 +1893,7 @@ class WordGenerator(object):
         elif hasattr(morphisms, '__call__'):
             seq = (morphisms(i) for i in sequence)
         else:
-            raise TypeError("morphisms (=%s) must be None, callable or provide a __getitem__ method."%morphisms)
+            raise TypeError("morphisms (=%s) must be None, callable or provide a __getitem__ method." % morphisms)
 
         from sage.combinat.words.word import FiniteWord_class
         if isinstance(sequence,(tuple,list,str,FiniteWord_class)) \
@@ -1905,12 +1902,12 @@ class WordGenerator(object):
             return prod(seq)(letters)
 
         from itertools import tee
-        seq_it,seq= tee(seq)
+        seq_it, seq = tee(seq)
         m = next(seq_it)
         W = m.codomain()
 
         kwds = {}
-        kwds['data'] = self._s_adic_iterator(seq,letters)
+        kwds['data'] = self._s_adic_iterator(seq, letters)
         kwds['datatype'] = 'iter'
         kwds['caching'] = True
         #kwds['check'] = False
@@ -1920,7 +1917,7 @@ class WordGenerator(object):
         r"""
         Return the finite word `w = a b^k a b^{k-1} a a b^{k-1} a b^{k} a`.
 
-        As described by Brlek, Hamel, Nivat and Reutenauer in [BHNR04]_, this
+        As described by Brlek, Hamel, Nivat and Reutenauer in [BHNR2004]_, this
         finite word `w` is such that the infinite periodic word `w^{\omega}`
         has palindromic defect ``k``.
 

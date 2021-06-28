@@ -6,13 +6,12 @@ AUTHORS:
 - Travis Scrimshaw (2013-10-15)
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #  Copyright (C) 2013 Travis Scrimshaw <tscrim at ucdavis.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from six import integer_types, iteritems
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from copy import copy
 from sage.misc.abstract_method import abstract_method
@@ -380,12 +379,10 @@ class IndexedFreeMonoidElement(IndexedMonoidElement):
         TESTS::
 
             sage: F = FreeMonoid(index_set=tuple('abcde'))
-            sage: hash(F ([(1,2),(0,1)]) )
-            2401565693828035651 # 64-bit
-            1164080195          # 32-bit
-            sage: hash(F ([(0,2),(1,1)]) )
-            -3359280905493236379 # 64-bit
-            -1890405019          # 32-bit
+            sage: hash(F ([(1,2),(0,1)]) ) == hash(((1, 2), (0, 1)))
+            True
+            sage: hash(F ([(0,2),(1,1)]) ) == hash(((0, 2), (1, 1)))
+            True
         """
         return hash(self._monomial)
 
@@ -509,12 +506,10 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
         TESTS::
 
             sage: F = FreeAbelianMonoid(index_set=ZZ)
-            sage: hash( F([(0,1), (2,2)]) )
-            8087055352805725849 # 64-bit
-            250091161           # 32-bit
-            sage: hash( F([(2,1)]) )
-            5118585357534560720 # 64-bit
-            1683816912          # 32-bit
+            sage: H1 = hash( F([(0,1), (2,2)]) )
+            sage: H2 = hash( F([(2,1)]) )
+            sage: H1 == H2
+            False
         """
         return hash(frozenset(self._monomial.items()))
 
@@ -547,7 +542,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             sage: x^0
             1
         """
-        if not isinstance(n, integer_types + (Integer,)):
+        if not isinstance(n, (int, Integer)):
             raise TypeError("Argument n (= {}) must be an integer".format(n))
         if n < 0:
             raise ValueError("Argument n (= {}) must be positive".format(n))
@@ -555,7 +550,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             return self
         if n == 0:
             return self.parent().one()
-        return self.__class__(self.parent(), {k:v*n for k,v in iteritems(self._monomial)})
+        return self.__class__(self.parent(), {k:v*n for k,v in self._monomial.items()})
 
     def __floordiv__(self, elt):
         """
@@ -583,7 +578,7 @@ class IndexedFreeAbelianMonoidElement(IndexedMonoidElement):
             ValueError: invalid cancellation
         """
         d = copy(self._monomial)
-        for k, v in iteritems(elt._monomial):
+        for k, v in elt._monomial.items():
             if k not in d:
                 raise ValueError("invalid cancellation")
             diff = d[k] - v
@@ -963,7 +958,7 @@ class IndexedFreeAbelianMonoid(IndexedMonoid):
                     d[k] = v
             x = d
         if isinstance(x, dict):
-            x = {k: v for k, v in iteritems(x) if v != 0}
+            x = {k: v for k, v in x.items() if v != 0}
         return IndexedMonoid._element_constructor_(self, x)
 
     Element = IndexedFreeAbelianMonoidElement

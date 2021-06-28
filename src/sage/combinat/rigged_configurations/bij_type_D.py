@@ -378,7 +378,7 @@ class KRTToRCBijectionTypeD(KRTToRCBijectionTypeA):
                 self.ret_rig_con[i].vacancy_numbers[j] *= 2
 
     def halving_map(self):
-        """
+        r"""
         Perform the halving map of the rigged configuration at the current
         state of the bijection.
 
@@ -616,7 +616,7 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
                 end = ell[a]
                 if a < height:
                     end = len(self.cur_partitions[a])
-                for i in reversed(range(0, end)):
+                for i in reversed(range(end)):
                     if self.cur_partitions[a][i] >= last_size and \
                       self.cur_partitions[a].vacancy_numbers[i] == self.cur_partitions[a].rigging[i]:
                         ell[n + a] = i
@@ -677,7 +677,7 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
         return(b)
 
     def doubling_map(self):
-        """
+        r"""
         Perform the doubling map of the rigged configuration at the current
         state of the bijection.
 
@@ -714,7 +714,7 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
                 partition.vacancy_numbers[j] *= 2
 
     def halving_map(self):
-        """
+        r"""
         Perform the halving map of the rigged configuration at the current
         state of the bijection.
 
@@ -742,7 +742,7 @@ class RCToKRTBijectionTypeD(RCToKRTBijectionTypeA):
                 partition.vacancy_numbers[j] //= 2
 
     def _correct_vacancy_nums(self):
-        """
+        r"""
         Correct the vacancy numbers with special considerations for spinor
         columns.
 

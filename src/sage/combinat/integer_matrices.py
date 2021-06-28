@@ -14,7 +14,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -312,7 +311,7 @@ def integer_matrices_generator(row_sums, column_sums):
 
         sage: from sage.combinat.integer_matrices import integer_matrices_generator
         sage: iter = integer_matrices_generator([3,2,2], [2,5]); iter
-        <generator object integer_matrices_generator at ...>
+        <generator object ...integer_matrices_generator at ...>
         sage: for m in iter: print(m)
         [[2, 1], [0, 2], [0, 2]]
         [[1, 2], [1, 1], [0, 2]]

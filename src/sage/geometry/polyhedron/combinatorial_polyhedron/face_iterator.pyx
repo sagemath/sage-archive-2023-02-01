@@ -227,7 +227,8 @@ cdef class FaceIterator_base(SageObject):
         self.structure.dual = dual
         self.structure.face_status = 0
         self.structure.dimension = C.dimension()
-        self.structure.current_dimension = self.structure.dimension -1
+        self.structure.current_dimension = self.structure.dimension - 1
+        self.structure.highest_dimension = self.structure.dimension - 1
         self._mem = MemoryAllocator()
 
         # We will not yield the empty face.
@@ -344,6 +345,25 @@ cdef class FaceIterator_base(SageObject):
             sage: it.reset()
             sage: next(it).ambient_V_indices()
             (0, 3, 4, 5)
+
+        TESTS:
+
+        Resetting will fix the order of the coatoms after ``only_subsets``::
+
+            sage: P = polytopes.Birkhoff_polytope(3)
+            sage: C = P.combinatorial_polyhedron()
+            sage: it = C.face_iter(dual=False)
+            sage: face = next(it)
+            sage: face.ambient_H_indices(add_equations=False)
+            (8,)
+            sage: face = next(it)
+            sage: face.ambient_H_indices(add_equations=False)
+            (7,)
+            sage: it.only_subfaces()
+            sage: it.reset()
+            sage: face = next(it)
+            sage: face.ambient_H_indices(add_equations=False)
+            (8,)
         """
         if self.structure.dimension == 0 or self.coatoms.n_faces() == 0:
             # As we will only yield proper faces,
@@ -359,10 +379,14 @@ cdef class FaceIterator_base(SageObject):
         self.structure.face_status = 0
         self.structure.new_faces[self.structure.dimension - 1].n_faces = self.coatoms.n_faces()
         self.structure.current_dimension = self.structure.dimension - 1
+        self.structure.highest_dimension = self.structure.dimension - 1
         self.structure.first_time[self.structure.dimension - 1] = True
 
         self.structure.yet_to_visit = self.coatoms.n_faces()
         self.structure._index = 0
+
+        # ``only_subsets`` might have messed up the coatoms.
+        face_list_shallow_copy(self.structure.new_faces[self.structure.dimension-1], self.coatoms.data)
 
     def __next__(self):
         r"""
@@ -463,6 +487,32 @@ cdef class FaceIterator_base(SageObject):
             ....:
             sage: n_non_simplex_faces
             127
+
+        Face iterator must not be in dual mode::
+
+            sage: it = C.face_iter(dual=True)
+            sage: _ = next(it)
+            sage: it.ignore_subfaces()
+            Traceback (most recent call last):
+            ...
+            ValueError: only possible when not in dual mode
+
+        Ignoring the same face as was requested to visit only consumes the iterator::
+
+            sage: it = C.face_iter(dual=False)
+            sage: _ = next(it)
+            sage: it.only_subfaces()
+            sage: it.ignore_subfaces()
+            sage: list(it)
+            []
+
+        Face iterator must be set to a face first::
+
+            sage: it = C.face_iter(dual=False)
+            sage: it.ignore_subfaces()
+            Traceback (most recent call last):
+            ...
+            ValueError: iterator not set to a face yet
         """
         if unlikely(self.dual):
             raise ValueError("only possible when not in dual mode")
@@ -470,9 +520,9 @@ cdef class FaceIterator_base(SageObject):
 
     def ignore_supfaces(self):
         r"""
-        The iterator will not visit any faces of the current face.
+        The iterator will not visit any faces containing the current face.
 
-        Only possible when not in dual mode.
+        Only possible when in dual mode.
 
         EXAMPLES::
 
@@ -489,6 +539,15 @@ cdef class FaceIterator_base(SageObject):
             ....:
             sage: n_faces_with_non_simplex_quotient
             4845
+
+        Face iterator must be in dual mode::
+
+            sage: it = C.face_iter(dual=False)
+            sage: _ = next(it)
+            sage: it.ignore_supfaces()
+            Traceback (most recent call last):
+            ...
+            ValueError: only possible when in dual mode
         """
         if unlikely(not self.dual):
             raise ValueError("only possible when in dual mode")
@@ -954,6 +1013,11 @@ cdef class FaceIterator_base(SageObject):
         """
         if unlikely(self.structure.face_status == 0):
             raise ValueError("iterator not set to a face yet")
+        if unlikely(self.structure.face_status == 3):
+            # The iterator is consumed, if it was just set to visit only subsets
+            # next thing to ignore subsets.
+            self.structure.current_dimension = self.structure.dimension
+            return 0
         if unlikely(self.structure.face_status == 2):
             # Nothing to do.
             return 0
@@ -965,13 +1029,144 @@ cdef class FaceIterator_base(SageObject):
         add_face_shallow(self.structure.visited_all[self.structure.current_dimension], self.structure.face)
         self.structure.face_status = 2
 
+    def only_subfaces(self):
+        r"""
+        The iterator will visit all (remaining) subfaces of the current face and then terminate.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator()
+            sage: next(it).ambient_H_indices()
+            ()
+            sage: next(it).ambient_H_indices()
+            (0, 1, 2, 3, 4, 5)
+            sage: next(it).ambient_H_indices()
+            (5,)
+            sage: next(it).ambient_H_indices()
+            (4,)
+            sage: it.only_subfaces()
+            sage: list(f.ambient_H_indices() for f in it)
+            [(4, 5), (3, 4), (1, 4), (0, 4), (3, 4, 5), (0, 4, 5), (1, 3, 4), (0, 1, 4)]
+
+        ::
+
+            sage: P = polytopes.Birkhoff_polytope(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: it = C.face_iter()
+            sage: next(it).ambient_H_indices(add_equations=False)
+            (15,)
+            sage: next(it).ambient_H_indices(add_equations=False)
+            (14,)
+            sage: it.only_subfaces()
+            sage: all(14 in f.ambient_H_indices() for f in it)
+            True
+
+        Face iterator needs to be set to a face first::
+
+            sage: it = C.face_iter()
+            sage: it.only_subfaces()
+            Traceback (most recent call last):
+            ...
+            ValueError: iterator not set to a face yet
+
+        Face iterator must not be in dual mode::
+
+            sage: it = C.face_iter(dual=True)
+            sage: _ = next(it)
+            sage: it.only_subfaces()
+            Traceback (most recent call last):
+            ...
+            ValueError: only possible when not in dual mode
+
+        Cannot run ``only_subfaces`` after ``ignore_subfaces::
+
+            sage: it = C.face_iter()
+            sage: _ = next(it)
+            sage: it.ignore_subfaces()
+            sage: it.only_subfaces()
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot only visit subsets after ignoring a face
+        """
+        if unlikely(self.dual):
+            raise ValueError("only possible when not in dual mode")
+        self.only_subsets()
+
+    def only_supfaces(self):
+        r"""
+        The iterator will visit all (remaining) faces
+        containing the current face and then terminate.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cross_polytope(3)
+            sage: it = P.face_generator()
+            sage: next(it).ambient_V_indices()
+            (0, 1, 2, 3, 4, 5)
+            sage: next(it).ambient_V_indices()
+            ()
+            sage: next(it).ambient_V_indices()
+            (5,)
+            sage: next(it).ambient_V_indices()
+            (4,)
+            sage: it.only_supfaces()
+            sage: list(f.ambient_V_indices() for f in it)
+            [(4, 5), (3, 4), (2, 4), (0, 4), (3, 4, 5), (2, 4, 5), (0, 3, 4), (0, 2, 4)]
+
+        ::
+
+            sage: P = polytopes.Birkhoff_polytope(4)
+            sage: C = P.combinatorial_polyhedron()
+            sage: it = C.face_iter(dual=True)
+            sage: next(it).ambient_V_indices()
+            (23,)
+            sage: next(it).ambient_V_indices()
+            (22,)
+            sage: it.only_supfaces()
+            sage: all(22 in f.ambient_V_indices() for f in it)
+            True
+        """
+        if unlikely(not self.dual):
+            raise ValueError("only possible when in dual mode")
+        self.only_subsets()
+
+    cdef int only_subsets(self) except -1:
+        r"""
+        Only visit sub-/supfaces of the current face and then
+        terminate.
+
+        See :meth:`FaceIterator_base.only_subfaces` and
+        :meth:`FaceIterator_base.only_supfaces`.
+        """
+        if unlikely(self.structure.face_status == 0):
+            raise ValueError("iterator not set to a face yet")
+        if unlikely(self.structure.face_status == 2):
+            raise ValueError("cannot only visit subsets after ignoring a face")
+
+        cdef face_list_t* faces = &self.structure.new_faces[self.structure.current_dimension]
+        cdef size_t yet_to_visit = self.structure.yet_to_visit
+
+        if unlikely(yet_to_visit >= faces[0].n_faces
+                or not faces_are_identical(faces[0].faces[yet_to_visit], self.structure.face)):
+            raise ValueError("iterator is not set to the correct face")
+
+        swap_faces(faces[0].faces[yet_to_visit], faces[0].faces[faces[0].n_faces - 1])
+
+        self.structure.face_status = 3
+        self.structure.yet_to_visit = 0
+        # This will work:
+        # ``next_dimension`` will first call ``next_face_loop`` and then check
+        # for the dimension. By this time the current dimension has changed.
+        self.structure.highest_dimension = self.structure.current_dimension - 1
+
     cdef inline CombinatorialFace next_face(self):
         r"""
         Set attribute ``face`` to the next face and return it as
         :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace`.
         """
         self.next_dimension()
-        if unlikely(self.structure.current_dimension == self.structure.dimension):
+        if unlikely(self.structure.current_dimension > self.structure.highest_dimension):
             return None
         return CombinatorialFace(self)
 
@@ -1038,6 +1233,10 @@ cdef class FaceIterator_base(SageObject):
         Iterate until the current face is ``face``.
 
         The value can then be obtained with :meth:`current`.
+
+        The iterator is assumed to be newly initialized or reset.
+        See :meth:`FaceIterator_base._join_of_atoms` and
+        :meth:`FaceIterator_base._meet_of_coatoms`.
         """
         cdef size_t n_atoms = face_len_atoms(face)
 
@@ -1369,7 +1568,7 @@ cdef class FaceIterator(FaceIterator_base):
              A 1-dimensional face of a 3-dimensional combinatorial polyhedron]
         """
         cdef CombinatorialFace face = self.next_face()
-        if unlikely(self.structure.current_dimension == self.structure.dimension):
+        if unlikely(self.structure.current_dimension > self.structure.highest_dimension):
             raise StopIteration
 
         return face
@@ -1662,7 +1861,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
                 return PolyhedronFace(self.P, [], range(self.P.n_Hrepresentation()))
 
         self.next_dimension()
-        if unlikely(self.structure.current_dimension == self.structure.dimension):
+        if unlikely(self.structure.current_dimension > self.structure.highest_dimension):
             raise StopIteration
         return self.current()
 
@@ -1693,9 +1892,9 @@ cdef inline int next_dimension(iter_t structure, size_t parallelization_depth=0)
     ``parallelization_depth`` determines when to stop,
     e.g. if it is ``1`` it will stop after having yield all faces of a facet
     """
-    cdef int dim = structure.dimension - parallelization_depth
+    cdef int max_dim = structure.highest_dimension - parallelization_depth
     structure.face_status = 0
-    while (not next_face_loop(structure)) and (structure.current_dimension < dim):
+    while (not next_face_loop(structure)) and (structure.current_dimension <= max_dim):
         sig_check()
     structure._index += 1
     return structure.current_dimension

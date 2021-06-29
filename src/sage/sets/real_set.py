@@ -93,6 +93,7 @@ from sage.rings.all import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
 
+from sage.misc.superseded import deprecated_function_alias
 
 @richcmp_method
 class InternalRealInterval(UniqueRepresentation, Parent):
@@ -1736,13 +1737,13 @@ class RealSet(UniqueRepresentation, Parent):
     
     __contains__ = contains
     
-    def is_included_in(self, *other):
+    def is_subset(self, *other):
         r"""
-        Tests interval inclusion
+        Return whether ``self`` is a subset of ``other``.
             
         INPUT:
 
-        - ``*args`` -- a :class:`RealSet` or something that defines
+        - ``*other`` -- a :class:`RealSet` or something that defines
           one.
 
         OUTPUT:
@@ -1754,12 +1755,14 @@ class RealSet(UniqueRepresentation, Parent):
             sage: I = RealSet((1,2))
             sage: J = RealSet((1,3))
             sage: K = RealSet((2,3))
-            sage: I.is_included_in(J)
+            sage: I.is_subset(J)
             True
-            sage: J.is_included_in(K)
+            sage: J.is_subset(K)
             False
         """
         return RealSet(*other).intersection(self) == self
+
+    is_included_in = deprecated_function_alias(31927, is_subset)
 
     def an_element(self):
         """
@@ -1884,7 +1887,7 @@ class RealSet(UniqueRepresentation, Parent):
         """
         return RealSet(*[RealSet.point(x) for i in self._intervals for x in i.boundary_points()])
 
-    def is_disjoint_from(self, *other):
+    def is_disjoint(self, *other):
         """
         Test whether the two sets are disjoint
 
@@ -1902,13 +1905,15 @@ class RealSet(UniqueRepresentation, Parent):
             (0, 1) ∪ (2, 3)
             sage: s2 = RealSet([1, 2]);  s2
             [1, 2]
-            sage: s1.is_disjoint_from(s2)
+            sage: s1.is_disjoint(s2)
             True
-            sage: s1.is_disjoint_from([1, 2])
+            sage: s1.is_disjoint([1, 2])
             True
         """
         other = RealSet(*other)
         return self.intersection(other).is_empty()
+
+    is_disjoint_from = deprecated_function_alias(31927, is_disjoint)
 
     @staticmethod
     def are_pairwise_disjoint(*real_set_collection):
@@ -1941,7 +1946,7 @@ class RealSet(UniqueRepresentation, Parent):
             for j in range(i):
                 si = sets[i]
                 sj = sets[j]
-                if not si.is_disjoint_from(sj):
+                if not si.is_disjoint(sj):
                     return False
         return True
 

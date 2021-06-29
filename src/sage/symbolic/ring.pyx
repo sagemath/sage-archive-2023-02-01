@@ -254,6 +254,17 @@ cdef class SymbolicRing(CommutativeRing):
             sage: SR(complex(2,-3))
             (2-3j)
 
+        Any proper subset of the complex numbers::
+
+            sage: SR(NN)
+            Non negative integer semiring
+            sage: SR(ZZ)
+            Integer Ring
+            sage: SR(Set([1/2, 2/3, 3/4]))
+            {3/4, 2/3, 1/2}
+            sage: SR(RealSet(0, 1))
+            (0, 1)
+
         TESTS::
 
             sage: SR._coerce_(int(5))
@@ -364,6 +375,7 @@ cdef class SymbolicRing(CommutativeRing):
         from sage.rings.infinity import (infinity, minus_infinity,
                                          unsigned_infinity)
         from sage.structure.factorization import Factorization
+        from sage.categories.sets_cat import Sets
 
         if isinstance(x, RealNumber):
             if x.is_NaN():
@@ -392,6 +404,14 @@ cdef class SymbolicRing(CommutativeRing):
         elif isinstance(x, Factorization):
             from sage.misc.all import prod
             return prod([SR(p)**e for p,e in x], SR(x.unit()))
+        elif x in Sets():
+            from sage.rings.all import NN, ZZ, QQ, AA
+            from sage.sets.real_set import RealSet
+            if (x.is_finite() or x in (NN, ZZ, QQ, AA)
+                    or isinstance(x, RealSet)):
+                exp = x
+            else:
+                raise TypeError(f"unable to convert {x!r} to a symbolic expression")
         else:
             raise TypeError(f"unable to convert {x!r} to a symbolic expression")
 

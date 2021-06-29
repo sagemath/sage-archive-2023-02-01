@@ -150,6 +150,7 @@ if [ "$1" = "-docbuild" -o "$1" = "--docbuild" ]; then
     # Trac #30002: ensure an English locale so that it is possible to
     # scrape out warnings by pattern matching.
     export LANG=C
+    export LANGUAGE=C
 
     # See #30351: bugs in macOS implementations of openblas/libgopm can cause
     # docbuild to hang if multiple OpenMP threads are allowed.

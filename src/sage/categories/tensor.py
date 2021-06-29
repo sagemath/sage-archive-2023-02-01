@@ -51,7 +51,7 @@ class TensorProductFunctor(CovariantFunctorialConstruction):
     _functor_name = "tensor"
     _functor_category = "TensorProducts"
     symbol = " # "
-    unicode_symbol = " " + unicode_bigotimes + " "
+    unicode_symbol = f" {unicode_bigotimes} "
 
 
 tensor = TensorProductFunctor()

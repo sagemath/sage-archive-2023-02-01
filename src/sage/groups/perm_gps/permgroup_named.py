@@ -2153,11 +2153,10 @@ class PrimitiveGroup(PermutationGroup_unique):
     Only primitive groups of "small" degree are available in GAP's
     database::
 
-        sage: PrimitiveGroup(2500,1)
+        sage: PrimitiveGroup(2^12,1)
         Traceback (most recent call last):
         ...
-        NotImplementedError: Only the primitive groups of degree less
-        than 2500 are available in GAP's database
+        GAPError: Error, Primitive groups of degree 4096 are not known!
     """
 
     def __init__(self, d, n):
@@ -2252,14 +2251,12 @@ def PrimitiveGroups(d=None):
         sage: PrimitiveGroups()
         Primitive Groups
 
-    The database currently only contains primitive groups up to degree
-    2499::
+    The database is currently limited::
 
-         sage: PrimitiveGroups(2500).cardinality()
+         sage: PrimitiveGroups(2^12).cardinality()
          Traceback (most recent call last):
          ...
-         NotImplementedError: Only the primitive groups of degree less
-         than 2500 are available in GAP's database
+         GAPError: Error, Primitive groups of degree 4096 are not known!
 
     .. TODO::
 
@@ -2423,10 +2420,7 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
             sage: 1 in PrimitiveGroups(4)
             False
         """
-        if isinstance(G,PrimitiveGroup):
-            return G._d == self._degree
-        else:
-            False
+        return isinstance(G, PrimitiveGroup) and G._d == self._degree
 
     def __getitem__(self, n):
         r"""
@@ -2486,35 +2480,29 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
             sage: [PrimitiveGroups(i).cardinality() for i in range(11)]
             [1, 1, 1, 2, 2, 5, 4, 7, 7, 11, 9]
 
-        GAP contains all primitive groups up to degree 2499::
-
-            sage: PrimitiveGroups(2500).cardinality()
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: Only the primitive groups of degree less than
-            2500 are available in GAP's database
-
         TESTS::
 
             sage: type(PrimitiveGroups(12).cardinality())
             <type 'sage.rings.integer.Integer'>
             sage: type(PrimitiveGroups(0).cardinality())
             <type 'sage.rings.integer.Integer'>
-        """
-        # gap.NrPrimitiveGroups(0) fails, so Sage needs to handle this
-        # While we are at it, and since Sage also handles the
-        # primitive group of degree 1, we may as well handle 1
-        if self._degree <= 1:
-            return Integer(1)
-        elif self._degree >= 2500:
-            raise NotImplementedError("Only the primitive groups of degree less than 2500 are available in GAP's database")
-        else:
-            try:
-                return Integer(libgap.NrPrimitiveGroups(self._degree))
-            except RuntimeError:
-                from sage.misc.verbose import verbose
-                verbose("Error: PrimitiveGroups should be in GAP already.", level=0)
 
+        Check for :trac:`31774`::
+
+            sage: PrimitiveGroups(2500).cardinality()
+            34
+            sage: PrimitiveGroups(2^12).cardinality()
+            Traceback (most recent call last):
+            ...
+            GAPError: Error, Primitive groups of degree 4096 are not known!
+        """
+        if self._degree <= 1:
+            # gap.NrPrimitiveGroups(0) fails, so Sage needs to handle this
+            # While we are at it, and since Sage also handles the
+            # primitive group of degree 1, we may as well handle 1
+            return Integer(1)
+        else:
+            return Integer(libgap.NrPrimitiveGroups(self._degree))
 
 class PermutationGroup_plg(PermutationGroup_unique):
     def base_ring(self):

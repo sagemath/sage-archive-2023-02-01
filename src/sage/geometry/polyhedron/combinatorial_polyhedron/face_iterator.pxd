@@ -57,7 +57,9 @@ cdef class FaceIterator_base(SageObject):
 
     # some copies from ``CombinatorialPolyhedron``
     cdef tuple _Vrep, _facet_names, _equations
+    cdef size_t _n_equations, _n_facets
     cdef bint _bounded
+    cdef face_t _far_face
 
     # Atoms and coatoms are the vertices/facets of the Polyedron.
     # If ``dual == 0``, then coatoms are facets, atoms vertices and vice versa.
@@ -70,6 +72,7 @@ cdef class FaceIterator_base(SageObject):
     cdef size_t set_coatom_rep(self) except -1
     cdef size_t set_atom_rep(self) except -1
     cdef int ignore_subsets(self) except -1
+    cdef int find_face(self, face_t face) except -1
 
 @cython.final
 cdef class FaceIterator(FaceIterator_base):

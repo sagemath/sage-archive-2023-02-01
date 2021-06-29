@@ -178,7 +178,7 @@ AUTHOR:
 
 from sage.rings.integer     cimport smallInteger
 from cysignals.signals      cimport sig_check
-from .conversions           cimport bit_rep_to_Vrep_list
+from .conversions           cimport bit_rep_to_Vrep_list, Vrep_list_to_bit_rep
 from .conversions            import facets_tuple_to_bit_rep_of_facets
 from .base                  cimport CombinatorialPolyhedron
 
@@ -256,8 +256,14 @@ cdef class FaceIterator_base(SageObject):
             self.atoms = C.bitrep_Vrep()
         self._Vrep = C.Vrep()
         self._facet_names = C.facet_names()
+        self._n_facets = C.bitrep_facets().n_faces()
         self._equations = C.equations()
+        if self._equations:
+            self._n_equations = len(self._equations)
+        else:
+            self._n_equations = 0
         self._bounded = C.is_bounded()
+        self._far_face[0] = C._far_face[0]
 
         self.structure.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
         self.structure.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces(), sizeof(size_t))
@@ -303,7 +309,7 @@ cdef class FaceIterator_base(SageObject):
             # needs to be at most ``n_facets - 1``.
             # Hence it is fine to use the first entry already for the far face,
             # as ``self.visited_all`` holds ``n_facets`` pointers.
-            add_face_shallow(self.structure.visited_all[self.structure.dimension-1], C._far_face)
+            add_face_shallow(self.structure.visited_all[self.structure.dimension-1], self._far_face)
 
         # Initialize ``first_time``.
         self.structure.first_time = <bint *> self._mem.allocarray(self.structure.dimension, sizeof(bint))
@@ -488,6 +494,454 @@ cdef class FaceIterator_base(SageObject):
             raise ValueError("only possible when in dual mode")
         self.ignore_subsets()
 
+    def meet_of_Hrep(self, *indices):
+        r"""
+        Construct the meet of the facets indicated by the indices.
+
+        This is the largest face contained in all facets with the given indices.
+
+        The iterator must be reset if not newly initialized.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator()
+            sage: it.meet_of_Hrep(1,2)
+            A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
+            sage: it.meet_of_Hrep(1,2).ambient_H_indices()
+            (1, 2)
+            sage: it.meet_of_Hrep(1,3).ambient_H_indices()
+            (1, 3)
+            sage: it.meet_of_Hrep(1,5).ambient_H_indices()
+            (0, 1, 2, 3, 4, 5)
+
+            sage: P = polytopes.cross_polytope(4)
+            sage: it = P.face_generator()
+            sage: it.meet_of_Hrep().ambient_H_indices()
+            ()
+            sage: it.meet_of_Hrep(1,3).ambient_H_indices()
+            (1, 2, 3, 4)
+            sage: it.meet_of_Hrep(1,2).ambient_H_indices()
+            (1, 2)
+            sage: it.meet_of_Hrep(1,6).ambient_H_indices()
+            (1, 6)
+            sage: it.meet_of_Hrep(1,2,6).ambient_H_indices()
+            (1, 2, 6, 7)
+            sage: it.meet_of_Hrep(1,2,5,6).ambient_H_indices()
+            (0, 1, 2, 3, 4, 5, 6, 7)
+
+            sage: s = cones.schur(4)
+            sage: C = CombinatorialPolyhedron(s)
+            sage: it = C.face_iter()
+            sage: it.meet_of_Hrep(1,2).ambient_H_indices()
+            (1, 2)
+            sage: it.meet_of_Hrep(1,2,3).ambient_H_indices()
+            Traceback (most recent call last):
+            ...
+            IndexError: coatoms out of range
+
+        If the iterator has already been used, it must be reset before::
+
+            sage: P = polytopes.dodecahedron()
+            sage: it = P.face_generator()
+            sage: _ = next(it), next(it)
+            sage: next(it).ambient_V_indices()
+            (15, 16, 17, 18, 19)
+            sage: it.meet_of_Hrep(9,11)
+            Traceback (most recent call last):
+            ...
+            ValueError: please reset the face iterator
+            sage: it.reset()
+            sage: it.meet_of_Hrep(9,11).ambient_H_indices()
+            (9, 11)
+
+        TESTS:
+
+        Check that things work fine, if the face iterator was never properly initialized::
+
+            sage: P = Polyhedron()
+            sage: P.meet_of_Hrep()
+            A -1-dimensional face of a Polyhedron in ZZ^0
+            sage: P = Polyhedron([[0,0]])
+            sage: P.meet_of_Hrep()
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P.meet_of_Hrep(0)
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P = Polyhedron(lines=[[1]])
+            sage: P.meet_of_Hrep()
+            A 1-dimensional face of a Polyhedron in ZZ^1 defined as the convex hull of 1 vertex and 1 line
+            sage: P = Polyhedron(lines=[[1, 1]])
+            sage: P.meet_of_Hrep()
+            A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: P.meet_of_Hrep(0)
+            A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
+        """
+        # Ignore equations.
+        indices = [i for i in indices
+                   if not (self._n_facets <= i < self._n_facets + self._n_equations)]
+        if self.dual:
+            return self._join_of_atoms(*indices)
+        else:
+            return self._meet_of_coatoms(*indices)
+
+    def join_of_Vrep(self, *indices):
+        r"""
+        Construct the join of the Vrepresentatives indicated by the indices.
+
+        This is the smallest face containing all Vrepresentatives with the given indices.
+
+        The iterator must be reset if not newly initialized.
+
+        .. NOTE::
+
+            In the case of unbounded polyhedra, the smallest face containing given Vrepresentatives
+            may not be well defined.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator()
+            sage: it.join_of_Vrep(1)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: it.join_of_Vrep(1,2).ambient_V_indices()
+            (1, 2)
+            sage: it.join_of_Vrep(1,3).ambient_V_indices()
+            (0, 1, 2, 3)
+            sage: it.join_of_Vrep(1,5).ambient_V_indices()
+            (0, 1, 5, 6)
+
+            sage: P = polytopes.cross_polytope(4)
+            sage: it = P.face_generator()
+            sage: it.join_of_Vrep().ambient_V_indices()
+            ()
+            sage: it.join_of_Vrep(1,3).ambient_V_indices()
+            (1, 3)
+            sage: it.join_of_Vrep(1,2).ambient_V_indices()
+            (1, 2)
+            sage: it.join_of_Vrep(1,6).ambient_V_indices()
+            (0, 1, 2, 3, 4, 5, 6, 7)
+            sage: it.join_of_Vrep(8)
+            Traceback (most recent call last):
+            ...
+            IndexError: coatoms out of range
+
+        If the iterator has already been used, it must be reset before::
+
+            sage: P = polytopes.dodecahedron()
+            sage: it = P.face_generator()
+            sage: _ = next(it), next(it)
+            sage: next(it).ambient_V_indices()
+            (15, 16, 17, 18, 19)
+            sage: it.join_of_Vrep(1,10)
+            Traceback (most recent call last):
+            ...
+            ValueError: please reset the face iterator
+            sage: it.reset()
+            sage: it.join_of_Vrep(1,10).ambient_V_indices()
+            (1, 10)
+
+        In the case of an unbounded polyhedron, we try to make sense of the input::
+
+            sage: P = polytopes.cube()*Polyhedron(lines=[[1]])
+            sage: it = P.face_generator()
+            sage: it.join_of_Vrep(1)
+            A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 1 vertex and 1 line
+            sage: it.join_of_Vrep(0, 1)
+            A 1-dimensional face of a Polyhedron in ZZ^4 defined as the convex hull of 1 vertex and 1 line
+            sage: it.join_of_Vrep(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the join is not well-defined
+
+            sage: P = Polyhedron(vertices=[[1,0], [0,1]], rays=[[1,1]])
+            sage: it = P.face_generator()
+            sage: it.join_of_Vrep(0)
+            A 0-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex
+            sage: it.join_of_Vrep(1)
+            A 0-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex
+            sage: it.join_of_Vrep(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the join is not well-defined
+            sage: it.join_of_Vrep(0,2)
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray
+
+            sage: P = Polyhedron(rays=[[1,0], [0,1]])
+            sage: it = P.face_generator()
+            sage: it.join_of_Vrep(0)
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: it.join_of_Vrep(1,2)
+            A 2-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 rays
+
+        TESTS:
+
+        Check that things work fine, if the face iterator was never properly initialized::
+
+            sage: P = Polyhedron()
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^0
+            sage: P = Polyhedron([[0,0]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^2
+            sage: P.join_of_Vrep(0)
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: P = Polyhedron(lines=[[1]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^1
+            sage: P.join_of_Vrep(0)
+            A 1-dimensional face of a Polyhedron in ZZ^1 defined as the convex hull of 1 vertex and 1 line
+            sage: P = Polyhedron(lines=[[1, 1]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^2
+            sage: P.Vrepresentation()
+            (A line in the direction (1, 1), A vertex at (0, 0))
+            sage: P.join_of_Vrep(0)
+            A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: P.join_of_Vrep(1)
+            A 1-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: P = Polyhedron(lines=[[1, 0], [0, 1]])
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^2
+            sage: P.join_of_Vrep(0)
+            A 2-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 lines
+            sage: P.join_of_Vrep(0, 1)
+            A 2-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 lines
+            sage: P.join_of_Vrep(0, 1, 2)
+            A 2-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 2 lines
+        """
+        if not self.dual:
+            return self._join_of_atoms(*indices)
+        else:
+            return self._meet_of_coatoms(*indices)
+
+    def _meet_of_coatoms(self, *indices):
+        r"""
+        Construct the meet of the coatoms indicated by the indices.
+
+        The iterator must be reset if not newly initialized.
+
+        .. SEEALSO::
+
+            :meth:`meet_of_Hrep`,
+            :meth:`join_of_Vrep`.
+
+        EXAMPLES:
+
+        In non-dual mode we construct the meet of facets::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator(dual=False)
+            sage: it._meet_of_coatoms(1,2)
+            A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
+            sage: it._meet_of_coatoms(1,2,3)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: it._meet_of_coatoms(1,2,3).ambient_H_indices()
+            (1, 2, 3)
+
+        In dual mode we construct the join of vertices/rays::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator(dual=True)
+            sage: it._meet_of_coatoms(1,2)
+            A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
+            sage: it._meet_of_coatoms(1,2,3)
+            A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: it._meet_of_coatoms(1)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+
+        The face iterator must not have the output dimension specified::
+
+            sage: P = polytopes.dodecahedron()
+            sage: it = P.face_generator(2)
+            sage: it._meet_of_coatoms(1,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: face iterator must not have the output dimension specified
+
+        TESTS:
+
+        We prevent a segmentation fault::
+
+            sage: P = polytopes.simplex()
+            sage: it = P.face_generator()
+            sage: it._meet_of_coatoms(-1)
+            Traceback (most recent call last):
+            ...
+            IndexError: coatoms out of range
+            sage: it._meet_of_coatoms(100)
+            Traceback (most recent call last):
+            ...
+            IndexError: coatoms out of range
+
+        The empty face is detected correctly, even with lines or rays::
+
+            sage: P = polytopes.cube()*Polyhedron(lines=[[1]])
+            sage: it = P.face_generator()
+            sage: it._meet_of_coatoms(1,2,4,5)
+            A -1-dimensional face of a Polyhedron in ZZ^4
+
+            sage: P = Polyhedron(vertices=[[1,0], [0,1]], rays=[[1,1]])
+            sage: it = P.face_generator()
+            sage: it._meet_of_coatoms(0)
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 2 vertices
+            sage: it._meet_of_coatoms(1)
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: it._meet_of_coatoms(2)
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: it._meet_of_coatoms(1, 2)
+            A -1-dimensional face of a Polyhedron in QQ^2
+        """
+        if unlikely(self.structure.face_status != 0):
+            raise ValueError("please reset the face iterator")
+        if unlikely(self.structure.output_dimension != -2):
+            raise ValueError("face iterator must not have the output dimension specified")
+
+        cdef size_t n_atoms = self.coatoms.n_atoms()
+        cdef size_t n_coatoms = self.coatoms.n_faces()
+        cdef ListOfFaces coatoms = self.coatoms
+
+        cdef ListOfFaces face_mem = ListOfFaces(1, n_atoms, n_coatoms)
+        cdef face_t face = face_mem.data.faces[0]
+        cdef int i
+        cdef size_t j
+
+        # Initialize the full polyhedron.
+        for j in range(n_atoms):
+            face_add_atom(face, j)
+
+        for i in indices:
+            if not 0 <= i < n_coatoms:
+                raise IndexError("coatoms out of range")
+            face_intersection(face, face, coatoms.data.faces[i])
+
+        if not self._bounded and face_issubset(face, self._far_face):
+            # The meet is contained in the far face and therefore is the empty face.
+            face_clear(face)
+
+        self.find_face(face)
+        output = self.current()
+        self.reset()
+        return output
+
+    def _join_of_atoms(self, *indices):
+        r"""
+        Construct the join of atoms indicated by the indices.
+
+        The iterator must be reset if not newly initialized.
+
+        .. SEEALSO::
+
+            :meth:`meet_of_Hrep`,
+            :meth:`join_of_Vrep`.
+
+        EXAMPLES:
+
+        In dual mode we construct the meet of facets::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator(dual=True)
+            sage: it._join_of_atoms(1,2)
+            A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
+            sage: it._join_of_atoms(1,2,3)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: it._join_of_atoms(1,2,3).ambient_H_indices()
+            (1, 2, 3)
+
+        In non-dual mode we construct the join of vertices/rays::
+
+            sage: P = polytopes.cube()
+            sage: it = P.face_generator(dual=False)
+            sage: it._join_of_atoms(1,2)
+            A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
+            sage: it._join_of_atoms(1,2,3)
+            A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: it._join_of_atoms(1)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+
+        If the iterator has already been used, it must be reset before::
+
+            sage: P = polytopes.dodecahedron()
+            sage: it = P.face_generator()
+            sage: _ = next(it), next(it)
+            sage: next(it).ambient_V_indices()
+            (15, 16, 17, 18, 19)
+            sage: it._join_of_atoms(1,10)
+            Traceback (most recent call last):
+            ...
+            ValueError: please reset the face iterator
+            sage: it.reset()
+            sage: it._join_of_atoms(1,10).ambient_V_indices()
+            (1, 10)
+
+        The face iterator must not have the output dimension specified::
+
+            sage: P = polytopes.dodecahedron()
+            sage: it = P.face_generator(2)
+            sage: it._join_of_atoms(1,2)
+            Traceback (most recent call last):
+            ...
+            ValueError: face iterator must not have the output dimension specified
+
+        TESTS:
+
+        We prevent a segmentation fault::
+
+            sage: P = polytopes.simplex()
+            sage: it = P.face_generator()
+            sage: it._join_of_atoms(-1)
+            Traceback (most recent call last):
+            ...
+            IndexError: atoms out of range
+            sage: it._join_of_atoms(100)
+            Traceback (most recent call last):
+            ...
+            IndexError: atoms out of range
+        """
+        if unlikely(self.structure.face_status != 0):
+            raise ValueError("please reset the face iterator")
+        if unlikely(self.structure.output_dimension != -2):
+            raise ValueError("face iterator must not have the output dimension specified")
+
+        cdef size_t n_atoms = self.coatoms.n_atoms()
+        cdef size_t n_coatoms = self.coatoms.n_faces()
+        cdef ListOfFaces coatoms = self.coatoms
+
+        cdef ListOfFaces face_mem = ListOfFaces(2, n_atoms, n_coatoms)
+        cdef face_t face = face_mem.data.faces[0]
+        cdef face_t pseudo_face = face_mem.data.faces[1]
+        cdef int j
+        cdef size_t i
+
+        if not all(0 <= j < n_atoms for j in indices):
+            raise IndexError("atoms out of range")
+
+        # Initialize a pseudo_face as indicated by the indices.
+        for i in indices:
+            face_add_atom(pseudo_face, i)
+
+        # Initialize the full polyhedron.
+        for i in range(n_atoms):
+            face_add_atom(face, i)
+
+        # Now we intersect all faces that contain our pseudo_face.
+        for i in range(n_coatoms):
+            if face_issubset(pseudo_face, coatoms.data.faces[i]):
+                face_intersection(face, face, coatoms.data.faces[i])
+
+        if not indices:
+            # The neutral element of the join.
+            face_clear(face)
+        elif not self._bounded and face_issubset(face, self._far_face):
+            # The join is not well-defined.
+            # We allow for unbounded polyhedra to compute the join, even with rays.
+            # However, the result is not necesarrily well-defined.
+            raise ValueError("the join is not well-defined")
+
+        self.find_face(face)
+        output = self.current()
+        self.reset()
+        return output
+
     cdef int ignore_subsets(self) except -1:
         r"""
         Ignore sub-/supfaces of the current face.
@@ -578,6 +1032,43 @@ cdef class FaceIterator_base(SageObject):
         This is a shortcut of :class:`sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace.set_atom_rep`
         """
         return bit_rep_to_Vrep_list(self.structure.face, self.structure.atom_rep)
+
+    cdef int find_face(self, face_t face) except -1:
+        """
+        Iterate until the current face is ``face``.
+
+        The value can then be obtained with :meth:`current`.
+        """
+        cdef size_t n_atoms = face_len_atoms(face)
+
+        if n_atoms == self.coatoms.n_atoms():
+            # The face is the universe.
+            self.structure.face[0] = face[0]
+            self.structure.face_status = 1
+            self.structure.current_dimension = self.structure.dimension
+            return 0
+        elif n_atoms == 0:
+            # The face is the empty face.
+            self.structure.face[0] = face[0]
+            self.structure.face_status = 1
+            self.structure.current_dimension = -1
+            return 0
+
+        cdef int d = self.next_dimension()
+        while self.structure.current_dimension != self.structure.dimension:
+            if face_issubset(face, self.structure.face):
+                if face_issubset(self.structure.face, face):
+                    # Found our face.
+                    return 0
+            else:
+                # The face is not a subface/supface of the current face.
+                self.ignore_subsets()
+
+            d = self.next_dimension()
+
+        raise ValueError("the face appears to be incorrect")
+
+
 
 cdef class FaceIterator(FaceIterator_base):
     r"""
@@ -1043,7 +1534,7 @@ cdef class FaceIterator_geom(FaceIterator_base):
 
     .. SEEALSO::
 
-        See :class:`FaceIterator`.
+        :class:`FaceIterator_base`.
     """
     def __init__(self, P, dual=None, output_dimension=None):
         r"""

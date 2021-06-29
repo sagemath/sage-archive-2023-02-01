@@ -3882,6 +3882,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ...
             TypeError: Attempt to coerce non-integral RealNumber to Integer
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f=DynamicalSystem([x^2 - z^2, y^2 - 21/16*z^2, z^2])
+            sage: len(f.preperiodic_points(1, 2, minimal=True, formal=False)) == 16
+            True
         """
         n = ZZ(n)
         m = ZZ(m)
@@ -3983,7 +3990,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 else:
                     Ik = CR.ideal(1)
                     for k in Sn:
-                        Ik *= f.periodic_points(k, return_scheme=True, minimal=False).defining_ideal()
+                        Ik *= f.preperiodic_points(m, k, return_scheme=True, minimal=False).defining_ideal()
                     if m != 0:
                         Ik *= f.preperiodic_points(m-1, n, return_scheme=True, minimal=False).defining_ideal()
                     In = X.defining_ideal()

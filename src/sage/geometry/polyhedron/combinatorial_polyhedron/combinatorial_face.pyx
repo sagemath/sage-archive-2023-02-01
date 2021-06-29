@@ -182,7 +182,8 @@ cdef class CombinatorialFace(SageObject):
             self._ambient_dimension = it.structure.dimension
             self._ambient_Vrep      = it._Vrep
             self._ambient_facets    = it._facet_names
-            self._equalities        = it._equalities
+            self._equations         = it._equations
+            self._n_equations       = len(self._equations) if self._equations else 0
             self._hash_index        = it.structure._index
             self._ambient_bounded   = it._bounded
 
@@ -208,7 +209,8 @@ cdef class CombinatorialFace(SageObject):
             self._ambient_dimension = all_faces.dimension
             self._ambient_Vrep      = all_faces._Vrep
             self._ambient_facets    = all_faces._facet_names
-            self._equalities        = all_faces._equalities
+            self._equations         = all_faces._equations
+            self._n_equations       = len(self._equations) if self._equations else 0
             self._ambient_bounded   = all_faces._bounded
 
             self._initialized_from_face_lattice = True
@@ -228,6 +230,10 @@ cdef class CombinatorialFace(SageObject):
         if self._dual:
             # Reverse the hash index in dual mode to respect inclusion of faces.
             self._hash_index = -self._hash_index - 1
+
+            self._n_ambient_facets = self.atoms.n_faces()
+        else:
+            self._n_ambient_facets = self.coatoms.n_faces()
 
     def _repr_(self):
         r"""
@@ -583,7 +589,7 @@ cdef class CombinatorialFace(SageObject):
         defining the face.
 
         It consists of the facets/inequalities that contain the face
-        and the equalities defining the ambient polyhedron.
+        and the equations defining the ambient polyhedron.
 
         EXAMPLES::
 
@@ -629,27 +635,42 @@ cdef class CombinatorialFace(SageObject):
             # if not dual, the facet-representation corresponds to the coatom-representation
             length = self.set_coatom_rep()  # fill self.coatom_repr_face
             return tuple(self._ambient_facets[self.coatom_rep[i]]
-                         for i in range(length)) + self._equalities
+                         for i in range(length)) + self._equations
         else:
             # if dual, the facet-representation corresponds to the atom-representation
             length = self.set_atom_rep()  # fill self.atom_repr_face
             return tuple(self._ambient_facets[self.atom_rep[i]]
-                         for i in range(length)) + self._equalities
+                         for i in range(length)) + self._equations
 
-    def ambient_H_indices(self):
+    def ambient_H_indices(self, add_equations=True):
         r"""
         Return the indices of the Hrepresentation objects
         of the ambient polyhedron defining the face.
+
+        INPUT:
+
+        - ``add_equations`` -- boolean (default: ``True``); whether or not to include the equations
 
         EXAMPLES::
 
             sage: P = polytopes.permutahedron(5)
             sage: C = CombinatorialPolyhedron(P)
             sage: it = C.face_iter(2)
-            sage: next(it).ambient_H_indices()
+            sage: face = next(it)
+            sage: face.ambient_H_indices(add_equations=False)
             (28, 29)
-            sage: next(it).ambient_H_indices()
+            sage: face2 = next(it)
+            sage: face2.ambient_H_indices(add_equations=False)
             (25, 29)
+
+        Add the indices of the equation::
+
+            sage: face.ambient_H_indices(add_equations=True)
+            (28, 29, 30)
+            sage: face2.ambient_H_indices(add_equations=True)
+            (25, 29, 30)
+
+        Another example::
 
             sage: P = polytopes.cyclic_polytope(4,6)
             sage: C = CombinatorialPolyhedron(P)
@@ -671,17 +692,26 @@ cdef class CombinatorialFace(SageObject):
 
             :meth:`ambient_Hrepresentation`.
         """
-        cdef size_t length
+        cdef size_t length, i
+        cdef tuple equations
+
+        if add_equations and self._equations:
+            equations = tuple(smallInteger(i)
+                              for i in range(self._n_ambient_facets,
+                                             self._n_ambient_facets + self._n_equations))
+        else:
+            equations = ()
+
         if not self._dual:
             # if not dual, the facet-representation corresponds to the coatom-representation
             length = self.set_coatom_rep()  # fill self.coatom_repr_face
             return tuple(smallInteger(self.coatom_rep[i])
-                         for i in range(length))
+                         for i in range(length)) + equations
         else:
             # if dual, the facet-representation corresponds to the atom-representation
             length = self.set_atom_rep()  # fill self.atom_repr_face
             return tuple(smallInteger(self.atom_rep[i])
-                         for i in range(length))
+                         for i in range(length)) + equations
 
     def Hrepr(self, names=True):
         r"""
@@ -697,7 +727,7 @@ cdef class CombinatorialFace(SageObject):
         and equations of the face.
 
         The facet-representation consists of the facets
-        that contain the face and of the equalities of the polyhedron.
+        that contain the face and of the equations of the polyhedron.
 
         INPUT:
 
@@ -723,11 +753,15 @@ cdef class CombinatorialFace(SageObject):
         else:
             return self.ambient_H_indices()
 
-    def n_ambient_Hrepresentation(self):
+    def n_ambient_Hrepresentation(self, add_equations=True):
         r"""
         Return the length of the :meth:`CombinatorialFace.ambient_H_indices`.
 
         Might be faster than then using ``len``.
+
+        INPUT:
+
+        - ``add_equations`` -- boolean (default: ``True``); whether or not to count the equations
 
         EXAMPLES::
 
@@ -736,6 +770,17 @@ cdef class CombinatorialFace(SageObject):
             sage: it = C.face_iter()
             sage: all(face.n_ambient_Hrepresentation() == len(face.ambient_Hrepresentation()) for face in it)
             True
+
+        Specifying whether to count the equations or not::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: C = CombinatorialPolyhedron(P)
+            sage: it = C.face_iter(2)
+            sage: f = next(it)
+            sage: f.n_ambient_Hrepresentation(add_equations=True)
+            3
+            sage: f.n_ambient_Hrepresentation(add_equations=False)
+            2
 
         TESTS::
 
@@ -747,10 +792,11 @@ cdef class CombinatorialFace(SageObject):
             doctest:...: DeprecationWarning: n_Hrepr is deprecated. Please use n_ambient_Hrepresentation instead.
             See https://trac.sagemath.org/28614 for details.
         """
+        cdef size_t n_equations = self._n_equations if add_equations else 0
         if not self._dual:
-            return smallInteger(self.set_coatom_rep())
+            return smallInteger(self.set_coatom_rep() + n_equations)
         else:
-            return smallInteger(self.n_atom_rep())
+            return smallInteger(self.n_atom_rep() + n_equations)
 
     n_Hrepr = deprecated_function_alias(28614, n_ambient_Hrepresentation)
 

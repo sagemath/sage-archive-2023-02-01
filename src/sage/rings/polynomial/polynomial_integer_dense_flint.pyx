@@ -855,13 +855,11 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: lcm(R(0), R(0))
             0
         """
-        try:
-            g = self.gcd(right)
-            return (self//g)*right
-        except ZeroDivisionError:
+        if self.is_zero() or right.is_zero():
             P = self.parent()
             return P.zero()
-
+        g = self.gcd(right)
+        return (self//g)*right
 
     @coerce_binop
     def xgcd(self, right):

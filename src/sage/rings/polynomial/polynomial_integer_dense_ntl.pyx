@@ -614,13 +614,11 @@ cdef class Polynomial_integer_dense_ntl(Polynomial):
             sage: R(0).lcm(R(0))
             0
         """
-        try:
-            g = self.gcd(right)
-            return (self * right).quo_rem(g)[0]
-        except ArithmeticError:
+        if self.is_zero() or right.is_zero():
             P = self.parent()
             return P.zero()
-
+        g = self.gcd(right)
+        return (self * right).quo_rem(g)[0]
 
     @coerce_binop
     def xgcd(self, right):

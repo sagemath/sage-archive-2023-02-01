@@ -4900,28 +4900,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: lcm(R(0), R(0))
             0
         """
-        try:
-            f = self*other
-            g = self.gcd(other)
-            q = f//g
-            return ~(q.leading_coefficient())*q
-        except ZeroDivisionError:
-            P = f.parent()
+        if self.is_zero() or other.is_zero():
+            P = self.parent()
             return P.zero()
+        f = self*other
+        g = self.gcd(other)
+        q = f//g
+        return ~(q.leading_coefficient())*q
 
     def _lcm(self, other):
         """
         Let f and g be two polynomials. Then this function returns the
         monic least common multiple of f and g.
         """
-        try:
-            f = self*other
-            g = self.gcd(other)
-            q = f//g
-            return ~(q.leading_coefficient())*q  # make monic  (~ is inverse in python)
-        except ZeroDivisionError:
-            P = f.parent()
+        if self.is_zero() or other.is_zero():
+            P = self.parent()
             return P.zero()
+        f = self*other
+        g = self.gcd(other)
+        q = f//g
+        return ~(q.leading_coefficient())*q  # make monic  (~ is inverse in python)
 
     def is_primitive(self, n=None, n_prime_divs=None):
         """

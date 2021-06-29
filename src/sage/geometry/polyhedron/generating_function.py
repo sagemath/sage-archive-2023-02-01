@@ -473,7 +473,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
 
     parts = None
     if split is True:
-        split = iter(
+        split = (
             (Polyhedron(
                 ieqs=[tuple(1 if i==b else (-1 if i==a or i==0 and a > b else 0)
                             for i in range(d+1))
@@ -487,8 +487,8 @@ def generating_function_of_integral_points(polyhedron, split=False,
     else:
         if isinstance(split, (list, tuple)):
             parts = len(split)
-        split = iter((ph, ph.Hrepresentation_str(**Hrepresentation_str_options))
-                     for ph in split)
+        split = ((ph, ph.Hrepresentation_str(**Hrepresentation_str_options))
+                 for ph in split)
 
     result = []
     for part, (split_polyhedron, pi_log) in enumerate(split):
@@ -1130,8 +1130,8 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
                                  for ieq in inequalities_filtered) + \
                             inequalities_extra
 
-        rules_pre = iter((y, B({tuple(row[1:]): 1}))
-                         for y, row in zip((1,) + B.gens(), T.rows()))
+        rules_pre = ((y, B({tuple(row[1:]): 1}))
+                     for y, row in zip((1,) + B.gens(), T.rows()))
         self.factor = next(rules_pre)[1]
         self.rules = dict(rules_pre)
 
@@ -1237,8 +1237,8 @@ class EliminateByEquations(TransformHrepresentation):
         gens = (1,) + B.gens()
         z = tuple(gens[i] for i in indices)
         gens_cols = tuple(zip(gens, TE.columns()))
-        rules_pre = iter((y, y * prod(zz**(-c) for zz, c in zip(z, col)))
-                         for y, col in (gens_cols[i] for i in indicesn))
+        rules_pre = ((y, y * prod(zz**(-c) for zz, c in zip(z, col)))
+                     for y, col in (gens_cols[i] for i in indicesn))
         self.factor = next(rules_pre)[1]
         self.rules = dict(rules_pre)
         self.indices = tuple(i-1 for i in indices)
@@ -1408,8 +1408,8 @@ class TransformMod(TransformHrepresentation):
             D[(i+1, 0)] = mr[1]
         T = matrix(ZZ, n, n, D)
 
-        rules_pre = iter((y, B({tuple(row[1:]): 1}))
-                         for y, row in zip((1,) + B.gens(), T.columns()))
+        rules_pre = ((y, B({tuple(row[1:]): 1}))
+                     for y, row in zip((1,) + B.gens(), T.columns()))
         self.factor = next(rules_pre)[1]
         self.rules = dict(rules_pre)
 

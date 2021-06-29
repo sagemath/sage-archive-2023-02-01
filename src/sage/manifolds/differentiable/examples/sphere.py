@@ -147,10 +147,10 @@ However, the vector field `n` is indeed non-vanishing and hence the sphere
 admits an orientation (as all spheres do)::
 
     sage: orient = S1c.orientation(); orient
-    [Coordinate frame (S^1(c)-{SP}, (d/dyp1)), Vector frame (S^1(c)-{NP}, (f_1))]
+    [Coordinate frame (S^1(c)-{SP}, (∂/∂yp1)), Vector frame (S^1(c)-{NP}, (f_1))]
     sage: f = orient[1]
     sage: f[1].display()
-    f_1 = -d/dy1
+    f_1 = -∂/∂y1
 
 Notice that the orientation is chosen is such a way that `(\iota_*(f_1), -n)`
 is oriented in the ambient Euclidean space, i.e. the last entry is the normal

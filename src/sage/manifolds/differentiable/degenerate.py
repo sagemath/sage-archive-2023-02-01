@@ -403,7 +403,7 @@ class TangentTensor(TensorFieldParal):
             sage: T1 = M.tensor_field(1,1).along(Phi); T1[0,0] = 1
             sage: V1 = M.vector_field().along(Phi); V1[0] = 1; V1[1]=1
             sage: T1(V1).display()
-            d/dt
+            ∂/∂t
             sage: from sage.manifolds.differentiable.degenerate_submanifold import TangentTensor
             sage: T2 = TangentTensor(T1, Phi)
             sage: T2
@@ -412,14 +412,14 @@ class TangentTensor(TensorFieldParal):
              with values on the 4-dimensional Lorentzian manifold M
             sage: V2 = S.projection(V1)
             sage: T2(V2).display()
-            u/sqrt(u^2 + v^2) d/dt
+            u/sqrt(u^2 + v^2) ∂/∂t
 
         Of course `T1` and `T2` give the same output on vector fields tangent to S::
 
             sage: T1(xi.along(Phi)).display()
-            sqrt(u^2 + v^2) d/dt
+            sqrt(u^2 + v^2) ∂/∂t
             sage: T2(xi.along(Phi)).display()
-            sqrt(u^2 + v^2) d/dt
+            sqrt(u^2 + v^2) ∂/∂t
 
     """
     def __init__(self, tensor, embedding, screen=None):

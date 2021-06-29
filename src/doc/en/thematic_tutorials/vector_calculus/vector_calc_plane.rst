@@ -512,7 +512,7 @@ while there are three vector frames defined on `\mathbb{E}^2`::
 
     sage: E.frames()
     [Coordinate frame (E^2, (e_x,e_y)),
-     Coordinate frame (E^2, (d/dr,d/dph)),
+     Coordinate frame (E^2, (∂/∂r,∂/∂ph)),
      Vector frame (E^2, (e_r,e_ph))]
 
 Indeed, there are two frames associated with polar coordinates: the coordinate
@@ -621,7 +621,7 @@ vector frames defined on `\mathbb{E}^2`::
 
     sage: XE.bases()
     [Coordinate frame (E^2, (e_x,e_y)),
-     Coordinate frame (E^2, (d/dr,d/dph)),
+     Coordinate frame (E^2, (∂/∂r,∂/∂ph)),
      Vector frame (E^2, (e_r,e_ph))]
 
 

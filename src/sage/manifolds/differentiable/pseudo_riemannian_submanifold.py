@@ -127,7 +127,7 @@ Let us compute the induced metric (or first fundamental form)::
 the normal vector::
 
     sage: N.normal().display()  # long time
-    n = sqrt(b^2 + x^2 + y^2)/b d/dw + x/b d/dx + y/b d/dy
+    n = sqrt(b^2 + x^2 + y^2)/b ∂/∂w + x/b ∂/∂x + y/b ∂/∂y
 
 Check that the hypersurface is indeed spacelike, i.e. that its normal is
 timelike::
@@ -147,8 +147,8 @@ The lapse function is::
 while the shift vector is::
 
     sage: N.shift().display()  # long time
-    beta = -(x^2 + y^2)/b^2 d/dw - sqrt(b^2 + x^2 + y^2)*x/b^2 d/dx
-     - sqrt(b^2 + x^2 + y^2)*y/b^2 d/dy
+    beta = -(x^2 + y^2)/b^2 ∂/∂w - sqrt(b^2 + x^2 + y^2)*x/b^2 ∂/∂x
+     - sqrt(b^2 + x^2 + y^2)*y/b^2 ∂/∂y
 
 The extrinsic curvature (or second fundamental form) as a tensor field on the
 ambient manifold::
@@ -704,7 +704,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
         Or in spherical coordinates::
 
             sage: N.normal().display(T[0].frame(),T[0])  # long time
-            n = d/dr_E3
+            n = ∂/∂r_E3
 
         Let us now consider a sphere of constant radius, i.e. not assumed to be
         part of a foliation, in stereographic coordinates::
@@ -1529,7 +1529,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             [(Vector field e_0 on the 1-dimensional Riemannian submanifold N
               embedded in the Euclidean plane E^2, -1)]
             sage: N.principal_directions(stereoN)[0][0].display()  # long time
-            e_0 = d/dx
+            e_0 = ∂/∂x
 
         """
         if self._ambient._dim - self._dim != 1:
@@ -1708,7 +1708,7 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
             Tensor field of type (1,1) on the 1-dimensional Riemannian
              submanifold N embedded in the Euclidean plane E^2
             sage: N.shape_operator().display()  # long time
-            -d/dx⊗dx
+            -∂/∂x⊗dx
 
         """
         if self._ambient._dim - self._dim != 1:

@@ -242,9 +242,9 @@ class DiffChart(Chart):
     A vector frame is naturally associated to each chart::
 
         sage: X.frame()
-        Coordinate frame (M, (d/dx,d/dy))
+        Coordinate frame (M, (∂/∂x,∂/∂y))
         sage: Y.frame()
-        Coordinate frame (U, (d/dz1,d/dz2))
+        Coordinate frame (U, (∂/∂z1,∂/∂z2))
 
     as well as a dual frame (basis of 1-forms)::
 
@@ -423,7 +423,7 @@ class DiffChart(Chart):
             sage: M = Manifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: c_xy.frame()
-            Coordinate frame (M, (d/dx,d/dy))
+            Coordinate frame (M, (∂/∂x,∂/∂y))
             sage: type(c_xy.frame())
             <class 'sage.manifolds.differentiable.vectorframe.CoordFrame'>
 
@@ -431,9 +431,9 @@ class DiffChart(Chart):
         with the coordinates `(x,y)`::
 
             sage: ex = c_xy.frame()[0] ; ex
-            Vector field d/dx on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂x on the 2-dimensional differentiable manifold M
             sage: ey = c_xy.frame()[1] ; ey
-            Vector field d/dy on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂y on the 2-dimensional differentiable manifold M
             sage: ex(M.scalar_field(x)).display()
             1: M → ℝ
                (x, y) ↦ 1
@@ -480,20 +480,20 @@ class DiffChart(Chart):
             sage: dy = c_xy.coframe()[1] ; dy
             1-form dy on the 2-dimensional differentiable manifold M
             sage: ex = c_xy.frame()[0] ; ex
-            Vector field d/dx on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂x on the 2-dimensional differentiable manifold M
             sage: ey = c_xy.frame()[1] ; ey
-            Vector field d/dy on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂y on the 2-dimensional differentiable manifold M
             sage: dx(ex).display()
-            dx(d/dx): M → ℝ
+            dx(∂/∂x): M → ℝ
                (x, y) ↦ 1
             sage: dx(ey).display()
-            dx(d/dy): M → ℝ
+            dx(∂/∂y): M → ℝ
                (x, y) ↦ 0
             sage: dy(ex).display()
-            dy(d/dx): M → ℝ
+            dy(∂/∂x): M → ℝ
                (x, y) ↦ 0
             sage: dy(ey).display()
-            dy(d/dy): M → ℝ
+            dy(∂/∂y): M → ℝ
                (x, y) ↦ 1
 
         """
@@ -927,9 +927,9 @@ class RealDiffChart(DiffChart, RealChart):
     A vector frame is naturally associated to each chart::
 
         sage: c_cart.frame()
-        Coordinate frame (R^3, (d/dx,d/dy,d/dz))
+        Coordinate frame (R^3, (∂/∂x,∂/∂y,∂/∂z))
         sage: c_spher.frame()
-        Coordinate frame (U, (d/dr,d/dth,d/dph))
+        Coordinate frame (U, (∂/∂r,∂/∂th,∂/∂ph))
 
     as well as a dual frame (basis of 1-forms)::
 

@@ -201,7 +201,7 @@ class DifferentiableCurve(DiffMap):
         Vector field c' along the Real interval (0, 2*pi) with values on the
          2-dimensional differentiable manifold M
         sage: v.display()
-        c' = cos(t) d/dx + (2*cos(t)^2 - 1) d/dy
+        c' = cos(t) ∂/∂x + (2*cos(t)^2 - 1) ∂/∂y
 
     Plot of the curve and its tangent vector field::
 
@@ -226,7 +226,7 @@ class DifferentiableCurve(DiffMap):
         sage: v.at(R(pi)) in M.tangent_space(c(R(pi)))
         True
         sage: v.at(R(pi)).display()
-        c' = -d/dx + d/dy
+        c' = -∂/∂x + ∂/∂y
 
     Curves `\RR \to \RR` can be composed: the operator `\circ` is
     given by ``*``::
@@ -589,7 +589,7 @@ class DifferentiableCurve(DiffMap):
             Vector field c' along the Real interval (0, 2*pi) with values on
              the 2-dimensional differentiable manifold R^2
             sage: v.display()
-            c' = -sin(t) d/dx + cos(t) d/dy
+            c' = -sin(t) ∂/∂x + cos(t) ∂/∂y
             sage: latex(v)
             {c'}
             sage: v.parent()
@@ -607,7 +607,7 @@ class DifferentiableCurve(DiffMap):
             sage: vp.parent() is M.tangent_space(c(R(pi)))
             True
             sage: vp.display()
-            c' = -d/dy
+            c' = -∂/∂y
 
         Tangent vector field to a curve in a non-parallelizable manifold (the
         2-sphere `S^2`): first, we introduce the 2-sphere::
@@ -643,7 +643,7 @@ class DifferentiableCurve(DiffMap):
             Module X(R,c) of vector fields along the Real number line R
              mapped into the 2-dimensional differentiable manifold M
             sage: vc.display(c_spher.frame().along(c.restrict(R,A)))
-            c' = -1/5*e^(1/10*t)/(e^(1/5*t) + 1) d/dth + d/dph
+            c' = -1/5*e^(1/10*t)/(e^(1/5*t) + 1) ∂/∂th + ∂/∂ph
 
         """
         vmodule = self._domain.vector_field_module(dest_map=self)

@@ -276,24 +276,24 @@ Fortunately, both curvature matrices are already skew-symmetric::
     ....:    for j in range(TM.rank()):
     ....:        print(cmatrix_U[i][j].display())
     curvature (1,1) of connection nabla_g w.r.t. Coordinate frame
-     (U, (d/dx,d/dy)) = 0
+     (U, (∂/∂x,∂/∂y)) = 0
     curvature (1,2) of connection nabla_g w.r.t. Coordinate frame
-     (U, (d/dx,d/dy)) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx∧dy
+     (U, (∂/∂x,∂/∂y)) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx∧dy
     curvature (2,1) of connection nabla_g w.r.t. Coordinate frame
-     (U, (d/dx,d/dy)) = -4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx∧dy
+     (U, (∂/∂x,∂/∂y)) = -4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx∧dy
     curvature (2,2) of connection nabla_g w.r.t. Coordinate frame
-     (U, (d/dx,d/dy)) = 0
+     (U, (∂/∂x,∂/∂y)) = 0
     sage: for i in range(TM.rank()):
     ....:    for j in range(TM.rank()):
     ....:        print(cmatrix_V[i][j].display())
     curvature (1,1) of connection nabla_g w.r.t. Coordinate frame
-     (V, (d/du,d/dv)) = 0
+     (V, (∂/∂u,∂/∂v)) = 0
     curvature (1,2) of connection nabla_g w.r.t. Coordinate frame
-     (V, (d/du,d/dv)) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du∧dv
+     (V, (∂/∂u,∂/∂v)) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du∧dv
     curvature (2,1) of connection nabla_g w.r.t. Coordinate frame
-     (V, (d/du,d/dv)) = -4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du∧dv
+     (V, (∂/∂u,∂/∂v)) = -4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du∧dv
     curvature (2,2) of connection nabla_g w.r.t. Coordinate frame
-     (V, (d/du,d/dv)) = 0
+     (V, (∂/∂u,∂/∂v)) = 0
     sage: nab.set_immutable()  # make nab immutable
 
 Now the representative of the Euler class with respect to the connection

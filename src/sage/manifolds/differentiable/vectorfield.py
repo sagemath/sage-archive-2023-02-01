@@ -146,9 +146,9 @@ class VectorField(MultivectorField):
     At this stage, the vector field is fully defined on the whole manifold::
 
         sage: v.display(eU)
-        v = -y d/dx + (x + 1) d/dy
+        v = -y ∂/∂x + (x + 1) ∂/∂y
         sage: v.display(eV)
-        v = (u + 1) d/dt + (-t - 1) d/du
+        v = (u + 1) ∂/∂t + (-t - 1) ∂/∂u
 
     The vector field acting on scalar fields::
 
@@ -465,7 +465,7 @@ class VectorField(MultivectorField):
             sage: X.<x,y> = M.chart()
             sage: v = M.vector_field(-y, x, name='v')
             sage: v.display()
-            v = -y d/dx + x d/dy
+            v = -y ∂/∂x + x ∂/∂y
             sage: v.plot()
             Graphics object consisting of 80 graphics primitives
 
@@ -555,7 +555,7 @@ class VectorField(MultivectorField):
             sage: X.<t,x,y,z> = M.chart()
             sage: v = M.vector_field((t/8)^2, -t*y/4, t*x/4, t*z/4, name='v')
             sage: v.display()
-            v = 1/64*t^2 d/dt - 1/4*t*y d/dx + 1/4*t*x d/dy + 1/4*t*z d/dz
+            v = 1/64*t^2 ∂/∂t - 1/4*t*y ∂/∂x + 1/4*t*x ∂/∂y + 1/4*t*z ∂/∂z
 
         We cannot make a 4D plot directly::
 
@@ -634,8 +634,8 @@ class VectorField(MultivectorField):
             sage: F.display() # the standard embedding of S^2 into R^3
             F: S^2 → R^3
             on U: (th, ph) ↦ (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
-            sage: v = XS.frame()[1] ; v  # the coordinate vector d/dphi
-            Vector field d/dph on the Open subset U of the 2-dimensional
+            sage: v = XS.frame()[1] ; v  # the coordinate vector ∂/∂phi
+            Vector field ∂/∂ph on the Open subset U of the 2-dimensional
              differentiable manifold S^2
             sage: graph_v = v.plot(chart=X3, mapping=F, label_axes=False)
             sage: graph_S2 = XS.plot(chart=X3, mapping=F, number_values=9)
@@ -922,7 +922,7 @@ class VectorField(MultivectorField):
             sage: vw = v.bracket(w); vw
             Vector field on the 3-dimensional differentiable manifold M
             sage: vw.display()
-            (-x^2 + y + 2) d/dy + (-y - z) d/dz
+            (-x^2 + y + 2) ∂/∂y + (-y - z) ∂/∂z
 
         Some checks::
 
@@ -1561,7 +1561,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
         sage: f = M.scalar_field(x*y^2, name='f')
         sage: v = M.vector_field(-y, x, name='v')
         sage: v.display()
-        v = -y d/dx + x d/dy
+        v = -y ∂/∂x + x ∂/∂y
         sage: v(f)
         Scalar field v(f) on the 2-dimensional differentiable manifold M
         sage: v(f).expr()
@@ -1588,7 +1588,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
          differentiable manifold R mapped into the 2-dimensional differentiable
          manifold M
         sage: w.display()
-        w = -sin(t) d/dx + cos(t) d/dy
+        w = -sin(t) ∂/∂x + cos(t) ∂/∂y
 
     Value at a given point::
 
@@ -1598,7 +1598,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
         Tangent vector w at Point Phi(p) on the 2-dimensional differentiable
          manifold M
         sage: w.at(p).display()
-        w = d/dy
+        w = ∂/∂y
         sage: w.at(p) == v.at(Phi(p))
         True
 
@@ -1619,7 +1619,7 @@ class VectorFieldParal(FiniteRankFreeModuleElement, MultivectorFieldParal,
             Vector field v on the 2-dimensional differentiable manifold M
             sage: v[:] = (-y, x)
             sage: v.display()
-            v = -y d/dx + x d/dy
+            v = -y ∂/∂x + x ∂/∂y
             sage: TestSuite(v).run()
 
         Construction via ``DifferentiableManifold.vector_field``::

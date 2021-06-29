@@ -52,10 +52,10 @@ The coordinate ranges are::
 `(e_r, e_\theta, e_\phi)` associated with spherical coordinates::
 
     sage: E.frames()
-    [Coordinate frame (E^3, (d/dr,d/dth,d/dph)),
+    [Coordinate frame (E^3, (∂/∂r,∂/∂th,∂/∂ph)),
      Vector frame (E^3, (e_r,e_th,e_ph))]
 
-In the above output, ``(d/dr,d/dth,d/dph)`` =
+In the above output, ``(∂/∂r,∂/∂th,∂/∂ph)`` =
 `\left(\frac{\partial}{\partial r}, \frac{\partial}{\partial\theta}, \frac{\partial}{\partial \phi}\right)`
 is the *coordinate* frame associated with `(r,\theta,\phi)`; it is
 not an orthonormal frame and will not be used below. The default frame is

@@ -156,9 +156,9 @@ class LeviCivitaConnection(AffineConnection):
     symbols, since the default frame is a coordinate frame::
 
         sage: M.default_frame()
-        Coordinate frame (R^3, (d/dr,d/dth,d/dph))
+        Coordinate frame (R^3, (∂/∂r,∂/∂th,∂/∂ph))
         sage: nab.coef()
-        3-indices components w.r.t. Coordinate frame (R^3, (d/dr,d/dth,d/dph)),
+        3-indices components w.r.t. Coordinate frame (R^3, (∂/∂r,∂/∂th,∂/∂ph)),
          with symmetry on the index positions (1, 2)
 
     We note that the Christoffel symbols are symmetric with respect to their
@@ -362,7 +362,7 @@ class LeviCivitaConnection(AffineConnection):
             sage: g[0,0], g[1,1] = 1, 1
             sage: nab = g.connection()
             sage: nab._new_coef(X.frame())
-            3-indices components w.r.t. Coordinate frame (M, (d/dx,d/dy)), with
+            3-indices components w.r.t. Coordinate frame (M, (∂/∂x,∂/∂y)), with
              symmetry on the index positions (1, 2)
             sage: e = M.vector_frame('e')
             sage: nab._new_coef(e)
@@ -429,7 +429,7 @@ class LeviCivitaConnection(AffineConnection):
             g = dr⊗dr + r^2 dth⊗dth + r^2*sin(th)^2 dph⊗dph
             sage: nab = g.connection()
             sage: gam = nab.coef() ; gam
-            3-indices components w.r.t. Coordinate frame (R^3, (d/dr,d/dth,d/dph)),
+            3-indices components w.r.t. Coordinate frame (R^3, (∂/∂r,∂/∂th,∂/∂ph)),
              with symmetry on the index positions (1, 2)
             sage: gam[:]
             [[[0, 0, 0], [0, -r, 0], [0, 0, -r*sin(th)^2]],

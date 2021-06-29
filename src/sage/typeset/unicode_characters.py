@@ -4,8 +4,8 @@ Unicode Characters
 This module provides Python identifiers for Unicode characters corresponding
 to various mathematical symbols.
 
-The syntax is ``unicode_XXX``, where ``XXX`` is the LaTeX name of the symbol
-(stripped of any backslash or any curly brace, e.g. ``unicode_mathbbR`` for
+The syntax is ``unicode_XXX``, where ``XXX`` is the LaTeX name of the symbol,
+stripped of any backslash or any curly brace (e.g. ``unicode_mathbbR`` for
 ``ℝ``).
 
 EXAMPLES:
@@ -32,6 +32,11 @@ Operators::
     '⋀'
     sage: hex(ord(_))
     '0x22c0'
+    sage: from sage.typeset.unicode_characters import unicode_partial
+    sage: unicode_partial
+    '∂'
+    sage: hex(ord(_))
+    '0x2202'
 
 Arrows::
 
@@ -80,6 +85,8 @@ unicode_bigotimes = '\u2A02'       # '⨂'
 unicode_wedge = '\u2227'           # '∧'
 
 unicode_bigwedge = '\u22C0'        # '⋀'
+
+unicode_partial = '\u2202'         # '∂'
 
 # Arrows:
 

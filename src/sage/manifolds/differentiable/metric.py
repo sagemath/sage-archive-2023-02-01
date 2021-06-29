@@ -181,11 +181,11 @@ class PseudoRiemannianMetric(TensorField):
         sage: latex(ginv)
         g^{-1}
         sage: ginv.display(eU)
-        inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx⊗d/dx
-         + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy⊗d/dy
+        inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) ∂/∂x⊗∂/∂x
+         + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) ∂/∂y⊗∂/∂y
         sage: ginv.display(eV)
-        inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/du⊗d/du
-         + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/dv⊗d/dv
+        inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) ∂/∂u⊗∂/∂u
+         + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) ∂/∂v⊗∂/∂v
 
     We have::
 
@@ -240,7 +240,7 @@ class PseudoRiemannianMetric(TensorField):
     coordinates::
 
         sage: g.christoffel_symbols(c_xy)
-        3-indices components w.r.t. Coordinate frame (U, (d/dx,d/dy)), with
+        3-indices components w.r.t. Coordinate frame (U, (∂/∂x,∂/∂y)), with
          symmetry on the index positions (1, 2)
         sage: g.christoffel_symbols(c_xy)[:]
         [[[-2*x/(x^2 + y^2 + 1), -2*y/(x^2 + y^2 + 1)],
@@ -279,15 +279,15 @@ class PseudoRiemannianMetric(TensorField):
         Tensor field Riem(g) of type (1,3) on the 2-dimensional differentiable
          manifold S^2
         sage: riem.display(eU)
-        Riem(g) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx⊗dy⊗dx⊗dy
-         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dx⊗dy⊗dy⊗dx
-         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy⊗dx⊗dx⊗dy
-         + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) d/dy⊗dx⊗dy⊗dx
+        Riem(g) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) ∂/∂x⊗dy⊗dx⊗dy
+         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) ∂/∂x⊗dy⊗dy⊗dx
+         - 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) ∂/∂y⊗dx⊗dx⊗dy
+         + 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) ∂/∂y⊗dx⊗dy⊗dx
         sage: riem.display(eV)
-        Riem(g) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du⊗dv⊗du⊗dv
-         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/du⊗dv⊗dv⊗du
-         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/dv⊗du⊗du⊗dv
-         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) d/dv⊗du⊗dv⊗du
+        Riem(g) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) ∂/∂u⊗dv⊗du⊗dv
+         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) ∂/∂u⊗dv⊗dv⊗du
+         - 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) ∂/∂v⊗du⊗du⊗dv
+         + 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) ∂/∂v⊗du⊗dv⊗du
 
     The Ricci tensor of `g`::
 
@@ -701,11 +701,11 @@ class PseudoRiemannianMetric(TensorField):
             sage: ginv = g.inverse(); ginv
             Tensor field inv_g of type (2,0) on the 2-dimensional differentiable manifold S^2
             sage: ginv.display(eU)
-            inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dx⊗d/dx
-             + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) d/dy⊗d/dy
+            inv_g = (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) ∂/∂x⊗∂/∂x
+             + (1/4*x^4 + 1/4*y^4 + 1/2*(x^2 + 1)*y^2 + 1/2*x^2 + 1/4) ∂/∂y⊗∂/∂y
             sage: ginv.display(eV)
-            inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/du⊗d/du
-             + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) d/dv⊗d/dv
+            inv_g = (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) ∂/∂u⊗∂/∂u
+             + (1/4*u^4 + 1/4*v^4 + 1/2*(u^2 + 1)*v^2 + 1/2*u^2 + 1/4) ∂/∂v⊗∂/∂v
 
         Let us check that ``ginv`` is indeed the inverse of ``g``::
 
@@ -833,7 +833,7 @@ class PseudoRiemannianMetric(TensorField):
             sage: g.display()  # the standard flat metric expressed in spherical coordinates
             g = dr⊗dr + r^2 dth⊗dth + r^2*sin(th)^2 dph⊗dph
             sage: Gam = g.christoffel_symbols() ; Gam
-            3-indices components w.r.t. Coordinate frame (U, (d/dr,d/dth,d/dph)),
+            3-indices components w.r.t. Coordinate frame (U, (∂/∂r,∂/∂th,∂/∂ph)),
              with symmetry on the index positions (1, 2)
             sage: type(Gam)
             <class 'sage.tensor.modules.comp.CompWithSym'>
@@ -2068,7 +2068,7 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         sage: M.atlas()
         [Chart (M, (x, y)), Chart (M, (u, v))]
         sage: M.frames()
-        [Coordinate frame (M, (d/dx,d/dy)), Coordinate frame (M, (d/du,d/dv))]
+        [Coordinate frame (M, (∂/∂x,∂/∂y)), Coordinate frame (M, (∂/∂u,∂/∂v))]
         sage: g[c_uv.frame(),:]  # metric components in frame c_uv.frame() expressed in M's default chart (x,y)
         [ 1/2*x*y + 1/2          1/2*x]
         [         1/2*x -1/2*x*y + 1/2]
@@ -2099,9 +2099,9 @@ class PseudoRiemannianMetricParal(PseudoRiemannianMetric, TensorFieldParal):
         [ (x - 1)/(x^2*y^2 + x^2 - 1)      x*y/(x^2*y^2 + x^2 - 1)]
         [     x*y/(x^2*y^2 + x^2 - 1) -(x + 1)/(x^2*y^2 + x^2 - 1)]
         sage: ig.display()
-        inv_g = (x - 1)/(x^2*y^2 + x^2 - 1) d/dx⊗d/dx
-         + x*y/(x^2*y^2 + x^2 - 1) d/dx⊗d/dy + x*y/(x^2*y^2 + x^2 - 1) d/dy⊗d/dx
-         - (x + 1)/(x^2*y^2 + x^2 - 1) d/dy⊗d/dy
+        inv_g = (x - 1)/(x^2*y^2 + x^2 - 1) ∂/∂x⊗∂/∂x
+         + x*y/(x^2*y^2 + x^2 - 1) ∂/∂x⊗∂/∂y + x*y/(x^2*y^2 + x^2 - 1) ∂/∂y⊗∂/∂x
+         - (x + 1)/(x^2*y^2 + x^2 - 1) ∂/∂y⊗∂/∂y
 
     """
     def __init__(self, vector_field_module, name, signature=None,

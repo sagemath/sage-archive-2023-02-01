@@ -107,9 +107,9 @@ The gradient of `f` (with respect to the metric `g`) is::
     sage: gradf
     Vector field grad(f) on the 2-dimensional Riemannian manifold S^2
     sage: gradf.display(eU)
-    grad(f) = -1/2*x d/dx - 1/2*y d/dy
+    grad(f) = -1/2*x ∂/∂x - 1/2*y ∂/∂y
     sage: gradf.display(eV)
-    grad(f) = 1/2*u d/du + 1/2*v d/dv
+    grad(f) = 1/2*u ∂/∂u + 1/2*v ∂/∂v
 
 It is possible to write ``grad(f)`` instead of ``f.gradient()``, by importing
 the standard differential operators of vector calculus::
@@ -192,7 +192,7 @@ A vector field on `M`::
     sage: u[0] = cosh(t)
     sage: u[1] = sinh(t)
     sage: u.display()
-    u = cosh(t) d/dt + sinh(t) d/dx
+    u = cosh(t) ∂/∂t + sinh(t) ∂/∂x
 
 The scalar square of `u` is::
 
@@ -218,7 +218,7 @@ Let us consider a unit spacelike vector::
     sage: v[0] = sinh(t)
     sage: v[1] = cosh(t)
     sage: v.display()
-    v = sinh(t) d/dt + cosh(t) d/dx
+    v = sinh(t) ∂/∂t + cosh(t) ∂/∂x
     sage: v.dot(v).display()
     v.v: M → ℝ
        (t, x, y, z) ↦ 1
@@ -246,7 +246,7 @@ while its d'Alembertian is::
     sage: Du = u.dalembertian(); Du
     Vector field Box(u) on the 4-dimensional Lorentzian manifold M
     sage: Du.display()
-    Box(u) = -cosh(t) d/dt - sinh(t) d/dx
+    Box(u) = -cosh(t) ∂/∂t - sinh(t) ∂/∂x
 
 AUTHORS:
 
@@ -646,8 +646,8 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             Tensor field of type (1,2) on the 3-dimensional Riemannian
              manifold M
             sage: eps1.display()
-            d/dx⊗dy⊗dz - d/dx⊗dz⊗dy - d/dy⊗dx⊗dz + d/dy⊗dz⊗dx + d/dz⊗dx⊗dy
-             - d/dz⊗dy⊗dx
+            ∂/∂x⊗dy⊗dz - ∂/∂x⊗dz⊗dy - ∂/∂y⊗dx⊗dz + ∂/∂y⊗dz⊗dx + ∂/∂z⊗dx⊗dy
+             - ∂/∂z⊗dy⊗dx
             sage: eps1.symmetries()
             no symmetry; antisymmetry: (1, 2)
 
@@ -657,8 +657,8 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             Tensor field of type (2,1) on the 3-dimensional Riemannian
              manifold M
             sage: eps2.display()
-            d/dx⊗d/dy⊗dz - d/dx⊗d/dz⊗dy - d/dy⊗d/dx⊗dz + d/dy⊗d/dz⊗dx
-             + d/dz⊗d/dx⊗dy - d/dz⊗d/dy⊗dx
+            ∂/∂x⊗∂/∂y⊗dz - ∂/∂x⊗∂/∂z⊗dy - ∂/∂y⊗∂/∂x⊗dz + ∂/∂y⊗∂/∂z⊗dx
+             + ∂/∂z⊗∂/∂x⊗dy - ∂/∂z⊗∂/∂y⊗dx
             sage: eps2.symmetries()
             no symmetry; antisymmetry: (0, 1)
 
@@ -667,7 +667,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
             sage: eps3 = M.volume_form(3); eps3
             3-vector field on the 3-dimensional Riemannian manifold M
             sage: eps3.display()
-            d/dx∧d/dy∧d/dz
+            ∂/∂x∧∂/∂y∧∂/∂z
 
         """
         return self.metric().volume_form(contra=contra)

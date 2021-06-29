@@ -128,7 +128,7 @@ At this stage, ``E`` is endowed with three vector frames::
 
     sage: E.frames()
     [Coordinate frame (E^2, (e_x,e_y)),
-     Coordinate frame (E^2, (d/dr,d/dph)),
+     Coordinate frame (E^2, (∂/∂r,∂/∂ph)),
      Vector frame (E^2, (e_r,e_ph))]
 
 The third one is the standard orthonormal frame associated with polar
@@ -853,7 +853,7 @@ class EuclideanSpace(PseudoRiemannianManifold):
         chart = self.chart(coordinates=symbols)
         self._cartesian_chart = chart
         frame = chart.frame()
-        # Renaming (d/dx, d/dy, ...) to (e_x, e_y, ...):
+        # Renaming (∂/∂x, ∂/∂y, ...) to (e_x, e_y, ...):
         coords = chart[:]
         frame.set_name('e',
                        indices=tuple(str(x) for x in coords),
@@ -1560,8 +1560,8 @@ class EuclideanPlane(EuclideanSpace):
 
             sage: for e in E.polar_frame():
             ....:     e.display(E.polar_coordinates())
-            e_r = d/dr
-            e_ph = 1/r d/dph
+            e_r = ∂/∂r
+            e_ph = 1/r ∂/∂ph
 
         """
         if self._polar_frame is None:
@@ -2310,9 +2310,9 @@ class Euclidean3dimSpace(EuclideanSpace):
 
             sage: for e in E.spherical_frame():
             ....:     e.display(E.spherical_coordinates())
-            e_r = d/dr
-            e_th = 1/r d/dth
-            e_ph = 1/(r*sin(th)) d/dph
+            e_r = ∂/∂r
+            e_th = 1/r ∂/∂th
+            e_ph = 1/(r*sin(th)) ∂/∂ph
 
         """
         if self._spherical_frame is None:
@@ -2458,9 +2458,9 @@ class Euclidean3dimSpace(EuclideanSpace):
 
             sage: for e in E.cylindrical_frame():
             ....:     e.display(E.cylindrical_coordinates())
-            e_rh = d/drh
-            e_ph = 1/rh d/dph
-            e_z = d/dz
+            e_rh = ∂/∂rh
+            e_ph = 1/rh ∂/∂ph
+            e_z = ∂/∂z
 
         """
         if self._cylindrical_frame is None:

@@ -30,7 +30,7 @@ Pick an initial point and an initial tangent vector::
     sage: p = M((0,1), name='p')
     sage: v = M.tangent_space(p)((1,3/2), name='v')
     sage: v.display()
-    v = d/dx + 3/2 d/dy
+    v = ∂/∂x + 3/2 ∂/∂y
 
 Declare a geodesic with such initial conditions, denoting by `t` the
 corresponding affine parameter::

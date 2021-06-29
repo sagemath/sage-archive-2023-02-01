@@ -801,10 +801,10 @@ class DiffForm(TensorField):
             sage: s = a.interior_product(b); s
             Vector field i_a b on the 2-dimensional differentiable manifold S^2
             sage: s.display(e_xy)
-            i_a b = -x^2*y d/dx + x*y^2 d/dy
+            i_a b = -x^2*y ∂/∂x + x*y^2 ∂/∂y
             sage: s.display(e_uv)
-            i_a b = (u^4*v - 3*u^2*v^3)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) d/du
-             + (3*u^3*v^2 - u*v^4)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) d/dv
+            i_a b = (u^4*v - 3*u^2*v^3)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) ∂/∂u
+             + (3*u^3*v^2 - u*v^4)/(u^6 + 3*u^4*v^2 + 3*u^2*v^4 + v^6) ∂/∂v
             sage: s == a.contract(b)
             True
 
@@ -959,7 +959,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
         sage: a[1,0]
         -2
         sage: a.comp()
-        Fully antisymmetric 2-indices components w.r.t. Coordinate frame (M, (d/dt,d/dx,d/dy,d/dz))
+        Fully antisymmetric 2-indices components w.r.t. Coordinate frame (M, (∂/∂t,∂/∂x,∂/∂y,∂/∂z))
         sage: type(a.comp())
         <class 'sage.tensor.modules.comp.CompFullyAntiSym'>
 
@@ -1036,7 +1036,7 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
         NB: a failed report can reflect a mere lack of simplification.
         sage: eps.comp(c_spher.frame()) # computation of the components in the spherical frame
         Fully antisymmetric 3-indices components w.r.t. Coordinate frame
-         (R3, (d/dr,d/dth,d/dph))
+         (R3, (∂/∂r,∂/∂th,∂/∂ph))
         sage: eps.comp(c_spher.frame())[1,2,3, c_spher]
         r^2*sin(th)
         sage: eps.display(c_spher.frame())
@@ -1563,8 +1563,8 @@ class DiffFormParal(FreeModuleAltForm, TensorFieldParal, DiffForm):
             Vector field i_a b on the 3-dimensional differentiable
              manifold M
             sage: s.display()
-            i_a b = (-(x + 1)*y^2 - x*y*z - y*z^2) d/dx
-             + (y*z^3 + 2*y^2) d/dy + (-(x + 1)*z^2 + 2*x + 2*z) d/dz
+            i_a b = (-(x + 1)*y^2 - x*y*z - y*z^2) ∂/∂x
+             + (y*z^3 + 2*y^2) ∂/∂y + (-(x + 1)*z^2 + 2*x + 2*z) ∂/∂z
             sage: s == a.contract(b)
             True
 

@@ -164,7 +164,7 @@ class BundleConnection(SageObject, Mutability):
     By definition, a bundle connection acts on vector fields and sections::
 
         sage: v = M.vector_field((x^2,y^2,z^2), name='v'); v.display()
-        v = x^2 d/dx + y^2 d/dy + z^2 d/dz
+        v = x^2 ∂/∂x + y^2 ∂/∂y + z^2 ∂/∂z
         sage: s = E.section((x-y^2, -z), name='s'); s.display()
         s = (-y^2 + x) e_1 - z e_2
         sage: nab_vs = nab(v, s); nab_vs

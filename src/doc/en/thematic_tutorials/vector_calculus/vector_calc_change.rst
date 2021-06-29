@@ -204,7 +204,7 @@ At this stage, `\mathbb{E}^3` is endowed with three vector frames::
 
     sage: E.frames()
     [Coordinate frame (E^3, (e_x,e_y,e_z)),
-     Coordinate frame (E^3, (d/dr,d/dth,d/dph)),
+     Coordinate frame (E^3, (∂/∂r,∂/∂th,∂/∂ph)),
      Vector frame (E^3, (e_r,e_th,e_ph))]
 
 The second one is the *coordinate* frame `\left(\frac{\partial}{\partial r},
@@ -254,9 +254,9 @@ chart ``spherical``)::
 
     sage: for vec in spherical_frame:
     ....:     vec.display(spherical.frame(), spherical)
-    e_r = d/dr
-    e_th = 1/r d/dth
-    e_ph = 1/(r*sin(th)) d/dph
+    e_r = ∂/∂r
+    e_th = 1/r ∂/∂th
+    e_ph = 1/(r*sin(th)) ∂/∂ph
 
 
 Introducing cylindrical coordinates
@@ -299,9 +299,9 @@ There are now five vector frames defined on `\mathbb{E}^3`::
 
     sage: E.frames()
     [Coordinate frame (E^3, (e_x,e_y,e_z)),
-     Coordinate frame (E^3, (d/dr,d/dth,d/dph)),
+     Coordinate frame (E^3, (∂/∂r,∂/∂th,∂/∂ph)),
      Vector frame (E^3, (e_r,e_th,e_ph)),
-     Coordinate frame (E^3, (d/drh,d/dph,d/dz)),
+     Coordinate frame (E^3, (∂/∂rh,∂/∂ph,∂/∂z)),
      Vector frame (E^3, (e_rh,e_ph,e_z))]
 
 The orthonormal frame associated with cylindrical coordinates is
@@ -359,9 +359,9 @@ chart ``cylindrical``)::
 
     sage: for vec in cylindrical_frame:
     ....:     vec.display(cylindrical.frame(), cylindrical)
-    e_rh = d/drh
-    e_ph = 1/rh d/dph
-    e_z = d/dz
+    e_rh = ∂/∂rh
+    e_ph = 1/rh ∂/∂ph
+    e_z = ∂/∂z
 
 
 How to evaluate the coordinates of a point in various systems

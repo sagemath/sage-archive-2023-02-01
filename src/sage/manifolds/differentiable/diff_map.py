@@ -212,10 +212,10 @@ class DiffMap(ContinuousMap):
     the default bases being::
 
         sage: Phi.differential(np).domain().default_basis()
-        Basis (d/du,d/dv) on the Tangent space at Point N on the 2-dimensional
+        Basis (∂/∂u,∂/∂v) on the Tangent space at Point N on the 2-dimensional
          differentiable manifold S^2
         sage: Phi.differential(np).codomain().default_basis()
-        Basis (d/dX,d/dY,d/dZ) on the Tangent space at Point Phi(N) on the
+        Basis (∂/∂X,∂/∂Y,∂/∂Z) on the Tangent space at Point Phi(N) on the
          3-dimensional differentiable manifold R^3
 
     Differentiable maps can be composed by means of the operator ``*``: let
@@ -1145,13 +1145,13 @@ class DiffMap(ContinuousMap):
             sage: v = U.vector_field(name='v')
             sage: v[:] = 0, 1
             sage: v.display()
-            v = d/dph
+            v = ∂/∂ph
             sage: pv = Phi.pushforward(v); pv
             Vector field Phi_*(v) along the Open subset U of the 2-dimensional
              differentiable manifold S^2 with values on the 3-dimensional
              differentiable manifold R^3
             sage: pv.display()
-            Phi_*(v) = -sin(ph)*sin(th) d/dx + cos(ph)*sin(th) d/dy
+            Phi_*(v) = -sin(ph)*sin(th) ∂/∂x + cos(ph)*sin(th) ∂/∂y
 
         Pushforward of a vector field on the real line to the `\RR^3`, via a
         helix embedding::
@@ -1162,12 +1162,12 @@ class DiffMap(ContinuousMap):
             sage: u = R.vector_field(name='u')
             sage: u[0] = 1
             sage: u.display()
-            u = d/dt
+            u = ∂/∂t
             sage: pu = Psi.pushforward(u); pu
             Vector field Psi_*(u) along the Real number line R with values on
              the 3-dimensional differentiable manifold R^3
             sage: pu.display()
-            Psi_*(u) = -sin(t) d/dx + cos(t) d/dy + d/dz
+            Psi_*(u) = -sin(t) ∂/∂x + cos(t) ∂/∂y + ∂/∂z
 
         """
         from sage.tensor.modules.comp import (Components, CompWithSym,

@@ -763,8 +763,8 @@ class DiffScalarField(ScalarField):
             sage: dg = g.differential() ; dg
             1-form dg on the 3-dimensional differentiable manifold M
             sage: dg._components
-            {Coordinate frame (M, (d/du,d/dv,d/dw)): 1-index components w.r.t.
-             Coordinate frame (M, (d/du,d/dv,d/dw))}
+            {Coordinate frame (M, (∂/∂u,∂/∂v,∂/∂w)): 1-index components w.r.t.
+             Coordinate frame (M, (∂/∂u,∂/∂v,∂/∂w))}
             sage: dg.comp(c_uvw.frame())[:, c_uvw]
             [v^2*w^3, 2*u*v*w^3, 3*u*v^2*w^2]
             sage: dg.display(c_uvw)
@@ -979,11 +979,11 @@ class DiffScalarField(ScalarField):
 
             sage: a = M.multivector_field(2, name='a')
             sage: a[0,1] = x*y ; a.display()
-            a = x*y d/dx∧d/dy
+            a = x*y ∂/∂x∧∂/∂y
             sage: s = f.bracket(a); s
             Vector field -i_df a on the 2-dimensional differentiable manifold M
             sage: s.display()
-            -i_df a = 2*x*y^2 d/dx - x*y d/dy
+            -i_df a = 2*x*y^2 ∂/∂x - x*y ∂/∂y
 
         See
         :meth:`~sage.manifolds.differentiable.multivectorfield.MultivectorFieldParal.bracket`
@@ -1122,7 +1122,7 @@ class DiffScalarField(ScalarField):
         the gradient expressed in the coordinate frame is::
 
             sage: f.gradient().display(M.polar_coordinates().frame())
-            grad(f) = cos(phi) d/dr - sin(phi)/r d/dphi
+            grad(f) = cos(phi) ∂/∂r - sin(phi)/r ∂/∂phi
 
         The function :func:`~sage.manifolds.operators.grad` from the
         :mod:`~sage.manifolds.operators` module can be used instead of the

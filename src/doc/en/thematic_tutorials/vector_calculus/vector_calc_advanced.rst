@@ -58,9 +58,9 @@ while there are five vector frames defined on `\mathbb{E}^3`::
 
     sage: E.frames()
     [Coordinate frame (E^3, (e_x,e_y,e_z)),
-     Coordinate frame (E^3, (d/dr,d/dth,d/dph)),
+     Coordinate frame (E^3, (∂/∂r,∂/∂th,∂/∂ph)),
      Vector frame (E^3, (e_r,e_th,e_ph)),
-     Coordinate frame (E^3, (d/drh,d/dph,d/dz)),
+     Coordinate frame (E^3, (∂/∂rh,∂/∂ph,∂/∂z)),
      Vector frame (E^3, (e_rh,e_ph,e_z))]
 
 Indeed, there are two frames associated with each of the three coordinate
@@ -85,9 +85,9 @@ On the other side, the coordinate frames `\left(\frac{\partial}{\partial r},
 coordinate charts::
 
     sage: spherical.frame()
-    Coordinate frame (E^3, (d/dr,d/dth,d/dph))
+    Coordinate frame (E^3, (∂/∂r,∂/∂th,∂/∂ph))
     sage: cylindrical.frame()
-    Coordinate frame (E^3, (d/drh,d/dph,d/dz))
+    Coordinate frame (E^3, (∂/∂rh,∂/∂ph,∂/∂z))
 
 
 Charts as maps `\mathbb{E}^3 \rightarrow \mathbb{R}^3`
@@ -346,9 +346,9 @@ vector frames defined on `\mathbb{E}^3`::
 
     sage: XE.bases()
     [Coordinate frame (E^3, (e_x,e_y,e_z)),
-     Coordinate frame (E^3, (d/dr,d/dth,d/dph)),
+     Coordinate frame (E^3, (∂/∂r,∂/∂th,∂/∂ph)),
      Vector frame (E^3, (e_r,e_th,e_ph)),
-     Coordinate frame (E^3, (d/drh,d/dph,d/dz)),
+     Coordinate frame (E^3, (∂/∂rh,∂/∂ph,∂/∂z)),
      Vector frame (E^3, (e_rh,e_ph,e_z))]
 
 
@@ -385,9 +385,9 @@ The bases on `T_p\mathbb{E}^3` are inherited from the vector frames of
 
     sage: Tp.bases()
     [Basis (e_x,e_y,e_z) on the Tangent space at Point p on the Euclidean space E^3,
-     Basis (d/dr,d/dth,d/dph) on the Tangent space at Point p on the Euclidean space E^3,
+     Basis (∂/∂r,∂/∂th,∂/∂ph) on the Tangent space at Point p on the Euclidean space E^3,
      Basis (e_r,e_th,e_ph) on the Tangent space at Point p on the Euclidean space E^3,
-     Basis (d/drh,d/dph,d/dz) on the Tangent space at Point p on the Euclidean space E^3,
+     Basis (∂/∂rh,∂/∂ph,∂/∂z) on the Tangent space at Point p on the Euclidean space E^3,
      Basis (e_rh,e_ph,e_z) on the Tangent space at Point p on the Euclidean space E^3]
 
 For instance, we have::

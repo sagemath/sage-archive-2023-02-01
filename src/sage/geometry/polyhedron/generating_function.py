@@ -1551,4 +1551,4 @@ def compositions_mod(u, m, r=0, multidimensional=False):
             for a in recursively_build_compositions(u[1:], r - j*v):
                 yield (Z(j),) + a
 
-    return recursively_build_compositions(u, r)
+    yield from recursively_build_compositions(u, r)

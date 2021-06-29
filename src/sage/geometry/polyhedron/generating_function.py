@@ -37,7 +37,9 @@ Functions
 Hrepresentation_str_options = {'prefix': 'b', 'style': 'positive'}
 
 def generating_function_of_integral_points(polyhedron, split=False,
-                                      result_as_tuple=None, **kwds):
+                                           result_as_tuple=None,
+                                           name=None, names=None,
+                                           **kwds):
     r"""
     Return the multivariate generating function of the
     integral points of the polyhedron.
@@ -76,10 +78,16 @@ def generating_function_of_integral_points(polyhedron, split=False,
       If this
       is ``None``, this is automatically determined.
 
-    - ``prefix_variable_name`` -- (default: ``'y'``) a string
+    - ``name`` -- (default: ``'y'``) a string
 
       The variable names of the Laurent polynomial ring of the output
       are this string followed by an integer.
+
+    - ``names`` -- a list or tuple of names (strings), or a comma separated string
+
+      ``name`` is extracted from ``names``, therefore ``names`` has to contain
+      exactly one variable name, and ``name`` and``names`` cannot be specified
+      both at the same time.
 
     - ``Factorization_sort`` (default: ``False``) and
       ``Factorization_simplify`` (default: ``True``) -- booleans
@@ -363,17 +371,36 @@ def generating_function_of_integral_points(polyhedron, split=False,
         sage: generating_function_of_integral_points(
         ....:     Polyhedron(ieqs=[(0, 0, 1, 0), (-1, 1, -1, 1),
         ....:                      (0, 0, 0, 1), (0, 1, 0, 0)]),
-        ....:     prefix_variable_name='z',
+        ....:     name='z',
         ....:     sort_factors=True)
         (-z0*z1*z2 - z0*z2 + z0 + z2) *
         (-z0 + 1)^-1 * (-z2 + 1)^-1 * (-z0*z1 + 1)^-1 * (-z1*z2 + 1)^-1
         sage: generating_function_of_integral_points(
         ....:     Polyhedron(ieqs=[(0, 0, 1, 0), (-1, 1, -1, 1),
         ....:                      (0, 0, 0, 1), (0, 1, 0, 0)]),
-        ....:     prefix_variable_name='mu',
+        ....:     name='mu',
         ....:     sort_factors=True)
         (-mu0*mu1*mu2 - mu0*mu2 + mu0 + mu2) *
         (-mu0 + 1)^-1 * (-mu2 + 1)^-1 * (-mu0*mu1 + 1)^-1 * (-mu1*mu2 + 1)^-1
+
+    ::
+
+        sage: generating_function_of_integral_points(P2[0],
+        ....:     sort_factors=True, names=('a',))
+        1 * (-a0 + 1)^-1 * (-a1 + 1)^-1 * (-a0*a2 + 1)^-1
+        sage: generating_function_of_integral_points(P2[0],
+        ....:     sort_factors=True, names=('a', 'b'))
+        Traceback (most recent call last):
+        ...
+        ValueError: exactly one variable name has to be provided
+        sage: generating_function_of_integral_points(P2[0],
+        ....:     sort_factors=True, name='a', names=('a',))
+        1 * (-a0 + 1)^-1 * (-a1 + 1)^-1 * (-a0*a2 + 1)^-1
+        sage: generating_function_of_integral_points(P2[0],
+        ....:     sort_factors=True, name='a', names=('b',))
+        Traceback (most recent call last):
+        ...
+        ValueError: keyword argument 'name' cannot be combined with 'names'
 
     ::
 
@@ -394,6 +421,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
     from sage.geometry.polyhedron.constructor import Polyhedron
     from sage.rings.integer_ring import ZZ
     from sage.rings.rational_field import QQ
+    from sage.structure.category_object import normalize_names
 
     if result_as_tuple is None:
         result_as_tuple = split
@@ -419,8 +447,18 @@ def generating_function_of_integral_points(polyhedron, split=False,
 
     logger.info('%s', polyhedron)
 
+    if names is not None:
+        names = normalize_names(-1, names)
+        if len(names) != 1:
+            raise ValueError('exactly one variable name has to be provided')
+        if name is not None and name != names[0]:
+            raise ValueError("keyword argument 'name' cannot be combined with 'names'")
+        name = names[0]
+    if name is None:
+        name = 'y'
+
     if split is False:
-        result = _generating_function_of_integral_points_(polyhedron, **kwds)
+        result = _generating_function_of_integral_points_(polyhedron, name=name, **kwds)
         if result_as_tuple:
             return result
         else:
@@ -460,7 +498,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
             parts_log = '{}/{}'.format(part+1, parts)
         logger.info('(%s) split polyhedron by %s', parts_log, pi_log)
         result.append(_generating_function_of_integral_points_(
-            polyhedron & split_polyhedron, **kwds))
+            polyhedron & split_polyhedron, name=name, **kwds))
     if not result_as_tuple:
         raise ValueError("cannot unpack result"
                          "(unset 'result_as_tuple=False')")
@@ -526,7 +564,7 @@ def _generating_function_of_integral_points_(
 
 def __generating_function_of_integral_points__(
         indices, inequalities, equations, mod,
-        prefix_variable_name='y',
+        name,
         Factorization_sort=False, Factorization_simplify=False,
         sort_factors=False):
     r"""
@@ -539,15 +577,15 @@ def __generating_function_of_integral_points__(
 
         sage: __generating_function_of_integral_points__(
         ....:     (0, 2), [(0, 1, 0)], [(1, -1, 2)],
-        ....:     {0: (2, 1)}, sort_factors=True)
+        ....:     {0: (2, 1)}, name='y', sort_factors=True)
         y0 * (-y0^2*y2 + 1)^-1
         sage: __generating_function_of_integral_points__(
         ....:     srange(3), [(0, 1, 0, 0), (0, 0, 1, 0)], [(1, -1, 0, 2)],
-        ....:     {0: (2, 1)}, sort_factors=True)
+        ....:     {0: (2, 1)}, name='y', sort_factors=True)
         y0 * (-y1 + 1)^-1 * (-y0^2*y2 + 1)^-1
         sage: __generating_function_of_integral_points__(
         ....:     srange(3), [(0, 1, 0, 0), (0, -1, 1, 0)], [(0, -1, -1, 2)],
-        ....:     {0: (2, 1), 1: (2, 1)}, sort_factors=True)
+        ....:     {0: (2, 1), 1: (2, 1)}, name='y', sort_factors=True)
         y0*y1*y2 * (-y1^2*y2 + 1)^-1 * (-y0^2*y1^2*y2^2 + 1)^-1
     """
     import logging
@@ -559,7 +597,7 @@ def __generating_function_of_integral_points__(
 
     B = LaurentPolynomialRing(
         ZZ,
-        tuple(prefix_variable_name + str(k) for k in indices),
+        tuple(name + str(k) for k in indices),
         len(indices))
 
     logger.info('preprocessing %s inequalities and %s equations...',

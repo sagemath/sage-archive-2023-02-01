@@ -10,7 +10,7 @@ Fast FusionRing methods for computing braid group representations
 
 from ctypes import cast, py_object
 cimport cython
-from sage.combinat.root_system.fast_parallel_fmats_methods cimport _fmat
+from sage.algebras.fusion_rings.fast_parallel_fmats_methods cimport _fmat
 
 from itertools import product
 from sage.rings.qqbar import QQbar
@@ -37,8 +37,9 @@ cdef mid_sig_ij(fusion_ring,row,col,a,b):
     xi, yi = row
     xj, yj = col
     entry = 0
-    for c in fusion_ring.basis():
-        for d in fusion_ring.basis():
+    cdef list basis = list(fusion_ring.basis())
+    for c in basis:
+        for d in basis:
             ##Warning: We assume F-matrices are orthogonal!!! (using transpose for inverse)
             f1 = _fmat(_fvars,_Nk_ij,one,a,a,yi,b,xi,c)
             f2 = _fmat(_fvars,_Nk_ij,one,a,a,a,c,d,yi)
@@ -100,7 +101,7 @@ cdef cached_odd_one_out_ij(fusion_ring,xi,xj,a,b):
 @cython.cdivision(True)
 cdef sig_2k(fusion_ring, tuple args):
     r"""
-    Compute entries of the 2k-th braid generator
+    Compute entries of the `2k`-th braid generator
     """
     #Pre-compute common parameters for efficiency
     _fvars = fusion_ring.fmats._fvars
@@ -114,62 +115,65 @@ cdef sig_2k(fusion_ring, tuple args):
     cdef list worker_results = list()
     #Get computational basis
     cdef list comp_basis = fusion_ring.get_computational_basis(a,b,n_strands)
-    cdef dict basis_dict = { elt : i for i, elt in enumerate(comp_basis) }
+    cdef dict basis_dict = {elt: i for i, elt in enumerate(comp_basis)}
     cdef int dim = len(comp_basis)
     cdef set coords = set()
     cdef int i
     #Avoid pickling cyclotomic field element objects
     cdef bint must_flatten_coeff = fusion_ring.fvars_field() != QQbar
+    cdef list basis = list(fusion_ring.basis())
     for i in range(dim):
-        for f,e,q in product(fusion_ring.basis(), repeat=3):
-            #Distribute work amongst processes
-            ctr += 1
-            if ctr % n_proc != child_id:
-                continue
+        for f in basis:
+            for e in basis:
+                for q in basis:
+                    #Distribute work amongst processes
+                    ctr += 1
+                    if ctr % n_proc != child_id:
+                        continue
 
-            #Compute appropriate possible nonzero row index
-            nnz_pos = list(comp_basis[i])
-            nnz_pos[k-1] = f
-            nnz_pos[k] = e
-            #Handle the special case k = 1
-            if k > 1:
-                nnz_pos[n_strands//2+k-2] = q
-            nnz_pos = tuple(nnz_pos)
+                    #Compute appropriate possible nonzero row index
+                    nnz_pos = list(comp_basis[i])
+                    nnz_pos[k-1] = f
+                    nnz_pos[k] = e
+                    #Handle the special case k = 1
+                    if k > 1:
+                        nnz_pos[n_strands//2+k-2] = q
+                    nnz_pos = tuple(nnz_pos)
 
-            #Skip repeated entries when k = 1
-            if nnz_pos in comp_basis and (basis_dict[nnz_pos],i) not in coords:
-                m, l = comp_basis[i][:n_strands//2], comp_basis[i][n_strands//2:]
-                #A few special cases
-                top_left = m[0]
-                if k >= 3:
-                    top_left = l[k-3]
-                root = b
-                if k - 1 < len(l):
-                    root = l[k-1]
+                    #Skip repeated entries when k = 1
+                    if nnz_pos in comp_basis and (basis_dict[nnz_pos],i) not in coords:
+                        m, l = comp_basis[i][:n_strands//2], comp_basis[i][n_strands//2:]
+                        #A few special cases
+                        top_left = m[0]
+                        if k >= 3:
+                            top_left = l[k-3]
+                        root = b
+                        if k - 1 < len(l):
+                            root = l[k-1]
 
-                #Handle the special case k = 1
-                if k == 1:
-                    entry = cached_mid_sig_ij(fusion_ring,m[:2],(f,e),a,root)
+                        #Handle the special case k = 1
+                        if k == 1:
+                            entry = cached_mid_sig_ij(fusion_ring,m[:2],(f,e),a,root)
 
-                    #Avoid pickling cyclotomic field element objects
-                    if must_flatten_coeff:
-                        entry = entry.list()
+                            #Avoid pickling cyclotomic field element objects
+                            if must_flatten_coeff:
+                                entry = entry.list()
 
-                    worker_results.append(((basis_dict[nnz_pos],i), entry))
-                    coords.add((basis_dict[nnz_pos],i))
-                    continue
+                            worker_results.append(((basis_dict[nnz_pos],i), entry))
+                            coords.add((basis_dict[nnz_pos],i))
+                            continue
 
-                entry = 0
-                for p in fusion_ring.basis():
-                    f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[k-1],m[k],root,l[k-2],p)
-                    f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,e,root,q,p)
-                    entry += f1 * cached_mid_sig_ij(fusion_ring,(m[k-1],m[k]),(f,e),a,p) * f2
+                        entry = 0
+                        for p in fusion_ring.basis():
+                            f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[k-1],m[k],root,l[k-2],p)
+                            f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,e,root,q,p)
+                            entry += f1 * cached_mid_sig_ij(fusion_ring,(m[k-1],m[k]),(f,e),a,p) * f2
 
-                #Avoid pickling cyclotomic field element objects
-                if must_flatten_coeff:
-                    entry = entry.list()
+                        #Avoid pickling cyclotomic field element objects
+                        if must_flatten_coeff:
+                            entry = entry.list()
 
-                worker_results.append(((basis_dict[nnz_pos], i), entry))
+                        worker_results.append(((basis_dict[nnz_pos], i), entry))
     return worker_results
 
 @cython.nonecheck(False)
@@ -184,63 +188,68 @@ cdef odd_one_out(fusion_ring, tuple args):
     _Nk_ij = fusion_ring.Nk_ij
     one = fusion_ring.one()
 
-    cdef list worker_results = list()
-    cdef int child_id, n_proc
+    cdef list worker_results = []
+    cdef list nnz_pos_temp
+    cdef tuple nnz_pos
+    cdef int child_id, n_proc, i
     child_id, n_proc, fn_args = args
     a, b, n_strands = fn_args
     cdef int ctr = -1
     #Get computational basis
-    comp_basis = fusion_ring.get_computational_basis(a, b, n_strands)
-    basis_dict = {elt: i for i, elt in enumerate(comp_basis)}
-    dim = len(comp_basis)
+    cdef list comp_basis = fusion_ring.get_computational_basis(a, b, n_strands)
+    cdef dict basis_dict = {elt: i for i, elt in enumerate(comp_basis)}
+    cdef int dim = len(comp_basis)
 
     #Avoid pickling cyclotomic field element objects
     cdef bint must_flatten_coeff = fusion_ring.fvars_field() != QQbar
+
+    cdef list basis = list(fusion_ring.basis())
     for i in range(dim):
-        for f, q in product(fusion_ring.basis(),repeat=2):
-            #Distribute work amongst processes
-            ctr += 1
-            if ctr % n_proc != child_id:
-                continue
+        for f in basis:
+            for q in basis:
+                #Distribute work amongst processes
+                ctr += 1
+                if ctr % n_proc != child_id:
+                    continue
 
-            #Compute appropriate possible nonzero row index
-            nnz_pos = list(comp_basis[i])
-            nnz_pos[n_strands//2-1] = f
-            #Handle small special case
-            if n_strands > 3:
-                nnz_pos[-1] = q
-            nnz_pos = tuple(nnz_pos)
+                #Compute appropriate possible nonzero row index
+                nnz_pos_temp = list(comp_basis[i])
+                nnz_pos_temp[n_strands//2-1] = f
+                #Handle small special case
+                if n_strands > 3:
+                    nnz_pos_temp[-1] = q
+                nnz_pos = tuple(nnz_pos_temp)
 
-            if nnz_pos in comp_basis:
-                m, l = comp_basis[i][:n_strands//2], comp_basis[i][n_strands//2:]
+                if nnz_pos in comp_basis:
+                    m, l = comp_basis[i][:n_strands//2], comp_basis[i][n_strands//2:]
 
-                #Handle a couple of small special cases
-                if n_strands == 3:
-                    entry = cached_odd_one_out_ij(fusion_ring,m[-1],f,a,b)
+                    #Handle a couple of small special cases
+                    if n_strands == 3:
+                        entry = cached_odd_one_out_ij(fusion_ring,m[-1],f,a,b)
+
+                        #Avoid pickling cyclotomic field element objects
+                        if must_flatten_coeff:
+                            entry = entry.list()
+
+                        worker_results.append(((basis_dict[nnz_pos], i), entry))
+                        continue
+                    top_left = m[0]
+                    if n_strands > 5:
+                        top_left = l[-2]
+                    root = b
+
+                    #Compute relevant entry
+                    entry = 0
+                    for p in basis:
+                        f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[-1],a,root,l[-1],p)
+                        f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,a,root,q,p)
+                        entry += f1 * cached_odd_one_out_ij(fusion_ring,m[-1],f,a,p) * f2
 
                     #Avoid pickling cyclotomic field element objects
                     if must_flatten_coeff:
                         entry = entry.list()
 
-                    worker_results.append(((basis_dict[nnz_pos], i), entry))
-                    continue
-                top_left = m[0]
-                if n_strands > 5:
-                    top_left = l[-2]
-                root = b
-
-                #Compute relevant entry
-                entry = 0
-                for p in fusion_ring.basis():
-                    f1 = _fmat(_fvars,_Nk_ij,one,top_left,m[-1],a,root,l[-1],p)
-                    f2 = _fmat(_fvars,_Nk_ij,one,top_left,f,a,root,q,p)
-                    entry += f1 * cached_odd_one_out_ij(fusion_ring,m[-1],f,a,p) * f2
-
-                #Avoid pickling cyclotomic field element objects
-                if must_flatten_coeff:
-                    entry = entry.list()
-
-                worker_results.append(((basis_dict[nnz_pos],i), entry))
+                    worker_results.append(((basis_dict[nnz_pos],i), entry))
     return worker_results
 
 ##############################
@@ -270,14 +279,14 @@ cpdef executor(tuple params):
 
     TESTS::
 
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor
+        sage: from sage.algebras.fusion_rings.fast_parallel_fusion_ring_braid_repn import executor
         sage: FR = FusionRing("A1",4)
         sage: FR.fusion_labels(['idd','one','two','three','four'],inject_variables=True)
         sage: FR.fmats.find_orthogonal_solution(verbose=False)    # long time
         sage: params = (('sig_2k',id(FR)),(0,1,(1,one,one,5)))    # long time
         sage: len(executor(params)) == 13                         # long time
         True
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import executor
+        sage: from sage.algebras.fusion_rings.fast_parallel_fusion_ring_braid_repn import executor
         sage: FR = FusionRing("A1",2)
         sage: FR.fusion_labels("a",inject_variables=True)
         sage: FR.fmats.find_orthogonal_solution(verbose=False)
@@ -305,7 +314,7 @@ cpdef _unflatten_entries(fusion_ring, list entries):
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import _unflatten_entries
+        sage: from sage.algebras.fusion_rings.fast_parallel_fusion_ring_braid_repn import _unflatten_entries
         sage: fr = FusionRing("B2",2)
         sage: F = fr.field()
         sage: coeff = [F.random_element() for i in range(2)]
@@ -319,3 +328,4 @@ cpdef _unflatten_entries(fusion_ring, list entries):
     if F != QQbar:
         for i, (coord, entry) in enumerate(entries):
             entries[i] = (coord, F(entry))
+

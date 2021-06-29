@@ -1,4 +1,4 @@
-from sage.combinat.root_system.shm_managers cimport KSHandler
+from sage.algebras.fusion_rings.shm_managers cimport KSHandler
 from sage.rings.number_field.number_field_element cimport NumberFieldElement_absolute
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polydict cimport ETuple

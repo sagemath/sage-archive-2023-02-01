@@ -17,7 +17,7 @@ factory is a cyclotomic field.
 cimport cython
 from cysignals.memory cimport sig_malloc
 cimport numpy as np
-from sage.combinat.root_system.poly_tup_engine cimport poly_to_tup, tup_fixes_sq, _flatten_coeffs
+from sage.algebras.fusion_rings.poly_tup_engine cimport poly_to_tup, tup_fixes_sq, _flatten_coeffs
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
@@ -75,7 +75,7 @@ cdef class KSHandler:
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.shm_managers import KSHandler
+            sage: from sage.algebras.fusion_rings.shm_managers import KSHandler
             sage: #Create shared data structure
             sage: f = FMatrix(FusionRing("A1",2), inject_variables=True)
             creating variables fx1..fx14
@@ -88,7 +88,7 @@ cdef class KSHandler:
             sage: ks2 = KSHandler(n,f._field,name=name,use_mp=is_shared_memory_available)
             sage: if not is_shared_memory_available:
             ....:     ks2 = ks
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
             sage: eqns = [fx1**2 - 4, fx3**2 + f._field.gen()**4 - 1/19*f._field.gen()**2]
             sage: ks.update([poly_to_tup(p) for p in eqns])
             sage: for idx, sq in ks.items():
@@ -114,18 +114,18 @@ cdef class KSHandler:
             try:
                 from multiprocessing import shared_memory
             except ImportError:
-                raise ImportError("Failed to import shared_memory module. Requires Python 3.8+")
+                raise ImportError("failed to import shared_memory module; requires Python 3.8+")
             if name is None:
-                self.shm = shared_memory.SharedMemory(create=True,size=n*ks_t.itemsize)
+                self.shm = shared_memory.SharedMemory(create=True, size=n*ks_t.itemsize)
             else:
                 self.shm = shared_memory.SharedMemory(name=name)
-            self.ks_dat = np.ndarray((n,),dtype=ks_t,buffer=self.shm.buf)
+            self.ks_dat = np.ndarray((n,), dtype=ks_t, buffer=self.shm.buf)
         else:
-            self.ks_dat = np.ndarray((n,),dtype=ks_t)
+            self.ks_dat = np.ndarray((n,), dtype=ks_t)
         if name is None:
-            self.ks_dat['known'] = np.zeros((n,1),dtype='bool')
-            self.ks_dat['nums'] = np.zeros((n,d),dtype='i8')
-            self.ks_dat['denoms'] = np.ones((n,d),dtype='u8')
+            self.ks_dat['known'] = np.zeros((n,1), dtype='bool')
+            self.ks_dat['nums'] = np.zeros((n,d), dtype='i8')
+            self.ks_dat['denoms'] = np.ones((n,d), dtype='u8')
         #Populate initializer data
         for idx, sq in init_data.items():
             self.setitem(idx,sq)
@@ -139,7 +139,7 @@ cdef class KSHandler:
         if it exists.
         """
         if not self.ks_dat['known'][idx]:
-            raise KeyError('Index {} does not correspond to a known square'.format(idx))
+            raise KeyError('index {} does not correspond to a known square'.format(idx))
         if self.obj_cache[idx] is not None:
             return self.obj_cache[idx]
         cdef int d
@@ -252,9 +252,9 @@ cdef class KSHandler:
             num = quo.numerator()
             denom = quo.denominator()
             if num > 2**32:
-                print("Large num encountered in KS",num)
+                print("WARNING: Large num encountered in KS", num)
             if denom > 2**32:
-                print("Large denom encountered in KS",denom)
+                print("WARNING: Large denom encountered in KS", denom)
             nums[i] = num
             denoms[i] = denom
 
@@ -274,7 +274,7 @@ cdef class KSHandler:
             sage: f = FMatrix(FusionRing("C2",2))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: from sage.combinat.root_system.shm_managers import KSHandler
+            sage: from sage.algebras.fusion_rings.shm_managers import KSHandler
             sage: n = f._poly_ring.ngens()
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: ks = KSHandler(n,f._field,use_mp=is_shared_memory_available,init_data=f._ks)
@@ -354,7 +354,8 @@ def make_KSHandler(n_slots,field,init_data):
     return KSHandler(n_slots,field,init_data=init_data)
 
 cdef class FvarsHandler:
-    def __init__(self,n_slots,field,idx_to_sextuple,init_data={},use_mp=0,pids_name=None,name=None,max_terms=20,n_bytes=32):
+    def __init__(self, n_slots, field,idx_to_sextuple, init_data={}, use_mp=0,
+                 pids_name=None, name=None, max_terms=20, n_bytes=32):
         """
         Return a shared memory backed dict-like structure to manage the
         ``_fvars`` attribute of an F-matrix factory object.
@@ -385,23 +386,25 @@ cdef class FvarsHandler:
 
         INPUT:
 
-        - ``factory`` -- an F-matrix factory object.
+        - ``factory`` -- an F-matrix factory object
         - ``name`` -- the name of a shared memory object
-          (used by child processes for attaching).
-        - ``max_terms`` -- maximum number of terms in each entry. Since
+          (used by child processes for attaching)
+        - ``max_terms`` -- maximum number of terms in each entry; since
           we use contiguous C-style memory blocks, the size of the block
-          must be known in advance.
+          must be known in advance
         - ``use_mp`` -- an integer indicating the number of child processes
-          used for multiprocessing. If running serially, use 0.
+          used for multiprocessing; if running serially, use 0.
+
           Multiprocessing requires Python 3.8+, since we must import the
           ``multiprocessing.shared_memory`` module. Attempting to initialize
           when ``multiprocessing.shared_memory`` is not available results in
           an ``ImportError``.
+
         - ``pids_name`` -- the name of a ``ShareableList`` contaning the
           process ``pid``'s for every process in the pool (including the
-          parent process).
+          parent process)
         - ``n_bytes`` -- the number of bytes that should be allocated for
-          each numerator and each denominator stored by the structure.
+          each numerator and each denominator stored by the structure
 
         .. NOTE::
 
@@ -416,14 +419,14 @@ cdef class FvarsHandler:
 
         .. WARNING::
 
-            The current data structure supports up to 2**16 entries,
+            The current data structure supports up to `2^16` entries,
             with each monomial in each entry having at most 254
             nonzero terms. On average, each of the ``max_terms`` monomials
             can have at most 30 terms.
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: #Create shared data structure
             sage: f = FMatrix(FusionRing("A2",1), inject_variables=True)
             creating variables fx1..fx8
@@ -441,7 +444,7 @@ cdef class FvarsHandler:
             sage: fvars2 = FvarsHandler(8,f._field,f._idx_to_sextuple,name=name,use_mp=n_proc,pids_name=pids_name)
             sage: if not is_shared_memory_available:
             ....:     fvars2 = fvars
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(fx5**5))
             sage: fvars[f2, f1, f2, f2, f0, f0] = rhs
             sage: f._tup_to_fpoly(fvars2[f2, f1, f2, f2, f0, f0])
@@ -469,16 +472,16 @@ cdef class FvarsHandler:
             try:
                 from multiprocessing import shared_memory
             except ImportError:
-                raise ImportError("Failed to import shared_memory module. Requires Python 3.8+")
+                raise ImportError("failed to import shared_memory module; requires Python 3.8+")
             if name is None:
-                self.shm = shared_memory.SharedMemory(create=True,size=self.ngens*self.fvars_t.itemsize)
+                self.shm = shared_memory.SharedMemory(create=True, size=self.ngens*self.fvars_t.itemsize)
             else:
                 self.shm = shared_memory.SharedMemory(name=name)
-            self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t,buffer=self.shm.buf)
+            self.fvars = np.ndarray((self.ngens,), dtype=self.fvars_t, buffer=self.shm.buf)
             self.pid_list = shared_memory.ShareableList(name=pids_name)
             self.child_id = -1
         else:
-            self.fvars = np.ndarray((self.ngens,),dtype=self.fvars_t)
+            self.fvars = np.ndarray((self.ngens,), dtype=self.fvars_t)
             self.child_id = 0
         #Populate with initialziation data
         for sextuple, fvar in init_data.items():
@@ -490,7 +493,7 @@ cdef class FvarsHandler:
                 transformed = list()
                 for exp, c in fvar:
                     if isinstance(c, NumberFieldElement_absolute):
-                        transformed.append((exp,tuple(c._coefficients())))
+                        transformed.append((exp, tuple(c._coefficients())))
                 if transformed:
                     fvar = tuple(transformed)
             self[sextuple] = fvar
@@ -499,7 +502,7 @@ cdef class FvarsHandler:
     @cython.wraparound(False)
     @cython.boundscheck(False)
     def __getitem__(self, sextuple):
-        """
+        r"""
         Retrieve a record from the shared memory data structure by
         unflattening its representation and constructing relevant Python
         objects.
@@ -509,8 +512,8 @@ cdef class FvarsHandler:
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+            sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
             sage: f = FMatrix(FusionRing("B7", 1), inject_variables=True)
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
@@ -522,7 +525,8 @@ cdef class FvarsHandler:
             ....:     n_proc = 0
             ....:     pids_name = None
             sage: fvars = FvarsHandler(14,f._field,f._idx_to_sextuple,use_mp=n_proc,pids_name=pids_name)
-            sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10))
+            sage: rhs = tuple((exp, tuple(c._coefficients()))
+            ....:             for exp, c in poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx13**3 - 799/2881*fx1*fx2**5*fx10))
             sage: fvars[(f1, f2, f1, f2, f2, f2)] = rhs
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(f._poly_ring.zero()))
             sage: fvars[f2, f2, f2, f2, f0, f0] = rhs
@@ -546,7 +550,7 @@ cdef class FvarsHandler:
             modified entry, tagged via its ``modified`` property.
         """
         if not sextuple in self.sext_to_idx:
-            raise KeyError('Invalid sextuple {}'.format(sextuple))
+            raise KeyError('invalid sextuple {}'.format(sextuple))
         cdef Py_ssize_t idx = self.sext_to_idx[sextuple]
         #Each process builds its own cache, so each process must know
         #whether the entry it wants to retrieve has been modified.
@@ -614,11 +618,11 @@ cdef class FvarsHandler:
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+            sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
             sage: f = FMatrix(FusionRing("A3", 1), inject_variables=True)
             creating variables fx1..fx27
-            Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19, fx20, fx21, fx22, fx23, fx24, fx25, fx26
+            Defining fx0, ..., fx26
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: if is_shared_memory_available:
             ....:     n_proc = f.pool._processes
@@ -627,7 +631,8 @@ cdef class FvarsHandler:
             ....:     n_proc = 0
             ....:     pids_name = None
             sage: fvars = FvarsHandler(27,f._field,f._idx_to_sextuple,use_mp=n_proc,pids_name=pids_name)
-            sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10))
+            sage: rhs = tuple((exp, tuple(c._coefficients()))
+            ....:             for exp, c in poly_to_tup(1/8*fx0**15 - 23/79*fx2*fx21**3 - 799/2881*fx1*fx2**5*fx10))
             sage: fvars[(f3, f2, f1, f2, f1, f3)] = rhs
             sage: rhs = tuple((exp, tuple(c._coefficients())) for exp, c in poly_to_tup(f._poly_ring.zero()))
             sage: fvars[f3, f2, f3, f0, f1, f1] = rhs
@@ -701,7 +706,7 @@ cdef class FvarsHandler:
         TESTS::
 
             sage: f = FMatrix(FusionRing("F4",1))
-            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: n = f._poly_ring.ngens()
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: if is_shared_memory_available:
@@ -735,7 +740,7 @@ cdef class FvarsHandler:
             sage: f = FMatrix(FusionRing("G2", 1), inject_variables=True)
             creating variables fx1..fx5
             Defining fx0, fx1, fx2, fx3, fx4
-            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: shared_fvars = FvarsHandler(5,f._field,f._idx_to_sextuple,init_data=f._fvars)
             sage: for sextuple, fvar in shared_fvars.items():
             ....:     if sextuple == (f1, f1, f1, f1, f1, f1):
@@ -753,7 +758,7 @@ def make_FvarsHandler(n,field,idx_map,init_data):
     TESTS::
 
         sage: f = FMatrix(FusionRing("G2",1))
-        sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+        sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
         sage: n = f._poly_ring.ngens()
         sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
         sage: if is_shared_memory_available:
@@ -769,4 +774,5 @@ def make_FvarsHandler(n,field,idx_map,init_data):
         sage: if is_shared_memory_available: fvars.shm.unlink()
         sage: f.shutdown_worker_pool()
     """
-    return FvarsHandler(n,field,idx_map,init_data=init_data)
+    return FvarsHandler(n, field, idx_map, init_data=init_data)
+

@@ -19,7 +19,7 @@ cpdef inline tuple poly_to_tup(MPolynomial_libsingular poly):
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
         sage: R.<x,y> = PolynomialRing(QQ)
         sage: poly_to_tup(x**2 + 1)
         (((2, 0), 1), ((0, 0), 1))
@@ -49,20 +49,20 @@ cpdef inline MPolynomial_libsingular _tup_to_poly(tuple eq_tup, MPolynomialRing_
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import _tup_to_poly
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import _tup_to_poly
         sage: K = CyclotomicField(20)
         sage: R.<x,y> = PolynomialRing(K)
         sage: poly_tup = (((2,0),K.one()), ((0,0),K.one()))
         sage: _tup_to_poly(poly_tup, parent=R)
         x^2 + 1
         sage: poly = x**2*y**4 - 4/5*x*y**2 + 1/3 * y
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
         sage: _tup_to_poly(poly_to_tup(poly), parent=R) == poly
         True
 
     TESTS::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup, _tup_to_poly
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup, _tup_to_poly
         sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20))
         sage: r = R.random_element()
         sage: _tup_to_poly(poly_to_tup(r), parent=R) == r
@@ -98,10 +98,10 @@ cpdef tuple _unflatten_coeffs(field, tuple eq_tup):
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import _unflatten_coeffs
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import _unflatten_coeffs
         sage: fm = FMatrix(FusionRing("A2",2))
         sage: p = fm._poly_ring.random_element()
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
         sage: flat_poly_tup = list()
         sage: for exp, cyc_coeff in poly_to_tup(p):
         ....:     flat_poly_tup.append((exp, tuple(cyc_coeff._coefficients())))
@@ -134,7 +134,7 @@ cdef inline int has_appropriate_linear_term(tuple eq_tup):
     If the given polynomial contains an appropriate linear term, this method
     returns the index of the monomial in which the term appears.
 
-    Otherwise, the method returns -1.
+    Otherwise, the method returns `-1`.
     """
     max_var = degrees(eq_tup).nonzero_positions()[0]
     cdef ETuple m
@@ -159,7 +159,7 @@ cpdef inline tup_to_univ_poly(tuple eq_tup, univ_poly_ring):
 
     EXAMPLES::
 
-      sage: from sage.combinat.root_system.poly_tup_engine import tup_to_univ_poly
+      sage: from sage.algebras.fusion_rings.poly_tup_engine import tup_to_univ_poly
       sage: from sage.rings.polynomial.polydict import ETuple
       sage: K = CyclotomicField(56)
       sage: poly_tup = ((ETuple([0,3,0]),K(2)), (ETuple([0,1,0]),K(-1)), (ETuple([0,0,0]),K(-2/3)))
@@ -175,7 +175,7 @@ cpdef inline tup_to_univ_poly(tuple eq_tup, univ_poly_ring):
     """
     cdef ETuple exp
     cdef NumberFieldElement_absolute c
-    return univ_poly_ring({ exp._data[1] if exp._nonzero else 0 : c for exp, c in eq_tup })
+    return univ_poly_ring({exp._data[1] if exp._nonzero else 0: c for exp, c in eq_tup})
 
 cpdef inline tuple resize(tuple eq_tup, dict idx_map, int nvars):
     """
@@ -189,7 +189,7 @@ cpdef inline tuple resize(tuple eq_tup, dict idx_map, int nvars):
 
     EXAMPLES::
 
-      sage: from sage.combinat.root_system.poly_tup_engine import resize
+      sage: from sage.algebras.fusion_rings.poly_tup_engine import resize
       sage: from sage.rings.polynomial.polydict import ETuple
       sage: K = CyclotomicField(56)
       sage: poly_tup = ((ETuple([0,3,0,2]),K(2)), (ETuple([0,1,0,1]),K(-1)), (ETuple([0,0,0,0]),K(-2/3)))
@@ -201,7 +201,7 @@ cpdef inline tuple resize(tuple eq_tup, dict idx_map, int nvars):
       sage: R.inject_variables()
       Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13, fx14, fx15, fx16, fx17, fx18, fx19
       sage: sparse_poly = R(fx0**2 * fx17 + fx3)
-      sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup, _tup_to_poly
+      sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup, _tup_to_poly
       sage: S.<x,y,z> = PolynomialRing(K)
       sage: _tup_to_poly(resize(poly_to_tup(sparse_poly),{0:0,3:1,17:2},3), parent=S)
       x^2*z + y
@@ -238,10 +238,10 @@ cpdef list get_variables_degrees(list eqns, int nvars):
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import get_variables_degrees
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import get_variables_degrees
         sage: R.<x,y,z> = PolynomialRing(QQ)
         sage: polys = [x**2 + 1, x*y*z**2 - 4*x*y, x*z**3 - 4/3*y + 1]
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
         sage: get_variables_degrees([poly_to_tup(p) for p in polys], 3)
         [2, 1, 3]
     """
@@ -252,7 +252,7 @@ cpdef list get_variables_degrees(list eqns, int nvars):
     max_deg = degrees(eqns[0])
     for i in range(1, len(eqns)):
         max_deg = max_deg.emax(degrees( <tuple>(eqns[i]) ))
-    cdef list dense = [0]*len(max_deg)
+    cdef list dense = [0] * len(max_deg)
     for i in range(max_deg._nonzero):
         dense[max_deg._data[2*i]] = max_deg._data[2*i+1]
     return dense
@@ -263,12 +263,12 @@ cpdef list variables(tuple eq_tup):
 
     EXAMPLES::
 
-      sage: from sage.combinat.root_system.poly_tup_engine import variables
+      sage: from sage.algebras.fusion_rings.poly_tup_engine import variables
       sage: from sage.rings.polynomial.polydict import ETuple
       sage: poly_tup = ((ETuple([0,3,0]),2), (ETuple([0,1,0]),-1), (ETuple([0,0,0]),-2/3))
       sage: variables(poly_tup)
       [1]
-      sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+      sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
       sage: R.<x,y,z> = PolynomialRing(QQ)
       sage: variables(poly_to_tup(x*2*y + y**3 - 4/3*x))
       [0, 1]
@@ -284,13 +284,13 @@ cpdef constant_coeff(tuple eq_tup, field):
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import constant_coeff
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import constant_coeff
         sage: from sage.rings.polynomial.polydict import ETuple
         sage: poly_tup = ((ETuple([0,3,0]),2), (ETuple([0,1,0]),-1), (ETuple([0,0,0]),-2/3))
         sage: constant_coeff(poly_tup,QQ)
         -2/3
         sage: R.<x,y,z> = PolynomialRing(QQ)
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
         sage: constant_coeff(poly_to_tup(x**5 + x*y*z - 9),QQ)
         -9
     """
@@ -306,10 +306,10 @@ cpdef tuple apply_coeff_map(tuple eq_tup, coeff_map):
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import apply_coeff_map
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import apply_coeff_map
         sage: sq = lambda x : x**2
         sage: R.<x,y,z> = PolynomialRing(ZZ)
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup, _tup_to_poly
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup, _tup_to_poly
         sage: _tup_to_poly(apply_coeff_map(poly_to_tup(x + 2*y + 3*z), sq), parent=R)
         x + 4*y + 9*z
     """
@@ -349,10 +349,10 @@ cdef dict subs_squares(dict eq_dict, KSHandler known_sq):
     INPUT:
 
     - ``eq_dict`` -- a dictionary of ``(ETuple, coeff)`` pairs representing
-      a polynomial.
+      a polynomial
 
     - ``known_sq`` -- a dictionary of ``(int i, NumberFieldElement a)`` pairs
-      such that `x_i^2 - a = 0`.
+      such that `x_i^2 - a = 0`
 
     OUTPUT:
 
@@ -447,31 +447,30 @@ cpdef dict compute_known_powers(max_degs, dict val_dict, one):
 
     - ``max_deg`` -- an ``ETuple`` indicating the maximal degree of
       each variable
-    - ``val_dict`` -- a dictionary of ``(var_idx, poly_tup)`` key-value
-      pairs
+    - ``val_dict`` -- a dictionary of ``(var_idx, poly_tup)`` key-value pairs
     - ``poly_tup`` -- a tuple of ``(ETuple, coeff)`` pairs reperesenting a
       multivariate polynomial
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import compute_known_powers
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import compute_known_powers
         sage: R.<x,y,z> = PolynomialRing(QQ)
         sage: polys = [x**3 + 1, x**2*y + z**3, y**2 - 3*y]
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
         sage: known_val = { 0 : poly_to_tup(R(-1)), 2 : poly_to_tup(y**2) }
-        sage: from sage.combinat.root_system.poly_tup_engine import get_variables_degrees
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import get_variables_degrees
         sage: max_deg = get_variables_degrees([poly_to_tup(p) for p in polys], 3)
         sage: compute_known_powers(max_deg, known_val, R.base_ring().one())
         {0: [(((0, 0, 0), 1),),
-        (((0, 0, 0), -1),),
-        (((0, 0, 0), 1),),
-        (((0, 0, 0), -1),)],
+             (((0, 0, 0), -1),),
+             (((0, 0, 0), 1),),
+             (((0, 0, 0), -1),)],
         2: [(((0, 0, 0), 1),),
-        (((0, 2, 0), 1),),
-        (((0, 4, 0), 1),),
-        (((0, 6, 0), 1),)]}
+            (((0, 2, 0), 1),),
+            (((0, 4, 0), 1),),
+            (((0, 6, 0), 1),)]}
     """
-    assert (max_degs and max(max_degs) <= 100) or True, "Cannot substitute for degree larger than 100"
+    assert (max_degs and max(max_degs) <= 100) or True, "cannot substitute for degree larger than 100"
     cdef ETuple max_deg = ETuple(list(max_degs))
     max_deg = max_deg.emin(ETuple({idx: 100 for idx in val_dict}, len(max_deg)))
     cdef dict known_powers
@@ -528,8 +527,8 @@ cdef tuple tup_mul(tuple p1, tuple p2):
 
 cdef tuple monom_sortkey(ETuple exp):
     r"""
-    Produce a sortkey for a monomial exponent w.r.t. degree reversed
-    lexicographic ordering.
+    Produce a sortkey for a monomial exponent with respect to degree
+    reversed lexicographic ordering.
     """
     cdef int deg = exp.unweighted_degree()
     # for i in range(exp._nonzero):
@@ -551,11 +550,11 @@ cpdef tuple poly_tup_sortkey(tuple eq_tup):
 
     EXAMPLES::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey
         sage: R.<x,y,z> = PolynomialRing(QQ, order='deglex')
         sage: p1 = x*y*z - x**2 + 3/2
         sage: p2 = x*y*z - x*y + 1/2
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
         sage: (p1 < p2) == (poly_tup_sortkey(poly_to_tup(p1)) < poly_tup_sortkey(poly_to_tup(p2)))
         True
         sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20), order='deglex')
@@ -567,7 +566,7 @@ cpdef tuple poly_tup_sortkey(tuple eq_tup):
 
     TESTS::
 
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey, poly_to_tup
         sage: R.<x,y,z> = PolynomialRing(CyclotomicField(20))
         sage: p1 = R.random_element()
         sage: p2 = R.random_element()
@@ -591,3 +590,4 @@ cpdef tuple poly_tup_sortkey(tuple eq_tup):
            key.append(-exp._data[2*i])
            key.append(exp._data[2*i+1])
     return tuple(key)
+

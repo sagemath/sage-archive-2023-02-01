@@ -14,7 +14,7 @@ Fusion Rings
 from itertools import product, zip_longest
 from multiprocessing import Pool, set_start_method
 from sage.combinat.q_analogues import q_int
-from sage.combinat.root_system.fast_parallel_fusion_ring_braid_repn import (
+from sage.algebras.fusion_rings.fast_parallel_fusion_ring_braid_repn import (
     executor,
     _unflatten_entries
 )
@@ -526,8 +526,8 @@ class FusionRing(WeylCharacterRing):
 
         Depending on the ``CartanType`` associated to ``self`` and whether
         a call to an F-matrix solver has been made, this method
-        will return the same field as :meth:`field`, a ``NumberField``,
-        or the ``AlgebraicField`` ``QQbar``.
+        will return the same field as :meth:`field`, a :func:`NumberField`,
+        or the :class:`QQbar<AlgebraicField>`.
         See :meth:`FMatrix.attempt_number_field_computation` for more details.
 
         Before running an F-matrix solver, the output of this method matches
@@ -560,9 +560,10 @@ class FusionRing(WeylCharacterRing):
             sage: A13.field()
             Cyclotomic Field of order 40 and degree 16
 
-        In some cases, the :meth:`NumberField.optimized_representation`
+        In some cases, the :meth:`NumberField.optimized_representation()
+        <sage.rings.number_field.number_field.NumberField_absolute.optimized_representation>`
         may be used to obtain a better defining polynomial for the
-        computed ``NumberField``.
+        computed :func:`NumberField`.
         """
         if self.is_multiplicity_free():
             return self.fmats.field()
@@ -968,7 +969,9 @@ class FusionRing(WeylCharacterRing):
     def global_q_dimension(self, base_coercion=True):
         r"""
         Return `\sum d_i^2`, where the sum is over all simple objects
-        and `d_i` is the quantum dimension. It is a positive real number.
+        and `d_i` is the quantum dimension.
+
+        The global `q`-dimension is a positive real number.
 
         EXAMPLES::
 
@@ -982,9 +985,11 @@ class FusionRing(WeylCharacterRing):
 
     def total_q_order(self, base_coercion=True):
         r"""
-        Return the positive square root of ``self.global_q_dimension()``
-        as an element of ``self.field()``. Implemented as `D_{+}e^{-i\pi c/4}`
-        where `D_+` is ``self.D_plus()`` and `c` is ``self.virasoro_central_charge()``
+        Return the positive square root of :meth:`self.global_q_dimension()
+        <global_q_dimension>` as an element of :meth:`self.field() <field>`.
+
+        This is implemented as `D_{+}e^{-i\pi c/4}`, where `D_+` is
+        :meth:`D_plus()` and `c` is :meth:`virasoro_central_charge()`.
 
         EXAMPLES::
 
@@ -1027,7 +1032,6 @@ class FusionRing(WeylCharacterRing):
         if (not base_coercion) or (self._basecoer is None):
             return ret
         return self._basecoer(ret)
-
 
     def D_minus(self, base_coercion=True):
         r"""
@@ -1117,7 +1121,7 @@ class FusionRing(WeylCharacterRing):
             l_{k-2} \in l_{k-3} \otimes m_{k-1},\\
             \cdots,\\
             l_2 \in l_1 \otimes m_3,\\
-            l_1 \in m_1 \otimes m_2.
+            l_1 \in m_1 \otimes m_2,
             \end{array}
 
         where `z \in x \otimes y` means `N_{xy}^z \neq 0`.
@@ -1168,7 +1172,7 @@ class FusionRing(WeylCharacterRing):
             sage: A15.fmats
             F-Matrix factory for The Fusion Ring of Type A1 and level 5 with Integer Ring coefficients
         """
-        from sage.combinat.root_system.f_matrix import FMatrix
+        from sage.algebras.fusion_rings.f_matrix import FMatrix
         return FMatrix(self)
 
     def _emap(self, mapper, input_args, worker_pool=None):
@@ -1261,7 +1265,7 @@ class FusionRing(WeylCharacterRing):
           to be verbose with the computation
 
         For more information on the optional parameters, see
-        :meth:`find_orthogonal_solution` of the :class:`FMatrix` module.
+        :meth:`FMatrix.find_orthogonal_solution`.
 
         Given a simple object in the fusion category, here called
         ``fusing_anyon`` allowing the universal R-matrix to act on adjacent
@@ -1279,7 +1283,7 @@ class FusionRing(WeylCharacterRing):
         is as follows. See :meth:`get_computational_basis`
         for more information.
 
-        .. image:: ../../../media/fusiontree.png
+        .. IMAGE:: ../../../media/fusiontree.png
 
         ``sig`` is a list of braid group generators as matrices. In
         some cases these will be represented as sparse matrices.

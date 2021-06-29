@@ -24,11 +24,11 @@ from multiprocessing import  Pool, cpu_count, set_start_method
 import numpy as np
 from os import getpid, remove
 
-from sage.combinat.root_system.fast_parallel_fmats_methods import (
+from sage.algebras.fusion_rings.fast_parallel_fmats_methods import (
     _backward_subs, _solve_for_linear_terms,
     executor
 )
-from sage.combinat.root_system.poly_tup_engine import (
+from sage.algebras.fusion_rings.poly_tup_engine import (
     apply_coeff_map, constant_coeff,
     compute_known_powers,
     get_variables_degrees, variables,
@@ -38,7 +38,7 @@ from sage.combinat.root_system.poly_tup_engine import (
     resize,
     # tup_fixes_sq
 )
-from sage.combinat.root_system.shm_managers import KSHandler, FvarsHandler
+from sage.algebras.fusion_rings.shm_managers import KSHandler, FvarsHandler
 from sage.graphs.graph import Graph
 from sage.matrix.constructor import matrix
 from sage.misc.misc import get_main_globals
@@ -197,7 +197,7 @@ class FMatrix():
             ([i0, p], [i0, p])
 
         The last two statments show that the possible values of
-        `X` and `Y` when `A=B=C=D=s` are `i_0` and `p`.
+        `X` and `Y` when `A = B = C = D = s` are `i_0` and `p`.
 
         The F-matrix is computed by solving the so-called
         pentagon and hexagon equations. The *pentagon equations*
@@ -257,7 +257,7 @@ class FMatrix():
         cyclotomic field that is the base ring of the underlying
         :class:`FusionRing`, but sometimes in an extension field adjoining
         some square roots. When this happens, the :class:`FusionRing` is
-        modified, adding an attribute :attr:`_basecoer` that is
+        modified, adding an attribute ``_basecoer`` that is
         a coercion from the cyclotomic field to the field
         containing the F-matrix. The field containing the F-matrix
         is available through :meth:`field`.
@@ -278,7 +278,7 @@ class FMatrix():
         if inject_variables and (self._FR._fusion_labels is None):
             self._FR.fusion_labels(fusion_label, inject_variables=True)
         if not self._FR.is_multiplicity_free():
-            raise ValueError("FMatrix is only available for multiplicity free FusionRings")
+            raise NotImplementedError("FMatrix is only available for multiplicity free FusionRings")
         #Set up F-symbols entry by entry
         n_vars = self.findcases()
         self._poly_ring = PolynomialRing(self._FR.field(),n_vars,var_prefix)
@@ -311,7 +311,7 @@ class FMatrix():
         """
         EXAMPLES::
 
-            sage: FMatrix(FusionRing("B2",1))
+            sage: FMatrix(FusionRing("B2", 1))
             F-Matrix factory for The Fusion Ring of Type B2 and level 1 with Integer Ring coefficients
         """
         return "F-Matrix factory for %s"%self._FR
@@ -322,7 +322,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("E6",1))
+            sage: f = FMatrix(FusionRing("E6", 1))
             sage: f.get_defining_equations('hexagons', output=False)
             sage: len(f.ideal_basis)
             6
@@ -360,7 +360,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("G2",1))
+            sage: f = FMatrix(FusionRing("G2", 1))
             sage: f._reset_solver_state()
             sage: K = f.field()
             sage: len(f._nnz.nonzero_positions())
@@ -416,7 +416,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f=FMatrix(FusionRing("G2",1,fusion_labels=("i0","t"),inject_variables=True))
+            sage: f=FMatrix(FusionRing("G2", 1, fusion_labels=("i0","t"), inject_variables=True))
             sage: [f.fmat(t,t,t,t,x,y) for x in f._FR.basis() for y in f._FR.basis()]
             [fx1, fx2, fx3, fx4]
             sage: f.find_cyclotomic_solution(output=True)
@@ -476,7 +476,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A1",2,fusion_labels="c",inject_variables=True))
+            sage: f = FMatrix(FusionRing("A1", 2, fusion_labels="c", inject_variables=True))
             sage: f.fmatrix(c1,c1,c1,c1)
             [fx0 fx1]
             [fx2 fx3]
@@ -506,15 +506,15 @@ class FMatrix():
         The field may change after running :meth:`find_orthogonal_solution`.
         At that point, this method could return the
         associated :class:`FusionRing`'s cyclotomic field, an
-        appropriate :class:`NumberField` that was computed on the fly
-        by the F-matrix solver, or the :class:`AlgebraicField` ``QQbar``.
+        appropriate :func:`NumberField` that was computed on the fly
+        by the F-matrix solver, or the :class:`QQbar<AlgebraicField>`.
 
         Depending on the ``CartanType`` of ``self``, the solver may need
         to compute an extension field containing certain square roots that
         do not belong to the associated :class:`FusionRing`'s cyclotomic field.
 
-        In certain cases we revert to ``QQbar`` because the extension field
-        computation does not seem to terminate. See
+        In certain cases we revert to :class:`QQbar<AlgebraicField>` because
+        the extension field computation does not seem to terminate. See
         :meth:`attempt_number_field_computation` for more details.
 
         The method :meth:`get_non_cyclotomic_roots` returns a list of
@@ -536,7 +536,7 @@ class FMatrix():
         .. NOTE::
 
             Consider using ``self.field().optimized_representation()`` to
-            obtain an equivalent :class:`NumberField` with a defining
+            obtain an equivalent :func:`NumberField` with a defining
             polynomial with smaller coefficients, for a more efficient
             element representation.
         """
@@ -564,7 +564,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("G2",1,fusion_labels=("i0","t")))
+            sage: f = FMatrix(FusionRing("G2", 1, fusion_labels=("i0","t")))
             sage: f.findcases()
             5
             sage: f.findcases(output=True)
@@ -635,16 +635,16 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: b22 = FusionRing("B2",2)
-            sage: b22.fusion_labels("b",inject_variables=True)
+            sage: b22 = FusionRing("B2", 2)
+            sage: b22.fusion_labels("b", inject_variables=True)
             sage: B=FMatrix(b22)
-            sage: B.fmatrix(b2,b4,b2,b4)
+            sage: B.fmatrix(b2, b4, b2, b4)
             [fx266 fx267 fx268]
             [fx269 fx270 fx271]
             [fx272 fx273 fx274]
-            sage: B.f_from(b2,b4,b2,b4)
+            sage: B.f_from(b2, b4, b2, b4)
             [b1, b3, b5]
-            sage: B.f_to(b2,b4,b2,b4)
+            sage: B.f_to(b2, b4, b2, b4)
             [b1, b3, b5]
         """
         return [y for y in self._FR.basis()
@@ -666,7 +666,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A2",1), inject_variables=True)
+            sage: f = FMatrix(FusionRing("A2", 1), inject_variables=True)
             creating variables fx1..fx8
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
             sage: f.get_fvars()[(f1, f1, f1, f0, f2, f2)]
@@ -683,7 +683,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("B6",1))
+            sage: f = FMatrix(FusionRing("B6", 1))
             sage: f.get_poly_ring()
             Multivariate Polynomial Ring in fx0, ..., fx13 over
              Cyclotomic Field of order 96 and degree 32
@@ -693,8 +693,9 @@ class FMatrix():
     def get_non_cyclotomic_roots(self):
         r"""
         Return a list of roots that define the extension of the associated
-        :class:`FusionRing`'s base :class:`CyclotomicField` containing all
-        the F-symbols.
+        :class:`FusionRing`'s base
+        :class:`Cyclotomic field<sage.rings.number_field.number_field.CyclotomicFieldFactory>`,
+        containing all the F-symbols.
 
         OUTPUT:
 
@@ -706,13 +707,13 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("E6",1))
+            sage: f = FMatrix(FusionRing("E6", 1))
             sage: f.find_orthogonal_solution(verbose=False)
             sage: f.field() == f.FR().field()
             True
             sage: f.get_non_cyclotomic_roots()
             []
-            sage: f = FMatrix(FusionRing("G2",1))
+            sage: f = FMatrix(FusionRing("G2", 1))
             sage: f.find_orthogonal_solution(verbose=False)
             sage: f.field() == f.FR().field()
             False
@@ -722,23 +723,25 @@ class FMatrix():
 
         When ``self.field()`` is a ``NumberField``, one may use
         :meth:`get_qqbar_embedding` to embed the resulting values into
-        ``QQbar``.
+        :class:`QQbar<AlgebraicField>`.
         """
         return sorted(set(self._non_cyc_roots))
 
     def get_qqbar_embedding(self):
         r"""
         Return an embedding from the base field containing F-symbols (the
-        associated :class:`FusionRing`'s :class:`CyclotomicField`, a
-        :class:`NumberField`, or ``QQbar``) into ``QQbar``.
+        associated :class:`FusionRing`'s
+        :class:`Cyclotomic field<sage.rings.number_field.number_field.CyclotomicFieldFactory>`,
+        a :func:`NumberField`, or :class:`QQbar<AlgebraicField>`) into
+        :class:`QQbar<AlgebraicField>`.
 
         This embedding is useful for getting a better sense for the
         F-symbols, particularly when they are computed as elements of a
-        :class:`NumberField`. See also :meth:`get_non_cyclotomic_roots`.
+        :func:`NumberField`. See also :meth:`get_non_cyclotomic_roots`.
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("G2",1), fusion_label="g", inject_variables=True)
+            sage: f = FMatrix(FusionRing("G2", 1), fusion_label="g", inject_variables=True)
             creating variables fx1..fx5
             Defining fx0, fx1, fx2, fx3, fx4
             sage: f.find_orthogonal_solution()
@@ -765,17 +768,18 @@ class FMatrix():
         r"""
         Return a coercion map from the associated :class:`FusionRing`'s
         cyclotomic field into the base field containing all F-symbols
-        (this could be the :class:`FusionRing`'s :class:`CyclotomicField`, a
-        :class:`NumberField`, or ``QQbar``).
+        (this could be the :class:`FusionRing`'s
+        :class:`Cyclotomic field<sage.rings.number_field.number_field.CyclotomicFieldFactory>`,
+        a :func:`NumberField`, or :class:`QQbar<AlgebraicField>`).
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("G2",1))
+            sage: f = FMatrix(FusionRing("G2", 1))
             sage: f.find_orthogonal_solution(verbose=False)
             sage: f.FR().field()
             Cyclotomic Field of order 60 and degree 16
             sage: f.field()
-            Number Field in a with defining polynomial y^32 - 6*y^30 - 7*y^28 + 62*y^26 - 52*y^24 - 308*y^22 + 831*y^20 + 7496*y^18 + 18003*y^16 - 2252*y^14 + 42259*y^12 - 65036*y^10 + 29368*y^8 - 3894*y^6 + 377*y^4 - 22*y^2 + 1
+            Number Field in a with defining polynomial y^32 - ... - 22*y^2 + 1
             sage: phi = f.get_coerce_map_from_fr_cyclotomic_field()
             sage: phi.domain() == f.FR().field()
             True
@@ -783,13 +787,14 @@ class FMatrix():
             True
 
         When F-symbols are computed as elements of the associated
-        :class:`FusionRing`'s base :class:`CyclotomicField`,
+        :class:`FusionRing`'s base
+        :class:`Cyclotomic field<sage.rings.number_field.number_field.CyclotomicFieldFactory>`,
         we have ``self.field() == self.FR().field()`` and this method
         returns the identity map on ``self.field()``.
 
         ::
 
-            sage: f = FMatrix(FusionRing("A2",1))
+            sage: f = FMatrix(FusionRing("A2", 1))
             sage: f.find_orthogonal_solution(verbose=False)
             sage: phi = f.get_coerce_map_from_fr_cyclotomic_field()
             sage: f.field()
@@ -812,14 +817,15 @@ class FMatrix():
 
     def get_fvars_in_alg_field(self):
         r"""
-        Return F-symbols as elements of the :class:`AlgebraicField` ``QQbar``.
+        Return F-symbols as elements of the :class:`QQbar<AlgebraicField>`.
+
         This method uses the embedding defined by
         :meth:`get_qqbar_embedding` to coerce
-        F-symbols into ``QQbar``.
+        F-symbols into :class:`QQbar<AlgebraicField>`.
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("G2",1), fusion_label="g", inject_variables=True)
+            sage: f = FMatrix(FusionRing("G2", 1), fusion_label="g", inject_variables=True)
             creating variables fx1..fx5
             Defining fx0, fx1, fx2, fx3, fx4
             sage: f.find_orthogonal_solution(verbose=False)
@@ -840,7 +846,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("G2",1))
+            sage: f = FMatrix(FusionRing("G2", 1))
             sage: f.FR().fusion_labels("g", inject_variables=True)
             sage: f.find_orthogonal_solution(verbose=False)
             sage: radical_fvars = f.get_radical_expression()       # long time (~1.5s)
@@ -860,7 +866,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("D4",1))
+            sage: f = FMatrix(FusionRing("D4", 1))
             sage: f._reset_solver_state()
             sage: len(f._get_known_vals()) == 0
             True
@@ -881,7 +887,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("D5",1)) # indirect doctest
+            sage: f = FMatrix(FusionRing("D5", 1))  # indirect doctest
             sage: f._reset_solver_state()
             sage: f._nnz
             (100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,
@@ -902,7 +908,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("B3",2))
+            sage: f = FMatrix(FusionRing("B3", 2))
             sage: f.largest_fmat_size()
             4
         """
@@ -916,8 +922,7 @@ class FMatrix():
         INPUT:
 
         - `n` -- a positive integer
-
-        - ``indices`` -- (default: ``False``) a boolean.
+        - ``indices`` -- boolean (default: ``False``)
 
         If ``indices`` is ``False`` (default),
         this method returns a set of sextuples `(a,b,c,d,x,y)` identifying
@@ -989,7 +994,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A2",1))
+            sage: f = FMatrix(FusionRing("A2", 1))
             sage: f.find_orthogonal_solution(verbose=False)
             sage: fvars = f.get_fvars()
             sage: K = f.field()
@@ -1057,7 +1062,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("B3",1))
+            sage: f = FMatrix(FusionRing("B3", 1))
             sage: f.get_fr_str()
             'B31'
         """
@@ -1070,14 +1075,14 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A1",3))
+            sage: f = FMatrix(FusionRing("A1", 3))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
             sage: f.get_defining_equations('hexagons',output=False)
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: n = f._poly_ring.ngens()
             sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
             sage: f._triangular_elim(verbose=False)
@@ -1108,11 +1113,11 @@ class FMatrix():
             sage: f.get_orthogonality_constraints(output=False)
             sage: f.get_defining_equations('hexagons',output=False)
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: n = f._poly_ring.ngens()
-            sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
+            sage: f._fvars = FvarsHandler(n, f._field, f._idx_to_sextuple, init_data=f._fvars)
             sage: f._triangular_elim(verbose=False)
             sage: f._update_reduction_params()
             sage: f.get_defining_equations('pentagons',output=False)
@@ -1121,7 +1126,7 @@ class FMatrix():
             sage: f._checkpoint(do_chkpt=True,status=4)
             Checkpoint 4 reached!
             sage: del f
-            sage: f = FMatrix(FusionRing("A1",2))
+            sage: f = FMatrix(FusionRing("A1", 2))
             sage: f.find_orthogonal_solution(warm_start="fmatrix_solver_checkpoint_A12.pickle")
             Computing F-symbols for The Fusion Ring of Type A1 and level 2 with Integer Ring coefficients with 14 variables...
             Partitioned 0 equations into 0 components of size:
@@ -1142,23 +1147,23 @@ class FMatrix():
         if verbose:
             print(f"Checkpoint {status} reached!")
 
-    def _restore_state(self,filename):
+    def _restore_state(self, filename):
         r"""
         Load solver state from file. Use this method both for warm-starting
         :meth:`find_orthogonal_solution` and to load pickled results.
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A1",2))
+            sage: f = FMatrix(FusionRing("A1", 2))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
-            sage: f.get_defining_equations('hexagons',output=False)
+            sage: f.get_defining_equations('hexagons', output=False)
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: n = f._poly_ring.ngens()
-            sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
+            sage: f._fvars = FvarsHandler(n, f._field, f._idx_to_sextuple, init_data=f._fvars)
             sage: f._triangular_elim(verbose=False)
             sage: f._update_reduction_params()
             sage: fvars = f._fvars
@@ -1166,10 +1171,10 @@ class FMatrix():
             sage: solved = f._solved
             sage: ks = f._ks
             sage: status = f._chkpt_status
-            sage: f._checkpoint(do_chkpt=True,status=2)
+            sage: f._checkpoint(do_chkpt=True, status=2)
             Checkpoint 2 reached!
             sage: del f
-            sage: f = FMatrix(FusionRing("A1",2))
+            sage: f = FMatrix(FusionRing("A1", 2))
             sage: f._reset_solver_state()
             sage: f._restore_state("fmatrix_solver_checkpoint_A12.pickle")
             sage: for sextuple, fvar in fvars.items():
@@ -1187,10 +1192,10 @@ class FMatrix():
 
         TESTS::
 
-            sage: f = FMatrix(FusionRing("A1",3))
+            sage: f = FMatrix(FusionRing("A1", 3))
             sage: f.find_orthogonal_solution(save_results="test.pickle",verbose=False)   # long time
             sage: del f
-            sage: f = FMatrix(FusionRing("A1",3))
+            sage: f = FMatrix(FusionRing("A1", 3))
             sage: f.find_orthogonal_solution(warm_start="test.pickle")                   # long time
             sage: f._chkpt_status == 7                                                   # long time
             True
@@ -1212,7 +1217,7 @@ class FMatrix():
     ### MapReduce ###
     #################
 
-    def start_worker_pool(self,processes=None):
+    def start_worker_pool(self, processes=None):
         """
         Initialize a ``multiprocessing`` worker pool for parallel processing,
         which may be used e.g. to set up defining equations using
@@ -1246,7 +1251,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("G2",1))
+            sage: f = FMatrix(FusionRing("G2", 1))
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: he = f.get_defining_equations('hexagons')
             sage: sorted(he)
@@ -1330,7 +1335,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A1",3))
+            sage: f = FMatrix(FusionRing("A1", 3))
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: he = f.get_defining_equations('hexagons')
             sage: f.shutdown_worker_pool()
@@ -1345,7 +1350,7 @@ class FMatrix():
             self._pid_list.shm.unlink()
             del self.__dict__['_shared_fvars']
 
-    def _map_triv_reduce(self,mapper,input_iter,worker_pool=None,chunksize=None,mp_thresh=None):
+    def _map_triv_reduce(self, mapper, input_iter, worker_pool=None, chunksize=None, mp_thresh=None):
         r"""
         Apply the given mapper to each element of the given input iterable and
         return the results (with no duplicates) in a list.
@@ -1367,7 +1372,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A1",2))
+            sage: f = FMatrix(FusionRing("A1", 2))
             sage: f._reset_solver_state()
             sage: len(f._map_triv_reduce('get_reduced_hexagons',[(0,1,False)]))
             11
@@ -1409,7 +1414,7 @@ class FMatrix():
     ### Equations set up ###
     ########################
 
-    def get_orthogonality_constraints(self,output=True):
+    def get_orthogonality_constraints(self, output=True):
         r"""
         Get equations imposed on the F-matrix by orthogonality.
 
@@ -1454,7 +1459,7 @@ class FMatrix():
             return eqns
         self.ideal_basis.extend([poly_to_tup(eq) for eq in eqns])
 
-    def get_defining_equations(self,option,output=True):
+    def get_defining_equations(self, option, output=True):
         r"""
         Get the equations defining the ideal generated by the hexagon or
         pentagon relations.
@@ -1485,7 +1490,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("B2",1))
+            sage: f = FMatrix(FusionRing("B2", 1))
             sage: sorted(f.get_defining_equations('hexagons'))
             [fx7 + 1,
              fx6 - 1,
@@ -1518,7 +1523,7 @@ class FMatrix():
     ### Equations processing ###
     ############################
 
-    def _tup_to_fpoly(self,eq_tup):
+    def _tup_to_fpoly(self, eq_tup):
         r"""
         Assemble a polynomial object from its tuple representation.
 
@@ -1529,12 +1534,12 @@ class FMatrix():
             It is meant for internal use by the F-matrix solver.
 
         This method is a left inverse of
-        :meth:`sage.combinat.root_system.poly_tup_engine.poly_to_tup`.
+        :meth:`sage.algebras.fusion_rings.poly_tup_engine.poly_to_tup`.
 
         EXAMPLES::
 
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
-            sage: f = FMatrix(FusionRing("C3",1))
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
+            sage: f = FMatrix(FusionRing("C3", 1))
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
             sage: he = f.get_defining_equations('hexagons')
             sage: all(f._tup_to_fpoly(poly_to_tup(h)) for h in he)
@@ -1543,25 +1548,25 @@ class FMatrix():
         """
         return _tup_to_poly(eq_tup,parent=self._poly_ring)
 
-    def _update_reduction_params(self,eqns=None):
+    def _update_reduction_params(self, eqns=None):
         r"""
         Update reduction parameters that are solver state attributes.
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A1",3))
+            sage: f = FMatrix(FusionRing("A1", 3))
             sage: f._reset_solver_state()
             sage: f.get_orthogonality_constraints(output=False)
             sage: is_shared_memory_available = f.start_worker_pool()     # Requires Python 3.8+
-            sage: f.get_defining_equations('hexagons',output=False)
+            sage: f.get_defining_equations('hexagons', output=False)
             sage: f.ideal_basis = f._par_graph_gb(verbose=False)
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis.sort(key=poly_tup_sortkey)
             sage: f.mp_thresh = 0
             sage: if is_shared_memory_available:
             ....:     f._fvars = f._shared_fvars
             ....: else:
-            ....:     from sage.combinat.root_system.shm_managers import FvarsHandler
+            ....:     from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             ....:     f._fvars = FvarsHandler(f._poly_ring.ngens(),f._field,f._idx_to_sextuple,init_data=f._fvars)
             sage: f._triangular_elim(verbose=False)  # indirect doctest
             sage: f.ideal_basis
@@ -1586,7 +1591,7 @@ class FMatrix():
         self._nnz = self._get_known_nonz()
         self._kp = compute_known_powers(self._var_degs,self._get_known_vals(),self._field.one())
 
-    def _triangular_elim(self,eqns=None,verbose=True):
+    def _triangular_elim(self, eqns=None, verbose=True):
         r"""
         Perform triangular elimination of linear terms in two-term equations
         until no such terms exist.
@@ -1598,15 +1603,15 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("D3",1))
-            sage: f.get_defining_equations('hexagons',output=False)
+            sage: f = FMatrix(FusionRing("D3", 1))
+            sage: f.get_defining_equations('hexagons', output=False)
             sage: f.get_orthogonality_constraints(output=False)
             sage: gb = f._par_graph_gb(verbose=False)
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey, poly_to_tup
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey, poly_to_tup
             sage: f.ideal_basis = sorted(gb, key=poly_tup_sortkey)
-            sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+            sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
             sage: n = f._poly_ring.ngens()
-            sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
+            sage: f._fvars = FvarsHandler(n, f._field, f._idx_to_sextuple, init_data=f._fvars)
             sage: f._triangular_elim()
             Elimination epoch completed... 0 eqns remain in ideal basis
             sage: f.ideal_basis
@@ -1642,7 +1647,7 @@ class FMatrix():
     ### Graph methods ###
     #####################
 
-    def equations_graph(self,eqns=None):
+    def equations_graph(self, eqns=None):
         r"""
         Construct a graph corresponding to the given equations.
 
@@ -1680,7 +1685,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A3",1))
+            sage: f = FMatrix(FusionRing("A3", 1))
             sage: f.get_poly_ring().ngens()
             27
             sage: he = f.get_defining_equations('hexagons')
@@ -1711,7 +1716,7 @@ class FMatrix():
                         G.add_edge(x,y)
         return G
 
-    def _partition_eqns(self,eqns=None,verbose=True):
+    def _partition_eqns(self, eqns=None, verbose=True):
         r"""
         Partition equations corresponding to edges in a disconnected graph.
 
@@ -1729,7 +1734,7 @@ class FMatrix():
             sage: partition = f._partition_eqns()
             Partitioned 11 equations into 5 components of size:
             [4, 3, 3, 3, 1]
-            sage: from sage.combinat.root_system.poly_tup_engine import variables
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import variables
             sage: for c, e in partition.items():
             ....:     assert set(v for eq_tup in e for v in variables(eq_tup)) == set(c)
             sage: vars_in_partition = set()
@@ -1756,7 +1761,7 @@ class FMatrix():
             print(graph.connected_components_sizes())
         return partition
 
-    def _par_graph_gb(self,eqns=None,term_order="degrevlex",largest_comp=60,verbose=True):
+    def _par_graph_gb(self, eqns=None, term_order="degrevlex", largest_comp=60, verbose=True):
         r"""
         Compute a Groebner basis for a list of equations partitioned
         according to their corresponding graph.
@@ -1780,7 +1785,7 @@ class FMatrix():
             sage: gb = f._par_graph_gb()
             Partitioned 10 equations into 2 components of size:
             [4, 1]
-            sage: from sage.combinat.root_system.poly_tup_engine import _unflatten_coeffs
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import _unflatten_coeffs
             sage: ret = [f._tup_to_fpoly(_unflatten_coeffs(f.field(), t)) for t in gb]
             sage: ret.sort(); ret
             [fx4 + (-zeta80^24 + zeta80^16),
@@ -1812,8 +1817,8 @@ class FMatrix():
                 temp_eqns.extend(comp_eqns)
             else:
                 small_comps.append(comp_eqns)
-        input_iter = zip_longest(small_comps,[],fillvalue=term_order)
-        small_comp_gb = self._map_triv_reduce('compute_gb',input_iter,worker_pool=self.pool,chunksize=1,mp_thresh=50)
+        input_iter = zip_longest(small_comps, [], fillvalue=term_order)
+        small_comp_gb = self._map_triv_reduce('compute_gb', input_iter, worker_pool=self.pool, chunksize=1, mp_thresh=50)
         ret = small_comp_gb + temp_eqns
         return ret
 
@@ -1830,18 +1835,18 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("G2",2))
+            sage: f = FMatrix(FusionRing("G2", 2))
             sage: is_shared_memory_available = f.start_worker_pool()                     # Requires Python 3.8+
-            sage: f.get_defining_equations('hexagons',output=False)                      # long time
+            sage: f.get_defining_equations('hexagons', output=False)                     # long time
             sage: f.shutdown_worker_pool()
             sage: partition = f._partition_eqns()                                        # long time
             Partitioned 327 equations into 35 components of size:
             [27, 27, 27, 24, 24, 16, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
              9, 9, 6, 6, 4, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1]
             sage: c = (216, 292, 319)
-            sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+            sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
             sage: eqns = partition[c] + [poly_to_tup(f._poly_ring.gen(216)-1)]           # long time
-            sage: f._get_component_variety(c,eqns)                                       # long time
+            sage: f._get_component_variety(c, eqns)                                      # long time
             [{216: -1, 292: -1, 319: 1}]
         """
         #Define smaller poly ring in component vars
@@ -1866,23 +1871,23 @@ class FMatrix():
         r"""
         Based on the ``CartanType`` of ``self`` and data
         known on March 17, 2021, determine whether to attempt
-        to find a :class:`NumberField` containing all the F-symbols.
+        to find a :func:`NumberField` containing all the F-symbols.
 
         This method is used by :meth:`find_orthogonal_solution`
         to determine a field containing all F-symbols.
         See :meth:`field` and :meth:`get_non_cyclotomic_roots`.
 
-        For certain :class:`FusionRing <fusion rings>`, the number field
+        For certain :class:`fusion rings <FusionRing>`, the number field
         computation does not terminate in reasonable time.
         In these cases, we report F-symbols as elements
-        of the :class:`AlgebraicField` ``QQbar``.
+        of the :class:`QQbar<AlgebraicField>`.
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("F4",2))
+            sage: f = FMatrix(FusionRing("F4", 2))
             sage: f.attempt_number_field_computation()
             False
-            sage: f = FMatrix(FusionRing("G2",1))
+            sage: f = FMatrix(FusionRing("G2", 1))
             sage: f.attempt_number_field_computation()
             True
 
@@ -1890,10 +1895,10 @@ class FMatrix():
 
             In certain cases, F-symbols are found in the associated
             :class:`FusionRing`'s cyclotomic field and a
-            :class:`NumberField` computation is not needed. In these
+            :func:`NumberField` computation is not needed. In these
             cases this method returns ``True`` but the
             :meth:`find_orthogonal_solution` solver does *not*
-            undertake a :class:`NumberField` computation.
+            undertake a :func:`NumberField` computation.
         """
         ct = self._FR.cartan_type()
         k = self._FR._k
@@ -1924,7 +1929,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A1",3))  # indirect doctest
+            sage: f = FMatrix(FusionRing("A1", 3))  # indirect doctest
             sage: f.find_orthogonal_solution()     # long time
             Computing F-symbols for The Fusion Ring of Type A1 and level 3 with Integer Ring coefficients with 71 variables...
             Set up 134 hex and orthogonality constraints...
@@ -2084,7 +2089,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("B5",1), fusion_label="b", inject_variables=True)
+            sage: f = FMatrix(FusionRing("B5", 1), fusion_label="b", inject_variables=True)
             creating variables fx1..fx14
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7, fx8, fx9, fx10, fx11, fx12, fx13
             sage: f.find_orthogonal_solution()
@@ -2119,10 +2124,15 @@ class FMatrix():
             True
 
         In any case, the F-symbols are obtained as elements of the associated
-        :class:`FusionRing`'s :class:`CyclotomicField`, a computed
-        :class:`NumberField`, or ``QQbar``. Currently, the field containing
-        the F-symbols is determined based on the ``CartanType`` associated
-        to ``self``. See :meth:`attempt_number_field_computation` for details.
+        :class:`FusionRing`'s
+        :class:`Cyclotomic field<sage.rings.number_field.number_field.CyclotomicFieldFactory>`,
+        a computed :func:`NumberField`, or :class:`QQbar<AlgebraicField>`.
+        Currently, the field containing the F-symbols is determined based
+        on the ``CartanType`` associated to ``self``.
+
+        .. SEEALSO::
+
+            :meth:`attempt_number_field_computation`
         """
         if self._poly_ring.ngens() == 0:
             return
@@ -2223,7 +2233,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A3",1))     # long time
+            sage: f = FMatrix(FusionRing("A3", 1))
             sage: f._reset_solver_state()             # long time
             sage: f._var_to_sextuple = {f._poly_ring.gen(i): s for i, s in f._idx_to_sextuple.items()}  # long time
             sage: eqns = f.get_defining_equations("hexagons")+f.get_defining_equations("pentagons")  # long time
@@ -2256,7 +2266,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("D3",1), inject_variables=True)
+            sage: f = FMatrix(FusionRing("D3", 1), inject_variables=True)
             creating variables fx1..fx27
             Defining fx0, ..., fx26
             sage: f._reset_solver_state()
@@ -2296,7 +2306,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("D3",1), inject_variables=True)
+            sage: f = FMatrix(FusionRing("D3", 1), inject_variables=True)
             creating variables fx1..fx27
             Defining fx0, ..., fx26
             sage: f._reset_solver_state()
@@ -2333,7 +2343,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A2",1,fusion_labels="a",inject_variables=True),inject_variables=True)
+            sage: f = FMatrix(FusionRing("A2", 1, fusion_labels="a", inject_variables=True), inject_variables=True)
             creating variables fx1..fx8
             Defining fx0, fx1, fx2, fx3, fx4, fx5, fx6, fx7
             sage: f.find_cyclotomic_solution(output=True)
@@ -2408,8 +2418,8 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("C3",1))  # long time
-            sage: f.find_orthogonal_solution()     # long time
+            sage: f = FMatrix(FusionRing("C3", 1))
+            sage: f.find_orthogonal_solution()      # long time
             Computing F-symbols for The Fusion Ring of Type C3 and level 1 with Integer Ring coefficients with 71 variables...
             Set up 134 hex and orthogonality constraints...
             Partitioned 134 equations into 17 components of size:
@@ -2457,7 +2467,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("D4",1))
+            sage: f = FMatrix(FusionRing("D4", 1))
             sage: f.find_orthogonal_solution(verbose=False)
             sage: f.fmats_are_orthogonal()
             True
@@ -2474,7 +2484,7 @@ class FMatrix():
 
         EXAMPLES::
 
-            sage: f = FMatrix(FusionRing("A1",3))           # long time
+            sage: f = FMatrix(FusionRing("A1", 3))
             sage: f.find_orthogonal_solution(verbose=False) # long time
             sage: f.fvars_are_real()                        # long time
             True
@@ -2483,6 +2493,7 @@ class FMatrix():
             for k, v in self._fvars.items():
                 AA(self._qqbar_embedding(v))
         except ValueError:
-            print("The F-symbol {} (key {}) has a nonzero imaginary part!".format(v,k))
+            print("the F-symbol {} (key {}) has a nonzero imaginary part!".format(v,k))
             return False
         return True
+

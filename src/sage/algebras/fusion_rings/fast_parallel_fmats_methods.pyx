@@ -9,7 +9,7 @@ Fast F-Matrix methods
 # ****************************************************************************
 
 cimport cython
-from sage.combinat.root_system.poly_tup_engine cimport (
+from sage.algebras.fusion_rings.poly_tup_engine cimport (
     compute_known_powers,
     get_variables_degrees, variables,
     poly_to_tup, _tup_to_poly,
@@ -18,7 +18,7 @@ from sage.combinat.root_system.poly_tup_engine cimport (
     has_appropriate_linear_term,
     resize
 )
-from sage.combinat.root_system.shm_managers cimport KSHandler, FvarsHandler
+from sage.algebras.fusion_rings.shm_managers cimport KSHandler, FvarsHandler
 from sage.rings.number_field.number_field_element cimport NumberFieldElement_absolute
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polydict cimport ETuple
@@ -44,14 +44,14 @@ cpdef _solve_for_linear_terms(factory, list eqns=None):
         Defining fx0, ..., fx26
         sage: f._reset_solver_state()
         sage: f.ideal_basis = [fx0**3, fx0 + fx3**4, fx2**2 - fx3, fx2 - fx3**2, fx4 - fx2]
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
         sage: f.ideal_basis = [poly_to_tup(p) for p in f.ideal_basis]
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey
         sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-        sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+        sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
         sage: n = f._poly_ring.ngens()
         sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
-        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import _solve_for_linear_terms
+        sage: from sage.algebras.fusion_rings.fast_parallel_fmats_methods import _solve_for_linear_terms
         sage: _solve_for_linear_terms(f)
         True
         sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[0]])
@@ -118,14 +118,14 @@ cpdef _backward_subs(factory, bint flatten=True):
         Defining fx0, ..., fx26
         sage: f._reset_solver_state()
         sage: f.ideal_basis = [fx0**3, fx0 + fx3**4, fx2**2 - fx3, fx2 - fx3**2, fx4 - fx2]
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_to_tup
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_to_tup
         sage: f.ideal_basis = [poly_to_tup(p) for p in f.ideal_basis]
-        sage: from sage.combinat.root_system.poly_tup_engine import poly_tup_sortkey
+        sage: from sage.algebras.fusion_rings.poly_tup_engine import poly_tup_sortkey
         sage: f.ideal_basis.sort(key=poly_tup_sortkey)
-        sage: from sage.combinat.root_system.shm_managers import FvarsHandler
+        sage: from sage.algebras.fusion_rings.shm_managers import FvarsHandler
         sage: n = f._poly_ring.ngens()
         sage: f._fvars = FvarsHandler(n,f._field,f._idx_to_sextuple,init_data=f._fvars)
-        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import _solve_for_linear_terms
+        sage: from sage.algebras.fusion_rings.fast_parallel_fmats_methods import _solve_for_linear_terms
         sage: _solve_for_linear_terms(f)
         True
         sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[0]])
@@ -140,7 +140,7 @@ cpdef _backward_subs(factory, bint flatten=True):
         sage: f.ideal_basis.sort(key=poly_tup_sortkey)
         sage: _solve_for_linear_terms(f)
         True
-        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import _backward_subs
+        sage: from sage.algebras.fusion_rings.fast_parallel_fmats_methods import _backward_subs
         sage: _backward_subs(f)
         sage: f._tup_to_fpoly(f._fvars[f._idx_to_sextuple[0]])
         0
@@ -457,7 +457,7 @@ cdef dict mappers = {
 cpdef executor(tuple params):
     r"""
     Execute a function defined in this module
-    (``sage.combinat.root_system.fast_parallel_fmats_methods``) in a worker
+    (``sage.algebras.fusion_rings.fast_parallel_fmats_methods``) in a worker
     process, and supply the factory parameter by constructing a reference
     to the ``FMatrix`` object in the worker's memory adress space from
     its ``id``.
@@ -479,7 +479,7 @@ cpdef executor(tuple params):
 
     TESTS::
 
-        sage: from sage.combinat.root_system.fast_parallel_fmats_methods import executor
+        sage: from sage.algebras.fusion_rings.fast_parallel_fmats_methods import executor
         sage: fmats = FMatrix(FusionRing("A1",3))
         sage: fmats._reset_solver_state()
         sage: params = (('get_reduced_hexagons', id(fmats)), (0,1,True))
@@ -539,3 +539,4 @@ cdef pent_verify(factory, tuple mp_params):
             feq_verif(factory,worker_results,fvars,Nk_ij,id_anyon,nonuple)
         if i % 50000000 == 0 and i and verbose:
             print("{:5d}m equations checked... {} potential misses so far...".format(i // 1000000,len(worker_results)))
+

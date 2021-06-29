@@ -1523,6 +1523,7 @@ def compositions_mod(u, m, r=0, multidimensional=False):
         sage: list(compositions_mod([1, 0], 2))
         [(0, 0)]
     """
+    from sage.arith.srange import srange
     from sage.modules.free_module_element import vector
     from sage.rings.finite_rings.integer_mod_ring import Zmod
 
@@ -1537,31 +1538,17 @@ def compositions_mod(u, m, r=0, multidimensional=False):
         else:
             r = vector(Z(rr) for rr in r)
 
-    return _compositions_mod_(u, r)
+    def recursively_build_compositions(u, r):
+        if not u:
+            if all(rr == 0 for rr in r):
+                yield ()
+            return
 
+        v = u[0]
+        m = max(vv.order() for vv in v)
+        Z = Zmod(m)
+        for j in srange(m):
+            for a in recursively_build_compositions(u[1:], r - j*v):
+                yield (Z(j),) + a
 
-def _compositions_mod_(u, r):
-    r"""
-    Helper function to :func:`compositions_mod`.
-
-    TESTS::
-
-        sage: from sage.geometry.polyhedron.generating_function import _compositions_mod_
-        sage: Z = Zmod(2)
-        sage: list(_compositions_mod_((vector([Z(1)]), vector([Z(1)])), vector([Z(0)])))
-        [(0, 0), (1, 1)]
-    """
-    if not u:
-        if all(rr == 0 for rr in r):
-            yield ()
-        return
-
-    from sage.arith.srange import srange
-    from sage.rings.finite_rings.integer_mod_ring import Zmod
-
-    v = u[0]
-    m = max(vv.order() for vv in v)
-    Z = Zmod(m)
-    for j in srange(m):
-        for a in _compositions_mod_(u[1:], r - j*v):
-            yield (Z(j),) + a
+    return recursively_build_compositions(u, r)

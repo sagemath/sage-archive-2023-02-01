@@ -7,9 +7,11 @@ modular forms of given level.
 AUTHORS:
 
 - William Stein (2007-08-24): first version
+- David Ayotte (2021-06): implemented category and Parent/Element frameworks
 """
 #*****************************************************************************
 #       Copyright (C) 2007 William Stein
+#                     2021 David Ayotte
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,7 +33,6 @@ from random import shuffle
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
-#from sage.structure.unique_representation import UniqueRepresentation
 
 from sage.categories.graded_algebras import GradedAlgebras
 
@@ -270,6 +271,11 @@ class ModularFormsRing(Parent):
         r"""
         The call method of self.
 
+        INPUT::
+
+        - ``forms_datas`` (dict, list, ModularFormElement, GradedModularFormElement, RingElement) - Try to coerce
+          ``forms_datas`` into self.
+
         TESTS::
 
             sage: M = ModularFormsRing(1)
@@ -286,12 +292,12 @@ class ModularFormsRing(Parent):
             sage: M(f)
             Traceback (most recent call last):
             ...
-            ValueError: The group (Congruence Subgroup Gamma0(3)) and/or the base ring (Rational Field) of the modular form is not consistant with the base space: Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field
+            ValueError: the group (Congruence Subgroup Gamma0(3)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field
             sage: M = ModularFormsRing(1, base_ring=ZZ)
             sage: M(ModularForms(1,4).0)
             Traceback (most recent call last):
             ...
-            ValueError: The group (Modular Group SL(2,Z)) and/or the base ring (Rational Field) of the modular form is not consistant with the base space: Ring of modular forms for Modular Group SL(2,Z) with coefficients in Integer Ring
+            ValueError: the group (Modular Group SL(2,Z)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of modular forms for Modular Group SL(2,Z) with coefficients in Integer Ring
             sage: M = ModularFormsRing(1)
             sage: E4 = ModularForms(1,4).0
             sage: E4
@@ -299,15 +305,15 @@ class ModularFormsRing(Parent):
             sage: M({6:E4})
             Traceback (most recent call last):
             ...
-            ValueError: At least one key (6) of the defining dictionary does not correspond to the weight of its value (1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)). Real weight: 4
+            ValueError: at least one key (6) of the defining dictionary does not correspond to the weight of its value (1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)). Real weight: 4
             sage: M({4:'f'})
             Traceback (most recent call last):
             ...
-            ValueError: At least one value (f) of the defining dictionary is not a `ModularFormElement`
+            ValueError: at least one value (f) of the defining dictionary is not a `ModularFormElement`
             sage: M({4.:E4})
             Traceback (most recent call last):
             ...
-            ValueError: At least one key (4.00000000000000) of the defining dictionary is not an integer
+            ValueError: at least one key (4.00000000000000) of the defining dictionary is not an integer
             sage: M({0:E4})
             Traceback (most recent call last):
             ...
@@ -319,21 +325,21 @@ class ModularFormsRing(Parent):
             sage: M(x)
             Traceback (most recent call last):
             ...
-            ValueError: The defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary
+            ValueError: the defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary
         """
         if isinstance(forms_datas, (dict, list)):
-            return self.element_class(self, forms_datas)
-        if isinstance(forms_datas, self.element_class):
-            forms_dictionary = forms_datas.__forms_dictionary
+            forms_dictionary = forms_datas
+        elif isinstance(forms_datas, self.element_class):
+            forms_dictionary = forms_datas._forms_dictionary
         elif is_ModularFormElement(forms_datas):
             if forms_datas.group() == self.group() and self.base_ring().has_coerce_map_from(forms_datas.base_ring()):
                 forms_dictionary = {forms_datas.weight():forms_datas}
             else:
-                raise ValueError('The group (%s) and/or the base ring (%s) of the modular form is not consistant with the base space: %s'%(forms_datas.group(), forms_datas.base_ring(), self))
+                raise ValueError('the group (%s) and/or the base ring (%s) of the given modular form is not consistant with the base space: %s'%(forms_datas.group(), forms_datas.base_ring(), self))
         elif forms_datas in self.base_ring():
             forms_dictionary = {0:forms_datas}
         else:
-            raise ValueError('The defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary')
+            raise ValueError('the defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary')
         return self.element_class(self, forms_dictionary)
 
     def zero(self):
@@ -380,7 +386,7 @@ class ModularFormsRing(Parent):
 
     def _coerce_map_from_(self, M):
         r"""
-        Implement coercion.
+        Code to make ModularFormRing work well with coercion framework.
 
         TESTS::
 
@@ -449,7 +455,6 @@ class ModularFormsRing(Parent):
             sage: ModularFormsRing(Gamma1(13)).modular_forms_of_weight(3)
             Modular Forms space of dimension 20 for Congruence Subgroup Gamma1(13) of weight 3 over Rational Field
         """
-        #return ModularForms(self.group(), weight, base_ring=self.base_ring()) # fix the error caused by this? -> new ticket
         return ModularForms(self.group(), weight)
 
     def generators(self, maxweight=8, prec=10, start_gens=[], start_weight=2):

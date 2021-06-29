@@ -225,6 +225,11 @@ class ModularFormsRing(Parent):
             Traceback (most recent call last):
             ...
             ValueError: Base ring (=Univariate Polynomial Ring in x over Integer Ring) should be QQ, ZZ or a finite prime field
+
+        .. TODO::
+
+            - Add graded modular forms over non-trivial Dirichlet character;
+            - makes gen_forms returns modular forms over base rings other than `QQ`.
         """
         if isinstance(group, (int, Integer)):
             group = Gamma0(group)
@@ -267,11 +272,53 @@ class ModularFormsRing(Parent):
         """
         return self.__base_ring
 
+    def gen(self, i):
+        r"""
+        Return the `i`-th generator of ``self``.
+
+        INPUT:
+
+        - ``i`` (Integer) - correspond to the `i`-th modular form generating the ``ModularFormsRing``.
+
+        OUTPUT: A ``GradedModularFormElement``
+
+        EXAMPLES::
+
+            sage: M = ModularFormsRing(1)
+            sage: E4 = M.0; E4 # indirect doctest
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+            sage: E6 = M.1; E6 # indirect doctest
+            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)
+        """
+        if self.base_ring() is not QQ:
+            raise NotImplementedError("the base ring of the given ring of modular form should be QQ")
+        return self(self.gen_forms()[i])
+
+    def ngens(self):
+        r"""
+        Return the number of generators of ``self``
+
+        EXAMPLES::
+
+            sage: ModularFormsRing(1).ngens()
+            2
+            sage: ModularFormsRing(Gamma0(2)).ngens()
+            2
+            sage: ModularFormsRing(Gamma1(13)).ngens() # long time
+            33
+
+        .. WARNING::
+
+            Computing the number of generators of a graded ring of modular form for a certain
+            congruence subgroup can be very long.
+        """
+        return len(self.gen_forms())
+
     def _element_constructor_(self, forms_datas):
         r"""
         The call method of self.
 
-        INPUT::
+        INPUT:
 
         - ``forms_datas`` (dict, list, ModularFormElement, GradedModularFormElement, RingElement) - Try to coerce
           ``forms_datas`` into self.

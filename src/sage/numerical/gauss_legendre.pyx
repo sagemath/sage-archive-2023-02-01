@@ -181,8 +181,8 @@ def integrate_vector_N(f, prec, N=3):
 
     This function uses the Gauss-Legendre quadrature scheme to approximate the 
     integral `\int_0^1 f(t) \, dt`. It is different from ``integrate_vector``
-    by fixing the number of nodes to use, rather than aiming for a certain 
-    error.
+    by using a specific number of nodes rather than targeting a specified error
+    bound on the result. 
 
     INPUT:
 
@@ -210,9 +210,8 @@ def integrate_vector_N(f, prec, N=3):
 
         The nodes and weights are calculated in the real field with ``prec`` 
         bits of precision. If the the vector space in which ``f`` takes values
-        is over a field which is incomatible with this field (e.g. a finite
+        is over a field which is incompatible with this field (e.g. a finite
         field) then a TypeError occurs. 
-
     """
     nodelist = nodes(N, prec)
     I = nodelist[0][1]*f(nodelist[0][0])

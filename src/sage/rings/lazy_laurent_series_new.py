@@ -931,14 +931,8 @@ class LLS_div(LLS_aux):
         if n == lv - rv:
             return self._left[lv]/self._right[rv]
         c = self._left[n + rv]
-        print('n is', n)
         for k in range(lv - rv, n):
-            print('k is', k)
-            print('LS is', self._left[k])
-            print('RS is', self._right[n + rv - k])
-            c -= self._left[k] * self._right[n + rv - k]
-            print('c is', c)
-        print('ainv is', self._ainv)
+            c -= self[k] * self._right[n + rv - k]
         return c * self._ainv
     
     def iterate_coefficients(self):
@@ -952,6 +946,6 @@ class LLS_div(LLS_aux):
                 continue
             c = self._left[n + rv]
             for k in range(lv - rv, n):
-                c -= self._left[k] * self._right[n + rv - k]
+                c -= self[k] * self._right[n + rv - k]
             yield c * self._ainv
             n += 1

@@ -4004,12 +4004,14 @@ class BTerm(TermWithCoefficient):
         sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
         sage: BT_QQ(x, 3, valid_from={'x': 20})
         doctest:...:
-        FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
+        FutureWarning: This class/method/function is marked as experimental. It,
+        its functionality or its interface might change without a formal deprecation.
         See https://trac.sagemath.org/31922 for details.
         BTerm with coefficient 3, growth x and valid for x >= 20
 
     WARNING::
-        As this code is experimental, warnings are thrown when a Bterm
+
+        As this code is experimental, warnings are thrown when a BTerm
         is created for the first time in a session (see
         :class:`sage.misc.superseded.experimental`).
     """
@@ -4106,7 +4108,7 @@ class BTerm(TermWithCoefficient):
 
         .. NOTE::
 
-            A :class:`BTerm` can absorb another BTerm
+            A :class:`BTerm` can absorb another :class:`BTerm`
             with equal growth.
 
             See the :ref:`module description <term_absorption>` for a
@@ -4126,6 +4128,7 @@ class BTerm(TermWithCoefficient):
             True
 
         TESTS::
+
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory

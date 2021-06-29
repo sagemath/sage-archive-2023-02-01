@@ -1093,8 +1093,8 @@ cdef class FiniteField(Field):
         EXAMPLES::
 
             sage: k = GF(19^4, 'a')
-            sage: k.random_element()
-            a^3 + 3*a^2 + 6*a + 9
+            sage: k.random_element().parent() is k
+            True
 
         Passes extra positional or keyword arguments through::
 
@@ -1645,7 +1645,7 @@ cdef class FiniteField(Field):
             Ring morphism:
               From: Finite Field in z of size 5^3
               To:   Finite Field in a of size 5^240
-              Defn: z |--> 2*a^235 + a^231 + ... + a + 4
+              Defn: z |--> ...
 
         There is no coercion since we can't ensure compatibility with larger
         fields in this case::

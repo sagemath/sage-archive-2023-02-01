@@ -4825,9 +4825,10 @@ cdef class BooleanPolynomialIterator:
         EXAMPLES::
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
-            sage: it = iter(B.random_element())
-            sage: next(it) # indirect doctest
-            a*b
+            sage: f = B.random_element()
+            sage: it = iter(f)
+            sage: sum(next(it) for _ in range(5)) == f  # indirect doctest
+            True
         """
         cdef PBMonom value
         if deref(self._iter) == deref(self._end):
@@ -4962,7 +4963,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: sr = mq.SR(2,1,1,4,gf2=True, polybori=True)
             sage: F, s = sr.polynomial_system()
             sage: I = F.ideal()
-            sage: I.groebner_basis()
+            sage: I.groebner_basis()  # not tested, known bug, unstable
             Polynomial Sequence with 36 Polynomials in 36 Variables
 
         We compute the same example with Magma::
@@ -5181,8 +5182,16 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
             sage: F, s = sr.polynomial_system()
             sage: I = F.ideal()
-            sage: I.interreduced_basis()
-            [k100 + 1, k101 + k001 + 1, k102, k103 + 1, x100 + k001 + 1, x101 + k001, x102, x103 + k001, w100 + 1, w101 + k001 + 1, w102 + 1, w103 + 1, s000 + k001, s001 + k001 + 1, s002, s003 + k001 + 1, k000 + 1, k002 + 1, k003 + 1]
+            sage: g = I.interreduced_basis()
+            sage: len(g) == len(set(gi.lt() for gi in g))
+            True
+            sage: for i in range(len(g)):
+            ....:     lt = g[i].lt()
+            ....:     for j in range(len(g)):
+            ....:         if i == j:
+            ....:             continue
+            ....:         for t in iter(g[j]):
+            ....:             assert lt not in t.divisors()
         """
         return self.basis.reduced()
 
@@ -5919,11 +5928,9 @@ cdef class BooleSetIterator:
 
             sage: B.<a,b,c,d> = BooleanPolynomialRing()
             sage: f = B.random_element()
-            sage: f
-            a*b + a*c + a + b*d + 1
             sage: it = iter(f.set())
-            sage: next(it)
-            a*b
+            sage: sum(next(it) for _ in range(5)) == f
+            True
         """
         cdef PBMonom value
         if deref(self._iter) == deref(self._end):
@@ -6006,10 +6013,8 @@ cdef class BooleanPolynomialVector:
         sage: v = BooleanPolynomialVector(l)
         sage: len(v)
         3
-        sage: v[0]
-        a*b + a + b*e + c*d + e*f
-        sage: list(v)
-        [a*b + a + b*e + c*d + e*f, a*d + c*d + d*f + e + f, a*c + a*e + b*c + c*f + f]
+        sage: all(vi.parent() is B for vi in v)
+        True
     """
     def __init__(self, I=None):
         """
@@ -6027,10 +6032,8 @@ cdef class BooleanPolynomialVector:
             sage: v = BooleanPolynomialVector(l)
             sage: len(v)
             3
-            sage: v[0]
-            a*b + a + b*e + c*d + e*f
-            sage: list(v)
-            [a*b + a + b*e + c*d + e*f, a*d + c*d + d*f + e + f, a*c + a*e + b*c + c*f + f]
+            sage: all(vi.parent() is B for vi in v)
+            True
         """
         # This is used by PolyBoRi python code
         self._parent = None
@@ -6048,8 +6051,8 @@ cdef class BooleanPolynomialVector:
             sage: from sage.rings.polynomial.pbori.pbori import BooleanPolynomialVector
             sage: l = [B.random_element() for _ in range(3)]
             sage: v = BooleanPolynomialVector(l)
-            sage: list(iter(v))
-            [a*b + a + b*e + c*d + e*f, a*d + c*d + d*f + e + f, a*c + a*e + b*c + c*f + f]
+            sage: list(iter(v)) == [v[0], v[1], v[2]]
+            True
         """
         return new_BPVI_from_PBPolyVectorIter(self)
 
@@ -6079,10 +6082,8 @@ cdef class BooleanPolynomialVector:
             sage: v = BooleanPolynomialVector(l)
             sage: len(v)
             3
-            sage: v[0]
-            a*b + a + b*e + c*d + e*f
-            sage: v[-1]
-            a*c + a*e + b*c + c*f + f
+            sage: v[-1] == v[2]
+            True
             sage: v[3]
             Traceback (most recent call last):
             ...
@@ -6138,11 +6139,13 @@ cdef class BooleanPolynomialVector:
             sage: B.<a,b,c,d,e,f> = BooleanPolynomialRing()
             sage: from sage.rings.polynomial.pbori.pbori import BooleanPolynomialVector
             sage: v = BooleanPolynomialVector()
+            sage: entries = []
             sage: for i in range(5):
-            ....:   v.append(B.random_element())
+            ....:   entries.append(B.random_element())
+            ....:   v.append(entries[-1])
 
-            sage: list(v)
-            [a*b + a + b*e + c*d + e*f, a*d + c*d + d*f + e + f, a*c + a*e + b*c + c*f + f, a*c + a*d + a*e + a*f + b*e, b*c + b*d + c*d + c + 1]
+            sage: list(v) == entries
+            True
         """
         if not self._parent:
             self._parent = el.ring()
@@ -6921,6 +6924,8 @@ cdef class GroebnerStrategy:
             sage: B.<a,b,c,d,e> = BooleanPolynomialRing()
             sage: f = B.random_element()
             sage: g = B.random_element()
+            sage: while g.lt() == f.lt():
+            ....:     g = B.random_element()
             sage: from sage.rings.polynomial.pbori.pbori import GroebnerStrategy
             sage: strat = GroebnerStrategy(B)
             sage: strat.add_generator(f)
@@ -7087,10 +7092,8 @@ def add_up_polynomials(BooleanPolynomialVector v, BooleanPolynomial init):
         sage: v = BooleanPolynomialVector()
         sage: l = [B.random_element() for _ in range(5)]
         sage: _ = [v.append(e) for e in l]
-        sage: add_up_polynomials(v, B.zero())
-        a*d + b*c + b*d + c + 1
-        sage: sum(l)
-        a*d + b*c + b*d + c + 1
+        sage: add_up_polynomials(v, B.zero()) == sum(l)
+        True
     """
     return new_BP_from_PBPoly(v._parent, pb_add_up_polynomials(v._vec, init._pbpoly))
 
@@ -7662,32 +7665,11 @@ def gauss_on_polys(inp):
         sage: from sage.rings.polynomial.pbori.pbori import *
         sage: l = [B.random_element() for _ in range(B.ngens())]
         sage: A, v = Sequence(l, B).coefficient_matrix()
-        sage: A
-        [1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 0]
-        [0 0 1 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
-        [0 1 0 1 0 0 1 0 0 0 1 0 0 0 0 0 1 0]
-        [0 1 1 1 1 0 0 0 1 0 0 0 0 0 0 0 0 0]
-        [0 0 0 0 0 0 1 1 0 1 0 1 0 0 0 0 0 1]
-        [0 1 0 0 1 0 1 0 0 0 0 0 1 0 0 0 0 1]
 
         sage: e = gauss_on_polys(l)
         sage: E, v = Sequence(e, B).coefficient_matrix()
-        sage: E
-        [1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 0]
-        [0 1 0 0 0 0 0 0 1 1 1 0 1 1 0 1 0 1]
-        [0 0 1 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
-        [0 0 0 1 0 0 0 1 1 0 0 1 1 1 0 1 1 0]
-        [0 0 0 0 1 0 0 1 1 0 1 1 0 1 0 1 0 1]
-        [0 0 0 0 0 0 1 1 0 1 0 1 0 0 0 0 0 1]
-
-        sage: A.echelon_form()
-        [1 0 0 0 0 1 0 0 1 1 0 0 0 0 1 0 0 0]
-        [0 1 0 0 0 0 0 0 1 1 1 0 1 1 0 1 0 1]
-        [0 0 1 0 0 0 0 0 0 1 0 0 0 1 0 1 1 0]
-        [0 0 0 1 0 0 0 1 1 0 0 1 1 1 0 1 1 0]
-        [0 0 0 0 1 0 0 1 1 0 1 1 0 1 0 1 0 1]
-        [0 0 0 0 0 0 1 1 0 1 0 1 0 0 0 0 0 1]
-
+        sage: E == A.echelon_form()
+        True
     """
     cdef BooleanPolynomialVector _vec = BooleanPolynomialVector(inp)
     return new_BPV_from_PBPolyVector(_vec._parent,

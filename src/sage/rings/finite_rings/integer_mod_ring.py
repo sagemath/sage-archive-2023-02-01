@@ -1532,8 +1532,11 @@ In the latter case, please inform the developers.""".format(self.order()))
         EXAMPLES::
 
             sage: R = IntegerModRing(18)
-            sage: R.random_element()
-            2
+            sage: R.random_element().parent() is R
+            True
+            sage: found = [False]*18
+            sage: while not all(found):
+            ....:     found[R.random_element()] = True
 
         We test ``bound``-option::
 

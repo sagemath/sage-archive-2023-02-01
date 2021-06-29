@@ -486,13 +486,7 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: P = F.ring()
             sage: I = F.ideal()
             sage: I.elimination_ideal(P('s000*s001*s002*s003*w100*w101*w102*w103*x100*x101*x102*x103'))
-            Ideal (k002 + (a^3 + a + 1)*k003 + (a^2 + 1),
-                   k001 + (a^3)*k003, k000 + (a)*k003 + (a^2),
-                   k103 + k003 + (a^2 + a + 1),
-                   k102 + (a^3 + a + 1)*k003 + (a + 1),
-                   k101 + (a^3)*k003 + (a^2 + a + 1),
-                   k100 + (a)*k003 + (a),
-                   k003^2 + (a)*k003 + (a^2))
+            Ideal (...)
             of Multivariate Polynomial Ring in k100, k101, k102, k103, x100, x101, x102, x103,
             w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003 over Finite Field in a of size 2^4
         """
@@ -1523,9 +1517,15 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
             sage: F,s = sr.polynomial_system()
-            sage: F.reduced()
-            [k100 + 1, k101 + k001 + 1, k102, k103 + 1, ..., s002, s003 + k001 + 1, k000 + 1, k002 + 1, k003 + 1]
-
+            sage: g = F.reduced()
+            sage: len(g) == len(set(gi.lt() for gi in g))
+            True
+            sage: for i in range(len(g)):
+            ....:     for j in range(len(g)):
+            ....:         if i == j:
+            ....:             continue
+            ....:         for t in list(g[j]):
+            ....:             assert g[i].lt() not in t.divisors()
         """
 
         from sage.rings.polynomial.pbori.pbori import BooleanPolynomialRing

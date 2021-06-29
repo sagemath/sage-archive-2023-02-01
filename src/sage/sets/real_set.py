@@ -1124,6 +1124,20 @@ class RealSet(UniqueRepresentation, Parent):
 
     __getitem__ = get_interval
 
+    def __bool__(self):
+        """
+        A set is considered True unless it is empty, in which case it is
+        considered to be False.
+
+        EXAMPLES::
+
+            sage: bool(RealSet(0, 1))
+            True
+            sage: bool(RealSet())
+            False
+        """
+        return not self.is_empty()
+
     # ParentMethods of Subobjects
     
     def ambient(self):

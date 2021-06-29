@@ -3450,7 +3450,7 @@ class DifferentiableManifold(TopologicalManifold):
             sage: c = R3.curve([cos(t), sin(t), t], t, name='c') ; c
             Curve c in the 3-dimensional differentiable manifold R^3
             sage: c.domain() # check that t is unbounded
-            Real number line R
+            Real number line ℝ
 
         .. SEEALSO::
 

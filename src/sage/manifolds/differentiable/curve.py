@@ -138,7 +138,7 @@ class DifferentiableCurve(DiffMap):
 
         sage: t0 = pi/2
         sage: I(t0)
-        Point on the Real number line R
+        Point on the Real number line ℝ
         sage: c(I(t0))
         Point on the 2-dimensional differentiable manifold M
         sage: c(I(t0)).coord(X)
@@ -234,14 +234,14 @@ class DifferentiableCurve(DiffMap):
         sage: f = R.curve(t^2, (t,-oo,+oo))
         sage: g = R.curve(cos(t), (t,-oo,+oo))
         sage: s = g*f ; s
-        Differentiable map from the Real number line R to itself
+        Differentiable map from the Real number line ℝ to itself
         sage: s.display()
-        R → R
+        ℝ → ℝ
            t ↦ cos(t^2)
         sage: s = f*g ; s
-        Differentiable map from the Real number line R to itself
+        Differentiable map from the Real number line ℝ to itself
         sage: s.display()
-        R → R
+        ℝ → ℝ
            t ↦ cos(t)^2
 
     .. RUBRIC:: Curvature and torsion of a curve in a Riemannian manifold
@@ -637,10 +637,10 @@ class DifferentiableCurve(DiffMap):
             ....:              name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
             sage: vc = c.tangent_vector_field() ; vc
-            Vector field c' along the Real number line R with values on
+            Vector field c' along the Real number line ℝ with values on
              the 2-dimensional differentiable manifold M
             sage: vc.parent()
-            Module X(R,c) of vector fields along the Real number line R
+            Module X(ℝ,c) of vector fields along the Real number line ℝ
              mapped into the 2-dimensional differentiable manifold M
             sage: vc.display(c_spher.frame().along(c.restrict(R,A)))
             c' = -1/5*e^(1/10*t)/(e^(1/5*t) + 1) ∂/∂th + ∂/∂ph

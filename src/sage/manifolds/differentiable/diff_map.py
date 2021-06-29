@@ -1164,7 +1164,7 @@ class DiffMap(ContinuousMap):
             sage: u.display()
             u = ∂/∂t
             sage: pu = Psi.pushforward(u); pu
-            Vector field Psi_*(u) along the Real number line R with values on
+            Vector field Psi_*(u) along the Real number line ℝ with values on
              the 3-dimensional differentiable manifold R^3
             sage: pu.display()
             Psi_*(u) = -sin(t) ∂/∂x + cos(t) ∂/∂y + ∂/∂z

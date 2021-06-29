@@ -275,8 +275,8 @@ at `p`::
 We declare the Riemann sphere `\CC^*` as a 1-dimensional differentiable
 manifold over `\CC`::
 
-    sage: M = Manifold(1, 'C*', field='complex'); M
-    1-dimensional complex manifold C*
+    sage: M = Manifold(1, 'ℂ*', field='complex'); M
+    1-dimensional complex manifold ℂ*
 
 We introduce a first open subset, which is actually
 `\CC = \CC^*\setminus\{\infty\}` if we interpret `\CC^*` as the Alexandroff
@@ -292,7 +292,7 @@ we denote the associated coordinate by `z`::
 The origin of the complex plane is the point of coordinate `z=0`::
 
     sage: O = U.point((0,), chart=Z, name='O'); O
-    Point O on the 1-dimensional complex manifold C*
+    Point O on the 1-dimensional complex manifold ℂ*
 
 Another open subset of `\CC^*` is `V = \CC^*\setminus\{O\}`::
 
@@ -305,7 +305,7 @@ coordinate 0 in this chart::
     Chart (V, (w,))
     sage: inf = M.point((0,), chart=W, name='inf', latex_name=r'\infty')
     sage: inf
-    Point inf on the 1-dimensional complex manifold C*
+    Point inf on the 1-dimensional complex manifold ℂ*
 
 To fully construct the Riemann sphere, we declare that it is the union of `U`
 and `V`::
@@ -329,7 +329,7 @@ on `A = U\cap V`::
 Let consider the complex number `i` as a point of the Riemann sphere::
 
     sage: i = M((I,), chart=Z, name='i'); i
-    Point i on the 1-dimensional complex manifold C*
+    Point i on the 1-dimensional complex manifold ℂ*
 
 Its coordinates with respect to the charts ``Z`` and ``W`` are::
 
@@ -348,16 +348,16 @@ and we have::
 The following subsets and charts have been defined::
 
     sage: M.subset_family()
-    Set {A, C*, U, V} of open subsets of the 1-dimensional complex manifold C*
+    Set {A, U, V, ℂ*} of open subsets of the 1-dimensional complex manifold ℂ*
     sage: M.atlas()
     [Chart (U, (z,)), Chart (V, (w,)), Chart (A, (z,)), Chart (A, (w,))]
 
 A constant map `\CC^* \rightarrow \CC`::
 
     sage: f = M.constant_scalar_field(3+2*I, name='f'); f
-    Scalar field f on the 1-dimensional complex manifold C*
+    Scalar field f on the 1-dimensional complex manifold ℂ*
     sage: f.display()
-    f: C* → ℂ
+    f: ℂ* → ℂ
     on U: z ↦ 2*I + 3
     on V: w ↦ 2*I + 3
     sage: f(O)
@@ -368,7 +368,7 @@ A constant map `\CC^* \rightarrow \CC`::
     2*I + 3
     sage: f.parent()
     Algebra of differentiable scalar fields on the 1-dimensional complex
-     manifold C*
+     manifold ℂ*
     sage: f.parent().category()
     Category of commutative algebras over Symbolic Ring
 
@@ -382,17 +382,17 @@ A vector field on the Riemann sphere::
     sage: v.display(W.frame())
     v = -∂/∂w
     sage: v.parent()
-    Module X(C*) of vector fields on the 1-dimensional complex manifold C*
+    Module X(ℂ*) of vector fields on the 1-dimensional complex manifold ℂ*
 
 The vector field `v` acting on the scalar field `f`::
 
     sage: v(f)
-    Scalar field zero on the 1-dimensional complex manifold C*
+    Scalar field zero on the 1-dimensional complex manifold ℂ*
 
 Since `f` is constant, `v(f)` is vanishing::
 
     sage: v(f).display()
-    zero: C* → ℂ
+    zero: ℂ* → ℂ
     on U: z ↦ 0
     on V: w ↦ 0
 
@@ -400,11 +400,11 @@ The value of the vector field `v` at the point `\infty` is a vector tangent to
 the Riemann sphere::
 
     sage: v.at(inf)
-    Tangent vector v at Point inf on the 1-dimensional complex manifold C*
+    Tangent vector v at Point inf on the 1-dimensional complex manifold ℂ*
     sage: v.at(inf).display()
     v = -∂/∂w
     sage: v.at(inf).parent()
-    Tangent space at Point inf on the 1-dimensional complex manifold C*
+    Tangent space at Point inf on the 1-dimensional complex manifold ℂ*
 
 AUTHORS:
 

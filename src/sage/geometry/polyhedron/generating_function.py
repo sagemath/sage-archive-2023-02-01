@@ -1495,7 +1495,9 @@ def compositions_mod(u, m, r=0, multidimensional=False):
 
     OUTPUT:
 
-    An iterable of tuples; all these tuples have the same size as ``u``
+    An iterable of tuples. All these tuples have the same size as ``u``.
+    The elements of the tuples are integers modulo some appropriate
+    modulus; this modulus divides `m` and is possibly different for each element.
 
     EXAMPLES::
 

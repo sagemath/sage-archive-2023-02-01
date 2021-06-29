@@ -172,7 +172,7 @@ class OreFunction(AlgebraElement):
 
         """
         if self.parent()._simplification:
-            return richcmp((self._numerator, self._denominator), (other._numerator, other._denominator), op) 
+            return richcmp((self._numerator, self._denominator), (other._numerator, other._denominator), op)
         if op == op_EQ or op == op_NE:
             _, U, V = self._denominator.left_xlcm(other._denominator)
             return richcmp(U * self._numerator, V * other._numerator, op)
@@ -689,7 +689,7 @@ class ConstantOreFunctionSection(Map):
             sage: sigma = R.hom([t^2])
             sage: S.<x> = R['x', sigma]
 
-            sage: P = S.random_element()
+            sage: P = S._random_nonzero_element()
             sage: f = (t*P) / P
             sage: F(f)
             t

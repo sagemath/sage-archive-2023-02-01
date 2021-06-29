@@ -2734,21 +2734,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                  - 'mwrank' -- use a C++ implementation in the mwrank
                    library
 
-        NOTES:
+        .. NOTE::
 
-           - The CPS_height_bound is often better (i.e. smaller) than
-             the Silverman bound, but it only applies for points over
-             the base field, whereas the Silverman bound works over
-             all number fields.
+            - The CPS_height_bound is often better (i.e. smaller) than
+              the Silverman bound, but it only applies for points over
+              the base field, whereas the Silverman bound works over
+              all number fields.
 
-           - The Silverman bound is also fairly straightforward to
-             compute over number fields, but isn't implemented here.
+            - The Silverman bound is also fairly straightforward to
+              compute over number fields, but isn't implemented here.
 
-           - Silverman's paper is 'The Difference Between the Weil
-             Height and the Canonical Height on Elliptic Curves',
-             Math. Comp., Volume 55, Number 192, pages 723-743.  We
-             use a correction by Bremner with 0.973 replaced by 0.961,
-             as explained in the source code to mwrank (htconst.cc).
+            - Silverman's paper is 'The Difference Between the Weil
+              Height and the Canonical Height on Elliptic Curves',
+              Math. Comp., Volume 55, Number 192, pages 723-743.  We
+              use a correction by Bremner with 0.973 replaced by 0.961,
+              as explained in the source code to mwrank (htconst.cc).
 
         EXAMPLES::
 

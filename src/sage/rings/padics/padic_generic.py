@@ -613,13 +613,14 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: F.teichmuller_system()[3]
             (2*a + 2) + (4*a + 1)*5 + 4*5^2 + (2*a + 1)*5^3 + (4*a + 1)*5^4 + (2*a + 3)*5^5 + O(5^6)
 
-        NOTES:
+        .. NOTE::
 
-        Should this return 0 as well?
+            Should this return 0 as well?
         """
         R = self.residue_class_field()
         prec = self.precision_cap()
-        return [self.teichmuller(self(i).lift_to_precision(prec)) for i in R if i != 0]
+        return [self.teichmuller(self(i).lift_to_precision(prec))
+                for i in R if i != 0]
 
 #     def different(self):
 #         raise NotImplementedError

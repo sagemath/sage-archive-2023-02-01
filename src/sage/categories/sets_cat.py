@@ -1458,7 +1458,7 @@ class Sets(Category_singleton):
             and if it returns the latter, then it is supposed that ``F(O)==self`.
             The test verifies this assumption.
 
-            EXAMPLE:
+            EXAMPLES:
 
             We create a parent that returns a wrong construction (its construction
             returns the rational field rather than the parent itself)::
@@ -2641,7 +2641,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 set = Set([1,2,3])
             from sage.categories.examples.with_realizations import SubsetAlgebra
             return SubsetAlgebra(base_ring, set)
-
 
         class ParentMethods:
 

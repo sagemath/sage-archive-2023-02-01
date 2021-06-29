@@ -1550,7 +1550,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return R.quotient(P)
 
     class ElementMethods:
-        def adjoint_matrix(self): # In #11111 (more or less) by using matrix of a morphism
+        def adjoint_matrix(self, sparse=False): # In #11111 (more or less) by using matrix of a morphism
             """
             Return the matrix of the adjoint action of ``self``.
 
@@ -1561,6 +1561,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 0]
                 [0 0 0]
                 [0 0 0]
+                sage: L.an_element().adjoint_matrix(sparse=True).is_sparse()
+                True
 
             ::
 
@@ -1575,7 +1577,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             P = self.parent()
             basis = P.basis()
             return matrix(self.base_ring(),
-                          [P.bracket(self, b).to_vector() for b in basis])
+                          [P.bracket(self, b).to_vector() for b in basis],
+                          sparse=sparse)
 
         def to_vector(self, order=None):
             """

@@ -23,51 +23,56 @@ EXAMPLES:
 
 As an example consider a small scale variant of the AES::
 
-   sage: sr = mq.SR(2,1,2,4,gf2=True,polybori=True)
-   sage: sr
-   SR(2,1,2,4)
+    sage: sr = mq.SR(2,1,2,4,gf2=True,polybori=True)
+    sage: sr
+    SR(2,1,2,4)
 
 We can construct a polynomial sequence for a random plaintext-ciphertext
 pair and study it::
 
-   sage: set_random_seed(1)
-   sage: F,s = sr.polynomial_system()
-   sage: F
-   Polynomial Sequence with 112 Polynomials in 64 Variables
+    sage: set_random_seed(1)
+    sage: while True:  # workaround (see :trac:`31891`)
+    ....:     try:
+    ....:         F, s = sr.polynomial_system()
+    ....:         break
+    ....:     except ZeroDivisionError:
+    ....:         pass
+    sage: F
+    Polynomial Sequence with 112 Polynomials in 64 Variables
 
-   sage: r2 = F.part(2); r2
-   (w200 + k100 + x100 + x102 + x103,
-    w201 + k101 + x100 + x101 + x103 + 1,
-    w202 + k102 + x100 + x101 + x102 + 1,
-    w203 + k103 + x101 + x102 + x103,
-    w210 + k110 + x110 + x112 + x113,
-    w211 + k111 + x110 + x111 + x113 + 1,
-    w212 + k112 + x110 + x111 + x112 + 1,
-    w213 + k113 + x111 + x112 + x113,
-    x100*w100 + x100*w103 + x101*w102 + x102*w101 + x103*w100,
-    x100*w100 + x100*w101 + x101*w100 + x101*w103 + x102*w102 + x103*w101,
-    x100*w101 + x100*w102 + x101*w100 + x101*w101 + x102*w100 + x102*w103 + x103*w102,
-    x100*w100 + x100*w102 + x100*w103 + x101*w100 + x101*w101 + x102*w102 + x103*w100 + x100,
-    x100*w101 + x100*w103 + x101*w101 + x101*w102 + x102*w100 + x102*w103 + x103*w101 + x101,
-    x100*w100 + x100*w102 + x101*w100 + x101*w102 + x101*w103 + x102*w100 + x102*w101 + x103*w102 + x102,
-    x100*w101 + x100*w102 + x101*w100 + x101*w103 + x102*w101 + x103*w103 + x103,
-    x100*w100 + x100*w101 + x100*w103 + x101*w101 + x102*w100 + x102*w102 + x103*w100 + w100,
-    x100*w102 + x101*w100 + x101*w101 + x101*w103 + x102*w101 + x103*w100 + x103*w102 + w101,
-    x100*w100 + x100*w101 + x100*w102 + x101*w102 + x102*w100 + x102*w101 + x102*w103 + x103*w101 + w102,
-    x100*w101 + x101*w100 + x101*w102 + x102*w100 + x103*w101 + x103*w103 + w103,
-    x100*w102 + x101*w101 + x102*w100 + x103*w103 + 1,
-    x110*w110 + x110*w113 + x111*w112 + x112*w111 + x113*w110,
-    x110*w110 + x110*w111 + x111*w110 + x111*w113 + x112*w112 + x113*w111,
-    x110*w111 + x110*w112 + x111*w110 + x111*w111 + x112*w110 + x112*w113 + x113*w112,
-    x110*w110 + x110*w112 + x110*w113 + x111*w110 + x111*w111 + x112*w112 + x113*w110 + x110,
-    x110*w111 + x110*w113 + x111*w111 + x111*w112 + x112*w110 + x112*w113 + x113*w111 + x111,
-    x110*w110 + x110*w112 + x111*w110 + x111*w112 + x111*w113 + x112*w110 + x112*w111 + x113*w112 + x112,
-    x110*w111 + x110*w112 + x111*w110 + x111*w113 + x112*w111 + x113*w113 + x113,
-    x110*w110 + x110*w111 + x110*w113 + x111*w111 + x112*w110 + x112*w112 + x113*w110 + w110,
-    x110*w112 + x111*w110 + x111*w111 + x111*w113 + x112*w111 + x113*w110 + x113*w112 + w111,
-    x110*w110 + x110*w111 + x110*w112 + x111*w112 + x112*w110 + x112*w111 + x112*w113 + x113*w111 + w112,
-    x110*w111 + x111*w110 + x111*w112 + x112*w110 + x113*w111 + x113*w113 + w113,
-    x110*w112 + x111*w111 + x112*w110 + x113*w113 + 1)
+    sage: r2 = F.part(2); r2
+    (w200 + k100 + x100 + x102 + x103,
+     w201 + k101 + x100 + x101 + x103 + 1,
+     w202 + k102 + x100 + x101 + x102 + 1,
+     w203 + k103 + x101 + x102 + x103,
+     w210 + k110 + x110 + x112 + x113,
+     w211 + k111 + x110 + x111 + x113 + 1,
+     w212 + k112 + x110 + x111 + x112 + 1,
+     w213 + k113 + x111 + x112 + x113,
+     x100*w100 + x100*w103 + x101*w102 + x102*w101 + x103*w100,
+     x100*w100 + x100*w101 + x101*w100 + x101*w103 + x102*w102 + x103*w101,
+     x100*w101 + x100*w102 + x101*w100 + x101*w101 + x102*w100 + x102*w103 + x103*w102,
+     x100*w100 + x100*w102 + x100*w103 + x101*w100 + x101*w101 + x102*w102 + x103*w100 + x100,
+     x100*w101 + x100*w103 + x101*w101 + x101*w102 + x102*w100 + x102*w103 + x103*w101 + x101,
+     x100*w100 + x100*w102 + x101*w100 + x101*w102 + x101*w103 + x102*w100 + x102*w101 + x103*w102 + x102,
+     x100*w101 + x100*w102 + x101*w100 + x101*w103 + x102*w101 + x103*w103 + x103,
+     x100*w100 + x100*w101 + x100*w103 + x101*w101 + x102*w100 + x102*w102 + x103*w100 + w100,
+     x100*w102 + x101*w100 + x101*w101 + x101*w103 + x102*w101 + x103*w100 + x103*w102 + w101,
+     x100*w100 + x100*w101 + x100*w102 + x101*w102 + x102*w100 + x102*w101 + x102*w103 + x103*w101 + w102,
+     x100*w101 + x101*w100 + x101*w102 + x102*w100 + x103*w101 + x103*w103 + w103,
+     x100*w102 + x101*w101 + x102*w100 + x103*w103 + 1,
+     x110*w110 + x110*w113 + x111*w112 + x112*w111 + x113*w110,
+     x110*w110 + x110*w111 + x111*w110 + x111*w113 + x112*w112 + x113*w111,
+     x110*w111 + x110*w112 + x111*w110 + x111*w111 + x112*w110 + x112*w113 + x113*w112,
+     x110*w110 + x110*w112 + x110*w113 + x111*w110 + x111*w111 + x112*w112 + x113*w110 + x110,
+     x110*w111 + x110*w113 + x111*w111 + x111*w112 + x112*w110 + x112*w113 + x113*w111 + x111,
+     x110*w110 + x110*w112 + x111*w110 + x111*w112 + x111*w113 + x112*w110 + x112*w111 + x113*w112 + x112,
+     x110*w111 + x110*w112 + x111*w110 + x111*w113 + x112*w111 + x113*w113 + x113,
+     x110*w110 + x110*w111 + x110*w113 + x111*w111 + x112*w110 + x112*w112 + x113*w110 + w110,
+     x110*w112 + x111*w110 + x111*w111 + x111*w113 + x112*w111 + x113*w110 + x113*w112 + w111,
+     x110*w110 + x110*w111 + x110*w112 + x111*w112 + x112*w110 + x112*w111 + x112*w113 + x113*w111 + w112,
+     x110*w111 + x111*w110 + x111*w112 + x112*w110 + x113*w111 + x113*w113 + w113,
+     x110*w112 + x111*w111 + x112*w110 + x113*w113 + 1)
 
 We separate the system in independent subsystems::
 
@@ -116,7 +121,12 @@ Using these building blocks we can implement a simple XL algorithm
 easily::
 
     sage: sr = mq.SR(1,1,1,4, gf2=True, polybori=True, order='lex')
-    sage: F,s = sr.polynomial_system()
+    sage: while True:  # workaround (see :trac:`31891`)
+    ....:     try:
+    ....:         F, s = sr.polynomial_system()
+    ....:         break
+    ....:     except ZeroDivisionError:
+    ....:         pass
 
     sage: monomials = [a*b for a in F.variables() for b in F.variables() if a<b]
     sage: len(monomials)
@@ -919,7 +929,12 @@ class PolynomialSequence_generic(Sequence_generic):
         splits into four subsystems which are independent::
 
             sage: sr = mq.SR(2,4,4,8,gf2=True,polybori=True)
-            sage: F,s = sr.polynomial_system()
+            sage: while True:  # workaround (see :trac:`31891`)
+            ....:     try:
+            ....:         F, s = sr.polynomial_system()
+            ....:         break
+            ....:     except ZeroDivisionError:
+            ....:         pass
             sage: Fz = Sequence(F.part(2))
             sage: Fz.connected_components()
             [Polynomial Sequence with 128 Polynomials in 128 Variables,
@@ -1516,7 +1531,12 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
         EXAMPLES::
 
             sage: sr = mq.SR(1, 1, 1, 4, gf2=True, polybori=True)
-            sage: F,s = sr.polynomial_system()
+            sage: while True:  # workaround (see :trac:`31891`)
+            ....:     try:
+            ....:         F, s = sr.polynomial_system()
+            ....:         break
+            ....:     except ZeroDivisionError:
+            ....:         pass
             sage: g = F.reduced()
             sage: len(g) == len(set(gi.lt() for gi in g))
             True
@@ -1567,11 +1587,17 @@ class PolynomialSequence_gf2e(PolynomialSequence_generic):
 
         Another bigger example for a small scale AES::
 
-           sage: sr = mq.SR(1,1,1,4,gf2=False)
-           sage: F,s = sr.polynomial_system(); F
-           Polynomial Sequence with 40 Polynomials in 20 Variables
-           sage: F2 = F.weil_restriction(); F2
-           Polynomial Sequence with 240 Polynomials in 80 Variables
+            sage: sr = mq.SR(1,1,1,4,gf2=False)
+            sage: while True:  # workaround (see :trac:`31891`)
+            ....:     try:
+            ....:         F, s = sr.polynomial_system()
+            ....:         break
+            ....:     except ZeroDivisionError:
+            ....:         pass
+            sage: F
+            Polynomial Sequence with 40 Polynomials in 20 Variables
+            sage: F2 = F.weil_restriction(); F2
+            Polynomial Sequence with 240 Polynomials in 80 Variables
         """
         from sage.rings.ideal import FieldIdeal
         J = self.ideal().weil_restriction()

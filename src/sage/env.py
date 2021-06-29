@@ -317,7 +317,7 @@ SINGULAR_SO = var("SINGULAR_SO", _get_shared_lib_path("Singular", "singular-Sing
 GAP_SO = var("GAP_SO", _get_shared_lib_path("gap", ""))
 
 # post process
-if ' ' in DOT_SAGE:
+if DOT_SAGE is not None and ' ' in DOT_SAGE:
     if UNAME[:6] == 'CYGWIN':
         # on windows/cygwin it is typical for the home directory
         # to have a space in it.  Fortunately, users also have
@@ -378,14 +378,18 @@ def sage_include_directories(use_sources=False):
         sage: any(os.path.isfile(os.path.join(d, file)) for d in dirs)
         True
     """
-    import numpy
     import distutils.sysconfig
 
     TOP = SAGE_SRC if use_sources else SAGE_LIB
 
-    return [TOP,
-            distutils.sysconfig.get_python_inc(),
-            numpy.get_include()]
+    dirs = [TOP,
+            distutils.sysconfig.get_python_inc()]
+    try:
+        import numpy
+        dirs.append(numpy.get_include())
+    except ModuleNotFoundError:
+        pass
+    return dirs
 
 def get_cblas_pc_module_name() -> str:
     """

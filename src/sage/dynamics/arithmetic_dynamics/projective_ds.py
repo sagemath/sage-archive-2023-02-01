@@ -3909,7 +3909,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         minimal = kwds.pop('minimal', True)
         return_scheme = kwds.pop('return_scheme', False)
         if formal and N == 2 and dom == PS:
-            X = PS.subscheme([f.dynatomic_polynomial([m,n])] + list(dom.defining_polynomials()))
+            X = PS.subscheme([f.dynatomic_polynomial([m,n])])
         else:
             F_1 = f.nth_iterate_map(n+m)
             F_2 = f.nth_iterate_map(m)
@@ -3989,7 +3989,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     In = X.defining_ideal()
                     X = PS.subscheme(In.saturation(Ik)[0])
         if dom != PS:
-            X = PS.subscheme(list(X.defining_ideal().gens()) + list(dom.defining_ideal().gens()))
+            X = PS.subscheme(list(X.defining_polynomials()) + list(dom.defining_polynomials()))
         if return_scheme:  # this includes the indeterminacy locus points!
             return X
         if X.dimension() <= 0:
@@ -4252,7 +4252,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             else:
                 raise TypeError("ring must be finite to generate cyclegraph")
         elif algorithm == 'variety':
-            if formal and N == 2:
+            if formal and N == 2 and dom == PS:
                 X = PS.subscheme([f.dynatomic_polynomial(n)])
             else:
                 F = f.nth_iterate_map(n)
@@ -4329,7 +4329,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         In = X.defining_ideal()
                         X = PS.subscheme(In.saturation(Ik)[0])
             if dom != PS:
-                X = PS.subscheme(list(X.defining_ideal().gens()) + list(dom.defining_ideal().gens()))
+                X = PS.subscheme(list(X.defining_polynomials()) + list(dom.defining_polynomials()))
             if return_scheme:  # this includes the indeterminacy locus points!
                 return X
             if X.dimension() <= 0:

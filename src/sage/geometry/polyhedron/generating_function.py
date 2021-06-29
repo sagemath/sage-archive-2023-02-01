@@ -1518,13 +1518,14 @@ def compositions_mod(u, m, r=0, multidimensional=False):
         [(0, 0)]
         sage: list(compositions_mod([(1, 2), (2, 2), (3, 2)], 6,
         ....:                       multidimensional=True))
-        [(0, 0, 0), (1, 1, 1), (2, 2, 2)]
+        [(0, 0, 0), (1, 1, 1), (2, 2, 2), (3, 0, 3), (4, 1, 4), (5, 2, 5)]
 
     TESTS::
 
         sage: list(compositions_mod([1, 0], 2))
         [(0, 0)]
     """
+    from sage.arith.functions import lcm
     from sage.arith.srange import srange
     from sage.modules.free_module_element import vector
     from sage.rings.finite_rings.integer_mod_ring import Zmod
@@ -1547,7 +1548,7 @@ def compositions_mod(u, m, r=0, multidimensional=False):
             return
 
         v = u[0]
-        m = max(vv.order() for vv in v)
+        m = lcm(vv.order() for vv in v)
         Z = Zmod(m)
         for j in srange(m):
             for a in recursively_build_compositions(u[1:], r - j*v):

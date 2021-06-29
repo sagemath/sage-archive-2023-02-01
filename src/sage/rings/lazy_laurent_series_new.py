@@ -384,7 +384,6 @@ class LLS_aux():
             except KeyError:
                 c = self.get_coefficient(n)
                 self._cache[n] = c
-
         else:
             i = n - self._offset
             if i >= len(self._cache):
@@ -762,41 +761,24 @@ class LLS_inv(LLS_aux):
     Operator for multiplicative inverse of the series.
     """
     def __init__(self, series):
-        """
-        Initialize.
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = 1/(1 - z) * 1/(1 + z)
-            sage: loads(dumps(f)) == f
-            True
-        """
         self._series = series
         super().__init__(series._is_sparse, series._approximate_valuation, series._constant)
         self._approximate_valuation = -self.valuation(series)
-        self._v = self.valuation(series)
+        v = self.valuation(series)
+
+        if v is infinity:
+            raise ZeroDivisionError('cannot invert zero')
+
+        # Trying with series now
+        self._v = v
         self._ainv = ~series[self._v]
         self._zero = ZZ.zero()
-
-        if self._v is infinity:
-            raise ZeroDivisionError('cannot invert zero')
         
     def get_coefficient(self, n):
-        """
-        Return the `n`-th coefficient of the series ``s``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = (1 + z)*(1 - z)
-            sage: f.coefficient(2)
-            -1
-        """
         v = self._v
         if n == -v:
             return self._ainv
-        c = ZZ.zero()
+        c = self._zero
         for k in range(-v, n):
             c += self[k] * self._series[n + v - k]
         return -c * self._ainv
@@ -946,12 +928,17 @@ class LLS_div(LLS_aux):
     def get_coefficient(self, n):
         lv = self._lv
         rv = self._rv
-
         if n == lv - rv:
             return self._left[lv]/self._right[rv]
         c = self._left[n + rv]
+        print('n is', n)
         for k in range(lv - rv, n):
+            print('k is', k)
+            print('LS is', self._left[k])
+            print('RS is', self._right[n + rv - k])
             c -= self._left[k] * self._right[n + rv - k]
+            print('c is', c)
+        print('ainv is', self._ainv)
         return c * self._ainv
     
     def iterate_coefficients(self):

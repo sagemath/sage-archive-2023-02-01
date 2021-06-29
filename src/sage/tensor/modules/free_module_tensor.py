@@ -706,8 +706,8 @@ class FreeModuleTensor(ModuleElementWithMutability):
 
         """
         from sage.misc.latex import latex
-        from sage.tensor.modules.format_utilities import (is_atomic,
-                                                          FormattedExpansion)
+        from sage.typeset.unicode_characters import unicode_otimes
+        from .format_utilities import is_atomic, FormattedExpansion
         basis, format_spec = self._preparse_display(basis=basis,
                                                     format_spec=format_spec)
         cobasis = basis.dual_basis()
@@ -733,8 +733,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                 for k in range(n_con, self._tensor_rank):
                     bases_txt.append(cobasis[ind[k]]._name)
                     bases_latex.append(latex(cobasis[ind[k]]))
-                # Unicode character '\u2297' is '⊗'; see ticket #30473
-                basis_term_txt = '\u2297'.join(bases_txt)
+                basis_term_txt = unicode_otimes.join(bases_txt)
                 basis_term_latex = r'\otimes '.join(bases_latex)
                 coef_txt = repr(coef)
                 if coef_txt == '1':
@@ -2230,6 +2229,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
              [[[0, -6], [6, 0]], [[0, 15], [-15, 0]]]]
 
         """
+        from sage.typeset.unicode_characters import unicode_otimes
         from .format_utilities import format_mul_txt, format_mul_latex
         if isinstance(other, FreeModuleTensor):
             basis = self.common_basis(other)
@@ -2247,8 +2247,7 @@ class FreeModuleTensor(ModuleElementWithMutability):
                 comp_result = comp_prov  # no reordering is necessary
             result = self._fmodule.tensor_from_comp((k1+k2, l1+l2),
                                                     comp_result)
-            # Unicode character '\u2297' is '⊗'; see ticket #30473
-            result._name = format_mul_txt(self._name, '\u2297', other._name)
+            result._name = format_mul_txt(self._name, unicode_otimes, other._name)
             result._latex_name = format_mul_latex(self._latex_name,
                                                 r'\otimes ', other._latex_name)
             return result

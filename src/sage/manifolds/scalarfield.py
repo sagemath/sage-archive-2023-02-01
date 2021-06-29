@@ -2134,6 +2134,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
 
         """
         from sage.misc.latex import latex
+        from sage.typeset.unicode_characters import (unicode_to,
+                              unicode_mapsto, unicode_mathbbR, unicode_mathbbC)
         from sage.tensor.modules.format_utilities import FormattedExpansion
 
         def _display_expression(self, chart, result):
@@ -2155,21 +2157,21 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
                 result._latex += " & "
             else:
                 result._txt += "on " + chart._domain._name + ": "
-                result._latex += r"\mbox{on}\ " + latex(chart._domain) + \
-                                 r": & "
-            # Unicode character '\u21A6' is '↦'; see ticket #30473
-            result._txt += repr(coords) + " \u21A6 " + repr(expression) + "\n"
-            result._latex += latex(coords) + r"& \longmapsto & " + \
-                             latex(expression) + r"\\"
+                result._latex += r"\mbox{on}\ " + latex(chart._domain) \
+                                 + r": & "
+            result._txt += repr(coords) + " " + unicode_mapsto + " " \
+                           + repr(expression) + "\n"
+            result._latex += latex(coords) + r"& \longmapsto & " \
+                             + latex(expression) + r"\\"
 
         # Name of the base field:
         field = self._domain.base_field()
         field_type = self._domain.base_field_type()
         if field_type == 'real':
-            field_name = '\u211D'  # Unicode character 'ℝ'; see ticket #30473
+            field_name = unicode_mathbbR
             field_latex_name = r'\mathbb{R}'
         elif field_type == 'complex':
-            field_name = '\u2102'  # Unicode character 'ℂ'; see ticket #30473
+            field_name = unicode_mathbbC
             field_latex_name = r'\mathbb{C}'
         else:
             field_name = str(field)
@@ -2180,8 +2182,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             symbol = ""
         else:
             symbol = self._name + ": "
-        # Unicode character '\u2192' is '→'; see ticket #30473
-        result._txt = symbol + self._domain._name + " \u2192 " + field_name + "\n"
+        result._txt = symbol + self._domain._name + " " + unicode_to + " " \
+                      + field_name + "\n"
         if self._latex_name is None:
             symbol = ""
         else:

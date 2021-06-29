@@ -397,8 +397,8 @@ class AlternatingContrTensor(FreeModuleTensor):
 
         """
         from sage.misc.latex import latex
-        from sage.tensor.modules.format_utilities import (is_atomic,
-                                                          FormattedExpansion)
+        from sage.typeset.unicode_characters import unicode_wedge
+        from .format_utilities import is_atomic, FormattedExpansion
         basis, format_spec = self._preparse_display(basis=basis,
                                                     format_spec=format_spec)
         comp = self.comp(basis)
@@ -419,8 +419,7 @@ class AlternatingContrTensor(FreeModuleTensor):
                 for k in range(self._tensor_rank):
                     bases_txt.append(basis[ind[k]]._name)
                     bases_latex.append(latex(basis[ind[k]]))
-                # Unicode character '\u2227' is '∧'; see ticket #30473
-                basis_term_txt = '\u2227'.join(bases_txt)
+                basis_term_txt = unicode_wedge.join(bases_txt)
                 basis_term_latex = r'\wedge '.join(bases_latex)
                 coef_txt = repr(coef)
                 if coef_txt == '1':
@@ -538,6 +537,7 @@ class AlternatingContrTensor(FreeModuleTensor):
             True
 
         """
+        from sage.typeset.unicode_characters import unicode_wedge
         from .format_utilities import is_atomic
         if not isinstance(other, AlternatingContrTensor):
             raise TypeError("the second argument for the exterior product " +
@@ -568,7 +568,7 @@ class AlternatingContrTensor(FreeModuleTensor):
                 sname = '(' + sname + ')'
             if not is_atomic(oname):
                 oname = '(' + oname + ')'
-            result._name = sname + '\u2227' + oname
+            result._name = sname + unicode_wedge + oname
         if self._latex_name is not None and other._latex_name is not None:
             slname = self._latex_name
             olname = other._latex_name

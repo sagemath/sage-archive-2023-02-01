@@ -308,6 +308,7 @@ class MultivectorField(TensorField):
             a∧b = (-v^2 + u) d/du∧d/dv
 
         """
+        from sage.typeset.unicode_characters import unicode_wedge
         from sage.tensor.modules.format_utilities import is_atomic
         if self._domain.is_subset(other._domain):
             if not self._ambient_domain.is_subset(other._ambient_domain):
@@ -333,7 +334,7 @@ class MultivectorField(TensorField):
                 sname = '(' + sname + ')'
             if not is_atomic(oname):
                 oname = '(' + oname + ')'
-            resu_name = sname + '\u2227' + oname
+            resu_name = sname + unicode_wedge + oname
         resu_latex_name = None
         if self._latex_name is not None and other._latex_name is not None:
             slname = self._latex_name

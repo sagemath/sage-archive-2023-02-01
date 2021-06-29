@@ -1114,6 +1114,7 @@ class ContinuousMap(Morphism):
 
         """
         from sage.misc.latex import latex
+        from sage.typeset.unicode_characters import unicode_to, unicode_mapsto
         from sage.tensor.modules.format_utilities import FormattedExpansion
 
         def _display_expression(self, chart1, chart2, result):
@@ -1143,8 +1144,7 @@ class ContinuousMap(Morphism):
                 result._txt += 'on ' + chart1._domain._name + ': '
                 result._latex += r'\mbox{on}\ ' + latex(chart1._domain) + \
                                 r': & '
-            # Unicode character '\u21A6' is '↦'; see ticket #30473
-            result._txt += repr(coords1) + ' \u21A6 '
+            result._txt += repr(coords1) + ' ' + unicode_mapsto + ' '
             result._latex += latex(coords1) + r'& \longmapsto & '
             if chart2 == chart1:
                 result._txt += repr(expression) + '\n'
@@ -1160,9 +1160,8 @@ class ContinuousMap(Morphism):
             symbol = ''
         else:
             symbol = self._name + ': '
-        # Unicode character '\u2192' is '→'; see ticket #30473
-        result._txt = symbol + self._domain._name + ' \u2192 ' + \
-                     self._codomain._name + '\n'
+        result._txt = symbol + self._domain._name + ' ' + unicode_to + ' ' \
+                      + self._codomain._name + '\n'
         if self._latex_name is None:
             symbol = ''
         else:

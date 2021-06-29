@@ -237,14 +237,16 @@ class ExtPowerFreeModule(FiniteRankFreeModule):
 
         """
         from sage.functions.other import binomial
+        from sage.typeset.unicode_characters import unicode_bigwedge
         self._fmodule = fmodule
         self._degree = ZZ(degree)
         rank = binomial(fmodule._rank, degree)
         if name is None and fmodule._name is not None:
-            name = r'\u22C0^{}('.format(degree) + fmodule._name + ')'
+            name = unicode_bigwedge + r'^{}('.format(degree) \
+                   + fmodule._name + ')'
         if latex_name is None and fmodule._latex_name is not None:
-            latex_name = r'\Lambda^{' + str(degree) + r'}\left(' + \
-                                       fmodule._latex_name + r'\right)'
+            latex_name = r'\Lambda^{' + str(degree) + r'}\left(' \
+                         + fmodule._latex_name + r'\right)'
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank,
                                       name=name, latex_name=latex_name,
                                       start_index=fmodule._sindex,
@@ -630,6 +632,7 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
 
         """
         from sage.functions.other import binomial
+        from sage.typeset.unicode_characters import unicode_bigwedge
         self._fmodule = fmodule
         self._degree = ZZ(degree)
         rank = binomial(fmodule._rank, degree)
@@ -640,10 +643,11 @@ class ExtPowerDualFreeModule(FiniteRankFreeModule):
                 latex_name = fmodule._latex_name + r'^*'
         else:
             if name is None and fmodule._name is not None:
-                name = r'\u22C0^{}('.format(degree) + fmodule._name + '*)'
+                name = unicode_bigwedge + r'^{}('.format(degree) \
+                       + fmodule._name + '*)'
             if latex_name is None and fmodule._latex_name is not None:
-                latex_name = r'\Lambda^{' + str(degree) + r'}\left(' + \
-                             fmodule._latex_name + r'^*\right)'
+                latex_name = r'\Lambda^{' + str(degree) + r'}\left(' \
+                             + fmodule._latex_name + r'^*\right)'
         FiniteRankFreeModule.__init__(self, fmodule._ring, rank, name=name,
                                       latex_name=latex_name,
                                       start_index=fmodule._sindex,

@@ -381,6 +381,7 @@ class MixedForm(AlgebraElement):
 
         """
         from sage.misc.latex import latex
+        from sage.typeset.unicode_characters import unicode_wedge
         from sage.tensor.modules.format_utilities import (is_atomic,
                                                           FormattedExpansion)
         # In case, no frame is given:
@@ -427,7 +428,7 @@ class MixedForm(AlgebraElement):
                     for k in range(rst._tensor_rank):
                         bases_txt.append(cobasis[ind[k]]._name)
                         bases_latex.append(latex(cobasis[ind[k]]))
-                    basis_term_txt = "\u2227".join(bases_txt)
+                    basis_term_txt = unicode_wedge.join(bases_txt)
                     basis_term_latex = r"\wedge ".join(bases_latex)
                     coef_txt = repr(coef)
                     if coef_txt == "1":
@@ -917,9 +918,10 @@ class MixedForm(AlgebraElement):
         for j in self.irange():
             resu[j] = sum(self[k].wedge(other[j - k]) for k in range(j + 1))
         # Compose name:
+        from sage.typeset.unicode_characters import unicode_wedge
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)
-        resu._name = format_mul_txt(self._name, '\u2227', other._name)
+        resu._name = format_mul_txt(self._name, unicode_wedge, other._name)
         resu._latex_name = format_mul_latex(self._latex_name, r'\wedge ',
                                             other._latex_name)
         return resu
@@ -970,9 +972,10 @@ class MixedForm(AlgebraElement):
         resu[:] = [other * form for form in self._comp]
         # Compose name:
         from sage.misc.latex import latex
+        from sage.typeset.unicode_characters import unicode_wedge
         from sage.tensor.modules.format_utilities import (format_mul_txt,
                                                           format_mul_latex)
-        resu._name = format_mul_txt(repr(other), '\u2227', self._name)
+        resu._name = format_mul_txt(repr(other), unicode_wedge, self._name)
         resu._latex_name = format_mul_latex(latex(other), r'\wedge ',
                                             self._latex_name)
         return resu

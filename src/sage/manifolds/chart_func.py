@@ -684,6 +684,7 @@ class ChartFunction(AlgebraElement, ModuleElementWithMutability):
             (x, y) ↦ 0
 
         """
+        from sage.typeset.unicode_characters import unicode_mapsto
         from sage.tensor.modules.format_utilities import FormattedExpansion
         curr = self._calc_method._current
         expr = self.expr(curr)
@@ -691,11 +692,9 @@ class ChartFunction(AlgebraElement, ModuleElementWithMutability):
             self._chart.manifold().options.textbook_output):
             expr = ExpressionNice(expr)
         latex_func = self._calc_method._latex_dict[curr]
-        # Unicode character '\u21A6' is '↦'; see ticket #30473
-        resu_txt = str(self._chart[:]) + ' \u21A6 ' + \
-                   str(expr)
-        resu_latex = latex_func(self._chart[:]) + r' \mapsto ' + \
-                     latex_func(expr)
+        resu_txt = str(self._chart[:]) + ' ' + unicode_mapsto + ' ' + str(expr)
+        resu_latex = latex_func(self._chart[:]) + r' \mapsto ' \
+                     + latex_func(expr)
         return FormattedExpansion(resu_txt, resu_latex)
 
     disp = display

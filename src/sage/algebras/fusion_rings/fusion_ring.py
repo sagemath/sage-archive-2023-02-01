@@ -1284,6 +1284,8 @@ class FusionRing(WeylCharacterRing):
         for more information.
 
         .. IMAGE:: ../../../media/fusiontree.png
+           :scale: 45
+           :align: center
 
         ``sig`` is a list of braid group generators as matrices. In
         some cases these will be represented as sparse matrices.

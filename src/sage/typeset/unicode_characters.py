@@ -1,5 +1,5 @@
 r"""
-Unicode characters
+Unicode Characters
 
 This module provides Python identifiers for Unicode characters corresponding
 to various mathematical symbols.

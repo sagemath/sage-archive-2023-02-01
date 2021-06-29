@@ -1236,7 +1236,7 @@ class Permutation(CombinatorialElement):
         from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
         return AlternatingSignMatrix(self.to_matrix().rows())
 
-    def __mul__(self, rp) -> "Permutation":
+    def __mul__(self, rp) -> Permutation:
         """
         TESTS::
 
@@ -1257,7 +1257,7 @@ class Permutation(CombinatorialElement):
 
     _mul_ = __mul__ # For ``prod()``
 
-    def __rmul__(self, lp) -> "Permutation":
+    def __rmul__(self, lp) -> Permutation:
         """
         TESTS::
 
@@ -1840,7 +1840,7 @@ class Permutation(CombinatorialElement):
         return self.size() - len(self.cycle_type())
 
     @combinatorial_map(order=2,name='inverse')
-    def inverse(self) -> "Permutation":
+    def inverse(self) -> Permutation:
         r"""
         Return the inverse of ``self``.
 
@@ -2266,7 +2266,7 @@ class Permutation(CombinatorialElement):
         return Permutations()(ret)
 
     @combinatorial_map(name='foata_bijection')
-    def foata_bijection(self) -> "Permutation":
+    def foata_bijection(self) -> Permutation:
         r"""
         Return the image of the permutation ``self`` under the Foata
         bijection `\phi`.
@@ -2362,7 +2362,7 @@ class Permutation(CombinatorialElement):
         return Permutations()(M)
 
     @combinatorial_map(name='foata_bijection_inverse')
-    def foata_bijection_inverse(self) -> "Permutation":
+    def foata_bijection_inverse(self) -> Permutation:
         r"""
         Return the image of the permutation ``self`` under the inverse
         of the Foata bijection `\phi`.
@@ -2415,7 +2415,7 @@ class Permutation(CombinatorialElement):
         return Permutations()(reversed(Mrev))
 
     @combinatorial_map(name='fundamental_transformation')
-    def fundamental_transformation(self) -> "Permutation":
+    def fundamental_transformation(self) -> Permutation:
         r"""
         Return the image of the permutation ``self`` under the
         Renyi-Foata-Schuetzenberger fundamental transformation.
@@ -3959,7 +3959,7 @@ class Permutation(CombinatorialElement):
         P = Permutations()
         return [P(p) for p in self.right_permutohedron_interval_iterator(other)]
 
-    def permutohedron_join(self, other, side="right") -> "Permutation":
+    def permutohedron_join(self, other, side="right") -> Permutation:
         r"""
         Return the join of the permutations ``self`` and ``other``
         in the right permutohedron order (or, if ``side`` is set to
@@ -4079,7 +4079,7 @@ class Permutation(CombinatorialElement):
                 xs.append(i)
         return Permutations(n)(xs)
 
-    def permutohedron_meet(self, other, side="right") -> "Permutation":
+    def permutohedron_meet(self, other, side="right") -> Permutation:
         r"""
         Return the meet of the permutations ``self`` and ``other``
         in the right permutohedron order (or, if ``side`` is set to
@@ -5473,7 +5473,7 @@ class Permutations_nk(Permutations):
         """
         return "Permutations of {1,...,%s} of length %s" % (self.n, self._k)
 
-    def __iter__(self) -> "Iterator[Permutation]":
+    def __iter__(self) -> Iterator[Permutation]:
         """
         EXAMPLES::
 

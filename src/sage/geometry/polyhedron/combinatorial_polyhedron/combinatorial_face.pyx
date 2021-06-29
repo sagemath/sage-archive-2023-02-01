@@ -72,7 +72,7 @@ from .conversions               cimport bit_rep_to_Vrep_list
 from .base                      cimport CombinatorialPolyhedron
 from .face_iterator             cimport FaceIterator_base
 from .polyhedron_face_lattice   cimport PolyhedronFaceLattice
-from .face_data_structure       cimport face_len_atoms, face_init, face_copy
+from .face_data_structure       cimport face_len_atoms, face_init, face_copy, face_issubset
 from .face_list_data_structure  cimport bit_rep_to_coatom_rep
 from .list_of_faces              cimport face_as_combinatorial_polyhedron
 
@@ -357,7 +357,127 @@ cdef class CombinatorialFace(SageObject):
                 # They are faces of the same polyhedron obtained in the same way.
                 return hash(self) < hash(other)
 
-    def dimension(self):
+    def is_subface(self, CombinatorialFace other):
+        r"""
+        Return whether ``self`` is contained in ``other``.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: it = C.face_iter()
+            sage: face = next(it)
+            sage: face.ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: face2 = next(it)
+            sage: face2.ambient_V_indices()
+            (0, 1, 5, 6)
+            sage: face.is_subface(face2)
+            False
+            sage: face2.is_subface(face)
+            False
+            sage: it.only_subfaces()
+            sage: face3 = next(it)
+            sage: face3.ambient_V_indices()
+            (0, 5)
+            sage: face3.is_subface(face2)
+            True
+            sage: face3.is_subface(face)
+            True
+
+        Works for faces of the same combinatorial polyhedron;
+        also from different iterators::
+
+            sage: it = C.face_iter(dual=True)
+            sage: v7 = next(it); v7.ambient_V_indices()
+            (7,)
+            sage: v6 = next(it); v6.ambient_V_indices()
+            (6,)
+            sage: v5 = next(it); v5.ambient_V_indices()
+            (5,)
+            sage: face.ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: face.is_subface(v7)
+            False
+            sage: v7.is_subface(face)
+            False
+            sage: v6.is_subface(face)
+            False
+            sage: v5.is_subface(face)
+            True
+            sage: face2.ambient_V_indices()
+            (0, 1, 5, 6)
+            sage: face2.is_subface(v7)
+            False
+            sage: v7.is_subface(face2)
+            False
+            sage: v6.is_subface(face2)
+            True
+            sage: v5.is_subface(face2)
+            True
+
+        Only implemented for faces of the same combintatorial polyhedron::
+
+            sage: P1 = polytopes.cube()
+            sage: C1 = P1.combinatorial_polyhedron()
+            sage: it = C1.face_iter()
+            sage: other_face = next(it)
+            sage: other_face.ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: face.ambient_V_indices()
+            (0, 3, 4, 5)
+            sage: C is C1
+            False
+            sage: face.is_subface(other_face)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: is_subface only implemented for faces of the same polyhedron
+        """
+        cdef size_t length_self, length_other, counter_self, counter_other
+        cdef size_t* self_v_indices
+        cdef size_t* other_v_indices
+
+        if self._dual == other._dual:
+            if self.atoms is other.atoms:
+                if not self._dual:
+                    return face_issubset(self.face, other.face)
+                else:
+                    return face_issubset(other.face, self.face)
+            else:
+                raise NotImplementedError("is_subface only implemented for faces of the same polyhedron")
+        else:
+            if self.atoms is other.coatoms:
+                if self.dimension() > other.dimension():
+                    return False
+                if self._dual:
+                    length_self = self.set_coatom_rep()
+                    self_v_indices = self.coatom_rep
+                    length_other = other.set_atom_rep()
+                    other_v_indices = other.atom_rep
+                else:
+                    length_self = self.set_atom_rep()
+                    self_v_indices = self.atom_rep
+                    length_other = other.set_coatom_rep()
+                    other_v_indices = other.coatom_rep
+                if length_self > length_other:
+                    return False
+
+                # Check if every element in self_v_indices is contained in other_v_indices.
+                counter_self = 0
+                counter_other = 0
+                while counter_self < length_self and counter_other < length_other:
+                    if self_v_indices[counter_self] > other_v_indices[counter_other]:
+                        counter_other += 1
+                    elif self_v_indices[counter_self] == other_v_indices[counter_other]:
+                        counter_self += 1
+                        counter_other += 1
+                    else:
+                        return False
+                return counter_self == length_self
+            else:
+                raise NotImplementedError("is_subface only implemented for faces of the same polyhedron")
+
+    cpdef dimension(self):
         r"""
         Return the dimension of the face.
 
@@ -955,6 +1075,8 @@ cdef class CombinatorialFace(SageObject):
         Compute the number of atoms in the current face by counting the
         number of set bits.
         """
+        if self.atom_rep is not NULL:
+            return self._n_atom_rep
         return face_len_atoms(self.face)
 
     cdef size_t set_coatom_rep(self) except -1:
@@ -962,16 +1084,18 @@ cdef class CombinatorialFace(SageObject):
         Set ``coatom_rep`` to be the coatom-representation of the current face.
         Return its length.
         """
-        if not self.coatom_rep:
+        if self.coatom_rep is NULL:
             self.coatom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_faces(), sizeof(size_t))
-        return bit_rep_to_coatom_rep(self.face, self.coatoms.data, self.coatom_rep)
+            self._n_coatom_rep = bit_rep_to_coatom_rep(self.face, self.coatoms.data, self.coatom_rep)
+        return self._n_coatom_rep
 
     cdef size_t set_atom_rep(self) except -1:
         r"""
         Set ``atom_rep`` to be the atom-representation of the current face.
         Return its length.
         """
-        if not self.atom_rep:
+        if self.atom_rep is NULL:
             self.atom_rep = <size_t *> self._mem.allocarray(self.coatoms.n_atoms(), sizeof(size_t))
-        return bit_rep_to_Vrep_list(self.face, self.atom_rep)
+            self._n_atom_rep = bit_rep_to_Vrep_list(self.face, self.atom_rep)
+        return self._n_atom_rep
 

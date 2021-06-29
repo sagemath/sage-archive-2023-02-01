@@ -115,7 +115,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
     .. NOTE::
 
         At the moment, only polyhedra with nonnegative coordinates
-        (i.e. a polyhedon in the nonnegative orthant) are handeled.
+        (i.e. a polyhedron in the nonnegative orthant) are handled.
 
     EXAMPLES::
 

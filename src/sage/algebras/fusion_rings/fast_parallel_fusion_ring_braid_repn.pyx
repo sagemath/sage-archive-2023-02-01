@@ -12,7 +12,6 @@ from ctypes import cast, py_object
 cimport cython
 from sage.algebras.fusion_rings.fast_parallel_fmats_methods cimport _fmat
 
-from itertools import product
 from sage.rings.qqbar import QQbar
 
 ###############

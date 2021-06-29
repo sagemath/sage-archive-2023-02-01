@@ -1073,7 +1073,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             sage: x = L.random_element()
             sage: y = L.random_element()
-            sage: (x*y).norm() == x.norm() * y.norm()  # not tested, known bug
+            sage: (x*y).norm() == x.norm() * y.norm()  # not tested, known bug (see :trac:`32085`)
             True
 
         """

@@ -4963,7 +4963,7 @@ class BooleanPolynomialIdeal(MPolynomialIdeal):
             sage: sr = mq.SR(2,1,1,4,gf2=True, polybori=True)
             sage: F, s = sr.polynomial_system()
             sage: I = F.ideal()
-            sage: I.groebner_basis()  # not tested, known bug, unstable
+            sage: I.groebner_basis()  # not tested, known bug, unstable (see :trac:`32083`)
             Polynomial Sequence with 36 Polynomials in 36 Variables
 
         We compute the same example with Magma::

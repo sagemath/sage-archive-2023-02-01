@@ -1036,7 +1036,7 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             ....:     f = P.random_element(degree=2, terms=Infinity)
             sage: f = P.random_element(degree=3, terms=Infinity)
             sage: while len(list(f)) != 20:
-            ....:     f = P.random_element(degree=2, terms=Infinity)
+            ....:     f = P.random_element(degree=3, terms=Infinity)
             sage: f = P.random_element(degree=3, terms=Infinity, choose_degree=True)
             sage: while len(list(f)) != 20:
             ....:     f = P.random_element(degree=3, terms=Infinity)

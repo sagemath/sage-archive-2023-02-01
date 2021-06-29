@@ -648,7 +648,7 @@ class ContinuedFraction_base(SageObject):
             ....:         fields.append(RealField(prec=prec, rnd=rnd))
             sage: for n in range(3000):  # long time
             ....:     a = QQ.random_element(num_bound=2^(n%100))
-            ....:     if a == 1761/1024:  # not precices enough  # :trac:`29957`
+            ....:     if a.denominator() % 8 == 0:  # not precices enough  # :trac:`29957`
             ....:         continue
             ....:     cf = continued_fraction(a)
             ....:     for R in fields:

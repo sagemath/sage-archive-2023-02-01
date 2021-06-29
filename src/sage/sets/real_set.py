@@ -924,7 +924,25 @@ class RealSet(UniqueRepresentation, Parent):
                 else:
                     raise ValueError(str(arg) + ' does not determine real interval')
             else:
-                raise ValueError(str(arg) + ' does not determine real interval')
+                from sage.manifolds.differentiable.examples.real_line import OpenInterval
+                from sage.manifolds.subsets.closure import ManifoldSubsetClosure
+                if isinstance(arg, OpenInterval):
+                    lower, upper = RealSet._prep(arg.lower_bound(), arg.upper_bound())
+                    intervals.append(InternalRealInterval(lower, False, upper, False))
+                elif (isinstance(arg, ManifoldSubsetClosure)
+                      and isinstance(arg._subset, OpenInterval)):
+                    interval = arg._subset
+                    lower, upper = RealSet._prep(interval.lower_bound(),
+                                                 interval.upper_bound())
+                    ambient = interval.manifold()
+                    ambient_lower, ambient_upper = RealSet._prep(ambient.lower_bound(),
+                                                                 ambient.upper_bound())
+                    lower_closed = ambient_lower < lower
+                    upper_closed = upper < ambient_upper
+                    intervals.append(InternalRealInterval(lower, lower_closed,
+                                                          upper, upper_closed))
+                else:
+                    raise ValueError(str(arg) + ' does not determine real interval')
         intervals = RealSet.normalize(intervals)
         return UniqueRepresentation.__classcall__(cls, *intervals)
                 
@@ -952,6 +970,29 @@ class RealSet(UniqueRepresentation, Parent):
             (0, 1) ∪ (3, 4)
             sage: RealSet(i, [3,4])    # list of two numbers = closed set
             (0, 1) ∪ [3, 4]
+
+        Initialization from manifold objects::
+
+            sage: R = RealLine(); R
+            Real number line R
+            sage: RealSet(R)
+            (-oo, +oo)
+            sage: I02 = OpenInterval(0, 2); I
+            I
+            sage: RealSet(I02)
+            (0, 2)
+            sage: I01_of_R = OpenInterval(0, 1, ambient_interval=R); I01_of_R
+            Real interval (0, 1)
+            sage: RealSet(I01_of_R)
+            (0, 1)
+            sage: RealSet(I01_of_R.closure())
+            [0, 1]
+            sage: I01_of_I02 = OpenInterval(0, 1, ambient_interval=I02); I01_of_I02
+            Real interval (0, 1)
+            sage: RealSet(I01_of_I02)
+            (0, 1)
+            sage: RealSet(I01_of_I02.closure())
+            (0, 1]
 
         Real sets belong to a subcategory of topological spaces::
 

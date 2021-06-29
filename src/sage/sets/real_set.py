@@ -88,7 +88,7 @@ AUTHORS:
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.categories.sets_cat import Sets
+from sage.categories.topological_spaces import TopologicalSpaces
 from sage.rings.all import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF
 from sage.rings.infinity import infinity, minus_infinity
@@ -927,8 +927,37 @@ class RealSet(UniqueRepresentation, Parent):
             (0, 1) ∪ (3, 4)
             sage: RealSet(i, [3,4])    # list of two numbers = closed set
             (0, 1) ∪ [3, 4]
+
+        Real sets belong to a subcategory of topological spaces::
+
+            sage: RealSet().category()
+            Join of Category of finite sets and Category of subobjects of sets and Category of connected topological spaces
+            sage: RealSet.point(1).category()
+            Join of Category of finite sets and Category of subobjects of sets and Category of connected topological spaces
+            sage: RealSet([1, 2]).category()
+            Join of Category of infinite sets and Category of compact topological spaces and Category of subobjects of sets and Category of connected topological spaces
+            sage: RealSet((1, 2), (3, 4)).category()
+            Join of Category of infinite sets and Category of subobjects of sets and Category of topological spaces
+
         """
-        Parent.__init__(self, category = Sets())
+        category = TopologicalSpaces()
+        if len(intervals) <= 1:
+            category = category.Connected()
+        if all(i.is_point() for i in intervals):
+            category = category.Subobjects().Finite()
+        else:
+            # Have at least one non-degenerate interval
+            category = category.Infinite()
+            inf = intervals[0].lower()
+            sup = intervals[-1].upper()
+            if not (len(intervals) == 1 and inf is minus_infinity and sup is infinity):
+                category = category.Subobjects() # subobject of real line
+            if inf is not minus_infinity and sup is not infinity:
+                # Bounded
+                if all(i.lower_closed() and i.upper_closed()
+                       for i in intervals):
+                    category = category.Compact()
+        Parent.__init__(self, category=category)
         self._intervals = intervals
     
     def __richcmp__(self, other, op):
@@ -1058,6 +1087,58 @@ class RealSet(UniqueRepresentation, Parent):
         return self._intervals[i]
 
     __getitem__ = get_interval
+
+    # ParentMethods of Subobjects
+    
+    def ambient(self):
+        """
+        Return the ambient space (the real line).
+
+        EXAMPLES::
+
+            sage: s = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3))
+            sage: s.ambient()
+            (-oo, +oo)
+        """
+        return RealSet(minus_infinity, infinity)
+
+    def lift(self, x):
+        """
+        Lift ``x`` to the ambient space for ``self``.
+
+        This version of the method just returns ``x``.
+
+        EXAMPLES::
+
+            sage: s = RealSet(0, 2); s
+            (0, 2)
+            sage: s.lift(1)
+            1
+        """
+        return x
+
+    def retract(self, x):
+        """
+        Retract ``x`` to ``self``.
+
+        It raises an error if ``x`` does not lie in the set ``self``.
+
+        EXAMPLES::
+
+            sage: s = RealSet(0, 2); s
+            (0, 2)
+            sage: s.retract(1)
+            1
+            sage: s.retract(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: 2 is not an element of (0, 2)
+        """
+        if x not in self:
+            raise ValueError(f'{x} is not an element of {self}')
+        return x
+
+    #
 
     @staticmethod
     def normalize(intervals):

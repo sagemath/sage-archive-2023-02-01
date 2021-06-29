@@ -1436,7 +1436,7 @@ class VectorFieldFreeModule(FiniteRankFreeModule):
 
                     # basis is added to the restrictions of bases on a larger
                     # domain
-                    for dom in domain._supersets:
+                    for dom in domain.open_supersets():
                         if dom is not domain:
                             for supbase in dom._frames:
                                 if (supbase.domain() is dom and

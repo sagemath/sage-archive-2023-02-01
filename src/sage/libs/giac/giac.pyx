@@ -2057,8 +2057,8 @@ class GiacFunction(Pygen):
      EXAMPLES::
 
          sage: from sage.libs.giac.giac import *
-         sage: libgiac.simplify(exp(I*pi/5)^3)  # simplify is a GiacFunction
-         rootof([[-1,-1+2*i,25+4*i,-7-30*i],[1,0,-30,40,5]])/32
+         sage: libgiac.simplify(exp(I*pi))  # simplify is a GiacFunction
+         -1
          sage: libgiac('a:=1')
          1
          sage: libgiac.purge('a')  # purge is not a GiacFunction
@@ -2114,8 +2114,6 @@ class GiacFunctionNoEV(Pygen):
      EXAMPLES::
 
          sage: from sage.libs.giac.giac import *
-         sage: libgiac.simplify(exp(I*pi/5)^3)  # simplify is a GiacFunction
-         rootof([[-1,-1+2*i,25+4*i,-7-30*i],[1,0,-30,40,5]])/32
          sage: libgiac('a:=1')
          1
          sage: libgiac.purge('a')  # purge is a GiacFunctionNoEV

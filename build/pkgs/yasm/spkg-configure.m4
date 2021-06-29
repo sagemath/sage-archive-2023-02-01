@@ -5,7 +5,7 @@ SAGE_SPKG_CONFIGURE(
     [AC_MSG_CHECKING([for yasm supporting the adox instruction])
      AC_PATH_PROGS_FEATURE_CHECK([YASM], [yasm],
         [[{ echo "BITS 64"; echo "adox rax, rax"; } | ${ac_path_YASM} - -o /dev/null >/dev/null 2>/dev/null &&
-                ac_cv_path_YASM=${ac_path_YASM}
+                ac_cv_path_YASM=${ac_path_YASM} &&
                 ac_path_YASM_found=:
         ]],
         [sage_spkg_install_yasm=yes; ac_cv_path_YASM=no])

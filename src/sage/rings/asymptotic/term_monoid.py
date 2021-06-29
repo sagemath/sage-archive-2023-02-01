@@ -1821,8 +1821,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             except (ValueError, TypeError) as e:
                 raise combine_exceptions(
                     ValueError('Growth %s is not in %s.' % (data, self)), e)
-            else:
-                return self._create_element_(data, coefficient, **kwds)
+            return self._create_element_(data, coefficient, **kwds)
 
         try:
             growth, coefficient = self._split_growth_and_coefficient_(data)
@@ -4095,7 +4094,7 @@ class BTerm(TermWithCoefficient):
 
     def can_absorb(self, other):
         r"""
-        Check whether this `B`-term can absorb ``other``.
+        Check whether this `BTerm` can absorb ``other``.
 
         INPUT:
 

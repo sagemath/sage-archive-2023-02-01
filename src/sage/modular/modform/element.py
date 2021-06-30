@@ -52,6 +52,7 @@ from sage.rings.fast_arith import prime_range
 from sage.rings.morphism import RingHomomorphism
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.structure.element import coercion_model, ModuleElement, Element
+from sage.structure.richcmp import richcmp, op_NE, op_EQ
 
 
 def is_ModularFormElement(x):
@@ -3169,7 +3170,7 @@ class GradedModularFormElement(ModuleElement):
             True
             sage: M(1/2).is_zero()
             False
-            sage: E6 = ModularForms(1,6).0
+            sage: E6 = M.1
             sage: M(E6).is_zero()
             False
         """
@@ -3186,8 +3187,8 @@ class GradedModularFormElement(ModuleElement):
             True
             sage: M(2).is_one()
             False
-            sage: E6 = ModularForms(1,6).0
-            sage: M(E6).is_one()
+            sage: E6 = M.0
+            sage: E6.is_one()
             False
         """
         return len(self._forms_dictionary) == 1 and self[0].is_one()
@@ -3199,7 +3200,7 @@ class GradedModularFormElement(ModuleElement):
         EXAMPLES::
 
             sage: M = ModularFormsRing(1)
-            sage: E4 = M(ModularForms(1,4).0)
+            sage: E4 = M.0
             sage: E4.group()
             Modular Group SL(2,Z)
             sage: M5 = ModularFormsRing(Gamma1(5))
@@ -3222,11 +3223,11 @@ class GradedModularFormElement(ModuleElement):
             0
             sage: M(5/7).q_expansion()
             5/7
-            sage: E4 = ModularForms(1, 4).0; E4
+            sage: E4 = M.0; E4
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
-            sage: E6 = ModularForms(1, 6).0; E6
+            sage: E6 = M.1; E6
             1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)
-            sage: F = M(E4) + M(E6); F
+            sage: F = E4 + E6; F
             2 - 264*q - 14472*q^2 - 116256*q^3 - 515208*q^4 - 1545264*q^5 + O(q^6)
             sage: F.q_expansion()
             2 - 264*q - 14472*q^2 - 116256*q^3 - 515208*q^4 - 1545264*q^5 + O(q^6)
@@ -3446,14 +3447,29 @@ class GradedModularFormElement(ModuleElement):
             True
             sage: M(1) == M(2)
             False
-            sage: E4 = ModularForms(1,4).0
-            sage: M(E4) == M(E4)
+            sage: E4 = M.0
+            sage: E4 == E4
             True
-            sage: E6 = ModularForms(1,6).0
-            sage: M(E4) == M(E6)
+            sage: E6 = M.1
+            sage: E4 == E6
             False
+            sage: E4 != E6
+            True
+            sage: E4 < E6
+            Traceback (most recent call last):
+            ...
+            TypeError: invalid comparison between modular forms ring elements
+            sage: E4 > 6
+            Traceback (most recent call last):
+            ...
+            TypeError: invalid comparison between modular forms ring elements
+            sage: E4 <= E6
+            Traceback (most recent call last):
+            ...
+            TypeError: invalid comparison between modular forms ring elements
         """
-        from sage.structure.richcmp import richcmp
+        if op != op_EQ and op != op_NE:
+            raise TypeError('invalid comparison between modular forms ring elements')
         return richcmp(self._forms_dictionary, other._forms_dictionary, op)
 
     def weight(self):
@@ -3500,8 +3516,7 @@ class GradedModularFormElement(ModuleElement):
         EXAMPLES::
 
             sage: M = ModularFormsRing(1)
-            sage: e4 = ModularForms(1, 4).0; e6 = ModularForms(1, 6).0;
-            sage: E4 = M(e4); E6 = M(e6);
+            sage: E4 = M.0; E6 = M.1;
             sage: E4.is_homogeneous()
             True
             sage: F = E4 + E6 # Not a modular form

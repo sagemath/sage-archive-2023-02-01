@@ -1502,28 +1502,38 @@ def compositions_mod(u, m, r=0, multidimensional=False):
     EXAMPLES::
 
         sage: from sage.geometry.polyhedron.generating_function import compositions_mod
+        sage: def show_cm(cm):
+        ....:     print(', '.join('({})'.format(
+        ....:                     ', '.join('{}mod{}'.format(aa, aa.modulus())
+        ....:                               for aa in a))
+        ....:                     for a in cm))
 
         sage: list(compositions_mod([1, 1], 2))
         [(0, 0), (1, 1)]
-        sage: list(compositions_mod([1, 2, 3], 6))
-        [(0, 0, 0), (1, 1, 1), (2, 2, 0), (3, 0, 1), (4, 1, 0), (5, 2, 1)]
-        sage: list(compositions_mod([2, 2, 2], 6))
-        [(0, 0, 0), (0, 1, 2), (0, 2, 1), (1, 0, 2),
-         (1, 1, 1), (1, 2, 0), (2, 0, 1), (2, 1, 0), (2, 2, 2)]
+        sage: show_cm(compositions_mod([1, 1], 2))
+        (0mod2, 0mod2), (1mod2, 1mod2)
+        sage: show_cm(compositions_mod([1, 2, 3], 6))
+        (0mod6, 0mod3, 0mod2), (1mod6, 1mod3, 1mod2), (2mod6, 2mod3, 0mod2),
+        (3mod6, 0mod3, 1mod2), (4mod6, 1mod3, 0mod2), (5mod6, 2mod3, 1mod2)
+        sage: show_cm(compositions_mod([2, 2, 2], 6))
+        (0mod3, 0mod3, 0mod3), (0mod3, 1mod3, 2mod3), (0mod3, 2mod3, 1mod3),
+        (1mod3, 0mod3, 2mod3), (1mod3, 1mod3, 1mod3), (1mod3, 2mod3, 0mod3),
+        (2mod3, 0mod3, 1mod3), (2mod3, 1mod3, 0mod3), (2mod3, 2mod3, 2mod3)
 
     ::
 
-        sage: list(compositions_mod([(1, 0), (0, 1)], 2,
+        sage: show_cm(compositions_mod([(1, 0), (0, 1)], 2,
         ....:                       multidimensional=True))
-        [(0, 0)]
-        sage: list(compositions_mod([(1, 2), (2, 2), (3, 2)], 6,
+        (0mod2, 0mod2)
+        sage: show_cm(compositions_mod([(1, 2), (2, 2), (3, 2)], 6,
         ....:                       multidimensional=True))
-        [(0, 0, 0), (1, 1, 1), (2, 2, 2), (3, 0, 3), (4, 1, 4), (5, 2, 5)]
+        (0mod6, 0mod3, 0mod6), (1mod6, 1mod3, 1mod6), (2mod6, 2mod3, 2mod6),
+        (3mod6, 0mod3, 3mod6), (4mod6, 1mod3, 4mod6), (5mod6, 2mod3, 5mod6)
 
     TESTS::
 
-        sage: list(compositions_mod([1, 0], 2))
-        [(0, 0)]
+        sage: show_cm(compositions_mod([1, 0], 2))
+        (0mod2, 0mod1)
     """
     from sage.arith.functions import lcm
     from sage.arith.srange import srange

@@ -348,6 +348,44 @@ def generating_function_of_integral_points(polyhedron, split=False,
         sage: sum(S) == G.value()
         True
 
+    We show the distinct polyhedra that are used when ``split=True`` and the
+    resulting polyhedra that are used in the individual computations::
+
+        sage: import logging
+        sage: logging.basicConfig(level=logging.INFO)
+        sage: sum(generating_function_of_integral_points(P2[1], sort_factors=True,
+        ....:                                            split=True))
+        ...
+        INFO:sage.geometry.polyhedron.generating_function:(1/6) split polyhedron by b0 <= b1 <= b2
+        INFO:sage.geometry.polyhedron.generating_function:using polyhedron
+            b0 >= 0
+            b1 >= b0
+            b2 >= b1
+        ...
+        INFO:sage.geometry.polyhedron.generating_function:(2/6) split polyhedron by b0 <= b2 < b1
+        INFO:sage.geometry.polyhedron.generating_function:using polyhedron
+            b2 >= b0
+            b1 >= b2 + 1
+            b0 >= 0
+        ...
+        INFO:sage.geometry.polyhedron.generating_function:(3/6) split polyhedron by b1 < b0 <= b2
+        INFO:sage.geometry.polyhedron.generating_function:using polyhedron
+            b2 >= b0
+            b1 >= 0
+            b0 >= b1 + 1
+        ...
+        INFO:sage.geometry.polyhedron.generating_function:(4/6) split polyhedron by b1 <= b2 < b0
+        INFO:sage.geometry.polyhedron.generating_function:using polyhedron
+            0 == 1
+        INFO:sage.geometry.polyhedron.generating_function:(5/6) split polyhedron by b2 < b0 <= b1
+        INFO:sage.geometry.polyhedron.generating_function:using polyhedron
+            0 == 1
+        INFO:sage.geometry.polyhedron.generating_function:(6/6) split polyhedron by b2 < b1 < b0
+        INFO:sage.geometry.polyhedron.generating_function:using polyhedron
+            0 == 1
+        1/(-y0*y1*y2^2 + y0*y1*y2 + y0*y2^2 - y0*y2 + y1*y2 - y1 - y2 + 1)
+        sage: logging.disable()
+
     ::
 
         sage: generating_function_of_integral_points(

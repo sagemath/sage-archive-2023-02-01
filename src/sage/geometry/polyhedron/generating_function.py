@@ -1471,7 +1471,7 @@ class TransformMod(TransformHrepresentation):
 
 def compositions_mod(u, m, r=0, multidimensional=False):
     r"""
-    Return an iterable of tuples `a` such that `a u^T \equiv r \mod m`.
+    Return an iterable of all tuples `a` such that `a u^T \equiv r \mod m`.
 
     INPUT:
 

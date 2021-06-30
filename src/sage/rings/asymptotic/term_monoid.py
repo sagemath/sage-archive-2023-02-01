@@ -3997,8 +3997,7 @@ class BTerm(TermWithCoefficient):
 
         sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
         sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
-        sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-        sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
         sage: G = MonomialGrowthGroup(ZZ, 'x');
         sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
@@ -4023,8 +4022,7 @@ class BTerm(TermWithCoefficient):
         TESTS::
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
@@ -4080,8 +4078,7 @@ class BTerm(TermWithCoefficient):
 
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
@@ -4117,28 +4114,36 @@ class BTerm(TermWithCoefficient):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
             sage: BT = TermMonoid('B', GrowthGroup('x^ZZ'), QQ)
             sage: t1 = BT(x^3, 3, valid_from={'x': 20})
             sage: t2 = BT(x^2, 1, valid_from={'x': 10})
+            sage: t3 = BT(x^3, 10, valid_from={'x': 10})
             sage: t1.can_absorb(t2)
             True
             sage: t2.can_absorb(t1)
+            False
+            sage: t1.can_absorb(t3)
+            True
+            sage: t3.can_absorb(t1)
             True
 
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = BTermMonoid(TermMonoid, G, QQ)
             sage: t1 = BT(x, 3, valid_from={'x': 20}); t2 = BT(x^3, 5, valid_from={'x': 5})
+            sage: t3 = BT(x^3, 10, valid_from={'x': 10})
             sage: t2.absorb(t1)
             BTerm with coefficient 2003/400, growth x^3 and valid for x >= 20
+            sage: t2.absorb(t3)
+            BTerm with coefficient 15, growth x^3 and valid for x >= 10
+            sage: t3.absorb(t2)
+            BTerm with coefficient 15, growth x^3 and valid for x >= 10
         """
         if not isinstance(other, BTerm):
             return False
@@ -4147,7 +4152,10 @@ class BTerm(TermWithCoefficient):
 
         for key in self.valid_from.keys():
             if key in other.valid_from.keys():
-                return True
+                if self.growth >= other.growth:
+                    return True
+                else:
+                    return False
             else:
                 return False
 
@@ -4163,8 +4171,7 @@ class BTerm(TermWithCoefficient):
 
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = BTermMonoid(TermMonoid, G, QQ)
@@ -4174,8 +4181,6 @@ class BTerm(TermWithCoefficient):
             sage: t1.can_absorb(t2)
             True
             sage: t1.absorb(t2)
-            BTerm with coefficient 321/80, growth x^3 and valid for x >= 20
-            sage: t2.absorb(t1)
             BTerm with coefficient 321/80, growth x^3 and valid for x >= 20
         """
         variable_name = next(iter(self.valid_from))
@@ -4208,8 +4213,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
         sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
         sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
-        sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-        sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
         sage: G = MonomialGrowthGroup(ZZ, 'x')
         sage: BT = BTermMonoid(TermMonoid, G, QQ)
@@ -4235,8 +4239,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: TermMonoid('B', G, QQ)._repr_()
             'BTerm Monoid x^ZZ with coefficients in Rational Field'
@@ -4262,7 +4265,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
 
     - :class:`OTermMonoid`,
 
-    - :class:`ExactTermMonoid`.
+    - :class:`ExactTermMonoid`,
 
     - :class:`BTermMonoid`.
 
@@ -4274,7 +4277,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
 
     - ``term_monoid`` -- the kind of terms held in the new term monoid.
       Either a string ``'exact'``, ``'O'`` (capital letter ``O``) or
-      ``'B'`` (capital letter ``B``) or an existing instance of a term
+      ``'B'`` or an existing instance of a term
       monoid.
 
     - ``growth_group`` -- a growth group or

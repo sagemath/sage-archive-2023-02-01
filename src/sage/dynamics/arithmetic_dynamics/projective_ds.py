@@ -4687,18 +4687,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
-            sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
-            sage: f.sigma_invariants(1, return_polynomial=True, chow=True)
-            w^7 - 7*w^6*t^2 + 10*w^6*t - 4*w^6 + 21*w^5*t^4 - 60*w^5*t^3 + 60*w^5*t^2 -
-            24*w^5*t - 35*w^4*t^6 + 150*w^4*t^5 - 240*w^4*t^4 + 176*w^4*t^3 - 48*w^4*t^2
-            + 35*w^3*t^8 - 200*w^3*t^7 + 440*w^3*t^6 - 464*w^3*t^5 + 224*w^3*t^4 - 32*w^3*t^3
-            - 21*w^2*t^10 + 150*w^2*t^9 - 420*w^2*t^8 + 576*w^2*t^7 - 384*w^2*t^6 + 96*w^2*t^5
-            + 7*w*t^12 - 60*w*t^11 + 204*w*t^10 - 344*w*t^9 + 288*w*t^8 - 96*w*t^7 - t^14 +
-            10*t^13 - 40*t^12 + 80*t^11 - 80*t^10 + 32*t^9
-
-        ::
-
             sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
             sage: f = DynamicalSystem_projective([x^2, w^2, z^2, y^2])
             sage: f.sigma_invariants(1, return_polynomial=True)

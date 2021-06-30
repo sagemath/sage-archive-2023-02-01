@@ -158,9 +158,19 @@ class HyperellipticJacobian_generic(Jacobian_generic):
     ####################################################################
 
     def endomorphism_ring(self):
-        r"""
+        """
         The ring of endomorphisms of this Jacobian which are defined over
         the base field.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^6 + 78*x^5 + 16*x^2 + x + 8
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E
+            Endomorphism ring of Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^6 + 78*x^5 + 16*x^2 + x + 8
         """
 
         try:
@@ -171,7 +181,50 @@ class HyperellipticJacobian_generic(Jacobian_generic):
         return self.__endomorphism_ring
 
     def is_generic(self, B=200):
-        return self.endomorphism_ring().is_absolutely_trivial(B=B)
+        r"""
+        Returns whether the absolute endomorphism algebra of self is the
+        integer ring `\ZZ`.
 
-    def is_absolutely_simple(self,B=200):
-        return self.endomorphism_ring().is_absolutely_field(B=B)
+        INPUT:
+
+        - ``B`` -- the bound which appears in the statement of the algorithm
+        from Lombardo's paper. Defaults to 200.
+
+        OUTPUT:
+
+            (bool): boolean indicating whether or not the absolute endomorphism
+            ring is isomorphic to the integer ring.
+
+        EXAMPLES::
+
+        This is LMFDB curve 603.a.603.2
+
+            sage: R.<x> = QQ[]
+            sage: f = 4*x^5 + x^4 - 4*x^3 + 2*x^2 + 4*x + 1
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E.is_absolutely_trivial()
+            True
+
+        This is LMFDB curve 1152.a.147456.1 whose absolute endomorphism ring
+        is isomorphic to the group of 2x2 matrices over `\QQ`.
+
+            sage: f = x^6 - 2*x^4 + 2*x^2 - 1
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E.is_absolutely_trivial()
+            False
+
+        This is LMFDB curve 20736.k.373248.1 whose absolute endomorphism ring
+        is isomorphic to the group of 2x2 matrices over a CM field.
+
+            sage: f = x^6 + 8
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E.is_absolutely_trivial()
+            False
+        """
+        return self.endomorphism_ring().is_absolutely_trivial(B=B)

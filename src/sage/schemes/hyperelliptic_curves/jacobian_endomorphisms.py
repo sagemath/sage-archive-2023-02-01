@@ -3,8 +3,8 @@ r"""
 Endomorphism rings of Jacobians of hyperelliptic curves.
 
 Given the Jacobian `J` of a hyperelliptic curve over a number field `K`,
-the class ``EndomorphismRing`` constructs the ring of endomorphisms of J
-which are defined over `K`.
+the class ``EndomorphismRing`` constructs the ring `\textup{End}_{K}(J)`
+of endomorphisms of J which are defined over `K`.
 
 Currently the only functionality is for genus 2 curves over the rational
 numbers `\QQ`, for which there are two methods associated to an instance
@@ -13,12 +13,12 @@ numbers `\QQ`, for which there are two methods associated to an instance
 - ``is_absolutely_field(E)``
 - ``is_absolutely_trivial(E)``
 
-``is_absolutely_field(E)`` determines whether the endomorphism algebra (which
-is the endomorphism ring tensored with `\QQ`) is a field.
+``is_absolutely_field(E)`` determines whether the absolute endomorphism
+algebra \textup{End}_{\overline{K}}(J) \otimes \QQ` is a field.
 
-``is_absolutely_trivial(E)`` determines whether the endomorphism ring is
-equal to the integer ring `\ZZ`. If this is the case, one says that `J` is
-``generic``.
+``is_absolutely_trivial(E)`` determines whether the absolute endomorphism ring
+`\textup{End}_{\overline{K}}(J)` is equal to the integer ring `\ZZ`. If this
+is the case, one says that `J` is ``generic``.
 
 Both of these are important attributes of the Jacobian J.
 
@@ -32,26 +32,23 @@ EXAMPLES::
 Here is an example of a generic Jacobian; the LMFDB label of the curve is
 249.a.249.1::
 
+    sage: R.<x> = QQ[]
     sage: f = x^6 + 2*x^3 + 4*x^2 + 4*x + 1
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
     sage: E = A.endomorphism_ring()
     sage: E.is_absolutely_trivial()
     True
-    sage: E.is_absolutely_simple()
-    True
 
 Here is an example of a Jacobian whose endomorphism algebra is a field but not
 the rational number field; the LMFDB label of the curve is 529.a.529.1::
 
-    sage: f = y^2 = x^6 - 4*x^5 + 2*x^4 + 2*x^3 + x^2 + 2*x + 1
+    sage: f = x^6 - 4*x^5 + 2*x^4 + 2*x^3 + x^2 + 2*x + 1
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
     sage: E = A.endomorphism_ring()
     sage: E.is_absolutely_trivial()
     False
-    sage: E.is_absolutely_simple()
-    True
 
 Here is an example of a Jacobian whose endomorphism algebra is not a field;
 the LMFDB label of the curve is 169.a.169.1::
@@ -61,8 +58,6 @@ the LMFDB label of the curve is 169.a.169.1::
     sage: A = C.jacobian()
     sage: E = A.endomorphism_ring()
     sage: E.is_absolutely_trivial()
-    False
-    sage: E.is_absolutely_simple()
     False
 
 .. WARNING::
@@ -101,10 +96,23 @@ lazy_import('sage.interfaces.genus2reduction', ['genus2reduction', 'Genus2reduct
 
 
 def satisfies_coefficient_condition(g,p):
-    """This is the coefficient condition in the definition of Omega_K'
-    on page 912 of the published version of paper"""
+    """
+    This is the coefficient condition in the definition of Omega_K'
+    on page 912 of the published version of paper.
 
-    if g[0] != p^2:
+    EXAMPLES::
+
+        sage: from sage.schemes.hyperelliptic_curves.jacobian_endomorphisms import satisfies_coefficient_condition
+        sage: R.<x> = ZZ[]
+        sage: f = x^4 + x^3 + 17*x^2 + 5*x
+        sage: satisfies_coefficient_condition(f,17)
+        False
+        sage: f = x^4 + x^3 + 17*x^2 + 23*x + 23^2
+        sage: satisfies_coefficient_condition(f,23)
+        True
+    """
+
+    if g[0] != p**2:
         return False
     if g[3]*p != g[1]:
         return False
@@ -114,21 +122,54 @@ def satisfies_coefficient_condition(g,p):
 
 
 def get_is_geom_irred(f,C,bad_primes,B=200):
-    """Implements Algorithm 4.10 from the paper.
+    """
+    Implements Algorithm 4.10 from the paper.
 
     An additional optimisation comes from Part (2) of Theorem 4.8, from
     which we can conclude that the endomorphism ring is absolutely simple.
 
-    Args:
-        f (polynomial): Polynomial defining the curve
-        C ([HyperellipticCrv]): the curve
-        bad_primes (list): List of odd primes of bad reduction
-        B (int, optional): Bound in the algorithm. Defaults to 200.
+    INPUT:
 
-    Returns:
+    - ``f`` -- a polynomial defining the hyperelliptic curve.
+
+    - ``C`` -- the hyperelliptic curve.
+
+    - ``bad_primes`` -- the list of odd primes of bad reduction.
+
+    - ``B`` -- the bound which appears in the statement of the algorithm
+    from Lombardo's paper.
+
+    OUTPUT:
+
         (bool1, bool2): Pair of booleans. `bool1` indicates if the
-        endomorphism algebra is a field; `bool2` indicates if the
-        endomorphism algebra is the field of rational numbers.
+        absolute endomorphism algebra is a field; `bool2` indicates if the
+        absolute endomorphism algebra is the field of rational numbers.
+
+    EXAMPLES::
+
+    This is LMFDB curve 940693.a.960693.1
+
+        sage: from sage.schemes.hyperelliptic_curves.jacobian_endomorphisms import get_is_geom_irred
+        sage: R.<x> = QQ[]
+        sage: f = 4*x^6 - 12*x^5 + 20*x^3 - 8*x^2 - 4*x + 1
+        sage: C = HyperellipticCurve(f)
+        sage: get_is_geom_irred(f,C,[13,269])
+        (False, False)
+
+    This is LMFDB curve 3125.a.3125.1
+
+        sage: f = 4*x^5 + 1
+        sage: C = HyperellipticCurve(f)
+        sage: get_is_geom_irred(f,C,[5])
+        (True, False)
+
+    This is LMFDB curve 277.a.277.2
+
+        sage: f = 4*x^6 - 36*x^4 + 56*x^3 - 76*x^2 + 44*x - 23
+        sage: C = HyperellipticCurve(f)
+        sage: get_is_geom_irred(f,C,[277])
+        (True, True)
+
     """
 
     if C.has_odd_degree_model():
@@ -141,7 +182,7 @@ def get_is_geom_irred(f,C,bad_primes,B=200):
             f_new = 4*f_odd + h_odd**2
             if f_new.is_irreducible():
                 # i.e. the Jacobian is absolutely simple
-                f_disc_odd_prime_exponents = [v for _,v in f_new.discriminant().prime_to_S_part([2]).factor()]
+                f_disc_odd_prime_exponents = [v for _,v in f_new.discriminant().prime_to_S_part([ZZ(2)]).factor()]
                 if 1 in f_disc_odd_prime_exponents:
                     return (True, True)  # Theorem 4.8 (2)
                 return (True, False)  # Algorithm 4.10 Step 1
@@ -174,7 +215,43 @@ def get_is_geom_irred(f,C,bad_primes,B=200):
 
 
 def is_geom_trivial_when_field(C, bad_primes, B=200):
-    """Codes up Lombardo's Algorithm 4.15"""
+    """
+    Codes up Lombardo's Algorithm 4.15
+
+    This assumes that the Jacobian of the curve C is absolutely simple.
+
+    INPUT:
+
+    - ``C`` -- the hyperelliptic curve.
+
+    - ``bad_primes`` -- the list of odd primes of bad reduction.
+
+    - ``B`` -- the bound which appears in the statement of the algorithm
+    from Lombardo's paper.
+
+    OUTPUT:
+
+        (bool): boolean indicating whether or not the absolute endomorphism
+        algebra is a field
+
+    EXAMPLES::
+
+    This is LMFDB curve 461.a.461.2
+
+        sage: from sage.schemes.hyperelliptic_curves.jacobian_endomorphisms import is_geom_trivial_when_field
+        sage: R.<x> = QQ[]
+        sage: f = 4*x^5 - 4*x^4 - 156*x^3 + 40*x^2 + 1088*x - 1223
+        sage: C = HyperellipticCurve(f)
+        sage: is_geom_trivial_when_field(C,[461])
+        True
+
+    This is LMFDB curve 4489.a.4489.1
+
+        sage: f = x^6 + 4*x^5 + 2*x^4 + 2*x^3 + x^2 - 2*x + 1
+        sage: C = HyperellipticCurve(f)
+        sage: is_geom_trivial_when_field(C,[67])
+        False
+    """
 
     running_gcd = 0
     R = PolynomialRing(ZZ,2,"xv")
@@ -201,11 +278,9 @@ class EndomorphismRing(SageObject):
     The ring of endomorphisms of this Jacobian which are defined over the
     base field.
 
-    More text here.
-
     EXAMPLES::
 
-        sage: R.<x>=QQ[]
+        sage: R.<x> = QQ[]
         sage: f = x**5 + 17
         sage: C = HyperellipticCurve(f)
         sage: J = C.jacobian()
@@ -216,7 +291,17 @@ class EndomorphismRing(SageObject):
 
     def __init__(self, A):
         r"""
-        see ``EndomorphismRing`` for documentation
+        See ``EndomorphismRing`` for documentation.
+
+        EXAMPLES::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^6 - 2*x^4 + 6*x^3 + x + 57
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E
+            Endomorphism ring of Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^6 - 2*x^4 + 6*x^3 + x + 57
         """
         self._A = A
         self._have_established_absolutely_field = False
@@ -224,18 +309,61 @@ class EndomorphismRing(SageObject):
 
     def __repr__(self):
         r"""
-        string representation of the class
+        String representation of endomorphism ring.
 
         EXAMPLES::
 
-            sage: rho = EllipticCurve([0,1]).galois_representation()
-            sage: rho
-            Compatible family of Galois representations associated to the Elliptic Curve defined by y**2 = x**3 + 1 over Rational Field
+            sage: R.<x> = QQ[]
+            sage: f = x^6 + 78*x^5 + 16*x^2 + x + 7
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E
+            Endomorphism ring of Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^6 + 78*x^5 + 16*x^2 + x + 7
 
         """
         return "Endomorphism ring of " + repr(self._A)
 
     def is_absolutely_field(self, B=200):
+        """
+        Returns whether the absolute endomorphism algebra is a field.
+
+        This implies that the Jacobian of the curve is absolutely
+        simple. It is based on Algorithm 4.10 from Lombardo's paper.
+
+        INPUT:
+
+        - ``B`` -- the bound which appears in the statement of the algorithm
+        from Lombardo's paper. Defaults to 200.
+
+        OUTPUT:
+
+            (bool): boolean indicating whether or not the absolute endomorphism
+            algebra is a field
+
+        EXAMPLES::
+
+        This is LMFDB curve 262144.d.524288.2 which has QM. Although its
+        Jacobian is absolutely simple, the absolute endomorphism algebra
+        is not a field.
+
+            sage: R.<x> = QQ[]
+            sage: f = x^5 + x^4 + 4*x^3 + 8*x^2 + 5*x + 1
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E.is_absolutely_field()
+            False
+
+        This is LMFDB curve 50000.a.200000.1
+
+            sage: f = 8*x^5 + 1
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E.is_absolutely_field()
+            True
+        """
         if self._have_established_absolutely_field:
             return True
         C = self._A.curve()
@@ -261,7 +389,72 @@ class EndomorphismRing(SageObject):
         return False
 
     def is_absolutely_trivial(self, B=200):
+        r"""
+        Returns whether the absolute endomorphism algebra is the integer
+        ring `\ZZ`.
 
+        INPUT:
+
+        - ``B`` -- the bound which appears in the statement of the algorithm
+        from Lombardo's paper. Defaults to 200.
+
+        OUTPUT:
+
+            (bool): boolean indicating whether or not the absolute endomorphism
+            ring is isomorphic to the integer ring.
+
+        EXAMPLES::
+
+        This is LMFDB curve 708.a.181248.1
+
+            sage: R.<x> = QQ[]
+            sage: f = -3*x^6 - 16*x^5 + 36*x^4 + 194*x^3 - 164*x^2 - 392*x - 143
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E.is_absolutely_trivial()
+            True
+
+        This is LMFDB curve 10609.a.10609.1 whose absolute endomorphism ring
+        is an order in a real quadratic field.
+
+            sage: f = x^6 + 2*x^4 + 2*x^3 + 5*x^2 + 6*x + 1
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E.is_absolutely_trivial()
+            False
+
+        This is LMFDB curve 160000.c.800000.1 whose absolute endomorphism ring
+        is an order in a CM field.
+
+            sage: f = x^5 - 1
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E.is_absolutely_trivial()
+            False
+
+        This is LMFDB curve 262144.d.524288.2 whose absolute endomorphism ring
+        is an order in a quaternion algebra.
+
+            sage: f = x^5 + x^4 + 4*x^3 + 8*x^2 + 5*x + 1
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E.is_absolutely_trivial()
+            False
+
+        This is LMFDB curve 578.a.2312.1 whose absolute endomorphism ring
+        is `\QQ \times \QQ`.
+
+            sage: f = 4*x^5 - 7*x^4 + 10*x^3 - 7*x^2 + 4*x
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: E = J.endomorphism_ring()
+            sage: E.is_absolutely_trivial()
+            False
+        """
         if self._have_established_absolutely_trivial:
             return True
         is_abs_simple = self.is_absolutely_field()

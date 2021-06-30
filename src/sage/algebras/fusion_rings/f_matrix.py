@@ -78,7 +78,10 @@ class FMatrix():
         :class:`FusionRing` captures much information about a fusion
         category, but to complete the picture, the F-matrices or
         6j-symbols are needed. For example these are required in
-        order to construct braid group representations.
+        order to construct braid group representations. This
+        can be done using the :class:`FusionRing` method
+        :meth:`FusionRing.get_braid_generators`, which uses
+        the F-matrix.
 
         We only undertake to compute the F-matrix if the
         :class:`FusionRing` is *multiplicity free* meaning that

@@ -3081,7 +3081,7 @@ class GradedModularFormElement(ModuleElement):
         r"""
         An element of a graded ring of modular forms.
 
-        INPUTS:
+        INPUT:
 
         - ``parents`` - an object of the class ModularFormsRing
         - ``forms_data`` - a dictionary ``{k_1:f_1, k_2:f_2, ..., k_n:f_n}`` or a list [f_1, f_2,..., f_n]
@@ -3173,7 +3173,7 @@ class GradedModularFormElement(ModuleElement):
             sage: M(E6).is_zero()
             False
         """
-        return not len(self._forms_dictionary) #the dictionnary is empty if the form is zero
+        return not self
     
     def is_one(self):
         r"""
@@ -3190,7 +3190,7 @@ class GradedModularFormElement(ModuleElement):
             sage: M(E6).is_one()
             False
         """
-        return len(self._forms_dictionary) == 1 and self[0] == 1
+        return len(self._forms_dictionary) == 1 and self[0].is_one()
 
     def group(self):
         r"""
@@ -3274,8 +3274,19 @@ class GradedModularFormElement(ModuleElement):
             0
             sage: F.homogeneous_component(4)
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+
+        TESTS::
+
+            sage: M = ModularFormsRing(1)
+            sage: f = M.0
+            sage: f['a']
+            Traceback (most recent call last):
+            ...
+            KeyError: 'the weight should be an integer'
         """
-        return self._forms_dictionary.get(weight, self.parent().zero()) #TODO: fix the error E4 + QQ(0)
+        if not isinstance(weight, (int, Integer)):
+            raise KeyError("the weight should be an integer")
+        return self._forms_dictionary.get(weight, self.parent().zero())
     homogeneous_component = __getitem__ #alias
 
     def __call__(self, x, prec=None):

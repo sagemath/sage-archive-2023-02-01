@@ -177,7 +177,7 @@ class ModularFormsRing(Parent):
         The ring of modular forms (of weights 0 or at least 2) for a congruence
         subgroup of `{\rm SL}_2(\ZZ)`, with coefficients in a specified base ring.
 
-        INPUTS:
+        INPUT:
 
         - ``group`` -- a congruence subgroup of `{\rm SL}_2(\ZZ)`, or a
           positive integer `N` (interpreted as `\Gamma_0(N)`)
@@ -229,7 +229,8 @@ class ModularFormsRing(Parent):
         .. TODO::
 
             - Add graded modular forms over non-trivial Dirichlet character;
-            - makes gen_forms returns modular forms over base rings other than `QQ`.
+            - makes gen_forms returns modular forms over base rings other than `QQ`;
+            - implement binary operations between two forms with different groups.
         """
         if isinstance(group, (int, Integer)):
             group = Gamma0(group)
@@ -276,7 +277,7 @@ class ModularFormsRing(Parent):
         r"""
         Return the `i`-th generator of ``self``.
 
-        INPUT:
+        INPUT::
 
         - ``i`` (Integer) - correspond to the `i`-th modular form generating the ``ModularFormsRing``.
 
@@ -429,7 +430,7 @@ class ModularFormsRing(Parent):
             sage: E4 * u
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
         """
-        return self.element_class(self, {0:1})
+        return self.element_class(self, {0: self.base_ring().one()})
 
     def _coerce_map_from_(self, M):
         r"""

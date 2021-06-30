@@ -52,11 +52,18 @@ from sage.misc.flatten import flatten
 from sage.groups.free_group import FreeGroup
 from sage.misc.misc_c import prod
 from sage.rings.complex_mpfr import ComplexField
+from sage.rings.real_mpfr import RealField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.combinat.permutation import Permutation
 from sage.functions.generalized import sign
 from sage.combinat.subset import Subsets
+from sage.geometry.voronoi_diagram import VoronoiDiagram
+from sage.graphs.graph import Graph
+from sage.misc.cachefunc import cached_function
+from copy import deepcopy
 
+
+roots_interval_cache = dict()
 
 def braid_from_piecewise(strands):
     r"""
@@ -166,10 +173,10 @@ def discrim(f):
 
     EXAMPLES::
 
-        sage: from sage.schemes.curves.zariski_vankampen import discrim # optional - sirocco
+        sage: from sage.schemes.curves.zariski_vankampen import discrim
         sage: R.<x,y> = QQ[]
         sage: f = (y^3 + x^3 - 1) * (x + y)
-        sage: discrim(f) # optional - sirocco
+        sage: discrim(f)
         [1,
         -0.500000000000000? - 0.866025403784439?*I,
         -0.500000000000000? + 0.866025403784439?*I]
@@ -179,6 +186,62 @@ def discrim(f):
     poly = F[x](f.discriminant(y)).radical()
     return poly.roots(QQbar, multiplicities=False)
 
+@cached_function
+def corrected_voronoi_diagram(points):
+    r"""
+    compute a Voronoi diagram of a set of points with rational coordinates, such
+    that the given points are granted to lie one in each bounded region.
+
+    INPUT:
+
+    - ``points`` -- a list of complex numbers.
+
+    OUTPUT:
+
+    A VoronoiDiagram constructed from rational approximations of the points,
+    with the guarantee that each bounded region contains exactly one of the
+    input points.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.curves.zariski_vankampen import corrected_voronoi_diagram
+        sage: points = (2, I, 0.000001, 0, 0.000001*I)
+        sage: V = corrected_voronoi_diagram(points)
+        sage: V
+        The Voronoi diagram of 9 points of dimension 2 in the Rational Field
+        sage: V.regions()
+        {P(-7, 0): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices and 2 rays,
+        P(0, -7): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices and 2 rays,
+        P(0, 0): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices,
+        P(0, 1): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices,
+        P(0, 1/1000000): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 4 vertices,
+        P(0, 7): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 3 vertices and 2 rays,
+        P(1/1000000, 0): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices,
+        P(2, 0): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices,
+        P(7, 0): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 2 rays}
+
+
+    """
+    prec = 53
+    point_coordinates = [(p.real(), p.imag()) for p in points]
+    while True:
+        RF = RealField(prec)
+        apprpoints = {(QQ(RF(p[0])), QQ(RF(p[1]))):p for p in point_coordinates}
+        added_points = 3 * max(map(abs, flatten(apprpoints))) + 1
+        configuration = list(apprpoints.keys())+[(added_points, 0),
+                                               (-added_points, 0),
+                                               (0, added_points),
+                                               (0, -added_points)]
+        V = VoronoiDiagram(configuration)
+        valid = True
+        for r in V.regions().items():
+            if not r[1].rays() and not apprpoints[r[0].affine()] in r[1]:
+                prec += 53
+                valid = False
+                break
+        if valid:
+            break
+    return V
 
 def segments(points):
     """
@@ -195,45 +258,42 @@ def segments(points):
 
     EXAMPLES::
 
-        sage: from sage.schemes.curves.zariski_vankampen import discrim, segments # optional - sirocco
+        sage: from sage.schemes.curves.zariski_vankampen import discrim, segments
         sage: R.<x,y> = QQ[]
         sage: f = y^3 + x^3 - 1
-        sage: disc = discrim(f) # optional - sirocco
-        sage: segments(disc) # optional - sirocco # abs tol 1e-15
-        [(-2.84740787203333 - 2.84740787203333*I,
-        -2.14285714285714 + 1.11022302462516e-16*I),
-        (-2.84740787203333 + 2.84740787203333*I,
-        -2.14285714285714 + 1.11022302462516e-16*I),
-        (2.50000000000000 + 2.50000000000000*I,
-        1.26513881334184 + 2.19128470333546*I),
-        (2.50000000000000 + 2.50000000000000*I,
-        2.50000000000000 - 2.50000000000000*I),
-        (1.26513881334184 + 2.19128470333546*I, 0.000000000000000),
-        (0.000000000000000, 1.26513881334184 - 2.19128470333546*I),
-        (2.50000000000000 - 2.50000000000000*I,
-        1.26513881334184 - 2.19128470333546*I),
-        (-2.84740787203333 + 2.84740787203333*I,
-        1.26513881334184 + 2.19128470333546*I),
-        (-2.14285714285714 + 1.11022302462516e-16*I, 0.000000000000000),
-        (-2.84740787203333 - 2.84740787203333*I,
-        1.26513881334184 - 2.19128470333546*I)]
+        sage: disc = discrim(f)
+        sage: segments(disc)
+        [(-192951821525958031/67764026159052316*I - 192951821525958031/67764026159052316,
+        -144713866144468523/66040650000519163*I + 167101179147960739/132081300001038326),
+        (-192951821525958031/67764026159052316*I - 192951821525958031/67764026159052316,
+        -192951821525958031/90044183378780414),
+        (192951821525958031/67764026159052316*I - 192951821525958031/67764026159052316,
+        144713866144468523/66040650000519163*I + 167101179147960739/132081300001038326),
+        (-5/2*I + 5/2, 5/2*I + 5/2),
+        (1/38590364305191606,
+        -144713866144468523/66040650000519163*I + 167101179147960739/132081300001038326),
+        (-5/2*I + 5/2,
+        -144713866144468523/66040650000519163*I + 167101179147960739/132081300001038326),
+        (-192951821525958031/90044183378780414, 1/38590364305191606),
+        (-192951821525958031/90044183378780414,
+        192951821525958031/67764026159052316*I - 192951821525958031/67764026159052316),
+        (1/38590364305191606,
+        144713866144468523/66040650000519163*I + 167101179147960739/132081300001038326),
+        (5/2*I + 5/2,
+        144713866144468523/66040650000519163*I + 167101179147960739/132081300001038326)]
     """
-    from numpy import array, vstack
-    from scipy.spatial import Voronoi
-    discpoints = array([(CC(a).real(), CC(a).imag()) for a in points])
-    added_points = 3 * abs(discpoints).max() + 1.0
-    configuration = vstack([discpoints, array([[added_points, 0],
-                                               [-added_points, 0],
-                                               [0, added_points],
-                                               [0, -added_points]])])
-    V = Voronoi(configuration)
-    res = []
-    for rv in V.ridge_vertices:
-        if -1 not in rv:
-            p1 = CC(list(V.vertices[rv[0]]))
-            p2 = CC(list(V.vertices[rv[1]]))
-            res.append((p1, p2))
-    return res
+    V = corrected_voronoi_diagram(tuple(points))
+    res = set([])
+    for region in V.regions().values():
+        if region.rays():
+            continue
+        segments = region.facets()
+        for s in segments:
+            t = tuple((tuple(v.vector()) for v in s.vertices()))
+            if not t in res and not tuple(reversed(t)) in res:
+                res.add(t)
+    return [(r[0]+QQbar.gen()*r[1], s[0]+QQbar.gen()*s[1]) for (r, s) in res]
+
 
 
 def followstrand(f, factors, x0, x1, y0a, prec=53):
@@ -243,7 +303,8 @@ def followstrand(f, factors, x0, x1, y0a, prec=53):
 
     INPUT:
 
-    - ``f`` -- a polynomial in two variables
+    - ``f`` -- ann irreducible polynomial in two variables
+    - ``factors`` -- a list of irreducible polynomials in two variables
     - ``x0`` -- a complex value, where the homotopy starts
     - ``x1`` -- a complex value, where the homotopy ends
     - ``y0a`` -- an approximate solution of the polynomial `F(y) = f(x_0, y)`
@@ -258,7 +319,8 @@ def followstrand(f, factors, x0, x1, y0a, prec=53):
       is zero (or a good enough approximation)
     - the piecewise linear path determined by the points has a tubular
       neighborhood  where the actual homotopy continuation path lies, and
-      no other root intersects it.
+      no other root of `f`, nor any root of the polynomials in `factors`,
+      intersects it.
 
     EXAMPLES::
 
@@ -267,10 +329,18 @@ def followstrand(f, factors, x0, x1, y0a, prec=53):
         sage: f = x^2 + y^3
         sage: x0 = CC(1, 0)
         sage: x1 = CC(1, 0.5)
-        sage: followstrand(f, x0, x1, -1.0) # optional - sirocco # abs tol 1e-15
+        sage: followstrand(f, [], x0, x1, -1.0) # optional - sirocco # abs tol 1e-15
         [(0.0, -1.0, 0.0),
          (0.7500000000000001, -1.015090921153253, -0.24752813818386948),
          (1.0, -1.026166099551513, -0.32768940253604323)]
+        sage: fup = f.subs({y:y-1/10})
+        sage: fdown = f.subs({y:y+1/10})
+        sage: followstrand(f, [fup, fdown], x0, x1, -1.0)
+        [(0.0, -1.0, 0.0),
+         (0.5303300858899107, -1.0076747107983448, -0.17588022709184917),
+         (0.7651655429449553, -1.015686131039112, -0.25243563967299404),
+         (1.0, -1.026166099551513, -0.3276894025360433)]
+
     """
     if f.degree() == 1:
         CF = ComplexField(prec)
@@ -326,6 +396,119 @@ def followstrand(f, factors, x0, x1, y0a, prec=53):
     except Exception:
         return followstrand(f, factors, x0, x1, y0a, 2 * prec)
 
+def newton(f, x0, i0):
+    r"""
+    Return the interval Newton operator.
+
+    INPUT:
+
+    - ``f``` -- a univariate polynomial
+    - ``x0`` -- a number
+    - ``I0`` -- an interval
+
+    OUTPUT:
+
+    The interval `x_0-\frac{f(x_0)}{f'(I_0)}`
+
+
+    EXAMPLES::
+
+        sage: from sage.schemes.curves.zariski_vankampen import newton
+        sage: R.<x> = QQbar[]
+        sage: f = x^3 + x
+        sage: x0 = 1/10
+        sage: I0 = RIF((-1/5,1/5))
+        sage: n = newton(f, x0, I0)
+        sage: n
+        0.0?
+        sage: n.real().endpoints()
+        (-0.0147727272727274, 0.00982142857142862)
+        sage: n.imag().endpoints()
+        (0.000000000000000, -0.000000000000000)
+
+    """
+    return x0 - f(x0)/f.derivative()(i0)
+
+@parallel
+def roots_interval(f, x0):
+    """
+    Find disjoint intervals that isolate the roots of a polynomial for a fixed
+    value of the first variable.
+
+    INPUT:
+
+    - ``f`` -- a bivariate squarefree polynomial
+    - ``x0`` -- a value where the first coordinate will be fixed
+
+    The intervals are taken as big as possible to be able to detect when two
+    approximate roots of `f(x_0, y)` correspond to the same exact root.
+
+    The result is given as a dictionary, where the keys are approximations to the roots
+    with rational real and imaginary parts, and the values are intervals containing them.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.curves.zariski_vankampen import roots_interval
+        sage: R.<x,y> = QQ[]
+        sage: f = y^3 - x^2
+        sage: ri = roots_interval(f, 1)
+        sage: ri
+        {-138907099/160396102*I - 1/2: -1.? - 1.?*I,
+         138907099/160396102*I - 1/2: -1.? + 1.?*I,
+         1: 1.? + 0.?*I}
+        sage: [r.endpoints() for r in ri.values()]
+        [(0.566987298107781 - 0.433012701892219*I,
+          1.43301270189222 + 0.433012701892219*I,
+          0.566987298107781 + 0.433012701892219*I,
+          1.43301270189222 - 0.433012701892219*I),
+         (-0.933012701892219 - 1.29903810567666*I,
+          -0.0669872981077806 - 0.433012701892219*I,
+          -0.933012701892219 - 0.433012701892219*I,
+          -0.0669872981077806 - 1.29903810567666*I),
+         (-0.933012701892219 + 0.433012701892219*I,
+          -0.0669872981077806 + 1.29903810567666*I,
+          -0.933012701892219 + 1.29903810567666*I,
+          -0.0669872981077806 + 0.433012701892219*I)]
+
+    """
+    F = f.base_ring()
+    x, y = f.parent().gens()
+    I = QQbar.gen()
+    fx = QQbar[y](f.subs({x:QQ(x0.real())+I*QQ(x0.imag())}))
+    roots = fx.roots(QQbar, multiplicities=False)
+    result = {}
+    for i in range(len(roots)):
+        r = roots[i]
+        prec = 53
+        IF = ComplexIntervalField(prec)
+        CF = ComplexField(prec)
+        divisor = 4
+        diam = min([(CF(r)-CF(r0)).abs() for r0 in roots[:i]+roots[i+1:]])/divisor
+        envelop = diam*IF((-1,1),(-1,1))
+        while not newton(fx, r, r+envelop) in r+envelop:
+            prec += 53
+            IF = ComplexIntervalField(prec)
+            CF = ComplexField(prec)
+            divisor *=2
+            diam = min([(CF(r)-CF(r0)).abs() for r0 in roots[:i]+roots[i+1:]])/divisor
+            envelop = diam*IF((-1,1),(-1,1))
+        qapr = QQ(CF(r).real())+QQbar.gen()*QQ(CF(r).imag())
+        if not qapr in r+envelop:
+            raise ValueError("Could not approximate roots with exact values")
+        result[qapr] = r+envelop
+    return result
+
+def roots_interval_cached(f, x0):
+    r"""
+    Cached version of :func:`roots_interval`.
+    """
+    global roots_interval_cache
+    if (f,x0) in roots_interval_cache.keys():
+        return roots_interval_cache[(f,x0)]
+    else:
+        result = roots_interval(f,x0)
+        roots_interval_cache[(f,x0)] = result
+        return result
 
 
 @parallel
@@ -336,7 +519,7 @@ def braid_in_segment(g, x0, x1):
 
     INPUT:
 
-    - ``f`` -- a polynomial in two variables
+    - ``g`` -- a polynomial factorization in two variables
     - ``x0`` -- a complex number
     - ``x1`` -- a complex number
 
@@ -351,7 +534,7 @@ def braid_in_segment(g, x0, x1):
         sage: f = x^2 + y^3
         sage: x0 = CC(1,0)
         sage: x1 = CC(1, 0.5)
-        sage: braid_in_segment(f, x0, x1) # optional - sirocco
+        sage: braid_in_segment(f.factor(), x0, x1) # optional - sirocco
         s1
 
     TESTS:
@@ -367,9 +550,9 @@ def braid_in_segment(g, x0, x1):
         sage: g = f.subs({x: x + 2*y})
         sage: p1 = QQbar(sqrt(-1/3))
         sage: p2 = QQbar(1/2+sqrt(-1/3)/2)
-        sage: B = zvk.braid_in_segment(g,CC(p1),CC(p2)) # optional - sirocco
-        sage: B.left_normal_form()  # optional - sirocco
-        (1, s5)
+        sage: B = zvk.braid_in_segment(g.factor(),CC(p1),CC(p2)) # optional - sirocco
+        sage: B  # optional - sirocco
+        s5*s3^-1
     """
     (x, y) = g.value().parent().gens()
     I = QQbar.gen()
@@ -394,55 +577,322 @@ def braid_in_segment(g, x0, x1):
     strands = [followstrand(f[0], [p[0] for p in g if p[0]!= f[0]], x0, x1, i.center(), precision[f[0]]) for f in g for i in intervals[f[0]]]
     complexstrands = [[(QQ(a[0]), QQ(a[1]), QQ(a[2])) for a in b] for b in strands]
     centralbraid = braid_from_piecewise(complexstrands)
-    y0aps = [QQ(c[0][1])+QQbar.gen()*QQ(c[0][2]) for c in complexstrands]
-
-
-    CIF = ComplexIntervalField()
-    y0ints = QQbar[y](g.value()(X0,y)).roots(CIF, multiplicities=False)
     initialstrands = []
-    f = g.value()
-    for y0ap in y0aps:
-        dist, point = min([((y0ap-i.center()).abs(),i) for i in y0ints])
-        diam = max((point.real().absolute_diameter(), point.imag().absolute_diameter()))
-        y0api = y0ap + (dist+diam)*CIF((-1,1),(-1,1))
-        newton = y0ap -f(X0,y).change_ring(CIF)(0,y0ap)/f.derivative(y)(X0,y).change_ring(CIF)(0,y0api)
-        if newton in y0api and point in y0api:
-            initialstrands.append([(0, QQ(point.center().real()),QQ(point.center().imag())), (1, y0ap.real(), y0ap.imag())])
-        else:
-            print(y0ap)
-            print(y0api)
-            print(point)
-            print(newton)
-            print(dist)
-            print(diam)
-            print(point in y0api)
-            print(newton in y0api)
-            y0api2 = y0ap + 0.00025*(dist)*CIF((-1,1),(-1,1))
-            newton2 = y0ap -f(X0,y).change_ring(CIF)(0,y0ap)/f.derivative(y)(X0,y).change_ring(CIF)(0,y0api2)
-            print(newton2 in y0api2)
-            raise ValueError("could not ensure that gluing of segments is correct")
-    initialbraid = braid_from_piecewise(initialstrands)
-
-    y1aps = [QQ(c[-1][1])+QQbar.gen()*QQ(c[-1][2]) for c in complexstrands]
-    y1ints = QQbar[y](g.value()(X1,y)).roots(CIF, multiplicities=False)
     finalstrands = []
-    for y1ap in y1aps:
-        dist, point = min([((y1ap-i.center()).abs(),i) for i in y1ints])
-        diam = max((point.real().absolute_diameter(), point.imag().absolute_diameter()))
-        y1api = y1ap + (dist+diam)*CIF((-1,1),(-1,1))
-        newton = y1ap -f(X1,y).change_ring(CIF)(0,y1ap)/f.derivative(y)(x1,y).change_ring(CIF)(0,y1api)
-        if newton in y1api and point in y1api:
-            finalstrands.append([(0, y1ap.real(), y1ap.imag()), (1, QQ(point.center().real()),QQ(point.center().imag())) ])
-        else:
-            print(y0ap)
-            print(y0api)
-            print(point)
-            print(newton)
-            raise ValueError("could not ensure that gluing of segments is correct")
+    initialintervals = roots_interval_cached(g.value(), X0)
+    finalintervals = roots_interval_cached(g.value(), X1)
+    for cs in complexstrands:
+        ip = cs[0][1] + I*cs[0][2]
+        fp = cs[-1][1] + I*cs[-1][2]
+        for center,interval in initialintervals.items():
+            if ip in interval:
+                initialstrands.append([(0, center.real(), center.imag()), (1, cs[0][1], cs[0][2])])
+        for center,interval in finalintervals.items():
+            if fp in interval:
+                finalstrands.append([(0, cs[-1][1], cs[-1][2]), (1, center.real(), center.imag())])
+    y0aps = [QQ(c[0][1])+QQbar.gen()*QQ(c[0][2]) for c in complexstrands]
+    initialbraid = braid_from_piecewise(initialstrands)
     finalbraid = braid_from_piecewise(finalstrands)
 
-
     return initialbraid * centralbraid * finalbraid
+
+
+
+def orient_circuit(circuit):
+    r"""
+    reverses a circuit if it goes clockwise
+
+    INPUT:
+
+    - `circuit` --  a circuit in the graph of a Voronoi Diagram, given
+        by a list of edges
+
+    OUTPUT: The same circuit if it goes counterclockwise, and its reverse otherwise
+
+    EXAMPLES::
+
+        sage: from sage.schemes.curves.zariski_vankampen import orient_circuit
+        sage: points = [(-4, 0), (4, 0), (0, 4), (0, -4), (0, 0)]
+        sage: V = VoronoiDiagram(points)
+        sage: E = Graph()
+        sage: for reg  in V.regions().values():
+        ....:     if reg.rays() or reg.lines():
+        ....:         E  = E.union(reg.vertex_graph())
+        sage: E.vertices()
+        [A vertex at (-2, -2),
+         A vertex at (-2, 2),
+         A vertex at (2, -2),
+         A vertex at (2, 2)]
+        sage: cir = E.eulerian_circuit()
+        sage: cir
+        [(A vertex at (-2, -2), A vertex at (2, -2), None),
+         (A vertex at (2, -2), A vertex at (2, 2), None),
+         (A vertex at (2, 2), A vertex at (-2, 2), None),
+         (A vertex at (-2, 2), A vertex at (-2, -2), None)]
+        sage: orient_circuit(cir)
+        [(A vertex at (-2, -2), A vertex at (2, -2), None),
+         (A vertex at (2, -2), A vertex at (2, 2), None),
+         (A vertex at (2, 2), A vertex at (-2, 2), None),
+         (A vertex at (-2, 2), A vertex at (-2, -2), None)]
+        sage: cirinv = list(reversed([(c[1],c[0],c[2]) for c in cir]))
+        sage: cirinv
+        [(A vertex at (-2, -2), A vertex at (-2, 2), None),
+         (A vertex at (-2, 2), A vertex at (2, 2), None),
+         (A vertex at (2, 2), A vertex at (2, -2), None),
+         (A vertex at (2, -2), A vertex at (-2, -2), None)]
+        sage: orient_circuit(cirinv)
+        [(A vertex at (-2, -2), A vertex at (2, -2), None),
+         (A vertex at (2, -2), A vertex at (2, 2), None),
+         (A vertex at (2, 2), A vertex at (-2, 2), None),
+         (A vertex at (-2, 2), A vertex at (-2, -2), None)]
+
+    """
+    prec = 53
+    vectors = [v[1].vector()-v[0].vector() for v in circuit]
+    while True:
+        CIF = ComplexIntervalField(prec)
+        totalangle = sum((CIF(*vectors[i])/CIF(*vectors[i-1])).argument() for i in range(len(vectors)))
+        if totalangle < 0:
+            return list(reversed([(c[1], c[0]) + c[2:] for c in circuit]))
+        elif totalangle > 0:
+            return circuit
+        else:
+            prec *= 2
+
+def geometric_basis(G, E, p):
+    r"""
+    Return a geometric basis, based on a vertex.
+
+    INPUT:
+
+    - ``G`` -- The graph of the bounded regions of a Voronoi Diagram
+
+    - ``E`` -- The subgraph of `G` formed by the edges that touch an unbounded
+    region
+
+    - ``p`` -- A vertex of `E`
+
+    OUTPUT: A geometric basis. It is formed by a list of sequences of paths.
+    Each path is a list of vertices, that form a closed path in `G`, based at
+    `p`, that goes to a region, surrounds it, and comes back by the same path it
+    came. The concatenation of all these paths is equivalent to `E`.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.curves.zariski_vankampen import geometric_basis
+        sage: points = [(-3,0),(3,0),(0,3),(0,-3)]+ [(0,0),(0,-1),(0,1),(1,0),(-1,0)]
+        sage: V = VoronoiDiagram(points)
+        sage: G = Graph()
+        sage: for reg  in V.regions().values():
+        ....:     G = G.union(reg.vertex_graph())
+        ....:
+        sage: E = Graph()
+        sage: for reg  in V.regions().values():
+        ....:     if reg.rays() or reg.lines():
+        ....:         E  = E.union(reg.vertex_graph())
+        ....:
+        sage: p = E.vertices()[0]
+        sage: geometric_basis(G, E, p)
+        [[A vertex at (-2, -2),
+          A vertex at (2, -2),
+          A vertex at (2, 2),
+          A vertex at (1/2, 1/2),
+          A vertex at (1/2, -1/2),
+          A vertex at (2, -2),
+          A vertex at (-2, -2)],
+         [A vertex at (-2, -2),
+          A vertex at (2, -2),
+          A vertex at (1/2, -1/2),
+          A vertex at (1/2, 1/2),
+          A vertex at (-1/2, 1/2),
+          A vertex at (-1/2, -1/2),
+          A vertex at (1/2, -1/2),
+          A vertex at (2, -2),
+          A vertex at (-2, -2)],
+         [A vertex at (-2, -2),
+          A vertex at (2, -2),
+          A vertex at (1/2, -1/2),
+          A vertex at (-1/2, -1/2),
+          A vertex at (-2, -2)],
+         [A vertex at (-2, -2),
+          A vertex at (-1/2, -1/2),
+          A vertex at (-1/2, 1/2),
+          A vertex at (1/2, 1/2),
+          A vertex at (2, 2),
+          A vertex at (-2, 2),
+          A vertex at (-1/2, 1/2),
+          A vertex at (-1/2, -1/2),
+          A vertex at (-2, -2)],
+         [A vertex at (-2, -2),
+          A vertex at (-1/2, -1/2),
+          A vertex at (-1/2, 1/2),
+          A vertex at (-2, 2),
+          A vertex at (-2, -2)]]
+
+    """
+    EC = [v[0] for v in orient_circuit(E.eulerian_circuit())]
+    i = EC.index(p)
+    EC = EC[i:]+EC[:i+1] # A counterclockwise eulerian circuit on the boundary, based at p
+    if len(G.edges()) == len(E.edges()):
+        if E.is_cycle():
+            return [EC]
+
+    I = Graph()
+    for e in G.edges():
+        if not E.has_edge(e):
+            I.add_edge(e)   # interior graph
+
+    #treat the case where I is empty
+    if not I.vertices():
+        for v in E.vertices():
+            if len(E.neighbors(v))>2:
+                I.add_vertex(v)
+
+    for i in range(len(EC)):  #q and r are the points we will cut through
+
+        if EC[i] in I.vertices():
+            q = EC[i]
+            connecting_path = EC[:i]
+            break
+        elif EC[-i] in I.vertices():
+            q = EC[-i]
+            connecting_path = list(reversed(EC[-i:]))
+            break
+    distancequotients = [(E.distance(q,v)**2/I.distance(q,v), v) for v in E.vertices() if v in I.connected_component_containing_vertex(q) and not v==q]
+    r = max(distancequotients)[1]
+    cutpath = I.shortest_path(q, r)
+
+    Gcut = deepcopy(G)
+    Ecut = deepcopy(E)
+    Ecut.delete_vertices([q,r])
+    Gcut.delete_vertices(cutpath)
+
+    #I think this cannot happen, but just in case, we check it to raise
+    # an error instead of giving a wrong answer
+    if Gcut.connected_components_number() != 2:
+        raise ValueError("can't compute a correct path")
+    G1, G2 = Gcut.connected_components_subgraphs()
+
+    for v in cutpath:
+        neighs = G.neighbors(v)
+        for n in neighs:
+            if n in G1.vertices()+cutpath:
+                G1.add_edge(v,n,None)
+            if n in G2.vertices()+cutpath:
+                G2.add_edge(v,n,None)
+
+    if EC[EC.index(q)+1] in G2.vertices():
+        G1, G2 = G2,G1
+
+    E1, E2 = Ecut.connected_components_subgraphs()
+    if EC[EC.index(q)+1] in E2.vertices():
+        E1, E2 = E2, E1
+
+    for i in range(len(cutpath)-1):
+        E1.add_edge(cutpath[i], cutpath[i+1], None)
+        E2.add_edge(cutpath[i], cutpath[i+1], None)
+
+    for v in [q,r]:
+        for n in E.neighbors(v):
+            if n in E1.vertices():
+                E1.add_edge(v, n, None)
+            if n in E2.vertices():
+                E2.add_edge(v,n, None)
+
+    gb1 = geometric_basis(G1, E1, q)
+    gb2 = geometric_basis(G2, E2, q)
+
+    resul =  [connecting_path + path + list(reversed(connecting_path)) for path in gb1+gb2]
+    for r in resul:
+        i = 0
+        while i< len(r)-2:
+            if r[i] == r[i+2]:
+                r.pop(i)
+                r.pop(i)
+                if i>0:
+                    i -=1
+            else:
+                i+=1
+    return resul
+
+def braid_monodromy(f):
+    r"""
+    Compute the braid monodromy of a projection of the curve defined by a polynomial
+
+    INPUT:
+
+    - ``f`` -- a polynomial with two variables, over a number field with an embedding
+    in the complex numbers.
+
+    OUTPUT:
+
+    A list of braids. The braids correspond to paths based in the same point;
+    each of this paths is the conjugated of a loop around one of the points
+    in the discriminant of the projection of `f`.
+
+    NOTE:
+
+    The projection over the `x` axis is used if there are no vertical asymptotes.
+    Otherwise, a linear change of variables is done to fall into the previous case.
+
+    EXAMPLES::
+
+        sage: from sage.schemes.curves.zariski_vankampen import braid_monodromy
+        sage: R.<x,y> = QQ[]
+        sage: f = (x^2-y^3)*(x+3*y-5)
+        sage: braid_monodromy(f)
+        [(s2*s1)^2*s0*s2*s0^-1*s2*(s1^-1*s2^-1)^2,
+         (s2*s1)^2*s2^-1*s0*s2^-1*(s1*s2)^2*s2*s1^-1*s2^-1*s1^-1*s2*s0^-1*s2*(s1^-1*s2^-1)^2,
+         s2*(s1*s2*s1*s2^-1*s0*s2^-1)^2*s2^-1,
+         s2^2]
+
+    """
+    global roots_interval_cache
+    (x, y) = f.parent().gens()
+    F = f.base_ring()
+    g = f.radical()
+    d = g.degree(y)
+    while not g.coefficient(y**d) in F:
+        g = g.subs({x: x + y})
+        d = g.degree(y)
+    disc = discrim(g)
+    segs = segments(disc)
+    V = corrected_voronoi_diagram(tuple(disc))
+    G = Graph()
+    for reg  in V.regions().values():
+        G = G.union(reg.vertex_graph())
+    E = Graph()
+    for reg  in V.regions().values():
+        if reg.rays() or reg.lines():
+            E  = E.union(reg.vertex_graph())
+    p = E.vertices()[0]
+    geombasis = geometric_basis(G, E, p)
+    vertices = list(set(flatten(segs)))
+    newvertices = [v for v in vertices if not (g, v) in roots_interval_cache.keys()]
+    rootsintervals = list(roots_interval([(g, v) for v in newvertices]))
+    for r in rootsintervals:
+        roots_interval_cache[r[0][0]] = r[1]
+    gfac = g.factor()
+    braidscomputed = braid_in_segment([(gfac, seg[0], seg[1]) for seg in segs])
+    segsbraids = dict()
+    for braidcomputed in braidscomputed:
+        seg = (braidcomputed[0][0][1], braidcomputed[0][0][2])
+        beginseg = (QQ(seg[0].real()), QQ(seg[0].imag()))
+        endseg = (QQ(seg[1].real()), QQ(seg[1].imag()))
+        b = braidcomputed[1]
+        segsbraids[(beginseg, endseg)] = b
+        segsbraids[(endseg, beginseg)] = b.inverse()
+    B = b.parent()
+    result = []
+    for path in geombasis:
+        braidpath = B.one()
+        for i in range(len(path)-1):
+            x0 = tuple(path[i].vector())
+            x1 = tuple(path[i+1].vector())
+            braidpath = braidpath * segsbraids[(x0, x1)]
+        result.append(braidpath)
+    return result
+
 
 
 def fundamental_group(f, simplified=True, projective=False):
@@ -506,6 +956,7 @@ def fundamental_group(f, simplified=True, projective=False):
         sage: fundamental_group(f) # optional - sirocco
         Finitely presented group < x0 |  >
     """
+    global roots_interval_cache
     (x, y) = f.parent().gens()
     F = f.base_ring()
     g = f.radical()
@@ -516,6 +967,10 @@ def fundamental_group(f, simplified=True, projective=False):
     disc = discrim(g)
     segs = segments(disc)
     vertices = list(set(flatten(segs)))
+    newvertices = [v for v in vertices if not (g, v) in roots_interval_cache.keys()]
+    rootsintervals = list(roots_interval([(g, v) for v in newvertices]))
+    for r in rootsintervals:
+        roots_interval_cache[r[0][0]] = r[1]
     Faux = FreeGroup(d)
     F = FreeGroup(d * len(vertices))
     rels = []

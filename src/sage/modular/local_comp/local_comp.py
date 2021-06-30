@@ -650,9 +650,11 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
             sage: f = Newforms(GammaH(25, [6]), 3, names='j')[0]; f
             q + j0*q^2 + 1/3*j0^3*q^3 - 1/3*j0^2*q^4 + O(q^6)
             sage: Pi = LocalComponent(f, 5)
-            sage: set(Pi.characters())
-            {Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> 1/3*j0^2*d - 1/3*j0^3, 5 |--> 5,
-             Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -1/3*j0^2*d, 5 |--> 5}
+            sage: Pi.characters()
+            [
+            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> 1/3*j0^2*d - 1/3*j0^3, 5 |--> 5,
+            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -1/3*j0^2*d, 5 |--> 5
+            ]
             sage: Pi.characters()[0].base_ring()
             Number Field in d with defining polynomial x^2 - j0*x + 1/3*j0^2 over its base field
 
@@ -779,7 +781,7 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                             flag = G._reduce_Qp(1, x)
                         except ValueError:
                             flag = None
-                        if flag is not None: 
+                        if flag is not None:
                             verbose("skipping x=%s as congruent to %s mod p" % (x, flag))
                             continue
 
@@ -1021,8 +1023,8 @@ class ImprimitiveLocalComponent(LocalComponentBase):
     def characters(self):
         r"""
         Return the pair of characters (either of `\QQ_p^*` or of some quadratic
-        extension) corresponding to this representation. 
-        
+        extension) corresponding to this representation.
+
         EXAMPLES::
 
             sage: f = [f for f in Newforms(63, 4, names='a') if f[2] == 1][0]

@@ -790,7 +790,7 @@ class TransformHrepresentation(object):
     The generating function of the input ``inequalities`` and
     ``equations`` is equal to the generating function of the
     attributes ``inequalities`` and ``equations`` in which ``rules``
-    were substitited and ``factor`` was multiplied (via
+    were substituted and ``factor`` was multiplied (via
     :meth:`~TransformHrepresentation.apply_rules`).
     """
 

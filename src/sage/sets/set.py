@@ -38,6 +38,7 @@ AUTHORS:
 
 from sage.misc.latex import latex
 from sage.misc.prandom import choice
+from sage.misc.cachefunc import cached_method
 
 from sage.structure.category_object import CategoryObject
 from sage.structure.element import Element
@@ -814,6 +815,22 @@ class Set_object(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_opera
         L = FiniteLatticePoset(hasse_diagram=D)
         return L
 
+    @cached_method
+    def _sympy_(self):
+        """
+        Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: X = Set(ZZ); X
+            Set of elements of Integer Ring
+            sage: X._sympy_()
+            Integers
+        """
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return self.__object._sympy_()
+
 
 class Set_object_enumerated(Set_object):
     """
@@ -1180,6 +1197,23 @@ class Set_object_enumerated(Set_object):
             return Set_object.symmetric_difference(self, other)
         return Set_object_enumerated(self.set().symmetric_difference(other.set()))
 
+    @cached_method
+    def _sympy_(self):
+        """
+        Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: X = Set({1, 2, 3}); X
+            {1, 2, 3}
+            sage: X._sympy_()
+            Set(1, 2, 3)
+        """
+        from sympy import Set
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return Set(*[x._sympy_() for x in self])
+
 
 class Set_object_binary(Set_object, metaclass=ClasscallMetaclass):
     r"""
@@ -1420,6 +1454,23 @@ class Set_object_union(Set_object_binary):
         """
         return self._X.cardinality() + self._Y.cardinality()
 
+    @cached_method
+    def _sympy_(self):
+        """
+        Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: X = Set(ZZ).union(Set([1/2])); X
+            Set-theoretic union of Set of elements of Integer Ring and {1/2}
+            sage: X._sympy_()
+            Union(Integers, Set(1/2))
+        """
+        from sympy import Union
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return Union(self._X._sympy_(), self._Y._sympy_())
+
 
 class Set_object_intersection(Set_object_binary):
     """
@@ -1563,6 +1614,25 @@ class Set_object_intersection(Set_object_binary):
         """
         return x in self._X and x in self._Y
 
+    @cached_method
+    def _sympy_(self):
+        """
+        Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: X = Set(ZZ).intersection(RealSet([3/2, 11/2])); X
+            Set-theoretic intersection of
+             Set of elements of Integer Ring and
+             Set of elements of [3/2, 11/2]
+            sage: X._sympy_()
+            Range(2, 6, 1)
+        """
+        from sympy import Intersection
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return Intersection(self._X._sympy_(), self._Y._sympy_())
+
 
 class Set_object_difference(Set_object_binary):
     """
@@ -1700,6 +1770,32 @@ class Set_object_difference(Set_object_binary):
             True
         """
         return x in self._X and x not in self._Y
+
+    @cached_method
+    def _sympy_(self):
+        """
+        Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: X = Set(QQ).difference(Set(ZZ)); X
+            Set-theoretic difference of
+             Set of elements of Rational Field and
+             Set of elements of Integer Ring
+            sage: X._sympy_()
+            Complement(Rationals, Integers)
+
+            sage: X = Set(ZZ).difference(Set(QQ)); X
+            Set-theoretic difference of
+             Set of elements of Integer Ring and
+             Set of elements of Rational Field
+            sage: X._sympy_()
+            EmptySet
+        """
+        from sympy import Complement
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return Complement(self._X._sympy_(), self._Y._sympy_())
 
 
 class Set_object_symmetric_difference(Set_object_binary):
@@ -1840,3 +1936,23 @@ class Set_object_symmetric_difference(Set_object_binary):
         """
         return ((x in self._X and x not in self._Y)
                 or (x in self._Y and x not in self._X))
+
+    @cached_method
+    def _sympy_(self):
+        """
+        Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: X = Set(ZZ).symmetric_difference(Set(srange(0, 3, 1/3))); X
+            Set-theoretic symmetric difference of
+             Set of elements of Integer Ring and
+             {0, 1, 2, 1/3, 2/3, 4/3, 5/3, 7/3, 8/3}
+            sage: X._sympy_()
+            Union(Complement(Integers, Set(0, 1, 2, 1/3, 2/3, 4/3, 5/3, 7/3, 8/3)),
+                  Complement(Set(0, 1, 2, 1/3, 2/3, 4/3, 5/3, 7/3, 8/3), Integers))
+        """
+        from sympy import SymmetricDifference
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return SymmetricDifference(self._X._sympy_(), self._Y._sympy_())

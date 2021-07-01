@@ -23,3 +23,5 @@ Topological Manifolds
    vector_bundle
 
    sage/manifolds/family
+
+   sage/manifolds/subsets/closure

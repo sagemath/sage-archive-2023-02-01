@@ -2808,7 +2808,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             ...
             ValueError: self should be compact
         """
-        from sage.homology.simplicial_complex import SimplicialComplex
+        from sage.topology.simplicial_complex import SimplicialComplex
         if not self.is_compact():
             raise ValueError("self should be compact")
 
@@ -7019,6 +7019,250 @@ class Polyhedron_base(Element, ConvexSet_closed):
             return ()
         return self.faces(self.dimension()-1)
 
+    def join_of_Vrep(self, *Vrepresentatives):
+        r"""
+        Return the smallest face that contains ``Vrepresentatives``.
+
+        INPUT:
+
+        - ``Vrepresentatives`` -- vertices/rays/lines of ``self`` or indices of such
+
+        OUTPUT: a :class:`~sage.geometry.polyhedron.face.PolyhedronFace`
+
+        .. NOTE::
+
+            In the case of unbounded polyhedra, the join of rays etc. may not be well-defined.
+
+        EXAMPLES::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: P.join_of_Vrep(1)
+            A 0-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 1 vertex
+            sage: P.join_of_Vrep()
+            A -1-dimensional face of a Polyhedron in ZZ^5
+            sage: P.join_of_Vrep(0,12,13).ambient_V_indices()
+            (0, 12, 13, 68)
+
+        The input is flexible::
+
+            sage: P.join_of_Vrep(2, P.vertices()[3], P.Vrepresentation(4))
+            A 2-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 6 vertices
+
+        ::
+
+            sage: P = polytopes.cube()
+            sage: a, b = P.faces(0)[:2]
+            sage: P.join_of_Vrep(a, b)
+            A 1-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 2 vertices
+
+        In the case of an unbounded polyhedron, the join may not be well-defined::
+
+            sage: P = Polyhedron(vertices=[[1,0], [0,1]], rays=[[1,1]])
+            sage: P.join_of_Vrep(0)
+            A 0-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex
+            sage: P.join_of_Vrep(0,1)
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 2 vertices
+            sage: P.join_of_Vrep(0,2)
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: P.join_of_Vrep(1,2)
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: P.join_of_Vrep(2)
+            Traceback (most recent call last):
+            ...
+            ValueError: the join is not well-defined
+
+        The ``Vrepresentatives`` must be of ``self``::
+
+            sage: P = polytopes.cube(backend='ppl')
+            sage: Q = polytopes.cube(backend='field')
+            sage: v = P.vertices()[0]
+            sage: P.join_of_Vrep(v)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: Q.join_of_Vrep(v)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a Vrepresentative of ``self``
+            sage: f = P.faces(0)[0]
+            sage: P.join_of_Vrep(v)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: Q.join_of_Vrep(v)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a Vrepresentative of ``self``
+
+        TESTS:
+
+        ``least_common_superface_of_Vrep`` is an alias::
+
+            sage: P.least_common_superface_of_Vrep(v)
+            A 0-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 1 vertex
+            sage: P.least_common_superface_of_Vrep == P.join_of_Vrep
+            True
+
+        Error message for invalid input::
+
+            sage: P.join_of_Vrep('foo')
+            Traceback (most recent call last):
+            ...
+            ValueError: foo is not a Vrepresentative
+        """
+        from sage.geometry.polyhedron.representation import Vrepresentation
+        from sage.geometry.polyhedron.face import PolyhedronFace
+
+        new_indices = [0]*len(Vrepresentatives)
+        for i, v in enumerate(Vrepresentatives):
+            if isinstance(v, PolyhedronFace) and v.dim() == 0:
+                if v.polyhedron() is not self:
+                    raise ValueError("not a Vrepresentative of ``self``")
+                new_indices[i] = v.ambient_V_indices()[0]
+            elif v in ZZ:
+                new_indices[i] = v
+            elif isinstance(v, Vrepresentation):
+                if v.polyhedron() is not self:
+                    raise ValueError("not a Vrepresentative of ``self``")
+                new_indices[i] = v.index()
+            else:
+                raise ValueError("{} is not a Vrepresentative".format(v))
+
+        return self.face_generator().join_of_Vrep(*new_indices)
+
+    least_common_superface_of_Vrep = join_of_Vrep
+
+    def meet_of_Hrep(self, *Hrepresentatives):
+        r"""
+        Return the largest face that is contained in ``Hrepresentatives``.
+
+        INPUT:
+
+        - ``Hrepresentatives`` -- facets or indices of Hrepresentatives;
+          the indices are assumed to be the indices of the Hrepresentation
+
+        OUTPUT: a :class:`~sage.geometry.polyhedron.face.PolyhedronFace`
+
+        EXAMPLES::
+
+            sage: P = polytopes.permutahedron(5)
+            sage: P.meet_of_Hrep()
+            A 4-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 120 vertices
+            sage: P.meet_of_Hrep(1)
+            A 3-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 24 vertices
+            sage: P.meet_of_Hrep(4)
+            A 3-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 12 vertices
+            sage: P.meet_of_Hrep(1,3,7)
+            A 1-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 2 vertices
+            sage: P.meet_of_Hrep(1,3,7).ambient_H_indices()
+            (0, 1, 3, 7)
+
+        The indices are the indices of the Hrepresentation.
+        ``0`` corresponds to an equation and is ignored::
+
+            sage: P.meet_of_Hrep(0)
+            A 4-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 120 vertices
+
+        The input is flexible::
+
+            sage: P.meet_of_Hrep(P.facets()[-1], P.inequalities()[2], 7)
+            A 1-dimensional face of a Polyhedron in ZZ^5 defined as the convex hull of 2 vertices
+
+        The ``Hrepresentatives`` must belong to ``self``::
+
+            sage: P = polytopes.cube(backend='ppl')
+            sage: Q = polytopes.cube(backend='field')
+            sage: f = P.facets()[0]
+            sage: P.meet_of_Hrep(f)
+            A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: Q.meet_of_Hrep(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a facet of ``self``
+            sage: f = P.inequalities()[0]
+            sage: P.meet_of_Hrep(f)
+            A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+            sage: Q.meet_of_Hrep(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a facet of ``self``
+
+        TESTS:
+
+        Equations are not considered by the combinatorial polyhedron.
+        We check that the index corresponds to the Hrepresentation index::
+
+            sage: P = polytopes.permutahedron(3, backend='field')
+            sage: P.Hrepresentation()
+            (An inequality (0, 0, 1) x - 1 >= 0,
+             An inequality (0, 1, 0) x - 1 >= 0,
+             An inequality (0, 1, 1) x - 3 >= 0,
+             An inequality (1, 0, 0) x - 1 >= 0,
+             An inequality (1, 0, 1) x - 3 >= 0,
+             An inequality (1, 1, 0) x - 3 >= 0,
+             An equation (1, 1, 1) x - 6 == 0)
+            sage: P.meet_of_Hrep(0).ambient_Hrepresentation()
+            (An inequality (0, 0, 1) x - 1 >= 0, An equation (1, 1, 1) x - 6 == 0)
+
+            sage: P = polytopes.permutahedron(3, backend='ppl')
+            sage: P.Hrepresentation()
+            (An equation (1, 1, 1) x - 6 == 0,
+             An inequality (1, 1, 0) x - 3 >= 0,
+             An inequality (-1, -1, 0) x + 5 >= 0,
+             An inequality (0, 1, 0) x - 1 >= 0,
+             An inequality (-1, 0, 0) x + 3 >= 0,
+             An inequality (1, 0, 0) x - 1 >= 0,
+             An inequality (0, -1, 0) x + 3 >= 0)
+            sage: P.meet_of_Hrep(1).ambient_Hrepresentation()
+            (An equation (1, 1, 1) x - 6 == 0, An inequality (1, 1, 0) x - 3 >= 0)
+
+        ``greatest_common_subface_of_Hrep`` is an alias::
+
+            sage: P.greatest_common_subface_of_Hrep(1).ambient_Hrepresentation()
+            (An equation (1, 1, 1) x - 6 == 0, An inequality (1, 1, 0) x - 3 >= 0)
+            sage: P.greatest_common_subface_of_Hrep == P.meet_of_Hrep
+            True
+
+        Error message for invalid input::
+
+            sage: P.meet_of_Hrep('foo')
+            Traceback (most recent call last):
+            ...
+            ValueError: foo is not a Hrepresentative
+        """
+        from sage.geometry.polyhedron.representation import Inequality, Equation
+        from sage.geometry.polyhedron.face import PolyhedronFace
+
+        # Equations are ignored by combinatorial polyhedron for indexing.
+        offset = 0
+        if self.n_equations() and self.Hrepresentation(0).is_equation():
+            offset = self.n_equations()
+
+        new_indices = []
+        for i, facet in enumerate(Hrepresentatives):
+            if isinstance(facet, PolyhedronFace) and facet.dim() + 1 == self.dim():
+                if facet.polyhedron() is not self:
+                    raise ValueError("not a facet of ``self``")
+                H_indices = facet.ambient_H_indices()
+                facet = H_indices[0] if H_indices[0] >= offset else H_indices[-1]
+
+            if facet in ZZ and facet >= offset:
+                # Note that ``CombinatorialPolyhedron`` ignores indices of equations
+                # and has equations last.
+                new_indices.append(facet - offset)
+            elif isinstance(facet, Inequality):
+                if facet.polyhedron() is not self:
+                    raise ValueError("not a facet of ``self``")
+                new_indices.append(facet.index() - offset)
+            elif isinstance(facet, Equation):
+                # Ignore equations.
+                continue
+            elif facet in ZZ and 0 <= facet < offset:
+                # Ignore equations.
+                continue
+            else:
+                raise ValueError("{} is not a Hrepresentative".format(facet))
+
+        return self.face_generator().meet_of_Hrep(*new_indices)
+
+    greatest_common_subface_of_Hrep = meet_of_Hrep
+
     def _test_combinatorial_face_as_combinatorial_polyhedron(self, tester=None, **options):
         """
         Run tests on obtaining the combinatorial face as combinatorial polyhedron.
@@ -7064,9 +7308,17 @@ class Polyhedron_base(Element, ConvexSet_closed):
             tester.assertTrue(P.combinatorial_polyhedron().vertex_facet_graph().is_isomorphic(D2.vertex_facet_graph()))
 
     @cached_method(do_pickle=True)
-    def f_vector(self):
+    def f_vector(self, num_threads=None, parallelization_depth=None):
         r"""
         Return the f-vector.
+
+        INPUT:
+
+        - ``num_threads`` -- integer (optional); specify the number of threads;
+          otherwise determined by :func:`~sage.parallel.ncpus.ncpus`
+
+        - ``parallelization_depth`` -- integer (optional); specify
+          how deep in the lattice the parallelization is done
 
         OUTPUT:
 
@@ -7123,7 +7375,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: Q.f_vector.is_in_cache()
             True
         """
-        return self.combinatorial_polyhedron().f_vector()
+        return self.combinatorial_polyhedron().f_vector(num_threads, parallelization_depth)
 
     def flag_f_vector(self, *args):
         r"""

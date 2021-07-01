@@ -1141,7 +1141,7 @@ class Sphere(PseudoRiemannianSubmanifold):
             2
 
         """
-        from sage.homology.examples import Sphere as SymplicialSphere
+        from sage.topology.simplicial_complex_examples import Sphere as SymplicialSphere
         return SymplicialSphere(self._dim)
 
     def center(self):

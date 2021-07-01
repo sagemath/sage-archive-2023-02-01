@@ -639,22 +639,32 @@ class PolyhedronFace(ConvexSet_closed):
         if self.n_vertices() > 0:
             desc += ' defined as the convex hull of '
             desc += repr(self.n_vertices())
-            if self.n_vertices() == 1: desc += ' vertex'
-            else:                      desc += ' vertices'
+            if self.n_vertices() == 1:
+                desc += ' vertex'
+            else:
+                desc += ' vertices'
 
             if self.n_rays() > 0:
-                if self.n_lines() > 0: desc += ", "
-                else:                  desc += " and "
+                if self.n_lines() > 0:
+                    desc += ", "
+                else:
+                    desc += " and "
                 desc += repr(self.n_rays())
-                if self.n_rays() == 1: desc += ' ray'
-                else:                  desc += ' rays'
+                if self.n_rays() == 1:
+                    desc += ' ray'
+                else:
+                    desc += ' rays'
 
             if self.n_lines() > 0:
-                if self.n_rays() > 0: desc += ", "
-                else:                 desc += " and "
+                if self.n_rays() > 0:
+                    desc += ", "
+                else:
+                    desc += " and "
                 desc += repr(self.n_lines())
-                if self.n_lines() == 1: desc += ' line'
-                else:                   desc += ' lines'
+                if self.n_lines() == 1:
+                    desc += ' line'
+                else:
+                    desc += ' lines'
 
         return desc
 
@@ -1000,12 +1010,12 @@ def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
     if polyhedron.backend() in ('ppl',):
         # Equations before inequalities in Hrep.
         H_indices = tuple(range(n_equations))
-        H_indices += tuple(x+n_equations for x in combinatorial_face.ambient_H_indices())
+        H_indices += tuple(x+n_equations for x in combinatorial_face.ambient_H_indices(add_equations=False))
     elif polyhedron.backend() in ('normaliz', 'cdd', 'field', 'polymake'):
         # Equations after the inequalities in Hrep.
         n_ieqs = polyhedron.n_inequalities()
-        H_indices = tuple(range(n_ieqs, n_ieqs + n_equations))
-        H_indices += tuple(x for x in combinatorial_face.ambient_H_indices())
+        H_indices = tuple(x for x in combinatorial_face.ambient_H_indices(add_equations=False))
+        H_indices += tuple(range(n_ieqs, n_ieqs + n_equations))
     else:
         raise NotImplementedError("unknown backend")
 

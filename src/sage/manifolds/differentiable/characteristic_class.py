@@ -497,28 +497,28 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
         pow_range = self._base_space._dim // 2
         def_var = self._func.default_variable()
         # Use a complex variable without affecting the old one:
-        new_var = SR.symbol('x_char_class_', domain='complex')
-        if self._vbundle._field_type == 'real' and distinct_real:
-            if self._class_type == 'additive':
-                func = self._func.subs({def_var: new_var ** 2}) / 2
-            elif self._class_type == 'multiplicative':
-                # This could case problems in the real domain, where sqrt(x^2)
-                # is simplified to |x|. However, the variable must be complex
-                # anyway.
-                func = self._func.subs({def_var : new_var**2}).sqrt()
-            elif self._class_type == 'Pfaffian':
-                # There are no canonical Pfaffian classes, however, consider the
-                # projection onto the odd part of the function to keep the
-                # matrices skew:
-                func = (self._func.subs({def_var: new_var}) -
-                        self._func.subs({def_var: -new_var})) / 2
-        else:
-            func = self._func.subs({def_var: new_var})
+        with SR.temp_var(domain='complex') as new_var:
+            if self._vbundle._field_type == 'real' and distinct_real:
+                if self._class_type == 'additive':
+                    func = self._func.subs({def_var: new_var ** 2}) / 2
+                elif self._class_type == 'multiplicative':
+                    # This could case problems in the real domain, where sqrt(x^2)
+                    # is simplified to |x|. However, the variable must be complex
+                    # anyway.
+                    func = self._func.subs({def_var : new_var**2}).sqrt()
+                elif self._class_type == 'Pfaffian':
+                    # There are no canonical Pfaffian classes, however, consider the
+                    # projection onto the odd part of the function to keep the
+                    # matrices skew:
+                    func = (self._func.subs({def_var: new_var}) -
+                            self._func.subs({def_var: -new_var})) / 2
+            else:
+                func = self._func.subs({def_var: new_var})
 
-        if self._vbundle._field_type == 'real' and not distinct_real:
-            pow_range = pow_range // 2
+            if self._vbundle._field_type == 'real' and not distinct_real:
+                pow_range = pow_range // 2
 
-        return func.taylor(new_var, 0, pow_range).coefficients(sparse=False)
+            return func.taylor(new_var, 0, pow_range).coefficients(sparse=False)
 
     def _init_derived(self):
         r"""

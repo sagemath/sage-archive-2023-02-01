@@ -298,8 +298,6 @@ class Section(ModuleElementWithMutability):
         self._is_zero = True
         return False
 
-    __nonzero__ = __bool__  # For Python2 compatibility
-
     ##### End of required methods for ModuleElement (beside arithmetic) #####
 
     def _repr_(self):
@@ -627,9 +625,8 @@ class Section(ModuleElementWithMutability):
         if self.is_immutable():
             raise ValueError("the restrictions of an immutable element "
                              "cannot be changed")
-        self._restrictions[rst._domain] = rst.copy()
-        self._restrictions[rst._domain].set_name(name=self._name,
-                                                 latex_name=self._latex_name)
+        self._restrictions[rst._domain] = rst.copy(name=self._name,
+                                                   latex_name=self._latex_name)
         self._is_zero = False  # a priori
 
     def restrict(self, subdomain):

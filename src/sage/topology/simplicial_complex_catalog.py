@@ -21,31 +21,31 @@ million simplices.
 All of these examples are accessible by typing
 ``simplicial_complexes.NAME``, where ``NAME`` is the name of the example.
 
-- :meth:`~sage.homology.examples.BarnetteSphere`
-- :meth:`~sage.homology.examples.BrucknerGrunbaumSphere`
-- :meth:`~sage.homology.examples.ChessboardComplex`
-- :meth:`~sage.homology.examples.ComplexProjectivePlane`
-- :meth:`~sage.homology.examples.DunceHat`
-- :meth:`~sage.homology.examples.FareyMap`
-- :meth:`~sage.homology.examples.K3Surface`
-- :meth:`~sage.homology.examples.KleinBottle`
-- :meth:`~sage.homology.examples.MatchingComplex`
-- :meth:`~sage.homology.examples.MooreSpace`
-- :meth:`~sage.homology.examples.NotIConnectedGraphs`
-- :meth:`~sage.homology.examples.PoincareHomologyThreeSphere`
-- :meth:`~sage.homology.examples.PseudoQuaternionicProjectivePlane`
-- :meth:`~sage.homology.examples.RandomComplex`
-- :meth:`~sage.homology.examples.RandomTwoSphere`
-- :meth:`~sage.homology.examples.RealProjectivePlane`
-- :meth:`~sage.homology.examples.RealProjectiveSpace`
-- :meth:`~sage.homology.examples.RudinBall`
-- :meth:`~sage.homology.examples.ShiftedComplex`
-- :meth:`~sage.homology.examples.Simplex`
-- :meth:`~sage.homology.examples.Sphere`
-- :meth:`~sage.homology.examples.SumComplex`
-- :meth:`~sage.homology.examples.SurfaceOfGenus`
-- :meth:`~sage.homology.examples.Torus`
-- :meth:`~sage.homology.examples.ZieglerBall`
+- :meth:`~sage.topology.examples.BarnetteSphere`
+- :meth:`~sage.topology.examples.BrucknerGrunbaumSphere`
+- :meth:`~sage.topology.examples.ChessboardComplex`
+- :meth:`~sage.topology.examples.ComplexProjectivePlane`
+- :meth:`~sage.topology.examples.DunceHat`
+- :meth:`~sage.topology.examples.FareyMap`
+- :meth:`~sage.topology.examples.K3Surface`
+- :meth:`~sage.topology.examples.KleinBottle`
+- :meth:`~sage.topology.examples.MatchingComplex`
+- :meth:`~sage.topology.examples.MooreSpace`
+- :meth:`~sage.topology.examples.NotIConnectedGraphs`
+- :meth:`~sage.topology.examples.PoincareHomologyThreeSphere`
+- :meth:`~sage.topology.examples.PseudoQuaternionicProjectivePlane`
+- :meth:`~sage.topology.examples.RandomComplex`
+- :meth:`~sage.topology.examples.RandomTwoSphere`
+- :meth:`~sage.topology.examples.RealProjectivePlane`
+- :meth:`~sage.topology.examples.RealProjectiveSpace`
+- :meth:`~sage.topology.examples.RudinBall`
+- :meth:`~sage.topology.examples.ShiftedComplex`
+- :meth:`~sage.topology.examples.Simplex`
+- :meth:`~sage.topology.examples.Sphere`
+- :meth:`~sage.topology.examples.SumComplex`
+- :meth:`~sage.topology.examples.SurfaceOfGenus`
+- :meth:`~sage.topology.examples.Torus`
+- :meth:`~sage.topology.examples.ZieglerBall`
 
 You can also get a list by typing ``simplicial_complexes.`` and hitting the
 TAB key.
@@ -64,7 +64,8 @@ EXAMPLES::
     {0: 0, 1: Z^16, 2: 0}
 """
 
-from sage.homology.examples import (Sphere, Simplex, Torus, ProjectivePlane,
+from sage.topology.simplicial_complex_examples import (Sphere, Simplex, Torus,
+        ProjectivePlane,
         RealProjectivePlane, KleinBottle, FareyMap, SurfaceOfGenus,
         MooreSpace,
         ComplexProjectivePlane, PseudoQuaternionicProjectivePlane,

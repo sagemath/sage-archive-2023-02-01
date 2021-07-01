@@ -155,7 +155,6 @@ def braid_from_piecewise(strands):
     B = BraidGroup(len(L))
     return B(braid)
 
-
 def discrim(f):
     r"""
     Return the points in the discriminant of ``f``.
@@ -190,12 +189,12 @@ def discrim(f):
 @cached_function
 def corrected_voronoi_diagram(points):
     r"""
-    compute a Voronoi diagram of a set of points with rational coordinates, such
+    Compute a Voronoi diagram of a set of points with rational coordinates, such
     that the given points are granted to lie one in each bounded region.
 
     INPUT:
 
-    - ``points`` -- a list of complex numbers.
+    - ``points`` -- a list of complex numbers
 
     OUTPUT:
 
@@ -220,7 +219,6 @@ def corrected_voronoi_diagram(points):
         P(1/1000000, 0): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices,
         P(2, 0): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 5 vertices,
         P(7, 0): A 2-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices and 2 rays}
-
 
     """
     prec = 53
@@ -295,8 +293,6 @@ def segments(points):
                 res.add(t)
     return [(r[0]+QQbar.gen()*r[1], s[0]+QQbar.gen()*s[1]) for (r, s) in res]
 
-
-
 def followstrand(f, factors, x0, x1, y0a, prec=53):
     r"""
     Return a piecewise linear approximation of the homotopy continuation
@@ -304,7 +300,7 @@ def followstrand(f, factors, x0, x1, y0a, prec=53):
 
     INPUT:
 
-    - ``f`` -- ann irreducible polynomial in two variables
+    - ``f`` -- an irreducible polynomial in two variables
     - ``factors`` -- a list of irreducible polynomials in two variables
     - ``x0`` -- a complex value, where the homotopy starts
     - ``x1`` -- a complex value, where the homotopy ends
@@ -320,7 +316,7 @@ def followstrand(f, factors, x0, x1, y0a, prec=53):
       is zero (or a good enough approximation)
     - the piecewise linear path determined by the points has a tubular
       neighborhood  where the actual homotopy continuation path lies, and
-      no other root of `f`, nor any root of the polynomials in `factors`,
+      no other root of ``f``, nor any root of the polynomials in ``factors``,
       intersects it.
 
     EXAMPLES::
@@ -554,6 +550,7 @@ def braid_in_segment(g, x0, x1):
         sage: B = zvk.braid_in_segment(g.factor(),CC(p1),CC(p2)) # optional - sirocco
         sage: B  # optional - sirocco
         s5*s3^-1
+
     """
     (x, y) = g.value().parent().gens()
     I = QQbar.gen()
@@ -597,18 +594,18 @@ def braid_in_segment(g, x0, x1):
 
     return initialbraid * centralbraid * finalbraid
 
-
-
 def orient_circuit(circuit):
     r"""
-    reverses a circuit if it goes clockwise
+    Reverses a circuit if it goes clockwise; otherwise leaves it unchanged.
 
     INPUT:
 
-    - `circuit` --  a circuit in the graph of a Voronoi Diagram, given
+    - ``circuit`` --  a circuit in the graph of a Voronoi Diagram, given
         by a list of edges
 
-    OUTPUT: The same circuit if it goes counterclockwise, and its reverse otherwise
+    OUTPUT:
+
+    The same circuit if it goes counterclockwise, and its reverse otherwise
 
     EXAMPLES::
 
@@ -666,12 +663,12 @@ def geometric_basis(G, E, p):
 
     INPUT:
 
-    - ``G`` -- The graph of the bounded regions of a Voronoi Diagram
+    - ``G`` -- the graph of the bounded regions of a Voronoi Diagram
 
-    - ``E`` -- The subgraph of `G` formed by the edges that touch an unbounded
+    - ``E`` -- the subgraph of ``G`` formed by the edges that touch an unbounded
     region
 
-    - ``p`` -- A vertex of `E`
+    - ``p`` -- a vertex of ``E``
 
     OUTPUT: A geometric basis. It is formed by a list of sequences of paths.
     Each path is a list of vertices, that form a closed path in `G`, based at
@@ -737,12 +734,10 @@ def geometric_basis(G, E, p):
     if len(G.edges()) == len(E.edges()):
         if E.is_cycle():
             return [EC]
-
     I = Graph()
     for e in G.edges():
         if not E.has_edge(e):
             I.add_edge(e)   # interior graph
-
     #treat the case where I is empty
     if not I.vertices():
         for v in E.vertices():
@@ -762,16 +757,14 @@ def geometric_basis(G, E, p):
     distancequotients = [(E.distance(q,v)**2/I.distance(q,v), v) for v in E.vertices() if v in I.connected_component_containing_vertex(q) and not v==q]
     r = max(distancequotients)[1]
     cutpath = I.shortest_path(q, r)
-
     Gcut = deepcopy(G)
     Ecut = deepcopy(E)
     Ecut.delete_vertices([q,r])
     Gcut.delete_vertices(cutpath)
-
     #I think this cannot happen, but just in case, we check it to raise
     # an error instead of giving a wrong answer
     if Gcut.connected_components_number() != 2:
-        raise ValueError("can't compute a correct path")
+        raise ValueError("unable to compute a correct path")
     G1, G2 = Gcut.connected_components_subgraphs()
 
     for v in cutpath:
@@ -823,25 +816,25 @@ def braid_monodromy(f):
     INPUT:
 
     - ``f`` -- a polynomial with two variables, over a number field with an embedding
-    in the complex numbers.
+      in the complex numbers.
 
     OUTPUT:
 
     A list of braids. The braids correspond to paths based in the same point;
     each of this paths is the conjugated of a loop around one of the points
-    in the discriminant of the projection of `f`.
+    in the discriminant of the projection of ``f``.
 
-    NOTE:
+    .. NOTE::
 
-    The projection over the `x` axis is used if there are no vertical asymptotes.
-    Otherwise, a linear change of variables is done to fall into the previous case.
+        The projection over the `x` axis is used if there are no vertical asymptotes.
+        Otherwise, a linear change of variables is done to fall into the previous case.
 
     EXAMPLES::
 
         sage: from sage.schemes.curves.zariski_vankampen import braid_monodromy
         sage: R.<x,y> = QQ[]
         sage: f = (x^2-y^3)*(x+3*y-5)
-        sage: braid_monodromy(f)
+        sage: braid_monodromy(f)  # optional - sirocco
         [(s2*s1)^2*s0*s2*s0^-1*s2*(s1^-1*s2^-1)^2,
          (s2*s1)^2*s2^-1*s0*s2^-1*(s1*s2)^2*s2*s1^-1*s2^-1*s1^-1*s2*s0^-1*s2*(s1^-1*s2^-1)^2,
          s2*(s1*s2*s1*s2^-1*s0*s2^-1)^2*s2^-1,
@@ -866,10 +859,10 @@ def braid_monodromy(f):
     for reg  in V.regions().values():
         if reg.rays() or reg.lines():
             E  = E.union(reg.vertex_graph())
-    p = E.vertices()[0]
+    p = next(E.vertex_iterator())
     geombasis = geometric_basis(G, E, p)
     vertices = list(set(flatten(segs)))
-    newvertices = [v for v in vertices if not (g, v) in roots_interval_cache.keys()]
+    newvertices = [v for v in vertices if (g, v) not in roots_interval_cache]
     rootsintervals = list(roots_interval([(g, v) for v in newvertices]))
     for r in rootsintervals:
         roots_interval_cache[r[0][0]] = r[1]
@@ -893,8 +886,6 @@ def braid_monodromy(f):
             braidpath = braidpath * segsbraids[(x0, x1)]
         result.append(braidpath)
     return result
-
-
 
 def fundamental_group(f, simplified=True, projective=False):
     r"""
@@ -968,7 +959,7 @@ def fundamental_group(f, simplified=True, projective=False):
     disc = discrim(g)
     segs = segments(disc)
     vertices = list(set(flatten(segs)))
-    newvertices = [v for v in vertices if not (g, v) in roots_interval_cache.keys()]
+    newvertices = [v for v in vertices if (g, v) not in roots_interval_cache]
     rootsintervals = list(roots_interval([(g, v) for v in newvertices]))
     for r in rootsintervals:
         roots_interval_cache[r[0][0]] = r[1]

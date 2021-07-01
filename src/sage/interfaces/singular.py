@@ -1365,7 +1365,8 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             2
         """
         RingElement.__init__(self, parent)
-        if parent is None: return
+        if parent is None:
+            return
         if not is_name:
             try:
                 self._name = parent._create(value, type)

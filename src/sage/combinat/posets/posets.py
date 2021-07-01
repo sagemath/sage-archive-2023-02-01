@@ -6943,7 +6943,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.order_complex(on_ints=True)
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 3), (0, 2, 3)}
         """
-        from sage.homology.simplicial_complex import SimplicialComplex
+        from sage.topology.simplicial_complex import SimplicialComplex
         L = self.list()
         if on_ints:
             iso = dict([(L[i], i) for i in range(len(L))])
@@ -7137,7 +7137,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. SEEALSO::
 
             :meth:`is_bounded`, :meth:`h_polynomial`, :meth:`order_complex`,
-            :meth:`sage.homology.cell_complex.GenericCellComplex.f_vector`
+            :meth:`sage.topology.cell_complex.GenericCellComplex.f_vector`
 
         TESTS::
 
@@ -7205,7 +7205,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. SEEALSO::
 
             :meth:`is_bounded`, :meth:`f_polynomial`, :meth:`order_complex`,
-            :meth:`sage.homology.simplicial_complex.SimplicialComplex.h_vector`
+            :meth:`sage.topology.simplicial_complex.SimplicialComplex.h_vector`
         """
         q = polygen(ZZ, 'q')
         hasse = self._hasse_diagram

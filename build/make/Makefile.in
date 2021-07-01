@@ -283,6 +283,11 @@ all-toolchain: base-toolchain
 # given as a prerequisite to any pip-installed packages
 PYTHON_TOOLCHAIN = setuptools pip setuptools_scm wheel setuptools_wheel
 
+# Trac #32056: Avoid installed setuptools leaking into the build of python3 by uninstalling it.
+# It will have to be reinstalled anyway because of its dependency on $(PYTHON).
+python3-SAGE_LOCAL-no-deps: setuptools-clean
+python3-SAGE_VENV-no-deps: setuptools-clean
+
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
 SAGERUNTIME = sagelib $(inst_ipython) $(inst_pexpect) \

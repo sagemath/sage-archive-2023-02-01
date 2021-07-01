@@ -1,9 +1,11 @@
 SAGE_SPKG_CONFIGURE([4ti2], [
     SAGE_SPKG_DEPCHECK([gmp mpir glpk zlib], [
-        dnl Debian installs these programs with an executable prefix "4ti2-"
-        dnl but polymake and our own code do not handle this yet (Singular does).
+        dnl Debian installs these programs with an executable prefix "4ti2-",
+        dnl OpenSUSE uses the prefix "4ti2_".
+        dnl Singular checks for unprefixed and prefixed with "4ti2-".
+        dnl Polymake does not check for prefixed binaries.
         m4_foreach([prog], [hilbert,markov,graver,zsolve,qsolve,rays,ppi,circuits,groebner], [
-            AC_CHECK_PROGS([FOURTITWO_]m4_toupper(prog), prog [4ti2-]prog)
+            AC_CHECK_PROGS([FOURTITWO_]m4_toupper(prog), prog [4ti2-]prog [4ti2_]prog)
             AS_VAR_IF([FOURTITWO_]m4_toupper(prog), [""], [sage_spkg_install_4ti2=yes])
             AC_SUBST([FOURTITWO_]m4_toupper(prog))
         ])

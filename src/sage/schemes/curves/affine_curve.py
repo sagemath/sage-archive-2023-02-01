@@ -1755,7 +1755,7 @@ class AffinePlaneCurve_field(AffinePlaneCurve, AffineCurve_field):
 
         EXAMPLES::
 
-            A.<x,y> = AffineSpace(QQ, 2)
+            sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: C = A.curve((x^2-y^3)*(x+3*y-5))
             sage: C.braid_monodromy()   # optional -  sirocco
             [(s2*s1)^2*s0*s2*s0^-1*s2*(s1^-1*s2^-1)^2,

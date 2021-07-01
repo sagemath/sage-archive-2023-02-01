@@ -7,13 +7,21 @@ SAGE_SPKG_CONFIGURE([lcalc], [
     AS_IF([test -z "${LCALC_BIN}"], [sage_spkg_install_lcalc=yes])
     AC_CHECK_HEADER([lcalc/L.h], [], [sage_spkg_install_lcalc=yes])
 
-    dnl Check for the lcalc-2.x API that we now use.
-    AC_MSG_CHECKING([for libLfunction >= 2.0.0])
+    dnl Check for the lcalc-2.x API that we now use, ensure that
+    dnl that HAVE_LIBPARI is defined in L.h (via lcalc/config.h),
+    dnl and check for PRECISION_DOUBLE in the same place.
+    AC_MSG_CHECKING([for double-precision libLfunction >= 2.0.0 with pari support])
     AC_LANG_PUSH([C++])
     LCALC_SAVED_LIBS="${LIBS}"
     LIBS="${LIBS} -lLfunction"
     AC_LINK_IFELSE([
-      AC_LANG_PROGRAM([[#include <lcalc/L.h>]],
+      AC_LANG_PROGRAM([[#include <lcalc/L.h>
+                        #if !HAVE_LIBPARI
+                        #error libLfunction missing PARI support
+                        #endif
+                        #if !PRECISION_DOUBLE
+                        #error libLfunction must use double-precision
+                        #endif]],
                       [[initialize_globals();
                         vector<Double> zeros;
                         L_function<int> zeta;

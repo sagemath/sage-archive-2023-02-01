@@ -1576,6 +1576,20 @@ class RationalField(Singleton, number_field_base.NumberField):
         """
         return '"Rational"'
 
+    def _sympy_(self):
+        r"""
+        Return the SymPy set ``Rationals``.
+
+        EXAMPLES::
+
+            sage: QQ._sympy_()
+            Rationals
+        """
+        from sympy import Rationals
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return Rationals
+
     def _sage_input_(self, sib, coerced):
         r"""
         Produce an expression which will reproduce this value when evaluated.

@@ -497,6 +497,23 @@ def roots_interval(f, x0):
 def roots_interval_cached(f, x0):
     r"""
     Cached version of :func:`roots_interval`.
+
+
+    TESTS::
+
+        sage: from sage.schemes.curves.zariski_vankampen import roots_interval, roots_interval_cached, roots_interval_cache
+        sage: R.<x,y> = QQ[]
+        sage: f = y^3 - x^2
+        sage: (f, 1) in roots_interval_cache
+        False
+        sage: ri = roots_interval_cached(f, 1)
+        sage: ri
+        {-138907099/160396102*I - 1/2: -1.? - 1.?*I,
+         138907099/160396102*I - 1/2: -1.? + 1.?*I,
+         1: 1.? + 0.?*I}
+        sage: (f, 1) in roots_interval_cache
+        True
+
     """
     global roots_interval_cache
     if (f,x0) in roots_interval_cache.keys():

@@ -994,9 +994,9 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             raise ValueError("n (=%s) must be >= 1" % n)
         s = repr(self('qunit(%s)' % n)).lower()
         r = re.compile(r'sqrt\(.*\)')
-        a = QuadraticField(n, 'a').gen()
+        Qa = QuadraticField(n, 'a')
         s = r.sub('a', s)
-        return eval(s)
+        return Qa(s)
 
     def plot_list(self, ptsx, ptsy, options=None):
         r"""
@@ -1774,8 +1774,8 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
         """
         self._check_valid()
         P = self.parent()
-        s = P._eval_line('tex(%s);'%self.name(), reformat=False)
-        if not '$$' in s:
+        s = P._eval_line('tex(%s);' % self.name(), reformat=False)
+        if '$$' not in s:
             raise RuntimeError("Error texing Maxima object.")
         i = s.find('$$')
         j = s.rfind('$$')

@@ -2,15 +2,16 @@ r"""
 Subsets of a Universe Defined by a Predicate
 """
 
-from sage.structure.parent import Parent
+from sage.structure.parent import Parent, Set_generic
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
 from sage.symbolic.callable import is_CallableSymbolicExpression
 from sage.symbolic.ring import SymbolicRing
 
-from .set import Set
+from .set import Set, Set_base, Set_boolean_operators, Set_add_sub_operators
 
-class ConditionSet(Parent, UniqueRepresentation):
+class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_operators,
+                   UniqueRepresentation):
     r"""
     Set of elements of a universe that satisfy a predicate
 
@@ -39,10 +40,16 @@ class ConditionSet(Parent, UniqueRepresentation):
         (x, y, z) |--> sqrt(x^2 + y^2 + z^2) < 1.20000000000000
         sage: P_inter_B_again = ConditionSet(P, predicate); P_inter_B_again
         { (x, y, z) ∈ P : sqrt(x^2 + y^2 + z^2) < 1.20000000000000 }
-        sage: vector([1, 0, 0]) in P_inter_B
+        sage: vector([1, 0, 0]) in P_inter_B_again
         True
-        sage: vector([1, 1, 1]) in P_inter_B
+        sage: vector([1, 1, 1]) in P_inter_B_again
         False
+
+    TESTS::
+
+        sage: TestSuite(Evens).run()
+        sage: TestSuite(P_inter_B).run(skip='_test_pickling')  # cannot pickle lambdas
+        sage: TestSuite(P_inter_B_again).run()
     """
     @staticmethod
     def __classcall_private__(cls, universe, predicate, category=None):
@@ -80,9 +87,18 @@ class ConditionSet(Parent, UniqueRepresentation):
                 raise ValueError(f'{element} is not an element of the universe')
         else:
             element = universe_element_constructor(*args, **kwds)
-        if not self._predicate(element):
+        if not self._call_predicate(element):
             raise ValueError(f'{element} does not satisfy the condition')
         return element
+
+    def _call_predicate(self, element):
+        return self._predicate(element)
+
+    def _an_element_(self):
+        for element in self._universe.some_elements():
+            if element in self:
+                return element
+        raise NotImplementedError
 
     def ambient(self):
         return self._universe
@@ -95,6 +111,11 @@ class ConditionSet_callable_symbolic_expression(ConditionSet):
         args = predicate.arguments()
         predicate_expr = SymbolicRing._repr_element_(predicate.parent(), predicate)
         return '{ ' + f'{args} ∈ {universe} : {predicate_expr}' + ' }'
+
+    def _call_predicate(self, element):
+        if len(self._predicate.arguments()) != 1:
+            return self._predicate(*element)
+        return self._predicate(element)
 
     def _sympy_(self):
         r"""

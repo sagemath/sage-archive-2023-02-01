@@ -420,7 +420,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         """
         self._Vrepresentation = []
         self._Hrepresentation = []
-        self.parent()._make_Equation(self, [-1] + [0]*self.ambient_dim())
+        self.parent()._make_Equation(self, [-1] + [0] * self.ambient_dim())
         self._Vrepresentation = tuple(self._Vrepresentation)
         self._Hrepresentation = tuple(self._Hrepresentation)
 
@@ -11135,7 +11135,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             if i == 3:
                 # Test that the extension is indeed minimal.
                 if self.base_ring() is not AA:
-                    tester.assertFalse(data.polyhedron.base_ring() is AA)
+                    tester.assertIsNot(data.polyhedron.base_ring(), AA)
 
     def affine_hull_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
                              ambient_chart=None, names=None, **kwds):

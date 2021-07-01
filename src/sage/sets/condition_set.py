@@ -43,7 +43,7 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
         sage: var('y')
         y
         sage: SmallOdds = ConditionSet(ZZ, is_odd, abs(y) <= 11, vars=[y]); SmallOdds
-        { y ∈ Integer Ring : abs(y) <= 11, <function is_odd at 0x3c6cb8310>(y) }
+        { y ∈ Integer Ring : abs(y) <= 11, <function is_odd at 0x...>(y) }
 
         sage: P = polytopes.cube(); P
         A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
@@ -64,9 +64,25 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
         sage: vector([1, 1, 1]) in P_inter_B_again
         False
 
+    Using ``ConditionSet`` without predicates provides a way of attaching variable names
+    to a set::
+
+        sage: Z3 = ConditionSet(ZZ^3, vars=['x', 'y', 'z']); Z3
+        { (x, y, z) ∈ Ambient free module of rank 3 over the principal ideal domain Integer Ring }
+        sage: Z3.variable_names()
+        ('x', 'y', 'z')
+        sage: Z3.arguments()
+        (x, y, z)
+
+        sage: Q4.<a, b, c, d> = ConditionSet(QQ^4); Q4
+        { (a, b, c, d) ∈ Vector space of dimension 4 over Rational Field }
+        sage: Q4.variable_names()
+        ('a', 'b', 'c', 'd')
+        sage: Q4.arguments()
+        (a, b, c, d)
+
     TESTS::
 
-        sage: TestSuite(Evens).run()
         sage: TestSuite(P_inter_B).run(skip='_test_pickling')  # cannot pickle lambdas
         sage: TestSuite(P_inter_B_again).run()
     """
@@ -123,6 +139,13 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
                                      names=names, category=category)
 
     def __init__(self, universe, *predicates, names=None, category=None):
+        """
+        TESTS::
+
+            sage: Evens = ConditionSet(ZZ, is_even); Evens
+            { x ∈ Integer Ring : <function is_even at 0x...>(x) }
+            sage: TestSuite(Evens).run()
+        """
         self._universe = universe
         self._predicates = predicates
         facade = None
@@ -130,6 +153,18 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             facade = universe
         super().__init__(facade=facade, category=category,
                          names=names, normalize=False) # names already normalized by classcall
+
+    def _first_ngens(self, n):
+        r"""
+        Return the list of variables.
+
+        This is useful only for the use of Sage preparser::
+
+            sage: preparse("Q3.<x,y,z> = ConditionSet(QQ^3)")
+            "Q3 = ConditionSet(QQ**Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = Q3._first_ngens(3)"
+
+        """
+        return self.arguments()
 
     def _repr_(self):
         s = "{ "
@@ -165,6 +200,12 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
         return SR.var(self.variable_names())
 
     def _element_constructor_(self, *args, **kwds):
+        """
+        Construct an element of the set.
+
+        This element constructor raises an error if the element does not
+        satisfy the predicates.
+        """
         try:
             universe_element_constructor = self._universe._element_constructor_
         except AttributeError:
@@ -193,6 +234,9 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
         raise NotImplementedError
 
     def ambient(self):
+        """
+        Return the universe of ``self``.
+        """
         return self._universe
 
 

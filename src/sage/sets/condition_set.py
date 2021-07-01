@@ -26,6 +26,17 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
         sage: 2.0 in Evens
         True
 
+        sage: Odds = ConditionSet(ZZ, is_odd); Odds
+        { x ∈ Integer Ring : <function is_odd at 0x3ba5ff310>(x) }
+        sage: EvensAndOdds = Evens | Odds; EvensAndOdds
+        Set-theoretic union of
+         { x ∈ Integer Ring : <function is_even at 0x3ba5ff160>(x) } and
+         { x ∈ Integer Ring : <function is_odd at 0x3ba5ff310>(x) }
+        sage: 5 in EvensAndOdds
+        True
+        sage: 7/2 in EvensAndOdds
+        False
+
         sage: P = polytopes.cube(); P
         A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 8 vertices
         sage: P.rename("P")

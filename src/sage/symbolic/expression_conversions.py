@@ -423,9 +423,14 @@ class InterfaceInit(Converter):
             sage: ii = InterfaceInit(gp)
             sage: ii.symbol(x)
             'x'
+            sage: g = InterfaceInit(giac)
+            sage: g.symbol(x)
+            'sageVARx'
         """
         if self.interface.name()=='maxima':
             return '_SAGE_VAR_'+repr(SR(ex))
+        elif self.interface.name() == 'giac':
+            return 'sageVAR' + repr(SR(ex))
         else:
             return repr(SR(ex))
 
@@ -506,7 +511,7 @@ class InterfaceInit(Converter):
             sage: t
             D[0](f)(x*y)
             sage: m.derivative(t, t.operator())
-            "at(diff('f(_SAGE_VAR_t0), _SAGE_VAR_t0, 1), [_SAGE_VAR_t0 = (_SAGE_VAR_x)*(_SAGE_VAR_y)])"
+            "at(diff('f(_SAGE_VAR__symbol0), _SAGE_VAR__symbol0, 1), [_SAGE_VAR__symbol0 = (_SAGE_VAR_x)*(_SAGE_VAR_y)])"
 
         TESTS:
 
@@ -530,7 +535,7 @@ class InterfaceInit(Converter):
             sage: a = df.subs(x=exp(x)); a
             D[0](f)(e^x)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),_SAGE_VAR_t0=%e^_SAGE_VAR_x)
+            %at('diff('f(_SAGE_VAR__symbol0),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=%e^_SAGE_VAR_x)
             sage: bool(b.sage() == a)
             True
 
@@ -539,7 +544,7 @@ class InterfaceInit(Converter):
             sage: a = df.subs(x=4); a
             D[0](f)(4)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
+            %at('diff('f(_SAGE_VAR__symbol0),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -559,7 +564,7 @@ class InterfaceInit(Converter):
             sage: a = f_x.subs(x=4); a
             D[0](f)(4, y)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_y),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
+            %at('diff('f(_SAGE_VAR__symbol0,_SAGE_VAR_y),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -568,7 +573,7 @@ class InterfaceInit(Converter):
             sage: a = f_x.subs(x=4).subs(y=8); a
             D[0](f)(4, 8)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0,8),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
+            %at('diff('f(_SAGE_VAR__symbol0,8),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -591,9 +596,12 @@ class InterfaceInit(Converter):
             # An evaluated derivative of the form f'(1) is not a
             # symbolic variable, yet we would like to treat it like
             # one. So, we replace the argument `1` with a temporary
-            # variable e.g. `t0` and then evaluate the derivative
-            # f'(t0) symbolically at t0=1. See trac #12796.
-            temp_args = [SR.var("t%s"%i) for i in range(len(args))]
+            # variable e.g. `_symbol0` and then evaluate the
+            # derivative f'(_symbol0) symbolically at _symbol0=1. See
+            # trac #12796. Note that we cannot use SR.temp_var here
+            # since two conversions of the same expression have to be
+            # equal.
+            temp_args = [SR.symbol("_symbol%s"%i) for i in range(len(args))]
             f = operator.function()(*temp_args)
             params = operator.parameter_set()
             params = ["%s, %s"%(temp_args[i]._maxima_init_(), params.count(i)) for i in set(params)]
@@ -1083,9 +1091,12 @@ class FriCASConverter(InterfaceInit):
             # An evaluated derivative of the form f'(1) is not a
             # symbolic variable, yet we would like to treat it like
             # one. So, we replace the argument `1` with a temporary
-            # variable e.g. `t0` and then evaluate the derivative
-            # f'(t0) symbolically at t0=1. See trac #12796.
-            temp_args = [SR.var("t%s" % i) for i in range(len(args))]
+            # variable e.g. `_symbol0` and then evaluate the
+            # derivative f'(_symbol0) symbolically at _symbol0=1. See
+            # trac #12796. Note that we cannot use SR.temp_var here
+            # since two conversions of the same expression have to be
+            # equal.
+            temp_args = [SR.symbol("_symbol%s" % i) for i in range(len(args))]
             f = operator.function()(*temp_args)
             vars = ",".join(temp_args[i]._fricas_init_() for i in params_set)
             subs = ",".join("%s = %s" % (t._fricas_init_(), a._fricas_init_())

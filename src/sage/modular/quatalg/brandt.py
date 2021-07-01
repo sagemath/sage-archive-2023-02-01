@@ -364,7 +364,7 @@ def maximal_order(A):
 
         sage: A = BrandtModule(17).quaternion_algebra()
         sage: sage.modular.quatalg.brandt.maximal_order(A)
-        Order of Quaternion Algebra (-17, -3) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, -1/3*j - 1/3*k, k)
+        Order of Quaternion Algebra (-3, -17) with base ring Rational Field with basis (1/2 + 1/2*i, 1/2*j - 1/2*k, -1/3*i + 1/3*k, -k)
 
         sage: A = QuaternionAlgebra(17,names='i,j,k')
         sage: A.maximal_order()
@@ -390,9 +390,9 @@ def basis_for_left_ideal(R, gens):
 
         sage: B = BrandtModule(17); A = B.quaternion_algebra(); i,j,k = A.gens()
         sage: sage.modular.quatalg.brandt.basis_for_left_ideal(B.maximal_order(), [i+j,i-j,2*k,A(3)])
-        [1/2 + 1/6*j + 2/3*k, 1/2*i + 1/2*k, 1/3*j + 1/3*k, k]
+        [1/2 + 1/6*i + 1/3*k, 1/3*i + 2/3*k, 1/2*j + 1/2*k, k]
         sage: sage.modular.quatalg.brandt.basis_for_left_ideal(B.maximal_order(), [3*(i+j),3*(i-j),6*k,A(3)])
-        [3/2 + 1/2*j + 2*k, 3/2*i + 3/2*k, j + k, 3*k]
+        [3/2 + 1/2*i + k, i + 2*k, 3/2*j + 3/2*k, 3*k]
     """
     return basis_for_quaternion_lattice([b * g for b in R.basis() for g in gens])
 
@@ -417,14 +417,14 @@ def right_order(R, basis):
 
         sage: B = BrandtModule(17); basis = sage.modular.quatalg.brandt.basis_for_left_ideal(B.maximal_order(), B.maximal_order().basis())
         sage: sage.modular.quatalg.brandt.right_order(B.maximal_order(), basis)
-        Order of Quaternion Algebra (-17, -3) with base ring Rational Field with basis (1/2 + 1/6*j + 2/3*k, 1/2*i + 1/2*k, 1/3*j + 1/3*k, k)
+        Order of Quaternion Algebra (-3, -17) with base ring Rational Field with basis (1/2 + 1/6*i + 1/3*k, 1/3*i + 2/3*k, 1/2*j + 1/2*k, k)
         sage: basis
-        [1/2 + 1/6*j + 2/3*k, 1/2*i + 1/2*k, 1/3*j + 1/3*k, k]
+        [1/2 + 1/6*i + 1/3*k, 1/3*i + 2/3*k, 1/2*j + 1/2*k, k]
 
         sage: B = BrandtModule(17); A = B.quaternion_algebra(); i,j,k = A.gens()
         sage: basis = sage.modular.quatalg.brandt.basis_for_left_ideal(B.maximal_order(), [i*j-j])
         sage: sage.modular.quatalg.brandt.right_order(B.maximal_order(), basis)
-        Order of Quaternion Algebra (-17, -3) with base ring Rational Field with basis (1/2 + 1/2*i + 1/2*j + 17/2*k, i, j + 8*k, 9*k)
+        Order of Quaternion Algebra (-3, -17) with base ring Rational Field with basis (1/2 + 1/6*i + 1/3*k, 1/3*i + 2/3*k, 1/2*j + 1/2*k, k)
     """
     # Compute matrix of multiplication by each element of the basis.
     B = R.basis()
@@ -798,26 +798,9 @@ class BrandtModule_class(AmbientHeckeModule):
             sage: BrandtModule(5).quaternion_algebra()
             Quaternion Algebra (-2, -5) with base ring Rational Field
             sage: BrandtModule(17).quaternion_algebra()
-            Quaternion Algebra (-17, -3) with base ring Rational Field
+            Quaternion Algebra (-3, -17) with base ring Rational Field
         """
-        p = self.N()
-        assert p.is_prime(), "we have only implemented the prime case"
-        if p == 2:
-            QA = -1
-            QB = -1
-        elif p % 4 == 3:
-            QA = -1
-            QB = -p
-        elif p % 8 == 5:
-            QA = -2
-            QB = -p
-        elif p % 8 == 1:
-            q = 3
-            while q % 4 != 3 or kronecker(p, q) != -1:
-                q = next_prime(q)
-            QA = -p
-            QB = -q
-        return QuaternionAlgebra(QQ, QA, QB)
+        return QuaternionAlgebra(self.N())
 
     @cached_method
     def maximal_order(self):
@@ -827,7 +810,7 @@ class BrandtModule_class(AmbientHeckeModule):
         EXAMPLES::
 
             sage: BrandtModule(17).maximal_order()
-            Order of Quaternion Algebra (-17, -3) with base ring Rational Field with basis (1/2 + 1/2*j, 1/2*i + 1/2*k, -1/3*j - 1/3*k, k)
+            Order of Quaternion Algebra (-3, -17) with base ring Rational Field with basis (1/2 + 1/2*i, 1/2*j - 1/2*k, -1/3*i + 1/3*k, -k)
             sage: BrandtModule(17).maximal_order() is BrandtModule(17).maximal_order()
             True
         """

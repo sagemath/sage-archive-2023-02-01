@@ -3653,8 +3653,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
 
             sage: K = Cone([(1,0,0), (0,1,0)])
             sage: K.solid_restriction().rays()
-            N(1, 0),
-            N(0, 1)
+            N(0, 1),
+            N(1, 0)
             in 2-d lattice N
 
         The solid restriction of a single ray has the same
@@ -3773,7 +3773,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             sage: C2_Z2 = Cone([(1,0),(1,2)])
             sage: C2_Z2._split_ambient_lattice()
             sage: C2_Z2._sublattice
-            Sublattice <N(1, 2), N(0, -1)>
+            Sublattice <N(1, 0), N(0, 1)>
 
         Trivial cone::
 
@@ -3844,9 +3844,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             sage: cone.rays().basis().matrix().det()
             -4
             sage: cone.sublattice()
-            Sublattice <N(-1, -1, 1), N(1, 0, 0), N(1, 1, 0)>
+            Sublattice <N(1, 1, 1), N(0, -1, 0), N(-1, -1, 0)>
             sage: matrix( cone.sublattice().gens() ).det()
-            1
+            -1
 
         Another example::
 
@@ -3858,7 +3858,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             N(4, -5, 1)
             in 3-d lattice N
             sage: c.sublattice()
-            Sublattice <N(1, 2, 3), N(4, -5, 1)>
+            Sublattice <N(4, -5, 1), N(1, 2, 3)>
             sage: c.sublattice(5, -3, 4)
             N(5, -3, 4)
             sage: c.sublattice(1, 0, 0)
@@ -3954,14 +3954,14 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
 
             sage: c = Cone([(1,2,3), (4,-5,1)])
             sage: c.sublattice()
-            Sublattice <N(1, 2, 3), N(4, -5, 1)>
+            Sublattice <N(4, -5, 1), N(1, 2, 3)>
             sage: c.sublattice_complement()
-            Sublattice <N(0, -6, -5)>
+            Sublattice <N(2, -3, 0)>
             sage: m = matrix( c.sublattice().gens() + c.sublattice_complement().gens() )
             sage: m
-            [ 1  2  3]
             [ 4 -5  1]
-            [ 0 -6 -5]
+            [ 1  2  3]
+            [ 2 -3  0]
             sage: m.det()
             -1
             """
@@ -4005,7 +4005,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             Sublattice <>
             sage: c12 = Cone([(1,1,1), (1,-1,1)])
             sage: c12.sublattice()
-            Sublattice <N(1, -1, 1), N(0, 1, 0)>
+            Sublattice <N(1, 1, 1), N(0, -1, 0)>
             sage: c12.orthogonal_sublattice()
             Sublattice <M(1, 0, -1)>
 
@@ -4071,15 +4071,15 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             sage: sigma = Cone([(1,1,1,3),(1,-1,1,3),(-1,-1,1,3),(-1,1,1,3)])
             sage: rho   = Cone([(-1, -1, 1, 3), (-1, 1, 1, 3)])
             sage: sigma.sublattice()
-            Sublattice <N(-1, -1, 1, 3), N(1, 0, 0, 0), N(1, 1, 0, 0)>
+            Sublattice <N(1, 1, 1, 3), N(0, -1, 0, 0), N(-1, -1, 0, 0)>
             sage: rho.sublattice()
-            Sublattice <N(-1, 1, 1, 3), N(0, -1, 0, 0)>
+            Sublattice <N(-1, -1, 1, 3), N(0, 1, 0, 0)>
             sage: sigma.relative_quotient(rho)
             1-d lattice, quotient
-            of Sublattice <N(-1, -1, 1, 3), N(1, 0, 0, 0), N(1, 1, 0, 0)>
+            of Sublattice <N(1, 1, 1, 3), N(0, -1, 0, 0), N(-1, -1, 0, 0)>
             by Sublattice <N(1, 0, -1, -3), N(0, 1, 0, 0)>
             sage: sigma.relative_quotient(rho).gens()
-            (N[1, 1, 0, 0],)
+            (N[1, 0, 0, 0],)
 
         More complicated example::
 
@@ -4087,12 +4087,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             sage: sigma = Cone([(1, 2, 3), (1, -1, 1), (-1, 1, 1), (-1, -1, 1)])
             sage: N_sigma = sigma.sublattice()
             sage: N_sigma
-            Sublattice <N(-1, 1, 1), N(1, 2, 3), N(0, 1, 1)>
+            Sublattice <N(1, 2, 3), N(1, -1, 1), N(-1, -1, -2)>
             sage: N_rho = rho.sublattice()
             sage: N_rho
             Sublattice <N(1, -1, 1), N(1, 2, 3)>
             sage: sigma.relative_quotient(rho).gens()
-            (N[0, 1, 1],)
+            (N[-1, -1, -2],)
             sage: N = rho.lattice()
             sage: N_sigma == N.span(N_rho.gens() + tuple(q.lift()
             ....:            for q in sigma.relative_quotient(rho).gens()))
@@ -4107,12 +4107,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             Sublattice <N(1, -1, 1), N(1, 2, 3)>
             sage: sigma1.relative_quotient(rho)
             1-d lattice, quotient
-            of Sublattice <N(-1, 1, 1), N(1, 2, 3), N(0, 1, 1)>
+            of Sublattice <N(1, 2, 3), N(1, -1, 1), N(-1, -1, -2)>
             by Sublattice <N(1, 2, 3), N(0, 3, 2)>
             sage: sigma1.relative_quotient(rho).gens()
-            (N[0, 1, 1],)
+            (N[-1, -1, -2],)
             sage: sigma2.relative_quotient(rho).gens()
-            (N[-1, 0, -2],)
+            (N[0, 2, 1],)
         """
         try:
             cached_values = self._relative_quotient
@@ -4412,9 +4412,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             sage: Cone([[1,0],[3,4]]).dual().Hilbert_basis()
             M(0,  1),
             M(4, -3),
-            M(3, -2),
+            M(1,  0),
             M(2, -1),
-            M(1,  0)
+            M(3, -2)
             in 2-d lattice M
             sage: cone = Cone([[1,2,3,4],[0,1,0,7],[3,1,0,2],[0,0,1,0]]).dual()
             sage: cone.Hilbert_basis()           # long time
@@ -4424,16 +4424,16 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             M(15, -63, 25,  9),
             M( 2,  -3,  0,  1),
             M( 1,  -4,  1,  1),
-            M(-1,   3,  0,  0),
             M( 4,  -4,  0,  1),
+            M(-1,   3,  0,  0),
             M( 1,  -5,  2,  1),
             M( 3,  -5,  1,  1),
             M( 6,  -5,  0,  1),
             M( 3, -13,  5,  2),
             M( 2,  -6,  2,  1),
             M( 5,  -6,  1,  1),
-            M( 0,   1,  0,  0),
             M( 8,  -6,  0,  1),
+            M( 0,   1,  0,  0),
             M(-2,   8,  0, -1),
             M(10, -42, 17,  6),
             M( 7, -28, 11,  4),
@@ -4444,9 +4444,9 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             M( 4,  -7,  2,  1),
             M( 7,  -7,  1,  1),
             M( 0,   0,  1,  0),
-            M(-3,  14,  0, -2),
+            M( 1,   0,  0,  0),
             M(-1,   7,  0, -1),
-            M( 1,   0,  0,  0)
+            M(-3,  14,  0, -2)
             in 4-d lattice M
 
         Not a strictly convex cone::

@@ -1315,10 +1315,8 @@ class SR_generic(MPolynomialSystemGenerator):
             R[10].output  3925841D02DC09FBDC118597196A0B32
             sage: set_verbose(0)
         """
-        r,c,e = self.r,self.c,self.e
+        r, c, e = self.r, self.c, self.e
         F = self.base_ring()
-
-        _type = self.state_array
 
         if isinstance(P, str):
             P = self.state_array([F.fetch_int(ZZ(P[i:i+2], 16)) for i in range(0, len(P), 2)])
@@ -2650,7 +2648,8 @@ class SR_gf2(SR_generic):
             return tuple(ret)
         elif is_Matrix(l):
             return Matrix(GF(2), l.ncols(), l.nrows()*self.e, ret).transpose()
-        else: raise TypeError
+        else:
+            raise TypeError
 
     def antiphi(self, l):
         r"""
@@ -2831,14 +2830,12 @@ class SR_gf2(SR_generic):
             sage: (a^2 + 1)*(a+1)
             a^3 + a^2 + a + 1
         """
-        a = self.k.gen()
         k = self.k
         e = self.e
         a = k.gen()
 
-        columns = []
-        for i in reversed(range(e)):
-            columns.append( list(reversed((x * a**i)._vector_())) )
+        columns = [list(reversed((x * a**i)._vector_()))
+                   for i in reversed(range(e))]
         return Matrix(GF(2), e, e, columns).transpose()
 
     def _square_matrix(self):

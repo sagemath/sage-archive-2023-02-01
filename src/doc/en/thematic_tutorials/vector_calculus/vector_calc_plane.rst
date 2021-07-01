@@ -612,7 +612,7 @@ on `\mathbb{E}^2`, `C^\infty(\mathbb{E}^2)`::
     sage: CE is XE.base_ring()
     True
     sage: CE.category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
     sage: rank(XE)
     2
 

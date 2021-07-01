@@ -78,7 +78,7 @@ import os
 from sage.interfaces.maxima import Maxima
 from sage.plot.all import line
 from sage.symbolic.expression import is_SymbolicEquation
-from sage.symbolic.ring import is_SymbolicVariable
+from sage.symbolic.ring import SR, is_SymbolicVariable
 from sage.calculus.functional import diff
 from sage.misc.functional import N
 from sage.rings.real_mpfr import RealField
@@ -1351,6 +1351,9 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
     if ics is None:
         raise ValueError("No initial conditions, specify with ics=[x0,y0].")
 
+    if output not in ['list', 'plot', 'slope_field']:
+        raise ValueError("Option output should be 'list', 'plot' or 'slope_field'.")
+
     if ivar is None:
         ivars = de.variables()
         ivars = [t for t in ivars if t != dvar]
@@ -1358,66 +1361,65 @@ def desolve_rk4(de, dvar, ics=None, ivar=None, end_points=None, step=0.1, output
             raise ValueError("Unable to determine independent variable, please specify.")
         ivar = ivars[0]
 
+    step=abs(step)
+
+    def desolve_rk4_inner(de, dvar):
+        de0=de._maxima_()
+        maxima("load('dynamics)")
+        lower_bound,upper_bound=desolve_rk4_determine_bounds(ics,end_points)
+        sol_1, sol_2 = [],[]
+        if lower_bound<ics[0]:
+            cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
+            "%(de0.str(),'_SAGE_VAR_'+str(dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),lower_bound,-step)
+            sol_1=maxima(cmd).sage()
+            sol_1.pop(0)
+            sol_1.reverse()
+        if upper_bound>ics[0]:
+            cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
+            "%(de0.str(),'_SAGE_VAR_'+str(dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),upper_bound,step)
+            sol_2=maxima(cmd).sage()
+            sol_2.pop(0)
+        sol=sol_1
+        sol.extend([[ics[0],ics[1]]])
+        sol.extend(sol_2)
+
+        if output == 'list':
+            return sol
+        from sage.plot.plot import list_plot
+        from sage.plot.plot_field import plot_slope_field
+        R = list_plot(sol, plotjoined=True, **kwds)
+        if output == 'plot':
+            return R
+        if output == 'slope_field':
+            XMIN = sol[0][0]
+            YMIN = sol[0][1]
+            XMAX = XMIN
+            YMAX = YMIN
+            for s, t in sol:
+                if s > XMAX:
+                    XMAX = s
+                if s < XMIN:
+                    XMIN = s
+                if t > YMAX:
+                    YMAX = t
+                if t < YMIN:
+                    YMIN = t
+            return plot_slope_field(de, (ivar,XMIN,XMAX), (dvar,YMIN,YMAX))+R
+
     if not is_SymbolicVariable(dvar):
         from sage.symbolic.ring import SR
         from sage.calculus.all import diff
         from sage.symbolic.relation import solve
         if is_SymbolicEquation(de):
             de = de.lhs() - de.rhs()
-        dummy_dvar = SR.var('dummy_dvar')
         # consider to add warning if the solution is not unique
         de=solve(de,diff(dvar,ivar),solution_dict=True)
         if len(de) != 1:
             raise NotImplementedError("Sorry, cannot find explicit formula for right-hand side of the ODE.")
-        de=de[0][diff(dvar,ivar)].subs(dvar==dummy_dvar)
+        with SR.temp_var() as dummy_dvar:
+            return desolve_rk4_inner(de[0][diff(dvar,ivar)].subs({dvar:dummy_dvar}), dummy_dvar)
     else:
-        dummy_dvar=dvar
-
-    step=abs(step)
-    de0=de._maxima_()
-    maxima("load('dynamics)")
-    lower_bound,upper_bound=desolve_rk4_determine_bounds(ics,end_points)
-    sol_1, sol_2 = [],[]
-    if lower_bound<ics[0]:
-        cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(de0.str(),'_SAGE_VAR_'+str(dummy_dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),lower_bound,-step)
-        sol_1=maxima(cmd).sage()
-        sol_1.pop(0)
-        sol_1.reverse()
-    if upper_bound>ics[0]:
-        cmd="rk(%s,%s,%s,[%s,%s,%s,%s])\
-        "%(de0.str(),'_SAGE_VAR_'+str(dummy_dvar),str(ics[1]),'_SAGE_VAR_'+str(ivar),str(ics[0]),upper_bound,step)
-        sol_2=maxima(cmd).sage()
-        sol_2.pop(0)
-    sol=sol_1
-    sol.extend([[ics[0],ics[1]]])
-    sol.extend(sol_2)
-
-    if output == 'list':
-        return sol
-    from sage.plot.plot import list_plot
-    from sage.plot.plot_field import plot_slope_field
-    R = list_plot(sol, plotjoined=True, **kwds)
-    if output == 'plot':
-        return R
-    if output == 'slope_field':
-        XMIN = sol[0][0]
-        YMIN = sol[0][1]
-        XMAX = XMIN
-        YMAX = YMIN
-        for s, t in sol:
-            if s > XMAX:
-                XMAX = s
-            if s < XMIN:
-                XMIN = s
-            if t > YMAX:
-                YMAX = t
-            if t < YMIN:
-                YMIN = t
-        return plot_slope_field(de, (ivar,XMIN,XMAX), (dummy_dvar,YMIN,YMAX))+R
-
-    raise ValueError("Option output should be 'list', 'plot' or 'slope_field'.")
-
+        return desolve_rk4_inner(de, dvar)
 
 def desolve_system_rk4(des, vars, ics=None, ivar=None, end_points=None, step=0.1):
     r"""
@@ -1655,6 +1657,49 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
     from sage.ext.fast_eval import fast_float
     from sage.calculus.functions import jacobian
 
+    def desolve_odeint_inner(ivar):
+        # one-dimensional systems:
+        if is_SymbolicVariable(dvars):
+            func = fast_float(des, dvars, ivar)
+            if not compute_jac:
+                Dfun = None
+            else:
+                J = diff(des, dvars)
+                J = fast_float(J, dvars, ivar)
+
+                def Dfun(y, t):
+                    return [J(y, t)]
+
+        # n-dimensional systems:
+        else:
+            desc = []
+            variabs = dvars[:]
+            variabs.append(ivar)
+            for de in des:
+                desc.append(fast_float(de,*variabs))
+
+            def func(y,t):
+                v = list(y[:])
+                v.append(t)
+                return [dec(*v) for dec in desc]
+
+            if not compute_jac:
+                Dfun=None
+            else:
+                J = jacobian(des,dvars)
+                J = [list(v) for v in J]
+                J = fast_float(J,*variabs)
+                def Dfun(y,t):
+                    v = list(y[:])
+                    v.append(t)
+                    return [[element(*v) for element in row] for row in J]
+
+
+        sol=odeint(func, ics, times, args=args, Dfun=Dfun, rtol=rtol, atol=atol,
+            tcrit=tcrit, h0=h0, hmax=hmax, hmin=hmin, ixpr=ixpr, mxstep=mxstep,
+            mxhnil=mxhnil, mxordn=mxordn, mxords=mxords, printmessg=printmessg)
+        return sol
+
     if ivar is None:
         if len(dvars)==0 or len(dvars)==1:
             if len(dvars)==1:
@@ -1671,59 +1716,17 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
             ivars = all_vars - set(dvars)
 
         if len(ivars)==1:
-            ivar = ivars.pop()
+            return desolve_odeint_inner(ivars[0])
         elif not ivars:
-            try:
-                safe_names = [ 't_' + str(dvar) for dvar in dvars ]
-            except TypeError:  # not iterable
-                safe_names = [ 't_' + str(dvars) ]
-            from sage.symbolic.ring import SR
-            ivar = [SR.var(name) for name in safe_names]
+            if is_SymbolicVariable(dvars):
+                with SR.temp_var() as ivar:
+                    return desolve_odeint_inner(ivar)
+            else:
+                with SR.temp_var(n=len(dvars)) as ivar:
+                    return desolve_odeint_inner(ivar)
         else:
             raise ValueError("Unable to determine independent variable, please specify.")
-
-    # one-dimensional systems:
-    if is_SymbolicVariable(dvars):
-        func = fast_float(des, dvars, ivar)
-        if not compute_jac:
-            Dfun = None
-        else:
-            J = diff(des, dvars)
-            J = fast_float(J, dvars, ivar)
-
-            def Dfun(y, t):
-                return [J(y, t)]
-
-    # n-dimensional systems:
-    else:
-        desc = []
-        variabs = dvars[:]
-        variabs.append(ivar)
-        for de in des:
-            desc.append(fast_float(de,*variabs))
-
-        def func(y,t):
-            v = list(y[:])
-            v.append(t)
-            return [dec(*v) for dec in desc]
-
-        if not compute_jac:
-            Dfun=None
-        else:
-            J = jacobian(des,dvars)
-            J = [list(v) for v in J]
-            J = fast_float(J,*variabs)
-            def Dfun(y,t):
-                v = list(y[:])
-                v.append(t)
-                return [[element(*v) for element in row] for row in J]
-
-
-    sol=odeint(func, ics, times, args=args, Dfun=Dfun, rtol=rtol, atol=atol,
-        tcrit=tcrit, h0=h0, hmax=hmax, hmin=hmin, ixpr=ixpr, mxstep=mxstep,
-        mxhnil=mxhnil, mxordn=mxordn, mxords=mxords, printmessg=printmessg)
-
-    return sol
+    return desolve_odeint_inner(ivar)
 
 def desolve_mintides(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-16):
     r"""

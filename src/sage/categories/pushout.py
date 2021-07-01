@@ -3055,7 +3055,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: F2(GF(5))
             Traceback (most recent call last):
             ...
-            NotImplementedError: ring extension with prescripted embedding is not implemented
+            NotImplementedError: ring extension with prescribed embedding is not implemented
 
         When applying a number field constructor to the ring of
         integers, an order (not necessarily maximal) of that field is

@@ -13,6 +13,7 @@ Convex Sets
 # ****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.categories.sets_cat import EmptySetError
 from sage.misc.abstract_method import abstract_method
 
 class ConvexSet_base(SageObject):
@@ -443,6 +444,70 @@ class ConvexSet_base(SageObject):
             TypeError: 'NotImplementedType' object is not callable
         """
 
+    def an_element(self):
+        r"""
+        Return a point of ``self``.
+
+        If ``self`` is empty, an :class:`EmptySetError` will be raised.
+
+        The default implementation delegates to :meth:`_some_elements_`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_compact
+            sage: class BlueBox(ConvexSet_compact):
+            ....:     def _some_elements_(self):
+            ....:         yield 'blue'
+            ....:         yield 'cyan'
+            sage: BlueBox().an_element()
+            'blue'
+        """
+        if self._some_elements_ == NotImplemented:
+            raise NotImplementedError
+        try:
+            return next(iter(self._some_elements_()))
+        except StopIteration:
+            raise EmptySetError
+
+    def some_elements(self):
+        r"""
+        Return a list of some points of ``self``.
+
+        If ``self`` is empty, an empty list is returned; no exception will be raised.
+
+        The default implementation delegates to :meth:`_some_elements_`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_compact
+            sage: class BlueBox(ConvexSet_compact):
+            ....:     def _some_elements_(self):
+            ....:         yield 'blue'
+            ....:         yield 'cyan'
+            sage: BlueBox().some_elements()
+            ['blue', 'cyan']
+        """
+        if self._some_elements_ == NotImplemented:
+            raise NotImplementedError
+        return list(self._some_elements_())
+
+    @abstract_method(optional=True)
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self``.
+
+        If ``self`` is empty, no points are generated; no exception will be raised.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C._some_elements_(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
+        """
+
     @abstract_method(optional=True)
     def cartesian_product(self, other):
         """
@@ -523,7 +588,7 @@ class ConvexSet_base(SageObject):
         space = self.ambient_vector_space()
         try:
             ambient_point = ambient.an_element()
-        except (AttributeError, NotImplementedError):
+        except (AttributeError, NotImplementedError, EmptySetError):
             ambient_point = None
             space_point = space.an_element()
         else:
@@ -544,6 +609,15 @@ class ConvexSet_base(SageObject):
             symbolic_space_point = symbolic_space(space_point)
             # Only test that it can accept SR vectors without error.
             self.contains(symbolic_space_point)
+            # Test that elements returned by some_elements are contained.
+            try:
+                points = self.some_elements()
+            except NotImplementedError:
+                pass
+            else:
+                for point in points:
+                    tester.assertTrue(self.contains(point))
+                    tester.assertTrue(point in self)
 
     @abstract_method(optional=True)
     def intersection(self, other):

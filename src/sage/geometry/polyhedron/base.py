@@ -3314,6 +3314,37 @@ class Polyhedron_base(Element, ConvexSet_closed):
         accumulator.set_immutable()
         return accumulator
 
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self``.
+
+        If ``self`` is empty, no points are generated; no exception will be raised.
+
+        EXAMPLES::
+
+            sage: P = polytopes.simplex()
+            sage: P.an_element()            # indirect doctest
+            (1/4, 1/4, 1/4, 1/4)
+            sage: P.some_elements()         # indirect doctest
+            [(1/4, 1/4, 1/4, 1/4),
+             (0, 0, 0, 1),
+             (0, 0, 1/2, 1/2),
+             (0, 1/2, 1/4, 1/4),
+             (1/2, 1/4, 1/8, 1/8)]
+        """
+        if self.is_empty():
+            return
+        yield self.representative_point()
+        vertex_iter = iter(self.vertex_generator())
+        try:
+            p = next(vertex_iter).vector()
+            yield vector(p, immutable=True)
+            for i in range(4):
+                p = (p + next(vertex_iter).vector()) / 2
+                yield vector(p, immutable=True)
+        except StopIteration:
+            pass
+
     def a_maximal_chain(self):
         r"""
         Return a maximal chain of the face lattice in increasing order.

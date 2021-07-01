@@ -840,17 +840,11 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         if isinstance(restrict, tuple): # case of 'or' conditions
-            combine = False
-            for cond in restrict:
-                combine = combine or self._check_restrictions(cond,
-                                                              substitutions)
-            return combine
+            return any(self._check_restrictions(cond, substitutions)
+                       for cond in restrict)
         elif isinstance(restrict, list): # case of 'and' conditions
-            combine = True
-            for cond in restrict:
-                combine = combine and self._check_restrictions(cond,
-                                                               substitutions)
-            return combine
+            return all(self._check_restrictions(cond, substitutions)
+                       for cond in restrict)
         # Case of a single condition:
         return bool(restrict.subs(substitutions))
 

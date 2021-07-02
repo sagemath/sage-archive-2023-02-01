@@ -167,7 +167,7 @@ class OreFunction(AlgebraElement):
             sage: P = K.random_element()
             sage: Q = K.random_element()
             sage: D = K.random_element()
-            sage: (P*D) / (Q*D) == P/Q
+            sage: Q == 0 or D == 0 or (P*D) / (Q*D) == P/Q
             True
 
         """
@@ -549,7 +549,7 @@ class OreFunction(AlgebraElement):
             sage: f = K.random_element()
             sage: g = K.random_element()
             sage: h = K.random_element()
-            sage: f / (g / h) == f*h / g
+            sage: g == 0 or h == 0 or f / (g / h) == f*h / g
             True
 
             sage: 0/f
@@ -558,11 +558,15 @@ class OreFunction(AlgebraElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: cannot divide by zero
+            sage: K(0)/K(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: cannot divide by zero
         """
-        if not self._numerator:
-            return self
         if not other._numerator:
             raise ZeroDivisionError("cannot divide by zero")
+        if not self._numerator:
+            return self
         L, U, V = self._numerator.left_xlcm(other._numerator, monic=False)
         denominator = U * self._denominator
         numerator = V * other._denominator

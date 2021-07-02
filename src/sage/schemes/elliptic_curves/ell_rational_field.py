@@ -2525,7 +2525,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         return reg
 
     def saturation(self, points, verbose=False, max_prime=-1, min_prime=2):
-        """Given a list of rational points on E, compute the saturation in
+        r"""Given a list of rational points on E, compute the saturation in
         E(Q) of the subgroup they generate.
 
         INPUT:

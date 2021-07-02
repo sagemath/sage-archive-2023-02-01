@@ -1639,104 +1639,82 @@ class RiemannSurface(object):
             entire line with one ellipse, then bounds along that ellipse with 
             multiple circles. 
         """
-
-
         # Note that this, in it's current formalism, makes no check that bounding data at all corresponds to 
         # the differentials given. The onus is then on the design of other funcions which use it.
     
         # CCzg is required to be known as we need to know the ring which the minpolys lie in. 
         CCzg, bounding_data_list = bounding_data
         
-        i0,_ = upstairs_edge[0]
-        i1,_ = upstairs_edge[1]
+        i0, _ = upstairs_edge[0]
+        i1, _ = upstairs_edge[1]
         z0 = self._vertices[i0]
         z1 = self._vertices[i1]
         zwt, z1_minus_z0 = self.make_zw_interpolator(upstairs_edge)
-        centres_t = [self._RR(0.5)]
-        radii_t = [self._RR(0.5)]
-        exprs = []
-        Ns = []
-        good = [False]
+        
+        # list of (centre, radius) pairs that still need to be processed
+        ball_stack = [(self._RR(0.5), self._RR(0.5))]
         alpha = self._RR(0.912) 
         # alpha set manually for scaling purposes. Basic benchmarking shows 
         # that ~0.9 is a sensible value. 
         E_global = self._RR(2)**(-self._prec+3)
-        
-        while True:
-            for i in range(len(centres_t)):
-                if not good[i]:
-                    ct = centres_t[i]
-                    rt = radii_t[i]
-                    cz = (1-ct)*z0+ct*z1 # This is the central z-value of our ball.
-                    distances = [(cz-b).abs() for b in self.branch_locus] # Distance to the discriminant points 
-                    rho_z = min(distances) 
-                    rho_t = rho_z/(z1-z0).abs()
-                    if rho_t > rt:
-                        rho_t = alpha*rho_t+(1-alpha)*rt #sqrt(rho_t*rt)
-                        rho_z = rho_t*(z1-z0).abs()
-                        delta_z = (alpha*rho_t+(1-alpha)*rt)*(z1-z0).abs()
-                        expr = rho_t/rt+((rho_t/rt)**2-1).sqrt(self._prec) # Note this is really exp(arcosh(rho_t/rt))
-                        exprs.insert(i,expr)
-                        good[i] = True
-                        N = 3
-                        cw = zwt(ct)[1]
-                        
-                        for g, dgdz, minpoly,(a0lc,a0roots) in bounding_data_list:
-                            z_1 = a0lc.abs()*prod((cz-r).abs()-rho_z for r in a0roots)
-                            n = minpoly.degree(CCzg.gen(1))
-                            # Note the structure of the code is currently s.t 'z' has to be the variable in 
-                            # the minpolys. 
-                            ai_new = [(minpoly.coefficient({CCzg.gen(1):i}))(z=cz+self._CCz.gen(0)) for i 
-                                      in range(n)]
-                            ai_pos = [ self._RRz([c.abs() for c in h.list()]) for h in ai_new]
-                            m = [a(rho_z)/z_1 for a in ai_pos]
-                            l = len(m) 
-                            M_tilde = 2*max((m[i].abs())**(1/self._RR(l-i)) for i in range(l))
-                            cg = g(cz,cw)
-                            cdgdz = dgdz(cz,cg)
-                            Delta = delta_z*cdgdz.abs()+ (delta_z**2)*M_tilde/(rho_z*(rho_z-delta_z))
-                            M = Delta #+ abs(cg)
-                            N_required = ((64*M/(15*(1-1/expr)*E_global)).log()/(2*expr.log())).ceil()
-                            N = max(N,N_required)
-                    
-                        Ns.append(N)
-                    else:
-                        centres_t.pop(i)
-                        centres_t.insert(i,ct-rt/2)
-                        centres_t.insert(i+1,ct+rt/2)
-                        radii_t.pop(i)
-                        radii_t.insert(i,rt/2)
-                        radii_t.insert(i+1,rt/2)
-                        good.insert(i+1,False)
-            if all(good):
-                break
-    
-        N_intervals = len(centres_t)
-        #Ns = [Ns[i]+ceil(log(N_intervals)/(2*log(exprs[i]))) for i in range(N_intervals)] 
-        
-        K = 2 
+        K = 2
         # The parameter K could be tuned, but basic benchmarking seems to show
         # that 2 is a sensible choice
-        Ns = [(K*(N.sqrt(self._prec)/K).ceil())**2 for N in Ns] 
-        # Rounding is sensible as it allows the cache of nodes in 
-        # sage.numerical.gauss_legendre to be used.
-        # Quadratic rounding can be shown to be a sensible choice through the 
-        # basic argument that nodes is quadratic in N
-        
-        V = VectorSpace(self._CC, len(differentials))
-        output = V(0) 
-        
-        for i in range(N_intervals):
-            ct = centres_t[i]
-            rt = radii_t[i]
-            def integrand(t):
-                zt, wt = zwt(ct-rt+2*t*rt)
-                dfdwt = self._fastcall_dfdw(zt, wt)
-                return V([h(zt,wt)/dfdwt for h in differentials])
-        
-            output += rt*integrate_vector_N(integrand,self._prec,Ns[i])
 
-        return 2*output*z1_minus_z0
+        # Output will iteratively store the output of the integral. 
+        V = VectorSpace(self._CC, len(differentials))
+        output = V(0)
+
+        while ball_stack:
+            ct, rt = ball_stack.pop()
+            cz = (1-ct)*z0+ct*z1 # This is the central z-value of our ball.
+            distances = [(cz-b).abs() for b in self.branch_locus] # Distance to the discriminant points
+            rho_z = min(distances)
+            rho_t = rho_z/(z1-z0).abs()
+            if rho_t > rt:
+                rho_t = alpha*rho_t+(1-alpha)*rt # sqrt(rho_t*rt) could also work
+                rho_z = rho_t*(z1-z0).abs()
+                delta_z = (alpha*rho_t+(1-alpha)*rt)*(z1-z0).abs()
+                expr = rho_t/rt+((rho_t/rt)**2-1).sqrt(self._prec) # Note this is really exp(arcosh(rho_t/rt))
+                N = 3
+                cw = zwt(ct)[1]
+                for g, dgdz, minpoly,(a0lc,a0roots) in bounding_data_list:
+                    z_1 = a0lc.abs()*prod((cz-r).abs()-rho_z for r in a0roots)
+                    n = minpoly.degree(CCzg.gen(1))
+                    # Note the structure of the code is currently s.t 'z' has to be the variable in
+                    # the minpolys.
+                    ai_new = [(minpoly.coefficient({CCzg.gen(1):i}))(z=cz+self._CCz.gen(0)) for i
+                                in range(n)]
+                    ai_pos = [ self._RRz([c.abs() for c in h.list()]) for h in ai_new]
+                    m = [a(rho_z)/z_1 for a in ai_pos]
+                    l = len(m)
+                    M_tilde = 2*max((m[i].abs())**(1/self._RR(l-i)) for i in range(l))
+                    cg = g(cz,cw)
+                    cdgdz = dgdz(cz,cg)
+                    Delta = delta_z*cdgdz.abs()+ (delta_z**2)*M_tilde/(rho_z*(rho_z-delta_z))
+                    M = Delta #+ abs(cg)
+                    N_required = ((64*M/(15*(1-1/expr)*E_global)).log()/(2*expr.log())).ceil()
+                    N = max(N,N_required)
+
+                N = (K*(N.sqrt(self._prec)/K).ceil())**2
+                # Rounding is sensible as it allows the cache of nodes in 
+                # sage.numerical.gauss_legendre to be used.
+                # Quadratic rounding can be shown to be a sensible choice through the 
+                # basic argument that nodes is quadratic in N 
+                
+                ct_minus_rt = ct-rt
+                two_rt = 2*rt
+                def integrand(t):
+                    zt, wt = zwt(ct_minus_rt+t*two_rt)
+                    dfdwt = self._fastcall_dfdw(zt, wt)
+                    return V([h(zt,wt)/dfdwt for h in differentials])
+
+                output += two_rt*integrate_vector_N(integrand,self._prec,N)
+            else:
+                ball_stack.append((ct-rt/2, rt/2))
+                ball_stack.append((ct+rt/2, rt/2))
+
+        return output*z1_minus_z0
 
     def matrix_of_integral_values(self, differentials, integration_method="heuristic"):
         r"""

@@ -205,10 +205,18 @@ from sage.env import DOT_SAGE, LOCAL_IDENTIFIER
 from sage.docs.instancedoc import instancedoc
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.libs.pynac.pynac', ['symbol_table'])
 lazy_import('sage.calculus.var', ['var', 'function'])
+lazy_import('sage.symbolic.constants', ['I', 'e', 'pi'])
 
+FRICAS_CONSTANTS = {'%i': I,
+                    '%e': e,
+                    '%pi': pi,
+                    'infinity': infinity,
+                    'plusInfinity': infinity,
+                    'minusInfinity': -infinity}
 
 FRICAS_SINGLE_LINE_START = 3  # where output starts when it fits next to the line number
 FRICAS_MULTI_LINE_START = 2   # and when it doesn't
@@ -252,7 +260,6 @@ FRICAS_HELPER_CODE = (
 FRICAS_LINENUMBER_OFF_CODE = ")lisp (setf |$IOindex| NIL)"
 FRICAS_FIRST_PROMPT = r"\(1\) -> "
 FRICAS_LINENUMBER_OFF_PROMPT = r"\(NIL\) -> "
-
 
 class FriCAS(ExtraTabCompletion, Expect):
     """
@@ -1281,7 +1288,8 @@ class FriCASElement(ExpectElement):
 
     @staticmethod
     def _parse_other(s, start=0, make_fun=False):
-        """Parse the initial part of a string, assuming that it is an
+        """
+        Parse the initial part of a string, assuming that it is an
         atom, but not a string.
 
         Symbols and numbers must not contain ``FriCASElement._WHITESPACE`` and
@@ -1333,14 +1341,6 @@ class FriCASElement(ExpectElement):
             except KeyError:
                 e = function(e)
         else:
-            from sage.symbolic.constants import e as sage_e, pi, I
-            from sage.rings.infinity import infinity
-            constants = {'%i': I,
-                         '%e': sage_e,
-                         '%pi': pi,
-                         'infinity': infinity,
-                         'plusInfinity': infinity,
-                         'minusInfinity': -infinity}
             try:
                 e = ZZ(e)
             except TypeError:
@@ -1348,7 +1348,7 @@ class FriCASElement(ExpectElement):
                     e = float(e)
                 except ValueError:
                     try:
-                        e = constants[e]
+                        e = FRICAS_CONSTANTS[e]
                     except KeyError:
                         e = var(e.replace("%", "_"))
         return e, a - 1
@@ -1621,7 +1621,6 @@ class FriCASElement(ExpectElement):
         from sage.functions.other import abs
         from sage.functions.gamma import gamma
         from sage.misc.functional import symbolic_sum, symbolic_prod
-        from sage.symbolic.constants import I, pi
         register_symbol(pi, {'fricas': 'pi'}) # pi is also a function in fricas
         register_symbol(cos, {'fricas': 'cos'})
         register_symbol(sin, {'fricas': 'sin'})

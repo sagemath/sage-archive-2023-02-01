@@ -2,6 +2,16 @@ r"""
 Subsets of a Universe Defined by Predicates
 """
 
+# ****************************************************************************
+#       Copyright (C) 2021 Matthias Koeppe
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
+
 from sage.structure.category_object import normalize_names
 from sage.structure.parent import Parent, Set_generic
 from sage.structure.unique_representation import UniqueRepresentation
@@ -17,6 +27,18 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
                    UniqueRepresentation):
     r"""
     Set of elements of a universe that satisfy given predicates
+
+    INPUT:
+
+    - ``universe`` -- a set
+
+    - ``*predicates`` -- callables
+
+    - ``vars`` or ``names`` -- (default: inferred from ``predicates`` if any predicate is
+      an element of a :class:`~sage.symbolic.callable.CallableSymbolicExpressionRing_class`)
+      variables or names of variables
+
+    - ``category`` -- (default: inferred from ``universe``) a category
 
     EXAMPLES::
 
@@ -88,6 +110,16 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
     """
     @staticmethod
     def __classcall_private__(cls, universe, *predicates, vars=None, names=None, category=None):
+        r"""
+        Normalize init arguments.
+
+        TESTS::
+
+            sage: ConditionSet(ZZ, names=["x"]) is ConditionSet(ZZ, names=x)
+            True
+            sage: ConditionSet(RR, x > 0, names=x) is ConditionSet(RR, (x > 0).function(x))
+            True
+        """
         if category is None:
             category = Sets()
         if isinstance(universe, Parent):
@@ -111,6 +143,8 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
                     names = tuple(str(var) for var in predicate.args())
                 elif len(names) != predicates.args():
                     raise TypeError('mismatch in number of arguments')
+                if vars is None:
+                    vars = predicate.args()
                 callable_symbolic_predicates.append(predicate)
             elif is_Expression(predicate):
                 if names is None:
@@ -123,15 +157,15 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
 
         predicates = callable_symbolic_predicates + other_predicates
 
-        if not other_predicates:
-            if not callable_symbolic_predicates:
-                if names is None and category is None:
-                    # No conditions, no variable names, no category, just use Set.
-                    return Set(universe)
-            # Use ConditionSet_callable_symbolic_expression even if no conditions
-            # are present; this will make the _sympy_ method available.
-            return ConditionSet_callable_symbolic_expression(universe, *predicates,
-                                                             names=names, category=category)
+        if not other_predicates and not callable_symbolic_predicates:
+            if names is None and category is None:
+                # No conditions, no variable names, no category, just use Set.
+                return Set(universe)
+
+        if any(predicate.args() != vars
+               for predicate in callable_symbolic_predicates):
+            # TODO: Implement safe renaming of the arguments of a callable symbolic expressions
+            raise NotImplementedError('all callable symbolic expressions must use the same arguments')
 
         if names is None:
             names = ("x",)
@@ -139,7 +173,7 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
                                      names=names, category=category)
 
     def __init__(self, universe, *predicates, names=None, category=None):
-        """
+        r"""
         TESTS::
 
             sage: Evens = ConditionSet(ZZ, is_even); Evens
@@ -167,6 +201,17 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
         return self.arguments()
 
     def _repr_(self):
+        """
+        Print representation of this set.
+
+        EXAMPLES::
+
+            sage: var('t') # parameter
+            t
+            sage: ZeroDimButNotNullary = ConditionSet(ZZ^0, t > 0, vars=("q"))
+            sage: ZeroDimButNotNullary._repr_()
+            '{ q ∈ Ambient free module of rank 0 over the principal ideal domain Integer Ring : t > 0 }'
+        """
         s = "{ "
         names = self.variable_names()
         comma_sep_names = ", ".join(str(name) for name in names)
@@ -185,6 +230,23 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
 
     @cached_method
     def _repr_condition(self, predicate):
+        """
+        Format the predicate, applied to the arguments.
+
+        EXAMPLES::
+
+            sage: Evens = ConditionSet(ZZ, is_even)
+            sage: Evens._repr_condition(is_even)
+            '<function is_even at 0x...>(x)'
+            sage: BigSin = ConditionSet(RR, sin(x) > 0.9, vars=[x])
+            sage: BigSin._repr_condition(BigSin._predicates[0])
+            'sin(x) > 0.900000000000000'
+            sage: var('t') # parameter
+            t
+            sage: ZeroDimButNotNullary = ConditionSet(ZZ^0, t > 0, vars=("q"))
+            sage: ZeroDimButNotNullary._repr_condition(ZeroDimButNotNullary._predicates[0])
+            't > 0'
+        """
         if is_CallableSymbolicExpression(predicate):
             args = self.arguments()
             if len(args) == 1:
@@ -197,6 +259,18 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
 
     @cached_method
     def arguments(self):
+        """
+        Return the variables of ``self`` as elements of the symbolic ring.
+
+        EXAMPLES::
+
+            sage: Odds = ConditionSet(ZZ, is_odd); Odds
+            { x ∈ Integer Ring : <function is_odd at 0x...>(x) }
+            sage: args = Odds.arguments(); args
+            (x,)
+            sage: args[0].parent()
+            Symbolic Ring
+        """
         return SR.var(self.variable_names())
 
     def _element_constructor_(self, *args, **kwds):
@@ -205,6 +279,24 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
 
         This element constructor raises an error if the element does not
         satisfy the predicates.
+
+        EXAMPLES::
+
+            sage: Evens = ConditionSet(ZZ, is_even); Evens
+            { x ∈ Integer Ring : <function is_even at 0x...>(x) }
+            sage: element_two = Evens(2r); element_two
+            2
+            sage: element_two.parent()
+            Integer Ring
+            sage: element_too = Evens(2.0); element_too
+            2
+            sage: element_too.parent()
+            Integer Ring
+            sage: Evens(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: 3 does not satisfy the condition
+
         """
         try:
             universe_element_constructor = self._universe._element_constructor_
@@ -222,29 +314,76 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
         return element
 
     def _call_predicate(self, predicate, element):
+        r"""
+        Call ``predicate`` on an ``element`` of the universe of ``self``.
+
+        TESTS::
+
+            sage: TripleDigits = ZZ^3
+            sage: predicate(x, y, z) = sqrt(x^2 + y^2 + z^2) < 12; predicate
+            (x, y, z) |--> sqrt(x^2 + y^2 + z^2) < 12
+            sage: TripleDigits.rename('ZZ^3')
+            sage: SmallTriples = ConditionSet(ZZ^3, predicate); SmallTriples
+            { (x, y, z) ∈ ZZ^3 : sqrt(x^2 + y^2 + z^2) < 12 }
+            sage: predicate = SmallTriples._predicates[0]
+            sage: element = TripleDigits((1, 2, 3))
+            sage: SmallTriples._call_predicate(predicate, element)
+            sqrt(14) < 12
+
+            sage: var('t')
+            t
+            sage: TinyUniverse = ZZ^0
+            sage: Nullary = ConditionSet(TinyUniverse, t > 0, vars=())
+            sage: predicate = Nullary._predicates[0]
+            sage: element = TinyUniverse(0)
+            sage: Nullary._call_predicate(predicate, element)
+            t > 0
+        """
         if is_CallableSymbolicExpression(predicate):
             if len(predicate.arguments()) != 1:
                 return predicate(*element)
         return predicate(element)
 
     def _an_element_(self):
+        r"""
+        Return an element of ``self``.
+
+        This may raise ``NotImplementedError``.
+
+        TESTS::
+
+            sage: TripleDigits = ZZ^3
+            sage: predicate(x, y, z) = sqrt(x^2 + y^2 + z^2) < 12; predicate
+            (x, y, z) |--> sqrt(x^2 + y^2 + z^2) < 12
+            sage: TripleDigits.rename('ZZ^3')
+            sage: SmallTriples = ConditionSet(ZZ^3, predicate); SmallTriples
+            { (x, y, z) ∈ ZZ^3 : sqrt(x^2 + y^2 + z^2) < 12 }
+            sage: SmallTriples.an_element()  # indirect doctest
+            (1, 0, 0)
+        """
         for element in self._universe.some_elements():
             if element in self:
                 return element
         raise NotImplementedError
 
     def ambient(self):
-        """
+        r"""
         Return the universe of ``self``.
+
+        EXAMPLES::
+
+            sage: Evens = ConditionSet(ZZ, is_even); Evens
+            { x ∈ Integer Ring : <function is_even at 0x...>(x) }
+            sage: Evens.ambient()
+            Integer Ring
         """
         return self._universe
-
-
-class ConditionSet_callable_symbolic_expression(ConditionSet):
 
     @cached_method
     def _sympy_(self):
         r"""
+        Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
         EXAMPLES::
 
             sage: predicate(x, y, z) = sqrt(x^2 + y^2 + z^2) < 12; predicate

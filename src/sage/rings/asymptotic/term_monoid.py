@@ -4182,6 +4182,11 @@ class BTerm(TermWithCoefficient):
             True
             sage: t1.absorb(t2)
             BTerm with coefficient 321/80, growth x^3 and valid for x >= 20
+            sage: t2.absorb(t1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: BTerm with coefficient 5, growth x and valid for x >= 20
+            cannot absorb BTerm with coefficient 4, growth x^3 and valid for x >= 10
         """
         variable_name = next(iter(self.valid_from))
         valid_from_new = {variable_name: max(self.valid_from[variable_name], other.valid_from[variable_name])}

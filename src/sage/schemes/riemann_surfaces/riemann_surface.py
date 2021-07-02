@@ -1836,16 +1836,18 @@ class RiemannSurface(object):
             sage: R.<x,y> = QQ[]
             sage: f = y^2 - x^3 + 1
             sage: S = RiemannSurface(f, integration_method="rigorous")
-            sage: T = RiemannSurface(f)
-            sage: S.riemann_matrix()
-            [-0.500000000000000 + 0.866025403784439*I]
-            sage: T.riemann_matrix()
-            [-0.500000000000000 + 0.866025403784438*I]
+            sage: T = RiemannSurface(f, integration_method="heuristic")
+            sage: RM_S = S.riemann_matrix()
+            sage: RM_T = T.riemann_matrix()
+            sage: (RM_S-RM_T).norm() < 1e-10
+            True
 
-        and that in this example the rigorous method accurate to more digits::
+        and that in this example the rigorous method is more accurate::
 
-            sage: (sqrt(3)/2).n(53)
-            0.866025403784439
+            sage: rm = (-1+sqrt(3)*I)/2
+            sage: (RM_S - rm).norm() < (RM_T - rm).norm()
+            True
+
         """
         #differentials = [fast_callable(omega, domain=self._CC)
         #                 for omega in self.cohomology_basis()]

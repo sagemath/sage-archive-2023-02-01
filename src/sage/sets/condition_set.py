@@ -403,17 +403,36 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             { x ∈ Real Field with 53 bits of precision : x >= -7, x <= 4 }
             sage: Interval._sympy_()
             ConditionSet(x, (x >= -7) & (x <= 4), SageSet(Real Field with 53 bits of precision))
+
+        If a predicate is not symbolic, we fall back to creating a wrapper::
+
+            sage: Evens = ConditionSet(ZZ, is_even); Evens
+            { x ∈ Integer Ring : <function is_even at 0x...>(x) }
+            sage: Evens._sympy_()
+            SageSet({ x ∈ Integer Ring : <function is_even at 0x...>(x) })
         """
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
         import sympy
+
         args = self.arguments()
-        if len(args) == 1:
+        single_arg = len(args) == 1
+        if single_arg:
             args = args[0]
-            sym = args._sympy_()
-        else:
-            sym = tuple(x._sympy_() for x in args)
-        conditions = [self._call_predicate(predicate, args)
-                      for predicate in self._predicates]
-        return sympy.ConditionSet(sym,
-                                  sympy.And(*[condition._sympy_()
-                                              for condition in conditions]),
-                                  base_set=self._universe._sympy_())
+
+        try:
+            conditions = [self._call_predicate(predicate, args)
+                          for predicate in self._predicates]
+
+            sym = tuple(x._sympy_() for x in self.arguments())
+            if single_arg:
+                sym = sym[0]
+            result = sympy.ConditionSet(sym,
+                                        sympy.And(*[condition._sympy_()
+                                                    for condition in conditions]),
+                                        base_set=self._universe._sympy_())
+            result._sage_object = self
+            return result
+        except TypeError:
+            # Fall back to creating a wrapper
+            return super()._sympy_()

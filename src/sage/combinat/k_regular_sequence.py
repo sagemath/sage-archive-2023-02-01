@@ -1732,8 +1732,6 @@ class RecurrenceParser(object):
         coeffs = recurrence_rules.coeffs
         ind = self.ind(M, m, ll, uu)
 
-        mat = Matrix(coefficient_ring, 0, dim_without_corr)
-
         @cached_function
         def coeff(r, k):
             try:

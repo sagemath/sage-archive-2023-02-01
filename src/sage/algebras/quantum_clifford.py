@@ -23,8 +23,6 @@ from sage.categories.algebras import Algebras
 from sage.categories.fields import Fields
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.cartesian_product import cartesian_product
-from sage.modules.free_module import FreeModule
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.sets.family import Family
 from sage.sets.finite_enumerated_set import FiniteEnumeratedSet
 from itertools import product
@@ -132,7 +130,7 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
     """
     @staticmethod
     def __classcall_private__(cls, n, k=1, q=None, F=None):
-        """
+        r"""
         Standardize input to ensure a unique representation.
 
         TESTS::
@@ -263,9 +261,8 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
             sage: latex(Cl(5))
             5
         """
-        from sage.misc.latex import latex
         p, v = m
-        rp = ''.join('\\psi_{%s}'%i if p[i] > 0 else '\\psi^{\dagger}_{%s}'%i
+        rp = ''.join('\\psi_{%s}'%i if p[i] > 0 else '\\psi^{\\dagger}_{%s}'%i
                      for i in range(self._n) if p[i] != 0)
         gen_str = lambda e: '' if e == 1 else '^{%s}'%e
         rv = ''.join('\\omega_{%s}'%i + gen_str(v[i])
@@ -328,7 +325,7 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
             sage: Cl.dimension()
             65536
         """
-        return ZZ(8*self._k)**self._n
+        return ZZ(8*self._k) ** self._n
 
     @cached_method
     def algebra_generators(self):
@@ -345,7 +342,6 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
         """
         one = (0,) * self._n  # one in the corresponding free abelian group
         zero = [0] * self._n
-        I = self._indices
         d = {}
         for i in range(self._n):
             r = list(zero)  # Make a copy
@@ -461,7 +457,6 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
                 vpik = -q**(2*k) * vp[i]**(3*k) + (1 + q**(2*k)) * vp[i]**k
                 poly *= (q**k * vp[i]**k - q**(-k) * vpik) / (q**k - q**(-k))
 
-        I = self._indices
         v = list(w1)
         for i in range(self._n):
             v[i] += w2[i]
@@ -539,7 +534,6 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
             if any(p[i] != 0 for i in range(Cl._n)):
                 raise NotImplementedError("inverse only implemented for"
                                           " product of w generators")
-            c = ~self.coefficients()[0]
             poly = Cl._w_poly.monomial(*w)
             wp = Cl._w_poly.gens()
             q = Cl._q

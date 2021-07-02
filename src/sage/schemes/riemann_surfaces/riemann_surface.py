@@ -1675,7 +1675,7 @@ class RiemannSurface(object):
                 rho_t = alpha*rho_t+(1-alpha)*rt # sqrt(rho_t*rt) could also work
                 rho_z = rho_t*(z1-z0).abs()
                 delta_z = (alpha*rho_t+(1-alpha)*rt)*(z1-z0).abs()
-                expr = rho_t/rt+((rho_t/rt)**2-1).sqrt(self._prec) # Note this is really exp(arcosh(rho_t/rt))
+                expr = rho_t/rt+((rho_t/rt)**2-1).sqrt() # Note this is really exp(arcosh(rho_t/rt))
                 N = 3
                 cw = zwt(ct)[1]
                 for g, dgdz, minpoly,(a0lc,a0roots) in bounding_data_list:
@@ -1696,7 +1696,7 @@ class RiemannSurface(object):
                     N_required = ((64*M/(15*(1-1/expr)*E_global)).log()/(2*expr.log())).ceil()
                     N = max(N,N_required)
 
-                N = (K*(N.sqrt(self._prec)/K).ceil())**2
+                N = (K*(self._RR(N).sqrt()/K).ceil())**2
                 # Rounding is sensible as it allows the cache of nodes in 
                 # sage.numerical.gauss_legendre to be used.
                 # Quadratic rounding can be shown to be a sensible choice through the 

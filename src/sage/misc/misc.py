@@ -519,6 +519,8 @@ def union(x, y=None):
     EXAMPLES::
 
         sage: answer = union([1,2,3,4], [5,6]); answer
+        doctest:...: DeprecationWarning: sage.misc.misc.union is deprecated...
+        See https://trac.sagemath.org/32096 for details.
         [1, 2, 3, 4, 5, 6]
         sage: union([1,2,3,4,5,6], [5,6]) == answer
         True
@@ -527,6 +529,8 @@ def union(x, y=None):
         sage: union((1,2,3,4,5,6), set([5,6])) == answer
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32096, "sage.misc.misc.union is deprecated, use 'list(set(x).union(y)' or a more suitable replacement")
     if y is None:
         return list(set(x))
     return list(set(x).union(y))

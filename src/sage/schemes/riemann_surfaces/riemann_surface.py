@@ -1528,30 +1528,47 @@ class RiemannSurface(object):
 
         """
         # This copies previous work by NB, outputting the zipped list required for a certified line integral. 
-        P = PolynomialRing(QQ,'Z')
+        RB = self._R.base_ring()
+        P = PolynomialRing(RB, 'Z')
         k = P.fraction_field()
-        KP = PolynomialRing(k,'W') #W->fraction field
-        fZW = self.f(P.gen(0),KP.gen(0))
-        L = k.extension(fZW,'Wb')
-        dfdw_L = self._dfdw(P.gen(0),L.gen(0))
+        KP = PolynomialRing(k, 'W') #W->fraction field
+        fZW = self.f(P.gen(0), KP.gen(0))
+        L = k.extension(fZW, 'Wb')
+        dfdw_L = self._dfdw(P.gen(0), L.gen(0))
         integrand_list = [h/self._dfdw for h in differentials]
         # minpoly_univ gives the minimal polynomial for h, in variable x, with coefficients given by polynomials 
         # with coefficients in P (i.e. rational polynomials in Z).
-        minpoly_univ = [(h(P.gen(0),L.gen(0))/dfdw_L).minpoly().numerator() for h in differentials]
-        QQzg = PolynomialRing(QQ,['z','g'])
+        minpoly_univ = [(h(P.gen(0), L.gen(0))/dfdw_L).minpoly().numerator()
+                        for h in differentials]
+        RBzg = PolynomialRing(RB, ['z', 'g'])
         # The following line changes the variables in these minimal polynomials as Z -> z, x -> G, then evaluates
         # at G = QQzg.gens(1) ( = g )
-        minpoly_list = [QQzg['G']([c(QQzg.gen(0)) for c in list(h)])(QQzg.gen(1)) for h in minpoly_univ]
+        RBzgG = PolynomialRing(RBzg, 'G')
+        minpoly_list = [RBzgG([c(RBzg.gen(0)) for c in list(h)])(RBzg.gen(1))
+                        for h in minpoly_univ]
         # h(z,g)=0 --> dg/dz = - dhdz/dhdg
-        dgdz_list = [ -h.derivative(QQzg.gen(0))/h.derivative(QQzg.gen(1)) for h in minpoly_list]
+        dgdz_list = [-h.derivative(RBzg.gen(0))/h.derivative(RBzg.gen(1))
+                     for h in minpoly_list]
         
-        CCzg = PolynomialRing(self._CC,['z','g'])
+        CCzg = PolynomialRing(self._CC, ['z','g'])
         CCminpoly_list = [CCzg(h) for h in minpoly_list]
-        a0_list = [self._CC['Z'](h.leading_coefficient()) for h in minpoly_univ]
-        a0_info = [(a0.leading_coefficient(),flatten([[r]*n for r,n in a0.roots()])) for a0 in a0_list]
+        
+        a0_list = [P(h.leading_coefficient()) for h in minpoly_univ]
+        #CCa0_list = [self._CCz(a0) for a0 in a0_list]
+        # Note that because the field over which the Riemann surface is defined
+        # is embedded into CC, it has characteristic 0, and so we know the 
+        # irreducible factors are all separable, i.e. the roots have multiplicity
+        # one. 
+        a0_info = [(self._CC(a0.leading_coefficient()),
+                    flatten([self._CCz(F).roots(multiplicities=False)*m 
+                             for F, m in a0.factor()]))
+                   for a0 in a0_list]
+
+        #a0_list = [self._CCz(h.leading_coefficient()) for h in minpoly_univ]
+        #a0_info = [(a0.leading_coefficient(), flatten([[r]*n for r, n in a0.roots()])) for a0 in a0_list]
         # Note that we are assuming here that the root finder is working correctly, which will need
         # some thought.
-        return CCzg, list(zip(integrand_list,dgdz_list,CCminpoly_list,a0_info))
+        return CCzg, list(zip(integrand_list, dgdz_list, CCminpoly_list, a0_info))
 
     def rigorous_line_integral(self, upstairs_edge, differentials, bounding_data):
         r"""

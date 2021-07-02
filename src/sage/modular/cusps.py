@@ -170,7 +170,7 @@ class Cusp(Element):
                 self.__a = a.numer()
                 self.__b = a.denom()
             elif (is_InfinityElement(a) or
-                  isinstance(a, pari_gen) and a.type() == 't_INFINITY'):
+                  (isinstance(a, pari_gen) and a.type() == 't_INFINITY')):
                 self.__a = ZZ.one()
                 self.__b = ZZ.zero()
             elif isinstance(a, Cusp):

@@ -669,7 +669,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: p in V
             True
             sage: p.coord()
-            (-pi - 1, 2)
+            (-pi - 1, 0)
 
         """
         from sage.rings.infinity import Infinity

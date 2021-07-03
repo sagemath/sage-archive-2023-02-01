@@ -315,7 +315,7 @@ class Chart(UniqueRepresentation, SageObject):
         try:
             return domain._charts_by_coord[coord_string]
         except KeyError:
-            if callable(coord_restrictions):
+            if callable(coord_restrictions) and not isinstance(coord_restrictions, Expression):
                 # lambda-quoted
                 coord_restrictions = coord_restrictions(*coordinates)
             # Make coord_restrictions hashable
@@ -370,7 +370,7 @@ class Chart(UniqueRepresentation, SageObject):
         self._xx = coordinates
         #
         # Additional restrictions on the coordinates
-        self._restrictions = list(coord_restrictions)
+        self._restrictions = sorted(coord_restrictions)
         #
         # The chart is added to the domain's atlas, as well as to all the
         # atlases of the domain's supersets; moreover the first defined chart
@@ -1694,6 +1694,7 @@ class RealChart(Chart):
         super().__init__(domain, coordinates, calc_method=calc_method,
                          periods=periods, coord_restrictions=coord_restrictions)
         self._bounds = bounds
+        self._tighten_bounds()
         self._fast_valid_coordinates = None
 
     @classmethod
@@ -1990,7 +1991,7 @@ class RealChart(Chart):
             sage: A = M.open_subset('A') # annulus 1/2 < r < 1
             sage: X_A = X.restrict(A, x^2+y^2 > 1/4)
             sage: X_A._restrictions
-            [x^2 + y^2 < 1, x^2 + y^2 > (1/4)]
+            [x^2 + y^2 > (1/4), x^2 + y^2 < 1]
             sage: X_A.valid_coordinates(0,1/3)
             False
             sage: X_A.valid_coordinates(2/3,1/3)
@@ -2008,19 +2009,31 @@ class RealChart(Chart):
             x: (-oo, 0); y: (1/2, +oo)
 
         """
+        super().add_restrictions(restrictions)
+        self._tighten_bounds()
+
+    def _tighten_bounds(self):
+        """
+        Update coordinate bounds from the coordinate restrictions
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological') # the open unit disc
+            sage: X.<x,y> = M.chart()
+            sage: U = M.open_subset('U')
+            sage: X_U = X.restrict(U, restrictions=[x<0, y>1/2])
+            sage: X_U.coord_range()
+            x: (-oo, 0); y: (1/2, +oo)
+
+        """
         import operator
-        if not isinstance(restrictions, list):
-            # case of a single condition or conditions to be combined by "or"
-            restrictions = [restrictions]
-        self._restrictions.extend(restrictions)
-        # Update of the coordinate bounds from the restrictions:
         bounds = list(self._bounds) # convert to a list for modifications
         new_restrictions = []
         for restrict in self._restrictions:
             restrict_used = False # determines whether restrict is used
                                   # to set some coordinate bound
-            if not isinstance(restrict, (tuple, list)): # case of combined
-                                                        # conditions excluded
+            if not isinstance(restrict, (tuple, list, set, frozenset)): # case of combined
+                                                                        # conditions excluded
                 operands = restrict.operands()
                 left = operands[0]
                 right = operands[1]
@@ -2137,13 +2150,13 @@ class RealChart(Chart):
             for coord in self._xx:
                 coordinates += repr(coord) + ' '
             res = type(self)(subset, coordinates,
-                             calc_method=self._calc_method._current)
-            res._bounds = self._bounds
+                             calc_method=self._calc_method._current,
+                             bounds=self._bounds,
+                             # The coordinate restrictions are added
+                             # to the result chart and possibly
+                             # transformed into coordinate bounds:
+                             coord_restrictions=restrictions)
             res._restrictions.extend(self._restrictions)
-            # The coordinate restrictions are added to the result chart and
-            # possibly transformed into coordinate bounds:
-            if restrictions is not None:
-                res.add_restrictions(restrictions)
             # Update of supercharts and subcharts:
             res._supercharts.update(self._supercharts)
             for schart in self._supercharts:

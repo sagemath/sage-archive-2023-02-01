@@ -908,9 +908,9 @@ class RealDiffChart(DiffChart, RealChart):
     `\{y=0, x\geq 0\}`, we must have `y\not=0` or `x<0` on U. Accordingly,
     we set::
 
-        sage: c_cartU.<x,y,z> = U.chart()
-        sage: c_cartU.add_restrictions((y!=0, x<0)) # the tuple (y!=0, x<0) means y!=0 or x<0
-        sage: # c_cartU.add_restrictions([y!=0, x<0]) would have meant y!=0 AND x<0
+        sage: c_cartU.<x,y,z> = U.chart(coord_restrictions=lambda x,y,z: (y!=0, x<0))
+        ....:    # the tuple (y!=0, x<0) means y!=0 or x<0
+        ....:    #           [y!=0, x<0] would have meant y!=0 AND x<0
         sage: U.atlas()
         [Chart (U, (r, th, ph)), Chart (U, (x, y, z))]
         sage: M.atlas()

@@ -2349,8 +2349,8 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: forget()  # for doctests only
             sage: M = Manifold(2, 'M', structure='topological')  # the open unit disk
-            sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord on M
-            sage: c_xy.add_restrictions(x^2+y^2<1)
+            sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)', coord_restrictions=lambda x,y: x^2+y^2<1)
+            ....:    # Cartesian coord on M
             sage: N = Manifold(2, 'N', structure='topological')  # R^2
             sage: c_XY.<X,Y> = N.chart()  # canonical coordinates on R^2
             sage: Phi = M.homeomorphism(N, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],

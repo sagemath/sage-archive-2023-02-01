@@ -858,8 +858,7 @@ class Chart(UniqueRepresentation, SageObject):
         EXAMPLES::
 
             sage: M = Manifold(2, 'M', field='complex', structure='topological')
-            sage: X.<x,y> = M.chart()
-            sage: X.add_restrictions([abs(x)<1, y!=0])
+            sage: X.<x,y> = M.chart(coord_restrictions=lambda x,y: [abs(x)<1, y!=0])
             sage: X.valid_coordinates(0, i)
             True
             sage: X.valid_coordinates(i, 1)
@@ -876,8 +875,7 @@ class Chart(UniqueRepresentation, SageObject):
 
             sage: var('a')  # the parameter is a symbolic variable
             a
-            sage: Y.<u,v> = M.chart()
-            sage: Y.add_restrictions(abs(v)<a)
+            sage: Y.<u,v> = M.chart(coord_restrictions=lambda u,v: abs(v)<a)
             sage: Y.valid_coordinates(1, i, parameters={a: 2})  # setting a=2
             True
             sage: Y.valid_coordinates(1, 2*i, parameters={a: 2})
@@ -1652,8 +1650,7 @@ class RealChart(Chart):
     `\{y = 0, x \geq 0\}`, we must have `y \neq 0` or `x < 0` on U.
     Accordingly, we set::
 
-        sage: c_cartU.<x,y,z> = U.chart()
-        sage: c_cartU.add_restrictions((y!=0, x<0))
+        sage: c_cartU.<x,y,z> = U.chart(coord_restrictions=lambda x,y,z: (y!=0, x<0))
         sage: U.atlas()
         [Chart (U, (r, th, ph)), Chart (U, (x, y, z))]
         sage: M.atlas()
@@ -1670,7 +1667,7 @@ class RealChart(Chart):
     Note that, as an example, the following would have meant `y \neq 0`
     *and* `x < 0`::
 
-        c_cartU.add_restrictions([y!=0, x<0])
+        c_cartU.<x,y,z> = U.chart(coord_restrictions=lambda x,y,z: [y!=0, x<0])
 
     Chart grids can be drawn in 2D or 3D graphics thanks to the method
     :meth:`plot`.

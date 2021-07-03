@@ -1,7 +1,9 @@
 import sys
 import os
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+import sphinx
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
 import sage.version
+from sage.misc.sagedoc import extlinks
 import dateutil.parser
 from docutils import nodes
 from docutils.transforms import Transform

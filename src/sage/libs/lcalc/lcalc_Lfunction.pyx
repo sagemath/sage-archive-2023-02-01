@@ -143,13 +143,13 @@ cdef class Lfunction:
             sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: L=Lfunction_from_character(chi, type="int")
-            sage: L.value(.5)  # abs tol 3e-15
+            sage: L.value(.5)  # abs tol 1e-8
             0.231750947504016 + 5.75329642226136e-18*I
             sage: L.value(.2+.4*I)
             0.102558603193... + 0.190840777924...*I
 
             sage: L=Lfunction_from_character(chi, type="double")
-            sage: L.value(.6)  # abs tol 3e-15
+            sage: L.value(.6)  # abs tol 1e-8
             0.274633355856345 + 6.59869267328199e-18*I
             sage: L.value(.6+I)
             0.362258705721... + 0.433888250620...*I
@@ -187,7 +187,7 @@ cdef class Lfunction:
             sage: L = Lfunction_from_character(chi, type="int")
             sage: L.hardy_z_function(0)
             0.231750947504... 
-            sage: L.hardy_z_function(.5).imag()  # abs tol 1e-15
+            sage: L.hardy_z_function(.5).imag()  # abs tol 1e-8
             1.17253174178320e-17
             sage: L.hardy_z_function(.4+.3*I)
             0.2166144222685... - 0.00408187127850...*I
@@ -195,13 +195,13 @@ cdef class Lfunction:
             sage: L = Lfunction_from_character(chi, type="complex")
             sage: L.hardy_z_function(0)
             0.793967590477...
-            sage: L.hardy_z_function(.5).imag()  # abs tol 1e-15
+            sage: L.hardy_z_function(.5).imag()  # abs tol 1e-8
             0.000000000000000
             sage: E = EllipticCurve([-82,0])
             sage: L = Lfunction_from_elliptic_curve(E, number_of_coeffs=40000)
             sage: L.hardy_z_function(2.1)
             -0.00643179176869...
-            sage: L.hardy_z_function(2.1).imag()  # abs tol 1e-15
+            sage: L.hardy_z_function(2.1).imag()  # abs tol 1e-8
             -3.93833660115668e-19
         """
         #This takes s -> .5 + I*s
@@ -504,7 +504,7 @@ cdef class Lfunction_I(Lfunction):
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="int")
-            sage: L._print_data_to_standard_output() # tol 1e-15
+            sage: L._print_data_to_standard_output() # tol 1e-8
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
@@ -642,7 +642,7 @@ cdef class Lfunction_D(Lfunction):
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="double")
-            sage: L._print_data_to_standard_output() # tol 1e-15
+            sage: L._print_data_to_standard_output() # tol 1e-8
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
@@ -787,7 +787,7 @@ cdef class Lfunction_C:
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi = DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
-            sage: L._print_data_to_standard_output() # tol 1e-15
+            sage: L._print_data_to_standard_output() # tol 1e-8
             -----------------------------------------------
             <BLANKLINE>
             Name of L_function:
@@ -954,7 +954,7 @@ def Lfunction_from_elliptic_curve(E, number_of_coeffs=10000):
         sage: L = Lfunction_from_elliptic_curve(EllipticCurve('37'))
         sage: L
         L-function with real Dirichlet coefficients
-        sage: L.value(0.5).abs() < 1e-15   # "noisy" zero on some platforms (see #9615)
+        sage: L.value(0.5).abs() < 1e-8   # "noisy" zero on some platforms (see #9615)
         True
         sage: L.value(0.5, derivative=1)
         0.305999...

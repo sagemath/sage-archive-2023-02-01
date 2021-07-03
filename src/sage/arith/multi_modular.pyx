@@ -939,7 +939,9 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             sage: from sage.arith.multi_modular import MutableMultiModularBasis
             sage: mm = MutableMultiModularBasis([10007])
             sage: p = mm.next_prime()
-            sage: p > 10007
+            sage: 1024 < p < 32768
+            True
+            sage: p != 10007
             True
             sage: mm.list() == [10007, p]
             True

@@ -26,9 +26,9 @@ def find_primitive_p_divisible_vector__random(self, p):
     EXAMPLES::
 
         sage: Q = QuadraticForm(ZZ, 2, [10,1,4])
-        sage: v = Q.find_primitive_p_divisible_vector__random(5)    # random
-        sage: v
-        (3, 3)
+        sage: v = Q.find_primitive_p_divisible_vector__random(5)
+        sage: tuple(v) in ((1, 0), (1, 1), (2, 0), (2, 2), (3, 0), (3, 3), (4, 0), (4, 4))
+        True
         sage: 5.divides(Q(v))
         True
         sage: Q = QuadraticForm(QQ,matrix.diagonal([1,1,1,1]))

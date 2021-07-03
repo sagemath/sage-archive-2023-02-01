@@ -3121,6 +3121,8 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             sage: N = ToricLattice(4)
             sage: for i in range(10):
             ....:      c = Cone([N.random_element() for j in range(i//2)], lattice=N)
+            ....:      if not c.is_strictly_convex():
+            ....:          continue
             ....:      f = Fan([c])
             ....:      assert matrix(f.rays() + f.virtual_rays()).rank() == 4
             ....:      assert f.dim() + len(f.virtual_rays()) == 4

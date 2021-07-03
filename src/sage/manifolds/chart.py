@@ -730,6 +730,9 @@ class Chart(UniqueRepresentation, SageObject):
         r"""
         Add some restrictions on the coordinates.
 
+        This is deprecated; provide the restrictions at the time of creating
+        the chart.
+
         INPUT:
 
         - ``restrictions`` -- list of restrictions on the
@@ -755,13 +758,19 @@ class Chart(UniqueRepresentation, SageObject):
             sage: M = Manifold(2, 'M', field='complex', structure='topological')
             sage: X.<x,y> = M.chart()
             sage: X.add_restrictions(abs(x) > 1)
+            doctest:warning...
+            DeprecationWarning: Chart.add_restrictions is deprecated; provide the
+            restrictions at the time of creating the chart
+            See https://trac.sagemath.org/32102 for details.
             sage: X.valid_coordinates(2+i, 1)
             True
             sage: X.valid_coordinates(i, 1)
             False
 
         """
-        self._restrictions.extend(self._normalize_coord_restrictions(restrictions))
+        from sage.misc.superseded import deprecation
+        deprecation(32102, "Chart.add_restrictions is deprecated; provide the restrictions at the time of creating the chart")
+        self._restrictions.extend(self._normalize_coord_restrictions(self._xx, restrictions))
 
     def restrict(self, subset, restrictions=None):
         r"""
@@ -1954,6 +1963,9 @@ class RealChart(Chart):
         r"""
         Add some restrictions on the coordinates.
 
+        This is deprecated; provide the restrictions at the time of creating
+        the chart.
+
         INPUT:
 
         - ``restrictions`` -- list of restrictions on the
@@ -1981,6 +1993,10 @@ class RealChart(Chart):
             sage: M = Manifold(2, 'M', structure='topological') # the open unit disc
             sage: X.<x,y> = M.chart()
             sage: X.add_restrictions(x^2+y^2<1)
+            doctest:warning...
+            DeprecationWarning: Chart.add_restrictions is deprecated; provide the
+            restrictions at the time of creating the chart
+            See https://trac.sagemath.org/32102 for details.
             sage: X.valid_coordinates(0,2)
             False
             sage: X.valid_coordinates(0,1/3)

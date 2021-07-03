@@ -327,8 +327,11 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
         True
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
         sage: current_randstate().set_seed_gap()
-        sage: G._gap_().DerivedSeries()
-        [ Group( [ (3,4), (1,2,3)(4,5) ] ), Group( [ (1,5)(3,4), (1,5)(2,4), (1,3,5) ] ) ]
+        sage: G1, G2 = G._gap_().DerivedSeries()
+        sage: G1
+        Group( [ (3,4), (1,2,3)(4,5) ] )
+        sage: G2.GeneratorsSmallest()
+        [ (3,4,5), (2,3)(4,5), (1,2)(4,5) ]
 
     TESTS::
 

@@ -348,8 +348,13 @@ cdef class Lfunction:
 
             sage: chi = DirichletGroup(5)[1]
             sage: L=Lfunction_from_character(chi, type="complex")
-            sage: L.find_zeros_via_N(3)
-            [6.18357819545..., 8.45722917442..., 12.6749464170...]
+            sage: zeros = L.find_zeros_via_N(3)
+            sage: zeros[0] # abs tol 1e-8
+            -4.13290370521286
+            sage: zeros[1] # abs tol 1e-8
+            6.18357819545086
+            sage: zeros[2] # abs tol 1e-8
+            8.45722917442320
 
             sage: L=Lfunction_Zeta()
             sage: L.find_zeros_via_N(3)

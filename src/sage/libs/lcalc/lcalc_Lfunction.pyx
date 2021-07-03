@@ -199,8 +199,8 @@ cdef class Lfunction:
             0.000000000000000
             sage: E = EllipticCurve([-82,0])
             sage: L = Lfunction_from_elliptic_curve(E, number_of_coeffs=40000)
-            sage: L.hardy_z_function(2.1)
-            -0.00643179176869...
+            sage: L.hardy_z_function(2.1) # abs tol 1e-8
+            -0.00643179176863296 - 1.47189978221606e-19*I
             sage: L.hardy_z_function(2.1).imag()  # abs tol 1e-8
             -3.93833660115668e-19
         """

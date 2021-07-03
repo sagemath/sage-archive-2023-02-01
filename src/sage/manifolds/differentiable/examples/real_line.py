@@ -367,8 +367,6 @@ class OpenInterval(DifferentiableManifold):
                     coordinate = 't'
                 else:
                     coordinate = names[0]
-            self._canon_chart = self.chart(coordinates=coordinate)
-            t = self._canon_chart[start_index]
         else:
             if lower < ambient_interval.lower_bound():
                 raise ValueError("the lower bound is smaller than that of "
@@ -378,20 +376,19 @@ class OpenInterval(DifferentiableManifold):
                                  + "the containing interval")
             self.declare_subset(ambient_interval)
             ambient_interval._top_subsets.add(self)
-            t = ambient_interval.canonical_coordinate()
         if lower != minus_infinity:
             if upper != infinity:
-                restrictions = [t > lower, t < upper]
+                restrictions = lambda t: [t > lower, t < upper]
             else:
-                restrictions = t > lower
+                restrictions = lambda t: t > lower
         else:
             if upper != infinity:
-                restrictions = t < upper
+                restrictions = lambda t: t < upper
             else:
                 restrictions = None
         if ambient_interval is None:
-            if restrictions is not None:
-                self._canon_chart.add_restrictions(restrictions)
+            self._canon_chart = self.chart(coordinates=coordinate,
+                                           coord_restrictions=restrictions)
         else:
             self._canon_chart = ambient_interval.canonical_chart().restrict(self,
                                                                             restrictions=restrictions)

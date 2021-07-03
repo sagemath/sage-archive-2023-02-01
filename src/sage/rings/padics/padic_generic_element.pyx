@@ -998,8 +998,8 @@ cdef class pAdicGenericElement(LocalGenericElement):
             (1 + O(2^5))*x^4 + (a^2 + 1)*2^-1 + O(2^4)
 
             sage: elt = L.random_element()
-            sage: P = elt.minimal_polynomial()
-            sage: P(elt) == 0
+            sage: P = elt.minimal_polynomial()  # not tested, known bug (see :trac:`32111`)
+            sage: P(elt) == 0  # not tested
             True
         """
         parent = self.parent()

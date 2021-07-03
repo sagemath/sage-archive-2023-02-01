@@ -62,7 +62,7 @@ def small_finite_field():
 
         sage: import sage.rings.tests
         sage: K = sage.rings.tests.small_finite_field(); K
-        Finite Field of size ...
+        Finite Field...of size ...
         sage: q = K.cardinality()
         sage: q.is_prime_power()
         True

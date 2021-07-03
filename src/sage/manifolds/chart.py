@@ -264,8 +264,17 @@ class Chart(UniqueRepresentation, SageObject):
 
     def __classcall__(cls, domain, coordinates='',
                       calc_method=None, names=None, **coordinate_options):
-        """
-        Implement UniqueRepresentation behavior
+        r"""
+        Normalize init args and implement unique representation behavior.
+
+        TESTS::
+
+            sage: from sage.manifolds.chart import Chart
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: var("u v")
+            (u, v)
+            sage: Chart(M, (u, v)) is Chart(M, "u v")
+            True
         """
         if isinstance(coordinates, str):
             if coordinates == '':

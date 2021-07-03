@@ -1522,7 +1522,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
         TESTS::
 
-            sage: for n in range(2,100): # long time,  # not tested, known bug (see :trac:`32084`)
+            sage: for n in range(2,100): # long time
             ....:     K = Integers(n)
             ....:     elist = list(range(1,min(2*n+2,100)))
             ....:     for e in random_sublist(elist, 5/len(elist)):

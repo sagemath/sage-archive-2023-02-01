@@ -2490,6 +2490,15 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: diameter is not defined for the empty DiGraph
+
+        :trac:`32095` is fixed::
+
+            sage: set_random_seed(4)
+            sage: G = graphs.RandomGNP(40, 0.4).to_directed()
+            sage: G.diameter(algorithm='DiFUB', by_weight=False)
+            3
+            sage: G.diameter(algorithm='DiFUB', by_weight=True)
+            3.0
         """
         if not self.order():
             raise ValueError("diameter is not defined for the empty DiGraph")

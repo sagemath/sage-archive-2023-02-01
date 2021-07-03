@@ -261,7 +261,15 @@ class Chart(UniqueRepresentation, SageObject):
         manifolds over `\RR`.
 
     """
-    def __init__(self, domain, coordinates='', names=None, calc_method=None):
+    @staticmethod
+    def __classcall__(cls, domain, coordinates='', names=None, calc_method=None,
+                      coord_restrictions=None):
+
+        return super().__classcall__(cls, domain, coordinates, names, calc_method,
+                                     coord_restrictions)
+
+
+    def __init__(self, domain, coordinates, names, calc_method, coord_restrictions):
         r"""
         Construct a chart.
 
@@ -1576,7 +1584,7 @@ class RealChart(Chart):
     :meth:`plot`.
 
     """
-    def __init__(self, domain, coordinates='', names=None, calc_method=None):
+    def __init__(self, domain, coordinates, names, calc_method, coord_restrictions):
         r"""
         Construct a chart on a real topological manifold.
 
@@ -1595,7 +1603,7 @@ class RealChart(Chart):
 
         """
         Chart.__init__(self, domain, coordinates=coordinates, names=names,
-                       calc_method=calc_method)
+                       calc_method=calc_method, coord_restrictions=coord_restrictions)
         self._fast_valid_coordinates = None
 
     def _init_coordinates(self, coord_list):

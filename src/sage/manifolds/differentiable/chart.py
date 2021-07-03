@@ -259,7 +259,7 @@ class DiffChart(Chart):
         on differentiable manifolds over `\RR`.
 
     """
-    def __init__(self, domain, coordinates='', names=None, calc_method=None):
+    def __init__(self, domain, coordinates, names, calc_method, coord_restrictions):
         r"""
         Construct a chart.
 
@@ -942,7 +942,7 @@ class RealDiffChart(DiffChart, RealChart):
     :meth:`~sage.manifolds.chart.RealChart.plot`.
 
     """
-    def __init__(self, domain, coordinates='', names=None, calc_method=None):
+    def __init__(self, domain, coordinates, names, calc_method, coord_restrictions):
         r"""
         Construct a chart on a real differentiable manifold.
 

@@ -189,8 +189,6 @@ cdef class Lfunction:
             0.231750947504... 
             sage: L.hardy_z_function(.5).imag()  # abs tol 1e-8
             1.17253174178320e-17
-            sage: L.hardy_z_function(.4+.3*I)
-            0.2166144222685... - 0.00408187127850...*I
             sage: chi = DirichletGroup(5)[1]
             sage: L = Lfunction_from_character(chi, type="complex")
             sage: L.hardy_z_function(0)

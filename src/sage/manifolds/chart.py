@@ -277,6 +277,16 @@ class Chart(UniqueRepresentation, SageObject):
             []
             sage: TestSuite(X).run()
 
+        Check that :trac:`32112` has been fixed::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: U = M.open_subset('U')
+            sage: V = M.open_subset('V')
+            sage: XU = U.chart('x y')
+            sage: XV = V.chart('x y')
+            sage: M.top_charts()
+            [Chart (U, (x, y)), Chart (V, (x, y))]
+
         """
         from sage.manifolds.manifold import TopologicalManifold
         if not isinstance(domain, TopologicalManifold):
@@ -321,10 +331,11 @@ class Chart(UniqueRepresentation, SageObject):
         # atlases of the domain's supersets; moreover the first defined chart
         # is considered as the default chart
         for sd in self._domain.open_supersets():
-            # the chart is added in the top charts only if its coordinates have
-            # not been used:
+            # the chart is added in the top charts iff its coordinates have
+            # not been used on a domain including the chart's domain:
             for chart in sd._atlas:
-                if self._xx == chart._xx:
+                if (self._domain.is_subset(chart._domain)
+                    and self._xx == chart._xx):
                     break
             else:
                 sd._top_charts.append(self)

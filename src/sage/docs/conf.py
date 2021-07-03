@@ -1,9 +1,7 @@
 import sys
 import os
-import sphinx
-from sage.env import SAGE_DOC_SRC, SAGE_DOC, SAGE_SRC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
+from sage.env import SAGE_DOC_SRC, SAGE_DOC, THEBE_DIR, PPLPY_DOCS, MATHJAX_DIR
 import sage.version
-from sage.misc.sagedoc import extlinks
 import dateutil.parser
 from docutils import nodes
 from docutils.transforms import Transform
@@ -709,7 +707,8 @@ def process_inherited(app, what, name, obj, options, docstringlines):
 dangling_debug = False
 
 def debug_inf(app, message):
-    if dangling_debug: app.info(message)
+    if dangling_debug:
+        app.info(message)
 
 def call_intersphinx(app, env, node, contnode):
     r"""

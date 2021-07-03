@@ -263,8 +263,7 @@ class Chart(UniqueRepresentation, SageObject):
     """
 
     def __classcall__(cls, domain, coordinates='',
-                      calc_method=None, coordinate_options=None,
-                      names=None):
+                      calc_method=None, names=None, **coordinate_options):
         """
         Implement UniqueRepresentation behavior
         """
@@ -281,7 +280,7 @@ class Chart(UniqueRepresentation, SageObject):
             return domain._charts_by_coord[coord_string]
         except KeyError:
             self = super().__classcall__(cls, domain, coordinates,
-                                         calc_method, coordinate_options)
+                                         calc_method, **coordinate_options)
             domain._charts_by_coord[coord_string] = self
             return self
 
@@ -318,7 +317,10 @@ class Chart(UniqueRepresentation, SageObject):
         if periods is None:
             self._periods = {}
         else:
-            self._periods = periods  # dict. of periods (if any); key = coord. index
+            # dictionary of periods (if any); key = coord. index
+            self._periods = {self._sindex + i: period
+                             for i, period in enumerate(periods)
+                             if period is not None}
 
         if len(coordinates) != self._manifold.dim():
             raise ValueError("the list of coordinates must contain " +
@@ -378,27 +380,30 @@ class Chart(UniqueRepresentation, SageObject):
 
         - a tuple of variables (as elements of ``SR``)
         - a dictionary with possible keys:
-          - `"periods": a dictionary with keys = coordinate indices
-            and values = periods
+          - `"periods": a tuple of periods
 
         TESTS::
 
             sage: from sage.manifolds.chart import Chart
             sage: M = Manifold(2, 'M', field='complex', structure='topological')
             sage: Chart._parse_coordinates(M, ['z1', 'z2'])
+            ((z1, z2), {'periods': (None, None)})
             sage: Chart._parse_coordinates(M, 'z1 z2')
+            ((z1, z2), {'periods': (None, None)})
             sage: Chart._parse_coordinates(M, ['z1:\zeta_1', r'z2:\zeta_2'])
+            ((z1, z2), {'periods': (None, None)})
         """
         if isinstance(coordinates, str):
             coord_list = coordinates.split()
         else:
             coord_list = coordinates
         xx_list = [] # will contain the coordinates as Sage symbolic variables
-        periods = {}
+        period_list = []
         for coord_index, coord_field in enumerate(coord_list):
             coord_properties = coord_field.split(':')
             coord_symb = coord_properties[0].strip() # the coordinate symbol
             coord_latex = None # possibly redefined below
+            period = None      # possibly redefined below
             # scan of the properties other than the symbol:
             for prop in coord_properties[1:]:
                 prop1 = prop.strip()
@@ -407,14 +412,14 @@ class Chart(UniqueRepresentation, SageObject):
                         period = SR(prop1[7:])
                     else:
                         period = domain.base_field()(prop1[7:])
-                    periods[coord_index + domain._sindex] = period
                 else:
                     # prop1 is the coordinate's LaTeX symbol
                     coord_latex = prop1
             # Construction of the coordinate as a Sage symbolic variable:
             coord_var = SR.var(coord_symb, latex_name=coord_latex)
             xx_list.append(coord_var)
-        return tuple(xx_list), dict(periods=periods)
+            period_list.append(period)
+        return tuple(xx_list), dict(periods=tuple(period_list))
 
     def _repr_(self):
         r"""
@@ -1611,9 +1616,8 @@ class RealChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        super().__init__(domain, coordinates, calc_method=calc_method)
+        super().__init__(domain, coordinates, calc_method=calc_method, periods=periods)
         self._bounds = bounds
-        self._periods = periods
         self._fast_valid_coordinates = None
 
     @classmethod
@@ -1638,7 +1642,15 @@ class RealChart(Chart):
             sage: from sage.manifolds.chart import RealChart
             sage: M = Manifold(2, 'M', structure='topological')
             sage: RealChart._parse_coordinates(M, ['x', 'y'])
+            ((x, y),
+            {'bounds': (((-Infinity, False), (+Infinity, False)),
+            ((-Infinity, False), (+Infinity, False))),
+            'periods': (None, None)})
             sage: RealChart._parse_coordinates(M, [r'x1:\xi:(0,1)', r'y1:\eta'])
+            ((x1, y1),
+            {'bounds': (((0, False), (1, False)),
+            ((-Infinity, False), (+Infinity, False))),
+            'periods': (None, None)})
         """
         from sage.symbolic.assumptions import assume
         if isinstance(coordinates, str):
@@ -1647,7 +1659,7 @@ class RealChart(Chart):
             coord_list = coordinates
         xx_list = [] # will contain the coordinates as Sage symbolic variables
         bounds_list = [] # will contain the coordinate bounds
-        periods = {}
+        period_list = []
         for coord_index, coord_field in enumerate(coord_list):
             coord_properties = coord_field.split(':')
             coord_symb = coord_properties[0].strip() # the coordinate symbol
@@ -1657,6 +1669,7 @@ class RealChart(Chart):
             xmin_included = False
             xmax = +Infinity
             xmax_included = False
+            period = None
             # scan of the properties other than the symbol:
             is_periodic = False
             for prop in coord_properties[1:]:
@@ -1689,7 +1702,7 @@ class RealChart(Chart):
                                latex_name=coord_latex)
             assume(coord_var, 'real')
             if is_periodic:
-                periods[coord_index + domain._sindex] = xmax - xmin
+                period = xmax - xmin
                 xmin_included = 'periodic'
                 xmax_included = 'periodic'
             else:
@@ -1705,8 +1718,9 @@ class RealChart(Chart):
                         assume(coord_var < xmax)
             xx_list.append(coord_var)
             bounds_list.append(((xmin, xmin_included), (xmax, xmax_included)))
+            period_list.append(period)
         return tuple(xx_list), dict(bounds=tuple(bounds_list),
-                                    periods=periods)
+                                    periods=tuple(period_list))
 
     def coord_bounds(self, i=None):
         r"""

@@ -1314,6 +1314,12 @@ def RandomTree(n):
         ....:      for i in range(100) )
         True
 
+    Random tree with one and zero vertices::
+
+        sage: graphs.RandomTree(0)
+        Graph on 0 vertices
+        sage: graphs.RandomTree(1)
+        Graph on 1 vertex
     """
     from sage.misc.prandom import randint
     g = Graph()
@@ -1341,9 +1347,10 @@ def RandomTree(n):
         g.add_edge(x,s)
         count[s] -= 1
 
-    # Adding as an edge the last two available vertices
-    last_edge = [ v for v in range(n) if count[v] != -1 ]
-    g.add_edge(last_edge)
+    if n > 1:
+        # Adding as an edge the last two available vertices
+        last_edge = [ v for v in range(n) if count[v] != -1 ]
+        g.add_edge(last_edge)
 
     return g
 

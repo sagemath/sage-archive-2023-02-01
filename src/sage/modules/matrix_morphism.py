@@ -1416,7 +1416,12 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         else:
             A = self.matrix().transpose().restrict_domain(V).transpose()
         H = sub.Hom(self.codomain())
-        return H(A, side=self.side())
+        try:
+            return H(A, side=self.side())
+        except:
+            return H(A)
+
+
 
     def restrict_codomain(self, sub):
         """
@@ -1493,11 +1498,13 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             V = C.coordinate_module(sub)
         else:
             V = sub.free_module()
-        if self.side() == "left":
+        try:
+            if self.side() == "left":
+                return H(self.matrix().restrict_codomain(V))
+            else:
+                return H(self.matrix().transpose().restrict_codomain(V).transpose(), side="right")
+        except:
             return H(self.matrix().restrict_codomain(V))
-        else:
-            return H(self.matrix().transpose().restrict_codomain(V).transpose(), side="right")
-
 
     def restrict(self, sub):
         """
@@ -1602,7 +1609,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
        the matrix ``A`` if it is mutable; if ``False``, then this makes
        ``A`` immutable
     """
-    def __init__(self, parent, A, copy_matrix=True, side='left',):
+    def __init__(self, parent, A, copy_matrix=True, side='left'):
         """
         Initialize ``self``.
 

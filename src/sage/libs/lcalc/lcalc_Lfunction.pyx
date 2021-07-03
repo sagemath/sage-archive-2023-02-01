@@ -241,8 +241,8 @@ cdef class Lfunction:
             sage: from sage.libs.lcalc.lcalc_Lfunction import *
             sage: chi = DirichletGroup(5)[2] #This is a quadratic character
             sage: L=Lfunction_from_character(chi, type="complex")
-            sage: L.__N(10)
-            3.17043978326...
+            sage: L.__N(10) # abs tol 1e-8
+            4.0
         """
         cdef RealNumber real_T=RRR(T)
         cdef double double_T = mpfr_get_d(real_T.value, MPFR_RNDN)

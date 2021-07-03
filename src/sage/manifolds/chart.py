@@ -84,6 +84,22 @@ class Chart(UniqueRepresentation, SageObject):
       If no period and no LaTeX spelling are to be set for any coordinate, the
       argument ``coordinates`` can be omitted when the shortcut operator
       ``<,>`` is used to declare the chart (see examples below).
+    - ``coord_restrictions``: Additional restrictions on the coordinates.
+      A restriction can be any symbolic equality or inequality involving
+      the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+      of the list (or set or frozenset) ``restrictions`` are combined
+      with the ``and`` operator; if some restrictions are to be combined with
+      the ``or`` operator instead, they have to be passed as a tuple in some
+      single item of the list (or set or frozenset) ``restrictions``. For example::
+
+        coord_restrictions=[x > y, (x != 0, y != 0), z^2 < x]
+
+      means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+      If the list ``restrictions`` contains only one item, this
+      item can be passed as such, i.e. writing ``x > y`` instead
+      of the single element list ``[x > y]``.  If the chart variables have
+      not been declared as variables yet, ``coord_restrictions`` must
+      be ``lambda``-quoted.
     - ``names`` -- (default: ``None``) unused argument, except if
       ``coordinates`` is not provided; it must then be a tuple containing
       the coordinate symbols (this is guaranteed if the shortcut operator
@@ -255,6 +271,15 @@ class Chart(UniqueRepresentation, SageObject):
         sage: X(p) == p.coord(X)
         True
 
+    Setting additional coordinate restrictions::
+
+        sage: M = Manifold(2, 'M', field='complex', structure='topological')
+        sage: X.<x,y> = M.chart(coord_restrictions=lambda x,y: abs(x) > 1)
+        sage: X.valid_coordinates(2+i, 1)
+        True
+        sage: X.valid_coordinates(i, 1)
+        False
+
     .. SEEALSO::
 
         :class:`sage.manifolds.chart.RealChart` for charts on topological
@@ -290,6 +315,9 @@ class Chart(UniqueRepresentation, SageObject):
         try:
             return domain._charts_by_coord[coord_string]
         except KeyError:
+            if callable(coord_restrictions):
+                # lambda-quoted
+                coord_restrictions = coord_restrictions(*coordinates)
             # Make coord_restrictions hashable
             coord_restrictions = cls._normalize_coord_restrictions(coord_restrictions)
             self = super().__classcall__(cls, domain, coordinates, calc_method,

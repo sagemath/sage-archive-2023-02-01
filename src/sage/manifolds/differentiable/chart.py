@@ -259,7 +259,7 @@ class DiffChart(Chart):
         on differentiable manifolds over `\RR`.
 
     """
-    def __init__(self, domain, coordinates='', names=None, calc_method=None):
+    def __init__(self, domain, coordinates, calc_method=None, periods=None):
         r"""
         Construct a chart.
 
@@ -276,8 +276,8 @@ class DiffChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        Chart.__init__(self, domain, coordinates=coordinates, names=names,
-                       calc_method=calc_method)
+        super().__init__(domain, coordinates,
+                         calc_method=calc_method, periods=periods)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
@@ -942,7 +942,7 @@ class RealDiffChart(DiffChart, RealChart):
     :meth:`~sage.manifolds.chart.RealChart.plot`.
 
     """
-    def __init__(self, domain, coordinates='', names=None, calc_method=None):
+    def __init__(self, domain, coordinates, calc_method=None, bounds=None, periods=None):
         r"""
         Construct a chart on a real differentiable manifold.
 
@@ -960,8 +960,8 @@ class RealDiffChart(DiffChart, RealChart):
             sage: TestSuite(X).run()
 
         """
-        RealChart.__init__(self, domain, coordinates=coordinates, names=names,
-                           calc_method = calc_method)
+        RealChart.__init__(self, domain, coordinates,
+                           calc_method=calc_method, bounds=bounds, periods=periods)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe

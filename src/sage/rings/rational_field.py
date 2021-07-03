@@ -1196,26 +1196,31 @@ class RationalField(Singleton, number_field_base.NumberField):
 
         EXAMPLES::
 
-            sage: QQ.random_element()
-            -4
-            sage: QQ.random_element()
-            0
-            sage: QQ.random_element()
-            -1/2
+            sage: QQ.random_element().parent() is QQ
+            True
+            sage: while QQ.random_element() != 0:
+            ....:     pass
+            sage: while QQ.random_element() != -1/2:
+            ....:     pass
 
         In the following example, the resulting numbers range from
         -5/1 to 5/1 (both inclusive),
         while the smallest possible positive value is 1/10::
 
-            sage: QQ.random_element(5, 10)
-            -2/7
+            sage: q = QQ.random_element(5, 10)
+            sage: -5/1 <= q <= 5/1
+            True
+            sage: q.denominator() <= 10
+            True
+            sage: q.numerator() <= 5
+            True
 
         Extra positional or keyword arguments are passed through::
 
-            sage: QQ.random_element(distribution='1/n')
-            0
-            sage: QQ.random_element(distribution='1/n')
-            -1
+            sage: QQ.random_element(distribution='1/n').parent() is QQ
+            True
+            sage: QQ.random_element(distribution='1/n').parent() is QQ
+            True
         """
         global ZZ
         if ZZ is None:

@@ -723,8 +723,8 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
 
         EXAMPLES::
 
-            sage: Qp(17,6).random_element()
-            15*17^-8 + 10*17^-7 + 3*17^-6 + 2*17^-5 + 11*17^-4 + 6*17^-3 + O(17^-2)
+            sage: Qp(17,6).random_element().parent() is Qp(17,6)
+            True
         """
         if (algorithm == 'default'):
             k = ZZ.random_element()

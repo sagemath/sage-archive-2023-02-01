@@ -41,7 +41,7 @@ def finite_field():
 
         sage: import sage.rings.tests
         sage: K = sage.rings.tests.finite_field(); K
-        Finite Field in a of size ...
+        Finite Field...of size ...
         sage: K.cardinality().is_prime_power()
         True
         sage: while K.cardinality().is_prime():

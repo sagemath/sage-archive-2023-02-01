@@ -320,7 +320,7 @@ class Chart(UniqueRepresentation, SageObject):
         # The chart is added to the domain's atlas, as well as to all the
         # atlases of the domain's supersets; moreover the first defined chart
         # is considered as the default chart
-        for sd in self._domain.open_supersets():
+        for sd in domain.open_supersets():
             # the chart is added in the top charts only if its coordinates have
             # not been used:
             for chart in sd._atlas:
@@ -332,7 +332,7 @@ class Chart(UniqueRepresentation, SageObject):
             if sd._def_chart is None:
                 sd._def_chart = self
         # The chart is added to the list of the domain's covering charts:
-        self._domain._covering_charts.append(self)
+        domain._covering_charts.append(self)
         # Initialization of the set of charts that are restrictions of the
         # current chart to subsets of the chart domain:
         self._subcharts = set([self])
@@ -346,7 +346,7 @@ class Chart(UniqueRepresentation, SageObject):
         # The null and one functions of the coordinates:
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
-        for dom in self._domain.open_supersets():
+        for dom in domain.open_supersets():
             dom._zero_scalar_field._express[self] = self.function_ring().zero()
             dom._one_scalar_field._express[self] = self.function_ring().one()
 
@@ -386,10 +386,10 @@ class Chart(UniqueRepresentation, SageObject):
             for prop in coord_properties[1:]:
                 prop1 = prop.strip()
                 if prop1[0:6] == 'period':
-                    if self._manifold.base_field_type() in ['real', 'complex']:
+                    if domain.base_field_type() in ['real', 'complex']:
                         period = SR(prop1[7:])
                     else:
-                        period = self._manifold.base_field()(prop1[7:])
+                        period = domain.base_field()(prop1[7:])
                     self._periods[coord_index + self._sindex] = period
                 else:
                     # prop1 is the coordinate's LaTeX symbol
@@ -411,7 +411,7 @@ class Chart(UniqueRepresentation, SageObject):
             Chart (M, (x, y))
 
         """
-        return 'Chart ({}, {})'.format(self._domain._name, self._xx)
+        return 'Chart ({}, {})'.format(self.domain()._name, self._xx)
 
     def _latex_(self):
         r"""
@@ -430,7 +430,7 @@ class Chart(UniqueRepresentation, SageObject):
             \left(M,({\zeta_1}, {\zeta2})\right)
 
         """
-        description = r'\left(' + latex(self._domain).strip() + ',('
+        description = r'\left(' + latex(self.domain()).strip() + ',('
         n = len(self._xx)
         for i in range(n-1):
             description += latex(self._xx[i]).strip() + ', '
@@ -712,10 +712,10 @@ class Chart(UniqueRepresentation, SageObject):
             Chart (B, (z1, z2))
 
         """
-        if subset == self._domain:
+        if subset == self.domain():
             return self
         if subset not in self._dom_restrict:
-            if not subset.is_subset(self._domain):
+            if not subset.is_subset(self.domain()):
                 raise ValueError("the specified subset is not a subset " +
                                  "of the domain of definition of the chart")
             coordinates = ""
@@ -784,7 +784,7 @@ class Chart(UniqueRepresentation, SageObject):
             False
 
         """
-        if len(coordinates) != self._domain._dim:
+        if len(coordinates) != self.domain()._dim:
             return False
         if 'parameters' in kwds:
             parameters = kwds['parameters']
@@ -962,8 +962,8 @@ class Chart(UniqueRepresentation, SageObject):
             [Chart (R^2, (x, y)), Chart (U, (r, phi)), Chart (U, (x, y))]
 
         """
-        dom1 = self._domain
-        dom2 = other._domain
+        dom1 = self.domain()
+        dom2 = other.domain()
         dom = dom1.intersection(dom2, name=intersection_name)
         if dom is dom1:
             chart1 = self
@@ -2024,10 +2024,10 @@ class RealChart(Chart):
             True
 
         """
-        if subset == self._domain:
+        if subset == self.domain():
             return self
         if subset not in self._dom_restrict:
-            if not subset.is_subset(self._domain):
+            if not subset.is_subset(self.domain()):
                 raise ValueError("the specified subset is not a subset " +
                                  "of the domain of definition of the chart")
             coordinates = ""
@@ -2719,10 +2719,10 @@ class RealChart(Chart):
             transf = None # to be the MultiCoordFunction object relating self
                           # to the ambient chart
             if mapping is None:
-                if not self._domain.is_subset(chart._domain):
+                if not self.domain().is_subset(chart.domain()):
                     raise ValueError("the domain of {} is not ".format(self) +
                                      "included in that of {}".format(chart))
-                coord_changes = chart._domain._coord_changes
+                coord_changes = chart.domain()._coord_changes
                 for chart_pair in coord_changes:
                     if chart_pair == (self, chart):
                         transf = coord_changes[chart_pair]._transf
@@ -2737,10 +2737,10 @@ class RealChart(Chart):
                 if not isinstance(mapping, ContinuousMap):
                     raise TypeError("the argument 'mapping' must be a "
                                     "continuous manifold map")
-                if not self._domain.is_subset(mapping._domain):
+                if not self.domain().is_subset(mapping.domain()):
                     raise ValueError("the domain of {} is not ".format(self) +
                                      "included in that of {}".format(mapping))
-                if not chart._domain.is_subset(mapping._codomain):
+                if not chart.domain().is_subset(mapping._codomain):
                     raise ValueError("the domain of {} is not ".format(chart) +
                                      "included in the codomain of {}".format(
                                                                       mapping))
@@ -3000,8 +3000,8 @@ class CoordChange(SageObject):
         self._inverse = None
         # If the two charts are on the same open subset, the coordinate change
         # is added to the subset (and supersets) dictionary:
-        if chart1._domain == chart2._domain:
-            domain = chart1._domain
+        if chart1.domain() == chart2.domain():
+            domain = chart1.domain()
             for sdom in domain.open_supersets():
                 sdom._coord_changes[(chart1, chart2)] = self
 

@@ -1429,7 +1429,8 @@ class TopologicalManifold(ManifoldSubset):
         """
         return bool(self._covering_charts)
 
-    def chart(self, coordinates='', names=None, calc_method=None):
+    def chart(self, coordinates='', names=None, calc_method=None,
+              coord_restrictions=None):
         r"""
         Define a chart, the domain of which is the manifold.
 
@@ -1569,7 +1570,8 @@ class TopologicalManifold(ManifoldSubset):
         if calc_method is None:
             calc_method = self._calculus_method
         return self._structure.chart(self, coordinates=coordinates,
-                                     names=names, calc_method=calc_method)
+                                     names=names, calc_method=calc_method,
+                                     coord_restrictions=coord_restrictions)
 
     def is_open(self):
         """

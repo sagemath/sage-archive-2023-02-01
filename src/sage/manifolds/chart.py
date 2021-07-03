@@ -264,7 +264,8 @@ class Chart(UniqueRepresentation, SageObject):
 
     @staticmethod
     def __classcall__(cls, domain, coordinates='',
-                      calc_method=None, names=None, **coordinate_options):
+                      calc_method=None, names=None,
+                      coord_restrictions=None, **coordinate_options):
         r"""
         Normalize init args and implement unique representation behavior.
 
@@ -289,8 +290,11 @@ class Chart(UniqueRepresentation, SageObject):
         try:
             return domain._charts_by_coord[coord_string]
         except KeyError:
-            self = super().__classcall__(cls, domain, coordinates,
-                                         calc_method, **coordinate_options)
+            # Make coord_restrictions hashable
+            coord_restrictions = cls._normalize_coord_restrictions(coord_restrictions)
+            self = super().__classcall__(cls, domain, coordinates, calc_method,
+                                         coord_restrictions=coord_restrictions,
+                                         **coordinate_options)
             domain._charts_by_coord[coord_string] = self
             return self
 
@@ -338,7 +342,7 @@ class Chart(UniqueRepresentation, SageObject):
         self._xx = coordinates
         #
         # Additional restrictions on the coordinates
-        self._restrictions = []  # to be set with method add_restrictions()
+        self._restrictions = list(coord_restrictions)
         #
         # The chart is added to the domain's atlas, as well as to all the
         # atlases of the domain's supersets; moreover the first defined chart
@@ -430,6 +434,45 @@ class Chart(UniqueRepresentation, SageObject):
             xx_list.append(coord_var)
             period_list.append(period)
         return tuple(xx_list), dict(periods=tuple(period_list))
+
+    @staticmethod
+    def _normalize_coord_restrictions(restrictions):
+        r"""
+        Rewrite ``restrictions`` as a ``frozenset``, representing a logical "and", of other clauses.
+
+        Also replace ``list``s by ``frozenset``s, making the result hashable.
+
+        EXAMPLES::
+
+            sage: from sage.manifolds.chart import Chart
+            sage: var("x y z")
+            (x, y, z)
+            sage: Chart._normalize_coord_restrictions(None)
+            frozenset()
+            sage: Chart._normalize_coord_restrictions(x > y)
+            frozenset({x > y})
+            sage: Chart._normalize_coord_restrictions((x != 0, y != 0))
+            frozenset({(x != 0, y != 0)})
+            sage: Chart._normalize_coord_restrictions([x > y, (x != 0, y != 0), z^2 < x])
+            frozenset({(x != 0, y != 0), x > y, z^2 < x})
+
+        """
+        def normalize(r):
+            if isinstance(r, tuple):  # or
+                return tuple(normalize(x) for x in r)
+            elif isinstance(r, (list, set, frozenset)):  # and
+                return frozenset(normalize(x) for x in r)
+            else:
+                return r
+
+        if restrictions is None:
+            return frozenset()
+
+        if not isinstance(restrictions, (list, set, frozenset)):
+            # case of a single condition or conditions to be combined by "or"
+            restrictions = [restrictions]
+
+        return normalize(restrictions)
 
     def _repr_(self):
         r"""
@@ -690,10 +733,7 @@ class Chart(UniqueRepresentation, SageObject):
             False
 
         """
-        if not isinstance(restrictions, list):
-            # case of a single condition or conditions to be combined by "or"
-            restrictions = [restrictions]
-        self._restrictions.extend(restrictions)
+        self._restrictions.extend(self._normalize_coord_restrictions(restrictions))
 
     def restrict(self, subset, restrictions=None):
         r"""
@@ -877,7 +917,7 @@ class Chart(UniqueRepresentation, SageObject):
                 combine = combine or self._check_restrictions(cond,
                                                               substitutions)
             return combine
-        elif isinstance(restrict, list): # case of 'and' conditions
+        elif isinstance(restrict, (list, set, frozenset)): # case of 'and' conditions
             combine = True
             for cond in restrict:
                 combine = combine and self._check_restrictions(cond,
@@ -2256,7 +2296,7 @@ class RealChart(Chart):
         # case fast callable has to be computed
         from operator import lt, gt
 
-        if not isinstance(self._restrictions, list):
+        if not isinstance(self._restrictions, (list, set, frozenset)):
             if isinstance(self._restrictions, tuple):
                 self._restrictions = [self._restrictions]
             elif isinstance(self._restrictions, Expression):

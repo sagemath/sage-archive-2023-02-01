@@ -147,21 +147,31 @@ def relative_number_field(n=2, maxdeg=2):
         2
         sage: M.base_ring() is QQ
         True
+
+    TESTS:
+
+    Check that :trac:`32117` is fixed::
+
+        sage: set_random_seed(3030)
+        sage: from sage.rings.tests import relative_number_field
+        sage: _ = relative_number_field(3)
     """
     from sage.all import ZZ
     K = absolute_number_field(maxdeg)
     n -= 1
     var = 'aa'
     R = ZZ['x']
+    R1 = K['x']
     while n >= 1:
         while True:
             f = R.random_element(degree=ZZ.random_element(x=1,y=maxdeg),x=-100,y=100)
             if f.degree() <= 0: continue
             f = f * f.denominator()  # bug trac #4781
             f = f + R.gen()**maxdeg  # make monic
-            if f.is_irreducible():
+            if R1(f).is_irreducible():
                 break
         K = K.extension(f,var)
+        R1 = K['x']
         var += 'a'
         n -= 1
     return K

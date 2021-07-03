@@ -172,7 +172,7 @@ class OreFunction(AlgebraElement):
 
         """
         if self.parent()._simplification:
-            return richcmp((self._numerator, self._denominator), (other._numerator, other._denominator), op) 
+            return richcmp((self._numerator, self._denominator), (other._numerator, other._denominator), op)
         if op == op_EQ or op == op_NE:
             _, U, V = self._denominator.left_xlcm(other._denominator)
             return richcmp(U * self._numerator, V * other._numerator, op)
@@ -558,6 +558,9 @@ class OreFunction(AlgebraElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: cannot divide by zero
+
+        We check that :trac:`32109` is fixed::
+
             sage: K(0)/K(0)
             Traceback (most recent call last):
             ...

@@ -141,7 +141,7 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             if is_CallableSymbolicExpression(predicate):
                 if names is None:
                     names = tuple(str(var) for var in predicate.args())
-                elif len(names) != predicates.args():
+                elif len(names) != len(predicate.args()):
                     raise TypeError('mismatch in number of arguments')
                 if vars is None:
                     vars = predicate.args()

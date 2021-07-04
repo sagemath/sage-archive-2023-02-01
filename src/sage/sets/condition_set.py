@@ -436,3 +436,40 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
         except TypeError:
             # Fall back to creating a wrapper
             return super()._sympy_()
+
+    def intersection(self, X):
+        r"""
+        Return the intersection of ``self`` and ``X``.
+
+        EXAMPLES::
+
+            sage: (ZZ^2).rename("ZZ^2"); (QQ^2).rename("QQ^2")
+            sage: in_small_oblong(x, y) = x^2 + 3 * y^2 <= 42
+            sage: SmallOblongUniverse = ConditionSet(QQ^2, in_small_oblong)
+            sage: SmallOblongUniverse
+            { (x, y) ∈ QQ^2 : x^2 + 3*y^2 <= 42 }
+            sage: parity_check(x, y) = abs(sin(pi/2*(x + y))) < 1/1000
+            sage: EvenUniverse = ConditionSet(ZZ^2, parity_check); EvenUniverse
+            { (x, y) ∈ ZZ^2 : abs(sin(1/2*pi*x + 1/2*pi*y)) < (1/1000) }
+            sage: SmallOblongUniverse & EvenUniverse
+            { (x, y) ∈ Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1 0]
+            [0 1] : x^2 + 3*y^2 <= 42, abs(sin(1/2*pi*x + 1/2*pi*y)) < (1/1000) }
+
+        Combining two ``ConditionSet``s with different formal variables works correctly.
+        The formal variables of the intersection are taken from ``self``::
+
+            sage: SmallMirrorUniverse = ConditionSet(QQ^2, in_small_oblong, vars=(y, x))
+            sage: SmallMirrorUniverse
+            { (y, x) ∈ QQ^2 : 3*x^2 + y^2 <= 42 }
+            sage: SmallOblongUniverse & SmallMirrorUniverse
+            { (x, y) ∈ QQ^2 : x^2 + 3*y^2 <= 42 }
+            sage: SmallMirrorUniverse & SmallOblongUniverse
+            { (y, x) ∈ QQ^2 : 3*x^2 + y^2 <= 42 }
+        """
+        if isinstance(X, ConditionSet):
+            return ConditionSet(self.ambient().intersection(X.ambient()),
+                                *(self._predicates + X._predicates),
+                                vars=self.arguments())
+        return super().intersection(X)

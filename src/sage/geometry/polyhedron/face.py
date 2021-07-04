@@ -73,17 +73,16 @@ polyhedron with the :meth:`PolyhedronFace.as_polyhedron` method::
 #                  http://www.gnu.org/licenses/
 ########################################################################
 
-from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.misc.all import cached_method
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
-
+from sage.geometry.convex_set import ConvexSet_closed
 
 
 #########################################################################
 @richcmp_method
-class PolyhedronFace(SageObject):
+class PolyhedronFace(ConvexSet_closed):
     r"""
     A face of a polyhedron.
 
@@ -121,6 +120,11 @@ class PolyhedronFace(SageObject):
         (An inequality (1, 1, 1) x + 1 >= 0,)
         sage: face.ambient_Vrepresentation()
         (A vertex at (-1, 0, 0), A vertex at (0, -1, 0), A vertex at (0, 0, -1))
+
+    TESTS::
+
+        sage: TestSuite(face).run(skip='_test_pickling')
+
     """
 
     def __init__(self, polyhedron, V_indices, H_indices):
@@ -147,6 +151,7 @@ class PolyhedronFace(SageObject):
             sage: from sage.geometry.polyhedron.face import PolyhedronFace
             sage: PolyhedronFace(Polyhedron(), [], [])   # indirect doctest
             A -1-dimensional face of a Polyhedron in ZZ^0
+            sage: TestSuite(_).run(skip='_test_pickling')
         """
         self._polyhedron = polyhedron
         self._ambient_Vrepresentation_indices = tuple(V_indices)
@@ -180,6 +185,10 @@ class PolyhedronFace(SageObject):
             A vertex at (1, 1)
             sage: type(face.vertex_generator())
             <... 'generator'>
+
+        TESTS::
+
+            sage: TestSuite(face).run(skip='_test_pickling')
         """
         for V in self.ambient_Vrepresentation():
             if V.is_vertex():
@@ -200,6 +209,10 @@ class PolyhedronFace(SageObject):
             sage: face = triangle.faces(1)[2]
             sage: face.vertices()
             (A vertex at (0, 1), A vertex at (1, 0))
+
+        TESTS::
+
+            sage: TestSuite(face).run(skip='_test_pickling')
         """
         return tuple(self.vertex_generator())
 
@@ -218,6 +231,10 @@ class PolyhedronFace(SageObject):
             sage: face = Q.faces(2)[0]
             sage: face.n_vertices()
             3
+
+        TESTS::
+
+            sage: TestSuite(face).run(skip='_test_pickling')
         """
         return len(self.vertices())
 
@@ -231,6 +248,10 @@ class PolyhedronFace(SageObject):
             sage: face = pi.faces(1)[1]
             sage: next(face.ray_generator())
             A ray in the direction (1, 0)
+
+        TESTS::
+
+            sage: TestSuite(face).run(skip='_test_pickling')
         """
         for V in self.ambient_Vrepresentation():
             if V.is_ray():
@@ -282,6 +303,10 @@ class PolyhedronFace(SageObject):
             sage: face = pr.faces(1)[0]
             sage: next(face.line_generator())
             A line in the direction (1, 0)
+
+        TESTS::
+
+            sage: TestSuite(face).run(skip='_test_pickling')
         """
         for V in self.ambient_Vrepresentation():
             if V.is_line():
@@ -614,22 +639,32 @@ class PolyhedronFace(SageObject):
         if self.n_vertices() > 0:
             desc += ' defined as the convex hull of '
             desc += repr(self.n_vertices())
-            if self.n_vertices() == 1: desc += ' vertex'
-            else:                      desc += ' vertices'
+            if self.n_vertices() == 1:
+                desc += ' vertex'
+            else:
+                desc += ' vertices'
 
             if self.n_rays() > 0:
-                if self.n_lines() > 0: desc += ", "
-                else:                  desc += " and "
+                if self.n_lines() > 0:
+                    desc += ", "
+                else:
+                    desc += " and "
                 desc += repr(self.n_rays())
-                if self.n_rays() == 1: desc += ' ray'
-                else:                  desc += ' rays'
+                if self.n_rays() == 1:
+                    desc += ' ray'
+                else:
+                    desc += ' rays'
 
             if self.n_lines() > 0:
-                if self.n_rays() > 0: desc += ", "
-                else:                 desc += " and "
+                if self.n_rays() > 0:
+                    desc += ", "
+                else:
+                    desc += " and "
                 desc += repr(self.n_lines())
-                if self.n_lines() == 1: desc += ' line'
-                else:                   desc += ' lines'
+                if self.n_lines() == 1:
+                    desc += ' line'
+                else:
+                    desc += ' lines'
 
         return desc
 
@@ -648,6 +683,68 @@ class PolyhedronFace(SageObject):
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
         """
         return self._polyhedron
+
+    ambient = polyhedron
+
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+
+        It is the ambient free module of the containing polyhedron tensored
+        with a field.
+
+        INPUT:
+
+        - ``base_field`` -- (default: the fraction field of the base ring) a field.
+
+        EXAMPLES::
+
+            sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
+            sage: line = half_plane.faces(1)[0]; line
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: line.ambient_vector_space()
+            Vector space of dimension 2 over Rational Field
+            sage: line.ambient_vector_space(AA)
+            Vector space of dimension 2 over Algebraic Real Field
+        """
+        return self.polyhedron().ambient_vector_space(base_field=base_field)
+
+    def is_relatively_open(self):
+        r"""
+        Return whether ``self`` is relatively open.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
+            sage: line = half_plane.faces(1)[0]; line
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: line.is_relatively_open()
+            True
+        """
+        return self.as_polyhedron().is_relatively_open()
+
+    def is_compact(self):
+        r"""
+        Return whether ``self`` is compact.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
+            sage: line = half_plane.faces(1)[0]; line
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: line.is_compact()
+            False
+        """
+        return not any(V.is_ray() or V.is_line()
+                       for V in self.ambient_Vrepresentation())
 
     @cached_method
     def as_polyhedron(self):
@@ -675,6 +772,49 @@ class PolyhedronFace(SageObject):
         parent = P.parent()
         Vrep = (self.vertices(), self.rays(), self.lines())
         return P.__class__(parent, Vrep, None)
+
+    def contains(self, point):
+        """
+        Test whether the polyhedron contains the given ``point``.
+
+        INPUT:
+
+        - ``point`` -- a point or its coordinates
+
+        EXAMPLES::
+
+            sage: half_plane = Polyhedron(ieqs=[(0,1,0)])
+            sage: line = half_plane.faces(1)[0]; line
+            A 1-dimensional face of a Polyhedron in QQ^2 defined as the convex hull of 1 vertex and 1 line
+            sage: line.contains([0, 1])
+            True
+
+        As a shorthand, one may use the usual ``in`` operator::
+
+            sage: [5, 7] in line
+            False
+        """
+        # preprocess in the same way as Polyhedron_base.contains
+        try:
+            p = vector(point)
+        except TypeError:  # point not iterable or no common ring for elements
+            if len(point) > 0:
+                return False
+            else:
+                p = vector(self.polyhedron().base_ring(), [])
+
+        if len(p) != self.ambient_dim():
+            return False
+
+        if not self.polyhedron().contains(p):
+            return False
+
+        for H in self.ambient_Hrepresentation():
+            if H.eval(p) != 0:
+                return False
+        return True
+
+    __contains__ = contains
 
     @cached_method
     def normal_cone(self, direction='outer'):
@@ -848,12 +988,12 @@ def combinatorial_face_to_polyhedral_face(polyhedron, combinatorial_face):
     if polyhedron.backend() in ('ppl',):
         # Equations before inequalities in Hrep.
         H_indices = tuple(range(n_equations))
-        H_indices += tuple(x+n_equations for x in combinatorial_face.ambient_H_indices())
+        H_indices += tuple(x+n_equations for x in combinatorial_face.ambient_H_indices(add_equations=False))
     elif polyhedron.backend() in ('normaliz', 'cdd', 'field', 'polymake'):
         # Equations after the inequalities in Hrep.
         n_ieqs = polyhedron.n_inequalities()
-        H_indices = tuple(range(n_ieqs, n_ieqs + n_equations))
-        H_indices += tuple(x for x in combinatorial_face.ambient_H_indices())
+        H_indices = tuple(x for x in combinatorial_face.ambient_H_indices(add_equations=False))
+        H_indices += tuple(range(n_ieqs, n_ieqs + n_equations))
     else:
         raise NotImplementedError("unknown backend")
 

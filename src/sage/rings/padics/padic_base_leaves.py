@@ -1101,7 +1101,7 @@ class pAdicFieldLattice(pAdicLatticeGeneric, pAdicFieldBaseGeneric):
 #########
 
 class pAdicRingRelaxed(pAdicRelaxedGeneric, pAdicRingBaseGeneric):
-    """
+    r"""
     An implementation of relaxed arithmetics over `\ZZ_p`.
 
     INPUT:
@@ -1136,7 +1136,7 @@ class pAdicRingRelaxed(pAdicRelaxedGeneric, pAdicRingBaseGeneric):
         self._element_class_prefix = "pAdicRelaxedElement_"
 
 class pAdicFieldRelaxed(pAdicRelaxedGeneric, pAdicFieldBaseGeneric):
-    """
+    r"""
     An implementation of relaxed arithmetics over `\QQ_p`.
 
     INPUT:

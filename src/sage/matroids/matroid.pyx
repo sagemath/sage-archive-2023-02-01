@@ -7800,7 +7800,7 @@ cdef class Matroid(SageObject):
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
              and facets {(1, 3, 5), (1, 4, 5), (2, 3, 5), (2, 4, 5)}
         """
-        from sage.homology.simplicial_complex import SimplicialComplex
+        from sage.topology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))
 
     def union(self, matroids):

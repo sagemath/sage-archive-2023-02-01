@@ -4216,6 +4216,9 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
     - ``growth_group`` -- a growth group
 
+    - ``coefficient_ring`` -- the ring which contains the
+      coefficients of the elements.
+
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. It has to be a subcategory
       of ``Join of Category of monoids and Category of posets``. This
@@ -4265,7 +4268,35 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
         INPUT:
 
+        - ``growth_group`` -- a growth group
+
+        - ``coefficient`` -- an element of the coefficient ring
+
+        - ``**kwds`` -- a dictionary mapping variable names to lower
+          bounds for the corresponding variable
+
+        OUTPUT:
+
+        A BTerm
+
         TESTS:
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+
+            sage: G = MonomialGrowthGroup(ZZ, 'x')
+            sage: BT = BTermMonoid(TermMonoid, G, QQ)
+            sage: BT(x^3, 4, valid_from={'x': 10})
+            BTerm with coefficient 4, growth x^3 and valid for x >= 10
+            sage: BT(x^3, 4, valid_from=10)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.rings.integer.Integer' object has no attribute 'keys'
+            sage: BT(x^3, 4, 10)
+            Traceback (most recent call last):
+            ...
+            TypeError: _element_constructor_() takes from 2 to 3 positional arguments but 4 were given
         """
         return self.element_class(self, growth, coefficient, **kwds)
 

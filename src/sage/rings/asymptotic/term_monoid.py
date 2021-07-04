@@ -4114,7 +4114,7 @@ class BTerm(TermWithCoefficient):
         .. NOTE::
 
             A :class:`BTerm` can absorb another :class:`BTerm`
-            with equal growth.
+            with weaker or equal growth.
 
             See the :ref:`module description <term_absorption>` for a
             detailed explanation of absorption.

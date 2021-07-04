@@ -2430,7 +2430,7 @@ class Permutations_CC(CombinatorialClass):
 ##############################################################################
 from sage.sets.image_set import ImageSubobject
 from sage.categories.map import is_Map
-from sage.categories.poor_man_map import PoorManMap
+
 
 class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
     r"""
@@ -2446,8 +2446,6 @@ class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
             sage: Partitions(3).map(attrcall('conjugate'))
             Image of Partitions of the integer 3 by The map *.conjugate() from Partitions of the integer 3
         """
-        if not is_Map(f) and not isinstance(f, PoorManMap):
-            f = PoorManMap(f, cc, name=f"The map {f}")
         ImageSubobject.__init__(self, f, cc, is_injective=True)
         self.cc = cc
         self.f = f

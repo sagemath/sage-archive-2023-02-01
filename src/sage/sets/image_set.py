@@ -19,9 +19,12 @@ from typing import Iterator
 
 from sage.structure.parent import Parent, is_Parent
 from sage.categories.map import is_Map
+from sage.categories.poor_man_map import PoorManMap
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.rings.integer import Integer
+from sage.modules.free_module import FreeModule
+from sage.symbolic.callable import is_CallableSymbolicExpression
 
 from .set import Set_base, Set_add_sub_operators, Set_boolean_operators
 
@@ -32,6 +35,17 @@ class ImageSubobject(Parent):
         if not is_Parent(domain_subset):
             from sage.sets.set import Set
             domain_subset = Set(domain_subset)
+
+        if not is_Map(map) and not isinstance(map, PoorManMap):
+            map_name = f"The map {map}"
+            if is_CallableSymbolicExpression(map):
+                domain = map.parent().base()
+                if len(map.arguments()) != 1:
+                    domain = FreeModule(domain, len(map.arguments()))
+                map = self._star(map)
+            else:
+                domain = domain_subset
+            map = PoorManMap(map, domain, name=map_name)
 
         if is_Map(map):
             map_category = map.category_for()
@@ -59,6 +73,12 @@ class ImageSubobject(Parent):
         self._map = map
         self._domain_subset = domain_subset
         self._is_injective = is_injective
+
+    @staticmethod
+    def _star(function):
+        def f(arg):
+            return function(*arg)
+        return f
 
     def ambient(self):
         return self._map.codomain()
@@ -100,7 +120,7 @@ class ImageSubobject(Parent):
         """
         if self._is_injective:
             for x in self._domain_subset:
-                yield self.f(x)
+                yield self._map(x)
         else:
             yield from super().__iter__()
 
@@ -114,9 +134,41 @@ class ImageSubobject(Parent):
             sage: R.an_element()
             [9, 8, 7, 6, 5, 4, 3, 2]
         """
-        return self._map(self._domain_subset.an_element())
+        domain_element = self._domain_subset.an_element()
+        return self._map(domain_element)
 
 
 class ImageSet(ImageSubobject, Set_base, Set_add_sub_operators, Set_boolean_operators):
+
+    r"""
+    Image of a set by a map
+
+    EXAMPLES:
+
+        sage: from sage.sets.image_set import ImageSet
+
+    Symbolics::
+
+        sage: ImageSet(sin, RealSet.open(0, pi/4))
+        Image of (0, 1/4*pi) by The map sin from (0, 1/4*pi)
+        sage: _.an_element()
+        1/2*sqrt(-sqrt(2) + 2)
+
+        sage: sos(x,y) = x^2 + y^2; sos
+        (x, y) |--> x^2 + y^2
+        sage: ImageSet(sos, ZZ^2)
+        Image of
+         Ambient free module of rank 2 over the principal ideal domain Integer Ring by
+         The map (x, y) |--> x^2 + y^2 from Vector space of dimension 2 over Symbolic Ring
+        sage: _.an_element()
+        1
+        sage: ImageSet(sos, Set([(3, 4), (3, -4)]))
+        Image of
+         {(3, -4), (3, 4)} by
+         The map (x, y) |--> x^2 + y^2 from Vector space of dimension 2 over Symbolic Ring
+        sage: _.an_element()
+        25
+
+    """
 
     pass

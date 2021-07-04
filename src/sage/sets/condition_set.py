@@ -155,7 +155,7 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             else:
                 other_predicates.append(predicate)
 
-        predicates = callable_symbolic_predicates + other_predicates
+        predicates = sorted(set(callable_symbolic_predicates)) + other_predicates
 
         if not other_predicates and not callable_symbolic_predicates:
             if names is None and category is None:
@@ -400,7 +400,7 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             False
 
             sage: Interval = ConditionSet(RR, x >= -7, x <= 4, vars=[x]); Interval
-            { x ∈ Real Field with 53 bits of precision : x >= -7, x <= 4 }
+            { x ∈ Real Field with 53 bits of precision : x <= 4, x >= -7 }
             sage: Interval._sympy_()
             ConditionSet(x, (x >= -7) & (x <= 4), SageSet(Real Field with 53 bits of precision))
 

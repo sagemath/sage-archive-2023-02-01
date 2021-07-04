@@ -30,7 +30,7 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
-
+from __future__ import annotations
 
 from sage.arith.misc import divisors, prime_divisors, euler_phi, is_square, gcd
 from sage.categories.groups import Groups
@@ -453,7 +453,7 @@ class EtaGroup_class(UniqueRepresentation, Parent):
         """
         return "Group of eta products on X_0(%s)" % self.level()
 
-    def one(self) -> 'EtaGroupElement':
+    def one(self) -> EtaGroupElement:
         r"""
         Return the identity element of ``self``.
 
@@ -618,7 +618,7 @@ class EtaGroup_class(UniqueRepresentation, Parent):
     Element = EtaGroupElement
 
 
-def EtaProduct(level, dic) -> 'EtaGroupElement':
+def EtaProduct(level, dic) -> EtaGroupElement:
     r"""
     Create an :class:`EtaGroupElement` object representing the function
     `\prod_{d | N} \eta(q^d)^{r_d}`.

@@ -4008,7 +4008,7 @@ class BTerm(TermWithCoefficient):
         See https://trac.sagemath.org/31922 for details.
         BTerm with coefficient 3, growth x and valid for x >= 20
 
-    WARNING::
+    ..WARNING::
 
         As this code is experimental, warnings are thrown when a BTerm
         is created for the first time in a session (see

@@ -60,7 +60,7 @@ class gosper_iterator(object):
             sage: preperiod_length = i.output_preperiod_length
             sage: preperiod = l[:preperiod_length]
             sage: period = l[preperiod_length:]
-            sage: continued_fraction((preperiod, period), x.value()) == continued_fraction((a*x.value()+b)/(c*x.value()+d))
+            sage: c == d == 0 or continued_fraction((preperiod, period), x.value()) == continued_fraction((a*x.value()+b)/(c*x.value()+d))
             True
 
         Infinity::

@@ -1044,6 +1044,8 @@ cdef class OrePolynomial(AlgebraElement):
             sage: c = S.random_element()
             sage: while not c or c.leading_coefficient().is_unit():
             ....:     c = S.random_element()
+            sage: while a.degree() < c.degree():
+            ....:     a = S.random_element(degree=4)
             sage: a.right_quo_rem(c)
             Traceback (most recent call last):
             ...

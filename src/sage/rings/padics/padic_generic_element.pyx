@@ -3669,8 +3669,10 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: elt in (elt^9).nth_root(9, all=True)
             True
             sage: elt = L.random_element()
-            sage: elt in (elt^27).nth_root(27, all=True)
-            True
+            sage: try:
+            ....:     assert elt in (elt^27).nth_root(27, all=True)
+            ....: except sage.rings.padics.precision_error.PrecisionError:
+            ....:     pass
             sage: elt = L.random_element()
             sage: try:
             ....:     assert elt in (elt^108).nth_root(108, all=True)

@@ -20,6 +20,7 @@ from typing import Iterator
 from sage.structure.parent import Parent, is_Parent
 from sage.categories.map import is_Map
 from sage.categories.sets_cat import Sets
+from sage.categories.enumerated_sets import EnumeratedSets
 from sage.rings.integer import Integer
 
 from .set import Set_base, Set_add_sub_operators, Set_boolean_operators
@@ -34,8 +35,12 @@ class ImageSubobject(Parent):
 
         if is_Map(map):
             map_category = map.category_for()
+            if is_injective is None:
+                is_injective = map.is_injective()
         else:
             map_category = Sets()
+            if is_injective is None:
+                is_injective = False
 
         if category is None:
             category = map_category._meet_(domain_subset.category())
@@ -46,20 +51,24 @@ class ImageSubobject(Parent):
         elif map.is_injective() and domain_subset.is_infinite():
             category = category.Infinite()
 
+        if domain_subset in EnumeratedSets():
+            category = category & EnumeratedSets()
+
         Parent.__init__(self, category=category)
 
         self._map = map
         self._domain_subset = domain_subset
+        self._is_injective = is_injective
 
     def ambient(self):
         return self._map.codomain()
 
-    def __repr__(self) -> str:
+    def _repr_(self) -> str:
         r"""
         TESTS::
 
             sage: Partitions(3).map(attrcall('conjugate'))
-            Image of Partitions of the integer 3 by *.conjugate()
+            Image of Partitions of the integer 3 by The map *.conjugate() from Partitions of the integer 3
 
         """
         return f"Image of {self._domain_subset} by {self._map}"
@@ -75,7 +84,7 @@ class ImageSubobject(Parent):
             3628800
 
         """
-        if self._map.is_injective():
+        if self._is_injective:
             return self._domain_subset.cardinality()
         return super().cardinality()
 
@@ -89,7 +98,7 @@ class ImageSubobject(Parent):
             sage: R.cardinality()
             3628800
         """
-        if self._map.is_injective():
+        if self._is_injective:
             for x in self._domain_subset:
                 yield self.f(x)
         else:

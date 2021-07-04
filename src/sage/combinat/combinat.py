@@ -2120,7 +2120,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         EXAMPLES::
 
             sage: R = Permutations(3).map(attrcall('reduced_word')); R
-            Image of Standard permutations of 3 by *.reduced_word()
+            Image of Standard permutations of 3 by The map *.reduced_word() from Standard permutations of 3
             sage: R.cardinality()
             6
             sage: R.list()
@@ -2432,7 +2432,7 @@ from sage.sets.image_set import ImageSubobject
 from sage.categories.map import is_Map
 from sage.categories.poor_man_map import PoorManMap
 
-class MapCombinatorialClass(CombinatorialClass, ImageSubobject):
+class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
     r"""
     A MapCombinatorialClass models the image of a combinatorial
     class through a function which is assumed to be injective
@@ -2444,10 +2444,10 @@ class MapCombinatorialClass(CombinatorialClass, ImageSubobject):
         TESTS::
 
             sage: Partitions(3).map(attrcall('conjugate'))
-            Image of Partitions of the integer 3 by *.conjugate()
+            Image of Partitions of the integer 3 by The map *.conjugate() from Partitions of the integer 3
         """
         if not is_Map(f) and not isinstance(f, PoorManMap):
-            f = PoorManMap(f, cc)
+            f = PoorManMap(f, cc, name=f"The map {f}")
         ImageSubobject.__init__(self, f, cc, is_injective=True)
         self.cc = cc
         self.f = f

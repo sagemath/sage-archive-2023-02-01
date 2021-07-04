@@ -2428,7 +2428,11 @@ class Permutations_CC(CombinatorialClass):
 
 
 ##############################################################################
-class MapCombinatorialClass(CombinatorialClass):
+from sage.sets.image_set import ImageSubobject
+from sage.categories.map import is_Map
+from sage.categories.poor_man_map import PoorManMap
+
+class MapCombinatorialClass(CombinatorialClass, ImageSubobject):
     r"""
     A MapCombinatorialClass models the image of a combinatorial
     class through a function which is assumed to be injective
@@ -2442,60 +2446,13 @@ class MapCombinatorialClass(CombinatorialClass):
             sage: Partitions(3).map(attrcall('conjugate'))
             Image of Partitions of the integer 3 by *.conjugate()
         """
+        if not is_Map(f) and not isinstance(f, PoorManMap):
+            f = PoorManMap(f, cc)
+        ImageSubobject.__init__(self, f, cc, is_injective=True)
         self.cc = cc
         self.f = f
-        self._name = name
-
-    def __repr__(self) -> str:
-        """
-        TESTS::
-
-            sage: Partitions(3).map(attrcall('conjugate'))
-            Image of Partitions of the integer 3 by *.conjugate()
-
-        """
-        if self._name:
-            return self._name
-        else:
-            return "Image of %s by %s" % (self.cc, self.f)
-
-    def cardinality(self) -> Integer:
-        """
-        Return the cardinality of this combinatorial class
-
-        EXAMPLES::
-
-            sage: R = Permutations(10).map(attrcall('reduced_word'))
-            sage: R.cardinality()
-            3628800
-
-        """
-        return self.cc.cardinality()
-
-    def __iter__(self) -> Iterator:
-        """
-        Return an iterator over the elements of this combinatorial class
-
-        EXAMPLES::
-
-            sage: R = Permutations(10).map(attrcall('reduced_word'))
-            sage: R.cardinality()
-            3628800
-        """
-        for x in self.cc:
-            yield self.f(x)
-
-    def an_element(self):
-        """
-        Return an element of this combinatorial class
-
-        EXAMPLES::
-
-            sage: R = SymmetricGroup(10).map(attrcall('reduced_word'))
-            sage: R.an_element()
-            [9, 8, 7, 6, 5, 4, 3, 2]
-        """
-        return self.f(self.cc.an_element())
+        if name:
+            self.rename(name)
 
 
 ##############################################################################

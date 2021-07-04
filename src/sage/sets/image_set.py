@@ -15,7 +15,14 @@ Image Sets
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from typing import Iterator
+
 from sage.structure.parent import Parent, is_Parent
+from sage.categories.map import is_Map
+from sage.categories.sets_cat import Sets
+from sage.rings.integer import Integer
+
+from .set import Set_base, Set_add_sub_operators, Set_boolean_operators
 
 class ImageSubobject(Parent):
 
@@ -25,8 +32,13 @@ class ImageSubobject(Parent):
             from sage.sets.set import Set
             domain_subset = Set(domain_subset)
 
+        if is_Map(map):
+            map_category = map.category_for()
+        else:
+            map_category = Sets()
+
         if category is None:
-            category = map.category_for()._meet_(domain_subset.category())
+            category = map_category._meet_(domain_subset.category())
 
         category = category.Subobjects()
         if domain_subset.is_finite():
@@ -34,7 +46,7 @@ class ImageSubobject(Parent):
         elif map.is_injective() and domain_subset.is_infinite():
             category = category.Infinite()
 
-        Parent.__init__(category=category)
+        Parent.__init__(self, category=category)
 
         self._map = map
         self._domain_subset = domain_subset

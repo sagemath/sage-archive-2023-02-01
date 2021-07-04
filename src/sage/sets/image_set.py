@@ -46,9 +46,9 @@ class ImageSubobject(Parent):
             category = map_category._meet_(domain_subset.category())
 
         category = category.Subobjects()
-        if domain_subset.is_finite():
+        if domain_subset in Sets().Finite():
             category = category.Finite()
-        elif map.is_injective() and domain_subset.is_infinite():
+        elif is_injective and domain_subset in Sets.Infinite():
             category = category.Infinite()
 
         if domain_subset in EnumeratedSets():

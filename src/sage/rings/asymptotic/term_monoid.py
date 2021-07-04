@@ -4020,6 +4020,7 @@ class BTerm(TermWithCoefficient):
         See :class:`BTerm` for more information.
 
         TESTS::
+
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import BTermMonoid

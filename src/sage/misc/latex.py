@@ -793,9 +793,9 @@ def _run_latex_(filename, debug=False, density=150, engine=None, png=False, do_i
                '{0}x{0}'.format(density), '-trim', filename + '.' + suffix,
                filename + '.png']
 
-    e = False
     # it is possible to get through the following commands
     # without running a program, so in that case we force error
+    e = False
 
     # our standard way of calling programs here; change this if we want
     # finer-grained analysis of the return code. Think of the output as

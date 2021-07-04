@@ -842,7 +842,7 @@ class Chart(UniqueRepresentation, SageObject):
         if isinstance(restrict, tuple): # case of 'or' conditions
             return any(self._check_restrictions(cond, substitutions)
                        for cond in restrict)
-        elif isinstance(restrict, list): # case of 'and' conditions
+        elif isinstance(restrict, (list, set, frozenset)): # case of 'and' conditions
             return all(self._check_restrictions(cond, substitutions)
                        for cond in restrict)
         # Case of a single condition:
@@ -867,8 +867,9 @@ class Chart(UniqueRepresentation, SageObject):
         else:
             return ambient
 
-    def _restrict_set(self, universe, restrict):
+    def _restrict_set(self, universe, coord_restrictions):
         """
+        Return a set corresponding to coordinate restrictions.
 
         EXAMPLES::
 
@@ -892,21 +893,21 @@ class Chart(UniqueRepresentation, SageObject):
               { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : y < 0 } and
              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 }
         """
-        if isinstance(restrict, tuple): # case of 'or' conditions
-            A = self._restrict_set(universe, restrict[0])
-            if len(restrict) == 1:
+        if isinstance(coord_restrictions, tuple): # case of 'or' conditions
+            A = self._restrict_set(universe, coord_restrictions[0])
+            if len(coord_restrictions) == 1:
                 return A
             else:
-                return A.union(self._restrict_set(universe, restrict[1:]))
-        elif isinstance(restrict, list): # case of 'and' conditions
-            A = self._restrict_set(universe, restrict[0])
-            if len(restrict) == 1:
+                return A.union(self._restrict_set(universe, coord_restrictions[1:]))
+        elif isinstance(coord_restrictions, (list, set, frozenset)): # case of 'and' conditions
+            A = self._restrict_set(universe, coord_restrictions[0])
+            if len(coord_restrictions) == 1:
                 return A
             else:
-                return A.intersection(self._restrict_set(universe, restrict[1:]))
+                return A.intersection(self._restrict_set(universe, coord_restrictions[1:]))
         # Case of a single condition:
         from sage.sets.condition_set import ConditionSet
-        return ConditionSet(universe, restrict, vars=self._xx)
+        return ConditionSet(universe, coord_restrictions, vars=self._xx)
 
     def transition_map(self, other, transformations, intersection_name=None,
                        restrictions1=None, restrictions2=None):

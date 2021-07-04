@@ -4101,7 +4101,7 @@ class BTerm(TermWithCoefficient):
 
     def can_absorb(self, other):
         r"""
-        Check whether this `BTerm` can absorb ``other``.
+        Check whether this ``BTerm`` can absorb ``other``.
 
         INPUT:
 

@@ -4021,6 +4021,7 @@ class BTerm(TermWithCoefficient):
 
         TESTS::
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
@@ -4042,6 +4043,12 @@ class BTerm(TermWithCoefficient):
             Traceback (most recent call last):
             ...
             ValueError: 1/2 is not a coefficient in Integer Ring.
+            sage: B = GrowthGroup('x^ZZ * y^ZZ');
+            sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
+            sage: BT_ZZ(x^3, y^2, valid_from={'x': 10})
+            Traceback (most recent call last):
+            ...
+            NameError: name 'y' is not defined
         """
         try:
             coefficient = parent.coefficient_ring(coefficient)

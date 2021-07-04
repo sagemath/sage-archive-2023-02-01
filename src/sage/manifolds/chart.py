@@ -386,10 +386,10 @@ class Chart(UniqueRepresentation, SageObject):
             for prop in coord_properties[1:]:
                 prop1 = prop.strip()
                 if prop1[0:6] == 'period':
-                    if domain.base_field_type() in ['real', 'complex']:
+                    if self._manifold.base_field_type() in ['real', 'complex']:
                         period = SR(prop1[7:])
                     else:
-                        period = domain.base_field()(prop1[7:])
+                        period = self._manifold.base_field()(prop1[7:])
                     self._periods[coord_index + self._sindex] = period
                 else:
                     # prop1 is the coordinate's LaTeX symbol

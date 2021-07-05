@@ -319,51 +319,62 @@ class ClassicalMatrixLieAlgebra(MatrixLieAlgebraFromAssociative):
         from sage.matrix.constructor import matrix
 
         R = self.base_ring()
-        basis = list(self.lie_algebra_generators())
-        expanded = True
+        basis_pivots = set()
+        gens = list(self.lie_algebra_generators())
+        added = gens
+        m = self._assoc.ncols()
+        adim = self._assoc.dimension()
+        cur_mat = matrix(R, 0, adim, sparse=self._sparse)
+
+        # Helper functions for sparse matrices
         def set_row(mat, row, val):
-            """
-            Set row ``row`` in the sparse matrix ``mat`` to the matrix ``val``
-            expressed as a list.
-            """
-            m = val.ncols()
             for k, v in val.dict().items():
                 a, b = k
                 mat[row, a*m+b] = v
-        while expanded:
-            expanded = False
+        def build_assoc(row):
+            ret = {}
+            for i, v in row.dict().items():
+                ret[i//m, i%m] = v
+            return self._assoc(ret)
+
+        while added:
             if self._sparse:
                 mat = {}
                 count = 0
-                for i,x in enumerate(basis):
+                for x in added:
                     set_row(mat, count, x.value)
                     count += 1
-                    for y in basis[i+1:]:
+                    for y in gens:
                         set_row(mat, count, x.bracket(y).value)
                         count += 1
-                mat = matrix(R, mat, sparse=True)
+                mat = matrix(R, count, adim, mat, sparse=True)
             else:
                 mat = []
-                for i,x in enumerate(basis):
+                for x in added:
                     mat.append(x.value.list())
-                    for y in basis[i+1:]:
+                    for y in gens:
                         mat.append(x.bracket(y).value.list())
                 mat = matrix(R, mat)
-            mat.echelonize()
-            if mat.rank() != len(basis):
-                if self._sparse:
-                    def build_mat(row):
-                        ret = {}
-                        m = self._assoc.ncols()
-                        for i, v in row.dict().items():
-                            ret[i//m, i%m] = v
-                        return self._assoc(ret)
-                    basis = [self.element_class( self, build_mat(mat[i]) )
-                             for i in range(mat.rank())]
-                else:
-                    basis = [self.element_class( self, self._assoc(mat[i].list()) )
-                             for i in range(mat.rank())]
-                expanded = True
+            cur_mat = cur_mat.stack(mat)
+            cur_mat.echelonize()
+            pivots = cur_mat.pivots()
+            added = []
+            if len(pivots) != len(basis_pivots):
+                for i,p in enumerate(pivots):
+                    if p in basis_pivots:
+                        continue
+                    basis_pivots.add(p)
+                    if self._sparse:
+                        added.append(self.element_class( self, build_assoc(cur_mat[i]) ))
+                    else:
+                        added.append(self.element_class( self, self._assoc(cur_mat[i].list()) ))
+                cur_mat = cur_mat.submatrix(nrows=len(pivots))
+        if self._sparse:
+            basis = [self.element_class( self, build_assoc(cur_mat[i]) )
+                     for i in range(cur_mat.rank())]
+        else:
+            basis = [self.element_class( self, self._assoc(cur_mat[i].list()) )
+                     for i in range(cur_mat.rank())]
         return Family(basis)
 
     def affine(self, kac_moody=False):
@@ -878,17 +889,21 @@ class e7(ExceptionalMatrixLieAlgebra):
 
         EXAMPLES::
 
-            sage: g = LieAlgebra(QQ, cartan_type=['E',7], representation='matrix')
+            sage: g = LieAlgebra(QQ, cartan_type=['E', 7], representation='matrix')
             sage: g
             Simple matrix Lie algebra of type ['E', 7] over Rational Field
+
+            sage: len(g.basis())  # long time
+            133
+            sage: TestSuite(g).run()  # long time
         """
         MS = MatrixSpace(R, 56, sparse=True)
         one = R.one()
-        coords = [[(6,7), (8,9), (10,11), (12,14), (15,17), (18,21), (34,37), (38,40), (41,43), (44,45), (46,46), (48,49)],
-                  [(4,5), (6,7), (7,9), (19,22), (23,25), (26,28), (27,29), (30,32), (33,36), (46,48), (47,49), (50,51)],
+        coords = [[(6,7), (8,9), (10,11), (12,14), (15,17), (18,21), (34,37), (38,40), (41,43), (44,45), (46,47), (48,49)],
+                  [(4,5), (6,8), (7,9), (19,22), (23,25), (26,28), (27,29), (30,32), (33,36), (46,48), (47,49), (50,51)],
                   [(4,6), (5,8), (11,13), (14,16), (17,20), (21,24), (31,34), (35,38), (39,41), (42,44), (47,50), (49,51)],
                   [(3,4), (8,10), (9,11), (16,19), (20,23), (24,27), (28,31), (32,35), (36,39), (44,46), (45,47), (51,52)],
-                  [(2,3), (10,12), (11,14), (13,16), (23,26), (25,28), (27,30), (29,32), (39,32), (41,44), (43,45), (52,53)],
+                  [(2,3), (10,12), (11,14), (13,16), (23,26), (25,28), (27,30), (29,32), (39,42), (41,44), (43,45), (52,53)],
                   [(1,2), (12,15), (14,17), (16,20), (19,23), (22,25), (30,33), (32,36), (35,39), (38,41), (40,43), (53,54)],
                   [(0,1), (15,18), (17,21), (20,24), (23,27), (25,29), (26,30), (28,32), (31,35), (34,38), (37,40), (54,55)]]
         e = [MS({c: one for c in coord}) for coord in coords]
@@ -908,7 +923,10 @@ class e8(ExceptionalMatrixLieAlgebra):
 
         EXAMPLES::
 
-            sage: g = LieAlgebra(QQ, cartan_type=['E',8], representation='matrix')
+            sage: g = LieAlgebra(QQ, cartan_type=['E', 8], representation='matrix')
+            sage: g
+            Simple matrix Lie algebra of type ['E', 8] over Rational Field
+
             sage: TestSuite(g).run(skip="_test_not_implemented_methods")  # long time
 
         We skipped this tests as it takes too much time.
@@ -921,12 +939,12 @@ class e8(ExceptionalMatrixLieAlgebra):
 
     @cached_method
     def basis(self):
-        """
+        r"""
         Return a basis of ``self``.
 
         EXAMPLES::
 
-            sage: g = LieAlgebra(QQ, cartan_type=['E',8], representation='matrix')
+            sage: g = LieAlgebra(QQ, cartan_type=['E', 8], representation='matrix')
             sage: len(g.basis())  # long time
             248
         """

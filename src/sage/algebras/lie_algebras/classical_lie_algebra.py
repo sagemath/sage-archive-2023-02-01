@@ -112,9 +112,19 @@ class ClassicalMatrixLieAlgebra(MatrixLieAlgebraFromAssociative):
             return g2(R)
         raise ValueError("invalid Cartan type")
 
-    def __init__(self, R, ct, e, f, h, sparse=False):
+    def __init__(self, R, ct, e, f, h, sparse=True):
         """
         Initialize ``self``.
+
+        INPUT:
+
+        - ``R`` -- the base ring
+        - ``ct`` -- the Cartan type
+        - ``e`` -- the `e` generators
+        - ``f`` -- the `f` generators
+        - ``h`` -- the `h` generators
+        - ``sparse`` -- boolean (default: ``True``); use the sparse vectors
+          for the basis computation
 
         EXAMPLES::
 
@@ -633,7 +643,7 @@ class so(ClassicalMatrixLieAlgebra):
             sage: g = lie_algebras.so(QQ, 9, representation='matrix')
             sage: TestSuite(g).run()
         """
-        MS = MatrixSpace(R, n, sparse=True)
+        MS = MatrixSpace(R, n)
         one = R.one()
         self._n = n
         if n % 2 == 0: # Even
@@ -878,7 +888,7 @@ class e6(ExceptionalMatrixLieAlgebra):
                   [(5,7), (6,9), (8,11), (10,13), (12,15), (25,26)]]
         e = [MS({c: one for c in coord}) for coord in coords]
         f = [MS({(c[1],c[0]): one for c in coord}) for coord in coords]
-        ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['E', 6]), e, f, sparse=True)
+        ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['E', 6]), e, f)
 
 class e7(ExceptionalMatrixLieAlgebra):
     r"""
@@ -912,7 +922,7 @@ class e7(ExceptionalMatrixLieAlgebra):
                   [(0,1), (15,18), (17,21), (20,24), (23,27), (25,29), (26,30), (28,32), (31,35), (34,38), (37,40), (54,55)]]
         e = [MS({c: one for c in coord}) for coord in coords]
         f = [MS({(c[1], c[0]): one for c in coord}) for coord in coords]
-        ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['E', 7]), e, f, sparse=True)
+        ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['E', 7]), e, f)
 
 class e8(ExceptionalMatrixLieAlgebra):
     r"""
@@ -939,7 +949,7 @@ class e8(ExceptionalMatrixLieAlgebra):
         g = LieAlgebraChevalleyBasis(R, ct)
         e = [ge.adjoint_matrix(sparse=True) for ge in g.e()]
         f = [gf.adjoint_matrix(sparse=True) for gf in g.f()]
-        ExceptionalMatrixLieAlgebra.__init__(self, R, ct, e, f, sparse=True)
+        ExceptionalMatrixLieAlgebra.__init__(self, R, ct, e, f)
 
     @cached_method
     def basis(self):
@@ -1000,7 +1010,7 @@ class f4(ExceptionalMatrixLieAlgebra):
         # Our Cartan matrix convention is dual to that of [HRT2000]_
         e.reverse()
         f.reverse()
-        ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['F', 4]), e, f, sparse=True)
+        ExceptionalMatrixLieAlgebra.__init__(self, R, CartanType(['F', 4]), e, f)
 
 class g2(ExceptionalMatrixLieAlgebra):
     r"""
@@ -1124,11 +1134,13 @@ class MatrixCompactRealForm(FinitelyGeneratedLieAlgebra):
         zero = self._MS.zero()
         basis = self._classical.basis()
         R = self.base_ring()
-        mat = matrix(R, [((b.value - b.value.transpose()) / 2).list() for b in basis])
+        mat = matrix(R, [((b.value - b.value.transpose()) / 2).list() for b in basis],
+                     sparse=self._MS.is_sparse())
         mat.echelonize()
         ret = [self.element_class(self, self._MS(mat[i].list()), zero)
                for i in range(mat.rank())]
-        mat = matrix(R, [((b.value + b.value.transpose()) / 2).list() for b in basis])
+        mat = matrix(R, [((b.value + b.value.transpose()) / 2).list() for b in basis],
+                     sparse=self._MS.is_sparse())
         mat.echelonize()
         ret += [self.element_class(self, zero, self._MS(mat[i].list()))
                 for i in range(mat.rank())]

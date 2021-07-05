@@ -1757,10 +1757,11 @@ class AffinePlaneCurve_field(AffinePlaneCurve, AffineCurve_field):
             sage: A.<x,y> = AffineSpace(QQ, 2)
             sage: C = A.curve((x^2-y^3)*(x+3*y-5))
             sage: C.braid_monodromy()   # optional -  sirocco
-            [(s2*s1)^2*s0*s2*s0^-1*s2*(s1^-1*s2^-1)^2,
-             (s2*s1)^2*s2^-1*s0*s2^-1*(s1*s2)^2*s2*s1^-1*s2^-1*s1^-1*s2*s0^-1*s2*(s1^-1*s2^-1)^2,
-             s2*(s1*s2*s1*s2^-1*s0*s2^-1)^2*s2^-1,
-             s2^2]
+            [s1*s0*(s1*s2)^2*s0*s2^2*s0^-1*(s2^-1*s1^-1)^2*s0^-1*s1^-1,
+             s1*s0*(s1*s2)^2*(s0*s2^-1*s1*s2*s1*s2^-1)^2*(s2^-1*s1^-1)^2*s0^-1*s1^-1,
+             s1*s0*(s1*s2)^2*s2*s1^-1*s2^-1*s1^-1*s0^-1*s1^-1,
+             s1*s0*s2*s0^-1*s2*s1^-1]
+
         """
         from sage.schemes.curves.zariski_vankampen import braid_monodromy
         F = self.base_ring()

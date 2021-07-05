@@ -35,6 +35,17 @@ cpdef list[list] contpath_mp(int deg, list values, RealNumber y0r, RealNumber y0
 
     - A extra argument is needed, indicating the bits of precision used
       in the computations.
+
+    EXAMPLES::
+
+        sage: from sage.libs.sirocco import contpath_mp
+        sage: from sage.rings.real_mpfr import RR
+        sage: pol = list(map(RR, [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+        sage: contpath_mp(2, pol, RR(0), RR(0), 53)   # optional - sirocco # abs tol 1e-15
+        [(0.000000000000000, 0.000000000000000, 0.000000000000000),
+         (0.500000000000000, -0.250000000000000, 0.000000000000000),
+         (1.00000000000000, -1.00000000000000, 0.000000000000000)]
+
     """
     cdef mpfr_t* cvalues = <mpfr_t*> check_allocarray(len(values), sizeof(mpfr_t))
     cdef mpfr_t* rop
@@ -85,6 +96,24 @@ cpdef list[list] contpath_mp_comps(int deg, list values, RealNumber y0r, RealNum
 
     - A extra argument is needed, indicating the bits of precision used
       in the computations.
+
+    EXAMPLES::
+
+        sage: from sage.libs.sirocco import contpath_mp_comps
+        sage: from sage.rings.real_mpfr import RR
+        sage: pol = list(map(RR,[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+        sage: fac = list(map(RR,[0, 0, 0.1, 0.2, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+        sage: contpath_mp_comps(2, pol, RR(0), RR(0), 53, [2], fac)   # optional - sirocco # abs tol 1e-15
+        [(0.000000000000000, 0.000000000000000, 0.000000000000000),
+         (0.125000000000000, -0.0156250000000000, 0.000000000000000),
+         (0.250000000000000, -0.0625000000000000, 0.000000000000000),
+         (0.375000000000000, -0.140625000000000, 0.000000000000000),
+         (0.500000000000000, -0.250000000000000, 0.000000000000000),
+         (0.625000000000000, -0.390625000000000, 0.000000000000000),
+         (0.750000000000000, -0.562500000000000, 0.000000000000000),
+         (0.875000000000000, -0.765625000000000, 0.000000000000000),
+         (1.00000000000000, -1.00000000000000, 0.000000000000000)]
+
     """
 
     cdef mpfr_t* cvalues = <mpfr_t*> check_allocarray(len(values), sizeof(mpfr_t))
@@ -164,6 +193,18 @@ cpdef list[list] contpath(int deg, list values, double y0r, double y0i):
     A list of tuples. Each tuple represents the `x` value (between 0 and 1)
     and the real and imaginary parts of the `y` value of a vertex in
     the piecewise linear approximation of the path tracked by the root.
+
+    EXAMPLES::
+
+        sage: from sage.libs.sirocco import contpath
+        sage: from sage.rings.real_mpfr import RR
+        sage: pol = list(map(RR,[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+        sage: contpath(2, pol, RR(0), RR(0))  # optional - sirocco # abs tol 1e-15
+        [(0.0, 0.0, 0.0),
+         (0.3535533905932738, -0.12500000000000003, 0.0),
+         (0.7071067811865476, -0.5000000000000001, 0.0),
+         (1.0, -1.0, 0.0)]
+
     """
     cdef double* rop
     cdef double* c_values = <double*> check_allocarray(len(values), sizeof(double))
@@ -207,6 +248,24 @@ cpdef list[list] contpath_comps(int deg, list values, double y0r, double y0i, li
     A list of tuples. Each tuple represents the `x` value (between 0 and 1)
     and the real and imaginary parts of the `y` value of a vertex in
     the piecewise linear approximation of the path tracked by the root.
+
+    EXAMPLES::
+
+        sage: from sage.libs.sirocco import contpath_comps
+        sage: from sage.rings.real_mpfr import RR
+        sage: pol = list(map(RR,[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+        sage: fac = list(map(RR,[0, 0, 0.1, 0.2, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
+        sage: contpath_comps(2, pol, RR(0), RR(0), [2], fac)   # optional - sirocco # abs tol 1e-15
+        [(0.0, 0.0, 0.0),
+         (0.125, -0.015625, 0.0),
+         (0.25, -0.0625, 0.0),
+         (0.375, -0.140625, 0.0),
+         (0.5, -0.25, 0.0),
+         (0.625, -0.390625, 0.0),
+         (0.75, -0.5625, 0.0),
+         (0.875, -0.765625, 0.0),
+         (1.0, -1.0, 0.0)]
+
     """
 
 

@@ -259,3 +259,9 @@ class PoorManMap(sage.structure.sage_object.SageObject):
         for function in reversed(self._functions):
             args = [function(*args)]
         return args[0]
+
+    def _sympy_(self):
+        from sympy import Lambda, sympify
+        if len(self._functions) == 1:
+            return sympify(self._functions[0])
+        raise NotImplementedError

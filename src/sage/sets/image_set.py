@@ -137,6 +137,26 @@ class ImageSubobject(Parent):
         domain_element = self._domain_subset.an_element()
         return self._map(domain_element)
 
+    def _sympy_(self):
+        r"""
+        Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.sets.image_set import ImageSet
+            sage: S = ImageSet(sin, RealSet.open(0, pi/4)); S
+            Image of (0, 1/4*pi) by The map sin from (0, 1/4*pi)
+            sage: S._sympy_()
+            ImageSet(Lambda(x, sin(x)), Interval.open(0, pi/4))
+        """
+        from sympy import imageset
+        try:
+            sympy_map = self._map._sympy_()
+        except AttributeError:
+            sympy_map = self._map
+        return imageset(sympy_map,
+                        self._domain_subset._sympy_())
+
 
 class ImageSet(ImageSubobject, Set_base, Set_add_sub_operators, Set_boolean_operators):
 

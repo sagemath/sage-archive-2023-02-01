@@ -1580,10 +1580,12 @@ def sr_to_max(expr):
                 # An evaluated derivative of the form f'(1) is not a
                 # symbolic variable, yet we would like to treat it
                 # like one. So, we replace the argument `1` with a
-                # temporary variable e.g. `t0` and then evaluate the
-                # derivative f'(t0) symbolically at t0=1. See trac
-                # #12796.
-                temp_args = [SR.var("t%s"%i) for i in range(len(args))]
+                # temporary variable e.g. `_symbol0` and then evaluate
+                # the derivative f'(_symbol0) symbolically at
+                # _symbol0=1. See trac #12796. Note that we cannot use
+                # SR.temp_var here since two conversions of the same
+                # expression have to be equal.
+                temp_args = [SR.symbol("_symbol%s"%i) for i in range(len(args))]
                 f = sr_to_max(op.function()(*temp_args))
                 params = op.parameter_set()
                 deriv_max = [[mdiff],f]

@@ -152,7 +152,7 @@ class Representation(Representation_abstract):
 
     - :wikipedia:`Group_representation`
     """
-    def __init__(self, semigroup, module, on_basis, side="left"):
+    def __init__(self, semigroup, module, on_basis, side="left", **kwargs):
         """
         Initialize ``self``.
 
@@ -164,18 +164,66 @@ class Representation(Representation_abstract):
             sage: on_basis = lambda g,m: M.term(m, g.sign())
             sage: R = Representation(G, M, on_basis)
             sage: R._test_representation()
+
+            sage: G = CyclicPermutationGroup(3)
+            sage: M = algebras.Exterior(QQ, 'x', 3)
+            sage: from sage.modules.with_basis.representation import Representation
+            sage: on_basis = lambda g,m: M.prod([M.monomial((g(j+1)-1,)) for j in m]) #cyclically permute generators
+            sage: from sage.categories.algebras import Algebras
+            sage: R = Representation(G, M, on_basis, category=Algebras(QQ).WithBasis().FiniteDimensional())
+            sage: r = R.an_element(); r
+            1 + 2*x0 + x0*x1 + 3*x1
+            sage: r*r
+            1 + 4*x0 + 2*x0*x1 + 6*x1
+            sage: x0, x1, x2 = M.gens()
+            sage: s = R(x0*x1)
+            sage: g = G.an_element()
+            sage: g*s
+            x1*x2
+            sage: g*R(x1*x2)
+            -x0*x2
+            sage: g*r
+            1 + 2*x1 + x1*x2 + 3*x2
+            sage: g^2*r
+            1 + 3*x0 - x0*x2 + 2*x2
+
+            sage: G = SymmetricGroup(4)
+            sage: A = SymmetricGroup(4).algebra(QQ)
+            sage: from sage.categories.algebras import Algebras
+            sage: from sage.modules.with_basis.representation import Representation
+            sage: action = lambda g,x: A.monomial(g*x)
+            sage: category = Algebras(QQ).WithBasis().FiniteDimensional()
+            sage: R = Representation(G, A, action, 'left', category=category)
+            sage: r = R.an_element(); r
+            () + (2,3,4) + 2*(1,3)(2,4) + 3*(1,4)(2,3)
+            sage: r^2
+            14*() + 2*(2,3,4) + (2,4,3) + 12*(1,2)(3,4) + 3*(1,2,4) + 2*(1,3,2) + 4*(1,3)(2,4) + 5*(1,4,3) + 6*(1,4)(2,3)
+            sage: g = G.an_element(); g
+            (2,3,4)
+            sage: g*r
+            (2,3,4) + (2,4,3) + 2*(1,3,2) + 3*(1,4,3)
         """
+        try:
+            self.product_on_basis = module.product_on_basis
+        except AttributeError:
+            pass
+
+        category = kwargs.pop('category', Modules(module.base_ring()).WithBasis())
+        
         if side not in ["left", "right"]:
             raise ValueError('side must be "left" or "right"')
+        
         self._left_repr = (side == "left")
         self._on_basis = on_basis
         self._module = module
+        
         indices = module.basis().keys()
-        cat = Modules(module.base_ring()).WithBasis()
+        
         if 'FiniteDimensional' in module.category().axioms():
-            cat = cat.FiniteDimensional()
+            category = category.FiniteDimensional()
+        
         Representation_abstract.__init__(self, semigroup, module.base_ring(), indices,
-                                         category=cat, **module.print_options())
+                                         category=category, **module.print_options())
 
     def _test_representation(self, **options):
         """
@@ -273,6 +321,51 @@ class Representation(Representation_abstract):
             return self._from_dict(x.monomial_coefficients(copy=False), remove_zeros=False)
         return super(Representation, self)._element_constructor_(x)
 
+    def product_by_coercion(self, left, right):
+        """
+        Return the product of ``left`` and ``right`` by passing to ``self._module``
+        and then building a new element of ``self``.
+
+        EXAMPLES::
+
+            sage: G = groups.permutation.KleinFour()
+            sage: E = algebras.Exterior(QQ,'e',4)
+            sage: on_basis = lambda g,m: E.monomial(m) # the trivial representation
+            sage: from sage.modules.with_basis.representation import Representation
+            sage: R = Representation(G, E, on_basis)
+            sage: r = R.an_element(); r
+            1 + 2*e0 + 3*e1 + e1*e2
+            sage: g = G.an_element();
+            sage: g*r == r
+            True
+            sage: r*r
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for *:
+             'Representation of The Klein 4 group of order 4, as a permutation
+             group indexed by Subsets of {0, 1, 2, 3} over Rational Field' and 
+             'Representation of The Klein 4 group of order 4, as a permutation 
+             group indexed by Subsets of {0, 1, 2, 3} over Rational Field'
+            
+            sage: from sage.categories.algebras import Algebras
+            sage: category = Algebras(QQ).FiniteDimensional().WithBasis()
+            sage: T = Representation(G, E, on_basis, category=category)
+            sage: t = T.an_element(); t
+            1 + 2*e0 + 3*e1 + e1*e2
+            sage: g*t == t
+            True
+            sage: t*t
+            1 + 4*e0 + 4*e0*e1*e2 + 6*e1 + 2*e1*e2
+
+        """
+        M = self._module
+
+        # Multiply in self._module
+        p = M._from_dict(left._monomial_coefficients, False, False) * M._from_dict(right._monomial_coefficients, False, False)
+
+        # Convert from a term in self._module to a term in self
+        return self._from_dict(p.monomial_coefficients(copy=False), False, False)
+
     def side(self):
         """
         Return whether ``self`` is a left or a right representation.
@@ -292,6 +385,7 @@ class Representation(Representation_abstract):
             'right'
         """
         return "left" if self._left_repr else "right"
+
 
     class Element(CombinatorialFreeModule.Element):
         def _acted_upon_(self, scalar, self_on_left=False):
@@ -369,6 +463,7 @@ class Representation(Representation_abstract):
                         ret += P.linear_combination(((P._on_basis(ms, m), cs*c)
                                                     for m,c in self), not self_on_left)
                     return ret
+
             return CombinatorialFreeModule.Element._acted_upon_(self, scalar, self_on_left)
 
         _rmul_ = _lmul_ = _acted_upon_

@@ -931,7 +931,7 @@ class DiffMap(ContinuousMap):
             sage: F = M.diff_map(E, coord_functions={(Ct, polar): (1 + cos(t), t)})
             sage: gM = F.pullback(g)
             sage: gM.display()
-            (2*cos(t) + 2) dt*dt
+            (2*cos(t) + 2) dt⊗dt
 
         """
         from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal

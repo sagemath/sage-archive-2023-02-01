@@ -1478,7 +1478,6 @@ class FriCASElement(ExpectElement):
         S.append(s[a:b])
         return "".join(S), b
 
-
     @staticmethod
     def _sage_expression(fricas_InputForm):
         r"""
@@ -1689,6 +1688,24 @@ class FriCASElement(ExpectElement):
             gamma(3/4)
             sage: fricas.Gamma(3, 2).sage()                                     # optional - fricas
             gamma(3, 2)
+
+
+        Check that :trac:`32133` is fixed::
+
+            sage: var("y")
+            sage: f = fricas.zerosOf (y^4 + y + 1, y); f                        # optional - fricas
+                        +-----------------------------+
+                        |       2                    2
+                       \|- 3 %y1  - 2 %y0 %y1 - 3 %y0   - %y1 - %y0
+            [%y0, %y1, --------------------------------------------,
+                                             2
+                +-----------------------------+
+                |       2                    2
+             - \|- 3 %y1  - 2 %y0 %y1 - 3 %y0   - %y1 - %y0
+             ----------------------------------------------]
+                                    2
+
+            sage: f[1].sage()                                                   # optional - fricas
 
         """
         # a FriCAS expressions may contain implicit references to a

@@ -29,6 +29,7 @@ from sage.misc.latex import latex
 from sage.rings.infinity import infinity, minus_infinity
 from sage.symbolic.ring import SR
 from sage.rings.real_mpfr import RR
+from sage.typeset.unicode_characters import unicode_mathbbR
 from sage.manifolds.differentiable.manifold import DifferentiableManifold
 from sage.manifolds.structure import RealDifferentialStructure
 from sage.categories.manifolds import Manifolds
@@ -741,7 +742,7 @@ class RealLine(OpenInterval):
     Constructing the real line without any argument::
 
         sage: R = RealLine() ; R
-        Real number line R
+        Real number line ℝ
         sage: latex(R)
         \Bold{R}
 
@@ -758,11 +759,11 @@ class RealLine(OpenInterval):
     It is endowed with a canonical chart::
 
         sage: R.canonical_chart()
-        Chart (R, (t,))
+        Chart (ℝ, (t,))
         sage: R.canonical_chart() is R.default_chart()
         True
         sage: R.atlas()
-        [Chart (R, (t,))]
+        [Chart (ℝ, (t,))]
 
     The instance is unique (as long as the constructor arguments are the
     same)::
@@ -800,9 +801,9 @@ class RealLine(OpenInterval):
 
         sage: R.<x> = RealLine()
         sage: R.canonical_chart()
-        Chart (R, (x,))
+        Chart (ℝ, (x,))
         sage: R.atlas()
-        [Chart (R, (x,))]
+        [Chart (ℝ, (x,))]
         sage: R.canonical_coordinate()
         x
 
@@ -825,23 +826,23 @@ class RealLine(OpenInterval):
     Elements of the real line can be constructed directly from a number::
 
         sage: p = R(2) ; p
-        Point on the Real number line R
+        Point on the Real number line ℝ
         sage: p.coord()
         (2,)
         sage: p = R(1.742) ; p
-        Point on the Real number line R
+        Point on the Real number line ℝ
         sage: p.coord()
         (1.74200000000000,)
 
     Symbolic variables can also be used::
 
         sage: p = R(pi, name='pi') ; p
-        Point pi on the Real number line R
+        Point pi on the Real number line ℝ
         sage: p.coord()
         (pi,)
         sage: a = var('a')
         sage: p = R(a) ; p
-        Point on the Real number line R
+        Point on the Real number line ℝ
         sage: p.coord()
         (a,)
 
@@ -860,23 +861,23 @@ class RealLine(OpenInterval):
         sage: I = R.open_interval(0, 1); I
         Real interval (0, 1)
         sage: I.manifold()
-        Real number line R
+        Real number line ℝ
         sage: list(R.subset_family())
-        [Real interval (0, 1), Real number line R]
+        [Real interval (0, 1), Real number line ℝ]
 
     """
     @staticmethod
-    def __classcall__(cls, name='R', latex_name=r'\Bold{R}', coordinate=None,
-                      names=None, start_index=0):
+    def __classcall__(cls, name=unicode_mathbbR, latex_name=r'\Bold{R}',
+                      coordinate=None, names=None, start_index=0):
         r"""
         Determine the correct interval to return based upon the input.
 
         TESTS::
 
             sage: R = RealLine(); R
-            Real number line R
-            sage: R1 = RealLine('R'); R1
-            Real number line R
+            Real number line ℝ
+            sage: R1 = RealLine('ℝ'); R1
+            Real number line ℝ
             sage: R is R1
             True
 
@@ -886,15 +887,15 @@ class RealLine(OpenInterval):
                                            coordinate=coordinate,
                                            names=names, start_index=start_index)
 
-    def __init__(self, name='R', latex_name=r'\Bold{R}', coordinate=None,
-                 names=None, start_index=0):
+    def __init__(self, name=unicode_mathbbR, latex_name=r'\Bold{R}',
+                 coordinate=None, names=None, start_index=0):
         r"""
         Construct the real line manifold.
 
         TESTS::
 
             sage: R = RealLine() ; R
-            Real number line R
+            Real number line ℝ
             sage: R.category()
             Category of smooth connected manifolds over Real Field with 53 bits
              of precision
@@ -913,7 +914,7 @@ class RealLine(OpenInterval):
 
             sage: R = RealLine()
             sage: R._repr_()
-            'Real number line R'
+            'Real number line ℝ'
             sage: R = RealLine(name='r')
             sage: R._repr_()
             'Real number line r'

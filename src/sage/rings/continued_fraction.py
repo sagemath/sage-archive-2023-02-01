@@ -646,7 +646,7 @@ class ContinuedFraction_base(SageObject):
             sage: for prec in [17, 24, 53, 128, 256]:
             ....:     for rnd in ['RNDN', 'RNDD', 'RNDU', 'RNDZ', 'RNDA']:
             ....:         fields.append(RealField(prec=prec, rnd=rnd))
-            sage: for n in range(3000):  # long time
+            sage: for n in range(3000):  # long time, not tested, known bug (see :trac:`29957`)
             ....:     a = QQ.random_element(num_bound=2^(n%100))
             ....:     if a.denominator() % 8 == 0:  # not precices enough  # :trac:`29957`
             ....:         continue

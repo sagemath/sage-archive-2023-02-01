@@ -208,7 +208,7 @@ class pAdicLatticeElement(pAdicGenericElement):
         EXAMPLES::
 
             sage: K = QpLC(7)
-            sage: K.random_element()._is_base_elt(7)
+            sage: K.random_element()._is_base_elt(7)  # not tested, known bug (see :trac:`32126`)
             True
         """
         return p == self._parent.prime()

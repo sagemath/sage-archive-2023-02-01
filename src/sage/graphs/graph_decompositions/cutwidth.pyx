@@ -358,6 +358,15 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
         Traceback (most recent call last):
         ...
         ValueError: the specified cut off parameter must be an integer
+
+    Cutwidth of a graph with one edge (trac:`32131`)::
+
+        sage: from sage.graphs.graph_decompositions.cutwidth import cutwidth
+        sage: G = Graph([(0, 1)])
+        sage: cutwidth(G, algorithm="exponential")
+        (1, [0, 1])
+        sage: cutwidth(G, algorithm="MILP", solver='GLPK')
+        (1, [0, 1])
     """
     from sage.graphs.graph import Graph
 
@@ -491,7 +500,7 @@ def cutwidth_dyn(G, lower_bound=0):
     cdef list order
 
     try:
-        for k in range(lower_bound, G.size()):
+        for k in range(lower_bound, G.size() + 1):
             for i in range(g.n):
                 sig_check()
                 if exists(g, neighborhoods, 0, 0, i, k) <= k:

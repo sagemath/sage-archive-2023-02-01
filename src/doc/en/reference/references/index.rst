@@ -2732,7 +2732,7 @@ REFERENCES:
              Press (2002).
 
 .. [Hayashi1990] \T. Hayashi. `q`-*analogues of Clifford and Weyl algebras -
-                 spinor and oscillator representationsof quantum enveloping
+                 spinor and oscillator representations of quantum enveloping
                  algebras*. Comm. Math. Phys. **127** (1990) pp. 129-144.
 
 .. [HC2006] Mark van Hoeij and John Cremona, Solving Conics over
@@ -3574,7 +3574,7 @@ REFERENCES:
 
 .. [Kwon2014] Jae-Hoon Kwon. `q`-*deformed Clifford algebra and level zero 
               fundamental representations of quantum affine algebras*.
-              J. ALgebra, **399** (2014), pp. 927--947.
+              J. Algebra, **399** (2014), pp. 927--947.
               :doi:`10.1016/j.jalgebra.2013.10.026`.
 
 .. [KX1998] \S. König and C. Xi.

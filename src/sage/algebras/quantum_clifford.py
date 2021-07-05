@@ -13,7 +13,7 @@ AUTHORS:
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
+#                  https://www.gnu.org/licenses/
 #*****************************************************************************
 
 from sage.misc.cachefunc import cached_method
@@ -99,7 +99,7 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
          (q^2+1)*w0*w1 - q^2*w0*w1^3, (q^2+1)*w1*w2 - q^2*w1*w2^3,
          (q^2+1)*w0*w1 - q^2*w0^3*w1, (q^2+1)*w1*w2 - q^2*w1^3*w2)
 
-    We check that `k_i` and `k_i^{-1}` are invereses::
+    We check that `k_i` and `k_i^{-1}` are inverses::
 
         sage: k1 * k1i
         1
@@ -432,7 +432,7 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
             # we know p1[i] != p2[i] if non-zero, so their sum is -1, 0, 1
             p[i] = p1[i] + p2[i]
 
-        supported.append(self._n-1) # To get betweent the last support and the end
+        supported.append(self._n-1) # To get between the last support and the end
         # Get the sign of moving \psi_i and \psi_i^{\dagger} into position
         for i in reversed(range(1, len(supported))):
             if i % 2 != 0:

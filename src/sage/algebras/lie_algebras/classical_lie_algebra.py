@@ -345,15 +345,19 @@ class ClassicalMatrixLieAlgebra(MatrixLieAlgebraFromAssociative):
                     set_row(mat, count, x.value)
                     count += 1
                     for y in gens:
-                        set_row(mat, count, x.bracket(y).value)
-                        count += 1
+                        ret = x.bracket(y)
+                        if ret:
+                            set_row(mat, count, ret.value)
+                            count += 1
                 mat = matrix(R, count, adim, mat, sparse=True)
             else:
                 mat = []
                 for x in added:
                     mat.append(x.value.list())
                     for y in gens:
-                        mat.append(x.bracket(y).value.list())
+                        ret = x.bracket(y)
+                        if ret:
+                            mat.append(ret.value.list())
                 mat = matrix(R, mat)
             cur_mat = cur_mat.stack(mat)
             cur_mat.echelonize()

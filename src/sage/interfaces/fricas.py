@@ -207,7 +207,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.infinity import infinity
 from sage.misc.lazy_import import lazy_import
-lazy_import('sage.libs.pynac.pynac', ['symbol_table'])
+lazy_import('sage.libs.pynac.pynac', ['symbol_table', 'register_symbol'])
 lazy_import('sage.calculus.var', ['var', 'function'])
 lazy_import('sage.symbolic.constants', ['I', 'e', 'pi'])
 
@@ -332,6 +332,8 @@ class FriCAS(ExtraTabCompletion, Expect):
         self.eval(FRICAS_LINENUMBER_OFF_CODE, reformat=False)
         for line in FRICAS_HELPER_CODE:
             self.eval(line, reformat=False)
+        # register translations between SymbolicRing and FriCAS Expression
+        self._register_symbols()
 
     def _install_hints(self):
         """
@@ -572,6 +574,81 @@ http://fricas.sourceforge.net.
         # or even an error
         if FRICAS_ERROR_IN_LIBRARY_CODE in output:
             raise RuntimeError("An error occurred when FriCAS evaluated '%s':\n%s" % (line, output))
+
+    @staticmethod
+    def _register_symbols():
+        """
+        Register translations between elements of the ``SymbolicRing`` and FriCAS ``Expression`` domain.
+
+        This method is called from :meth:`_start`, to work around a
+        circular import problem involving ``pi``.
+
+        """
+        from sage.calculus.functional import diff
+        from sage.functions.log import dilog, lambert_w
+        from sage.functions.trig import sin, cos, tan, cot, sec, csc
+        from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
+        from sage.functions.other import abs
+        from sage.functions.gamma import gamma
+        from sage.misc.functional import symbolic_sum, symbolic_prod
+        register_symbol(pi, {'fricas': 'pi'}) # pi is also a function in fricas
+        register_symbol(cos, {'fricas': 'cos'})
+        register_symbol(sin, {'fricas': 'sin'})
+        register_symbol(tan, {'fricas': 'tan'})
+        register_symbol(cot, {'fricas': 'cot'})
+        register_symbol(sec, {'fricas': 'sec'})
+        register_symbol(csc, {'fricas': 'csc'})
+        register_symbol(tanh, {'fricas': 'tanh'})
+        register_symbol(sinh, {'fricas': 'sinh'})
+        register_symbol(cosh, {'fricas': 'cosh'})
+        register_symbol(coth, {'fricas': 'coth'})
+        register_symbol(sech, {'fricas': 'sech'})
+        register_symbol(csch, {'fricas': 'csch'})
+        register_symbol(gamma, {'fricas': 'Gamma'})
+        register_symbol(lambda x, y: x + y, {'fricas': '+'})
+        register_symbol(lambda x, y: x - y, {'fricas': '-'})
+        register_symbol(lambda x, y: x * y, {'fricas': '*'})
+        register_symbol(lambda x, y: x / y, {'fricas': '/'})
+        register_symbol(lambda x, y: x ** y, {'fricas': '^'})
+        register_symbol(lambda f, x: diff(f, x), {'fricas': 'D'})
+        register_symbol(lambda x, y: x + y * I, {'fricas': 'complex'})
+        register_symbol(lambda x: dilog(1 - x), {'fricas': 'dilog'})
+        register_symbol(lambda z: lambert_w(z), {'fricas': 'lambertW'})
+        register_symbol(abs, {'fricas': 'abs'})
+        # construct occurs in the InputForm of hypergeometricF
+        register_symbol(lambda *x: x, {'fricas': 'construct'})
+        # the following is a hack to deal with
+        # integrate(sin((x^2+1)/x),x)::INFORM giving
+        # (integral (sin (/ (+ (^ x 2) 1) x)) (:: x Symbol))
+        register_symbol(lambda x, y: x, {'fricas': '::'})
+
+        def _convert_eval(f, a, b):
+            # it might be that FriCAS also returns a two-argument
+            # eval, where the second argument is a list of equations,
+            # in which case this function needs to be adapted
+            return f.subs({a: b})
+
+        register_symbol(_convert_eval, {'fricas': 'eval'})
+
+        def _convert_sum(x, y):
+            v, seg = y.operands()
+            a, b = seg.operands()
+            return symbolic_sum(x, v, a, b)
+
+        def _convert_prod(x, y):
+            v, seg = y.operands()
+            a, b = seg.operands()
+            return symbolic_prod(x, v, a, b)
+
+        register_symbol(_convert_sum, {'fricas': 'sum'})
+        register_symbol(_convert_prod, {'fricas': 'product'})
+
+        def explicitly_not_implemented(*args):
+            raise NotImplementedError("the translation of the FriCAS Expression '%s' to sage is not yet implemented" % args)
+
+        register_symbol(lambda *args: explicitly_not_implemented("rootOfADE"), {'fricas': 'rootOfADE'})
+        register_symbol(lambda *args: explicitly_not_implemented("rootOfRec"), {'fricas': 'rootOfRec'})
+
 
     def set(self, var, value):
         """
@@ -1401,6 +1478,7 @@ class FriCASElement(ExpectElement):
         S.append(s[a:b])
         return "".join(S), b
 
+
     @staticmethod
     def _sage_expression(fricas_InputForm):
         r"""
@@ -1613,72 +1691,11 @@ class FriCASElement(ExpectElement):
             gamma(3, 2)
 
         """
-        from sage.libs.pynac.pynac import register_symbol
-        from sage.calculus.functional import diff
-        from sage.functions.log import dilog, lambert_w
-        from sage.functions.trig import sin, cos, tan, cot, sec, csc
-        from sage.functions.hyperbolic import tanh, sinh, cosh, coth, sech, csch
-        from sage.functions.other import abs
-        from sage.functions.gamma import gamma
-        from sage.misc.functional import symbolic_sum, symbolic_prod
-        register_symbol(pi, {'fricas': 'pi'}) # pi is also a function in fricas
-        register_symbol(cos, {'fricas': 'cos'})
-        register_symbol(sin, {'fricas': 'sin'})
-        register_symbol(tan, {'fricas': 'tan'})
-        register_symbol(cot, {'fricas': 'cot'})
-        register_symbol(sec, {'fricas': 'sec'})
-        register_symbol(csc, {'fricas': 'csc'})
-        register_symbol(tanh, {'fricas': 'tanh'})
-        register_symbol(sinh, {'fricas': 'sinh'})
-        register_symbol(cosh, {'fricas': 'cosh'})
-        register_symbol(coth, {'fricas': 'coth'})
-        register_symbol(sech, {'fricas': 'sech'})
-        register_symbol(csch, {'fricas': 'csch'})
-        register_symbol(gamma, {'fricas': 'Gamma'})
-        register_symbol(lambda x, y: x + y, {'fricas': '+'})
-        register_symbol(lambda x, y: x - y, {'fricas': '-'})
-        register_symbol(lambda x, y: x * y, {'fricas': '*'})
-        register_symbol(lambda x, y: x / y, {'fricas': '/'})
-        register_symbol(lambda x, y: x ** y, {'fricas': '^'})
-        register_symbol(lambda f, x: diff(f, x), {'fricas': 'D'})
-        register_symbol(lambda x, y: x + y * I, {'fricas': 'complex'})
-        register_symbol(lambda x: dilog(1 - x), {'fricas': 'dilog'})
-        register_symbol(lambda z: lambert_w(z), {'fricas': 'lambertW'})
-        register_symbol(abs, {'fricas': 'abs'})
-        # construct occurs in the InputForm of hypergeometricF
-        register_symbol(lambda *x: x, {'fricas': 'construct'})
-        # the following is a hack to deal with
-        # integrate(sin((x^2+1)/x),x)::INFORM giving
-        # (integral (sin (/ (+ (^ x 2) 1) x)) (:: x Symbol))
-        register_symbol(lambda x, y: x, {'fricas': '::'})
-
-        def _convert_eval(f, a, b):
-            # it might be that FriCAS also returns a two-argument
-            # eval, where the second argument is a list of equations,
-            # in which case this function needs to be adapted
-            return f.subs({a: b})
-
-        register_symbol(_convert_eval, {'fricas': 'eval'})
-
-        def _convert_sum(x, y):
-            v, seg = y.operands()
-            a, b = seg.operands()
-            return symbolic_sum(x, v, a, b)
-
-        def _convert_prod(x, y):
-            v, seg = y.operands()
-            a, b = seg.operands()
-            return symbolic_prod(x, v, a, b)
-
-        register_symbol(_convert_sum, {'fricas': 'sum'})
-        register_symbol(_convert_prod, {'fricas': 'product'})
-
-        def explicitly_not_implemented(*args):
-            raise NotImplementedError("the translation of the FriCAS Expression '%s' to sage is not yet implemented" % args)
-
-        register_symbol(lambda *args: explicitly_not_implemented("rootOfADE"), {'fricas': 'rootOfADE'})
-        register_symbol(lambda *args: explicitly_not_implemented("rootOfRec"), {'fricas': 'rootOfRec'})
-
+        # a FriCAS expressions may contain implicit references to a
+        # rootOf expression within itself, as for example in the
+        # result of integrate(1/(1+x^5), x).  Each algebraic number
+        # appearing in the expression is only introduced once and
+        # assigned a variable (usually of the form %%...).
         rootOf = dict()  # (variable, polynomial)
         rootOf_ev = dict()  # variable -> (complex) algebraic number
 

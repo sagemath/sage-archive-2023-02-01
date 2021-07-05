@@ -1693,7 +1693,8 @@ class FriCASElement(ExpectElement):
         Check that :trac:`32133` is fixed::
 
             sage: var("y")
-            sage: f = fricas.zerosOf (y^4 + y + 1, y); f                        # optional - fricas
+            y
+            sage: f = fricas.zerosOf(y^4 + y + 1, y); f                        # optional - fricas
                         +-----------------------------+
                         |       2                    2
                        \|- 3 %y1  - 2 %y0 %y1 - 3 %y0   - %y1 - %y0
@@ -1706,6 +1707,7 @@ class FriCASElement(ExpectElement):
                                     2
 
             sage: f[1].sage()                                                   # optional - fricas
+            -1/2*sqrt(1/3)*sqrt((3*(1/18*I*sqrt(229)*sqrt(3) + 1/2)^(2/3) + 4)/(1/18*I*sqrt(229)*sqrt(3) + 1/2)^(1/3)) + 1/2*sqrt(-(1/18*I*sqrt(229)*sqrt(3) + 1/2)^(1/3) + 6*sqrt(1/3)/sqrt((3*(1/18*I*sqrt(229)*sqrt(3) + 1/2)^(2/3) + 4)/(1/18*I*sqrt(229)*sqrt(3) + 1/2)^(1/3)) - 4/3/(1/18*I*sqrt(229)*sqrt(3) + 1/2)^(1/3))
 
         """
         # a FriCAS expressions may contain implicit references to a
@@ -1740,20 +1742,24 @@ class FriCASElement(ExpectElement):
                 assert False, "circular dependency in rootOf expression"
             # substitute known roots
             poly = poly.subs(rootOf_ev)
-            evars = [v for v in rvars if v not in rootOf]  # extraneous variables
-            assert set(evars) == set(poly.variables()).difference([var])
+            evars = set(poly.variables()).difference([var])
             del rootOf[var]
             if evars:
-                # we just need any root per FriCAS specification
+                # we just need any root per FriCAS specification -
+                # however, if there are extra variables, we cannot
+                # use QQbar.any_root
                 rootOf_ev[var] = poly.roots(var, multiplicities=False)[0]
             else:
                 R = PolynomialRing(QQbar, "x")
-                # PolynomialRing does not accept variable names with leading underscores
+                # PolynomialRing does not accept variable names with
+                # leading underscores
                 poly = R(poly.subs({var: R.gen()}))
                 # we just need any root per FriCAS specification
-                rootOf_ev[var] = poly.roots(multiplicities=False)[0].radical_expression()
+                rootOf_ev[var] = poly.any_root()
 
-        return ex.subs(rootOf_ev)
+        return ex.subs({var: (val.radical_expression()
+                              if val.parent() is QQbar else val)
+                        for var, val in rootOf_ev.items()})
 
     def _sage_(self):
         r"""

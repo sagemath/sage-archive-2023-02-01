@@ -150,7 +150,7 @@ cdef class MultiModularBasis_base(object):
             sage: mm = MultiModularBasis_base(height); mm
             MultiModularBasis with moduli [...]
 
-            sage: mm.prod()//height > 2
+            sage: mm.prod()//height >= 2
             True
 
             sage: mm = MultiModularBasis_base([1000000000000000000000000000057])

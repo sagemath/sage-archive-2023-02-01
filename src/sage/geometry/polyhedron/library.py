@@ -759,7 +759,7 @@ class Polytopes():
             5/12*sqrt5 + 5/4
             sage: TestSuite(ico).run()                             # optional - pynormaliz
             sage: ico = polytopes.icosahedron(exact=False)
-            sage: TestSuite(ico).run()
+            sage: TestSuite(ico).run(skip="_test_lawrence")
 
         """
         if base_ring is None and exact:

@@ -495,10 +495,11 @@ class PolynomialSequence_generic(Sequence_generic):
             sage: F,s = sr.polynomial_system()
             sage: P = F.ring()
             sage: I = F.ideal()
-            sage: I.elimination_ideal(P('s000*s001*s002*s003*w100*w101*w102*w103*x100*x101*x102*x103'))
-            Ideal (...)
-            of Multivariate Polynomial Ring in k100, k101, k102, k103, x100, x101, x102, x103,
-            w100, w101, w102, w103, s000, s001, s002, s003, k000, k001, k002, k003 over Finite Field in a of size 2^4
+            sage: J = I.elimination_ideal(prod(P.gens()[4:-4]))
+            sage: J <= I
+            True
+            sage: set(J.gens().variables()).issubset(P.gens()[:4] + P.gens()[-4:])
+            True
         """
         return self._ring.ideal(tuple(self))
 

@@ -4177,7 +4177,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: F = Frac(P)
             sage: R.<X,Y,Z> = F[]
             sage: I = Ideal([f + P.random_element() for f in sage.rings.ideal.Katsura(R).gens()])
-            sage: _ = I.groebner_basis()
+            sage: I.groebner_basis().ideal() == I
+            True
 
         In cases where a characteristic cannot be determined, we use a toy implementation of Buchberger's algorithm
         (see :trac:`6581`)::

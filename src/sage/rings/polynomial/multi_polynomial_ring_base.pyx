@@ -997,8 +997,6 @@ cdef class MPolynomialRing_base(sage.rings.ring.CommutativeRing):
             True
             sage: f.parent() is S
             True
-            sage: list(f)[0][0].parent() is R
-            True
 
         Default values apply if no degree and/or number of terms is
         provided::

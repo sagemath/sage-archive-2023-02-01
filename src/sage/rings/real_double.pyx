@@ -499,7 +499,7 @@ cdef class RealDoubleField_class(Field):
             True
             sage: -1 <= RDF.random_element() <= 1
             True
-            sage: -100 <= RDF.random_element(min=100, max=110) <= 110
+            sage: 100 <= RDF.random_element(min=100, max=110) <= 110
             True
         """
         cdef randstate rstate = current_randstate()

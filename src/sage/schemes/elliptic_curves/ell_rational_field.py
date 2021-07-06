@@ -779,7 +779,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: E = EllipticCurve('11a1')
             sage: EE = E.mwrank_curve()
             sage: EE
-            y^2+ y = x^3 - x^2 - 10*x - 20
+            y^2 + y = x^3 - x^2 - 10 x - 20
             sage: type(EE)
             <class 'sage.libs.eclib.interface.mwrank_EllipticCurve'>
             sage: EE.isogeny_class()
@@ -1283,22 +1283,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: [Mminus(1/i) for i in [1..11]]
             [0, 0, 1/2, 1/2, 0, 0, -1/2, -1/2, 0, 0, 0]
 
-        With the default 'eclib' implementation, if ``nap`` is too
-        small, the normalization may be computed incorrectly.  See
-        :trac:`31317`::
+        With older version of eclib, in the default 'eclib'
+        implementation, if ``nap`` is too small, the normalization may
+        be computed incorrectly (see :trac:`31317`).  This was fixed
+        in eclib version v20210310, since now eclib increase ``nap``
+        automatically. The following used to give incorrect results.
+        See :trac:`31443`::
 
             sage: E = EllipticCurve('1590g1')
             sage: m = E.modular_symbol(nap=300)
             sage: [m(a/5) for a in [1..4]]
-            [1001/153, -1001/153, -1001/153, 1001/153]
+            [13/2, -13/2, -13/2, 13/2]
 
-        Those values are incorrect.  The correct values may be
-        obtained by increasing ``nap``, as verified by the numerical
+        These values are correct, as verified by the numerical
         implementation::
 
-            sage: m = E.modular_symbol(nap=400)
-            sage: [m(a/5) for a in [1..4]]
-            [13/2, -13/2, -13/2, 13/2]
             sage: m = E.modular_symbol(implementation='num')
             sage: [m(a/5) for a in [1..4]]
             [13/2, -13/2, -13/2, 13/2]
@@ -2525,9 +2524,8 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         assert reg.parent() is R
         return reg
 
-    def saturation(self, points, verbose=False, max_prime=0, odd_primes_only=False):
-        """
-        Given a list of rational points on E, compute the saturation in
+    def saturation(self, points, verbose=False, max_prime=-1, min_prime=2):
+        """Given a list of rational points on E, compute the saturation in
         E(Q) of the subgroup they generate.
 
         INPUT:
@@ -2538,17 +2536,24 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``verbose (bool)`` - (default: ``False``), if ``True``, give
            verbose output
 
-        -  ``max_prime (int)`` - (default: 0), saturation is
-           performed for all primes up to max_prime. If max_prime==0,
-           perform saturation at *all* primes, i.e., compute the true
-           saturation.
+        - ``max_prime`` (int, default -1) -- If `-1` (the default), an
+          upper bound is computed for the primes at which the subgroup
+          may not be saturated, and saturation is performed for all
+          primes up to this bound.  Otherwise, the bound used is the
+          minimum of ``max_prime`` and the computed bound.
 
-        -  ``odd_primes_only (bool)`` - only do saturation at
-           odd primes
+        - ``min_prime (int)`` - (default: 2), only do `p`-saturation
+            at primes `p` greater than or equal to this.
 
+        .. note::
+
+           To saturate at a single prime `p`, set ``max_prime`` and
+           ``min_prime`` both to `p`.  One situation where this is
+           useful is after mapping saturated points from another
+           elliptic curve by a `p`-isogeny, since the images may not
+           be `p`-saturated but will be saturated at all other primes.
 
         OUTPUT:
-
 
         -  ``saturation (list)`` - points that form a basis for
            the saturation
@@ -2559,12 +2564,32 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         -  ``regulator (real with default precision)`` -
            regulator of saturated points.
 
+        ALGORITHM: Uses Cremona's ``eclib`` package, which computes a
+        bound on the saturation index.  To `p`-saturate, or prove
+        `p`-saturation, we consider the reductions of the points
+        modulo primes `q` of good reduction such that `E(\GF{q})` has
+        order divisible by `p`.
 
-        ALGORITHM: Uses Cremona's ``mwrank`` package. With ``max_prime=0``,
-        we call ``mwrank`` with successively larger prime bounds until the full
-        saturation is provably found. The results of saturation at the
-        previous primes is stored in each case, so this should be
-        reasonably fast.
+        .. note::
+
+           In versons of ``eclib`` up to ``v20190909``, division of
+           points in ``eclib`` was done using floating point methods,
+           without automatic handling of precision, so that
+           `p`-saturation sometimes failed unless
+           ``mwrank_set_precision()`` was called in advance with a
+           suitably high bit precision.  Since version ``v20210310``
+           of ``eclib``, division is done using exact methods based on
+           division polynomials, and `p`-saturation cannot fail in
+           this way.
+
+        .. note::
+
+           The computed index of saturation may be large, in which
+           case saturation may take a long time.  For example, the
+           rank 4 curve ``EllipticCurve([0,1,1,-9872,374262])`` has a
+           saturation index bound of 11816 and takes around 40 seconds
+           to prove saturation.
+
 
         EXAMPLES::
 
@@ -2577,7 +2602,9 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
 
         TESTS:
 
-        See :trac:`10590`.  This example would loop forever at default precision::
+        See :trac:`10590`.  With ``eclib`` versions up to
+        ``v20190909``, this example would loop forever at default
+        precision.  Since version ``v20210310`` it runs fine::
 
             sage: E = EllipticCurve([1, 0, 1, -977842, -372252745])
             sage: P = E([-192128125858676194585718821667542660822323528626273/336995568430319276695106602174283479617040716649, 70208213492933395764907328787228427430477177498927549075405076353624188436/195630373799784831667835900062564586429333568841391304129067339731164107, 1])
@@ -2585,7 +2612,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             113.302910926080
             sage: E.saturation([P])
             ([(-192128125858676194585718821667542660822323528626273/336995568430319276695106602174283479617040716649 : 70208213492933395764907328787228427430477177498927549075405076353624188436/195630373799784831667835900062564586429333568841391304129067339731164107 : 1)], 1, 113.302910926080)
-            sage: (Q,), ind, reg = E.saturation([2*P])  # needs higher precision, handled by eclib
+            sage: (Q,), ind, reg = E.saturation([2*P])
             sage: 2*Q == 2*P
             True
             sage: ind
@@ -2634,36 +2661,16 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         c = Emin.mwrank_curve()
         from sage.libs.eclib.all import mwrank_MordellWeil
         mw = mwrank_MordellWeil(c, verbose)
-        mw.process(v)
-        repeat_until_saturated = False
-        if max_prime == 0:
-            repeat_until_saturated = True
-            max_prime = 9973
-        from sage.libs.all import mwrank_get_precision, mwrank_set_precision
-        prec0 = mwrank_get_precision()
-        prec = 100
-        if prec0<prec:
-            mwrank_set_precision(prec)
-        else:
-            prec = prec0
-        while True:
-            ok, index, unsat = mw.saturate(max_prime=max_prime, odd_primes_only = odd_primes_only)
-            reg = mw.regulator()
-            if ok or not repeat_until_saturated:
-                break
-            max_prime = arith.next_prime(max_prime + 1000)
-            prec += 50
-            mwrank_set_precision(prec)
-        if prec != prec0:
-            mwrank_set_precision(prec0)
-        sat = mw.points()
-        sat = [Emin(P) for P in sat]
+        mw.process(v) # by default, this does no saturation yet
+        ok, index, unsat = mw.saturate(max_prime=max_prime, min_prime = min_prime)
+        if not ok:
+            print("Failed to saturate failed at the primes {}".format(unsat))
+        sat = [Emin(P) for P in mw.points()]
         if not minimal:
             phi_inv = ~phi
             sat = [phi_inv(P) for P in sat]
         reg = self.regulator_of_points(sat)
-        return sat, index, R(reg)
-
+        return sat, index, reg
 
     def CPS_height_bound(self):
         r"""
@@ -2727,21 +2734,21 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
                  - 'mwrank' -- use a C++ implementation in the mwrank
                    library
 
-        NOTES:
+        .. NOTE::
 
-           - The CPS_height_bound is often better (i.e. smaller) than
-             the Silverman bound, but it only applies for points over
-             the base field, whereas the Silverman bound works over
-             all number fields.
+            - The CPS_height_bound is often better (i.e. smaller) than
+              the Silverman bound, but it only applies for points over
+              the base field, whereas the Silverman bound works over
+              all number fields.
 
-           - The Silverman bound is also fairly straightforward to
-             compute over number fields, but isn't implemented here.
+            - The Silverman bound is also fairly straightforward to
+              compute over number fields, but isn't implemented here.
 
-           - Silverman's paper is 'The Difference Between the Weil
-             Height and the Canonical Height on Elliptic Curves',
-             Math. Comp., Volume 55, Number 192, pages 723-743.  We
-             use a correction by Bremner with 0.973 replaced by 0.961,
-             as explained in the source code to mwrank (htconst.cc).
+            - Silverman's paper is 'The Difference Between the Weil
+              Height and the Canonical Height on Elliptic Curves',
+              Math. Comp., Volume 55, Number 192, pages 723-743.  We
+              use a correction by Bremner with 0.973 replaced by 0.961,
+              as explained in the source code to mwrank (htconst.cc).
 
         EXAMPLES::
 
@@ -3347,10 +3354,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         Observe that this is a group homomorphism (modulo rounding error)::
 
             sage: z = CC.random_element()
-            sage: 2 * E.elliptic_exponential(z)
-            (-1.52184235874404 - 0.0581413944316544*I : 0.948655866506124 - 0.0381469928565030*I : 1.00000000000000)
-            sage: E.elliptic_exponential(2 * z)
-            (-1.52184235874404 - 0.0581413944316562*I : 0.948655866506128 - 0.0381469928565034*I : 1.00000000000000)
+            sage: v = 2 * E.elliptic_exponential(z)
+            sage: w = E.elliptic_exponential(2 * z)
+            sage: abs(v[0] - w[0]) + abs(v[1] - w[1])  # abs tol 1e-13
+            0.0
         """
         return self.period_lattice().elliptic_exponential(z)
 
@@ -4082,7 +4089,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: G.1
             (282 : 0 : 1)
             sage: list(G)
-            [(0 : 1 : 0), (147 : 12960 : 1), (2307 : 97200 : 1), (-933 : 29160 : 1), (1011 : 0 : 1), (-933 : -29160 : 1), (2307 : -97200 : 1), (147 : -12960 : 1), (282 : 0 : 1), (8787 : 816480 : 1), (-285 : 27216 : 1), (1227 : 22680 : 1), (-1293 : 0 : 1), (1227 : -22680 : 1), (-285 : -27216 : 1), (8787 : -816480 : 1)]
+            [(0 : 1 : 0), (147 : -12960 : 1), (2307 : -97200 : 1), (-933 : -29160 : 1), (1011 : 0 : 1), (-933 : 29160 : 1), (2307 : 97200 : 1), (147 : 12960 : 1), (-1293 : 0 : 1), (1227 : 22680 : 1), (-285 : 27216 : 1), (8787 : 816480 : 1), (282 : 0 : 1), (8787 : -816480 : 1), (-285 : -27216 : 1), (1227 : -22680 : 1)]
         """
         try:
             G = self.__torsion_subgroup
@@ -5405,10 +5412,10 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
         EXAMPLES::
 
             sage: E = EllipticCurve('37a1')
-            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],100) # abs tol 1e-20
-            [-0.0018743978548152085771342944989052703431,
-             0.0018604485340371083710285594393397945456,
-            -0.0018743978548152085771342944989052703431]
+            sage: E.eval_modular_form([1.5+I,2.0+I,2.5+I],100)
+            [-0.0018743978548152085...,
+             0.0018604485340371083...,
+            -0.0018743978548152085...]
 
             sage: E.eval_modular_form(2.1+I, 100) # abs tol 1e-16
             [0.00150864362757267079 + 0.00109100341113449845*I]

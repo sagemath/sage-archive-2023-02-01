@@ -44,6 +44,15 @@ class ConvexSet_base(SageObject):
         OUTPUT:
 
         Boolean.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.is_universe()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method dim at ...>
         """
         if not self.is_full_dimensional():
             return False
@@ -53,6 +62,17 @@ class ConvexSet_base(SageObject):
     def dim(self):
         r"""
         Return the dimension of ``self``.
+
+        Subclasses must provide an implementation of this method.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.dim()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method dim at ...>
         """
 
     def dimension(self):
@@ -73,14 +93,62 @@ class ConvexSet_base(SageObject):
         return self.dim()
 
     @abstract_method
+    def ambient_vector_space(self, base_field=None):
+        r"""
+        Return the ambient vector space.
+
+        Subclasses must provide an implementation of this method.
+
+        The default implementations of :meth:`ambient`, :meth:`ambient_dim`,
+        :meth:`ambient_dimension` use this method.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.ambient_vector_space()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: <abstract method ambient_vector_space at ...>
+        """
+
+    def ambient(self):
+        r"""
+        Return the ambient convex set or space.
+
+        The default implementation delegates to :meth:`ambient_vector_space`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: class ExampleSet(ConvexSet_base):
+            ....:     def ambient_vector_space(self, base_field=None):
+            ....:         return (base_field or QQ)^2001
+            sage: ExampleSet().ambient()
+            Vector space of dimension 2001 over Rational Field
+        """
+        return self.ambient_vector_space()
+
     def ambient_dim(self):
         r"""
-        Return the dimension of the ambient space.
+        Return the dimension of the ambient convex set or space.
+
+        The default implementation obtains it from :meth:`ambient`.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: class ExampleSet(ConvexSet_base):
+            ....:     def ambient(self):
+            ....:         return QQ^7
+            sage: ExampleSet().ambient_dim()
+            7
         """
+        return self.ambient().dimension()
 
     def ambient_dimension(self):
         r"""
-        Return the dimension of ``self``.
+        Return the dimension of the ambient convex set or space.
 
         This is the same as :meth:`ambient_dim`.
 
@@ -97,13 +165,17 @@ class ConvexSet_base(SageObject):
 
     def codimension(self):
         r"""
-        Return the codimension of ``self``.
-
-        An alias is :meth:`codim`.
+        Return the codimension of ``self`` in `self.ambient()``.
 
         EXAMPLES::
 
-            sage: Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)]).codimension()
+            sage: P = Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)])
+            sage: P.codimension()
+            2
+
+        An alias is :meth:`codim`::
+
+            sage: P.codim()
             2
         """
         return self.ambient_dim() - self.dim()
@@ -287,13 +359,17 @@ class ConvexSet_base(SageObject):
 
             sage: from sage.geometry.convex_set import ConvexSet_open
             sage: class FaultyConvexSet(ConvexSet_open):
+            ....:     def ambient(self):
+            ....:         return QQ^55
+            ....:     def ambient_vector_space(self, base_field=None):
+            ....:         return QQ^16
             ....:     def is_universe(self):
             ....:         return True
             ....:     def dim(self):
             ....:         return 42
             ....:     def ambient_dim(self):
             ....:         return 91
-            sage: TestSuite(FaultyConvexSet()).run(skip='_test_pickling')
+            sage: TestSuite(FaultyConvexSet()).run(skip=('_test_pickling', '_test_contains'))
             Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
@@ -301,9 +377,13 @@ class ConvexSet_base(SageObject):
             sage: class BiggerOnTheInside(ConvexSet_open):
             ....:     def dim(self):
             ....:         return 100000
+            ....:     def ambient_vector_space(self):
+            ....:         return QQ^3
+            ....:     def ambient(self):
+            ....:         return QQ^3
             ....:     def ambient_dim(self):
             ....:         return 3
-            sage: TestSuite(BiggerOnTheInside()).run(skip='_test_pickling')
+            sage: TestSuite(BiggerOnTheInside()).run(skip=('_test_pickling', '_test_contains'))
             Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
@@ -339,6 +419,12 @@ class ConvexSet_base(SageObject):
             tester.assertTrue(self == cl_self)
         if self.is_compact():
             tester.assertTrue(self.is_closed())
+        from sage.misc.sage_unittest import TestSuite
+        if relint_self is not None and relint_self is not self:
+            tester.info("\n  Running the test suite of self.relative_interior()")
+            TestSuite(relint_self).run(verbose=tester._verbose,
+                                       prefix=tester._prefix + "  ")
+            tester.info(tester._prefix + " ", newline=False)
 
     # Optional methods
 
@@ -346,6 +432,15 @@ class ConvexSet_base(SageObject):
     def affine_hull(self):
         r"""
         Return the affine hull of ``self``.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.affine_hull()
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
         """
 
     @abstract_method(optional=True)
@@ -360,6 +455,15 @@ class ConvexSet_base(SageObject):
         OUTPUT:
 
         The Cartesian product of ``self`` and ``other``.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.cartesian_product(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
         """
 
     @abstract_method(optional=True)
@@ -370,7 +474,76 @@ class ConvexSet_base(SageObject):
         INPUT:
 
         - ``point`` -- a point or its coordinates
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.contains(vector([0, 0]))
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
         """
+
+    def _test_contains(self, tester=None, **options):
+        """
+        Test the ``contains`` method.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_closed
+            sage: class FaultyConvexSet(ConvexSet_closed):
+            ....:     def ambient_vector_space(self, base_field=QQ):
+            ....:         return base_field^2
+            ....:     ambient = ambient_vector_space
+            ....:     def contains(self, point):
+            ....:         if isinstance(point, (tuple, list)):
+            ....:             return all(x in ZZ for x in point)
+            ....:         return point.parent() == ZZ^2
+            sage: FaultyConvexSet()._test_contains()
+            Traceback (most recent call last):
+            ...
+            AssertionError: False != True
+
+            sage: class AlsoFaultyConvexSet(ConvexSet_closed):
+            ....:     def ambient_vector_space(self, base_field=QQ):
+            ....:         return base_field^2
+            ....:     def ambient(self):
+            ....:         return ZZ^2
+            ....:     def contains(self, point):
+            ....:         return point in ZZ^2
+            sage: AlsoFaultyConvexSet()._test_contains()
+            Traceback (most recent call last):
+            ...
+            AssertionError: True != False
+        """
+        if tester is None:
+            tester = self._tester(**options)
+        ambient = self.ambient()
+        space = self.ambient_vector_space()
+        try:
+            ambient_point = ambient.an_element()
+        except (AttributeError, NotImplementedError):
+            ambient_point = None
+            space_point = space.an_element()
+        else:
+            space_point = space(ambient_point)
+        space_coords = space.coordinates(space_point)
+        if self.contains != NotImplemented:
+            contains_space_point = self.contains(space_point)
+            if ambient_point is not None:
+                tester.assertEqual(contains_space_point, self.contains(ambient_point))
+            tester.assertEqual(contains_space_point, self.contains(space_coords))
+            if space.base_ring().is_exact():
+                from sage.rings.qqbar import AA
+                ext_space = self.ambient_vector_space(AA)
+                ext_space_point = ext_space(space_point)
+                tester.assertEqual(contains_space_point, self.contains(ext_space_point))
+            from sage.symbolic.ring import SR
+            symbolic_space = self.ambient_vector_space(SR)
+            symbolic_space_point = symbolic_space(space_point)
+            # Only test that it can accept SR vectors without error.
+            self.contains(symbolic_space_point)
 
     @abstract_method(optional=True)
     def intersection(self, other):
@@ -384,6 +557,15 @@ class ConvexSet_base(SageObject):
         OUTPUT:
 
         The intersection.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.intersection(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
         """
 
 

@@ -229,11 +229,48 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
         return self._semigroup_representation
 
-    #def _test_
+    def _test_invariant(self,**options):
+        """
+        Check (on some elements) that ``self`` is invariant.
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(3)
+            sage: M = CombinatorialFreeModule(QQ, [1,2,3], prefix='M')
+            sage: action = lambda g,x: M.term(g(x))
+            sage: from sage.modules.with_basis.representation import Representation
+            sage: R = Representation(G, M, action); R
+            Representation of Symmetric group of order 3! as a permutation group indexed by {1, 2, 3} over Rational Field
+            sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+            sage: I = FiniteDimensionalInvariantModule(R)
+            sage: I._test_invariant()
+
+            sage: G = SymmetricGroup(10)
+            sage: M = CombinatorialFreeModule(QQ, list(range(1,11)), prefix='M')
+            sage: action = lambda g,x: M.term(g(x))
+            sage: R = Representation(G, M, action)
+            sage: I._test_invariant(max_runs=20)
+
+        """
+        tester = self._tester(**options)
+        S = tester.some_elements()
+        L = []
+        max_len = int(tester._max_runs) + 1
+        for i,x in enumerate(self._semigroup):
+            L.append(x)
+            if i >= max_len:
+                break
+        for x in L:
+            for elt in S:
+                if self._semigroup_representation.side() == 'left':
+                    tester.assertEqual(x*elt, elt)
+                else:
+                    tester.assertEqual(elt*x, elt)
+
 
     class Element(SubmoduleWithBasis.Element):
 
-        def _mul_(self, other):
+        def _mul_(self, other): #FIX THIS TO ASSUME OTHER IS IN SAME PARENT
             """
             EXAMPLES::
 
@@ -319,10 +356,8 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
             """
             P = self.parent()
-            try:
-                return P.retract(P.lift(self) * P.lift(other))
-            except:
-                return P.retract(P.lift(self)*other)
+            return P.retract(P.lift(self) * P.lift(other))
+
 
         def _lmul_(self, right):
             """
@@ -366,15 +401,8 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 3*B[0] + 2*B[1]
 
             """
-
             if right in self.parent()._semigroup and self.parent()._semigroup_representation.side() == 'right':
                 return self
-
-            elif right in self.parent()._semigroup_representation._module.base_ring():
-                # This preserves the structure of the invariant as a
-                # ``.base_ring()``-module
-                return self._mul_(right)
-
             return super()._lmul_(right)
 
         def _rmul_(self, left):
@@ -419,10 +447,6 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             """
             if left in self.parent()._semigroup and self.parent()._semigroup_representation.side() == 'left':
                 return self
-
-            elif left in self.parent()._semigroup_representation._module.base_ring():
-                return self._mul_(left)
-
             return super()._rmul_(left)
 
         def _acted_upon_(self, scalar, self_on_left = False):
@@ -467,9 +491,6 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 True
 
             """
-
             if scalar in self.parent()._semigroup and self_on_left == (self.parent()._semigroup_representation.side() == 'right'):
-
                 return self
-
-            return None
+            return super()._acted_upon_(scalar, self_on_left)

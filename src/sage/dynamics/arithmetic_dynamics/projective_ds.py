@@ -4841,9 +4841,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if type == 'cycle':
                 raise NotImplementedError('cycle not implemented for dimension greater than 1')
             base_ring = self.base_ring()
-            if isinstance(base_ring, FractionField_1poly_field) or is_FunctionField(base_ring):
-                raise NotImplementedError('Sigma invariants not implemented for fraction function fields.'
-                + 'Clear denominators and use the polynomial ring instead.')
             d = self.degree()
             N = dom.dimension_relative()
             Fn = self.nth_iterate_map(n)
@@ -4854,7 +4851,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 X = X.change_ring(F)
             else:
                 F = base_ring
-                X = Fn.periodic_points(1, minimal=False, formal=formal, return_scheme=True)
+                if is_FractionField(base_ring):
+                    if is_MPolynomialRing(base_ring.ring()) or is_PolynomialRing(base_ring.ring()):
+                        Fn.normalize_coordinates()
+                        Fn_ring = Fn.change_ring(base_ring.ring())
+                        X = Fn_ring.periodic_points(1, minimal=False, formal=formal, return_scheme=True)
+                        X = X.change_ring(F)
+                else:
+                    X = Fn.periodic_points(1, minimal=False, formal=formal, return_scheme=True)
             newR_unordered = PolynomialRing(base_ring, 'w, t', 2)
             newR = newR_unordered.change_ring(order='lex')
             if chow:

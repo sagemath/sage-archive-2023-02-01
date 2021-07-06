@@ -27,7 +27,7 @@ add = sum
 
 from .dev_tools import runsnake, import_statements
 
-from .html import html
+from .html import html, pretty_print_default
 
 from .repr import repr_lincomb
 
@@ -62,7 +62,8 @@ lazy_import('sage.misc.pager', 'pager')
 lazy_import('sage.misc.sagedoc', ['browse_sage_doc',
         'search_src', 'search_def', 'search_doc',
         'tutorial', 'reference', 'manual', 'developer',
-        'constructions', 'python_help', 'help'])
+        'constructions', 'help'])
+lazy_import('pydoc', 'help', 'python_help')
 
 from .classgraph import class_graph
 
@@ -144,7 +145,7 @@ from .functional import (additive_order,
                         transpose)
 
 
-from .latex import LatexExpr, latex, view, pretty_print_default
+from .latex import LatexExpr, latex, view
 
 from .trace import trace
 

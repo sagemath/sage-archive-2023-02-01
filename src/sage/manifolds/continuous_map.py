@@ -18,9 +18,12 @@ REFERENCES:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015-2019 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
 #       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2018 Florentin Jaffredo <florentin.jaffredo@polytechnique.edu>
+#       Copyright (C) 2020 Michael Jung <micjung@uni-potsdam.de>
+#       Copyright (C) 2021 Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -815,6 +818,53 @@ class ContinuousMap(Morphism):
                     except ValueError:
                         pass
         return homset(resu_funct)
+
+    def image(self, subset=None, inverse=None):
+        r"""
+        Return the image of ``self`` or the image of ``subset`` under ``self``.
+
+        INPUT:
+
+        - ``inverse`` -- (default: ``None``) continuous map from
+          ``map.codomain()`` to ``map.domain()``, which once restricted to the image
+          of `\Phi` is the inverse of `\Phi` onto its image if the latter
+          exists (NB: no check of this is performed)
+        - ``subset`` -- (default: the domain of ``map``) a subset of the domain of
+          ``self``
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure="topological")
+            sage: N = Manifold(1, 'N', ambient=M, structure="topological")
+            sage: CM.<x,y> = M.chart()
+            sage: CN.<u> = N.chart()
+            sage: CN.add_restrictions([u > -1, u < 1])
+            sage: Phi = N.continuous_map(M, {(CN,CM): [u, u^2]}, name='Phi')
+            sage: Phi.image()
+            Image of the Continuous map Phi
+              from the 1-dimensional topological submanifold N
+                immersed in the 2-dimensional topological manifold M
+              to the 2-dimensional topological manifold M
+
+            sage: S = N.subset('S')
+            sage: Phi_S = Phi.image(S); Phi_S
+            Image of the Subset S of the
+             1-dimensional topological submanifold N
+              immersed in the 2-dimensional topological manifold M
+             under the Continuous map Phi
+              from the 1-dimensional topological submanifold N
+               immersed in the 2-dimensional topological manifold M
+             to the 2-dimensional topological manifold M
+            sage: Phi_S.is_subset(M)
+            True
+        """
+        from .continuous_map_image import ImageManifoldSubset
+        if self._is_identity:
+            if subset is None:
+                return self.domain()
+            else:
+                return subset
+        return ImageManifoldSubset(self, inverse=inverse, domain_subset=subset)
 
     #
     # Monoid methods
@@ -1963,7 +2013,7 @@ class ContinuousMap(Morphism):
             n2 = len(chart2._xx)
             # New symbolic variables (different from chart2._xx to allow for a
             #  correct solution even when chart2 = chart1):
-            x2 = [SR.var('xxxx' + str(i)) for i in range(n2)]
+            x2 = SR.temp_var(n=n2)
             equations = [x2[i] == coord_map._functions[i].expr()
                          for i in range(n2)]
             solutions = solve(equations, chart1._xx, solution_dict=True)
@@ -1983,6 +2033,7 @@ class ContinuousMap(Morphism):
                 except AttributeError:
                     pass
             coord_functions[(chart2, chart1)] = inv_functions
+            SR.cleanup_var(x2)
         if self._name is None:
             name = None
         else:

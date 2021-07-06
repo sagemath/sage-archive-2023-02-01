@@ -59,11 +59,10 @@ elif sys.platform == 'darwin':
         orig_dyld_library_path = os.environ.get('DYLD_LIBRARY_PATH')
         try:
             if libdirs:
+                colon_sep_path = ':'.join(libdirs)
                 if orig_dyld_library_path:
-                    os.environ['DYLD_LIBRARY_PATH'] = '%s:%s' % (
-                            sage_local_lib, orig_dyld_library_path)
-                else:
-                    os.environ['DYLD_LIBRARY_PATH'] = sage_local_lib
+                    colon_sep_path += ":" + orig_dyld_library_path
+                os.environ['DYLD_LIBRARY_PATH'] = colon_sep_path
 
             return _orig_find_library(name)
         finally:

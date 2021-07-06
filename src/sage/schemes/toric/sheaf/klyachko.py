@@ -168,7 +168,8 @@ class KlyachkoBundle_class(SageObject):
         """
         self._variety = toric_variety
         self._filt = multi_filtration
-        if not check: return
+        if not check:
+            return
         from sage.sets.set import Set
         if multi_filtration.index_set() != Set(list(toric_variety.fan().rays())):
             raise ValueError('the index set of the multi-filtration must be'

@@ -117,11 +117,8 @@ The inverse of the transition map is computed by the method
 
 At this stage, we have four open subsets on `S^2`::
 
-    sage: M.list_of_subsets()
-    [2-dimensional topological manifold S^2,
-     Open subset U of the 2-dimensional topological manifold S^2,
-     Open subset V of the 2-dimensional topological manifold S^2,
-     Open subset W of the 2-dimensional topological manifold S^2]
+    sage: M.subset_family()
+    Set {S^2, U, V, W} of open subsets of the 2-dimensional topological manifold S^2
 
 `W` is the open subset that is the complement of the two poles::
 
@@ -188,7 +185,7 @@ A continuous map `S^2 \to \RR` (scalar field)::
     sage: f.parent()
     Algebra of scalar fields on the 2-dimensional topological manifold S^2
     sage: f.parent().category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
 
 
 .. RUBRIC:: Example 2: the Riemann sphere as a topological manifold of
@@ -269,11 +266,8 @@ and we have::
 
 The following subsets and charts have been defined::
 
-    sage: M.list_of_subsets()
-    [Open subset A of the Complex 1-dimensional topological manifold C*,
-     Complex 1-dimensional topological manifold C*,
-     Open subset U of the Complex 1-dimensional topological manifold C*,
-     Open subset V of the Complex 1-dimensional topological manifold C*]
+    sage: M.subset_family()
+    Set {A, C*, U, V} of open subsets of the Complex 1-dimensional topological manifold C*
     sage: M.atlas()
     [Chart (U, (z,)), Chart (V, (w,)), Chart (A, (z,)), Chart (A, (w,))]
 
@@ -295,7 +289,7 @@ A constant map `\CC^* \rightarrow \CC`::
     Algebra of scalar fields on the Complex 1-dimensional topological
      manifold C*
     sage: f.parent().category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
 
 AUTHORS:
 
@@ -316,8 +310,13 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2015-2020 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015      Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2016      Andrew Mathas
+#       Copyright (C) 2018      Florentin Jaffredo
+#       Copyright (C) 2019      Hans Fotsing Tetsing
+#       Copyright (C) 2019-2020 Michael Jung
+#       Copyright (C) 2021      Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -835,7 +834,7 @@ class TopologicalManifold(ManifoldSubset):
 
         We have then::
 
-            sage: A.subsets()  # random (set output)
+            sage: frozenset(A.subsets())  # random (set output)
             {Open subset B of the 2-dimensional topological manifold M,
              Open subset A of the 2-dimensional topological manifold M}
             sage: B.is_subset(A)
@@ -905,9 +904,10 @@ class TopologicalManifold(ManifoldSubset):
             Open subset U of the 2-dimensional topological manifold R^2
         """
         resu._calculus_method = self._calculus_method
-        resu._supersets.update(self._supersets)
-        for sd in self._supersets:
-            sd._subsets.add(resu)
+        if self.is_empty():
+            self.declare_equal(resu)
+        else:
+            self.declare_superset(resu)
         self._top_subsets.add(resu)
         # Charts on the result from the coordinate definition:
         for chart, restrictions in coord_def.items():
@@ -1864,7 +1864,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: CU = U.scalar_field_algebra() ; CU
             Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
             sage: CU.category()
-            Category of commutative algebras over Symbolic Ring
+            Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
             sage: CU.zero()
             Scalar field zero on the Open subset U of the 3-dimensional topological manifold M
 

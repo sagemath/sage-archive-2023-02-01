@@ -20,7 +20,12 @@ SAGE_SPKG_CONFIGURE([curl], [
 
            AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <curl/curl.h>]],[[
              curl_easy_setopt(NULL,CURLOPT_URL,NULL);
-           ]])], sage_libcurl_cv_lib_curl_executable=yes, sage_libcurl_cv_lib_curl_executable=no)
+           ]])], sage_libcurl_cv_lib_curl_executable=yes, sage_libcurl_cv_lib_curl_executable=no, [
+              dnl cross compiling. link only
+              AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <curl/curl.h>]],[[
+               curl_easy_setopt(NULL,CURLOPT_URL,NULL);
+             ]])], sage_libcurl_cv_lib_curl_executable=yes, sage_libcurl_cv_lib_curl_executable=no)]
+           )
       ])
     AS_IF([test "$sage_libcurl_cv_lib_curl_executable" = "no"], [sage_spkg_install_curl=yes])
 ])

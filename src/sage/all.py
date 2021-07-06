@@ -72,7 +72,8 @@ if __with_pydebug:
     warnings.filterwarnings('ignore', category=ResourceWarning)
 else:
     deprecationWarning = ('ignore', None, DeprecationWarning, None, 0)
-    if deprecationWarning in warnings.filters: warnings.filters.remove(deprecationWarning)
+    if deprecationWarning in warnings.filters:
+        warnings.filters.remove(deprecationWarning)
 
 # The psutil swap_memory() function tries to collect some statistics
 # that may not be available and that we don't need. Hide the warnings

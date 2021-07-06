@@ -10665,19 +10665,19 @@ cdef class Matrix(Matrix1):
           correctness. Set this to ``False`` for a speedup if the eigenvalues
           are known to be correct.
 
-        NOTES:
+        .. NOTE::
 
-        Currently, the Jordan normal form is not computed over inexact rings
-        in any but the trivial cases when the matrix is either `0 \times 0`
-        or `1 \times 1`.
+            Currently, the Jordan normal form is not computed over
+            inexact rings in any but the trivial cases when the matrix
+            is either `0 \times 0` or `1 \times 1`.
 
-        In the case of exact rings, this method does not compute any
-        generalized form of the Jordan normal form, but is only able to
-        compute the result if the characteristic polynomial of the matrix
-        splits over the specific base ring.
+            In the case of exact rings, this method does not compute any
+            generalized form of the Jordan normal form, but is only able to
+            compute the result if the characteristic polynomial of the matrix
+            splits over the specific base ring.
 
-        Note that the base ring must be a field or a ring with an implemented
-        fraction field.
+            Note that the base ring must be a field or a ring with an
+            implemented fraction field.
 
         EXAMPLES::
 
@@ -17731,16 +17731,17 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
         i, n, k = i + 1, n - 1, k - 1
     return result
 
+
 def _jordan_form_vector_in_difference(V, W):
     r"""
     Given two lists of vectors ``V`` and ``W`` over the same base field,
     returns a vector in the difference ``V - W``.  If the difference is
     empty, returns ``None``.
 
-    NOTES:
+    .. NOTE::
 
-    This is meant to be a private helper method for the ``jordan_form`` method
-    in the above class.
+        This is meant to be a private helper method for the
+        ``jordan_form`` method in the above class.
 
     TESTS::
 

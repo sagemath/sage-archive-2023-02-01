@@ -109,17 +109,17 @@ def is_atomic_wedge_txt(expression):
         sage: from sage.tensor.modules.format_utilities import is_atomic_wedge_txt
         sage: is_atomic_wedge_txt("a")
         True
-        sage: is_atomic_wedge_txt(r"a/\b")
+        sage: is_atomic_wedge_txt(r"a∧b")
         False
-        sage: is_atomic_wedge_txt(r"(a/\b)")
+        sage: is_atomic_wedge_txt(r"(a∧b)")
         True
-        sage: is_atomic_wedge_txt(r"(a/\b)/\c")
+        sage: is_atomic_wedge_txt(r"(a∧b)∧c")
         False
-        sage: is_atomic_wedge_txt(r"(a/\b/\c)")
+        sage: is_atomic_wedge_txt(r"(a∧b∧c)")
         True
 
     """
-    return is_atomic(expression, sep=['/\\'])
+    return is_atomic(expression, sep=['∧'])
 
 
 def is_atomic_wedge_latex(expression):

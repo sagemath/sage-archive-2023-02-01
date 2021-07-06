@@ -97,7 +97,8 @@ SAGE_SPKG_CONFIGURE([pari], [
                   [return vers!=$gp_version;]])],
                 [AC_MSG_RESULT([libpari's and GP's versions match. Good])],
 	        [AC_MSG_RESULT([libpari's version does not match GP's version. Not good])
-		         sage_spkg_install_pari=yes])
+		         sage_spkg_install_pari=yes],
+                 [AC_MSG_RESULT([cross compiling. Assume they match])])
               AC_MSG_CHECKING([is GP's version good enough? ])
               AX_COMPARE_VERSION([$gp_version], [ge], [$SAGE_PARI_MINVER], [
                   AC_MSG_RESULT([yes])
@@ -120,13 +121,15 @@ SAGE_SPKG_CONFIGURE([pari], [
                         [[return strcmp(PARI_MT_ENGINE, "pthread") != 0]])],
                        [AC_MSG_RESULT([yes. Good])],
                        [AC_MSG_RESULT([no. Not good])
-                        sage_spkg_install_pari=yes])
+                        sage_spkg_install_pari=yes],
+                       [AC_MSG_RESULT([cross compiling. Assume yes])])
                     ],
                     [AC_MSG_RESULT([libpari's datadir does not match GP's datadir. Not good])
-                     sage_spkg_install_pari=yes])
+                    sage_spkg_install_pari=yes],
+                    [AC_MSG_RESULT([cross compiling. Assume yes])])
                  ], [
                   AC_MSG_RESULT([no])
-                  sage_spkg_install_pari=yes])
+                  sage_spkg_install_pari=yes], [AC_MSG_RESULT([cross compiling. Assume yes])])
               AC_LANG_POP()
         ], [sage_spkg_install_pari=yes])
       fi dnl end main PARI test

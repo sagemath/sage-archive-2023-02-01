@@ -39,7 +39,7 @@ ring::
 Power series can be defined recursively::
 
     sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-    sage: L.series(lambda s,n: (1 + z*s^2)[n], valuation=0)
+    sage: L.series(lambda s,n: (1 + z*s^2)[n], True, approximate_valuation=0)
     1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
 
 AUTHORS:
@@ -218,13 +218,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         R = self.base_ring()
 
-        # op = LazyLaurentSeriesOperator_constant(self, R(x))
+        # Always a sparse implementation.
         op = lambda n: R(x) if n == 0 else self.base_ring().zero()
 
         aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=0, constant=(R.zero(), 1))
         return self.element_class(self, aux)
 
     def _an_element_(self, is_sparse=True):
+        # Always a sparse implementation.
         """
         Return a Laurent series in this ring.
 
@@ -270,7 +271,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         return self._element_constructor_(0)
 
-    # def series(self, coefficient, valuation, constant=None):
     def series(self, coefficient_function, is_sparse, approximate_valuation, constant=None):
         r"""
         Return a lazy Laurent series.
@@ -279,6 +279,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         - ``coefficient_function`` -- Python function that computes coefficients
 
+        - ``issparse`` -- Boolean that determines whether the implementation is sparse or dense
+
         - ``approximate_valuation`` -- integer; approximate valuation of the series
 
         - ``constant`` -- either ``None`` or pair of an element of the base ring and an integer
@@ -286,20 +288,20 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         Let the coefficient of index `i` mean the coefficient of the term of the
         series with exponent `i`.
 
-        Python function ``coefficient`` returns the value of the coefficient of
-        index `i` from input `s` and `i` where `s` is the series itself.
+        Python function ``coefficient_function`` returns the value of the coefficient of
+        index `i` from input.
 
-        Let ``valuation`` be `n`. All coefficients of index below `n` are zero.
-        If ``constant`` is ``None``, then the ``coefficient`` function is responsible to
-        compute the values of all coefficients of index `\ge n`. If
-        ``constant`` is a pair `(c,m)`, then the ``coefficient`` function is responsible
-        to compute the values of all coefficients of index `\ge n` and `< m`
-        and all the coefficients of index `\ge m` is the constant `c`.
+        Let ``approximate_valuation`` be `n`. All coefficients of index below `n` are zero.  If
+        ``constant`` is ``None``, then the ``coefficient_function`` function is responsible
+        to compute the values of all coefficients of index `\ge n`. If ``constant``
+        is a pair `(c,m)`, then the ``coefficient_function`` function is responsible to
+        compute the values of all coefficients of index `\ge n` and `< m` and all
+        the coefficients of index `\ge m` is the constant `c`.
 
         EXAMPLES::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: L.series(lambda s, i: i, 5, (1,10))
+            sage: L.series(lambda i: i, True, 5, (1,10))
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
 
             sage: def g(s, i):
@@ -318,7 +320,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: f.coefficient(30)
             -219
 
-        Alternatively, the ``coefficient`` can be a list of elements of the
+        Alternatively, the ``coefficient_function`` can be a list of elements of the
         base ring. Then these elements are read as coefficients of the terms of
         degrees starting from the ``valuation``. In this case, ``constant``
         may be just an element of the base ring instead of a tuple or can be
@@ -327,10 +329,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: f = L.series([1,2,3,4], -5)
+            sage: f = L.series([1,2,3,4], True -5)
             sage: f
             z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
-            sage: g = L.series([1,3,5,7,9], 5, -1)
+            sage: g = L.series([1,3,5,7,9], True, 5, -1)
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
         """

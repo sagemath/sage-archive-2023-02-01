@@ -30,6 +30,7 @@ from .constructor                 import ModularForms
 from .element import is_ModularFormElement, GradedModularFormElement
 from .space import is_ModularFormsSpace
 from random import shuffle
+from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -314,6 +315,57 @@ class ModularFormsRing(Parent):
             congruence subgroup can be very long.
         """
         return len(self.gen_forms())
+
+    def _weights_of_generators(self):
+        r"""
+        Return a list of the weights of generators of the given `ModularFormsRing`
+
+        EXAMPLES::
+
+            sage: ModularFormsRing(1)._weights_of_generators()
+            [4, 6]
+            sage: ModularFormsRing(Gamma0(6))._weights_of_generators()
+            [2, 2, 2]
+        """
+        return [self.gen(i).weight() for i in range(0, self.ngens())]
+
+    def _monomials_of_weight(self, weight):
+        r"""
+        Returns the list of all homogeneous monomials of weight `weight` given by products of generators.
+
+        EXAMPLES::
+
+        sage: M = ModularFormsRing(1)
+        sage: M._monomials_of_weight(10)
+        [1 - 264*q - 135432*q^2 - 5196576*q^3 - 69341448*q^4 - 515625264*q^5 + O(q^6)]
+        sage: M._monomials_of_weight(12)
+        [1 - 1008*q + 220752*q^2 + 16519104*q^3 + 399517776*q^4 + 4624512480*q^5 + O(q^6),
+        1 + 720*q + 179280*q^2 + 16954560*q^3 + 396974160*q^4 + 4632858720*q^5 + O(q^6)]
+        sage: M._monomials_of_weight(24)
+        [1 - 2016*q + 1457568*q^2 - 411997824*q^3 + 16227967392*q^4 + 6497071680960*q^5 + O(q^6),
+        1 - 288*q - 325728*q^2 + 11700864*q^3 + 35176468896*q^4 + 6601058210880*q^5 + O(q^6),
+        1 + 1440*q + 876960*q^2 + 292072320*q^3 + 57349833120*q^4 + 6660135541440*q^5 + O(q^6)]
+        sage: M = ModularFormsRing(Gamma0(6))
+        sage: M._monomials_of_weight(4)
+        [q^4 - 4*q^5 + O(q^6),
+        q^3 - 2*q^4 + 8*q^5 + O(q^6),
+        q^2 - 2*q^3 + 3*q^4 + 24*q^5 + O(q^6),
+        q^2 + 10*q^4 - 4*q^5 + O(q^6),
+        q + 5*q^3 + 22*q^4 + 6*q^5 + O(q^6),
+        1 + 48*q^3 + O(q^6)]
+        """
+        W = WeightedIntegerVectors(weight, self._weights_of_generators()).list()
+        if len(W) == 0:
+            raise ValueError("there is no modular forms of the given weight (%s) for %s"%(weight, self.group()))
+        gens = self.gen_forms()
+        list_of_monomials = []
+        for exponents in W:
+            monomial = 1
+            for e, g in zip(exponents, gens):
+                g = self(g) # TODO: fix f**pow if f is a ModularFormsElement
+                monomial *= g**e
+            list_of_monomials.append(monomial)
+        return list_of_monomials
 
     def _element_constructor_(self, forms_datas):
         r"""

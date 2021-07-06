@@ -117,11 +117,8 @@ The inverse of the transition map is computed by the method
 
 At this stage, we have four open subsets on `S^2`::
 
-    sage: M.list_of_subsets()
-    [2-dimensional topological manifold S^2,
-     Open subset U of the 2-dimensional topological manifold S^2,
-     Open subset V of the 2-dimensional topological manifold S^2,
-     Open subset W of the 2-dimensional topological manifold S^2]
+    sage: M.subset_family()
+    Set {S^2, U, V, W} of open subsets of the 2-dimensional topological manifold S^2
 
 `W` is the open subset that is the complement of the two poles::
 
@@ -176,9 +173,9 @@ A continuous map `S^2 \to \RR` (scalar field)::
     sage: f
     Scalar field f on the 2-dimensional topological manifold S^2
     sage: f.display()
-    f: S^2 --> R
-    on U: (x, y) |--> arctan(x^2 + y^2)
-    on V: (u, v) |--> 1/2*pi - arctan(u^2 + v^2)
+    f: S^2 → ℝ
+    on U: (x, y) ↦ arctan(x^2 + y^2)
+    on V: (u, v) ↦ 1/2*pi - arctan(u^2 + v^2)
     sage: f(p)
     arctan(5)
     sage: f(N)
@@ -188,7 +185,7 @@ A continuous map `S^2 \to \RR` (scalar field)::
     sage: f.parent()
     Algebra of scalar fields on the 2-dimensional topological manifold S^2
     sage: f.parent().category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
 
 
 .. RUBRIC:: Example 2: the Riemann sphere as a topological manifold of
@@ -197,8 +194,8 @@ A continuous map `S^2 \to \RR` (scalar field)::
 We declare the Riemann sphere `\CC^*` as a 1-dimensional topological manifold
 over `\CC`::
 
-    sage: M = Manifold(1, 'C*', structure='topological', field='complex'); M
-    Complex 1-dimensional topological manifold C*
+    sage: M = Manifold(1, 'ℂ*', structure='topological', field='complex'); M
+    Complex 1-dimensional topological manifold ℂ*
 
 We introduce a first open subset, which is actually
 `\CC = \CC^*\setminus\{\infty\}` if we interpret `\CC^*` as the
@@ -214,7 +211,7 @@ we denote the associated coordinate by `z`::
 The origin of the complex plane is the point of coordinate `z = 0`::
 
     sage: O = U.point((0,), chart=Z, name='O'); O
-    Point O on the Complex 1-dimensional topological manifold C*
+    Point O on the Complex 1-dimensional topological manifold ℂ*
 
 Another open subset of `\CC^*` is `V = \CC^*\setminus\{O\}`::
 
@@ -227,7 +224,7 @@ coordinate `0` in this chart::
     Chart (V, (w,))
     sage: inf = M.point((0,), chart=W, name='inf', latex_name=r'\infty')
     sage: inf
-    Point inf on the Complex 1-dimensional topological manifold C*
+    Point inf on the Complex 1-dimensional topological manifold ℂ*
 
 To fully construct the Riemann sphere, we declare that it is the union
 of `U` and `V`::
@@ -251,7 +248,7 @@ on `A = U \cap V`::
 Let consider the complex number `i` as a point of the Riemann sphere::
 
     sage: i = M((I,), chart=Z, name='i'); i
-    Point i on the Complex 1-dimensional topological manifold C*
+    Point i on the Complex 1-dimensional topological manifold ℂ*
 
 Its coordinates w.r.t. the charts ``Z`` and ``W`` are::
 
@@ -269,22 +266,19 @@ and we have::
 
 The following subsets and charts have been defined::
 
-    sage: M.list_of_subsets()
-    [Open subset A of the Complex 1-dimensional topological manifold C*,
-     Complex 1-dimensional topological manifold C*,
-     Open subset U of the Complex 1-dimensional topological manifold C*,
-     Open subset V of the Complex 1-dimensional topological manifold C*]
+    sage: M.subset_family()
+    Set {A, U, V, ℂ*} of open subsets of the Complex 1-dimensional topological manifold ℂ*
     sage: M.atlas()
     [Chart (U, (z,)), Chart (V, (w,)), Chart (A, (z,)), Chart (A, (w,))]
 
 A constant map `\CC^* \rightarrow \CC`::
 
     sage: f = M.constant_scalar_field(3+2*I, name='f'); f
-    Scalar field f on the Complex 1-dimensional topological manifold C*
+    Scalar field f on the Complex 1-dimensional topological manifold ℂ*
     sage: f.display()
-    f: C* --> C
-    on U: z |--> 2*I + 3
-    on V: w |--> 2*I + 3
+    f: ℂ* → ℂ
+    on U: z ↦ 2*I + 3
+    on V: w ↦ 2*I + 3
     sage: f(O)
     2*I + 3
     sage: f(i)
@@ -293,9 +287,9 @@ A constant map `\CC^* \rightarrow \CC`::
     2*I + 3
     sage: f.parent()
     Algebra of scalar fields on the Complex 1-dimensional topological
-     manifold C*
+     manifold ℂ*
     sage: f.parent().category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
 
 AUTHORS:
 
@@ -316,8 +310,13 @@ REFERENCES:
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2015-2020 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015      Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2016      Andrew Mathas
+#       Copyright (C) 2018      Florentin Jaffredo
+#       Copyright (C) 2019      Hans Fotsing Tetsing
+#       Copyright (C) 2019-2020 Michael Jung
+#       Copyright (C) 2021      Matthias Koeppe <mkoeppe@math.ucdavis.edu>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -782,7 +781,7 @@ class TopologicalManifold(ManifoldSubset):
                     return True
         return False
 
-    def open_subset(self, name, latex_name=None, coord_def={}):
+    def open_subset(self, name, latex_name=None, coord_def={}, supersets=None):
         r"""
         Create an open subset of the manifold.
 
@@ -800,6 +799,8 @@ class TopologicalManifold(ManifoldSubset):
           terms of coordinates; ``coord_def`` must a be dictionary with keys
           charts on the manifold and values the symbolic expressions formed
           by the coordinates to define the subset
+        - ``supersets`` -- (default: only ``self``) list of sets that the
+          new open subset is a subset of
 
         OUTPUT:
 
@@ -833,7 +834,7 @@ class TopologicalManifold(ManifoldSubset):
 
         We have then::
 
-            sage: A.subsets()  # random (set output)
+            sage: frozenset(A.subsets())  # random (set output)
             {Open subset B of the 2-dimensional topological manifold M,
              Open subset A of the 2-dimensional topological manifold M}
             sage: B.is_subset(A)
@@ -872,10 +873,41 @@ class TopologicalManifold(ManifoldSubset):
                                    base_manifold=self._manifold,
                                    latex_name=latex_name,
                                    start_index=self._sindex)
+        if supersets is None:
+            supersets = [self]
+        for superset in supersets:
+            superset._init_open_subset(resu, coord_def=coord_def)
+        return resu
+
+    def _init_open_subset(self, resu, coord_def):
+        r"""
+        Initialize ``resu`` as an open subset of ``self``.
+
+        INPUT:
+
+        - ``resu`` -- an instance of ``:class:`TopologicalManifold` or
+          a subclass.
+
+        - ``coord_def`` -- (default: {}) definition of the subset in
+          terms of coordinates; ``coord_def`` must a be dictionary with keys
+          charts on the manifold and values the symbolic expressions formed
+          by the coordinates to define the subset
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+            sage: from sage.manifolds.manifold import TopologicalManifold
+            sage: U = TopologicalManifold(2, 'U', field=M._field, structure=M._structure, base_manifold=M)
+            sage: M._init_open_subset(U, coord_def={c_cart: x^2+y^2<1})
+            sage: U
+            Open subset U of the 2-dimensional topological manifold R^2
+        """
         resu._calculus_method = self._calculus_method
-        resu._supersets.update(self._supersets)
-        for sd in self._supersets:
-            sd._subsets.add(resu)
+        if self.is_empty():
+            self.declare_equal(resu)
+        else:
+            self.declare_superset(resu)
         self._top_subsets.add(resu)
         # Charts on the result from the coordinate definition:
         for chart, restrictions in coord_def.items():
@@ -888,7 +920,6 @@ class TopologicalManifold(ManifoldSubset):
             for chart2 in coord_def:
                 if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
                     self._coord_changes[(chart1, chart2)].restrict(resu)
-        return resu
 
     def get_chart(self, coordinates, domain=None):
         r"""
@@ -1833,7 +1864,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: CU = U.scalar_field_algebra() ; CU
             Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
             sage: CU.category()
-            Category of commutative algebras over Symbolic Ring
+            Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
             sage: CU.zero()
             Scalar field zero on the Open subset U of the 3-dimensional topological manifold M
 
@@ -1902,8 +1933,8 @@ class TopologicalManifold(ManifoldSubset):
             sage: f = U.scalar_field(sin(x)*cos(y) + z, name='F'); f
             Scalar field F on the Open subset U of the 3-dimensional topological manifold M
             sage: f.display()
-            F: U --> R
-               (x, y, z) |--> cos(y)*sin(x) + z
+            F: U → ℝ
+               (x, y, z) ↦ cos(y)*sin(x) + z
             sage: f.parent()
             Algebra of scalar fields on the Open subset U of the 3-dimensional topological manifold M
             sage: f in U.scalar_field_algebra()
@@ -1913,15 +1944,15 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: f = U.scalar_field(sin(x)*cos(y) + z, chart=c_xyz, name='F')
             sage: f.display()
-            F: U --> R
-               (x, y, z) |--> cos(y)*sin(x) + z
+            F: U → ℝ
+               (x, y, z) ↦ cos(y)*sin(x) + z
 
         Equivalent definition with a dictionary of coordinate expression(s)::
 
             sage: f = U.scalar_field({c_xyz: sin(x)*cos(y) + z}, name='F')
             sage: f.display()
-            F: U --> R
-               (x, y, z) |--> cos(y)*sin(x) + z
+            F: U → ℝ
+               (x, y, z) ↦ cos(y)*sin(x) + z
 
         See the documentation of class
         :class:`~sage.manifolds.scalarfield.ScalarField` for more
@@ -1978,9 +2009,9 @@ class TopologicalManifold(ManifoldSubset):
             sage: f = M.constant_scalar_field(-1) ; f
             Scalar field on the 2-dimensional topological manifold M
             sage: f.display()
-            M --> R
-            on U: (x, y) |--> -1
-            on V: (u, v) |--> -1
+            M → ℝ
+            on U: (x, y) ↦ -1
+            on V: (u, v) ↦ -1
 
         We have::
 
@@ -2015,8 +2046,8 @@ class TopologicalManifold(ManifoldSubset):
             sage: f = M.zero_scalar_field() ; f
             Scalar field zero on the 2-dimensional topological manifold M
             sage: f.display()
-            zero: M --> R
-               (x, y) |--> 0
+            zero: M → ℝ
+               (x, y) ↦ 0
             sage: f.parent()
             Algebra of scalar fields on the 2-dimensional topological manifold M
             sage: f is M.scalar_field_algebra().zero()
@@ -2043,8 +2074,8 @@ class TopologicalManifold(ManifoldSubset):
             sage: f = M.one_scalar_field(); f
             Scalar field 1 on the 2-dimensional topological manifold M
             sage: f.display()
-            1: M --> R
-               (x, y) |--> 1
+            1: M → ℝ
+               (x, y) ↦ 1
             sage: f.parent()
             Algebra of scalar fields on the 2-dimensional topological manifold M
             sage: f is M.scalar_field_algebra().one()
@@ -2326,8 +2357,8 @@ class TopologicalManifold(ManifoldSubset):
             Homeomorphism Phi from the 2-dimensional topological manifold M to
              the 2-dimensional topological manifold N
             sage: Phi.display()
-            Phi: M --> N
-               (x, y) |--> (X, Y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
+            Phi: M → N
+               (x, y) ↦ (X, Y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
 
         The inverse homeomorphism::
 
@@ -2335,8 +2366,8 @@ class TopologicalManifold(ManifoldSubset):
             Homeomorphism Phi^(-1) from the 2-dimensional topological
              manifold N to the 2-dimensional topological manifold M
             sage: (Phi^(-1)).display()
-            Phi^(-1): N --> M
-               (X, Y) |--> (x, y) = (X/sqrt(X^2 + Y^2 + 1), Y/sqrt(X^2 + Y^2 + 1))
+            Phi^(-1): N → M
+               (X, Y) ↦ (x, y) = (X/sqrt(X^2 + Y^2 + 1), Y/sqrt(X^2 + Y^2 + 1))
 
         See the documentation of
         :class:`~sage.manifolds.continuous_map.ContinuousMap` for more
@@ -2395,8 +2426,8 @@ class TopologicalManifold(ManifoldSubset):
              to Complex 2-dimensional topological manifold M in Category of
              manifolds over Complex Field with 53 bits of precision
             sage: id.display()
-            Id_M: M --> M
-               (x, y) |--> (x, y)
+            Id_M: M → M
+               (x, y) ↦ (x, y)
 
         The identity map acting on a point::
 
@@ -2450,8 +2481,8 @@ class TopologicalManifold(ManifoldSubset):
             sage: parent(f.expr())
             Symbolic Ring
             sage: f.display()
-            F: M --> R
-               (x, y) |--> x^2 + cos(y)*sin(x)
+            F: M → ℝ
+               (x, y) ↦ x^2 + cos(y)*sin(x)
 
         If we change the calculus method to SymPy, it becomes a SymPy object
         instead::
@@ -2464,15 +2495,15 @@ class TopologicalManifold(ManifoldSubset):
             sage: parent(f.expr())
             <class 'sympy.core.add.Add'>
             sage: f.display()
-            F: M --> R
-               (x, y) |--> x**2 + sin(x)*cos(y)
+            F: M → ℝ
+               (x, y) ↦ x**2 + sin(x)*cos(y)
 
         Back to the Symbolic Ring::
 
             sage: M.set_calculus_method('SR')
             sage: f.display()
-            F: M --> R
-               (x, y) |--> x^2 + cos(y)*sin(x)
+            F: M → ℝ
+               (x, y) ↦ x^2 + cos(y)*sin(x)
 
         The calculus method chosen via ``set_calculus_method()`` applies to any
         chart defined subsequently on the manifold::

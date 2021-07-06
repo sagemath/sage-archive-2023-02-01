@@ -62,7 +62,8 @@ lazy_import('sage.misc.pager', 'pager')
 lazy_import('sage.misc.sagedoc', ['browse_sage_doc',
         'search_src', 'search_def', 'search_doc',
         'tutorial', 'reference', 'manual', 'developer',
-        'constructions', 'python_help', 'help'])
+        'constructions', 'help'])
+lazy_import('pydoc', 'help', 'python_help')
 
 from .classgraph import class_graph
 

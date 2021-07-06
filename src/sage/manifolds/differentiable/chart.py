@@ -242,9 +242,9 @@ class DiffChart(Chart):
     A vector frame is naturally associated to each chart::
 
         sage: X.frame()
-        Coordinate frame (M, (d/dx,d/dy))
+        Coordinate frame (M, (∂/∂x,∂/∂y))
         sage: Y.frame()
-        Coordinate frame (U, (d/dz1,d/dz2))
+        Coordinate frame (U, (∂/∂z1,∂/∂z2))
 
     as well as a dual frame (basis of 1-forms)::
 
@@ -357,12 +357,9 @@ class DiffChart(Chart):
         The subset `W`, intersection of `U` and `V`, has been created by
         ``transition_map()``::
 
-            sage: M.list_of_subsets()
-            [1-dimensional differentiable manifold S^1,
-             Open subset U of the 1-dimensional differentiable manifold S^1,
-             Open subset V of the 1-dimensional differentiable manifold S^1,
-             Open subset W of the 1-dimensional differentiable manifold S^1]
-            sage: W = M.list_of_subsets()[3]
+            sage: F = M.subset_family(); F
+            Set {S^1, U, V, W} of open subsets of the 1-dimensional differentiable manifold S^1
+            sage: W = F['W']
             sage: W is U.intersection(V)
             True
             sage: M.atlas()
@@ -385,9 +382,8 @@ class DiffChart(Chart):
 
         In this case, no new subset has been created since `U\cap M = U`::
 
-            sage: M.list_of_subsets()
-            [2-dimensional differentiable manifold R^2,
-             Open subset U of the 2-dimensional differentiable manifold R^2]
+            sage: M.subset_family()
+            Set {R^2, U} of open subsets of the 2-dimensional differentiable manifold R^2
 
         but a new chart has been created: `(U, (x, y))`::
 
@@ -427,7 +423,7 @@ class DiffChart(Chart):
             sage: M = Manifold(2, 'M')
             sage: c_xy.<x,y> = M.chart()
             sage: c_xy.frame()
-            Coordinate frame (M, (d/dx,d/dy))
+            Coordinate frame (M, (∂/∂x,∂/∂y))
             sage: type(c_xy.frame())
             <class 'sage.manifolds.differentiable.vectorframe.CoordFrame'>
 
@@ -435,21 +431,21 @@ class DiffChart(Chart):
         with the coordinates `(x,y)`::
 
             sage: ex = c_xy.frame()[0] ; ex
-            Vector field d/dx on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂x on the 2-dimensional differentiable manifold M
             sage: ey = c_xy.frame()[1] ; ey
-            Vector field d/dy on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂y on the 2-dimensional differentiable manifold M
             sage: ex(M.scalar_field(x)).display()
-            M --> R
-            (x, y) |--> 1
+            1: M → ℝ
+               (x, y) ↦ 1
             sage: ex(M.scalar_field(y)).display()
-            M --> R
-            (x, y) |--> 0
+            zero: M → ℝ
+               (x, y) ↦ 0
             sage: ey(M.scalar_field(x)).display()
-            M --> R
-            (x, y) |--> 0
+            zero: M → ℝ
+               (x, y) ↦ 0
             sage: ey(M.scalar_field(y)).display()
-            M --> R
-            (x, y) |--> 1
+            1: M → ℝ
+               (x, y) ↦ 1
 
         """
         return self._frame
@@ -484,21 +480,21 @@ class DiffChart(Chart):
             sage: dy = c_xy.coframe()[1] ; dy
             1-form dy on the 2-dimensional differentiable manifold M
             sage: ex = c_xy.frame()[0] ; ex
-            Vector field d/dx on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂x on the 2-dimensional differentiable manifold M
             sage: ey = c_xy.frame()[1] ; ey
-            Vector field d/dy on the 2-dimensional differentiable manifold M
+            Vector field ∂/∂y on the 2-dimensional differentiable manifold M
             sage: dx(ex).display()
-            dx(d/dx): M --> R
-               (x, y) |--> 1
+            dx(∂/∂x): M → ℝ
+               (x, y) ↦ 1
             sage: dx(ey).display()
-            dx(d/dy): M --> R
-               (x, y) |--> 0
+            dx(∂/∂y): M → ℝ
+               (x, y) ↦ 0
             sage: dy(ex).display()
-            dy(d/dx): M --> R
-               (x, y) |--> 0
+            dy(∂/∂x): M → ℝ
+               (x, y) ↦ 0
             sage: dy(ey).display()
-            dy(d/dy): M --> R
-               (x, y) |--> 1
+            dy(∂/∂y): M → ℝ
+               (x, y) ↦ 1
 
         """
         return self._coframe
@@ -563,7 +559,7 @@ class DiffChart(Chart):
                 sframe._restrictions[subset] = resu._frame
             # The subchart frame is not a "top frame" in the supersets
             # (including self._domain):
-            for dom in self._domain._supersets:
+            for dom in self._domain.open_supersets():
                 if resu._frame in dom._top_frames:
                     # it was added by the Chart constructor invoked in
                     # Chart.restrict above
@@ -931,9 +927,9 @@ class RealDiffChart(DiffChart, RealChart):
     A vector frame is naturally associated to each chart::
 
         sage: c_cart.frame()
-        Coordinate frame (R^3, (d/dx,d/dy,d/dz))
+        Coordinate frame (R^3, (∂/∂x,∂/∂y,∂/∂z))
         sage: c_spher.frame()
-        Coordinate frame (U, (d/dr,d/dth,d/dph))
+        Coordinate frame (U, (∂/∂r,∂/∂th,∂/∂ph))
 
     as well as a dual frame (basis of 1-forms)::
 
@@ -1046,7 +1042,7 @@ class RealDiffChart(DiffChart, RealChart):
                 sframe._restrictions[subset] = resu._frame
             # The subchart frame is not a "top frame" in the supersets
             # (including self._domain):
-            for dom in self._domain._supersets:
+            for dom in self._domain.open_supersets():
                 if resu._frame in dom._top_frames:
                     # it was added by the Chart constructor invoked in
                     # Chart.restrict above
@@ -1138,7 +1134,7 @@ class DiffCoordChange(CoordChange):
             ch_basis.add_comp(frame1)[:, chart1] = self._jacobian
             ch_basis.add_comp(frame2)[:, chart1] = self._jacobian
             vf_module._basis_changes[(frame2, frame1)] = ch_basis
-            for sdom in domain._supersets:
+            for sdom in domain.open_supersets():
                 sdom._frame_changes[(frame2, frame1)] = ch_basis
             # The inverse is computed only if it does not exist already
             # (because if it exists it may have a simpler expression than that
@@ -1146,7 +1142,7 @@ class DiffCoordChange(CoordChange):
             if (frame1, frame2) not in vf_module._basis_changes:
                 ch_basis_inv = ch_basis.inverse()
                 vf_module._basis_changes[(frame1, frame2)] = ch_basis_inv
-                for sdom in domain._supersets:
+                for sdom in domain.open_supersets():
                     sdom._frame_changes[(frame1, frame2)] = ch_basis_inv
 
     def jacobian(self):

@@ -4634,7 +4634,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         - ``type`` -- (default: ``'point'``) string; either ``'point'``
           or ``'cycle'`` depending on whether you compute with one
-          multiplier per point or one per cycle
+          multiplier per point or one per cycle. Not implemented for
+          dimension greater than 1.
 
         - ``return polynomial`` -- (default: ``False``) boolean;
           ``True`` specifies returning the polynomial which generates
@@ -4691,8 +4692,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x^2, z^2, y^2])
             sage: f.sigma_invariants(1)
-            [3, 6, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, -3, -2, 4, 0,
-            0, 3, 4, -8, -8, 0, -1, -2, 4, 8, 0, 0, 0]
+            [3, 6, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 3, -2, -4, 0, 0, 3, -4, -8, 8, 0,
+                1, -2, -4, 8, 0, 0, 0]
 
         When calculating the sigma invariants for `\mathbb{P}^N`, with `N > 1`,
         the default algorithm loses information about multiplicities. Note that
@@ -4830,33 +4831,61 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             deprecation(23333, "embedding keyword no longer used")
         if self.degree() <= 1:
             raise TypeError("must have degree at least 2")
+        if not type in ['point', 'cycle']:
+            raise ValueError("type must be either point or cycle")
         if dom.dimension_relative() > 1 or return_polynomial:
+            if type == 'cycle':
+                raise NotImplementedError('cycle not implemented for dimension greater than 1')
+            base_ring = self.base_ring()
+            if isinstance(base_ring, FractionField_1poly_field) or is_FunctionField(base_ring):
+                raise NotImplementedError('Sigma invariants not implemented for fraction function fields.'
+                + 'Clear denominators and use the polynomial ring instead.')
             d = self.degree()
             N = dom.dimension_relative()
             Fn = self.nth_iterate_map(n)
-            base_ring = self.base_ring()
-            X = Fn.periodic_points(1, minimal=False, formal=formal, return_scheme=True)
-            newR = PolynomialRing(base_ring, 'w, t', 2, order='lex')
+            if not base_ring.is_field():
+                F = FractionField(base_ring)
+                Fn.normalize_coordinates()
+                X = Fn.change_ring(base_ring).periodic_points(1, minimal=False, formal=formal, return_scheme=True)
+                X = X.change_ring(F)
+            else:
+                F = base_ring
+                X = Fn.periodic_points(1, minimal=False, formal=formal, return_scheme=True)
+            newR_unordered = PolynomialRing(base_ring, 'w, t', 2)
+            newR = newR_unordered.change_ring(order='lex')
             if chow:
                 # create full polynomial ring
-                R = PolynomialRing(base_ring, 'v', N+N+3, order='lex')
+                R_unordered = PolynomialRing(base_ring, 'v', 2*N+3)
+                R = R_unordered.change_ring(order='lex')
                 var = list(R.gens())
                 # create polynomial ring for result
                 R2 = PolynomialRing(base_ring, var[:N] + var[-2:])
                 psi = R2.hom(N*[0]+list(newR.gens()), newR)
                 # create substition to set extra variables to 0
                 R_zero = {R.gen(N):1}
-                for j in range(N+1, N+N+1):
+                for j in range(N+1, 2*N+1):
                     R_zero[R.gen(j)] = 0
                 t = var.pop()
                 w = var.pop()
                 var = var[:N]
             else:
-                R = PolynomialRing(base_ring,'v', N+2, order='lex')
-                psi = R.hom(N*[0] + list(newR.gens()), newR)
+                R_unordered = PolynomialRing(base_ring, 'v', N+2)
+                R = R_unordered.change_ring(order='lex')
+                psi = R_unordered.hom(N*[0] + list(newR_unordered.gens()), newR_unordered)
                 var = list(R.gens())
                 t = var.pop()
                 w = var.pop()
+            if is_FractionField(F):
+                if is_PolynomialRing(F.ring()) or is_MPolynomialRing(F.ring()):
+                    flat_phi = FlatteningMorphism(R)
+                    flatR_unordered = flat_phi.codomain()
+                    Id = matrix.identity(len(flatR_unordered.gens()) - len(F.gens()))
+                    Id2 = matrix.identity(len(F.gens()))
+                    from sage.matrix.special import block_matrix
+                    b = block_matrix([[ZZ(0), Id],[Id2, ZZ(0)]])
+                    from sage.rings.polynomial.term_order import TermOrder
+                    flatR = flatR_unordered.change_ring(order=TermOrder(b))
+                    unflat_phi = UnflatteningMorphism(flatR_unordered, R)
             sigma_polynomial = 1
             # go through each affine patch to avoid repeating periodic points
             # setting the visited coordiantes to 0 as we go
@@ -4871,7 +4900,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     im = [R.gen(i) for i in range(j)] + (N-j)*[0] + [R.gen(i) for i in range(N, R.ngens())]
                 else:
                     im = list(R.gens())[:j] + (N-j)*[0] + [R.gen(i) for i in range(N, R.ngens())]
-                phi = Ra.hom(Ra.gens(), R)
+                phi = Ra.hom(R.gens()[0:len(Ra.gens())])
                 # create polymomial that evaluates to the characteristic polynomial
                 M = t*matrix.identity(R, N)
                 g = (M-jacobian([phi(F.numerator())/phi(F.denominator()) for F in fa], var)).det()
@@ -4886,16 +4915,25 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 else:
                     L += [g_prime]
                 I = R.ideal(L)
+                if is_FractionField(F):
+                    I = flatR.ideal([flat_phi(poly) for poly in I.gens()])
                 # since R is lex ordering, this is an elimination step
                 G = I.groebner_basis()
                 # the polynomial we need is the one just in w and t
                 if chow:
-                    poly = psi(G[-1].specialization(R_zero))
+                    if is_FractionField(F):
+                        unflattened = unflat_phi(G[-1])
+                    else:
+                        unflattened = G[-1]
+                    poly = psi(unflattened.specialization(R_zero))
                     if len(list(poly)) > 0:
                         poly *= poly.coefficients()[0].inverse_of_unit()
                     sigma_polynomial *= poly
                 else:
-                    sigma_polynomial *= psi(G[-1])
+                    if is_FractionField(F):
+                        sigma_polynomial *= psi(unflat_phi(flatR_unordered(G[-1])))
+                    else:
+                        sigma_polynomial *= psi(flatR_unordered(G[-1]))
             if return_polynomial:
                 return sigma_polynomial
             # if we are returing a numerical list, read off the coefficients
@@ -4905,12 +4943,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             degree_w, degree_t = sigma_polynomial.degrees()
             w, t = sigma_polynomial.variables()
             sigmas += [degree_w, degree_t]
-            for i in range(degree_w, -1, -1):
-                for j in range(degree_t, -1, -1):
-                    sigmas.append(sigma_dictionary.pop(w**i*t**j, 0))
+            for i in range(degree_w+1):
+                for j in range(degree_t+1):
+                    sigmas.append((-1)**(i+j)*sigma_dictionary.pop(w**(degree_w - i)*t**(degree_t - j), 0))
             return sigmas
-        if not type in ['point', 'cycle']:
-            raise ValueError("type must be either point or cycle")
 
         base_ring = dom.base_ring()
         if is_FractionField(base_ring):

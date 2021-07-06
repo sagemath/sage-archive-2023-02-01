@@ -5875,6 +5875,9 @@ cdef class Expression(CommutativeRingElement):
             sage: var('a,b,c,x,y')
             (a, b, c, x, y)
             sage: len(a)
+            doctest:warning...
+            DeprecationWarning: using len on a symbolic expression is deprecated; use method number_of_operands instead
+            See https://trac.sagemath.org/29738 for details.
             0
             sage: len((a^2 + b^2 + (x+y)^2))
             3

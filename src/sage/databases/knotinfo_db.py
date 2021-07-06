@@ -439,9 +439,9 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         pkgs = list_packages(local=True)
         pkg = pkgs[self._feature.name]
         if remote:
-            return pkg['installed_version']
-        else:
             return pkg['remote_version']
+        else:
+            return pkg['installed_version']
 
 
     def demo_version(self):

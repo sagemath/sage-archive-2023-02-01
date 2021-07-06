@@ -866,6 +866,77 @@ class ContinuousMap(Morphism):
                 return subset
         return ImageManifoldSubset(self, inverse=inverse, domain_subset=subset)
 
+    def preimage(self, codomain_subset, name=None, latex_name=None):
+        r"""
+        Return the preimage of ``codomain_subset`` under ``self``.
+
+        An alias is :meth:`pullback`.
+
+        INPUT:
+
+        - ``codomain_subset`` -- an instance of
+          :class:`~sage.manifolds.subset.ManifoldSubset`
+        - ``name`` -- string; name (symbol) given to the subset
+        - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
+          denote the subset; if none are provided, it is set to ``name``
+
+        OUTPUT:
+
+        - either a :class:`~sage.manifolds.manifold.TopologicalManifold` or
+          a :class:`~sage.manifolds.subsets.pullback.ManifoldSubsetPullback`
+
+        EXAMPLES::
+
+            sage: R = Manifold(1, 'R', structure='topological')  # field R
+            sage: T.<t> = R.chart()  # canonical chart on R
+            sage: R2 = Manifold(2, 'R^2', structure='topological')  # R^2
+            sage: c_xy.<x,y> = R2.chart() # Cartesian coordinates on R^2
+            sage: Phi = R.continuous_map(R2, [cos(t), sin(t)], name='Phi'); Phi
+            Continuous map Phi
+             from the 1-dimensional topological manifold R
+             to the 2-dimensional topological manifold R^2
+            sage: Q1 = R2.open_subset('Q1', coord_def={c_xy: [x>0, y>0]}); Q1
+            Open subset Q1 of the 2-dimensional topological manifold R^2
+            sage: Phi_inv_Q1 = Phi.preimage(Q1); Phi_inv_Q1
+            Subset Phi_inv_Q1 of the 1-dimensional topological manifold R
+            sage: R.point([pi/4]) in Phi_inv_Q1
+            True
+            sage: R.point([0]) in Phi_inv_Q1
+            False
+            sage: R.point([3*pi/4]) in Phi_inv_Q1
+            False
+
+        The identity map is handled specially::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: M.identity_map().preimage(M)
+            2-dimensional topological manifold M
+            sage: M.identity_map().preimage(M) is M
+            True
+
+        Another trivial case::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: D1 = M.open_subset('D1', coord_def={X: x^2+y^2<1}) # the open unit disk
+            sage: D2 = M.open_subset('D2', coord_def={X: x^2+y^2<4})
+            sage: f = Hom(D1,D2)({(X.restrict(D1), X.restrict(D2)): (2*x, 2*y)}, name='f')
+            sage: f.preimage(D2)
+            Open subset D1 of the 2-dimensional topological manifold M
+            sage: f.preimage(M)
+            Open subset D1 of the 2-dimensional topological manifold M
+        """
+        if self._is_identity:
+            return codomain_subset
+        if self._codomain.is_subset(codomain_subset):
+            return self._domain
+        from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+        return ManifoldSubsetPullback(self, codomain_subset,
+                                      name=name, latex_name=latex_name)
+
+    pullback = preimage
+
     #
     # Monoid methods
     #

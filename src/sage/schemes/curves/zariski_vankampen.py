@@ -229,7 +229,7 @@ def corrected_voronoi_diagram(points):
         V = VoronoiDiagram(configuration)
         valid = True
         for r in V.regions().items():
-            if not r[1].rays() and not apprpoints[r[0].affine()] in r[1]:
+            if not r[1].rays() and not r[1].interior_contains(apprpoints[r[0].affine()]):
                 prec += 53
                 valid = False
                 break

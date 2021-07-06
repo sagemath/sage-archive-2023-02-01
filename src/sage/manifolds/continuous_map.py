@@ -2013,7 +2013,7 @@ class ContinuousMap(Morphism):
             n2 = len(chart2._xx)
             # New symbolic variables (different from chart2._xx to allow for a
             #  correct solution even when chart2 = chart1):
-            x2 = [SR.var('xxxx' + str(i)) for i in range(n2)]
+            x2 = SR.temp_var(n=n2)
             equations = [x2[i] == coord_map._functions[i].expr()
                          for i in range(n2)]
             solutions = solve(equations, chart1._xx, solution_dict=True)
@@ -2033,6 +2033,7 @@ class ContinuousMap(Morphism):
                 except AttributeError:
                     pass
             coord_functions[(chart2, chart1)] = inv_functions
+            SR.cleanup_var(x2)
         if self._name is None:
             name = None
         else:

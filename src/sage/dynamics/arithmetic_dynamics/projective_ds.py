@@ -4225,6 +4225,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Closed subscheme of Projective Space of dimension 1 over Univariate
             Polynomial Ring in c over Rational Field defined by:
               x^2 + x*y + (c + 1)*y^2
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: f = DynamicalSystem([x^2 - 2*y^2, y^2, z^2])
+            sage: X = f.periodic_points(2, minimal=False, formal=True, return_scheme=True)
+            sage: len(X.defining_polynomials())
+            19
         """
         if n <= 0:
             raise ValueError("a positive integer period must be specified")
@@ -4241,6 +4249,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         dom = f.domain()
         PS = f.codomain().ambient_space()
         N = PS.dimension_relative() + 1
+        FF = FractionField(R)
         if dom != PS:
             f = DynamicalSystem(f.defining_polynomials())
         if algorithm == 'cyclegraph':
@@ -4275,7 +4284,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         # if a point of period n lies on the hyperplane at infinity,
                         # we must find a suitable hyperplane which contians no periodic points
                         # before deforming
-                        if X.intersection(hyperplane_at_infinity).dimension() >= 0:
+                        if X.intersection(hyperplane_at_infinity).change_ring(FF).dimension() >= 0:
                             attempted_combinations = {}
                             hyperplane_found = False
                             for height_bound in count(1):
@@ -4285,7 +4294,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                                         if PS(tup) not in attempted_combinations:
                                             attempted_combinations[PS(tup)] = 0
                                             hyperplane = PS.subscheme(sum([tup[i]*PS.gens()[i] for i in range(N)]))
-                                            if X.intersection(hyperplane).dimension() < 0:
+                                            if X.intersection(hyperplane).change_ring(FF).dimension() < 0:
                                                 hyperplane_found = True
                                                 break
                                 if hyperplane_found:
@@ -4314,7 +4323,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         subs = {}
                         for i in range(len(subs_list)):
                             subs[PS.gens()[i]] = subs_list[i]
-                        X = PS.subscheme([poly.subs(subs) for poly in L])
+                        if R.is_field():
+                            X = PS.subscheme([poly.subs(subs) for poly in L])
+                        else:
+                            K = [poly.subs(subs) for poly in L]
+                            K = [poly*poly.denominator() for poly in K]
+                            X = PS.subscheme(K)
                 if minimal and n != 1 and not formal:
                     Sn = []
                     for k in ZZ(n).divisors():
@@ -4339,7 +4353,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 X = PS.subscheme(list(X.defining_polynomials()) + list(dom.defining_polynomials()))
             if return_scheme:  # this includes the indeterminacy locus points!
                 return X
-            if X.dimension() <= 0:
+            if X.change_ring(FF).dimension() <= 0:
                 if R in NumberFields() or R is QQbar or R in FiniteFields():
                     Z = f.base_indeterminacy_locus()
                     points = [dom(Q) for Q in X.rational_points()]

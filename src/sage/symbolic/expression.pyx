@@ -767,6 +767,29 @@ cdef class Expression(CommutativeRingElement):
         """
         return new_Expression_from_GEx(self._parent, self._gobj)
 
+    def __enter__(self):
+        """
+        Method used by temporary variables with Python `with` to
+        automatically clean up after themselves.
+        """
+        return self
+
+    def __exit__(self, *args):
+        """
+        Method used by temporary variables with Python `with` to
+        automatically clean up after themselves.
+
+        TESTS::
+
+            sage: symbols_copy = SR.symbols.copy()
+            sage: with SR.temp_var() as t: pass
+            sage: symbols_copy == SR.symbols
+            True
+
+        """
+        SR.cleanup_var(self)
+        return False
+
     def _repr_(self):
         r"""
         Return string representation of this symbolic expression.
@@ -12898,25 +12921,25 @@ cdef class Expression(CommutativeRingElement):
 
         if not self.has(Y):
             raise ValueError("Expression {} contains no {} terms".format(self, Y))
-        x = SR.symbol()
-        yy = SR.symbol()
-        y = SymbolicFunction('y', 1)(x)
-        f = SymbolicFunction('f', 2)(x, yy)
-        Fx = f.diff(x)
-        Fy = f.diff(yy)
-        G = -(Fx/Fy)
-        G = G.subs({yy: y})
-        di = {y.diff(x): -self.diff(X)/self.diff(Y)}
-        R = G
-        S = G.diff(x, n - 1)
-        for i in range(n + 1):
-            di[y.diff(x, i + 1).subs({x: x})] = R
-            S = S.subs(di)
-            R = G.diff(x, i)
-            for j in range(n + 1 - i):
-                di[f.diff(x, i, yy, j).subs({x: x, yy: y})] = self.diff(X, i, Y, j)
-                S = S.subs(di)
-        return S
+        with SR.temp_var() as x:
+            with SR.temp_var() as yy:
+                y = SymbolicFunction('y', 1)(x)
+                f = SymbolicFunction('f', 2)(x, yy)
+                Fx = f.diff(x)
+                Fy = f.diff(yy)
+                G = -(Fx/Fy)
+                G = G.subs({yy: y})
+                di = {y.diff(x): -self.diff(X)/self.diff(Y)}
+                R = G
+                S = G.diff(x, n - 1)
+                for i in range(n + 1):
+                    di[y.diff(x, i + 1).subs({x: x})] = R
+                    S = S.subs(di)
+                    R = G.diff(x, i)
+                    for j in range(n + 1 - i):
+                        di[f.diff(x, i, yy, j).subs({x: x, yy: y})] = self.diff(X, i, Y, j)
+                        S = S.subs(di)
+                return S
 
 def solve_diophantine(f,  *args, **kwds):
     """

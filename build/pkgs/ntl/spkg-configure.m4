@@ -29,6 +29,10 @@ SAGE_SPKG_CONFIGURE([ntl], [
             ], [
                 AC_MSG_RESULT([no])
                 sage_spkg_install_ntl=yes
+            ], [
+                dnl assume that the person running cross-compiling
+                dnl knows what they are doing
+                AC_MSG_RESULT([yes])
             ])
     ])
 

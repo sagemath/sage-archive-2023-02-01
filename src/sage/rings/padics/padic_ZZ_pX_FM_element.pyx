@@ -1012,7 +1012,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         the power basis `1, x, x^2, \ldots, x^{d-1}` for this
         extension field.
 
-        The \emph{rows} of this matrix give the images of each of the `x^i`.
+        The **rows** of this matrix give the images of each of the `x^i`.
         The entries of the matrices are ``IntegerMod`` elements,
         defined modulo ``p^(self.absprec() / e)``.
 

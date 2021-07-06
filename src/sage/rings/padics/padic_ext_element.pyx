@@ -309,7 +309,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         INPUT:
 
         - ``pos`` -- boolean; if ``True``, all integers will be in the range
-          `[0,p-1]`, otherwise they will be in the range `[(1-p)/2, p/2]`.
+          `[0,p-1]`, otherwise they will be in the range `[(1-p)/2, p/2]`
 
         OUTPUT:
 

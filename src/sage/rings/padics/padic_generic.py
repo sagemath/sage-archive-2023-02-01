@@ -342,7 +342,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def _fraction_field_key(self, print_mode=None):
         r"""
-        Changes ``print_mode`` from a dictionary to a tuple and raises
+        Change ``print_mode`` from a dictionary to a tuple, raising
         a deprecation warning if it is present.
 
         EXAMPLES::

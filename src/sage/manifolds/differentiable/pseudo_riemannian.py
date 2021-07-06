@@ -672,7 +672,7 @@ class PseudoRiemannianManifold(DifferentiableManifold):
         """
         return self.metric().volume_form(contra=contra)
 
-    def open_subset(self, name, latex_name=None, coord_def={}):
+    def open_subset(self, name, latex_name=None, coord_def={}, supersets=None):
         r"""
         Create an open subset of ``self``.
 
@@ -692,6 +692,8 @@ class PseudoRiemannianManifold(DifferentiableManifold):
           terms of coordinates; ``coord_def`` must a be dictionary with keys
           charts in the manifold's atlas and values the symbolic expressions
           formed by the coordinates to define the subset.
+        - ``supersets`` -- (default: only ``self``) list of sets that the
+          new open subset is a subset of
 
         OUTPUT:
 
@@ -745,22 +747,8 @@ class PseudoRiemannianManifold(DifferentiableManifold):
                                         latex_name=latex_name,
                                         metric_latex_name=self._metric_latex_name,
                                         start_index=self._sindex)
-        resu._calculus_method = self._calculus_method
-        resu._supersets.update(self._supersets)
-        for sd in self._supersets:
-            sd._subsets.add(resu)
-        self._top_subsets.add(resu)
-        # Charts on the result from the coordinate definition:
-        for chart, restrictions in coord_def.items():
-            if chart not in self._atlas:
-                raise ValueError("the {} does not belong to ".format(chart) +
-                                 "the atlas of {}".format(self))
-            chart.restrict(resu, restrictions)
-        # Transition maps on the result inferred from those of self:
-        for chart1 in coord_def:
-            for chart2 in coord_def:
-                if chart2 != chart1 and (chart1, chart2) in self._coord_changes:
-                    self._coord_changes[(chart1, chart2)].restrict(resu)
-        #!# update non-coordinate vector frames and change of frames
-        #
+        if supersets is None:
+            supersets = [self]
+        for superset in supersets:
+            superset._init_open_subset(resu, coord_def=coord_def)
         return resu

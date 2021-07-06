@@ -537,7 +537,7 @@ class QuotientFields(Category_singleton):
             if not self.parent().is_exact():
                 # factors not grouped in this case
                 all = {}
-                for r in factor:
+                for r in factors:
                     all[r[0]] = 0
                 for r in factors:
                     all[r[0]] += r[1]

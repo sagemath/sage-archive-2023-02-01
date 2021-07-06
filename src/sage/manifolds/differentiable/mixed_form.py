@@ -112,8 +112,8 @@ class MixedForm(AlgebraElement):
         sage: B = M.mixed_form(name='B')
         sage: B[:] = [f, omega, eta]; B.display() # display names
         B = f + omega + eta
-        sage: A.display_expansion() # display in coordinates
-        A = x + x*y dx + x*y^2 dx∧dy
+        sage: B.display_expansion() # display in coordinates
+        B = x + x*y dx + x*y^2 dx∧dy
         sage: B[0]
         Scalar field f on the 2-dimensional differentiable manifold M
         sage: B[1]

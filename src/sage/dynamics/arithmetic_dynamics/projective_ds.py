@@ -4246,6 +4246,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if isinstance(R, FractionField_1poly_field) or is_FunctionField(R):
             raise NotImplementedError('Periodic points not implemented for fraction function fields.'
             + 'Clear denominators and use the polynomial ring instead.')
+        if is_FractionField(R):
+            if is_MPolynomialRing(R.ring()):
+                raise NotImplementedError('Periodic points not implemented for fraction function fields.'
+                + 'Clear denominators and use the polynomial ring instead.')
         CR = f.coordinate_ring()
         dom = f.domain()
         PS = f.codomain().ambient_space()

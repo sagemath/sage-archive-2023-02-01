@@ -196,6 +196,8 @@ $RUN sh -x -c "\${BOOTSTRAP}" $ENDRUN
 
 FROM bootstrapped as configured
 #:configuring:
+# config.status needs to write in pkgs/sage-conf/
+ADD pkgs pkgs
 RUN mkdir -p logs/pkgs; ln -s logs/pkgs/config.log config.log
 ARG EXTRA_CONFIGURE_ARGS=""
 EOF

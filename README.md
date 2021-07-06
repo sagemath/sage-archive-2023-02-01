@@ -360,16 +360,31 @@ SAGE_ROOT                 Root directory (sage-x.y.z in Sage tarball)
 │       ├── atlas
 │       …
 │       └── zn_poly
+├── configure             Top-level configure script
 ├── COPYING.txt           Copyright information
-├── local                 Compiled packages are installed here
+├── pkgs                  Source trees of Python distribution packages
+│   ├── sage-conf
+│   │   ├── sage_conf.py
+│   │   └── setup.py
+│   ├── sage-docbuild
+│   │   ├── sage_docbuild
+│   │   └── setup.py
+│   ├── sage-sws2rst
+│   │   ├── sage_sws2rst
+│   │   └── setup.py
+│   └── sagemath-standard
+│       ├── bin
+│       ├── sage
+│       └── setup.py
+├── local  (SAGE_LOCAL)   Compiled packages are installed here
 │   ├── bin               Executables
 │   ├── include           C/C++ headers
 │   ├── lib               Shared libraries
 │   ├── share             Databases, architecture-independent data, docs
-│       └── doc           Viewable docs of Sage and of some components
+│   │   └── doc           Viewable docs of Sage and of some components
 │   └── var
-│       ├── sage          List of installed packages
-│       └── tmp           Temporary files when building Sage
+│       ├── lib/sage      List of installed packages
+│       └── tmp/sage      Temporary files when building Sage
 ├── logs
 │   ├── dochtml.log       Log of the documentation build
 │   ├── install.log       Full install log
@@ -382,7 +397,7 @@ SAGE_ROOT                 Root directory (sage-x.y.z in Sage tarball)
 ├── Makefile              Running "make" uses this file
 ├── README.md             This file
 ├── sage                  Script to start Sage
-├── src                   All of Sage source (not third-party packages)
+├── src                   Monolithic Sage library source tree
 │   ├── bin               Scripts that Sage uses internally
 │   ├── doc               Sage documentation sources
 │   └── sage              The Sage library source code

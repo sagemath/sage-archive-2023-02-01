@@ -1309,8 +1309,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         points in the same projective space, such that no n+1 points of each set are linearly dependent
         find the unique element of PGL that translates the source points to the target points.
 
-        Warning:: over non-exact rings such as the ComplexField, the returned matrix could
-        be very far from correct.
+        .. warning::
+            over non-exact rings such as the ComplexField, the returned matrix could
+            be very far from correct.
 
         INPUT:
 
@@ -1386,9 +1387,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: points_source=[P1([1, 4, 1]), P1([1, 2, 2]), P1([3, 5, 1]), P1([1, -1, 1])]
             sage: points_target=[P1([5, -2, 7]), P1([3, -2, 3]), P1([6, -5, 9]), P1([3, 6, 7])]
             sage: P1.point_transformation_matrix(points_source, points_target)
-            [ -507 -4992  -975]
-            [ 6994   312   338]
-            [-1755 -7644  2301]
+            [ -39 -384  -75]
+            [ 538   24   26]
+            [-135 -588  177]
 
         ::
 
@@ -1407,8 +1408,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: points_source = [P([-6*t, 7]), P([1, 4]), P([3, 2])]
             sage: points_target = [P([-1, 2*t]), P([0, 2]), P([-1, 6])]
             sage: P.point_transformation_matrix(points_source, points_target)
-            [           48*t + 84           -12*t - 21]
-            [-96*t^2 - 28*t - 420      144*t^2 - 318*t]
+            [         -48*t - 84           12*t + 21]
+            [96*t^2 + 28*t + 420    -144*t^2 + 318*t]
 
         TESTS::
 
@@ -1461,6 +1462,16 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             Traceback (most recent call last):
             ...
             ValueError: target points not in self
+
+        ::
+
+            sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
+            sage: points_source = [P(1 , 0, 0), P(0 , 1 , 0), P(0 , 0 , 1), P(1 , -1 , -1)]
+            sage: points_target = [P(0 , 1 , 0), P(-2 , 0 , 1), P(0 , 0 , 1), P(1 , -1 , -1)]
+            sage: P.point_transformation_matrix(points_source,points_target,normalize=True)
+            [ 0 -2  0]
+            [-2  0  0]
+            [ 0  1  1]
         """
         r = self.base_ring()
         n = self.dimension_relative()
@@ -1508,7 +1519,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
                         last_ele = last_row.pop()
                     return_mat *= ZZ(1)/last_ele
                 else:
-                    lcm = return_mat[0][0]
+                    lcm = return_mat[0][0].denominator()
                     for row in return_mat.rows():
                         for ele in row:
                             lcm = lcm.lcm(ele.denominator())

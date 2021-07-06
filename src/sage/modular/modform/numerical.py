@@ -214,7 +214,7 @@ class NumericalEigenforms(SageObject):
             sage: evalues = [(matrix((n._hecke_matrix*evectors).column(i))/matrix(evectors.column(i)))[0, 0]
             ....:            for i in range(evectors.ncols())]
             sage: diff = n._hecke_matrix*evectors - evectors*diagonal_matrix(evalues)
-            sage: sum([abs(diff[i,j]) for i in range(5) for j in range(3)]) < 1.0e-9
+            sage: sum(abs(a) for a in diff.list()) < 1.0e-9
             True
         """
         verbose('Finding eigenvector basis')

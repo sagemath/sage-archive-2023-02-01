@@ -2553,14 +2553,14 @@ cdef class pAdicGenericElement(LocalGenericElement):
           By default, we use the binary splitting if it is available. Otherwise
           we switch to the generic algorithm.
 
-        NOTES:
+        .. NOTE::
 
-        What some other systems do:
+            What some other systems do:
 
-        - PARI: Seems to define the logarithm for units not congruent
-          to 1 as we do.
+            - PARI: Seems to define the logarithm for units not congruent
+              to 1 as we do.
 
-        - MAGMA: Only implements logarithm for 1-units (as of version 2.19-2)
+            - MAGMA: Only implements logarithm for 1-units (version 2.19-2)
 
         .. TODO::
 

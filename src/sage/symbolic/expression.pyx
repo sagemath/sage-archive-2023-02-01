@@ -5868,6 +5868,8 @@ cdef class Expression(CommutativeRingElement):
         """
         Return the number of arguments of this expression.
 
+        This is deprecated; use :meth:`number_of_operands` instead.
+
         EXAMPLES::
 
             sage: var('a,b,c,x,y')
@@ -5881,6 +5883,8 @@ cdef class Expression(CommutativeRingElement):
             sage: len(a*b^2*c)
             3
         """
+        from sage.misc.superseded import deprecation
+        deprecation(29738, "using len on a symbolic expression is deprecated; use method number_of_operands instead")
         return self.number_of_operands()
 
     def _unpack_operands(self):

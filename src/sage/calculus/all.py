@@ -73,7 +73,7 @@ def symbolic_expression(x):
         sage: symbolic_expression(E) in SR
         True
 
-    If x is a list or tuple, create a vector of symbolic expressions::
+    If ``x`` is a list or tuple, create a vector of symbolic expressions::
 
         sage: v=symbolic_expression([x,1]); v
         (x, 1)
@@ -93,6 +93,30 @@ def symbolic_expression(x):
         (x*y + y^2 + y == x^3 + x^2 - 10*x - 10, x*y + y^2 + y == x^3 + x^2 - 10*x - 10)
         sage: v.base_ring()
         Symbolic Ring
+
+    If ``x`` is a function, for example defined by a ``lambda`` expression, create a
+    symbolic function::
+
+        sage: f = symbolic_expression(lambda z: z^2 + 1); f
+        z |--> z^2 + 1
+        sage: f.parent()
+        Callable function ring with argument z
+        sage: f(7)
+        50
+
+    If ``x`` is a list or tuple of functions, or if ``x`` is a function that returns a list
+    or tuple, create a callable symbolic vector::
+
+        sage: symbolic_expression([lambda mu, nu: mu^2 + nu^2, lambda mu, nu: mu^2 - nu^2])
+        (mu, nu) |--> (mu^2 + nu^2, mu^2 - nu^2)
+        sage: f = symbolic_expression(lambda uwu: [1, uwu, uwu^2]); f
+        uwu |--> (1, uwu, uwu^2)
+        sage: f.parent()
+        Vector space of dimension 3 over Callable function ring with argument uwu
+        sage: f(5)
+        (1, 5, 25)
+        sage: f(5).parent()
+        Vector space of dimension 3 over Symbolic Ring
     """
     from sage.symbolic.expression import Expression
     from sage.symbolic.ring import SR
@@ -100,9 +124,23 @@ def symbolic_expression(x):
         return x
     elif hasattr(x, '_symbolic_'):
         return x._symbolic_(SR)
-    elif isinstance(x, (tuple,list)):
-        return vector(SR,x)
-    else:
-        return SR(x)
+    elif isinstance(x, (tuple, list)):
+        return vector([symbolic_expression(item) for item in x])
+    elif callable(x):
+        from inspect import signature, Parameter
+        try:
+            s = signature(x)
+        except ValueError:
+            pass
+        else:
+            if all(param.kind in (Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD)
+                   for param in s.parameters.values()):
+                vars = [SR.var(name) for name in s.parameters.keys()]
+                result = x(*vars)
+                if isinstance(result, (tuple, list)):
+                    return vector(SR, result).function(*vars)
+                else:
+                    return SR(result).function(*vars)
+    return SR(x)
 
 from . import desolvers

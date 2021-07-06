@@ -53,6 +53,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.arith.misc import is_prime
+from sage.calculus.functions import jacobian
 from sage.categories.fields import Fields
 from sage.categories.function_fields import FunctionFields
 from sage.categories.number_fields import NumberFields
@@ -4635,6 +4636,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         OUTPUT: a list of elements in the base ring, unless ``return_polynomial``
                 is ``True``, in which case a polynomial in ``w`` and ``t`` is returned.
+                The variable ``t`` is the variable of the characteristic
+                polynomials of the multipliers.
 
                 If this map is defined over `\mathbb{P}^N`, where `N > 1`, then
                 the first element of the list is the degree of the polynomial in `w` and
@@ -4814,7 +4817,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         if self.degree() <= 1:
             raise TypeError("must have degree at least 2")
         if dom.dimension_relative() > 1 or return_polynomial:
-            from sage.calculus.functions import jacobian
             d = self.degree()
             N = dom.dimension_relative()
             Fn = self.nth_iterate_map(n)
@@ -4822,10 +4824,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             X = Fn.periodic_points(1, minimal=False, formal=formal, return_scheme=True)
             newR = PolynomialRing(base_ring, 'w, t', 2, order='lex')
             if chow:
+                # create full polynomial ring
                 R = PolynomialRing(base_ring, 'v', N+N+3, order='lex')
                 var = list(R.gens())
+                # create polynomial ring for result
                 R2 = PolynomialRing(base_ring, var[:N] + var[-2:])
                 psi = R2.hom(N*[0]+list(newR.gens()), newR)
+                # create substition to set extra variables to 0
                 R_zero = {R.gen(N):1}
                 for j in range(N+1, N+N+1):
                     R_zero[R.gen(j)] = 0
@@ -4839,26 +4844,37 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 t = var.pop()
                 w = var.pop()
             sigma_polynomial = 1
+            # go through each affine patch to avoid repeating periodic points
+            # setting the visited coordiantes to 0 as we go
             for j in range(N,-1,-1):
                 Xa = X.affine_patch(j)
                 fa = Fn.dehomogenize(j)
                 Pa = fa.domain()
                 Ra = Pa.coordinate_ring()
+                # create the images for the Hom to the ring we will do the elimination over
+                # with done affine patch coordinates as 0
                 if chow:
                     im = [R.gen(i) for i in range(j)] + (N-j)*[0] + [R.gen(i) for i in range(N, R.ngens())]
                 else:
                     im = list(R.gens())[:j] + (N-j)*[0] + [R.gen(i) for i in range(N, R.ngens())]
                 phi = Ra.hom(Ra.gens(), R)
+                # create polymomial that evaluates to the characteristic polynomial
                 M = t*matrix.identity(R, N)
                 g = (M-jacobian([phi(F.numerator())/phi(F.denominator()) for F in fa], var)).det()
+                # create the terms of the sigma invariants prod(w-lambda)
                 g_prime = w*R(g.denominator())(im)-R(g.numerator())(im)
+                # move the defining polynomials to the polynomial ring
                 L = [phi(h)(im) for h in Xa.defining_polynomials()]
+                # add the appropriate final polynomial to compute the sigma invariant polynomial
+                # via a Poisson product in elimination
                 if chow:
                     L += [g_prime + sum(R.gen(j-1)*R.gen(N+j)*(R(g.denominator())(im)) for j in range(1,N+1))]
                 else:
                     L += [g_prime]
                 I = R.ideal(L)
+                # since R is lex ordering, this is an elimination step
                 G = I.groebner_basis()
+                # the polynomial we need is the one just in w and t
                 if chow:
                     poly = psi(G[-1].specialization(R_zero))
                     if len(list(poly)) > 0:
@@ -4868,6 +4884,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     sigma_polynomial *= psi(G[-1])
             if return_polynomial:
                 return sigma_polynomial
+            # if we are returing a numerical list, read off the coefficients
+            # in order of degree adjusting sign appropriately
             sigmas = []
             sigma_dictionary = dict([list(reversed(i)) for i in list(sigma_polynomial)])
             degree_w, degree_t = sigma_polynomial.degrees()

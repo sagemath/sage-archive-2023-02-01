@@ -1623,13 +1623,13 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: A = matrix([[1, 1], [0, -1]])
             sage: B = matrix([[0, 1], [0, 2]])
             sage: X = M.submodule([A, B])
-            sage: Xp = M.submodule([A, B], order=[(0,1), (1,1), (0,0)])
-            sage: [X.lift(b) for b in Xp.basis()]
+            sage: Xp = M.submodule([A, B], support_order=[(0,1), (1,1), (0,0)])
+            sage: [X.lift(b) for b in X.basis()]
             [
             [ 1  0]  [0 1]
             [ 0 -3], [0 2]
             ]
-            sage: [Xp.lift(b) for b in X.basis()]
+            sage: [Xp.lift(b) for b in Xp.basis()]
             [
             [2/3   1]  [-1/3    0]
             [  0   0], [   0    1]

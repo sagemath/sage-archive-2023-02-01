@@ -12,8 +12,6 @@ Invariant modules
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-## TODO: COMB THORUGH TO MAKE SURE ALL STUFF IS HAPPENING IN REPN NOT IN MODULE
-
 from sage.modules.with_basis.subquotient import SubmoduleWithBasis
 from sage.categories.finitely_generated_semigroups import FinitelyGeneratedSemigroups
 from sage.categories.finite_dimensional_modules_with_basis import FiniteDimensionalModulesWithBasis
@@ -104,7 +102,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         sage: I.lift(7*m)
         21 + 14*x0 + 49*x0*x1*x2 + 14*x1 + 14*x2
 
-    .. NOTE:: 
+    .. NOTE::
 
         The current implementation works when `S` is a finitely-generated semigroup,
         and when `M` is a finite-dimensional free module with a distinguished basis.
@@ -120,7 +118,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
     def __init__(self, R, *args, **kwargs):
         """
         TESTS::
-            
+
             sage: G = GroupExp()(QQ) # a group that is not finitely generated
             sage: M = CombinatorialFreeModule(QQ, [1,2,3])
             sage: on_basis = lambda g,m: M.term(m) # trivial rep'n
@@ -153,9 +151,9 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         elif self._semigroup_representation.side() == 'right':
             def _invariant_map(g, x):
                 return x*g - x
-        
+
         self._invariant_map = _invariant_map
-        
+
         category = kwargs.pop('category', R.category().Subobjects())
 
         # Give the intersection of kernels of the map `s*x-x` to determine when
@@ -275,12 +273,12 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 sage: v*w
                 B[2] + 6*B[3]
                 sage: I.lift(v*w)
-                x0*x1 + 6*x0*x1*x2 - x0*x2 + x1*x2 
+                x0*x1 + 6*x0*x1*x2 - x0*x2 + x1*x2
                 sage: w*v
                 B[2] + 6*B[3]
                 sage: (1/2)*v
                 1/2*B[0] + B[1]
-                sage: w*(1/2)
+                sage:remote w*(1/2)
                 1/2*B[2]
                 sage: g = G((1,3,2))
                 sage: v*g
@@ -302,7 +300,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 sage: v*w
                 B[2] + 6*B[3]
                 sage: I.lift(v*w)
-                x0*x1 + 6*x0*x1*x2 - x0*x2 + x1*x2 
+                x0*x1 + 6*x0*x1*x2 - x0*x2 + x1*x2
                 sage: w*v
                 B[2] + 6*B[3]
                 sage: (1/2)*v
@@ -373,7 +371,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 return self
 
             elif right in self.parent()._semigroup_representation._module.base_ring():
-                # This preserves the structure of the invariant as a 
+                # This preserves the structure of the invariant as a
                 # ``.base_ring()``-module
                 return self._mul_(right)
 
@@ -410,9 +408,9 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 sage: [I.lift(b) for b in B]
                 [1, x0 + x1 + x2, x0*x1 - x0*x2 + x1*x2, x0*x1*x2]
                 sage: [[g*b for g in G] for b in B]
-                [[B[0], B[0], B[0]], 
-                 [B[1], B[1], B[1]], 
-                 [B[2], B[2], B[2]], 
+                [[B[0], B[0], B[0]],
+                 [B[1], B[1], B[1]],
+                 [B[2], B[2], B[2]],
                  [B[3], B[3], B[3]]]
                 sage: 3*I.basis()[0]
                 3*B[0]
@@ -430,7 +428,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         def _acted_upon_(self, scalar, self_on_left = False):
             """
             EXAMPLES::
-                
+
                 sage: G = CyclicPermutationGroup(3)
                 sage: M = CombinatorialFreeModule(QQ,[1,2,3])
                 sage: from sage.modules.with_basis.representation import Representation

@@ -1186,7 +1186,7 @@ class ContinuedFraction_base(SageObject):
             sage: CF = [continued_fraction(x) for x in [sqrt(2), AA(3).sqrt(),
             ....:       AA(3)**(1/3), QuadraticField(37).gen(), pi, 113/27,
             ....:       [3,1,2,2], words.FibonacciWord([1,3])]]
-            sage: for _ in range(100):  # not tested, known bug (see trac:`32086`)
+            sage: for _ in range(100):  # not tested, known bug (see :trac:`32086`)
             ....:     cf = choice(CF)
             ....:     forward_value = choice([True, False])
             ....:     a = ZZ.random_element(-30, 30)

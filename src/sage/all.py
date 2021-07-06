@@ -313,36 +313,6 @@ sage.misc.lazy_import.save_cache_file()
 # sys.settrace(poison_currRing)
 
 
-# Write a file indicating that Sage was started up successfully.
-# This is called by the sage-starts script.
-def _write_started_file():
-    """
-    Write a ``sage-started.txt`` file if it does not exist.  The
-    contents of this file do not matter, only its existence.
-
-    The non-existence of this file will be used as a trigger to run
-    ``sage-starts`` during the Sage build.
-
-    TESTS:
-
-    Check that the file exists when Sage is running (note, this file is not
-    necessarily installed or used by downstream packages of Sage)::
-
-        sage: started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-        sage: os.path.isfile(started_file)  # optional - build
-        True
-    """
-    started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-
-    # Current time with a resolution of 1 second
-    import datetime
-    t = datetime.datetime.now().replace(microsecond=0)
-
-    O = open(started_file, 'w')
-    O.write("Sage {} was started at {}\n".format(sage.version.version, t))
-    O.close()
-
-
 # Set a new random number seed as the very last thing
 # (so that printing initial_seed() and using that seed
 # in set_random_seed() will result in the same sequence you got at

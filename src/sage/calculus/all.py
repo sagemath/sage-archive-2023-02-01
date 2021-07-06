@@ -117,6 +117,32 @@ def symbolic_expression(x):
         (1, 5, 25)
         sage: f(5).parent()
         Vector space of dimension 3 over Symbolic Ring
+
+    TESTS:
+
+    Also functions defined using ``def`` can be used, but we do not advertise it as a use case::
+
+        sage: def sos(x, y):
+        ....:     return x^2 + y^2
+        sage: symbolic_expression(sos)
+        (x, y) |--> x^2 + y^2
+
+    Functions that take a varying number of arguments or keyword-only arguments are not accepted::
+
+        sage: def variadic(x, *y):
+        ....:     return x
+        sage: symbolic_expression(variadic)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert <function variadic at 0x...> to a symbolic expression
+
+        sage: def function_with_keyword_only_arg(x, *, sign=1):
+        ....:     return sign * x
+        sage: symbolic_expression(function_with_keyword_only_arg)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to convert <function function_with_keyword_only_arg at 0x...>
+        to a symbolic expression
     """
     from sage.symbolic.expression import Expression
     from sage.symbolic.ring import SR

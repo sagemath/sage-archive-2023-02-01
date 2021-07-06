@@ -169,6 +169,7 @@ SAGE_VERSION_BANNER = var("SAGE_VERSION_BANNER", version.banner)
 SAGE_VENV = var("SAGE_VENV", os.path.abspath(sys.prefix))
 SAGE_LIB = var("SAGE_LIB", os.path.dirname(os.path.dirname(sage.__file__)))
 SAGE_EXTCODE = var("SAGE_EXTCODE", join(SAGE_LIB, "sage", "ext_data"))
+SAGE_VENV_SPKG_INST = var("SAGE_VENV_SPKG_INST", join(SAGE_VENV, "var", "lib", "sage", "installed"))
 
 # prefix hierarchy where non-Python packages are installed
 SAGE_LOCAL = var("SAGE_LOCAL", SAGE_VENV)
@@ -189,6 +190,10 @@ SAGE_ROOT_GIT = var("SAGE_ROOT_GIT", join(SAGE_ROOT, ".git"))
 DOT_SAGE = var("DOT_SAGE", join(os.environ.get("HOME"), ".sage"))
 SAGE_STARTUP_FILE = var("SAGE_STARTUP_FILE", join(DOT_SAGE, "init.sage"))
 
+# for sage_setup.setenv
+SAGE_ARCHFLAGS = var("SAGE_ARCHFLAGS", "unset")
+SAGE_PKG_CONFIG_PATH = var("SAGE_PKG_CONFIG_PATH")
+
 # installation directories for various packages
 CONWAY_POLYNOMIALS_DATA_DIR = var("CONWAY_POLYNOMIALS_DATA_DIR", join(SAGE_SHARE, "conway_polynomials"))
 GRAPHS_DATA_DIR = var("GRAPHS_DATA_DIR", join(SAGE_SHARE, "graphs"))
@@ -202,17 +207,22 @@ CREMONA_LARGE_DATA_DIR = var("CREMONA_LARGE_DATA_DIR", join(SAGE_SHARE, "cremona
 JMOL_DIR = var("JMOL_DIR", join(SAGE_SHARE, "jmol"))
 MATHJAX_DIR = var("MATHJAX_DIR", join(SAGE_SHARE, "mathjax"))
 MTXLIB = var("MTXLIB", join(SAGE_SHARE, "meataxe"))
-THREEJS_DIR = var("THREEJS_DIR", join(SAGE_SHARE, "threejs"))
+THREEJS_DIR = var("THREEJS_DIR", join(SAGE_SHARE, "threejs-sage"))
 SINGULARPATH = var("SINGULARPATH", join(SAGE_SHARE, "singular"))
 PPLPY_DOCS = var("PPLPY_DOCS", join(SAGE_SHARE, "doc", "pplpy"))
 MAXIMA = var("MAXIMA", "maxima")
 MAXIMA_FAS = var("MAXIMA_FAS")
+KENZO_FAS = var("KENZO_FAS")
 SAGE_NAUTY_BINS_PREFIX = var("SAGE_NAUTY_BINS_PREFIX", "")
 ARB_LIBRARY = var("ARB_LIBRARY", "arb")
 CBLAS_PC_MODULES = var("CBLAS_PC_MODULES", "cblas:openblas:blas")
 ECL_CONFIG = var("ECL_CONFIG", "ecl-config")
 NTL_INCDIR = var("NTL_INCDIR")
 NTL_LIBDIR = var("NTL_LIBDIR")
+
+# OpenMP
+OPENMP_CFLAGS = var("OPENMP_CFLAGS", "")
+OPENMP_CXXFLAGS = var("OPENMP_CXXFLAGS", "")
 
 # misc
 SAGE_BANNER = var("SAGE_BANNER", "")
@@ -285,7 +295,7 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
                 search_directories.append(libdir)
 
                 multiarchlib = sysconfig.get_config_var('MULTIARCH')
-                if multiarchlib is not None: 
+                if multiarchlib is not None:
                     search_directories.append(libdir / multiarchlib),
 
             patterns = [f'lib{libname}.{ext}']
@@ -307,7 +317,7 @@ SINGULAR_SO = var("SINGULAR_SO", _get_shared_lib_path("Singular", "singular-Sing
 GAP_SO = var("GAP_SO", _get_shared_lib_path("gap", ""))
 
 # post process
-if ' ' in DOT_SAGE:
+if DOT_SAGE is not None and ' ' in DOT_SAGE:
     if UNAME[:6] == 'CYGWIN':
         # on windows/cygwin it is typical for the home directory
         # to have a space in it.  Fortunately, users also have
@@ -368,14 +378,18 @@ def sage_include_directories(use_sources=False):
         sage: any(os.path.isfile(os.path.join(d, file)) for d in dirs)
         True
     """
-    import numpy
     import distutils.sysconfig
 
     TOP = SAGE_SRC if use_sources else SAGE_LIB
 
-    return [TOP,
-            distutils.sysconfig.get_python_inc(),
-            numpy.get_include()]
+    dirs = [TOP,
+            distutils.sysconfig.get_python_inc()]
+    try:
+        import numpy
+        dirs.append(numpy.get_include())
+    except ModuleNotFoundError:
+        pass
+    return dirs
 
 def get_cblas_pc_module_name() -> str:
     """
@@ -385,10 +399,18 @@ def get_cblas_pc_module_name() -> str:
     cblas_pc_modules = CBLAS_PC_MODULES.split(':')
     return next((blas_lib for blas_lib in cblas_pc_modules if pkgconfig.exists(blas_lib)))
 
-def cython_aliases():
+def cython_aliases(required_modules=('fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
+                                     'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas'),
+                   optional_modules=('lapack',)):
     """
     Return the aliases for compiling Cython code. These aliases are
     macros which can occur in ``# distutils`` headers.
+
+    INPUT:
+
+    - ``required_modules`` -- iterable of ``str`` values.
+
+    - ``optional_modules`` -- iterable of ``str`` values.
 
     EXAMPLES::
 
@@ -400,13 +422,41 @@ def cython_aliases():
          'CBLAS_CFLAGS',
          ...,
          'ZLIB_LIBRARIES']
+        sage: cython_aliases(required_modules=('module-that-is-assumed-to-not-exist'))
+        Traceback (most recent call last):
+        ...
+        PackageNotFoundError: ...
+        sage: cython_aliases(required_modules=(), optional_modules=('module-that-is-assumed-to-not-exist'))
+        {...}
+
+    TESTS:
+
+    We can use ``cython.parallel`` regardless of whether OpenMP is supported.
+    This will run in parallel, if OpenMP is supported::
+
+        sage: cython('''
+        ....: #distutils: extra_compile_args = OPENMP_CFLAGS
+        ....: #distutils: extra_link_args = OPENMP_CFLAGS
+        ....: from cython.parallel import prange
+        ....:
+        ....: cdef int i
+        ....: cdef int n = 30
+        ....: cdef int sum = 0
+        ....:
+        ....: for i in prange(n, num_threads=4, nogil=True):
+        ....:     sum += i
+        ....:
+        ....: print(sum)
+        ....: ''')
+        435
     """
     import pkgconfig
+    import itertools
 
     aliases = {}
 
-    for lib in ['fflas-ffpack', 'givaro', 'gsl', 'linbox', 'Singular',
-                'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas', 'lapack']:
+    for lib, required in itertools.chain(((lib, True) for lib in required_modules),
+                                         ((lib, False) for lib in optional_modules)):
         var = lib.upper().replace("-", "") + "_"
         if lib == 'cblas':
             lib = get_cblas_pc_module_name()
@@ -420,9 +470,16 @@ def cython_aliases():
                 pc = defaultdict(list, {'libraries': ['z']})
                 libs = "-lz"
         else:
-            aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
-            pc = pkgconfig.parse(lib)
-            libs = pkgconfig.libs(lib)
+            try:
+                aliases[var + "CFLAGS"] = pkgconfig.cflags(lib).split()
+                pc = pkgconfig.parse(lib)
+                libs = pkgconfig.libs(lib)
+            except pkgconfig.PackageNotFoundError:
+                if required:
+                    raise
+                else:
+                    continue
+
         # It may seem that INCDIR is redundant because the -I options are also
         # passed in CFLAGS.  However, "extra_compile_args" are put at the end
         # of the compiler command line.  "include_dirs" go to the front; the
@@ -454,7 +511,9 @@ def cython_aliases():
     # file (possibly because of confusion between CFLAGS and CXXFLAGS?).
     # This is not a problem in practice since LinBox depends on
     # fflas-ffpack and fflas-ffpack does add such a C++11 flag.
-    aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
+    if "LINBOX_CFLAGS" in aliases:
+        aliases["LINBOX_CFLAGS"].append("-std=gnu++11")
+
     aliases["ARB_LIBRARY"] = ARB_LIBRARY
 
     # TODO: Remove Cygwin hack by installing a suitable cblas.pc
@@ -463,7 +522,7 @@ def cython_aliases():
 
     try:
         aliases["M4RI_CFLAGS"].remove("-pedantic")
-    except ValueError:
+    except (ValueError, KeyError):
         pass
 
     # Determine ecl-specific compiler arguments using the ecl-config script
@@ -481,5 +540,9 @@ def cython_aliases():
     aliases["NTL_LIBDIR"] = [NTL_LIBDIR] if NTL_LIBDIR else []
     aliases["NTL_LIBRARIES"] = ['ntl']
     aliases["NTL_LIBEXTRA"] = []
+
+    # OpenMP
+    aliases["OPENMP_CFLAGS"] = OPENMP_CFLAGS.split()
+    aliases["OPENMP_CXXFLAGS"] = OPENMP_CXXFLAGS.split()
 
     return aliases

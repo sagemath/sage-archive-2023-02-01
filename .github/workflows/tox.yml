@@ -38,7 +38,7 @@ jobs:
       fail-fast: false
       max-parallel: 20
       matrix:
-        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-focal, ubuntu-groovy, ubuntu-hirsute, debian-jessie, debian-stretch, debian-buster, debian-bullseye, debian-sid, linuxmint-17, linuxmint-18, linuxmint-19, linuxmint-19.3, linuxmint-20.1, fedora-26, fedora-27, fedora-28, fedora-29, fedora-30, fedora-31, fedora-32, fedora-33, fedora-34, centos-7, centos-8, gentoo, gentoo-python3.7, archlinux-latest, slackware-14.2, conda-forge, ubuntu-bionic-i386, ubuntu-focal-i386, debian-buster-i386, centos-7-i386]
+        tox_system_factor: [ubuntu-trusty, ubuntu-xenial, ubuntu-bionic, ubuntu-focal, ubuntu-groovy, ubuntu-hirsute, ubuntu-impish, debian-jessie, debian-stretch, debian-buster, debian-bullseye, debian-sid, linuxmint-17, linuxmint-18, linuxmint-19, linuxmint-19.3, linuxmint-20.1, linuxmint-20.2, fedora-26, fedora-27, fedora-28, fedora-29, fedora-30, fedora-31, fedora-32, fedora-33, fedora-34, fedora-35, centos-7, centos-8, gentoo, gentoo-python3.7, archlinux-latest, opensuse-15, opensuse-15.3, opensuse-tumbleweed, slackware-14.2, conda-forge, ubuntu-bionic-i386, manylinux-2_24-i686, debian-buster-i386, centos-7-i386]
         tox_packages_factor: [minimal, standard]
     env:
       TOX_ENV: docker-${{ matrix.tox_system_factor }}-${{ matrix.tox_packages_factor }}
@@ -52,15 +52,21 @@ jobs:
         run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - name: free disk space
         run: |
+          df -h
           sudo swapoff -a
           sudo rm -f /swapfile
-          sudo apt clean
+          sudo apt-get clean
           docker rmi $(docker image ls -aq)
+          echo "Largest packages:"
+          dpkg-query -Wf '${Installed-Size}\t${Package}\n' | sort -n | tail -n 50
+          sudo apt-get --fix-broken --yes remove $(dpkg-query -f '${Package}\n' -W | grep -E '^(ghc-|google-cloud-sdk|google-chrome|firefox|mysql-server|dotnet-sdk|hhvm|mono)') || echo "(error ignored)"
           df -h
       - name: Install test prerequisites
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-get update
           sudo DEBIAN_FRONTEND=noninteractive apt-get install tox
+          sudo apt-get clean
+          df -h
       - name: Try to login to docker.pkg.github.com
         # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-environment-variable
         run: |

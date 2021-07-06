@@ -915,8 +915,8 @@ cdef class SageObject:
 
         EXAMPLES::
 
-            sage: a = 2/3
-            sage: a._r_init_()
+            sage: a = 2/3                                    # optional - rpy2
+            sage: a._r_init_()                               # optional - rpy2
             '2/3'
         """
         import sage.interfaces.r

@@ -2893,8 +2893,12 @@ class PermutationGroup_generic(FiniteGroup):
             sage: S = SymmetricGroup(6)
             sage: perm_ls = [S.random_element() for i in range(3)]
             sage: G = PermutationGroup(perm_ls)
-            sage: G.as_finitely_presented_group().as_permutation_group().is_isomorphic(G)
-            True
+            sage: while True:
+            ....:     try:
+            ....:         assert G.as_finitely_presented_group().as_permutation_group().is_isomorphic(G)  # sometimes results in GAP error (see :trac:`32141`)
+            ....:         break
+            ....:     except ValueError:
+            ....:         pass
 
         `D_9` is the only non-Abelian group of order 18
         with an automorphism group of order 54 [TW1980]_::

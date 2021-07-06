@@ -1492,9 +1492,9 @@ cdef class CommutativeRing(Ring):
             name = str(poly.parent().gen(0))
         for key, val in kwds.items():
             if key not in ['structure', 'implementation', 'prec', 'embedding', 'latex_name', 'latex_names']:
-                raise TypeError("extension() got an unexpected keyword argument '%s'"%key)
+                raise TypeError("extension() got an unexpected keyword argument '%s'" % key)
             if not (val is None or isinstance(val, list) and all(c is None for c in val)):
-                raise NotImplementedError("ring extension with prescripted %s is not implemented"%key)
+                raise NotImplementedError("ring extension with prescribed %s is not implemented" % key)
         R = self[name]
         I = R.ideal(R(poly.list()))
         return R.quotient(I, name)

@@ -1578,6 +1578,21 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         """
         return self._domain
 
+    def codomain(self):
+        r"""
+        Return the codomain of the scalar field.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: c_xy.<x,y> = M.chart()
+            sage: f = M.scalar_field(x+2*y)
+            sage: f.codomain()
+            Real Field with 53 bits of precision
+
+        """
+        return self._domain.base_field()
+
     def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of the scalar field.

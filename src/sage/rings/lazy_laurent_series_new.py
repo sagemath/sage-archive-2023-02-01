@@ -19,9 +19,9 @@ This defines the generating function of Fibonacci sequence::
     ....:         return 1
     ....:     else:
     ....:         return s.coefficient(i - 1) + s.coefficient(i - 2)
-    sage: f = L.series(coeff, True, valuation=0); f
+    sage: f = L.series(coeff, True, approximate_valuation=0); f
     1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
-    sage: f = L.series(coeff, False, valuation=0); f
+    sage: f = L.series(coeff, False, approximate_valuation=0); f
     1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
 
 The 100th element of Fibonacci sequence can be obtained from the generating
@@ -128,7 +128,7 @@ class LLS(ModuleElement):
         ....:         return 1
         ....:     else:
         ....:         return s.coefficient(i - 1) + s.coefficient(i - 2)
-        sage: f = L.series(coeff, True, valuation=0); f
+        sage: f = L.series(coeff, True, approximate_valuation=0); f
         1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
         sage: f.coefficient(100)
         573147844013817084101
@@ -398,7 +398,7 @@ class LLS(ModuleElement):
             ....:         return 1
             ....:     else:
             ....:         return sum(s.coefficient(j)*s.coefficient(i - 1 -j) for j in [0..i-1])
-            sage: e = L.series(g, True, valuation=0)
+            sage: e = L.series(g, True, approximate_valuation=0)
             sage: e.coefficient(10)
             16796
             sage: e
@@ -657,7 +657,7 @@ class LLS(ModuleElement):
 
         TESTS::
 
-            sage: g = L.series([1,0,0,2,0,0,0,3], -5); g
+            sage: g = L.series([1,0,0,2,0,0,0,3], True, -5); g
             z^-5 + 2*z^-2 + 3*z^2
             sage: g.polynomial()
             z^-5 + 2*z^-2 + 3*z^2

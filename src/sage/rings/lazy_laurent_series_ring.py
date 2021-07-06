@@ -309,7 +309,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ....:         return 1
             ....:     else:
             ....:         return s.coefficient(i - 1) + i
-            sage: e = L.series(g, -5); e
+            sage: e = L.series(g, True, -5); e
             z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
             sage: f = e^-1; f
             z^5 - z^6 - z^11 + ...
@@ -329,7 +329,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: f = L.series([1,2,3,4], True -5)
+            sage: f = L.series([1,2,3,4], True, -5)
             sage: f
             z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
             sage: g = L.series([1,3,5,7,9], True, 5, -1)

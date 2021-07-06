@@ -100,7 +100,9 @@ def symbolic_expression(x):
         sage: f = symbolic_expression(lambda z: z^2 + 1); f
         z |--> z^2 + 1
         sage: f.parent()
+        Callable function ring with argument z
         sage: f(7)
+        50
 
     If ``x`` is a list or tuple of functions, or if ``x`` is a function that returns a list
     or tuple, create a callable symbolic vector::

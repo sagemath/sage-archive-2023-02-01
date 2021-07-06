@@ -192,7 +192,8 @@ class Posets(metaclass=ClasscallMetaclass):
             return LatticePoset( ([0,1], [[0,1]]) )
 
         if element_label == 'subsets':
-            return FiniteLatticePoset((Subsets(n), lambda x,y: x.issubset(y))
+            from sage.combinat.subset import Subsets
+            return FiniteLatticePoset((Subsets(n), lambda x,y: x.issubset(y)),
                                       category = FiniteLatticePosets(),
                                       facade = facade)
 

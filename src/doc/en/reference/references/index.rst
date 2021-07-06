@@ -2828,6 +2828,9 @@ REFERENCES:
              with tunable clustering*, Phys. Rev. E (2002). vol 65, no 2, 026107.
              :doi:`10.1103/PhysRevE.65.026107`.
 
+.. [HKL2021] Clemens Heuberger, Daniel Krenn, Gabriel F. Lipnik, *Asymptotic
+             Analysis of `q`-Recursive Sequences*, :arxiv:`2105.04334`, 2021.
+
 .. [HKOTY1999] \G. Hatayama, A. Kuniba, M. Okado, T. Tagaki, and Y. Yamada,
                *Remarks on fermionic formula*. Contemp. Math., **248** (1999).
 
@@ -3921,6 +3924,10 @@ REFERENCES:
                Order structure on the algebra of permutations
                and of planar binary trees.
                :arxiv:`math/0102066v1`.
+
+.. [LRS2017] Julien Leroy, Michel Rigo, Manon Stipulanti, *Counting the
+             number of non-zero coefficients in rows of generalized Pascal
+             triangles*, Discrete Math. 340 (2017), no. 5, 862--881.
 
 .. [LS] \A. Lum, W. Stein. Verification of the Birch and
         Swinnerton-Dyer Conjecture for Elliptic Curves with Complex

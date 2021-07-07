@@ -32,6 +32,7 @@ from .space import is_ModularFormsSpace
 from random import shuffle
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.rings.polynomial.multi_polynomial import MPolynomial
+from sage.rings.polynomial.polynomial_element import Polynomial
 #from sage.symbolic.expression import Expression
 
 from sage.structure.parent import Parent
@@ -390,18 +391,18 @@ class ModularFormsRing(Parent):
             sage: M._generators_variables_dictionnary('e')
             Traceback (most recent call last):
             ...
-            TypeError: `pol` should be a multivariate polynomial
+            TypeError: `pol` must be a polynomial
         """
-        if not isinstance(pol, MPolynomial):
-            raise TypeError("`pol` should be a multivariate polynomial")
+        if not isinstance(pol, (Polynomial, MPolynomial)):
+            raise TypeError("`pol` must be a polynomial")
         if pol.base_ring() != self.base_ring():
             raise ValueError("the base ring of `pol` must be the same as the base ring of the modular forms ring")
-        nb_gens = pol.parent().ngens()
-        if nb_gens != self.ngens():
-            raise ValueError("the given polynomial should be a multivarate polynomial of %s variables"%(self.ngens()))
+        nb_var = pol.parent().ngens()
+        if nb_var > self.ngens():
+            raise ValueError("the number of variables of the given polynomial (%s) cannot exceed the number of generators of the modular forms ring (%s)"%(nb_var, self.ngens()))
         if gen is None:
             gen = self.gen_forms()
-        return {pol.parent().gen(i) : self.gen(i) for i in range(0, nb_gens)}
+        return {pol.parent().gen(i) : self.gen(i) for i in range(0, nb_var)}
 
     def from_polynomial(self, pol, gen=None):
         r"""
@@ -434,11 +435,9 @@ class ModularFormsRing(Parent):
         ..TODO:: 
         
             * add conversion for symbolic expressions?
-            * allow polynomials with less variables and extend if needed?
         """
         dict = self._generators_variables_dictionnary(pol, gen)
         return pol.substitute(dict)
-    
 
     def _element_constructor_(self, forms_datas):
         r"""
@@ -510,7 +509,7 @@ class ModularFormsRing(Parent):
                 raise ValueError('the group (%s) and/or the base ring (%s) of the given modular form is not consistant with the base space: %s'%(forms_datas.group(), forms_datas.base_ring(), self))
         elif forms_datas in self.base_ring():
             forms_dictionary = {0:forms_datas}
-        elif isinstance(forms_datas, MPolynomial):
+        elif isinstance(forms_datas, (Polynomial, MPolynomial)):
             return self.from_polynomial(forms_datas)
         else:
             raise TypeError('the defining data structure should be a single modular form, a ring element, a list of modular forms, a polynomial or a dictionary')

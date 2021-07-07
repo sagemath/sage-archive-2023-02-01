@@ -2973,7 +2973,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: M = P.incidence_matrix.cache
             sage: P.incidence_matrix.clear_cache()
             sage: M == P.incidence_matrix()
-            False
+            True
         """
         if self.base_ring() in (ZZ, QQ):
             # Much faster for integers or rationals.

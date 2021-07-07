@@ -1011,21 +1011,21 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         Initialization from manifold objects::
 
-            sage: R = RealLine(); R
+            sage: R = manifolds.RealLine(); R
             Real number line ℝ
             sage: RealSet(R)
             (-oo, +oo)
-            sage: I02 = OpenInterval(0, 2); I
+            sage: I02 = manifolds.OpenInterval(0, 2); I
             I
             sage: RealSet(I02)
             (0, 2)
-            sage: I01_of_R = OpenInterval(0, 1, ambient_interval=R); I01_of_R
+            sage: I01_of_R = manifolds.OpenInterval(0, 1, ambient_interval=R); I01_of_R
             Real interval (0, 1)
             sage: RealSet(I01_of_R)
             (0, 1)
             sage: RealSet(I01_of_R.closure())
             [0, 1]
-            sage: I01_of_I02 = OpenInterval(0, 1, ambient_interval=I02); I01_of_I02
+            sage: I01_of_I02 = manifolds.OpenInterval(0, 1, ambient_interval=I02); I01_of_I02
             Real interval (0, 1)
             sage: RealSet(I01_of_I02)
             (0, 1)

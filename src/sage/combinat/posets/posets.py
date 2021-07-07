@@ -3624,7 +3624,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.magnitude()
             -4
 
-            sage: P = posets.TamariLattice(2).without_bounds()
+            sage: P = posets.TamariLattice(4).without_bounds()
             sage: P.magnitude()
             0
 

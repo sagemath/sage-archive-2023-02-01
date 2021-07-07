@@ -23,14 +23,14 @@ Then set the metric to be the hyperbolic one::
     sage: g = M.metric()
     sage: g[0,0], g[1,1] = 1/y^2, 1/y^2
     sage: g.display()
-    g = y^(-2) dx*dx + y^(-2) dy*dy
+    g = y^(-2) dx⊗dx + y^(-2) dy⊗dy
 
 Pick an initial point and an initial tangent vector::
 
     sage: p = M((0,1), name='p')
     sage: v = M.tangent_space(p)((1,3/2), name='v')
     sage: v.display()
-    v = d/dx + 3/2 d/dy
+    v = ∂/∂x + 3/2 ∂/∂y
 
 Declare a geodesic with such initial conditions, denoting by `t` the
 corresponding affine parameter::
@@ -77,7 +77,7 @@ Plot the geodesic after interpolating the solution ``sol``::
     sage: c.codomain()
     2-dimensional Riemannian manifold M
     sage: c.display()
-    c: (0, 10) --> M
+    c: (0, 10) → M
 
 In particular, its value at `t=1` is::
 

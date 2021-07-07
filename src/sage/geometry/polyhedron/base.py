@@ -7944,7 +7944,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
                 prism._test_basic_properties(tester)
 
             # Check that the prism preserves the backend.
-            tester.assertEqual(self.prism().backend(), self.backend())
+            tester.assertEqual(prism.backend(), self.backend())
 
             tester.assertEqual(2*self.n_vertices(), prism.n_vertices())
             tester.assertEqual(self.n_rays(), prism.n_rays())

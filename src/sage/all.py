@@ -98,7 +98,7 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 # Ignore collections.abc warnings, there are a lot of them but they are
 # harmless.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
-    message='collections[.]abc.*')
+    message='.*collections[.]abc.*')
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default', category=DeprecationWarning,
     message=r'[\s\S]*See https?://trac\.sagemath\.org/[0-9]* for details.')

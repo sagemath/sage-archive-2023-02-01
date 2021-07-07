@@ -7876,15 +7876,77 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: polytopes.simplex(backend='cdd').bipyramid().backend()
             'cdd'
         """
-        new_verts = \
-            [[ 0] + list(x) for x in self.vertex_generator()] + \
-            [[ 1] + list(self.center())] + \
-            [[-1] + list(self.center())]
-        new_rays = [[0] + r for r in self.rays()]
-        new_lines = [[0] + list(l) for l in self.lines()]
+        c = self.center()
+        from itertools import chain
+        new_verts = chain(([0] + list(x) for x in self.vertex_generator()),
+                          [[1] + list(c), [-1] + list(c)])
+        new_rays =  ([0] + r for r in self.rays())
+        new_lines = ([0] + l for l in self.lines())
+        new_ieqs = chain(([i.b()] + [ c*i.A() + i.b()] + list(i.A()) for i in self.inequalities()),
+                         ([i.b()] + [-c*i.A() - i.b()] + list(i.A()) for i in self.inequalities()))
+        new_eqns = ([e.b()] + [0] + list(e.A()) for e in self.equations())
 
+        pref_rep = 'Hrep' if 2 + (self.n_vertices() + self.n_rays()) >= 2*self.n_inequalities() else 'Vrep'
         parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
-        return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
+
+        if c not in self.relative_interior():
+            # Fix polyhedra with non-proper center.
+            return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
+
+        return parent.element_class(parent, [new_verts, new_rays, new_lines],
+                                    [new_ieqs, new_eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
+
+    def _test_bipyramid(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.bipyramid`.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_bipyramid()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        if (self.n_vertices() + self.n_rays() >= 40
+                or self.n_facets() >= 40
+                or self.n_vertices() <= 1):
+            return
+
+        bipyramid = self.bipyramid()
+
+        # Check that the double description is set up correctly.
+        if self.base_ring().is_exact() and self.n_vertices() + self.n_rays() < 15 and self.n_facets() < 15:
+            bipyramid._test_basic_properties(tester)
+
+        # Check that the bipyramid preserves the backend.
+        tester.assertEqual(self.bipyramid().backend(), self.backend())
+
+        if self.center() not in self.relative_interior():
+            # In this case (unbounded) the bipyramid behaves a bit different.
+            return
+
+        tester.assertEqual(2 + self.n_vertices(), bipyramid.n_vertices())
+        tester.assertEqual(self.n_rays(), bipyramid.n_rays())
+        tester.assertEqual(self.n_lines(), bipyramid.n_lines())
+        tester.assertEqual(self.n_equations(), bipyramid.n_equations())
+        tester.assertEqual(2*self.n_inequalities(), bipyramid.n_inequalities())
+
+        if not self.is_compact():
+            # ``is_bipyramid`` is only implemented for compact polyhedra.
+            return
+
+        b, cert = bipyramid.is_bipyramid(certificate=True)
+        tester.assertTrue(b)
+
+        if not self.is_bipyramid() and self.base_ring().is_exact():
+            # In this case the certificate is unique.
+
+            R = self.base_ring()
+            a = (R(1),) + tuple(self.center())
+            b = (R(-1),) + tuple(self.center())
+            c, d = [tuple(v) for v in cert]
+            tester.assertEqual(sorted([a, b]), sorted([c, d]))
 
     def prism(self):
         """

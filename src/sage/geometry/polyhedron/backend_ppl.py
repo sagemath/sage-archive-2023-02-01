@@ -7,7 +7,7 @@ from sage.rings.all import ZZ
 from sage.rings.integer import Integer
 from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
-from .base import Polyhedron_base
+from .base_interactive import Polyhedron_interactive
 from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ
 
@@ -19,7 +19,7 @@ lazy_import('ppl', ['C_Polyhedron', 'Generator_System', 'Constraint_System',
 
 
 #########################################################################
-class Polyhedron_ppl(Polyhedron_base):
+class Polyhedron_ppl(Polyhedron_interactive):
     """
     Polyhedra with ppl
 
@@ -34,6 +34,8 @@ class Polyhedron_ppl(Polyhedron_base):
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[], backend='ppl')
         sage: TestSuite(p).run()
     """
+
+    _backend_object_name = "ppl_polyhedron"
 
     def __init__(self, parent, Vrep, Hrep, ppl_polyhedron=None, **kwds):
         """
@@ -59,7 +61,7 @@ class Polyhedron_ppl(Polyhedron_base):
             minimize = True if 'minimize' in kwds and kwds['minimize'] else False
             self._init_from_ppl_polyhedron(ppl_polyhedron, minimize)
         else:
-            Polyhedron_base.__init__(self, parent, Vrep, Hrep, **kwds)
+            Polyhedron_interactive.__init__(self, parent, Vrep, Hrep, **kwds)
 
     def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
         """
@@ -151,8 +153,52 @@ class Polyhedron_ppl(Polyhedron_base):
             sage: Polyhedron_ppl._init_from_Hrepresentation(p, [], [])  # indirect doctest
         """
         self._ppl_polyhedron = ppl_polyhedron
-        self._init_Vrepresentation_from_ppl(minimize)
-        self._init_Hrepresentation_from_ppl(minimize)
+
+    def Vrepresentation(self, index=None):
+        """
+        Return the objects of the V-representation. Each entry is
+        either a vertex, a ray, or a line.
+
+        See :mod:`sage.geometry.polyhedron.constructor` for a
+        definition of vertex/ray/line.
+
+        INPUT:
+
+        - ``index`` -- either an integer or ``None``
+
+        OUTPUT:
+
+        The optional argument is an index running from ``0`` to
+        ``self.n_Vrepresentation()-1``. If present, the
+        V-representation object at the given index will be
+        returned. Without an argument, returns the list of all
+        V-representation objects.
+
+        EXAMPLES::
+
+            sage: p = polytopes.cube()
+            sage: p.Vrepresentation(0)
+            sage: p = polytopes.cube()
+            sage: p.Vrepresentation(0)
+            A vertex at (1, -1, -1)
+            sage: p._clear_cache()
+            sage: p.Vrepresentation()
+            (A vertex at (1, -1, -1),
+             A vertex at (1, 1, -1),
+             A vertex at (1, 1, 1),
+             A vertex at (1, -1, 1),
+             A vertex at (-1, -1, 1),
+             A vertex at (-1, -1, -1),
+             A vertex at (-1, 1, -1),
+             A vertex at (-1, 1, 1))
+            sage: TestSuite(p).run()
+        """
+        if not hasattr(self, '_Vrepresentation'):
+            self._init_Vrepresentation_from_ppl(True)
+        if index is None:
+            return self._Vrepresentation
+        else:
+            return self._Vrepresentation[index]
 
     def _init_Vrepresentation_from_ppl(self, minimize):
         """
@@ -220,6 +266,40 @@ class Polyhedron_ppl(Polyhedron_base):
             elif c.is_equality():
                 parent._make_Equation(self, (c.inhomogeneous_term(),) + c.coefficients())
         self._Hrepresentation = tuple(self._Hrepresentation)
+
+    def Hrepresentation(self, index=None):
+        """
+        Return the objects of the H-representation. Each entry is
+        either an inequality or a equation.
+
+        INPUT:
+
+        - ``index`` -- either an integer or ``None``
+
+        OUTPUT:
+
+        The optional argument is an index running from ``0`` to
+        ``self.n_Hrepresentation()-1``. If present, the
+        H-representation object at the given index will be
+        returned. Without an argument, returns the list of all
+        H-representation objects.
+
+        EXAMPLES::
+
+            sage: p = polytopes.hypercube(3)
+            sage: p.Hrepresentation(0)
+            An inequality (-1, 0, 0) x + 1 >= 0
+            sage: p.Hrepresentation(0) == p.Hrepresentation()[0]
+            True
+            sage: p._clear_cache()
+            sage: TestSuite(p).run()
+        """
+        if not hasattr(self, '_Hrepresentation'):
+            self._init_Hrepresentation_from_ppl(True)
+        if index is None:
+            return self._Hrepresentation
+        else:
+            return self._Hrepresentation[index]
 
     def _init_empty_polyhedron(self):
         """

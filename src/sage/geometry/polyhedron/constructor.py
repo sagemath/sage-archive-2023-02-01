@@ -505,6 +505,7 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         ....:                          (2, 3, 1), (3, 1, 2), (3, 2, 1)],
         ....:                rays=[[1, 1, 1]], lines=[[1, 2, 3]], backend='ppl',
         ....:                base_ring=ZZ)
+        sage: Q.n_vertices()
         Traceback (most recent call last):
         ...
         TypeError: no conversion of this rational to integer

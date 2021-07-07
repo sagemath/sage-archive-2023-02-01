@@ -278,6 +278,7 @@ class Polyhedra_base(UniqueRepresentation, Parent):
         TESTS::
 
             sage: p = Polyhedron([(0,0),(1,0),(0,1)])
+            sage: _ = p.vertices()
             sage: n = len(p.parent()._Vertex_pool)
             sage: p._delete()
             sage: len(p.parent()._Vertex_pool) - n

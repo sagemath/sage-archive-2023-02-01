@@ -733,7 +733,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: P > Q
             False
          """
-        if self._Vrepresentation is None or other._Vrepresentation is None:
+        if self.Vrepresentation() is None or other.Vrepresentation() is None:
             raise RuntimeError('some V representation is missing')
             # make sure deleted polyhedra are not used in cache
 
@@ -1706,10 +1706,10 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         EXAMPLES::
 
-            sage: p = polytopes.hypercube(3)
+            sage: p = polytopes.hypercube(3, backend='field')
             sage: p.Hrepresentation(0)
             An inequality (-1, 0, 0) x + 1 >= 0
-            sage: p.Hrepresentation(0) == p.Hrepresentation() [0]
+            sage: p.Hrepresentation(0) == p.Hrepresentation()[0]
             True
         """
         if index is None:
@@ -5637,7 +5637,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
         new_eqns = self.equations() + other.equations()
         parent = self.parent()
         try:
-            return parent.element_class(parent, None, [new_ieqs, new_eqns])
+            intersection = parent.element_class(parent, None, [new_ieqs, new_eqns])
+
+            # Force calculation of the vertices.
+            _ = intersection.n_vertices()
+            return intersection
         except TypeError as msg:
             if self.base_ring() is ZZ:
                 parent = parent.base_extend(QQ)

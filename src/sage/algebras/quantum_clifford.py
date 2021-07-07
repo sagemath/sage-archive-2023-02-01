@@ -59,8 +59,8 @@ class QuantumCliffordAlgebra(CombinatorialFreeModule):
 
     INPUT:
 
-    - ``n`` -- the rank
-    - ``k`` -- (default: 1) the twist
+    - ``n`` -- positive integer; the rank
+    - ``k`` -- positive integer (default: 1); the twist
     - ``q`` -- (optional) the parameter `q`
     - ``F`` -- (default: `\QQ(q)`) the base field that contains ``q``
 

@@ -1623,7 +1623,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             mc = self.monomial_coefficients(copy=False)
             if sparse:
                 from sage.modules.free_module import FreeModule
-                M = FreeModule(R, self.dimension(), sparse=True)
+                M = FreeModule(self.parent().base_ring(), self.dimension(), sparse=True)
                 if order is None:
                     order = {b: i for i,b in enumerate(self.parent()._basis_ordering)}
                 return M({order[k]: c for k, c in mc.items()})

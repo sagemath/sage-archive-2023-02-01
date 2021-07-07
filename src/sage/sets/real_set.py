@@ -1012,7 +1012,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         Initialization from manifold objects::
 
             sage: R = RealLine(); R
-            Real number line R
+            Real number line ℝ
             sage: RealSet(R)
             (-oo, +oo)
             sage: I02 = OpenInterval(0, 2); I

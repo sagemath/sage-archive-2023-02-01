@@ -3961,22 +3961,22 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: R = Q.prism()
             sage: R.is_prism(certificate=True)
             (True,
-             [[A vertex at (1, 0, 0, 0),
+             [[A vertex at (1, 6, 36, 216),
+               A vertex at (1, 0, 0, 0),
+               A vertex at (1, 7, 49, 343),
+               A vertex at (1, 5, 25, 125),
                A vertex at (1, 1, 1, 1),
                A vertex at (1, 2, 4, 8),
-               A vertex at (1, 3, 9, 27),
                A vertex at (1, 4, 16, 64),
-               A vertex at (1, 5, 25, 125),
-               A vertex at (1, 6, 36, 216),
-               A vertex at (1, 7, 49, 343)],
-              [A vertex at (0, 0, 0, 0),
+               A vertex at (1, 3, 9, 27)],
+              [A vertex at (0, 3, 9, 27),
+               A vertex at (0, 6, 36, 216),
+               A vertex at (0, 0, 0, 0),
+               A vertex at (0, 7, 49, 343),
+               A vertex at (0, 5, 25, 125),
                A vertex at (0, 1, 1, 1),
                A vertex at (0, 2, 4, 8),
-               A vertex at (0, 3, 9, 27),
-               A vertex at (0, 4, 16, 64),
-               A vertex at (0, 5, 25, 125),
-               A vertex at (0, 6, 36, 216),
-               A vertex at (0, 7, 49, 343)]])
+               A vertex at (0, 4, 16, 64)]])
 
         TESTS::
 
@@ -4100,7 +4100,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: p = Polyhedron(vertices = [[0,0],[0,1],[1,0]])
             sage: p2 = p.prism()
             sage: p2.gale_transform()
-            ((-1, -1), (1, 0), (0, 1), (1, 1), (-1, 0), (0, -1))
+            ((-1, 0), (0, -1), (1, 1), (-1, -1), (1, 0), (0, 1))
 
         REFERENCES:
 
@@ -7905,14 +7905,72 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: polytopes.simplex(backend='cdd').prism().backend()
             'cdd'
         """
-        new_verts = []
-        new_verts.extend( [ [0] + v for v in self.vertices()] )
-        new_verts.extend( [ [1] + v for v in self.vertices()] )
-        new_rays =        [ [0] + r for r in self.rays()]
-        new_lines =       [ [0] + l for l in self.lines()]
+        from itertools import chain
+        new_verts = chain(([0] + v for v in self.vertices()),
+                          ([1] + v for v in self.vertices()))
+        new_rays =  ([0] + r for r in self.rays())
+        new_lines = ([0] + l for l in self.lines())
+        new_eqns = ([e.b()] + [0] + list(e[1:]) for e in self.equations())
+        new_ieqs = chain([[0, 1] + [0]*self.ambient_dim(), [1, -1] + [0]*self.ambient_dim()],
+                         ([i.b()] + [0] + list(i[1:]) for i in self.inequalities()))
 
+        pref_rep = 'Hrep' if 2*(self.n_vertices() + self.n_rays()) >= self.n_inequalities() else 'Vrep'
         parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
-        return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
+
+        if not self.vertices():
+            # Fix the empty polyhedron.
+            return parent.element_class(parent, [[], [], []], None)
+
+        return parent.element_class(parent, [new_verts, new_rays, new_lines],
+                                    [new_ieqs, new_eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
+
+    def _test_prism(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.prism`.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_prism()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        if self.n_vertices() + self.n_rays() < 40 and self.n_facets() < 40:
+            prism = self.prism()
+
+            # Check that the double description is set up correctly.
+            if self.base_ring().is_exact() and self.n_vertices() + self.n_rays() < 15 and self.n_facets() < 15:
+                prism._test_basic_properties(tester)
+
+            # Check that the prism preserves the backend.
+            tester.assertEqual(self.prism().backend(), self.backend())
+
+            tester.assertEqual(2*self.n_vertices(), prism.n_vertices())
+            tester.assertEqual(self.n_rays(), prism.n_rays())
+            tester.assertEqual(self.n_lines(), prism.n_lines())
+            tester.assertEqual(self.n_equations(), prism.n_equations())
+            if self.is_empty():
+                return
+
+            tester.assertEqual(2 + self.n_inequalities(), prism.n_inequalities())
+
+            if not self.is_compact():
+                # ``is_prism`` only implemented for compact polyhedra.
+                return
+
+            b, cert = prism.is_prism(certificate=True)
+            tester.assertTrue(b)
+
+            if not self.is_prism() and self.base_ring().is_exact():
+                # In this case the certificate is unique.
+
+                R = self.base_ring()
+                cert_set = set(frozenset(tuple(v) for v in f) for f in cert)
+                expected_cert = set(frozenset((i,) + tuple(v)
+                                              for v in self.vertices())
+                                    for i in (R(0), R(1)))
+                tester.assertEqual(cert_set, expected_cert)
 
     def one_point_suspension(self, vertex):
         """

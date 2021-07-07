@@ -4808,7 +4808,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem([x^2 + c*y^2, y^2])
             sage: f.sigma_invariants(1, return_polynomial=True)
             w^3 + (-3)*w^2*t + 2*w^2 + 3*w*t^2 + (-4)*w*t + 4*c*w - t^3 + 2*t^2 + (-4*c)*t
-            sage: f.sigma_invariants(2, formal=True, return_polynomial=True)
+            sage: f.sigma_invariants(2, chow=True, formal=True, return_polynomial=True)
             w^2 + (-2)*w*t + (8*c + 8)*w + t^2 + (-8*c - 8)*t + 16*c^2 + 32*c + 16
 
         ::
@@ -4869,22 +4869,23 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             base_ring = self.base_ring()
             d = self.degree()
             N = dom.dimension_relative()
-            Fn = self.nth_iterate_map(n)
+            f = copy(self)
+            Fn = f.nth_iterate_map(n)
             if not base_ring.is_field():
                 F = FractionField(base_ring)
-                Fn.normalize_coordinates()
-                X = Fn.periodic_points(1, minimal=False, formal=formal, return_scheme=True)
+                f.normalize_coordinates()
+                X = f.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
                 X = X.change_ring(F)
             else:
                 F = base_ring
                 if is_FractionField(base_ring):
                     if is_MPolynomialRing(base_ring.ring()) or is_PolynomialRing(base_ring.ring()):
-                        Fn.normalize_coordinates()
-                        Fn_ring = Fn.change_ring(base_ring.ring())
-                        X = Fn_ring.periodic_points(1, minimal=False, formal=formal, return_scheme=True)
+                        f.normalize_coordinates()
+                        f_ring = f.change_ring(base_ring.ring())
+                        X = f_ring.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
                         X = X.change_ring(F)
                 else:
-                    X = Fn.periodic_points(1, minimal=False, formal=formal, return_scheme=True)
+                    X = f.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
             newR = PolynomialRing(F, 'w, t', 2, order='lex')
             if not base_ring.is_field():
                 ringR = PolynomialRing(base_ring, 'w, t', 2, order='lex')

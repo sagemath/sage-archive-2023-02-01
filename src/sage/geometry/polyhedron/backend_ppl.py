@@ -2,6 +2,7 @@
 The PPL (Parma Polyhedra Library) backend for polyhedral computations
 """
 
+from sage.structure.element import Element
 from sage.rings.all import ZZ
 from sage.rings.integer import Integer
 from sage.arith.functions import LCM_list
@@ -33,6 +34,32 @@ class Polyhedron_ppl(Polyhedron_base):
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[], backend='ppl')
         sage: TestSuite(p).run()
     """
+
+    def __init__(self, parent, Vrep, Hrep, ppl_polyhedron=None, **kwds):
+        """
+        Initializes the polyhedron.
+
+        See :class:`Polyhedron_normaliz` for a description of the input
+        data.
+
+        TESTS::
+
+            sage: p = Polyhedron()
+            sage: TestSuite(p).run()
+            sage: p = Polyhedron(vertices=[(1, 1)], rays=[(0, 1)])
+            sage: TestSuite(p).run()
+            sage: q = polytopes.cube()
+            sage: p = q.parent().element_class(q.parent(), None, None, q._ppl_polyhedron)
+            sage: TestSuite(p).run()
+        """
+        if ppl_polyhedron:
+            if Hrep is not None or Vrep is not None:
+                raise ValueError("only one of Vrep, Hrep, or ppl_polyhedron can be different from None")
+            Element.__init__(self, parent=parent)
+            minimize = True if 'minimize' in kwds and kwds['minimize'] else False
+            self._init_from_ppl_polyhedron(ppl_polyhedron, minimize)
+        else:
+            Polyhedron_base.__init__(self, parent, Vrep, Hrep, **kwds)
 
     def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
         """
@@ -87,11 +114,10 @@ class Polyhedron_ppl(Polyhedron_base):
                 dl = [ d*l_i for l_i in l ]
                 gs.insert(line(Linear_Expression(dl, 0)))
         if gs.empty():
-            self._ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'empty')
+            ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'empty')
         else:
-            self._ppl_polyhedron = C_Polyhedron(gs)
-        self._init_Vrepresentation_from_ppl(minimize)
-        self._init_Hrepresentation_from_ppl(minimize)
+            ppl_polyhedron = C_Polyhedron(gs)
+        self._init_from_ppl_polyhedron(ppl_polyhedron, minimize)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         """
@@ -132,9 +158,22 @@ class Polyhedron_ppl(Polyhedron_base):
             A = deqn[1:]
             cs.insert(Linear_Expression(A, b) == 0)
         if cs.empty():
-            self._ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'universe')
+            ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'universe')
         else:
-            self._ppl_polyhedron = C_Polyhedron(cs)
+            ppl_polyhedron = C_Polyhedron(cs)
+        self._init_from_ppl_polyhedron(ppl_polyhedron, minimize)
+
+    def _init_from_ppl_polyhedron(self, ppl_polyhedron, minimize=True):
+        """
+        Create the V-/Hrepresentation objects from the ppl polyhedron.
+
+        TESTS::
+
+            sage: p = Polyhedron(backend='ppl')
+            sage: from sage.geometry.polyhedron.backend_ppl import Polyhedron_ppl
+            sage: Polyhedron_ppl._init_from_Hrepresentation(p, [], [])  # indirect doctest
+        """
+        self._ppl_polyhedron = ppl_polyhedron
         self._init_Vrepresentation_from_ppl(minimize)
         self._init_Hrepresentation_from_ppl(minimize)
 

@@ -890,7 +890,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                 from sage.misc.latex import latex
                 latex_name = latex(real_set)
 
-            return ambient.canonical_chart().pullback(real_set, name=name, latex_name=latex_name)
+            return ambient.manifold().canonical_chart().pullback(real_set, name=name, latex_name=latex_name)
 
         from sage.symbolic.expression import Expression
         if len(args) == 1 and isinstance(args[0], RealSet):
@@ -1047,12 +1047,15 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
             sage: RealSet(-oo, oo, structure='differentiable')
             Real number line ℝ
+
             sage: RealSet([0, 1], structure='differentiable')
             Subset [0, 1] of the Real number line ℝ
             sage: _.category()
             Category of subobjects of sets
+
             sage: RealSet.open_closed(0, 5, structure='differentiable')
             Subset (0, 5] of the Real number line ℝ
+
             sage: RealSet(0, 1, name='A')
             Open subset A of the Real number line ℝ
             sage: _.category()
@@ -1060,6 +1063,21 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
              Category of smooth manifolds over Real Field with 53 bits of precision and
              Category of connected manifolds over Real Field with 53 bits of precision and
              Category of subobjects of sets
+
+            sage: R_xi.<ξ> = RealSet(-oo, oo); R_xi
+            Real number line ℝ
+            sage: R_xi.canonical_chart()
+            Chart (ℝ, (ξ,))
+            sage: P_xi = RealSet(0, oo, ambient=R_xi); P_xi
+            Open subset (0, +oo) of the Real number line ℝ
+            sage: P_xi.default_chart()
+            Chart ((0, +oo), (ξ,))
+            sage: B_xi = RealSet(0, 1, ambient=P_xi); B_xi
+            Open subset (0, 1) of the Real number line ℝ
+            sage: B_xi.default_chart()
+            Chart ((0, 1), (ξ,))
+            sage: R_xi.subset_family()
+            Set {(0, +oo), (0, 1), ℝ} of open subsets of the Real number line ℝ
         """
         category = TopologicalSpaces()
         if len(intervals) <= 1:

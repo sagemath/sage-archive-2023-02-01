@@ -858,6 +858,11 @@ class RealSet(UniqueRepresentation, Parent):
             # Got manifold keywords
             real_set = cls.__classcall__(cls, *args)
             ambient = kwds.pop('ambient', None)
+            structure = kwds.pop('structure', 'differentiable')
+            if structure != 'differentiable':
+                # TODO
+                raise NotImplementedError
+            
             from sage.manifolds.differentiable.examples.real_line import RealLine
             if real_set.is_universe():
                 if ambient is None:
@@ -869,13 +874,20 @@ class RealSet(UniqueRepresentation, Parent):
 
             name = kwds.pop('name', None)
             latex_name = kwds.pop('latex_name', None)
+
             if ambient is None:
                 ambient = RealLine(**kwds)
             else:
                 # TODO: Check that ambient makes sense
                 pass
 
-            return ambient.canonical_chart().pullback(real_set)
+            if name is None:
+                name = str(real_set)
+            if latex_name is None:
+                from sage.misc.latex import latex
+                latex_name = latex(real_set)
+
+            return ambient.canonical_chart().pullback(real_set, name=name, latex_name=latex_name)
 
         from sage.symbolic.expression import Expression
         if len(args) == 1 and isinstance(args[0], RealSet):
@@ -1030,8 +1042,14 @@ class RealSet(UniqueRepresentation, Parent):
 
         By passing certain keyword arguments, real sets can be set up as manifolds or manifold subsets::
 
+            sage: RealSet([0, 1], structure='differentiable')
+            Subset [0, 1] of the Real number line R
+            sage: _.category()
+            Category of subobjects of sets
             sage: RealSet(0, 1, name='A')
-            Subset t_inv_(0, 1) of the Real number line R
+            Subset A of the Real number line R
+            sage: _.category()
+            Category of subobjects of sets
         """
         category = TopologicalSpaces()
         if len(intervals) <= 1:

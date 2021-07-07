@@ -134,8 +134,6 @@ cpdef list[list] contpath_mp_comps(int deg, list values, RealNumber y0r, RealNum
 
     for j in range(len(otherdegs)):
         cotherdegs[j] = int(otherdegs[j])
-
-
     sig_on()
     mpfr_init2(y0R, prec)
     mpfr_set(y0R, (<RealNumber>y0r).value, MPFR_RNDN)
@@ -143,18 +141,15 @@ cpdef list[list] contpath_mp_comps(int deg, list values, RealNumber y0r, RealNum
     mpfr_set(y0I, (<RealNumber>y0i).value, MPFR_RNDN)
     rop = homotopyPath_mp_comps(deg, cvalues, y0R, y0I, prec, int(len(otherdegs)), cotherdegs, cothercoefs)
     sig_off()
-
     for j in range(len(values)):
         mpfr_clear(cvalues[j])
     free(cvalues)
-
     for j in range(len(othercoefs)):
         mpfr_clear(cothercoefs[j])
     free(cothercoefs)
     free(cotherdegs)
     if rop == NULL:
         raise ValueError("libsirocco could not guarantee one step")
-
     cdef int n = mpfr_get_si(rop[0], MPFR_RNDN)
     cdef list l = []
     cdef list inner
@@ -210,7 +205,7 @@ cpdef list[list] contpath(int deg, list values, double y0r, double y0i):
     cdef double* c_values = <double*> check_allocarray(len(values), sizeof(double))
     cdef int clen = <int> len(values)
     cdef int i
-    for i,v in enumerate(values):
+    for i, v in enumerate(values):
         c_values[i] = values[i]
     cdef double y0R = y0r
     cdef double y0I = y0i
@@ -267,20 +262,18 @@ cpdef list[list] contpath_comps(int deg, list values, double y0r, double y0i, li
          (1.0, -1.0, 0.0)]
 
     """
-
-
     cdef double* rop
     cdef double* c_values = <double*> check_allocarray(len(values), sizeof(double))
     cdef int* c_otherdegrees = <int*> check_allocarray(len(otherdegrees), sizeof(int))
     cdef double* c_othercoefs = <double*> check_allocarray(len(othercoefs), sizeof(double))
     cdef int clen = <int> len(values)
     cdef int i
-    for i,v in enumerate(values):
+    for i, v in enumerate(values):
         c_values[i] = values[i]
 
-    for i,v in enumerate(otherdegrees):
+    for i, v in enumerate(otherdegrees):
         c_otherdegrees[i] = otherdegrees[i]
-    for i,v in enumerate(othercoefs):
+    for i, v in enumerate(othercoefs):
         c_othercoefs[i] = othercoefs[i]
 
     cdef double y0R = y0r
@@ -299,4 +292,3 @@ cpdef list[list] contpath_comps(int deg, list values, double y0r, double y0i, li
     free(c_otherdegrees)
     free(c_othercoefs)
     return l
-

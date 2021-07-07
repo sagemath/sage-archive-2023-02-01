@@ -42,7 +42,6 @@ from sage.groups.braid import BraidGroup
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.rings.rational_field import QQ
 from sage.rings.qqbar import QQbar
-from sage.rings.all import CC
 from sage.parallel.decorate import parallel
 from sage.misc.flatten import flatten
 from sage.groups.free_group import FreeGroup
@@ -51,7 +50,6 @@ from sage.rings.complex_mpfr import ComplexField
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.combinat.permutation import Permutation
-from sage.functions.generalized import sign
 from sage.combinat.subset import Subsets
 from sage.geometry.voronoi_diagram import VoronoiDiagram
 from sage.graphs.graph import Graph
@@ -60,6 +58,7 @@ from copy import copy
 
 
 roots_interval_cache = dict()
+
 
 def braid_from_piecewise(strands):
     r"""
@@ -150,6 +149,7 @@ def braid_from_piecewise(strands):
     B = BraidGroup(len(L))
     return B(braid)
 
+
 def discrim(f):
     r"""
     Return the points in the discriminant of ``f``.
@@ -180,6 +180,7 @@ def discrim(f):
     F = f.base_ring()
     poly = F[x](f.discriminant(y)).radical()
     return poly.roots(QQbar, multiplicities=False)
+
 
 @cached_function
 def corrected_voronoi_diagram(points):
@@ -220,12 +221,12 @@ def corrected_voronoi_diagram(points):
     point_coordinates = [(p.real(), p.imag()) for p in points]
     while True:
         RF = RealField(prec)
-        apprpoints = {(QQ(RF(p[0])), QQ(RF(p[1]))):p for p in point_coordinates}
+        apprpoints = {(QQ(RF(p[0])), QQ(RF(p[1]))): p for p in point_coordinates}
         added_points = 3 * max(map(abs, flatten(apprpoints))) + 1
         configuration = list(apprpoints.keys())+[(added_points, 0),
-                                               (-added_points, 0),
-                                               (0, added_points),
-                                               (0, -added_points)]
+                                                 (-added_points, 0),
+                                                 (0, added_points),
+                                                 (0, -added_points)]
         V = VoronoiDiagram(configuration)
         valid = True
         for r in V.regions().items():
@@ -236,6 +237,7 @@ def corrected_voronoi_diagram(points):
         if valid:
             break
     return V
+
 
 def segments(points):
     """
@@ -285,9 +287,10 @@ def segments(points):
         segments = region.facets()
         for s in segments:
             t = tuple((tuple(v.vector()) for v in s.vertices()))
-            if not t in res and not tuple(reversed(t)) in res:
+            if t not in res and not tuple(reversed(t)) in res:
                 res.add(t)
     return [(r[0]+QQbar.gen()*r[1], s[0]+QQbar.gen()*s[1]) for (r, s) in res]
+
 
 def followstrand(f, factors, x0, x1, y0a, prec=53):
     r"""
@@ -389,6 +392,7 @@ def followstrand(f, factors, x0, x1, y0a, prec=53):
     except Exception:
         return followstrand(f, factors, x0, x1, y0a, 2 * prec)
 
+
 def newton(f, x0, i0):
     r"""
     Return the interval Newton operator.
@@ -421,6 +425,7 @@ def newton(f, x0, i0):
 
     """
     return x0 - f(x0)/f.derivative()(i0)
+
 
 @parallel
 def roots_interval(f, x0):
@@ -464,10 +469,9 @@ def roots_interval(f, x0):
           -0.0669872981077806 + 0.433012701892219*I)]
 
     """
-    F = f.base_ring()
     x, y = f.parent().gens()
     I = QQbar.gen()
-    fx = QQbar[y](f.subs({x:QQ(x0.real())+I*QQ(x0.imag())}))
+    fx = QQbar[y](f.subs({x: QQ(x0.real())+I*QQ(x0.imag())}))
     roots = fx.roots(QQbar, multiplicities=False)
     result = {}
     for i in range(len(roots)):
@@ -477,19 +481,20 @@ def roots_interval(f, x0):
         CF = ComplexField(prec)
         divisor = 4
         diam = min([(CF(r)-CF(r0)).abs() for r0 in roots[:i]+roots[i+1:]])/divisor
-        envelop = IF(diam)*IF((-1,1),(-1,1))
+        envelop = IF(diam)*IF((-1, 1), (-1, 1))
         while not newton(fx, r, r+envelop) in r+envelop:
             prec += 53
             IF = ComplexIntervalField(prec)
             CF = ComplexField(prec)
-            divisor *=2
+            divisor *= 2
             diam = min([(CF(r)-CF(r0)).abs() for r0 in roots[:i]+roots[i+1:]])/divisor
-            envelop = IF(diam)*IF((-1,1),(-1,1))
+            envelop = IF(diam)*IF((-1, 1), (-1, 1))
         qapr = QQ(CF(r).real())+QQbar.gen()*QQ(CF(r).imag())
-        if not qapr in r+envelop:
+        if qapr not in r+envelop:
             raise ValueError("Could not approximate roots with exact values")
         result[qapr] = r+envelop
     return result
+
 
 def roots_interval_cached(f, x0):
     r"""
@@ -513,11 +518,11 @@ def roots_interval_cached(f, x0):
 
     """
     global roots_interval_cache
-    if (f,x0) in roots_interval_cache.keys():
-        return roots_interval_cache[(f,x0)]
+    if (f, x0) in roots_interval_cache.keys():
+        return roots_interval_cache[(f, x0)]
     else:
-        result = roots_interval(f,x0)
-        roots_interval_cache[(f,x0)] = result
+        result = roots_interval(f, x0)
+        roots_interval_cache[(f, x0)] = result
         return result
 
 
@@ -579,13 +584,13 @@ def braid_in_segment(g, x0, x1):
             F0 = QQbar[y](f(X0, y))
         y0sf = F0.roots(multiplicities=False)
         y0s += list(y0sf)
-        precision[f]=53
+        precision[f] = 53
         while True:
             intervals[f] = [r.interval(ComplexIntervalField(precision[f])) for r in y0sf]
-            if not any([a.overlaps(b) for a,b in Subsets(intervals[f], 2)]):
+            if not any([a.overlaps(b) for a, b in Subsets(intervals[f], 2)]):
                 break
             precision[f] *= 2
-    strands = [followstrand(f[0], [p[0] for p in g if p[0]!= f[0]], x0, x1, i.center(), precision[f[0]]) for f in g for i in intervals[f[0]]]
+    strands = [followstrand(f[0], [p[0] for p in g if p[0] != f[0]], x0, x1, i.center(), precision[f[0]]) for f in g for i in intervals[f[0]]]
     complexstrands = [[(QQ(a[0]), QQ(a[1]), QQ(a[2])) for a in b] for b in strands]
     centralbraid = braid_from_piecewise(complexstrands)
     initialstrands = []
@@ -596,7 +601,7 @@ def braid_in_segment(g, x0, x1):
         ip = cs[0][1] + I*cs[0][2]
         fp = cs[-1][1] + I*cs[-1][2]
         matched = 0
-        for center,interval in initialintervals.items():
+        for center, interval in initialintervals.items():
             if ip in interval:
                 initialstrands.append([(0, center.real(), center.imag()), (1, cs[0][1], cs[0][2])])
                 matched += 1
@@ -605,19 +610,19 @@ def braid_in_segment(g, x0, x1):
         if matched > 1:
             raise ValueError("braid endpoint mathes more than one root")
         matched = 0
-        for center,interval in finalintervals.items():
+        for center, interval in finalintervals.items():
             if fp in interval:
                 finalstrands.append([(0, cs[-1][1], cs[-1][2]), (1, center.real(), center.imag())])
-                matched +=1
+                matched += 1
         if matched == 0:
             raise ValueError("unable to match braid endpoint with root")
         if matched > 1:
             raise ValueError("braid endpoint mathes more than one root")
-    y0aps = [QQ(c[0][1])+QQbar.gen()*QQ(c[0][2]) for c in complexstrands]
     initialbraid = braid_from_piecewise(initialstrands)
     finalbraid = braid_from_piecewise(finalstrands)
 
     return initialbraid * centralbraid * finalbraid
+
 
 def orient_circuit(circuit):
     r"""
@@ -681,6 +686,7 @@ def orient_circuit(circuit):
             return circuit
         else:
             prec *= 2
+
 
 def geometric_basis(G, E, p):
     r"""
@@ -755,7 +761,7 @@ def geometric_basis(G, E, p):
     """
     EC = [v[0] for v in orient_circuit(E.eulerian_circuit())]
     i = EC.index(p)
-    EC = EC[i:]+EC[:i+1] # A counterclockwise eulerian circuit on the boundary, based at p
+    EC = EC[i:]+EC[:i+1]   # A counterclockwise eulerian circuit on the boundary, based at p
     if len(G.edges()) == len(E.edges()):
         if E.is_cycle():
             return [EC]
@@ -763,13 +769,13 @@ def geometric_basis(G, E, p):
     for e in G.edges():
         if not E.has_edge(e):
             I.add_edge(e)   # interior graph
-    #treat the case where I is empty
+    # treat the case where I is empty
     if not I.vertices():
         for v in E.vertices():
-            if len(E.neighbors(v))>2:
+            if len(E.neighbors(v)) > 2:
                 I.add_vertex(v)
 
-    for i in range(len(EC)):  #q and r are the points we will cut through
+    for i in range(len(EC)):  # q and r are the points we will cut through
 
         if EC[i] in I.vertices():
             q = EC[i]
@@ -779,14 +785,14 @@ def geometric_basis(G, E, p):
             q = EC[-i]
             connecting_path = list(reversed(EC[-i:]))
             break
-    distancequotients = [(E.distance(q,v)**2/I.distance(q,v), v) for v in E.vertices() if v in I.connected_component_containing_vertex(q) and not v==q]
+    distancequotients = [(E.distance(q, v)**2/I.distance(q, v), v) for v in E.vertices() if v in I.connected_component_containing_vertex(q) and not v == q]
     r = max(distancequotients)[1]
     cutpath = I.shortest_path(q, r)
     Gcut = copy(G)
     Ecut = copy(E)
-    Ecut.delete_vertices([q,r])
+    Ecut.delete_vertices([q, r])
     Gcut.delete_vertices(cutpath)
-    #I think this cannot happen, but just in case, we check it to raise
+    # I think this cannot happen, but just in case, we check it to raise
     # an error instead of giving a wrong answer
     if Gcut.connected_components_number() != 2:
         raise ValueError("unable to compute a correct path")
@@ -796,12 +802,12 @@ def geometric_basis(G, E, p):
         neighs = G.neighbors(v)
         for n in neighs:
             if n in G1.vertices()+cutpath:
-                G1.add_edge(v,n,None)
+                G1.add_edge(v, n, None)
             if n in G2.vertices()+cutpath:
-                G2.add_edge(v,n,None)
+                G2.add_edge(v, n, None)
 
     if EC[EC.index(q)+1] in G2.vertices():
-        G1, G2 = G2,G1
+        G1, G2 = G2, G1
 
     E1, E2 = Ecut.connected_components_subgraphs()
     if EC[EC.index(q)+1] in E2.vertices():
@@ -811,28 +817,29 @@ def geometric_basis(G, E, p):
         E1.add_edge(cutpath[i], cutpath[i+1], None)
         E2.add_edge(cutpath[i], cutpath[i+1], None)
 
-    for v in [q,r]:
+    for v in [q, r]:
         for n in E.neighbors(v):
             if n in E1.vertices():
                 E1.add_edge(v, n, None)
             if n in E2.vertices():
-                E2.add_edge(v,n, None)
+                E2.add_edge(v, n, None)
 
     gb1 = geometric_basis(G1, E1, q)
     gb2 = geometric_basis(G2, E2, q)
 
-    resul =  [connecting_path + path + list(reversed(connecting_path)) for path in gb1+gb2]
+    resul = [connecting_path + path + list(reversed(connecting_path)) for path in gb1 + gb2]
     for r in resul:
         i = 0
-        while i< len(r)-2:
+        while i < len(r)-2:
             if r[i] == r[i+2]:
                 r.pop(i)
                 r.pop(i)
-                if i>0:
-                    i -=1
+                if i > 0:
+                    i -= 1
             else:
-                i+=1
+                i += 1
     return resul
+
 
 def braid_monodromy(f):
     r"""
@@ -877,12 +884,12 @@ def braid_monodromy(f):
     disc = discrim(g)
     V = corrected_voronoi_diagram(tuple(disc))
     G = Graph()
-    for reg  in V.regions().values():
+    for reg in V.regions().values():
         G = G.union(reg.vertex_graph())
     E = Graph()
-    for reg  in V.regions().values():
+    for reg in V.regions().values():
         if reg.rays() or reg.lines():
-            E  = E.union(reg.vertex_graph())
+            E = E.union(reg.vertex_graph())
     p = next(E.vertex_iterator())
     geombasis = geometric_basis(G, E, p)
     segs = set([])
@@ -896,11 +903,11 @@ def braid_monodromy(f):
     noncachedverts = [(g, v) for v in vertices if (g, v) not in roots_interval_cache]
     for noncachedvert in roots_interval(noncachedverts):
         roots_interval_cache[noncachedvert[0][0]] = noncachedvert[1]
-    rootsintervals = [roots_interval_cached(g, v) for v in vertices]
+    _ = [roots_interval_cached(g, v) for v in vertices]
     gfac = g.factor()
     try:
         braidscomputed = list(braid_in_segment([(gfac, seg[0], seg[1]) for seg in segs]))
-    except ChildProcessError:  #  hack to deal with random fails first time
+    except ChildProcessError:  # hack to deal with random fails first time
         braidscomputed = list(braid_in_segment([(gfac, seg[0], seg[1]) for seg in segs]))
     segsbraids = dict()
     for braidcomputed in braidscomputed:
@@ -920,6 +927,7 @@ def braid_monodromy(f):
             braidpath = braidpath * segsbraids[(x0, x1)]
         result.append(braidpath)
     return result
+
 
 def fundamental_group(f, simplified=True, projective=False):
     r"""

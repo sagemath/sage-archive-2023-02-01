@@ -17,13 +17,12 @@ SAGE_SPKG_CONFIGURE([4ti2], [
         FORTYTWO_LIBS="-l4ti2gmp -lzsolve"
         CXXFLAGS="${BACKUP_CXXFLAGS} ${FORTYTWO_CXXFLAGS} ${GMP_CFLAGS}"
         LIBS="${BACKUP_LIBS} ${FORTYTWO_LIBS} ${GMP_LIBS}"
-        AC_TRY_LINK([
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 #include "4ti2/4ti2.h"
-],
-[ _4ti2_rays_create_state(_4ti2_PREC_INT_ARB);
-], [
+]], [[ _4ti2_rays_create_state(_4ti2_PREC_INT_ARB);
+]])],[
         AC_MSG_RESULT([yes])
-], [
+],[
         AC_MSG_RESULT([no])
         sage_spkg_install_4ti2=yes
 ])

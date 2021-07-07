@@ -257,7 +257,7 @@ cdef class pAdicCappedRelativeElement(CRElement):
 
         - ``absprec`` -- a non-negative integer (default: ``1``)
 
-        - ``field`` -- boolean (default ``None``); hether to return an element
+        - ``field`` -- boolean (default ``None``); whether to return an element
           of `\GF{p}` or `\ZZ / p\ZZ`
 
         - ``check_prec`` -- boolean (default ``True``); whether to raise

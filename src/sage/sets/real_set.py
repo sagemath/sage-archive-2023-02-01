@@ -1045,14 +1045,21 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         By passing certain keyword arguments, real sets can be set up as manifolds or manifold subsets::
 
+            sage: RealSet(-oo, oo, structure='differentiable')
+            Real number line R
             sage: RealSet([0, 1], structure='differentiable')
             Subset [0, 1] of the Real number line R
             sage: _.category()
             Category of subobjects of sets
+            sage: RealSet.open_closed(0, 5, structure='differentiable')
+            Subset (0, 5] of the Real number line R
             sage: RealSet(0, 1, name='A')
-            Subset A of the Real number line R
+            Open subset A of the Real number line R
             sage: _.category()
-            Category of subobjects of sets
+            Join of
+             Category of smooth manifolds over Real Field with 53 bits of precision and
+             Category of connected manifolds over Real Field with 53 bits of precision and
+             Category of subobjects of sets
         """
         category = TopologicalSpaces()
         if len(intervals) <= 1:
@@ -1444,7 +1451,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             return lower, upper
 
     @staticmethod
-    def interval(lower, upper, *, lower_closed=None, upper_closed=None):
+    def interval(lower, upper, *, lower_closed=None, upper_closed=None, **kwds):
         """
         Construct an interval
 
@@ -1468,10 +1475,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         if lower_closed is None or upper_closed is None:
             raise ValueError('lower_closed and upper_closed must be explicitly given')
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(InternalRealInterval(lower, lower_closed, upper, upper_closed))
+        return RealSet(InternalRealInterval(lower, lower_closed, upper, upper_closed), **kwds)
 
     @staticmethod
-    def open(lower, upper):
+    def open(lower, upper, **kwds):
         """
         Construct an open interval
 
@@ -1490,10 +1497,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 1)
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(InternalRealInterval(lower, False, upper, False))
+        return RealSet(InternalRealInterval(lower, False, upper, False), **kwds)
 
     @staticmethod
-    def closed(lower, upper):
+    def closed(lower, upper, **kwds):
         """
         Construct a closed interval
 
@@ -1512,10 +1519,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             [0, 1]
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(InternalRealInterval(lower, True, upper, True))
+        return RealSet(InternalRealInterval(lower, True, upper, True), **kwds)
 
     @staticmethod
-    def point(p):
+    def point(p, **kwds):
         """
         Construct an interval containing a single point
 
@@ -1533,10 +1540,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 1)
         """
         p = RealSet._prep(p)
-        return RealSet(InternalRealInterval(p, True, p, True))
+        return RealSet(InternalRealInterval(p, True, p, True), **kwds)
     
     @staticmethod
-    def open_closed(lower, upper):
+    def open_closed(lower, upper, **kwds):
         """
         Construct a half-open interval
 
@@ -1556,10 +1563,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (0, 1]
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(InternalRealInterval(lower, False, upper, True))
+        return RealSet(InternalRealInterval(lower, False, upper, True), **kwds)
 
     @staticmethod
-    def closed_open(lower, upper):
+    def closed_open(lower, upper, **kwds):
         """
         Construct an half-open interval
 
@@ -1579,10 +1586,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             [0, 1)
         """
         lower, upper = RealSet._prep(lower, upper)
-        return RealSet(InternalRealInterval(lower, True, upper, False))
+        return RealSet(InternalRealInterval(lower, True, upper, False), **kwds)
 
     @staticmethod
-    def unbounded_below_closed(bound):
+    def unbounded_below_closed(bound, **kwds):
         """
         Construct a semi-infinite interval
 
@@ -1600,10 +1607,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (-oo, 1]
         """
         bound = RealSet._prep(bound)
-        return RealSet(InternalRealInterval(minus_infinity, False, bound, True))
+        return RealSet(InternalRealInterval(minus_infinity, False, bound, True), **kwds)
 
     @staticmethod
-    def unbounded_below_open(bound):
+    def unbounded_below_open(bound, **kwds):
         """
         Construct a semi-infinite interval
 
@@ -1621,10 +1628,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (-oo, 1)
         """
         bound = RealSet._prep(bound)
-        return RealSet(InternalRealInterval(RLF(minus_infinity), False, RLF(bound), False))
+        return RealSet(InternalRealInterval(RLF(minus_infinity), False, RLF(bound), False), **kwds)
 
     @staticmethod
-    def unbounded_above_closed(bound):
+    def unbounded_above_closed(bound, **kwds):
         """
         Construct a semi-infinite interval
 
@@ -1643,10 +1650,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             [1, +oo)
         """
         bound = RealSet._prep(bound)
-        return RealSet(InternalRealInterval(RLF(bound), True, RLF(infinity), False))
+        return RealSet(InternalRealInterval(RLF(bound), True, RLF(infinity), False), **kwds)
 
     @staticmethod
-    def unbounded_above_open(bound):
+    def unbounded_above_open(bound, **kwds):
         """
         Construct a semi-infinite interval
 
@@ -1665,7 +1672,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             (1, +oo)
         """
         bound = RealSet._prep(bound)
-        return RealSet(InternalRealInterval(RLF(bound), False, RLF(infinity), False))
+        return RealSet(InternalRealInterval(RLF(bound), False, RLF(infinity), False), **kwds)
 
     def union(self, *other):
         """

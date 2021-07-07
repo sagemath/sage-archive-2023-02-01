@@ -473,11 +473,11 @@ class QuotientRingElement(RingElement):
             sage: int(a)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to an integer
+            TypeError: unable to convert non-constant polynomial x to <class 'int'>
         """
         return int(self.lift())
 
-    def _integer_(self, Z=None):
+    def _integer_(self, Z):
         """
         EXAMPLES::
 
@@ -488,13 +488,10 @@ class QuotientRingElement(RingElement):
 
         TESTS::
 
-            sage: type(S(-3)._integer_())
-            <type 'sage.rings.integer.Integer'>
+            sage: type(ZZ(S(-3)))
+            <class 'sage.rings.integer.Integer'>
         """
-        try:
-            return self.lift()._integer_(Z)
-        except AttributeError:
-            raise NotImplementedError
+        return Z(self.lift())
 
     def _rational_(self):
         """
@@ -510,10 +507,8 @@ class QuotientRingElement(RingElement):
             sage: type(S(-2/3)._rational_())
             <type 'sage.rings.rational.Rational'>
         """
-        try:
-            return self.lift()._rational_()
-        except AttributeError:
-            raise NotImplementedError
+        from sage.rings.rational_field import QQ
+        return QQ(self.lift())
 
     def __neg__(self):
         """
@@ -579,7 +574,7 @@ class QuotientRingElement(RingElement):
             sage: float(a)
             Traceback (most recent call last):
             ...
-            TypeError: unable to convert non-constant polynomial x to a float
+            TypeError: unable to convert non-constant polynomial x to <class 'float'>
         """
         return float(self.lift())
 

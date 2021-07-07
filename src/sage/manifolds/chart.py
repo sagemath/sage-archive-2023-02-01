@@ -440,7 +440,7 @@ class Chart(UniqueRepresentation, SageObject):
             ((z1, z2), {'periods': (None, None)})
             sage: Chart._parse_coordinates(M, 'z1 z2')
             ((z1, z2), {'periods': (None, None)})
-            sage: Chart._parse_coordinates(M, ['z1:\zeta_1', r'z2:\zeta_2'])
+            sage: Chart._parse_coordinates(M, [r'z1:\zeta_1', r'z2:\zeta_2'])
             ((z1, z2), {'periods': (None, None)})
         """
         if isinstance(coordinates, str):

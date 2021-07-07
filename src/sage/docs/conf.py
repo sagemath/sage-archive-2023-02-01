@@ -392,18 +392,29 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{03A5}{\ensuremath{\Upsilon}}
     \DeclareUnicodeCharacter{2113}{\ell}
 
-    \DeclareUnicodeCharacter{221A}{\ensuremath{\sqrt{}}}
-    \DeclareUnicodeCharacter{2264}{\leq}
-    \DeclareUnicodeCharacter{2265}{\geq}
-    \DeclareUnicodeCharacter{221E}{\infty}
-    \DeclareUnicodeCharacter{2211}{\sum}
+    \DeclareUnicodeCharacter{2148}{\id}
+    \DeclareUnicodeCharacter{2202}{\partial}
+    \DeclareUnicodeCharacter{2205}{\ensuremath{\emptyset}}
     \DeclareUnicodeCharacter{2208}{\in}
     \DeclareUnicodeCharacter{2209}{\notin}
-    \DeclareUnicodeCharacter{2202}{\partial}
+    \DeclareUnicodeCharacter{2211}{\sum}
+    \DeclareUnicodeCharacter{221A}{\ensuremath{\sqrt{}}}
+    \DeclareUnicodeCharacter{221E}{\infty}
+    \DeclareUnicodeCharacter{2227}{\ensuremath{\wedge}}
+    \DeclareUnicodeCharacter{2228}{\ensuremath{\vee}}
+    \DeclareUnicodeCharacter{2229}{\ensuremath{\cap}}
+    \DeclareUnicodeCharacter{222A}{\ensuremath{\cup}}
     \DeclareUnicodeCharacter{222B}{\ensuremath{\int}}
-    \DeclareUnicodeCharacter{2148}{\id}
     \DeclareUnicodeCharacter{2248}{\approx}
     \DeclareUnicodeCharacter{2260}{\neq}
+    \DeclareUnicodeCharacter{2264}{\leq}
+    \DeclareUnicodeCharacter{2265}{\geq}
+    \DeclareUnicodeCharacter{2293}{\ensuremath{\sqcap}}
+    \DeclareUnicodeCharacter{2294}{\ensuremath{\sqcup}}
+    \DeclareUnicodeCharacter{22C0}{\ensuremath{\bigwedge}}
+    \DeclareUnicodeCharacter{22C1}{\ensuremath{\bigvee}}
+    \DeclareUnicodeCharacter{22C2}{\ensuremath{\bigcap}}
+    \DeclareUnicodeCharacter{22C3}{\ensuremath{\bigcup}}
     \DeclareUnicodeCharacter{00B1}{\pm}
     \DeclareUnicodeCharacter{2A02}{\otimes}
     \DeclareUnicodeCharacter{2A01}{\oplus}
@@ -441,6 +452,8 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{2089}{\ensuremath{{}_9}}
     \DeclareUnicodeCharacter{208A}{\ensuremath{{}_+}}
     \DeclareUnicodeCharacter{208B}{\ensuremath{{}_-}}
+    \DeclareUnicodeCharacter{1D62}{\ensuremath{{}_i}}
+    \DeclareUnicodeCharacter{2C7C}{\ensuremath{{}_j}}
 
     \newcommand{\sageMexSymbol}[1]
     {{\fontencoding{OMX}\fontfamily{cmex}\selectfont\raisebox{0.75em}{\symbol{#1}}}}

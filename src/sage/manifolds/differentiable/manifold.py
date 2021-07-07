@@ -193,7 +193,7 @@ A differentiable scalar field on the sphere::
     Algebra of differentiable scalar fields on the 2-dimensional differentiable
      manifold S^2
     sage: f.parent().category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
 
 A differentiable manifold has a default vector frame, which, unless otherwise
 specified, is the coordinate frame associated with the first defined chart::
@@ -370,7 +370,7 @@ A constant map `\CC^* \rightarrow \CC`::
     Algebra of differentiable scalar fields on the 1-dimensional complex
      manifold C*
     sage: f.parent().category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
 
 A vector field on the Riemann sphere::
 

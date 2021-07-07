@@ -194,3 +194,6 @@ cdef inline void swap_faces(face_t a, face_t b) nogil:
     tmp[0] = a[0]
     a[0] = b[0]
     b[0] = tmp[0]
+
+cdef inline bint faces_are_identical(face_t a, face_t b) nogil:
+    return a.atoms.limbs == b.atoms.limbs

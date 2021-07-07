@@ -672,7 +672,8 @@ class SQLQuery(SageObject):
             C^                   [2, 2, 3, 3]
             C~                   [3, 3, 3, 3]
         """
-        if not self.__query_string__: return self.__database__.show()
+        if not self.__query_string__:
+            return self.__database__.show()
 
         try:
             cur = self.__database__.__connection__.cursor()
@@ -761,13 +762,16 @@ class SQLQuery(SageObject):
             if not self.__query_string__:
                 self.__query_string__ = other.__query_string__
                 self.__param_tuple__ = other.__param_tuple__
-            elif not other.__query_string__: return
+            elif not other.__query_string__:
+                return
             else:
                 self._merge_queries(other, self, join_table, join_dict, 'AND')
         else:
             from copy import copy
-            if not self.__query_string__: return copy(other)
-            if not other.__query_string__: return copy(self)
+            if not self.__query_string__:
+                return copy(other)
+            if not other.__query_string__:
+                return copy(self)
             return self._merge_queries(other, copy(self), join_table, \
                 join_dict, 'AND')
 
@@ -882,8 +886,10 @@ class SQLQuery(SageObject):
                 self._merge_queries(other, self, join_table, join_dict, 'OR')
         else:
             from copy import copy
-            if not self.__query_string__: return copy(self)
-            if not other.__query_string__: return copy(other)
+            if not self.__query_string__:
+                return copy(self)
+            if not other.__query_string__:
+                return copy(other)
             return self._merge_queries(other, copy(self), join_table, \
                 join_dict, 'OR')
 
@@ -1637,7 +1643,8 @@ class SQLDatabase(SageObject):
             self.__skeleton__[table_name] if \
             self.__skeleton__[table_name][col]['index'] and not \
             self.__skeleton__[table_name][col]['primary_key']])
-        if index_statement: self.__connection__.executescript(index_statement)
+        if index_statement:
+            self.__connection__.executescript(index_statement)
 
         # Now we can plop our data into the *new* table:
         self.__connection__.executescript("""

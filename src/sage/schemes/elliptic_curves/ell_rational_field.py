@@ -4011,7 +4011,7 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             self.__torsion_order = self.torsion_subgroup().order()
             return self.__torsion_order
 
-    def _torsion_bound(self, number_of_places\=20):
+    def _torsion_bound(self, number_of_places=20):
         r"""
         Compute an upper bound on the order of the torsion group of the
         elliptic curve by counting points modulo several primes of good

@@ -53,6 +53,7 @@ from sage.rings.morphism import RingHomomorphism
 from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.structure.element import coercion_model, ModuleElement, Element
 from sage.structure.richcmp import richcmp, op_NE, op_EQ
+from sage.matrix.constructor import Matrix
 
 
 def is_ModularFormElement(x):
@@ -3525,3 +3526,98 @@ class GradedModularFormElement(ModuleElement):
         """
         return len(self._forms_dictionary) <= 1
     is_modular_form = is_homogeneous #alias
+
+    def _homogeneous_to_polynomial(self, names, gens):
+        r"""
+        If ``self`` is a homogeneous form, return a polynomial `P(x_0,..., x_n)` corresponding to ``self``.
+        Each variable `x_i` of the returned polynomial correspond to a generator `g_i` of the
+        list ``gens`` (following the order of the list)
+
+        INPUT:
+
+        - ``names`` -- a list or tuple of names (strings), or a comma separated string;
+        - ``gens`` -- (list) a list of generator of ``self``.
+
+        OUTPUT: A polynomial in the variables ``names``
+
+        TESTS::
+
+            sage: M = ModularFormsRing(1)
+            sage: gens = M.gen_forms()
+            sage: M.0._homogeneous_to_polynomial('x', gens)
+            x0
+            sage: M.1._homogeneous_to_polynomial('E4, E6', gens)
+            E6
+            sage: p = ((M.0)**3 + (M.1)**2)._homogeneous_to_polynomial('x', gens); p
+            x0^3 + x1^2
+            sage: M(p) == (M.0)**3 + (M.1)**2
+            True
+            sage: (M.0 + M.1)._homogeneous_to_polynomial('x', gens)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given graded form is not homogeneous (not a modular form)
+        """
+        M = self.parent()
+        k = self.weight() #only if self is homogeneous
+        poly_parent = M._polynomial_ring(names, gens)
+        monomials = M._monomials_of_weight(k, gens, poly_parent)
+
+        # initialize the matrix of coefficients
+        matrix_data = []
+        for f in monomials.values():
+            matrix_data.append(f[k].coefficients(range(0,f[k].parent().sturm_bound())))
+        mat = Matrix(matrix_data).transpose()
+
+        # initialize the column vector of the coefficients of self
+        coef_self = vector(self[k].coefficients(range(0, self[k].parent().sturm_bound()))).column()
+
+        # solve the linear system: mat * X = coef_self
+        soln = mat.solve_right(coef_self)
+
+        # initialize the polynomial associated to self
+        iter = 0
+        poly = 0
+        for p in monomials.keys():
+            poly += soln[iter, 0]*p
+            iter += 1
+        return poly
+
+    def to_polynomial(self, names='x', gens=None):
+        r"""
+        Return a polynomial `P(x_0,..., x_n)` such that `P(g_0,..., g_n)` is equal to ``self``
+        where `g_0, ..., g_n` is a list of generators of the parent.
+
+        INPUT:
+
+        - ``names`` -- a list or tuple of names (strings), or a comma separated string. Correspond
+          to the names of the variables;
+        - ``gens`` -- (default: None) a list of generator of the parent of ``self``. If set to ``None``,
+          the list returned by :meth:`~sage.modular.modform.find_generator.ModularFormsRing.gen_forms`
+          is used instead
+
+        OUTPUT: A polynomial in the variables ``names``
+
+        EXAMPLES::
+
+            sage: M = ModularFormsRing(1)
+            sage: (M.0 + M.1).to_polynomial()
+            x0 + x1
+            sage: (M.0^10 + M.0 * M.1).to_polynomial()
+            x0^10 + x0*x1
+
+        The returned polynomial is not necessarily unique:
+
+            sage: M = ModularFormsRing(Gamma0(10))
+            sage: f = M.0 + M.1**2 + M.2*M.0
+            sage: p = f.to_polynomial('x, y, z, w, u'); p
+            2*x*z + 5*z^2 + x
+            sage: M.from_polynomial(p) == f
+            True
+        """
+        M = self.parent()
+        if gens is None:
+            gens = M.gen_forms()
+
+        # sum the polynomial of each homogeneous part
+        return sum(M(self[k])._homogeneous_to_polynomial(names, gens) for k in self.weights_list())
+

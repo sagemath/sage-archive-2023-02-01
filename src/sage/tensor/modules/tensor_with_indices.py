@@ -613,7 +613,7 @@ class TensorWithIndices(SageObject):
             sage: ai = TensorWithIndices(a, '^ij')
             sage: bi = TensorWithIndices(b, '_k')
             sage: s = ai.__mul__(bi) ; s  # no repeated indices ==> tensor product
-            Type-(2,1) tensor a*b on the 3-dimensional vector space M over the
+            Type-(2,1) tensor a⊗b on the 3-dimensional vector space M over the
              Rational Field
             sage: s == a*b
             True
@@ -905,7 +905,7 @@ class TensorWithIndices(SageObject):
         - ``permutation`` -- permutation that has to be applied to the indices
           the input should be a ``list`` containing the second line of the permutation
           in Cauchy notation.
-        
+
         OUTPUT:
 
         - an instance of ``TensorWithIndices`` whose indices names and place

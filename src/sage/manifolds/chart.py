@@ -1204,7 +1204,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: type(f)
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
             sage: f.display()
-            (x, y) |--> sin(x*y)
+            (x, y) ↦ sin(x*y)
             sage: f(2,3)
             sin(6)
 
@@ -1259,7 +1259,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function()
             0
             sage: X.zero_function().display()
-            (x, y) |--> 0
+            (x, y) ↦ 0
             sage: type(X.zero_function())
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
@@ -1277,7 +1277,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function()
             0
             sage: X.zero_function().display()
-            (x, y) |--> 0
+            (x, y) ↦ 0
 
         """
         return self.function_ring().zero()
@@ -1313,7 +1313,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.one_function()
             1
             sage: X.one_function().display()
-            (x, y) |--> 1
+            (x, y) ↦ 1
             sage: type(X.one_function())
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
@@ -1331,7 +1331,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.one_function()
             1 + O(5^20)
             sage: X.one_function().display()
-            (x, y) |--> 1 + O(5^20)
+            (x, y) ↦ 1 + O(5^20)
 
         """
         return self.function_ring().one()
@@ -1379,7 +1379,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: parent(f.expr())
             Symbolic Ring
             sage: f.display()
-            (x, y) |--> x^2 + cos(y)*sin(x)
+            (x, y) ↦ x^2 + cos(y)*sin(x)
 
         Changing to SymPy::
 
@@ -1391,13 +1391,13 @@ class Chart(UniqueRepresentation, SageObject):
             sage: parent(f.expr())
             <class 'sympy.core.add.Add'>
             sage: f.display()
-            (x, y) |--> x**2 + sin(x)*cos(y)
+            (x, y) ↦ x**2 + sin(x)*cos(y)
 
         Back to the Symbolic Ring::
 
             sage: X.calculus_method().set('SR')
             sage: f.display()
-            (x, y) |--> x^2 + cos(y)*sin(x)
+            (x, y) ↦ x^2 + cos(y)*sin(x)
 
         """
         return self._calc_method

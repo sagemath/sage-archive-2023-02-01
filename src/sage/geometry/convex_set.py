@@ -13,10 +13,13 @@ Convex Sets
 # ****************************************************************************
 
 from sage.structure.sage_object import SageObject
+from sage.sets.set import Set_base
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.abstract_method import abstract_method
+from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
 
-class ConvexSet_base(SageObject):
+class ConvexSet_base(SageObject, Set_base):
     """
     Abstract base class for convex sets.
     """
@@ -37,6 +40,60 @@ class ConvexSet_base(SageObject):
             True
         """
         return self.dim() < 0
+
+    def is_finite(self):
+        r"""
+        Test whether ``self`` is a finite set.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: p.is_finite()
+            True
+            sage: q = Polyhedron(ambient_dim=2); q
+            The empty polyhedron in ZZ^2
+            sage: q.is_finite()
+            True
+            sage: r = Polyhedron(rays=[(1, 0)]); r
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: r.is_finite()
+            False
+        """
+        return self.dim() < 1
+
+    def cardinality(self):
+        """
+        Return the cardinality of this set.
+
+        OUTPUT:
+
+        Either an integer or ``Infinity``.
+
+        EXAMPLES::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: p.cardinality()
+            0
+            sage: q = Polyhedron(ambient_dim=2); q
+            The empty polyhedron in ZZ^2
+            sage: q.cardinality()
+            0
+            sage: r = Polyhedron(rays=[(1, 0)]); r
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: r.cardinality()
+            +Infinity
+        """
+        if self.dim() < 0:
+            return ZZ(0)
+        if self.dim() == 0:
+            return ZZ(1)
+        return infinity
 
     def is_universe(self):
         r"""
@@ -618,29 +675,6 @@ class ConvexSet_base(SageObject):
                 for point in points:
                     tester.assertTrue(self.contains(point))
                     tester.assertTrue(point in self)
-
-    @abstract_method(optional=True)
-    def intersection(self, other):
-        r"""
-        Return the intersection of ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- another convex set
-
-        OUTPUT:
-
-        The intersection.
-
-        TESTS::
-
-            sage: from sage.geometry.convex_set import ConvexSet_base
-            sage: C = ConvexSet_base()
-            sage: C.intersection(C)
-            Traceback (most recent call last):
-            ...
-            TypeError: 'NotImplementedType' object is not callable
-        """
 
 
 class ConvexSet_closed(ConvexSet_base):

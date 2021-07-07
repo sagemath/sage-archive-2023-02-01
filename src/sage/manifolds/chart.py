@@ -840,19 +840,74 @@ class Chart(UniqueRepresentation, SageObject):
 
         """
         if isinstance(restrict, tuple): # case of 'or' conditions
-            combine = False
-            for cond in restrict:
-                combine = combine or self._check_restrictions(cond,
-                                                              substitutions)
-            return combine
-        elif isinstance(restrict, list): # case of 'and' conditions
-            combine = True
-            for cond in restrict:
-                combine = combine and self._check_restrictions(cond,
-                                                               substitutions)
-            return combine
+            return any(self._check_restrictions(cond, substitutions)
+                       for cond in restrict)
+        elif isinstance(restrict, (list, set, frozenset)): # case of 'and' conditions
+            return all(self._check_restrictions(cond, substitutions)
+                       for cond in restrict)
         # Case of a single condition:
         return bool(restrict.subs(substitutions))
+
+    def codomain(self):
+        r"""
+        Return the codomain of ``self`` as a set.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', field='complex', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: X.codomain()
+            Vector space of dimension 2 over Complex Field with 53 bits of precision
+
+        """
+        from sage.modules.free_module import VectorSpace
+        ambient = VectorSpace(self.manifold().base_field(), self.manifold().dimension())
+        if self._restrictions:
+            return self._restrict_set(ambient, self._restrictions)
+        else:
+            return ambient
+
+    def _restrict_set(self, universe, coord_restrictions):
+        """
+        Return a set corresponding to coordinate restrictions.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: universe = RR^2
+            sage: X._restrict_set(universe, x>0)
+            { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 }
+            sage: X._restrict_set(universe, x>0)
+            { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 }
+            sage: X._restrict_set(universe, (x>0, [x<y, y<0]))
+            Set-theoretic union of
+             { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 } and
+             Set-theoretic intersection of
+              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x < y } and
+              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : y < 0 }
+            sage: X._restrict_set(universe, [(x<y, y<0), x>0])
+            Set-theoretic intersection of
+             Set-theoretic union of
+              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x < y } and
+              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : y < 0 } and
+             { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 }
+        """
+        if isinstance(coord_restrictions, tuple): # case of 'or' conditions
+            A = self._restrict_set(universe, coord_restrictions[0])
+            if len(coord_restrictions) == 1:
+                return A
+            else:
+                return A.union(self._restrict_set(universe, coord_restrictions[1:]))
+        elif isinstance(coord_restrictions, (list, set, frozenset)): # case of 'and' conditions
+            A = self._restrict_set(universe, coord_restrictions[0])
+            if len(coord_restrictions) == 1:
+                return A
+            else:
+                return A.intersection(self._restrict_set(universe, coord_restrictions[1:]))
+        # Case of a single condition:
+        from sage.sets.condition_set import ConditionSet
+        return ConditionSet(universe, coord_restrictions, vars=self._xx)
 
     def transition_map(self, other, transformations, intersection_name=None,
                        restrictions1=None, restrictions2=None):
@@ -1852,6 +1907,49 @@ class RealChart(Chart):
             return self._bounds
         else:
             return self._bounds[i-self._sindex]
+
+    def codomain(self):
+        """
+        Return the codomain of ``self`` as a set.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: U = M.open_subset('U') # the complement of the half line {y=0, x >= 0}
+            sage: c_spher.<r,phi> = U.chart(r'r:(0,+oo) phi:(0,2*pi):\phi')
+            sage: c_spher.codomain()
+            The Cartesian product of ((0, +oo), (0, 2*pi))
+
+            sage: M = Manifold(3, 'R^3', r'\RR^3', structure='topological', start_index=1)
+            sage: c_cart.<x,y,z> = M.chart()
+            sage: c_cart.codomain()
+            Vector space of dimension 3 over Real Field with 53 bits of precision
+
+        In the current implementation, the codomain of periodic coordinates are represented
+        by a fundamental domain::
+
+            sage: V = M.open_subset('V')
+            sage: c_spher1.<r,th,ph1> = \
+            ....: V.chart(r'r:(0,+oo) th:(0,pi):\theta ph1:(0,2*pi):periodic:\phi_1')
+            sage: c_spher1.codomain()
+            The Cartesian product of ((0, +oo), (0, pi), [0, 2*pi))
+        """
+        from sage.sets.real_set import RealSet
+        from sage.modules.free_module import VectorSpace
+        from sage.categories.cartesian_product import cartesian_product
+        intervals = tuple(RealSet.interval(xmin, xmax,
+                                           lower_closed=(min_included == 'periodic' or min_included),
+                                           upper_closed=(max_included != 'periodic' and max_included))
+                          for ((xmin, min_included), (xmax, max_included)) in self._bounds)
+        if all(interval.is_universe()
+               for interval in intervals):
+            ambient = VectorSpace(self.manifold().base_field(), self.manifold().dimension())
+        else:
+            ambient = cartesian_product(intervals)
+        if self._restrictions:
+            return self._restrict_set(ambient, self._restrictions)
+        else:
+            return ambient
 
     def coord_range(self, xx=None):
         r"""

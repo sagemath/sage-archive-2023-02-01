@@ -883,9 +883,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X._restrict_set(universe, (x>0, [x<y, y<0]))
             Set-theoretic union of
              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x > 0 } and
-             Set-theoretic intersection of
-              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x < y } and
-              { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : y < 0 }
+             { (x, y) ∈ Vector space of dimension 2 over Real Field with 53 bits of precision : x < y, y < 0 }
             sage: X._restrict_set(universe, [(x<y, y<0), x>0])
             Set-theoretic intersection of
              Set-theoretic union of

@@ -794,7 +794,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 class RealSet(UniqueRepresentation, Parent):
 
     @staticmethod
-    def __classcall__(cls, *args):
+    def __classcall__(cls, *args, **kwds):
         """
         Normalize the input.
 
@@ -854,6 +854,29 @@ class RealSet(UniqueRepresentation, Parent):
 
             sage: TestSuite(R).run()
         """
+        if kwds:
+            # Got manifold keywords
+            real_set = cls.__classcall__(cls, *args)
+            ambient = kwds.pop('ambient', None)
+            from sage.manifolds.differentiable.examples.real_line import RealLine
+            if real_set.is_universe():
+                if ambient is None:
+                    ambient = RealLine(**kwds)
+                else:
+                    # TODO: Check that ambient makes sense
+                    pass
+                return ambient
+
+            name = kwds.pop('name', None)
+            latex_name = kwds.pop('latex_name', None)
+            if ambient is None:
+                ambient = RealLine(**kwds)
+            else:
+                # TODO: Check that ambient makes sense
+                pass
+
+            return ambient.canonical_chart().pullback(real_set)
+
         from sage.symbolic.expression import Expression
         if len(args) == 1 and isinstance(args[0], RealSet):
             return args[0]   # common optimization
@@ -1005,6 +1028,10 @@ class RealSet(UniqueRepresentation, Parent):
             sage: RealSet((1, 2), (3, 4)).category()
             Join of Category of infinite sets and Category of subobjects of sets and Category of topological spaces
 
+        By passing certain keyword arguments, real sets can be set up as manifolds or manifold subsets::
+
+            sage: RealSet(0, 1, name='A')
+            Subset t_inv_(0, 1) of the Real number line R
         """
         category = TopologicalSpaces()
         if len(intervals) <= 1:

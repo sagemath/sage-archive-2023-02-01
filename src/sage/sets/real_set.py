@@ -1078,6 +1078,13 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             Chart ((0, 1), (ξ,))
             sage: R_xi.subset_family()
             Set {(0, +oo), (0, 1), ℝ} of open subsets of the Real number line ℝ
+
+            sage: F = RealSet.point(0).union(RealSet.point(1)).union(RealSet.point(2)); F
+            {0} ∪ {1} ∪ {2}
+            sage: F_tau = RealSet(F, names="τ"); F_tau
+            Subset {0} ∪ {1} ∪ {2} of the Real number line ℝ
+            sage: F_tau.manifold().canonical_chart()
+            Chart (ℝ, (τ,))
         """
         category = TopologicalSpaces()
         if len(intervals) <= 1:

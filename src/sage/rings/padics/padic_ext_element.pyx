@@ -37,11 +37,13 @@ cdef class pAdicExtElement(pAdicGenericElement):
         """
         Sets self from a list.
 
-        The list should either be uniform in type, or all of the entries should be coercible to integers.
-        If any of the entries in L is a list, L will be cast to a ZZ_pEX
+        The list should either be uniform in type, or all of the entries
+        should be coercible to integers. If any of the entries in ``L``
+        is a list, ``L`` will be cast to a ZZ_pEX.
 
         INPUT:
-        L -- a list.
+
+        - ``L`` -- a list
         """
         raise NotImplementedError
 
@@ -270,7 +272,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
 
     def _const_term_test(self):
         """
-        Returns the constant term of a polynomial representing ``self``.
+        Return the constant term of a polynomial representing ``self``.
 
         This function is mainly for troubleshooting, and the meaning
         of the return value will depend on whether self is capped
@@ -294,7 +296,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         raise NotImplementedError
 
     def _ext_p_list(self, pos):
-        """
+        r"""
         Return a list of integers (in the Eisenstein case) or a list
         of lists of integers (in the unramified case).
 
@@ -389,7 +391,7 @@ cdef class pAdicExtElement(pAdicGenericElement):
         return ans
 
     cpdef bint _is_base_elt(self, p) except -1:
-        """
+        r"""
         Return ``True`` if this element is an element of Zp or Qp (rather than
         an extension).
 

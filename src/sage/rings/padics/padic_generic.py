@@ -1693,7 +1693,7 @@ class ResidueReductionMap(Morphism):
             sage: Zmod(121).convert_map_from(Qp(11))(3/11)
             Traceback (most recent call last):
             ...
-            ValueError: element must have non-negative valuation in order to compute residue.
+            ValueError: element must have non-negative valuation in order to compute residue
         """
         return x.residue(self._n, field=self._field, check_prec=self._field)
 

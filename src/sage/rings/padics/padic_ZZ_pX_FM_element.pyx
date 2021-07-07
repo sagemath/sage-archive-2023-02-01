@@ -1068,7 +1068,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 #         """
 #         raise NotImplementedError
 
-    def norm(self, base = None):
+    def norm(self, base=None):
         r"""
         Return the absolute or relative norm of this element.
 
@@ -1108,7 +1108,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         norm_of_uniformizer = (-1)**self.parent().degree() * self.parent().defining_polynomial()[0]
         return self.parent().ground_ring()(self.unit_part().matrix_mod_pn().det()) * norm_of_uniformizer**self.valuation()
 
-    def trace(self, base = None):
+    def trace(self, base=None):
         r"""
         Return the absolute or relative trace of this element.
 
@@ -1218,7 +1218,7 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
 
     cdef ZZ_p_c _const_term(self):
         """
-        Returns the constant term of ``self.unit``.
+        Return the constant term of ``self.unit``.
 
         .. NOTE::
 
@@ -1282,8 +1282,8 @@ cdef class pAdicZZpXFMElement(pAdicZZpXElement):
         """
         return self
 
-    def expansion(self, n = None, lift_mode = 'simple'):
-        """
+    def expansion(self, n=None, lift_mode='simple'):
+        r"""
         Return a list giving a series representation of this element.
 
         - If ``lift_mode == 'simple' or 'smallest'``, the returned list will

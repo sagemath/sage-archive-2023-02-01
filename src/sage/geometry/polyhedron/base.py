@@ -5908,7 +5908,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: hexaprism = polytopes.regular_polygon(6).prism()
             sage: hexaprism.f_vector()
             (1, 12, 18, 8, 1)
-            sage: square_face = hexaprism.faces(2)[0]
+            sage: square_face = hexaprism.faces(2)[2]
             sage: stacked_hexaprism = hexaprism.stack(square_face)
             sage: stacked_hexaprism.f_vector()
             (1, 13, 22, 11, 1)
@@ -7911,10 +7911,10 @@ class Polyhedron_base(Element, ConvexSet_closed):
         new_rays =  ([0] + r for r in self.rays())
         new_lines = ([0] + l for l in self.lines())
         new_eqns = ([e.b()] + [0] + list(e[1:]) for e in self.equations())
-        new_ieqs = chain([[0, 1] + [0]*self.ambient_dim(), [1, -1] + [0]*self.ambient_dim()],
-                         ([i.b()] + [0] + list(i[1:]) for i in self.inequalities()))
+        new_ieqs = chain(([i.b()] + [0] + list(i[1:]) for i in self.inequalities()),
+                         [[0, 1] + [0]*self.ambient_dim(), [1, -1] + [0]*self.ambient_dim()])
 
-        pref_rep = 'Hrep' if 2*(self.n_vertices() + self.n_rays()) >= self.n_inequalities() else 'Vrep'
+        pref_rep = 'Hrep' if 2*(self.n_vertices() + self.n_rays()) >= self.n_inequalities() + 2 else 'Vrep'
         parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
 
         if not self.vertices():

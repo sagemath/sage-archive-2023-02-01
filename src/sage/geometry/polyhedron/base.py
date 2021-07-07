@@ -7920,7 +7920,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             bipyramid._test_basic_properties(tester)
 
         # Check that the bipyramid preserves the backend.
-        tester.assertEqual(self.bipyramid().backend(), self.backend())
+        tester.assertEqual(bipyramid.backend(), self.backend())
 
         if self.center() not in self.relative_interior():
             # In this case (unbounded) the bipyramid behaves a bit different.

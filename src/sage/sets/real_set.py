@@ -1046,15 +1046,15 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         By passing certain keyword arguments, real sets can be set up as manifolds or manifold subsets::
 
             sage: RealSet(-oo, oo, structure='differentiable')
-            Real number line R
+            Real number line ℝ
             sage: RealSet([0, 1], structure='differentiable')
-            Subset [0, 1] of the Real number line R
+            Subset [0, 1] of the Real number line ℝ
             sage: _.category()
             Category of subobjects of sets
             sage: RealSet.open_closed(0, 5, structure='differentiable')
-            Subset (0, 5] of the Real number line R
+            Subset (0, 5] of the Real number line ℝ
             sage: RealSet(0, 1, name='A')
-            Open subset A of the Real number line R
+            Open subset A of the Real number line ℝ
             sage: _.category()
             Join of
              Category of smooth manifolds over Real Field with 53 bits of precision and

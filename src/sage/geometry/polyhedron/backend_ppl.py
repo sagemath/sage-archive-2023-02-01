@@ -39,7 +39,7 @@ class Polyhedron_ppl(Polyhedron_base):
         """
         Initializes the polyhedron.
 
-        See :class:`Polyhedron_normaliz` for a description of the input
+        See :class:`Polyhedron_ppl` for a description of the input
         data.
 
         TESTS::

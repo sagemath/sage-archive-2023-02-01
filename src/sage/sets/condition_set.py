@@ -17,6 +17,7 @@ from sage.structure.parent import Parent, Set_generic
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc import _stable_uniq
 from sage.symbolic.expression import is_Expression
 from sage.symbolic.callable import is_CallableSymbolicExpression
 from sage.symbolic.ring import SymbolicRing, SR, is_SymbolicVariable
@@ -155,7 +156,7 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             else:
                 other_predicates.append(predicate)
 
-        predicates = sorted(set(callable_symbolic_predicates)) + other_predicates
+        predicates = list(_stable_uniq(callable_symbolic_predicates + other_predicates))
 
         if not other_predicates and not callable_symbolic_predicates:
             if names is None and category is None:
@@ -210,7 +211,8 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             t
             sage: ZeroDimButNotNullary = ConditionSet(ZZ^0, t > 0, vars=("q"))
             sage: ZeroDimButNotNullary._repr_()
-            '{ q ∈ Ambient free module of rank 0 over the principal ideal domain Integer Ring : t > 0 }'
+            '{ q ∈ Ambient free module of rank 0
+                   over the principal ideal domain Integer Ring : t > 0 }'
         """
         s = "{ "
         names = self.variable_names()
@@ -322,9 +324,9 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             sage: TripleDigits = ZZ^3
             sage: predicate(x, y, z) = sqrt(x^2 + y^2 + z^2) < 12; predicate
             (x, y, z) |--> sqrt(x^2 + y^2 + z^2) < 12
-            sage: TripleDigits.rename('ZZ^3')
             sage: SmallTriples = ConditionSet(ZZ^3, predicate); SmallTriples
-            { (x, y, z) ∈ ZZ^3 : sqrt(x^2 + y^2 + z^2) < 12 }
+            { (x, y, z) ∈ Ambient free module of rank 3 over the principal
+                          ideal domain Integer Ring : sqrt(x^2 + y^2 + z^2) < 12 }
             sage: predicate = SmallTriples._predicates[0]
             sage: element = TripleDigits((1, 2, 3))
             sage: SmallTriples._call_predicate(predicate, element)
@@ -355,9 +357,9 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             sage: TripleDigits = ZZ^3
             sage: predicate(x, y, z) = sqrt(x^2 + y^2 + z^2) < 12; predicate
             (x, y, z) |--> sqrt(x^2 + y^2 + z^2) < 12
-            sage: TripleDigits.rename('ZZ^3')
             sage: SmallTriples = ConditionSet(ZZ^3, predicate); SmallTriples
-            { (x, y, z) ∈ ZZ^3 : sqrt(x^2 + y^2 + z^2) < 12 }
+            { (x, y, z) ∈ Ambient free module of rank 3 over the principal
+                          ideal domain Integer Ring : sqrt(x^2 + y^2 + z^2) < 12 }
             sage: SmallTriples.an_element()  # indirect doctest
             (1, 0, 0)
         """
@@ -388,9 +390,9 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
 
             sage: predicate(x, y, z) = sqrt(x^2 + y^2 + z^2) < 12; predicate
             (x, y, z) |--> sqrt(x^2 + y^2 + z^2) < 12
-            sage: (ZZ^3).rename('ZZ^3')
             sage: SmallTriples = ConditionSet(ZZ^3, predicate); SmallTriples
-            { (x, y, z) ∈ ZZ^3 : sqrt(x^2 + y^2 + z^2) < 12 }
+            { (x, y, z) ∈ Ambient free module of rank 3 over the principal
+                          ideal domain Integer Ring : sqrt(x^2 + y^2 + z^2) < 12 }
             sage: ST = SmallTriples._sympy_(); ST
             ConditionSet((x, y, z), sqrt(x**2 + y**2 + z**2) < 12,
                          ProductSet(Integers, Integers, Integers))
@@ -400,7 +402,7 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             False
 
             sage: Interval = ConditionSet(RR, x >= -7, x <= 4, vars=[x]); Interval
-            { x ∈ Real Field with 53 bits of precision : x <= 4, x >= -7 }
+            { x ∈ Real Field with 53 bits of precision : x >= -7, x <= 4 }
             sage: Interval._sympy_()
             ConditionSet(x, (x >= -7) & (x <= 4), SageSet(Real Field with 53 bits of precision))
 
@@ -443,14 +445,14 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
 
         EXAMPLES::
 
-            sage: (ZZ^2).rename("ZZ^2"); (QQ^2).rename("QQ^2")
             sage: in_small_oblong(x, y) = x^2 + 3 * y^2 <= 42
             sage: SmallOblongUniverse = ConditionSet(QQ^2, in_small_oblong)
             sage: SmallOblongUniverse
-            { (x, y) ∈ QQ^2 : x^2 + 3*y^2 <= 42 }
+            { (x, y) ∈ Vector space of dimension 2 over Rational Field : x^2 + 3*y^2 <= 42 }
             sage: parity_check(x, y) = abs(sin(pi/2*(x + y))) < 1/1000
             sage: EvenUniverse = ConditionSet(ZZ^2, parity_check); EvenUniverse
-            { (x, y) ∈ ZZ^2 : abs(sin(1/2*pi*x + 1/2*pi*y)) < (1/1000) }
+            { (x, y) ∈ Ambient free module of rank 2 over the principal ideal
+                       domain Integer Ring : abs(sin(1/2*pi*x + 1/2*pi*y)) < (1/1000) }
             sage: SmallOblongUniverse & EvenUniverse
             { (x, y) ∈ Free module of degree 2 and rank 2 over Integer Ring
             Echelon basis matrix:
@@ -462,11 +464,11 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
 
             sage: SmallMirrorUniverse = ConditionSet(QQ^2, in_small_oblong, vars=(y, x))
             sage: SmallMirrorUniverse
-            { (y, x) ∈ QQ^2 : 3*x^2 + y^2 <= 42 }
+            { (y, x) ∈ Vector space of dimension 2 over Rational Field : 3*x^2 + y^2 <= 42 }
             sage: SmallOblongUniverse & SmallMirrorUniverse
-            { (x, y) ∈ QQ^2 : x^2 + 3*y^2 <= 42 }
+            { (x, y) ∈ Vector space of dimension 2 over Rational Field : x^2 + 3*y^2 <= 42 }
             sage: SmallMirrorUniverse & SmallOblongUniverse
-            { (y, x) ∈ QQ^2 : 3*x^2 + y^2 <= 42 }
+            { (y, x) ∈ Vector space of dimension 2 over Rational Field : 3*x^2 + y^2 <= 42 }
         """
         if isinstance(X, ConditionSet):
             return ConditionSet(self.ambient().intersection(X.ambient()),

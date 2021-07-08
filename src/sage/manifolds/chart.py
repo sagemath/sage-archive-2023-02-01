@@ -323,7 +323,7 @@ class Chart(UniqueRepresentation, SageObject):
             domain._charts_by_coord[coord_string] = self
             return self
 
-    def __init__(self, domain, coordinates, calc_method, periods=None, coord_restrictions=None):
+    def __init__(self, domain, coordinates, calc_method=None, periods=None, coord_restrictions=None):
         r"""
         Construct a chart.
 

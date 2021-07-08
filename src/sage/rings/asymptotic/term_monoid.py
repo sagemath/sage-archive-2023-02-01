@@ -4045,11 +4045,12 @@ class BTerm(TermWithCoefficient):
             ...
             ValueError: 1/2 is not a coefficient in Integer Ring.
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
+            sage: x, y = B('x'), B('y')
             sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
             sage: BT_ZZ(x^3, y^2, valid_from={'x': 10})
             Traceback (most recent call last):
             ...
-            NameError: name 'y' is not defined
+            ValueError: y^2 is not a coefficient in Integer Ring.
         """
         try:
             coefficient = parent.coefficient_ring(coefficient)

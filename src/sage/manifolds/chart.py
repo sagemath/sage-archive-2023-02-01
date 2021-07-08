@@ -84,6 +84,19 @@ class Chart(UniqueRepresentation, SageObject):
       If no period and no LaTeX spelling are to be set for any coordinate, the
       argument ``coordinates`` can be omitted when the shortcut operator
       ``<,>`` is used to declare the chart (see examples below).
+    - ``calc_method`` -- (default: ``None``) string defining the calculus
+      method for computations involving coordinates of the chart; must be
+      one of
+
+      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
+      - ``'sympy'``: SymPy
+      - ``None``: the default of
+        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
+        used
+    - ``names`` -- (default: ``None``) unused argument, except if
+      ``coordinates`` is not provided; it must then be a tuple containing
+      the coordinate symbols (this is guaranteed if the shortcut operator
+      ``<,>`` is used)
     - ``coord_restrictions``: Additional restrictions on the coordinates.
       A restriction can be any symbolic equality or inequality involving
       the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
@@ -101,19 +114,6 @@ class Chart(UniqueRepresentation, SageObject):
       of the single element list ``[x > y]``.  If the chart variables have
       not been declared as variables yet, ``coord_restrictions`` must
       be ``lambda``-quoted.
-    - ``names`` -- (default: ``None``) unused argument, except if
-      ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranteed if the shortcut operator
-      ``<,>`` is used)
-    - ``calc_method`` -- (default: ``None``) string defining the calculus
-      method for computations involving coordinates of the chart; must be
-      one of
-
-      - ``'SR'``: Sage's default symbolic engine (Symbolic Ring)
-      - ``'sympy'``: SymPy
-      - ``None``: the default of
-        :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
-        used
 
     EXAMPLES:
 
@@ -1474,10 +1474,6 @@ class RealChart(Chart):
       If interval range, no period and no LaTeX spelling are to be set for any
       coordinate, the argument ``coordinates`` can be omitted when the shortcut
       operator ``<,>`` is used to declare the chart (see examples below).
-    - ``names`` -- (default: ``None``) unused argument, except if
-      ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranteed if the shortcut operator
-      ``<,>`` is used)
     - ``calc_method`` -- (default: ``None``) string defining the calculus
       method for computations involving coordinates of the chart; must be
       one of
@@ -1487,6 +1483,27 @@ class RealChart(Chart):
       - ``None``: the default of
         :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
         used
+    - ``names`` -- (default: ``None``) unused argument, except if
+      ``coordinates`` is not provided; it must then be a tuple containing
+      the coordinate symbols (this is guaranteed if the shortcut operator
+      ``<,>`` is used)
+    - ``coord_restrictions``: Additional restrictions on the coordinates.
+      A restriction can be any symbolic equality or inequality involving
+      the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+      of the list (or set or frozenset) ``coord_restrictions`` are combined
+      with the ``and`` operator; if some restrictions are to be combined with
+      the ``or`` operator instead, they have to be passed as a tuple in some
+      single item of the list (or set or frozenset) ``coord_restrictions``.
+      For example::
+
+        coord_restrictions=[x > y, (x != 0, y != 0), z^2 < x]
+
+      means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+      If the list ``coord_restrictions`` contains only one item, this
+      item can be passed as such, i.e. writing ``x > y`` instead
+      of the single element list ``[x > y]``.  If the chart variables have
+      not been declared as variables yet, ``coord_restrictions`` must
+      be ``lambda``-quoted.
 
     EXAMPLES:
 

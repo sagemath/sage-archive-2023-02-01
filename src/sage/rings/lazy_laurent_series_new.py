@@ -84,6 +84,7 @@ from sage.structure.element import ModuleElement
 from .integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
+import copy
 
 
 class LLS(ModuleElement):
@@ -413,7 +414,7 @@ class LLS(ModuleElement):
             ....:         return sum(s.coefficient(j)*s.coefficient(i - 1 - j) for j in [0..i-1])
             ....:
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: e = L.series(g, False, valuation = 0)
+            sage: e = L.series(g, False, approximate_valuation = 0)
             sage: e
             1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
             sage: e._aux._cache
@@ -506,7 +507,7 @@ class LLS(ModuleElement):
         """
         from .lazy_laurent_series_ring import LazyLaurentSeriesRing
         Q = LazyLaurentSeriesRing(ring, names=self.parent().variable_name())
-        return Q.element_class(Q, LLS_coefficient_function(self._aux._coefficient_function, self._aux._is_sparse, self._aux._approximate_valuation, self._aux._constant))
+        return Q.element_class(Q, self._aux)
 
     def truncate(self, d):
         """
@@ -999,6 +1000,7 @@ class LLS_mul(LLS_aux):
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
         super().__init__(left._is_sparse, a, c)
+        self._coefficient_function = copy.copy(self.get_coefficient)
 
 
     def get_coefficient(self, n):
@@ -1042,6 +1044,7 @@ class LLS_add(LLS_aux):
             raise NotImplementedError
         
         super().__init__(left._is_sparse, a, c)
+        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         c = ZZ.zero()
@@ -1076,6 +1079,7 @@ class LLS_sub(LLS_aux):
             raise NotImplementedError
         
         super().__init__(left._is_sparse, a, c)
+        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         """
@@ -1116,6 +1120,7 @@ class LLS_rmul(LLS_aux):
             c = None
         
         super().__init__(series._is_sparse, a, c)
+        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         c = self._series[n] * self._scalar
@@ -1143,6 +1148,7 @@ class LLS_neg(LLS_aux):
             c = None
         
         super().__init__(series._is_sparse, a, c)
+        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         c = -1 * self._series[n]
@@ -1171,6 +1177,7 @@ class LLS_inv(LLS_aux):
 
         self._ainv = series[v].inverse_of_unit()
         self._zero = ZZ.zero()
+        self._coefficient_function = copy.copy(self.get_coefficient)
         
     def get_coefficient(self, n):
         v = self._approximate_valuation
@@ -1211,6 +1218,7 @@ class LLS_apply_coeff(LLS_aux):
             c = None
 
         super().__init__(series._is_sparse, a, c)
+        self._coefficient_function = copy.copy(self.get_coefficient)
 
     def get_coefficient(self, n):
         c = self._function(self._series[n])
@@ -1235,6 +1243,7 @@ class LLS_trunc(LLS_aux):
         a = series._approximate_valuation
         c = (ZZ.zero(), d)
         super().__init__(series._is_sparse, a, c)
+        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         if n <= self._d:
@@ -1272,6 +1281,7 @@ class LLS_div(LLS_aux):
         self._lv = lv
         self._rv = rv
         self._ainv = right[rv].inverse_of_unit()
+        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         lv = self._lv

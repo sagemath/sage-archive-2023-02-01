@@ -344,7 +344,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             elif constant not in self.base_ring():
                 raise ValueError("constant is not an element of the base ring")
             constant = (constant, approximate_valuation + len(coefficient_function))
-            coefficient_function = LazyLaurentSeriesOperator_list(self, coefficient_function, approximate_valuation)
+            ll_list = tuple([self.base_ring()(e) for e in coefficient_function])
+            coefficient_function = lambda i: self.base_ring()(ll_list[i - approximate_valuation])
         elif constant is not None:
             try:
                 c,m = constant

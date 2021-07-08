@@ -1301,13 +1301,19 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         monomials.reverse()  # order the monomials greatest to least via the given monomial order
         return Hom(self, CS)(monomials)
 
-    def is_linearly_independent(self, points):
+    def is_linearly_independent(self, points, n=None):
         r"""
         Return whether the set of points is linearly independent.
 
+        Alternatively, specify ``n`` to check if every subset of
+        size ``n`` is linearly independent.
+
         INPUT:
 
-         - ``points`` -- a list points of this projective space.
+         - ``points`` -- a list of points in this projective space.
+
+         - ``n`` -- (Optional) An integer. Specifies the size of the subsets to
+           check for linear independence.
 
         OUTPUT:
 
@@ -1316,7 +1322,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: points = [P((1, 0)), P((1, 1)), P((2, 1))]
+            sage: points = [P((1, 0)), P((1, 1))]
             sage: P.is_linearly_independent(points)
             True
 
@@ -1331,7 +1337,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
             sage: points = [P((1, 0, 1)), P((1, 2, 1)), P((1, 3, 4)), P((0, 0 ,1))]
-            sage: P.is_linearly_independent(points)
+            sage: P.is_linearly_independent(points, 3)
             True
 
         ::
@@ -1339,7 +1345,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: R.<c> = QQ[]
             sage: P.<x,y,z> = ProjectiveSpace(R, 2)
             sage: points = [P((c, 0, 1)), P((0, c, 1)), P((1, 0, 4)), P((0, 0 ,1))]
-            sage: P.is_linearly_independent(points)
+            sage: P.is_linearly_independent(points, 3)
             False
 
         ::
@@ -1347,7 +1353,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: R.<c> = QQ[]
             sage: P.<x,y,z> = ProjectiveSpace(FractionField(R), 2)
             sage: points = [P((c, 0, 1)), P((0, c, 1)), P((1, 3, 4)), P((0, 0 ,1))]
-            sage: P.is_linearly_independent(points)
+            sage: P.is_linearly_independent(points, 3)
             True
 
         ::
@@ -1355,7 +1361,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: K.<k> = CyclotomicField(3)
             sage: P.<x,y,z> = ProjectiveSpace(K, 2)
             sage: points = [P((k, k^2, 1)), P((0, k, 1)), P((1, 0, 4)), P((0, 0 ,1))]
-            sage: P.is_linearly_independent(points)
+            sage: P.is_linearly_independent(points, 3)
             True
         """
         if not isinstance(points, list):
@@ -1364,17 +1370,17 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             raise TypeError("points must be a list of projective points")
         if any(x.codomain() != self for x in points):
             raise ValueError("points not in this projective space")
+        if not n is None:
+            n = Integer(n)
         M = matrix([list(t) for t in points])
         N = self.dimension_relative()
-        if len(points) < N+1:
+        if len(points) < n or n == None:
             if M.rank() == len(points):
                 return True
             return False
-        elif len(points) < N+3:
-            if any(l == 0 for l in M.minors(N+1)):
-                return False
-            return True
-        return False
+        if any(l == 0 for l in M.minors(n)):
+            return False
+        return True
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):

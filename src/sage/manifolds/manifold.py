@@ -1583,6 +1583,16 @@ class TopologicalManifold(ManifoldSubset):
             sage: latex(P)
             \left(U,(r, {\phi})\right)
 
+        Using ``coord_restrictions``::
+
+            sage: D = Manifold(2, 'D', structure='topological')
+            sage: X.<x,y> = D.chart(coord_restrictions=lambda x,y: [x^2+y^2<1, x>0]); X
+            Chart (D, (x, y))
+            sage: X.valid_coordinates(0, 0)
+            False
+            sage: X.valid_coordinates(1/2, 0)
+            True
+
         See the documentation of classes
         :class:`~sage.manifolds.chart.Chart` and
         :class:`~sage.manifolds.chart.RealChart` for more examples,

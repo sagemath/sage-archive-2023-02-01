@@ -4265,7 +4265,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
         return (f'BTerm Monoid {self.growth_group._repr_short_()} with '
                 f'coefficients in {self.coefficient_ring}')
 
-    def _create_element_(self, growth, coefficient, **kwds):
+    def _create_element_(self, growth, coefficient, valid_from):
         r"""
         Helper method which creates an element by using the ``element_class``.
 
@@ -4275,7 +4275,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
         - ``coefficient`` -- an element of the coefficient ring
 
-        - ``**kwds`` -- a dictionary mapping variable names to lower
+        - ``valid_from`` -- a dictionary mapping variable names to lower
           bounds for the corresponding variable
 
         OUTPUT:
@@ -4301,7 +4301,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
             ...
             TypeError: _element_constructor_() takes from 2 to 3 positional arguments but 4 were given
         """
-        return self.element_class(self, growth, coefficient, **kwds)
+        return self.element_class(self, growth, coefficient, valid_from)
 
 
 class TermMonoidFactory(UniqueRepresentation, UniqueFactory):

@@ -3045,6 +3045,39 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             models = [g for g,t in models]
         return models
 
+    def affine_preperiodic_model(self, n, m=0):
+        r"""
+        Return a conjugate dynamical system with affine (n, m) preperiodic points.
+
+        INPUT:
+
+         - ``n`` -- the period of the preperiodic points to make affine.
+
+         - ``m`` -- (default: 0) the preperiod of the preperiodic points to make affine.
+
+        OUTPUT: a dynamical system conjugate to this one.
+
+        EXAMPLES::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
+            sage: g = f.affine_preperiodic_model(1); g
+            Dynamical System of Projective Space of dimension 2 over Rational Field
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (-x^2 : 2*x^2 + 2*x*y + y^2 : 2*x^2 + 2*x*y + 2*y^2 - 2*y*z + z^2)
+
+        We can check that ``g`` has affine fixed points::
+
+            sage: g.change_ring(QQbar).periodic_points(1)
+            [(-1 : 1 : 1), (-1/2 : 1/2 : 1), (-1/2 : 1 : 1), (-1/3 : 2/3 : 1), (0 : 0 : 1),
+            (0 : 1/2 : 1), (0 : 1 : 1)]
+
+        ::
+
+            sage: 
+        """
+        
+
     def automorphism_group(self, **kwds):
         r"""
         Calculates the subgroup of `PGL2` that is the automorphism group

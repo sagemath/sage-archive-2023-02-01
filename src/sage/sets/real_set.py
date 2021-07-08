@@ -89,7 +89,7 @@ from sage.structure.richcmp import richcmp, richcmp_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.topological_spaces import TopologicalSpaces
-from sage.categories.sets_cat import Sets
+from sage.categories.sets_cat import Sets, EmptySetError
 from sage.sets.set import Set_base, Set_boolean_operators, Set_add_sub_operators
 from sage.rings.all import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF
@@ -1979,13 +1979,15 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     is_included_in = deprecated_function_alias(31927, is_subset)
 
-    def an_element(self):
+    def _an_element_(self):
         """
         Return a point of the set
 
         OUTPUT:
 
-        A real number. ``ValueError`` if the set is empty.
+        A real number.
+
+        It raises an :class:`~sage.categories.sets_cat.EmptySetError` if the set is empty.
 
         EXAMPLES::
 
@@ -2001,8 +2003,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             8
         """
         from sage.rings.infinity import AnInfinity
-        if len(self._intervals) == 0:
-            raise ValueError('set is empty')
+        if not self._intervals:
+            raise EmptySetError
         i = self._intervals[0]
         if isinstance(i.lower(), AnInfinity):
             if isinstance(i.upper(), AnInfinity):

@@ -446,15 +446,15 @@ fi
 # Extract the package
 ##################################################################
 
-    echo "Setting up build directory for $PKG_NAME"
-    cp -RLp "$PKG_SCRIPTS" "$PKG_NAME"
-    cd "$PKG_NAME" || exit $?
+echo "Setting up build directory for $PKG_NAME"
+cp -RLp "$PKG_SCRIPTS" "$PKG_NAME"
+cd "$PKG_NAME" || exit $?
 
-    sage-uncompress-spkg -d src "$PKG_SRC"
-    if [ $? -ne 0 ]; then
-        error_msg "Error: failed to extract $PKG_SRC"
-        exit 1
-    fi
+sage-uncompress-spkg -d src "$PKG_SRC"
+if [ $? -ne 0 ]; then
+    error_msg "Error: failed to extract $PKG_SRC"
+    exit 1
+fi
 
 echo "Finished extraction"
 
@@ -535,7 +535,7 @@ __EOF__
 INSTALLED_SCRIPTS="prerm piprm postrm"
 WRAPPED_SCRIPTS="build install check preinst postinst $INSTALLED_SCRIPTS"
 
-# Prepare script for uninstallation of pacakges that use sdh_pip_install
+# Prepare script for uninstallation of packages that use sdh_pip_install
 # or sdh_store_and_pip_install_wheel.
 echo 'sdh_pip_uninstall -r $SAGE_SPKG_SCRIPTS/$PKG_BASE/spkg-piprm-requirements.txt' > spkg-piprm.in
 

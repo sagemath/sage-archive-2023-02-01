@@ -352,7 +352,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
     class Element(SubmoduleWithBasis.Element):
 
-        def _mul_(self, other): #FIX THIS TO ASSUME OTHER IS IN SAME PARENT
+        def _mul_(self, other):
             """
             EXAMPLES::
 
@@ -439,7 +439,6 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             """
             P = self.parent()
             return P.retract(P.lift(self) * P.lift(other))
-
 
         def _lmul_(self, right):
             """

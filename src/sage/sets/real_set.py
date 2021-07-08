@@ -795,6 +795,107 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 @richcmp_method
 class RealSet(UniqueRepresentation, Parent, Set_base,
               Set_boolean_operators, Set_add_sub_operators):
+    """
+    A subset of the real line
+
+    INPUT:
+
+    Arguments defining a real set. Possibilities are either two
+    real numbers to construct an open set or a list/tuple/iterable
+    of intervals. The individual intervals can be specified by
+    either a :class:`RealInterval`, a tuple of two real numbers
+    (constructing an open interval), or a list of two number
+    (constructing a closed interval).
+
+    EXAMPLES::
+
+        sage: RealSet(0,1)    # open set from two numbers
+        (0, 1)
+        sage: i = RealSet(0,1)[0]
+        sage: RealSet(i)      # interval
+        (0, 1)
+        sage: RealSet(i, (3,4))    # tuple of two numbers = open set
+        (0, 1) ∪ (3, 4)
+        sage: RealSet(i, [3,4])    # list of two numbers = closed set
+        (0, 1) ∪ [3, 4]
+
+    Initialization from manifold objects::
+
+        sage: R = manifolds.RealLine(); R
+        Real number line ℝ
+        sage: RealSet(R)
+        (-oo, +oo)
+        sage: I02 = manifolds.OpenInterval(0, 2); I
+        I
+        sage: RealSet(I02)
+        (0, 2)
+        sage: I01_of_R = manifolds.OpenInterval(0, 1, ambient_interval=R); I01_of_R
+        Real interval (0, 1)
+        sage: RealSet(I01_of_R)
+        (0, 1)
+        sage: RealSet(I01_of_R.closure())
+        [0, 1]
+        sage: I01_of_I02 = manifolds.OpenInterval(0, 1, ambient_interval=I02); I01_of_I02
+        Real interval (0, 1)
+        sage: RealSet(I01_of_I02)
+        (0, 1)
+        sage: RealSet(I01_of_I02.closure())
+        (0, 1]
+
+    Real sets belong to a subcategory of topological spaces::
+
+        sage: RealSet().category()
+        Join of Category of finite sets and Category of subobjects of sets and Category of connected topological spaces
+        sage: RealSet.point(1).category()
+        Join of Category of finite sets and Category of subobjects of sets and Category of connected topological spaces
+        sage: RealSet([1, 2]).category()
+        Join of Category of infinite sets and Category of compact topological spaces and Category of subobjects of sets and Category of connected topological spaces
+        sage: RealSet((1, 2), (3, 4)).category()
+        Join of Category of infinite sets and Category of subobjects of sets and Category of topological spaces
+
+    By passing certain keyword arguments, real sets can be set up as manifolds or manifold subsets::
+
+        sage: RealSet(-oo, oo, structure='differentiable')
+        Real number line ℝ
+
+        sage: RealSet([0, 1], structure='differentiable')
+        Subset [0, 1] of the Real number line ℝ
+        sage: _.category()
+        Category of subobjects of sets
+
+        sage: RealSet.open_closed(0, 5, structure='differentiable')
+        Subset (0, 5] of the Real number line ℝ
+
+        sage: RealSet(0, 1, name='A')
+        Open subset A of the Real number line ℝ
+        sage: _.category()
+        Join of
+         Category of smooth manifolds over Real Field with 53 bits of precision and
+         Category of connected manifolds over Real Field with 53 bits of precision and
+         Category of subobjects of sets
+
+        sage: R_xi.<ξ> = RealSet(-oo, oo); R_xi
+        Real number line ℝ
+        sage: R_xi.canonical_chart()
+        Chart (ℝ, (ξ,))
+        sage: P_xi = RealSet(0, oo, ambient=R_xi); P_xi
+        Open subset (0, +oo) of the Real number line ℝ
+        sage: P_xi.default_chart()
+        Chart ((0, +oo), (ξ,))
+        sage: B_xi = RealSet(0, 1, ambient=P_xi); B_xi
+        Open subset (0, 1) of the Real number line ℝ
+        sage: B_xi.default_chart()
+        Chart ((0, 1), (ξ,))
+        sage: R_xi.subset_family()
+        Set {(0, +oo), (0, 1), ℝ} of open subsets of the Real number line ℝ
+
+        sage: F = RealSet.point(0).union(RealSet.point(1)).union(RealSet.point(2)); F
+        {0} ∪ {1} ∪ {2}
+        sage: F_tau = RealSet(F, names="τ"); F_tau
+        Subset {0} ∪ {1} ∪ {2} of the Real number line ℝ
+        sage: F_tau.manifold().canonical_chart()
+        Chart (ℝ, (τ,))
+    """
 
     @staticmethod
     def __classcall__(cls, *args, **kwds):
@@ -852,10 +953,6 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             Traceback (most recent call last):
             ...
             ValueError: interval cannot be closed at -oo
-
-        TESTS::
-
-            sage: TestSuite(R).run()
         """
         if kwds:
             # Got manifold keywords
@@ -986,105 +1083,17 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     def __init__(self, *intervals):
         """
-        A subset of the real line
+        TESTS::
 
-        INPUT:
-
-        Arguments defining a real set. Possibilities are either two
-        real numbers to construct an open set or a list/tuple/iterable
-        of intervals. The individual intervals can be specified by
-        either a :class:`RealInterval`, a tuple of two real numbers
-        (constructing an open interval), or a list of two number
-        (constructing a closed interval).
-
-        EXAMPLES::
-
-            sage: RealSet(0,1)    # open set from two numbers
-            (0, 1)
-            sage: i = RealSet(0,1)[0]
-            sage: RealSet(i)      # interval
-            (0, 1)
-            sage: RealSet(i, (3,4))    # tuple of two numbers = open set
-            (0, 1) ∪ (3, 4)
-            sage: RealSet(i, [3,4])    # list of two numbers = closed set
-            (0, 1) ∪ [3, 4]
-
-        Initialization from manifold objects::
-
-            sage: R = manifolds.RealLine(); R
-            Real number line ℝ
-            sage: RealSet(R)
-            (-oo, +oo)
-            sage: I02 = manifolds.OpenInterval(0, 2); I
-            I
-            sage: RealSet(I02)
-            (0, 2)
-            sage: I01_of_R = manifolds.OpenInterval(0, 1, ambient_interval=R); I01_of_R
-            Real interval (0, 1)
-            sage: RealSet(I01_of_R)
-            (0, 1)
-            sage: RealSet(I01_of_R.closure())
-            [0, 1]
-            sage: I01_of_I02 = manifolds.OpenInterval(0, 1, ambient_interval=I02); I01_of_I02
-            Real interval (0, 1)
-            sage: RealSet(I01_of_I02)
-            (0, 1)
-            sage: RealSet(I01_of_I02.closure())
-            (0, 1]
-
-        Real sets belong to a subcategory of topological spaces::
-
-            sage: RealSet().category()
-            Join of Category of finite sets and Category of subobjects of sets and Category of connected topological spaces
-            sage: RealSet.point(1).category()
-            Join of Category of finite sets and Category of subobjects of sets and Category of connected topological spaces
-            sage: RealSet([1, 2]).category()
-            Join of Category of infinite sets and Category of compact topological spaces and Category of subobjects of sets and Category of connected topological spaces
-            sage: RealSet((1, 2), (3, 4)).category()
-            Join of Category of infinite sets and Category of subobjects of sets and Category of topological spaces
-
-        By passing certain keyword arguments, real sets can be set up as manifolds or manifold subsets::
-
-            sage: RealSet(-oo, oo, structure='differentiable')
-            Real number line ℝ
-
-            sage: RealSet([0, 1], structure='differentiable')
-            Subset [0, 1] of the Real number line ℝ
-            sage: _.category()
-            Category of subobjects of sets
-
-            sage: RealSet.open_closed(0, 5, structure='differentiable')
-            Subset (0, 5] of the Real number line ℝ
-
-            sage: RealSet(0, 1, name='A')
-            Open subset A of the Real number line ℝ
-            sage: _.category()
-            Join of
-             Category of smooth manifolds over Real Field with 53 bits of precision and
-             Category of connected manifolds over Real Field with 53 bits of precision and
-             Category of subobjects of sets
-
-            sage: R_xi.<ξ> = RealSet(-oo, oo); R_xi
-            Real number line ℝ
-            sage: R_xi.canonical_chart()
-            Chart (ℝ, (ξ,))
-            sage: P_xi = RealSet(0, oo, ambient=R_xi); P_xi
-            Open subset (0, +oo) of the Real number line ℝ
-            sage: P_xi.default_chart()
-            Chart ((0, +oo), (ξ,))
-            sage: B_xi = RealSet(0, 1, ambient=P_xi); B_xi
-            Open subset (0, 1) of the Real number line ℝ
-            sage: B_xi.default_chart()
-            Chart ((0, 1), (ξ,))
-            sage: R_xi.subset_family()
-            Set {(0, +oo), (0, 1), ℝ} of open subsets of the Real number line ℝ
-
-            sage: F = RealSet.point(0).union(RealSet.point(1)).union(RealSet.point(2)); F
-            {0} ∪ {1} ∪ {2}
-            sage: F_tau = RealSet(F, names="τ"); F_tau
-            Subset {0} ∪ {1} ∪ {2} of the Real number line ℝ
-            sage: F_tau.manifold().canonical_chart()
-            Chart (ℝ, (τ,))
+            sage: Empty = RealSet(); Empty
+            {}
+            sage: TestSuite(Empty).run()
+            sage: I1 = RealSet.open_closed(1, 3);  I1
+            (1, 3]
+            sage: TestSuite(I1).run()
+            sage: R = RealSet(RealSet.open_closed(0,1), RealSet.closed_open(2,3)); R
+            (0, 1] ∪ [2, 3)
+            sage: TestSuite(R).run()
         """
         category = TopologicalSpaces()
         if len(intervals) <= 1:

@@ -106,6 +106,7 @@ from sage.sets.set import Set
 from sage.combinat.permutation import Arrangements
 from sage.combinat.subset import Subsets
 from sage.symbolic.ring import SR
+from itertools import count, product
 
 
 class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
@@ -3047,7 +3048,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
     def affine_preperiodic_model(self, n, m=0):
         r"""
-        Return a conjugate dynamical system with affine (n, m) preperiodic points.
+        Return a dynamical system conjugate to this one with affine (n, m) preperiodic points.
+
+        If the base ring of this dynamical system is finite, there may not be a model
+        with affine preperiodic points, in which case a ValueError is thrown.
 
         INPUT:
 
@@ -3074,9 +3078,118 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: 
+            sage: P.<x,y,z> = ProjectiveSpace(GF(9), 2)
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
+            sage: f.affine_preperiodic_model(1)
+            Dynamical System of Projective Space of dimension 2 over Finite Field in z2 of size 3^2
+                  Defn: Defined on coordinates by sending (x : y : z) to
+                        ((z2 + 1)*x^2 : (z2 + 1)*x^2 + (z2 + 1)*x*y + (-z2 - 1)*y^2 :
+                        (z2 - 1)*x^2 + (z2 - 1)*x*y - y^2 + (-z2)*y*z + z^2)
+
+        ::
+
+            sage: R.<c> = GF(3)[]
+            sage: P.<x,y,z> = ProjectiveSpace(R, 2)
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
+            sage: f.affine_preperiodic_model(1) # long time
+            Dynamical System of Projective Space of dimension 2 over
+            Univariate Polynomial Ring in c over Finite Field of size 3
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    ((2*c^4 + c^3)*x^2 : (2*c^4 + c^3)*x^2 + (2*c^4 + c^3)*x*y + (c^4 + 2*c^3)*y^2 :
+                    c^3*x^2 + c^3*x*y + (2*c^3 + 2*c^2)*y^2 + (c^3 + 2*c^2)*y*z + (2*c^4 + 2*c^3 +
+                    2*c^2)*z^2)
+
+        ::
+
+            sage: K.<k> = CyclotomicField(3)
+            sage: P.<x,y,z> = ProjectiveSpace(K, 2)
+            sage: f = DynamicalSystem_projective([x^2 + k*x*y + y^2, z^2, y^2])
+            sage: f.affine_preperiodic_model(1, 1)
+            Dynamical System of Projective Space of dimension 2
+            over Cyclotomic Field of order 3 and degree 2
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (x^2 + y^2 + (-k + 2)*x*z - 2*y*z + (-k + 3)*z^2 :
+                    -2*x^2 + (k - 4)*x*z + (k - 3)*z^2 : -x^2 + (k - 2)*x*z + (k - 2)*z^2)
         """
-        
+        n = ZZ(n)
+        if n < 1:
+            raise ValueError('Period must be positive')
+        m = ZZ(m)
+        if m < 0:
+            raise ValueError('Preperiodic must be negative')
+        f = self
+        CR = f.coordinate_ring()
+        dom = f.domain()
+        PS = f.codomain().ambient_space()
+        N = PS.dimension_relative() + 1
+        R = f.base_ring()
+        F_1 = f.nth_iterate_map(n+m)
+        F_2 = f.nth_iterate_map(m)
+        L = [F_1[i]*F_2[j] - F_1[j]*F_2[i] for i in range(N)
+            for j in range(i+1, N)]
+        X = PS.subscheme(L + list(dom.defining_polynomials()))
+        hyperplane_at_infinity = PS.subscheme(CR.gens()[-1])
+        if R.is_field():
+            F = R
+        else:
+            F = FractionField(R)
+        if X.intersection(hyperplane_at_infinity).change_ring(F).dimension() >= 0:
+            hyperplane_found = False
+            attempted_combinations = {}
+            # in order to find a hyperplane to move to infinity,
+            # we need to enumerate an infinite number of hyperplanes
+            if R.is_finite():
+                # when R is finite, we try all hyperplanes
+                for tup in product(R, repeat=N):
+                    if list(tup) != [0]*N:
+                        if PS(tup) not in attempted_combinations:
+                            hyperplane = PS.subscheme(sum([tup[i]*PS.gens()[i] for i in range(N)]))
+                            if X.intersection(hyperplane).change_ring(F).dimension() < 0:
+                                hyperplane_found = True
+                                break
+                if not hyperplane_found:
+                    raise ValueError('no possible conjugation over %s makes all preperiodic points affine' %R)
+            else:
+                # if the characteristic is 0, R contains Z
+                if R.characteristic() == 0:
+                    for height_bound in count(1):
+                        terms = ZZ.range(height_bound)
+                        for tup in product(terms, repeat=N):
+                            if list(tup) != [0]*N:
+                                if PS(tup) not in attempted_combinations:
+                                    hyperplane = PS.subscheme(sum([tup[i]*PS.gens()[i] for i in range(N)]))
+                                    if X.intersection(hyperplane).change_ring(F).dimension() < 0:
+                                        hyperplane_found = True
+                                        break
+                        if hyperplane_found:
+                            break
+                else:
+                    if is_PolynomialRing(R) or is_MPolynomialRing(R) or is_FractionField(R):
+                        # for polynomial rings, we can get an infinite family of hyperplanes
+                        # by increasing the degree
+                        var = R.gen()
+                        for degree in count(0):
+                            ZZ_terms = ZZ.range(R.characteristic())
+                            terms = ZZ_terms[:]
+                            for i in ZZ_terms:
+                                terms.append(i*var**degree)
+                            for tup in product(terms, repeat=N):
+                                if list(tup) != [0]*N:
+                                    if PS(tup) not in attempted_combinations:
+                                        hyperplane = PS.subscheme(sum([tup[i]*PS.gens()[i] for i in range(N)]))
+                                        if X.intersection(hyperplane).change_ring(F).dimension() < 0:
+                                            hyperplane_found = True
+                                            break
+                            if hyperplane_found:
+                                break
+                    else:
+                        raise NotImplementedError('cannot find affine periodic model over %s' %(R))
+            source = PS.subscheme(CR.gens()[-1])
+            mat = PS.hyperplane_transformation_matrix(source, hyperplane)
+            if R.is_field():
+                return f.conjugate(mat)
+            return f.conjugate(mat, adjugate=True)
+        return f
 
     def automorphism_group(self, **kwds):
         r"""

@@ -698,13 +698,12 @@ def format(s, embedded=False):
     else:
         first_line = s
     # Moreover, we must strip blank space in order to get the directives
-    directives = [ d.strip().lower() for d in first_line.split(',') ]
+    directives = [d.strip().lower() for d in first_line.split(',')]
 
     if 'noreplace' in directives or 'nodetex' in directives:
-        s = s[first_newline+len(os.linesep):]
+        s = s[first_newline + len(os.linesep):]
 
     import sage.all
-    import sage.server.support
     docs = set([])
     if 'noreplace' not in directives:
         i_0 = 0
@@ -945,22 +944,17 @@ def _search_src_or_doc(what, string, extra1='', extra2='', extra3='',
 
     html_results = format_search_as_html(title, results, [string] + extras)
 
-    from sage.server.support import EMBEDDED_MODE
-    if EMBEDDED_MODE:
-        # Running from the legacy Sage Notebook
-        print(html_results)
-    else:
-        # Pass through the IPython pager in a mime bundle
-        from IPython.core.page import page
-        if not isinstance(text_results, str):
-            text_results = text_results.decode('utf-8', 'replace')
+    # Pass through the IPython pager in a mime bundle
+    from IPython.core.page import page
+    if not isinstance(text_results, str):
+        text_results = text_results.decode('utf-8', 'replace')
 
-        page({
-            'text/plain': text_results,
-            # 'text/html': html_results  # don't return HTML results since
-                                         # they currently are not correctly
-                                         # formatted for Jupyter use
-        })
+    page({
+        'text/plain': text_results,
+        # 'text/html': html_results  # don't return HTML results since
+                                     # they currently are not correctly
+                                     # formatted for Jupyter use
+    })
 
 
 def search_src(string, extra1='', extra2='', extra3='', extra4='',
@@ -1422,8 +1416,8 @@ class _sage_doc:
         """
         if output != 'html' and view:
             view = False
-        # much of the following is taken from 'docstring' in server/support.py
-        s  = ''
+
+        s = ''
         newline = "\n\n"  # blank line to start new paragraph
 
         try:
@@ -1551,11 +1545,7 @@ with 'sage -docbuild {0} html --mathjax' and try again.""".format(name))
         if testing:
             return (url, path)
 
-        from sage.server.support import EMBEDDED_MODE
-        if EMBEDDED_MODE:
-            os.system(browser() + " " + url)
-        else:
-            os.system(browser() + " " + path)
+        os.system(browser() + " " + path)
 
     def tutorial(self):
         """

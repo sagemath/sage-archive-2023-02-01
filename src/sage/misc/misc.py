@@ -45,7 +45,6 @@ import pdb
 import warnings
 import sage.misc.prandom as random
 from .lazy_string import lazy_string
-import sage.server.support
 
 from sage.misc.lazy_import import lazy_import
 
@@ -1266,19 +1265,6 @@ def pad_zeros(s, size=3):
         '0000000389'
     """
     return "0" * (size - len(str(s))) + str(s)
-
-
-def embedded():
-    """
-    Return ``True`` if this copy of Sage is running embedded in the Sage
-    notebook.
-
-    EXAMPLES::
-
-        sage: sage.misc.misc.embedded()    # output True if in the notebook
-        False
-    """
-    return sage.server.support.EMBEDDED_MODE
 
 
 def is_in_string(line, pos):

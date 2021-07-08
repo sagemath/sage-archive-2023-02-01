@@ -119,7 +119,6 @@ import functools
 import os
 import tokenize
 import re
-EMBEDDED_MODE = False
 from sage.env import SAGE_LIB
 
 try:
@@ -1803,32 +1802,10 @@ def sage_getdef(obj, obj_name=''):
         # sometimes s contains "*args" or "**keywds", and the
         # asterisks confuse ReST/sphinx/docutils, so escape them:
         # change * to \*, and change ** to \**.
-        if EMBEDDED_MODE:
-            s = s.replace('**', '\\**')  # replace ** with \**
-            t = ''
-            while True:  # replace * with \*
-                i = s.find('*')
-                if i == -1:
-                    break
-                elif i > 0 and s[i-1] == '\\':
-                    if s[i+1] == "*":
-                        t += s[:i+2]
-                        s = s[i+2:]
-                    else:
-                        t += s[:i+1]
-                        s = s[i+1:]
-                    continue
-                elif i > 0 and s[i-1] == '*':
-                    t += s[:i+1]
-                    s = s[i+1:]
-                    continue
-                else:
-                    t += s[:i] + '\\*'
-                    s = s[i+1:]
-            s = t + s
         return obj_name + '(' + s + ')'
     except (AttributeError, TypeError, ValueError):
         return '%s( [noargspec] )'%obj_name
+
 
 def _sage_getdoc_unformatted(obj):
     r"""
@@ -1989,17 +1966,15 @@ def sage_getdoc_original(obj):
     return s
 
 
-def sage_getdoc(obj, obj_name='', embedded_override=False):
+def sage_getdoc(obj, obj_name='', embeddeded=False):
     r"""
     Return the docstring associated to ``obj`` as a string.
 
     If ``obj`` is a Cython object with an embedded position in its
     docstring, the embedded position is stripped.
 
-    If optional argument ``embedded_override`` is False (its default
-    value), then the string is formatted according to the value of
-    EMBEDDED_MODE.  If this argument is True, then it is formatted as
-    if EMBEDDED_MODE were True.
+    The optional boolean argument ``embeddeded`` controls the
+    string formatting. It is False by default.
 
     INPUT:
 
@@ -2030,7 +2005,7 @@ def sage_getdoc(obj, obj_name='', embedded_override=False):
     if obj is None:
         return ''
     r = sage_getdoc_original(obj)
-    s = sage.misc.sagedoc.format(r, embedded=(embedded_override or EMBEDDED_MODE))
+    s = sage.misc.sagedoc.format(r, embedded=embedded)
 
     # Fix object naming
     if obj_name != '':

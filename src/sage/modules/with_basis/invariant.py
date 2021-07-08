@@ -146,12 +146,13 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
     The classic example of an invariant module is the module of symmetric functions,
     which is the invariant module of polynomials whose variables are acted upon by
-    permutation. We can create a module isomorphic to the polynomials in `n` variables
-    of a fixed degree `d` by looking at the weak compositions of `d` of length `n`,
-    which we can associate to the exponent vector. For example, `x^2yz` in `\Bold{Q}[x,y,z]`
-    would have the exponent vector `(2,1,1)`. It is a weak composition of `4`, with length
-    `3`, and so we can think of it as being in the degree-`4` homogeneous component of a
-    polynomial ring in three variables.
+    permutation. We can create a module isomorphic to the homogeneous component of a
+    a polynomial ring in `n` variable of a fixed degree `d` by looking at  weak 
+    compositions of `d` of length `n`, which we can consider as the exponent vector. 
+    For example, `x^2yz` in `\Bold{Q}[x,y,z]` would have the exponent vector `(2,1,1)`.
+    The vector `(2,1,1)` is a weak composition of `4`, with length `3`, and so we can 
+    think of it as being in the degree-`4` homogeneous component of a polynomial ring 
+    in three variables.
 
         sage: C = Compositions(4, length=3, min_part=0) #representing degree-4 monomials
         doctest:warning
@@ -173,7 +174,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
          B[[1, 1, 2]] + B[[1, 2, 1]] + B[[2, 1, 1]]]
 
     These are the monomial symmetric functions, which are a well-known basis for
-    the symmetric functions.
+    the symmetric functions. For comparison:
 
         sage: Sym = SymmetricFunctions(QQ)
         sage: m = Sym.monomial()

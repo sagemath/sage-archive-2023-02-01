@@ -97,6 +97,7 @@ from sage.rings.infinity import infinity, minus_infinity
 
 from sage.misc.superseded import deprecated_function_alias
 
+
 @richcmp_method
 class InternalRealInterval(UniqueRepresentation, Parent):
     """
@@ -792,20 +793,41 @@ class InternalRealInterval(UniqueRepresentation, Parent):
         """
         return self * other
 
+
 @richcmp_method
 class RealSet(UniqueRepresentation, Parent, Set_base,
               Set_boolean_operators, Set_add_sub_operators):
     """
-    A subset of the real line
+    A subset of the real line, a finite union of intervals
 
     INPUT:
 
-    Arguments defining a real set. Possibilities are either two
-    real numbers to construct an open set or a list/tuple/iterable
-    of intervals. The individual intervals can be specified by
-    either a :class:`RealInterval`, a tuple of two real numbers
-    (constructing an open interval), or a list of two number
-    (constructing a closed interval).
+    - ``*args`` -- arguments defining a real set. Possibilities are either:
+      - two extended real numbers ``a, b``, to construct the open interval `(a, b)`, or
+      - a list/tuple/iterable of (not necessarily disjoint) intervals or real sets,
+        whose union is taken. The individual intervals can be specified by either
+        - a tuple ``(a, b)`` of two extended real numbers (constructing an open interval),
+        - a list ``[a, b]`` of two real numbers (constructing a closed interval),
+        - an :class:`InternalRealInterval`,
+        - an :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`.
+
+    - ``structure='differentiable'`` -- construct the real set as a manifold or
+      manifold subset.  Also, if any keyword arguments accepted by
+      :class:`~sage.manifolds.differentiable.examples.real_line.RealLine` are passed,
+      ``structure='differentiable'`` is implied.
+
+    There are also specialized constructors for various types of intervals:
+    - :meth:`RealSet.open`,
+    - :meth:`RealSet.closed`,
+    - :meth:`RealSet.point`,
+    - :meth:`RealSet.open_closed`,
+    - :meth:`RealSet.closed_open`,
+    - :meth:`unbounded_below_closed`,
+    - :meth:`unbounded_below_open`,
+    - :meth:`unbounded_above_closed`,
+    - :meth:`unbounded_above_open`,
+    as well as a constructor for general intervals:
+    - :meth:`RealSet.interval`.
 
     EXAMPLES::
 
@@ -845,15 +867,29 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
     Real sets belong to a subcategory of topological spaces::
 
         sage: RealSet().category()
-        Join of Category of finite sets and Category of subobjects of sets and Category of connected topological spaces
+        Join of
+         Category of finite sets and
+         Category of subobjects of sets and
+         Category of connected topological spaces
         sage: RealSet.point(1).category()
-        Join of Category of finite sets and Category of subobjects of sets and Category of connected topological spaces
+        Join of
+         Category of finite sets and
+         Category of subobjects of sets and
+         Category of connected topological spaces
         sage: RealSet([1, 2]).category()
-        Join of Category of infinite sets and Category of compact topological spaces and Category of subobjects of sets and Category of connected topological spaces
+        Join of
+         Category of infinite sets and
+         Category of compact topological spaces and
+         Category of subobjects of sets and
+         Category of connected topological spaces
         sage: RealSet((1, 2), (3, 4)).category()
-        Join of Category of infinite sets and Category of subobjects of sets and Category of topological spaces
+        Join of
+         Category of infinite sets and
+         Category of subobjects of sets and
+         Category of topological spaces
 
-    By passing certain keyword arguments, real sets can be set up as manifolds or manifold subsets::
+    Constructing real sets as manifolds or manifold subsets by passing
+    ``structure='differentiable'``::
 
         sage: RealSet(-oo, oo, structure='differentiable')
         Real number line ℝ
@@ -866,6 +902,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         sage: RealSet.open_closed(0, 5, structure='differentiable')
         Subset (0, 5] of the Real number line ℝ
 
+    This is implied whenever keywords such as ``name`` are given::
+
         sage: RealSet(0, 1, name='A')
         Open subset A of the Real number line ℝ
         sage: _.category()
@@ -874,10 +912,16 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
          Category of connected manifolds over Real Field with 53 bits of precision and
          Category of subobjects of sets
 
+    It is also implied by assigning a coordinate name::
+
         sage: R_xi.<ξ> = RealSet(-oo, oo); R_xi
         Real number line ℝ
         sage: R_xi.canonical_chart()
         Chart (ℝ, (ξ,))
+
+    With the keyword ``ambient``, we can construct a subset of a previously
+    constructed manifold::
+
         sage: P_xi = RealSet(0, oo, ambient=R_xi); P_xi
         Open subset (0, +oo) of the Real number line ℝ
         sage: P_xi.default_chart()

@@ -144,7 +144,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         # Always a sparse implementation.
         if n != 0:
             raise IndexError("there is only one generator")
-        op = lambda n: self.base_ring().one() if n == 1 else self.base_ring().zero()
+        op = LazyLaurentSeriesOperator_gen(self)
         c = (self.base_ring().zero(), 2)
         aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=1, constant=c)
 
@@ -218,7 +218,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         R = self.base_ring()
 
         # Always a sparse implementation.
-        op = lambda n: R(x) if n == 0 else self.base_ring().zero()
+        op = LazyLaurentSeriesOperator_constant(self, R(x))
         aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=0, constant=(R.zero(), 1))
         return self.element_class(self, aux)
 
@@ -236,12 +236,12 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         N = 10
 
         e = self.base_ring().an_element()
-        
-        op = lambda i: self.base_ring().an_element()
+        def r(i):
+            return self.base_ring().an_element()
         n = random.randint(-N,N)
         m = random.randint(0,N)
 
-        aux = LLS_coefficient_function(op, is_sparse, n, (e, n + m))
+        aux = LLS_coefficient_function(r, is_sparse, n, (e, n + m))
         return self.element_class(self, aux)
 
     def one(self):
@@ -341,8 +341,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             elif constant not in self.base_ring():
                 raise ValueError("constant is not an element of the base ring")
             constant = (constant, approximate_valuation + len(coefficient_function))
-            ll_list = tuple([self.base_ring()(e) for e in coefficient_function])
-            coefficient_function = lambda i: self.base_ring()(ll_list[i - approximate_valuation])
+            coefficient_function = LazyLaurentSeriesOperator_list(self, coefficient_function, approximate_valuation)
         elif constant is not None:
             try:
                 c,m = constant

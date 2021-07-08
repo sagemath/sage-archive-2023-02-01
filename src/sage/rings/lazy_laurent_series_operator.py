@@ -735,7 +735,7 @@ class LazyLaurentSeriesOperator_gen(LazyLaurentSeriesOperator):
         self._one = ring.base_ring().one()
         self._zero = ring.base_ring().zero()
 
-    def __call__(self, s, n):
+    def __call__(self, n):
         """
         Return the `n`-th coefficient of the series ``s``.
 
@@ -800,7 +800,7 @@ class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
 
         self._zero = ring.base_ring().zero()
 
-    def __call__(self, s, n):
+    def __call__(self, n):
         """
         Return the `n`-th coefficient of the series ``s``.
 
@@ -870,7 +870,7 @@ class LazyLaurentSeriesOperator_list(LazyLaurentSeriesOperator):
         self._list = tuple([ring.base_ring()(e) for e in l])
         self._valuation = v
 
-    def __call__(self, s, n):
+    def __call__(self, n):
         """
         Return the `n`-th coefficient of the series ``s``.
 

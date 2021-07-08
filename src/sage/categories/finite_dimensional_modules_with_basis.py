@@ -352,41 +352,50 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             ret = [self.from_vector(vec, order=order) for vec in mat if vec]
             return ret
 
-        def invariant_module(self, A, G, action_on_basis = lambda x,g: x,
+        def invariant_module(self, S, action_on_basis = None,
                              side = "left", **kwargs):
             r"""
-            Given a group acting on a module, return the module
-            `A^G = \{a \in A : ga = a \forall g \in G\}`
+            Given a semigroup acting on a module, return the module
+            `A^S = \{a \in A : s*a = a \forall s \in S\}`
 
-            INPUT::
+            INPUT:
 
-            - ``M`` -- a finite-dimensional module with a basis
+            - ``self`` -- a finite-dimensional module with a basis
 
-            - ``G`` -- a finitely-generated group
+            - ``S`` -- a finitely-generated semigroup
 
             - ``action_on_basis(x,g)`` -- a function of taking positional arguments
               ``x`` and ``g`` which gives the action of ``g`` defined on a basis
               element ``x`` of ``M``. Default is the trivial action.
 
-            OUTPUT::
+            OUTPUT:
 
-            - ``invariant`` -- an instance of ``FiniteDimensionalInvariantModule``
-              representing `M^G`
+            - ``I`` -- an instance of ``FiniteDimensionalInvariantModule``
+              which is `M^S`
 
             EXAMPLES::
-                sage: action = lambda g, m: m.parent()(g._act_on_list_on_position(list(m)))
-                sage: G = SymmetricGroup(3)
-                sage: M = FreeModule(ZZ,[0,1,2])
-                sage: R = Representation(G, M, action)
+
+                sage: G = SymmetricGroup(3); G.rename('S3')
+                sage: M = FreeModule(ZZ, [1,2,3], prefix='M'); M.rename('M')
+                sage: action = lambda g,x: M.term(g(x))
+                sage: I = M.invariant_module(G, action); I
+                (S3)-invariant submodule of M
+                sage: I.basis()
+                Finite family {0: B[0]}
+                sage: [I.lift(b) for b in I.basis()]
+                [M[1] + M[2] + M[3]]
 
             """
 
-            from sage.modules.invariants import FiniteDimensionalInvariantModule
+            if not action_on_basis:
+                action_on_basis = lambda g,x: M.term(x)
+
+            from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
             from sage.modules.with_basis.representation import Representation
 
-            R = Representation(G, M, action_on_basis, side)
+            R = Representation(S, self, action_on_basis, side=side)
 
-            return FiniteDimensionalInvariantModule(M, G, R)
+            return FiniteDimensionalInvariantModule(R)
 
     class ElementMethods:
         def dense_coefficient_list(self, order=None):

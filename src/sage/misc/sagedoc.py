@@ -571,6 +571,7 @@ def process_mathtt(s):
         s = s[:start] + s[start+8:end] + s[end+1:]
     return s
 
+
 def format(s, embedded=False):
     r"""noreplace
     Format Sage documentation ``s`` for viewing with IPython.
@@ -1441,7 +1442,7 @@ class _sage_doc:
         s += newline
         s += '**Docstring:**'
         s += newline
-        s += sageinspect.sage_getdoc(obj, obj_name, embedded_override=True)
+        s += sageinspect.sage_getdoc(obj, obj_name, embedded=True)
 
         # now s should be the reST version of the docstring
         if output == 'html':

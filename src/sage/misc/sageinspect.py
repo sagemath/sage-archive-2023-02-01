@@ -1974,14 +1974,14 @@ def sage_getdoc_original(obj):
     return s
 
 
-def sage_getdoc(obj, obj_name='', embeddeded=False):
+def sage_getdoc(obj, obj_name='', embedded=False):
     r"""
     Return the docstring associated to ``obj`` as a string.
 
     If ``obj`` is a Cython object with an embedded position in its
     docstring, the embedded position is stripped.
 
-    The optional boolean argument ``embeddeded`` controls the
+    The optional boolean argument ``embedded`` controls the
     string formatting. It is False by default.
 
     INPUT:
@@ -2013,14 +2013,14 @@ def sage_getdoc(obj, obj_name='', embeddeded=False):
     if obj is None:
         return ''
     r = sage_getdoc_original(obj)
-    s = sage.misc.sagedoc.format(r)
+    s = sage.misc.sagedoc.format(r, embedded=embedded)
 
     # Fix object naming
     if obj_name != '':
         i = obj_name.find('.')
         if i != -1:
             obj_name = obj_name[:i]
-        s = s.replace('self.','%s.' % obj_name)
+        s = s.replace('self.', '%s.' % obj_name)
 
     return s
 

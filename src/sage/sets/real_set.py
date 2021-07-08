@@ -902,17 +902,18 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         sage: RealSet.open_closed(0, 5, structure='differentiable')
         Subset (0, 5] of the Real number line ℝ
 
-    This is implied whenever keywords such as ``name`` are given::
+    This is implied when a coordinate name is given using the keywords ``coordinate``
+    or ``names``::
 
-        sage: RealSet(0, 1, name='A')
-        Open subset A of the Real number line ℝ
+        sage: RealSet(0, 1, coordinate='λ')
+        Open subset (0, 1) of the Real number line ℝ
         sage: _.category()
         Join of
          Category of smooth manifolds over Real Field with 53 bits of precision and
          Category of connected manifolds over Real Field with 53 bits of precision and
          Category of subobjects of sets
 
-    It is also implied by assigning a coordinate name::
+    It is also implied by assigning a coordinate name using generator notation::
 
         sage: R_xi.<ξ> = RealSet(-oo, oo); R_xi
         Real number line ℝ
@@ -1012,7 +1013,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             ...
             ValueError: interval cannot be closed at -oo
         """
-        if kwds:
+        manifold_keywords = ('structure', 'ambient', 'names', 'coordinate')
+        if any(kwd in kwds
+               for kwd in manifold_keywords):
             # Got manifold keywords
             real_set = cls.__classcall__(cls, *args)
             ambient = kwds.pop('ambient', None)
@@ -1046,6 +1049,9 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
                 latex_name = latex(real_set)
 
             return ambient.manifold().canonical_chart().pullback(real_set, name=name, latex_name=latex_name)
+
+        if kwds:
+            raise TypeError(f'unless manifold keywords {manifold_keywords} are given, RealSet constructors take no keyword arguments')
 
         from sage.symbolic.expression import Expression
         if len(args) == 1 and isinstance(args[0], RealSet):

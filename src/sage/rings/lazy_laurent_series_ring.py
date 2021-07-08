@@ -144,7 +144,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         # Always a sparse implementation.
         if n != 0:
             raise IndexError("there is only one generator")
-
         op = lambda n: self.base_ring().one() if n == 1 else self.base_ring().zero()
         c = (self.base_ring().zero(), 2)
         aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=1, constant=c)
@@ -220,7 +219,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         # Always a sparse implementation.
         op = lambda n: R(x) if n == 0 else self.base_ring().zero()
-
         aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=0, constant=(R.zero(), 1))
         return self.element_class(self, aux)
 
@@ -240,7 +238,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         e = self.base_ring().an_element()
         
         op = lambda i: self.base_ring().an_element()
-
         n = random.randint(-N,N)
         m = random.randint(0,N)
 

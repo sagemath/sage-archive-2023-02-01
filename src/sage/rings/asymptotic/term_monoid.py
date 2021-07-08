@@ -4093,6 +4093,11 @@ class BTerm(TermWithCoefficient):
             sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
             sage: BT_QQ(x^3, 3, valid_from={'x': 20})
             BTerm with coefficient 3, growth x^3 and valid for x >= 20
+            sage: BT_QQ(x^2, 4, valid_from={'x': 10, 'y': 15})
+            Traceback (most recent call last):
+            ...
+            ValueError: BTerm has valid_from variables defined which do
+            not occur in the term.
         """
         valid_from_string = ' and '.join(f'{variable} >= {value}'
                                          for variable, value in self.valid_from.items())

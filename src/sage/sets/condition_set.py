@@ -17,6 +17,7 @@ from sage.structure.parent import Parent, Set_generic
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
 from sage.misc.cachefunc import cached_method
+from sage.misc.misc import _stable_uniq
 from sage.symbolic.expression import is_Expression
 from sage.symbolic.callable import is_CallableSymbolicExpression
 from sage.symbolic.ring import SymbolicRing, SR, is_SymbolicVariable
@@ -155,7 +156,7 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             else:
                 other_predicates.append(predicate)
 
-        predicates = sorted(set(callable_symbolic_predicates)) + other_predicates
+        predicates = list(_stable_uniq(callable_symbolic_predicates + other_predicates))
 
         if not other_predicates and not callable_symbolic_predicates:
             if names is None and category is None:
@@ -400,7 +401,7 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             False
 
             sage: Interval = ConditionSet(RR, x >= -7, x <= 4, vars=[x]); Interval
-            { x ∈ Real Field with 53 bits of precision : x <= 4, x >= -7 }
+            { x ∈ Real Field with 53 bits of precision : x >= -7, x <= 4 }
             sage: Interval._sympy_()
             ConditionSet(x, (x >= -7) & (x <= 4), SageSet(Real Field with 53 bits of precision))
 

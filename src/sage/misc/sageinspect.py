@@ -188,6 +188,7 @@ File:\ (?P<FILENAME>.*?)                    # match File: then filename
 # Parse Python identifiers
 __identifier_re = re.compile(r"^[^\d\W]\w*")
 
+
 def _extract_embedded_position(docstring):
     r"""
     If docstring has a Cython embedded position, return a tuple
@@ -263,6 +264,7 @@ def _extract_embedded_position(docstring):
     original = res.group('ORIGINAL')
     return (original, filename, lineno)
 
+
 def _extract_embedded_signature(docstring, name):
     r"""
     If docstring starts with the embedded of a method called ``name``, return
@@ -300,13 +302,14 @@ def _extract_embedded_signature(docstring, name):
         return docstring, None
     signature = firstline.split(name, 1)[-1]
     if signature.startswith("(") and signature.endswith(")"):
-        docstring = L[1] if len(L)>1 else '' # Remove first line, keep the rest
-        def_string = "def "+name+signature+": pass"
+        docstring = L[1] if len(L) > 1 else ''  # Remove first line, keep the rest
+        def_string = "def " + name + signature + ": pass"
         try:
             return docstring, inspect.ArgSpec(*_sage_getargspec_cython(def_string))
         except SyntaxError:
             docstring = os.linesep.join(L)
     return docstring, None
+
 
 class BlockFinder:
     """
@@ -365,7 +368,9 @@ def _getblock(lines):
     blockfinder = BlockFinder()
     iter_lines = iter(lines)
     tokenizer = tokenize.tokenize
-    readline = lambda: next(iter_lines).encode('utf-8')
+
+    def readline():
+        return next(iter_lines).encode('utf-8')
     try:
         for tok in tokenizer(readline):
             blockfinder.tokeneater(*tok)
@@ -397,7 +402,7 @@ def _extract_source(lines, lineno):
     lineno -= 1
 
     if isinstance(lines, str):
-        lines = lines.splitlines(True) # true keeps the '\n'
+        lines = lines.splitlines(True)  # true keeps the '\n'
     if len(lines):
         # Fixes an issue with getblock
         lines[-1] += '\n'
@@ -711,27 +716,27 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         """
         left = self.visit(node.left)
         ops = list(node.ops)
-        comparators = list(node.comparators) # the things to be compared with.
+        comparators = list(node.comparators)  # the things to be compared with.
         while ops:
             op = ops.pop(0).__class__.__name__
             right = self.visit(comparators.pop(0))
-            if op=='Lt':
-                if not left<right:
+            if op == 'Lt':
+                if not left < right:
                     return False
-            elif op=='LtE':
-                if not left<=right:
+            elif op == 'LtE':
+                if not left <= right:
                     return False
-            elif op=='Gt':
-                if not left>right:
+            elif op == 'Gt':
+                if not left > right:
                     return False
-            elif op=='GtE':
-                if not left>=right:
+            elif op == 'GtE':
+                if not left >= right:
                     return False
-            elif op=='Eq':
-                if not left==right:
+            elif op == 'Eq':
+                if not left == right:
                     return False
-            elif op=='NotEq':
-                if not left!=right:
+            elif op == 'NotEq':
+                if not left != right:
                     return False
             left = right
         return True
@@ -841,6 +846,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
         if op == 'USub':
             return -self.visit(node.operand)
 
+
 def _grep_first_pair_of_parentheses(s):
     """
     Return the first matching pair of parentheses in a code string.
@@ -870,7 +876,6 @@ def _grep_first_pair_of_parentheses(s):
         Traceback (most recent call last):
         ...
         SyntaxError: The given string does not contain balanced parentheses
-
     """
     out = []
     single_quote = False
@@ -878,23 +883,24 @@ def _grep_first_pair_of_parentheses(s):
     escaped = False
     level = 0
     for c in s:
-        if level>0:
+        if level > 0:
             out.append(c)
-        if c=='(' and not single_quote and not double_quote and not escaped:
+        if c == '(' and not single_quote and not double_quote and not escaped:
             level += 1
-        elif c=='"' and not single_quote and not escaped:
+        elif c == '"' and not single_quote and not escaped:
             double_quote = not double_quote
-        elif c=="'" and not double_quote and not escaped:
+        elif c == "'" and not double_quote and not escaped:
             single_quote = not single_quote
-        elif c==')' and not single_quote and not double_quote and not escaped:
+        elif c == ')' and not single_quote and not double_quote and not escaped:
             if level == 1:
-                return '('+''.join(out)
+                return '(' + ''.join(out)
             level -= 1
         elif c=="\\" and (single_quote or double_quote):
             escaped = not escaped
         else:
             escaped = False
     raise SyntaxError("The given string does not contain balanced parentheses")
+
 
 def _split_syntactical_unit(s):
     """
@@ -958,6 +964,7 @@ def _split_syntactical_unit(s):
     s = s.strip()
     if not s:
         return s
+
     # Split a given string at the next unescaped quotation mark
     def split_string(s, quot):
         escaped = False
@@ -972,13 +979,13 @@ def _split_syntactical_unit(s):
         raise SyntaxError("EOF while scanning string literal")
     # 1. s is a triple-quoted string
     if s.startswith('"""'):
-        a,b = split_string(s[3:], '"""')
+        a, b = split_string(s[3:], '"""')
         return '"""'+a+'"""', b.strip()
     if s.startswith('r"""'):
-        a,b = split_string(s[4:], '"""')
+        a, b = split_string(s[4:], '"""')
         return 'r"""'+a+'"""', b.strip()
     if s.startswith("'''"):
-        a,b = split_string(s[3:], "'''")
+        a, b = split_string(s[3:], "'''")
         return "'''"+a+"'''", b.strip()
     if s.startswith("r'''"):
         a,b = split_string(s[4:], "'''")
@@ -1035,6 +1042,7 @@ def _split_syntactical_unit(s):
             out.append(stop)
             return ''.join(out), s[1:].strip()
     raise SyntaxError("Syntactical group starting with %s did not end with %s"%(repr(start),repr(stop)))
+
 
 def _sage_getargspec_from_ast(source):
     r"""
@@ -2005,16 +2013,17 @@ def sage_getdoc(obj, obj_name='', embeddeded=False):
     if obj is None:
         return ''
     r = sage_getdoc_original(obj)
-    s = sage.misc.sagedoc.format(r, embedded=embedded)
+    s = sage.misc.sagedoc.format(r)
 
     # Fix object naming
     if obj_name != '':
         i = obj_name.find('.')
         if i != -1:
             obj_name = obj_name[:i]
-        s = s.replace('self.','%s.'%obj_name)
+        s = s.replace('self.','%s.' % obj_name)
 
     return s
+
 
 def sage_getsource(obj):
     r"""
@@ -2416,6 +2425,7 @@ def sage_getsourcelines(obj):
                 break
     return _extract_source(source_lines, lineno), lineno
 
+
 def sage_getvariablename(self, omit_underscore_names=True):
     """
     Attempt to get the name of a Sage object.
@@ -2463,6 +2473,7 @@ def sage_getvariablename(self, omit_underscore_names=True):
     else:
         return sorted(result)
 
+
 __internal_teststring = '''
 import os                                  # 1
 # preceding comment not include            # 2
@@ -2478,6 +2489,7 @@ class test2():                             # 8
 def test3(b,                               # 12
           a=2):                            # 13
     pass # EOF                             # 14'''
+
 
 def __internal_tests():
     r"""

@@ -187,6 +187,7 @@ def _rmcmd(s, cmd, left='', right=''):
 itempattern = re.compile(r"\\item\[?([^]]*)\]? *(.*)")
 itemreplace = r"* \1 \2"
 
+
 def detex(s, embedded=False):
     r"""nodetex
     This strips LaTeX commands from a string; it is used by the
@@ -744,6 +745,7 @@ def format(s, embedded=False):
         s = process_extlinks(s, embedded=embedded)
         s = detex(s, embedded=embedded)
     return s
+
 
 def format_src(s):
     """

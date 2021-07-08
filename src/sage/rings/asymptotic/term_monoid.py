@@ -4047,10 +4047,10 @@ class BTerm(TermWithCoefficient):
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
-            sage: BT_ZZ(x^3, y^2, valid_from={'x': 10})
+            sage: BT_ZZ(x^3, 5, valid_from={'x': 10, 'y': 5})
             Traceback (most recent call last):
             ...
-            ValueError: y^2 is not a coefficient in Integer Ring.
+            ValueError: BTerm has valid_from variables defined which do not occur in the term.
         """
         try:
             coefficient = parent.coefficient_ring(coefficient)
@@ -4156,17 +4156,10 @@ class BTerm(TermWithCoefficient):
         """
         if not isinstance(other, BTerm):
             return False
-        if len(self.valid_from) > 1 or len(other.valid_from) > 1:
-            raise NotImplementedError('Multivariate BTerms are not implemented.')
 
-        for key in self.valid_from.keys():
-            if key in other.valid_from.keys():
-                if self.growth >= other.growth:
-                    return True
-                else:
-                    return False
-            else:
-                return False
+        for variable in self.variable_names():
+            if variable in self.valid_from.keys():
+                return self.growth >= other.growth
 
     def _absorb_(self, other):
         r"""

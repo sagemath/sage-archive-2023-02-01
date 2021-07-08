@@ -64,6 +64,10 @@
 #    If $SAGE_DESTDIR is not set then the command is run with $SAGE_SUDO, if
 #    set.
 #
+# - sdh_pip_uninstall [...]
+#
+#    Runs `pip uninstall` with the given arguments.  If unsuccessful, it displays a warning.
+#
 # - sdh_cmake [...]
 #
 #    Runs `cmake` in the current directory with the given arguments, as well as

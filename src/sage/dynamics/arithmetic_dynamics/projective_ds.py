@@ -3046,7 +3046,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             models = [g for g,t in models]
         return models
 
-    def affine_preperiodic_model(self, n, m=0):
+    def affine_preperiodic_model(self, n, m=0, return_conjugation=False):
         r"""
         Return a dynamical system conjugate to this one with affine (n, m) preperiodic points.
 
@@ -3058,6 +3058,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
          - ``n`` -- the period of the preperiodic points to make affine.
 
          - ``m`` -- (default: 0) the preperiod of the preperiodic points to make affine.
+
+         - ``return_conjugation`` -- (default: ``False``) If ``True``, return a tuple
+           ``(g, phi)`` where ``g`` is a model with affine (n, m) preperiodic points
+           and ``phi`` is the matrix that moves ``f`` to ``g``.
 
         OUTPUT: a dynamical system conjugate to this one.
 
@@ -3110,6 +3114,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
               Defn: Defined on coordinates by sending (x : y : z) to
                     (x^2 + y^2 + (-k + 2)*x*z - 2*y*z + (-k + 3)*z^2 :
                     -2*x^2 + (k - 4)*x*z + (k - 3)*z^2 : -x^2 + (k - 2)*x*z + (k - 2)*z^2)
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + y^2, y^2])
+            sage: g, mat = f.affine_preperiodic_model(1, return_conjugation=True)
+            sage: g == f.conjugate(mat)
+            True
         """
         n = ZZ(n)
         if n < 1:
@@ -3187,8 +3199,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             source = PS.subscheme(CR.gens()[-1])
             mat = PS.hyperplane_transformation_matrix(source, hyperplane)
             if R.is_field():
-                return f.conjugate(mat)
-            return f.conjugate(mat, adjugate=True)
+                g = f.conjugate(mat)
+            else:
+                g = f.conjugate(mat, adjugate=True)
+            if return_conjugation:
+                return (g, mat)
+            return g
+        if return_conjugation:
+            return (f, matrix.identity(N+1))
         return f
 
     def automorphism_group(self, **kwds):

@@ -28,12 +28,12 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
         M^S = \{m \in M : s\cdot m = m,\, \forall s \in S \}
 
-    INPUTS:
+    INPUT:
 
     - ``R`` -- an instance of a ``Representation`` of a semigroup `S`
                acting on the module `M`.
 
-    OUTPUTS:
+    OUTPUT:
 
     - ``MS`` -- the invariant algebra of the semigroup action of `S` on `M`, or
                 equivalently, the isotypic component of the representation of
@@ -41,33 +41,47 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
     EXAMPLES::
 
-        sage: G = CyclicPermutationGroup(3)
-        sage: M = CombinatorialFreeModule(QQ, [1,2,3], prefix='M')
-        sage: from sage.modules.with_basis.representation import Representation
-        sage: action = lambda g, m: M.term(g(m)) #cyclically permute coordinates
-        sage: R = Representation(G, M, action)
-        sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
-        sage: I = FiniteDimensionalInvariantModule(R)
-        sage: [I.lift(b) for b in I.basis()]
-        [M[1] + M[2] + M[3]]
+    First, we create the invariant defined by the cyclic group action on the
+    free module with basis `\{1,2,3\}`.
 
         sage: G = CyclicPermutationGroup(3)
         sage: M = CombinatorialFreeModule(QQ, [1,2,3], prefix='M')
+        sage: action = lambda g, m: M.term(g(m)) #cyclically permute coordinates
+
+    In order to pass the action along, we need to make it an instance of a ``Representation``.
+
         sage: from sage.modules.with_basis.representation import Representation
+        sage: R = Representation(G, M, action)
+        sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
+        sage: I = FiniteDimensionalInvariantModule(R)
+
+    Then we can lift the basis from the invariant to the original module.
+
+        sage: [I.lift(b) for b in I.basis()]
+        [M[1] + M[2] + M[3]]
+    
+    The we could also have the action be a right-action, instead of the default left-action.
+
         sage: action = lambda g, m: M.term(g(m)) #cyclically permute coordinates
         sage: R = Representation(G, M, action, side='right') #same as last but on right
-        sage: from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
         sage: g = G.an_element(); g
         (1,2,3)
         sage: r = R.an_element(); r
         2*M[1] + 2*M[2] + 3*M[3]
         sage: R.side()
         'right'
+
+    So now we can see that multiplication with ``g`` on the right sends ``M[1]`` to ``M[2]``
+    and so on.
+
         sage: r*g
         3*M[1] + 2*M[2] + 2*M[3]
         sage: I = FiniteDimensionalInvariantModule(R)
         sage: [I.lift(b) for b in I.basis()]
         [M[1] + M[2] + M[3]]
+
+    Now we'll take the regular representation of the symmetric group on three elements to
+    be the module, and compute its invariant.
 
         sage: G = SymmetricGroup(3)
         sage: R = G.regular_representation(QQ)
@@ -75,9 +89,14 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         sage: I = FiniteDimensionalInvariantModule(R)
         sage: [I.lift(b).to_vector() for b in I.basis()]
         [(1, 1, 1, 1, 1, 1)]
+
+    We can also check the scalar multiplication by elements of the base ring (for this
+    example, the rational field).
+
         sage: [I.lift(3*b).to_vector() for b in I.basis()]
         [(3, 3, 3, 3, 3, 3)]
 
+    
         sage: G = CyclicPermutationGroup(3)
         sage: M = algebras.Exterior(QQ, 'x', 3)
         sage: from sage.modules.with_basis.representation import Representation
@@ -112,7 +131,6 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         Extend when `M` does not have a basis and `S` is a permutation group using:
         - https://arxiv.org/abs/0812.3082
         - https://www.dmtcs.org/pdfpapers/dmAA0123.pdf
-
     """
 
     def __init__(self, R, *args, **kwargs):
@@ -129,7 +147,6 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             Traceback (most recent call last):
             ...
             ValueError: Multiplicative form of Rational Field is not finitely generated
-
         """
 
         self._semigroup_representation = R
@@ -143,8 +160,8 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         # The left/right multiplication is taken care of
         # by self._semigroup_representation, so here
         # we can just pass the left multiplication.
-        # This means that the side argument of annihilator_basis
-        # (see below) will always be side = 'left'
+        # This means that the ``side`` argument of ``annihilator_basis``
+        # (see below) will always be ``side = 'left'``
         if self._semigroup_representation.side() == 'left':
             def _invariant_map(g, x):
                 return g*x - x
@@ -182,9 +199,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             sage: FiniteDimensionalInvariantModule(R)
             (Cyclic group of order 3 as a permutation group)-invariant submodule of
              Free module generated by {1, 2, 3} over Rational Field
-
         """
-
         return f"({self._semigroup})-invariant submodule of {self._semigroup_representation._module}"
 
 
@@ -205,7 +220,6 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             Symmetric group of order 3! as a permutation group
 
         """
-
         return self._semigroup
 
     def semigroup_representation(self):
@@ -226,10 +240,9 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
             Representation of Symmetric group of order 3! as a permutation group indexed by {1, 2, 3} over Rational Field
 
         """
-
         return self._semigroup_representation
 
-    def _test_invariant(self,**options):
+    def _test_invariant(self,**options): ## Lift to representation and check that the element is invariant
         """
         Check (on some elements) that ``self`` is invariant.
 

@@ -822,10 +822,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
     - :meth:`RealSet.point`,
     - :meth:`RealSet.open_closed`,
     - :meth:`RealSet.closed_open`,
-    - :meth:`unbounded_below_closed`,
-    - :meth:`unbounded_below_open`,
-    - :meth:`unbounded_above_closed`,
-    - :meth:`unbounded_above_open`,
+    - :meth:`RealSet.unbounded_below_closed`,
+    - :meth:`RealSet.unbounded_below_open`,
+    - :meth:`RealSet.unbounded_above_closed`,
+    - :meth:`RealSet.unbounded_above_open`,
     as well as a constructor for general intervals:
     - :meth:`RealSet.interval`.
 

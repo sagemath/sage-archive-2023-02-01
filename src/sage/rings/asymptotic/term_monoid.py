@@ -4196,15 +4196,23 @@ class BTerm(TermWithCoefficient):
             ArithmeticError: BTerm with coefficient 5, growth x and valid for x >= 20
             cannot absorb BTerm with coefficient 4, growth x^3 and valid for x >= 10
         """
-        variable_name = next(iter(self.valid_from))
-        valid_from_new = {variable_name: max(self.valid_from[variable_name], other.valid_from[variable_name])}
-        if (self.growth.exponent >= other.growth.exponent):
+        if self.growth._lt_(other.growth):
+            raise ArithmeticError(f'{self} cannot absorb {other}')
+        else:
             coeff_max = self.coefficient
             coeff_min = other.coefficient
-        else:
-            coeff_max = other.coefficient
-            coeff_min = self.coefficient
-        coeff_new = coeff_max + (coeff_min / self.growth._find_minimum_(other.growth, valid_from_new[variable_name]))
+
+        valid_from_new = dict()
+        union = {**self.valid_from, **other.valid_from}
+        for variable_name in union:
+            if variable_name in self.valid_from and other.valid_from:
+                valid_from_new[variable_name] = (max(self.valid_from[variable_name], other.valid_from[variable_name]))
+            elif variable_name in self.valid_from:
+                valid_from_new[variable_name] = (self.valid_from[variable_name])
+            elif variable_name in other.valid_from:
+                valid_from_new[variable_name] = (other.valid_from[variable_name])
+        q = self.growth / other.growth
+        coeff_new = coeff_max + (coeff_min / q._find_minimum_(valid_from_new))
         growth_new = max(self.growth, other.growth)
         return self.parent()(growth_new, coeff_new, valid_from=valid_from_new)
 

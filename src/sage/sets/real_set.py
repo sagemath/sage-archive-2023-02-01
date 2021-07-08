@@ -939,6 +939,20 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         Subset {0} ∪ {1} ∪ {2} of the Real number line ℝ
         sage: F_tau.manifold().canonical_chart()
         Chart (ℝ, (τ,))
+
+    TESTS::
+
+        sage: TestSuite(R_xi).run()
+        sage: TestSuite(P_xi).run()
+        sage: R_xi.point((1,)) in P_xi
+        True
+        sage: R_xi.point((-1,)) in P_xi
+        False
+        sage: TestSuite(B_xi).run()
+        sage: p = B_xi.an_element(); p
+        Point on the Real number line ℝ
+        sage: p.coordinates()
+        (1/2,)
     """
 
     @staticmethod

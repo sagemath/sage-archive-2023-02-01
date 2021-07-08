@@ -3632,6 +3632,16 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         TESTS::
 
+            sage: P1 = posets.RandomPoset(20, 0.05)
+            sage: P2 = posets.RandomPoset(20, 0.05)
+            sage: m1 = P1.magnitude()
+            sage: m2 = P2.magnitude()
+            sage: U = P1.disjoint_union(P2)
+            sage: P = P1.product(P2)
+            sage: U.magnitude() == m1 + m2
+            True
+            sage: P.magnitude() == m1*m2
+
             sage: Poset({}).magnitude()
             0
             sage: Poset({1:[]}).magnitude()

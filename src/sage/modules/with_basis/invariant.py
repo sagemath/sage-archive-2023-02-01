@@ -354,8 +354,11 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
     class Element(SubmoduleWithBasis.Element):
 
         def _mul_(self, other):
-            """
+            r"""
             EXAMPLES::
+
+            In general, there is not a well defined multiplication between two elements
+            of a given module, but there is a multiplication with scalars.
 
                 sage: M = CombinatorialFreeModule(QQ,[1,2,3],prefix='M');
                 sage: G = CyclicPermutationGroup(3); G.rename('G')
@@ -378,9 +381,14 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
                 sage: v*(1/2)
                 1/2*B[0]
 
+            Sometimes, the module is also a ring. To ensure the multiplication
+            works as desired, we should be sure to pass the correct category to
+            the ``Representation``. In the following example, we use the exterior
+            algebra over `\Bold{Q}` with three generators, which is in the category
+            of finite dimensional `\Bold{Q}`-algebras with a basis.
+
                 sage: G = CyclicPermutationGroup(3); G.rename('G')
                 sage: M = algebras.Exterior(QQ, 'x', 3)
-                sage: from sage.modules.with_basis.representation import Representation
                 sage: on_basis = lambda g,m: M.prod([M.monomial((g(j+1)-1,)) for j in m]) #cyclically permute generators
                 sage: from sage.categories.algebras import Algebras
                 sage: R = Representation(G, M, on_basis, category=Algebras(QQ).WithBasis().FiniteDimensional(), side = 'right')

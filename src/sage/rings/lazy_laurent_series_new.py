@@ -84,7 +84,7 @@ from sage.structure.element import ModuleElement
 from .integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
-import copy
+from abc import ABC
 
 
 class LLS(ModuleElement):
@@ -802,6 +802,8 @@ class LLS(ModuleElement):
             False
         """
         if op is op_EQ:
+            if '_richcmp_' in dir(self._aux):
+                return self._aux._richcmp_(other)
             if self._aux._constant is None:
                 if other._aux._constant is None:
                     n = min(self._aux._approximate_valuation, other._aux._approximate_valuation)
@@ -849,6 +851,8 @@ class LLS(ModuleElement):
             sage: {g: 1}
             {z^5 - 2*z^6 + z^7 + 5*z^9 - 11*z^10 + z^11 + ...: 1}
         """
+        if '_richcmp_' in dir(self._aux):
+            return self._aux.__hash__()
         return hash((type(self), self._aux._coefficient_function,
                      self._aux._approximate_valuation, self._aux._constant))
     
@@ -887,7 +891,55 @@ class LLS(ModuleElement):
                 return True
 
         return False
+
+
+class LLS_binary(ABC):
+
+    def __init__(self, left, right):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z) + 1/(1 + z)
+            sage: loads(dumps(f)) == f
+            True
+            sage: f = 1/(1 - z) - 1/(1 + z)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._left = left
+        self._right = right
     
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z) + 1/(1 + z)
+            sage: {f: 1}
+            {2 + 2*z^2 + 2*z^4 + 2*z^6 + ...: 1}
+        """
+        return hash((type(self), self._left, self._right))
+    
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z) + 1/(1 + z)
+            sage: g = 1/(1 - z) + 1/(1 + z)
+            sage: f == g
+            True
+        """
+        return (isinstance(other._aux, type(self)) and
+                self._left == other._aux._left and self._right == other._aux._right)
+
 
 class LLS_aux():
     def __init__(self, is_sparse, approximate_valuation, constant=None):
@@ -984,7 +1036,7 @@ class LLS_coefficient_function(LLS_aux):
             n += 1
 
            
-class LLS_mul(LLS_aux):
+class LLS_mul(LLS_aux, LLS_binary):
     """
     Operator for multiplication.
     """
@@ -1000,8 +1052,6 @@ class LLS_mul(LLS_aux):
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
         super().__init__(left._is_sparse, a, c)
-        self._coefficient_function = copy.copy(self.get_coefficient)
-
 
     def get_coefficient(self, n):
         c = ZZ.zero()
@@ -1023,9 +1073,15 @@ class LLS_mul(LLS_aux):
                     c += l * self._right[n-k]
             yield c
             n += 1
+    
+    def _richcmp_(self, other):
+        self.__eq__(other)
+    
+    def __hash__(self):
+        return super.__hash__(self)
 
 
-class LLS_add(LLS_aux):
+class LLS_add(LLS_aux, LLS_binary):
     """
     Operator for addition.
     """
@@ -1044,7 +1100,6 @@ class LLS_add(LLS_aux):
             raise NotImplementedError
         
         super().__init__(left._is_sparse, a, c)
-        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         c = ZZ.zero()
@@ -1058,9 +1113,15 @@ class LLS_add(LLS_aux):
             c = self._left[n] + self._right[n]
             yield c
             n += 1
+    
+    def _richcmp_(self, other):
+        self.__eq__(other)
+    
+    def __hash__(self):
+        return super.__hash__(self)
 
 
-class LLS_sub(LLS_aux):
+class LLS_sub(LLS_aux, LLS_binary):
     """
     Operator for subtraction.
     """
@@ -1079,7 +1140,6 @@ class LLS_sub(LLS_aux):
             raise NotImplementedError
         
         super().__init__(left._is_sparse, a, c)
-        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         """
@@ -1103,6 +1163,12 @@ class LLS_sub(LLS_aux):
             c = self._left[n] - self._right[n]
             yield c
             n += 1
+    
+    def _richcmp_(self, other):
+        self.__eq__(other)
+    
+    def __hash__(self):
+        return super.__hash__(self)
 
 
 class LLS_rmul(LLS_aux):
@@ -1120,7 +1186,6 @@ class LLS_rmul(LLS_aux):
             c = None
         
         super().__init__(series._is_sparse, a, c)
-        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         c = self._series[n] * self._scalar
@@ -1148,7 +1213,6 @@ class LLS_neg(LLS_aux):
             c = None
         
         super().__init__(series._is_sparse, a, c)
-        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         c = -1 * self._series[n]
@@ -1175,9 +1239,9 @@ class LLS_inv(LLS_aux):
         if v is infinity:
             raise ZeroDivisionError('cannot invert zero')
 
+        # self._ainv = ~series[v]
         self._ainv = series[v].inverse_of_unit()
         self._zero = ZZ.zero()
-        self._coefficient_function = copy.copy(self.get_coefficient)
         
     def get_coefficient(self, n):
         v = self._approximate_valuation
@@ -1218,7 +1282,6 @@ class LLS_apply_coeff(LLS_aux):
             c = None
 
         super().__init__(series._is_sparse, a, c)
-        self._coefficient_function = copy.copy(self.get_coefficient)
 
     def get_coefficient(self, n):
         c = self._function(self._series[n])
@@ -1243,7 +1306,6 @@ class LLS_trunc(LLS_aux):
         a = series._approximate_valuation
         c = (ZZ.zero(), d)
         super().__init__(series._is_sparse, a, c)
-        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         if n <= self._d:
@@ -1264,7 +1326,7 @@ class LLS_trunc(LLS_aux):
             n += 1
 
 
-class LLS_div(LLS_aux):
+class LLS_div(LLS_aux, LLS_binary):
     """
         Return ``self`` divided by ``other``.
     """
@@ -1281,7 +1343,6 @@ class LLS_div(LLS_aux):
         self._lv = lv
         self._rv = rv
         self._ainv = right[rv].inverse_of_unit()
-        self._coefficient_function = copy.copy(self.get_coefficient)
     
     def get_coefficient(self, n):
         lv = self._lv
@@ -1307,3 +1368,9 @@ class LLS_div(LLS_aux):
                 c -= self[k] * self._right[n + rv - k]
             yield c * self._ainv
             n += 1
+    
+    def _richcmp_(self, other):
+        self.__eq__(other)
+    
+    def __hash__(self):
+        return super.__hash__(self)

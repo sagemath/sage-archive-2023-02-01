@@ -8194,6 +8194,16 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (6*exp(i*pi/3)-6*exp(i*2*pi/3)).real_part()
             6
+
+        Check that :trac:`28357` is fixed::
+
+            sage: m = var('m')
+            sage: assume(m, 'integer')
+            sage: (I^m).real_part()
+            cos(1/2*pi*m)
+            sage: (I^m).imag_part()
+            sin(1/2*pi*m)
+            sage: forget()
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_real_part, self._gobj, hold))

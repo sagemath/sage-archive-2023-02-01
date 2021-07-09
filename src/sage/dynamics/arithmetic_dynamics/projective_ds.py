@@ -4445,34 +4445,10 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 X = PS.subscheme(L)
                 if formal:
                     if N > 2:
-                        hyperplane_at_infinity = PS.subscheme(CR.gens()[-1])
                         d = f.degree()
-
-                        # if a point of period n lies on the hyperplane at infinity,
-                        # we must find a suitable hyperplane which contians no periodic points
-                        # before deforming
-                        if X.intersection(hyperplane_at_infinity).change_ring(FF).dimension() >= 0:
-                            attempted_combinations = {}
-                            hyperplane_found = False
-                            for height_bound in count(1):
-                                coeff_lst = ZZ.range(height_bound)
-                                for tup in product(coeff_lst, repeat=N):
-                                    if list(tup) != [0]*len(PS.gens()):
-                                        if PS(tup) not in attempted_combinations:
-                                            attempted_combinations[PS(tup)] = 0
-                                            hyperplane = PS.subscheme(sum([tup[i]*PS.gens()[i] for i in range(N)]))
-                                            if X.intersection(hyperplane).change_ring(FF).dimension() < 0:
-                                                hyperplane_found = True
-                                                break
-                                if hyperplane_found:
-                                    break
-                            source = PS.subscheme(CR.gens()[-1])
-                            mat = PS.hyperplane_transformation_matrix(source, hyperplane)
-                            new_f = f.conjugate(mat)
-                        else:
-                            new_f = f
-                            mat = matrix.identity(N)
-
+                        # we need a model with no periodic points at infinity
+                        new_f, mat = f.affine_preperiodic_model(n, m=0, return_conjugation=True)
+                        new_f.normalize_coordinates()
                         # we now deform by a parameter t
                         T = R['t']
                         t = T.gens()[0]

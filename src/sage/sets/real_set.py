@@ -1569,6 +1569,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         - ``lower_closed``, ``upper_closed`` -- boolean; whether the interval
           is closed at the lower and upper bound of the interval, respectively.
 
+        - ``**kwds`` -- see :class:`RealSet`.
+
         OUTPUT:
 
         A new :class:`RealSet`.
@@ -1593,6 +1595,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         - ``lower``, ``upper`` -- two real numbers or infinity. They
           will be sorted if necessary.
 
+        - ``**kwds`` -- see :class:`RealSet`.
+
         OUTPUT:
 
         A new :class:`RealSet`.
@@ -1615,6 +1619,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         - ``lower``, ``upper`` -- two real numbers or infinity. They
           will be sorted if necessary.
 
+        - ``**kwds`` -- see :class:`RealSet`.
+
         OUTPUT:
 
         A new :class:`RealSet`.
@@ -1635,6 +1641,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         INPUT:
 
         - ``p`` -- a real number.
+
+        - ``**kwds`` -- see :class:`RealSet`.
 
         OUTPUT:
 
@@ -1658,6 +1666,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         - ``lower``, ``upper`` -- two real numbers or infinity. They
           will be sorted if necessary.
 
+        - ``**kwds`` -- see :class:`RealSet`.
+
         OUTPUT:
 
         A new :class:`RealSet` that is open at the lower bound and
@@ -1680,6 +1690,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         - ``lower``, ``upper`` -- two real numbers or infinity. They
           will be sorted if necessary.
+
+        - ``**kwds`` -- see :class:`RealSet`.
 
         OUTPUT:
 
@@ -1707,6 +1719,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         A new :class:`RealSet` from minus infinity to the bound (including).
 
+        - ``**kwds`` -- see :class:`RealSet`.
+
         EXAMPLES::
 
             sage: RealSet.unbounded_below_closed(1)
@@ -1728,6 +1742,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         A new :class:`RealSet` from minus infinity to the bound (excluding).
 
+        - ``**kwds`` -- see :class:`RealSet`.
+
         EXAMPLES::
 
             sage: RealSet.unbounded_below_open(1)
@@ -1744,6 +1760,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         INPUT:
 
         - ``bound`` -- a real number.
+
+        - ``**kwds`` -- see :class:`RealSet`.
 
         OUTPUT:
 
@@ -1767,6 +1785,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
         - ``bound`` -- a real number.
 
+        - ``**kwds`` -- see :class:`RealSet`.
+
         OUTPUT:
 
         A new :class:`RealSet` from the bound (excluding) to plus
@@ -1784,6 +1804,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
     def real_line(**kwds):
         r"""
         Construct the real line
+
+        INPUT:
+
+        - ``**kwds`` -- see :class:`RealSet`.
 
         EXAMPLES::
 

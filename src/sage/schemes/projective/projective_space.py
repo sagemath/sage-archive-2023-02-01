@@ -1466,8 +1466,8 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         ::
 
             sage: P.<x,y,z>=ProjectiveSpace(ZZ,2)
-            sage: points_source = [P(1 , 0, 0), P(0 , 1 , 0), P(0 , 0 , 1), P(1 , -1 , -1)]
-            sage: points_target = [P(0 , 1 , 0), P(-2 , 0 , 1), P(0 , 0 , 1), P(1 , -1 , -1)]
+            sage: points_source = [P(1, 0, 0), P(0, 1, 0), P(0, 0, 1), P(1, -1, -1)]
+            sage: points_target = [P(0, 1, 0), P(-2, 0, 1), P(0, 0, 1), P(1, -1, -1)]
             sage: P.point_transformation_matrix(points_source,points_target,normalize=True)
             [ 0 -2  0]
             [-2  0  0]

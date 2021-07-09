@@ -4727,7 +4727,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         return multipliers
 
     def sigma_invariants(self, n, formal=False, embedding=None, type='point',
-                        return_polynomial=False, chow=False):
+                        return_polynomial=False, chow=False, deform=False, check=True):
         r"""
         Computes the values of the elementary symmetric polynomials of
         the ``n`` multiplier spectra of this dynamical system.
@@ -4790,8 +4790,26 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         - ``chow`` -- (default: ``False``) boolean; ``True`` specifies
           using the Chow algorithm from [Hutz2019]_ to compute the sigma
           invariants. While slower, the Chow algorithm does not lose
-          information about multiplicities. Helpful when this map has
-          repeated multipliers or fixed points with high multiplicity.
+          information about multiplicities of the multipliers. In order
+          to accurately compute the sigma polynomial when there is a
+          repeated multiplier, ``chow`` must be ``True``.
+
+        - ``deform`` -- (default: ``False``) boolean; ``True`` specifies
+          first deforming the map so that all periodic points are distinct
+          and then calculating the sigma invariants. In order to accurately
+          calculate the sigma polynomial when there is a periodic point with
+          multiplicity, ``deform`` must be ``True``.
+
+        - ``check`` -- (default: ``True``) boolean; when ``True`` the degree of
+          the sigma polynomial is checked against the expected degree. This is
+          done as the sigma polynomial may drop degree if multiplicites of periodic
+          points or multipliers are not correctly accounted for using ``chow`` or
+          ``deform``.
+
+        .. WARNING::
+
+            Setting ``check`` to ``False`` can lead to mathematically incorrect
+            answers.
 
         OUTPUT: a list of elements in the base ring, unless ``return_polynomial``
                 is ``True``, in which case a polynomial in ``w`` and ``t`` is returned.
@@ -4799,9 +4817,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 polynomials of the multipliers.
 
                 If this map is defined over `\mathbb{P}^N`, where `N > 1`, then
-                the first element of the list is the degree of the polynomial in `w` and
-                the second element is the degree of the polynomial in `t`. The rest of the
-                list are the coefficients of `w` and `t`, in lexographical order with `w > t`.
+                the list is the coefficients of `w` and `t`, in lexographical order with `w > t`.
 
         EXAMPLES::
 
@@ -5011,85 +5027,112 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             N = dom.dimension_relative()
             f = copy(self)
             Fn = f.nth_iterate_map(n)
-            if not base_ring.is_field():
-                F = FractionField(base_ring)
-                f.normalize_coordinates()
-                X = f.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
-                X = X.change_ring(F)
+            if deform:
+                # we need a model with all affine periodic points
+                new_f = f.affine_preperiodic_model(0, n)
+                new_f.normalize_coordinates()
+                # we now deform by a parameter t
+                T = base_ring['k']
+                k = T.gens()[0]
+                Pt = ProjectiveSpace(N, R=T, names = [str(i) for i in CR.gens()])
+                deformed_polys = [poly + k*Pt.gens()[-1]**d for poly in new_f.defining_polynomials()[:-1]]
+                deformed_polys += [new_f.defining_polynomials()[-1]]
+                f_deformed = DynamicalSystem(deformed_polys)
+                sigma_poly = sigma(f_deformed, n, chow=chow, deform=False, return_polynomial=True)
+                sigma_polynomial = sigma_poly.specialization({k:0})
+                # we fix the ordering of the parent polynomial ring
+                new_parent = sigma_polynomial.parent().change_ring(order='lex')
+                sigma_polynomial = new_parent(sigma_polynomial)
+                sigma_polynomial *= sigma_polynomial.coefficients()[0].inverse_of_unit()
             else:
-                F = base_ring
-                if is_FractionField(base_ring):
-                    if is_MPolynomialRing(base_ring.ring()) or is_PolynomialRing(base_ring.ring()):
-                        f.normalize_coordinates()
-                        f_ring = f.change_ring(base_ring.ring())
-                        X = f_ring.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
-                        X = X.change_ring(F)
-                else:
+                if not base_ring.is_field():
+                    F = FractionField(base_ring)
+                    f.normalize_coordinates()
                     X = f.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
-            newR = PolynomialRing(F, 'w, t', 2, order='lex')
-            if not base_ring.is_field():
-                ringR = PolynomialRing(base_ring, 'w, t', 2, order='lex')
-            if chow:
-                # create full polynomial ring
-                R = PolynomialRing(F, 'v', 2*N+3, order='lex')
-                var = list(R.gens())
-                # create polynomial ring for result
-                R2 = PolynomialRing(F, var[:N] + var[-2:])
-                psi = R2.hom(N*[0]+list(newR.gens()), newR)
-                # create substition to set extra variables to 0
-                R_zero = {R.gen(N):1}
-                for j in range(N+1, 2*N+1):
-                    R_zero[R.gen(j)] = 0
-                t = var.pop()
-                w = var.pop()
-                var = var[:N]
-            else:
-                R = PolynomialRing(F, 'v', N+2, order='lex')
-                psi = R.hom(N*[0] + list(newR.gens()), newR)
-                var = list(R.gens())
-                t = var.pop()
-                w = var.pop()
-            sigma_polynomial = 1
-            # go through each affine patch to avoid repeating periodic points
-            # setting the visited coordiantes to 0 as we go
-            for j in range(N,-1,-1):
-                Xa = X.affine_patch(j)
-                fa = Fn.dehomogenize(j)
-                Pa = fa.domain()
-                Ra = Pa.coordinate_ring()
-                # create the images for the Hom to the ring we will do the elimination over
-                # with done affine patch coordinates as 0
-                if chow:
-                    im = [R.gen(i) for i in range(j)] + (N-j)*[0] + [R.gen(i) for i in range(N, R.ngens())]
+                    X = X.change_ring(F)
                 else:
-                    im = list(R.gens())[:j] + (N-j)*[0] + [R.gen(i) for i in range(N, R.ngens())]
-                phi = Ra.hom(R.gens()[0:len(Ra.gens())])
-                # create polymomial that evaluates to the characteristic polynomial
-                M = t*matrix.identity(R, N)
-                g = (M-jacobian([phi(F.numerator())/phi(F.denominator()) for F in fa], var)).det()
-                # create the terms of the sigma invariants prod(w-lambda)
-                g_prime = w*R(g.denominator())(im)-R(g.numerator())(im)
-                # move the defining polynomials to the polynomial ring
-                L = [phi(h)(im) for h in Xa.defining_polynomials()]
-                # add the appropriate final polynomial to compute the sigma invariant polynomial
-                # via a Poisson product in elimination
+                    F = base_ring
+                    if is_FractionField(base_ring):
+                        if is_MPolynomialRing(base_ring.ring()) or is_PolynomialRing(base_ring.ring()):
+                            f.normalize_coordinates()
+                            f_ring = f.change_ring(base_ring.ring())
+                            X = f_ring.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
+                            X = X.change_ring(F)
+                    else:
+                        X = f.periodic_points(n, minimal=False, formal=formal, return_scheme=True)
+                newR = PolynomialRing(F, 'w, t', 2, order='lex')
+                if not base_ring.is_field():
+                    ringR = PolynomialRing(base_ring, 'w, t', 2, order='lex')
                 if chow:
-                    L += [g_prime + sum(R.gen(j-1)*R.gen(N+j)*(R(g.denominator())(im)) for j in range(1,N+1))]
+                    # create full polynomial ring
+                    R = PolynomialRing(F, 'v', 2*N+3, order='lex')
+                    var = list(R.gens())
+                    # create polynomial ring for result
+                    R2 = PolynomialRing(F, var[:N] + var[-2:])
+                    psi = R2.hom(N*[0]+list(newR.gens()), newR)
+                    # create substition to set extra variables to 0
+                    R_zero = {R.gen(N):1}
+                    for j in range(N+1, 2*N+1):
+                        R_zero[R.gen(j)] = 0
+                    t = var.pop()
+                    w = var.pop()
+                    var = var[:N]
                 else:
-                    L += [g_prime]
-                I = R.ideal(L)
-                # since R is lex ordering, this is an elimination step
-                G = I.groebner_basis()
-                # the polynomial we need is the one just in w and t
-                if chow:
-                    poly = psi(G[-1].specialization(R_zero))
-                    if len(list(poly)) > 0:
-                        poly *= poly.coefficients()[0].inverse_of_unit()
+                    R = PolynomialRing(F, 'v', N+2, order='lex')
+                    psi = R.hom(N*[0] + list(newR.gens()), newR)
+                    var = list(R.gens())
+                    t = var.pop()
+                    w = var.pop()
+                sigma_polynomial = 1
+                # go through each affine patch to avoid repeating periodic points
+                # setting the visited coordiantes to 0 as we go
+                for j in range(N,-1,-1):
+                    Xa = X.affine_patch(j)
+                    fa = Fn.dehomogenize(j)
+                    Pa = fa.domain()
+                    Ra = Pa.coordinate_ring()
+                    # create the images for the Hom to the ring we will do the elimination over
+                    # with done affine patch coordinates as 0
+                    if chow:
+                        im = [R.gen(i) for i in range(j)] + (N-j)*[0] + [R.gen(i) for i in range(N, R.ngens())]
+                    else:
+                        im = list(R.gens())[:j] + (N-j)*[0] + [R.gen(i) for i in range(N, R.ngens())]
+                    phi = Ra.hom(R.gens()[0:len(Ra.gens())])
+                    # create polymomial that evaluates to the characteristic polynomial
+                    M = t*matrix.identity(R, N)
+                    g = (M-jacobian([phi(F.numerator())/phi(F.denominator()) for F in fa], var)).det()
+                    # create the terms of the sigma invariants prod(w-lambda)
+                    g_prime = w*R(g.denominator())(im)-R(g.numerator())(im)
+                    # move the defining polynomials to the polynomial ring
+                    L = [phi(h)(im) for h in Xa.defining_polynomials()]
+                    # add the appropriate final polynomial to compute the sigma invariant polynomial
+                    # via a Poisson product in elimination
+                    if chow:
+                        L += [g_prime + sum(R.gen(j-1)*R.gen(N+j)*(R(g.denominator())(im)) for j in range(1,N+1))]
+                    else:
+                        L += [g_prime]
+                    I = R.ideal(L)
+                    # since R is lex ordering, this is an elimination step
+                    G = I.groebner_basis()
+                    # the polynomial we need is the one just in w and t
+                    if chow:
+                        poly = psi(G[-1].specialization(R_zero))
+                        if len(list(poly)) > 0:
+                            poly *= poly.coefficients()[0].inverse_of_unit()
+                    else:
+                        poly = psi(G[-1])
+                    if not base_ring.is_field():
+                        denom = lcm([coeff[0].denominator() for coeff in poly])
+                        poly *= denom
                     sigma_polynomial *= poly
-                else:
-                    sigma_polynomial *= psi(G[-1])
-            if not base_ring.is_field():
-                sigma_polynomial = ringR(sigma_polynomial)
+                if not base_ring.is_field():
+                    sigma_polynomial = ringR(sigma_polynomial)
+            if check:
+                degree_w = sigma_polynomial.degrees()[0]
+                expected_degree = sum(d**(n*i) for i in range(N+1))
+                if degree_w != expected_degree:
+                    raise ValueError('sigma polynomial dropped degree, as multiplicities were not accounted for correctly.'+
+                                    ' try setting chow=True or deform=True')
             if return_polynomial:
                 return sigma_polynomial
             # if we are returing a numerical list, read off the coefficients
@@ -5098,7 +5141,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sigma_dictionary = dict([list(reversed(i)) for i in list(sigma_polynomial)])
             degree_w, degree_t = sigma_polynomial.degrees()
             w, t = sigma_polynomial.variables()
-            sigmas += [degree_w, degree_t]
             for i in range(degree_w+1):
                 for j in range(degree_t+1):
                     sigmas.append((-1)**(i+j)*sigma_dictionary.pop(w**(degree_w - i)*t**(degree_t - j), 0))

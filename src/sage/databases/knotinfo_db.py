@@ -401,20 +401,14 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         return
 
 
-    def version(self, remote=False):
+    def version(self):
         r"""
         Return the version of the database currently installed on the device.
-
-        INPUT:
-
-        - ``remote``  -- (boolean, default ``False``) if this is set to ``True``
-          then instead of the currently installed version, the version to which
-          Sage can be upgraded using ``sage -i database_knotinfo`` is shown.
 
         .. NOTE::
 
             The development of the original databases on the KnotInfo and
-            LinkInfo web-pages is in a continuous flow. Even the remote version
+            LinkInfo web-pages is in a continuous flow. The installed version
             can be behind the current available state of these databases. Every
             month a cronjob on the
             `GitHub repository <https://github.com/soehms/database_knotinfo/>`__
@@ -422,9 +416,11 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
             `PyPI <https://pypi.org/project/database-knotinfo/>`__ in case of
             success.
 
-            If you note that the remote version is behind the version on PyPI
-            and would like to have Sage upgraded to that release please create
-            an issue for that in the GitHub repository.
+            If you note that your version is behind the version on PyPI
+            and would like to have Sage working with that release you should
+            first try to upgrade using ``sage -i database_knotinfo``. If this
+            is not successful even though you are on the latest Sage release
+            please create an issue for that in the GitHub repository.
 
         EXAMPLES::
 
@@ -432,16 +428,9 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
             sage: ki_db = KnotInfoDataBase()
             sage: ki_db.version()             # not tested
             '21.7'
-            sage: ki_db.version(remote=True)  # not tested
-            '21.7'
         """
-        from sage.misc.package import list_packages
-        pkgs = list_packages(local=True)
-        pkg = pkgs[self._feature.name]
-        if remote:
-            return pkg['remote_version']
-        else:
-            return pkg['installed_version']
+        from importlib.metadata import version
+        return version(self._feature.name)
 
 
     def demo_version(self):

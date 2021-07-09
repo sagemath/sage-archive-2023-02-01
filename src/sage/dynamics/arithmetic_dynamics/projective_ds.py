@@ -3119,7 +3119,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 + y^2, y^2])
-            sage: g, mat = f.affine_preperiodic_model(1, return_conjugation=True)
+            sage: g, mat = f.affine_preperiodic_model(0, 1, return_conjugation=True)
             sage: g == f.conjugate(mat)
             True
 
@@ -3134,6 +3134,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
               Defn: Defined on coordinates by sending (x : y : z) to
                     (2*x^2 + y^2 + 4*x*z - 2*y*z + 4*z^2 : -x^2 - y^2 - 2*x*z + 2*y*z - 3*z^2 :
                     -x^2 - 2*x*z - 2*z^2)
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + 2*y^2, x^2])
+            sage: g, mat = f.affine_preperiodic_model(0, 1, return_conjugation=True)
+            sage: f.conjugate(mat) == g
+            True
         """
         n = ZZ(n)
         if n < 1:

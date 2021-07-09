@@ -177,8 +177,8 @@ class Posets(metaclass=ClasscallMetaclass):
 
             sage: posets.BooleanLattice(2)._list
             (0, 1, 2, 3)
-            sage: sorted(posets.BooleanLattice(2, element_label='subsets')._list)
-            ({}, {1}, {2}, {1,2})
+            sage: sorted(posets.BooleanLattice(2, element_label='subsets')._list, key = len)
+            [{}, {1}, {2}, {1, 2}]
         """
         try:
             n = Integer(n)
@@ -193,8 +193,9 @@ class Posets(metaclass=ClasscallMetaclass):
 
         if element_label == 'subsets':
             from sage.combinat.subset import Subsets
-            return FiniteLatticePoset((Subsets(n), lambda x,y: x.issubset(y)),
-                                      category = FiniteLatticePosets(),
+            S = Subsets(n)
+            D = DiGraph([(x,y) for x,y in S.cartesian_product(S) if x.issubset(y) and len(x)+1 == len(y)] )
+            return FiniteLatticePoset(D,category = FiniteLatticePosets(),
                                       facade = facade)
 
         L = [[Integer(x|(1<<y)) for y in range(n) if x&(1<<y)==0] for

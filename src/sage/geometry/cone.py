@@ -217,7 +217,8 @@ from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.geometry.relative_interior import RelativeInterior
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import column_matrix, matrix, MatrixSpace
-from sage.misc.all import cached_method, flatten, latex
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import flatten, latex
 from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, ZZ
 from sage.structure.all import SageObject, parent

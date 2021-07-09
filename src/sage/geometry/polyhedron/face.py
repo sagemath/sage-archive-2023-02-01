@@ -74,7 +74,7 @@ polyhedron with the :meth:`PolyhedronFace.as_polyhedron` method::
 ########################################################################
 
 from sage.structure.richcmp import richcmp_method, richcmp
-from sage.misc.all import cached_method
+from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from sage.geometry.convex_set import ConvexSet_closed

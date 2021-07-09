@@ -36,7 +36,8 @@ from sage.structure.element import Element, coerce_binop, is_Vector, is_Matrix
 from sage.structure.richcmp import rich_to_bool, op_NE
 from sage.cpython.string import bytes_to_str
 
-from sage.misc.all import cached_method, prod
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import prod
 from sage.misc.randstate import current_randstate
 from sage.misc.superseded import deprecated_function_alias
 

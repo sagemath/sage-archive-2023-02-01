@@ -4085,36 +4085,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             F_2 = f.nth_iterate_map(m)
             L = [F_1[i]*F_2[j] - F_1[j]*F_2[i] for i in range(N)
                     for j in range(i+1, N)]
-            X = PS.subscheme(L + list(dom.defining_polynomials()))
+            X = PS.subscheme(L)
             if formal:
-                hyperplane_at_infinity = PS.subscheme(CR.gens()[-1])
                 d = f.degree()
-
-                # if a point of period m, n lies on the hyperplane at infinity,
-                # we must find a suitable hyperplane which contians no preperiodic points
-                # before deforming
-                if X.intersection(hyperplane_at_infinity).dimension() >= 0:
-                    attempted_combinations = {}
-                    hyperplane_found = False
-                    for height_bound in count(1):
-                        coeff_lst = ZZ.range(height_bound)
-                        for tup in product(coeff_lst, repeat=N):
-                            if list(tup) != [0]*len(PS.gens()):
-                                if PS(tup) not in attempted_combinations:
-                                    attempted_combinations[PS(tup)] = 0
-                                    hyperplane = PS.subscheme(sum([tup[i]*PS.gens()[i] for i in range(N)]))
-                                    if X.intersection(hyperplane).dimension() < 0:
-                                        hyperplane_found = True
-                                        break
-                        if hyperplane_found:
-                            break
-                    source = PS.subscheme(CR.gens()[-1])
-                    mat = PS.hyperplane_transformation_matrix(source, hyperplane)
-                    new_f = f.conjugate(mat)
-                else:
-                    new_f = f
-                    mat = matrix.identity(N)
-
+                # we need a model with no preperiodic points at infinity
+                new_f, mat = f.affine_preperiodic_model(n, m, return_conjugation=True)
+                new_f.normalize_coordinates()
                 # we now deform by a parameter t
                 T = R['t']
                 t = T.gens()[0]
@@ -4133,7 +4109,12 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 subs = {}
                 for i in range(len(subs_list)):
                     subs[PS.gens()[i]] = subs_list[i]
-                X = PS.subscheme([poly.subs(subs) for poly in X.defining_polynomials()] + list(dom.defining_polynomials()))
+                if R.is_field():
+                    X = PS.subscheme([poly.subs(subs) for poly in L])
+                else:
+                    K = [poly.subs(subs) for poly in L]
+                    K = [poly*poly.denominator() for poly in K]
+                    X = PS.subscheme(K)
             if minimal and not formal:
                 Sn = []
                 for k in ZZ(n).divisors():

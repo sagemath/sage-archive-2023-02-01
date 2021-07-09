@@ -52,18 +52,18 @@ class ConvexSet_base(SageObject):
             sage: C.is_universe()
             Traceback (most recent call last):
             ...
-            NotImplementedError: <abstract method dim at ...>
+            NotImplementedError
         """
         if not self.is_full_dimensional():
             return False
         raise NotImplementedError
 
-    @abstract_method
     def dim(self):
         r"""
         Return the dimension of ``self``.
 
-        Subclasses must provide an implementation of this method.
+        Subclasses must provide an implementation of this method or of the
+        method :meth:`an_affine_basis`.
 
         TESTS::
 
@@ -72,8 +72,11 @@ class ConvexSet_base(SageObject):
             sage: C.dim()
             Traceback (most recent call last):
             ...
-            NotImplementedError: <abstract method dim at ...>
+            NotImplementedError
         """
+        if self.an_affine_basis != NotImplemented:
+            return len(self.an_affine_basis()) - 1
+        raise NotImplementedError
 
     def dimension(self):
         r"""
@@ -162,6 +165,68 @@ class ConvexSet_base(SageObject):
             91
         """
         return self.ambient_dim()
+
+    @abstract_method(optional=True)
+    def an_affine_basis(self):
+        r"""
+        Return points in ``self`` that form a basis for the affine hull.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
+        """
+
+    def _test_an_affine_basis(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.an_affine_basis`
+
+        TESTS::
+
+            sage: c = Cone([(1,0)])
+            sage: c._test_an_affine_basis()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+        try:
+            if self.an_affine_basis == NotImplemented:
+                raise NotImplementedError
+            b = self.an_affine_basis()
+        except NotImplementedError:
+            pass
+        else:
+            m = matrix([1] + list(v) for v in b)
+            tester.assertEqual(m.rank(), self.dim() + 1)
+            for v in b:
+                tester.assertIn(v, self)
+
+    def affine_hull(self, *args, **kwds):
+        """
+        Return the affine hull of ``self`` as a polyhedron.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_compact
+            sage: class EmbeddedDisk(ConvexSet_compact):
+            ....:     def an_affine_basis(self):
+            ....:         return [vector([1, 0, 0]), vector([1, 1, 0]), vector([1, 0, 1])]
+            sage: O = EmbeddedDisk()
+            sage: O.dim()
+            2
+            sage: O.affine_hull()
+            A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 2 lines
+        """
+        from .polyhedron.constructor import Polyhedron
+        i_affine_basis = iter(self.an_affine_basis())
+        try:
+            v = next(i_affine_basis)
+        except StopIteration:
+            return Polyhedron(ambient_dim=self.ambient_dim())
+        return Polyhedron(vertices=[v], lines=[p - v for p in i_affine_basis])
 
     def codimension(self):
         r"""
@@ -427,21 +492,6 @@ class ConvexSet_base(SageObject):
             tester.info(tester._prefix + " ", newline=False)
 
     # Optional methods
-
-    @abstract_method(optional=True)
-    def affine_hull(self):
-        r"""
-        Return the affine hull of ``self``.
-
-        TESTS::
-
-            sage: from sage.geometry.convex_set import ConvexSet_base
-            sage: C = ConvexSet_base()
-            sage: C.affine_hull()
-            Traceback (most recent call last):
-            ...
-            TypeError: 'NotImplementedType' object is not callable
-        """
 
     @abstract_method(optional=True)
     def cartesian_product(self, other):

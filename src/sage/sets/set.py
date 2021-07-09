@@ -344,7 +344,7 @@ class Set_base():
 
 class Set_boolean_operators:
     r"""
-    Mix-in class providing the Boolean operators `__or__`, `__and__`, `__xor__`.
+    Mix-in class providing the Boolean operators ``__or__``, ``__and__``, ``__xor__``.
 
     The operators delegate to the methods ``union``, ``intersection``, and
     ``symmetric_difference``, which need to be implemented by the class.
@@ -394,7 +394,7 @@ class Set_boolean_operators:
 
 class Set_add_sub_operators:
     r"""
-    Mix-in class providing the operators `__add__` and `__sub__`.
+    Mix-in class providing the operators ``__add__`` and ``__sub__``.
 
     The operators delegate to the methods ``union`` and ``intersection``,
     which need to be implemented by the class.

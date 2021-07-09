@@ -10483,7 +10483,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
                 tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))
 
     def affine_hull(self, *args, **kwds):
-        """
+        r"""
         Return the affine hull of ``self`` as a polyhedron.
 
         EXAMPLES::
@@ -10505,7 +10505,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
     @cached_method
     def affine_hull_projection(self, as_polyhedron=None, as_affine_map=False, orthogonal=False,
                                orthonormal=False, extend=False, minimal=False, return_all_data=False):
-        """Return the polyhedron projected into its affine hull.
+        r"""Return the polyhedron projected into its affine hull.
 
         Each polyhedron is contained in some smallest affine subspace
         (possibly the entire ambient space) -- its affine hull.  We

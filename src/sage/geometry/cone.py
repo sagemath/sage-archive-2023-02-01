@@ -3509,6 +3509,33 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         """
         return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
 
+    def an_affine_basis(self):
+        r"""
+        Return points in ``self`` that form a basis for the affine hull.
+
+        EXAMPLES::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+            sage: ray = Cone([(1, 1)]
+            Traceback (most recent call last):
+            ...
+            SyntaxError: unexpected EOF while parsing
+            sage: ray.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NameError: name 'ray' is not defined
+            sage: line = Cone([(1,0), (-1,0)])
+            sage: line.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+        """
+        return self.polyhedron().an_affine_basis()
+
     @cached_method
     def strict_quotient(self):
         r"""

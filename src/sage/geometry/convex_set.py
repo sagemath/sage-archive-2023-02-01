@@ -17,6 +17,7 @@ from typing import Any
 
 from sage.structure.sage_object import SageObject
 from sage.misc.abstract_method import abstract_method
+from sage.misc.cachefunc import cached_method
 
 
 @dataclass
@@ -195,7 +196,7 @@ class ConvexSet_base(SageObject):
         """
 
     def _test_an_affine_basis(self, tester=None, **options):
-        """
+        r"""
         Run tests on the method :meth:`.an_affine_basis`
 
         TESTS::
@@ -218,7 +219,7 @@ class ConvexSet_base(SageObject):
                 tester.assertIn(v, self)
 
     def affine_hull(self, *args, **kwds):
-        """
+        r"""
         Return the affine hull of ``self`` as a polyhedron.
 
         EXAMPLES::
@@ -240,6 +241,50 @@ class ConvexSet_base(SageObject):
         except StopIteration:
             return Polyhedron(ambient_dim=self.ambient_dim())
         return Polyhedron(vertices=[v], lines=[p - v for p in i_affine_basis])
+
+    @cached_method
+    def affine_hull_projection(self, as_polyhedron=None, as_affine_map=False, orthogonal=False,
+                               orthonormal=False, extend=False, minimal=False, return_all_data=False):
+        r"""
+        Return ``self`` projected into its affine hull.
+
+        Each convex set is contained in some smallest affine subspace
+        (possibly the entire ambient space) -- its affine hull.  We
+        provide an affine linear map that projects the ambient space of
+        the convex set to the standard Euclidean space of dimension of
+        the convex set, which restricts to a bijection from the affine
+        hull.
+
+        The projection map is not unique; some parameters control the
+        choice of the map.  Other parameters control the output of the
+        function.
+
+        This default implementation delegates to
+        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.affine_hull_projection`,
+        applied to the affine hull of ``self``.
+
+        EXAMPLES::
+
+            sage: P = lattice_polytope.cross_polytope(3)
+            sage: P_aff = P.affine_hull_projection()
+            sage: P_aff == P
+        """
+        affine_hull = self.affine_hull()
+        data = affine_hull.affine_hull_projection(orthogonal=orthogonal, orthonormal=orthonormal,
+                                                  extend=extend, minimal=minimal,
+                                                  return_all_data=True)
+        data = copy(data)
+        data.image = data.projection_linear_map.matrix().transpose() * self + data.projection_translation
+        if as_polyhedron is None:
+            as_polyhedron = not as_affine_map
+        if return_all_data or (as_polyhedron and as_affine_map):
+            return result
+        elif as_affine_map:
+            return (result.projection_linear_map, result.projection_translation)
+        else:
+            return result.image
+
+        return data
 
     def codimension(self):
         r"""

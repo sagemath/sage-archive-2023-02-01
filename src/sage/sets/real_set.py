@@ -810,11 +810,18 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         - a list ``[a, b]`` of two real numbers (constructing a closed interval),
         - an :class:`InternalRealInterval`,
         - an :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`.
-
-    - ``structure='differentiable'`` -- construct the real set as a manifold or
-      manifold subset.  Also, if any keyword arguments accepted by
-      :class:`~sage.manifolds.differentiable.examples.real_line.RealLine` are passed,
-      ``structure='differentiable'`` is implied.
+    - ``structure`` -- (default: ``None``) if ``None``, construct the real set as an
+      instance of :class:`RealSet`; if ``"differentiable"``, construct it as a subset of
+      the differentiable manifold.
+      :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`.
+    - ``ambient`` -- (default: ``None``) an instance of
+      :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`; construct
+      a subset of it. Using this keyword implies ``structure='differentiable'``.
+    - ``names`` or ``coordinate`` -- coordinate symbol for the canonical chart; see
+      :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`.  Using these
+      keywords implies ``structure='differentiable'``.
+    - ``name``, ``latex_name``, ``start_index`` -- see
+      :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`.
 
     There are also specialized constructors for various types of intervals:
     - :meth:`RealSet.open`,
@@ -1015,7 +1022,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             ValueError: interval cannot be closed at -oo
         """
         manifold_keywords = ('structure', 'ambient', 'names', 'coordinate')
-        if any(kwd in kwds
+        if any(kwds.get(kwd, None)
                for kwd in manifold_keywords):
             # Got manifold keywords
             real_set = cls.__classcall__(cls, *args)

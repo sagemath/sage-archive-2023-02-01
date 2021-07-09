@@ -3046,7 +3046,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             models = [g for g,t in models]
         return models
 
-    def affine_preperiodic_model(self, n, m=0, return_conjugation=False):
+    def affine_preperiodic_model(self, m, n, return_conjugation=False):
         r"""
         Return a dynamical system conjugate to this one with affine (n, m) preperiodic points.
 
@@ -3069,14 +3069,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
-            sage: g = f.affine_preperiodic_model(1); g
+            sage: g = f.affine_preperiodic_model(0, 1); g
             Dynamical System of Projective Space of dimension 2 over Rational Field
               Defn: Defined on coordinates by sending (x : y : z) to
                     (-x^2 : 2*x^2 + 2*x*y + y^2 : 2*x^2 + 2*x*y + 2*y^2 - 2*y*z + z^2)
 
         We can check that ``g`` has affine fixed points::
 
-            sage: g.change_ring(QQbar).periodic_points(1)
+            sage: g.periodic_points(1)
             [(-1 : 1 : 1), (-1/2 : 1/2 : 1), (-1/2 : 1 : 1), (-1/3 : 2/3 : 1), (0 : 0 : 1),
             (0 : 1/2 : 1), (0 : 1 : 1)]
 
@@ -3084,7 +3084,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(9), 2)
             sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
-            sage: f.affine_preperiodic_model(1)
+            sage: f.affine_preperiodic_model(0, 1)
             Dynamical System of Projective Space of dimension 2 over Finite Field in z2 of size 3^2
                   Defn: Defined on coordinates by sending (x : y : z) to
                         ((z2 + 1)*x^2 : (z2 + 1)*x^2 + (z2 + 1)*x*y + (-z2 - 1)*y^2 :
@@ -3095,7 +3095,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: R.<c> = GF(3)[]
             sage: P.<x,y,z> = ProjectiveSpace(R, 2)
             sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
-            sage: f.affine_preperiodic_model(1) # long time
+            sage: f.affine_preperiodic_model(0, 1) # long time
             Dynamical System of Projective Space of dimension 2 over
             Univariate Polynomial Ring in c over Finite Field of size 3
               Defn: Defined on coordinates by sending (x : y : z) to
@@ -3122,13 +3122,25 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: g, mat = f.affine_preperiodic_model(1, return_conjugation=True)
             sage: g == f.conjugate(mat)
             True
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: X = P.subscheme(2*y - z)
+            sage: f = DynamicalSystem_projective([x^2 + y^2, z^2 + y^2, z^2], domain=X)
+            sage: f.affine_preperiodic_model(0, 1)
+            Dynamical System of Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
+              2*y - z
+              Defn: Defined on coordinates by sending (x : y : z) to
+                    (2*x^2 + y^2 + 4*x*z - 2*y*z + 4*z^2 : -x^2 - y^2 - 2*x*z + 2*y*z - 3*z^2 :
+                    -x^2 - 2*x*z - 2*z^2)
         """
         n = ZZ(n)
         if n < 1:
             raise ValueError('Period must be positive')
         m = ZZ(m)
         if m < 0:
-            raise ValueError('Preperiodic must be negative')
+            raise ValueError('Preperiod must be non-negative')
         f = self
         CR = f.coordinate_ring()
         dom = f.domain()

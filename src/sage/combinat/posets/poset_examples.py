@@ -227,9 +227,8 @@ class Posets(metaclass=ClasscallMetaclass):
             return FiniteLatticePoset(D, category=FiniteLatticePosets(),
                                       facade=facade)
 
-        L = [[Integer(x|(1<<y)) for y in range(n) if x&(1<<y)==0] for
-             x in range(2**n)]
-        D = DiGraph({v: L[v] for v in range(2**n)})
+        D = DiGraph({v: [Integer(v|(1<<y)) for y in range(n) if v & (1<<y) == 0]
+                     for v in range(2**n)})
         return FiniteLatticePoset(hasse_diagram=D,
                                   category=FiniteLatticePosets(),
                                   facade=facade)

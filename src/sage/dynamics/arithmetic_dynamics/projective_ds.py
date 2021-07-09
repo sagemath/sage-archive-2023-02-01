@@ -3218,7 +3218,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 return (g, mat)
             return g
         if return_conjugation:
-            return (f, matrix.identity(N+1))
+            return (f, matrix.identity(N))
         return f
 
     def automorphism_group(self, **kwds):

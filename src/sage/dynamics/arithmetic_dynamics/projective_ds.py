@@ -3997,24 +3997,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
             sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
             sage: sorted(f.preperiodic_points(2, 1))
-            [(0 : 2 : 1),
-             (0 : 3 : 1),
-             (1 : 2 : 1),
-             (1 : 3 : 1),
-             (2 : 0 : 1),
-             (2 : 1 : 0),
-             (2 : 1 : 1),
-             (2 : 2 : 1),
-             (2 : 3 : 1),
-             (2 : 4 : 1),
-             (3 : 0 : 1),
-             (3 : 1 : 0),
-             (3 : 1 : 1),
-             (3 : 2 : 1),
-             (3 : 3 : 1),
-             (3 : 4 : 1),
-             (4 : 2 : 1),
-             (4 : 3 : 1)]
+            [(0 : 2 : 1), (0 : 3 : 1), (1 : 2 : 1), (1 : 3 : 1), (2 : 0 : 1), (2 : 1 : 0),
+             (2 : 1 : 1), (2 : 2 : 1), (2 : 3 : 1), (2 : 4 : 1), (3 : 0 : 1), (3 : 1 : 0),
+             (3 : 1 : 1), (3 : 2 : 1), (3 : 3 : 1), (3 : 4 : 1), (4 : 2 : 1), (4 : 3 : 1)]
 
         ::
 
@@ -4109,7 +4094,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             if formal:
                 d = f.degree()
                 # we need a model with no preperiodic points at infinity
-                new_f, mat = f.affine_preperiodic_model(n, m, return_conjugation=True)
+                new_f, mat = f.affine_preperiodic_model(m, n, return_conjugation=True)
                 new_f.normalize_coordinates()
                 # we now deform by a parameter t
                 T = R['t']
@@ -4448,7 +4433,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     if N > 2:
                         d = f.degree()
                         # we need a model with no periodic points at infinity
-                        new_f, mat = f.affine_preperiodic_model(n, m=0, return_conjugation=True)
+                        new_f, mat = f.affine_preperiodic_model(0, n, return_conjugation=True)
                         new_f.normalize_coordinates()
                         # we now deform by a parameter t
                         T = R['t']

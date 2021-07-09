@@ -4,6 +4,7 @@ Invariant modules
 
 # ****************************************************************************
 #       Copyright (C) 2021 Trevor K. Karn <karnx018 at umn.edu>
+#                          Travis Scrimshaw
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -32,8 +33,15 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
     INPUT:
 
-    - ``R`` -- an instance of a ``Representation`` of a semigroup `S`
-      acting on the module `M`
+    - ``M`` - a module in the category of
+            :class:`~sage.categories.finite_dimensional_modules_with_basis.FiniteDimensionalModulesWithBasis`
+
+    - ``S`` - a semigroup in the category of
+            :class:`~sage.categories.finitely_generated_semigroups.FinitelyGeneratedSemigroups`
+
+    - ``action`` - (default: ``operator.mul``) the action of ``S`` on ``M``.
+
+    - ``side`` - (default: ``'left'``) the side on which ``S`` acts.
 
     EXAMPLES:
 
@@ -296,7 +304,7 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
         from sage.misc.latex import latex
         return "\\left( {} \\right)^{{{}}}".format(latex(M), latex(self._semigroup))
 
-    def _test_invariant(self, **options): ## Lift to representation and check that the element is invariant
+    def _test_invariant(self, **options):
         """
         Check (on some elements) that ``self`` is invariant.
 

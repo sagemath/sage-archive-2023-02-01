@@ -835,6 +835,8 @@ class LLS(ModuleElement):
             return True
 
         if op is op_NE:
+            if '_richcmp_' in dir(self._aux):
+                return not (self._aux._richcmp_(other))
             return not (self == other)
 
         return False
@@ -851,7 +853,7 @@ class LLS(ModuleElement):
             sage: {g: 1}
             {z^5 - 2*z^6 + z^7 + 5*z^9 - 11*z^10 + z^11 + ...: 1}
         """
-        if '_richcmp_' in dir(self._aux):
+        if '__hash__' in dir(self._aux):
             return self._aux.__hash__()
         return hash((type(self), self._aux._coefficient_function,
                      self._aux._approximate_valuation, self._aux._constant))
@@ -1342,6 +1344,7 @@ class LLS_div(LLS_aux, LLS_binary):
         rv = right.valuation()
         self._lv = lv
         self._rv = rv
+        # self._ainv = ~right[rv]
         self._ainv = right[rv].inverse_of_unit()
     
     def get_coefficient(self, n):

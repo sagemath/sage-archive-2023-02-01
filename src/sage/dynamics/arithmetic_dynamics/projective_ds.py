@@ -3055,9 +3055,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         INPUT:
 
-         - ``n`` -- the period of the preperiodic points to make affine.
+         - ``m`` -- the preperiod of the preperiodic points to make affine.
 
-         - ``m`` -- (default: 0) the preperiod of the preperiodic points to make affine.
+         - ``n`` -- the period of the preperiodic points to make affine.
 
          - ``return_conjugation`` -- (default: ``False``) If ``True``, return a tuple
            ``(g, phi)`` where ``g`` is a model with affine (n, m) preperiodic points

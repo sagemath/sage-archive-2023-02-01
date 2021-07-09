@@ -12,8 +12,21 @@ Convex Sets
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from dataclasses import dataclass
+from typing import Any
+
 from sage.structure.sage_object import SageObject
 from sage.misc.abstract_method import abstract_method
+
+
+@dataclass
+class AffineHullProjectionData:
+    image: Any = None
+    projection_linear_map: Any = None
+    projection_translation: Any = None
+    section_linear_map: Any = None
+    section_translation: Any = None
+
 
 class ConvexSet_base(SageObject):
     """

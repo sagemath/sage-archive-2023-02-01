@@ -841,26 +841,34 @@ class DiffMap(ContinuousMap):
         return matrix([[diff_funct[i][j].expr() for j in range(n1)]
                        for i in range(n2)])
 
-    def pullback(self, tensor):
+    def pullback(self, tensor_or_codomain_subset, name=None, latex_name=None):
         r"""
         Pullback operator associated with ``self``.
 
-        In what follows, let `\Phi` denote a differentiable map, `M` its
-        domain and `N` its codomain.
+        In what follows, let `\Phi` denote a differentiable map ``self``,
+        `M` its domain and `N` its codomain.
 
         INPUT:
 
-        - ``tensor`` --
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`;
-          a fully covariant tensor field `T` on `N`, i.e. a tensor
-          field of type `(0, p)`, with `p` a positive or zero integer; the
-          case `p = 0` corresponds to a scalar field
+        One of the following:
+
+        - ``tensor_or_codomain_subset`` -- one of the following:
+
+          - a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`;
+            a fully covariant tensor field `T` on `N`, i.e. a tensor
+            field of type `(0, p)`, with `p` a positive or zero integer; the
+            case `p = 0` corresponds to a scalar field
+          - a :class:`~sage.manifolds.subset.ManifoldSubset` `S`
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+        - (if the input is a tensor field `T`)
+          a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a fully covariant tensor field on `M` that is the
           pullback of `T` by `\Phi`
+        - (if the input is a manifold subset `S`)
+          a :class:`~sage.manifolds.subset.ManifoldSubset` that is the
+          preimage `\Phi^{-1}(S)`; same as :meth:`preimage`
 
         EXAMPLES:
 
@@ -935,6 +943,11 @@ class DiffMap(ContinuousMap):
             (2*cos(t) + 2) dt⊗dt
 
         """
+        if not hasattr(tensor_or_codomain_subset, '_domain'):
+            return super().pullback(tensor_or_codomain_subset,
+                                    name=name, latex_name=latex_name)
+        tensor = tensor_or_codomain_subset
+
         from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
         from sage.tensor.modules.comp import (Components, CompWithSym,
                                               CompFullySym, CompFullyAntiSym)

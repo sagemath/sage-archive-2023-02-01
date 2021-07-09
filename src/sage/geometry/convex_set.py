@@ -166,7 +166,7 @@ class ConvexSet_base(SageObject):
 
     def codimension(self):
         r"""
-        Return the codimension of ``self`` in `self.ambient()``.
+        Return the codimension of ``self`` in ``self.ambient()``.
 
         EXAMPLES::
 

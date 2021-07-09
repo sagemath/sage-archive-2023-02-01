@@ -154,31 +154,44 @@ class Posets(metaclass=ClasscallMetaclass):
         return FinitePosets_n(n)
 
     @staticmethod
-    def BooleanLattice(n, facade=None, element_label=None):
+    def BooleanLattice(n, facade=None, use_subsets=False):
         """
         Return the Boolean lattice containing `2^n` elements.
 
-        - ``n`` (an integer) -- number of elements will be `2^n`
-        - ``facade`` (boolean) -- whether to make the returned poset a
+        - ``n`` -- integer; number of elements will be `2^n`
+        - ``facade`` -- boolean; whether to make the returned poset a
           facade poset (see :mod:`sage.categories.facade_sets`); the
           default behaviour is the same as the default behaviour of
           the :func:`~sage.combinat.posets.posets.Poset` constructor
-        - ``element_label`` (string, default ``None``) -- what to label
-          the elements of the poset by. If ``None`` label the elements
-          `0, 1, 2, \ldots, 2^n-1`. If ``'subsets'``, give the minimal
-          element the label ``Set({})`` and the maximal element
-          ``Set({1,2,...,n})``. Elements inbeween will be a subset of
-          `1, 2, \ldots, n``.
+        - ``use_subsets`` -- boolean (default: ``False``); if ``True``,
+          then label the elements by subsets of `\{1, 2, \ldots, n\}`;
+          otherwise label the elements by `0, 1, 2, \ldots, 2^n-1`
 
         EXAMPLES::
 
             sage: posets.BooleanLattice(5)
             Finite lattice containing 32 elements
 
-            sage: posets.BooleanLattice(2)._list
-            (0, 1, 2, 3)
-            sage: sorted(posets.BooleanLattice(2, element_label='subsets')._list, key = len)
-            [{}, {1}, {2}, {1, 2}]
+            sage: sorted(posets.BooleanLattice(2))
+            [0, 1, 2, 3]
+            sage: sorted(posets.BooleanLattice(2, use_subsets=True), key=list)
+            [{}, {1}, {1, 2}, {2}]
+
+        TESTS:
+
+        Check isomorphism::
+
+            sage: B5 = posets.BooleanLattice(5)
+            sage: B5S = posets.BooleanLattice(5, use_subsets=True)
+            sage: B5.is_isomorphic(B5S)
+            True
+
+        Check the corner cases::
+
+            sage: list(posets.BooleanLattice(0, use_subsets=True))
+            [{}]
+            sage: list(posets.BooleanLattice(1, use_subsets=True))
+            [{}, {1}]
         """
         try:
             n = Integer(n)
@@ -187,16 +200,32 @@ class Posets(metaclass=ClasscallMetaclass):
         if n < 0:
             raise ValueError("number of elements must be non-negative, not {0}".format(n))
         if n == 0:
-            return LatticePoset( ([0], []) )
+            if use_subsets:
+                from sage.sets.set import Set
+                return LatticePoset(([Set()], []), facade=facade)
+            return LatticePoset(([0], []), facade=facade)
         if n == 1:
-            return LatticePoset( ([0,1], [[0,1]]) )
+            if use_subsets:
+                from sage.sets.set import Set
+                V = [Set(), Set([1])]
+                return LatticePoset((V, [V]), facade=facade)
+            return LatticePoset(([0,1], [[0,1]]), facade=facade)
 
-        if element_label == 'subsets':
-            from sage.combinat.subset import Subsets
-            S = Subsets(n)
-            D = DiGraph([(x,y) for x,y in S.cartesian_product(S) if x.issubset(y) and len(x)+1 == len(y)] )
-            return FiniteLatticePoset(D,category = FiniteLatticePosets(),
-                                      facade = facade)
+        if use_subsets:
+            from sage.sets.set import Set
+            cur_level = [frozenset(range(1, n+1))]
+            D = DiGraph()
+            D.add_vertex(Set(cur_level[0]))
+            while cur_level:
+                next_level = set()
+                for X in cur_level:
+                    for i in X:
+                        Y = X.difference([i])
+                        D.add_edge(Set(Y), Set(X))
+                        next_level.add(Y)
+                cur_level = next_level
+            return FiniteLatticePoset(D, category=FiniteLatticePosets(),
+                                      facade=facade)
 
         L = [[Integer(x|(1<<y)) for y in range(n) if x&(1<<y)==0] for
              x in range(2**n)]

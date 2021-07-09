@@ -826,6 +826,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
     - :meth:`RealSet.unbounded_below_open`,
     - :meth:`RealSet.unbounded_above_closed`,
     - :meth:`RealSet.unbounded_above_open`,
+    - :meth:`RealSet.real_line`,
     as well as a constructor for general intervals:
     - :meth:`RealSet.interval`.
 
@@ -1771,6 +1772,18 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         """
         bound = RealSet._prep(bound)
         return RealSet(InternalRealInterval(RLF(bound), False, RLF(infinity), False), **kwds)
+
+    @staticmethod
+    def real_line(**kwds):
+        """
+        Contruct the real line
+
+        EXAMPLES::
+
+            sage: RealSet.real_line()
+            (-oo, +oo)
+        """
+        return RealSet(InternalRealInterval(RLF(minus_infinity), False, RLF(infinity), False), **kwds)
 
     def union(self, *other):
         """

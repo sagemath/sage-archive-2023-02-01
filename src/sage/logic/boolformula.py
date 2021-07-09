@@ -1553,8 +1553,9 @@ class BooleanFormula(object):
         """
         return len(flatten(self.full_tree()))
 
-    from sage.misc.superseded import deprecated_function_alias
-    __len__ = deprecated_function_alias(32148, length)
+    # For backward compatibility, we allow `self.length()` to be called as
+    # `len(self)`, but this may be deprecated in the future (see :trac:`32148`):
+    __len__ = length
 
 # allow is_consequence to be called as a function (not only as a method of BooleanFormula)
 is_consequence = BooleanFormula.is_consequence

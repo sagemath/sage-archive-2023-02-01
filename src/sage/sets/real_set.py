@@ -797,7 +797,7 @@ class InternalRealInterval(UniqueRepresentation, Parent):
 @richcmp_method
 class RealSet(UniqueRepresentation, Parent, Set_base,
               Set_boolean_operators, Set_add_sub_operators):
-    """
+    r"""
     A subset of the real line, a finite union of intervals
 
     INPUT:
@@ -812,8 +812,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         - an :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`.
     - ``structure`` -- (default: ``None``) if ``None``, construct the real set as an
       instance of :class:`RealSet`; if ``"differentiable"``, construct it as a subset of
-      the differentiable manifold.
-      :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`.
+      an instance of :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`,
+      representing the differentiable manifold `\RR`.
     - ``ambient`` -- (default: ``None``) an instance of
       :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`; construct
       a subset of it. Using this keyword implies ``structure='differentiable'``.
@@ -923,7 +923,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     It is also implied by assigning a coordinate name using generator notation::
 
-        sage: R_xi.<ξ> = RealSet(-oo, oo); R_xi
+        sage: R_xi.<ξ> = RealSet.real_line(); R_xi
         Real number line ℝ
         sage: R_xi.canonical_chart()
         Chart (ℝ, (ξ,))
@@ -1154,7 +1154,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         return UniqueRepresentation.__classcall__(cls, *intervals)
 
     def __init__(self, *intervals):
-        """
+        r"""
         TESTS::
 
             sage: Empty = RealSet(); Empty
@@ -1188,7 +1188,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         self._intervals = intervals
 
     def __richcmp__(self, other, op):
-        """
+        r"""
         Intervals are sorted by lower bound, then upper bound
 
         OUTPUT:
@@ -1215,7 +1215,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         return richcmp(self._intervals, other._intervals, op)
 
     def __iter__(self):
-        """
+        r"""
         Iterate over the component intervals is ascending order
 
         OUTPUT:
@@ -1234,7 +1234,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         return iter(self._intervals)
 
     def n_components(self):
-        """
+        r"""
         Return the number of connected components
 
         See also :meth:`get_interval`
@@ -1248,7 +1248,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         return len(self._intervals)
 
     def cardinality(self):
-        """
+        r"""
         Return the cardinality of the subset of the real line.
 
         OUTPUT:
@@ -1272,7 +1272,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         return n
 
     def is_empty(self):
-        """
+        r"""
         Return whether the set is empty
 
         EXAMPLES::
@@ -1285,7 +1285,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         return len(self._intervals) == 0
 
     def is_universe(self):
-        """
+        r"""
         Return whether the set is the ambient space (the real line).
 
         EXAMPLES::
@@ -1296,7 +1296,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         return self == self.ambient()
 
     def get_interval(self, i):
-        """
+        r"""
         Return the ``i``-th connected component.
 
         Note that the intervals representing the real set are always
@@ -1327,7 +1327,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
     __getitem__ = get_interval
 
     def __bool__(self):
-        """
+        r"""
         A set is considered True unless it is empty, in which case it is
         considered to be False.
 
@@ -1343,7 +1343,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
     # ParentMethods of Subobjects
 
     def ambient(self):
-        """
+        r"""
         Return the ambient space (the real line).
 
         EXAMPLES::
@@ -1352,10 +1352,10 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             sage: s.ambient()
             (-oo, +oo)
         """
-        return RealSet(minus_infinity, infinity)
+        return RealSet.real_line()
 
     def lift(self, x):
-        """
+        r"""
         Lift ``x`` to the ambient space for ``self``.
 
         This version of the method just returns ``x``.
@@ -1370,7 +1370,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         return x
 
     def retract(self, x):
-        """
+        r"""
         Retract ``x`` to ``self``.
 
         It raises an error if ``x`` does not lie in the set ``self``.
@@ -1394,7 +1394,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def normalize(intervals):
-        """
+        r"""
         Bring a collection of intervals into canonical form
 
         INPUT:
@@ -1451,7 +1451,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
         return tuple(merged)
 
     def _repr_(self):
-        """
+        r"""
         Return a string representation of ``self``.
 
         OUTPUT:
@@ -1486,7 +1486,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             return r' \cup '.join(latex(i) for i in self._intervals)
 
     def _sympy_condition_(self, variable):
-        """
+        r"""
         Convert to a sympy conditional expression.
 
         INPUT:
@@ -1523,7 +1523,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def _prep(lower, upper=None):
-        """
+        r"""
         Helper to prepare the lower and upper bound
 
         EXAMPLES::
@@ -1558,7 +1558,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def interval(lower, upper, *, lower_closed=None, upper_closed=None, **kwds):
-        """
+        r"""
         Construct an interval
 
         INPUT:
@@ -1585,7 +1585,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def open(lower, upper, **kwds):
-        """
+        r"""
         Construct an open interval
 
         INPUT:
@@ -1607,7 +1607,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def closed(lower, upper, **kwds):
-        """
+        r"""
         Construct a closed interval
 
         INPUT:
@@ -1629,7 +1629,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def point(p, **kwds):
-        """
+        r"""
         Construct an interval containing a single point
 
         INPUT:
@@ -1650,7 +1650,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def open_closed(lower, upper, **kwds):
-        """
+        r"""
         Construct a half-open interval
 
         INPUT:
@@ -1673,7 +1673,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def closed_open(lower, upper, **kwds):
-        """
+        r"""
         Construct an half-open interval
 
         INPUT:
@@ -1696,7 +1696,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def unbounded_below_closed(bound, **kwds):
-        """
+        r"""
         Construct a semi-infinite interval
 
         INPUT:
@@ -1717,7 +1717,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def unbounded_below_open(bound, **kwds):
-        """
+        r"""
         Construct a semi-infinite interval
 
         INPUT:
@@ -1738,7 +1738,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def unbounded_above_closed(bound, **kwds):
-        """
+        r"""
         Construct a semi-infinite interval
 
         INPUT:
@@ -1760,7 +1760,7 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def unbounded_above_open(bound, **kwds):
-        """
+        r"""
         Construct a semi-infinite interval
 
         INPUT:
@@ -1782,8 +1782,8 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
 
     @staticmethod
     def real_line(**kwds):
-        """
-        Contruct the real line
+        r"""
+        Construct the real line
 
         EXAMPLES::
 

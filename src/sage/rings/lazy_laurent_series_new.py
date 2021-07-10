@@ -84,7 +84,6 @@ from sage.structure.element import ModuleElement
 from .integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
-from abc import ABC
 
 
 class LLS(ModuleElement):
@@ -802,8 +801,6 @@ class LLS(ModuleElement):
             False
         """
         if op is op_EQ:
-            if '_richcmp_' in dir(self._aux):
-                return self._aux._richcmp_(other)
             if self._aux._constant is None:
                 if other._aux._constant is None:
                     n = min(self._aux._approximate_valuation, other._aux._approximate_valuation)
@@ -811,8 +808,11 @@ class LLS(ModuleElement):
                     for i in range(n, m):
                         if self[i] != other[i]:
                             return False
-                    if self._aux._coefficient_function == other._aux._coefficient_function:
-                        return True
+                    try:
+                        if self._aux._coefficient_function == other._aux._coefficient_function:
+                            return True
+                    except AttributeError:
+                        return self._aux.__eq__(other._aux)
                     raise ValueError("undecidable as lazy Laurent series")
                 else:
                     raise ValueError("undecidable as lazy Laurent series")
@@ -835,8 +835,6 @@ class LLS(ModuleElement):
             return True
 
         if op is op_NE:
-            if '_richcmp_' in dir(self._aux):
-                return not (self._aux._richcmp_(other))
             return not (self == other)
 
         return False
@@ -853,10 +851,7 @@ class LLS(ModuleElement):
             sage: {g: 1}
             {z^5 - 2*z^6 + z^7 + 5*z^9 - 11*z^10 + z^11 + ...: 1}
         """
-        if '__hash__' in dir(self._aux):
-            return self._aux.__hash__()
-        return hash((type(self), self._aux._coefficient_function,
-                     self._aux._approximate_valuation, self._aux._constant))
+        return hash((type(self), self._aux._approximate_valuation, self._aux._constant))
     
     def __bool__(self):
         """
@@ -893,54 +888,6 @@ class LLS(ModuleElement):
                 return True
 
         return False
-
-
-class LLS_binary(ABC):
-
-    def __init__(self, left, right):
-        """
-        Initialize.
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = 1/(1 - z) + 1/(1 + z)
-            sage: loads(dumps(f)) == f
-            True
-            sage: f = 1/(1 - z) - 1/(1 + z)
-            sage: loads(dumps(f)) == f
-            True
-        """
-        self._left = left
-        self._right = right
-    
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = 1/(1 - z) + 1/(1 + z)
-            sage: {f: 1}
-            {2 + 2*z^2 + 2*z^4 + 2*z^6 + ...: 1}
-        """
-        return hash((type(self), self._left, self._right))
-    
-    def __eq__(self, other):
-        """
-        Test equality.
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = 1/(1 - z) + 1/(1 + z)
-            sage: g = 1/(1 - z) + 1/(1 + z)
-            sage: f == g
-            True
-        """
-        return (isinstance(other._aux, type(self)) and
-                self._left == other._aux._left and self._right == other._aux._right)
 
 
 class LLS_aux():
@@ -1021,9 +968,114 @@ class LLS_aux():
                         self._approximate_valuation = n
                         return n
                     n += 1
-    
 
-class LLS_coefficient_function(LLS_aux):
+
+class LLS_unary:
+    """
+    Abstract base class for unary operators.
+
+    INPUT:
+
+    - ``series`` -- series upon which the operator operates
+
+    """
+    def __init__(self, series):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = -1/(1 - z)
+            sage: f
+            -1 - z - z^2 - z^3 - z^4 - z^5 - z^6 + ...
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._series = series
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = ~(1 - z)
+            sage: {f: 1}
+            {1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...: 1}
+        """
+        return hash((type(self), self._series))
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z) + 1/(1 + z)
+            sage: g = 1/(1 - z) + 1/(1 + z)
+            sage: f == g
+            True
+            sage: f = ~(1 - z)
+            sage: g = ~(1 - z)
+            sage: f == g
+            True
+        """
+        return (isinstance(other, type(self)) and self._cache == other._cache 
+                and self._approximate_valuation == other._approximate_valuation)
+
+
+class LLS_binary:
+    
+    def __init__(self, left, right):
+        """
+        Initialize.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z) + 1/(1 + z)
+            sage: loads(dumps(f)) == f
+            True
+            sage: f = 1/(1 - z) - 1/(1 + z)
+            sage: loads(dumps(f)) == f
+            True
+        """
+        self._left = left
+        self._right = right
+    
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z) + 1/(1 + z)
+            sage: {f: 1}
+            {2 + 2*z^2 + 2*z^4 + 2*z^6 + ...: 1}
+        """
+        return hash((type(self), self._left, self._right))
+    
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 - z) + 1/(1 + z)
+            sage: g = 1/(1 - z) + 1/(1 + z)
+            sage: f == g
+            True
+        """
+        return (isinstance(other, type(self)) and
+                self._left == other._left and self._right == other._right)
+
+
+class LLS_coefficient_function(LLS_aux, LLS_unary):
     def __init__(self, coefficient_function, is_sparse, approximate_valuation, constant=None):
         self._coefficient_function = coefficient_function
         super().__init__(is_sparse, approximate_valuation, constant)
@@ -1036,6 +1088,9 @@ class LLS_coefficient_function(LLS_aux):
         while True:
             yield self._coefficient_function(n)
             n += 1
+    
+    def __eq__(self, other):
+        return super().__eq__(other)
 
            
 class LLS_mul(LLS_aux, LLS_binary):
@@ -1076,11 +1131,8 @@ class LLS_mul(LLS_aux, LLS_binary):
             yield c
             n += 1
     
-    def _richcmp_(self, other):
-        self.__eq__(other)
-    
-    def __hash__(self):
-        return super.__hash__(self)
+    def __eq__(self, other):
+        return super().__eq__(other)
 
 
 class LLS_add(LLS_aux, LLS_binary):
@@ -1116,11 +1168,8 @@ class LLS_add(LLS_aux, LLS_binary):
             yield c
             n += 1
     
-    def _richcmp_(self, other):
-        self.__eq__(other)
-    
-    def __hash__(self):
-        return super.__hash__(self)
+    def __eq__(self, other):
+        return super().__eq__(other)
 
 
 class LLS_sub(LLS_aux, LLS_binary):
@@ -1166,14 +1215,11 @@ class LLS_sub(LLS_aux, LLS_binary):
             yield c
             n += 1
     
-    def _richcmp_(self, other):
-        self.__eq__(other)
-    
-    def __hash__(self):
-        return super.__hash__(self)
+    def __eq__(self, other):
+        return super().__eq__(other)
 
 
-class LLS_rmul(LLS_aux):
+class LLS_rmul(LLS_aux, LLS_unary):
     """
     Operator for multiplying with a scalar.
     """
@@ -1199,9 +1245,12 @@ class LLS_rmul(LLS_aux):
             c = self._series[n] * self._scalar
             yield c
             n += 1
+    
+    def __eq__(self, other):
+        return super().__eq__(other)
 
 
-class LLS_neg(LLS_aux):
+class LLS_neg(LLS_aux, LLS_unary):
     """
     Operator for negative of the series.
     """
@@ -1226,9 +1275,12 @@ class LLS_neg(LLS_aux):
             c = -1 * self._series[n]
             yield c
             n += 1
+    
+    def __eq__(self, other):
+        return super().__eq__(other)
 
 
-class LLS_inv(LLS_aux):
+class LLS_inv(LLS_aux, LLS_unary):
     """
     Operator for multiplicative inverse of the series.
     """
@@ -1267,9 +1319,12 @@ class LLS_inv(LLS_aux):
                 c += self[k] * self._series[n - v - k]
             yield -c * self._ainv
             n += 1
+    
+    def __eq__(self, other):
+        return super().__eq__(other)
 
 
-class LLS_apply_coeff(LLS_aux):
+class LLS_apply_coeff(LLS_aux, LLS_unary):
     """
         Return the series with ``function`` applied to each coefficient of this series.
     """
@@ -1295,9 +1350,12 @@ class LLS_apply_coeff(LLS_aux):
             c = self._function(self._series[n])
             yield c
             n += 1
+    
+    def __eq__(self, other):
+        return super().__eq__(other)
 
 
-class LLS_trunc(LLS_aux):
+class LLS_trunc(LLS_aux, LLS_unary):
     """
         Return this series with its terms of degree >= ``d`` truncated.
     """
@@ -1326,6 +1384,9 @@ class LLS_trunc(LLS_aux):
                 c = self._zero
             yield c
             n += 1
+    
+    def __eq__(self, other):
+        return super().__eq__(other)
 
 
 class LLS_div(LLS_aux, LLS_binary):
@@ -1372,8 +1433,5 @@ class LLS_div(LLS_aux, LLS_binary):
             yield c * self._ainv
             n += 1
     
-    def _richcmp_(self, other):
-        self.__eq__(other)
-    
-    def __hash__(self):
-        return super.__hash__(self)
+    def __eq__(self, other):
+        return super().__eq__(other)

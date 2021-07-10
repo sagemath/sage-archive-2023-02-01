@@ -441,7 +441,7 @@ class LLS(ModuleElement):
         """
         return self.__getitem__(n)
     
-    def apply_to_coefficients(self, newfunction):
+    def apply_to_coefficients(self, newfunction, ring):
         """
         Return the series with ``newfunction`` applied to each coefficient of this series.
 
@@ -449,28 +449,30 @@ class LLS(ModuleElement):
 
         - ``newfunction`` -- Python function
 
+        - ``ring`` -- Base Ring of the series
+
         Python function ``newfunction`` returns a new coefficient for input coefficient.
 
         TESTS::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: s = z/(1 - 2*z)
-            sage: t = s.apply_to_coefficients(lambda c: c + 1)
+            sage: t = s.apply_to_coefficients(lambda c: c + 1, L)
             sage: s
             z + 2*z^2 + 4*z^3 + 8*z^4 + 16*z^5 + 32*z^6 + 64*z^7 + ...
             sage: t
             2*z + 3*z^2 + 5*z^3 + 9*z^4 + 17*z^5 + 33*z^6 + 65*z^7 + ...
             sage: M = L.series(lambda n: n, True, 0); M                                                   
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = M.apply_to_coefficients(lambda c: c + 1); N                                         
+            sage: N = M.apply_to_coefficients(lambda c: c + 1, L); N                                         
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
             sage: M = L.series(lambda n: n, False, 0); M                                                  
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = M.apply_to_coefficients(lambda c: c + 1); N                                         
+            sage: N = M.apply_to_coefficients(lambda c: c + 1, L); N                                         
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
         """
         P = self.parent()
-        return P.element_class(P, LLS_apply_coeff(self._aux, newfunction))
+        return P.element_class(P, LLS_apply_coeff(self._aux, newfunction, ring))
     
     def change_ring(self, ring):
         """
@@ -1328,9 +1330,10 @@ class LLS_apply_coeff(LLS_aux, LLS_unary):
     """
         Return the series with ``function`` applied to each coefficient of this series.
     """
-    def __init__(self, series, function):
+    def __init__(self, series, function, ring):
         self._series = series
         self._function = function
+        self._ring = ring
         a = series._approximate_valuation
 
         if series._constant:
@@ -1341,15 +1344,22 @@ class LLS_apply_coeff(LLS_aux, LLS_unary):
         super().__init__(series._is_sparse, a, c)
 
     def get_coefficient(self, n):
-        c = self._function(self._series[n])
-        return c
+        try:
+            c = self._ring(self._function(self._series[n]))
+            return c
+        except TypeError:
+            raise ValueError("The coefficients are not in the base ring.")
     
     def iterate_coefficients(self):
         n = self._offset
         while True:
             c = self._function(self._series[n])
-            yield c
-            n += 1
+            try:
+                c = self._ring(self._function(self._series[n]))
+                yield c
+                n += 1
+            except TypeError:
+                raise ValueError("The coefficients are not in the base ring.")
     
     def __eq__(self, other):
         return super().__eq__(other)

@@ -18,6 +18,7 @@ from typing import Any
 from sage.structure.sage_object import SageObject
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.matrix.constructor import matrix
 
 
 @dataclass
@@ -183,7 +184,9 @@ class ConvexSet_base(SageObject):
     @abstract_method(optional=True)
     def an_affine_basis(self):
         r"""
-        Return points in ``self`` that form a basis for the affine hull.
+        Return points that form an affine basis for the affine hull.
+
+        The points are guaranteed to lie in the topological closure of ``self``.
 
         EXAMPLES::
 
@@ -215,8 +218,9 @@ class ConvexSet_base(SageObject):
         else:
             m = matrix([1] + list(v) for v in b)
             tester.assertEqual(m.rank(), self.dim() + 1)
+            closure = self.closure()
             for v in b:
-                tester.assertIn(v, self)
+                tester.assertIn(v, closure)
 
     def affine_hull(self, *args, **kwds):
         r"""

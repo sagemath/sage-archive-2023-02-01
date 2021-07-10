@@ -116,6 +116,20 @@ class RelativeInterior(ConvexSet_relatively_open):
         """
         return self._polyhedron.ambient_dim()
 
+    def an_affine_basis(self):
+        r"""
+        Return points that form an affine basis for the affine hull.
+
+        The points are guaranteed to lie in the topological closure of ``self``.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 0], [0, 1]])
+            sage: segment.relative_interior().an_affine_basis()
+            [A vertex at (1, 0), A vertex at (0, 1)]
+        """
+        return self._polyhedron.an_affine_basis()
+
     def dim(self):
         r"""
         Return the dimension of ``self``.

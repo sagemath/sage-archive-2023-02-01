@@ -612,7 +612,7 @@ on `\mathbb{E}^2`, `C^\infty(\mathbb{E}^2)`::
     sage: CE is XE.base_ring()
     True
     sage: CE.category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
     sage: rank(XE)
     2
 
@@ -647,8 +647,7 @@ A vector field evaluated at a point $p$ is a vector in the tangent space
     sage: isinstance(Tp, FiniteRankFreeModule)
     True
     sage: sorted(Tp.bases(), key=str)
-    [Basis (d/dr,d/dph) on the Tangent space at Point p on the Euclidean plane E^2,
-     Basis (e_r,e_ph) on the Tangent space at Point p on the Euclidean plane E^2,
+    [Basis (e_r,e_ph) on the Tangent space at Point p on the Euclidean plane E^2,
      Basis (e_x,e_y) on the Tangent space at Point p on the Euclidean plane E^2]
 
 

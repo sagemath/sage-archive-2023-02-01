@@ -311,7 +311,7 @@ The set `C^\infty(\mathbb{E}^3)` of all smooth scalar fields on
     sage: CE
     Algebra of differentiable scalar fields on the Euclidean space E^3
     sage: CE.category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
     sage: f in CE
     True
 

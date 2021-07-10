@@ -14,10 +14,12 @@ Convex Sets
 
 from dataclasses import dataclass
 from typing import Any
+from copy import copy
 
 from sage.structure.sage_object import SageObject
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 
 
@@ -244,11 +246,14 @@ class ConvexSet_base(SageObject):
             v = next(i_affine_basis)
         except StopIteration:
             return Polyhedron(ambient_dim=self.ambient_dim())
-        return Polyhedron(vertices=[v], lines=[p - v for p in i_affine_basis])
+        v = vector(v)
+        return Polyhedron(vertices=[v], lines=[vector(p) - v for p in i_affine_basis])
 
     @cached_method
-    def affine_hull_projection(self, as_polyhedron=None, as_affine_map=False, orthogonal=False,
-                               orthonormal=False, extend=False, minimal=False, return_all_data=False):
+    def _affine_hull_projection(self, *,
+                                as_convex_set=True, as_affine_map=True, as_section_map=True,
+                                orthogonal=False, orthonormal=False,
+                                extend=False, minimal=False):
         r"""
         Return ``self`` projected into its affine hull.
 
@@ -264,31 +269,73 @@ class ConvexSet_base(SageObject):
         function.
 
         This default implementation delegates to
-        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.affine_hull_projection`,
+        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base._affine_hull_projection`,
         applied to the affine hull of ``self``.
+
+        Subclasses should override this method if they can provide a
+        more direct implementation or additional options.
+        """
+        affine_hull = self.affine_hull()
+        data = affine_hull._affine_hull_projection(
+            as_convex_set=False, as_affine_map=True, as_section_map=True,
+            orthogonal=orthogonal, orthonormal=orthonormal,
+            extend=extend, minimal=minimal)
+        if as_convex_set:
+            data = copy(data)
+            data.image = data.projection_linear_map.matrix().transpose() * self + data.projection_translation
+        return data
+
+    def affine_hull_projection(self, as_convex_set=None, as_affine_map=False,
+                               orthogonal=False, orthonormal=False,
+                               extend=False, minimal=False,
+                               return_all_data=False, **kwds):
+        r"""
+        Return ``self`` projected into its affine hull.
+
+        Each convex set is contained in some smallest affine subspace
+        (possibly the entire ambient space) -- its affine hull.  We
+        provide an affine linear map that projects the ambient space of
+        the convex set to the standard Euclidean space of dimension of
+        the convex set, which restricts to a bijection from the affine
+        hull.
+
+        The projection map is not unique; some parameters control the
+        choice of the map.  Other parameters control the output of the
+        function.
 
         EXAMPLES::
 
-            sage: P = lattice_polytope.cross_polytope(3)
-            sage: P_aff = P.affine_hull_projection()
-            sage: P_aff == P
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]])
+            sage: ri_P = P.relative_interior()
+            sage: ri_P.affine_hull_projection(as_affine_map=True)
+            (Vector space morphism represented by the matrix:
+            [1]
+            [0]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Vector space of dimension 1 over Rational Field,
+            (0))
         """
-        affine_hull = self.affine_hull()
-        data = affine_hull.affine_hull_projection(orthogonal=orthogonal, orthonormal=orthonormal,
-                                                  extend=extend, minimal=minimal,
-                                                  return_all_data=True)
-        data = copy(data)
-        data.image = data.projection_linear_map.matrix().transpose() * self + data.projection_translation
-        if as_polyhedron is None:
-            as_polyhedron = not as_affine_map
-        if return_all_data or (as_polyhedron and as_affine_map):
+        if as_convex_set is None:
+            as_convex_set = not as_affine_map
+        if not as_affine_map and not as_convex_set:
+            raise ValueError('combining "as_affine_map=False" and '
+                             '"as_convex_set=False" not allowed')
+        if return_all_data:
+            as_convex_set = True
+            as_affine_map = True
+
+        result = self._affine_hull_projection(
+            as_convex_set=as_convex_set, as_affine_map=as_affine_map, as_section_map=return_all_data,
+            orthogonal=orthogonal, orthonormal=orthonormal,
+            extend=extend, minimal=minimal, **kwds)
+
+        # assemble result
+        if return_all_data or (as_convex_set and as_affine_map):
             return result
         elif as_affine_map:
             return (result.projection_linear_map, result.projection_translation)
         else:
             return result.image
-
-        return data
 
     def codimension(self):
         r"""

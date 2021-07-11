@@ -4225,7 +4225,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
     - ``growth_group`` -- a growth group
 
     - ``coefficient_ring`` -- the ring which contains the
-      coefficients of the elements.
+      coefficients of the elements
 
     - ``category`` -- The category of the parent can be specified
       in order to broaden the base structure. It has to be a subcategory
@@ -4287,7 +4287,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
         A BTerm
 
-        TESTS:
+        TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import BTermMonoid

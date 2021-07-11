@@ -44,13 +44,13 @@ List of PolyhedralComplex methods
     :meth:`~PolyhedralComplex.maximal_cells_sorted` | Return the sorted list of all maximal cells in this polyhedral complex.
     :meth:`~PolyhedralComplex.n_maximal_cells` | List the maximal cells of dimension `n` in this polyhedral complex.
     :meth:`~PolyhedralComplex._n_maximal_cells_sorted` | Return the sorted list of maximal cells of dim `n` in this complex.
-    :meth:`~PolyhedralComplex.has_maximal_cell` | Return ``True`` if the given cell is a maximal cell in this complex.
+    :meth:`~PolyhedralComplex.is_maximal_cell` | Return ``True`` if the given cell is a maximal cell in this complex.
     :meth:`~PolyhedralComplex.cells` | Return the dictionary of the cells in this polyhedral complex.
     :meth:`~PolyhedralComplex.cell_iterator` | Return an iterator over cells in this polyhedral complex.
     :meth:`~PolyhedralComplex.cells_sorted` | Return the sorted list of all cells in this polyhedral complex.
     :meth:`~sage.topology.cell_complex.GenericCellComplex.n_cells` | List the cells of dimension `n` in this polyhedral complex.
     :meth:`~PolyhedralComplex._n_cells_sorted` | Return the sorted list of `n`-cells in this polyhedral complex.
-    :meth:`~PolyhedralComplex.has_cell` | Return ``True`` if the given cell is in this polyhedral complex.
+    :meth:`~PolyhedralComplex.is_cell` | Return ``True`` if the given cell is in this polyhedral complex.
     :meth:`~PolyhedralComplex.face_poset` | Return the poset of nonempty cells in the polyhedral complex.
     :meth:`~PolyhedralComplex.relative_boundary_cells` | List the maximal cells on the boundary of the polyhedral complex.
 
@@ -204,7 +204,8 @@ class PolyhedralComplex(GenericCellComplex):
          (A vertex at (0, 1/4),),
          (A vertex at (1/7, 2/7),),
          (A vertex at (1/3, 1/3),)]
-        sage: pc.plot()                # not tested
+        sage: pc.plot()
+        Graphics object consisting of 10 graphics primitives
         sage: pc.is_pure()
         True
         sage: pc.is_full_dimensional()
@@ -275,8 +276,10 @@ class PolyhedralComplex(GenericCellComplex):
 
         EXAMPLES::
 
-            sage: PolyhedralComplex([Polyhedron(vertices=[(1, 1), (0, 0)])])
+            sage: pc = PolyhedralComplex([Polyhedron(vertices=[(1, 1), (0, 0)])])
+            sage: pc
             Polyhedral complex with 1 maximal cell
+            sage: TestSuite(pc).run()
         """
         self._backend = backend
         if maximal_cells is None:
@@ -642,7 +645,7 @@ class PolyhedralComplex(GenericCellComplex):
             self._maximal_cells_sorted = maximal_cells
         return self._maximal_cells_sorted
 
-    def has_maximal_cell(self, c):
+    def is_maximal_cell(self, c):
         """
         Return whether the given cell ``c`` is a maximal cell of ``self``.
 
@@ -657,23 +660,23 @@ class PolyhedralComplex(GenericCellComplex):
             sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
             sage: p3 = Polyhedron(vertices=[(1, 2), (0, 2)])
             sage: pc = PolyhedralComplex([p1, p2, p3])
-            sage: pc.has_maximal_cell(p1)
+            sage: pc.is_maximal_cell(p1)
             True
-            sage: pc.has_maximal_cell(p3)
+            sage: pc.is_maximal_cell(p3)
             False
 
         Wrong answer due to ``maximality_check=False``::
 
             sage: pc_invalid = PolyhedralComplex([p1, p2, p3],
             ....:              maximality_check=False)
-            sage: pc_invalid.has_maximal_cell(p3)
+            sage: pc_invalid.is_maximal_cell(p3)
             True
         """
         d = c.dimension()
         # return (c in self.n_maximal_cells(d)) # use set instead of list
         return (d in self.maximal_cells()) and (c in self.maximal_cells()[d])
 
-    def has_cell(self, c):
+    def is_cell(self, c):
         """
         Return whether the given cell ``c`` is a cell of ``self``.
 
@@ -683,9 +686,9 @@ class PolyhedralComplex(GenericCellComplex):
             sage: p2 = Polyhedron(vertices=[(1, 2), (0, 0), (0, 2)])
             sage: p3 = Polyhedron(vertices=[(1, 2), (0, 2)])
             sage: pc = PolyhedralComplex([p1, p2])
-            sage: pc.has_cell(p3)
+            sage: pc.is_cell(p3)
             True
-            sage: pc.has_cell(Polyhedron(vertices=[(0, 0)]))
+            sage: pc.is_cell(Polyhedron(vertices=[(0, 0)]))
             True
         """
         d = c.dimension()
@@ -946,9 +949,10 @@ class PolyhedralComplex(GenericCellComplex):
             sage: poset
             Finite poset containing 11 elements
             sage: d = {i:i.vertices_matrix() for i in poset}
-            sage: poset.plot(element_labels=d)                    # not tested
+            sage: poset.plot(element_labels=d)
+            Graphics object consisting of 28 graphics primitives
 
-        TESTS on nonbounded polyhedral complex::
+        For a nonbounded polyhedral complex::
 
             sage: pc = PolyhedralComplex([
             ....: Polyhedron(vertices=[(1/3, 1/3), (0, 0), (1, 2)]),
@@ -1735,6 +1739,14 @@ class PolyhedralComplex(GenericCellComplex):
         """
         The wedge (one-point union) of this cell complex with
         another one. Currently not implemented.
+
+        EXAMPLES::
+
+            sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
+            sage: pc.wedge(pc)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: wedge is not implemented for polyhedral complex
         """
         raise NotImplementedError("wedge is not implemented for "
                                   + "polyhedral complex")
@@ -1748,6 +1760,14 @@ class PolyhedralComplex(GenericCellComplex):
         """
         The chain complex associated to this polyhedral complex.
         Currently not implemented.
+
+        EXAMPLES::
+
+            sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
+            sage: pc.chain_complex()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: chain_complex is not implemented for polyhedral complex
         """
         raise NotImplementedError("chain_complex is not implemented for "
                                   + "polyhedral complex")
@@ -1757,6 +1777,14 @@ class PolyhedralComplex(GenericCellComplex):
         The decomposition of ``cell`` in this complex into left and right
         factors, suitable for computing cup products.
         Currently not implemented.
+
+        EXAMPLES::
+
+            sage: pc = PolyhedralComplex([Polyhedron(vertices=[[0], [1]])])
+            sage: pc.alexander_whitney(None, 1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: alexander_whitney is not implemented for polyhedral complex
         """
         raise NotImplementedError("alexander_whitney is not implemented for "
                                   + "polyhedral complex")
@@ -1939,7 +1967,7 @@ class PolyhedralComplex(GenericCellComplex):
             raise ValueError("the given cell is not a polyhedron " +
                              "in the same ambient space")
         # if cell is already in self, do nothing.
-        if self.has_cell(cell):
+        if self.is_cell(cell):
             return
         if self._backend:
             cell = cell.base_extend(cell.base_ring(), self._backend)
@@ -2102,7 +2130,7 @@ class PolyhedralComplex(GenericCellComplex):
             raise ValueError("the given cell is not a polyhedron " +
                              "in the same ambient space")
         # if cell is not in self, delete nothing.
-        if not self.has_cell(cell):   # self.cells() is called
+        if not self.is_cell(cell):   # self.cells() is called
             if check:
                 raise ValueError("trying to remove a cell which is not " +
                                  "in the polyhedral complex")

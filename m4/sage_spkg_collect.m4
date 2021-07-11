@@ -123,6 +123,7 @@ SAGE_PIP_PACKAGES=''
 SAGE_SCRIPT_PACKAGES=''
 
 SAGE_NEED_SYSTEM_PACKAGES=""
+SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL=""
 
 # for each package in pkgs/, add them to the SAGE_PACKAGE_VERSIONS and
 # SAGE_PACKAGE_DEPENDENCIES lists, and to one or more of the above variables
@@ -159,6 +160,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     SAGE_PACKAGE_TREES="${SAGE_PACKAGE_TREES}$(printf '\ntrees_')${SPKG_NAME} = ${SPKG_TREE_VAR}"
 
     uninstall_message=""
+    SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES
     # Check consistency of 'DIR/type' file
     case "$SPKG_TYPE" in
     base)
@@ -176,6 +178,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
             message="$SPKG_TYPE, will be installed as an SPKG"
         ], [
             message="$SPKG_TYPE, use \"$srcdir/configure --enable-$SPKG_NAME\" to install"
+            SAGE_NEED_SYSTEM_PACKAGES_VAR=SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL
         ])
         ;;
     *)
@@ -235,7 +238,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
                 [yes],                       [ message="no suitable system package; $message"
-                                               AS_VAR_APPEND([SAGE_NEED_SYSTEM_PACKAGES], [" $SPKG_NAME"])
+                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" $SPKG_NAME"])
                                              ],
                 [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
                                              [ message="$reason; $message" ])
@@ -359,12 +362,12 @@ AC_SUBST([SAGE_SDIST_PACKAGES])
 ])
 
 AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
-    AS_IF([test -n "$SAGE_NEED_SYSTEM_PACKAGES"], [
+    AS_IF([test -n "$SAGE_NEED_SYSTEM_PACKAGES" -o -n "$SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL"], [
         AC_MSG_NOTICE([
 
     notice: the following SPKGs did not find equivalent system packages:
 
-       $SAGE_NEED_SYSTEM_PACKAGES
+       $SAGE_NEED_SYSTEM_PACKAGES  $SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL
         ])
         AC_MSG_CHECKING([for the package system in use])
         SYSTEM=$(build/bin/sage-guess-package-system 2>& AS_MESSAGE_FD)
@@ -381,8 +384,25 @@ AC_DEFUN([SAGE_SYSTEM_PACKAGE_NOTICE], [
     build them (though some may have to be built anyway):
 
 $COMMAND
+])
+                AS_VAR_SET([need_reconfig_msg], [yes])
+            ])
+            SYSTEM_PACKAGES=$(build/bin/sage-get-system-packages $SYSTEM $SAGE_NEED_SYSTEM_PACKAGES_OPTIONAL)
+            AS_IF([test -n "$SYSTEM_PACKAGES"], [
+                PRINT_SYS="build/bin/sage-print-system-package-command $SYSTEM --verbose=\"    \" --prompt=\"      \$ \" --sudo"
+                COMMAND=$(eval "$PRINT_SYS" update && eval "$PRINT_SYS" install $SYSTEM_PACKAGES && SAGE_ROOT="$SAGE_ROOT" eval "$PRINT_SYS" setup-build-env )
+                AC_MSG_NOTICE([
 
-    After installation, re-run configure using:
+    hint: installing the following system packages, if not
+    already present, may provide additional optional features:
+
+$COMMAND
+])
+            ])
+            AS_VAR_IF([need_reconfig_msg], [yes], [
+                AC_MSG_NOTICE([
+
+    hint: After installation, re-run configure using:
 
       \$ ./config.status --recheck && ./config.status
                 ])

@@ -318,9 +318,9 @@ class Chart(UniqueRepresentation, SageObject):
         self._restrictions = []  # to be set with method add_restrictions()
         #
         # The chart is added to the domain's atlas, as well as to all the
-        # atlases of the domain's supersets; moreover the fist defined chart
+        # atlases of the domain's supersets; moreover the first defined chart
         # is considered as the default chart
-        for sd in self._domain._supersets:
+        for sd in self._domain.open_supersets():
             # the chart is added in the top charts only if its coordinates have
             # not been used:
             for chart in sd._atlas:
@@ -346,13 +346,9 @@ class Chart(UniqueRepresentation, SageObject):
         # The null and one functions of the coordinates:
         # Expression in self of the zero and one scalar fields of open sets
         # containing the domain of self:
-        for dom in self._domain._supersets:
-            if hasattr(dom, '_zero_scalar_field'):
-                # dom is an open set
-                dom._zero_scalar_field._express[self] = self.function_ring().zero()
-            if hasattr(dom, '_one_scalar_field'):
-                # dom is an open set
-                dom._one_scalar_field._express[self] = self.function_ring().one()
+        for dom in self._domain.open_supersets():
+            dom._zero_scalar_field._express[self] = self.function_ring().zero()
+            dom._one_scalar_field._express[self] = self.function_ring().one()
 
     def _init_coordinates(self, coord_list):
         r"""
@@ -932,12 +928,9 @@ class Chart(UniqueRepresentation, SageObject):
         The subset `W`, intersection of `U` and `V`, has been created by
         ``transition_map()``::
 
-            sage: M.list_of_subsets()
-            [1-dimensional topological manifold S^1,
-             Open subset U of the 1-dimensional topological manifold S^1,
-             Open subset V of the 1-dimensional topological manifold S^1,
-             Open subset W of the 1-dimensional topological manifold S^1]
-            sage: W = M.list_of_subsets()[3]
+            sage: F = M.subset_family(); F
+            Set {S^1, U, V, W} of open subsets of the 1-dimensional topological manifold S^1
+            sage: W = F['W']
             sage: W is U.intersection(V)
             True
             sage: M.atlas()
@@ -960,9 +953,8 @@ class Chart(UniqueRepresentation, SageObject):
 
         In this case, no new subset has been created since `U \cap M = U`::
 
-            sage: M.list_of_subsets()
-            [2-dimensional topological manifold R^2,
-             Open subset U of the 2-dimensional topological manifold R^2]
+            sage: M.subset_family()
+            Set {R^2, U} of open subsets of the 2-dimensional topological manifold R^2
 
         but a new chart has been created: `(U, (x, y))`::
 
@@ -3010,7 +3002,7 @@ class CoordChange(SageObject):
         # is added to the subset (and supersets) dictionary:
         if chart1._domain == chart2._domain:
             domain = chart1._domain
-            for sdom in domain._supersets:
+            for sdom in domain.open_supersets():
                 sdom._coord_changes[(chart1, chart2)] = self
 
     def _repr_(self):
@@ -3127,7 +3119,11 @@ class CoordChange(SageObject):
 
     def inverse(self):
         r"""
-        Compute the inverse coordinate transformation.
+        Return the inverse coordinate transformation.
+
+        If the inverse is not already known, it is computed here. If the
+        computation fails, the inverse can be set by hand via the method
+        :meth:`set_inverse`.
 
         OUTPUT:
 
@@ -3160,9 +3156,18 @@ class CoordChange(SageObject):
              (Chart (M, (x, y)),
               Chart (M, (u, v))): Change of coordinates from Chart (M, (x, y)) to Chart (M, (u, v))}
 
+        The result is cached::
+
+            sage: xy_to_uv.inverse() is uv_to_xy
+            True
+
+        We have as well::
+
+            sage: uv_to_xy.inverse() is xy_to_uv
+            True
+
         """
         from sage.symbolic.relation import solve
-        from sage.symbolic.assumptions import assumptions
         if self._inverse is not None:
             return self._inverse
         # The computation is necessary:
@@ -3186,8 +3191,7 @@ class CoordChange(SageObject):
         for i in range(n2):
             if x2[i].is_positive():
                 coord_domain[i] = 'positive'
-        xp2 = [ SR.var('xxxx' + str(i), domain=coord_domain[i])
-                for i in range(n2) ]
+        xp2 = [ SR.temp_var(domain=coord_domain[i]) for i in range(n2) ]
         xx2 = self._transf.expr()
         equations = [xp2[i] == xx2[i] for i in range(n2)]
         try:
@@ -3240,12 +3244,8 @@ class CoordChange(SageObject):
                    "manually")
             x2_to_x1 = list_x2_to_x1[0]
         self._inverse = type(self)(self._chart2, self._chart1, *x2_to_x1)
-        # Some cleaning: the local symbolic variables (xxxx0, xxxx1, ...) are
-        # removed from the list of assumptions
-        for asm in assumptions():
-            for xxxx in xp2:
-                if asm.has(xxxx):
-                    asm.forget()
+        self._inverse._inverse = self
+        SR.cleanup_var(xp2)
         return self._inverse
 
     def set_inverse(self, *transformations, **kwds):
@@ -3342,7 +3342,14 @@ class CoordChange(SageObject):
               u == u  *passed*
               v == v  *passed*
 
-        TESTS::
+        TESTS:
+
+        Check that :trac:`31923` is fixed::
+
+            sage: X1_to_X2.inverse().inverse() is X1_to_X2
+            True
+
+        Check of keyword arguments::
 
             sage: X1_to_X2.set_inverse((u+v)/2, (u-v)/2, bla=3)
             Traceback (most recent call last):
@@ -3357,6 +3364,7 @@ class CoordChange(SageObject):
                             "argument".format(unknown_key))
         self._inverse = type(self)(self._chart2, self._chart1,
                                    *transformations)
+        self._inverse._inverse = self
         if check:
             infos = ["Check of the inverse coordinate transformation:"]
             x1 = self._chart1._xx

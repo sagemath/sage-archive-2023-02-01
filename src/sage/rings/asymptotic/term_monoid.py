@@ -2906,7 +2906,7 @@ class TermWithCoefficient(GenericTerm):
         return 'Term with coefficient %s and growth %s' % \
                (self.coefficient, self.growth)
 
-    def _product_repr_(self, latex=False):
+    def _repr_product_(self, latex=False):
         if latex:
             from sage.misc.latex import latex as latex_repr
             f = latex_repr
@@ -3366,7 +3366,7 @@ class ExactTerm(TermWithCoefficient):
             sage: (1+a)/n
             (a + 1)*n^(-1)
         """
-        return self._product_repr_(latex)
+        return self._repr_product_(latex)
 
     def _latex_(self):
         r"""

@@ -1206,12 +1206,23 @@ class Set_object_enumerated(Set_object):
 
             sage: X = Set({1, 2, 3}); X
             {1, 2, 3}
-            sage: X._sympy_()
+            sage: sX = X._sympy_(); sX
             Set(1, 2, 3)
+            sage: sX.is_empty is None
+            True
+
+            sage: Empty = Set([]); Empty
+            {}
+            sage: sEmpty = Empty._sympy_(); sEmpty
+            EmptySet
+            sage: sEmpty.is_empty
+            True
         """
-        from sympy import Set
+        from sympy import Set, EmptySet
         from sage.interfaces.sympy import sympy_init
         sympy_init()
+        if self.is_empty():
+            return EmptySet
         return Set(*[x._sympy_() for x in self])
 
 

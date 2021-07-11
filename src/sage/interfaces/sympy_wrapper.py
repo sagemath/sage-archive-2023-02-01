@@ -65,11 +65,11 @@ class SageSet(Set):
 
         EXAMPLES::
 
-            sage: F = Set([1, 2])
-            sage: F is Set([1, 2])
+            sage: F = Family([1, 2])
+            sage: F is Family([1, 2])
             False
             sage: sF = F._sympy_(); sF
-            SageSet({1, 2})
+            SageSet(Family (1, 2))
             sage: sF._sage_() is F
             True
         """
@@ -82,7 +82,7 @@ class SageSet(Set):
 
         EXAMPLES::
 
-            sage: Empty = Set([])
+            sage: Empty = Family([])
             sage: sEmpty = Empty._sympy_()
             sage: sEmpty.is_empty
             True

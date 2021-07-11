@@ -2913,7 +2913,7 @@ class TermWithCoefficient(GenericTerm):
         INPUT:
 
         - ``latex`` -- (default: ``False``) a boolean. If set, then
-          LaTeX-output is returned
+          LaTeX-output is returned.
 
         OUTPUT:
 

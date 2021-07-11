@@ -63,6 +63,7 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+import weakref
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -73,7 +74,7 @@ from sage.arith.all import divisors
 from sage.rings.padics.padic_generic_element import pAdicGenericElement
 from sage.misc.cachefunc import cached_method
 from sage.rings.padics.precision_error import PrecisionError
-import weakref
+from sage.categories.sets_cat import Sets
 
 
 _wscache = {}
@@ -139,7 +140,7 @@ class WeightSpace_class(Parent):
             sage: pAdicWeightSpace(17)
             Space of 17-adic weight-characters defined over 17-adic Field with capped relative precision 20
         """
-        Parent.__init__(self, base=base_ring)
+        Parent.__init__(self, base=base_ring, category=Sets())
         p = ZZ(p)
         if not p.is_prime():
             raise ValueError("p must be prime")

@@ -209,7 +209,6 @@ which only work in dimension two or three)::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 from __future__ import annotations
-from typing import Union
 
 from sage.misc.functional import det
 from sage.structure.sage_object import SageObject
@@ -436,7 +435,7 @@ class Face(SageObject):
         """
         return self._type
 
-    def color(self, color=None) -> Color:
+    def color(self, color=None):
         r"""
         Return or change the color of the face.
 
@@ -448,7 +447,7 @@ class Face(SageObject):
 
         OUTPUT:
 
-        color
+        color or None
 
         EXAMPLES::
 
@@ -457,11 +456,13 @@ class Face(SageObject):
             sage: f.color()
             RGB color (0.0, 0.0, 1.0)
             sage: f.color('red')
+            sage: f.color()
             RGB color (1.0, 0.0, 0.0)
         """
         if color is not None:
             self._color = Color(color)
-        return self._color
+        else:
+            return self._color
 
     def _plot(self, projmat, face_contour, opacity) -> Graphics:
         r"""
@@ -599,7 +600,6 @@ class Patch(SageObject):
             sage: next(iter(P)).color()
             RGB color (0.0, 1.0, 0.0)
             sage: next(iter(Q)).color('yellow')
-            RGB color (1.0, 1.0, 0.0)
             sage: next(iter(P)).color()
             RGB color (0.0, 1.0, 0.0)
         """
@@ -850,7 +850,7 @@ class Patch(SageObject):
         else:
             return Patch(self._faces.difference(other))
 
-    def dimension(self) -> Union[None, int]:
+    def dimension(self) -> None | int:
         r"""
         Return the dimension of the vectors of the faces of self
 
@@ -1556,7 +1556,7 @@ class E1Star(SageObject):
 
     def _call_on_face(self, face, color=None):
         r"""
-        Return an iterator of faces obtained by applying self on the face.
+        Return an iterator of faces obtained by applying ``self`` on the face.
 
         INPUT:
 
@@ -1586,7 +1586,7 @@ class E1Star(SageObject):
     @cached_method
     def matrix(self):
         r"""
-        Return the matrix associated with self.
+        Return the matrix associated with ``self``.
 
         EXAMPLES::
 
@@ -1603,7 +1603,7 @@ class E1Star(SageObject):
     @cached_method
     def inverse_matrix(self):
         r"""
-        Return the inverse of the matrix associated with self.
+        Return the inverse of the matrix associated with ``self``.
 
         EXAMPLES::
 

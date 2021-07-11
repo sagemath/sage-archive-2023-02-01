@@ -1,11 +1,7 @@
 # -*- shell-script -*-
 cd src
 
-# Trac #30478: suitesparse 5.10.1 uses -std=c99 even with g++
-# by the following setting in SuiteSparse_config/SuiteSparse_config.mk
-# CF ?= -std=c99 $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(OPTIMIZATION) -fexceptions -fPIC
-# Override this:
-export CF="${CFLAGS} ${CPPFLAGS} -fexceptions -fPIC"
+export CC="${CC-gcc} -std=c99"
 
 echo "print configuration"
 $MAKE MY_METIS_LIB=none CHOLMOD_CONFIG=-DNPARTITION \

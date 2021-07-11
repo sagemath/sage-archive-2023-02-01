@@ -426,10 +426,13 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.version()             # not tested
-            '21.7'
+            sage: ki_db.version()   >= '21.7'   # optional database_knotinfo
+            True
         """
-        from importlib.metadata import version
+        try:
+            from importlib.metadata import version
+        except ImportError:
+            from importlib_metadata import version
         return version(self._feature.name)
 
 

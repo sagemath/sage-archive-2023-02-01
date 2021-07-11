@@ -803,13 +803,16 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
     INPUT:
 
     - ``*args`` -- arguments defining a real set. Possibilities are either:
+
       - two extended real numbers ``a, b``, to construct the open interval `(a, b)`, or
       - a list/tuple/iterable of (not necessarily disjoint) intervals or real sets,
         whose union is taken. The individual intervals can be specified by either
+
         - a tuple ``(a, b)`` of two extended real numbers (constructing an open interval),
         - a list ``[a, b]`` of two real numbers (constructing a closed interval),
         - an :class:`InternalRealInterval`,
         - an :class:`~sage.manifolds.differentiable.examples.real_line.OpenInterval`.
+
     - ``structure`` -- (default: ``None``) if ``None``, construct the real set as an
       instance of :class:`RealSet`; if ``"differentiable"``, construct it as a subset of
       an instance of :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`,
@@ -824,18 +827,22 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
       :class:`~sage.manifolds.differentiable.examples.real_line.RealLine`.
 
     There are also specialized constructors for various types of intervals:
-    - :meth:`RealSet.open`,
-    - :meth:`RealSet.closed`,
-    - :meth:`RealSet.point`,
-    - :meth:`RealSet.open_closed`,
-    - :meth:`RealSet.closed_open`,
-    - :meth:`RealSet.unbounded_below_closed`,
-    - :meth:`RealSet.unbounded_below_open`,
-    - :meth:`RealSet.unbounded_above_closed`,
-    - :meth:`RealSet.unbounded_above_open`,
-    - :meth:`RealSet.real_line`,
-    as well as a constructor for general intervals:
-    - :meth:`RealSet.interval`.
+
+    ======================================   ====================
+    Constructor                              Interval
+    ======================================   ====================
+    :meth:`RealSet.open`                     `(a, b)`
+    :meth:`RealSet.closed`                   `[a, b]`
+    :meth:`RealSet.point`                    `\{a\}`
+    :meth:`RealSet.open_closed`              `(a, b]`
+    :meth:`RealSet.closed_open`              `[a, b)`
+    :meth:`RealSet.unbounded_below_closed`   `(-\infty, b]`
+    :meth:`RealSet.unbounded_below_open`     `(-\infty, b)`
+    :meth:`RealSet.unbounded_above_closed`   `[a, +\infty)`
+    :meth:`RealSet.unbounded_above_open`     `(a, +\infty)`
+    :meth:`RealSet.real_line`                `(-\infty, +\infty)`
+    :meth:`RealSet.interval`                 any
+    ======================================   ====================
 
     EXAMPLES::
 

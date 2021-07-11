@@ -1638,14 +1638,14 @@ cdef class FiniteField(Field):
 
         We check that :trac:`23801` is resolved::
 
-            sage: k.<a> = GF(3^240)
+            sage: k.<a> = GF(5^240)
             sage: l, inc = k.subfield(3, 'z', map=True); l
-            Finite Field in z of size 3^3
+            Finite Field in z of size 5^3
             sage: inc
             Ring morphism:
-              From: Finite Field in z of size 3^3
-              To:   Finite Field in a of size 3^240
-              Defn: z |--> a^239 + a^238 + ... + a^3 + 2
+              From: Finite Field in z of size 5^3
+              To:   Finite Field in a of size 5^240
+              Defn: z |--> 2*a^235 + a^231 + ... + a + 4
 
         There is no coercion since we can't ensure compatibility with larger
         fields in this case::
@@ -1656,7 +1656,7 @@ cdef class FiniteField(Field):
         But there is still a compatibility among the generators chosen for the subfields::
 
             sage: ll, iinc = k.subfield(12, 'w', map=True)
-            sage: x = iinc(ll.gen())^((3^12-1)/(3^3-1))
+            sage: x = iinc(ll.gen())^((5^12-1)/(5^3-1))
             sage: x.minimal_polynomial() == l.modulus()
             True
 

@@ -1635,7 +1635,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: Q.<X> = K[]
             sage: L.<b> = NumberField(X^4 + a)
             sage: t = (-a).is_norm(L, element=True); t
-            (True, b^3 + 1)
+            (True, -b^3 - 1)
             sage: t[1].norm(K)
             -a
 
@@ -1750,11 +1750,11 @@ cdef class NumberFieldElement(FieldElement):
             sage: Q.<X> = K[]
             sage: L.<b> = NumberField(X^4 + a)
             sage: t = (-a)._rnfisnorm(L); t
-            (b^3 + 1, 1)
+            (-b^3 - 1, 1)
             sage: t[0].norm(K)
             -a
             sage: t = K(3)._rnfisnorm(L); t
-            (-b^3 - a*b^2 - a^2*b + 1, 3*a^2 - 3*a + 6)
+            (b^3 + a*b^2 + a^2*b - 1, 3*a^2 - 3*a + 6)
             sage: t[0].norm(K)*t[1]
             3
 
@@ -2497,9 +2497,9 @@ cdef class NumberFieldElement(FieldElement):
         x._reduce_c_()
         return x
 
-        #NOTES: In LiDIA, they build a multiplication table for the
-        #number field, so it's not necessary to reduce modulo the
-        #defining polynomial every time:
+        # NOTE: In LiDIA, they build a multiplication table for the
+        # number field, so it's not necessary to reduce modulo the
+        # defining polynomial every time:
         #     src/number_fields/algebraic_num/order.cc: compute_table
         # but asymptotically fast poly multiplication means it's
         # actually faster to *not* build a table!?!
@@ -4495,7 +4495,7 @@ cdef class NumberFieldElement(FieldElement):
 
         This means the different with respect to the base field `\QQ`.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K.<a> = NumberFieldTower([x^2 - 17, x^3 - 2])
             sage: a.absolute_different()
@@ -4506,6 +4506,7 @@ cdef class NumberFieldElement(FieldElement):
             :meth:`different`
         """
         return self.different(K=QQ)
+
 
 cdef class NumberFieldElement_absolute(NumberFieldElement):
 
@@ -5527,5 +5528,3 @@ cdef void _ntl_poly(f, ZZX_c *num, ZZ_c *den):
     for i from 0 <= i <= __num.degree():
         mpz_to_ZZ(&coeff, (<Integer>ZZ(__num[i])).value)
         ZZX_SetCoeff( num[0], i, coeff )
-
-

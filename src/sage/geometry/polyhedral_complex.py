@@ -13,16 +13,16 @@ space `\RR^n` such that
 
 In this context, a "polyhedron" means the geometric realization
 of a polyhedron. This is in contrast to :mod:`simplicial complex
-<sage.homology.simplicial_complex>`, whose cells are abstract simplices.
+<sage.topology.simplicial_complex>`, whose cells are abstract simplices.
 The concept of a polyhedral complex generalizes that of a **geometric**
 simplicial complex.
 
 .. note::
 
    This class derives from
-   :class:`~sage.homology.cell_complex.GenericCellComplex`, and so
+   :class:`~sage.topology.cell_complex.GenericCellComplex`, and so
    inherits its methods.  Some of those methods are not listed here;
-   see the :mod:`Generic Cell Complex <sage.homology.cell_complex>`
+   see the :mod:`Generic Cell Complex <sage.topology.cell_complex>`
    page instead.
 
 AUTHORS:
@@ -48,7 +48,7 @@ List of PolyhedralComplex methods
     :meth:`~PolyhedralComplex.cells` | Return the dictionary of the cells in this polyhedral complex.
     :meth:`~PolyhedralComplex.cell_iterator` | Return an iterator over cells in this polyhedral complex.
     :meth:`~PolyhedralComplex.cells_sorted` | Return the sorted list of all cells in this polyhedral complex.
-    :meth:`~sage.homology.cell_complex.GenericCellComplex.n_cells` | List the cells of dimension `n` in this polyhedral complex.
+    :meth:`~sage.topology.cell_complex.GenericCellComplex.n_cells` | List the cells of dimension `n` in this polyhedral complex.
     :meth:`~PolyhedralComplex._n_cells_sorted` | Return the sorted list of `n`-cells in this polyhedral complex.
     :meth:`~PolyhedralComplex.has_cell` | Return ``True`` if the given cell is in this polyhedral complex.
     :meth:`~PolyhedralComplex.face_poset` | Return the poset of nonempty cells in the polyhedral complex.
@@ -130,7 +130,7 @@ Classes and functions
 # ****************************************************************************
 
 from copy import copy
-from sage.homology.cell_complex import GenericCellComplex
+from sage.topology.cell_complex import GenericCellComplex
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.modules.free_module_element import vector
@@ -2063,7 +2063,7 @@ class PolyhedralComplex(GenericCellComplex):
             ValueError: this polyhedral complex is not mutable
 
         Check that this function is coherent with
-        :meth:`~sage.homology.simplicial_complex.SimplicialComplex.remove_face`::
+        :meth:`~sage.topology.simplicial_complex.SimplicialComplex.remove_face`::
 
             sage: v1 = (1, 0, 0, 0); v2 = (0, 1, 0, 0); v3 = (0, 0, 1, 0); v4 = (0, 0, 0, 1)
             sage: Z = PolyhedralComplex([Polyhedron(vertices=[v1, v2, v3, v4])]); Z
@@ -2388,7 +2388,7 @@ def cells_list_to_cells_dict(cells_list):
         sage: p2 = Polyhedron(vertices=[(1, 1), (0, 0)])
         sage: p3 = Polyhedron(vertices=[(0, 0)])
         sage: p4 = Polyhedron(vertices=[(1, 1)])
-        sage: sage.homology.polyhedral_complex.cells_list_to_cells_dict([p1, p2, p3, p4])
+        sage: sage.geometry.polyhedral_complex.cells_list_to_cells_dict([p1, p2, p3, p4])
         {0: {A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex,
           A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex},
          1: {A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices},

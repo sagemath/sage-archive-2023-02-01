@@ -282,7 +282,9 @@ class ConvexSet_base(SageObject):
             extend=extend, minimal=minimal)
         if as_convex_set:
             data = copy(data)
-            data.image = data.projection_linear_map.matrix().transpose() * self + data.projection_translation
+            matrix = data.projection_linear_map.matrix().transpose()
+            projected = self.linear_transformation(matrix)
+            data.image = projected.translation(data.projection_translation)
         return data
 
     def affine_hull_projection(self, as_convex_set=None, as_affine_map=False,
@@ -306,7 +308,8 @@ class ConvexSet_base(SageObject):
         EXAMPLES::
 
             sage: P = Polyhedron(vertices=[[1, 0], [0, 1]])
-            sage: ri_P = P.relative_interior()
+            sage: ri_P = P.relative_interior(); ri_P
+            Relative interior of a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
             sage: ri_P.affine_hull_projection(as_affine_map=True)
             (Vector space morphism represented by the matrix:
             [1]
@@ -314,7 +317,13 @@ class ConvexSet_base(SageObject):
             Domain: Vector space of dimension 2 over Rational Field
             Codomain: Vector space of dimension 1 over Rational Field,
             (0))
-        """
+            sage: P_aff = P.affine_hull_projection(); P_aff
+            A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
+            sage: ri_P_aff = ri_P.affine_hull_projection(); ri_P_aff
+            Relative interior of a 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
+            sage: ri_P_aff.closure() == P_aff
+            True
+         """
         if as_convex_set is None:
             as_convex_set = not as_affine_map
         if not as_affine_map and not as_convex_set:
@@ -725,6 +734,39 @@ class ConvexSet_base(SageObject):
             Traceback (most recent call last):
             ...
             TypeError: 'NotImplementedType' object is not callable
+        """
+
+    @abstract_method(optional=True)
+    def dilation(self, scalar):
+        """
+        Return the dilated (uniformly stretched) set.
+
+        INPUT:
+
+        - ``scalar`` -- A scalar, not necessarily in :meth:`base_ring`
+        """
+
+    @abstract_method(optional=True)
+    def linear_transformation(self, linear_transf, **kwds):
+        """
+        Return the linear transformation of ``self``.
+
+        INPUT:
+
+        - ``linear_transf`` -- a matrix
+        - ``**kwds`` -- passed to the :meth:`linear_transformation` method of
+          the closure of ``self``.
+        """
+
+    @abstract_method(optional=True)
+    def translation(self, displacement):
+        """
+        Return the translation of ``self`` by a ``displacement`` vector.
+
+        INPUT:
+
+        - ``displacement`` -- a displacement vector or a list/tuple of
+          coordinates that determines a displacement vector
         """
 
 

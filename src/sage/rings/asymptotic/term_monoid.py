@@ -3390,7 +3390,7 @@ class ExactTerm(TermWithCoefficient):
             sage: (1+a)/n
             (a + 1)*n^(-1)
         """
-        return self._repr_product_(latex)
+        return self._repr_product_(latex=latex)
 
     def _latex_(self):
         r"""

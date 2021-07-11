@@ -1612,16 +1612,19 @@ class GenericGrowthElement(MultiplicativeGroupElement):
                                   'not implemented '.format(self))
 
     def _find_minimum_(self, valid_from):
-        r""""
-        Find the minimum of this growth element over the range implied by valid_from
+        r"""
+        Find the minimum of this growth element over the range implied by valid_from.
 
         INPUT:
 
-        - ``valid_from`` -- the value from a valid_from variable
+        - ``valid_from`` -- a dictionary describing the range of the minimization:
+          the keys are names of variables and the range is the intersection over
+          the ranges where the absolute value of the variable designated by the
+          key is at least the corresponding value
 
         OUTPUT:
 
-        The minimum.
+        The minimum
 
         """
         raise NotImplementedError(f'find minimum for {self} '
@@ -3325,11 +3328,14 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def _find_minimum_(self, valid_from):
         r"""
-        Find the minimum of this growth element over the range implied by valid_from
+        Find the minimum of this growth element over the range implied by valid_from.
 
         INPUT:
 
-        - ``valid_from`` -- the value from a valid_from variable
+        - ``valid_from`` -- a dictionary describing the range of the minimization:
+          the keys are names of variables and the range is the intersection over
+          the ranges where the absolute value of the variable designated by the
+          key is at least the corresponding value
 
         OUTPUT:
 

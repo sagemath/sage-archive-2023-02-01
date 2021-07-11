@@ -2907,6 +2907,30 @@ class TermWithCoefficient(GenericTerm):
                (self.coefficient, self.growth)
 
     def _repr_product_(self, latex=False):
+        r"""
+        A representation string for this term with coefficient as a product.
+
+        INPUT:
+
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned
+
+        OUTPUT:
+
+        A string
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = TermWithCoefficientMonoid(TermMonoid, G, ZZ)
+            sage: T(x^2, 5)._repr_product_()
+            '5*x^2'
+        """
         if latex:
             from sage.misc.latex import latex as latex_repr
             f = latex_repr

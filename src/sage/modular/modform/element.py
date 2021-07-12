@@ -3087,21 +3087,43 @@ class GradedModularFormElement(ModuleElement):
         - ``parents`` - an object of the class ModularFormsRing
         - ``forms_data`` - a dictionary ``{k_1:f_1, k_2:f_2, ..., k_n:f_n}`` or a list [f_1, f_2,..., f_n]
           where `f_i` is a modular form of weight `k_i`
-        
+
         OUTPUT:
 
         A ``GradedModularFormElement`` corresponding to `f_1 + f_2 + ... f_n`
 
+        EXAMPLES::
+
+            sage: M = ModularFormsRing(1)
+            sage: D = CuspForms(1, 12).0
+            sage: E4 = ModularForms(1, 4).0
+            sage: M({4:E4, 12:D})
+            1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
+            sage: M([E4, D])
+            1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
+            sage: M([E4, D]) == E4 + D
+            True
+
+        ::
+
+            sage: M = ModularFormsRing(Gamma0(3))
+            sage: f = ModularForms(Gamma0(3), 4).0
+            sage: g = ModularForms(Gamma0(3), 2).0
+            sage: M([f, g])
+            2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
+            sage: M({4:f, 2:g})
+            2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
+
         TESTS::
 
-        sage: M = ModularFormsRing(1)
-        sage: TestSuite(M).run()
-        sage: M15 = ModularFormsRing(Gamma1(5))
-        sage: TestSuite(M15).run()
-        sage: M013 = ModularFormsRing(Gamma0(13))
-        sage: TestSuite(M013).run()
-        sage: m = ModularFormsRing(Gamma1(3), base_ring=GF(5))
-        sage: TestSuite(m).run()
+            sage: M = ModularFormsRing(1)
+            sage: TestSuite(M).run()
+            sage: M15 = ModularFormsRing(Gamma1(5))
+            sage: TestSuite(M15).run()
+            sage: M013 = ModularFormsRing(Gamma0(13))
+            sage: TestSuite(M013).run()
+            sage: m = ModularFormsRing(Gamma1(3), base_ring=GF(5))
+            sage: TestSuite(m).run()
         """
         forms_dictionary = {}
         if isinstance(forms_datas, dict):
@@ -3138,7 +3160,7 @@ class GradedModularFormElement(ModuleElement):
                 else:
                     forms_dictionary[ZZ(0)] = parent.base_ring().coerce(f)
         else:
-            raise ValueError('the defining data structure should be a list or a dictionary')
+            raise TypeError('the defining data structure should be a list or a dictionary')
         self._forms_dictionary = {k:f for k,f in forms_dictionary.items() if not f.is_zero()} #remove the zero values
         Element.__init__(self, parent)
 
@@ -3175,7 +3197,7 @@ class GradedModularFormElement(ModuleElement):
             False
         """
         return not self
-    
+
     def is_one(self):
         r"""
         Return "True" if the graded form is 1 and "False" otherwise
@@ -3295,7 +3317,7 @@ class GradedModularFormElement(ModuleElement):
         Evaluate the q-expansion of this graded modular form at x.
 
         EXAMPLES::
-        
+
             sage: M = ModularFormsRing(1)
             sage: f4 = ModularForms(1, 4).0; f6 = ModularForms(1, 6).0; f8 = ModularForms(1, 8).0
             sage: F = M(f4) + M(f6) + M(f8); F # indirect doctest
@@ -3308,7 +3330,7 @@ class GradedModularFormElement(ModuleElement):
             113/19
         """
         return self.q_expansion(prec)(x)
-    
+
     def _add_(self, other):
         r"""
         Addition of two ``GradedModularFormElement``.
@@ -3372,7 +3394,7 @@ class GradedModularFormElement(ModuleElement):
             sage: f4 = ModularForms(1, 4).0; f6 = ModularForms(1, 6).0;
             sage: F4 = M(f4); F6 = M(f6);
             sage: F4*F6 # indirect doctest
-            1 - 264*q - 135432*q^2 - 5196576*q^3 - 69341448*q^4 - 515625264*q^5 + O(q^6) 
+            1 - 264*q - 135432*q^2 - 5196576*q^3 - 69341448*q^4 - 515625264*q^5 + O(q^6)
         """
         GM = self.__class__
         f_self = self._forms_dictionary

@@ -169,7 +169,7 @@ def basis_for_modform_space(*args):
 
 @richcmp_method
 class ModularFormsRing(Parent):
-    
+
     Element = GradedModularFormElement
 
     def __init__(self, group, base_ring=QQ):
@@ -387,7 +387,7 @@ class ModularFormsRing(Parent):
         elif forms_datas in self.base_ring():
             forms_dictionary = {0:forms_datas}
         else:
-            raise ValueError('the defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary')
+            raise TypeError('the defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary')
         return self.element_class(self, forms_dictionary)
 
     def zero(self):

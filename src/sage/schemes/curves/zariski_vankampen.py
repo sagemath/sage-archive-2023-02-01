@@ -50,7 +50,7 @@ from sage.rings.complex_mpfr import ComplexField
 from sage.rings.real_mpfr import RealField
 from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.combinat.permutation import Permutation
-from sage.combinat.subset import Subsets
+import itertools
 from sage.geometry.voronoi_diagram import VoronoiDiagram
 from sage.graphs.graph import Graph
 from sage.misc.cachefunc import cached_function
@@ -480,7 +480,7 @@ def roots_interval(f, x0):
         IF = ComplexIntervalField(prec)
         CF = ComplexField(prec)
         divisor = 4
-        diam = min([(CF(r)-CF(r0)).abs() for r0 in roots[:i]+roots[i+1:]])/divisor
+        diam = min((CF(r)-CF(r0)).abs() for r0 in roots[:i]+roots[i+1:]) / divisor
         envelop = IF(diam)*IF((-1, 1), (-1, 1))
         while not newton(fx, r, r+envelop) in r+envelop:
             prec += 53
@@ -518,9 +518,9 @@ def roots_interval_cached(f, x0):
 
     """
     global roots_interval_cache
-    if (f, x0) in roots_interval_cache.keys():
+    try:
         return roots_interval_cache[(f, x0)]
-    else:
+    except KeyError:
         result = roots_interval(f, x0)
         roots_interval_cache[(f, x0)] = result
         return result
@@ -586,8 +586,9 @@ def braid_in_segment(g, x0, x1):
         y0s += list(y0sf)
         precision[f] = 53
         while True:
-            intervals[f] = [r.interval(ComplexIntervalField(precision[f])) for r in y0sf]
-            if not any([a.overlaps(b) for a, b in Subsets(intervals[f], 2)]):
+            CIFp = ComplexIntervalField(precision[f])
+            intervals[f] = [r.interval(CIFp) for r in y0sf]
+            if not any(a.overlaps(b) for a, b in itertools.combinations(intervals[f], 2)):
                 break
             precision[f] *= 2
     strands = [followstrand(f[0], [p[0] for p in g if p[0] != f[0]], x0, x1, i.center(), precision[f[0]]) for f in g for i in intervals[f[0]]]

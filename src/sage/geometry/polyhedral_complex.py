@@ -114,9 +114,7 @@ from sage.topology.cell_complex import GenericCellComplex
 from sage.geometry.polyhedron.constructor import Polyhedron
 from sage.geometry.polyhedron.base import is_Polyhedron
 from sage.modules.free_module_element import vector
-from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import ZZ
-from sage.rings.rational_field import QQ
 from sage.graphs.graph import Graph
 from sage.combinat.posets.posets import Poset
 from sage.misc.misc import powerset
@@ -323,7 +321,7 @@ class PolyhedralComplex(GenericCellComplex):
         self._face_poset = None
 
         if maximality_check:
-            cells = self.cells()    # compute self._cells and self._face_poset
+            self.cells()    # compute self._cells and self._face_poset
             self._maximal_cells = cells_list_to_cells_dict(
                                       self._face_poset.maximal_elements())
         if face_to_face_check:
@@ -964,7 +962,7 @@ class PolyhedralComplex(GenericCellComplex):
             Finite poset containing 9 elements
         """
         if self._face_poset is None:
-            cells = self.cells()    # poset is obtained and cached in cells()
+            self.cells()    # poset is obtained and cached in cells()
         return self._face_poset
 
     def is_subcomplex(self, other):

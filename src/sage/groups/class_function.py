@@ -104,6 +104,11 @@ class ClassFunction_gap(SageObject):
         sage: loads(dumps(chi)) == chi
         True
     """
+
+    def __hash__(self):
+
+        return hash(self.__repr__())
+
     def __init__(self, G, values):
         r"""
         Return the character of the group ``G`` with values given by the list

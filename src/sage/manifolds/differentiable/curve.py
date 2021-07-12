@@ -101,7 +101,7 @@ class DifferentiableCurve(DiffMap):
 
         M = Manifold(2, 'M')
         X = M.chart('x y')
-        t = RealLine().canonical_coordinate()
+        t = manifolds.RealLine().canonical_coordinate()
         c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
         g = c.plot(aspect_ratio=1)
         sphinx_plot(g)
@@ -212,7 +212,7 @@ class DifferentiableCurve(DiffMap):
 
         M = Manifold(2, 'M')
         X = M.chart('x y')
-        t = RealLine().canonical_coordinate()
+        t = manifolds.RealLine().canonical_coordinate()
         c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
         v = c.tangent_vector_field()
         g = c.plot(thickness=2, aspect_ratio=1) + v.plot(chart=X, number_values=17, scale=0.5)
@@ -772,7 +772,7 @@ class DifferentiableCurve(DiffMap):
 
             R2 = Manifold(2, 'R^2')
             X = R2.chart('x y')
-            t = RealLine().canonical_coordinate()
+            t = manifolds.RealLine().canonical_coordinate()
             c = R2.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
             g = c.plot()
             sphinx_plot(g)
@@ -786,7 +786,7 @@ class DifferentiableCurve(DiffMap):
 
             R2 = Manifold(2, 'R^2')
             X = R2.chart('x y')
-            t = RealLine().canonical_coordinate()
+            t = manifolds.RealLine().canonical_coordinate()
             c = R2.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
             g = c.plot(prange=(0,pi))
             sphinx_plot(g)
@@ -800,7 +800,7 @@ class DifferentiableCurve(DiffMap):
 
             R2 = Manifold(2, 'R^2')
             X = R2.chart('x y')
-            t = RealLine().canonical_coordinate()
+            t = manifolds.RealLine().canonical_coordinate()
             c = R2.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
             g = c.plot(color='green', style=':', thickness=3, aspect_ratio=1)
             sphinx_plot(g)
@@ -834,7 +834,7 @@ class DifferentiableCurve(DiffMap):
             X3 = R3.chart('x y z')
             F = S2.diff_map(R3, {(XS, X3): [sin(th)*cos(ph), sin(th)*sin(ph),
                                             cos(th)]}, name='F')
-            t = RealLine().canonical_coordinate()
+            t = manifolds.RealLine().canonical_coordinate()
             c = S2.curve([2*atan(exp(-t/10)), t], (t, -oo, +oo), name='c')
             graph_c = c.plot(mapping=F, max_range=40, plot_points=200,
                              thickness=2, label_axes=False)
@@ -857,7 +857,7 @@ class DifferentiableCurve(DiffMap):
 
             R2 = Manifold(2, 'R^2')
             X = R2.chart('x y')
-            t = RealLine().canonical_coordinate()
+            t = manifolds.RealLine().canonical_coordinate()
             a, b = var('a b')
             c = R2.curve([a*cos(t) + b, a*sin(t)], (t, 0, 2*pi), name='c')
             g = c.plot(parameters={a: 2, b: -3}, aspect_ratio=1)

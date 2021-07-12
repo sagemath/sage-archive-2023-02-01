@@ -762,15 +762,23 @@ class ConvexSet_base(SageObject):
         return self.linear_transformation(linear_transf)
 
     @abstract_method(optional=True)
-    def linear_transformation(self, linear_transf, **kwds):
+    def linear_transformation(self, linear_transf):
         """
         Return the linear transformation of ``self``.
 
         INPUT:
 
         - ``linear_transf`` -- a matrix
-        - ``**kwds`` -- passed to the :meth:`linear_transformation` method of
-          the closure of ``self``.
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: T = matrix.identity(3)
+            sage: C.linear_transformation(T)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
         """
 
     @abstract_method(optional=True)
@@ -782,6 +790,16 @@ class ConvexSet_base(SageObject):
 
         - ``displacement`` -- a displacement vector or a list/tuple of
           coordinates that determines a displacement vector
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: t = vector([1, 2, 3])
+            sage: C.translation(t)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
         """
 
 

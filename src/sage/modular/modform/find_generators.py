@@ -35,6 +35,7 @@ from sage.rings.polynomial.multi_polynomial import MPolynomial
 from sage.rings.polynomial.polynomial_element import Polynomial
 #from sage.symbolic.expression import Expression
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.term_order import TermOrder
 
 from sage.structure.parent import Parent
 from sage.structure.element import Element
@@ -320,29 +321,46 @@ class ModularFormsRing(Parent):
         """
         return len(self.gen_forms())
 
-    def _polynomial_ring(self, names, gens):
+    def polynomial_ring(self, names, gens=None):
         r"""
         Return the polynomial ring of which ``self`` is a quotient.
 
         INPUT:
 
         - ``names`` -- a list or tuple of names (strings), or a comma separated string
-        - ``gens`` -- (list) a list of generator of ``self``.
+        - ``gens`` (default: None) -- (list) a list of generator of ``self``. If ``gens`` is
+          ``None`` then the generators returned by :meth:`~sage.modular.modform.find_generator.ModularFormsRing.gen_forms`
+          is used instead.
 
-        OUTPUT: A polynomial ring.
+        OUTPUT: A multivariate polynomial ring in the variable ``names``. Each variable of the
+        polynomial ring correspond to a generator given in gens (following the ordering of the list).
 
-        TESTS::
+        EXAMPLES::
 
             sage: M = ModularFormsRing(1)
             sage: gens = M.gen_forms()
-            sage: M._polynomial_ring('E4, E6', gens)
+            sage: M.polynomial_ring('E4, E6', gens)
             Multivariate Polynomial Ring in E4, E6 over Rational Field
             sage: M = ModularFormsRing(Gamma0(8))
             sage: gens = M.gen_forms()
-            sage: M._polynomial_ring('g', gens)
+            sage: M.polynomial_ring('g', gens)
             Multivariate Polynomial Ring in g0, g1, g2 over Rational Field
+
+        The degrees of the variables are the weights of the corresponding forms::
+
+            sage: M = ModularFormsRing(1)
+            sage: P.<E4, E6> = M.polynomial_ring()
+            sage: E4.degree()
+            4
+            sage: E6.degree()
+            6
+            sage: (E4*E6).degree()
+            10
         """
-        return PolynomialRing(self.base_ring(), len(gens), names)
+        if gens is None:
+            gens = self.gen_forms()
+        degs = [f.weight() for f in gens]
+        return PolynomialRing(self.base_ring(), len(gens), names, order=TermOrder('wdeglex', degs)) # Should we remove the deg lexicographic ordering here?
 
     def _weights_of_generators(self, gens):
         r"""

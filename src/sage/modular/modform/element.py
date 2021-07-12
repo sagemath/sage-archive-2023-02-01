@@ -3559,7 +3559,7 @@ class GradedModularFormElement(ModuleElement):
         """
         M = self.parent()
         k = self.weight() #only if self is homogeneous
-        poly_parent = M._polynomial_ring(names, gens)
+        poly_parent = M.polynomial_ring(names, gens)
         monomials = M._monomials_of_weight(k, gens, poly_parent)
 
         # initialize the matrix of coefficients
@@ -3601,7 +3601,7 @@ class GradedModularFormElement(ModuleElement):
 
             sage: M = ModularFormsRing(1)
             sage: (M.0 + M.1).to_polynomial()
-            x0 + x1
+            x1 + x0
             sage: (M.0^10 + M.0 * M.1).to_polynomial()
             x0^10 + x0*x1
 

@@ -1986,7 +1986,28 @@ def conjugating_set_initializer(f, g):
 
         # if no more preimages can be found, the algorithm fails
         if found_no_more:
-            raise ValueError('no more rational preimages. try extending the base field and trying again.')
+            all_points = []
+            for r in sorted(repeated_mult_L.keys()):
+                for point_lst in repeated_mult_L[r]:
+                    all_points += point_lst
+            for subset in Subsets(range(len(all_points)), n+2):
+                source = []
+                for i in subset:
+                    source.append(all_points[i])
+                if P.is_linearly_independent(source, n+1):
+                    more = False
+                    corresponding = []
+                    mult_only = []
+                    for i in subset:
+                        mult = point_to_mult_L[all_points[i]]
+                        if mult in mult_only:
+                            corresponding[mult_only.index(mult)][1] += 1
+                        else:
+                            corresponding.append([mult, 1])
+                            mult_only.append(mult)
+                    break
+            if more:
+                raise ValueError('no more rational preimages. try extending the base field and trying again.')
 
         # if we need to add more preimages, we update loop dictionaries
         if more:

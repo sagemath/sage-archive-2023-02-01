@@ -6513,7 +6513,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: m = matrix(K, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
-            sage: sorted(f.conjugating_set(g)) # long time
+            sage: sorted(f.conjugating_set(g))
             [
             [-1 -1]  [1 1]
             [ 2  1], [2 1]
@@ -6524,7 +6524,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: K.<i> = QuadraticField(-1)
             sage: P.<x,y> = ProjectiveSpace(K,1)
             sage: D8 = DynamicalSystem_projective([y^3, x^3])
-            sage: sorted(D8.conjugating_set(D8)) # long time
+            sage: sorted(D8.conjugating_set(D8))
             [
             [-1  0]  [-i  0]  [ 0 -1]  [ 0 -i]  [0 i]  [0 1]  [i 0]  [1 0]
             [ 0  1], [ 0  1], [ 1  0], [ 1  0], [1 0], [1 0], [0 1], [0 1]
@@ -6746,7 +6746,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([x^2 + x*y,y^2])
             sage: m = matrix(QQbar, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
-            sage: f.is_conjugate(g) # long time
+            sage: f.is_conjugate(g)
             True
 
         ::
@@ -6814,7 +6814,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: f = DynamicalSystem_projective([2*x^2 + 12*y*x, 11*y*x+2*y^2, x^2+z^2])
             sage: m1 = matrix(QQ, 3, 3, [1,4,1,0,2,1,1,1,1])
             sage: g = f.conjugate(m1)
-            sage: f.is_conjugate(g) # long time
+            sage: f.is_conjugate(g)
             True
 
         TESTS:

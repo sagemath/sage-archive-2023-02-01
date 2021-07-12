@@ -773,6 +773,28 @@ class PolyhedronFace(ConvexSet_closed):
         Vrep = (self.vertices(), self.rays(), self.lines())
         return P.__class__(parent, Vrep, None)
 
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self``.
+
+        If ``self`` is empty, no points are generated; no exception will be raised.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cross_polytope(3);  P
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 6 vertices
+            sage: face = P.faces(2)[3]
+            sage: face
+            A 2-dimensional face of a Polyhedron in ZZ^3 defined as the convex hull of 3 vertices
+            sage: face.as_polyhedron().vertices()
+            (A vertex at (0, -1, 0), A vertex at (0, 0, -1), A vertex at (1, 0, 0))
+            sage: face.an_element()              # indirect doctest
+            (1/3, -1/3, -1/3)
+            sage: face.some_elements()           # indirect doctest
+            [(1/3, -1/3, -1/3), (0, -1, 0), (0, -1/2, -1/2), (1/2, -1/4, -1/4)]
+        """
+        yield from self.as_polyhedron().some_elements()
+
     def contains(self, point):
         """
         Test whether the polyhedron contains the given ``point``.

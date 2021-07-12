@@ -2006,6 +2006,27 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             result += " face of %s" % self.ambient()
         return result
 
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self``.
+
+        EXAMPLE::
+
+            sage: K = cones.nonnegative_orthant(3)
+            sage: K.some_elements()  # indirect doctest
+            [(0, 0, 0), (1/2, 0, 0), (1/4, 1/2, 0), (1/8, 1/4, 1/2)]
+        """
+        V = self.ambient_vector_space()
+        r_iter = iter(self._rays)
+        p = V(0)
+        yield p
+        for i in range(5):
+            try:
+                p = (p + next(r_iter)) / 2
+            except StopIteration:
+                return
+            yield p
+
     def _sort_faces(self,  faces):
         r"""
         Return sorted (if necessary) ``faces`` as a tuple.

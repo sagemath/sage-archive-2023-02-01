@@ -6466,9 +6466,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         ALGORITHM:
 
         Implementing invariant set algorithm from the paper [FMV2014]_.
-        Given that the set of  `n` th preimages of fixed points is
-        invariant under conjugation find all elements of PGL that
-        take one set to another.
+        Uses the set of  `n` th preimages of fixed points, as this set is
+        invariant under conjugation to find all elements of PGL that
+        take one set to another. Additionally, keeps track of multiplier
+        information to reduce the necessary combinatorics.
 
         INPUT:
 
@@ -6552,7 +6553,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: f = DynamicalSystem_projective([x^2 + x*z, y^2, z^2])
-            sage: f.conjugating_set(f) # long time
+            sage: f.conjugating_set(f)
             [
             [1 0 0]
             [0 1 0]
@@ -6706,8 +6707,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         ALGORITHM:
 
         Implementing invariant set algorithm from the paper [FMV2014]_.
-        Given that the set of `n` th preimages is invariant under
-        conjugation this function finds whether two maps are conjugate.
+        Uses the set of  `n` th preimages of fixed points, as this set is
+        invariant under conjugation to find all elements of PGL that
+        take one set to another. Additionally, keeps track of multiplier
+        information to reduce the necessary combinatorics.
 
         INPUT:
 
@@ -6784,7 +6787,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([-3*y^2, 3*x^2])
             sage: g = DynamicalSystem_projective([-x^2 - 2*x*y, 2*x*y + y^2])
-            sage: f.is_conjugate(g), f.is_conjugate(g, R=QQbar) # long time
+            sage: f.is_conjugate(g), f.is_conjugate(g, R=QQbar)
             (False, True)
 
         ::
@@ -7740,9 +7743,12 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         Return the subgroup of `PGL2` that is the automorphism group of this
         dynamical system.
 
-        Only for dimension 1. The automorphism group is the set of `PGL2`
-        elements that fixed the map under conjugation. See [FMV2014]_
-        for the algorithm.
+        The automorphism group is the set of `PGL2` elements that fixed the map under conjugation.
+
+        For dimension 1, see [FMV2014]_ for the algorithm.
+
+        For dimension greater than 1, we compute the conjugating set of this
+        dynamical system with itself.
 
         INPUT:
 

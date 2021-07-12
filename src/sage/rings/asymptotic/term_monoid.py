@@ -4195,11 +4195,8 @@ class BTerm(TermWithCoefficient):
             ArithmeticError: BTerm with coefficient 5, growth x and valid for x >= 20
             cannot absorb BTerm with coefficient 4, growth x^3 and valid for x >= 10
         """
-        if self.growth._lt_(other.growth):
+        if self.growth < other.growth:
             raise ArithmeticError(f'{self} cannot absorb {other}')
-        else:
-            coeff_max = self.coefficient
-            coeff_min = other.coefficient
 
         valid_from_new = dict()
         union = {**self.valid_from, **other.valid_from}
@@ -4211,9 +4208,8 @@ class BTerm(TermWithCoefficient):
             elif variable_name in other.valid_from:
                 valid_from_new[variable_name] = (other.valid_from[variable_name])
         q = self.growth / other.growth
-        coeff_new = coeff_max + (coeff_min / q._find_minimum_(valid_from_new))
-        growth_new = max(self.growth, other.growth)
-        return self.parent()(growth_new, coeff_new, valid_from=valid_from_new)
+        coeff_new = self.coefficient + (other.coefficient / q._find_minimum_(valid_from_new))
+        return self.parent()(self.growth, coeff_new, valid_from=valid_from_new)
 
 
 class BTermMonoid(TermWithCoefficientMonoid):

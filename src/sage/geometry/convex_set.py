@@ -736,7 +736,6 @@ class ConvexSet_base(SageObject):
             TypeError: 'NotImplementedType' object is not callable
         """
 
-    @abstract_method(optional=True)
     def dilation(self, scalar):
         """
         Return the dilated (uniformly stretched) set.
@@ -744,7 +743,23 @@ class ConvexSet_base(SageObject):
         INPUT:
 
         - ``scalar`` -- A scalar, not necessarily in :meth:`base_ring`
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_compact
+            sage: class GlorifiedPoint(ConvexSet_compact):
+            ....:     def __init__(self, p):
+            ....:         self._p = p
+            ....:     def ambient_vector_space(self):
+            ....:         return self._p.parent().vector_space()
+            ....:     def linear_transformation(self, linear_transf):
+            ....:         return GlorifiedPoint(linear_transf * self._p)
+            sage: P = GlorifiedPoint(vector([2, 3]))
+            sage: P.dilation(10)._p
+            (20, 30)
         """
+        linear_transf = scalar * matrix.identity(self.ambient_dim())
+        return self.linear_transformation(linear_transf)
 
     @abstract_method(optional=True)
     def linear_transformation(self, linear_transf, **kwds):

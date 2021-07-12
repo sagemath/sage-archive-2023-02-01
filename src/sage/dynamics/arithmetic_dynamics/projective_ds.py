@@ -4090,7 +4090,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             F_2 = f.nth_iterate_map(m)
             L = [F_1[i]*F_2[j] - F_1[j]*F_2[i] for i in range(N)
                     for j in range(i+1, N)]
-            X = PS.subscheme(L)
+            X = PS.subscheme(L + list(dom.defining_polynomials()))
             if formal:
                 d = f.degree()
                 # we need a model with no preperiodic points at infinity

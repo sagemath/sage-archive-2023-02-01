@@ -8,6 +8,8 @@ AUTHORS:
   Xander Faber, Michelle Manes, and Bianca Viray [FMV]_.
 
 - Joao de Faria, Ben Hutz, Bianca Thompson (11-2013): adaptation for inclusion in Sage
+
+- Alexander Galarraga (7-2021): Added helper functions for conjugating set
 """
 
 #*****************************************************************************
@@ -19,10 +21,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from copy import copy
+from copy import copy, deepcopy
 from sage.combinat.subset import Subsets
 from sage.functions.all import sqrt
-from itertools import permutations, combinations
+from itertools import permutations, combinations, product
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.misc.misc_c import prod
@@ -34,6 +36,10 @@ from sage.arith.all import gcd, lcm, CRT, is_square, divisors
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.rational_field import QQ
 from sage.sets.primes import Primes
+from sage.sets.set import Set
+from sage.combinat.permutation import Arrangements
+from sage.parallel.use_fork import p_iter_fork
+from sage.functions.other import floor
 
 def automorphism_group_QQ_fixedpoints(rational_function, return_functions=False, iso_type=False):
     r"""
@@ -1783,3 +1789,476 @@ def which_group(list_of_elements):
         return ['S_4']
     else:
         return ['A_5']
+
+def conjugating_set_initializer(f, g):
+    """
+    Return a conjugation invariant set together with information
+    to reduce the combinatorics of checking all possible conjugations.
+
+    Do not call this function directly, instead use ``f.conjugating_set(g)``.
+
+    INPUT:
+
+    - ``f`` -- a rational function of degree at least 2, and the same
+      degree as ``g``
+
+    - ``g`` -- a nonconstant rational function of the same
+      degree as ``f``
+
+    OUTPUT:
+
+    A tuple of the form (``source``, ``possible_targets``).
+
+    - ``source`` -- a conjugation invariant set, used to specify PGL elements which conjugate `f` to `g`.
+      a list of `n+2` points of the domain of `f`, of which no `n+1` are linearly dependent.
+      Used to specify a possible conjugation from `f` to `g`.
+
+    - ``possible_targets`` -- a list of tuples of the form (``points``, ``repeated``). ``points``
+      is a list of ``points`` which are possible targets for point(s) in ``source``. ``repeated``
+      specifies how many points in ``source`` have points in ``points`` as their possible target.
+
+    """
+    n = f.domain().dimension_relative()
+
+    L = Set(f.periodic_points(1))
+    K = Set(g.periodic_points(1))
+    P = f.codomain().ambient_space()
+    if len(L) != len(K):  # checks maps have the same number of fixed points
+        return []
+
+    # we store fixed points an multipliers in dictionaries
+    # to avoid recalculating them
+    mult_to_point_L = {}
+    mult_to_point_K = {}
+    point_to_mult_L = {}
+    point_to_mult_K = {}
+
+    # as we will calculate preimages, we differentiate points by their 'level'
+    # which is how many preimages of a fixed point they are, i.e. a fixed point
+    # has level 0, a preimage of a fixed point level 1, etc.
+    level = 0
+
+    # initializing the dictionaries
+    for i in range(len(L)):
+        mult_L = f.multiplier(L[i], 1).charpoly()
+        mult_K = g.multiplier(K[i], 1).charpoly()
+        tup_L = (mult_L, level)
+        tup_K = (mult_K, level)
+        if tup_L not in mult_to_point_L:
+            mult_to_point_L[tup_L] = [L[i]]
+        else:
+            mult_to_point_L[tup_L] += [L[i]]
+        if tup_K not in mult_to_point_K:
+            mult_to_point_K[tup_K] = [K[i]]
+        else:
+            mult_to_point_K[tup_K] += [K[i]]
+        point_to_mult_L[L[i]] = (mult_L, level)
+        point_to_mult_K[K[i]] = (mult_K, level)
+
+    # we keep a dictionary which tracks how often a (multiplier, level) pair
+    # is repeated. As points can only be sent to points with the same (multiplier, level)
+    # pair, the less times a (multiplier, level) pair are repeated the better the
+    # combinatorics
+    repeated_mult_L = {}
+    for mult_L in mult_to_point_L:
+        repeated = len(mult_to_point_L[mult_L])
+        if mult_L not in mult_to_point_K:
+            return []
+        elif len(mult_to_point_K[mult_L]) != repeated:
+            return []
+        if repeated not in repeated_mult_L:
+            repeated_mult_L[repeated] = [mult_to_point_L[mult_L]]
+        else:
+            repeated_mult_L[repeated] += [mult_to_point_L[mult_L]]
+    r = f.domain().base_ring()
+    more = True
+
+    # the n+2 points to be used to specificy PGL conjugations
+    source = []
+
+    # a list of tuples of the form ((multiplier, level), repeat) where the
+    # (multiplier, level) pair specifies the possible targets of a point in source and repeat
+    # specifies how many points in source have that (multiplier, level) pair
+    corresponding = []
+
+    # we look for a set of n+2 points, of which no n+1 are linearly dependent,
+    # and we make sure to add the points with the best combinatorics first
+    for r in sorted(repeated_mult_L.keys()):
+        for point_lst in repeated_mult_L[r]:
+            for point in point_lst:
+                if P.is_linearly_independent(source + [point], n+1):
+                    source.append(point)
+                    mult = point_to_mult_L[point]
+                    # if another point with this multiplier and level pair is in S
+                    # then the multiplier level pair will be the last element of corresponding
+                    if len(corresponding) != 0:
+                        if corresponding[-1][0] == mult:
+                            corresponding[-1][1] += 1
+                        else:
+                            corresponding.append([mult, 1])
+                    else:
+                        corresponding.append([mult, 1])
+                if len(source) == n+2:
+                    more = False
+                    break
+            if len(source) == n+2:
+                break
+        if len(source) == n+2:
+            break
+
+    # we keep 3 dictionaries to allow looping over a dictionary
+    i_repeated_mult = deepcopy(repeated_mult_L) # loop dictionary
+    a_repeated_mult = {} # loop dictionary for next iteration of loop (if necessary)
+    found_no_more = True
+
+    # if we don't find enough points, we go to preimages
+    while more:
+        level += 1
+        # we calculate preimages, starting with preimages with the best
+        # expected combinatorics
+        for r in sorted(i_repeated_mult.keys()):
+            for point_lst_L in i_repeated_mult[r]:
+                old_tup_L = point_to_mult_L[point_lst_L[0]]
+                point_lst_K = mult_to_point_K[old_tup_L]
+                mult_L = old_tup_L[0]
+                Tl = []
+                Tk = []
+
+                # first we calculate preimages
+                for pnt in point_lst_L:
+                    for preimage in f.rational_preimages(pnt):
+                        if preimage != pnt:
+                            Tl.append(preimage)
+                for pnt in point_lst_K:
+                    for preimage in g.rational_preimages(pnt):
+                        if preimage != pnt:
+                            Tk.append(preimage)
+                if len(Tl) != len(Tk):
+                    return []
+                if len(Tl) != 0:
+                    found_no_more = False
+                    new_tup_L = (mult_L, level)
+                    new_tup_K = (mult_L, level)
+
+                    # we update dictionaries with the new preimages
+                    mult_to_point_L[new_tup_L] = Tl
+                    mult_to_point_K[new_tup_K] = Tk
+                    for i in range(len(Tl)):
+                        point_to_mult_L[Tl[i]] = new_tup_L
+                        point_to_mult_K[Tk[i]] = new_tup_K
+                    repeated = len(Tl)
+                    if repeated not in repeated_mult_L:
+                        repeated_mult_L[repeated] = [Tl]
+                    else:
+                        repeated_mult_L[repeated] += [Tl]
+                    if repeated not in a_repeated_mult:
+                        a_repeated_mult[repeated] = [Tl]
+                    else:
+                        a_repeated_mult[repeated] += [Tl]
+                    source = []
+                    corresponding = []
+                    for r in sorted(repeated_mult_L.keys()):
+                        for point_lst in repeated_mult_L[r]:
+                            for point in point_lst:
+                                if P.is_linearly_independent(source + [point], n+1):
+                                    source.append(point)
+                                    mult = point_to_mult_L[point]
+                                    # if another point with this multiplier and level pair is in S
+                                    # then the multiplier level pair will be the last element of corresponding
+                                    if len(corresponding) != 0:
+                                        if corresponding[-1][0] == mult:
+                                            corresponding[-1][1] += 1
+                                        else:
+                                            corresponding.append([mult, 1])
+                                    else:
+                                        corresponding.append([mult, 1])
+                                if len(source) == n+2:
+                                    more = False
+                                    break
+                            if len(source) == n+2:
+                                break
+                        if len(source) == n+2:
+                            break
+                if not more:
+                    break
+            if not more:
+                break
+
+        # if no more preimages can be found, the algorithm fails
+        if found_no_more:
+            raise ValueError('no more rational preimages. try extending the base field and trying again.')
+
+        # if we need to add more preimages, we update loop dictionaries
+        if more:
+            i_repeated_mult = deepcopy(a_repeated_mult)
+            a_repeated_mult = {}
+            found_no_more = True
+
+    # we build a list of iterators in order to loop over the product of those iterators
+    possible_targets = []
+    for tup in corresponding:
+        possible_targets.append([mult_to_point_K[tup[0]], tup[1]])
+    return source, possible_targets
+
+def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
+    r"""
+    Return the set of elements in PGL over the base ring
+    that conjugates ``f`` to ``g``.
+
+    Do not call this function directly, instead do ``f.conjugate_set(g)``.
+
+    INPUT:
+
+    - ``f`` -- a rational function of degree at least 2, and the same
+      degree as ``g``
+
+    - ``g`` -- a rational function of the same
+      degree as ``f``
+
+    - ``num_cpus`` -- the number of threads to run in parallel
+
+    - ``source`` -- a list of `n+2` conjugation invariant points, of which
+      no `n+1` are linearly dependent.
+
+    - ``possible_targets`` -- a list of tuples of the form (``points``, ``repeated``). ``points``
+      is a list of ``points`` which are possible targets for point(s) in ``source``. ``repeated``
+      specifies how many points in ``source`` have points in ``points`` as their possible target.
+
+    OUTPUT:
+
+    a list of elements of PGL which conjugate ``f`` to ``g``.
+    """
+    Conj = []
+    P = f.domain().ambient_space()
+    n = f.domain().dimension_relative()
+
+    subset_iterators = []
+
+    for lst in possible_targets:
+        subset_iterators.append(Subsets(range(len(lst[0])), lst[1]))
+
+    # helper function for parallelization
+    # given a list of tuples which specify indicies of possible target points
+    # in possible_targets, check all arragements of those possible target points
+    # and if any of them define a conjugation which sends f to g, return
+    # those conjugations as a list
+    def find_conjugations_subset(tuples):
+        conj = []
+        for tup in tuples:
+            target_set = []
+            for i in range(len(tup)):
+                for j in tup[i]:
+                    target_set.append(possible_targets[i][0][j])
+
+            # if there is a subset of n+1 points which is linearly dependent,
+            # we don't need to check any of these arrangements
+            if P.is_linearly_independent(target_set, n+1):
+                subset_arrangements = []
+                for subset in tup:
+                    subset_arrangements.append(Arrangements(subset, len(subset)))
+                for tup in product(*subset_arrangements):
+                    current_target = []
+                    for i in range(len(tup)):
+                        for j in tup[i]:
+                            current_target.append(possible_targets[i][0][j])
+                    phi = P.point_transformation_matrix(current_target, source)
+                    if f.conjugate(phi) == g:
+                        conj.append(phi)
+        return conj
+
+    # helper function for parallelization
+    # given a list of tuples which specify indicies of possible target points
+    # in possible_targets, check all possible target points
+    # and if any of them define a conjugation which sends f to g, return
+    # those conjugations as a list
+    def find_conjugations_arrangement(tuples):
+        conj = []
+        for tup in tuples:
+            current_target = []
+            for i in range(len(tup)):
+                for j in tup[i]:
+                    current_target.append(possible_targets[i][0][j])
+            phi = P.point_transformation_matrix(current_target, source)
+            if f.conjugate(phi) == g:
+                conj.append(phi)
+        return conj
+
+    if num_cpus > 1:
+        all_subsets = list(product(*subset_iterators))
+        parallel_data = []
+
+        # if there are enough subsets, we can divide up the work based on subsets
+        # and check linear independence in parallel
+        if len(all_subsets) > num_cpus:
+            for i in range(num_cpus):
+                start = floor(len(all_subsets)*i/num_cpus)
+                end = floor(len(all_subsets)*(i+1)/num_cpus)
+                tuples = all_subsets[start:end]
+                parallel_data.append(([tuples], {}))
+
+            X = p_iter_fork(num_cpus)
+            for ret in X(find_conjugations_subset, parallel_data):
+                if ret[1]:
+                    Conj += ret[1]
+        # otherwise, we need to first check linear independence of the subsets
+        # and then build a big list of all the arrangemenets to split among
+        # the threads
+        else:
+            good_targets = []
+            for tup in product(*subset_iterators):
+                target_set = []
+                for i in range(len(tup)):
+                    for j in tup[i]:
+                        target_set.append(possible_targets[i][0][j])
+                if P.is_linearly_independent(target_set, n+1):
+                    good_targets.append(tup)
+            all_arrangements = []
+            for tup in good_targets:
+                subset_arrangements = []
+                for subset in tup:
+                    subset_arrangements.append(Arrangements(subset, len(subset)))
+                all_arrangements += list(product(*subset_arrangements))
+            parallel_data = []
+            for i in range(num_cpus):
+                start = floor(len(all_arrangements)*i/num_cpus)
+                end = floor(len(all_arrangements)*(i+1)/num_cpus)
+                tuples = all_arrangements[start:end]
+                parallel_data.append(([tuples], {}))
+            X = p_iter_fork(num_cpus)
+            for ret in X(find_conjugations_arrangement, parallel_data):
+                if ret[1]:
+                    Conj += ret[1]
+    else:
+        Conj = find_conjugations_subset(product(*subset_iterators))
+    return Conj
+
+def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
+    r"""
+    Return if ``f`` is conjugate to ``g``.
+
+    Do not call this function directly, instead do ``f.is_conjugate(g)``.
+
+    INPUT:
+
+    - ``f`` -- a rational function of degree at least 2, and the same
+      degree as ``g``
+
+    - ``g`` -- a rational function of the same
+      degree as ``f``
+
+    - ``num_cpus`` -- the number of threads to run in parallel
+
+    - ``source`` -- a list of `n+2` conjugation invariant points, of which
+      no `n+1` are linearly dependent.
+
+    - ``possible_targets`` -- a list of tuples of the form (``points``, ``repeated``). ``points``
+      is a list of ``points`` which are possible targets for point(s) in ``source``. ``repeated``
+      specifies how many points in ``source`` have points in ``points`` as their possible target.
+
+    OUTPUT:
+
+    a list of elements of PGL which conjugate ``f`` to ``g``.
+    """
+    is_conj = False
+    P = f.domain().ambient_space()
+    n = f.domain().dimension_relative()
+
+    subset_iterators = []
+
+    for lst in possible_targets:
+        subset_iterators.append(Subsets(range(len(lst[0])), lst[1]))
+
+    # helper function for parallelization
+    # given a list of tuples which specify indicies of possible target points
+    # in possible_targets, check all arragements of those possible target points
+    # and if any of them define a conjugation which sends f to g, return
+    # those conjugations as a list
+    def find_conjugations_subset(tuples):
+        for tup in tuples:
+            target_set = []
+            for i in range(len(tup)):
+                for j in tup[i]:
+                    target_set.append(possible_targets[i][0][j])
+
+            # if there is a subset of n+1 points which is linearly dependent,
+            # we don't need to check any of these arrangements
+            if P.is_linearly_independent(target_set, n+1):
+                subset_arrangements = []
+                for subset in tup:
+                    subset_arrangements.append(Arrangements(subset, len(subset)))
+                for tup in product(*subset_arrangements):
+                    current_target = []
+                    for i in range(len(tup)):
+                        for j in tup[i]:
+                            current_target.append(possible_targets[i][0][j])
+                    phi = P.point_transformation_matrix(current_target, source)
+                    if f.conjugate(phi) == g:
+                        return True
+        return False
+
+    # helper function for parallelization
+    # given a list of tuples which specify indicies of possible target points
+    # in possible_targets, check all possible target points
+    # and if any of them define a conjugation which sends f to g, return
+    # those conjugations as a list
+    def find_conjugations_arrangement(tuples):
+        for tup in tuples:
+            current_target = []
+            for i in range(len(tup)):
+                for j in tup[i]:
+                    current_target.append(possible_targets[i][0][j])
+            phi = P.point_transformation_matrix(current_target, source)
+            if f.conjugate(phi) == g:
+                return True
+        return False
+
+    if num_cpus > 1:
+        all_subsets = list(product(*subset_iterators))
+        parallel_data = []
+
+        # if there are enough subsets, we can divide up the work based on subsets
+        # and check linear independence in parallel
+        if len(all_subsets) > num_cpus:
+            for i in range(num_cpus):
+                start = floor(len(all_subsets)*i/num_cpus)
+                end = floor(len(all_subsets)*(i+1)/num_cpus)
+                tuples = all_subsets[start:end]
+                parallel_data.append(([tuples], {}))
+
+            X = p_iter_fork(num_cpus)
+            for ret in X(find_conjugations_subset, parallel_data):
+                if ret[1]:
+                    is_conj = True
+                    break
+        # otherwise, we need to first check linear independence of the subsets
+        # and then build a big list of all the arrangemenets to split among
+        # the threads
+        else:
+            good_targets = []
+            for tup in product(*subset_iterators):
+                target_set = []
+                for i in range(len(tup)):
+                    for j in tup[i]:
+                        target_set.append(possible_targets[i][0][j])
+                if P.is_linearly_independent(target_set, n+1):
+                    good_targets.append(tup)
+            all_arrangements = []
+            for tup in good_targets:
+                subset_arrangements = []
+                for subset in tup:
+                    subset_arrangements.append(Arrangements(subset, len(subset)))
+                all_arrangements += list(product(*subset_arrangements))
+            parallel_data = []
+            for i in range(num_cpus):
+                start = floor(len(all_arrangements)*i/num_cpus)
+                end = floor(len(all_arrangements)*(i+1)/num_cpus)
+                tuples = all_arrangements[start:end]
+                parallel_data.append(([tuples], {}))
+            X = p_iter_fork(num_cpus)
+            for ret in X(find_conjugations_arrangement, parallel_data):
+                if ret[1]:
+                    is_conj = True
+                    break
+    else:
+        is_conj = find_conjugations_subset(product(*subset_iterators))
+    return is_conj

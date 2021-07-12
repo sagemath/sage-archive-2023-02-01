@@ -5113,7 +5113,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 expected_degree = sum(d**(n*i) for i in range(N+1))
                 if degree_w != expected_degree:
                     raise ValueError('sigma polynomial dropped degree, as multiplicities were not accounted for correctly.'+
-                                    ' try setting chow=True or deform=True')
+                                    ' try setting chow=True and/or deform=True')
             if return_polynomial:
                 return sigma_polynomial
             # if we are returing a numerical list, read off the coefficients

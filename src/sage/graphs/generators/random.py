@@ -603,13 +603,21 @@ def RandomBoundedToleranceGraph(n):
         sage: g = graphs.RandomBoundedToleranceGraph(8)
         sage: g.clique_number() == g.chromatic_number()
         True
+
+    TESTS:
+
+    Check that :trac:`32186` is fixed::
+
+        sage: for _ in range(100): _ = graphs.RandomBoundedToleranceGraph(1)
     """
     from sage.misc.prandom import randint
+    from sage.combinat.combination import Combinations
     from sage.graphs.generators.intersection import ToleranceGraph
 
     W = n ** 2 * 2 ** n
+    C = Combinations(W + 1, 2)
 
-    tolrep = [(l_r[0], l_r[1], randint(0, l_r[1] - l_r[0])) for l_r in [sorted((randint(0, W), randint(0, W))) for i in range(n)]]
+    tolrep = [(l_r[0], l_r[1], randint(1, l_r[1] - l_r[0])) for l_r in [C.random_element() for i in range(n)]]
 
     return ToleranceGraph(tolrep)
 

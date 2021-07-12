@@ -4141,6 +4141,10 @@ class BTerm(TermWithCoefficient):
             True
             sage: t3.can_absorb(t1)
             True
+            sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
+            sage: t4 = ET(x^3, 5)
+            sage: t1.can_absorb(t4)
+            True
 
         TESTS::
 
@@ -4159,7 +4163,7 @@ class BTerm(TermWithCoefficient):
             sage: t3.absorb(t2)
             BTerm with coefficient 15, growth x^3 and valid for x >= 10
         """
-        if not isinstance(other, BTerm):
+        if not isinstance(other, (BTerm, ExactTerm)):
             return False
 
         for variable in self.variable_names():
@@ -4176,7 +4180,7 @@ class BTerm(TermWithCoefficient):
 
         EXAMPLES::
 
-            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
@@ -4194,6 +4198,14 @@ class BTerm(TermWithCoefficient):
             ...
             ArithmeticError: BTerm with coefficient 5, growth x and valid for x >= 20
             cannot absorb BTerm with coefficient 4, growth x^3 and valid for x >= 10
+            sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
+            sage: t4 = ET(x^3, 5)
+            sage: t1.absorb(t4)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for <lambda>: 'BTerm Monoid
+            x^ZZ with coefficients in Rational Field' and 'Exact Term Monoid x^ZZ
+            with coefficients in Rational Field'
         """
         if self.growth < other.growth:
             raise ArithmeticError(f'{self} cannot absorb {other}')

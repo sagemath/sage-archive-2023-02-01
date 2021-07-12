@@ -2196,8 +2196,13 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal):
         Check that the integrality is not lost,  cf. :trac:`30801`::
 
             sage: K.<a> = NumberField(x^2 + x + 1)
-            sage: list(K.ideal(8).invertible_residues())[:5]
-            [1, a - 1, -3*a, -2*a + 3, -a - 1]
+            sage: for k in K.ideal(8).invertible_residues():
+            ....:     assert k.is_unit() and k.is_integral()
+            sage: some_residues = list(K.ideal(8).invertible_residues())[:5]
+            sage: one = [1, a - 1, -3*a, -2*a + 3, -a - 1]
+            sage: other = [1, a + 2, 3*a + 3, -2*a + 3, a]
+            sage: some_residues in (one, other)
+            True
 
         AUTHOR: John Cremona
         """

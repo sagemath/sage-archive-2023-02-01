@@ -669,7 +669,7 @@ class TopologicalManifold(ManifoldSubset):
             sage: p in V
             True
             sage: p.coord()
-            (-pi - 1, 2)
+            (-pi - 1, 0)
 
         """
         from sage.rings.infinity import Infinity
@@ -1429,7 +1429,8 @@ class TopologicalManifold(ManifoldSubset):
         """
         return bool(self._covering_charts)
 
-    def chart(self, coordinates='', names=None, calc_method=None):
+    def chart(self, coordinates='', names=None, calc_method=None,
+              coord_restrictions=None):
         r"""
         Define a chart, the domain of which is the manifold.
 
@@ -1461,6 +1462,8 @@ class TopologicalManifold(ManifoldSubset):
           - ``'sympy'``: SymPy
           - ``None``: the current calculus method defined on the manifold is
             used (cf. :meth:`set_calculus_method`)
+        - ``coord_restrictions``: Additional restrictions on the coordinates.
+          See below.
 
         The coordinates declared in the string ``coordinates`` are
         separated by ``' '`` (whitespace) and each coordinate has at most four
@@ -1492,6 +1495,26 @@ class TopologicalManifold(ManifoldSubset):
         is to be set for any coordinate, the argument ``coordinates`` can be
         omitted when the shortcut operator ``<,>`` is used to declare the
         chart (see examples below).
+
+        Additional restrictions on the coordinates can be set using the
+        argument ``coord_restrictions``.
+
+        A restriction can be any symbolic equality or inequality involving
+        the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+        of the list (or set or frozenset) ``coord_restrictions`` are combined
+        with the ``and`` operator; if some restrictions are to be combined with
+        the ``or`` operator instead, they have to be passed as a tuple in some
+        single item of the list (or set or frozenset) ``coord_restrictions``.
+        For example::
+
+          coord_restrictions=[x > y, (x != 0, y != 0), z^2 < x]
+
+        means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+        If the list ``coord_restrictions`` contains only one item, this
+        item can be passed as such, i.e. writing ``x > y`` instead
+        of the single element list ``[x > y]``.  If the chart variables have
+        not been declared as variables yet, ``coord_restrictions`` must
+        be ``lambda``-quoted.
 
         OUTPUT:
 
@@ -1560,6 +1583,16 @@ class TopologicalManifold(ManifoldSubset):
             sage: latex(P)
             \left(U,(r, {\phi})\right)
 
+        Using ``coord_restrictions``::
+
+            sage: D = Manifold(2, 'D', structure='topological')
+            sage: X.<x,y> = D.chart(coord_restrictions=lambda x,y: [x^2+y^2<1, x>0]); X
+            Chart (D, (x, y))
+            sage: X.valid_coordinates(0, 0)
+            False
+            sage: X.valid_coordinates(1/2, 0)
+            True
+
         See the documentation of classes
         :class:`~sage.manifolds.chart.Chart` and
         :class:`~sage.manifolds.chart.RealChart` for more examples,
@@ -1569,7 +1602,8 @@ class TopologicalManifold(ManifoldSubset):
         if calc_method is None:
             calc_method = self._calculus_method
         return self._structure.chart(self, coordinates=coordinates,
-                                     names=names, calc_method=calc_method)
+                                     names=names, calc_method=calc_method,
+                                     coord_restrictions=coord_restrictions)
 
     def is_open(self):
         """
@@ -1727,7 +1761,7 @@ class TopologicalManifold(ManifoldSubset):
                     # Try the default chart:
                     def_chart = self._def_chart
                     if def_chart is not None:
-                        if def_chart._domain is self:
+                        if def_chart.domain() is self:
                             self._orientation = [self._def_chart]
                     # Still no orientation? Choose arbitrary chart:
                     if not self._orientation:
@@ -1967,7 +2001,7 @@ class TopologicalManifold(ManifoldSubset):
         if isinstance(coord_expression, dict):
             # check validity of entry
             for chart in coord_expression:
-                if not chart._domain.is_subset(self):
+                if not chart.domain().is_subset(self):
                     raise ValueError("the {} is not defined ".format(chart) +
                                      "on some subset of the " + str(self))
         alg = self.scalar_field_algebra()
@@ -2347,8 +2381,8 @@ class TopologicalManifold(ManifoldSubset):
 
             sage: forget()  # for doctests only
             sage: M = Manifold(2, 'M', structure='topological')  # the open unit disk
-            sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord on M
-            sage: c_xy.add_restrictions(x^2+y^2<1)
+            sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)', coord_restrictions=lambda x,y: x^2+y^2<1)
+            ....:    # Cartesian coord on M
             sage: N = Manifold(2, 'N', structure='topological')  # R^2
             sage: c_XY.<X,Y> = N.chart()  # canonical coordinates on R^2
             sage: Phi = M.homeomorphism(N, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],

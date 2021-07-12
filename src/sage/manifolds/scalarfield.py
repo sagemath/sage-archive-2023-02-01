@@ -2042,7 +2042,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         if self.is_immutable():
             raise ValueError("the expressions of an immutable element "
                                  "cannot be changed")
-        if not chart._domain.is_subset(self._domain):
+        if not chart.domain().is_subset(self._domain):
             raise ValueError("the chart is not defined on a subset of " +
                              "the scalar field domain")
         schart = chart.restrict(subdomain)
@@ -2088,7 +2088,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         self._restrictions[rst._domain] = rst.copy(name=self._name,
                                                    latex_name=self._latex_name)
         for chart, expr in rst._express.items():
-            intersection = chart._domain.intersection(rst._domain)
+            intersection = chart.domain().intersection(rst._domain)
             self._express[chart.restrict(intersection)] = expr
         self._is_zero = False  # a priori
 
@@ -2166,13 +2166,13 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             coords = chart[:]
             if len(coords) == 1:
                 coords = coords[0]
-            if chart._domain == self._domain:
+            if chart.domain() == self._domain:
                 if self._name is not None:
                     result._txt += "   "
                 result._latex += " & "
             else:
-                result._txt += "on " + chart._domain._name + ": "
-                result._latex += r"\mbox{on}\ " + latex(chart._domain) \
+                result._txt += "on " + chart.domain()._name + ": "
+                result._latex += r"\mbox{on}\ " + latex(chart.domain()) \
                                  + r": & "
             result._txt += repr(coords) + " " + unicode_mapsto + " " \
                            + repr(expression) + "\n"
@@ -2216,13 +2216,13 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
                     if max_dom is None:
                         try:
                             self.coord_function(sch)
-                            max_dom = sch._domain
+                            max_dom = sch.domain()
                         except (TypeError, ValueError):
                             pass
-                    elif max_dom.is_subset(sch._domain):
+                    elif max_dom.is_subset(sch.domain()):
                         try:
                             self.coord_function(sch)
-                            max_dom = sch._domain
+                            max_dom = sch.domain()
                         except (TypeError, ValueError):
                             pass
                 if max_dom is not None:

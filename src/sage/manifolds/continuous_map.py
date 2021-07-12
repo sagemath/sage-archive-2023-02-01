@@ -837,8 +837,7 @@ class ContinuousMap(Morphism):
             sage: M = Manifold(2, 'M', structure="topological")
             sage: N = Manifold(1, 'N', ambient=M, structure="topological")
             sage: CM.<x,y> = M.chart()
-            sage: CN.<u> = N.chart()
-            sage: CN.add_restrictions([u > -1, u < 1])
+            sage: CN.<u> = N.chart(coord_restrictions=lambda u: [u > -1, u < 1])
             sage: Phi = N.continuous_map(M, {(CN,CM): [u, u^2]}, name='Phi')
             sage: Phi.image()
             Image of the Continuous map Phi

@@ -3088,7 +3088,7 @@ class GradedModularFormElement(ModuleElement):
         - ``parents`` - an object of the class ModularFormsRing
         - ``forms_data`` - a dictionary ``{k_1:f_1, k_2:f_2, ..., k_n:f_n}`` or a list [f_1, f_2,..., f_n]
           where `f_i` is a modular form of weight `k_i`
-        
+
         OUTPUT:
 
         A ``GradedModularFormElement`` corresponding to `f_1 + f_2 + ... f_n`
@@ -3176,7 +3176,7 @@ class GradedModularFormElement(ModuleElement):
             False
         """
         return not self
-    
+
     def is_one(self):
         r"""
         Return "True" if the graded form is 1 and "False" otherwise
@@ -3296,7 +3296,7 @@ class GradedModularFormElement(ModuleElement):
         Evaluate the q-expansion of this graded modular form at x.
 
         EXAMPLES::
-        
+
             sage: M = ModularFormsRing(1)
             sage: f4 = ModularForms(1, 4).0; f6 = ModularForms(1, 6).0; f8 = ModularForms(1, 8).0
             sage: F = M(f4) + M(f6) + M(f8); F # indirect doctest
@@ -3309,7 +3309,7 @@ class GradedModularFormElement(ModuleElement):
             113/19
         """
         return self.q_expansion(prec)(x)
-    
+
     def _add_(self, other):
         r"""
         Addition of two ``GradedModularFormElement``.
@@ -3373,7 +3373,7 @@ class GradedModularFormElement(ModuleElement):
             sage: f4 = ModularForms(1, 4).0; f6 = ModularForms(1, 6).0;
             sage: F4 = M(f4); F6 = M(f6);
             sage: F4*F6 # indirect doctest
-            1 - 264*q - 135432*q^2 - 5196576*q^3 - 69341448*q^4 - 515625264*q^5 + O(q^6) 
+            1 - 264*q - 135432*q^2 - 5196576*q^3 - 69341448*q^4 - 515625264*q^5 + O(q^6)
         """
         GM = self.__class__
         f_self = self._forms_dictionary
@@ -3605,14 +3605,13 @@ class GradedModularFormElement(ModuleElement):
             sage: (M.0^10 + M.0 * M.1).to_polynomial()
             x0^10 + x0*x1
 
-        The returned polynomial is not necessarily unique:
+        This method is not necessarily the inverse of :meth:`~sage.modular.modform.find_generator.ModularFormsRing.from_polynomial`
+        since there may be some relations between the generators of the modular forms ring::
 
-            sage: M = ModularFormsRing(Gamma0(10))
-            sage: f = M.0 + M.1**2 + M.2*M.0
-            sage: p = f.to_polynomial('x, y, z, w, u'); p
-            2*x*z + 5*z^2 + x
-            sage: M.from_polynomial(p) == f
-            True
+            sage: M = ModularFormsRing(Gamma0(6))
+            sage: P.<x0,x1,x2> = M.polynomial_ring()
+            sage: M.from_polynomial(x1^2).to_polynomial()
+            x0*x2 + 2*x1*x2 + 11*x2^2
         """
         M = self.parent()
         if gens is None:
@@ -3620,4 +3619,3 @@ class GradedModularFormElement(ModuleElement):
 
         # sum the polynomial of each homogeneous part
         return sum(M(self[k])._homogeneous_to_polynomial(names, gens) for k in self.weights_list())
-

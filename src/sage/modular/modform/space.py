@@ -1092,8 +1092,6 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             4 + 6*q + 47*q^2 + 143*q^3 + 358*q^4 + 630*q^5 + O(q^6)
         """
         if isinstance(x, ModularFormElement):
-            if x.parent() is self:
-                return x
 
             if not check:
                 from copy import copy

@@ -4047,7 +4047,14 @@ class BTerm(TermWithCoefficient):
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
-            sage: BT_ZZ(x^3, 5, valid_from={'x': 10, 'y': 5})
+            sage: BT_ZZ(x^3, 42, valid_from={'x': 10})
+            BTerm with coefficient 42, growth x^3 and valid for x >= 10
+            sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'y': 20})
+            BTerm with coefficient 42, growth x^3 and valid for x >= 10 and y >= 20
+            sage: BT_ZZ(x^3*y^2, 42, valid_from={'x': 10})
+            Traceback (most recent call last):
+            ValueError: BTerm has not defined all variables which occur in the term in valid_from.
+            sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'z': 20})
             Traceback (most recent call last):
             ...
             ValueError: BTerm has valid_from variables defined which do not occur in the term.
@@ -4066,8 +4073,12 @@ class BTerm(TermWithCoefficient):
         self.valid_from = valid_from
 
         for variable_name in self.valid_from.keys():
-            if variable_name not in growth.variable_names():
+            if variable_name not in parent.growth_group.variable_names():
                 raise ValueError('BTerm has valid_from variables defined which do not occur in the term.')
+
+        for variable_name in growth.variable_names():
+            if variable_name not in self.valid_from:
+                raise ValueError('BTerm has not defined all variables which occur in the term in valid_from.')
 
         super().__init__(parent=parent, growth=growth, coefficient=coefficient)
 

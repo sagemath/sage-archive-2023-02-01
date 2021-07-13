@@ -4166,9 +4166,7 @@ class BTerm(TermWithCoefficient):
         if not isinstance(other, (BTerm, ExactTerm)):
             return False
 
-        for variable in self.variable_names():
-            if variable in self.valid_from.keys():
-                return self.growth >= other.growth
+        return self.growth >= other.growth
 
     def _absorb_(self, other):
         r"""

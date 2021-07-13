@@ -24,6 +24,10 @@ class Parser():
             sage: A = matrix([[1, 2], [3, 2]])
             sage: g = NormalFormGame([A])
             sage: raw_string = g._Hrepresentation(A, -A)
+            doctest:warning...
+            DeprecationWarning: NormalFormGame._Hrepresentation is deprecated as it
+            creates the legacy input format. Use NormalFormGame._lrs_nash_format instead
+            See https://trac.sagemath.org/27745 for details.
             sage: P = Parser(raw_string)
             sage: print(P.raw_string[0])
             H-representation
@@ -127,7 +131,7 @@ class Parser():
         """
         self.raw_string = raw_string
 
-    def format_lrs(self):
+    def format_lrs(self, legacy_format=False):
         """
         Parses the output of lrs so as to return vectors
         corresponding to equilibria.
@@ -140,6 +144,10 @@ class Parser():
             sage: A = matrix([[1, 2], [3, 2]])
             sage: g = NormalFormGame([A])
             sage: game1_str, game2_str = g._Hrepresentation(A, -A)
+            doctest:warning...
+            DeprecationWarning: NormalFormGame._Hrepresentation is deprecated as it
+            creates the legacy input format. Use NormalFormGame._lrs_nash_format instead
+            See https://trac.sagemath.org/27745 for details.
             sage: g1_name = tmp_filename()
             sage: g2_name = tmp_filename()
             sage: g1_file = open(g1_name, 'w')
@@ -148,14 +156,14 @@ class Parser():
             sage: g1_file.close()
             sage: _ = g2_file.write(game2_str)
             sage: g2_file.close()
-            sage: process = Popen(['lrsnash', g1_name, g2_name], stdout=PIPE, stderr=PIPE)  # optional - lrslib
-            sage: lrs_output = [bytes_to_str(row) for row in process.stdout]  # optional - lrslib
+            sage: process = Popen(['lrsnash', g1_name, g2_name], stdout=PIPE, stderr=PIPE)  # not tested, optional - lrslib
+            sage: lrs_output = [bytes_to_str(row) for row in process.stdout]                # not tested, optional - lrslib
 
         The above creates a game, writes the H representation to
         temporary files, calls lrs and stores the output in `lrs_output`
         (here slicing to get rid of some system parameters that get returned)::
 
-            sage: lrs_output[:20]  # optional - lrslib
+            sage: lrs_output[:20]                                                           # not tested, optional - lrslib
             [...,
              '***** 4 4 rational\n',
              '2  0  1  2 \n',
@@ -172,8 +180,8 @@ class Parser():
         The above is pretty messy, here is the output when we put it through
         the parser::
 
-            sage: nasheq = Parser(lrs_output).format_lrs()  # optional - lrslib
-            sage: nasheq  # optional - lrslib
+            sage: nasheq = Parser(lrs_output).format_lrs(legacy_format=True)                # not tested, optional - lrslib
+            sage: nasheq                                                                    # not tested, optional - lrslib
             [[(1/2, 1/2), (0, 1)], [(0, 1), (0, 1)]]
 
         Another game::
@@ -194,9 +202,9 @@ class Parser():
             sage: g1_file.close()
             sage: _ = g2_file.write(game2_str)
             sage: g2_file.close()
-            sage: process = Popen(['lrsnash', g1_name, g2_name], stdout=PIPE, stderr=PIPE)  # optional - lrslib
-            sage: lrs_output = [bytes_to_str(row) for row in process.stdout]  # optional - lrslib
-            sage: print(lrs_output[:25])  # optional - lrslib
+            sage: process = Popen(['lrsnash', g1_name, g2_name], stdout=PIPE, stderr=PIPE)  # not tested, optional - lrslib
+            sage: lrs_output = [bytes_to_str(row) for row in process.stdout]                # not tested, optional - lrslib
+            sage: print(lrs_output[:25])                                                    # not tested, optional - lrslib
             [...,
              '***** 5 5 rational\n',
              '2  1/7  0  6/7  23/7 \n',
@@ -214,8 +222,8 @@ class Parser():
              '*Player 1: vertices=6 bases=7 pivots=10\n',
              ...]
 
-            sage: nasheq = Parser(lrs_output).format_lrs()  # optional - lrslib
-            sage: sorted(nasheq)  # optional - lrslib
+            sage: nasheq = Parser(lrs_output).format_lrs(legacy_format=True)                # not tested, optional - lrslib
+            sage: sorted(nasheq)                                                            # not tested, optional - lrslib
             [[(0, 1, 0), (1, 0, 0)],
              [(1/3, 2/3, 0), (0, 1/6, 5/6)],
              [(1/3, 2/3, 0), (1/7, 0, 6/7)],
@@ -223,10 +231,15 @@ class Parser():
         """
         equilibria = []
         from sage.misc.sage_eval import sage_eval
-        from itertools import groupby
+        from itertools import groupby, dropwhile
         lines = iter(self.raw_string)
-        while not next(lines).startswith("*****"):
-            pass
+        if legacy_format:
+            # Skip until the magic stars announce the beginning of the real output
+            while not next(lines).startswith("*****"):
+                pass
+        else:
+            # Skip comment lines starting with a single star
+            lines = dropwhile(lambda line: line.startswith('*'), lines)
         for collection in [list(x[1]) for x in groupby(lines, lambda x: x == '\n')]:
             if collection[0].startswith('2'):
                 s1 = tuple([sage_eval(k) for k in collection[-1].split()][1:-1])

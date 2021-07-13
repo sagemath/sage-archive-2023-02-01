@@ -276,7 +276,7 @@ class ModularFormsRing(Parent):
         r"""
         Return the `i`-th generator of ``self``.
 
-        INPUT::
+        INPUT:
 
         - ``i`` (Integer) - correspond to the `i`-th modular form generating the ``ModularFormsRing``.
 

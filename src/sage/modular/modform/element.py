@@ -174,11 +174,11 @@ class ModularForm_abstract(ModuleElement):
 
         An alias of this method is ``is_modular_form``.
 
-        ..SEEALSO::
+        .. SEEALSO::
 
         :meth: `sage.modular.modform.element.GradedModularFormElement.is_homogeneous`
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: ModularForms(1,12).0.is_homogeneous()
             True

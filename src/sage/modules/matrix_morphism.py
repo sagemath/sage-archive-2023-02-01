@@ -31,7 +31,7 @@ EXAMPLES::
     (x - 1)^3
     sage: m.matrix()
     [1 0 0]
-    [0 1 0]deco
+    [0 1 0]
     [0 0 1]
     sage: m.rank()
     3

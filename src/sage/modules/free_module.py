@@ -2206,9 +2206,6 @@ done from the right side.""")
         side = kwds.get("side", "left")
         if codomain is None and is_Matrix(im_gens) and side == "right":
             codomain = self.base_ring()**im_gens.nrows()
-        if codomain is not None and not self.base_ring() == codomain.base_ring():
-            from sage.categories.pushout import pushout
-            codomain = pushout(self.base_ring(), codomain)
         return super().hom(im_gens, codomain, **kwds)
 
     def inner_product_matrix(self):

@@ -805,6 +805,7 @@ class LLS(ModuleElement):
         if op is op_EQ:
             if self._aux._constant is None:
                 if other._aux._constant is None:
+                    # Implement the checking of the caches here.
                     n = min(self._aux._approximate_valuation, other._aux._approximate_valuation)
                     m = max(self._aux._approximate_valuation, other._aux._approximate_valuation)
                     for i in range(n, m):
@@ -814,6 +815,7 @@ class LLS(ModuleElement):
                         if self._aux._coefficient_function == other._aux._coefficient_function:
                             return True
                     except AttributeError:
+                        # Checking of the parse tree.
                         return self._aux.__eq__(other._aux)
                     raise ValueError("undecidable as lazy Laurent series")
                 else:
@@ -970,9 +972,18 @@ class LLS_aux():
                         self._approximate_valuation = n
                         return n
                     n += 1
+    
+    # def __eq__(self, other):
+    # Implement for sparse and dense variations separately.
+    #     n = min(self._approximate_valuation, other._approximate_valuation)
+    #     m = max(self._approximate_valuation, other._approximate_valuation)
+    #     for i in range(n, m):
+    #         if self[i] != other[i]:
+    #             return False
 
 
-class LLS_unary:
+
+class LLS_unary():
     """
     Abstract base class for unary operators.
 
@@ -1025,11 +1036,10 @@ class LLS_unary:
             sage: f == g
             True
         """
-        return (isinstance(other, type(self)) and self._cache == other._cache 
-                and self._approximate_valuation == other._approximate_valuation)
+        return (isinstance(other, type(self)) and self._cache == other._cache)
 
 
-class LLS_binary:
+class LLS_binary():
     
     def __init__(self, left, right):
         """
@@ -1073,8 +1083,26 @@ class LLS_binary:
             sage: f == g
             True
         """
-        return (isinstance(other, type(self)) and
-                self._left == other._left and self._right == other._right)
+        if not isinstance(other, type(self)):
+            return False
+        if self._left == other._left and self._right == other._right:
+            return True
+        raise ValueError("undecidable as lazy Laurent series")
+
+
+class LLS_binary_commutative():
+    
+    def __hash__(self):
+        return hash((type(self), frozenset([self._left, self._right])))
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        if self._left == other._left and self._right == other._right:
+            return True
+        if self._left == other._right and self._right == other._left:
+            return True
+        raise ValueError("undecidable as lazy Laurent series")
 
 
 class LLS_coefficient_function(LLS_aux, LLS_unary):

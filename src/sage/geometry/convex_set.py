@@ -270,10 +270,40 @@ class ConvexSet_base(SageObject):
 
         This default implementation delegates to
         :meth:`~sage.geometry.polyhedron.base.Polyhedron_base._affine_hull_projection`,
-        applied to the affine hull of ``self``.
+        applied to the :meth:`affine_hull` of ``self``.
 
         Subclasses should override this method if they can provide a
         more direct implementation or additional options.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_compact
+            sage: class EmbeddedEllipse(ConvexSet_compact):
+            ....:     def __init__(self, p, *rr):
+            ....:         self._p = vector(p)
+            ....:         self._rr = tuple(vector(r) for r in rr)
+            ....:     def an_affine_basis(self):
+            ....:         return [self._p] + [self._p + r for r in self._rr]
+            ....:     def linear_transformation(self, linear_transf):
+            ....:         return EmbeddedEllipse(linear_transf * self._p,
+            ....:                                *[linear_transf * r for r in self._rr])
+            ....:     def translation(self, displacement):
+            ....:         return EmbeddedEllipse(self._p + displacement, *self._rr)
+            sage: EmbeddedEllipse([2, 2, 2], [0, 1, 0], [0, 0, 1])._affine_hull_projection()
+            AffineHullProjectionData(image=<__main__.EmbeddedEllipse object at 0x...>,
+            projection_linear_map=Vector space morphism represented by the matrix:
+            [0 0]
+            [1 0]
+            [0 1]
+            Domain: Vector space of dimension 3 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field,
+            projection_translation=(0, 0),
+            section_linear_map=Vector space morphism represented by the matrix:
+            [0 1 0]
+            [0 0 1]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Vector space of dimension 3 over Rational Field,
+            section_translation=(2, 0, 0))
         """
         affine_hull = self.affine_hull()
         data = affine_hull._affine_hull_projection(

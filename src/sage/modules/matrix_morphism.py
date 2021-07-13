@@ -1590,7 +1590,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             V = D.coordinate_module(sub)
         else:
             V = sub.free_module()
-        if side == "right":
+        if self.side() == "right":
             A = self.matrix().transpose().restrict(V).transpose()
         else :
             A = self.matrix().restrict(V)

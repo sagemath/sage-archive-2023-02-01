@@ -125,6 +125,8 @@ class Polyhedron_base(Element, ConvexSet_closed):
        one of``Vrep`` or ``Hrep`` to pick this in case the backend
        cannot initialize from complete double description
 
+    - ``mutable`` -- ignored
+
     If both ``Vrep`` and ``Hrep`` are provided, then
     ``Vrep_minimal`` and ``Hrep_minimal`` must be set to ``True``.
 
@@ -171,7 +173,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         sage: TestSuite(P).run()
     """
 
-    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, pref_rep=None, **kwds):
+    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, pref_rep=None, mutable=False, **kwds):
         """
         Initializes the polyhedron.
 
@@ -607,7 +609,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         """
         new_parent = self.parent().base_extend(base_ring, backend)
-        return new_parent(self)
+        return new_parent(self, copy=True)
 
     def change_ring(self, base_ring, backend=None):
         """
@@ -777,6 +779,12 @@ class Polyhedron_base(Element, ConvexSet_closed):
         return all(other_H.contains(self_V)
                    for other_H in other.Hrepresentation()
                    for self_V in self.Vrepresentation())
+
+    def is_mutable(self):
+        return False
+
+    def is_immutable(self):
+        return True
 
     @cached_method
     def vertex_facet_graph(self, labels=True):

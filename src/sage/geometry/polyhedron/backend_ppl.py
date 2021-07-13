@@ -37,7 +37,7 @@ class Polyhedron_ppl(Polyhedron_mutable):
 
     _backend_object_name = "ppl_polyhedron"
 
-    def __init__(self, parent, Vrep, Hrep, ppl_polyhedron=None, **kwds):
+    def __init__(self, parent, Vrep, Hrep, ppl_polyhedron=None, mutable=False, **kwds):
         """
         Initializes the polyhedron.
 
@@ -62,6 +62,9 @@ class Polyhedron_ppl(Polyhedron_mutable):
             self._init_from_ppl_polyhedron(ppl_polyhedron, minimize)
         else:
             Polyhedron_mutable.__init__(self, parent, Vrep, Hrep, **kwds)
+        self._is_mutable = True
+        if not mutable:
+            self.set_immutable()
 
     def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
         """
@@ -154,6 +157,27 @@ class Polyhedron_ppl(Polyhedron_mutable):
         """
         self._ppl_polyhedron = ppl_polyhedron
 
+    def set_immutable(self):
+        r"""
+        Make this polyhedron immutable. This operation cannot be undone.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron([[1, 1]], mutable=True)
+            sage: p.is_mutable()
+            True
+            sage: hasattr(p, "_Vrepresentation")
+            False
+            sage: p.set_immutable()
+            sage: hasattr(p, "_Vrepresentation")
+            True
+        """
+        if not hasattr(self, '_Vrepresentation'):
+            self._init_Vrepresentation_from_ppl(True)
+        if not hasattr(self, '_Hrepresentation'):
+            self._init_Hrepresentation_from_ppl(True)
+        self._is_mutable = False
+
     def Vrepresentation(self, index=None):
         """
         Return the objects of the V-representation. Each entry is
@@ -179,16 +203,16 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: p = polytopes.cube()
             sage: p.Vrepresentation(0)
             A vertex at (1, -1, -1)
+
+        ::
+
+            sage: P = p.parent()
+            sage: p = P._element_constructor_(p, mutable=True)
+            sage: p.Vrepresentation(0)
+            A vertex at (1, -1, -1)
             sage: p._clear_cache()
-            sage: p.Vrepresentation()
-            (A vertex at (1, -1, -1),
-             A vertex at (1, 1, -1),
-             A vertex at (1, 1, 1),
-             A vertex at (1, -1, 1),
-             A vertex at (-1, -1, 1),
-             A vertex at (-1, -1, -1),
-             A vertex at (-1, 1, -1),
-             A vertex at (-1, 1, 1))
+            sage: p.Vrepresentation(0)
+            A vertex at (1, -1, -1)
             sage: TestSuite(p).run()
         """
         if not hasattr(self, '_Vrepresentation'):
@@ -217,6 +241,8 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: p._ppl_polyhedron.minimized_generators()
             Generator_System {point(0/2, 1/2), point(2/1, 0/1), point(24/6, 5/6)}
         """
+        if not self._is_mutable:
+            raise TypeError("Vrepresentation of mutable polyhedra cannot be recomputed")
         self._Vrepresentation = []
         gs = self._ppl_polyhedron.minimized_generators()
         parent = self.parent()
@@ -255,6 +281,8 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: p._ppl_polyhedron.minimized_generators()
             Generator_System {point(0/2, 1/2), point(2/1, 0/1), point(24/6, 5/6)}
         """
+        if not self._is_mutable:
+            raise TypeError("Hrepresentation of mutable polyhedra cannot be recomputed")
         self._Hrepresentation = []
         cs = self._ppl_polyhedron.minimized_constraints()
         parent = self.parent()
@@ -289,7 +317,16 @@ class Polyhedron_ppl(Polyhedron_mutable):
             An inequality (-1, 0, 0) x + 1 >= 0
             sage: p.Hrepresentation(0) == p.Hrepresentation()[0]
             True
+
+        ::
+
+            sage: P = p.parent()
+            sage: p = P._element_constructor_(p, mutable=True)
+            sage: p.Hrepresentation(0)
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: p._clear_cache()
+            sage: p.Hrepresentation(0)
+            An inequality (-1, 0, 0) x + 1 >= 0
             sage: TestSuite(p).run()
         """
         if not hasattr(self, '_Hrepresentation'):

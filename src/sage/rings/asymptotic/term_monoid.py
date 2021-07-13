@@ -4096,7 +4096,7 @@ class BTerm(TermWithCoefficient):
 
         EXAMPLES::
 
-            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
@@ -4104,11 +4104,11 @@ class BTerm(TermWithCoefficient):
             sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
             sage: BT_QQ(x^3, 3, valid_from={'x': 20})
             BTerm with coefficient 3, growth x^3 and valid for x >= 20
-            sage: BT_QQ(x^2, 4, valid_from={'x': 10, 'y': 15})
-            Traceback (most recent call last):
-            ...
-            ValueError: BTerm has valid_from variables defined which do
-            not occur in the term.
+            sage: B = GrowthGroup('x^ZZ * y^ZZ');
+            sage: x, y = B('x'), B('y')
+            sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
+            sage: BT_ZZ(x^2, 4, valid_from={'x': 10, 'y': 15})
+            BTerm with coefficient 4, growth x^2 and valid for x >= 10 and y >= 15
         """
         valid_from_string = ' and '.join(f'{variable} >= {value}'
                                          for variable, value in self.valid_from.items())

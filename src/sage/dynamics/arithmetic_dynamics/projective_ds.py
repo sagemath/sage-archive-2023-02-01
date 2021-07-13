@@ -52,7 +52,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.arith.misc import is_prime
+from sage.arith.misc import is_prime, moebius
 from sage.calculus.functions import jacobian
 from sage.categories.fields import Fields
 from sage.categories.function_fields import FunctionFields
@@ -4983,8 +4983,28 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: N.<n> = NumberField(w^2 + 1)
             sage: P.<x,y,z> = ProjectiveSpace(N, 2)
             sage: f = DynamicalSystem_projective([x^2, y^2, z^2])
-            sage: #f.sigma_invariants(1, chow=True) == f.change_ring(QQ).sigma_invariants(1, chow=True)
+            sage: f.sigma_invariants(1, chow=True) == f.change_ring(QQ).sigma_invariants(1, chow=True)
             True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([x^2 + 3*y^2, x*y])
+            sage: f.sigma_invariants(1, formal=True, return_polynomial=True)
+            Traceback (most recent call last):
+            ..
+            ValueError: sigma polynomial dropped degree, as multiplicities were not accounted
+            for correctly. try setting chow=True and/or deform=True
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([x^2 + 3*y^2, x*y])
+            sage: f.sigma_invariants(1, return_polynomial=True)
+            Traceback (most recent call last):
+            ..
+            ValueError: sigma polynomial dropped degree, as multiplicities were not accounted
+            for correctly. try setting chow=True and/or deform=True
         """
         n = ZZ(n)
         if n < 1:
@@ -5108,9 +5128,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                     sigma_polynomial *= poly
                 if not base_ring.is_field():
                     sigma_polynomial = ringR(sigma_polynomial)
-            if check and not formal:
+            if check:
                 degree_w = sigma_polynomial.degrees()[0]
-                expected_degree = sum(d**(n*i) for i in range(N+1))
+                if formal:
+                    expected_degree = 0
+                    for D in n.divisors():
+                        u = moebius(n/D)
+                        inner_sum = sum(d**(D*j) for j in range(N+1))
+                        expected_degree += u*inner_sum
+                else:
+                    expected_degree = sum(d**(n*i) for i in range(N+1))
                 if degree_w != expected_degree:
                     raise ValueError('sigma polynomial dropped degree, as multiplicities were not accounted for correctly.'+
                                     ' try setting chow=True and/or deform=True')

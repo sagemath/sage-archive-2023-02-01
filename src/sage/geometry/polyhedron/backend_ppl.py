@@ -178,8 +178,6 @@ class Polyhedron_ppl(Polyhedron_mutable):
 
             sage: p = polytopes.cube()
             sage: p.Vrepresentation(0)
-            sage: p = polytopes.cube()
-            sage: p.Vrepresentation(0)
             A vertex at (1, -1, -1)
             sage: p._clear_cache()
             sage: p.Vrepresentation()

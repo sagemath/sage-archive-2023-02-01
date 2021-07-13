@@ -9187,13 +9187,13 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
-    def is_diagonal(self):
+    def is_diagonal(self) -> bool:
         """
-        Return True if this matrix is a diagonal matrix.
+        Return ``True`` if this matrix is a diagonal matrix.
 
         OUTPUT:
 
-        - whether self is a diagonal matrix.
+        boolean
 
         EXAMPLES::
 
@@ -9221,7 +9221,49 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
-    def is_unitary(self):
+    def is_triangular(self, side="lower") -> bool:
+        """
+        Return ``True`` if this matrix is a triangular matrix.
+
+        INPUT
+
+        - ``side`` -- either ``"lower"`` (default) or ``"upper"``
+
+        OUTPUT:
+
+        boolean
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ,2,2,range(4))
+            sage: m.is_triangular()
+            False
+            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m.is_triangular()
+            True
+            sage: m = matrix(QQ,2,[1,2,0,1])
+            sage: m.is_triangular("upper")
+            True
+        """
+        if not self.is_square():
+            return False
+        cdef Py_ssize_t i, j
+
+        if side == "upper":
+            for i in range(self._nrows):
+                for j in range(self._ncols):
+                    if i > j:
+                        if not self.get_unsafe(i, j).is_zero():
+                            return False
+        else:
+            for i in range(self._nrows):
+                for j in range(self._ncols):
+                    if i < j:
+                        if not self.get_unsafe(i, j).is_zero():
+                            return False
+        return True
+
+    def is_unitary(self) -> bool:
         r"""
         Returns ``True`` if the columns of the matrix are an orthonormal basis.
 

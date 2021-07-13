@@ -7,7 +7,7 @@ from sage.rings.all import ZZ
 from sage.rings.integer import Integer
 from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
-from .base_interactive import Polyhedron_interactive
+from .base_mutable import Polyhedron_mutable
 from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ
 
@@ -19,7 +19,7 @@ lazy_import('ppl', ['C_Polyhedron', 'Generator_System', 'Constraint_System',
 
 
 #########################################################################
-class Polyhedron_ppl(Polyhedron_interactive):
+class Polyhedron_ppl(Polyhedron_mutable):
     """
     Polyhedra with ppl
 
@@ -61,7 +61,7 @@ class Polyhedron_ppl(Polyhedron_interactive):
             minimize = True if 'minimize' in kwds and kwds['minimize'] else False
             self._init_from_ppl_polyhedron(ppl_polyhedron, minimize)
         else:
-            Polyhedron_interactive.__init__(self, parent, Vrep, Hrep, **kwds)
+            Polyhedron_mutable.__init__(self, parent, Vrep, Hrep, **kwds)
 
     def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
         """

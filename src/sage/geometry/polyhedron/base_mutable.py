@@ -1,12 +1,15 @@
 r"""
-Base class for interactive and lazy polyhedra.
+Base class for mutable polyhedra.
+
+Just like vectors and matrices they can be set immutable.
+The constructor does this by default.
 """
 
 from .base import Polyhedron_base
 from sage.misc.lazy_attribute import lazy_attribute
 
 
-class Polyhedron_interactive(Polyhedron_base):
+class Polyhedron_mutable(Polyhedron_base):
 
     def _clear_cache(self):
         r"""
@@ -31,9 +34,9 @@ class Polyhedron_interactive(Polyhedron_base):
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.base_interactive import Polyhedron_interactive
+            sage: from sage.geometry.polyhedron.base_mutable import Polyhedron_mutable
             sage: p = polytopes.cube()
-            sage: Polyhedron_interactive.Vrepresentation(p)
+            sage: Polyhedron_mutable.Vrepresentation(p)
             Traceback (most recent call last):
             ...
             NotImplementedError: a derived class must implement this
@@ -48,9 +51,9 @@ class Polyhedron_interactive(Polyhedron_base):
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.base_interactive import Polyhedron_interactive
+            sage: from sage.geometry.polyhedron.base_mutable import Polyhedron_mutable
             sage: p = polytopes.cube()
-            sage: Polyhedron_interactive.Hrepresentation(p)
+            sage: Polyhedron_mutable.Hrepresentation(p)
             Traceback (most recent call last):
             ...
             NotImplementedError: a derived class must implement this

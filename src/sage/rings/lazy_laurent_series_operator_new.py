@@ -11,7 +11,7 @@ added below.
 
 EXAMPLES::
 
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+    sage: L.<z> = LLSRing(ZZ)
     sage: f = 1/(1 - 2*z)
     sage: g = 1/(1 + z^2)
 
@@ -22,7 +22,7 @@ Constructors::
 
 ::
 
-    sage: L.series([1,2,3,4], -10)
+    sage: L.series([1,2,3,4], True, -10)
     z^-10 + 2*z^-9 + 3*z^-8 + 4*z^-7
 
 ::
@@ -79,7 +79,7 @@ Transformers::
 
 ::
 
-    sage: f.apply_to_coefficients(lambda c: c^2)
+    sage: f.apply_to_coefficients(lambda c: c^2, GF(3))
     1 + 4*z + 16*z^2 + 64*z^3 + 256*z^4 + 1024*z^5 + 4096*z^6 + ...
 
 ::
@@ -104,7 +104,7 @@ AUTHORS:
 # ****************************************************************************
 
 
-class LazyLaurentSeriesOperator(object):
+class LLSOperator(object):
     """
     Base class for operators computing coefficients of a lazy Laurent series.
 
@@ -117,7 +117,7 @@ class LazyLaurentSeriesOperator(object):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1/(1 - z) + 1/(1 + z)
             sage: g = 1/(1 - z) + 1/(1 + z)
             sage: f != g
@@ -126,7 +126,7 @@ class LazyLaurentSeriesOperator(object):
         return not (self == other)
 
 
-class LazyLaurentSeriesBinaryOperator(LazyLaurentSeriesOperator):
+class LLSBinaryOperator(LLSOperator):
     """
     Abstract base class for binary operators.
 
@@ -143,7 +143,7 @@ class LazyLaurentSeriesBinaryOperator(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1/(1 - z) + 1/(1 + z)
             sage: loads(dumps(f)) == f
             True
@@ -160,7 +160,7 @@ class LazyLaurentSeriesBinaryOperator(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1/(1 - z) + 1/(1 + z)
             sage: {f: 1}
             {2 + 2*z^2 + 2*z^4 + 2*z^6 + ...: 1}
@@ -173,7 +173,7 @@ class LazyLaurentSeriesBinaryOperator(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1/(1 - z) + 1/(1 + z)
             sage: g = 1/(1 - z) + 1/(1 + z)
             sage: f == g
@@ -183,7 +183,7 @@ class LazyLaurentSeriesBinaryOperator(LazyLaurentSeriesOperator):
                 self._left == other._left and self._right == other._right)
 
 
-class LazyLaurentSeriesUnaryOperator(LazyLaurentSeriesOperator):
+class LLSUnaryOperator(LLSOperator):
     """
     Abstract base class for unary operators.
 
@@ -198,7 +198,7 @@ class LazyLaurentSeriesUnaryOperator(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = -1/(1 - z)
             sage: f
             -1 - z - z^2 - z^3 - z^4 - z^5 - z^6 + ...
@@ -213,7 +213,7 @@ class LazyLaurentSeriesUnaryOperator(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = ~(1 - z)
             sage: {f: 1}
             {1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...: 1}
@@ -226,7 +226,7 @@ class LazyLaurentSeriesUnaryOperator(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1/(1 - z) + 1/(1 + z)
             sage: g = 1/(1 - z) + 1/(1 + z)
             sage: f == g
@@ -239,7 +239,7 @@ class LazyLaurentSeriesUnaryOperator(LazyLaurentSeriesOperator):
         return isinstance(other, type(self)) and self._series == other._series
 
 
-class LazyLaurentSeriesOperator_add(LazyLaurentSeriesBinaryOperator):
+class LLSOperator_add(LLSBinaryOperator):
     """
     Operator for addition.
     """
@@ -249,14 +249,14 @@ class LazyLaurentSeriesOperator_add(LazyLaurentSeriesBinaryOperator):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = z + z^2 + z
             sage: f.coefficient(1)
             2
         """
         return self._left.coefficient(n) + self._right.coefficient(n)
 
-class LazyLaurentSeriesOperator_sub(LazyLaurentSeriesBinaryOperator):
+class LLSOperator_sub(LLSBinaryOperator):
     """
     Operator for subtraction.
     """
@@ -266,14 +266,14 @@ class LazyLaurentSeriesOperator_sub(LazyLaurentSeriesBinaryOperator):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1 + 3*z - z
             sage: f.coefficient(1)
             2
         """
         return self._left.coefficient(n) - self._right.coefficient(n)
 
-class LazyLaurentSeriesOperator_mul(LazyLaurentSeriesBinaryOperator):
+class LLSOperator_mul(LLSBinaryOperator):
     """
     Operator for multiplication.
     """
@@ -283,12 +283,12 @@ class LazyLaurentSeriesOperator_mul(LazyLaurentSeriesBinaryOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1/(1 - z) * 1/(1 + z)
             sage: loads(dumps(f)) == f
             True
         """
-        LazyLaurentSeriesBinaryOperator.__init__(self, left, right)
+        LLSBinaryOperator.__init__(self, left, right)
         self._zero = left.base_ring().zero()
 
     def __call__(self, s, n):
@@ -297,7 +297,7 @@ class LazyLaurentSeriesOperator_mul(LazyLaurentSeriesBinaryOperator):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = (1 + z)*(1 - z)
             sage: f.coefficient(2)
             -1
@@ -307,7 +307,7 @@ class LazyLaurentSeriesOperator_mul(LazyLaurentSeriesBinaryOperator):
             c += self._left.coefficient(k) * self._right.coefficient(n-k)
         return c
 
-class LazyLaurentSeriesOperator_neg(LazyLaurentSeriesUnaryOperator):
+class LLSOperator_neg(LLSUnaryOperator):
     """
     Operator for negation.
 
@@ -322,14 +322,14 @@ class LazyLaurentSeriesOperator_neg(LazyLaurentSeriesUnaryOperator):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = -(1 + z)
             sage: f.coefficient(1)
             -1
         """
         return -self._series.coefficient(n)
 
-class LazyLaurentSeriesOperator_inv(LazyLaurentSeriesUnaryOperator):
+class LLSOperator_inv(LLSUnaryOperator):
     """
     Operator for inversion.
 
@@ -344,14 +344,14 @@ class LazyLaurentSeriesOperator_inv(LazyLaurentSeriesUnaryOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = ~(1 - z)
             sage: f
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
             sage: loads(dumps(f)) == f
             True
         """
-        LazyLaurentSeriesUnaryOperator.__init__(self, series)
+        LLSUnaryOperator.__init__(self, series)
 
         self._v = series.valuation()
         self._ainv = ~series.coefficient(self._v)
@@ -363,7 +363,7 @@ class LazyLaurentSeriesOperator_inv(LazyLaurentSeriesUnaryOperator):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = ~(1 - z)
             sage: f.coefficient(2)
             1
@@ -376,7 +376,7 @@ class LazyLaurentSeriesOperator_inv(LazyLaurentSeriesUnaryOperator):
             c += s.coefficient(k) * self._series.coefficient(n + v - k)
         return -c * self._ainv
 
-class LazyLaurentSeriesOperator_div(LazyLaurentSeriesBinaryOperator):
+class LLSOperator_div(LLSBinaryOperator):
     """
     Operator for division.
     """
@@ -386,12 +386,12 @@ class LazyLaurentSeriesOperator_div(LazyLaurentSeriesBinaryOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = (1 - z)/(1 + z)
             sage: loads(dumps(f)) == f
             True
         """
-        LazyLaurentSeriesBinaryOperator.__init__(self, left, right)
+        LLSBinaryOperator.__init__(self, left, right)
 
         lv = left.valuation()
         rv = right.valuation()
@@ -406,7 +406,7 @@ class LazyLaurentSeriesOperator_div(LazyLaurentSeriesBinaryOperator):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = (1 + z)/(1 - z)
             sage: f.coefficient(2)
             2
@@ -421,7 +421,7 @@ class LazyLaurentSeriesOperator_div(LazyLaurentSeriesBinaryOperator):
             c -= s.coefficient(k) * self._right.coefficient(n + rv - k)
         return c * self._ainv
 
-class LazyLaurentSeriesOperator_scale(LazyLaurentSeriesOperator):
+class LLSOperator_scale(LLSOperator):
     """
     Operator for scalar multiplication of ``series`` with ``scalar``.
 
@@ -438,7 +438,7 @@ class LazyLaurentSeriesOperator_scale(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: g = 2*z
             sage: loads(dumps(g)) == g
             True
@@ -452,7 +452,7 @@ class LazyLaurentSeriesOperator_scale(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 2*(z + z^2)
             sage: f.coefficient(2)
             2
@@ -467,7 +467,7 @@ class LazyLaurentSeriesOperator_scale(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 2*(z + z^2)
             sage: {f: 1}
             {2*z + 2*z^2: 1}
@@ -480,16 +480,16 @@ class LazyLaurentSeriesOperator_scale(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 2*z
             sage: g = 2*z
             sage: f == g
             True
         """
-        return (isinstance(other, LazyLaurentSeriesOperator_scale)
+        return (isinstance(other, LLSOperator_scale)
                 and self._series == other._series and self._scalar == other._scalar)
 
-class LazyLaurentSeriesOperator_change_ring(LazyLaurentSeriesOperator):
+class LLSOperator_change_ring(LLSOperator):
     """
     Operator for changing the base ring of the ``series`` to ``ring``.
 
@@ -506,7 +506,7 @@ class LazyLaurentSeriesOperator_change_ring(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = ~(1 - 2*z)
             sage: g = f.change_ring(GF(3))
             sage: g
@@ -523,7 +523,7 @@ class LazyLaurentSeriesOperator_change_ring(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = ~(1 - 2*z)
             sage: f
             1 + 2*z + 4*z^2 + 8*z^3 + 16*z^4 + 32*z^5 + 64*z^6 + ...
@@ -539,7 +539,7 @@ class LazyLaurentSeriesOperator_change_ring(LazyLaurentSeriesOperator):
         """
         Return the hash of ``self``.
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = ~(1 - 2*z)
             sage: g = f.change_ring(GF(2))
             sage: {g: 1}
@@ -553,16 +553,16 @@ class LazyLaurentSeriesOperator_change_ring(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1/(1 - z)
             sage: g = 1/(1 - z)
             sage: f == g
             True
         """
-        return (isinstance(other, LazyLaurentSeriesOperator_change_ring)
+        return (isinstance(other, LLSOperator_change_ring)
                 and self._series == other._series and self._ring == other._ring)
 
-class LazyLaurentSeriesOperator_apply(LazyLaurentSeriesOperator):
+class LLSOperator_apply(LLSOperator):
     """
     Operator for applying a function.
 
@@ -579,9 +579,9 @@ class LazyLaurentSeriesOperator_apply(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1/(1 + z)
-            sage: g = f.apply_to_coefficients(abs)
+            sage: g = f.apply_to_coefficients(abs, ZZ)
             sage: g
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
             sage: loads(dumps(g))
@@ -596,11 +596,11 @@ class LazyLaurentSeriesOperator_apply(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = ~(1 + z)
             sage: f
             1 - z + z^2 - z^3 + z^4 - z^5 + z^6 + ...
-            sage: f.apply_to_coefficients(lambda c: c if c >= 0 else -c)
+            sage: f.apply_to_coefficients(lambda c: c if c >= 0 else -c, ZZ)
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
         """
         return self._function(self._series.coefficient(n))
@@ -611,8 +611,8 @@ class LazyLaurentSeriesOperator_apply(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = ~(1 + z).apply_to_coefficients(lambda c: c if c >= 0 else -c)
+            sage: L.<z> = LLSRing(ZZ)
+            sage: f = ~(1 + z).apply_to_coefficients(lambda c: c if c >= 0 else -c, ZZ)
             sage: {f: 1}
             {1 - z + z^2 - z^3 + z^4 - z^5 + z^6 + ...: 1}
         """
@@ -624,18 +624,18 @@ class LazyLaurentSeriesOperator_apply(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1/(1 + z)
-            sage: g = f.apply_to_coefficients(abs)
-            sage: h = f.apply_to_coefficients(abs)
+            sage: g = f.apply_to_coefficients(abs, ZZ)
+            sage: h = f.apply_to_coefficients(abs, ZZ)
             sage: g == h
             True
         """
-        return (isinstance(other, LazyLaurentSeriesOperator_apply)
+        return (isinstance(other, LLSOperator_apply)
                 and self._series == other._series and self._function is other._function)
 
 
-class LazyLaurentSeriesOperator_truncate(LazyLaurentSeriesOperator):
+class LLSOperator_truncate(LLSOperator):
     """
     Operator for truncation.
 
@@ -652,7 +652,7 @@ class LazyLaurentSeriesOperator_truncate(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = ~(1 + z)
             sage: g = f.truncate(4)
             sage: loads(dumps(g)) == g
@@ -669,7 +669,7 @@ class LazyLaurentSeriesOperator_truncate(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = ~(1 + z)
             sage: f
             1 - z + z^2 - z^3 + z^4 - z^5 + z^6 + ...
@@ -687,7 +687,7 @@ class LazyLaurentSeriesOperator_truncate(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = ~(1 + z)
             sage: {f: 1}
             {1 - z + z^2 - z^3 + z^4 - z^5 + z^6 + ...: 1}
@@ -700,17 +700,17 @@ class LazyLaurentSeriesOperator_truncate(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = 1/(1 + z)
             sage: g = f.truncate(4)
             sage: h = f.truncate(4)
             sage: g == h
             True
         """
-        return (isinstance(other, LazyLaurentSeriesOperator_truncate)
+        return (isinstance(other, LLSOperator_truncate)
                 and self._series == other._series and self._d == other._d)
 
-class LazyLaurentSeriesOperator_gen(LazyLaurentSeriesOperator):
+class LLSOperator_gen(LLSOperator):
     """
     Operator for the generator element.
 
@@ -725,7 +725,7 @@ class LazyLaurentSeriesOperator_gen(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: z = L.gen()
             sage: loads(dumps(z)) == z
             True
@@ -741,7 +741,7 @@ class LazyLaurentSeriesOperator_gen(LazyLaurentSeriesOperator):
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: L.gen()
             z
         """
@@ -753,7 +753,7 @@ class LazyLaurentSeriesOperator_gen(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: {z: 1}
             {z: 1}
         """
@@ -765,15 +765,15 @@ class LazyLaurentSeriesOperator_gen(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: z1 = L.gen()
             sage: z2 = L.gen()
             sage: z1 == z2
             True
         """
-        return (isinstance(other, LazyLaurentSeriesOperator_gen) and self._ring == other._ring)
+        return (isinstance(other, LLSOperator_gen) and self._ring == other._ring)
 
-class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
+class LLSOperator_constant(LLSOperator):
     """
     Operator for the generator element.
 
@@ -790,7 +790,7 @@ class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: f = L(10)
             sage: loads(dumps(f)) == f
             True
@@ -806,7 +806,7 @@ class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: f = L(10); f
             10
             sage: f.coefficient(0)
@@ -822,7 +822,7 @@ class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: f = L(10)
             sage: {f: 1}
             {10: 1}
@@ -835,16 +835,16 @@ class LazyLaurentSeriesOperator_constant(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: z1 = L(10)
             sage: z2 = L(10)
             sage: z1 == z2
             True
         """
-        return (isinstance(other, LazyLaurentSeriesOperator_constant)
+        return (isinstance(other, LLSOperator_constant)
                 and self._ring == other._ring and self._constant == other._constant)
 
-class LazyLaurentSeriesOperator_list(LazyLaurentSeriesOperator):
+class LLSOperator_list(LLSOperator):
     """
     Operator for the series defined by a list.
 
@@ -861,8 +861,8 @@ class LazyLaurentSeriesOperator_list(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: f = L.series([1,2,3,4], -5)
+            sage: L = LLSRing(ZZ, 'z')
+            sage: f = L.series([1,2,3,4], True, -5)
             sage: loads(dumps(f)) == f
             True
         """
@@ -876,8 +876,8 @@ class LazyLaurentSeriesOperator_list(LazyLaurentSeriesOperator):
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: f = L.series([1,2,3,4], -5)
+            sage: L = LLSRing(ZZ, 'z')
+            sage: f = L.series([1,2,3,4], True, -5)
             sage: f
             z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
         """
@@ -889,8 +889,8 @@ class LazyLaurentSeriesOperator_list(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: f = L.series([1,2,3,4], -5)
+            sage: L = LLSRing(ZZ, 'z')
+            sage: f = L.series([1,2,3,4], True, -5)
             sage: {f: 1}
             {z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2: 1}
         """
@@ -902,17 +902,17 @@ class LazyLaurentSeriesOperator_list(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: f1 = L.series([1,2,3,4], -5)
-            sage: f2 = L.series([1,2,3,4,0], -5)
+            sage: L = LLSRing(ZZ, 'z')
+            sage: f1 = L.series([1,2,3,4], True, -5)
+            sage: f2 = L.series([1,2,3,4,0], True, -5)
             sage: f1 == f2
             True
         """
-        return (isinstance(other, LazyLaurentSeriesOperator_list) and
+        return (isinstance(other, LLSOperator_list) and
                 self._ring == other._ring and self._list == other._list and
                 self._valuation == other._valuation)
 
-class LazyLaurentSeriesOperator_polynomial(LazyLaurentSeriesOperator):
+class LLSOperator_polynomial(LLSOperator):
     """
     Operator for the series coerced from a polynomial or a Laurent polynomial.
 
@@ -929,7 +929,7 @@ class LazyLaurentSeriesOperator_polynomial(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: P.<x> = ZZ[]
             sage: p = 1 + 2*x + x^10
             sage: f = L(p)
@@ -945,7 +945,7 @@ class LazyLaurentSeriesOperator_polynomial(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: P.<x> = ZZ[]
             sage: p = (1 + 2*x + 3*x)^3
             sage: f = L(p)
@@ -960,7 +960,7 @@ class LazyLaurentSeriesOperator_polynomial(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: P.<x> = ZZ[]
             sage: p = (1 + 2*x)^3
             sage: f = L(p)
@@ -975,7 +975,7 @@ class LazyLaurentSeriesOperator_polynomial(LazyLaurentSeriesOperator):
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: P.<x> = ZZ[]
             sage: p = (1 + 2*x)^3
             sage: f = L(p)
@@ -983,5 +983,5 @@ class LazyLaurentSeriesOperator_polynomial(LazyLaurentSeriesOperator):
             sage: f == g
             True
         """
-        return (isinstance(other, LazyLaurentSeriesOperator_polynomial) and
+        return (isinstance(other, LLSOperator_polynomial) and
                 self._ring == other._ring and self._poly == other._poly)

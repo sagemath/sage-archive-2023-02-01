@@ -106,7 +106,13 @@ class ClassFunction_gap(SageObject):
     """
 
     def __hash__(self):
+        r"""
+        TESTS::
 
+            sage: G = SymmetricGroup(5)
+            sage: chi1 = ClassFunction(G,[1,1,1,1,1,1,1])
+            sage: d = {chi1:'trivial'}
+        """
         return hash(self.__repr__())
 
     def __init__(self, G, values):

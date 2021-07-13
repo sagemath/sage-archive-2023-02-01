@@ -31,7 +31,7 @@ EXAMPLES::
     (x - 1)^3
     sage: m.matrix()
     [1 0 0]
-    [0 1 0]deco
+    [0 1 0]
     [0 0 1]
     sage: m.rank()
     3
@@ -1411,12 +1411,17 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             V = D.coordinate_module(sub)
         else:
             V = sub.free_module()
-        if self.side() == "left":
-            A = self.matrix().restrict_domain(V)
-        else:
+        if self.side() == "right":
             A = self.matrix().transpose().restrict_domain(V).transpose()
+        else:
+            A = self.matrix().restrict_domain(V)
         H = sub.Hom(self.codomain())
-        return H(A, side=self.side())
+        try:
+            return H(A, side=self.side())
+        except:
+            return H(A)
+
+
 
     def restrict_codomain(self, sub):
         """
@@ -1493,11 +1498,13 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             V = C.coordinate_module(sub)
         else:
             V = sub.free_module()
-        if self.side() == "left":
+        try:
+            if self.side() == "right":
+                return H(self.matrix().transpose().restrict_codomain(V).transpose(), side="right")
+            else:
+                return H(self.matrix().restrict_codomain(V))
+        except:
             return H(self.matrix().restrict_codomain(V))
-        else:
-            return H(self.matrix().transpose().restrict_codomain(V).transpose(), side="right")
-
 
     def restrict(self, sub):
         """
@@ -1583,7 +1590,10 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             V = D.coordinate_module(sub)
         else:
             V = sub.free_module()
-        A = self.matrix().transpose().restrict(V).transpose()
+        if side == "right":
+            A = self.matrix().transpose().restrict(V).transpose()
+        else :
+            A = self.matrix().restrict(V)
         H = sage.categories.homset.End(sub, self.domain().category())
         return H(A, side=self.side())
 
@@ -1602,7 +1612,7 @@ class MatrixMorphism(MatrixMorphism_abstract):
        the matrix ``A`` if it is mutable; if ``False``, then this makes
        ``A`` immutable
     """
-    def __init__(self, parent, A, copy_matrix=True, side='left',):
+    def __init__(self, parent, A, copy_matrix=True, side='left'):
         """
         Initialize ``self``.
 

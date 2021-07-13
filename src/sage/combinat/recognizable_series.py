@@ -44,9 +44,17 @@ such that the coefficient corresponding to a word `w\in A^*` equals
 Various
 =======
 
+.. SEEALSO::
+
+    :mod:`k-regular sequence <sage.combinat.k_regular_sequence>`,
+    :mod:`sage.rings.cfinite_sequence`,
+    :mod:`sage.combinat.binary_recurrence_sequences`.
+
+
 AUTHORS:
 
-- Daniel Krenn (2016)
+- Daniel Krenn (2016, 2021)
+
 
 ACKNOWLEDGEMENT:
 
@@ -66,7 +74,6 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import experimental
@@ -529,7 +536,7 @@ class RecognizableSeries(Element):
         return self._repr_(latex=True)
 
     @cached_method
-    def __getitem__(self, w):
+    def coefficient_of_word(self, w, multiply_left=True, multiply_right=True):
         r"""
         Return the coefficient to word `w` of this series.
 
@@ -537,6 +544,12 @@ class RecognizableSeries(Element):
 
         - ``w`` -- a word over the parent's
           :meth:`~RecognizableSeriesSpace.alphabet`
+
+        - ``multiply_left`` -- (default: ``True``) a boolean. If ``False``,
+          then multiplication by :meth:`left <left>` is skipped.
+
+        - ``multiply_right`` -- (default: ``True``) a boolean. If ``False``,
+          then multiplication by :meth:`right <right>` is skipped.
 
         OUTPUT:
 
@@ -549,10 +562,31 @@ class RecognizableSeries(Element):
             sage: W = Rec.indices()
             sage: S = Rec((Matrix([[1, 0], [0, 1]]), Matrix([[0, -1], [1, 2]])),
             ....:          left=vector([0, 1]), right=vector([1, 0]))
-            sage: S[W(7.digits(2))]
+            sage: S[W(7.digits(2))]  # indirect doctest
             3
+
+        TESTS::
+
+            sage: w = W(6.digits(2))
+            sage: S.coefficient_of_word(w)
+            2
+            sage: S.coefficient_of_word(w, multiply_left=False)
+            (-1, 2)
+            sage: S.coefficient_of_word(w, multiply_right=False)
+            (2, 3)
+            sage: S.coefficient_of_word(w, multiply_left=False, multiply_right=False)
+            [-1 -2]
+            [ 2  3]
         """
-        return self.left * self._mu_of_word_(w) * self.right
+        result = self._mu_of_word_(w)
+        if multiply_left:
+            result = self.left * result
+        if multiply_right:
+            result = result * self.right
+        return result
+
+
+    __getitem__ = coefficient_of_word
 
     @cached_method
     def _mu_of_empty_word_(self):
@@ -940,12 +974,14 @@ class RecognizableSeries(Element):
         from sage.rings.integer_ring import ZZ
 
         pcs = PrefixClosedSet(self.parent().indices())
-        left = self.left * self._mu_of_word_(pcs.elements[0])
+        left = self.coefficient_of_word(pcs.elements[0], multiply_right=False)
         if left.is_zero():
             return self.parent().zero()
         Left = [left]
         for p in pcs.iterate_possible_additions():
-            left = self.left * self._mu_of_word_(p)
+            left = self.coefficient_of_word(p,
+                                            multiply_left=True,
+                                            multiply_right=False)
             try:
                 Matrix(Left).solve_left(left)
             except ValueError:
@@ -958,7 +994,7 @@ class RecognizableSeries(Element):
         ML = Matrix(Left)
 
         def alpha(c):
-            return ML.solve_left(self.left * self._mu_of_word_(c))
+            return ML.solve_left(self.coefficient_of_word(c, multiply_right=False))
 
         mu_prime = []
         for a in self.parent().alphabet():
@@ -968,10 +1004,10 @@ class RecognizableSeries(Element):
             mu_prime.append(M)
 
         left_prime = vector([ZZ(1)] + (len(P)-1)*[ZZ(0)])
-        right_prime = vector(self[p] for p in P)
+        right_prime = vector(self.coefficient_of_word(p) for p in P)
 
-        return self.parent().element_class(
-            self.parent(), mu_prime, left_prime, right_prime)
+        P = self.parent()
+        return P.element_class(P, mu_prime, left_prime, right_prime)
 
 
 class RecognizableSeriesSpace(UniqueRepresentation, Parent):

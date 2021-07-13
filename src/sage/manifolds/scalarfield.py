@@ -1192,8 +1192,6 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         self._is_zero = True
         return False
 
-    __nonzero__ = __bool__   # For Python2 compatibility
-
     def is_trivial_zero(self):
         r"""
         Check if ``self`` is trivially equal to zero without any
@@ -1580,6 +1578,21 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         """
         return self._domain
 
+    def codomain(self):
+        r"""
+        Return the codomain of the scalar field.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: c_xy.<x,y> = M.chart()
+            sage: f = M.scalar_field(x+2*y)
+            sage: f.codomain()
+            Real Field with 53 bits of precision
+
+        """
+        return self._domain.base_field()
+
     def copy(self, name=None, latex_name=None):
         r"""
         Return an exact copy of the scalar field.
@@ -1613,6 +1626,62 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             result._express[chart] = funct.copy()
         result._is_zero = self._is_zero
         return result
+
+    def copy_from(self, other):
+        r"""
+        Make ``self`` a copy of ``other``.
+
+        INPUT:
+
+        - ``other`` -- other scalar field, in the same module as ``self``
+
+        .. NOTE::
+
+            While the derived quantities are not copied, the name is kept.
+
+        .. WARNING::
+
+            All previous defined expressions and restrictions will be deleted!
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: c_xy.<x,y> = M.chart()
+            sage: f = M.scalar_field(x*y^2, name='f')
+            sage: f.display()
+            f: M --> R
+               (x, y) |--> x*y^2
+            sage: g = M.scalar_field(name='g')
+            sage: g.copy_from(f)
+            sage: g.display()
+            g: M --> R
+               (x, y) |--> x*y^2
+            sage: f == g
+            True
+
+        While the original scalar field is modified, the copy is not::
+
+            sage: f.set_expr(x-y)
+            sage: f.display()
+            f: M --> R
+               (x, y) |--> x - y
+            sage: g.display()
+            g: M --> R
+               (x, y) |--> x*y^2
+            sage: f == g
+            False
+
+        """
+        if self.is_immutable():
+            raise ValueError("the expressions of an immutable element "
+                             "cannot be changed")
+        if other not in self.parent():
+            raise TypeError("the original must be an element of "
+                            f"{self.parent()}")
+        self._del_derived()
+        for chart, funct in other._express.items():
+            self._express[chart] = funct.copy()
+        self._is_zero = other._is_zero
 
     def coord_function(self, chart=None, from_chart=None):
         r"""
@@ -2016,9 +2085,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         if not rst._domain.is_subset(self._domain):
             raise ValueError("the domain of the declared restriction is not " +
                              "a subset of the field's domain")
-        self._restrictions[rst._domain] = rst.copy()
-        self._restrictions[rst._domain].set_name(name=self._name,
-                                                 latex_name=self._latex_name)
+        self._restrictions[rst._domain] = rst.copy(name=self._name,
+                                                   latex_name=self._latex_name)
         for chart, expr in rst._express.items():
             intersection = chart._domain.intersection(rst._domain)
             self._express[chart.restrict(intersection)] = expr

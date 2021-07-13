@@ -251,7 +251,7 @@ class Composition(CombinatorialElement):
 
         cocjg = []
         for i in range(n-1):
-            cocjg += [i+1 for _ in range(0, (coofcp[n-i-1]-coofcp[n-i-2]))]
+            cocjg += [i + 1 for _ in range(coofcp[n-i-1]-coofcp[n-i-2])]
         cocjg += [n for j in range(coofcp[0])]
 
         return self.parent()([cocjg[0]] + [cocjg[i]-cocjg[i-1]+1 for i in range(1,len(cocjg))])
@@ -854,11 +854,11 @@ class Composition(CombinatorialElement):
             sage: c.fatten(Composition([3,1,1])).__class__ == c.__class__
             True
         """
-        result = [None] * len(grouping)
+        result = []
         j = 0
-        for i in range(len(grouping)):
-            result[i] = sum(self[j:j+grouping[i]])
-            j += grouping[i]
+        for gi in grouping:
+            result.append(sum(self[j:j + gi]))
+            j += gi
         return Compositions()(result)
 
     def fatter(self):

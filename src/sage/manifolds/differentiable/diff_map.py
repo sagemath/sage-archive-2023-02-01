@@ -13,6 +13,7 @@ manifold `M` to a differentiable manifold `N` over the same topological field
 AUTHORS:
 
 - Eric Gourgoulhon, Michal Bejger (2013-2015): initial version
+- Marco Mancini (2018): pullback parallelization
 
 REFERENCES:
 
@@ -22,8 +23,9 @@ REFERENCES:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015-2021 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
 #       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2018 Marco Mancini <marco.mancini@obspm.fr>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -917,13 +919,26 @@ class DiffMap(ContinuousMap):
             sage: pa.display() # should be zero (as any 3-form on a 2-dimensional manifold)
             Phi^*(A) = 0
 
+        TESTS:
+
+        Check that :trac:`31904` is fixed::
+
+            sage: E.<x,y> = EuclideanSpace()
+            sage: polar.<r,ph> = E.polar_coordinates()
+            sage: g = E.metric()
+            sage: M = Manifold(1, 'M')
+            sage: Ct.<t> = M.chart()
+            sage: F = M.diff_map(E, coord_functions={(Ct, polar): (1 + cos(t), t)})
+            sage: gM = F.pullback(g)
+            sage: gM.display()
+            (2*cos(t) + 2) dt*dt
+
         """
         from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
-        from sage.manifolds.differentiable.vectorframe import CoordFrame
         from sage.tensor.modules.comp import (Components, CompWithSym,
                                               CompFullySym, CompFullyAntiSym)
 
-        def _pullback_chart(diff_map, tensor):
+        def _pullback_chart(diff_map, tensor, chart1, chart2):
             r"""
             Helper function performing the pullback on chart domains
             only.
@@ -931,9 +946,13 @@ class DiffMap(ContinuousMap):
             INPUT:
 
             - ``diff_map`` -- a restriction of ``self``, whose both
-              domain and codomain are chart domains
+              domain and codomain are chart domains, corresponding
+              respectively to ``chart1`` and ``chart2``
             - ``tensor`` -- a covariant tensor field, whose domain is
-              the codomain of ``diff_map``
+              the codomain of ``diff_map`` and whose components are known
+              in ``chart2.frame()``
+            - ``chart1`` -- chart on the domain of ``diff_map``
+            - ``chart2`` -- chart on the codomain of ``diff_map``
 
             OUTPUT:
 
@@ -963,82 +982,72 @@ class DiffMap(ContinuousMap):
             nproc = Parallelism().get('tensor')
             ind_old_list = list(dom2.manifold().index_generator(ncov))
 
-            for frame2 in tensor._components:
-                if isinstance(frame2, CoordFrame):
-                    chart2 = frame2._chart
-                    for chart1 in dom1._atlas:
-                        if (chart1._domain is dom1 and (chart1, chart2) in
-                            diff_map._coord_expression):
-                            # Computation at the component level:
-                            frame1 = chart1._frame
-                            tcomp = tensor._components[frame2]
-                            if isinstance(tcomp, CompFullySym):
-                                ptcomp = CompFullySym(ring1, frame1, ncov,
-                                                      start_index=si1,
-                                                      output_formatter=of1)
-                            elif isinstance(tcomp, CompFullyAntiSym):
-                                ptcomp = CompFullyAntiSym(ring1, frame1, ncov,
-                                                          start_index=si1,
-                                                          output_formatter=of1)
-                            elif isinstance(tcomp, CompWithSym):
-                                ptcomp = CompWithSym(ring1, frame1, ncov,
-                                                     start_index=si1,
-                                                     output_formatter=of1,
-                                                     sym=tcomp.sym,
-                                                     antisym=tcomp.antisym)
-                            else:
-                                ptcomp = Components(ring1, frame1, ncov,
-                                                    start_index=si1,
-                                                    output_formatter=of1)
-                            phi = diff_map._coord_expression[(chart1, chart2)]
-                            jacob = phi.jacobian()
-                            # X2 coordinates expressed in terms of
-                            # X1 ones via the diff. map:
-                            coord2_1 = phi(*(chart1._xx))
+            frame1 = chart1.frame()
+            frame2 = chart2.frame()
 
-                            if nproc != 1:
-                                # Parallel computation
-                                lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
-                                ind_list = [ind for ind in ptcomp.non_redundant_index_generator()]
-                                ind_step = max(1, int(len(ind_list)/nproc/2))
-                                local_list = lol(ind_list, ind_step)
-                                # list of input parameters
-                                listParalInput = [(tcomp,chart1,chart2,coord2_1,jacob,
-                                                   ind_old_list,si1,si2,ncov,ind_part) for ind_part  in local_list]
+            tcomp = tensor._components[frame2]
+            if isinstance(tcomp, CompFullySym):
+                ptcomp = CompFullySym(ring1, frame1, ncov, start_index=si1,
+                                      output_formatter=of1)
+            elif isinstance(tcomp, CompFullyAntiSym):
+                ptcomp = CompFullyAntiSym(ring1, frame1, ncov, start_index=si1,
+                                          output_formatter=of1)
+            elif isinstance(tcomp, CompWithSym):
+                ptcomp = CompWithSym(ring1, frame1, ncov, start_index=si1,
+                                     output_formatter=of1, sym=tcomp.sym,
+                                     antisym=tcomp.antisym)
+            else:
+                ptcomp = Components(ring1, frame1, ncov, start_index=si1,
+                                    output_formatter=of1)
+            phi = diff_map._coord_expression[(chart1, chart2)]
+            jacob = phi.jacobian()
+            # X2 coordinates expressed in terms of X1 ones via the diff. map:
+            coord2_1 = phi(*(chart1._xx))
 
-                                @parallel(p_iter='multiprocessing', ncpus=nproc)
-                                def paral_comp(tcomp,chart1,chart2,coord2_1,jacob,
-                                               ind_old_list,si1,si2,ncov,local_list_ind):
-                                    partial = []
-                                    for ind_new in local_list_ind:
-                                        res = 0
-                                        for ind_old in ind_old_list:
-                                            ff = tcomp[[ind_old]].coord_function(chart2)
-                                            t = chart1.function(ff(*coord2_1))
-                                            for i in range(ncov):
-                                                t *= jacob[ind_old[i]-si2, ind_new[i]-si1]
-                                            res += t
-                                        partial.append([ind_new, res])
-                                    return partial
+            if nproc != 1:
+                # Parallel computation
+                lol = lambda lst, sz: [lst[i:i+sz] for i in range(0, len(lst), sz)]
+                ind_list = [ind for ind in ptcomp.non_redundant_index_generator()]
+                ind_step = max(1, int(len(ind_list)/nproc/2))
+                local_list = lol(ind_list, ind_step)
+                # list of input parameters
+                listParalInput = [(tcomp, chart1, chart2, coord2_1, jacob,
+                                   ind_old_list, si1, si2, ncov, ind_part)
+                                  for ind_part in local_list]
 
-                                for ii, val in paral_comp(listParalInput):
-                                    for jj in val:
-                                        ptcomp[[jj[0]]] = jj[1]
+                @parallel(p_iter='multiprocessing', ncpus=nproc)
+                def paral_comp(tcomp, chart1, chart2, coord2_1, jacob,
+                               ind_old_list, si1, si2, ncov, local_list_ind):
+                    partial = []
+                    for ind_new in local_list_ind:
+                        res = 0
+                        for ind_old in ind_old_list:
+                            ff = tcomp[[ind_old]].coord_function(chart2)
+                            t = chart1.function(ff(*coord2_1))
+                            for i in range(ncov):
+                                t *= jacob[ind_old[i]-si2, ind_new[i]-si1]
+                            res += t
+                        partial.append([ind_new, res])
+                    return partial
 
-                            else:
-                                # Sequential computation
-                                for ind_new in ptcomp.non_redundant_index_generator():
-                                    res = 0
-                                    for ind_old in ind_old_list:
-                                        ff = tcomp[[ind_old]].coord_function(chart2)
-                                        t = chart1.function(ff(*coord2_1))
-                                        for i in range(ncov):
-                                            t *= jacob[ind_old[i]-si2, ind_new[i]-si1]
-                                        res += t
-                                    ptcomp[ind_new] = res
+                for ii, val in paral_comp(listParalInput):
+                    for jj in val:
+                        ptcomp[[jj[0]]] = jj[1]
 
-                            resu._components[frame1] = ptcomp
-                return resu
+            else:
+                # Sequential computation
+                for ind_new in ptcomp.non_redundant_index_generator():
+                    res = 0
+                    for ind_old in ind_old_list:
+                        ff = tcomp[[ind_old]].coord_function(chart2)
+                        t = chart1.function(ff(*coord2_1))
+                        for i in range(ncov):
+                            t *= jacob[ind_old[i]-si2, ind_new[i]-si1]
+                        res += t
+                    ptcomp[ind_new] = res
+
+            resu._components[frame1] = ptcomp
+            return resu
         # End of function _pullback_chart
 
         # Special case of the identity map:
@@ -1091,7 +1100,9 @@ class DiffMap(ContinuousMap):
                 if ch2dom.is_subset(tdom):
                     self_r = self.restrict(chart1._domain, subcodomain=ch2dom)
                     tensor_r = tensor.restrict(ch2dom)
-                    resu_rst.append(_pullback_chart(self_r, tensor_r))
+                    if chart2.frame() in tensor_r._components:
+                        resu_rst.append(_pullback_chart(self_r, tensor_r,
+                                                        chart1, chart2))
             dom_resu = resu_rst[0]._domain
             for rst in resu_rst[1:]:
                 dom_resu = dom_resu.union(rst._domain)

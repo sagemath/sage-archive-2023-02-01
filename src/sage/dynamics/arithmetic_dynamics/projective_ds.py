@@ -4965,7 +4965,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         kwds:
 
-        - ``error_bound`` -- (default: 0.1) a positive real number;
+        - ``err`` -- (default: 0.1) a positive real number;
           sets the error_bound used in the canonical height computation
           and ``return_period`` a boolean which
 
@@ -7232,13 +7232,15 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         """
         return True
 
-    def _is_preperiodic(self, P, return_period=False):
+    def _is_preperiodic(self, P, **kwds):
         r"""
         Every point in a finite field is preperiodic.
 
         INPUT:
 
         - ``P`` -- a point in the domain of this map
+
+        keywords:
 
         - ``return_period`` -- (default: ``False``) boolean; controls if
           the period is returned
@@ -7259,6 +7261,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             sage: f._is_preperiodic(P(2,1,2), return_period=True)
             (0, 6)
         """
+        return_period = kwds.pop('return_period', False)
         if return_period:
             return self.orbit_structure(P)
         else:

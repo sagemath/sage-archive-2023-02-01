@@ -9244,23 +9244,23 @@ cdef class Matrix(Matrix1):
             sage: m = matrix(QQ,2,[1,2,0,1])
             sage: m.is_triangular("upper")
             True
+            sage: m.is_triangular("lower")
+            False
         """
         if not self.is_square():
             return False
         cdef Py_ssize_t i, j
 
         if side == "upper":
-            for i in range(self._nrows):
-                for j in range(self._ncols):
-                    if i > j:
-                        if not self.get_unsafe(i, j).is_zero():
-                            return False
+            for i in range(1, self._nrows):
+                for j in range(i):
+                    if not self.get_unsafe(i, j).is_zero():
+                        return False
         else:
-            for i in range(self._nrows):
-                for j in range(self._ncols):
-                    if i < j:
-                        if not self.get_unsafe(i, j).is_zero():
-                            return False
+            for i in range(self._nrows - 1):
+                for j in range(i + 1, self._ncols):
+                    if not self.get_unsafe(i, j).is_zero():
+                        return False
         return True
 
     def is_unitary(self) -> bool:

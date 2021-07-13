@@ -32,6 +32,8 @@ from sage.arith.all import is_square
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
+from sage.algebras.free_algebra import FreeAlgebra
+from sage.libs.coxeter3.coxeter_group import CoxeterGroup as Coxeter3Group
 
 
 def normalized_laurent_polynomial(R, p):
@@ -1947,6 +1949,110 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             return (-1)**w.length() * self(self.realization_of().C().monomial(w))
 
     C_prime = Cp
+
+    class Cp_native(_Basis):
+        _basis_name = 'Cp_native'
+
+        def __init__(self, algebra, prefix='Cp'):
+            if not isinstance(algebra._W, Coxeter3Group):
+                raise ValueError('Algebra must be initialized with a coxeter3-implemented Coxeter group to use the Cp_native basis.')
+
+            super(IwahoriHeckeAlgebra.Cp_native, self).__init__(algebra, prefix)
+
+            self._W = algebra._W
+            self.gen_algebra = FreeAlgebra(algebra.base_ring(), ['g' + str(i) for i in self.index_set()])
+            self.delta = algebra.q1() - algebra.q2()
+
+        def _product_with_generator_on_basis(self, side, s, w):
+            # C_s * C_w = (v + 1/v) * C_w if s is a left descent, otherwise:
+            # Left:  C_s * C_w = C_{sw} + \sum_{sx < x < w} mu(x, w) C_x
+            # Right: C_w * C_s = C_{ws} + \sum_{xs < x < w} mu(x, w) C_x
+            
+            if w.has_descent(s, side=side):
+                return self.delta * self.monomial(w)
+            else:
+                element = self(0)
+                between = self._W.bruhat_interval([], w)
+                for x in between:
+                    x_elt = self._W(x)
+                    if x_elt.has_descent(s, side=side):
+                        element += x.mu_coefficient(w) * self.monomial(x_elt)
+                
+                # Doing self._W([s]) * w may not ensure that the word is is normal form
+                # Since W's element constructor does ensure that, use this method.
+                longer_word = self._W([s] + list(w) if side == 'left' else list(w) + [s])
+                return self.monomial(longer_word) + element
+        
+        def _product_with_generator(self, side, s, x):
+            return self.linear_combination((self._product_with_generator_on_basis(side, s, w), coeff) for (w, coeff) in x)
+
+        def _decompose_into_generators(self, w):
+            r"""
+            Returns an element of self.gen_algebra, a free algebra over {g_1, ..., g_n} 
+            describing how to write 'word' in terms of the generators
+            """
+            gs = self.gen_algebra.gens()
+            if len(w) == 0:
+                return self.gen_algebra(1)
+            if len(w) == 1:
+                return gs[w[0]]
+            
+            s = w[0]
+            w1 = w[1:]
+        
+            # We have C_w = C_s * C_{w1}
+            # Use the reverse of the left-multiplication by generator rule:
+            # We know s is not a left descent, so
+            # C_w = C_s * C_{w1} - \sum_{sy < y < w1} C_y
+        
+            # The sum from the above
+            rest = self(0)
+            between = self._W.bruhat_interval([], w1)
+            for x in between:
+                x_elt = self._W(x)
+                if x_elt.has_left_descent(s):
+                    rest += self.base_ring()(x.mu_coefficient(w1)) * self.monomial(x_elt)
+        
+            # In the expression above, we need to recurse and decompose C_{w1} into generators,
+            # and then go through the terms of the sum 'rest' and decompose those C_y's into generators
+            alg_element = gs[s] * self._decompose_into_generators(w1)
+            for (v, coeff) in rest:
+                # We're subtracting 'rest'
+                alg_element -= coeff * self._decompose_into_generators(v)
+                
+            return alg_element
+        
+        def product_on_basis(self, w1, w2):
+            # Otherwise, decompose the first word into generators
+            # (as expressed as an element of the FreeAlgebra over 'generator' variables g1, ..., gn)
+            if len(w1) <= len(w2):
+                side = 'left'
+                gens = self._decompose_into_generators(w1)
+                other_element = self.monomial(w2)
+            else:
+                side = 'right'
+                gens = self._decompose_into_generators(w2)
+                other_element = self.monomial(w1)
+            
+            # Now, build everything back up, continually multiplying on the left by a single generator
+            # Multiply gens by other_element, doing "manual distribution"
+
+            result = self(0)
+            for (p, coeff) in gens:
+                # p is a product of generators, i.e. 2*g1*g2*g1; multiply it by other_element
+                # Build summand multiplicatively, going through variables and thier powers in p
+                # If gens are on the right, we need to start at the left end of p, and vice versa.
+                summand = coeff * other_element
+                p_list = list(p) if side == 'right' else list(p)[::-1]
+                for (g, power) in p_list:
+                    s = self.gen_algebra.gens().index(g)
+                    # Multiply this_element on the apppropriate side by the generator this variable g corresponds to
+                    for i in range(power):
+                        summand = self._product_with_generator(side, s, summand)
+
+                result += summand
+
+            return result
 
     class C(_KLHeckeBasis):
         r"""

@@ -4304,6 +4304,59 @@ class BTermMonoid(TermWithCoefficientMonoid):
         """
         return self.element_class(self, growth, coefficient, valid_from)
 
+    def _coerce_map_from_(self, S):
+        r"""
+        Return whether ``S`` coerces into this term monoid.
+
+        INPUT:
+
+        - ``S`` -- a parent
+
+        OUTPUT:
+
+        ``True`` or ``None``
+
+        .. NOTE::
+
+            Another term monoid ``S`` coerces into this term monoid
+            if ``S`` is an instance of one of the following classes:
+
+            - :class:`BTermMonoid`
+
+            - :class:`ExactTermMonoid`
+
+            Additionally, the growth group underlying ``S`` has to
+            coerce into the growth group of this term monoid.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+            sage: G_ZZ = GrowthGroup('x^ZZ'); x_ZZ = G_ZZ.gen()
+            sage: G_QQ = GrowthGroup('x^QQ'); x_QQ = G_QQ.gen()
+            sage: BT_ZZ = TermMonoid('B', G_ZZ, QQ)
+            sage: BT_QQ = TermMonoid('B', G_QQ, QQ)
+            sage: ET = TermMonoid('exact', G_ZZ, ZZ)
+
+        Now, the :class:`BTermMonoid` whose growth group is over the
+        integer ring has to coerce into the :class:`BTermMonoid` with
+        the growth group over the rational field, and the
+        :class:`ExactTermMonoid` also has to coerce in each of the
+        given :class:`BTermMonoid`::
+
+            sage: BT_QQ.has_coerce_map_from(BT_ZZ)  # indirect doctest
+            True
+            sage: BT_QQ.has_coerce_map_from(ET)  # indirect doctest
+            True
+            sage: ET.has_coerce_map_from(BT_ZZ)  # indirect doctest
+            False
+        """
+        if isinstance(S, (ExactTermMonoid,)):
+            if self.growth_group.has_coerce_map_from(S.growth_group):
+                return True
+        else:
+            return super()._coerce_map_from_(S)
+
 
 class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
     r"""

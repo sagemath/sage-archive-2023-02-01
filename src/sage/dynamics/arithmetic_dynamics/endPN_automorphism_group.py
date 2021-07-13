@@ -1795,6 +1795,13 @@ def conjugating_set_initializer(f, g):
     Return a conjugation invariant set together with information
     to reduce the combinatorics of checking all possible conjugations.
 
+    This function constructs the conjugation invariant set (``source``)
+    necessary for the conjugating set algorithm described in  [FMV2014]_.
+    Additionally, it keeps track of multipliers to reduce the combinatorics.
+    This information is then passed to ``conjugating_set_helper`` or
+    ``is_conjugate_helper``, which check all possible conjugations determined
+    by the conjugation invariant set.
+
     Do not call this function directly, instead use ``f.conjugating_set(g)``.
 
     INPUT:
@@ -1903,24 +1910,25 @@ def conjugating_set_initializer(f, g):
         more = False
         source, corresponding = tup
 
-    # we keep 3 dictionaries to allow looping over a dictionary
-    i_repeated_mult = deepcopy(repeated_mult_L) # loop dictionary
-    a_repeated_mult = {} # loop dictionary for next iteration of loop (if necessary)
-    found_no_more = True
+    else:
+        # loop_repeated_mult stores the points to find preimages of
+        loop_repeated_mult = deepcopy(repeated_mult_L)
+        # next_repeated_mult stores the points to find preimages of on the next loop
+        next_repeated_mult = {}
+        found_no_more = True
 
     # if we don't find enough points, we go to preimages
     while more:
         level += 1
         # we calculate preimages, starting with preimages with the best
         # expected combinatorics
-        for r in sorted(i_repeated_mult.keys()):
-            for point_lst_L in i_repeated_mult[r]:
+        for r in sorted(loop_repeated_mult.keys()):
+            for point_lst_L in loop_repeated_mult[r]:
                 old_tup_L = point_to_mult_L[point_lst_L[0]]
                 point_lst_K = mult_to_point_K[old_tup_L]
                 mult_L = old_tup_L[0]
                 Tl = []
                 Tk = []
-
                 # first we calculate preimages
                 for pnt in point_lst_L:
                     for preimage in f.rational_preimages(pnt):
@@ -1936,7 +1944,6 @@ def conjugating_set_initializer(f, g):
                     found_no_more = False
                     new_tup_L = (mult_L, level)
                     new_tup_K = (mult_L, level)
-
                     # we update dictionaries with the new preimages
                     mult_to_point_L[new_tup_L] = Tl
                     mult_to_point_K[new_tup_K] = Tk
@@ -1948,10 +1955,10 @@ def conjugating_set_initializer(f, g):
                         repeated_mult_L[repeated] = [Tl]
                     else:
                         repeated_mult_L[repeated] += [Tl]
-                    if repeated not in a_repeated_mult:
-                        a_repeated_mult[repeated] = [Tl]
+                    if repeated not in next_repeated_mult:
+                        next_repeated_mult[repeated] = [Tl]
                     else:
-                        a_repeated_mult[repeated] += [Tl]
+                        next_repeated_mult[repeated] += [Tl]
                     # we again do a greedy check for a subset of n+2 points, of which no n+1
                     # are linearly dependent
                     tup = greedy_independence_check(P, repeated_mult_L, point_to_mult_L)
@@ -1967,7 +1974,10 @@ def conjugating_set_initializer(f, g):
         # of size n+2 to see if there is a subset in which no n+1 points
         # are linearly dependent
         if found_no_more:
+            # we construct a list of all the possible sources points
             all_points = []
+            # we order the list by how many repeated multipliers each point has
+            # in an attempt to reduce the combinatorics of checking conjugations
             for r in sorted(repeated_mult_L.keys()):
                 for point_lst in repeated_mult_L[r]:
                     all_points += point_lst
@@ -1998,8 +2008,8 @@ def conjugating_set_initializer(f, g):
 
         # if we need to add more preimages, we update loop dictionaries
         if more:
-            i_repeated_mult = deepcopy(a_repeated_mult)
-            a_repeated_mult = {}
+            loop_repeated_mult = deepcopy(next_repeated_mult)
+            next_repeated_mult = {}
             found_no_more = True
 
     # we build a list of iterators in order to loop over the product of those iterators
@@ -2081,6 +2091,9 @@ def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
     r"""
     Return the set of elements in PGL over the base ring
     that conjugates ``f`` to ``g``.
+
+    This function takes as input the conjugation invariant set
+    and multiplier data from ``conjugating_set_initializer``.
 
     Do not call this function directly, instead do ``f.conjugate_set(g)``.
 
@@ -2226,6 +2239,9 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
     r"""
     Return if ``f`` is conjugate to ``g``.
 
+    This function takes as input the conjugation invariant set
+    and multiplier data from ``conjugating_set_initializer``.
+
     Do not call this function directly, instead do ``f.is_conjugate(g)``.
 
     INPUT:
@@ -2247,7 +2263,7 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
 
     OUTPUT:
 
-    a list of elements of PGL which conjugate ``f`` to ``g``.
+    ``True`` if ``f`` is conjugate to ``g``, ``False`` otherwise.
 
     EXAMPLES::
 
@@ -2271,8 +2287,7 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
     # helper function for parallelization
     # given a list of tuples which specify indicies of possible target points
     # in possible_targets, check all arragements of those possible target points
-    # and if any of them define a conjugation which sends f to g, return
-    # those conjugations as a list
+    # and if any of them define a conjugation which sends f to g, return True
     def find_conjugations_subset(tuples):
         for tup in tuples:
             target_set = []
@@ -2299,8 +2314,7 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
     # helper function for parallelization
     # given a list of tuples which specify indicies of possible target points
     # in possible_targets, check all possible target points
-    # and if any of them define a conjugation which sends f to g, return
-    # those conjugations as a list
+    # and if any of them define a conjugation which sends f to g, return True
     def find_conjugations_arrangement(tuples):
         for tup in tuples:
             current_target = []

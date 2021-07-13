@@ -1411,10 +1411,10 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             V = D.coordinate_module(sub)
         else:
             V = sub.free_module()
-        if self.side() == "left":
-            A = self.matrix().restrict_domain(V)
-        else:
+        if self.side() == "right":
             A = self.matrix().transpose().restrict_domain(V).transpose()
+        else:
+            A = self.matrix().restrict_domain(V)
         H = sub.Hom(self.codomain())
         try:
             return H(A, side=self.side())
@@ -1499,10 +1499,10 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         else:
             V = sub.free_module()
         try:
-            if self.side() == "left":
-                return H(self.matrix().restrict_codomain(V))
-            else:
+            if self.side() == "right":
                 return H(self.matrix().transpose().restrict_codomain(V).transpose(), side="right")
+            else:
+                return H(self.matrix().restrict_codomain(V))
         except:
             return H(self.matrix().restrict_codomain(V))
 
@@ -1590,7 +1590,10 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             V = D.coordinate_module(sub)
         else:
             V = sub.free_module()
-        A = self.matrix().transpose().restrict(V).transpose()
+        if side == "right":
+            A = self.matrix().transpose().restrict(V).transpose()
+        else :
+            A = self.matrix().restrict(V)
         H = sage.categories.homset.End(sub, self.domain().category())
         return H(A, side=self.side())
 

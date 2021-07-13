@@ -1076,6 +1076,31 @@ from sage.geometry.polyhedron.backend_field import Polyhedron_field
 class Polyhedra_ZZ_ppl(Polyhedra_base):
     Element = Polyhedron_ZZ_ppl
 
+    def _element_constructor_polyhedron(self, polyhedron, **kwds):
+        """
+        The element (polyhedron) constructor for the case of 1 argument, a polyhedron.
+
+        Set up with the ``ppl_polyhedron`` of ``self``, if available.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra
+            sage: P = Polyhedra(ZZ, 3)
+            sage: p = Polyhedron(vertices=[(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)], base_ring=QQ)
+            sage: p
+            A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
+            sage: P(p)
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+
+            sage: p = Polyhedron(vertices=[(0, 0, 0), (1, 0, 0), (0, 1, 0), (0, 0, 1)], backend='cdd')
+            sage: P(p)
+            A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
+        """
+        if polyhedron.backend() == "ppl":
+            return self._element_constructor_(None, None, ppl_polyhedron=polyhedron._ppl_polyhedron)
+        else:
+            return Polyhedra_base._element_constructor_polyhedron(self, polyhedron, **kwds)
+
 class Polyhedra_ZZ_normaliz(Polyhedra_base):
     Element = Polyhedron_ZZ_normaliz
 

@@ -9225,7 +9225,7 @@ cdef class Matrix(Matrix1):
         """
         Return ``True`` if this matrix is a triangular matrix.
 
-        INPUT
+        INPUT:
 
         - ``side`` -- either ``"lower"`` (default) or ``"upper"``
 
@@ -9235,13 +9235,13 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: m = matrix(QQ,2,2,range(4))
+            sage: m = matrix(QQ, 2, 2, range(4))
             sage: m.is_triangular()
             False
-            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m = matrix(QQ, 2, [5, 0, 0, 5])
             sage: m.is_triangular()
             True
-            sage: m = matrix(QQ,2,[1,2,0,1])
+            sage: m = matrix(QQ, 2, [1, 2, 0, 1])
             sage: m.is_triangular("upper")
             True
             sage: m.is_triangular("lower")
@@ -9265,7 +9265,7 @@ cdef class Matrix(Matrix1):
 
     def is_unitary(self) -> bool:
         r"""
-        Returns ``True`` if the columns of the matrix are an orthonormal basis.
+        Return ``True`` if the columns of the matrix are an orthonormal basis.
 
         For a matrix with real entries this determines if a matrix is
         "orthogonal" and for a matrix with complex entries this determines

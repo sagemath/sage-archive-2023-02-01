@@ -32,7 +32,6 @@ from .space import is_ModularFormsSpace
 from random import shuffle
 
 from sage.structure.parent import Parent
-from sage.structure.element import Element
 
 from sage.categories.graded_algebras import GradedAlgebras
 
@@ -373,7 +372,7 @@ class ModularFormsRing(Parent):
             sage: M(x)
             Traceback (most recent call last):
             ...
-            ValueError: the defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary
+            TypeError: the defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary
         """
         if isinstance(forms_datas, (dict, list)):
             forms_dictionary = forms_datas

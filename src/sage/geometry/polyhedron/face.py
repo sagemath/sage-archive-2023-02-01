@@ -158,6 +158,8 @@ class PolyhedronFace(ConvexSet_closed):
         self._ambient_Hrepresentation_indices = tuple(H_indices)
         self._ambient_Vrepresentation = tuple( polyhedron.Vrepresentation(i) for i in V_indices )
         self._ambient_Hrepresentation = tuple( polyhedron.Hrepresentation(i) for i in H_indices )
+        if polyhedron.is_mutable():
+            polyhedron._add_dependent_object(self)
 
     def __hash__(self):
         r"""
@@ -169,16 +171,9 @@ class PolyhedronFace(ConvexSet_closed):
              2377136578164722109,
              5966674064902575359,
              4795242501625591634]
-
-        The face of a mutable polyhedron is immutable::
-
-            sage: p = Polyhedron([[1, 1]], mutable=True)
-            sage: f = p.faces(0)[0]
-            sage: _ = hash(f)
         """
         from .base import Polyhedron_base
-        # The face of an mutable polyhedron is still mutable and is invalid when the polyhedron is changed.
-        return hash((Polyhedron_base.__hash__(self._polyhedron), self._ambient_Vrepresentation_indices))
+        return hash((self._polyhedron, self._ambient_Vrepresentation_indices))
 
     def vertex_generator(self):
         """

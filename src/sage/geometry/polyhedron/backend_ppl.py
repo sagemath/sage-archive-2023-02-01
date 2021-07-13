@@ -36,6 +36,7 @@ class Polyhedron_ppl(Polyhedron_mutable):
     """
 
     _backend_object_name = "ppl_polyhedron"
+    _is_mutable = True
 
     def __init__(self, parent, Vrep, Hrep, ppl_polyhedron=None, mutable=False, **kwds):
         """
@@ -54,6 +55,8 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: p = q.parent().element_class(q.parent(), None, None, q._ppl_polyhedron)
             sage: TestSuite(p).run()
         """
+        # This is important. For some reason the element constructor copies the list sometimes.
+        self._dependent_objects = []
         if ppl_polyhedron:
             if Hrep is not None or Vrep is not None:
                 raise ValueError("only one of Vrep, Hrep, or ppl_polyhedron can be different from None")
@@ -62,7 +65,6 @@ class Polyhedron_ppl(Polyhedron_mutable):
             self._init_from_ppl_polyhedron(ppl_polyhedron, minimize)
         else:
             Polyhedron_mutable.__init__(self, parent, Vrep, Hrep, **kwds)
-        self._is_mutable = True
         if not mutable:
             self.set_immutable()
 
@@ -209,10 +211,10 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: P = p.parent()
             sage: p = P._element_constructor_(p, mutable=True)
             sage: p.Vrepresentation(0)
-            A vertex at (1, -1, -1)
+            A vertex at (-1, -1, -1)
             sage: p._clear_cache()
             sage: p.Vrepresentation(0)
-            A vertex at (1, -1, -1)
+            A vertex at (-1, -1, -1)
             sage: TestSuite(p).run()
         """
         if not hasattr(self, '_Vrepresentation'):
@@ -323,10 +325,10 @@ class Polyhedron_ppl(Polyhedron_mutable):
             sage: P = p.parent()
             sage: p = P._element_constructor_(p, mutable=True)
             sage: p.Hrepresentation(0)
-            An inequality (-1, 0, 0) x + 1 >= 0
+            An inequality (0, 0, -1) x + 1 >= 0
             sage: p._clear_cache()
             sage: p.Hrepresentation(0)
-            An inequality (-1, 0, 0) x + 1 >= 0
+            An inequality (0, 0, -1) x + 1 >= 0
             sage: TestSuite(p).run()
         """
         if not hasattr(self, '_Hrepresentation'):

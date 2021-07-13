@@ -296,6 +296,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Vrep._polyhedron = None
         polyhedron._Hrepresentation = None
         polyhedron._Vrepresentation = None
+        if polyhedron.is_mutable():
+            polyhedron._dependent_objects = []
 
     def ambient_dim(self):
         r"""
@@ -1144,8 +1146,9 @@ class Polyhedra_ZZ_ppl(Polyhedra_base):
             sage: P(p)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
         """
+        from copy import copy
         if polyhedron.backend() == "ppl":
-            return self._element_constructor_(None, None, ppl_polyhedron=polyhedron._ppl_polyhedron, **kwds)
+            return self._element_constructor_(None, None, ppl_polyhedron=copy(polyhedron._ppl_polyhedron), **kwds)
         else:
             return Polyhedra_base._element_constructor_polyhedron(self, polyhedron, **kwds)
 
@@ -1175,8 +1178,9 @@ class Polyhedra_QQ_ppl(Polyhedra_base):
             sage: P(p)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
         """
+        from copy import copy
         if polyhedron.backend() == "ppl":
-            return self._element_constructor_(None, None, ppl_polyhedron=polyhedron._ppl_polyhedron, **kwds)
+            return self._element_constructor_(None, None, ppl_polyhedron=copy(polyhedron._ppl_polyhedron), **kwds)
         else:
             return Polyhedra_base._element_constructor_polyhedron(self, polyhedron, **kwds)
 

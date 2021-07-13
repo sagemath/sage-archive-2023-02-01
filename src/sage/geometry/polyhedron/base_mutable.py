@@ -56,11 +56,82 @@ class Polyhedron_mutable(Polyhedron_base):
         """
         if not self._is_mutable:
             raise TypeError("cannot clear cache of immutable polyhedra")
-        self.parent().recycle(self)
+
+        # Invalidate object pointing towards this polyhedron (faces etc.).
+        for ob in self._dependent_objects:
+            ob._polyhedron = None
         backend_object = self.__dict__["_" + self._backend_object_name]
         del self.__dict__
         self.__dict__["_" + self._backend_object_name] = backend_object
         self._is_mutable = True
+        self._dependent_objects = []
+
+    def _add_dependent_object(self, ob):
+        r"""
+        Add an object that has ``self`` has attribute ``_polyhedron``.
+
+        When ``self`` is modified, we delete this attribute to invalidate those objects.
+
+        EXAMPLES::
+
+            sage: p = Polyhedron([[1, 1]], mutable=True)
+            sage: class foo:
+            ....:     def __init__(self, p):
+            ....:         self._polyhedron = p
+            ....:
+            sage: a = foo(p)
+            sage: a.__dict__
+            {'_polyhedron': A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex}
+            sage: p._add_dependent_object(a)
+            sage: p._clear_cache()
+            sage: a.__dict__
+            {'_polyhedron': None}
+
+        TESTS::
+
+            sage: from sage.geometry.newton_polygon import NewtonPolygon
+            sage: p = Polyhedron([[1, 1]], mutable=True)
+            sage: n = NewtonPolygon(p)
+            sage: n
+            Finite Newton polygon with 1 vertex: (1, 1)
+            sage: n = NewtonPolygon(p)
+            sage: p._clear_cache()
+            sage: n
+            <repr(<sage.geometry.newton_polygon.ParentNewtonPolygon_with_category.element_class at ...>) failed: AttributeError: 'NoneType' object has no attribute 'vertices'>
+
+        ::
+
+            sage: f = p.faces(0)[0]; f
+            A 0-dimensional face of a Polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: p._clear_cache()
+            sage: f
+            <repr(<sage.geometry.polyhedron.face.PolyhedronFace at ...>) failed: AttributeError: 'NoneType' object has no attribute 'parent'>
+
+        ::
+
+            sage: v = p.vertices()[0]
+            sage: p = Polyhedron([[1, 1]], mutable=True)
+            sage: v = p.Vrepresentation(0); v
+            A vertex at (1, 1)
+            sage: h = p.Hrepresentation(0); h
+            An equation (0, 1) x - 1 == 0
+            sage: p._clear_cache()
+            sage: v.polyhedron() is None
+            True
+            sage: h.polyhedron() is None
+            True
+
+        ::
+
+            sage: p = Polyhedron([[1, 0], [0, 1]], mutable=True)
+            sage: r = p.relative_interior()
+            sage: p._clear_cache()
+            sage: r
+            Relative interior of None
+        """
+        if not ob._polyhedron is self:
+            raise ValueError
+        self._dependent_objects.append(ob)
 
     def is_mutable(self):
         r"""

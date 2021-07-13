@@ -6621,6 +6621,48 @@ class Polyhedron_base(Element, ConvexSet_closed):
             Digraph on 20 vertices
             sage: D.degree_polynomial()
             x^5 + x^4*y + x*y^4 + y^5 + 4*x^3*y + 8*x^2*y^2 + 4*x*y^3
+
+        Faces of an mutable polyhedron are not hashable. Hence those are not suitable as
+        vertices of the hasse diagram. Use the combinatorial polyhedron instead::
+
+            sage: P = polytopes.regular_polygon(4).pyramid()
+            sage: parent = P.parent()
+            sage: parent = parent.change_ring(QQ, backend='ppl')
+            sage: Q = parent._element_constructor_(P, mutable=True)
+            sage: Q.hasse_diagram()
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable polyhedra are unhashable
+            sage: C = Q.combinatorial_polyhedron()
+            sage: D = C.hasse_diagram()
+            sage: set(D.vertices()) == set(range(20))
+            True
+            sage: def index_to_combinatorial_face(n):
+            ....:     return C.face_by_face_lattice_index(n)
+            sage: D.relabel(index_to_combinatorial_face, inplace=True)
+            sage: D.vertices()
+            [A -1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 3-dimensional face of a 3-dimensional combinatorial polyhedron]
+            sage: D.degree_polynomial()
+            x^5 + x^4*y + x*y^4 + y^5 + 4*x^3*y + 8*x^2*y^2 + 4*x*y^3
         """
 
         from sage.geometry.polyhedron.face import combinatorial_face_to_polyhedral_face
@@ -10489,7 +10531,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         if self.n_vertices():
             tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center()))
 
-        if self.n_vertices() < 20 and self.n_facets() < 20:
+        if self.n_vertices() < 20 and self.n_facets() < 20 and self.is_immutable():
             tester.assertTrue(self.is_combinatorially_isomorphic(ZZ(4)*self, algorithm='face_lattice'))
             if self.n_vertices():
                 tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))

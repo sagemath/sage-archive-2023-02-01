@@ -6,7 +6,11 @@ differentiable map. The space of *mixed differential forms along* `\varphi`,
 denoted by `\Omega^*(M,\varphi)`, is given by the direct sum
 `\bigoplus^n_{j=0} \Omega^j(M,\varphi)` of differential form modules, where
 `n=\dim(N)`. With the wedge product, `\Omega^*(M,\varphi)` inherits the
-structure of a graded algebra.
+structure of a graded algebra. See :class:`MixedFormAlgebra` for details.
+
+This algebra is endowed with a natural chain complex structure induced by the
+exterior derivative. The corresponding homology is called *de Rham cohomology*.
+See :class:`DeRhamCohomologyRing` for details.
 
 AUTHORS:
 
@@ -15,7 +19,7 @@ AUTHORS:
 """
 
 #******************************************************************************
-#       Copyright (C) 2019 Michael Jung <micjung@uni-potsdam.de>
+#       Copyright (C) 2019-2021 Michael Jung <m.jung@vu.nl>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -26,14 +30,16 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
 from sage.categories.graded_algebras import GradedAlgebras
+from sage.categories.chain_complexes import ChainComplexes
+from sage.categories.morphism import SetMorphism
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.symbolic.ring import SR
 from sage.manifolds.differentiable.mixed_form import MixedForm
 
 class MixedFormAlgebra(Parent, UniqueRepresentation):
     r"""
-    An instance of this class represents the graded algebra of mixed form. That
-    is, if `\varphi: M \to N` is a differentiable map between two
+    An instance of this class represents the graded algebra of mixed forms.
+    That is, if `\varphi: M \to N` is a differentiable map between two
     differentiable manifolds `M` and `N`, the *graded algebra of mixed forms*
     `\Omega^*(M,\varphi)` *along* `\varphi` is defined via the direct sum
     `\bigoplus^{n}_{j=0} \Omega^j(M,\varphi)` consisting of differential form
@@ -57,6 +63,20 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
 
         \Omega^k(M,\varphi) \wedge \Omega^l(M,\varphi) \subset \Omega^{k+l}(M,\varphi).
 
+    Moreover, `\Omega^*(M,\varphi)` inherits the structure of a chain complex,
+    called *de Rham complex*, with the exterior derivative as boundary map,
+    that is
+
+    .. MATH::
+
+        0 \rightarrow \Omega^0(M,\varphi) \xrightarrow{\mathrm{d}_0}
+            \Omega^1(M,\varphi) \xrightarrow{\mathrm{d}_1} \dots
+            \xrightarrow{\mathrm{d}_{n-1}} \Omega^n(M,\varphi)
+            \xrightarrow{\mathrm{d}_{n}} 0.
+
+    The induced cohomology is called *de Rham cohomology*, see
+    :meth:`cohomology` or :class:`DeRhamCohomologyRing` respectively.
+
     INPUT:
 
     - ``vector_field_module`` -- module `\mathfrak{X}(M,\varphi)` of vector
@@ -72,7 +92,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         Graded algebra Omega^*(M) of mixed differential forms on the
          3-dimensional differentiable manifold M
         sage: Omega.category()
-        Category of graded algebras over Symbolic Ring
+        Join of Category of graded algebras over Symbolic Ring and Category of
+         chain complexes over Symbolic Ring
         sage: Omega.base_ring()
         Symbolic Ring
         sage: Omega.vector_field_module()
@@ -165,8 +186,8 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         base_field = domain.base_field()
         if domain.base_field_type() in ['real', 'complex']:
             base_field = SR
-        Parent.__init__(self, base=base_field,
-                        category=GradedAlgebras(base_field))
+        category = GradedAlgebras(base_field) & ChainComplexes(base_field)
+        Parent.__init__(self, base=base_field, category=category)
         # Define attributes:
         self._domain = domain
         self._ambient_domain = vector_field_module._ambient_domain
@@ -407,6 +428,85 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         """
         return self._latex_name
 
+    def differential(self, degree=None):
+        r"""
+        Return the differential of the de Rham complex ``self`` given by the
+        exterior derivative.
+
+        INPUT:
+
+        - ``degree`` -- (default: ``None``) degree of the differential
+          operator; if none is provided, the differential operator on
+          ``self`` is returned.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: d = C.differential(); d
+            Generic endomorphism of Graded algebra Omega^*(M) of mixed
+             differential forms on the 2-dimensional differentiable manifold M
+            sage: d0 = C.differential(0); d0
+            Generic morphism:
+              From: Algebra of differentiable scalar fields on the
+               2-dimensional differentiable manifold M
+              To:   Free module Omega^1(M) of 1-forms on the 2-dimensional
+               differentiable manifold M
+            sage: f = M.scalar_field(x, name='f'); f.display()
+            f: M --> R
+               (x, y) |--> x
+            sage: d0(f).display()
+            df = dx
+
+        """
+        if degree is None:
+            domain = codomain = self
+        else:
+            domain = self._domain.diff_form_module(degree)
+            codomain = self._domain.diff_form_module(degree + 1)
+        return SetMorphism(domain.Hom(codomain), lambda x: x.derivative())
+
+    def cohomology(self, *args, **kwargs):
+        r"""
+        Return the de Rham cohomology of the de Rham complex ``self``.
+
+        The `k`-th de Rham cohomology is given by
+
+        .. MATH::
+
+            H^k_{\mathrm{dR}}(M, \varphi) =
+                \left. \mathrm{ker}(\mathrm{d}_k) \middle/
+                \mathrm{im}(\mathrm{d}_{k-1}) \right. .
+
+        The corresponding ring is given by
+
+        .. MATH::
+
+            H^*_{\mathrm{dR}}(M, \varphi) = \bigoplus^n_{k=0} H^k_{\mathrm{dR}}(M, \varphi),
+
+        endowed with the cup product as multiplication induced by the wedge
+        product.
+
+        .. SEEALSO::
+
+            See :class:`~sage.manifolds.differentiable.de_rham_cohomology.DeRhamCohomologyRing`
+            for details.
+
+        EXAMPLES::
+
+            sage: M = Manifold(3, 'M', latex_name=r'\mathcal{M}')
+            sage: A = M.mixed_form_algebra()
+            sage: A.cohomology()
+            De Rham cohomology ring on the 3-dimensional differentiable
+             manifold M
+
+        """
+        from .de_rham_cohomology import DeRhamCohomologyRing
+        return DeRhamCohomologyRing(self)
+
+    homology = cohomology
+
     def irange(self, start=None):
         r"""
         Single index generator.
@@ -442,3 +542,25 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         while i < imax:
             yield i
             i += 1
+
+    def lift_from_homology(self, x):
+        r"""
+        Lift a cohomology class to the algebra of mixed differential forms.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: alpha = M.diff_form(1, [1,1], name='alpha')
+            sage: alpha.display()
+            alpha = dx + dy
+            sage: a = H(alpha); a
+            [alpha]
+            sage: C.lift_from_homology(a)
+            Mixed differential form alpha on the 2-dimensional differentiable
+             manifold M
+
+        """
+        return x.lift()

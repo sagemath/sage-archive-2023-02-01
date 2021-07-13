@@ -190,6 +190,10 @@ SAGE_ROOT_GIT = var("SAGE_ROOT_GIT", join(SAGE_ROOT, ".git"))
 DOT_SAGE = var("DOT_SAGE", join(os.environ.get("HOME"), ".sage"))
 SAGE_STARTUP_FILE = var("SAGE_STARTUP_FILE", join(DOT_SAGE, "init.sage"))
 
+# for sage_setup.setenv
+SAGE_ARCHFLAGS = var("SAGE_ARCHFLAGS", "unset")
+SAGE_PKG_CONFIG_PATH = var("SAGE_PKG_CONFIG_PATH")
+
 # installation directories for various packages
 CONWAY_POLYNOMIALS_DATA_DIR = var("CONWAY_POLYNOMIALS_DATA_DIR", join(SAGE_SHARE, "conway_polynomials"))
 GRAPHS_DATA_DIR = var("GRAPHS_DATA_DIR", join(SAGE_SHARE, "graphs"))
@@ -203,11 +207,12 @@ CREMONA_LARGE_DATA_DIR = var("CREMONA_LARGE_DATA_DIR", join(SAGE_SHARE, "cremona
 JMOL_DIR = var("JMOL_DIR", join(SAGE_SHARE, "jmol"))
 MATHJAX_DIR = var("MATHJAX_DIR", join(SAGE_SHARE, "mathjax"))
 MTXLIB = var("MTXLIB", join(SAGE_SHARE, "meataxe"))
-THREEJS_DIR = var("THREEJS_DIR", join(SAGE_SHARE, "threejs"))
+THREEJS_DIR = var("THREEJS_DIR", join(SAGE_SHARE, "threejs-sage"))
 SINGULARPATH = var("SINGULARPATH", join(SAGE_SHARE, "singular"))
 PPLPY_DOCS = var("PPLPY_DOCS", join(SAGE_SHARE, "doc", "pplpy"))
 MAXIMA = var("MAXIMA", "maxima")
 MAXIMA_FAS = var("MAXIMA_FAS")
+KENZO_FAS = var("KENZO_FAS")
 SAGE_NAUTY_BINS_PREFIX = var("SAGE_NAUTY_BINS_PREFIX", "")
 ARB_LIBRARY = var("ARB_LIBRARY", "arb")
 CBLAS_PC_MODULES = var("CBLAS_PC_MODULES", "cblas:openblas:blas")
@@ -312,7 +317,7 @@ SINGULAR_SO = var("SINGULAR_SO", _get_shared_lib_path("Singular", "singular-Sing
 GAP_SO = var("GAP_SO", _get_shared_lib_path("gap", ""))
 
 # post process
-if ' ' in DOT_SAGE:
+if DOT_SAGE is not None and ' ' in DOT_SAGE:
     if UNAME[:6] == 'CYGWIN':
         # on windows/cygwin it is typical for the home directory
         # to have a space in it.  Fortunately, users also have
@@ -373,14 +378,18 @@ def sage_include_directories(use_sources=False):
         sage: any(os.path.isfile(os.path.join(d, file)) for d in dirs)
         True
     """
-    import numpy
     import distutils.sysconfig
 
     TOP = SAGE_SRC if use_sources else SAGE_LIB
 
-    return [TOP,
-            distutils.sysconfig.get_python_inc(),
-            numpy.get_include()]
+    dirs = [TOP,
+            distutils.sysconfig.get_python_inc()]
+    try:
+        import numpy
+        dirs.append(numpy.get_include())
+    except ModuleNotFoundError:
+        pass
+    return dirs
 
 def get_cblas_pc_module_name() -> str:
     """

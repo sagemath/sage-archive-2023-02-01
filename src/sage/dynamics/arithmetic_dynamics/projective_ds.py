@@ -6451,8 +6451,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         The optional argument `R` specifies the field of definition
         of the PGL elements. The set is determined
         by taking the fixed points of one map and mapping
-        them to all unique permutations of the fixed points of
-        the other map. If there are not enough fixed points the
+        them to permutations of the fixed points of the other map.
+        As conjugacy preserves the multipliers as a set, fixed points
+        are only maped to fixed points with the same multiplier.
+        If there are not enough fixed points the
         function compares the mapping between rational preimages of
         fixed points and the rational preimages of the preimages of
         fixed points until there are enough points; such that there
@@ -6490,7 +6492,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         - Original algorithm written by Xander Faber, Michelle Manes,
           Bianca Viray [FMV2014]_.
 
-        - Implemented by Rebecca Lauren Miller, as part of GSOC 2016.
+        - Implemented by Rebecca Lauren Miller as part of GSOC 2016.
 
         - Algorithmic improvement by Alexander Galarraga as part of GSOC 2021.
 
@@ -6505,6 +6507,13 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             [-1  3]
             [ 2  1]
             ]
+
+        Increasing ``num_cpus`` can speed up computation::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ,3)
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2, w^2])
+            sage: len(f.conjugating_set(f, num_cpus=2))
+            24
 
         ::
 
@@ -6731,19 +6740,28 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         - Implemented by Rebecca Lauren Miller as part of GSOC 2016.
 
+        - Algorithmic improvement by Alexander Galarraga as part of GSOC 2016.
+
         EXAMPLES::
 
             sage: K.<w> = CyclotomicField(3)
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: D8 = DynamicalSystem_projective([y^2, x^2])
             sage: D8.is_conjugate(D8)
+            True
+
+        We can speed up computation by increasing ``num_cpus``::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ,3)
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2, w^2])
+            sage: f.is_conjugate(f, num_cpus=2)
             True
 
         ::
 
             sage: set_verbose(None)
-            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
-            sage: f = DynamicalSystem_projective([x^2 + x*y,y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
+            sage: f = DynamicalSystem_projective([x^2 + x*y, y^2])
             sage: m = matrix(QQbar, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
             sage: f.is_conjugate(g)
@@ -6751,8 +6769,8 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(GF(5),1)
-            sage: f = DynamicalSystem_projective([x^3 + x*y^2,y^3])
+            sage: P.<x,y> = ProjectiveSpace(GF(5), 1)
+            sage: f = DynamicalSystem_projective([x^3 + x*y^2, y^3])
             sage: m = matrix(GF(5), 2, 2, [1, 3, 2, 9])
             sage: g = f.conjugate(m)
             sage: f.is_conjugate(g)
@@ -6760,15 +6778,15 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2 + x*y,y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + x*y, y^2])
             sage: g = DynamicalSystem_projective([x^3 + x^2*y, y^3])
             sage: f.is_conjugate(g)
             False
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 + x*y, y^2])
             sage: g = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: f.is_conjugate(g)
@@ -6810,7 +6828,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([2*x^2 + 12*y*x, 11*y*x+2*y^2, x^2+z^2])
             sage: m1 = matrix(QQ, 3, 3, [1,4,1,0,2,1,1,1,1])
             sage: g = f.conjugate(m1)

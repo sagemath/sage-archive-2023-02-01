@@ -1809,14 +1809,25 @@ def conjugating_set_initializer(f, g):
 
     A tuple of the form (``source``, ``possible_targets``).
 
-    - ``source`` -- a conjugation invariant set, used to specify PGL elements which conjugate `f` to `g`.
-      a list of `n+2` points of the domain of `f`, of which no `n+1` are linearly dependent.
-      Used to specify a possible conjugation from `f` to `g`.
+    - ``source`` -- a conjugation invariant set of `n+2` points of the domain of `f`,
+      of which no `n+1` are linearly dependent. Used to specify a possible conjugation
+      from `f` to `g`.
 
     - ``possible_targets`` -- a list of tuples of the form (``points``, ``repeated``). ``points``
       is a list of ``points`` which are possible targets for point(s) in ``source``. ``repeated``
       specifies how many points in ``source`` have points in ``points`` as their possible target.
 
+    EXAMPLES::
+
+        sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+        sage: f = DynamicalSystem([(8*x^7 - 35*x^4*y^3 - 35*x^4*z^3 - 7*x*y^6 - 140*x*y^3*z^3 \
+                  - 7*x*z^6), (-7*x^6*y - 35*x^3*y^4 - 140*x^3*y*z^3 + 8*y^7 - 35*y^4*z^3 \
+                  - 7*y*z^6), -7*x^6*z - 140*x^3*y^3*z - 35*x^3*z^4 - 7*y^6*z - 35*y^3*z^4 + 8*z^7])
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import conjugating_set_initializer
+        sage: conjugating_set_initializer(f, f)
+        ([(-1 : 0 : 1), (0 : -1 : 1), (0 : 1 : 0), (1 : 0 : 0)],
+         [[[(-1 : 0 : 1), (0 : -1 : 1), (-1 : 1 : 0)], 2],
+         [[(0 : 1 : 0), (1 : 0 : 0), (1 : 1 : 1), (0 : 0 : 1)], 2]])
     """
     n = f.domain().dimension_relative()
 
@@ -1881,30 +1892,16 @@ def conjugating_set_initializer(f, g):
     # specifies how many points in source have that (multiplier, level) pair
     corresponding = []
 
-    # we look for a set of n+2 points, of which no n+1 are linearly dependent,
-    # and we make sure to add the points with the best combinatorics first
-    for r in sorted(repeated_mult_L.keys()):
-        for point_lst in repeated_mult_L[r]:
-            for point in point_lst:
-                if P.is_linearly_independent(source + [point], n+1):
-                    source.append(point)
-                    mult = point_to_mult_L[point]
-                    # if another point with this multiplier and level pair is in S
-                    # then the multiplier level pair will be the last element of corresponding
-                    if len(corresponding) != 0:
-                        if corresponding[-1][0] == mult:
-                            corresponding[-1][1] += 1
-                        else:
-                            corresponding.append([mult, 1])
-                    else:
-                        corresponding.append([mult, 1])
-                if len(source) == n+2:
-                    more = False
-                    break
-            if len(source) == n+2:
-                break
-        if len(source) == n+2:
-            break
+    # we now greedily look for a set of n+2 points, of which no n+1 are linearly dependent,
+    # and we make sure to add the points with the best combinatorics first.
+    # this check sometimes fails, i.e. sometimes there is a subset with the
+    # desired property which is not found. however, this check is very fast and if it
+    # does find a subset, then the subset will most likely minimize the combinatorics
+    # of checking conjugations
+    tup = greedy_independence_check(P, repeated_mult_L, point_to_mult_L)
+    if not tup is None:
+        more = False
+        source, corresponding = tup
 
     # we keep 3 dictionaries to allow looping over a dictionary
     i_repeated_mult = deepcopy(repeated_mult_L) # loop dictionary
@@ -1955,41 +1952,28 @@ def conjugating_set_initializer(f, g):
                         a_repeated_mult[repeated] = [Tl]
                     else:
                         a_repeated_mult[repeated] += [Tl]
-                    source = []
-                    corresponding = []
-                    for r in sorted(repeated_mult_L.keys()):
-                        for point_lst in repeated_mult_L[r]:
-                            for point in point_lst:
-                                if P.is_linearly_independent(source + [point], n+1):
-                                    source.append(point)
-                                    mult = point_to_mult_L[point]
-                                    # if another point with this multiplier and level pair is in S
-                                    # then the multiplier level pair will be the last element of corresponding
-                                    if len(corresponding) != 0:
-                                        if corresponding[-1][0] == mult:
-                                            corresponding[-1][1] += 1
-                                        else:
-                                            corresponding.append([mult, 1])
-                                    else:
-                                        corresponding.append([mult, 1])
-                                if len(source) == n+2:
-                                    more = False
-                                    break
-                            if len(source) == n+2:
-                                break
-                        if len(source) == n+2:
-                            break
+                    # we again do a greedy check for a subset of n+2 points, of which no n+1
+                    # are linearly dependent
+                    tup = greedy_independence_check(P, repeated_mult_L, point_to_mult_L)
+                    if not tup is None:
+                        more = False
+                        source, corresponding = tup
                 if not more:
                     break
             if not more:
                 break
 
-        # if no more preimages can be found, the algorithm fails
+        # if no more preimages can be found, we must check all subsets
+        # of size n+2 to see if there is a subset in which no n+1 points
+        # are linearly dependent
         if found_no_more:
             all_points = []
             for r in sorted(repeated_mult_L.keys()):
                 for point_lst in repeated_mult_L[r]:
                     all_points += point_lst
+            # this loop is quite long, so we break after finding the first subset
+            # with the desired property. There is, however, no guarentee that the
+            # subset we found minimizes the combinatorics when checking conjugations
             for subset in Subsets(range(len(all_points)), n+2):
                 source = []
                 for i in subset:
@@ -2006,6 +1990,9 @@ def conjugating_set_initializer(f, g):
                             corresponding.append([mult, 1])
                             mult_only.append(mult)
                     break
+            # if we iterated over all subsets of size n+2, and did not find one
+            # in which all subsets of size n+1 are linearly independent,
+            # then we fail as we cannot specify conjugations
             if more:
                 raise ValueError('no more rational preimages. try extending the base field and trying again.')
 
@@ -2020,6 +2007,75 @@ def conjugating_set_initializer(f, g):
     for tup in corresponding:
         possible_targets.append([mult_to_point_K[tup[0]], tup[1]])
     return source, possible_targets
+
+def greedy_independence_check(P, repeated_mult, point_to_mult):
+    r"""
+    Return a conjugation invariant set together with information
+    to reduce the combinatorics of checking all possible conjugations.
+
+    This function may sometimes fail to find the conjugation invariant
+    set even though one exists. It is useful, however, as it is fast
+    and returns a set which usually minimizes the combinatorics of
+    checking all conjugations.
+
+    INPUT:
+
+    - ``P`` -- a projective space
+
+    - ``repeated_mult`` -- a dictionary of integers to lists of points of
+      the projective space ``P``. The list of points should be conjugation
+      invariant. The keys are considered as weights, and this function attempts
+      to minimize the total weight
+
+    - ``point_to_mult`` -- a dictionary of points of ``P`` to tuples of the form
+      (multiplier, level), where multiplier is the characteristic polynomial
+      of the multiplier of the point, and level is the number of preimages
+      taken to find the point
+
+    OUTPUT:
+
+    If no set of `n+2` points of which all subsets of size `n+1` are linearly
+    independent can be found, then ``None`` is returned.
+
+    Otherwise, a tuple of the form (``source``, ``corresponding``) is returned.
+
+    - ``source`` -- a conjugation invariant set of `n+2` points of the domain of `f`,
+      of which no `n+1` are linearly dependent. Used to specify a possible conjugation
+      from `f` to `g`.
+
+    - ``corresponding`` -- a list of tuples of the form ((multiplier, level), repeat) where the
+      (multiplier, level) pair is the multiplier of a point in ``source`` and repeat
+      specifies how many points in source have that (multiplier, level) pair
+
+    EXAMPLES::
+
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import greedy_independence_check
+        sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+        sage: repeated_mult = {2: [[P((0, 1)), P((1, 0))]], 1: [[P((1, 1))]]}
+        sage: point_to_mult = {P((0, 1)): (x, 0), P((1, 0)): (x, 0), P((1, 1)): (x - 2, 0)}
+        sage: greedy_independence_check(P, repeated_mult, point_to_mult)
+        ([(1 : 1), (0 : 1), (1 : 0)], [[(x - 2, 0), 1], [(x, 0), 2]])
+    """
+    n = P.dimension_relative()
+    source = []
+    corresponding = []
+    for r in sorted(repeated_mult.keys()):
+        for point_lst in repeated_mult[r]:
+            for point in point_lst:
+                if P.is_linearly_independent(source + [point], n+1):
+                    source.append(point)
+                    mult = point_to_mult[point]
+                    # if another point with this multiplier and level pair is in S
+                    # then the multiplier level pair will be the last element of corresponding
+                    if len(corresponding) != 0:
+                        if corresponding[-1][0] == mult:
+                            corresponding[-1][1] += 1
+                        else:
+                            corresponding.append([mult, 1])
+                    else:
+                        corresponding.append([mult, 1])
+                if len(source) == n+2:
+                    return source, corresponding
 
 def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
     r"""
@@ -2048,6 +2104,19 @@ def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
     OUTPUT:
 
     a list of elements of PGL which conjugate ``f`` to ``g``.
+
+    EXAMPLES::
+
+        sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+        sage: f = DynamicalSystem([x^2, y^2])
+        sage: source = [P((1, 1)), P((0, 1)), P((1, 0))]
+        sage: possible_targets = [[[P((1, 1))], 1], [[P((0, 1)), P((1, 0))], 2]]
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import conjugating_set_helper
+        sage: conjugating_set_helper(f, f, 2, source, possible_targets)
+        [
+        [1 0]  [0 1]
+        [0 1], [1 0]
+        ]
     """
     Conj = []
     P = f.domain().ambient_space()
@@ -2179,6 +2248,16 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
     OUTPUT:
 
     a list of elements of PGL which conjugate ``f`` to ``g``.
+
+    EXAMPLES::
+
+        sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+        sage: f = DynamicalSystem([x^2, y^2])
+        sage: source = [P((1, 1)), P((0, 1)), P((1, 0))]
+        sage: possible_targets = [[[P((1, 1))], 1], [[P((0, 1)), P((1, 0))], 2]]
+        sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import is_conjugate_helper
+        sage: is_conjugate_helper(f, f, 2, source, possible_targets)
+        True
     """
     is_conj = False
     P = f.domain().ambient_space()

@@ -322,6 +322,27 @@ class RelativeInterior(ConvexSet_relatively_open):
         INPUT:
 
         - ``scalar`` -- A scalar
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of a
+             1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: A = ri_segment.dilation(2); A
+            Relative interior of a
+             1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: A.closure().vertices()
+            (A vertex at (2, 4), A vertex at (6, 8))
+            sage: B = ri_segment.dilation(-1/3); B
+            Relative interior of a
+             1-dimensional polyhedron in QQ^2 defined as the convex hull of 2 vertices
+            sage: B.closure().vertices()
+            (A vertex at (-1, -4/3), A vertex at (-1/3, -2/3))
+            sage: C = ri_segment.dilation(0); C
+            A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+            sage: C.vertices()
+            (A vertex at (0, 0),)
         """
         return self.closure().dilation(scalar).relative_interior()
 
@@ -337,6 +358,19 @@ class RelativeInterior(ConvexSet_relatively_open):
         - ``linear_transf`` -- a matrix
         - ``**kwds`` -- passed to the :meth:`linear_transformation` method of
           the closure of ``self``.
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of a
+             1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: T = matrix([[1, 1]])
+            sage: A = ri_segment.linear_transformation(T); A
+            Relative interior of a
+             1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
+            sage: A.closure().vertices()
+            (A vertex at (3), A vertex at (7))
         """
         return self.closure().linear_transformation(linear_transf, **kwds).relative_interior()
 
@@ -348,5 +382,18 @@ class RelativeInterior(ConvexSet_relatively_open):
 
         - ``displacement`` -- a displacement vector or a list/tuple of
           coordinates that determines a displacement vector
+
+        EXAMPLES::
+
+            sage: segment = Polyhedron([[1, 2], [3, 4]])
+            sage: ri_segment = segment.relative_interior(); ri_segment
+            Relative interior of a
+             1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: t = vector([100, 100])
+            sage: ri_segment.translation(t)
+            Relative interior of a
+             1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_segment.closure().vertices()
+            (A vertex at (1, 2), A vertex at (3, 4))
         """
         return self.closure().translation(displacement).relative_interior()

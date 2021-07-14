@@ -2022,20 +2022,17 @@ class MatrixSpace(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: Mat(ZZ,2,5).random_element()
-            [ -8   2   0   0   1]
-            [ -1   2   1 -95  -1]
-            sage: Mat(QQ,2,5).random_element(density=0.5)
-            [  2   0   0   0   1]
-            [  0   0   0 1/2   0]
-            sage: Mat(QQ,3,sparse=True).random_element()
-            [  -1  1/3    1]
-            [   0   -1    0]
-            [  -1    1 -1/4]
-            sage: Mat(GF(9,'a'),3,sparse=True).random_element()
-            [      1       2       1]
-            [  a + 2     2*a       2]
-            [      2 2*a + 2       1]
+            sage: M = Mat(ZZ, 2, 5).random_element()
+            sage: TestSuite(M).run()
+
+            sage: M = Mat(QQ, 2, 5).random_element(density=0.5)
+            sage: TestSuite(M).run()
+
+            sage: M = Mat(QQ, 3, sparse=True).random_element()
+            sage: TestSuite(M).run()
+
+            sage: M = Mat(GF(9,'a'), 3, sparse=True).random_element()
+            sage: TestSuite(M).run()
         """
         Z = self.zero_matrix().__copy__()
         if density is None:
@@ -2198,12 +2195,18 @@ class MatrixSpace(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: M = MatrixSpace(ZZ, 4)
-            sage: M._random_nonzero_element()
-            [ -8   2   0   0]
-            [  1  -1   2   1]
-            [-95  -1  -2 -12]
-            [  0   0   1  -1]
+            sage: A = M._random_nonzero_element()
+            sage: A.is_zero()
+            False
+
+            sage: M = MatrixSpace(ZZ, 0)
+            sage: A = M._random_nonzero_element()
+            Traceback (most recent call last):
+            ...
+            ValueError: Full MatrixSpace of 0 by 0 dense matrices over Integer Ring only has zero elements
         """
+        if 0 in self.dims():
+            raise ValueError("{} only has zero elements".format(self))
         rand_matrix = self.random_element(*args, **kwds)
         while rand_matrix.is_zero():
             rand_matrix = self.random_element(*args, **kwds)

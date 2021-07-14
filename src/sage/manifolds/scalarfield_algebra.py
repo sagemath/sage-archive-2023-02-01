@@ -35,6 +35,7 @@ from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.categories.commutative_algebras import CommutativeAlgebras
+from sage.categories.topological_spaces import TopologicalSpaces
 from sage.symbolic.ring import SR
 from sage.manifolds.scalarfield import ScalarField
 
@@ -86,11 +87,11 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
     :class:`~sage.symbolic.ring.SymbolicRing`)::
 
         sage: CM.category()
-        Category of commutative algebras over Symbolic Ring
+        Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
         sage: CM.base_ring()
         Symbolic Ring
         sage: CW.category()
-        Category of commutative algebras over Symbolic Ring
+        Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
         sage: CW.base_ring()
         Symbolic Ring
 
@@ -383,7 +384,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         if domain.base_field_type() in ['real', 'complex']:
             base_field = SR
         Parent.__init__(self, base=base_field,
-                        category=CommutativeAlgebras(base_field))
+                        category=CommutativeAlgebras(base_field) & TopologicalSpaces().Homsets())
         self._domain = domain
         self._populate_coercion_lists_()
 

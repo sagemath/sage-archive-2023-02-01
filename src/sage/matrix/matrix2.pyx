@@ -2386,14 +2386,14 @@ cdef class Matrix(Matrix1):
         r"""
         Computes the Pfaffian of ``self`` using the Baer-Faddeev-LeVerrier
         algorithm.
-        
+
         .. WARNING::
-        
+
             This method assumes that the base ring is an `\QQ`-algebra.
 
         OUTPUT:
 
-        - an element (possibly coerced) originated from the base ring of 
+        - an element (possibly coerced) originated from the base ring of
           ``self`` representing the Pfaffian
 
         EXAMPLES:
@@ -2409,7 +2409,7 @@ cdef class Matrix(Matrix1):
             ....:             (1/2, -3/2, -1, -5/2, -1/2, 0)])
             sage: A.pfaffian(algorithm='bfl')
             -1/2
-            
+
         TESTS::
 
             sage: A = random_matrix(ZZ[x], 6)
@@ -3224,10 +3224,8 @@ cdef class Matrix(Matrix1):
 
             sage: M = random_matrix(ZZ, 10, 20)
             sage: N = random_matrix(ZZ, 20, 10)
-            sage: M.trace_of_product(N)
-            -1629
-            sage: (M*N).trace()
-            -1629
+            sage: M.trace_of_product(N) == (M*N).trace()
+            True
         """
         if self._nrows != other._ncols or other._nrows != self._ncols:
             raise ArithmeticError("incompatible dimensions")
@@ -7164,10 +7162,9 @@ cdef class Matrix(Matrix1):
             [ 0  1  2]
             [ 0  0  0]
 
-            sage: B=random_matrix(QQ,3,num_bound=10); B
-            [ -4  -3   6]
-            [  5  -5 9/2]
-            [3/2  -4  -7]
+            sage: B = random_matrix(QQ, 3, num_bound=10)
+            sage: while B.rank() != 3:
+            ....:     B = random_matrix(QQ, 3, num_bound=10)
             sage: B.rref()
             [1 0 0]
             [0 1 0]
@@ -9055,18 +9052,14 @@ cdef class Matrix(Matrix1):
         We then randomize roughly half the entries::
 
             sage: a.randomize(0.5)
-            sage: a
-            [                     0                      0                      0]
-            [                     0                      0       1/2*x^2 - x - 12]
-            [1/2*x^2 - 1/95*x - 1/2                      0                      0]
+            sage: a.density() <= 0.5
+            True
 
         Now we randomize all the entries of the resulting matrix::
 
-            sage: a.randomize()
-            sage: a
-            [                     0 -5/2*x^2 + 2/3*x - 1/4           -x^2 + 2/3*x]
-            [                     1        x^2 + 1/3*x - 1                     -1]
-            [                    -1       -x^2 - 1/4*x + 1                  -1/14]
+            sage: while a.density() < 0.9:
+            ....:     a = matrix(QQ['x'], 3)
+            ....:     a.randomize()
 
         We create the zero matrix over the integers::
 
@@ -9081,9 +9074,10 @@ cdef class Matrix(Matrix1):
         ::
 
             sage: a.randomize(x=-2^64, y=2^64)
-            sage: a
-            [-3789934696463997112 -3775200185786627805]
-            [-8014573080042851913  7914454492632997238]
+            sage: while all(abs(b) < 2^63 for b in a.list()):
+            ....:     a.randomize(x=-2^64, y=2^64)
+            sage: all(abs(b) < 2^64 for b in a.list())
+            True
         """
         randint = current_randstate().python_random().randint
 
@@ -9609,8 +9603,8 @@ cdef class Matrix(Matrix1):
         ::
 
             sage: A = random_matrix(GF(127),200,200,density=0.3)
-            sage: A.density()
-            5211/20000
+            sage: A.density() <= 0.3
+            True
 
         ::
 
@@ -10671,19 +10665,19 @@ cdef class Matrix(Matrix1):
           correctness. Set this to ``False`` for a speedup if the eigenvalues
           are known to be correct.
 
-        NOTES:
+        .. NOTE::
 
-        Currently, the Jordan normal form is not computed over inexact rings
-        in any but the trivial cases when the matrix is either `0 \times 0`
-        or `1 \times 1`.
+            Currently, the Jordan normal form is not computed over
+            inexact rings in any but the trivial cases when the matrix
+            is either `0 \times 0` or `1 \times 1`.
 
-        In the case of exact rings, this method does not compute any
-        generalized form of the Jordan normal form, but is only able to
-        compute the result if the characteristic polynomial of the matrix
-        splits over the specific base ring.
+            In the case of exact rings, this method does not compute any
+            generalized form of the Jordan normal form, but is only able to
+            compute the result if the characteristic polynomial of the matrix
+            splits over the specific base ring.
 
-        Note that the base ring must be a field or a ring with an implemented
-        fraction field.
+            Note that the base ring must be a field or a ring with an
+            implemented fraction field.
 
         EXAMPLES::
 
@@ -15455,7 +15449,7 @@ cdef class Matrix(Matrix1):
         cdef Py_ssize_t i = 0
         cdef Py_ssize_t j = 0
 
-        cdef Py_ssize_t k, l
+        cdef Py_ssize_t k, l, c
 
         if transformation:
             from sage.matrix.constructor import identity_matrix
@@ -15491,9 +15485,9 @@ cdef class Matrix(Matrix1):
                             U.set_unsafe(k, c, p * Ukc + q * Ulc)
                             U.set_unsafe(l, c, (-f) * Ukc + e * Ulc)
                 if i != k:
-                    A.swap_rows(i,k)
+                    A.swap_rows_c(i,k)
                     if transformation:
-                        U.swap_rows(i,k)
+                        U.swap_rows_c(i,k)
                 pivot_cols.append(j)
                 i += 1
             j += 1
@@ -15508,9 +15502,9 @@ cdef class Matrix(Matrix1):
                 coeff = normalization(pivot)
                 for c in range(j,n):
                     A.set_unsafe(i, c, A.get_unsafe(i,c) * coeff)
-                    if transformation:
-                        for c in range(m):
-                            U.set_unsafe(i, c, U.get_unsafe(i,c) * coeff)
+                if transformation:
+                    for c in range(m):
+                        U.set_unsafe(i, c, U.get_unsafe(i,c) * coeff)
 
             pivot = A.get_unsafe(i,j)
             for k in range(i):
@@ -17737,16 +17731,17 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
         i, n, k = i + 1, n - 1, k - 1
     return result
 
+
 def _jordan_form_vector_in_difference(V, W):
     r"""
     Given two lists of vectors ``V`` and ``W`` over the same base field,
     returns a vector in the difference ``V - W``.  If the difference is
     empty, returns ``None``.
 
-    NOTES:
+    .. NOTE::
 
-    This is meant to be a private helper method for the ``jordan_form`` method
-    in the above class.
+        This is meant to be a private helper method for the
+        ``jordan_form`` method in the above class.
 
     TESTS::
 

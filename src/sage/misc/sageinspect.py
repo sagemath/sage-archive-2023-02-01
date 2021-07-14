@@ -2276,11 +2276,10 @@ def sage_getsourcelines(obj):
         ([...'class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
         ...)
         sage: x = var('x')
-        sage: sage_getsourcelines(x)
-        (['cdef class Expression(CommutativeRingElement):\n',
-          '    cpdef object pyobject(self):\n',
-        ...)
-        sage: sage_getsourcelines(x)[0][-1]    # last line
+        sage: lines, lineno = sage_getsourcelines(x); lines[0:2]
+        ['cdef class Expression(CommutativeRingElement):\n',
+         '    cpdef object pyobject(self):\n']
+        sage: lines[-1]    # last line
         '        return S\n'
 
     We show some enhancements provided by :trac:`11768`. First, we

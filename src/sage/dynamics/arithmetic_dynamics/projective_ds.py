@@ -4022,6 +4022,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2 - 3/4*y^2, y^2, z^2])
+            sage: f.preperiodic_points(0, 2, formal=True)
+            [(-1/2 : 1 : 0), (-1/2 : 1 : 1)]
+
+        ::
+
             sage: S.<c> = QQ[]
             sage: R.<x,y> = PolynomialRing(S, 2)
             sage: P = ProjectiveSpace(R)

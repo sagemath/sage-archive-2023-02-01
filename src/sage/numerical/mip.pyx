@@ -239,6 +239,9 @@ from sage.structure.element cimport Element
 from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
+from sage.rings.integer import Integer
+from sage.functions.generalized import sign
+from math import modf as math_modf
 
 
 cdef class MixedIntegerLinearProgram(SageObject):
@@ -1474,6 +1477,155 @@ cdef class MixedIntegerLinearProgram(SageObject):
                     val.append(c)
             elif l in self._variables:
                 val.append(self._backend.get_variable_value(self._variables[l]))
+            else:
+                raise TypeError("Not a MIPVariable: {!r}".format(l))
+
+        if len(lists) == 1:
+            return val[0]
+        else:
+            return val
+
+    def get_converted_values(self, *lists, tolerance):
+        r"""
+        Return values found by the previous call to ``solve()``.
+
+        This methods tries to convert values to the types of the variables
+        (``bool``, ``Integer`` or ``float``). An error is raised when a value
+        cannot be converted.
+
+        INPUT:
+
+        - Any instance of ``MIPVariable`` (or one of its elements), or lists of
+          them
+
+        - ``tolerance`` -- a small non-negative value used to rounding values to
+          closest integral or binary value. Use for instance ``tolerance=1e-6``.
+
+        OUTPUT:
+
+        - Each instance of ``MIPVariable`` is replaced by a dictionary
+          containing the numerical values found for each corresponding variable
+          in the instance
+
+        - Each element of an instance of a ``MIPVariable`` is replaced by its
+          corresponding numerical value
+
+        .. NOTE::
+
+            While a variable may be declared as binary or integer, its value as
+            returned by the solver is of type ``float``.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x = p.new_variable(nonnegative=True)
+            sage: y = p.new_variable(integral=True, nonnegative=True)
+            sage: p.set_objective(x[3] + 3*y[2,9] + x[5])
+            sage: p.add_constraint(x[3] + y[2,9] + 2*x[5], max=2)
+            sage: p.solve()
+            6.0
+
+        To return the optimal value of ``y[2,9]``::
+
+            sage: p.get_values(y[2,9])
+            2.0
+            sage: p.get_converted_values(y[2,9], tolerance=1e-6)
+            2
+
+        To get a dictionary identical to ``x`` containing optimal
+        values for the corresponding variables ::
+
+            sage: x_sol = p.get_values(x)
+            sage: sorted(x_sol)
+            [3, 5]
+            sage: x_sol[3], x_sol[5]
+            (0.0, 0.0)
+            sage: x_sol = p.get_converted_values(x, tolerance=1e-6)
+            sage: x_sol[3], x_sol[5]
+            (0.0, 0.0)
+
+        Obviously, it also works with variables of higher dimension::
+
+            sage: y_sol = p.get_values(x)
+            sage: y_sol[2,9]
+            2.0
+            sage: y_sol = p.get_converted_values(x, tolerance=1e-6)
+            sage: y_sol[2,9]
+            2
+
+        We could also have tried ::
+
+            sage: [x_sol, y_sol] = p.get_values(x, y)
+
+        Or::
+
+            sage: [x_sol, y_sol] = p.get_values([x, y])
+
+        TESTS:
+
+        Test that an error is reported when we try to get the value
+        of something that is not a variable in this problem::
+
+            sage: p.get_values("Something strange")
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a MIPVariable: ...
+            sage: p.get_values("Something stranger", 4711)
+            Traceback (most recent call last):
+            ...
+            TypeError: Not a MIPVariable: ...
+            sage: M1 = MixedIntegerLinearProgram(solver='GLPK')
+            sage: M2 = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x = M1.new_variable()
+            sage: y = M1.new_variable()
+            sage: z = M2.new_variable()
+            sage: M2.add_constraint(z[0] <= 5)
+            sage: M2.solve()
+            0.0
+            sage: M2.get_converted_values(x, tolerance=1e-6)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+            sage: M2.get_converted_values(x, tolerance=1e-6)
+            Traceback (most recent call last):
+            ...
+            ValueError: ...
+        """
+        def convert_value_to_0_or_1(value):
+            if abs(value) < tolerance:
+                return 0
+            elif abs(value - 1) < tolerance:
+                return 1
+            else:
+                raise RuntimeError("integrality tolerance exceeded - modeling "
+                                   "error or numerical difficulties?")
+
+        def convert_variable_value(v):
+            value = self._backend.get_variable_value(self._variables[v])
+            if self.is_binary(v):
+                return bool(convert_value_to_0_or_1(value))
+            elif self.is_integer(v):
+                d, i = math_modf(value)
+                return Integer(i + sign(d)*convert_value_to_0_or_1(abs(d)))
+            else:
+                return value
+
+        val = []
+        for l in lists:
+            if isinstance(l, MIPVariable):
+                if self != l.mip():
+                    raise ValueError("Variable {!r} is a variable from a different problem".format(l))
+                c = {k: convert_variable_value(v) for k, v in l.items()}
+                val.append(c)
+            elif isinstance(l, list):
+                if len(l) == 1:
+                    val.append([self.get_values(l[0])])
+                else:
+                    c = []
+                    [c.append(self.get_values(ll)) for ll in l]
+                    val.append(c)
+            elif l in self._variables:
+                val.append(convert_variable_value(l))
             else:
                 raise TypeError("Not a MIPVariable: {!r}".format(l))
 

@@ -471,9 +471,10 @@ def is_comparability_MILP(g, certificate=False, solver=None, verbose=0):
         d = DiGraph()
         d.add_vertices(g)
 
-        o = p.get_values(o)
+        tol = 0 if solver == 'PPL' else 1e-6
+        o = p.get_converted_values(o, tolerance=tol)
         for u,v in g.edge_iterator(labels=False):
-            if o[u,v] > .5:
+            if o[u,v]:
                 d.add_edge(u,v)
             else:
                 d.add_edge(v,u)

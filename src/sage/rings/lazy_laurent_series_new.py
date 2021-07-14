@@ -574,12 +574,7 @@ class LLS(ModuleElement):
         P = self.parent()
         c = (ZZ.zero(), d)
         R = LaurentPolynomialRing(self.base_ring(), 'z')
-        p = R(self._aux._cache)
-        if p.degree() > c[1]:
-            if self._aux._is_sparse:
-                p = R(list(self._aux._cache.values())[:d])
-            else:
-                p = R(self._aux._cache[:d])
+        p = R([self[i] for i in range(self._aux._approximate_valuation, d)])
         return P.element_class(P, LLS_eventually_geometric(p, c))
         # return P.element_class(P, LLS_trunc(self._aux, d))
 

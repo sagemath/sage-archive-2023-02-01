@@ -84,7 +84,7 @@ from sage.structure.element import ModuleElement
 from .integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
-
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 
 class LLS(ModuleElement):
     r"""
@@ -211,6 +211,13 @@ class LLS(ModuleElement):
             z + 3*z^2 + 6*z^3 + 10*z^4 + 15*z^5 + 21*z^6 + ...
         """
         P = self.parent()
+        left = self._aux
+        right = other._aux
+        if (isinstance(left, LLS_eventually_geometric) and isinstance(right, LLS_eventually_geometric)):
+            if left._constant[0] == 0 and right._constant[0] == 0:
+                c = (left._constant[0], left._constant[1] + right._constant[1] - 1)
+            p = left._laurent_polynomial * right._laurent_polynomial
+            return P.element_class(P, LLS_eventually_geometric(p, c))
         return P.element_class(P, LLS_mul(self._aux, other._aux))
     
     def _add_(self, other):
@@ -246,6 +253,14 @@ class LLS(ModuleElement):
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
         """
         P = self.parent()
+        left = self._aux
+        right = other._aux
+        if (isinstance(left, LLS_eventually_geometric) and
+            isinstance(right, LLS_eventually_geometric)):
+            c = (left._constant[0] + right._constant[0],
+                 max(left._constant[1], right._constant[1]))
+            p = left._laurent_polynomial + right._laurent_polynomial
+            return P.element_class(P, LLS_eventually_geometric(p, c))
         # Check whether self + other is eventaully geometric. 
         return P.element_class(P, LLS_add(self._aux, other._aux))
 
@@ -277,7 +292,8 @@ class LLS(ModuleElement):
         """
         P = self.parent()
         # Check whether self / other is eventaully geometric. 
-        return P.element_class(P, LLS_div(self._aux, other._aux))
+        return P.element_class(P, LLS_mul(self._aux, LLS_inv(other._aux)))
+        # return P.element_class(P, LLS_div(self._aux, other._aux))
     
     def _rmul_(self, scalar):
         """
@@ -306,6 +322,11 @@ class LLS(ModuleElement):
             4 + 4*z + 4*z^2 + 4*z^3 + 4*z^4 + 4*z^5 + 4*z^6 + ...       
         """
         P = self.parent()
+        if isinstance(self._aux, LLS_eventually_geometric):
+            c = (scalar * self._aux._constant[0], self._aux._constant[1])
+            p = scalar * self._aux._laurent_polynomial
+            return P.element_class(P, LLS_eventually_geometric(p, c)) 
+
         return P.element_class(P, LLS_rmul(self._aux, scalar))
     
     def _sub_(self, other):
@@ -337,6 +358,12 @@ class LLS(ModuleElement):
             -1 + z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + ...
         """
         P = self.parent()
+        left = self._aux
+        right = other._aux
+        if (isinstance(left, LLS_eventually_geometric) and isinstance(right, LLS_eventually_geometric)):
+            c = (left._constant[0] - right._constant[0], max(left._constant[1], right._constant[1]))
+            p = left._laurent_polynomial - right._laurent_polynomial
+            return P.element_class(P, LLS_eventually_geometric(p, c))
         return P.element_class(P, LLS_sub(self._aux, other._aux))
     
     def _neg_(self):
@@ -361,6 +388,10 @@ class LLS(ModuleElement):
             -3*z - z^2 + 4*z^3
         """
         P = self.parent()
+        if isinstance(self._aux, LLS_eventually_geometric):
+            c = (-self._aux._constant[0], self._aux._constant[1])
+            p = -self._aux._laurent_polynomial
+            return P.element_class(P, LLS_eventually_geometric(p, c))
         return P.element_class(P, LLS_neg(self._aux))
     
     def __invert__(self):
@@ -541,7 +572,11 @@ class LLS(ModuleElement):
             z + 2*z^2 + 3*z^3
         """
         P = self.parent()
-        return P.element_class(P, LLS_trunc(self._aux, d))
+        c = (ZZ.zero(), d)
+        R = LaurentPolynomialRing(self.base_ring(), 'z')
+        p = R(self._aux._cache)
+        return P.element_class(P, LLS_eventually_geometric(p, c))
+        # return P.element_class(P, LLS_trunc(self._aux, d))
 
     def __pow__(self, n):
         """
@@ -1067,8 +1102,6 @@ class LLS_binary(LLS_aux):
         return self._left == other._left and self._right == other._right
 
 
-
-
 class LLS_binary_commutative(LLS_binary):
 
     def __hash__(self):
@@ -1132,6 +1165,7 @@ class LLS_constant(LLS_aux):
     def valuation(self):
         return self._approximate_valuation
 
+
 class LLS_coefficient_function(LLS_aux):
     def __init__(self, coefficient_function, is_sparse, approximate_valuation):
         self._coefficient_function = coefficient_function
@@ -1155,11 +1189,6 @@ class LLS_mul(LLS_binary):
     """
     def __init__(self, left, right):
         a = left._approximate_valuation + right._approximate_valuation
-        # c = None
-        # if left._constant is not None and right._constant is not None:
-        #     if left._constant[0] == 0 and right._constant[0] == 0:
-        #         c = (left._constant[0], left._constant[1] + right._constant[1] - 1)
-
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
         super().__init__(left, right, left._is_sparse, a)
@@ -1192,13 +1221,6 @@ class LLS_add(LLS_binary):
     """
     def __init__(self, left, right):
         a = min(left._approximate_valuation, right._approximate_valuation)
-
-        # if left._constant is not None and right._constant is not None:
-        #     c = (left._constant[0] + right._constant[0],
-        #          max(left._constant[1], right._constant[1]))
-        # else:
-        #     c = None
-        
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
         
@@ -1224,13 +1246,6 @@ class LLS_sub(LLS_binary):
     """
     def __init__(self, left, right):
         a = min(left._approximate_valuation, right._approximate_valuation)
-
-        # if left._constant is not None and right._constant is not None:
-        #     c = (left._constant[0] - right._constant[0],
-        #          max(left._constant[1], right._constant[1]))
-        # else:
-        #     c = None
-        
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
         
@@ -1268,11 +1283,6 @@ class LLS_rmul(LLS_unary):
         self._scalar = scalar
 
         a = series._approximate_valuation
-        # if series._constant is not None:
-        #     c = (scalar * series._constant[0], series._constant[1])
-        # else:
-        #     c = None
-        
         super().__init__(series, series._is_sparse, a)
     
     def get_coefficient(self, n):
@@ -1293,12 +1303,6 @@ class LLS_neg(LLS_unary):
     """
     def __init__(self, series):
         a = series._approximate_valuation
-
-        # if series._constant is not None:
-        #     c = (-series._constant[0], series._constant[1])
-        # else:
-        #     c = None
-        
         super().__init__(series, series._is_sparse, a)
     
     def get_coefficient(self, n):
@@ -1353,7 +1357,6 @@ class LLS_inv(LLS_unary):
             n += 1
 
 
-
 class LLS_apply_coeff(LLS_unary):
     """
         Return the series with ``function`` applied to each coefficient of this series.
@@ -1397,7 +1400,6 @@ class LLS_trunc(LLS_unary):
         self._d = d
         self._zero = ZZ.zero()
         a = series._approximate_valuation
-        # c = (ZZ.zero(), d)
         super().__init__(series, series._is_sparse, a)
     
     def get_coefficient(self, n):
@@ -1413,10 +1415,14 @@ class LLS_trunc(LLS_unary):
         while True:
             if n <= self._d:
                 c = self._series[n]
+                yield c
+                n += 1
+                continue
             else:
                 c = self._zero
-            yield c
-            n += 1
+                yield c
+                n += 1
+                continue
 
 
 class LLS_div(LLS_binary):

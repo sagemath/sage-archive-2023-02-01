@@ -4104,7 +4104,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             L = [F_1[i]*F_2[j] - F_1[j]*F_2[i] for i in range(N)
                     for j in range(i+1, N)]
             X = PS.subscheme(L + list(dom.defining_polynomials()))
-            if minimal or formal and (n != 1 and m != 0):
+            if (minimal or formal) and (n != 1 or m != 0):
                 if not f_sub.is_morphism():
                     raise ValueError('dynamical system is not a morphism, cannot calculate minimal or formal preperiodic points')
                 if formal:

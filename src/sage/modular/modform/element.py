@@ -3078,19 +3078,22 @@ class EisensteinSeries(ModularFormElement):
         return self.L() * self.M()
 
 class GradedModularFormElement(ModuleElement):
-    def __init__(self, parent, forms_datas):
+    r"""
+    The element class for ``ModularFormsRing``
+    """
+    def __init__(self, parent, forms_datum):
         r"""
         An element of a graded ring of modular forms.
 
         INPUT:
 
-        - ``parents`` - an object of the class ModularFormsRing
-        - ``forms_data`` - a dictionary ``{k_1:f_1, k_2:f_2, ..., k_n:f_n}`` or a list [f_1, f_2,..., f_n]
+        - ``parent`` - an object of the class ``ModularFormsRing``
+        - ``forms_datum`` - a dictionary ``{k_1:f_1, k_2:f_2, ..., k_n:f_n}`` or a list ``[f_1, f_2,..., f_n]``
           where `f_i` is a modular form of weight `k_i`
 
         OUTPUT:
 
-        A ``GradedModularFormElement`` corresponding to `f_1 + f_2 + ... f_n`
+        A ``GradedModularFormElement`` corresponding to `f_1 + f_2 + ... + f_n`
 
         EXAMPLES::
 
@@ -3126,8 +3129,8 @@ class GradedModularFormElement(ModuleElement):
             sage: TestSuite(m).run()
         """
         forms_dictionary = {}
-        if isinstance(forms_datas, dict):
-            for k,f in forms_datas.items():
+        if isinstance(forms_datum, dict):
+            for k,f in forms_datum.items():
                 if isinstance(k, (int, Integer)):
                     k = ZZ(k)
                     if k == 0:
@@ -3147,8 +3150,8 @@ class GradedModularFormElement(ModuleElement):
                         raise ValueError('at least one value (%s) of the defining dictionary is not a `ModularFormElement`'%(f))
                 else:
                     raise ValueError('at least one key (%s) of the defining dictionary is not an integer'%(k))
-        elif isinstance(forms_datas, list):
-            for f in forms_datas:
+        elif isinstance(forms_datum, list):
+            for f in forms_datum:
                 if is_ModularFormElement(f):
                     chi = f.character(compute=False)
                     if (chi is not None) and (not chi.is_trivial()):
@@ -3305,10 +3308,16 @@ class GradedModularFormElement(ModuleElement):
             sage: f['a']
             Traceback (most recent call last):
             ...
-            KeyError: 'the weight should be an integer'
+            KeyError: 'the weight must be an integer'
+            sage: f[-1]
+            Traceback (most recent call last):
+            ...
+            ValueError: the weight must be non-negative
         """
         if not isinstance(weight, (int, Integer)):
-            raise KeyError("the weight should be an integer")
+            raise KeyError("the weight must be an integer")
+        if weight < 0:
+            raise ValueError("the weight must be non-negative")
         return self._forms_dictionary.get(weight, self.parent().zero())
     homogeneous_component = __getitem__ #alias
 
@@ -3357,7 +3366,7 @@ class GradedModularFormElement(ModuleElement):
         GM = self.__class__
         f_self = self._forms_dictionary
         f_other = other._forms_dictionary
-        f_sum = { k : f_self.get(k, 0) + f_other.get(k, 0) for k in set(f_self) | set(f_other)} #TODO: fix the error E4 + QQ(0)
+        f_sum = { k : f_self.get(k, 0) + f_other.get(k, 0) for k in set(f_self) | set(f_other)}
         return GM(self.parent(), f_sum)
 
     def __neg__(self):
@@ -3434,30 +3443,6 @@ class GradedModularFormElement(ModuleElement):
         f_mul = {k:c*f for k,f in f_self.items()}
         return GM(self.parent(), f_mul)
 
-    def _rmul_(self, c):
-        r"""
-        The right action of the base ring on self.
-
-        INPUT:
-
-        - ``c`` - an element of the base ring of self
-
-        OUPUT: A ``GradedModularFormElement``.
-
-        TESTS::
-
-            sage: M = ModularFormsRing(13)
-            sage: f = M(ModularForms(13,6).6)
-            sage: f * 7 # indirect doctest
-            7*q + 231*q^2 + 1708*q^3 + 7399*q^4 + 21882*q^5 + O(q^6)
-            sage: f * 13/19 # indirect doctest
-            13/19*q + 429/19*q^2 + 3172/19*q^3 + 13741/19*q^4 + 40638/19*q^5 + O(q^6)
-        """
-        GM = self.__class__
-        f_self = self._forms_dictionary
-        f_mul = {k:f*c for k,f in f_self.items()}
-        return GM(self.parent(), f_mul)
-
     def _richcmp_(self, other, op):
         r"""
         Compare self with other.
@@ -3503,6 +3488,8 @@ class GradedModularFormElement(ModuleElement):
             sage: D = ModularForms(1,12).0; M = ModularFormsRing(1)
             sage: M(D).weight()
             12
+            sage: M.zero().weight()
+            0
             sage: e4 = ModularForms(1,4).0
             sage: (M(D)+e4).weight()
             Traceback (most recent call last):
@@ -3510,6 +3497,8 @@ class GradedModularFormElement(ModuleElement):
             ValueError: the given graded form is not homogeneous (not a modular form)
         """
         if self.is_homogeneous():
+            if self.is_zero():
+                return ZZ(0)
             return next(iter(self._forms_dictionary))
         else:
             raise ValueError("the given graded form is not homogeneous (not a modular form)")

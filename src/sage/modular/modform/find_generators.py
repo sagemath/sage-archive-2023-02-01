@@ -314,14 +314,14 @@ class ModularFormsRing(Parent):
         """
         return len(self.gen_forms())
 
-    def _element_constructor_(self, forms_datas):
+    def _element_constructor_(self, forms_datum):
         r"""
         The call method of self.
 
         INPUT:
 
-        - ``forms_datas`` (dict, list, ModularFormElement, GradedModularFormElement, RingElement) - Try to coerce
-          ``forms_datas`` into self.
+        - ``forms_datum`` (dict, list, ModularFormElement, GradedModularFormElement, RingElement) - Try to coerce
+          ``forms_datum`` into self.
 
         TESTS::
 
@@ -374,17 +374,17 @@ class ModularFormsRing(Parent):
             ...
             TypeError: the defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary
         """
-        if isinstance(forms_datas, (dict, list)):
-            forms_dictionary = forms_datas
-        elif isinstance(forms_datas, self.element_class):
-            forms_dictionary = forms_datas._forms_dictionary
-        elif is_ModularFormElement(forms_datas):
-            if forms_datas.group() == self.group() and self.base_ring().has_coerce_map_from(forms_datas.base_ring()):
-                forms_dictionary = {forms_datas.weight():forms_datas}
+        if isinstance(forms_datum, (dict, list)):
+            forms_dictionary = forms_datum
+        elif isinstance(forms_datum, self.element_class):
+            forms_dictionary = forms_datum._forms_dictionary
+        elif is_ModularFormElement(forms_datum):
+            if forms_datum.group() == self.group() and self.base_ring().has_coerce_map_from(forms_datum.base_ring()):
+                forms_dictionary = {forms_datum.weight():forms_datum}
             else:
-                raise ValueError('the group (%s) and/or the base ring (%s) of the given modular form is not consistant with the base space: %s'%(forms_datas.group(), forms_datas.base_ring(), self))
-        elif forms_datas in self.base_ring():
-            forms_dictionary = {0:forms_datas}
+                raise ValueError('the group (%s) and/or the base ring (%s) of the given modular form is not consistant with the base space: %s'%(forms_datum.group(), forms_datum.base_ring(), self))
+        elif forms_datum in self.base_ring():
+            forms_dictionary = {0:forms_datum}
         else:
             raise TypeError('the defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary')
         return self.element_class(self, forms_dictionary)

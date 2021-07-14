@@ -1137,7 +1137,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
 
         INPUT:
 
-        - ``other`` -- ``ModularFormSpace`` or a ``ModularFormRing`` 
+        - ``other`` -- ``ModularFormSpace`` or a ``ModularFormRing``
 
         OUTPUT: If ``self`` and ``other`` have the same groups and base rings, then this method returns
         ``self`` if the weights of the two spaces are equal, otherwise it returns a ``ModularFormsRing``.

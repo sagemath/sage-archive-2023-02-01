@@ -176,7 +176,7 @@ class ModularForm_abstract(ModuleElement):
 
         .. SEEALSO::
 
-        :meth: `sage.modular.modform.element.GradedModularFormElement.is_homogeneous`
+            :meth: `sage.modular.modform.element.GradedModularFormElement.is_homogeneous`
 
         EXAMPLES::
 

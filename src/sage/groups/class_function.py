@@ -228,7 +228,7 @@ class ClassFunction_gap(SageObject):
             sage: chi1 = ClassFunction(G,[1,1,1,1,1,1,1])
             sage: d = {chi1:'trivial'}
         """
-        return hash((self._group, tuple(self.values())))
+        return hash((self._group, tuple(self)))
 
     def __reduce__(self):
         r"""

@@ -558,65 +558,65 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
 
         We can test interraction between morphisms with different ``side``::
 
-            sage: V = ZZ^2                                                                  
-            sage: m = matrix(2, [1,1,0,1])                                                  
-            sage: hl = V.hom(m)                                                             
-            sage: hr = V.hom(m, side="right") 
-            sage: hl * hl                                                                   
+            sage: V = ZZ^2
+            sage: m = matrix(2, [1,1,0,1])
+            sage: hl = V.hom(m)
+            sage: hr = V.hom(m, side="right")
+            sage: hl * hl
             Free module morphism defined by the matrix
             [1 2]
             [0 1]...
-            sage: hl * hr                                                                   
+            sage: hl * hr
             Free module morphism defined by the matrix
             [1 1]
             [1 2]...
-            sage: hl * hl.side_switch()                                                     
+            sage: hl * hl.side_switch()
             Free module morphism defined by the matrix
             [1 2]
             [0 1]...
-            sage: hr * hl                                                                   
+            sage: hr * hl
             Free module morphism defined by the matrix
             [2 1]
             [1 1]...
-            sage: hl * hl                                                                   
+            sage: hl * hl
             Free module morphism defined by the matrix
             [1 2]
             [0 1]...
-            sage: hr / hl                                                                   
+            sage: hr / hl
             Free module morphism defined by the matrix
             [ 0 -1]
             [ 1  1]...
-            sage: hr / hr.side_switch()                                                     
+            sage: hr / hr.side_switch()
             Free module morphism defined by the matrix
             [1 0]
             [0 1]...
-            sage: hl / hl                                                                   
+            sage: hl / hl
             Free module morphism defined by the matrix
             [1 0]
             [0 1]...
-            sage: hr / hr                                                                   
+            sage: hr / hr
             Free module morphism defined as left-multiplication by the matrix
             [1 0]
             [0 1]...
-            
+
 
 
         .. WARNING::
 
             Matrix morphisms can be defined by either left or right-multiplication.
             The composite morphism always applies the morphism on the right of \* first.
-            The matrix of the composite morphism of two morphisms given by 
-            right-multiplication is not the morphism given by the product of their 
-            respective matrices. 
+            The matrix of the composite morphism of two morphisms given by
+            right-multiplication is not the morphism given by the product of their
+            respective matrices.
             If the two morphisms act on different sides, then the side of the resulting
             morphism is the default one.
         """
-        H = right.domain().Hom(self.codomain())
         if not isinstance(right, MatrixMorphism):
             if isinstance(right, (sage.categories.morphism.Morphism, sage.categories.map.Map)):
                 return sage.categories.map.Map.__mul__(self, right)
             R = self.base_ring()
             return self.parent()(self.matrix() * R(right))
+        H = right.domain().Hom(self.codomain())
         if self.domain() != right.codomain():
             raise TypeError("Incompatible composition of morphisms: domain of left morphism must be codomain of right.")
         if self.side() == "left":
@@ -980,20 +980,20 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             Vector space of degree 2 and dimension 0 over Finite Field of size 7
             Basis matrix:
             []
-            sage: m = matrix(3, [1, 0, 0, 1, 0, 0, 0, 0, 1]); m                                
+            sage: m = matrix(3, [1, 0, 0, 1, 0, 0, 0, 0, 1]); m
             [1 0 0]
             [1 0 0]
             [0 0 1]
-            sage: f1 = V.hom(m)                                                             
-            sage: f2 = V.hom(m, side="right")    
-            sage: f1.image()                                                                
-            Free module of degree 3 and rank 2 over Integer Ring
-            Echelon basis matrix:
+            sage: f1 = V.hom(m)
+            sage: f2 = V.hom(m, side="right")
+            sage: f1.image()
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
             [1 0 0]
             [0 0 1]
-            sage: f2.image()                                                                
-            Free module of degree 3 and rank 2 over Integer Ring
-            Echelon basis matrix:
+            sage: f2.image()
+            Vector space of degree 3 and dimension 2 over Rational Field
+            Basis matrix:
             [1 1 0]
             [0 0 1]
 
@@ -1333,7 +1333,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             sage: Y = (QQ^3).subspace_with_basis(E.rows())
             sage: K = Hom(X, Y)
 
-            sage: f = lambda x: vector(QQ, [x[0]+x[1], 2*x[1]-4*x[2], deco5*x[3]])
+            sage: f = lambda x: vector(QQ, [x[0]+x[1], 2*x[1]-4*x[2], 5*x[3]])
             sage: g = lambda x: vector(QQ, [x[0]-x[2], 2*x[1]-4*x[2], 5*x[3]])
 
             sage: rho = H(f)

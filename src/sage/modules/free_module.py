@@ -2190,12 +2190,12 @@ done from the right side.""")
 
         EXAMPLES::
 
-            sage: W = ZZ^2; W.hom(matrix(1, [1, 2]), side="right")                          
+            sage: W = ZZ^2; W.hom(matrix(1, [1, 2]), side="right")
             Free module morphism defined as left-multiplication by the matrix
             [1 2]
             Domain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
             Codomain: Ambient free module of rank 1 over the principal ideal domain Integer Ring
-            sage: V = QQ^2; V.hom(identity_matrix(2), side="right")                         
+            sage: V = QQ^2; V.hom(identity_matrix(2), side="right")
             Vector space morphism represented as left-multiplication by the matrix:
             [1 0]
             [0 1]
@@ -2203,9 +2203,12 @@ done from the right side.""")
             Codomain: Vector space of dimension 2 over Rational Field
         """
         from sage.structure.element import is_Matrix
-        side = kwds.get("side", "left")
-        if codomain is None and is_Matrix(im_gens) and side == "right":
-            codomain = self.base_ring()**im_gens.nrows()
+        if codomain is None and is_Matrix(im_gens):
+            side = kwds.get("side", "left")
+            n = im_gens.nrows() if side == "right" else im_gens.ncols()
+            from sage.categories.pushout import pushout
+            R = pushout(self.base_ring(), im_gens.base_ring())
+            codomain = R**n
         return super().hom(im_gens, codomain, **kwds)
 
     def inner_product_matrix(self):

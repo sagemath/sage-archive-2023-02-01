@@ -304,19 +304,19 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
         We test that it respects the ``side``::
 
-            sage: V = ZZ^2                                                                  
-            sage: m = matrix(2, [1, 1, 0, 1])                                               
-            sage: h = V.hom(m, side="right"); h                                            
-            sage: h                                                                         
+            sage: V = ZZ^2
+            sage: m = matrix(2, [1, 1, 0, 1])
+            sage: h = V.hom(m, side="right")
+            sage: h
             Free module morphism defined as left-multiplication by the matrix
             [1 1]
             [0 1]...
-            sage: SV = V.span([V.0])                                                        
-            sage: h.inverse_image(SV)                                                       
+            sage: SV = V.span([V.0])
+            sage: h.inverse_image(SV)
             Free module of degree 2 and rank 1 over Integer Ring
             Echelon basis matrix:
             [1 0]
-            sage: V.hom(m).inverse_image(SV)                                                
+            sage: V.hom(m).inverse_image(SV)
             Free module of degree 2 and rank 1 over Integer Ring
             Echelon basis matrix:
             [ 1 -1]
@@ -438,10 +438,10 @@ class FreeModuleMorphism(matrix_morphism.MatrixMorphism):
 
         ::
 
-            sage: V = QQ^2; m = matrix(2, [1, 1, 0, 1])                                     
-            sage: V.hom(m, side="right").lift(V.0+V.1)                                      
+            sage: V = QQ^2; m = matrix(2, [1, 1, 0, 1])
+            sage: V.hom(m, side="right").lift(V.0+V.1)
             (0, 1)
-            sage: V.hom(m).lift(V.0+V.1)                                                    
+            sage: V.hom(m).lift(V.0+V.1)
             (1, 0)
         """
         from .free_module_element import vector

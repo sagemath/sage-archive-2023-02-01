@@ -79,7 +79,7 @@ AUTHORS:
 # ****************************************************************************
 
 
-from .infinity import infinity
+from .infinity import Infinity, infinity
 from sage.structure.element import ModuleElement
 from .integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
@@ -246,6 +246,7 @@ class LLS(ModuleElement):
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
         """
         P = self.parent()
+        # Check whether self + other is eventaully geometric. 
         return P.element_class(P, LLS_add(self._aux, other._aux))
 
     def _div_(self, other):
@@ -275,6 +276,7 @@ class LLS(ModuleElement):
             z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + ...
         """
         P = self.parent()
+        # Check whether self / other is eventaully geometric. 
         return P.element_class(P, LLS_div(self._aux, other._aux))
     
     def _rmul_(self, scalar):
@@ -681,9 +683,12 @@ class LLS(ModuleElement):
             25*z^5 + 16*z^4 + 9*z^3 + 4*z^2 + z
         """
         if degree is None:
-            if self._aux._constant is None or not self._aux._constant[0].is_zero():
+            if isinstance(self._aux, LLS_constant):
+                m = 1
+            elif isinstance(self._aux, LLS_eventually_geometric) and self._aux._constant[0]:
+                m = self._aux._constant[1]
+            else:
                 raise ValueError("not a polynomial")
-            m = self._aux._constant[1]
         else:
             m = degree + 1
 
@@ -742,9 +747,9 @@ class LLS(ModuleElement):
         X = self.parent().variable_name()
         n = self._aux._approximate_valuation
 
-        if self._aux._constant is None:
+        if not isinstance(self._aux, LLS_eventually_geometric):
             m = n + 7  # long enough
-        elif self._aux._constant[0] != 0:
+        elif self._aux._constant[0]:
             m = self._aux._constant[1] + 3
         else:
             m = self._aux._constant[1]
@@ -772,8 +777,7 @@ class LLS(ModuleElement):
 
         if not s:  # zero series
             s = '0'
-
-        if self._aux._constant is None or self._aux._constant[1] > m or self._aux._constant[0] != 0:
+        if not isinstance(self._aux, (LLS_constant, LLS_eventually_geometric)) or self._aux._constant[1] > m or self._aux._constant[0]:
             s += ' + {}'.format('...')
 
         return s
@@ -802,8 +806,8 @@ class LLS(ModuleElement):
             False
         """
         if op is op_EQ:
-            if self._aux._constant is None:
-                if other._aux._constant is None:
+            if not isinstance(self._aux, LLS_eventually_geometric):
+                if not isinstance(other._aux, LLS_eventually_geometric):
                     # Implement the checking of the caches here.
                     n = min(self._aux._approximate_valuation, other._aux._approximate_valuation)
                     m = max(self._aux._approximate_valuation, other._aux._approximate_valuation)
@@ -815,7 +819,7 @@ class LLS(ModuleElement):
                     raise ValueError("undecidable as lazy Laurent series")
                 else:
                     raise ValueError("undecidable as lazy Laurent series")
-            elif other._aux._constant is None:
+            elif not isinstance(other._aux, LLS_eventually_geometric):
                 raise ValueError("undecidable as lazy Laurent series")
 
             sc, sm = self._aux._constant
@@ -890,9 +894,8 @@ class LLS(ModuleElement):
 
 
 class LLS_aux():
-    def __init__(self, is_sparse, approximate_valuation, constant=None):
+    def __init__(self, is_sparse, approximate_valuation):
         self._approximate_valuation = approximate_valuation
-        self._constant = constant
         self._is_sparse = is_sparse
         
         if self._is_sparse:
@@ -907,8 +910,6 @@ class LLS_aux():
             return ZZ.zero()
         elif n < self._approximate_valuation:
             return ZZ.zero()
-        elif self._constant is not None and n >= self._constant[1]:
-            return self._constant[0]
 
         if self._is_sparse:
             try:
@@ -929,16 +930,6 @@ class LLS_aux():
         return c
     
     def valuation(self):
-        if self._constant is not None:
-            n = self._approximate_valuation
-            m = self._constant[1]
-            while n <= m:
-                if self[n] != 0:
-                    self._approximate_valuation = n
-                    return n
-                n += 1
-            return infinity
-
         if self._is_sparse:
             n = self._approximate_valuation
             cache = self._cache
@@ -967,15 +958,6 @@ class LLS_aux():
                         self._approximate_valuation = n
                         return n
                     n += 1
-    
-    # def __eq__(self, other):
-    # Implement for sparse and dense variations separately.
-    #     n = min(self._approximate_valuation, other._approximate_valuation)
-    #     m = max(self._approximate_valuation, other._approximate_valuation)
-    #     for i in range(n, m):
-    #         if self[i] != other[i]:
-    #             return False
-
 
 
 class LLS_unary(LLS_aux):
@@ -1085,6 +1067,8 @@ class LLS_binary(LLS_aux):
         return self._left == other._left and self._right == other._right
 
 
+
+
 class LLS_binary_commutative(LLS_binary):
 
     def __hash__(self):
@@ -1099,10 +1083,59 @@ class LLS_binary_commutative(LLS_binary):
             return True
         return False
 
+
+class LLS_eventually_geometric(LLS_aux):
+
+    def __init__(self, laurent_polynomial, constant=None):
+        if constant is None:
+            self._constant = (ZZ.zero(), laurent_polynomial.degree() + 1)
+        else:
+            self._constant = constant
+            assert(not laurent_polynomial or laurent_polynomial.degree()  < constant[1])
+        self._laurent_polynomial = laurent_polynomial
+        v = self._laurent_polynomial.valuation()
+        if v is Infinity:
+            if self._constant[0]: # Non-zero series
+                v = self._constant[1]
+        self._approximate_valuation = v
+        self._is_sparse = False #TODO Remove this
+    
+    def __getitem__(self, n):
+        if n >= self._constant[1]:
+            return self._constant[0]
+        return self._laurent_polynomial[n]
+    
+    def valuation(self):
+        return self._approximate_valuation
+    
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return False
+        return self._laurent_polynomial == other._laurent_polynomial and self._constant == other._constant
+
+
+class LLS_constant(LLS_aux):
+
+    def __init__(self, a):
+        self._a = a
+        if self._a:
+            self._approximate_valuation = ZZ.zero()
+        self._approximate_valuation = Infinity
+        self._constant = (ZZ.zero(), 1)
+        self._is_sparse = False # TODO Remove
+    
+    def __getitem__(self, n):
+        if n:
+            return ZZ.zero()
+        return self._a
+    
+    def valuation(self):
+        return self._approximate_valuation
+
 class LLS_coefficient_function(LLS_aux):
-    def __init__(self, coefficient_function, is_sparse, approximate_valuation, constant=None):
+    def __init__(self, coefficient_function, is_sparse, approximate_valuation):
         self._coefficient_function = coefficient_function
-        super().__init__(is_sparse, approximate_valuation, constant)
+        super().__init__(is_sparse, approximate_valuation)
 
     def get_coefficient(self, n):
         return self._coefficient_function(n)
@@ -1122,14 +1155,14 @@ class LLS_mul(LLS_binary):
     """
     def __init__(self, left, right):
         a = left._approximate_valuation + right._approximate_valuation
-        c = None
-        if left._constant is not None and right._constant is not None:
-            if left._constant[0] == 0 and right._constant[0] == 0:
-                c = (left._constant[0], left._constant[1] + right._constant[1] - 1)
+        # c = None
+        # if left._constant is not None and right._constant is not None:
+        #     if left._constant[0] == 0 and right._constant[0] == 0:
+        #         c = (left._constant[0], left._constant[1] + right._constant[1] - 1)
 
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
-        super().__init__(left, right, left._is_sparse, a, c)
+        super().__init__(left, right, left._is_sparse, a)
 
     def get_coefficient(self, n):
         c = ZZ.zero()
@@ -1160,16 +1193,16 @@ class LLS_add(LLS_binary):
     def __init__(self, left, right):
         a = min(left._approximate_valuation, right._approximate_valuation)
 
-        if left._constant is not None and right._constant is not None:
-            c = (left._constant[0] + right._constant[0],
-                 max(left._constant[1], right._constant[1]))
-        else:
-            c = None
+        # if left._constant is not None and right._constant is not None:
+        #     c = (left._constant[0] + right._constant[0],
+        #          max(left._constant[1], right._constant[1]))
+        # else:
+        #     c = None
         
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
         
-        super().__init__(left, right, left._is_sparse, a, c)
+        super().__init__(left, right, left._is_sparse, a)
     
     def get_coefficient(self, n):
         c = ZZ.zero()
@@ -1192,16 +1225,16 @@ class LLS_sub(LLS_binary):
     def __init__(self, left, right):
         a = min(left._approximate_valuation, right._approximate_valuation)
 
-        if left._constant is not None and right._constant is not None:
-            c = (left._constant[0] - right._constant[0],
-                 max(left._constant[1], right._constant[1]))
-        else:
-            c = None
+        # if left._constant is not None and right._constant is not None:
+        #     c = (left._constant[0] - right._constant[0],
+        #          max(left._constant[1], right._constant[1]))
+        # else:
+        #     c = None
         
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
         
-        super().__init__(left, right, left._is_sparse, a, c)
+        super().__init__(left, right, left._is_sparse, a)
     
     def get_coefficient(self, n):
         """
@@ -1235,12 +1268,12 @@ class LLS_rmul(LLS_unary):
         self._scalar = scalar
 
         a = series._approximate_valuation
-        if series._constant is not None:
-            c = (scalar * series._constant[0], series._constant[1])
-        else:
-            c = None
+        # if series._constant is not None:
+        #     c = (scalar * series._constant[0], series._constant[1])
+        # else:
+        #     c = None
         
-        super().__init__(series, series._is_sparse, a, c)
+        super().__init__(series, series._is_sparse, a)
     
     def get_coefficient(self, n):
         c = self._series[n] * self._scalar
@@ -1261,12 +1294,12 @@ class LLS_neg(LLS_unary):
     def __init__(self, series):
         a = series._approximate_valuation
 
-        if series._constant is not None:
-            c = (-series._constant[0], series._constant[1])
-        else:
-            c = None
+        # if series._constant is not None:
+        #     c = (-series._constant[0], series._constant[1])
+        # else:
+        #     c = None
         
-        super().__init__(series, series._is_sparse, a, c)
+        super().__init__(series, series._is_sparse, a)
     
     def get_coefficient(self, n):
         c = -1 * self._series[n]
@@ -1287,7 +1320,7 @@ class LLS_inv(LLS_unary):
     def __init__(self, series):
         v = series.valuation()
         # self._constant can be refined
-        super().__init__(series, series._is_sparse, -v, None)
+        super().__init__(series, series._is_sparse, -v)
 
         if v is infinity:
             raise ZeroDivisionError('cannot invert zero')
@@ -1320,6 +1353,7 @@ class LLS_inv(LLS_unary):
             n += 1
 
 
+
 class LLS_apply_coeff(LLS_unary):
     """
         Return the series with ``function`` applied to each coefficient of this series.
@@ -1329,12 +1363,12 @@ class LLS_apply_coeff(LLS_unary):
         self._ring = ring
         a = series._approximate_valuation
 
-        if series._constant:
-            c = (function(series._constant[0]), series._constant[1])
-        else:
-            c = None
+        # if series._constant:
+        #     c = (function(series._constant[0]), series._constant[1])
+        # else:
+        #     c = None
 
-        super().__init__(series, series._is_sparse, a, c)
+        super().__init__(series, series._is_sparse, a)
 
     def get_coefficient(self, n):
         try:
@@ -1363,8 +1397,8 @@ class LLS_trunc(LLS_unary):
         self._d = d
         self._zero = ZZ.zero()
         a = series._approximate_valuation
-        c = (ZZ.zero(), d)
-        super().__init__(series, series._is_sparse, a, c)
+        # c = (ZZ.zero(), d)
+        super().__init__(series, series._is_sparse, a)
     
     def get_coefficient(self, n):
         if n <= self._d:
@@ -1391,7 +1425,7 @@ class LLS_div(LLS_binary):
     """
     def __init__(self, left, right):
         
-        super().__init__(left, right, left._is_sparse, left._approximate_valuation, None)
+        super().__init__(left, right, left._is_sparse, left._approximate_valuation)
 
         self._approximate_valuation = left.valuation() - right.valuation()
 

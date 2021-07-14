@@ -740,7 +740,6 @@ class LLS(ModuleElement):
         """
         atomic_repr = self.base_ring()._repr_option('element_is_atomic')
         X = self.parent().variable_name()
-
         n = self._aux._approximate_valuation
 
         if self._aux._constant is None:
@@ -811,12 +810,8 @@ class LLS(ModuleElement):
                     for i in range(n, m):
                         if self[i] != other[i]:
                             return False
-                    try:
-                        if self._aux._coefficient_function == other._aux._coefficient_function:
-                            return True
-                    except AttributeError:
-                        # Checking of the parse tree.
-                        return self._aux.__eq__(other._aux)
+                    if self._aux == other._aux:
+                        return True
                     raise ValueError("undecidable as lazy Laurent series")
                 else:
                     raise ValueError("undecidable as lazy Laurent series")
@@ -899,7 +894,7 @@ class LLS_aux():
         self._approximate_valuation = approximate_valuation
         self._constant = constant
         self._is_sparse = is_sparse
-
+        
         if self._is_sparse:
             self._cache = dict()  # cache of known coefficients
         else:
@@ -983,7 +978,7 @@ class LLS_aux():
 
 
 
-class LLS_unary():
+class LLS_unary(LLS_aux):
     """
     Abstract base class for unary operators.
 
@@ -992,7 +987,7 @@ class LLS_unary():
     - ``series`` -- series upon which the operator operates
 
     """
-    def __init__(self, series):
+    def __init__(self, series, *args, **kwargs):
         """
         Initialize.
 
@@ -1006,6 +1001,7 @@ class LLS_unary():
             True
         """
         self._series = series
+        super().__init__(*args, **kwargs)
 
     def __hash__(self):
         """
@@ -1036,12 +1032,12 @@ class LLS_unary():
             sage: f == g
             True
         """
-        return (isinstance(other, type(self)) and self._cache == other._cache)
+        return isinstance(other, type(self)) and self._series == other._series
 
 
-class LLS_binary():
+class LLS_binary(LLS_aux):
     
-    def __init__(self, left, right):
+    def __init__(self, left, right, *args, **kwargs):
         """
         Initialize.
 
@@ -1057,6 +1053,7 @@ class LLS_binary():
         """
         self._left = left
         self._right = right
+        super().__init__(*args, **kwargs)
     
     def __hash__(self):
         """
@@ -1085,13 +1082,11 @@ class LLS_binary():
         """
         if not isinstance(other, type(self)):
             return False
-        if self._left == other._left and self._right == other._right:
-            return True
-        raise ValueError("undecidable as lazy Laurent series")
+        return self._left == other._left and self._right == other._right
 
 
-class LLS_binary_commutative():
-    
+class LLS_binary_commutative(LLS_binary):
+
     def __hash__(self):
         return hash((type(self), frozenset([self._left, self._right])))
 
@@ -1102,10 +1097,9 @@ class LLS_binary_commutative():
             return True
         if self._left == other._right and self._right == other._left:
             return True
-        raise ValueError("undecidable as lazy Laurent series")
+        return False
 
-
-class LLS_coefficient_function(LLS_aux, LLS_unary):
+class LLS_coefficient_function(LLS_aux):
     def __init__(self, coefficient_function, is_sparse, approximate_valuation, constant=None):
         self._coefficient_function = coefficient_function
         super().__init__(is_sparse, approximate_valuation, constant)
@@ -1119,17 +1113,14 @@ class LLS_coefficient_function(LLS_aux, LLS_unary):
             yield self._coefficient_function(n)
             n += 1
     
-    def __eq__(self, other):
-        return super().__eq__(other)
-
            
-class LLS_mul(LLS_aux, LLS_binary):
+class LLS_mul(LLS_binary):
     """
     Operator for multiplication.
+
+    We are assuming commutativity of the coefficient ring here. 
     """
     def __init__(self, left, right):
-        self._left = left
-        self._right = right
         a = left._approximate_valuation + right._approximate_valuation
         c = None
         if left._constant is not None and right._constant is not None:
@@ -1138,7 +1129,7 @@ class LLS_mul(LLS_aux, LLS_binary):
 
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
-        super().__init__(left._is_sparse, a, c)
+        super().__init__(left, right, left._is_sparse, a, c)
 
     def get_coefficient(self, n):
         c = ZZ.zero()
@@ -1160,18 +1151,13 @@ class LLS_mul(LLS_aux, LLS_binary):
                     c += l * self._right[n-k]
             yield c
             n += 1
-    
-    def __eq__(self, other):
-        return super().__eq__(other)
 
 
-class LLS_add(LLS_aux, LLS_binary):
+class LLS_add(LLS_binary):
     """
     Operator for addition.
     """
     def __init__(self, left, right):
-        self._left = left
-        self._right = right
         a = min(left._approximate_valuation, right._approximate_valuation)
 
         if left._constant is not None and right._constant is not None:
@@ -1183,7 +1169,7 @@ class LLS_add(LLS_aux, LLS_binary):
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
         
-        super().__init__(left._is_sparse, a, c)
+        super().__init__(left, right, left._is_sparse, a, c)
     
     def get_coefficient(self, n):
         c = ZZ.zero()
@@ -1197,18 +1183,13 @@ class LLS_add(LLS_aux, LLS_binary):
             c = self._left[n] + self._right[n]
             yield c
             n += 1
-    
-    def __eq__(self, other):
-        return super().__eq__(other)
 
 
-class LLS_sub(LLS_aux, LLS_binary):
+class LLS_sub(LLS_binary):
     """
     Operator for subtraction.
     """
     def __init__(self, left, right):
-        self._left = left
-        self._right = right
         a = min(left._approximate_valuation, right._approximate_valuation)
 
         if left._constant is not None and right._constant is not None:
@@ -1220,7 +1201,7 @@ class LLS_sub(LLS_aux, LLS_binary):
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
         
-        super().__init__(left._is_sparse, a, c)
+        super().__init__(left, right, left._is_sparse, a, c)
     
     def get_coefficient(self, n):
         """
@@ -1244,17 +1225,13 @@ class LLS_sub(LLS_aux, LLS_binary):
             c = self._left[n] - self._right[n]
             yield c
             n += 1
-    
-    def __eq__(self, other):
-        return super().__eq__(other)
 
 
-class LLS_rmul(LLS_aux, LLS_unary):
+class LLS_rmul(LLS_unary):
     """
     Operator for multiplying with a scalar.
     """
     def __init__(self, series, scalar):
-        self._series = series
         self._scalar = scalar
 
         a = series._approximate_valuation
@@ -1263,7 +1240,7 @@ class LLS_rmul(LLS_aux, LLS_unary):
         else:
             c = None
         
-        super().__init__(series._is_sparse, a, c)
+        super().__init__(series, series._is_sparse, a, c)
     
     def get_coefficient(self, n):
         c = self._series[n] * self._scalar
@@ -1275,17 +1252,13 @@ class LLS_rmul(LLS_aux, LLS_unary):
             c = self._series[n] * self._scalar
             yield c
             n += 1
-    
-    def __eq__(self, other):
-        return super().__eq__(other)
 
 
-class LLS_neg(LLS_aux, LLS_unary):
+class LLS_neg(LLS_unary):
     """
     Operator for negative of the series.
     """
     def __init__(self, series):
-        self._series = series
         a = series._approximate_valuation
 
         if series._constant is not None:
@@ -1293,7 +1266,7 @@ class LLS_neg(LLS_aux, LLS_unary):
         else:
             c = None
         
-        super().__init__(series._is_sparse, a, c)
+        super().__init__(series, series._is_sparse, a, c)
     
     def get_coefficient(self, n):
         c = -1 * self._series[n]
@@ -1305,20 +1278,16 @@ class LLS_neg(LLS_aux, LLS_unary):
             c = -1 * self._series[n]
             yield c
             n += 1
-    
-    def __eq__(self, other):
-        return super().__eq__(other)
 
 
-class LLS_inv(LLS_aux, LLS_unary):
+class LLS_inv(LLS_unary):
     """
     Operator for multiplicative inverse of the series.
     """
     def __init__(self, series):
-        self._series = series
         v = series.valuation()
         # self._constant can be refined
-        super().__init__(series._is_sparse, -v, None)
+        super().__init__(series, series._is_sparse, -v, None)
 
         if v is infinity:
             raise ZeroDivisionError('cannot invert zero')
@@ -1349,17 +1318,13 @@ class LLS_inv(LLS_aux, LLS_unary):
                 c += self[k] * self._series[n - v - k]
             yield -c * self._ainv
             n += 1
-    
-    def __eq__(self, other):
-        return super().__eq__(other)
 
 
-class LLS_apply_coeff(LLS_aux, LLS_unary):
+class LLS_apply_coeff(LLS_unary):
     """
         Return the series with ``function`` applied to each coefficient of this series.
     """
     def __init__(self, series, function, ring):
-        self._series = series
         self._function = function
         self._ring = ring
         a = series._approximate_valuation
@@ -1369,7 +1334,7 @@ class LLS_apply_coeff(LLS_aux, LLS_unary):
         else:
             c = None
 
-        super().__init__(series._is_sparse, a, c)
+        super().__init__(series, series._is_sparse, a, c)
 
     def get_coefficient(self, n):
         try:
@@ -1388,22 +1353,18 @@ class LLS_apply_coeff(LLS_aux, LLS_unary):
                 n += 1
             except TypeError:
                 raise ValueError("The coefficients are not in the base ring.")
-    
-    def __eq__(self, other):
-        return super().__eq__(other)
 
 
-class LLS_trunc(LLS_aux, LLS_unary):
+class LLS_trunc(LLS_unary):
     """
         Return this series with its terms of degree >= ``d`` truncated.
     """
     def __init__(self, series, d):
-        self._series = series
         self._d = d
         self._zero = ZZ.zero()
         a = series._approximate_valuation
         c = (ZZ.zero(), d)
-        super().__init__(series._is_sparse, a, c)
+        super().__init__(series, series._is_sparse, a, c)
     
     def get_coefficient(self, n):
         if n <= self._d:
@@ -1422,20 +1383,15 @@ class LLS_trunc(LLS_aux, LLS_unary):
                 c = self._zero
             yield c
             n += 1
-    
-    def __eq__(self, other):
-        return super().__eq__(other)
 
 
-class LLS_div(LLS_aux, LLS_binary):
+class LLS_div(LLS_binary):
     """
         Return ``self`` divided by ``other``.
     """
     def __init__(self, left, right):
         
-        self._left = left
-        self._right = right
-        super().__init__(left._is_sparse, left._approximate_valuation, None)
+        super().__init__(left, right, left._is_sparse, left._approximate_valuation, None)
 
         self._approximate_valuation = left.valuation() - right.valuation()
 
@@ -1470,6 +1426,3 @@ class LLS_div(LLS_aux, LLS_binary):
                 c -= self[k] * self._right[n + rv - k]
             yield c * self._ainv
             n += 1
-    
-    def __eq__(self, other):
-        return super().__eq__(other)

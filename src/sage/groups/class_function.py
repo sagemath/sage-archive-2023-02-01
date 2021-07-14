@@ -84,7 +84,6 @@ def ClassFunction(group, values):
 ###
 #####################################################################
 
-
 @richcmp_method
 class ClassFunction_gap(SageObject):
     """
@@ -104,16 +103,6 @@ class ClassFunction_gap(SageObject):
         sage: loads(dumps(chi)) == chi
         True
     """
-
-    def __hash__(self):
-        r"""
-        TESTS::
-
-            sage: G = SymmetricGroup(5)
-            sage: chi1 = ClassFunction(G,[1,1,1,1,1,1,1])
-            sage: d = {chi1:'trivial'}
-        """
-        return hash(self.__repr__())
 
     def __init__(self, G, values):
         r"""
@@ -151,7 +140,6 @@ class ClassFunction_gap(SageObject):
         """
         return str(self._gap_classfunction)
 
-
     def _gap_(self, *args):
         r"""
         Coerce self into a GAP element.
@@ -171,7 +159,6 @@ class ClassFunction_gap(SageObject):
         """
         return self._gap_classfunction
 
-
     def __repr__(self):
         r"""
         Return a string representation.
@@ -188,7 +175,6 @@ class ClassFunction_gap(SageObject):
             Character of Symmetric group of order 4! as a permutation group
         """
         return "Character of %s" % repr(self._group)
-
 
     def __iter__(self):
         r"""
@@ -233,6 +219,16 @@ class ClassFunction_gap(SageObject):
                            (other._group, other.values()), op)
         else:
             return NotImplemented
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: G = SymmetricGroup(5)
+            sage: chi1 = ClassFunction(G,[1,1,1,1,1,1,1])
+            sage: d = {chi1:'trivial'}
+        """
+        return hash((self._group, tuple(self.values())))
 
     def __reduce__(self):
         r"""

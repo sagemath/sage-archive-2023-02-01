@@ -10,7 +10,7 @@ EXAMPLES:
 The definition of Laurent series rings is not initially imported into the
 global namespace. You need to import it explicitly to use it::
 
-    sage: L.<z> = LazyLaurentSeriesRing(QQ)
+    sage: L.<z> = LLSRing(QQ)
     sage: L.category()
     Category of magmas and additive magmas
     sage: 1/(1 - z)
@@ -20,7 +20,7 @@ global namespace. You need to import it explicitly to use it::
 
 Lazy Laurent series ring over a finite field::
 
-    sage: L.<z> = LazyLaurentSeriesRing(GF(3)); L
+    sage: L.<z> = LLSRing(GF(3)); L
     Lazy Laurent Series Ring in z over Finite Field of size 3
     sage: e = 1/(1 + z)
     sage: e.coefficient(100)
@@ -31,15 +31,15 @@ Lazy Laurent series ring over a finite field::
 Generating functions of integer sequences are Laurent series over the integer
 ring::
 
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ); L
+    sage: L.<z> = LLSRing(ZZ); L
     Lazy Laurent Series Ring in z over Integer Ring
     sage: 1/(1 - 2*z)^3
     1 + 6*z + 24*z^2 + 80*z^3 + 240*z^4 + 672*z^5 + 1792*z^6 + ...
 
 Power series can be defined recursively::
 
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-    sage: L.series(lambda s,n: (1 + z*s^2)[n], valuation=0)
+    sage: L.<z> = LLSRing(ZZ)
+    sage: L.series(lambda s,n: (1 + z*s^2)[n], True, approximate_valuation=0)
     1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
 
 AUTHORS:
@@ -72,16 +72,19 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
 
-from .lazy_laurent_series import LazyLaurentSeries
-from .lazy_laurent_series_operator import (
-    LazyLaurentSeriesOperator_gen,
-    LazyLaurentSeriesOperator_constant,
-    LazyLaurentSeriesOperator_list,
-    LazyLaurentSeriesOperator_polynomial
+from .lazy_laurent_series_new import (
+    LLS,
+    LLS_coefficient_function
+)
+from .lazy_laurent_series_operator_new import (
+    LLSOperator_gen,
+    LLSOperator_constant,
+    LLSOperator_list,
+    LLSOperator_polynomial
 )
 
 
-class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
+class LLSRing(UniqueRepresentation, Parent):
     """
     Lazy Laurent series ring.
 
@@ -93,23 +96,23 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     EXAMPLES::
 
-        sage: LazyLaurentSeriesRing(ZZ, 't')
+        sage: LLSRing(ZZ, 't')
         Lazy Laurent Series Ring in t over Integer Ring
     """
-    Element = LazyLaurentSeries
+    # Element = LLS
+    Element = LLS
 
-    def __init__(self, base_ring, names, category=None, implementation='sparse'):
+    def __init__(self, base_ring, names, category=None):
         """
         Initialize.
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 't')
+            sage: L = LLSRing(ZZ, 't')
             sage: TestSuite(L).run(skip='_test_elements')
         """
         Parent.__init__(self, base=base_ring, names=names,
                         category=MagmasAndAdditiveMagmas().or_subcategory(category))
-        self._implementation = implementation
 
     def _repr_(self):
         """
@@ -117,7 +120,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: LazyLaurentSeriesRing(GF(2), 'z')
+            sage: LLSRing(GF(2), 'z')
             Lazy Laurent Series Ring in z over Finite Field of size 2
         """
         return "Lazy Laurent Series Ring in {} over {}".format(self.variable_name(), self.base_ring())
@@ -129,7 +132,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: L.gen()
             z
             sage: L.gen(3)
@@ -137,12 +140,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ...
             IndexError: there is only one generator
         """
+        # Always a sparse implementation.
         if n != 0:
             raise IndexError("there is only one generator")
-
-        op = LazyLaurentSeriesOperator_gen(self)
+        op = LLSOperator_gen(self)
         c = (self.base_ring().zero(), 2)
-        return self.element_class(self, coefficient=op, valuation=1, constant=c)
+        aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=1, constant=c)
+
+        return self.element_class(self, aux)
 
     def ngens(self):
         """
@@ -152,7 +157,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: L.ngens()
             1
         """
@@ -164,7 +169,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LLSRing(ZZ)
             sage: 1/(1 - z)
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
         """
@@ -176,7 +181,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
+            sage: L = LLSRing(GF(2), 'z')
             sage: L.has_coerce_map_from(ZZ)
             True
             sage: L.has_coerce_map_from(GF(2))
@@ -187,10 +192,11 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         if isinstance(S, (PolynomialRing_general, LaurentPolynomialRing_generic)) and S.ngens() == 1:
             def make_series_from(poly):
-                op = LazyLaurentSeriesOperator_polynomial(self, poly)
+                op = LLSOperator_polynomial(self, poly)
                 a = poly.valuation()
                 c = (self.base_ring().zero(), poly.degree() + 1)
-                return self.element_class(self, coefficient=op, valuation=a, constant=c)
+                aux = LLS_coefficient_function(op, True, a, c)
+                return self.element_class(self, aux)
 
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
 
@@ -202,7 +208,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
+            sage: L = LLSRing(GF(2), 'z')
             sage: L(2)
             0
             sage: L(3)
@@ -210,31 +216,32 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         R = self.base_ring()
 
-        op = LazyLaurentSeriesOperator_constant(self, R(x))
+        # Always a sparse implementation.
+        op = LLSOperator_constant(self, R(x))
+        aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=0, constant=(R.zero(), 1))
+        return self.element_class(self, aux)
 
-        return self.element_class(self, coefficient=op, valuation=0, constant=(R.zero(), 1))
-
-    def _an_element_(self):
+    def _an_element_(self, is_sparse=True):
+        # Always a sparse implementation.
         """
         Return a Laurent series in this ring.
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: L.an_element()  # random
             z^-10 + z^-9 + z^-8 + z^-7 + z^-6 + z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + ...
         """
         N = 10
 
         e = self.base_ring().an_element()
-
-        def r(s, i):
+        def r(i):
             return self.base_ring().an_element()
-
         n = random.randint(-N,N)
         m = random.randint(0,N)
 
-        return self.element_class(self, coefficient=r, valuation=n, constant=(e,n+m))
+        aux = LLS_coefficient_function(r, is_sparse, n, (e, n + m))
+        return self.element_class(self, aux)
 
     def one(self):
         """
@@ -242,7 +249,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: L.one()
             1
         """
@@ -254,41 +261,43 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LLSRing(ZZ, 'z')
             sage: L.zero()
             0
         """
         return self._element_constructor_(0)
 
-    def series(self, coefficient, valuation, constant=None):
+    def series(self, coefficient_function, is_sparse, approximate_valuation, constant=None):
         r"""
         Return a lazy Laurent series.
 
         INPUT:
 
-        - ``coefficient`` -- Python function that computes coefficients
+        - ``coefficient_function`` -- Python function that computes coefficients
 
-        - ``valuation`` -- integer; approximate valuation of the series
+        - ``issparse`` -- Boolean that determines whether the implementation is sparse or dense
+
+        - ``approximate_valuation`` -- integer; approximate valuation of the series
 
         - ``constant`` -- either ``None`` or pair of an element of the base ring and an integer
 
         Let the coefficient of index `i` mean the coefficient of the term of the
         series with exponent `i`.
 
-        Python function ``coefficient`` returns the value of the coefficient of
-        index `i` from input `s` and `i` where `s` is the series itself.
+        Python function ``coefficient_function`` returns the value of the coefficient of
+        index `i` from input.
 
-        Let ``valuation`` be `n`. All coefficients of index below `n` are zero.
-        If ``constant`` is ``None``, then the ``coefficient`` function is responsible to
-        compute the values of all coefficients of index `\ge n`. If
-        ``constant`` is a pair `(c,m)`, then the ``coefficient`` function is responsible
-        to compute the values of all coefficients of index `\ge n` and `< m`
-        and all the coefficients of index `\ge m` is the constant `c`.
+        Let ``approximate_valuation`` be `n`. All coefficients of index below `n` are zero.  If
+        ``constant`` is ``None``, then the ``coefficient_function`` function is responsible
+        to compute the values of all coefficients of index `\ge n`. If ``constant``
+        is a pair `(c,m)`, then the ``coefficient_function`` function is responsible to
+        compute the values of all coefficients of index `\ge n` and `< m` and all
+        the coefficients of index `\ge m` is the constant `c`.
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: L.series(lambda s, i: i, 5, (1,10))
+            sage: L = LLSRing(ZZ, 'z')
+            sage: L.series(lambda i: i, True, 5, (1,10))
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
 
             sage: def g(s, i):
@@ -296,7 +305,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ....:         return 1
             ....:     else:
             ....:         return s.coefficient(i - 1) + i
-            sage: e = L.series(g, -5); e
+            sage: e = L.series(g, True, -5); e
             z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
             sage: f = e^-1; f
             z^5 - z^6 - z^11 + ...
@@ -307,7 +316,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: f.coefficient(30)
             -219
 
-        Alternatively, the ``coefficient`` can be a list of elements of the
+        Alternatively, the ``coefficient_function`` can be a list of elements of the
         base ring. Then these elements are read as coefficients of the terms of
         degrees starting from the ``valuation``. In this case, ``constant``
         may be just an element of the base ring instead of a tuple or can be
@@ -315,32 +324,33 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: f = L.series([1,2,3,4], -5)
+            sage: L = LLSRing(ZZ, 'z')
+            sage: f = L.series([1,2,3,4], True, -5)
             sage: f
             z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
-            sage: g = L.series([1,3,5,7,9], 5, -1)
+            sage: g = L.series([1,3,5,7,9], True, 5, -1)
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
         """
-        if isinstance(coefficient, (tuple, list)):
+        if isinstance(coefficient_function, (tuple, list)):
             if isinstance(constant, tuple):
                 constant = constant[0]
             if constant is None:
                 constant = self.base_ring().zero()
             elif constant not in self.base_ring():
                 raise ValueError("constant is not an element of the base ring")
-            constant = (constant, valuation + len(coefficient))
-            coefficient = LazyLaurentSeriesOperator_list(self, coefficient, valuation)
+            constant = (constant, approximate_valuation + len(coefficient_function))
+            coefficient_function = LLSOperator_list(self, coefficient_function, approximate_valuation)
         elif constant is not None:
             try:
                 c,m = constant
             except TypeError:
                 raise TypeError('not a tuple')
 
-            if valuation > m and c: # weird case
+            if approximate_valuation > m and c: # weird case
                 raise ValueError('inappropriate valuation')
 
             constant = (self.base_ring()(c), m)
 
-        return self.element_class(self, coefficient=coefficient, valuation=valuation, constant=constant)
+        aux = LLS_coefficient_function(coefficient_function=coefficient_function, is_sparse=is_sparse, approximate_valuation=approximate_valuation, constant=constant)
+        return self.element_class(self, aux)

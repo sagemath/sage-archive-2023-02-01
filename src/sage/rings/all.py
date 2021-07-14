@@ -120,6 +120,7 @@ from .laurent_series_ring import LaurentSeriesRing
 from .laurent_series_ring_element import LaurentSeries
 
 # Lazy Laurent series ring
+lazy_import('sage.rings.lazy_laurent_series_ring_new', 'LLSRing')
 lazy_import('sage.rings.lazy_laurent_series_ring', 'LazyLaurentSeriesRing')
 
 # Tate algebras

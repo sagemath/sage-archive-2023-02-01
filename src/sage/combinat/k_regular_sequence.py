@@ -373,6 +373,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         INPUT:
 
+        Positional arguments:
+
         - ``equations`` -- A list of equations where the elements have
           either the form
 
@@ -397,6 +399,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``function`` -- symbolic function ``f`` occuring in the equations
 
         - ``var`` -- symbolic variable (``n`` in the above description of ``equations``)
+
+        Keyword-only argument:
 
         - ``offset`` -- an integer (default: ``0``). See explanation for ``equations`` above.
 

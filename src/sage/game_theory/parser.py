@@ -35,14 +35,14 @@ class Parser():
             sage: A = matrix([[1]])
             sage: B = matrix([[5]])
             sage: g = NormalFormGame([A,B])
-            sage: raw_string = g._lrs_nash_format(A, B)
+            sage: game_str = g._lrs_nash_format(A, B)
             sage: game_name = tmp_filename()
             sage: with open(game_name, 'w') as game_file:
             ....:     _ = game_file.write(game_str)
             sage: process = Popen(['lrsnash', game_name], stdout=PIPE, stderr=PIPE)  # optional - lrslib
             sage: lrs_output = [bytes_to_str(row) for row in process.stdout]         # optional - lrslib
-
             sage: Parser(lrs_output).format_lrs()                                    # optional - lrslib
+            [[(1,), (1,)]]
 
         This class is also used to parse the output of algorithms from
         the gambit python interface using :meth:`format_gambit()`.
@@ -178,7 +178,7 @@ class Parser():
         return equilibria
 
     def format_gambit(self, gambit_game):
-        """
+        r"""
         Parses the output of gambit so as to return vectors
         corresponding to equilibria obtained using the LCP algorithm.
 

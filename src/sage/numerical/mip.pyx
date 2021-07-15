@@ -1373,7 +1373,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def _backend_variable_value(self, v, tolerance):
         """
-        tolerance is ignored
+        Return the value of a variable component in the backend.
+
+        INPUT:
+
+        - ``v`` -- a variable component
+
+        - ``tolerance`` -- ignored
         """
         return self._backend.get_variable_value(self._variables[v])
 

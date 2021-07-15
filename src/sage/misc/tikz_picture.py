@@ -160,9 +160,10 @@ class StandaloneTex(SageObject):
             \definecolor{cfv0}{rgb}{1.0,1.0,1.0}
             \definecolor{clv0}{rgb}{0.0,0.0,0.0}
             \definecolor{cv1}{rgb}{0.0,0.0,0.0}
-            ...
-            ... 65 lines not printed (3695 characters in total) ...
-            ...
+            ---
+            65 lines not printed (3695 characters in total).
+            Use print to see the full content.
+            ---
             \Edge[lw=0.1cm,style={color=cv6v8,},](v6)(v8)
             \Edge[lw=0.1cm,style={color=cv6v9,},](v6)(v9)
             \Edge[lw=0.1cm,style={color=cv7v9,},](v7)(v9)
@@ -177,10 +178,11 @@ class StandaloneTex(SageObject):
             lines.extend(L)
         else:
             lines.extend(L[:5])
-            lines.append('...')
-            lines.append('... {} lines not printed ({} characters in total) ...'.format(len(L)-10,
+            lines.append('---')
+            lines.append('{} lines not printed ({} characters in total).'.format(len(L)-10,
                                                            len(self._content)))
-            lines.append('...')
+            lines.append('Use print to see the full content.')
+            lines.append('---')
             lines.extend(L[-5:])
         lines.append(r"\end{document}")
         return '\n'.join(lines)

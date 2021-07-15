@@ -1141,6 +1141,192 @@ class RecurrenceParser(object):
 
         return (M, m, coeffs, initial_values)
 
+    def parse_direct_arguments(self, M, m, coeffs, initial_values):
+        r"""
+        Check whether the direct arguments as admissible in
+        :meth:`kRegularSequenceSpace.from_recurrence` are valid.
+
+        INPUT:
+
+        - ``M`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
+
+        - ``m`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
+
+        - ``coeffs`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
+
+        - ``initial_values`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
+
+        OUTPUT: a tuple consisting of the input parameters
+
+        EXAMPLES::
+
+            sage: from sage.combinat.k_regular_sequence import RecurrenceParser
+            sage: RP = RecurrenceParser(2, ZZ)
+            sage: var('n')
+            n
+            sage: function('f')
+            f
+            sage: RP.parse_direct_arguments(2, 1,
+            ....:     {(0, -2): 3, (0, 0): 1, (0, 1): 2,
+            ....:      (1, -2): 6, (1, 0): 4, (1, 1): 5,
+            ....:      (2, -2): 9, (2, 0): 7, (2, 1): 8,
+            ....:      (3, -2): 12, (3, 0): 10, (3, 1): 11},
+            ....:     {0: 1, 1: 2, 2: 1})
+            (2, 1, {(0, -2): 3, (0, 0): 1, (0, 1): 2,
+            (1, -2): 6, (1, 0): 4, (1, 1): 5,
+            (2, -2): 9, (2, 0): 7, (2, 1): 8,
+            (3, -2): 12, (3, 0): 10, (3, 1): 11},
+            {0: 1, 1: 2, 2: 1})
+
+        Stern--Brocot Sequence::
+
+            sage: RP.parse_direct_arguments(1, 0,
+            ....:     {(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:     {0: 0, 1: 1})
+            (1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1})
+
+        .. SEEALSO::
+
+            :meth:`kRegularSequenceSpace.from_recurrence`
+
+        TESTS:
+
+        The following tests check that the equations are well-formed::
+
+            sage: RP.parse_direct_arguments(1/2, 0, {}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/2 is not a positive integer.
+
+        ::
+
+            sage: RP.parse_direct_arguments(0, 0, {}, {})
+            Traceback (most recent call last):
+            ....
+            ValueError: 0 is not a positive integer.
+
+        ::
+
+            sage: RP.parse_direct_arguments(1, 1/2, {}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/2 is not a non-negative integer.
+
+        ::
+
+            sage: RP.parse_direct_arguments(1, -1, {}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: -1 is not a non-negative integer.
+
+        ::
+
+            sage: RP.parse_direct_arguments(1, 1, {}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 is not larger than 1.
+
+        ::
+
+            sage: RP.parse_direct_arguments(1, 42, {}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: 1 is not larger than 42.
+
+        ::
+
+            sage: RP.parse_direct_arguments(2, 1, {(0, 0): 1/2, (1, 0): i}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: Coefficients [1/2, I] are not valid since they are not
+            in Integer Ring.
+
+        ::
+
+            sage: RP.parse_direct_arguments(2, 1, {(-1, 0): 0, (42, 0): 0}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: Keys [(-1, 0), (42, 0)] for coefficients are not valid since
+            their first component is either smaller than 0 or larger than
+            or equal to 4.
+
+        ::
+
+            sage: RP.parse_direct_arguments(2, 1, {(i, 0): 0, (0, 1/2): 0}, {})
+            Traceback (most recent call last):
+            ...
+            ValueError: Keys [(I, 0), (0, 1/2)] for coefficients are not valid
+            since one of their components is no integer.
+
+        ::
+
+            sage: RP.parse_direct_arguments(2, 1, {}, {0: 1/2, 1: i})
+            Traceback (most recent call last):
+            ...
+            ValueError: Initial values [1/2, I] are not valid since they are
+            not in Integer Ring.
+
+        ::
+
+            sage: RP.parse_direct_arguments(2, 1, {}, {1/2: 0, i: 0})
+            Traceback (most recent call last):
+            ...
+            ValueError: Keys [1/2, I] for the initial values are not valid since
+            they are no integers.
+        """
+        from sage.rings.integer_ring import ZZ
+
+        if M not in ZZ or M < 1:
+            raise ValueError("%s is not a positive integer."
+                             % (M,)) from None
+        if m not in ZZ or m < 0:
+            raise ValueError("%s is not a non-negative integer."
+                             % (m,)) from None
+        if M <= m:
+            raise ValueError("%s is not larger than %s."
+                             % (M, m)) from None
+
+        coefficient_ring = self.coefficient_ring
+        k = self.k
+
+        invalid_coeffs = [coeff for coeff in coeffs.values()
+                          if coeff not in coefficient_ring]
+        if invalid_coeffs:
+            raise ValueError("Coefficients %s are not valid "
+                             "since they are not in %s."
+                             % (invalid_coeffs, coefficient_ring)) from None
+
+        coeffs_keys = coeffs.keys()
+        invalid_coeffs_keys = [key for key in coeffs_keys if key[0] < 0 or key[0] >= k**M]
+        if invalid_coeffs_keys:
+            raise ValueError("Keys %s for coefficients are not valid "
+                             "since their first component is either smaller than 0 "
+                             " or larger than or equal to %s."
+                             % (invalid_coeffs_keys, k**M)) from None
+
+        invalid_coeffs_keys = [key for key in coeffs_keys
+                               if key[0] not in ZZ or key[1] not in ZZ]
+        if invalid_coeffs_keys:
+            raise ValueError("Keys %s for coefficients are not valid "
+                             "since one of their components is no integer."
+                             % (invalid_coeffs_keys,)) from None
+
+        invalid_initial_values = [value for value in initial_values.values()
+                                  if value not in coefficient_ring]
+        if invalid_initial_values:
+            raise ValueError("Initial values %s are not valid "
+                             "since they are not in %s."
+                             % (invalid_initial_values, coefficient_ring)) from None
+
+        invalid_initial_keys = [key for key in initial_values.keys()
+                                if key not in ZZ]
+        if invalid_initial_keys:
+            raise ValueError("Keys %s for the initial values are not valid "
+                             "since they are no integers."
+                             % (invalid_initial_keys,)) from None
+
+        return (M, m, coeffs, initial_values)
+
     def parameters(self, M, m, coeffs, initial_values, offset):
         r"""
         Determine parameters from recurrence relations as admissible in

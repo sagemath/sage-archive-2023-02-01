@@ -637,11 +637,8 @@ class RecurrenceParser(object):
 
         INPUT:
 
-        - ``equations`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
-
-        - ``function`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
-
-        - ``var`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
+        All parameters are explained in the high-level method
+        :meth:`kRegularSequenceSpace.from_recurrence`.
 
         OUTPUT: a tuple consisting of
 
@@ -1192,13 +1189,8 @@ class RecurrenceParser(object):
 
         INPUT:
 
-        - ``M`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
-
-        - ``m`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
-
-        - ``coeffs`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
-
-        - ``initial_values`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
+        All parameters are explained in the high-level method
+        :meth:`kRegularSequenceSpace.from_recurrence`.
 
         OUTPUT: a tuple consisting of the input parameters
 
@@ -1378,11 +1370,8 @@ class RecurrenceParser(object):
 
         INPUT:
 
-        - ``M``, ``m``, ``offset`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
-
-        - ``coeffs`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
-
-        - ``initial_values`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
+        All parameters are explained in the high-level method
+        :meth:`kRegularSequenceSpace.from_recurrence`.
 
         OUTPUT: a namedtuple ``recurrence_rules`` consisting of
 
@@ -2102,7 +2091,7 @@ class RecurrenceParser(object):
         INPUT:
 
         All parameters are explained in the high-level method
-        :meth:`kRegularSequenceSpace.from_recurrence`
+        :meth:`kRegularSequenceSpace.from_recurrence`.
 
         OUTPUT: a linear representation ``(left, mu, right)``
 

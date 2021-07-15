@@ -52,8 +52,9 @@ class RelativeInterior(ConvexSet_relatively_open):
             sage: TestSuite(RelativeInterior(P)).run()
         """
         self._polyhedron = polyhedron
-        if polyhedron.is_mutable():
-            polyhedron._add_dependent_object(self)
+        if hasattr(polyhedron, "is_mutable") and polyhedron.is_mutable():
+            if hasattr(polyhedron, "_add_dependent_object"):
+                polyhedron._add_dependent_object(self)
 
     def __contains__(self, point):
         r"""

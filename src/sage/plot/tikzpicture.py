@@ -66,10 +66,11 @@ one liner works::
 AUTHORS:
 
 - Sébastien Labbé, initial version in slabbe-0.2.spkg, nov 2015.
+- Sébastien Labbé, inclusion into SageMath from slabbe-0.6.2, July 2021.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2015-2019 Sébastien Labbé <slabqc@gmail.com>
+#       Copyright (C) 2015-2021 Sébastien Labbé <slabqc@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License version 2 (GPLv2)
 #

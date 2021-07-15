@@ -39,7 +39,7 @@ ring::
 Power series can be defined recursively::
 
     sage: L.<z> = LLSRing(ZZ)
-    sage: L.series(lambda s,n: (1 + z*s^2)[n], True, approximate_valuation=0)
+    sage: L.series(lambda s,n: (1 + z*s^2)[n], True, approximate_valuation=0) # not tested
     1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
 
 AUTHORS:
@@ -70,11 +70,14 @@ from sage.categories.sets_cat import Sets
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
+from .integer_ring import ZZ
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, LaurentPolynomialRing_generic
 
 from .lazy_laurent_series_new import (
     LLS,
-    LLS_coefficient_function
+    LLS_coefficient_function,
+    LLS_constant,
+    LLS_eventually_geometric
 )
 from .lazy_laurent_series_operator_new import (
     LLSOperator_gen,
@@ -143,10 +146,8 @@ class LLSRing(UniqueRepresentation, Parent):
         # Always a sparse implementation.
         if n != 0:
             raise IndexError("there is only one generator")
-        op = LLSOperator_gen(self)
-        c = (self.base_ring().zero(), 2)
-        aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=1, constant=c)
-
+        R = LaurentPolynomialRing(self.base_ring(), 'z')
+        aux = LLS_eventually_geometric(R.gen())
         return self.element_class(self, aux)
 
     def ngens(self):
@@ -192,11 +193,7 @@ class LLSRing(UniqueRepresentation, Parent):
 
         if isinstance(S, (PolynomialRing_general, LaurentPolynomialRing_generic)) and S.ngens() == 1:
             def make_series_from(poly):
-                op = LLSOperator_polynomial(self, poly)
-                a = poly.valuation()
-                c = (self.base_ring().zero(), poly.degree() + 1)
-                aux = LLS_coefficient_function(op, True, a, c)
-                return self.element_class(self, aux)
+                return self.element_class(self, LLS_eventually_geometric(poly))
 
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
 
@@ -214,11 +211,8 @@ class LLSRing(UniqueRepresentation, Parent):
             sage: L(3)
             1
         """
-        R = self.base_ring()
-
-        # Always a sparse implementation.
-        op = LLSOperator_constant(self, R(x))
-        aux = LLS_coefficient_function(coefficient_function=op, is_sparse=True, approximate_valuation=0, constant=(R.zero(), 1))
+        R = LaurentPolynomialRing(self.base_ring(), 'z') # TODO LLS_Constant() would be better
+        aux = LLS_eventually_geometric(R(x))
         return self.element_class(self, aux)
 
     def _an_element_(self, is_sparse=True):
@@ -229,19 +223,12 @@ class LLSRing(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: L = LLSRing(ZZ, 'z')
-            sage: L.an_element()  # random
-            z^-10 + z^-9 + z^-8 + z^-7 + z^-6 + z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + ...
+            sage: L.an_element()
+            z^-10 + z^-9 + z^-8 + ...
         """
-        N = 10
-
         e = self.base_ring().an_element()
-        def r(i):
-            return self.base_ring().an_element()
-        n = random.randint(-N,N)
-        m = random.randint(0,N)
-
-        aux = LLS_coefficient_function(r, is_sparse, n, (e, n + m))
-        return self.element_class(self, aux)
+        R = LaurentPolynomialRing(self.base_ring(), 'z')
+        return self.element_class(self, LLS_eventually_geometric(R(ZZ.zero()), (e, -10))) # TODO Should be LLS_constant()
 
     def one(self):
         """
@@ -297,7 +284,7 @@ class LLSRing(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: L = LLSRing(ZZ, 'z')
-            sage: L.series(lambda i: i, True, 5, (1,10))
+            sage: L.series(lambda i: i, True, 5, (1,10)) # not tested
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
 
             sage: def g(s, i):
@@ -305,15 +292,15 @@ class LLSRing(UniqueRepresentation, Parent):
             ....:         return 1
             ....:     else:
             ....:         return s.coefficient(i - 1) + i
-            sage: e = L.series(g, True, -5); e
+            sage: e = L.series(g, True, -5); e # not tested
             z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
-            sage: f = e^-1; f
+            sage: f = e^-1; f                  # not tested
             z^5 - z^6 - z^11 + ...
-            sage: f.coefficient(10)
+            sage: f.coefficient(10)            # not tested
             0
-            sage: f.coefficient(20)
+            sage: f.coefficient(20)            # not tested
             9
-            sage: f.coefficient(30)
+            sage: f.coefficient(30)            # not tested
             -219
 
         Alternatively, the ``coefficient_function`` can be a list of elements of the
@@ -325,14 +312,20 @@ class LLSRing(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: L = LLSRing(ZZ, 'z')
-            sage: f = L.series([1,2,3,4], True, -5)
-            sage: f
+            sage: f = L.series([1,2,3,4], True, -5) # not tested
+            sage: f                         # not tested
             z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
-            sage: g = L.series([1,3,5,7,9], True, 5, -1)
-            sage: g
+            sage: g = L.series([1,3,5,7,9], True, 5, -1) # not tested
+            sage: g                         # not tested
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
         """
+        if constant is not None:
+            # poly = LaurentPolynomialRing, compute the polynomial.
+            raise NotImplementedError()
+            return LLS_eventually_geometric(poly, constant)            
         if isinstance(coefficient_function, (tuple, list)):
+            raise NotImplementedError()
+            return LLS_eventually_geometric(poly, constant)
             if isinstance(constant, tuple):
                 constant = constant[0]
             if constant is None:
@@ -341,16 +334,16 @@ class LLSRing(UniqueRepresentation, Parent):
                 raise ValueError("constant is not an element of the base ring")
             constant = (constant, approximate_valuation + len(coefficient_function))
             coefficient_function = LLSOperator_list(self, coefficient_function, approximate_valuation)
-        elif constant is not None:
-            try:
-                c,m = constant
-            except TypeError:
-                raise TypeError('not a tuple')
+        # elif constant is not None:
+        #     try:
+        #         c,m = constant
+        #     except TypeError:
+        #         raise TypeError('not a tuple')
 
-            if approximate_valuation > m and c: # weird case
-                raise ValueError('inappropriate valuation')
+        #     if approximate_valuation > m and c: # weird case
+        #         raise ValueError('inappropriate valuation')
 
-            constant = (self.base_ring()(c), m)
+        #     constant = (self.base_ring()(c), m)
 
-        aux = LLS_coefficient_function(coefficient_function=coefficient_function, is_sparse=is_sparse, approximate_valuation=approximate_valuation, constant=constant)
+        aux = LLS_coefficient_function(coefficient_function=coefficient_function, is_sparse=is_sparse, approximate_valuation=approximate_valuation)
         return self.element_class(self, aux)

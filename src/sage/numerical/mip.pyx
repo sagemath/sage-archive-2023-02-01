@@ -240,6 +240,7 @@ from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
 from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.functions.generalized import sign
 from math import modf as math_modf
 
@@ -1373,6 +1374,30 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         self._backend.write_lp(filename)
 
+    def _backend_variable_value(self, v, tolerance):
+        """
+        tolerance is ignored
+        """
+        return self._backend.get_variable_value(self._variables[v])
+
+    def _backend_variable_value_ZZ(self, v, tolerance):
+        value = self._backend_variable_value(v, tolerance)
+        value_ZZ = ZZ(round(value))
+        if abs(value - value_ZZ) > tolerance:
+            raise RuntimeError(f'variable {v} exceeds integrality tolerance {tolerance}')
+        return value_ZZ
+
+    def _backend_variable_value_bool(self, v, tolerance):
+        value_ZZ = self._backend_variable_value_ZZ(v, tolerance)
+        if value_ZZ not in (0, 1):
+            raise RuntimeError(f'variable {v} is {value_ZZ} but should be 0 or 1')
+        return bool(value_ZZ)
+
+    def _backend_variable_value_True(self, v, tolerance):
+        if self.is_binary(v) or self.is_integer(v):
+            return self._backend_variable_value_ZZ(v, tolerance)
+        return self._backend_variable_value(v, tolerance)
+
     def get_values(self, *lists, convert=None, tolerance=None):
         r"""
         Return values found by the previous call to ``solve()``.
@@ -1411,8 +1436,23 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         .. NOTE::
 
-            While a variable may be declared as binary or integer, its value as
-            returned by the solver is of type ``float``.
+            While a variable may be declared as binary or integer, its value is
+            always an element of the :meth:`base_ring`.
+
+            For the numerical solvers, :meth:`base_ring` is ``RDF``, an inexact ring.
+            Code using ``get_values`` should always account for possible numerical errors.
+
+            Even for variables declared as binary or integer, or known to be an integer
+            because of the mathematical properties of the model, the returned values
+            cannot be expected to be exact integers.  This is normal behavior of the
+            numerical solvers.
+
+            For correct operation, any user code needs to avoid exact comparisons
+            (``==``, ``!=``) and instead allow for numerical tolerances.  The magnitude
+            of the numerical tolerances depends on both the model and the solver.
+
+            The arguments ``convert`` and ``tolerance`` facilitate writing correct code.
+            See examples below.
 
         EXAMPLES::
 
@@ -1424,13 +1464,13 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.solve()
             6.0
 
-        To return the optimal value of ``y[2,9]``::
+        To return the value of ``y[2,9]`` in the optimal solution::
 
             sage: p.get_values(y[2,9])
             2.0
 
-        To get a dictionary identical to ``x`` containing optimal
-        values for the corresponding variables ::
+        To get a dictionary identical to ``x`` containing the
+        values for the corresponding variables in the optimal solution::
 
             sage: x_sol = p.get_values(x)
             sage: sorted(x_sol)
@@ -1447,6 +1487,25 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Or::
 
             sage: [x_sol, y_sol] = p.get_values([x, y])
+
+        Using ``convert`` and ``tolerance``.  First, a binary knapsack::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x = p.new_variable(binary=True)
+            sage: p.set_objective(3*x[1] + 4*x[2] + 5*x[3])
+            sage: p.add_constraint(2*x[1] + 3*x[2] + 4*x[3] <= 6)
+            sage: p.solve()
+            8.0
+            sage: x_opt = p.get_values(x); x_opt
+            {1: 1.0, 2: 0.0, 3: 1.0}
+            sage: type(x_opt[1])
+            <class 'float'>
+            sage: x_opt_ZZ = p.get_values(x, convert=True, tolerance=1e-6); x_opt_ZZ
+            {1: 1, 2: 0, 3: 1}
+            sage: x_opt_ZZ[1].parent()
+            Integer Ring
+            sage: x_opt_bool = p.get_values(x, convert=bool, tolerance=1e-6); x_opt_bool
+            {1: True, 2: False, 3: True}
 
         TESTS:
 
@@ -1512,6 +1571,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         if convert is None:
             if tolerance is not None:
                 raise TypeError('cannot use tolerance if convert is None')
+            get_backend_variable_value = self._backend_variable_value
         else:
             if tolerance is None:
                 raise TypeError('if convert is not None, tolerance must be provided')
@@ -1521,6 +1581,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
             else:
                 if not 0 < tolerance:
                     raise ValueError('for an inexact base_ring, tolerance must be positive')
+            if convert is ZZ:
+                get_backend_variable_value = self._backend_variable_value_ZZ
+            elif convert is bool:
+                get_backend_variable_value = self._backend_variable_value_bool
+            elif convert is True:
+                get_backend_variable_value = self._backend_variable_value_True
+            else:
+                raise ValueError('convert should be one of None, ZZ, bool, True')
 
         val = []
         for l in lists:
@@ -1529,17 +1597,17 @@ cdef class MixedIntegerLinearProgram(SageObject):
                     raise ValueError("Variable {!r} is a variable from a different problem".format(l))
                 c = {}
                 for (k,v) in l.items():
-                    c[k] = self._backend.get_variable_value(self._variables[v])
+                    c[k] = get_backend_variable_value(v, tolerance)
                 val.append(c)
             elif isinstance(l, list):
                 if len(l) == 1:
-                    val.append([self.get_values(l[0])])
+                    val.append([self.get_values(l[0], convert=convert, tolerance=tolerance)])
                 else:
                     c = []
-                    [c.append(self.get_values(ll)) for ll in l]
+                    [c.append(self.get_values(ll, convert=convert, tolerance=tolerance)) for ll in l]
                     val.append(c)
             elif l in self._variables:
-                val.append(self._backend.get_variable_value(self._variables[l]))
+                val.append(get_backend_variable_value(l, tolerance))
             else:
                 raise TypeError("Not a MIPVariable: {!r}".format(l))
 

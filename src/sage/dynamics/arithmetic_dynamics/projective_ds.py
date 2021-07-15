@@ -4747,16 +4747,26 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
     def sigma_invariants(self, n, formal=False, embedding=None, type='point',
                         return_polynomial=False, chow=False, deform=False, check=True):
         r"""
-        Computes the values of the elementary symmetric polynomials of
-        the ``n`` multiplier spectra of this dynamical system.
+        Computes the values of the elementary symmetric polynomials evaluated
+        on the ``n`` multiplier spectra of this dynamical system.
 
-        For maps defined over projective space of dimension greater than 1,
-        the sigma invariants are the symetric polynomials in the characteristic
-        polynomials of the multipliers. See [Hutz2019]_ for the full definition.
+        The sigma invariants are the symetric polynomials evaluated on the
+        characteristic polynomial of the multipliers. See [Hutz2019]_ for
+        the full definition. Spepcifically, this function returns either
+        the following polynomial or its coefficients (with signs
+        appropriately adjusted):
 
-        Can specify to instead compute the values corresponding to the
-        elementary symmetric polynomials of the formal ``n`` multiplier
-        spectra. The base ring should be a number field, number field order, or
+         .. MATH::
+
+            \prod_{P \text{ period n}} ( w - c(P,t)),
+
+        where `c(P,t)` is the charateristic polynomial (variable `t`) of the
+        multiplier at `P`. Note that in dimension 1, only the coefficients
+        of the constant term is returned.
+
+        The invariants can be computed for points of period ``n`` or
+        points of formal period ``n``. The base
+        ring should be a number field, number field order, or
         a finite field or a polynomial ring or function field over a
         number field, number field order, or finite field.
 
@@ -4771,15 +4781,19 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ALGORITHM:
 
-        We use the Poisson product of the resultant of two polynomials:
+        In dimension 1, we use the Poisson product of the resultant of
+        two polynomials:
 
         .. MATH::
 
             res(f,g) = \prod_{f(a)=0} g(a).
 
-        Letting `f` be the polynomial defining the periodic or formal
-        periodic points and `g` the polynomial `w - f'` for an auxilarly
-        variable `w`. Note that if `f` is a rational function, we clear
+        In higher dimensions, we use elimination theory (Groebner bases)
+        to compute the equivalent of the Poisson product. Letting `f` be
+        the polynomial defining the periodic or formal
+        periodic points and `g` the polynomial `w - F` for an auxilarly
+        variable `w` and `F` the characteristic polynomial of the Jacobian matrix
+        of `f`. Note that if `f` is a rational function, we clear
         denominators for `g`.
 
         To calculate the full polynomial defining the sigma invariants,
@@ -4803,8 +4817,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           can use both cases 2 and 3 together. This corresponds to ``deform=True``
           and ``chow=True``.
 
-        As we do not want to check which case we are in beforehand, we throw an error
-        if the computed polynomial drops in degree.
+        As we do not want to check which case we are in beforehand, we throw a
+        ValueError if the computed polynomial does not have the correct degree.
 
         INPUT:
 

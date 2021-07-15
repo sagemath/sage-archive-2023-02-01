@@ -1381,6 +1381,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         return self._backend.get_variable_value(self._variables[v])
 
     def _backend_variable_value_ZZ(self, v, tolerance):
+        if tolerance is None:
+            raise TypeError('for converting to integers, a tolerance must be provided')
         value = self._backend_variable_value(v, tolerance)
         value_ZZ = ZZ(round(value))
         if abs(value - value_ZZ) > tolerance:
@@ -1396,7 +1398,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
     def _backend_variable_value_True(self, v, tolerance):
         if self.is_binary(v) or self.is_integer(v):
             return self._backend_variable_value_ZZ(v, tolerance)
-        return self._backend_variable_value(v, tolerance)
+        return self.base_ring()(self._backend_variable_value(v, tolerance))
 
     def get_values(self, *lists, convert=None, tolerance=None):
         r"""
@@ -1409,8 +1411,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         - ``convert`` -- ``None`` (default), ``ZZ``, ``bool``, or ``True``.
 
-          - if ``convert=None``, return all variable values as elements of the
-            :meth:`base_ring`.
+          - if ``convert=None`` (default), return all variable values as the backend
+            provides them, i.e., as an element of :meth:`base_ring` or a ``float``.
 
           - if ``convert=ZZ``, convert all variable values from the :meth:`base_ring`
             by rounding to the nearest integer.
@@ -1418,13 +1420,14 @@ cdef class MixedIntegerLinearProgram(SageObject):
           - if ``convert=bool``, convert all variable values from the :meth:`base_ring`
             by rounding to 0/1 and converting to ``bool``.
 
-          - if ``convert=True``, use ``ZZ`` for MIP variables declared integer or binary
-            and ``None`` for all other variables.
+          - if ``convert=True``, use ``ZZ`` for MIP variables declared integer or binary,
+            and convert the values of all other variables to the :meth:`base_ring`.
 
-        - ``tolerance`` -- ``None`` (if ``convert=None``), or a positive real number,
-          or ``0`` (if :meth:`base_ring` is an exact ring).  Required if ``convert`` is
-          not ``None``.  If the variable value differs from the nearest integer by
-          more than ``tolerance``, raise a ``RuntimeError``.
+        - ``tolerance`` -- ``None``, a positive real number, or ``0`` (if
+          :meth:`base_ring` is an exact ring).  Required if ``convert`` is
+          not ``None`` and any integer conversion is to be done.  If the variable
+          value differs from the nearest integer by more than ``tolerance``, raise
+          a ``RuntimeError``.
 
         OUTPUT:
 
@@ -1437,7 +1440,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         .. NOTE::
 
             While a variable may be declared as binary or integer, its value is
-            always an element of the :meth:`base_ring`.
+            an element of the :meth:`base_ring`, or for the numerical solvers,
+            a ``float``.
 
             For the numerical solvers, :meth:`base_ring` is ``RDF``, an inexact ring.
             Code using ``get_values`` should always account for possible numerical errors.
@@ -1468,6 +1472,15 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p.get_values(y[2,9])
             2.0
+            sage: type(_)
+            <class 'float'>
+
+        To convert the value to the :meth:`base_ring`::
+
+            sage: p.get_values(y[2,9], convert=True)
+            2.0
+            sage: _.parent()
+            Real Double Field
 
         To get a dictionary identical to ``x`` containing the
         values for the corresponding variables in the optimal solution::
@@ -1561,47 +1574,54 @@ cdef class MixedIntegerLinearProgram(SageObject):
         Test input validation for ``convert`` and ``tolerance``::
 
             sage: M_inexact = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x = M_inexact.new_variable(binary=True)
+            sage: x[1]
+            x_0
             sage: M_inexact.solve()
             0.0
             sage: M_inexact.get_values(tolerance=0.01)
             Traceback (most recent call last):
             ...
             TypeError: cannot use tolerance if convert is None
-            sage: M_inexact.get_values(convert=True)
+            sage: M_inexact.get_values(x[1], convert=True)
             Traceback (most recent call last):
             ...
-            TypeError: if convert is not None, tolerance must be provided
+            TypeError: for converting to integers, a tolerance must be provided
             sage: M_inexact.get_values(convert=True, tolerance=0)
             Traceback (most recent call last):
             ...
             ValueError: for an inexact base_ring, tolerance must be positive
 
             sage: M_exact =  MixedIntegerLinearProgram(solver='ppl')
+            sage: x = M_exact.new_variable(binary=True)
+            sage: x[1]
+            x_0
             sage: M_exact.solve()
             0
             sage: M_exact.get_values(convert=True)
+            []
+            sage: M_exact.get_values(x[1], convert=True)
             Traceback (most recent call last):
             ...
-            TypeError: if convert is not None, tolerance must be provided
+            TypeError: for converting to integers, a tolerance must be provided
+            sage: M_exact.get_values(x[1], convert=True, tolerance=0)
+            0
             sage: M_exact.get_values(convert=True, tolerance=-0.2)
             Traceback (most recent call last):
             ...
             ValueError: for an exact base_ring, tolerance must be nonnegative
-
         """
         if convert is None:
             if tolerance is not None:
                 raise TypeError('cannot use tolerance if convert is None')
             get_backend_variable_value = self._backend_variable_value
         else:
-            if tolerance is None:
-                raise TypeError('if convert is not None, tolerance must be provided')
             if self.base_ring().is_exact():
                 if not 0 <= tolerance:
                     raise ValueError('for an exact base_ring, tolerance must be nonnegative')
-            else:
-                if not 0 < tolerance:
-                    raise ValueError('for an inexact base_ring, tolerance must be positive')
+                else:
+                    if not 0 < tolerance:
+                        raise ValueError('for an inexact base_ring, tolerance must be positive')
             if convert is ZZ:
                 get_backend_variable_value = self._backend_variable_value_ZZ
             elif convert is bool:

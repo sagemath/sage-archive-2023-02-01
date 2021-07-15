@@ -607,9 +607,9 @@ class TikzPicture(StandaloneTex):
 
         sage: from sage.misc.tikz_picture import TikzPicture
         sage: g = graphs.PetersenGraph()
-        sage: s = latex(g)
-        sage: t = TikzPicture(s, standalone_options=["border=4mm"], usepackage=['tkz-graph'])
-        sage: _ = t.pdf(view=False)   # long time (2s) # optional latex
+        sage: s = latex(g)                      # optional latex
+        sage: t = TikzPicture(s, standalone_options=["border=4mm"], usepackage=['tkz-graph']) # optional latex
+        sage: _ = t.pdf(view=False)             # long time (2s) # optional latex
 
     Here are standalone configurations, packages, tikz libraries and macros you
     may want to set::

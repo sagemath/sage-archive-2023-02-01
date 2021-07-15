@@ -172,7 +172,6 @@ class PolyhedronFace(ConvexSet_closed):
              5966674064902575359,
              4795242501625591634]
         """
-        from .base import Polyhedron_base
         return hash((self._polyhedron, self._ambient_Vrepresentation_indices))
 
     def vertex_generator(self):

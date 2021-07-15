@@ -6,7 +6,6 @@ The constructor does this by default.
 """
 
 from .base import Polyhedron_base
-from sage.misc.lazy_attribute import lazy_attribute
 
 
 class Polyhedron_mutable(Polyhedron_base):

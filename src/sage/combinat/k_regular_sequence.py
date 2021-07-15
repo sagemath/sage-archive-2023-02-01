@@ -2061,7 +2061,7 @@ class RecurrenceParser(object):
 
         return right
 
-    def __call__(self, equations, function, var, *, offset=0):
+    def __call__(self, *args, offset=0):
         r"""
         Construct a `k`-linear representation that fulfills the recurrence relations
         given in ``equations``.
@@ -2099,11 +2099,25 @@ class RecurrenceParser(object):
              ],
              (1, 0, 0),
              (0, 1, 1))
+            sage: RP(1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1})
+            ([
+              [1 0 0]  [1 1 0]
+              [1 1 0]  [0 1 0]
+              [0 1 0], [0 1 1]
+             ],
+             (1, 0, 0),
+             (0, 1, 1))
         """
         from sage.arith.srange import srange
 
         k = self.k
-        M, m, coeffs, initial_values = self.parse_recurrence(equations, function, var)
+        if len(args) == 3:
+            M, m, coeffs, initial_values = self.parse_recurrence(*args)
+        elif len(args) == 4:
+            M, m, coeffs, initial_values = self.parse_direct_arguments(*args)
+        else:
+            raise ValueError("Number of positional arguments must be three or four.")
+
         recurrence_rules = self.parameters(M, m, coeffs, initial_values, offset)
 
         mu = [self.matrix(recurrence_rules, rem)

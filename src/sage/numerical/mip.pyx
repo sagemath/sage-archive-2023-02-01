@@ -1519,7 +1519,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x = p.new_variable(nonnegative=True)
-            sage: y = p.new_variable(integral=True, nonnegative=True)
+            sage: y = p.new_variable(integer=True, nonnegative=True)
             sage: p.set_objective(x[3] + 3*y[2,9] + x[5])
             sage: p.add_constraint(x[3] + y[2,9] + 2*x[5], max=2)
             sage: p.solve()
@@ -1546,10 +1546,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         Obviously, it also works with variables of higher dimension::
 
-            sage: y_sol = p.get_values(x)
+            sage: y_sol = p.get_values(y)
             sage: y_sol[2,9]
             2.0
-            sage: y_sol = p.get_converted_values(x, tolerance=1e-6)
+            sage: y_sol = p.get_converted_values(y, tolerance=1e-6)
             sage: y_sol[2,9]
             2
 

@@ -241,8 +241,6 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import deprecation
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
-from sage.functions.generalized import sign
-from math import modf as math_modf
 
 
 cdef class MixedIntegerLinearProgram(SageObject):

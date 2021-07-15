@@ -1507,6 +1507,27 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: x_opt_bool = p.get_values(x, convert=bool, tolerance=1e-6); x_opt_bool
             {1: True, 2: False, 3: True}
 
+        Thanks to total unimodularity, single-commodity network flow problems
+        with integer capacities and integer supplies/demands have integer vertex solutions.
+        Hence the integrality of solutions is mathematically guaranteed in an optimal
+        solution if we use the simplex algorithm.  A numerical LP solver based on the
+        simplex method such as GLPK will return an integer solution only up to a
+        numerical error.  Hence, for correct operation, we should use ``tolerance``::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK', maximization=False)
+            sage: x = p.new_variable(nonnegative=True)
+            sage: x.set_max(1)
+            sage: p.add_constraint(x['sa'] + x['sb'] == 1)
+            sage: p.add_constraint(x['sa'] + x['ba'] - x['ab'] - x['at'] == 0)
+            sage: p.add_constraint(x['sb'] + x['ab'] - x['ba'] - x['bt'] == 0)
+            sage: p.set_objective(10*x['sa'] + 10*x['bt'])
+            sage: p.solve()
+            0.0
+            sage: x_opt = p.get_values(x); x_opt
+            {'ab': 0.0, 'at': 1.0, 'ba': 1.0, 'bt': -0.0, 'sa': 0.0, 'sb': 1.0}
+            sage: x_opt_ZZ = p.get_values(x, convert=ZZ, tolerance=1e-6); x_opt_ZZ
+            {'ab': 0, 'at': 1, 'ba': 1, 'bt': 0, 'sa': 0, 'sb': 1}
+
         TESTS:
 
         Test that an error is reported when we try to get the value

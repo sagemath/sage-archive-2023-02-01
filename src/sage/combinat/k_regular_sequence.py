@@ -368,12 +368,37 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
     def from_recurrence(self, *args, offset=0):
         r"""
-        Construct a `k`-regular sequence that fulfills the recurrence relations
-        given in ``equations``.
+        Construct the unique `k`-regular sequence which fulfills the given
+        recurrence relations and initial values. The recurrence relations have to
+        have the specific shape of `k`-recursive sequences as described in [HKL2021]_,
+        and are either given as symbolic equations, e.g.,
+
+        ::
+
+            sage: Seq2 = kRegularSequenceSpace(2, ZZ)
+            sage: var('n')
+            n
+            sage: function('f')
+            f
+            sage: Seq2.from_recurrence([
+            ....:     f(2*n) == 2*f(n), f(2*n + 1) == 3*f(n) + 4*f(n - 1),
+            ....:     f(0) == 0, f(1) == 1], f, n)
+            2-regular sequence 0, 0, 0, 1, 2, 3, 4, 10, 6, 17, ...
+
+        or via the parameters of the `k`-recursive sequence as described in the input
+        block below::
+
+            sage: Seq2.from_recurrence(1, 0,
+            ....:     {(0, 0): 2, (1, 0): 3, (1, -1): 4},
+            ....:     {0: 0, 1: 1})
+            2-regular sequence 0, 0, 0, 1, 2, 3, 4, 10, 6, 17, ...
 
         INPUT:
 
         Positional arguments:
+
+        If the recurrence relations are represented by symbolic equations, then
+        the following arguments are required:
 
         - ``equations`` -- A list of equations where the elements have
           either the form
@@ -391,22 +416,43 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
           or the form
 
           - ``f(k) == t`` for some integer ``k`` and some ``t`` from the (semi)ring
-            ``coefficients``.
+            ``coefficient_ring``.
 
           The recurrence relations above uniquely determine a `k`-regular sequence;
           see [HKL2021]_ for further information.
 
         - ``function`` -- symbolic function ``f`` occuring in the equations
 
-        - ``var`` -- symbolic variable (``n`` in the above description of ``equations``)
+        - ``var`` -- symbolic variable (``n`` in the above description of
+          ``equations``)
 
-        Keyword-only argument:
+        The following second representation of the recurrence relations is
+        particularly useful for cases where ``coefficient_ring`` is not
+        compatible with :class:`sage.symbolic.ring.SymbolicRing`. Then the
+        following arguments are required:
 
-        - ``offset`` -- an integer (default: ``0``). See explanation for ``equations`` above.
+        - ``M`` -- parameter of the recursive sequences,
+          see [HKL2021]_, Definition 3.1, as well as in the description of
+          ``equations`` above
 
-        OUTPUT:
+        - ``m`` -- parameter of the recursive sequences,
+          see [HKL2021]_, Definition 3.1, as well as in the description of
+          ``equations`` above
 
-        A :class:`kRegularSequence`.
+        - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
+          coefficient `c_{r,j}` as given in the description of ``equations`` above.
+          If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``, then it is
+          assumed to be zero.
+
+        - ``initial_values`` -- a dictionary mapping integers ``n`` to the
+          ``n``-th value of the sequence
+
+        Optional keyword-only argument:
+
+        - ``offset`` -- an integer (default: ``0``). See explanation of
+          ``equations`` above.
+
+        OUTPUT: a :class:`kRegularSequence`
 
         EXAMPLES:
 
@@ -456,6 +502,17 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(4*n + 2) == 1/3*f(2*n) + 4/3*f(2*n + 1),
             ....:     f(4*n + 3) == -1/3*f(2*n) + 5/3*f(2*n + 1),
             ....:     f(0) == 1, f(1) == 2], f, n)
+            2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
+
+        Finally, the same sequence can also be obtained via direct parameters
+        without symbolic equations::
+
+            sage: Seq2.from_recurrence(2, 1,
+            ....:     {(0, 0): 5/3, (0, 1): -1/3,
+            ....:      (1, 0): 4/3, (1, 1): 1/3,
+            ....:      (2, 0): 1/3, (2, 1): 4/3,
+            ....:      (3, 0): -1/3, (3, 1): 5/3},
+            ....:     {0: 1, 1: 2})
             2-regular sequence 1, 2, 3, 3, 4, 5, 5, 4, 5, 7, ...
 
         TESTS::
@@ -553,7 +610,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
 class RecurrenceParser(object):
     r"""
-    A parser for symbolic recurrence relations that allow
+    A parser for recurrence relations that allow
     the construction of a `k`-linear representation
     for the sequence satisfying these recurrence relations.
 
@@ -598,14 +655,11 @@ class RecurrenceParser(object):
 
         A tuple consisting of
 
-        - ``M``, ``m`` -- parameters of the recursive sequences,
-          see [HKL2021]_, Definition 3.1
+        - ``M``, ``m`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
-        - ``coeffs`` -- a dictionary mapping ``(r, j)`` to the coefficients
-          `c_{r, j}` as given in [HKL2021]_, Equation (3.1)
+        - ``coeffs`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
-        - ``initial_values`` -- a dictionary mapping integers ``n`` to the
-          ``n``-th value of the sequence
+        - ``initial_values`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
         EXAMPLES::
 
@@ -1334,16 +1388,11 @@ class RecurrenceParser(object):
 
         INPUT:
 
-        - ``M``, ``m``, ``offset`` -- parameters of the recursive sequences,
-          see [HKL2021]_, Definition 3.1, as well as :meth:`kRegularSequenceSpace.from_recurrence`
+        - ``M``, ``m``, ``offset`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
-        - ``coeffs`` -- a dictionary where ``coeffs[(r, j)]`` is the
-          coefficient `c_{r,j}` as given in :meth:`kRegularSequenceSpace.from_recurrence`.
-          If ``coeffs[(r, j)]`` is not given for some ``r`` and ``j``,
-          then it is assumed to be zero.
+        - ``coeffs`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
-        - ``initial_values`` -- a dictionary mapping integers ``n`` to the
-          ``n``-th value of the sequence
+        - ``initial_values`` -- see :meth:`kRegularSequenceSpace.from_recurrence`
 
         OUTPUT:
 

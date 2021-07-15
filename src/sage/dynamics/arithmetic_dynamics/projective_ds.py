@@ -4750,20 +4750,24 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         Computes the values of the elementary symmetric polynomials of
         the ``n`` multiplier spectra of this dynamical system.
 
+        For maps defined over projective space of dimension greater than 1,
+        the sigma invariants are the symetric polynomials in the characteristic
+        polynomials of the multipliers. See [Hutz2019]_ for the full definition.
+
         Can specify to instead compute the values corresponding to the
         elementary symmetric polynomials of the formal ``n`` multiplier
-        spectra. The map must be defined over projective space of dimension
-        `1`. The base ring should be a number field, number field order, or
+        spectra. The base ring should be a number field, number field order, or
         a finite field or a polynomial ring or function field over a
         number field, number field order, or finite field.
 
         The parameter ``type`` determines if the sigma are computed from
         the multipliers calculated at one per cycle (with multiplicity)
-        or one per point (with multiplicity). Note that in the ``cycle``
-        case, a map with a cycle which collapses into multiple smaller
-        cycles, this is still considered one cycle. In other words, if a
-        4-cycle collapses into a 2-cycle with multiplicity 2, there is only
-        one multiplier used for the doubled 2-cycle when computing ``n=4``.
+        or one per point (with multiplicity). Only implemented
+        for dimension 1. Note that in the ``cycle`` case, a map with a cycle
+        which collapses into multiple smaller cycles, this is still
+        considered one cycle. In other words, if a 4-cycle collapses into
+        a 2-cycle with multiplicity 2, there is only one multiplier used
+        for the doubled 2-cycle when computing ``n=4``.
 
         ALGORITHM:
 
@@ -4779,7 +4783,28 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         denominators for `g`.
 
         To calculate the full polynomial defining the sigma invariants,
-        we follow the algorithm outlined in section 4 of [Hutz2019]_.
+        we follow the algorithm outlined in section 4 of [Hutz2019]_. There
+        are 4 cases:
+
+        - multipliers and ``n`` periodic points all distinct -- in this case,
+          we can use Proposition 4.1 of [Hutz2019]_ to compute the sigma invariants.
+
+        - ``n`` periodic points are all distinct, multipliers are repeated -- here we
+          can use Proposition 4.2 of [Hutz2019]_ to compute the sigma invariants.
+          This corresponds to ``chow=True``.
+
+        - ``n`` periodic points are repeated, multipliers are all distinct -- to deal
+          with this case, we deform the map by a formal parameter `k`. The deformation
+          seperates the ``n`` periodic points, making them distinct, and we can recover
+          the ``n`` periodic points of the original map by specializing `k` to 0.
+          This corresponds to ``deform=True``.
+
+        - ``n`` periodic points are repeated, multipliers are repeated -- here we
+          can use both cases 2 and 3 together. This corresponds to ``deform=True``
+          and ``chow=True``.
+
+        As we do not want to check which case we are in beforehand, we throw an error
+        if the computed polynomial drops in degree.
 
         INPUT:
 

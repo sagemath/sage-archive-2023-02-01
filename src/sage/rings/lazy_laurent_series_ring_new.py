@@ -321,4 +321,3 @@ class LLSRing(UniqueRepresentation, Parent):
             0
         """
         return self.element_class(self, LLS_zero(self._sparse))
-

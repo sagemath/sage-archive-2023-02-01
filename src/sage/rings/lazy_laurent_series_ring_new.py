@@ -142,7 +142,7 @@ class LLSRing(UniqueRepresentation, Parent):
         if n != 0:
             raise IndexError("there is only one generator")
         R = self._laurent_poly_ring
-        aux = LLS_eventually_geometric(R.gen(n), self._sparse, R.zero(), 2)
+        aux = LLS_eventually_geometric(R.gen(n), self._sparse, ZZ.zero(), 2)
         return self.element_class(self, aux)
 
     def ngens(self):
@@ -272,13 +272,13 @@ class LLSRing(UniqueRepresentation, Parent):
         if callable(x):
             if valuation is None:
                 valuation = 0
-            if degree:
+            if degree is not None:
                 if constant is None:
-                    constant = self.base_ring().zero()
+                    constant = ZZ.zero()
                 z = R.gen()
                 p = R.sum(x(i) * z**i for i in range(valuation, degree))
-                self.element_class(self, LLS_eventually_geometric(p, self._sparse, constant, degree))
-            return self.element_class(self, LLS_coefficient_function(x, self._sparse, valuation))
+                return self.element_class(self, LLS_eventually_geometric(p, self._sparse, constant, degree))
+            return self.element_class(self, LLS_coefficient_function(x, self.base_ring(), self._sparse, valuation))
         raise ValueError(f"unable to convert {x} into a lazy Laurent series")
 
     def _an_element_(self):
@@ -307,7 +307,7 @@ class LLSRing(UniqueRepresentation, Parent):
             1
         """
         R = self._laurent_poly_ring
-        return self.element_class(self, LLS_eventually_geometric(R.one(), self._sparse, 0, 1))
+        return self.element_class(self, LLS_eventually_geometric(R.one(), self._sparse, ZZ.zero(), 1))
 
     @cached_method
     def zero(self):

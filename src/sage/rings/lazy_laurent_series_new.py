@@ -14,7 +14,8 @@ Generating functions are Laurent series over the integer ring::
 
 This defines the generating function of Fibonacci sequence::
 
-    sage: f = 1 / (1 - z - z^2)                                                                                            
+    sage: f = 1 / (1 - z - z^2)      
+    sage: f                                                                                      
     1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
 
 The 100th element of Fibonacci sequence can be obtained from the generating
@@ -234,6 +235,11 @@ class LLS(ModuleElement):
             sage: P = M + N; P
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
 
+            sage: A = L(1, constant=2, degree=3)
+            sage: B = L(2, constant=-2, degree=5)
+            sage: A + B
+            3 + 2*z^3 + 2*z^4
+
             sage: L.<z> = LLSRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M                                                  
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
@@ -247,13 +253,79 @@ class LLS(ModuleElement):
         right = other._aux
         if (isinstance(left, LLS_eventually_geometric)
             and isinstance(right, LLS_eventually_geometric)):
+            R = P._laurent_poly_ring
             c = left._constant + right._constant
-            p = left._laurent_polynomial + right._laurent_polynomial
+            pl = left._laurent_polynomial
+            pr = right._laurent_polynomial
+            d = max(left._degree, right._degree)
+            pl += R([left._constant]*(d-left._degree)).shift(left._degree)
+            pr += R([right._constant]*(d-right._degree)).shift(right._degree)
+            p = pl + pr
             if not p and not c:
                 return P.zero()
-            d = max(left._degree, right._degree)
             return P.element_class(P, LLS_eventually_geometric(p, P._sparse, c, d))
         return P.element_class(P, LLS_add(self._aux, other._aux))
+
+    def _sub_(self, other):
+        """
+        Return the series of this series minus ``other`` series.
+
+        INPUT:
+
+        - ``other`` -- other series
+
+        TESTS::
+
+            sage: L.<z> = LLSRing(ZZ)
+            sage: z - z
+            0
+            sage: 3*z - 2*z                                                                               
+            z
+            sage: M = L(lambda n: n); M                                                  
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: N = L(lambda n: 1); N                                                  
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: P = M - N; P                                                                            
+            -1 + z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + ...
+
+            sage: A = L(1, constant=2, degree=3)
+            sage: B = L(2, constant=3, degree=5)
+            sage: A - B
+            -1 + 2*z^3 + 2*z^4 - z^5 - z^6 - z^7 + ...
+
+            sage: A = L(1, constant=2, degree=3)
+            sage: B = L([1,0,0,2,2], constant=2)
+            sage: X = A - B; X
+            0
+            sage: type(X._aux)
+            <class 'sage.rings.lazy_laurent_series_new.LLS_zero'>
+
+            sage: L.<z> = LLSRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: N = L(lambda n: 1); N
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: P = M - N; P                                                                            
+            -1 + z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + ...
+        """
+        P = self.parent()
+        left = self._aux
+        right = other._aux
+        if (isinstance(left, LLS_eventually_geometric) and isinstance(right, LLS_eventually_geometric)):
+            R = P._laurent_poly_ring
+            c = left._constant - right._constant
+            pl = left._laurent_polynomial
+            pr = right._laurent_polynomial
+            d = max(left._degree, right._degree)
+            pl += R([left._constant]*(d-left._degree)).shift(left._degree)
+            pr += R([right._constant]*(d-right._degree)).shift(right._degree)
+            p = pl - pr
+            if not p and not c:
+                return P.zero()
+            return P.element_class(P, LLS_eventually_geometric(p, P._sparse, c, d))
+        if left == right:
+            return P.zero()
+        return P.element_class(P, LLS_sub(self._aux, other._aux))
 
     def _div_(self, other):
         """
@@ -347,50 +419,6 @@ class LLS(ModuleElement):
             return P.element_class(P, LLS_eventually_geometric(p, P._sparse, c, self._aux._degree))
 
         return P.element_class(P, LLS_scalar(self._aux, scalar))
-    
-    def _sub_(self, other):
-        """
-        Return the series of this series minus ``other`` series.
-
-        INPUT:
-
-        - ``other`` -- other series
-
-        TESTS::
-
-            sage: L.<z> = LLSRing(ZZ)
-            sage: z - z
-            0
-            sage: 3*z - 2*z                                                                               
-            z
-            sage: M = L(lambda n: n); M                                                  
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = L(lambda n: 1); N                                                  
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
-            sage: P = M - N; P                                                                            
-            -1 + z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + ...
-
-            sage: L.<z> = LLSRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = L(lambda n: 1); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
-            sage: P = M - N; P                                                                            
-            -1 + z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + ...
-        """
-        P = self.parent()
-        left = self._aux
-        right = other._aux
-        if (isinstance(left, LLS_eventually_geometric) and isinstance(right, LLS_eventually_geometric)):
-            c = left._constant - right._constant
-            p = left._laurent_polynomial - right._laurent_polynomial
-            if not p and not c:
-                return P.zero()
-            d = max(left._degree, right._degree)
-            return P.element_class(P, LLS_eventually_geometric(p, P._sparse, c, d))
-        if left == right:
-            return P.zero()
-        return P.element_class(P, LLS_sub(self._aux, other._aux))
     
     def _neg_(self):
         """
@@ -560,12 +588,12 @@ class LLS(ModuleElement):
             Lazy Laurent Series Ring in z over Integer Ring
 
             sage: L.<z> = LLSRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n, True, 0); M                                                   
+            sage: M = L(lambda n: n); M                                                   
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: M.parent()                                                                              
             Lazy Laurent Series Ring in z over Integer Ring
-            sage: N = M.change_ring(QQ)                                                                   
-            sage: N.parent()                                                                              
+            sage: N = M.change_ring(QQ)
+            sage: N.parent()
             Lazy Laurent Series Ring in z over Rational Field
             sage: M ^-1                                                                                   
             z^-1 - 2 + z + ...
@@ -1184,17 +1212,19 @@ class LLS_zero(LLS_aux):
         return 0
 
 class LLS_coefficient_function(LLS_inexact):
-    def __init__(self, coefficient_function, is_sparse, approximate_valuation):
+    def __init__(self, coefficient_function, ring, is_sparse, approximate_valuation):
         self._coefficient_function = coefficient_function
+        self._ring = ring
         super().__init__(is_sparse, approximate_valuation)
 
     def get_coefficient(self, n):
-        return self._coefficient_function(n)
+        return self._ring(self._coefficient_function(n))
 
     def iterate_coefficients(self):
         n = self._offset
+        ring = self._ring
         while True:
-            yield self._coefficient_function(n)
+            yield ring(self._coefficient_function(n))
             n += 1
 
 class LLS_uninitialized(LLS_inexact):

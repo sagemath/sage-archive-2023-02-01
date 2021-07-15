@@ -1373,14 +1373,33 @@ cdef class MixedIntegerLinearProgram(SageObject):
         """
         self._backend.write_lp(filename)
 
-    def get_values(self, *lists):
+    def get_values(self, *lists, convert=None, tolerance=None):
         r"""
         Return values found by the previous call to ``solve()``.
 
         INPUT:
 
-        - Any instance of ``MIPVariable`` (or one of its elements),
+        - ``*lists`` -- any instance of ``MIPVariable`` (or one of its elements),
           or lists of them.
+
+        - ``convert`` -- ``None`` (default), ``ZZ``, ``bool``, or ``True``.
+
+          - if ``convert=None``, return all variable values as elements of the
+            :meth:`base_ring`.
+
+          - if ``convert=ZZ``, convert all variable values from the :meth:`base_ring`
+            by rounding to the nearest integer.
+
+          - if ``convert=bool``, convert all variable values from the :meth:`base_ring`
+            by rounding to 0/1 and converting to ``bool``.
+
+          - if ``convert=True``, use ``ZZ`` for MIP variables declared integer or binary
+            and ``None`` for all other variables.
+
+        - ``tolerance`` -- ``None`` (if ``convert=None``), or a positive real number,
+          or ``0`` (if :meth:`base_ring` is an exact ring).  Required if ``convert`` is
+          not ``None``.  If the variable value differs from the nearest integer by
+          more than ``tolerance``, raise a ``RuntimeError``.
 
         OUTPUT:
 
@@ -1458,7 +1477,51 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Traceback (most recent call last):
             ...
             ValueError: ...
+
+        Test input validation for ``convert`` and ``tolerance``::
+
+            sage: M_inexact = MixedIntegerLinearProgram(solver='GLPK')
+            sage: M_inexact.solve()
+            0.0
+            sage: M_inexact.get_values(tolerance=0.01)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot use tolerance if convert is None
+            sage: M_inexact.get_values(convert=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: if convert is not None, tolerance must be provided
+            sage: M_inexact.get_values(convert=True, tolerance=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: for an inexact base_ring, tolerance must be positive
+
+            sage: M_exact =  MixedIntegerLinearProgram(solver='ppl')
+            sage: M_exact.solve()
+            0
+            sage: M_exact.get_values(convert=True)
+            Traceback (most recent call last):
+            ...
+            TypeError: if convert is not None, tolerance must be provided
+            sage: M_exact.get_values(convert=True, tolerance=-0.2)
+            Traceback (most recent call last):
+            ...
+            ValueError: for an exact base_ring, tolerance must be nonnegative
+
         """
+        if convert is None:
+            if tolerance is not None:
+                raise TypeError('cannot use tolerance if convert is None')
+        else:
+            if tolerance is None:
+                raise TypeError('if convert is not None, tolerance must be provided')
+            if self.base_ring().is_exact():
+                if not 0 <= tolerance:
+                    raise ValueError('for an exact base_ring, tolerance must be nonnegative')
+            else:
+                if not 0 < tolerance:
+                    raise ValueError('for an inexact base_ring, tolerance must be positive')
+
         val = []
         for l in lists:
             if isinstance(l, MIPVariable):

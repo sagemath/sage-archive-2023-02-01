@@ -248,13 +248,13 @@ class kRegularSequence(RecognizableSeries):
 
 class kRegularSequenceSpace(RecognizableSeriesSpace):
     r"""
-    The space of `k`-regular Sequences over the given ``coefficients_ring``.
+    The space of `k`-regular Sequences over the given ``coefficient_ring``.
 
     INPUT:
 
     - ``k`` -- an integer at least `2` specifying the base
 
-    - ``coefficient_ring`` -- a (semi-)ring.
+    - ``coefficient_ring`` -- a (semi-)ring
 
     - ``category`` -- (default: ``None``) the category of this
       space

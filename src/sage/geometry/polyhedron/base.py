@@ -781,9 +781,27 @@ class Polyhedron_base(Element, ConvexSet_closed):
                    for self_V in self.Vrepresentation())
 
     def is_mutable(self):
+        r"""
+        Return True if the polyhedron is mutable, i.e. it can be modified in place.
+
+        EXAMPLES::
+
+            sage: p = polytopes.cube(backend='field')
+            sage: p.is_mutable()
+            False
+        """
         return False
 
     def is_immutable(self):
+        r"""
+        Return True if the polyhedron is immutable, i.e. it cannot be modified in place.
+
+        EXAMPLES::
+
+            sage: p = polytopes.cube(backend='field')
+            sage: p.is_immutable()
+            True
+        """
         return True
 
     @cached_method

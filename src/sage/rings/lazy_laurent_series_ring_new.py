@@ -77,7 +77,8 @@ from .lazy_laurent_series_new import (
     LLS,
     LLS_coefficient_function,
     LLS_zero,
-    LLS_eventually_geometric
+    LLS_eventually_geometric,
+    LLS_uninitialized
 )
 
 class LLSRing(UniqueRepresentation, Parent):
@@ -194,7 +195,7 @@ class LLSRing(UniqueRepresentation, Parent):
 
         return False
 
-    def _element_constructor_(self, x, valuation=None, constant=None, degree=None):
+    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
         """
         Construct a Laurent series from ``x``.
 
@@ -242,6 +243,11 @@ class LLSRing(UniqueRepresentation, Parent):
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
         """
+        if x is None:
+            if valuation is None:
+                valuation = 0
+            return self.element_class(self, LLS_uninitialized(self._sparse, valuation))
+
         R = self._laurent_poly_ring
         try:
             # Try to build stuff using the polynomial ring constructor

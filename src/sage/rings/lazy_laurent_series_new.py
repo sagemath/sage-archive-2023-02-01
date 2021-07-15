@@ -14,12 +14,7 @@ Generating functions are Laurent series over the integer ring::
 
 This defines the generating function of Fibonacci sequence::
 
-    sage: def coeff(s, i):
-    ....:     if i in [0, 1]:
-    ....:         return 1
-    ....:     else:
-    ....:         return s.coefficient(i - 1) + s.coefficient(i - 2)
-    sage: f = L(coeff, valuation=0); f
+    sage: f = 1 / (1 - z - z^2)                                                                                            
     1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
 
 The 100th element of Fibonacci sequence can be obtained from the generating
@@ -35,7 +30,7 @@ Coefficients are computed and cached only when necessary::
     sage: f._aux._cache[101]
     Traceback (most recent call last):
     ...
-    KeyError: 101
+    IndexError: list index out of range
 
 You can do arithmetic with lazy power series::
 
@@ -113,7 +108,7 @@ class LLS(ModuleElement):
 
     EXAMPLES::
 
-        sage: L = LLSRing(ZZ, 'z')
+        sage: L.<z> = LLSRing(ZZ)
         sage: L(lambda i: i, valuation=-3, constant=(-1,3))
         -3*z^-3 - 2*z^-2 - z^-1 + z + 2*z^2 - z^3 - z^4 - z^5 + ...
         sage: L(lambda i: i, valuation=-3, constant=-1, degree=3)
@@ -121,22 +116,13 @@ class LLS(ModuleElement):
 
     ::
 
-        sage: def coeff(s, i):
-        ....:     if i in [0, 1]:
-        ....:         return 1
-        ....:     else:
-        ....:         return s.coefficient(i - 1) + s.coefficient(i - 2)
-        sage: f = L(coeff); f
+        sage: f = 1 / (1 - z - z^2); f
         1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
         sage: f.coefficient(100)
         573147844013817084101
 
     Lazy Laurent series is picklable::
 
-        sage: z = L.gen()
-        sage: f = 1/(1 - z - z^2)
-        sage: f
-        1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
         sage: g = loads(dumps(f))
         sage: g
         1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
@@ -170,15 +156,13 @@ class LLS(ModuleElement):
             sage: f = z/(1 - 2*z^3)
             sage: [f[n] for n in range(20)]
             [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
-            sage: M = L(lambda n: n)              
-            sage: L.<z> = LLSRing(ZZ, sparse=True)
-            sage: [M[n] for n in range(20)]
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-            sage: L.<z> = LLSRing(ZZ, sparse=False)
             sage: M = L(lambda n: n)                                                      
             sage: [M[n] for n in range(20)]                                                               
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-
+            sage: L.<z> = LLSRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n)
+            sage: [M[n] for n in range(20)]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
         """
         return self.base_ring()(self._aux[n])
 
@@ -197,18 +181,18 @@ class LLS(ModuleElement):
             1 - 2*z + z^2
             sage: (1 - z)*(1 - z)*(1 - z)
             1 - 3*z + 3*z^2 - z^3
-            sage: M = L(lambda n: n, True, 0)                                                      
+            sage: M = L(lambda n: n)                                                      
             sage: M                                                                                       
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: N = M * (1 - M)                                                                         
             sage: N                                                                                       
             z + z^2 - z^3 - 6*z^4 - 15*z^5 - 29*z^6 + ...
-            sage: L.<z> = LLSRing(ZZ, sparse=False)
+            sage: L.<z> = LLSRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M                                                  
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: N = L(lambda n: 1); N                                                  
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
-            sage: P = M * N; P                                                                            
+            sage: M * N                                                                            
             z + 3*z^2 + 6*z^3 + 10*z^4 + 15*z^5 + 21*z^6 + ...
         """
         P = self.parent()
@@ -250,7 +234,7 @@ class LLS(ModuleElement):
             sage: P = M + N; P
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
 
-            sage: L.<z> = LLSRing(ZZ, sparse=False)
+            sage: L.<z> = LLSRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M                                                  
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: N = L(lambda n: 1); N                                                  
@@ -281,7 +265,7 @@ class LLS(ModuleElement):
 
         TESTS::
 
-            sage: L.<z> = LLSRing(ZZ, sparse=False)
+            sage: L.<z> = LLSRing(ZZ)
             sage: z/(1 - z)
             z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + ...
             sage: M = L(lambda n: n); M                                                  
@@ -338,15 +322,19 @@ class LLS(ModuleElement):
             -z
             sage: 0*z
             0
-
-            sage: L.<z> = LLSRing(ZZ, sparse=False)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...     
-            sage: M._rmul_(3)                                                                                    
+            sage: M * 3
+            3*z + 6*z^2 + 9*z^3 + 12*z^4 + 15*z^5 + 18*z^6 + ...  
+
+            sage: L.<z> = LLSRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...     
+            sage: M * 3
             3*z + 6*z^2 + 9*z^3 + 12*z^4 + 15*z^5 + 18*z^6 + ...        
             sage: N = L(lambda n: 1); N
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...       
-            sage: N._rmul_(4)                                                                                    
+            sage: N * 4
             4 + 4*z + 4*z^2 + 4*z^3 + 4*z^4 + 4*z^5 + 4*z^6 + ...       
         """
         P = self.parent()
@@ -370,7 +358,7 @@ class LLS(ModuleElement):
 
         TESTS::
 
-            sage: L.<z> = LLSRing(ZZ, sparse=False)
+            sage: L.<z> = LLSRing(ZZ)
             sage: z - z
             0
             sage: 3*z - 2*z                                                                               
@@ -419,7 +407,7 @@ class LLS(ModuleElement):
             sage: P = -M; P                                                                               
             -z - 2*z^2 - 3*z^3 - 4*z^4 - 5*z^5 - 6*z^6 + ...
 
-            sage: L.<z> = LLSRing(ZZ, sparse=False)
+            sage: L.<z> = LLSRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M                                                  
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: P = -M; P                                                                               
@@ -446,7 +434,7 @@ class LLS(ModuleElement):
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: P = ~M; P                                                                               
+            sage: P = ~M; P
             z^-1 - 2 + z + ...
             sage: L.<z> = LLSRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
@@ -467,29 +455,19 @@ class LLS(ModuleElement):
 
         EXAMPLES::
 
-            sage: L = LLSRing(ZZ, 'z')
-            sage: def g(s, i):
-            ....:     if i == 0:
-            ....:         return 1
-            ....:     else:
-            ....:         return sum(s.coefficient(j)*s.coefficient(i - 1 -j) for j in range(i))
-            sage: e = L(g)
-            sage: e.coefficient(10)
+            sage: L.<z> = LLSRing(ZZ)                                                                                          
+            sage: F = L(None)                                                                                                  
+            sage: F.define(1 + z*F^2)
+            sage: F.coefficient(10)
             16796
-            sage: e
+            sage: F
             1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
 
         TESTS::
 
-            sage: L.<z> = LLSRing(ZZ, sparse=False)
-            sage: def g(s, i):
-            ....:     if i == 0:
-            ....:         return 1
-            ....:     else:
-            ....:         return sum(s.coefficient(j)*s.coefficient(i - 1 - j) for j in [0..i-1])
-            ....:
-            sage: L = LLSRing(ZZ, 'z')
-            sage: e = L(g)
+            sage: L.<z> = LLSRing(ZZ, sparse=False)                                                                                          
+            sage: e = L(None)                                                                                                  
+            sage: e.define(1 + z*e^2)
             sage: e
             1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
             sage: e._aux._cache
@@ -507,7 +485,7 @@ class LLS(ModuleElement):
             sage: M._aux._cache                                                                           
             [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
 
-            sage: L.<z> = LLSRing(ZZ, sparse=True)
+            sage: L = LLSRing(ZZ, 'z', sparse=True)
             sage: M = L(lambda n: n^2); M                                                 
             z + 4*z^2 + 9*z^3 + 16*z^4 + 25*z^5 + 36*z^6 + ...
             sage: M._aux._cache                                                                           
@@ -532,20 +510,20 @@ class LLS(ModuleElement):
 
             sage: L.<z> = LLSRing(ZZ)
             sage: s = z/(1 - 2*z)
-            sage: t = s.map_coefficients(lambda c: c + 1, L)
+            sage: t = s.map_coefficients(lambda c: c + 1)
             sage: s
             z + 2*z^2 + 4*z^3 + 8*z^4 + 16*z^5 + 32*z^6 + 64*z^7 + ...
             sage: t
             2*z + 3*z^2 + 5*z^3 + 9*z^4 + 17*z^5 + 33*z^6 + 65*z^7 + ...
             sage: M = L(lambda n: n); M                                                   
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = M.map_coefficients(lambda c: c + 1, L); N
+            sage: N = M.map_coefficients(lambda c: c + 1); N
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
 
-            sage: L.<z> = LLSRing(ZZ, sparse=False)
+            sage: L.<z> = LLSRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M                                                  
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = M.map_coefficients(lambda c: c + 1, L); N
+            sage: N = M.map_coefficients(lambda c: c + 1); N
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
         """
         P = self.parent()
@@ -652,7 +630,7 @@ class LLS(ModuleElement):
             sage: M ^ 2                                                                                   
             z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + ...
 
-            sage: L.<z> = LLSRing(ZZ, sparse=False)
+            sage: L.<z> = LLSRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: M ^ 2                                                                                   
@@ -837,6 +815,8 @@ class LLS(ModuleElement):
         """
         if isinstance(self._aux, LLS_zero):
             return '0'
+        if isinstance(self._aux, LLS_uninitialized) and self._aux._target is None:
+            return 'Uninitialized LLS'
 
         atomic_repr = self.base_ring()._repr_option('element_is_atomic')
         X = self.parent().variable_name()
@@ -950,17 +930,29 @@ class LLS(ModuleElement):
             return True
         raise ValueError("undecidable as lazy Laurent series")
 
+    def define(self, s):
+        """
+        Define an equation by ``self = s``.
+        """
+        if not isinstance(self._aux, LLS_uninitialized):
+            raise ValueError("series already defined")
+        self._aux._target = s._aux
+
 class LLS_aux():
     """
     Abstract base class for all auxillary LLS.
     """
-    def __init__(self, sparse=False):
+    def __init__(self, sparse, approximate_valuation):
         self._is_sparse = sparse
+        self._approximate_valuation = approximate_valuation
 
 class LLS_inexact(LLS_aux):
+    """
+    LLS aux class when it is not or we do not know if it is
+    eventually geometric.
+    """
     def __init__(self, is_sparse, approximate_valuation):
-        self._approximate_valuation = approximate_valuation
-        super().__init__(is_sparse)
+        super().__init__(is_sparse, approximate_valuation)
         
         if self._is_sparse:
             self._cache = dict()  # cache of known coefficients
@@ -1159,8 +1151,7 @@ class LLS_eventually_geometric(LLS_aux):
         self._constant = constant
         self._degree = degree
         self._laurent_polynomial = laurent_polynomial
-        self._approximate_valuation = self._laurent_polynomial.valuation()
-        super().__init__(is_sparse)
+        super().__init__(is_sparse, self._laurent_polynomial.valuation())
     
     def __getitem__(self, n):
         if n >= self._degree:
@@ -1180,6 +1171,9 @@ class LLS_eventually_geometric(LLS_aux):
                 and self._constant == other._constant)
 
 class LLS_zero(LLS_aux):
+    def __init__(self, sparse):
+        return super().__init__(sparse, 0)
+
     def __getitem__(self, n):
         return ZZ.zero()
 
@@ -1201,6 +1195,20 @@ class LLS_coefficient_function(LLS_inexact):
         n = self._offset
         while True:
             yield self._coefficient_function(n)
+            n += 1
+
+class LLS_uninitialized(LLS_inexact):
+    def __init__(self, is_sparse, approximate_valuation):
+        self._target = None
+        super().__init__(is_sparse, approximate_valuation)
+
+    def get_coefficient(self, n):
+        return self._target[n]
+
+    def iterate_coefficients(self):
+        n = self._approximate_valuation
+        while True:
+            yield self._target[n]
             n += 1
 
 #####################################################################

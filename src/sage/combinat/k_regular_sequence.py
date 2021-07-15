@@ -248,7 +248,7 @@ class kRegularSequence(RecognizableSeries):
 
 class kRegularSequenceSpace(RecognizableSeriesSpace):
     r"""
-    The space of `k`-regular Sequences over the given ``coefficients``.
+    The space of `k`-regular Sequences over the given ``coefficients_ring``.
 
     INPUT:
 

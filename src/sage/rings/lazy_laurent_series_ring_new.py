@@ -76,16 +76,9 @@ from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing,
 from .lazy_laurent_series_new import (
     LLS,
     LLS_coefficient_function,
-    LLS_constant,
+    LLS_zero,
     LLS_eventually_geometric
 )
-from .lazy_laurent_series_operator_new import (
-    LLSOperator_gen,
-    LLSOperator_constant,
-    LLSOperator_list,
-    LLSOperator_polynomial
-)
-
 
 class LLSRing(UniqueRepresentation, Parent):
     """
@@ -105,7 +98,7 @@ class LLSRing(UniqueRepresentation, Parent):
     # Element = LLS
     Element = LLS
 
-    def __init__(self, base_ring, names, category=None):
+    def __init__(self, base_ring, names, sparse=False, category=None):
         """
         Initialize.
 
@@ -114,6 +107,8 @@ class LLSRing(UniqueRepresentation, Parent):
             sage: L = LLSRing(ZZ, 't')
             sage: TestSuite(L).run(skip='_test_elements')
         """
+        self._sparse = sparse
+        self._laurent_poly_ring = LaurentPolynomialRing(base_ring, names, sparse=sparse)
         Parent.__init__(self, base=base_ring, names=names,
                         category=MagmasAndAdditiveMagmas().or_subcategory(category))
 
@@ -143,11 +138,10 @@ class LLSRing(UniqueRepresentation, Parent):
             ...
             IndexError: there is only one generator
         """
-        # Always a sparse implementation.
         if n != 0:
             raise IndexError("there is only one generator")
-        R = LaurentPolynomialRing(self.base_ring(), 'z')
-        aux = LLS_eventually_geometric(R.gen())
+        R = self._laurent_poly_ring
+        aux = LLS_eventually_geometric(R.gen(n), self._sparse, R.zero(), 2)
         return self.element_class(self, aux)
 
     def ngens(self):
@@ -164,6 +158,7 @@ class LLSRing(UniqueRepresentation, Parent):
         """
         return 1
 
+    @cached_method
     def gens(self):
         """
         Return the tuple of the generator.
@@ -174,7 +169,7 @@ class LLSRing(UniqueRepresentation, Parent):
             sage: 1/(1 - z)
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
         """
-        return (self.gen(),)
+        return tuple([self.gen(n) for n in range(self.ngens())])
 
     def _coerce_map_from_(self, S):
         """
@@ -191,15 +186,15 @@ class LLSRing(UniqueRepresentation, Parent):
         if self.base_ring().has_coerce_map_from(S):
             return True
 
-        if isinstance(S, (PolynomialRing_general, LaurentPolynomialRing_generic)) and S.ngens() == 1:
+        R = self._laurent_poly_ring
+        if R.has_coerce_map_from(S):
             def make_series_from(poly):
-                return self.element_class(self, LLS_eventually_geometric(poly))
-
+                return self.element_class(self, LLS_eventually_geometric(R(poly), self._sparse))
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
 
         return False
 
-    def _element_constructor_(self, x):
+    def _element_constructor_(self, x, valuation=None, constant=None, degree=None):
         """
         Construct a Laurent series from ``x``.
 
@@ -210,13 +205,77 @@ class LLSRing(UniqueRepresentation, Parent):
             0
             sage: L(3)
             1
-        """
-        R = LaurentPolynomialRing(self.base_ring(), 'z') # TODO LLS_Constant() would be better
-        aux = LLS_eventually_geometric(R(x))
-        return self.element_class(self, aux)
 
-    def _an_element_(self, is_sparse=True):
-        # Always a sparse implementation.
+            sage: L = LLSRing(ZZ, 'z')
+
+            sage: L(lambda i: i, 5, 1, 10)
+            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
+            sage: L(lambda i: i, 5, (1,10))
+            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
+
+            sage: def g(s, i):
+            ....:     if i < 0:
+            ....:         return 1
+            ....:     else:
+            ....:         return s.coefficient(i - 1) + i
+            sage: e = L(g, -5); e
+            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
+            sage: f = e^-1; f
+            z^5 - z^6 - z^11 + ...
+            sage: f.coefficient(10)
+            0
+            sage: f.coefficient(20)
+            9
+            sage: f.coefficient(30)
+            -219
+
+        Alternatively, the ``coefficient_function`` can be a list of elements of the
+        base ring. Then these elements are read as coefficients of the terms of
+        degrees starting from the ``valuation``. In this case, ``constant``
+        may be just an element of the base ring instead of a tuple or can be
+        simply omitted if it is zero::
+
+            sage: f = L([1,2,3,4], -5)
+            sage: f
+            z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
+            sage: g = L([1,3,5,7,9], 5, -1)
+            sage: g
+            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
+        """
+        R = self._laurent_poly_ring
+        try:
+            # Try to build stuff using the polynomial ring constructor
+            x = R(x)
+        except (TypeError, ValueError):
+            pass
+        if isinstance(constant, (tuple, list)):
+            constant, degree = constant
+        if x in R:
+            if not x:
+                aux = LLS_zero()
+            else:
+                if valuation:
+                    x = x.shift(valuation - x.valuation())
+                aux = LLS_eventually_geometric(R(x), self._sparse, constant, degree)
+            return self.element_class(self, aux)
+        if isinstance(x, LLS):
+            if x._aux._is_sparse is self._sparse:
+                return self.element_class(self, x._aux)
+            # TODO: Implement a way to make a self._sparse copy
+            raise NotImplementedError("cannot convert between sparse and dense")
+        if callable(x):
+            if valuation is None:
+                valuation = 0
+            if degree:
+                if constant is None:
+                    constant = self.base_ring().zero()
+                z = R.gen()
+                p = R.sum(x(i) * z**i for i in range(valuation, degree))
+                self.element_class(self, LLS_eventually_geometric(p, self._sparse, constant, degree))
+            return self.element_class(self, LLS_coefficient_function(x, self._sparse, valuation))
+        raise ValueError(f"unable to convert {x} into a lazy Laurent series")
+
+    def _an_element_(self):
         """
         Return a Laurent series in this ring.
 
@@ -226,10 +285,11 @@ class LLSRing(UniqueRepresentation, Parent):
             sage: L.an_element()
             z^-10 + z^-9 + z^-8 + ...
         """
-        e = self.base_ring().an_element()
-        R = LaurentPolynomialRing(self.base_ring(), 'z')
-        return self.element_class(self, LLS_eventually_geometric(R(ZZ.zero()), (e, -10))) # TODO Should be LLS_constant()
+        c = self.base_ring().an_element()
+        R = self._laurent_poly_ring
+        return self.element_class(self, LLS_eventually_geometric(R.zero(), self._sparse, c, -10))
 
+    @cached_method
     def one(self):
         """
         Return the constant series `1`.
@@ -240,8 +300,10 @@ class LLSRing(UniqueRepresentation, Parent):
             sage: L.one()
             1
         """
-        return self._element_constructor_(1)
+        R = self._laurent_poly_ring
+        return self.element_class(self, LLS_eventually_geometric(R.one(), self._sparse, 0, 1))
 
+    @cached_method
     def zero(self):
         """
         Return the zero series.
@@ -252,98 +314,5 @@ class LLSRing(UniqueRepresentation, Parent):
             sage: L.zero()
             0
         """
-        return self._element_constructor_(0)
+        return self.element_class(self, LLS_zero(self._sparse))
 
-    def series(self, coefficient_function, is_sparse, approximate_valuation, constant=None):
-        r"""
-        Return a lazy Laurent series.
-
-        INPUT:
-
-        - ``coefficient_function`` -- Python function that computes coefficients
-
-        - ``issparse`` -- Boolean that determines whether the implementation is sparse or dense
-
-        - ``approximate_valuation`` -- integer; approximate valuation of the series
-
-        - ``constant`` -- either ``None`` or pair of an element of the base ring and an integer
-
-        Let the coefficient of index `i` mean the coefficient of the term of the
-        series with exponent `i`.
-
-        Python function ``coefficient_function`` returns the value of the coefficient of
-        index `i` from input.
-
-        Let ``approximate_valuation`` be `n`. All coefficients of index below `n` are zero.  If
-        ``constant`` is ``None``, then the ``coefficient_function`` function is responsible
-        to compute the values of all coefficients of index `\ge n`. If ``constant``
-        is a pair `(c,m)`, then the ``coefficient_function`` function is responsible to
-        compute the values of all coefficients of index `\ge n` and `< m` and all
-        the coefficients of index `\ge m` is the constant `c`.
-
-        EXAMPLES::
-
-            sage: L = LLSRing(ZZ, 'z')
-            sage: L.series(lambda i: i, True, 5, (1,10)) # not tested
-            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
-
-            sage: def g(s, i):
-            ....:     if i < 0:
-            ....:         return 1
-            ....:     else:
-            ....:         return s.coefficient(i - 1) + i
-            sage: e = L.series(g, True, -5); e # not tested
-            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
-            sage: f = e^-1; f                  # not tested
-            z^5 - z^6 - z^11 + ...
-            sage: f.coefficient(10)            # not tested
-            0
-            sage: f.coefficient(20)            # not tested
-            9
-            sage: f.coefficient(30)            # not tested
-            -219
-
-        Alternatively, the ``coefficient_function`` can be a list of elements of the
-        base ring. Then these elements are read as coefficients of the terms of
-        degrees starting from the ``valuation``. In this case, ``constant``
-        may be just an element of the base ring instead of a tuple or can be
-        simply omitted if it is zero.
-
-        EXAMPLES::
-
-            sage: L = LLSRing(ZZ, 'z')
-            sage: f = L.series([1,2,3,4], True, -5) # not tested
-            sage: f                         # not tested
-            z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
-            sage: g = L.series([1,3,5,7,9], True, 5, -1) # not tested
-            sage: g                         # not tested
-            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
-        """
-        if constant is not None:
-            # poly = LaurentPolynomialRing, compute the polynomial.
-            raise NotImplementedError()
-            return LLS_eventually_geometric(poly, constant)            
-        if isinstance(coefficient_function, (tuple, list)):
-            raise NotImplementedError()
-            return LLS_eventually_geometric(poly, constant)
-            if isinstance(constant, tuple):
-                constant = constant[0]
-            if constant is None:
-                constant = self.base_ring().zero()
-            elif constant not in self.base_ring():
-                raise ValueError("constant is not an element of the base ring")
-            constant = (constant, approximate_valuation + len(coefficient_function))
-            coefficient_function = LLSOperator_list(self, coefficient_function, approximate_valuation)
-        # elif constant is not None:
-        #     try:
-        #         c,m = constant
-        #     except TypeError:
-        #         raise TypeError('not a tuple')
-
-        #     if approximate_valuation > m and c: # weird case
-        #         raise ValueError('inappropriate valuation')
-
-        #     constant = (self.base_ring()(c), m)
-
-        aux = LLS_coefficient_function(coefficient_function=coefficient_function, is_sparse=is_sparse, approximate_valuation=approximate_valuation)
-        return self.element_class(self, aux)

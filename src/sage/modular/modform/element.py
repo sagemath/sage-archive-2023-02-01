@@ -3125,8 +3125,6 @@ class GradedModularFormElement(ModuleElement):
             sage: TestSuite(M15).run()
             sage: M013 = ModularFormsRing(Gamma0(13))
             sage: TestSuite(M013).run()
-            sage: m = ModularFormsRing(Gamma1(3), base_ring=GF(5))
-            sage: TestSuite(m).run()
         """
         forms_dictionary = {}
         if isinstance(forms_datum, dict):
@@ -3136,11 +3134,8 @@ class GradedModularFormElement(ModuleElement):
                     if k == 0:
                         forms_dictionary[k] = parent.base_ring().coerce(f)
                     elif is_ModularFormElement(f):
-                        chi = f.character(compute=False)
-                        if (chi is not None) and (not chi.is_trivial()):
-                            raise NotImplementedError("graded modular forms for non-trivial characters is not yet implemented")
                         if f.weight() == k:
-                            if f.group() == parent.group() and parent.base_ring().has_coerce_map_from(f.base_ring()):
+                            if parent.group().is_subgroup(f.group()) and parent.base_ring().has_coerce_map_from(f.base_ring()):
                                 forms_dictionary[k] = f
                             else:
                                 raise ValueError('the group and/or the base ring of at least one modular form (%s) is not consistant with the base space'%(f))
@@ -3156,7 +3151,7 @@ class GradedModularFormElement(ModuleElement):
                     chi = f.character(compute=False)
                     if (chi is not None) and (not chi.is_trivial()):
                         raise NotImplementedError("graded modular forms for non-trivial characters is not yet implemented")
-                    if f.group() == parent.group() and parent.base_ring().has_coerce_map_from(f.base_ring()):
+                    if parent.group().is_subgroup(f.group()) and parent.base_ring().has_coerce_map_from(f.base_ring()):
                         forms_dictionary[f.weight()] = forms_dictionary.get(f.weight(), 0) + f
                     else:
                         raise ValueError('the group and/or the base ring of at least one modular form (%s) is not consistant with the base space'%(f))
@@ -3356,12 +3351,12 @@ class GradedModularFormElement(ModuleElement):
             sage: F = F4 + F6 + F8; F # indirect doctest
             3 + 216*q + 47448*q^2 + 933984*q^3 + 7411032*q^4 + 35955216*q^5 + O(q^6)
             sage: F.parent()
-            Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field
+            Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
             sage: g = ModularForms(Gamma1(7), 12).0
             sage: F+g #sum of two forms of different type
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: 'Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field' and 'Modular Forms space of dimension 25 for Congruence Subgroup Gamma1(7) of weight 12 over Rational Field'
+            TypeError: unsupported operand parent(s) for +: 'Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field' and 'Modular Forms space of dimension 25 for Congruence Subgroup Gamma1(7) of weight 12 over Rational Field'
         """
         GM = self.__class__
         f_self = self._forms_dictionary
@@ -3436,7 +3431,7 @@ class GradedModularFormElement(ModuleElement):
             sage: I*E4 # indirect doctest
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for *: 'Number Field in I with defining polynomial x^2 + 1 with I = 1*I' and 'Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field'
+            TypeError: unsupported operand parent(s) for *: 'Number Field in I with defining polynomial x^2 + 1 with I = 1*I' and 'Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field'
         """
         GM = self.__class__
         f_self = self._forms_dictionary

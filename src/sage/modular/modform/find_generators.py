@@ -187,9 +187,9 @@ class ModularFormsRing(Parent):
         EXAMPLES::
 
             sage: ModularFormsRing(Gamma1(13))
-            Ring of modular forms for Congruence Subgroup Gamma1(13) with coefficients in Rational Field
+            Ring of Modular Forms for Congruence Subgroup Gamma1(13) over Rational Field
             sage: m = ModularFormsRing(4); m
-            Ring of modular forms for Congruence Subgroup Gamma0(4) with coefficients in Rational Field
+            Ring of Modular Forms for Congruence Subgroup Gamma0(4) over Rational Field
             sage: m.modular_forms_of_weight(2)
             Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(4) of weight 2 over Rational Field
             sage: m.modular_forms_of_weight(10)
@@ -225,6 +225,12 @@ class ModularFormsRing(Parent):
             ...
             ValueError: Base ring (=Univariate Polynomial Ring in x over Integer Ring) should be QQ, ZZ or a finite prime field
 
+        ::
+
+            sage: TestSuite(ModularFormsRing(1)).run()
+            sage: TestSuite(ModularFormsRing(Gamma0(6))).run()
+            sage: TestSuite(ModularFormsRing(Gamma1(4))).run()
+
         .. TODO::
 
             - Add graded modular forms over non-trivial Dirichlet character;
@@ -246,6 +252,18 @@ class ModularFormsRing(Parent):
         self.__cached_cusp_maxweight = ZZ(-1)
         self.__cached_cusp_gens = []
         Parent.__init__(self, base=base_ring, category=GradedAlgebras(base_ring))
+
+    def some_elements(self):
+        r"""
+        Return a list of generators of ``self``.
+
+        EXAMPLES::
+
+            sage: ModularFormsRing(1).some_elements()
+            [1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
+            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)]
+        """
+        return [self(f) for f in self.gen_forms()]
 
     def group(self):
         r"""
@@ -339,12 +357,12 @@ class ModularFormsRing(Parent):
             sage: M(f)
             Traceback (most recent call last):
             ...
-            ValueError: the group (Congruence Subgroup Gamma0(3)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field
+            ValueError: the group (Congruence Subgroup Gamma0(3)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
             sage: M = ModularFormsRing(1, base_ring=ZZ)
             sage: M(ModularForms(1,4).0)
             Traceback (most recent call last):
             ...
-            ValueError: the group (Modular Group SL(2,Z)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of modular forms for Modular Group SL(2,Z) with coefficients in Integer Ring
+            ValueError: the group (Modular Group SL(2,Z)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of Modular Forms for Modular Group SL(2,Z) over Integer Ring
             sage: M = ModularFormsRing(1)
             sage: E4 = ModularForms(1,4).0
             sage: E4
@@ -379,7 +397,7 @@ class ModularFormsRing(Parent):
         elif isinstance(forms_datum, self.element_class):
             forms_dictionary = forms_datum._forms_dictionary
         elif is_ModularFormElement(forms_datum):
-            if forms_datum.group() == self.group() and self.base_ring().has_coerce_map_from(forms_datum.base_ring()):
+            if self.group().is_subgroup(forms_datum.group()) and self.base_ring().has_coerce_map_from(forms_datum.base_ring()):
                 forms_dictionary = {forms_datum.weight():forms_datum}
             else:
                 raise ValueError('the group (%s) and/or the base ring (%s) of the given modular form is not consistant with the base space: %s'%(forms_datum.group(), forms_datum.base_ring(), self))
@@ -484,11 +502,11 @@ class ModularFormsRing(Parent):
         EXAMPLES::
 
             sage: ModularFormsRing(Gamma0(13))._repr_()
-            'Ring of modular forms for Congruence Subgroup Gamma0(13) with coefficients in Rational Field'
+            'Ring of Modular Forms for Congruence Subgroup Gamma0(13) over Rational Field'
             sage: ModularFormsRing(Gamma1(13), base_ring=ZZ)._repr_()
-            'Ring of modular forms for Congruence Subgroup Gamma1(13) with coefficients in Integer Ring'
+            'Ring of Modular Forms for Congruence Subgroup Gamma1(13) over Integer Ring'
         """
-        return "Ring of modular forms for %s with coefficients in %s" % (self.group(), self.base_ring())
+        return "Ring of Modular Forms for %s over %s" % (self.group(), self.base_ring())
 
     def modular_forms_of_weight(self, weight):
         """

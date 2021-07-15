@@ -1150,9 +1150,9 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: e4 + e6
             2 - 264*q - 14472*q^2 - 116256*q^3 - 515208*q^4 - 1545264*q^5 + O(q^6)
             sage: (e4 + e6).parent()
-            Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field
+            Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
             sage: (M(e4)*e6).parent()
-            Ring of modular forms for Modular Group SL(2,Z) with coefficients in Rational Field
+            Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
             sage: f = ModularForms(5,12).0
             sage: f+e4
             Traceback (most recent call last):

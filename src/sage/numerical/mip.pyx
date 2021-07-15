@@ -1613,9 +1613,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 raise TypeError('cannot use tolerance if convert is None')
             get_backend_variable_value = self._backend_variable_value
         else:
-            if self.base_ring().is_exact():
-                if not 0 <= tolerance:
-                    raise ValueError('for an exact base_ring, tolerance must be nonnegative')
+            if tolerance is not None:
+                if self.base_ring().is_exact():
+                    if not 0 <= tolerance:
+                        raise ValueError('for an exact base_ring, tolerance must be nonnegative')
                 else:
                     if not 0 < tolerance:
                         raise ValueError('for an inexact base_ring, tolerance must be positive')

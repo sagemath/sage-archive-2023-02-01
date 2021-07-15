@@ -18,14 +18,28 @@ EXAMPLES::
     sage: s = P.projection().tikz([674,108,-731],112)
     sage: t = TikzPicture(s)
 
-Creation of a pdf in a temporary directory. The returned value is a string
-giving the file path::
+Open the image in a viewer (the returned value is a string giving the
+absolute path to the file in some temporary directory)::
 
-    sage: path_to_file = t.pdf(view=False)   # long time (2s) # optional latex
+    sage: path_to_file = t.pdf()                # not tested
 
-Setting ``view=True``, which is the default, opens the pdf in a viewer.
+Instead, you may save a pdf of the tikzpicture into a file of your choice
+(but this does not open the viewer)::
 
-::
+    sage: _ = t.pdf('tikz_polytope.pdf')        # not tested
+
+Opening the image in a viewer can be turned off::
+
+    sage: _ = t.pdf(view=False)      # long time (2s) # optional latex
+
+The same can be done with png format (translated from pdf with convert
+command which needs the installation of imagemagick)::
+
+    sage: _ = t.png(view=False)      # long time (2s) # optional imagemagick
+
+The string representation gives the header (5 lines) and tail (5 lines) of
+the tikzpicture. In Jupyter, it will instead use rich representation and
+show the image directly below the cell in png or svg format::
 
     sage: t
     \documentclass[tikz]{standalone}
@@ -43,9 +57,11 @@ Setting ``view=True``, which is the default, opens the pdf in a viewer.
     \end{tikzpicture}
     \end{document}
 
-Use ``print(t)`` to see the complete content of the file.
+Use ``print(t)`` to see the complete content of the file::
 
-Adding a border avoids croping the vertices of a graph::
+    sage: print(t)               # not tested
+
+Adding a border in the options avoids croping the vertices of a graph::
 
     sage: g = graphs.PetersenGraph()
     sage: s = latex(g)   # takes 3s but the result is cached # optional latex
@@ -53,7 +69,8 @@ Adding a border avoids croping the vertices of a graph::
     sage: _ = t.pdf()    # not tested
 
 If dot2tex Sage optional package and graphviz are installed, then the following
-one liner works::
+one liner works allowing to create a nice tikzpicture from a graph with
+vertices and edges placed according to graphviz::
 
     sage: t = TikzPicture.from_graph(g)  # optional: dot2tex # long time (3s)
 
@@ -78,13 +95,12 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-
-from collections import defaultdict
+from subprocess import run, PIPE, CalledProcessError
+import os
 
 from sage.misc.latex import have_pdflatex, have_convert, have_program
 from sage.misc.temporary_file import tmp_filename
 from sage.structure.sage_object import SageObject
-import os
 
 class StandaloneTex(SageObject):
     def __init__(self, content, standalone_options=None, usepackage=['amsmath'],
@@ -354,30 +370,16 @@ class StandaloneTex(SageObject):
         base, _filename_tex = os.path.split(_filename_tex)
         _filename, ext = os.path.splitext(_filename_tex)
 
-        # subprocess stuff
-        from subprocess import check_call, CalledProcessError, PIPE
-
         # running pdflatex or lualatex
         cmd = [program, '-interaction=nonstopmode', _filename_tex]
         cmd = ' '.join(cmd)
-        try:
-            check_call(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=base)
-        except (CalledProcessError, OSError):
-            _filename_log = os.path.join(base, _filename+'.log')
-            if os.path.exists(_filename_log):
-                with open(_filename_log) as f:
-                    print(f.read())
-            else:
-                print("Error: log file was not found")
-            raise OSError("Error when running {} (see log printed above).".format(program))
-        else:
-            _filename_pdf = os.path.join(base, _filename+'.pdf')
+        run(cmd, shell=True, stdout=PIPE, stderr=PIPE, cwd=base, check=True)
+        _filename_pdf = os.path.join(base, _filename+'.pdf')
 
         # move the pdf into the good location
         if filename:
             filename = os.path.abspath(filename)
-            cmd = ['mv', _filename_pdf, filename]
-            check_call(cmd, stdout=PIPE, stderr=PIPE)
+            os.rename(_filename_pdf, filename)
             return filename
 
         # open the tmp pdf
@@ -385,7 +387,7 @@ class StandaloneTex(SageObject):
             from sage.misc.viewer import pdf_viewer
             cmd = [pdf_viewer(), _filename_pdf]
             cmd = ' '.join(cmd)
-            check_call(cmd, shell=True, cwd=base, stdout=PIPE, stderr=PIPE)
+            run(cmd, shell=True, cwd=base, stdout=PIPE, stderr=PIPE, check=True)
 
         return _filename_pdf
 
@@ -434,9 +436,6 @@ class StandaloneTex(SageObject):
                   "requires this program, so please install and try again. "
                   "Go to http://www.imagemagick.org to download it.")
 
-        # subprocess stuff
-        from subprocess import check_call, PIPE
-
         _filename_pdf = self.pdf(filename=None, view=False)
         _filename, ext = os.path.splitext(_filename_pdf)
         _filename_png = _filename+'.png'
@@ -446,13 +445,12 @@ class StandaloneTex(SageObject):
                '{0}x{0}'.format(density), '-trim', _filename_pdf,
                _filename_png]
         cmd = ' '.join(cmd)
-        check_call(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+        run(cmd, shell=True, stdout=PIPE, stderr=PIPE, check=True)
 
         # move the png into the good location
         if filename:
             filename = os.path.abspath(filename)
-            cmd = ['mv', _filename_png, filename]
-            check_call(cmd, stdout=PIPE, stderr=PIPE)
+            os.rename(_filename_png, filename)
             return filename
 
         # open the tmp png
@@ -460,7 +458,7 @@ class StandaloneTex(SageObject):
             from sage.misc.viewer import png_viewer
             cmd = [png_viewer(), _filename_png]
             cmd = ' '.join(cmd)
-            check_call(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+            run(cmd, shell=True, stdout=PIPE, stderr=PIPE, check=True)
 
         return _filename_png
 
@@ -505,9 +503,6 @@ class StandaloneTex(SageObject):
                     "Install it for example with ``brew install pdf2svg``"
                     " or ``apt-get install pdf2svg``.")
 
-        # subprocess stuff
-        from subprocess import check_call, PIPE
-
         _filename_pdf = self.pdf(filename=None, view=False)
         _filename, ext = os.path.splitext(_filename_pdf)
         _filename_svg = _filename+'.svg'
@@ -515,13 +510,12 @@ class StandaloneTex(SageObject):
         # convert to svg
         cmd = ['pdf2svg', _filename_pdf, _filename_svg]
         cmd = ' '.join(cmd)
-        check_call(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+        run(cmd, shell=True, stdout=PIPE, stderr=PIPE, check=True)
 
         # move the svg into the good location
         if filename:
             filename = os.path.abspath(filename)
-            cmd = ['mv', _filename_svg, filename]
-            check_call(cmd, stdout=PIPE, stderr=PIPE)
+            os.rename(_filename_svg, filename)
             return filename
 
         # open the tmp svg
@@ -529,7 +523,7 @@ class StandaloneTex(SageObject):
             from sage.misc.viewer import browser
             cmd = [browser(), _filename_svg]
             cmd = ' '.join(cmd)
-            check_call(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+            run(cmd, shell=True, stdout=PIPE, stderr=PIPE, check=True)
 
         return _filename_svg
 
@@ -772,7 +766,7 @@ class TikzPicture(StandaloneTex):
             sage: G = DiGraph()
             sage: G.add_edges((i, f(i), f) for i in (1, 2, 1/2, 1/4))
             sage: G.add_edges((i, g(i), g) for i in (1, 2, 1/2, 1/4))
-            sage: t = TikzPicture.from_graph(G)  # optional dot2tex
+            sage: tikz = TikzPicture.from_graph(G)  # optional dot2tex
             sage: _ = tikz.pdf()      # not tested
             sage: def edge_options(data):
             ....:     u, v, label = data
@@ -780,10 +774,9 @@ class TikzPicture(StandaloneTex):
             ....:     if (u,v) == (1/2, -2): options["label"]       = "coucou"; options["label_style"] = "string"
             ....:     if (u,v) == (1/2,2/3): options["dot"]         = "x=1,y=2"
             ....:     if (u,v) == (1,   -1): options["label_style"] = "latex"
-            ....:     if (u,v) == (1,  1/2): options["edge_string"] = "<-"
-            ....:     if (u,v) == (1/2,  1): options["backward"]    = True
+            ....:     if (u,v) == (1,  1/2): options["dir"]         = "back"
             ....:     return options
-            sage: t = TikzPicture.from_graph(G, edge_options=edge_options)  # optional dot2tex 
+            sage: tikz = TikzPicture.from_graph(G, edge_options=edge_options)  # optional dot2tex 
             sage: _ = tikz.pdf()      # not tested
 
         .. TODO:: improve the previous example
@@ -797,6 +790,7 @@ class TikzPicture(StandaloneTex):
         assert_have_dot2tex()
 
         if merge_multiedges and graph.has_multiple_edges():
+            from collections import defaultdict
             d = defaultdict(list)
             for (u, v, label) in graph.edges():
                 d[(u, v)].append(label)
@@ -880,6 +874,7 @@ class TikzPicture(StandaloneTex):
             raise ValueError('vertex positions need to be set first')
 
         if merge_multiedges and graph.has_multiple_edges():
+            from collections import defaultdict
             d = defaultdict(list)
             for (u, v, label) in graph.edges():
                 d[(u, v)].append(label)

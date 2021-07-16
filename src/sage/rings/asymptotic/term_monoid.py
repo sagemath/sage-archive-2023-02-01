@@ -3978,7 +3978,15 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
 class BTerm(TermWithCoefficient):
     r"""
-    This class implements the base structure for parents of BTerms
+    This class implements the base structure for parents of BTerms.
+
+    Examples of BTerms with explanation:
+
+    - ``BT_ZZ(x^2, 5, valid_from={'x': 3})``. This is a term whose absolute value is bounded by ``5|x|^2 for |x| >= 3``.
+
+    - ``BT_ZZ(x^3, 42, valid_from={'x': 15, 'y': 15})``. This is a term whose absolute value is bounded by ``42|x|^3 for |x| >= 15 |y| >= 15``.
+
+    - ``BT_ZZ(x^3*y^2, 42, valid_from={'x': 10, 'y': 20})``. This is a term whose absolute value is bounded by ``42|x|^3 |y|^2 for |x| >= 10 |y| >= 20``.
 
     INPUT:
 
@@ -4115,37 +4123,6 @@ class BTerm(TermWithCoefficient):
 
         return (f'BTerm with coefficient {self.coefficient}, growth {self.growth} '
                 f'and valid for {valid_from_string}')
-
-    def explanation(self):
-        r""""
-        An explanatory string for BTerms and the valid_from variable.
-
-        INPUT:
-
-        Nothing
-
-        OUTPUT:
-
-        A string
-
-        EXAMPLES::
-
-            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
-            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
-
-            sage: G = MonomialGrowthGroup(ZZ, 'x');
-            sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
-            sage: BT_QQ(x^2, 3, valid_from={'x': 20}).explanation()
-            'This is a term whose absolute value is bounded by 3|x|^2 for |x| >= 20'
-            sage: BT_QQ(x^2, 3, valid_from={'x': 20}).explanation()
-            'This is a term whose absolute value is bounded by 3|x|^2 for |x| >= 20'
-        """
-        valid_from_string = ' and '.join(f'|{variable}| >= {value}'
-                                         for variable, value in self.valid_from.items())
-
-        return (f'This is a term whose absolute value is bounded by {self.coefficient}'
-                f'|{self.variable_names()[0]}|^{self.growth.exponent} for {valid_from_string}')
 
     def can_absorb(self, other):
         r"""

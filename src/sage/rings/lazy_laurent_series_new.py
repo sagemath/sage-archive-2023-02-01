@@ -73,7 +73,7 @@ AUTHORS:
 # ****************************************************************************
 
 
-from .infinity import Infinity, infinity
+from .infinity import infinity
 from sage.structure.element import ModuleElement
 from .integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
@@ -355,7 +355,7 @@ class LLS(ModuleElement):
             sage: N = L(lambda n: 1); N
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
             sage: P = M / N; P
-            z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + ...
+            z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
 
             sage: L.<z> = LLSRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
@@ -363,7 +363,7 @@ class LLS(ModuleElement):
             sage: N = L(lambda n: 1); N
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
             sage: P = M / N; P
-            z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + ...
+            z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
         """
         if isinstance(other._aux, LLS_zero):
             raise ZeroDivisionError("cannot divide by 0")
@@ -1028,6 +1028,91 @@ class LLS(ModuleElement):
             sage: T.define(leaf + internal_node * L(T))  # not tested - composition need
             sage: [T[i] for i in range(7)]  # not tested - composition need
             [0, 1, q, q^2 + q, q^3 + 3*q^2 + q, q^4 + 6*q^3 + 6*q^2 + q]
+        
+        Test Recursive 0
+
+        ::
+
+            sage: L = LLSRing(QQ, 'z')
+            sage: one = L(1)
+            sage: monom = L.gen()
+            sage: s = L(None)
+            sage: s._name = 's'
+            sage: s.define(one+monom*s)
+            sage: s.aorder          # not tested
+            0
+            sage: s.order           # not tested
+            Unknown series order
+            sage: [s.coefficient(i) for i in range(6)]
+            [1, 1, 1, 1, 1, 1]
+
+        Test Recursive 1
+
+        ::
+
+            sage: s = L(None)
+            sage: s._name = 's'
+            sage: s.define(one+monom*s*s)
+            sage: s.aorder          # not tested
+            0
+            sage: s.order           # not tested
+            Unknown series order
+            sage: [s.coefficient(i) for i in range(6)]
+            [1, 1, 2, 5, 14, 42]
+
+        Test Recursive 1b
+
+        ::
+
+            sage: s = L(None)
+            sage: s._name = 's'
+            sage: s.define(monom + s*s)
+            sage: s.aorder          # not tested
+            1
+            sage: s.order           # not tested
+            Unknown series order
+            sage: [s.coefficient(i) for i in range(7)]
+            [0, 1, 1, 2, 5, 14, 42]
+
+        Test Recursive 2
+
+        ::
+
+            sage: s = L(None)
+            sage: s._name = 's'
+            sage: t = L(None)
+            sage: t._name = 't'
+            sage: s.define(one+monom*t*t*t)
+            sage: t.define(one+monom*s*s)
+            sage: [s.coefficient(i) for i in range(9)]
+            [1, 1, 3, 9, 34, 132, 546, 2327, 10191]
+            sage: [t.coefficient(i) for i in range(9)]
+            [1, 1, 2, 7, 24, 95, 386, 1641, 7150]
+
+        Test Recursive 2b
+
+        ::
+
+            sage: s = L(None)
+            sage: s._name = 's'
+            sage: t = L(None)
+            sage: t._name = 't'
+            sage: s.define(monom + t*t*t)
+            sage: t.define(monom + s*s)
+            sage: [s.coefficient(i) for i in range(9)]
+            [0, 1, 0, 1, 3, 3, 7, 30, 63]
+            sage: [t.coefficient(i) for i in range(9)]
+            [0, 1, 1, 0, 2, 6, 7, 20, 75]
+
+        Test Recursive 3
+
+        ::
+
+            sage: s = L(None)
+            sage: s._name = 's'
+            sage: s.define(one+monom*s*s*s)
+            sage: [s.coefficient(i) for i in range(10)]
+            [1, 1, 3, 12, 55, 273, 1428, 7752, 43263, 246675]
 
         TESTS::
 
@@ -1311,7 +1396,7 @@ class LLS_zero(LLS_aux):
         return ZZ.zero()
 
     def valuation(self):
-        return Infinity
+        return infinity
 
     def __hash__(self):
         return 0

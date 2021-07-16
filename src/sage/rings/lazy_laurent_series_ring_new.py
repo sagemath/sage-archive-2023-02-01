@@ -38,8 +38,16 @@ ring::
 
 Power series can be defined recursively::
 
-    sage: L.<z> = LLSRing(ZZ)
-    sage: L.series(lambda s,n: (1 + z*s^2)[n], True, approximate_valuation=0) # not tested
+    sage: L.<z> = LLSRing(ZZ, sparse=True)                                                                                                                                                        
+    sage: L._sparse                                                                                                                                                                               
+    True
+    sage: s = L(None)                                                                                                                                                                             
+    sage: s._aux._is_sparse                                                                                                                                                                       
+    True
+    sage: s._aux._approximate_valuation                                                                                                                                                           
+    0
+    sage: s.define(1 + z*s^2)                                                                                                                                                                     
+    sage: s                                                                                                                                                                                       
     1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
 
 AUTHORS:
@@ -96,7 +104,6 @@ class LLSRing(UniqueRepresentation, Parent):
         sage: LLSRing(ZZ, 't')
         Lazy Laurent Series Ring in t over Integer Ring
     """
-    # Element = LLS
     Element = LLS
 
     def __init__(self, base_ring, names, sparse=False, category=None):

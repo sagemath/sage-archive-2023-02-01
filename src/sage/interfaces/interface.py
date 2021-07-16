@@ -332,6 +332,16 @@ class Interface(WithEqualityById, ParentWithBase):
             return self(x._interface_init_())
 
     def _coerce_impl(self, x, use_special=True):
+        r"""
+        Coerce pure Python types via corresponding Sage objects.
+
+        TESTS:
+
+        Check that python type ``complex`` can be converted (:trac:`31775`)::
+
+            sage: giac(complex(I))**2  # should not return `j^2`
+            -1
+        """
         if isinstance(x, bool):
             return self(self._true_symbol() if x else self._false_symbol())
         elif isinstance(x, int):
@@ -340,6 +350,9 @@ class Interface(WithEqualityById, ParentWithBase):
         elif isinstance(x, float):
             import sage.rings.all
             return self(sage.rings.all.RDF(x))
+        elif isinstance(x, complex):
+            import sage.rings.all
+            return self(sage.rings.all.CDF(x))
         if use_special:
             try:
                 return self._coerce_from_special_method(x)
@@ -1169,7 +1182,7 @@ class InterfaceElement(Element):
             2
             sage: x = var('x')
             sage: giac(x)
-            x
+            sageVARx
             sage: giac(5)
             5
             sage: M = matrix(QQ,2,range(4))

@@ -24,6 +24,7 @@ from sage.rings.all                 import ZZ, QQbar, PolynomialRing, polygen
 from sage.misc.abstract_method      import abstract_method
 from sage.misc.cachefunc            import cached_method
 from sage.misc.verbose              import verbose
+from sage.misc.flatten              import flatten
 from sage.modular.modform.element   import Newform
 from sage.structure.sequence        import Sequence
 
@@ -73,11 +74,9 @@ def LocalComponent(f, p, twist_factor=None):
         Character of Q_7*, of level 0, mapping 7 |--> 1
         sage: Pi.species()
         'Supercuspidal'
-        sage: Pi.characters()
-        [
-        Character of unramified extension Q_7(s)* (s^2 + 6*s + 3 = 0), of level 1, mapping s |--> d, 7 |--> 1,
-        Character of unramified extension Q_7(s)* (s^2 + 6*s + 3 = 0), of level 1, mapping s |--> -d, 7 |--> 1
-        ]
+        sage: set(Pi.characters())
+        {Character of unramified extension Q_7(s)* (s^2 + 6*s + 3 = 0), of level 1, mapping s |--> -d, 7 |--> 1,
+         Character of unramified extension Q_7(s)* (s^2 + 6*s + 3 = 0), of level 1, mapping s |--> d, 7 |--> 1}
     """
     p = ZZ(p)
     if not p.is_prime():
@@ -635,11 +634,9 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
 
             sage: f = Newform('50a')
             sage: Pi = LocalComponent(f, 5)
-            sage: chars = Pi.characters(); chars
-            [
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> d, 5 |--> 1,
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -d - 1, 5 |--> 1
-            ]
+            sage: chars = Pi.characters(); set(chars)
+            {Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -d - 1, 5 |--> 1,
+             Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> d, 5 |--> 1}
             sage: chars[0].base_ring()
             Number Field in d with defining polynomial x^2 + x + 1
 
@@ -653,13 +650,11 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
             sage: f = Newforms(GammaH(25, [6]), 3, names='j')[0]; f
             q + j0*q^2 + 1/3*j0^3*q^3 - 1/3*j0^2*q^4 + O(q^6)
             sage: Pi = LocalComponent(f, 5)
-            sage: Pi.characters()
-            [
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> d, 5 |--> 5,
-            Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -d - 1/3*j0^3, 5 |--> 5
-            ]
+            sage: set(Pi.characters())
+            {Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> 1/3*j0^2*d - 1/3*j0^3, 5 |--> 5,
+             Character of unramified extension Q_5(s)* (s^2 + 4*s + 2 = 0), of level 1, mapping s |--> -1/3*j0^2*d, 5 |--> 5}
             sage: Pi.characters()[0].base_ring()
-            Number Field in d with defining polynomial x^2 + 1/3*j0^3*x - 1/3*j0^2 over its base field
+            Number Field in d with defining polynomial x^2 - j0*x + 1/3*j0^2 over its base field
 
         .. warning::
 
@@ -672,11 +667,9 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
 
             sage: f = Newform('81a', names='j'); f
             q + j0*q^2 + q^4 - j0*q^5 + O(q^6)
-            sage: LocalComponent(f, 3).characters()  # long time (12s on sage.math, 2012)
-            [
-            Character of unramified extension Q_3(s)* (s^2 + 2*s + 2 = 0), of level 2, mapping -2*s |--> 2*d + j0, 4 |--> 1, 3*s + 1 |--> j0*d + 1, 3 |--> 1,
-            Character of unramified extension Q_3(s)* (s^2 + 2*s + 2 = 0), of level 2, mapping -2*s |--> -2*d - j0, 4 |--> 1, 3*s + 1 |--> -j0*d - 2, 3 |--> 1
-            ]
+            sage: set(LocalComponent(f, 3).characters())  # long time (12s on sage.math, 2012)
+            {Character of unramified extension Q_3(s)* (s^2 + 2*s + 2 = 0), of level 2, mapping -2*s |--> -2*d + j0, 4 |--> 1, 3*s + 1 |--> -j0*d + 1, 3 |--> 1,
+             Character of unramified extension Q_3(s)* (s^2 + 2*s + 2 = 0), of level 2, mapping -2*s |--> 2*d - j0, 4 |--> 1, 3*s + 1 |--> j0*d - 2, 3 |--> 1}
 
         Some ramified examples::
 
@@ -706,11 +699,9 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
             Character of unramified extension Q_2(s)* (s^2 + s + 1 = 0), of level 3, mapping s |--> 1, 2*s + 1 |--> 1/2*a0, 4*s + 1 |--> 1, -1 |--> 1, 2 |--> 1,
             Character of unramified extension Q_2(s)* (s^2 + s + 1 = 0), of level 3, mapping s |--> 1, 2*s + 1 |--> 1/2*a0, 4*s + 1 |--> -1, -1 |--> 1, 2 |--> 1
             ]
-            sage: Newform('243a',names='a').local_component(3).characters() # long time
-            [
-            Character of ramified extension Q_3(s)* (s^2 - 6 = 0), of level 4, mapping -s - 1 |--> 1, 4 |--> 1, 3*s + 1 |--> d, s |--> 1,
-            Character of ramified extension Q_3(s)* (s^2 - 6 = 0), of level 4, mapping -s - 1 |--> 1, 4 |--> 1, 3*s + 1 |--> -d - 1, s |--> 1
-            ]
+            sage: set(Newform('243a',names='a').local_component(3).characters()) # long time
+            {Character of ramified extension Q_3(s)* (s^2 - 6 = 0), of level 4, mapping -2*s - 1 |--> -d - 1, 4 |--> 1, 3*s + 1 |--> -d - 1, s |--> 1,
+             Character of ramified extension Q_3(s)* (s^2 - 6 = 0), of level 4, mapping -2*s - 1 |--> d, 4 |--> 1, 3*s + 1 |--> d, s |--> 1}
         """
         T = self.type_space()
         p = self.prime()
@@ -736,7 +727,9 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                 F = self.coefficient_field().extension(theta_poly, "d")
                 G = G.base_extend(F)
 
-            gvals = [x[0] for x in theta_poly.roots(G.base_ring())]
+            # roots with repetitions allowed
+            gvals = flatten([[y[0]]*y[1] for y in theta_poly.roots(G.base_ring())])
+
             if len(gs) == 1:
                 # This is always the case if p != 2
                 chi1, chi2 = [G.extend_character(n, self.central_character(), [x]) for x in gvals]
@@ -747,18 +740,18 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                 g0 = gs[0]
                 try:
                     G._reduce_Qp(1, g0)
-                    raise ZeroDivisionError
+                    raise ArithmeticError("Bad generators returned")
                 except ValueError:
                     pass
 
                 tr = (~T.rho(g0.matrix().list())).trace()
                 X = polygen(G.base_ring())
-                theta_poly = X**2 - (-1)**n*tr*X + self.central_character()(g0.norm())
+                theta0_poly = X**2 - (-1)**n*tr*X + self.central_character()(g0.norm())
                 verbose("theta_poly for %s is %s" % (g0, theta_poly), level=1)
-                if theta_poly.is_irreducible():
-                    F = theta_poly.base_ring().extension(theta_poly, "e")
+                if theta0_poly.is_irreducible():
+                    F = theta0_poly.base_ring().extension(theta_poly, "e")
                     G = G.base_extend(F)
-                g0vals = [y[0] for y in theta_poly.roots(G.base_ring())]
+                g0vals = flatten([[y[0]]*y[1] for y in theta0_poly.roots(G.base_ring())])
 
                 pairA = [ [g0vals[0], gvals[0]], [g0vals[1], gvals[1]] ]
                 pairB = [ [g0vals[0], gvals[1]], [g0vals[1], gvals[0]] ]
@@ -774,26 +767,35 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
                 except ValueError:
                     B_fail = 1
 
+                if chisA == chisB or chisA == reversed(chisB):
+                    # repeated roots -- break symmetry arbitrarily
+                    B_fail = 1
+
                 # check the character relation from LW12
                 if (not A_fail and not B_fail):
                     for x in G.ideal(n).invertible_residues():
                         try:
                             # test if G mod p is in Fp
-                            G._reduce_Qp(1, x)
+                            flag = G._reduce_Qp(1, x)
                         except ValueError:
-                            verbose("testing x = %s" % x, level=1)
-                            ti = (-1)**n * (~T.rho(x.matrix().list())).trace()
-                            verbose("  trace of matrix is %s" % ti, level=1)
-                            if ti != chisA[0](x) + chisA[1](x):
-                                verbose("  chisA FAILED", level=1)
-                                A_fail = 1
-                                break
-                            if ti != chisB[0](x) + chisB[1](x):
-                                verbose("  chisB FAILED", level=1)
-                                B_fail = 1
-                                break
-                            else:
-                                verbose("  Trace identity check works for both", level=1)
+                            flag = None
+                        if flag is not None: 
+                            verbose("skipping x=%s as congruent to %s mod p" % (x, flag))
+                            continue
+
+                        verbose("testing x = %s" % x, level=1)
+                        ti = (-1)**n * (~T.rho(x.matrix().list())).trace()
+                        verbose("  trace of matrix is %s" % ti, level=1)
+                        if ti != chisA[0](x) + chisA[1](x):
+                            verbose("  chisA FAILED", level=1)
+                            A_fail = 1
+                            break
+                        if ti != chisB[0](x) + chisB[1](x):
+                            verbose("  chisB FAILED", level=1)
+                            B_fail = 1
+                            break
+                        else:
+                            verbose("  Trace identity check works for both", level=1)
 
                 if B_fail and not A_fail:
                     chi1, chi2 = chisA
@@ -851,7 +853,6 @@ class PrimitiveSupercuspidal(PrimitiveLocalComponent):
             if theta_poly.is_irreducible():
                 F = self.coefficient_field().extension(theta_poly, "d")
                 G = G.base_extend(F)
-            from sage.misc.flatten import flatten
             c1q, c2q = flatten([[x]*e for x,e in theta_poly.roots(G.base_ring())])
 
             if len(qs) == 1:

@@ -2070,9 +2070,8 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         if not rst._domain.is_subset(self._domain):
             raise ValueError("the domain of the declared restriction is not " +
                              "a subset of the field's domain")
-        self._restrictions[rst._domain] = rst.copy()
-        self._restrictions[rst._domain].set_name(name=self._name,
-                                                 latex_name=self._latex_name)
+        self._restrictions[rst._domain] = rst.copy(name=self._name,
+                                                   latex_name=self._latex_name)
         for chart, expr in rst._express.items():
             intersection = chart._domain.intersection(rst._domain)
             self._express[chart.restrict(intersection)] = expr

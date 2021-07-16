@@ -649,6 +649,24 @@ cdef class CombinatorialPolyhedron(SageObject):
             return (CombinatorialPolyhedron, (self.incidence_matrix(),
                     self.Vrepresentation(), self.Hrepresentation()))
 
+    def _test_bitsets(self, tester=None, **options):
+        """
+        Test if the bitsets are consistent.
+
+        TESTS::
+
+            sage: P = polytopes.cube()
+            sage: C = CombinatorialPolyhedron(P)
+            sage: C._test_bitsets()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        cdef ListOfFaces facets = self.bitrep_facets()
+        cdef ListOfFaces Vrep = self.bitrep_Vrep()
+
+        tester.assertEqual(facets.matrix(), Vrep.matrix().transpose())
+
     def Vrepresentation(self):
         r"""
         Return a list of names of ``[vertices, rays, lines]``.

@@ -6357,6 +6357,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.libs.gap.libgap import libgap
         return self._gap_(libgap)
 
+    def _giac_init_(self):
+        r"""
+        Return a Giac string representation of this polynomial.
+
+        TESTS::
+
+            sage: R.<x> = GF(101)['e,i'][]
+            sage: f = R('e*i') * x + x^2
+            sage: f._giac_init_()
+            '((1)*1)*sageVARx^2+((1)*sageVARe*sageVARi)*sageVARx'
+            sage: giac(f)
+            sageVARx^2+sageVARe*sageVARi*sageVARx
+            sage: giac(R.zero())
+            0
+        """
+        g = 'sageVAR' + self.variable_name()
+        s = '+'.join('(%s)*%s' % (self.monomial_coefficient(m)._giac_init_(),
+                                  m._repr(g)) for m in self.monomials())
+        return s if s else '0'
+
     ######################################################################
 
     @coerce_binop
@@ -7624,7 +7644,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-3.5074662110434039?e451, 1)]
             sage: p = bigc*x + 1
             sage: p.roots(ring=RR)
-            [(0.000000000000000, 1)]
+            [(-2.85106096489671e-452, 1)]
             sage: p.roots(ring=AA)
             [(-2.8510609648967059?e-452, 1)]
             sage: p.roots(ring=QQbar)

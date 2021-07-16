@@ -11,14 +11,19 @@ SAGE_ROOT = "@SAGE_ROOT@"
 
 MAXIMA = "@prefix@/bin/maxima"
 
+# Delete this line if your ECL can load maxima without further prodding.
+MAXIMA_FAS = "@SAGE_MAXIMA_FAS@".replace('${prefix}', SAGE_LOCAL)
+
+# Delete this line if your ECL can load Kenzo without further prodding.
+KENZO_FAS = "@SAGE_KENZO_FAS@".replace('${prefix}', SAGE_LOCAL)
+
 ARB_LIBRARY = "@SAGE_ARB_LIBRARY@"
 
 NTL_INCDIR = "@NTL_INCDIR@"
 NTL_LIBDIR = "@NTL_LIBDIR@"
 
 # Path to the ecl-config script
-# TODO: At the moment this is hard-coded, needs to be set during the configure phase if we want to support system-installed ecl.
-ECL_CONFIG = "${prefix}/bin/ecl-config".replace('${prefix}', SAGE_LOCAL)
+ECL_CONFIG = "@SAGE_ECL_CONFIG@".replace('${prefix}', SAGE_LOCAL)
 
 SAGE_NAUTY_BINS_PREFIX = "@SAGE_NAUTY_BINS_PREFIX@"
 
@@ -26,6 +31,10 @@ SAGE_NAUTY_BINS_PREFIX = "@SAGE_NAUTY_BINS_PREFIX@"
 # We hard-code it here as cblas because configure (build/pkgs/openblas/spkg-configure.m4)
 # always provides cblas.pc, if necessary by creating a facade pc file for a system BLAS.
 CBLAS_PC_MODULES = "cblas"
+
+# for sage_setup.setenv
+SAGE_ARCHFLAGS = "@SAGE_ARCHFLAGS@"
+SAGE_PKG_CONFIG_PATH = "@SAGE_PKG_CONFIG_PATH@".replace('$SAGE_LOCAL', SAGE_LOCAL)
 
 # Used in sage.repl.ipython_kernel.install
 MATHJAX_DIR = SAGE_LOCAL + "/share/mathjax"

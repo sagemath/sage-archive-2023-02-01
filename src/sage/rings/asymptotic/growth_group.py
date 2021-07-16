@@ -3394,14 +3394,13 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: e3._find_minimum_(valid_from={'x': 5})
             Traceback (most recent call last):
             ...
-            DecreasingGrowthElementError: the growth of x^(-1) is less then one
+            DecreasingGrowthElementError: the growth of x^(-1) is less than one
         """
         if self.is_lt_one():
-            raise DecreasingGrowthElementError(self, f'the growth of {self} is less then one')
+            raise DecreasingGrowthElementError(self, f'the growth of {self} is less than one')
         elif self.is_one():
             return 1
-        if not len(self.variable_names()):
-            raise ValueError(f'{self.variable_names()} is empty')
+        assert self.variable_names(), f'{self.variable_names()} is empty'
         return valid_from[self.variable_names()[0]] ** self.exponent
 
 

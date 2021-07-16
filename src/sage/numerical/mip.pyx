@@ -1380,10 +1380,59 @@ cdef class MixedIntegerLinearProgram(SageObject):
         - ``v`` -- a variable component
 
         - ``tolerance`` -- ignored
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[3] + 3*x[4] + x[5])
+            sage: p.add_constraint(x[3] + x[4] + 2*x[5], max=2)
+            sage: p.solve()
+            6.0
+            sage: p._backend_variable_value(x[4], 1)
+            2.0
+            sage: type(_)
+            <class 'float'>
         """
         return self._backend.get_variable_value(self._variables[v])
 
     def _backend_variable_value_ZZ(self, v, tolerance):
+        """
+        Return the value of a variable component in the backend as an integer.
+
+        The value is rounded to an integer, and if the difference to the
+        original value is greater than ``tolerance``, raise a ``RuntimeError``.
+
+        INPUT:
+
+        - ``v`` -- a variable component
+
+        - ``tolerance`` -- a nonnegative real number
+
+        OUTPUT:
+
+        An element of ``ZZ``.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[3] + 3*x[4] + x[5])
+            sage: p.add_constraint(x[3] + x[4] + 2*x[5], max=2)
+            sage: p.solve()
+            6.0
+            sage: p._backend_variable_value_ZZ(x[4], 0.01)
+            2
+            sage: _.parent()
+            Integer Ring
+            sage: p.add_constraint(3*x[4] <= 5)
+            sage: p.solve()
+            5.333333333333333
+            sage: p._backend_variable_value_ZZ(x[4], 0.01)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: variable x_1 exceeds integrality tolerance 0.0100000000000000
+        """
         if tolerance is None:
             raise TypeError('for converting to integers, a tolerance must be provided')
         value = self._backend_variable_value(v, tolerance)
@@ -1393,12 +1442,82 @@ cdef class MixedIntegerLinearProgram(SageObject):
         return value_ZZ
 
     def _backend_variable_value_bool(self, v, tolerance):
+        """
+        Return the value of a variable component in the backend as a boolean.
+
+        The value is rounded to an integer, and if the difference to the
+        original value is greater than ``tolerance``, raise a ``RuntimeError``.
+
+        If the rounded value is anything other than 0 or 1, also a ``RuntimeError``
+        is raised.
+
+        INPUT:
+
+        - ``v`` -- a variable component
+
+        - ``tolerance`` -- a nonnegative real number
+
+        OUTPUT:
+
+        A ``bool``.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x = p.new_variable(binary=True)
+            sage: p.set_objective(x[3] + 3*x[4] + x[5])
+            sage: p.add_constraint(x[3] + x[4] + 2*x[5], max=2)
+            sage: p.solve()
+            4.0
+            sage: p._backend_variable_value_bool(x[4], 0.01)
+            True
+            sage: p._backend_variable_value_bool(x[5], 0.01)
+            False
+       """
         value_ZZ = self._backend_variable_value_ZZ(v, tolerance)
         if value_ZZ not in (0, 1):
             raise RuntimeError(f'variable {v} is {value_ZZ} but should be 0 or 1')
         return bool(value_ZZ)
 
     def _backend_variable_value_True(self, v, tolerance):
+        """
+        Return the value of a variable component converted to the base ring or ZZ.
+
+        INPUT:
+
+        - ``v`` -- a variable component
+
+        - ``tolerance`` -- if ``v`` is declared integer or binary, a
+          nonnegative real number; otherwise, ignored
+
+        OUTPUT:
+
+        An element of ``ZZ`` for MIP variables declared integer or binary, or
+        an element of the :meth:`base_ring` otherwise.
+
+        EXAMPLES::
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x = p.new_variable(binary=True)
+            sage: p.set_objective(x[3] + 3*x[4] + x[5])
+            sage: p.add_constraint(x[3] + x[4] + 2*x[5], max=2)
+            sage: p.solve()
+            4.0
+            sage: p._backend_variable_value_True(x[4], 0.01)
+            1
+
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: x = p.new_variable(nonnegative=True)
+            sage: p.set_objective(x[3] + 3*x[4] + x[5])
+            sage: p.add_constraint(x[3] + x[4] + 2*x[5], max=2)
+            sage: p.add_constraint(3*x[4] <= 5)
+            sage: p.solve()
+            5.333333333333333
+            sage: p._backend_variable_value_True(x[4], 0.01)
+            1.6666666666666667
+            sage: _.parent()
+            Real Double Field
+        """
         if self.is_binary(v) or self.is_integer(v):
             return self._backend_variable_value_ZZ(v, tolerance)
         return self.base_ring()(self._backend_variable_value(v, tolerance))

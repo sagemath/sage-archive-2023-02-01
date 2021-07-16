@@ -4355,7 +4355,9 @@ class BTermMonoid(TermWithCoefficientMonoid):
             - :class:`ExactTermMonoid`
 
             Additionally, the growth group underlying ``S`` has to
-            coerce into the growth group of this term monoid.
+            coerce into the growth group of this term monoid and the coefficient
+            ring of ``S`` coerces into the coefficient ring of this term
+            monoid.
 
         EXAMPLES::
 
@@ -4381,7 +4383,8 @@ class BTermMonoid(TermWithCoefficientMonoid):
             False
         """
         if isinstance(S, (ExactTermMonoid,)):
-            if self.growth_group.has_coerce_map_from(S.growth_group):
+            if self.growth_group.has_coerce_map_from(S.growth_group) and \
+                    self.coefficient_ring.has_coerce_map_from(S.coefficient_ring):
                 return True
         else:
             return super()._coerce_map_from_(S)

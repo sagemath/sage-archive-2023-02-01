@@ -1427,11 +1427,11 @@ cdef class MixedIntegerLinearProgram(SageObject):
             Integer Ring
             sage: p.add_constraint(3*x[4] <= 5)
             sage: p.solve()
-            5.333333333333333
+            5.3333...
             sage: p._backend_variable_value_ZZ(x[4], 0.01)
             Traceback (most recent call last):
             ...
-            RuntimeError: variable x_1 exceeds integrality tolerance 0.0100000000000000
+            RuntimeError: variable x_1 exceeds integrality tolerance 0.0100...
         """
         if tolerance is None:
             raise TypeError('for converting to integers, a tolerance must be provided')
@@ -1513,9 +1513,9 @@ cdef class MixedIntegerLinearProgram(SageObject):
             sage: p.add_constraint(x[3] + x[4] + 2*x[5], max=2)
             sage: p.add_constraint(3*x[4] <= 5)
             sage: p.solve()
-            5.333333333333333
+            5.3333...
             sage: p._backend_variable_value_True(x[4], 0.01)
-            1.6666666666666667
+            1.6666...
             sage: _.parent()
             Real Double Field
         """

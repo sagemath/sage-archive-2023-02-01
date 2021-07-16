@@ -962,7 +962,7 @@ class LLS(ModuleElement):
         """
         Define an equation by ``self = s``.
         """
-        if not isinstance(self._aux, LLS_uninitialized):
+        if not isinstance(self._aux, LLS_uninitialized) or self._aux._target is not None:
             raise ValueError("series already defined")
         self._aux._target = s._aux
 
@@ -1179,7 +1179,11 @@ class LLS_eventually_geometric(LLS_aux):
         self._constant = constant
         self._degree = degree
         self._laurent_polynomial = laurent_polynomial
-        super().__init__(is_sparse, self._laurent_polynomial.valuation())
+        if not laurent_polynomial:
+            valuation = degree
+        else:
+            valuation = laurent_polynomial.valuation()
+        super().__init__(is_sparse, valuation)
 
     def __getitem__(self, n):
         if n >= self._degree:

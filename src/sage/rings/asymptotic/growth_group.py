@@ -2814,7 +2814,7 @@ class DecreasingGrowthElementError(ValueError):
 
     INPUT:
 
-    - ``element`` -- a :class:`MonomialGrowthElement`
+    - ``element`` -- a :class:`GenericGrowthElement`
 
     The remaining argument passed on to
     :python:`ValueError<library/exceptions.html#exceptions.ValueError>`
@@ -2825,9 +2825,9 @@ class DecreasingGrowthElementError(ValueError):
 
         TESTS::
 
-            sage: from sage.rings.asymptotic.growth_group import DecreasingGrowthElementError, MonomialGrowthElement, MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import DecreasingGrowthElementError, GenericGrowthElement, MonomialGrowthGroup
             sage: raise DecreasingGrowthElementError(
-            ....:     MonomialGrowthElement(MonomialGrowthGroup(QQ, 'x'), 1/2), 'wrong value')
+            ....:     GenericGrowthElement(MonomialGrowthGroup(QQ, 'x'), 1/2), 'wrong value')
             Traceback (most recent call last):
             ...
             DecreasingGrowthElementError: wrong value

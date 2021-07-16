@@ -199,6 +199,7 @@ Classes and Methods
 # https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from sage.misc.cachefunc import cached_method
 from sage.rings.big_oh import O
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
@@ -370,6 +371,43 @@ class GenericTerm(MultiplicativeGroupElement):
         self.growth = parent.growth_group(growth)
 
         super(GenericTerm, self).__init__(parent=parent)
+
+    def construction(self):
+        r"""
+        Return a construction of this term.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A pair ``(cls, kwds)`` such that``cls(**kwds)`` equals this term.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+            sage: OT = OTermMonoid(TermMonoid, GrowthGroup('x^ZZ'), QQ)
+            sage: o = OT.an_element(); o
+            O(x)
+            sage: cls, kwds = o.construction(); cls, kwds
+            (<class 'sage.rings.asymptotic.term_monoid.OTermMonoid_with_category.element_class'>,
+            {'growth': x,
+             'parent': O-Term Monoid x^ZZ with implicit coefficients in Rational Field})
+            sage: cls(**kwds) == o
+            True
+
+        .. SEEALSO::
+
+            :meth:`TermWithCoefficient.construction`,
+            :meth:`GenericTermMonoid.from_construction`
+        """
+        return (self.__class__, {'parent': self.parent(),
+                                 'growth': self.growth})
 
     def _mul_(self, other):
         r"""
@@ -1712,6 +1750,8 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
         - ``coefficient`` -- (default: ``None``)
           an element of the coefficient ring.
 
+        - ``**kwds`` -- keyword arguments passed on to the term.
+
         OUTPUT:
 
         An element of this term monoid.
@@ -1803,22 +1843,22 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
         """
         if isinstance(data, self.element_class) and data.parent() == self:
             return data
-        elif isinstance(data, TermWithCoefficient):
-            return self._create_element_(data.growth, data.coefficient)
         elif isinstance(data, GenericTerm):
-            return self._create_element_(data.growth, None)
+            return self.from_construction(data.construction(), **kwds)
         elif isinstance(data, int) and data == 0:
             raise ValueError('No input specified. Cannot continue '
                              'creating an element of %s.' % (self,))
 
         from .misc import combine_exceptions
+        coefficient = kwds.pop('coefficient', None)
         if coefficient is not None:
-            try:
-                data = self.growth_group(data)
-            except (ValueError, TypeError) as e:
-                raise combine_exceptions(
-                    ValueError('Growth %s is not in %s.' % (data, self)), e)
-            return self._create_element_(data, coefficient)
+            growth = data
+            if 'growth' in kwds:
+                raise ValueError(f"Argument 'growth={kwds['growth']}' is ambiguous.")
+            return self.from_construction((None,
+                                           {'growth': growth,
+                                            'coefficient': coefficient}),
+                                          **kwds)
 
         try:
             growth, coefficient = self._split_growth_and_coefficient_(data)
@@ -1826,38 +1866,294 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             raise combine_exceptions(
                 ValueError('%s is not in %s.' % (data, self)), e)
 
-        return self._create_element_(growth, coefficient)
+        if 'growth' in kwds:
+            raise ValueError(f"Argument 'growth={kwds['growth']}' is ambiguous.")
+        if 'coefficient' in kwds:
+            raise ValueError(f"Argument 'coefficient={kwds['coefficient']}' is ambiguous.")
+        return self.from_construction((None,
+                                       {'growth': growth,
+                                        'coefficient': coefficient}),
+                                      **kwds)
 
-    def _create_element_(self, growth, coefficient):
+    def _validate_growth_or_error_(self, kwds_construction):
         r"""
-        Helper method which creates an element by using the ``element_class``.
+        Helper method which ensures that the keyword argument ``growth``
+        of the term (in the element construction process) is valid.
 
         INPUT:
 
-        - ``growth`` -- a growth element.
+        - ``kwds_construction`` -- a dictionary representing
+          the keyword arguments of a term in its construction
+          (see also :meth:`GenericTerm.construction` and
+           :meth:`TermWithCoefficient.construction`)
 
-        - ``coefficient`` -- an element of the coefficient ring.
+        OUTPUT:
+
+        Nothing, but ``growth`` in ``kwds_construction`` might be changed
+        or an error is raised.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = TermMonoid('O', G, ZZ)
+            sage: T(G.gen())  # indirect doctest
+            O(x)
+
+        ::
+
+            sage: T._validate_growth_or_error_({'growth': G.gen()})
+            sage: T._validate_growth_or_error_({'growth': None})
+            Traceback (most recent call last):
+            ...
+            ValueError: Growth None is not valid in
+            O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
+            > *previous* ValueError: None is not in Growth Group x^ZZ.
+            sage: T._validate_growth_or_error_({'growth': 7})
+            Traceback (most recent call last):
+            ...
+            ValueError: Growth 7 is not valid in
+            O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
+            > *previous* ValueError: 7 is not in Growth Group x^ZZ.
+
+        ::
+
+            sage: T = TermMonoid('exact', G, QQ)
+            sage: kwds = {'growth': 'x'}
+            sage: T._validate_growth_or_error_(kwds)
+            sage: kwds['growth'].parent()
+            Growth Group x^ZZ
+        """
+        growth = kwds_construction.get('growth')
+        try:
+            growth = self.growth_group(growth)
+        except (ValueError, TypeError) as e:
+            growth = kwds_construction['growth']
+            from .misc import combine_exceptions
+            raise combine_exceptions(
+                ValueError(f'Growth {growth} is not valid in {self}.'), e)
+        kwds_construction['growth'] = growth
+
+    def _validate_coefficient_or_error_(self, kwds_construction):
+        r"""
+        Helper method which ensures that the keyword argument ``coefficient``
+        of the term (in the element construction process) is valid.
+
+        INPUT:
+
+        - ``kwds_construction`` -- a dictionary representing
+          the keyword arguments of a term in its construction
+          (see also :meth:`GenericTerm.construction` and
+           :meth:`TermWithCoefficient.construction`)
+
+        OUTPUT:
+
+        Nothing, but ``coefficient`` in ``kwds_construction`` might be changed
+        or an error is raised.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = TermMonoid('O', G, ZZ)
+            sage: T(G.gen())  # indirect doctest
+            O(x)
+
+        ::
+
+            sage: T._validate_coefficient_or_error_(
+            ....:     {'growth': G.gen(), 'coefficient': 4})
+            sage: T._validate_coefficient_or_error_(
+            ....:     {'growth': G.gen(), 'coefficient': None})
+            sage: T._validate_coefficient_or_error_(
+            ....:     {'growth': G.gen(), 'coefficient': 4/3})
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create OTerm(x) since
+            given coefficient 4/3 is not valid in
+            O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
+            > *previous* TypeError: no conversion of this rational to integer
+
+        ::
+
+            sage: T = TermMonoid('exact', G, QQ)
+            sage: kwds = {'growth': G.gen(), 'coefficient': 4}
+            sage: T._validate_coefficient_or_error_(kwds)
+            sage: kwds['coefficient'].parent()
+            Rational Field
+        """
+        coefficient = kwds_construction.get('coefficient', None)
+        if coefficient is None:
+            return
+        try:
+            coefficient = self.coefficient_ring(coefficient)
+        except (TypeError, ValueError) as e:
+            element_name = self.Element.__name__
+            growth = kwds_construction['growth']
+            from .misc import combine_exceptions
+            raise combine_exceptions(
+                ValueError(f'Cannot create {element_name}({growth}) '
+                           f'since given coefficient {coefficient} '
+                           f'is not valid in {self}.'), e)
+        if 'coefficient' in kwds_construction:
+            kwds_construction['coefficient'] = coefficient
+
+    @cached_method
+    def _default_kwds_construction_(self):
+        r"""
+        Return the default keyword arguments for the construction of a term.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A dictionary.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = TermMonoid('O', G, ZZ)
+            sage: T._default_kwds_construction_()
+            {}
+            sage: T.from_construction((None, {'growth': G.gen()}))  # indirect doctest
+            O(x)
+        """
+        return {}
+
+    def _convert_construction_(self, kwds_construction):
+        r"""
+        Helper method which converts the given keyword arguments
+        suitable for the term (in the element construction process).
+
+        This is used e.g. for converting one type of term into another
+
+        INPUT:
+
+        - ``kwds_construction`` -- a dictionary representing
+          the keyword arguments of a term in its construction
+          (see also :meth:`GenericTerm.construction` and
+           :meth:`TermWithCoefficient.construction`)
+
+        OUTPUT:
+
+        Nothing, but ``kwds_construction`` might be changed.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: x = G.gen()
+            sage: T = GenericTermMonoid(TermMonoid, G, QQ)
+
+            sage: kwds = {'growth': x}; T._convert_construction_(kwds); kwds
+            {'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': QQ(1)}; T._convert_construction_(kwds); kwds
+            {'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': None}; T._convert_construction_(kwds); kwds
+            {'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': 3/2}; T._convert_construction_(kwds); kwds
+            Traceback (most recent call last):
+            ...
+            ValueError: Coefficient 3/2 is not 1,
+            but GenericTerm-Monoid x^ZZ with (implicit) coefficients
+            in Rational Field does not support coefficients.
+        """
+        coefficient = kwds_construction.pop('coefficient', None)
+        if coefficient is not None and coefficient != self.coefficient_ring.one():
+            raise ValueError('Coefficient %s is not 1, but %s does not '
+                             'support coefficients.' % (coefficient, self))
+
+    def from_construction(self, construction, **kwds_overrides):
+        r"""
+        Create a term from the construction of another term.
+
+        INPUT:
+
+        - ``construction`` -- a pair ``(cls, kwds_construction)``
+
+        - ``kwds_overrides`` -- a dictionary
 
         OUTPUT:
 
         A term.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: G = GrowthGroup('x^ZZ')
+            sage: x = G.gen()
+            sage: T = TermMonoid('O', G, QQ)
+            sage: o = T.an_element()
 
-            sage: G_ZZ = GrowthGroup('x^ZZ')
-            sage: T_ZZ = GenericTermMonoid(TermMonoid, G_ZZ, QQ)
-            sage: T_ZZ(G_ZZ.gen())  # indirect doctest
+        We use a construction directly as input::
+
+            sage: T.from_construction(o.construction())
+            O(x)
+
+        We can override the given data::
+
+            sage: T.from_construction(o.construction(), growth=x^2)
+            O(x^2)
+
+        A minimalistic example::
+
+            sage: T.from_construction((None, {'growth': x}))
+            O(x)
+
+        .. SEEALSO::
+
+            :meth:`GenericTerm.construction`,
+            :meth:`TermWithCoefficient.construction`
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
+            sage: T = GenericTermMonoid(TermMonoid, G, QQ)
+            sage: T(G.gen())  # indirect doctest
             Generic Term with growth x
+
+            sage: T = TermMonoid('O', G, QQ)
+            sage: T(G.gen())  # indirect doctest
+            O(x)
+            sage: T(G.gen(), SR.var('y'))  # indirect doctest
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create OTerm(x) since given coefficient y
+            is not valid in O-Term Monoid x^ZZ with implicit coefficients in
+            Rational Field.
+            > *previous* TypeError: unable to convert y to a rational
         """
-        if coefficient is not None and coefficient != self.coefficient_ring.one():
-            raise ValueError('Coefficient %s is not 1, but %s does not '
-                             'support coefficients.' % (coefficient, self))
-        return self.element_class(self, growth)
+        kwds = {}
+        kwds.update(self._default_kwds_construction_())
+        cls, kwds_construction = construction
+        kwds.update(kwds_construction)
+        kwds.update(kwds_overrides)
+
+        self._validate_growth_or_error_(kwds)
+        self._validate_coefficient_or_error_(kwds)
+
+        self._convert_construction_(kwds)
+
+        try:
+            del kwds['parent']
+        except KeyError:
+            pass
+
+        return self.element_class(self, **kwds)
 
     def _create_element_in_extension_(self, growth, coefficient):
         r"""
@@ -2671,20 +2967,23 @@ class OTermMonoid(GenericTermMonoid):
     # enable the category framework for elements
     Element = OTerm
 
-    def _create_element_(self, growth, coefficient):
+    def _convert_construction_(self, kwds_construction):
         r"""
-        Helper method which creates an element by using the ``element_class``.
+        Helper method which converts the given keyword arguments
+        suitable for the term (in the element construction process).
+
+        This is used e.g. for converting one type of term into another
 
         INPUT:
 
-        - ``growth`` -- a growth element.
-
-        - ``coefficient`` -- an element of the coefficient ring (will be
-          ignored since we create an O-Term).
+        - ``kwds_construction`` -- a dictionary representing
+          the keyword arguments of a term in its construction
+          (see also :meth:`GenericTerm.construction` and
+           :meth:`TermWithCoefficient.construction`)
 
         OUTPUT:
 
-        An O-term.
+        Nothing, but ``kwds_construction`` might be changed.
 
         TESTS::
 
@@ -2692,27 +2991,21 @@ class OTermMonoid(GenericTermMonoid):
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: G = GrowthGroup('x^ZZ')
+            sage: x = G.gen()
             sage: T = TermMonoid('O', G, QQ)
-            sage: T(G.gen())  # indirect doctest
-            O(x)
-            sage: T(G.gen(), SR.var('y'))  # indirect doctest
-            Traceback (most recent call last):
-            ...
-            ValueError: Cannot create O(x) since given coefficient y
-            is not valid in O-Term Monoid x^ZZ with implicit coefficients in
-            Rational Field.
-            > *previous* TypeError: unable to convert y to a rational
+            sage: kwds = {'growth': x}; T._convert_construction_(kwds); kwds
+            {'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': QQ(1)}; T._convert_construction_(kwds); kwds
+            {'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': None}; T._convert_construction_(kwds); kwds
+            {'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': 3/2}; T._convert_construction_(kwds); kwds
+            {'growth': x}
         """
-        if coefficient is not None:
-            try:
-                self.coefficient_ring(coefficient)
-            except (TypeError, ValueError) as e:
-                from .misc import combine_exceptions
-                raise combine_exceptions(
-                    ValueError('Cannot create O(%s) since given coefficient %s '
-                               'is not valid in %s.' %
-                               (growth, coefficient, self)), e)
-        return self.element_class(self, growth)
+        try:
+            del kwds_construction['coefficient']
+        except KeyError:
+            pass
 
     def _coerce_map_from_(self, S):
         r"""
@@ -2842,17 +3135,19 @@ class TermWithCoefficient(GenericTerm):
 
         The coefficients have to be from the given coefficient ring::
 
-            sage: t = CT_ZZ(x, 1/2)
+            sage: CT_ZZ(x, 1/2)
             Traceback (most recent call last):
             ...
-            ValueError: 1/2 is not a coefficient in
+            ValueError: Cannot create TermWithCoefficient(x)
+            since given coefficient 1/2 is not valid in
             TermWithCoefficient-Monoid x^ZZ with coefficients in Integer Ring.
-            sage: t = CT_QQ(x, 1/2); t
+            > *previous* TypeError: no conversion of this rational to integer
+            sage: CT_QQ(x, 1/2)
             Term with coefficient 1/2 and growth x
 
         For technical reasons, the coefficient 0 is not allowed::
 
-            sage: t = CT_ZZ(x^42, 0)
+            sage: CT_ZZ(x^42, 0)
             Traceback (most recent call last):
             ...
             ZeroCoefficientError:  Zero coefficient 0 is not allowed in
@@ -2878,6 +3173,45 @@ class TermWithCoefficient(GenericTerm):
 
         self.coefficient = coefficient
         super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
+
+    def construction(self):
+        r"""
+        Return a construction of this term.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A pair ``(cls, kwds)`` such that``cls(**kwds)`` equals this term.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import ExactTermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+            sage: OT = ExactTermMonoid(TermMonoid, GrowthGroup('x^ZZ'), QQ)
+            sage: e = OT.an_element(); e
+            1/2*x
+            sage: cls, kwds = e.construction(); cls, kwds
+            (<class 'sage.rings.asymptotic.term_monoid.ExactTermMonoid_with_category.element_class'>,
+             {'coefficient': 1/2,
+              'growth': x,
+              'parent': Exact Term Monoid x^ZZ with coefficients in Rational Field})
+            sage: cls(**kwds) == e
+            True
+
+        .. SEEALSO::
+
+            :meth:`GenericTerm.construction`,
+            :meth:`GenericTermMonoid.from_construction`
+        """
+        return (self.__class__, {'parent': self.parent(),
+                                 'growth': self.growth,
+                                 'coefficient': self.coefficient})
 
     def _repr_(self):
         r"""
@@ -3170,31 +3504,130 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         return 'TermWithCoefficient-Monoid %s with coefficients in %s' % \
             (self.growth_group._repr_short_(), self.coefficient_ring)
 
-    def _create_element_(self, growth, coefficient):
+    def _validate_coefficient_or_error_(self, kwds_construction):
         r"""
-        Helper method which creates an element by using the ``element_class``.
+        Helper method which ensures that the keyword argument ``coefficient``
+        of the term (in the element construction process) is valid.
 
         INPUT:
 
-        - ``growth`` -- a growth element.
-
-        - ``coefficient`` -- an element of the coefficient ring.
+        - ``kwds_construction`` -- a dictionary representing
+          the keyword arguments of a term in its construction
+          (see also :meth:`GenericTerm.construction` and
+           :meth:`TermWithCoefficient.construction`)
 
         OUTPUT:
 
-        A term.
+        Nothing, but ``coefficient`` in ``kwds_construction`` might be changed
+        or an error is raised.
 
         TESTS::
 
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: G_ZZ = GrowthGroup('x^ZZ')
-            sage: T_ZZ = TermMonoid('exact', G_ZZ, QQ)
-            sage: T_ZZ(G_ZZ.gen(), 4/3)  # indirect doctest
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = TermMonoid('exact', G, ZZ)
+            sage: T(G.gen(), 4)  # indirect doctest
+            4*x
+
+        ::
+
+            sage: T._validate_coefficient_or_error_(
+            ....:     {'growth': G.gen(), 'coefficient': 4})
+            sage: T._validate_coefficient_or_error_(
+            ....:     {'growth': G.gen(), 'coefficient': None})
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create ExactTerm(x) since no coefficient is given.
+            sage: T._validate_coefficient_or_error_(
+            ....:     {'growth': G.gen(), 'coefficient': 4/3})
+            Traceback (most recent call last):
+            ...
+            ValueError: Cannot create ExactTerm(x) since
+            given coefficient 4/3 is not valid in
+            Exact Term Monoid x^ZZ with coefficients in Integer Ring.
+            > *previous* TypeError: no conversion of this rational to integer
+
+        ::
+
+            sage: T = TermMonoid('exact', G, QQ)
+            sage: T(G.gen(), 4/3)  # indirect doctest
             4/3*x
         """
-        return self.element_class(self, growth, coefficient)
+        coefficient = kwds_construction.get('coefficient', None)
+        if coefficient is None:
+            element_name = self.Element.__name__
+            growth = kwds_construction['growth']
+            raise ValueError(f'Cannot create {element_name}({growth}) '
+                             f'since no coefficient is given.')
+        super()._validate_coefficient_or_error_(kwds_construction)
+
+    @cached_method
+    def _default_kwds_construction_(self):
+        r"""
+        Return the default keyword arguments for the construction of a term.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A dictionary.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = TermMonoid('exact', G, ZZ)
+            sage: T._default_kwds_construction_()
+            {'coefficient': 1}
+            sage: T.from_construction((None, {'growth': G.gen()}))  # indirect doctest
+            x
+        """
+        return {'coefficient': self.coefficient_ring.one()}
+
+    def _convert_construction_(self, kwds_construction):
+        r"""
+        Helper method which converts the given keyword arguments
+        suitable for the term (in the element construction process).
+
+        This is used e.g. for converting one type of term into another
+
+        INPUT:
+
+        - ``kwds_construction`` -- a dictionary representing
+          the keyword arguments of a term in its construction
+          (see also :meth:`GenericTerm.construction` and
+           :meth:`TermWithCoefficient.construction`)
+
+        OUTPUT:
+
+        Nothing, but ``kwds_construction`` might be changed.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: x = G.gen()
+            sage: T = TermWithCoefficientMonoid(TermMonoid, G, QQ)
+
+            sage: kwds = {'growth': x}; T._convert_construction_(kwds); kwds
+            {'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': QQ(1)}; T._convert_construction_(kwds); kwds
+            {'coefficient': 1, 'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': None}; T._convert_construction_(kwds); kwds
+            {'coefficient': None, 'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': 3/2}; T._convert_construction_(kwds); kwds
+            {'coefficient': 3/2, 'growth': x}
+        """
+        pass
 
     def _an_element_(self):
         r"""
@@ -3974,6 +4407,43 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
     # enable the category framework for elements
     Element = ExactTerm
+
+    def _convert_construction_(self, kwds_construction):
+        r"""
+        Helper method which converts the given keyword arguments
+        suitable for the term (in the element construction process).
+
+        This is used e.g. for converting one type of term into another
+
+        INPUT:
+
+        - ``kwds_construction`` -- a dictionary representing
+          the keyword arguments of a term in its construction
+          (see also :meth:`GenericTerm.construction` and
+           :meth:`TermWithCoefficient.construction`)
+
+        OUTPUT:
+
+        Nothing, but ``kwds_construction`` might be changed.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: x = G.gen()
+            sage: T = TermMonoid('exact', G, QQ)
+            sage: kwds = {'growth': x}; T._convert_construction_(kwds); kwds
+            {'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': QQ(1)}; T._convert_construction_(kwds); kwds
+            {'coefficient': 1, 'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': None}; T._convert_construction_(kwds); kwds
+            {'coefficient': None, 'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': 3/2}; T._convert_construction_(kwds); kwds
+            {'coefficient': 3/2, 'growth': x}
+        """
+        pass
 
     def _repr_(self):
         r"""

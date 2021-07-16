@@ -641,8 +641,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ValueError: Cannot include 1/2 with parent
             Exact Term Monoid x^QQ with coefficients in Rational Field in
             Asymptotic Ring <x^QQ> over Integer Ring
-            > *previous* ValueError: 1/2 is not a coefficient in
-            Exact Term Monoid x^QQ with coefficients in Integer Ring.
+            > *previous* ValueError: Cannot create ExactTerm(1)
+              since given coefficient 1/2 is not valid in
+              Exact Term Monoid x^QQ with coefficients in Integer Ring.
+            >> *previous* TypeError: no conversion of this rational to integer
 
         Check :trac:`19921`::
 
@@ -1080,7 +1082,9 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ValueError: Cannot include n with parent Exact Term Monoid
             n^QQ with coefficients in Rational Field in Asymptotic Ring
             <m^QQ> over Rational Field
-            > *previous* ValueError: n is not in Growth Group m^QQ.
+            > *previous* ValueError: Growth n is not valid in
+              Exact Term Monoid m^QQ with coefficients in Rational Field.
+            >> *previous* ValueError: n is not in Growth Group m^QQ.
 
         Only monomials are allowed::
 
@@ -3071,8 +3075,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: a.map_coefficients(lambda c: 1/c)
             Traceback (most recent call last):
             ...
-            ValueError: ... is not a coefficient in
+            ValueError: Cannot create ExactTerm(n^3) since
+            given coefficient 1/2 is not valid in
             Exact Term Monoid n^ZZ with coefficients in Integer Ring.
+            > *previous* TypeError: no conversion of this rational to integer
         """
         def mapping(term):
             T = term.parent().change_parameter(
@@ -3925,7 +3931,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             ...
             ValueError: Polynomial y is not in
             Asymptotic Ring <x^ZZ> over Integer Ring
-            > *previous* ValueError: Growth y is not in
+            > *previous* ValueError: Growth y is not valid in
             Exact Term Monoid x^ZZ with coefficients in Integer Ring.
             >> *previous* ValueError: y is not in Growth Group x^ZZ.
 
@@ -3968,7 +3974,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             ...
             ValueError: Polynomial a + c is not in
             Asymptotic Ring <a^ZZ * b^ZZ> over Rational Field
-            > *previous* ValueError: Growth c is not in
+            > *previous* ValueError: Growth c is not valid in
             Exact Term Monoid a^ZZ * b^ZZ with coefficients in Rational Field.
             >> *previous* ValueError: c is not in Growth Group a^ZZ * b^ZZ.
             >...> *previous* ValueError: c is not in any of the factors
@@ -3986,7 +3992,9 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             ValueError: Cannot include m^3 with parent
             Exact Term Monoid m^ZZ with coefficients in Integer Ring
             in Asymptotic Ring <n^ZZ> over Rational Field
-            > *previous* ValueError: m^3 is not in Growth Group n^ZZ.
+            > *previous* ValueError: Growth m^3 is not valid in
+              Exact Term Monoid n^ZZ with coefficients in Rational Field.
+            >> *previous* ValueError: m^3 is not in Growth Group n^ZZ.
 
         ::
 
@@ -4542,7 +4550,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             sage: R.create_summand('O', growth=42*x^2, coefficient=1)
             Traceback (most recent call last):
             ...
-            ValueError: Growth 42*x^2 is not in O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
+            ValueError: Growth 42*x^2 is not valid in O-Term Monoid x^ZZ with implicit coefficients in Integer Ring.
             > *previous* ValueError: 42*x^2 is not in Growth Group x^ZZ.
 
         ::

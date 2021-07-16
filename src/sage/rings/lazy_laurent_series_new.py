@@ -157,6 +157,9 @@ class LLS(ModuleElement):
             sage: f = z/(1 - 2*z^3)
             sage: [f[n] for n in range(20)]
             [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
+            sage: f[0:20]
+            [0, 1, 0, 0, 2, 0, 0, 4, 0, 0, 8, 0, 0, 16, 0, 0, 32, 0, 0, 64]
+
             sage: M = L(lambda n: n)
             sage: [M[n] for n in range(20)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
@@ -165,7 +168,14 @@ class LLS(ModuleElement):
             sage: [M[n] for n in range(20)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
         """
-        return self.base_ring()(self._aux[n])
+        R = self.base_ring()
+        if isinstance(n, slice):
+            if n.stop is None:
+                raise NotImplementedError("cannot list an infinite set")
+            start = n.start if n.start is not None else self._aux.valuation()
+            step = n.step if n.step is not None else 1
+            return [R(self._aux[k]) for k in range(start, n.stop, step)]
+        return R(self._aux[n])
 
     def _mul_(self, other):
         """
@@ -941,7 +951,7 @@ class LLS(ModuleElement):
             sage: f.is_zero()
             False
             sage: M = L(lambda n: n, 0); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            z + z^3 + z^5 + ...
             sage: M.is_zero()
             False
         """
@@ -959,8 +969,84 @@ class LLS(ModuleElement):
         raise ValueError("undecidable as lazy Laurent series")
 
     def define(self, s):
-        """
+        r"""
         Define an equation by ``self = s``.
+
+        EXAMPLES:
+
+        We begin by constructing the Catalan numbers::
+
+            sage: L.<z> = LLSRing(ZZ)
+            sage: C = L(None)
+            sage: C.define(1 + z*C^2)
+            sage: C
+            1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
+
+        The Catalan numbers but with a valuation 1::
+
+            sage: B = L(None, 1)
+            sage: B.define(z + B^2)
+            sage: B
+            z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + ...
+
+        We can define multiple series that are linked::
+
+            sage: s = L(None)
+            sage: t = L(None)
+            sage: s.define(1 + z*t^3)
+            sage: t.define(1 + z*s^2)
+            sage: s[:9]
+            [1, 1, 3, 9, 34, 132, 546, 2327, 10191]
+            sage: t[:9]
+            [1, 1, 2, 7, 24, 95, 386, 1641, 7150]
+
+        An bigger example::
+
+            sage: L.<z> = LLSRing(ZZ)
+            sage: A = L(None, 5)
+            sage: B = L(None)
+            sage: C = L(None, 2)
+            sage: A.define(z^5 + B^2)
+            sage: B.define(z^5 + C^2)
+            sage: C.define(z^2 + C^2 + A^2)
+            sage: A[0:15]
+            [0, 0, 0, 0, 0, 1, 0, 0, 1, 2, 5, 4, 14, 10, 48]
+            sage: B[0:15]
+            [0, 0, 0, 0, 1, 1, 2, 0, 5, 0, 14, 0, 44, 0, 138]
+            sage: C[0:15]
+            [0, 0, 1, 0, 1, 0, 2, 0, 5, 0, 15, 0, 44, 2, 142]
+
+        We count unlabeled ordered trees by total number of nodes
+        and number of internal nodes::
+
+            sage: R.<q> = QQ[]
+            sage: Q.<z> = LLSRing(R)
+            sage: leaf = z
+            sage: internal_node = q * z
+            sage: L = Q(constant=1, degree=1)
+            sage: T = Q(None, 1)
+            sage: T.define(leaf + internal_node * L(T))  # not tested - composition need
+            sage: [T[i] for i in range(7)]  # not tested - composition need
+            [0, 1, q, q^2 + q, q^3 + 3*q^2 + q, q^4 + 6*q^3 + 6*q^2 + q]
+
+        TESTS::
+
+            sage: L.<z> = LLSRing(ZZ, sparse=True)
+            sage: s = L(None)
+            sage: s.define(1 + z*s^3)
+            sage: s[:10]
+            [1, 1, 3, 12, 55, 273, 1428, 7752, 43263, 246675]
+
+            sage: e = L(None)
+            sage: e.define(1 + z*e)
+            sage: e.define(1 + z*e)
+            Traceback (most recent call last):
+            ...
+            ValueError: series already defined
+            sage: z.define(1 + z^2)
+            Traceback (most recent call last):
+            ...
+            ValueError: series already defined
         """
         if not isinstance(self._aux, LLS_uninitialized) or self._aux._target is not None:
             raise ValueError("series already defined")
@@ -988,6 +1074,21 @@ class LLS_inexact(LLS_aux):
             self._cache = list()
             self._offset = approximate_valuation
             self._iter = self.iterate_coefficients()
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        if not self._is_sparse:
+            # We cannot pickle a generator object, so we remove it and
+            #   the cache from the pickle information.
+            del d["_iter"]
+            del d["_cache"]
+        return d
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        if not self._is_sparse:
+            self._iter = self.iterate_coefficients()
+            self._cache = []
 
     def __getitem__(self, n):
         if n < self._approximate_valuation:

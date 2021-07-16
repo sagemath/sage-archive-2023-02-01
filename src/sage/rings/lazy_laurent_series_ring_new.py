@@ -211,23 +211,28 @@ class LLSRing(UniqueRepresentation, Parent):
 
             sage: L(lambda i: i, 5, 1, 10)
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
-            sage: L(lambda i: i, 5, (1,10))
+            sage: L(lambda i: i, 5, (1, 10))
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
 
-            sage: def g(s, i):
+            sage: X = L(constant=5, degree=2); X
+            5*z^2 + 5*z^3 + 5*z^4 + ...
+            sage: X.valuation()
+            2
+
+            sage: def g(i):
             ....:     if i < 0:
             ....:         return 1
             ....:     else:
-            ....:         return s.coefficient(i - 1) + i
+            ....:         return 1 + sum(k for k in range(i+1))
             sage: e = L(g, -5); e
             z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
             sage: f = e^-1; f
             z^5 - z^6 - z^11 + ...
             sage: f.coefficient(10)
             0
-            sage: f.coefficient(20)
+            sage: f[20]
             9
-            sage: f.coefficient(30)
+            sage: f[30]
             -219
 
         Alternatively, the ``coefficient_function`` can be a list of elements of the
@@ -257,8 +262,8 @@ class LLSRing(UniqueRepresentation, Parent):
         if isinstance(constant, (tuple, list)):
             constant, degree = constant
         if x in R:
-            if not x:
-                aux = LLS_zero()
+            if not x and not constant:
+                aux = LLS_zero(self._sparse)
             else:
                 if valuation:
                     x = x.shift(valuation - x.valuation())

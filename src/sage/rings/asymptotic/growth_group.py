@@ -3382,7 +3382,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         TESTS::
 
-            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup, GrowthGroup
 
             sage: G = MonomialGrowthGroup(QQ, 'x')
             sage: G('x^3')._find_minimum_(valid_from={'x': 10})
@@ -3395,7 +3395,21 @@ class MonomialGrowthElement(GenericGrowthElement):
             Traceback (most recent call last):
             ...
             DecreasingGrowthElementError: the growth of x^(-1) is less than one
+            sage: H = GrowthGroup('log(x)^ZZ')
+            sage: l1 = H(raw_element=2)
+            sage: l1._find_minimum_(valid_from={'x': 5})
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: log(x)^2 is not implemented yet
+            sage: I = GrowthGroup('log(log(x))^ZZ')
+            sage: l2 = I(raw_element=5)
+            sage: l2._find_minimum_(valid_from={'x': 5})
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: log(log(x))^5 is not implemented yet
         """
+        if not self.parent().gens_monomial():
+            raise NotImplementedError(f'{self} is not implemented yet')
         if self.is_lt_one():
             raise DecreasingGrowthElementError(self, f'the growth of {self} is less than one')
         elif self.is_one():

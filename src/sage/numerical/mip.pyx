@@ -1448,8 +1448,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
         The value is rounded to an integer, and if the difference to the
         original value is greater than ``tolerance``, raise a ``RuntimeError``.
 
-        If the rounded value is anything other than 0 or 1, also a ``RuntimeError``
-        is raised.
+        If the rounded value is anything other than 0 or 1, also a
+        ``RuntimeError`` is raised.
 
         INPUT:
 
@@ -1473,7 +1473,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             True
             sage: p._backend_variable_value_bool(x[5], 0.01)
             False
-       """
+        """
         value_ZZ = self._backend_variable_value_ZZ(v, tolerance)
         if value_ZZ not in (0, 1):
             raise RuntimeError(f'variable {v} is {value_ZZ} but should be 0 or 1')
@@ -1481,7 +1481,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
     def _backend_variable_value_True(self, v, tolerance):
         """
-        Return the value of a variable component converted to the base ring or ZZ.
+        Return the value of a variable component converted to the base ring or
+        ``ZZ``.
 
         INPUT:
 
@@ -1528,28 +1529,30 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
         INPUT:
 
-        - ``*lists`` -- any instance of ``MIPVariable`` (or one of its elements),
-          or lists of them.
+        - ``*lists`` -- any instance of ``MIPVariable`` (or one of its
+          elements), or lists of them.
 
         - ``convert`` -- ``None`` (default), ``ZZ``, ``bool``, or ``True``.
 
-          - if ``convert=None`` (default), return all variable values as the backend
-            provides them, i.e., as an element of :meth:`base_ring` or a ``float``.
+          - if ``convert=None`` (default), return all variable values as the
+            backend provides them, i.e., as an element of :meth:`base_ring` or a
+            ``float``.
 
-          - if ``convert=ZZ``, convert all variable values from the :meth:`base_ring`
-            by rounding to the nearest integer.
+          - if ``convert=ZZ``, convert all variable values from the
+            :meth:`base_ring` by rounding to the nearest integer.
 
-          - if ``convert=bool``, convert all variable values from the :meth:`base_ring`
-            by rounding to 0/1 and converting to ``bool``.
+          - if ``convert=bool``, convert all variable values from the
+            :meth:`base_ring` by rounding to 0/1 and converting to ``bool``.
 
-          - if ``convert=True``, use ``ZZ`` for MIP variables declared integer or binary,
-            and convert the values of all other variables to the :meth:`base_ring`.
+          - if ``convert=True``, use ``ZZ`` for MIP variables declared integer
+            or binary, and convert the values of all other variables to the
+            :meth:`base_ring`.
 
         - ``tolerance`` -- ``None``, a positive real number, or ``0`` (if
-          :meth:`base_ring` is an exact ring).  Required if ``convert`` is
-          not ``None`` and any integer conversion is to be done.  If the variable
-          value differs from the nearest integer by more than ``tolerance``, raise
-          a ``RuntimeError``.
+          :meth:`base_ring` is an exact ring).  Required if ``convert`` is not
+          ``None`` and any integer conversion is to be done.  If the variable
+          value differs from the nearest integer by more than ``tolerance``,
+          raise a ``RuntimeError``.
 
         OUTPUT:
 
@@ -1565,20 +1568,22 @@ cdef class MixedIntegerLinearProgram(SageObject):
             an element of the :meth:`base_ring`, or for the numerical solvers,
             a ``float``.
 
-            For the numerical solvers, :meth:`base_ring` is ``RDF``, an inexact ring.
-            Code using ``get_values`` should always account for possible numerical errors.
+            For the numerical solvers, :meth:`base_ring` is ``RDF``, an inexact
+            ring.  Code using ``get_values`` should always account for possible
+            numerical errors.
 
-            Even for variables declared as binary or integer, or known to be an integer
-            because of the mathematical properties of the model, the returned values
-            cannot be expected to be exact integers.  This is normal behavior of the
-            numerical solvers.
+            Even for variables declared as binary or integer, or known to be an
+            integer because of the mathematical properties of the model, the
+            returned values cannot be expected to be exact integers.  This is
+            normal behavior of the numerical solvers.
 
-            For correct operation, any user code needs to avoid exact comparisons
-            (``==``, ``!=``) and instead allow for numerical tolerances.  The magnitude
-            of the numerical tolerances depends on both the model and the solver.
+            For correct operation, any user code needs to avoid exact
+            comparisons (``==``, ``!=``) and instead allow for numerical
+            tolerances.  The magnitude of the numerical tolerances depends on
+            both the model and the solver.
 
-            The arguments ``convert`` and ``tolerance`` facilitate writing correct code.
-            See examples below.
+            The arguments ``convert`` and ``tolerance`` facilitate writing
+            correct code.  See examples below.
 
         EXAMPLES::
 
@@ -1643,11 +1648,12 @@ cdef class MixedIntegerLinearProgram(SageObject):
             {1: True, 2: False, 3: True}
 
         Thanks to total unimodularity, single-commodity network flow problems
-        with integer capacities and integer supplies/demands have integer vertex solutions.
-        Hence the integrality of solutions is mathematically guaranteed in an optimal
-        solution if we use the simplex algorithm.  A numerical LP solver based on the
-        simplex method such as GLPK will return an integer solution only up to a
-        numerical error.  Hence, for correct operation, we should use ``tolerance``::
+        with integer capacities and integer supplies/demands have integer vertex
+        solutions.  Hence the integrality of solutions is mathematically
+        guaranteed in an optimal solution if we use the simplex algorithm.  A
+        numerical LP solver based on the simplex method such as GLPK will return
+        an integer solution only up to a numerical error.  Hence, for correct
+        operation, we should use ``tolerance``::
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK', maximization=False)
             sage: x = p.new_variable(nonnegative=True)
@@ -1740,10 +1746,10 @@ cdef class MixedIntegerLinearProgram(SageObject):
         else:
             if tolerance is not None:
                 if self.base_ring().is_exact():
-                    if not 0 <= tolerance:
+                    if tolerance < 0:
                         raise ValueError('for an exact base_ring, tolerance must be nonnegative')
                 else:
-                    if not 0 < tolerance:
+                    if tolerance <= 0:
                         raise ValueError('for an inexact base_ring, tolerance must be positive')
             if convert is ZZ:
                 get_backend_variable_value = self._backend_variable_value_ZZ

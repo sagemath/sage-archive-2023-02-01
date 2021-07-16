@@ -508,6 +508,30 @@ cdef class Parser:
         self.callable_constructor = make_function
         self.implicit_multiplication = implicit_multiplication
 
+    def _variable_constructor(self):
+        """
+        Return the variable constructor of this parser.
+
+        EXAMPLES::
+
+            sage: from sage.calculus.calculus import SR_parser
+            sage: SR_parser._variable_constructor()
+            <sage.misc.parser.LookupNameMaker...
+        """
+        return self.variable_constructor
+
+    def _callable_constructor(self):
+        """
+        Return the callable constructor of this parser.
+
+        EXAMPLES::
+
+            sage: from sage.calculus.calculus import SR_parser
+            sage: SR_parser._callable_constructor()
+            <sage.misc.parser.LookupNameMaker...
+        """
+        return self.callable_constructor
+
     cpdef parse(self, s, bint accept_eqn=True):
         """
         Parse the given string.

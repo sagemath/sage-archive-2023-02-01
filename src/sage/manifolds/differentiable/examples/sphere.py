@@ -275,12 +275,9 @@ class Sphere(PseudoRiemannianSubmanifold):
         sage: stereoN, stereoS = S2.coordinate_charts('stereographic')
         sage: stereoN, stereoS
         (Chart (S^2-{NP}, (y1, y2)), Chart (S^2-{SP}, (yp1, yp2)))
-        sage: S2.open_covers()
-        [[2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3],
-         [Open subset S^2-{NP} of the 2-sphere S^2 of radius 1 smoothly
-          embedded in the Euclidean space E^3,
-          Open subset S^2-{SP} of the 2-sphere S^2 of radius 1 smoothly
-          embedded in the Euclidean space E^3]]
+        sage: list(S2.open_covers())
+        [Set {S^2} of open subsets of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3,
+         Set {S^2-{NP}, S^2-{SP}} of open subsets of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3]
 
     .. NOTE::
 
@@ -501,11 +498,10 @@ class Sphere(PseudoRiemannianSubmanifold):
         TESTS::
 
             sage: S2 = manifolds.Sphere(2)
-            sage: S2.open_covers()
-            [[2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3],
-             [Open subset S^2-{NP} of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3,
-              Open subset S^2-{SP} of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3]]
-            sage: S2.subsets()  # random
+            sage: list(S2.open_covers())
+            [Set {S^2} of open subsets of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3,
+             Set {S^2-{NP}, S^2-{SP}} of open subsets of the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3]
+            sage: frozenset(S2.subsets())  # random
             frozenset({Euclidean 2-sphere S^2 of radius 1,
              Open subset A of the Euclidean 2-sphere S^2 of radius 1,
              Open subset S^2-{NP,SP} of the Euclidean 2-sphere S^2 of radius 1,
@@ -1145,7 +1141,7 @@ class Sphere(PseudoRiemannianSubmanifold):
             2
 
         """
-        from sage.homology.examples import Sphere as SymplicialSphere
+        from sage.topology.simplicial_complex_examples import Sphere as SymplicialSphere
         return SymplicialSphere(self._dim)
 
     def center(self):

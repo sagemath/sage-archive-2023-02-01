@@ -397,7 +397,6 @@ class Arrow(GraphicPrimitive):
                     self._n = n
 
                 def get_paths(self, renderer):
-                    self._patch.set_dpi_cor(renderer.points_to_pixels(1.))
                     paths, fillables = self._patch.get_path_in_displaycoord()
                     return paths
 

@@ -1467,13 +1467,13 @@ def divisors(n):
 
         sage: K.<a> = QuadraticField(7)
         sage: divisors(K.ideal(7))
-        [Fractional ideal (1), Fractional ideal (a), Fractional ideal (7)]
+        [Fractional ideal (1), Fractional ideal (-a), Fractional ideal (7)]
         sage: divisors(K.ideal(3))
         [Fractional ideal (1), Fractional ideal (3),
         Fractional ideal (-a + 2), Fractional ideal (-a - 2)]
         sage: divisors(K.ideal(35))
-        [Fractional ideal (1), Fractional ideal (5), Fractional ideal (a),
-        Fractional ideal (7), Fractional ideal (5*a), Fractional ideal (35)]
+        [Fractional ideal (1), Fractional ideal (5), Fractional ideal (-a),
+        Fractional ideal (7), Fractional ideal (-5*a), Fractional ideal (35)]
 
     TESTS::
 

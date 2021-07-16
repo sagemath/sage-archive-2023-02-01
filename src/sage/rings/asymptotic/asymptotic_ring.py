@@ -575,7 +575,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
-            sage: lst = [ET(x, 1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
+            sage: lst = [ET(x, coefficient=1), ET(x^2, coefficient=2), OT(x^3), ET(x^4, coefficient=4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
             4*x^4 + O(x^3) + 2*x^2 + x
             sage: print(expr.summands.repr_full())
@@ -952,7 +952,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: G = GrowthGroup('x^ZZ')
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
-            sage: lst = [ET(x, 1), ET(x^2, 2), OT(x^3), ET(x^4, 4)]
+            sage: lst = [ET(x, coefficient=1), ET(x^2, coefficient=2), OT(x^3), ET(x^4, coefficient=4)]
             sage: expr = R(lst, simplify=False); expr  # indirect doctest
             4*x^4 + O(x^3) + 2*x^2 + x
             sage: expr._simplify_(); expr
@@ -3087,7 +3087,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 c = f(term.coefficient)
                 if c.is_zero():
                     return None
-                return T(term.growth, c)
+                return T(term.growth, coefficient=c)
             else:
                 return T(term.growth)
 

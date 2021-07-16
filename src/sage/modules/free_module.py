@@ -2363,18 +2363,28 @@ done from the right side.""")
 
         EXAMPLES::
 
-            sage: M = FreeModule(ZZ, 2).span([[1,1]])
-            sage: M.random_element()
-            (-1, -1)
-            sage: M.random_element()
-            (2, 2)
-            sage: M.random_element()
-            (1, 1)
+            sage: M = FreeModule(ZZ, 2).span([[1, 1]])
+            sage: v = M.random_element()
+            sage: v.parent() is M
+            True
+            sage: v in M
+            True
+
+        Small entries are likely::
+
+            sage: for i in [-2, -1, 0, 1, 2]:
+            ....:     while vector([i, i]) != M.random_element():
+            ....:         pass
+
+        Large entries appear as well::
+
+            sage: while abs(M.random_element()[0]) < 100:
+            ....:     pass
 
         Passes extra positional or keyword arguments through::
 
-            sage: M.random_element(5,10)
-            (9, 9)
+            sage: all(i in range(5, 10) for i in M.random_element(1.0, 5, 10))
+            True
         """
         rand = current_randstate().python_random().random
         R = self.base_ring()
@@ -5231,26 +5241,46 @@ class FreeModule_ambient(FreeModule_generic):
         EXAMPLES::
 
             sage: M = FreeModule(ZZ, 3)
-            sage: M.random_element()
-            (-1, 2, 1)
-            sage: M.random_element()
-            (-95, -1, -2)
-            sage: M.random_element()
-            (-12, 0, 0)
+            sage: M.random_element().parent() is M
+            True
 
         Passes extra positional or keyword arguments through::
 
-            sage: M.random_element(5,10)
-            (5, 5, 5)
-
+            sage: all(i in range(5, 10) for i in M.random_element(1.0, 5, 10))
+            True
 
         ::
 
             sage: M = FreeModule(ZZ, 16)
-            sage: M.random_element()
-            (-6, 5, 0, 0, -2, 0, 1, -4, -6, 1, -1, 1, 1, -1, 1, -1)
-            sage: M.random_element(prob=0.3)
-            (0, 0, 0, 0, -3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, -3)
+            sage: M.random_element().parent() is M
+            True
+
+            sage: def add_sample(**kwds):
+            ....:     global total, zeros
+            ....:     v = M.random_element(**kwds)
+            ....:     total += M.rank()
+            ....:     zeros += sum(i == 0 for i in v)
+
+            sage: total = 0
+            sage: zeros = 0
+            sage: add_sample()
+            sage: expected = 1/5
+            sage: while abs(zeros/total - expected) > 0.01:
+            ....:     add_sample()
+
+            sage: total = 0
+            sage: zeros = 0
+            sage: add_sample(prob=0.3)
+            sage: expected = 1/5 * 3/10 + 7/10
+            sage: while abs(zeros/total - expected) > 0.01:
+            ....:     add_sample(prob=0.3)
+
+            sage: total = 0
+            sage: zeros = 0
+            sage: add_sample(prob=0.7)
+            sage: expected = 1/5 * 7/10 + 3/10
+            sage: while abs(zeros/total - expected) > 0.01:
+            ....:     add_sample(prob=0.7)
         """
         rand = current_randstate().python_random().random
         R = self.base_ring()
@@ -5310,6 +5340,22 @@ class FreeModule_ambient(FreeModule_generic):
             v[i] = self.base_ring().one()
             v.set_immutable()
             return v
+
+    def _sympy_(self):
+        """
+        Return a SymPy ``ProductSet`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: sZZ3 = (ZZ^3)._sympy_(); sZZ3
+            ProductSet(Integers, Integers, Integers)
+            sage: (1, 2, 3) in sZZ3
+            True
+        """
+        from sympy import ProductSet
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return ProductSet(*([self.coordinate_ring()] * self.rank()))
 
 
 ###############################################################################

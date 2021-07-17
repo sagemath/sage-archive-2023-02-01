@@ -11,7 +11,6 @@ Jacobian of a general hyperelliptic curve
 from sage.rings.all import Integer
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.schemes.jacobians.abstract_jacobian import Jacobian_generic
-from sage.schemes.generic.homset import SchemeHomset_generic
 from . import jacobian_homset
 from . import jacobian_morphism
 
@@ -206,18 +205,18 @@ class HyperellipticJacobian_generic(Jacobian_generic):
           the algorithm from [Lom2019]_
 
         - ``proof`` -- (default: False) whether or not to insist on a provably
-        correct answer. This is related to the warning in the module docstring
-        of `jacobian_endomorphisms.py`: if this function returns `False`, then
-        strictly speaking this has not been proven to be `False` until one has
-        exhibited a non-trivial endomorphism, which the methods in that module
-        are not designed to carry out. If one is convinced that this method
-        should return `True`, but it is returning `False`, then this can be
-        exhibited by increasing `B`.
+          correct answer. This is related to the warning in the module docstring
+          of `jacobian_endomorphisms.py`: if this function returns `False`, then
+          strictly speaking this has not been proven to be `False` until one has
+          exhibited a non-trivial endomorphism, which the methods in that module
+          are not designed to carry out. If one is convinced that this method
+          should return `True`, but it is returning `False`, then this can be
+          exhibited by increasing `B`.
 
         OUTPUT:
 
-            Boolean indicating whether or not the geometric endomorphism
-            ring is isomorphic to the integer ring.
+        Boolean indicating whether or not the geometric endomorphism
+        ring is isomorphic to the integer ring.
 
         EXAMPLES:
 

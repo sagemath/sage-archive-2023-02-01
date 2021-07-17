@@ -145,13 +145,13 @@ def get_is_geom_field(f, C, bad_primes, B=200):
     - ``bad_primes`` -- the list of odd primes of bad reduction.
 
     - ``B`` -- (default: 200) the bound which appears in the statement of
-        the algorithm from [Lom2019]_
+      the algorithm from [Lom2019]_
 
     OUTPUT:
 
-        Pair of booleans (bool1, bool2). `bool1` indicates if the
-        geometric endomorphism algebra is a field; `bool2` indicates if the
-        geometric endomorphism algebra is the field of rational numbers.
+    Pair of booleans (bool1, bool2). `bool1` indicates if the
+    geometric endomorphism algebra is a field; `bool2` indicates if the
+    geometric endomorphism algebra is the field of rational numbers.
 
     WARNING:
 
@@ -254,12 +254,12 @@ def is_geom_trivial_when_field(C, bad_primes, B=200):
     - ``bad_primes`` -- the list of odd primes of bad reduction.
 
     - ``B`` -- (default: 200) the bound which appears in the statement of
-        the algorithm from [Lom2019]_
+      the algorithm from [Lom2019]_
 
     OUTPUT:
 
-        Boolean indicating whether or not the geometric endomorphism
-        algebra is the field of rational numbers.
+    Boolean indicating whether or not the geometric endomorphism
+    algebra is the field of rational numbers.
 
     WARNING:
 
@@ -375,18 +375,18 @@ class EndomorphismRing(SageObject):
           the algorithm from [Lom2019]_
 
         - ``proof`` -- (default: False) whether or not to insist on a provably
-        correct answer. This is related to the warning in the docstring
-        of this module: if this function returns ``False``, then
-        strictly speaking this has not been proven to be ``False`` until one
-        has exhibited a non-trivial endomorphism, which these methods are not
-        designed to carry out. If one is convinced that this method should
-        return `True`, but it is returning `False`, then this can be
-        exhibited by increasing `B`.
+          correct answer. This is related to the warning in the docstring
+          of this module: if this function returns ``False``, then
+          strictly speaking this has not been proven to be ``False`` until one
+          has exhibited a non-trivial endomorphism, which these methods are not
+          designed to carry out. If one is convinced that this method should
+          return `True`, but it is returning `False`, then this can be
+          exhibited by increasing `B`.
 
         OUTPUT:
 
-            Boolean indicating whether or not the geometric endomorphism
-            algebra is a field.
+        Boolean indicating whether or not the geometric endomorphism
+        algebra is a field.
 
         EXAMPLES:
 
@@ -448,18 +448,18 @@ class EndomorphismRing(SageObject):
           the algorithm from [Lom2019]_
 
         - ``proof`` -- (default: False) whether or not to insist on a provably
-        correct answer. This is related to the warning in the docstring
-        of this module: if this function returns ``False``, then
-        strictly speaking this has not been proven to be ``False`` until one
-        has exhibited a non-trivial endomorphism, which these methods are not
-        designed to carry out. If one is convinced that this method should
-        return `True`, but it is returning `False`, then this can be
-        exhibited by increasing `B`.
+          correct answer. This is related to the warning in the docstring
+          of this module: if this function returns ``False``, then
+          strictly speaking this has not been proven to be ``False`` until one
+          has exhibited a non-trivial endomorphism, which these methods are not
+          designed to carry out. If one is convinced that this method should
+          return `True`, but it is returning `False`, then this can be
+          exhibited by increasing `B`.
 
         OUTPUT:
 
-            Boolean indicating whether or not the geometric endomorphism
-            ring is isomorphic to the integer ring.
+        Boolean indicating whether or not the geometric endomorphism
+        ring is isomorphic to the integer ring.
 
         EXAMPLES:
 

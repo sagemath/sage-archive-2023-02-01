@@ -11,6 +11,7 @@ Functions and Methods
 ----------------------
 """
 
+from sage.misc.superseded import deprecation
 from sage.modules.free_module_element import vector
 from sage.rings.real_double import RDF
 
@@ -553,6 +554,9 @@ def linear_program(c, G, h, A=None, b=None, solver=None):
 
     - Maximize  `-h'z - b'y` subject to `G'z + A'y + c = 0` and `z \geq 0`.
 
+    This function is deprecated.  Use :class:`MixedIntegerLinearProgram` instead.
+
+    This function depends on the optional package ``cvxopt``.
 
     INPUT:
 
@@ -594,17 +598,20 @@ def linear_program(c, G, h, A=None, b=None, solver=None):
         sage: c=vector(RDF,[-4,-5])
         sage: G=matrix(RDF,[[2,1],[1,2],[-1,0],[0,-1]])
         sage: h=vector(RDF,[3,3,0,0])
-        sage: sol=linear_program(c,G,h)
-        sage: sol['x']
+        sage: sol=linear_program(c,G,h)                                                # optional - cvxopt
+        doctest:warning...
+        DeprecationWarning: linear_program is deprecated; use MixedIntegerLinearProgram instead
+        See https://trac.sagemath.org/32226 for details.
+        sage: sol['x']                                                                 # optional - cvxopt
         (0.999..., 1.000...)
 
     Here we solve the same problem with 'glpk' interface to 'cvxopt'::
 
-        sage: sol=linear_program(c,G,h,solver='glpk')
+        sage: sol=linear_program(c,G,h,solver='glpk')                                  # optional - cvxopt
         GLPK Simplex Optimizer...
         ...
         OPTIMAL LP SOLUTION FOUND
-        sage: sol['x']
+        sage: sol['x']                                                                 # optional - cvxopt
         (1.0, 1.0)
 
     Next, we maximize `x+y-50` subject to `50x + 24y \leq 2400`,
@@ -613,15 +620,17 @@ def linear_program(c, G, h, A=None, b=None, solver=None):
         sage: v=vector([-1.0,-1.0,-1.0])
         sage: m=matrix([[50.0,24.0,0.0],[30.0,33.0,0.0],[-1.0,0.0,0.0],[0.0,-1.0,0.0],[0.0,0.0,1.0],[0.0,0.0,-1.0]])
         sage: h=vector([2400.0,2100.0,-45.0,-5.0,1.0,-1.0])
-        sage: sol=linear_program(v,m,h)
-        sage: sol['x']
+        sage: sol=linear_program(v,m,h)                                                # optional - cvxopt
+        sage: sol['x']                                                                 # optional - cvxopt
         (45.000000..., 6.2499999..., 1.00000000...)
-        sage: sol=linear_program(v,m,h,solver='glpk')
+        sage: sol=linear_program(v,m,h,solver='glpk')                                  # optional - cvxopt
         GLPK Simplex Optimizer...
         OPTIMAL LP SOLUTION FOUND
-        sage: sol['x']
+        sage: sol['x']                                                                 # optional - cvxopt
         (45.0..., 6.25..., 1.0...)
     """
+    deprecation(32226, 'linear_program is deprecated; use MixedIntegerLinearProgram instead')
+
     from cvxopt.base import matrix as m
     from cvxopt import solvers
     solvers.options['show_progress']=False

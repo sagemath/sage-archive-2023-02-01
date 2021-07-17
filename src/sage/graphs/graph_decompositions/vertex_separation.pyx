@@ -679,7 +679,8 @@ def path_decomposition(G, algorithm="BAB", cut_off=None, upper_bound=None, verbo
 
 
 def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbose=False,
-                      max_prefix_length=20, max_prefix_number=10**6):
+                      max_prefix_length=20, max_prefix_number=10**6,
+                      *, solver=None, solver_verbose=0, integrality_tolerance=1e-3):
     r"""
     Return an optimal ordering of the vertices and its cost for
     vertex-separation.
@@ -724,6 +725,21 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
     - ``max_prefix_number`` -- integer (default: 10**6); upper bound on the
       number of stored prefixes used to prevent using too much memory. This
       parameter is used only when ``algorithm=="BAB"``.
+
+    - ``solver`` -- string (default: ``None``); specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+      :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``solver_verbose`` -- integer (default: ``0``); sets the level of
+      verbosity of the MILP solver. Set to 0 by default, which means quiet.
+
+    - ``integrality_tolerance`` -- float; parameter for use with MILP solvers
+      over an inexact base ring; see
+      :meth:`MixedIntegerLinearProgram.get_values`.
 
     OUTPUT:
 
@@ -832,7 +848,10 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
                                            upper_bound=upper_bound,
                                            verbose=verbose,
                                            max_prefix_length=max_prefix_length,
-                                           max_prefix_number=max_prefix_number)
+                                           max_prefix_number=max_prefix_number,
+                                           solver=solver,
+                                           solver_verbose=solver_verbose,
+                                           integrality_tolerance=integrality_tolerance)
 
                 if vsH == -1:
                     # We have not been able to find a solution. This case
@@ -854,7 +873,8 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
         return vertex_separation_exp(G, verbose=verbose)
 
     elif algorithm == "MILP":
-        return vertex_separation_MILP(G, verbosity=(1 if verbose else 0))
+        return vertex_separation_MILP(G, solver=solver, verbose=solver_verbose,
+                                      integrality_tolerance=integrality_tolerance)
 
     elif algorithm == "BAB":
         return vertex_separation_BAB(G, cut_off=cut_off, upper_bound=upper_bound, verbose=verbose,
@@ -1226,7 +1246,8 @@ def width_of_path_decomposition(G, L):
 # MILP formulation for vertex separation #
 ##########################################
 
-def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0):
+def vertex_separation_MILP(G, integrality=False, solver=None, verbose=0,
+                            *, integrality_tolerance=1e-3):
     r"""
     Compute the vertex separation of `G` and the optimal ordering of its
     vertices using an MILP formulation.
@@ -1246,15 +1267,20 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0):
       no impact on the validity of the solution, but it is sometimes faster to
       solve the problem using binary variables only.
 
-    - ``solver`` -- string (default: ``None``); specify a Linear Program (LP)
-      solver to be used. If set to ``None``, the default one is used. For more
-      information on LP solvers and which default solver is used, see the method
-      :meth:`solve<sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
-      class
-      :class:`MixedIntegerLinearProgram<sage.numerical.mip.MixedIntegerLinearProgram>`.
+    - ``solver`` -- string (default: ``None``); specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+      :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-    - ``verbosity`` -- integer (default: ``0``); sets the level of
-      verbosity. Set to 0 by default, which means quiet.
+    - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
+      to 0 by default, which means quiet.
+
+    - ``integrality_tolerance`` -- float; parameter for use with MILP solvers
+      over an inexact base ring; see
+      :meth:`MixedIntegerLinearProgram.get_values`.
 
     OUTPUT:
 
@@ -1372,23 +1398,24 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0):
     p.set_objective(z['z'])
 
     try:
-        obj = p.solve(log=verbosity)
+        obj = p.solve(log=verbose)
     except MIPSolverException:
         if integrality:
             raise ValueError("unbounded or unexpected error")
         else:
             raise ValueError("unbounded or unexpected error, try with 'integrality = True'")
 
-    taby = p.get_values(y)
-    tabz = p.get_values(z)
+    taby = p.get_values(y, convert=bool, tolerance=integrality_tolerance)
+    vs = p.get_values(z, convert=True, tolerance=integrality_tolerance)['z']
     # since exactly one vertex is processed per step, we can reconstruct the sequence
     seq = []
+    seen = set()
     for t in range(N):
         for v in V:
-            if taby[v,t] and v not in seq:
+            if taby[v,t] and v not in seen:
                 seq.append(v)
+                seen.add(v)
                 break
-    vs = int(round(tabz['z']))
 
     return vs, seq
 

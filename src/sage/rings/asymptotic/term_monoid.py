@@ -3604,7 +3604,10 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: T.from_construction((None, {'growth': G.gen()}))  # indirect doctest
             x
         """
-        return {'coefficient': self.coefficient_ring.one()}
+        defaults = {}
+        defaults.update(GenericTermMonoid._default_kwds_construction_())
+        defaults.update({'coefficient': self.coefficient_ring.one()})
+        return defaults
 
     def _convert_construction_(self, kwds_construction):
         r"""

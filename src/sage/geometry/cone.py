@@ -4485,7 +4485,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         else:
             return PointCollection(irreducible, self.lattice())
 
-    def Hilbert_coefficients(self, point, solver=None, verbose=0):
+    def Hilbert_coefficients(self, point, solver=None, verbose=0,
+                             *, integrality_tolerance=1e-3):
         r"""
         Return the expansion coefficients of ``point`` with respect to
         :meth:`Hilbert_basis`.
@@ -4496,14 +4497,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
           in the cone, or something that can be converted to a
           point. For example, a list or tuple of integers.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
-          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+          (MILP) solver to be used. If set to ``None``, the default one is used. For
+          more information on MILP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
           of the LP solver. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+          inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -4566,7 +4572,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             p.add_constraint(p.sum(b[i]*x[j] for j,b in enumerate(basis)) == point[i])
         p.solve(log=verbose)
 
-        return vector(ZZ, p.get_values(x))
+        return vector(ZZ, p.get_values(x, convert=ZZ, tolerance=integrality_tolerance))
 
     def is_solid(self):
         r"""

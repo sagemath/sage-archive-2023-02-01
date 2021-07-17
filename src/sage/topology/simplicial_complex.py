@@ -4688,7 +4688,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         RFPairs = [(Simplex(r), f, f.dimension() - len(r) + 1)
                    for f in self.facets() for r in Set(f).subsets()]
         n = len(RFPairs)
-        IP = MixedIntegerLinearProgram()
+        IP = MixedIntegerLinearProgram(solver=solver)
         y = IP.new_variable(binary=True)
         for i0, pair0 in enumerate(RFPairs):
             for i1, pair1 in enumerate(RFPairs):

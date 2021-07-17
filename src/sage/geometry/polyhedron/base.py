@@ -2259,7 +2259,9 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         This implementation of the method :meth:`ConvexSet_base.an_affine_basis`
         for polytopes guarantees the following:
+
         - All points are vertices.
+
         - The basis is obtained by considering a maximal chain of faces
           in the face lattice and picking for each cover relation
           one vertex that is in the difference. Thus this method

@@ -271,7 +271,7 @@ from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_
 from libc.stdint cimport uint8_t, int8_t
 from sage.data_structures.binary_matrix cimport *
 from sage.graphs.base.static_dense_graph cimport dense_graph_init
-from sage.misc.superseded import deprecation
+from sage.misc.decorators import rename_keyword
 
 ###############
 # Lower Bound #
@@ -680,7 +680,7 @@ def path_decomposition(G, algorithm="BAB", cut_off=None, upper_bound=None, verbo
 
 def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbose=False,
                       max_prefix_length=20, max_prefix_number=10**6,
-                      *, solver=None, solver_verbose=0, integrality_tolerance=1e-3):
+                      *, solver=None, integrality_tolerance=1e-3):
     r"""
     Return an optimal ordering of the vertices and its cost for
     vertex-separation.
@@ -733,9 +733,6 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
       <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
       :class:`MixedIntegerLinearProgram
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
-
-    - ``solver_verbose`` -- integer (default: ``0``); sets the level of
-      verbosity of the MILP solver. Set to 0 by default, which means quiet.
 
     - ``integrality_tolerance`` -- float; parameter for use with MILP solvers
       over an inexact base ring; see
@@ -850,7 +847,6 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
                                            max_prefix_length=max_prefix_length,
                                            max_prefix_number=max_prefix_number,
                                            solver=solver,
-                                           solver_verbose=solver_verbose,
                                            integrality_tolerance=integrality_tolerance)
 
                 if vsH == -1:
@@ -873,7 +869,7 @@ def vertex_separation(G, algorithm="BAB", cut_off=None, upper_bound=None, verbos
         return vertex_separation_exp(G, verbose=verbose)
 
     elif algorithm == "MILP":
-        return vertex_separation_MILP(G, solver=solver, verbose=solver_verbose,
+        return vertex_separation_MILP(G, solver=solver, verbose=verbose,
                                       integrality_tolerance=integrality_tolerance)
 
     elif algorithm == "BAB":
@@ -1246,7 +1242,8 @@ def width_of_path_decomposition(G, L):
 # MILP formulation for vertex separation #
 ##########################################
 
-def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0, verbose=0,
+@rename_keyword(deprecation=32222, verbosity='verbose')
+def vertex_separation_MILP(G, integrality=False, solver=None, verbose=0,
                             *, integrality_tolerance=1e-3):
     r"""
     Compute the vertex separation of `G` and the optimal ordering of its
@@ -1274,10 +1271,6 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0, verbo
       <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
       :class:`MixedIntegerLinearProgram
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
-
-    - ``verbosity`` -- integer (default: ``0``); sets the level of verbosity.
-      Set to 0 by default, which means quiet. This parameter is deprecated and
-      will be removed in the future. Use paramter ``verbose`` instead.
 
     - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
       to 0 by default, which means quiet.
@@ -1341,10 +1334,6 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0, verbo
         ...
         ValueError: the first input parameter must be a Graph or a DiGraph
     """
-    if verbosity:
-        deprecation(32222, "parameter verbosity is replaced by verbose")
-        verbose = verbosity
-
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
     if not isinstance(G, Graph) and not isinstance(G, DiGraph):

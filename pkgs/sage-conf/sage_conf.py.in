@@ -59,6 +59,12 @@ THREEJS_DIR = SAGE_LOCAL + "/share/threejs-sage"
 OPENMP_CFLAGS = "@OPENMP_CFLAGS@"
 OPENMP_CXXFLAGS = "@OPENMP_CXXFLAGS@"
 
+# The base name of the main Singular library. If the library is called
+# libSingular.so, then its base name should be something like "libSingular",
+# or "$SAGE_LOCAL/lib/libSingular". The extension is not needed; the value
+# of SHLIBEXT will be appended automatically.
+SINGULAR_LIB_BASE = "@SINGULAR_LIB_BASE@".replace('$SAGE_LOCAL', SAGE_LOCAL)
+
 # Entry point 'sage-config'.  It does not depend on any packages.
 
 def _main():

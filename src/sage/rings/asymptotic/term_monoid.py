@@ -2090,6 +2090,12 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             raise ValueError('Coefficient %s is not 1, but %s does not '
                              'support coefficients.' % (coefficient, self))
 
+        if 'parent' in kwds_construction and isinstance(kwds_construction['parent'], BTermMonoid):
+            try:
+                del kwds_construction['valid_from']
+            except KeyError:
+                pass
+
     def from_construction(self, construction, **kwds_overrides):
         r"""
         Create a term from the construction of another term.
@@ -3016,11 +3022,29 @@ class OTermMonoid(GenericTermMonoid):
             {'growth': x}
             sage: kwds = {'growth': x, 'coefficient': 3/2}; T._convert_construction_(kwds); kwds
             {'growth': x}
+
+        ::
+
+            sage: T = TermMonoid('O', G, ZZ)
+            sage: T(TermMonoid('exact', G, QQ)(x, coefficient=42))
+            O(x)
+            sage: T(TermMonoid('O', G, QQ)(x))
+            O(x)
+            sage: T(TermMonoid('B', G, QQ)(x, coefficient=42))
+            O(x)
+            sage: T(TermMonoid('B', G, QQ)(x, coefficient=42, valid_from={'x': 7}))
+            O(x)
         """
         try:
             del kwds_construction['coefficient']
         except KeyError:
             pass
+
+        if 'parent' in kwds_construction and isinstance(kwds_construction['parent'], BTermMonoid):
+            try:
+                del kwds_construction['valid_from']
+            except KeyError:
+                pass
 
     def _coerce_map_from_(self, S):
         r"""
@@ -3643,7 +3667,11 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             sage: kwds = {'growth': x, 'coefficient': 3/2}; T._convert_construction_(kwds); kwds
             {'coefficient': 3/2, 'growth': x}
         """
-        pass
+        if 'parent' in kwds_construction and isinstance(kwds_construction['parent'], BTermMonoid):
+            try:
+                del kwds_construction['valid_from']
+            except KeyError:
+                pass
 
     def _an_element_(self):
         r"""
@@ -4458,8 +4486,24 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
             {'coefficient': None, 'growth': x}
             sage: kwds = {'growth': x, 'coefficient': 3/2}; T._convert_construction_(kwds); kwds
             {'coefficient': 3/2, 'growth': x}
+
+        ::
+
+            sage: T = TermMonoid('exact', G, ZZ)
+            sage: T(TermMonoid('exact', G, QQ)(x, coefficient=42))
+            42*x
+            sage: T(TermMonoid('O', G, QQ)(x))
+            x
+            sage: T(TermMonoid('B', G, QQ)(x, coefficient=42))
+            42*x
+            sage: T(TermMonoid('B', G, QQ)(x, coefficient=42, valid_from={'x': 7}))
+            42*x
         """
-        pass
+        if 'parent' in kwds_construction and isinstance(kwds_construction['parent'], BTermMonoid):
+            try:
+                del kwds_construction['valid_from']
+            except KeyError:
+                pass
 
     def _repr_(self):
         r"""

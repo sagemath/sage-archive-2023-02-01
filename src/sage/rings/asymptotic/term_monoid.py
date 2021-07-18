@@ -692,7 +692,7 @@ class GenericTerm(MultiplicativeGroupElement):
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: G_QQ = GrowthGroup('x^QQ'); x = G_QQ.gen()
-            sage: OT = TermMonoid('O', G_QQ, coefficient_ring=ZZ)
+            sage: OT = TermMonoid('O', G_QQ, coefficient_ring=QQ)
             sage: ET = TermMonoid('exact', G_QQ, coefficient_ring=QQ)
             sage: ot1 = OT(x); ot2 = OT(x^2)
             sage: et1 = ET(x, coefficient=100); et2 = ET(x^2, coefficient=2)
@@ -2604,7 +2604,7 @@ class OTerm(GenericTerm):
             sage: t2.can_absorb(t1)
             True
         """
-        return other <= self
+        return self.growth >= other.growth
 
     def _absorb_(self, other):
         r"""
@@ -3050,8 +3050,8 @@ class OTermMonoid(GenericTermMonoid):
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
-            sage: G_ZZ = GrowthGroup('x^ZZ'); x_ZZ = G_ZZ.gen()
-            sage: G_QQ = GrowthGroup('x^QQ'); x_QQ = G_QQ.gen()
+            sage: G_ZZ = GrowthGroup('x^ZZ')
+            sage: G_QQ = GrowthGroup('x^QQ')
             sage: OT_ZZ = TermMonoid('O', G_ZZ, QQ)
             sage: OT_QQ = TermMonoid('O', G_QQ, QQ)
             sage: ET = TermMonoid('exact', G_ZZ, ZZ)
@@ -3068,9 +3068,14 @@ class OTermMonoid(GenericTermMonoid):
             True
             sage: ET.has_coerce_map_from(OT_ZZ)  # indirect doctest
             False
+            sage: OT_ZZ.has_coerce_map_from(OT_QQ)  # indirect doctest
+            False
+            sage: OT_ZZ.has_coerce_map_from(ET)  # indirect doctest
+            True
         """
         if isinstance(S, (ExactTermMonoid,)):
-            if self.growth_group.has_coerce_map_from(S.growth_group):
+            if self.growth_group.has_coerce_map_from(S.growth_group) and \
+                    self.coefficient_ring.has_coerce_map_from(S.coefficient_ring):
                 return True
         else:
             return super(OTermMonoid, self)._coerce_map_from_(S)

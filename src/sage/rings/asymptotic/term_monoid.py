@@ -2018,7 +2018,6 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
         if 'coefficient' in kwds_construction:
             kwds_construction['coefficient'] = coefficient
 
-    @cached_method
     def _default_kwds_construction_(self):
         r"""
         Return the default keyword arguments for the construction of a term.
@@ -3578,7 +3577,6 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
                              f'since no coefficient is given.')
         super()._validate_coefficient_or_error_(kwds_construction)
 
-    @cached_method
     def _default_kwds_construction_(self):
         r"""
         Return the default keyword arguments for the construction of a term.
@@ -3604,7 +3602,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
             x
         """
         defaults = {}
-        defaults.update(GenericTermMonoid._default_kwds_construction_())
+        defaults.update(super()._default_kwds_construction_())
         defaults.update({'coefficient': self.coefficient_ring.one()})
         return defaults
 

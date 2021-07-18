@@ -3980,7 +3980,7 @@ class BTerm(TermWithCoefficient):
     r"""
     This class implements the base structure for parents of BTerms.
 
-    Examples of BTerms with explanation:
+    Examples of B-terms with explanation:
 
     - ``BT_ZZ(x^2, 5, valid_from={'x': 3})``. This is a term whose absolute value is bounded by ``5|x|^2 for |x| >= 3``.
 
@@ -4014,11 +4014,11 @@ class BTerm(TermWithCoefficient):
         FutureWarning: This class/method/function is marked as experimental. It,
         its functionality or its interface might change without a formal deprecation.
         See https://trac.sagemath.org/31922 for details.
-        BTerm with coefficient 3, growth x and valid for x >= 20
+        B-Term with coefficient 3, growth x and valid for x >= 20
 
     .. WARNING::
 
-        As this code is experimental, warnings are thrown when a BTerm
+        As this code is experimental, warnings are thrown when a B-term
         is created for the first time in a session (see
         :class:`sage.misc.superseded.experimental`).
     """
@@ -4039,13 +4039,13 @@ class BTerm(TermWithCoefficient):
             sage: BT_QQ(x^3, 3, valid_from={'m': 20})
             Traceback (most recent call last):
             ...
-            ValueError: BTerm has valid_from variables defined which do
+            ValueError: B-Term has valid_from variables defined which do
             not occur in the term.
             sage: BT_QQ(x^3, 0, valid_from={'x': 20})
             Traceback (most recent call last):
             ...
             ZeroCoefficientError: Zero coefficient 0 is not allowed in
-            BTerm Monoid x^ZZ with coefficients in Rational Field.
+            B-Term Monoid x^ZZ with coefficients in Rational Field.
 
             sage: BT_ZZ = BTermMonoid(TermMonoid, G, ZZ)
             sage: BT_ZZ(x, 1/2, valid_from={'x': 20})
@@ -4056,16 +4056,16 @@ class BTerm(TermWithCoefficient):
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
             sage: BT_ZZ(x^3, 42, valid_from={'x': 10})
-            BTerm with coefficient 42, growth x^3 and valid for x >= 10
+            B-Term with coefficient 42, growth x^3 and valid for x >= 10
             sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'y': 20})
-            BTerm with coefficient 42, growth x^3 and valid for x >= 10 and y >= 20
+            B-Term with coefficient 42, growth x^3 and valid for x >= 10 and y >= 20
             sage: BT_ZZ(x^3*y^2, 42, valid_from={'x': 10})
             Traceback (most recent call last):
-            ValueError: BTerm has not defined all variables which occur in the term in valid_from.
+            ValueError: B-Term has not defined all variables which occur in the term in valid_from.
             sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'z': 20})
             Traceback (most recent call last):
             ...
-            ValueError: BTerm has valid_from variables defined which do not occur in the term.
+            ValueError: B-Term has valid_from variables defined which do not occur in the term.
         """
         try:
             coefficient = parent.coefficient_ring(coefficient)
@@ -4082,11 +4082,11 @@ class BTerm(TermWithCoefficient):
 
         for variable_name in self.valid_from.keys():
             if variable_name not in parent.growth_group.variable_names():
-                raise ValueError('BTerm has valid_from variables defined which do not occur in the term.')
+                raise ValueError('B-Term has valid_from variables defined which do not occur in the term.')
 
         for variable_name in growth.variable_names():
             if variable_name not in self.valid_from:
-                raise ValueError('BTerm has not defined all variables which occur in the term in valid_from.')
+                raise ValueError('B-Term has not defined all variables which occur in the term in valid_from.')
 
         super().__init__(parent=parent, growth=growth, coefficient=coefficient)
 
@@ -4111,22 +4111,22 @@ class BTerm(TermWithCoefficient):
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
             sage: BT_QQ(x^3, 3, valid_from={'x': 20})
-            BTerm with coefficient 3, growth x^3 and valid for x >= 20
+            B-Term with coefficient 3, growth x^3 and valid for x >= 20
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
             sage: BT_ZZ(x^2, 4, valid_from={'x': 10, 'y': 15})
-            BTerm with coefficient 4, growth x^2 and valid for x >= 10 and y >= 15
+            B-Term with coefficient 4, growth x^2 and valid for x >= 10 and y >= 15
         """
         valid_from_string = ' and '.join(f'{variable} >= {value}'
                                          for variable, value in self.valid_from.items())
 
-        return (f'BTerm with coefficient {self.coefficient}, growth {self.growth} '
+        return (f'B-Term with coefficient {self.coefficient}, growth {self.growth} '
                 f'and valid for {valid_from_string}')
 
     def can_absorb(self, other):
         r"""
-        Check whether this ``BTerm`` can absorb ``other``.
+        Check whether this B-term can absorb ``other``.
 
         INPUT:
 
@@ -4176,11 +4176,11 @@ class BTerm(TermWithCoefficient):
             sage: t1 = BT(x, 3, valid_from={'x': 20}); t2 = BT(x^3, 5, valid_from={'x': 5})
             sage: t3 = BT(x^3, 10, valid_from={'x': 10})
             sage: t2.absorb(t1)
-            BTerm with coefficient 2003/400, growth x^3 and valid for x >= 20
+            B-Term with coefficient 2003/400, growth x^3 and valid for x >= 20
             sage: t2.absorb(t3)
-            BTerm with coefficient 15, growth x^3 and valid for x >= 10
+            B-Term with coefficient 15, growth x^3 and valid for x >= 10
             sage: t3.absorb(t2)
-            BTerm with coefficient 15, growth x^3 and valid for x >= 10
+            B-Term with coefficient 15, growth x^3 and valid for x >= 10
         """
         if not isinstance(other, (BTerm, ExactTerm)):
             return False
@@ -4189,7 +4189,7 @@ class BTerm(TermWithCoefficient):
 
     def _absorb_(self, other):
         r"""
-        Absorb another BTerm.
+        Absorb another B-term.
 
         INPUT:
 
@@ -4205,22 +4205,22 @@ class BTerm(TermWithCoefficient):
             sage: BT = BTermMonoid(TermMonoid, G, QQ)
             sage: t1 = BT(x^3, 4, valid_from={'x': 10}); t2 = BT(x, 5, valid_from={'x': 20})
             sage: t1
-            BTerm with coefficient 4, growth x^3 and valid for x >= 10
+            B-Term with coefficient 4, growth x^3 and valid for x >= 10
             sage: t1.can_absorb(t2)
             True
             sage: t1.absorb(t2)
-            BTerm with coefficient 321/80, growth x^3 and valid for x >= 20
+            B-Term with coefficient 321/80, growth x^3 and valid for x >= 20
             sage: t2.absorb(t1)
             Traceback (most recent call last):
             ...
-            ArithmeticError: BTerm with coefficient 5, growth x and valid for x >= 20
-            cannot absorb BTerm with coefficient 4, growth x^3 and valid for x >= 10
+            ArithmeticError: B-Term with coefficient 5, growth x and valid for x >= 20
+            cannot absorb B-Term with coefficient 4, growth x^3 and valid for x >= 10
             sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
             sage: t4 = ET(x^3, 5)
             sage: t1.absorb(t4)
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for <lambda>: 'BTerm Monoid
+            TypeError: unsupported operand parent(s) for <lambda>: 'B-Term Monoid
             x^ZZ with coefficients in Rational Field' and 'Exact Term Monoid x^ZZ
             with coefficients in Rational Field'
         """
@@ -4266,7 +4266,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
         sage: G = MonomialGrowthGroup(ZZ, 'x')
         sage: BT = BTermMonoid(TermMonoid, G, QQ)
         sage: BT
-        BTerm Monoid x^ZZ with coefficients in Rational Field
+        B-Term Monoid x^ZZ with coefficients in Rational Field
     """
 
     # enable the category framework for elements
@@ -4290,9 +4290,9 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: TermMonoid('B', G, QQ)._repr_()
-            'BTerm Monoid x^ZZ with coefficients in Rational Field'
+            'B-Term Monoid x^ZZ with coefficients in Rational Field'
         """
-        return (f'BTerm Monoid {self.growth_group._repr_short_()} with '
+        return (f'B-Term Monoid {self.growth_group._repr_short_()} with '
                 f'coefficients in {self.coefficient_ring}')
 
     def _create_element_(self, growth, coefficient, valid_from):
@@ -4310,7 +4310,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
         OUTPUT:
 
-        A BTerm
+        A B-term
 
         TESTS::
 
@@ -4321,7 +4321,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = BTermMonoid(TermMonoid, G, QQ)
             sage: BT(x^3, 4, valid_from={'x': 10})
-            BTerm with coefficient 4, growth x^3 and valid for x >= 10
+            B-Term with coefficient 4, growth x^3 and valid for x >= 10
             sage: BT(x^3, 4, valid_from=10)
             Traceback (most recent call last):
             ...

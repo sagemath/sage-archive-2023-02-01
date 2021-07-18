@@ -4519,7 +4519,7 @@ class BTerm(TermWithCoefficient):
 
         sage: G = MonomialGrowthGroup(ZZ, 'x');
         sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
-        sage: BT_QQ(x, 3, valid_from={'x': 20})
+        sage: BT_QQ(x, coefficient=3, valid_from={'x': 20})
         doctest:...:
         FutureWarning: This class/method/function is marked as experimental. It,
         its functionality or its interface might change without a formal deprecation.
@@ -4602,6 +4602,46 @@ class BTerm(TermWithCoefficient):
                 raise ValueError('BTerm has not defined all variables which occur in the term in valid_from.')
 
         super().__init__(parent=parent, growth=growth, coefficient=coefficient)
+
+    def construction(self):
+        r"""
+        Return a construction of this term.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A pair ``(cls, kwds)`` such that``cls(**kwds)`` equals this term.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+            sage: T = TermMonoid('B', GrowthGroup('x^ZZ'), QQ)
+            sage: a = T.an_element(); a
+            BTerm with coefficient 1/2, growth x and valid for x >= 42
+            sage: cls, kwds = a.construction(); cls, kwds
+            (<class 'sage.rings.asymptotic.term_monoid.BTermMonoid_with_category.element_class'>,
+             {'coefficient': 1/2,
+              'growth': x,
+              'parent': BTerm Monoid x^ZZ with coefficients in Rational Field,
+              'valid_from': {'x': 42}})
+            sage: cls(**kwds) == a
+            True
+
+        .. SEEALSO::
+
+            :meth:`GenericTerm.construction`,
+            :meth:`TermWithCoefficient.construction`,
+            :meth:`GenericTermMonoid.from_construction`
+        """
+        cls, kwds = super().construction()
+        kwds.update({'valid_from': self.valid_from})
+        return cls, kwds
 
     def _repr_(self):
         r"""
@@ -4733,11 +4773,7 @@ class BTerm(TermWithCoefficient):
             sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
             sage: t4 = ET(x^3, coefficient=5)
             sage: t1.absorb(t4)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for <lambda>: 'BTerm Monoid
-            x^ZZ with coefficients in Rational Field' and 'Exact Term Monoid x^ZZ
-            with coefficients in Rational Field'
+            BTerm with coefficient 9, growth x^3 and valid for x >= 10
         """
         if self.growth < other.growth:
             raise ArithmeticError(f'{self} cannot absorb {other}')
@@ -4810,31 +4846,98 @@ class BTermMonoid(TermWithCoefficientMonoid):
         return (f'BTerm Monoid {self.growth_group._repr_short_()} with '
                 f'coefficients in {self.coefficient_ring}')
 
-    def _create_element_(self, growth, coefficient, valid_from):
+    def _default_kwds_construction_(self):
         r"""
-        Helper method which creates an element by using the ``element_class``.
+        Return the default keyword arguments for the construction of a term.
 
         INPUT:
 
-        - ``growth_group`` -- a growth group
-
-        - ``coefficient`` -- an element of the coefficient ring
-
-        - ``valid_from`` -- a dictionary mapping variable names to lower
-          bounds for the corresponding variable
+        Nothing.
 
         OUTPUT:
 
-        A BTerm
+        A dictionary.
 
         TESTS::
 
-            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
-            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: T = TermMonoid('B', G, ZZ)
+            sage: T._default_kwds_construction_()
+            {'coefficient': 1, 'valid_from': {'x': 0}}
+            sage: T.from_construction((None, {'growth': G.gen()}))  # indirect doctest
+            BTerm with coefficient 1, growth x and valid for x >= 0
+            sage: T.from_construction(
+            ....:     (None, {'growth': G.gen(), 'coefficient': 2}))  # indirect doctest
+            BTerm with coefficient 2, growth x and valid for x >= 0
+            sage: T.from_construction(
+            ....:     (None, {'growth': G.gen(), 'valid_from': {'x': 5}}))  # indirect doctest
+            BTerm with coefficient 1, growth x and valid for x >= 5
+        """
+        defaults = {}
+        defaults.update(super()._default_kwds_construction_())
+        defaults.update(
+            {'valid_from': {v: 0 for v in self.growth_group.variable_names()}})
+        return defaults
 
-            sage: G = MonomialGrowthGroup(ZZ, 'x')
-            sage: BT = BTermMonoid(TermMonoid, G, QQ)
+    def _convert_construction_(self, kwds_construction):
+        r"""
+        Helper method which converts the given keyword arguments
+        suitable for the term (in the element construction process).
+
+        This is used e.g. for converting one type of term into another
+
+        INPUT:
+
+        - ``kwds_construction`` -- a dictionary representing
+          the keyword arguments of a term in its construction
+          (see also :meth:`GenericTerm.construction` and
+           :meth:`TermWithCoefficient.construction`)
+
+        OUTPUT:
+
+        Nothing, but ``kwds_construction`` might be changed.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('x^ZZ')
+            sage: x = G.gen()
+            sage: T = TermMonoid('B', G, ZZ)
+
+            sage: kwds = {'growth': x}; T._convert_construction_(kwds); kwds
+            {'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': QQ(1)}; T._convert_construction_(kwds); kwds
+            {'coefficient': 1, 'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': None}; T._convert_construction_(kwds); kwds
+            {'coefficient': None, 'growth': x}
+            sage: kwds = {'growth': x, 'coefficient': 3/2}; T._convert_construction_(kwds); kwds
+            {'coefficient': 3/2, 'growth': x}
+
+        ::
+
+            sage: T = TermMonoid('B', G, ZZ)
+            sage: T(TermMonoid('exact', G, QQ)(x, coefficient=42))
+            BTerm with coefficient 42, growth x and valid for x >= 0
+            sage: T(TermMonoid('O', G, QQ)(x))
+            BTerm with coefficient 1, growth x and valid for x >= 0
+            sage: T(TermMonoid('B', G, QQ)(x, coefficient=42))
+            BTerm with coefficient 42, growth x and valid for x >= 0
+            sage: T(TermMonoid('B', G, QQ)(x, coefficient=42, valid_from={'x': 7}))
+            BTerm with coefficient 42, growth x and valid for x >= 7
+
+        ::
+
+            sage: T(TermMonoid('exact', G, QQ)(x, coefficient=-42))
+            BTerm with coefficient 42, growth x and valid for x >= 0
+
+        ::
+
+            sage: BT = TermMonoid('B', G, QQ)
             sage: BT(x^3, coefficient=4, valid_from={'x': 10})
             BTerm with coefficient 4, growth x^3 and valid for x >= 10
             sage: BT(x^3, coefficient=4, valid_from=10)
@@ -4846,7 +4949,8 @@ class BTermMonoid(TermWithCoefficientMonoid):
             ...
             TypeError: _element_constructor_() takes from 2 to 3 positional arguments but 4 were given
         """
-        return self.element_class(self, growth, coefficient, valid_from)
+        # TODO handle negative coefficients of exact terms etc.
+        pass
 
     def _coerce_map_from_(self, S):
         r"""

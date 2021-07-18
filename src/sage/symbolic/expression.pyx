@@ -6342,7 +6342,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             R = CallableSymbolicExpressionRing(args, check=False)
             return R(self)
-        raise TypeError("Must construct a function with a tuple (or list) of symbolic variables.")
+        raise TypeError(f"must construct a function with symbolic variables as arguments, got {args}.")
 
     ############################################################################
     # Basic arithmetic wrappers

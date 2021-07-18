@@ -2,7 +2,7 @@
 Miscellaneous utilities
 """
 
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 deprecation(27099, "the module sage.structure.misc is deprecated")
 
 def is_extension_type(cls):

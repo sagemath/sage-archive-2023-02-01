@@ -98,6 +98,8 @@ def deprecation(trac_number, message, stacklevel=4):
     """
     warning(trac_number, message, DeprecationWarning, stacklevel)
 
+def deprecation_cython(trac_number, message, stacklevel=3):
+    warning(trac_number, message, DeprecationWarning, stacklevel)
 
 def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     r"""

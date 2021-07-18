@@ -1363,7 +1363,7 @@ class RecurrenceParser(object):
 
         return (M, m, coeffs, initial_values)
 
-    def parameters(self, M, m, coeffs, initial_values, offset):
+    def parameters(self, M, m, coeffs, initial_values, offset=0):
         r"""
         Determine parameters from recurrence relations as admissible in
         :meth:`kRegularSequenceSpace.from_recurrence`.
@@ -2079,7 +2079,7 @@ class RecurrenceParser(object):
 
         return right
 
-    def __call__(self, *args, offset=0):
+    def __call__(self, *args, **kwds):
         r"""
         Construct a `k`-linear representation that fulfills the recurrence relations
         given in ``equations``.
@@ -2106,6 +2106,7 @@ class RecurrenceParser(object):
             n
             sage: function('f')
             f
+
             sage: RP([f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
             ....:     f(0) == 0, f(1) == 1], f, n)
             ([
@@ -2115,7 +2116,29 @@ class RecurrenceParser(object):
              ],
              (1, 0, 0),
              (0, 1, 1))
+
+            sage: RP(equations=[f(2*n) == f(n), f(2*n + 1) == f(n) + f(n + 1),
+            ....:     f(0) == 0, f(1) == 1], function=f, var=n)
+            ([
+              [1 0 0]  [1 1 0]
+              [1 1 0]  [0 1 0]
+              [0 1 0], [0 1 1]
+             ],
+             (1, 0, 0),
+             (0, 1, 1))
+
             sage: RP(1, 0, {(0, 0): 1, (1, 0): 1, (1, 1): 1}, {0: 0, 1: 1})
+            ([
+              [1 0 0]  [1 1 0]
+              [1 1 0]  [0 1 0]
+              [0 1 0], [0 1 1]
+             ],
+             (1, 0, 0),
+             (0, 1, 1))
+
+            sage: RP(M=1, m=0,
+            ....:    coeffs={(0, 0): 1, (1, 0): 1, (1, 1): 1},
+            ....:    initial_values={0: 0, 1: 1})
             ([
               [1 0 0]  [1 1 0]
               [1 1 0]  [0 1 0]
@@ -2129,12 +2152,23 @@ class RecurrenceParser(object):
         k = self.k
         if len(args) == 3:
             M, m, coeffs, initial_values = self.parse_recurrence(*args)
+        elif len(args) == 0 and all(kwd in kwds for kwd in ['equations', 'function', 'var']):
+            args = (kwds.pop('equations'),
+                    kwds.pop('function'),
+                    kwds.pop('var'))
+            M, m, coeffs, initial_values = self.parse_recurrence(*args)
         elif len(args) == 4:
             M, m, coeffs, initial_values = self.parse_direct_arguments(*args)
+        elif len(args) == 0 and all(kwd in kwds for kwd in ['M', 'm', 'coeffs', 'initial_values']):
+            args = (kwds.pop('M'),
+                    kwds.pop('m'),
+                    kwds.pop('coeffs'),
+                    kwds.pop('initial_values'))
+            M, m, coeffs, initial_values = self.parse_direct_arguments(*args)
         else:
-            raise ValueError("Number of positional arguments must be three or four.")
+            raise ValueError("Number of positional arguments must be three or four or all arguments provided as keywords.")
 
-        recurrence_rules = self.parameters(M, m, coeffs, initial_values, offset)
+        recurrence_rules = self.parameters(M, m, coeffs, initial_values, **kwds)
 
         mu = [self.matrix(recurrence_rules, rem)
               for rem in srange(k)]

@@ -1613,7 +1613,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
     def _find_minimum_(self, valid_from):
         r"""
-        Find the minimum of this growth element over the range implied by valid_from.
+        Find the minimum of this growth element over the range implied by ``valid_from``.
 
         INPUT:
 
@@ -1622,7 +1622,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
           all variables are at least their corresponding lower bound
         OUTPUT:
 
-        The minimum
+        A number
 
         TESTS::
 
@@ -1632,10 +1632,9 @@ class GenericGrowthElement(MultiplicativeGroupElement):
             sage: G(raw_element=42)._find_minimum_(valid_from={'m': 10})
             Traceback (most recent call last):
             ...
-            NotImplementedError: find minimum for GenericGrowthElement(42) not implemented.
+            NotImplementedError: find minimum for GenericGrowthElement(42) not implemented
         """
-        raise NotImplementedError(f'find minimum for {self} '
-                                  'not implemented.')
+        raise NotImplementedError(f'find minimum for {self} not implemented')
 
 
 class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
@@ -2808,14 +2807,14 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
 class DecreasingGrowthElementError(ValueError):
     r"""
     A special :python:`ValueError<library/exceptions.html#exceptions.ValueError>`
-    which is raised when a GrowthElement is less than one.
+    which is raised when a growth element is less than one.
 
     INPUT:
 
     - ``element`` -- a :class:`GenericGrowthElement`
 
-    The remaining argument passed on to
-    :python:`ValueError<library/exceptions.html#exceptions.ValueError>`
+    The remaining arguments are passed on to
+    :python:`ValueError<library/exceptions.html#exceptions.ValueError>`.
     """
     def __init__(self, element, *args, **kwds):
         r"""
@@ -3365,7 +3364,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
     def _find_minimum_(self, valid_from):
         r"""
-        Find the minimum of this growth element over the range implied by valid_from.
+        Find the minimum of this growth element over the range implied by ``valid_from``.
 
         INPUT:
 
@@ -3375,7 +3374,7 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         OUTPUT:
 
-        The minimum
+        A number
 
         TESTS::
 
@@ -3397,16 +3396,16 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: l1._find_minimum_(valid_from={'x': 5})
             Traceback (most recent call last):
             ...
-            NotImplementedError: log(x)^2 is not implemented yet
+            NotImplementedError: log(x)^2 is not implemented
             sage: I = GrowthGroup('log(log(x))^ZZ')
             sage: l2 = I(raw_element=5)
             sage: l2._find_minimum_(valid_from={'x': 5})
             Traceback (most recent call last):
             ...
-            NotImplementedError: log(log(x))^5 is not implemented yet
+            NotImplementedError: log(log(x))^5 is not implemented
         """
         if not self.parent().gens_monomial():
-            raise NotImplementedError(f'{self} is not implemented yet')
+            raise NotImplementedError(f'{self} is not implemented')
         if self.is_lt_one():
             raise DecreasingGrowthElementError(self, f'the growth of {self} is less than one')
         elif self.is_one():

@@ -3295,8 +3295,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 class ExactTerm(TermWithCoefficient):
     r"""
     Class for asymptotic exact terms. These terms primarily consist of
-    an asymptotic growth element as well as a coefficient specifying
-    the growth of the asymptotic term.
+    an asymptotic growth element as well as a coefficient.
 
     INPUT:
 
@@ -4011,7 +4010,7 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
 
 class BTerm(TermWithCoefficient):
     r"""
-    This class implements the base structure for parents of BTerms.
+    Class for asymptotic B-terms.
 
     We first explain what B-terms are. With
     ::
@@ -4127,7 +4126,7 @@ class BTerm(TermWithCoefficient):
 
     def _repr_(self, latex=False):
         r"""
-        A representation string for this B term.
+        A representation string for this B-term.
 
         INPUT:
 
@@ -4232,7 +4231,8 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = TermMonoid('B', G, QQ)
-            sage: t1 = BT(x, 3, valid_from={'x': 20}); t2 = BT(x^3, 5, valid_from={'x': 5})
+            sage: t1 = BT(x, 3, valid_from={'x': 20})
+            sage: t2 = BT(x^3, 5, valid_from={'x': 5})
             sage: t3 = BT(x^3, 10, valid_from={'x': 10})
             sage: t2.absorb(t1)
             B(2003/400*x^3, x >= 20)
@@ -4413,8 +4413,8 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
-            sage: G_ZZ = GrowthGroup('x^ZZ'); x_ZZ = G_ZZ.gen()
-            sage: G_QQ = GrowthGroup('x^QQ'); x_QQ = G_QQ.gen()
+            sage: G_ZZ = GrowthGroup('x^ZZ')
+            sage: G_QQ = GrowthGroup('x^QQ')
             sage: BT_ZZ = TermMonoid('B', G_ZZ, QQ)
             sage: BT_QQ = TermMonoid('B', G_QQ, QQ)
             sage: ET = TermMonoid('exact', G_ZZ, ZZ)
@@ -4431,6 +4431,10 @@ class BTermMonoid(TermWithCoefficientMonoid):
             True
             sage: ET.has_coerce_map_from(BT_ZZ)  # indirect doctest
             False
+            sage: BT_ZZ.has_coerce_map_from(BT_QQ)  # indirect doctest
+            False
+            sage: BT_ZZ.has_coerce_map_from(ET)  # indirect doctest
+            True
         """
         if isinstance(S, (ExactTermMonoid,)):
             if self.growth_group.has_coerce_map_from(S.growth_group) and \

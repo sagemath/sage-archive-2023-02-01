@@ -40,27 +40,6 @@ wraps a callable Python function. These may be combined with the
 standard Python arithmetic operators, and support many of the basic
 math functions such ``sqrt``, ``exp``, and trig functions.
 
-EXAMPLES::
-
-    sage: from sage.ext.fast_eval import fast_float
-    sage: f = fast_float(sqrt(x^7+1), 'x', old=True)
-    sage: f(1)
-    1.4142135623730951
-    sage: f.op_list()
-    ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)']
-
-To interpret that last line, we load argument 0 (``x`` in this case) onto
-the stack, push the constant 2.0 onto the stack, call the pow function
-(which takes 2 arguments from the stack), push the constant 1.0, add the
-top two arguments of the stack, and then call sqrt.
-
-Here we take ``sin`` of the first argument and add it to ``f``::
-
-    sage: from sage.ext.fast_eval import fast_float_arg
-    sage: g = fast_float_arg(0).sin()
-    sage: (f+g).op_list()
-    ['load 0', 'push 7.0', 'pow', 'push 1.0', 'add', 'call sqrt(1)', 'load 0', 'call sin(1)', 'add']
-
 TESTS:
 
 This used to segfault because of an assumption that assigning None to a
@@ -1332,8 +1311,6 @@ def fast_float_func(f, *args):
     return FastDoubleFunc('callable', f, *args)
 
 
-new_fast_float=True
-
 def fast_float(f, *vars, old=None, expect_one_var=False):
     """
     Tries to create a function that evaluates f quickly using
@@ -1347,7 +1324,7 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
 
     - ``f``    -- an expression
     - ``vars`` -- the names of the arguments
-    - ``old``  -- use the original algorithm for fast_float
+    - ``old``  -- deprecated, do not use
     - ``expect_one_var`` -- don't give deprecation warning if ``vars`` is
       omitted, as long as expression has only one var
 
@@ -1369,8 +1346,11 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
         sage: f(1,2)
         1.0
     """
-    if old is None:
-        old = not new_fast_float
+    if old:
+        raise ValueError("the old implementation of fast_float has been removed")
+    if old is not None:
+        from sage.misc.superseded import deprecation
+        deprecation(32234, "passing old=False to fast_float is deprecated")
 
     if isinstance(f, (tuple, list)):
         return tuple([fast_float(x, *vars, expect_one_var=expect_one_var) for x in f])
@@ -1385,11 +1365,8 @@ def fast_float(f, *vars, old=None, expect_one_var=False):
             vars = vars[:i] + (v,) + vars[i+1:]
 
     try:
-        if old:
-            return f._fast_float_(*vars)
-        else:
-            return fast_callable(f, vars=vars, domain=float,
-                                 expect_one_var=expect_one_var)
+        return fast_callable(f, vars=vars, domain=float,
+                             expect_one_var=expect_one_var)
     except AttributeError:
         pass
 

@@ -388,18 +388,17 @@ class GenericTerm(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
 
-            sage: OT = OTermMonoid(TermMonoid, GrowthGroup('x^ZZ'), QQ)
-            sage: o = OT.an_element(); o
+            sage: T = TermMonoid('O', GrowthGroup('x^ZZ'), QQ)
+            sage: a = T.an_element(); a
             O(x)
-            sage: cls, kwds = o.construction(); cls, kwds
+            sage: cls, kwds = a.construction(); cls, kwds
             (<class 'sage.rings.asymptotic.term_monoid.OTermMonoid_with_category.element_class'>,
             {'growth': x,
              'parent': O-Term Monoid x^ZZ with implicit coefficients in Rational Field})
-            sage: cls(**kwds) == o
+            sage: cls(**kwds) == a
             True
 
         .. SEEALSO::
@@ -3206,19 +3205,18 @@ class TermWithCoefficient(GenericTerm):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import ExactTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
 
-            sage: OT = ExactTermMonoid(TermMonoid, GrowthGroup('x^ZZ'), QQ)
-            sage: e = OT.an_element(); e
+            sage: T = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
+            sage: a = T.an_element(); a
             1/2*x
-            sage: cls, kwds = e.construction(); cls, kwds
+            sage: cls, kwds = a.construction(); cls, kwds
             (<class 'sage.rings.asymptotic.term_monoid.ExactTermMonoid_with_category.element_class'>,
              {'coefficient': 1/2,
               'growth': x,
               'parent': Exact Term Monoid x^ZZ with coefficients in Rational Field})
-            sage: cls(**kwds) == e
+            sage: cls(**kwds) == a
             True
 
         .. SEEALSO::
@@ -3226,9 +3224,9 @@ class TermWithCoefficient(GenericTerm):
             :meth:`GenericTerm.construction`,
             :meth:`GenericTermMonoid.from_construction`
         """
-        return (self.__class__, {'parent': self.parent(),
-                                 'growth': self.growth,
-                                 'coefficient': self.coefficient})
+        cls, kwds = super().construction()
+        kwds.update({'coefficient': self.coefficient})
+        return cls, kwds
 
     def _repr_(self):
         r"""

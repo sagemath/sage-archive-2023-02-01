@@ -5052,6 +5052,78 @@ class BTermMonoid(TermWithCoefficientMonoid):
         else:
             return super()._coerce_map_from_(S)
 
+    def _an_element_(self):
+        r"""
+        Return an element of this B-term monoid.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An element of this term monoid.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: G = GrowthGroup('x^ZZ')
+            sage: TermMonoid('B', G, ZZ).an_element()  # indirect doctest
+            BTerm with coefficient 1, growth x and valid for x >= 42
+        """
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        return self(self.growth_group.an_element(),
+                    coefficient=self.coefficient_ring.an_element(),
+                    valid_from={v: NN.an_element()
+                                for v in self.growth_group.variable_names()})
+
+    def some_elements(self):
+        r"""
+        Return some elements of this B-term monoid.
+
+        See :class:`TestSuite` for a typical use case.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        An iterator.
+
+        EXAMPLES::
+
+            sage: from itertools import islice
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: G = GrowthGroup('z^QQ')
+            sage: T = TermMonoid('B', G, ZZ)
+            sage: tuple(islice(T.some_elements(), int(10)))
+            (BTerm with coefficient 1, growth z^(1/2) and valid for z >= 0,
+             BTerm with coefficient 1, growth z^(-1/2) and valid for z >= 1,
+             BTerm with coefficient 1, growth z^(1/2) and valid for z >= 3,
+             BTerm with coefficient 1, growth z^2 and valid for z >= 42,
+             BTerm with coefficient 1, growth z^(-1/2) and valid for z >= 0,
+             BTerm with coefficient 2, growth z^(1/2) and valid for z >= 1,
+             BTerm with coefficient 1, growth z^(-2) and valid for z >= 3,
+             BTerm with coefficient 1, growth z^2 and valid for z >= 42,
+             BTerm with coefficient 2, growth z^(-1/2) and valid for z >= 0,
+             BTerm with coefficient 2, growth z^(1/2) and valid for z >= 1)
+        """
+        from itertools import cycle
+        from sage.misc.mrange import cantor_product
+        from sage.rings.semirings.non_negative_integer_semiring import NN
+        return (self(g,
+                     coefficient=c,
+                     valid_from={v: f for v in self.growth_group.variable_names()})
+                for (g, c), f in zip(cantor_product(
+                        self.growth_group.some_elements(),
+                        (c for c in self.coefficient_ring.some_elements() if c != 0)),
+                                     cycle(NN.some_elements())))
+
 
 class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
     r"""

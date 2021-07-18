@@ -271,7 +271,7 @@ from sage.graphs.graph_decompositions.fast_digraph cimport FastDigraph, compute_
 from libc.stdint cimport uint8_t, int8_t
 from sage.data_structures.binary_matrix cimport *
 from sage.graphs.base.static_dense_graph cimport dense_graph_init
-
+from sage.misc.superseded import deprecation
 
 ###############
 # Lower Bound #
@@ -1246,7 +1246,7 @@ def width_of_path_decomposition(G, L):
 # MILP formulation for vertex separation #
 ##########################################
 
-def vertex_separation_MILP(G, integrality=False, solver=None, verbose=0,
+def vertex_separation_MILP(G, integrality=False, solver=None, verbosity=0, verbose=0,
                             *, integrality_tolerance=1e-3):
     r"""
     Compute the vertex separation of `G` and the optimal ordering of its
@@ -1274,6 +1274,10 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbose=0,
       <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
       :class:`MixedIntegerLinearProgram
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+    - ``verbosity`` -- integer (default: ``0``); sets the level of verbosity.
+      Set to 0 by default, which means quiet. This parameter is deprecated and
+      will be removed in the future. Use paramter ``verbose`` instead.
 
     - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
       to 0 by default, which means quiet.
@@ -1337,6 +1341,10 @@ def vertex_separation_MILP(G, integrality=False, solver=None, verbose=0,
         ...
         ValueError: the first input parameter must be a Graph or a DiGraph
     """
+    if verbosity:
+        deprecation(32222, "parameter verbosity is replaced by verbose")
+        verbose = verbosity
+
     from sage.graphs.graph import Graph
     from sage.graphs.digraph import DiGraph
     if not isinstance(G, Graph) and not isinstance(G, DiGraph):

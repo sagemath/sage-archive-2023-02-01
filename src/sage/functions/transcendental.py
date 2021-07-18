@@ -517,7 +517,7 @@ class DickmanRho(BuiltinFunction):
             try:
                 x = RR(x)
             except (TypeError, ValueError):
-                return None #PrimitiveFunction.__call__(self, SR(x))
+                return None
         if x < 0:
             return x.parent()(0)
         elif x <= 1:

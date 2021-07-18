@@ -331,8 +331,8 @@ def OA_and_oval(q, *, solver=None, integrality_tolerance=1e-3):
     columns.
 
     This `OA` is build from a projective plane of order `q`, in which there
-    exists an oval `O` of size `q+1` (i.e. a set of `q+1` points no three of which
-    are [colinear/contained in a common set of the projective plane]).
+    exists an oval `O` of size `q+1` (i.e. a set of `q+1` points no three of
+    which are [colinear/contained in a common set of the projective plane]).
 
     Removing an element `x\in O` and all sets that contain it, we obtain a
     `TD(q+1,q)` in which `O` intersects all columns except one. As `O` is an
@@ -342,10 +342,10 @@ def OA_and_oval(q, *, solver=None, integrality_tolerance=1e-3):
 
     - ``q`` -- a prime power
 
-    - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
-      (MILP) solver to be used. If set to ``None``, the default one is used. For more
-      information on MILP solvers and which default solver is used, see the
-      method :meth:`solve
+    - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
       <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
       :class:`MixedIntegerLinearProgram
       <sage.numerical.mip.MixedIntegerLinearProgram>`.

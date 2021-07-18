@@ -1414,10 +1414,10 @@ def OA_find_disjoint_blocks(OA, k, n, x,
 
     - ``k``, ``n``, ``x`` (integers)
 
-    - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
-      (MILP) solver to be used. If set to ``None``, the default one is used. For more
-      information on MILP solvers and which default solver is used, see the
-      method :meth:`solve
+    - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
       <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
       :class:`MixedIntegerLinearProgram
       <sage.numerical.mip.MixedIntegerLinearProgram>`.

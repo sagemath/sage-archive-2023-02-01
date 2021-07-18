@@ -1548,19 +1548,20 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         - ``s`` - (default to ``2``) the maximum number of points from the arc
           in each block
 
-        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
-          (MILP) solver to be used. If set to ``None``, the default one is used. For
-          more information on MILP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear
+          Programming (MILP) solver to be used. If set to ``None``, the default
+          one is used. For more information on MILP solvers and which default
+          solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
-        - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
-          inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over
+          an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES::
 
@@ -1640,8 +1641,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
             p.add_constraint(p.sum(b[k] for k in i) <= s)
         p.solve(log=verbose)
 
-        return [self._points[i]
-                for (i,j) in p.get_values(b, convert=bool, tolerance=integrality_tolerance).items()
-                if j]
+        values = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+        return [self._points[i] for (i,j) in values.items() if j]
 
 BIBD = BalancedIncompleteBlockDesign

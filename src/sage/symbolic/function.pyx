@@ -1619,8 +1619,6 @@ cdef class DeprecatedSFunction(SymbolicFunction):
 
         SymbolicFunction.__init__(self, name, nargs, latex_name, None)
 
-SFunction = DeprecatedSFunction
-
 
 def get_sfunction_from_serial(serial):
     """

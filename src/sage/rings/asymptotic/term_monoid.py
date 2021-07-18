@@ -4004,11 +4004,10 @@ class BTerm(TermWithCoefficient):
     EXAMPLES::
 
         sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-        sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
         sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
         sage: G = MonomialGrowthGroup(ZZ, 'x');
-        sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
+        sage: BT_QQ = TermMonoid('B', G, QQ)
         sage: BT_QQ(x, 3, valid_from={'x': 20})
         doctest:...:
         FutureWarning: This class/method/function is marked as experimental. It,
@@ -4031,11 +4030,10 @@ class BTerm(TermWithCoefficient):
 
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: G = MonomialGrowthGroup(ZZ, 'x');
-            sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
+            sage: BT_QQ = TermMonoid('B', G, QQ)
             sage: BT_QQ(x^3, 3, valid_from={'m': 20})
             Traceback (most recent call last):
             ...
@@ -4047,14 +4045,14 @@ class BTerm(TermWithCoefficient):
             ZeroCoefficientError: Zero coefficient 0 is not allowed in
             B-Term Monoid x^ZZ with coefficients in Rational Field.
 
-            sage: BT_ZZ = BTermMonoid(TermMonoid, G, ZZ)
+            sage: BT_ZZ = TermMonoid('B', G, ZZ)
             sage: BT_ZZ(x, 1/2, valid_from={'x': 20})
             Traceback (most recent call last):
             ...
             ValueError: 1/2 is not a coefficient in Integer Ring.
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
-            sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
+            sage: BT_ZZ = TermMonoid('B', B, ZZ)
             sage: BT_ZZ(x^3, 42, valid_from={'x': 10})
             B-Term with coefficient 42, growth x^3 and valid for x >= 10
             sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'y': 20})
@@ -4105,16 +4103,15 @@ class BTerm(TermWithCoefficient):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: G = MonomialGrowthGroup(ZZ, 'x');
-            sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
+            sage: BT_QQ = TermMonoid('B', G, QQ)
             sage: BT_QQ(x^3, 3, valid_from={'x': 20})
             B-Term with coefficient 3, growth x^3 and valid for x >= 20
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
-            sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
+            sage: BT_ZZ = TermMonoid('B', B, ZZ)
             sage: BT_ZZ(x^2, 4, valid_from={'x': 10, 'y': 15})
             B-Term with coefficient 4, growth x^2 and valid for x >= 10 and y >= 15
         """
@@ -4168,11 +4165,10 @@ class BTerm(TermWithCoefficient):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
-            sage: BT = BTermMonoid(TermMonoid, G, QQ)
+            sage: BT = TermMonoid('B', G, QQ)
             sage: t1 = BT(x, 3, valid_from={'x': 20}); t2 = BT(x^3, 5, valid_from={'x': 5})
             sage: t3 = BT(x^3, 10, valid_from={'x': 10})
             sage: t2.absorb(t1)
@@ -4198,11 +4194,10 @@ class BTerm(TermWithCoefficient):
         EXAMPLES::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
-            sage: BT = BTermMonoid(TermMonoid, G, QQ)
+            sage: BT = TermMonoid('B', G, QQ)
             sage: t1 = BT(x^3, 4, valid_from={'x': 10}); t2 = BT(x, 5, valid_from={'x': 20})
             sage: t1
             B-Term with coefficient 4, growth x^3 and valid for x >= 10
@@ -4264,9 +4259,11 @@ class BTermMonoid(TermWithCoefficientMonoid):
         sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
         sage: G = MonomialGrowthGroup(ZZ, 'x')
-        sage: BT = BTermMonoid(TermMonoid, G, QQ)
+        sage: BT = TermMonoid('B', G, QQ)
         sage: BT
         B-Term Monoid x^ZZ with coefficients in Rational Field
+        sage: BT is BTermMonoid(TermMonoid, G, QQ)
+        True
     """
 
     # enable the category framework for elements
@@ -4315,11 +4312,10 @@ class BTermMonoid(TermWithCoefficientMonoid):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
-            sage: BT = BTermMonoid(TermMonoid, G, QQ)
+            sage: BT = TermMonoid('B', G, QQ)
             sage: BT(x^3, 4, valid_from={'x': 10})
             B-Term with coefficient 4, growth x^3 and valid for x >= 10
             sage: BT(x^3, 4, valid_from=10)

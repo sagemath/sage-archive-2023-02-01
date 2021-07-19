@@ -741,11 +741,7 @@ class NormalFormGame(SageObject, MutableMapping):
 
             sage: p1 = matrix([[1, 2], [3, 4]])
             sage: p2 = matrix([[3, 3], [1, 4], [6, 6]])
-            sage: error = NormalFormGame(p1, p2)  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: __init__() takes at most 2 arguments (3 given)
-            sage: error = NormalFormGame(p1, p2)  # py3
+            sage: error = NormalFormGame(p1, p2)
             Traceback (most recent call last):
             ...
             TypeError: __init__() takes from 1 to 2 positional arguments but 3 were given

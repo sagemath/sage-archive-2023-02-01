@@ -977,6 +977,101 @@ class Chart(UniqueRepresentation, SageObject):
                 transformations = [transformations]
         return CoordChange(chart1, chart2, *transformations)
 
+    def preimage(self, codomain_subset, name=None, latex_name=None):
+        """
+        Return the preimage (pullback) of ``codomain_subset`` under ``self``.
+
+        It is the subset of the domain of ``self`` formed by the points
+        whose coordinate vectors lie in ``codomain_subset``.
+
+        INPUT:
+
+        - ``codomain_subset`` - an instance of
+          :class:`~sage.geometry.convex_set.ConvexSet_base` or another
+          object with a ``__contains__`` method that accepts coordinate
+          vectors
+        - ``name`` -- string; name (symbol) given to the subset
+        - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
+          denote the subset; if none are provided, it is set to ``name``
+
+        OUTPUT:
+
+        - either a :class:`~sage.manifolds.manifold.TopologicalManifold` or
+          a :class:`~sage.manifolds.subsets.pullback.ManifoldSubsetPullback`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'R^2', structure='topological')
+            sage: c_cart.<x,y> = M.chart() # Cartesian coordinates on R^2
+
+        Pulling back a polytope under a chart::
+
+            sage: P = Polyhedron(vertices=[[0, 0], [1, 2], [2, 1]]); P
+            A 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+            sage: McP = c_cart.preimage(P); McP
+            Subset x_y_inv_P of the 2-dimensional topological manifold R^2
+            sage: M((1, 2)) in McP
+            True
+            sage: M((2, 0)) in McP
+            False
+
+        Pulling back the interior of a polytope under a chart::
+
+            sage: int_P = P.interior(); int_P
+            Relative interior of
+             a 2-dimensional polyhedron in ZZ^2 defined as the convex hull of 3 vertices
+            sage: McInt_P = c_cart.preimage(int_P, name='McInt_P'); McInt_P
+            Open subset McInt_P of the 2-dimensional topological manifold R^2
+            sage: M((0, 0)) in McInt_P
+            False
+            sage: M((1, 1)) in McInt_P
+            True
+
+        Pulling back a point lattice::
+
+            sage: W = span([[1, 0], [3, 5]], ZZ); W
+            Free module of degree 2 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [1 0]
+            [0 5]
+            sage: McW = c_cart.pullback(W, name='McW'); McW
+            Subset McW of the 2-dimensional topological manifold R^2
+            sage: M((4, 5)) in McW
+            True
+            sage: M((4, 4)) in McW
+            False
+
+        Pulling back a real vector subspaces::
+
+            sage: V = span([[1, 2]], RR); V
+            Vector space of degree 2 and dimension 1 over Real Field with 53 bits of precision
+            Basis matrix:
+            [1.00000000000000 2.00000000000000]
+            sage: McV = c_cart.pullback(V, name='McV'); McV
+            Subset McV of the 2-dimensional topological manifold R^2
+            sage: M((2, 4)) in McV
+            True
+            sage: M((1, 0)) in McV
+            False
+
+        Pulling back a finite set of points::
+
+            sage: F = Family([vector(QQ, [1, 2], immutable=True),
+            ....:             vector(QQ, [2, 3], immutable=True)])
+            sage: McF = c_cart.pullback(F, name='McF'); McF
+            Subset McF of the 2-dimensional topological manifold R^2
+            sage: M((2, 3)) in McF
+            True
+            sage: M((0, 0)) in McF
+            False
+
+        """
+        from .subsets.pullback import ManifoldSubsetPullback
+        return ManifoldSubsetPullback(self, codomain_subset,
+                                      name=name, latex_name=latex_name)
+
+    pullback = preimage
+
     def function_ring(self):
         """
         Return the ring of coordinate functions on ``self``.
@@ -1054,7 +1149,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: type(f)
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
             sage: f.display()
-            (x, y) |--> sin(x*y)
+            (x, y) ↦ sin(x*y)
             sage: f(2,3)
             sin(6)
 
@@ -1109,7 +1204,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function()
             0
             sage: X.zero_function().display()
-            (x, y) |--> 0
+            (x, y) ↦ 0
             sage: type(X.zero_function())
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
@@ -1127,7 +1222,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.zero_function()
             0
             sage: X.zero_function().display()
-            (x, y) |--> 0
+            (x, y) ↦ 0
 
         """
         return self.function_ring().zero()
@@ -1163,7 +1258,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.one_function()
             1
             sage: X.one_function().display()
-            (x, y) |--> 1
+            (x, y) ↦ 1
             sage: type(X.one_function())
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
@@ -1181,7 +1276,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: X.one_function()
             1 + O(5^20)
             sage: X.one_function().display()
-            (x, y) |--> 1 + O(5^20)
+            (x, y) ↦ 1 + O(5^20)
 
         """
         return self.function_ring().one()
@@ -1229,7 +1324,7 @@ class Chart(UniqueRepresentation, SageObject):
             sage: parent(f.expr())
             Symbolic Ring
             sage: f.display()
-            (x, y) |--> x^2 + cos(y)*sin(x)
+            (x, y) ↦ x^2 + cos(y)*sin(x)
 
         Changing to SymPy::
 
@@ -1241,13 +1336,13 @@ class Chart(UniqueRepresentation, SageObject):
             sage: parent(f.expr())
             <class 'sympy.core.add.Add'>
             sage: f.display()
-            (x, y) |--> x**2 + sin(x)*cos(y)
+            (x, y) ↦ x**2 + sin(x)*cos(y)
 
         Back to the Symbolic Ring::
 
             sage: X.calculus_method().set('SR')
             sage: f.display()
-            (x, y) |--> x^2 + cos(y)*sin(x)
+            (x, y) ↦ x^2 + cos(y)*sin(x)
 
         """
         return self._calc_method

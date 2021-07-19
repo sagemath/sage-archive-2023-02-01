@@ -205,10 +205,18 @@ from sage.env import DOT_SAGE, LOCAL_IDENTIFIER
 from sage.docs.instancedoc import instancedoc
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.rings.infinity import infinity
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.libs.pynac.pynac', ['symbol_table'])
 lazy_import('sage.calculus.var', ['var', 'function'])
+lazy_import('sage.symbolic.constants', ['I', 'e', 'pi'])
 
+FRICAS_CONSTANTS = {'%i': I,
+                    '%e': e,
+                    '%pi': pi,
+                    'infinity': infinity,
+                    'plusInfinity': infinity,
+                    'minusInfinity': -infinity}
 
 FRICAS_SINGLE_LINE_START = 3  # where output starts when it fits next to the line number
 FRICAS_MULTI_LINE_START = 2   # and when it doesn't
@@ -252,7 +260,6 @@ FRICAS_HELPER_CODE = (
 FRICAS_LINENUMBER_OFF_CODE = ")lisp (setf |$IOindex| NIL)"
 FRICAS_FIRST_PROMPT = r"\(1\) -> "
 FRICAS_LINENUMBER_OFF_PROMPT = r"\(NIL\) -> "
-
 
 class FriCAS(ExtraTabCompletion, Expect):
     """
@@ -1305,9 +1312,18 @@ class FriCASElement(ExpectElement):
             sage: FriCASElement._parse_other("abc -1.23", 4)
             (-1.23, 8)
 
-        This function uses the symbol table to translate symbols
-        which are not function calls.  At least ``%pi`` is an
-        example showing that this may be necessary::
+        This function cannot use the symbol table to translate
+        symbols which are not function calls, as :trac:`31849` shows
+        - ``D`` would erroneously be interpreted as differential
+        then::
+
+            sage: var("D")
+            D
+            sage: integrate(D/x, x, algorithm="fricas")                         # optional - fricas
+            D*log(x)
+
+        However, it does have to check for constants, for example
+        ``%pi``::
 
             sage: FriCASElement._parse_other("%pi")
             (pi, 2)
@@ -1332,7 +1348,7 @@ class FriCASElement(ExpectElement):
                     e = float(e)
                 except ValueError:
                     try:
-                        e = symbol_table["fricas"][e]
+                        e = FRICAS_CONSTANTS[e]
                     except KeyError:
                         e = var(e.replace("%", "_"))
         return e, a - 1
@@ -1595,9 +1611,9 @@ class FriCASElement(ExpectElement):
             gamma(3/4)
             sage: fricas.Gamma(3, 2).sage()                                     # optional - fricas
             gamma(3, 2)
+
         """
         from sage.libs.pynac.pynac import register_symbol
-        from sage.symbolic.constants import e, pi, I
         from sage.calculus.functional import diff
         from sage.functions.log import dilog, lambert_w
         from sage.functions.trig import sin, cos, tan, cot, sec, csc
@@ -1605,13 +1621,7 @@ class FriCASElement(ExpectElement):
         from sage.functions.other import abs
         from sage.functions.gamma import gamma
         from sage.misc.functional import symbolic_sum, symbolic_prod
-        from sage.rings.infinity import infinity
-        register_symbol(I, {'fricas': '(%i::EXPR Complex INT)'})
-        register_symbol(e, {'fricas': '%e'})
-        register_symbol(pi, {'fricas': 'pi'})  # fricas uses both pi and %pi
-        register_symbol(lambda: infinity, {'fricas': 'infinity'})
-        register_symbol(lambda: infinity, {'fricas': 'plusInfinity'})
-        register_symbol(lambda: -infinity, {'fricas': 'minusInfinity'})
+        register_symbol(pi, {'fricas': 'pi'}) # pi is also a function in fricas
         register_symbol(cos, {'fricas': 'cos'})
         register_symbol(sin, {'fricas': 'sin'})
         register_symbol(tan, {'fricas': 'tan'})

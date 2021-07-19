@@ -383,7 +383,8 @@ class QuotientRingElement(RingElement):
         """
         # Special case: if self==0 (and right is nonzero), just return self.
         if not self:
-            if not right: raise ZeroDivisionError
+            if not right:
+                raise ZeroDivisionError
             return self
 
         # We are computing L/R modulo the ideal.

@@ -420,7 +420,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         """
         self._Vrepresentation = []
         self._Hrepresentation = []
-        self.parent()._make_Equation(self, [-1] + [0]*self.ambient_dim())
+        self.parent()._make_Equation(self, [-1] + [0] * self.ambient_dim())
         self._Vrepresentation = tuple(self._Vrepresentation)
         self._Hrepresentation = tuple(self._Hrepresentation)
 
@@ -3313,6 +3313,37 @@ class Polyhedron_base(Element, ConvexSet_closed):
             accumulator += r.vector()
         accumulator.set_immutable()
         return accumulator
+
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self``.
+
+        If ``self`` is empty, no points are generated; no exception will be raised.
+
+        EXAMPLES::
+
+            sage: P = polytopes.simplex()
+            sage: P.an_element()            # indirect doctest
+            (1/4, 1/4, 1/4, 1/4)
+            sage: P.some_elements()         # indirect doctest
+            [(1/4, 1/4, 1/4, 1/4),
+             (0, 0, 0, 1),
+             (0, 0, 1/2, 1/2),
+             (0, 1/2, 1/4, 1/4),
+             (1/2, 1/4, 1/8, 1/8)]
+        """
+        if self.is_empty():
+            return
+        yield self.representative_point()
+        vertex_iter = iter(self.vertex_generator())
+        try:
+            p = next(vertex_iter).vector()
+            yield vector(p, immutable=True)
+            for i in range(4):
+                p = (p + next(vertex_iter).vector()) / 2
+                yield vector(p, immutable=True)
+        except StopIteration:
+            pass
 
     def a_maximal_chain(self):
         r"""
@@ -10482,6 +10513,26 @@ class Polyhedron_base(Element, ConvexSet_closed):
             if self.n_vertices():
                 tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))
 
+    def affine_hull(self, *args, **kwds):
+        """
+        Return the affine hull of ``self`` as a polyhedron.
+
+        EXAMPLES::
+
+            sage: half_plane_in_space = Polyhedron(ieqs=[(0,1,0,0)], eqns=[(0,0,0,1)])
+            sage: half_plane_in_space.affine_hull().Hrepresentation()
+            (An equation (0, 0, 1) x + 0 == 0,)
+
+            sage: polytopes.cube().affine_hull().is_universe()
+            True
+        """
+        if args or kwds:
+            raise TypeError("the method 'affine_hull' does not take any parameters; perhaps you meant 'affine_hull_projection'")
+        if not self.inequalities():
+            return self
+        self_as_face = self.faces(self.dimension())[0]
+        return self_as_face.affine_tangent_cone()
+
     @dataclass
     class AffineHullProjectionData:
         polyhedron: Any = None
@@ -10924,12 +10975,6 @@ class Polyhedron_base(Element, ConvexSet_closed):
             ValueError: the base ring needs to be extended; try with "extend=True"
             sage: P.affine_hull_projection(orthonormal=True, extend=True)
             A 4-dimensional polyhedron in AA^4 defined as the convex hull of 6 vertices
-
-        ``affine_hull`` is a deprecated alias::
-
-            sage: _ = P.affine_hull()
-            doctest:...: DeprecationWarning: affine_hull is deprecated. Please use affine_hull_projection instead.
-            See https://trac.sagemath.org/29326 for details.
         """
         if as_polyhedron is None:
             as_polyhedron = not as_affine_map
@@ -11038,8 +11083,6 @@ class Polyhedron_base(Element, ConvexSet_closed):
         else:
             return result.polyhedron
 
-    affine_hull = deprecated_function_alias(29326, affine_hull_projection)
-
     def _test_affine_hull_projection(self, tester=None, verbose=False, **options):
         """
         Run tests on the method :meth:`.affine_hull_projection`.
@@ -11104,7 +11147,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             if i == 3:
                 # Test that the extension is indeed minimal.
                 if self.base_ring() is not AA:
-                    tester.assertFalse(data.polyhedron.base_ring() is AA)
+                    tester.assertIsNot(data.polyhedron.base_ring(), AA)
 
     def affine_hull_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
                              ambient_chart=None, names=None, **kwds):
@@ -11136,11 +11179,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: A = triangle.affine_hull_manifold(name='A'); A
             2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
             sage: A.embedding().display()
-            A --> E^3
-               (x0, x1) |--> (x, y, z) = (t0 + x0, t0 + x1, t0 - x0 - x1 + 1)
+            A → E^3
+               (x0, x1) ↦ (x, y, z) = (t0 + x0, t0 + x1, t0 - x0 - x1 + 1)
             sage: A.embedding().inverse().display()
-            E^3 --> A
-               (x, y, z) |--> (x0, x1) = (x, y)
+            E^3 → A
+               (x, y, z) ↦ (x0, x1) = (x, y)
             sage: A.adapted_chart()
             [Chart (E^3, (x0_E3, x1_E3, t0_E3))]
             sage: A.normal().display()
@@ -11155,11 +11198,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: A = triangle.affine_hull_manifold(name='A', orthogonal=True); A
             2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
             sage: A.embedding().display()
-            A --> E^3
-               (x0, x1) |--> (x, y, z) = (t0 - 1/2*x0 - 1/3*x1 + 1, t0 + 1/2*x0 - 1/3*x1, t0 + 2/3*x1)
+            A → E^3
+               (x0, x1) ↦ (x, y, z) = (t0 - 1/2*x0 - 1/3*x1 + 1, t0 + 1/2*x0 - 1/3*x1, t0 + 2/3*x1)
             sage: A.embedding().inverse().display()
-            E^3 --> A
-               (x, y, z) |--> (x0, x1) = (-x + y + 1, -1/2*x - 1/2*y + z + 1/2)
+            E^3 → A
+               (x, y, z) ↦ (x0, x1) = (-x + y + 1, -1/2*x - 1/2*y + z + 1/2)
 
         Arrangement of affine hull of facets::
 

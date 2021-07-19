@@ -3908,7 +3908,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
 
     .. NOTE::
 
-        An instance of this factory is available as ``TermMonoid``.
+        An instance of this factory is available as ``DefaultTermMonoidFactory``.
 
     INPUT:
 

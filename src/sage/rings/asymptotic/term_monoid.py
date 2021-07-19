@@ -4305,8 +4305,9 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
         - ``coefficient`` -- an element of the coefficient ring
 
-        - ``valid_from`` -- a dictionary mapping variable names to lower
-          bounds for the corresponding variable
+        - ``valid_from`` -- dictionary mapping variable names to lower bounds
+          for the corresponding variable. The bound implied by this term is valid when
+          all variables are at least their corresponding lower bound
 
         OUTPUT:
 

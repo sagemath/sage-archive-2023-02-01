@@ -2905,7 +2905,8 @@ class Graph(GenericGraph):
 
 
     @doc_index("Connectivity, orientations, trees")
-    def degree_constrained_subgraph(self, bounds, solver=None, verbose=0):
+    def degree_constrained_subgraph(self, bounds, solver=None, verbose=0,
+                                    *, integrality_tolerance=1e-3):
         r"""
         Returns a degree-constrained subgraph.
 
@@ -2926,17 +2927,20 @@ class Graph(GenericGraph):
             real values ``(min,max)`` corresponding to the values
             `(f(v),g(v))`.
 
-
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -2989,14 +2993,13 @@ class Graph(GenericGraph):
 
         try:
             p.solve(log=verbose)
-            g = copy(self)
-            b = p.get_values(b)
-            g.delete_edges((x,y) for x,y in g.edge_iterator(labels=False) if b[frozenset((x,y))] < 0.5)
-            return g
-
         except MIPSolverException:
             return False
 
+        g = copy(self)
+        b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+        g.delete_edges(e for e in g.edge_iterator(labels=False) if not b[frozenset(e)])
+        return g
 
     ### Orientations
 
@@ -3111,7 +3114,8 @@ class Graph(GenericGraph):
         return d
 
     @doc_index("Connectivity, orientations, trees")
-    def minimum_outdegree_orientation(self, use_edge_labels=False, solver=None, verbose=0):
+    def minimum_outdegree_orientation(self, use_edge_labels=False, solver=None, verbose=0,
+                                      *, integrality_tolerance=1e-3):
         r"""
         Returns an orientation of ``self`` with the smallest possible maximum
         outdegree.
@@ -3131,16 +3135,20 @@ class Graph(GenericGraph):
           - When set to ``False`` (default), gives a weight of 1 to all the
             edges.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -3159,9 +3167,12 @@ class Graph(GenericGraph):
 
         if use_edge_labels:
             from sage.rings.real_mpfr import RR
-            weight = lambda e: self.edge_label(e) if self.edge_label(e) in RR else 1
+            def weight(e):
+                l = self.edge_label(e)
+                return l if l in RR else 1
         else:
-            weight = lambda e: 1
+            def weight(e):
+                return 1
 
         from sage.numerical.mip import MixedIntegerLinearProgram
 
@@ -3179,7 +3190,7 @@ class Graph(GenericGraph):
             if u == ext[frozenset(e)]:
                 return variable
             else:
-                return 1-variable
+                return 1 - variable
 
         for u in self:
             p.add_constraint(p.sum(weight(e) * outgoing(u, e, orientation[frozenset(e)])
@@ -3190,7 +3201,7 @@ class Graph(GenericGraph):
 
         p.solve(log=verbose)
 
-        orientation = p.get_values(orientation)
+        orientation = p.get_values(orientation, convert=bool, tolerance=integrality_tolerance)
 
         # All the edges from self are doubled in O
         # ( one in each direction )
@@ -3201,7 +3212,7 @@ class Graph(GenericGraph):
         edges = []
 
         for e in self.edge_iterator(labels=None):
-            if orientation[frozenset(e)] == 1:
+            if orientation[frozenset(e)]:
                 edges.append(e[::-1])
             else:
                 edges.append(e)
@@ -3981,7 +3992,8 @@ class Graph(GenericGraph):
 
     @doc_index("Leftovers")
     def matching(self, value_only=False, algorithm="Edmonds",
-                 use_edge_labels=False, solver=None, verbose=0):
+                 use_edge_labels=False, solver=None, verbose=0,
+                 *, integrality_tolerance=1e-3):
         r"""
         Return a maximum weighted matching of the graph represented by the list
         of its edges.
@@ -4019,16 +4031,21 @@ class Graph(GenericGraph):
 
           - when set to ``False``, each edge has weight `1`
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used; if set to ``None``, the default one is used
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
           set to 0 by default, which means quiet (only useful when ``algorithm
           == "LP"``)
 
-        For more information on LP solvers and which default solver is used, see
-        the method :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solve` of
-        the class :class:`sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -4162,8 +4179,8 @@ class Graph(GenericGraph):
                     return Integer(round(p.solve(objective_only=True, log=verbose)))
             else:
                 p.solve(log=verbose)
-                b = p.get_values(b)
-                return [(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))] == 1]
+                b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+                return [(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))]]
 
         else:
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
@@ -8306,7 +8323,8 @@ class Graph(GenericGraph):
                     yield [e] + mat
 
     @doc_index("Leftovers")
-    def has_perfect_matching(self, algorithm="Edmonds", solver=None, verbose=0):
+    def has_perfect_matching(self, algorithm="Edmonds", solver=None, verbose=0,
+                             *, integrality_tolerance=1e-3):
         r"""
         Return whether this graph has a perfect matching.
         INPUT:
@@ -8326,18 +8344,21 @@ class Graph(GenericGraph):
             each vertex `v`, require that the sum of the values of the edges
             incident to `v` is 1.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used; if set to ``None``, the default one is used
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
           set to 0 by default, which means quiet (only useful when
           ``algorithm == "LP_matching"`` or ``algorithm == "LP"``)
 
-        For more information on LP solvers and which default solver is used, see
-        the method :meth:`solve
-        <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
-        :class:`MixedIntegerLinearProgram
-        <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -8388,7 +8409,8 @@ class Graph(GenericGraph):
                                                 use_edge_labels=False,
                                                 algorithm="LP",
                                                 solver=solver,
-                                                verbose=verbose)
+                                                verbose=verbose,
+                                                integrality_tolerance=integrality_tolerance)
         elif algorithm == "LP":
             from sage.numerical.mip import MixedIntegerLinearProgram, MIPSolverException
             p = MixedIntegerLinearProgram(solver=solver)

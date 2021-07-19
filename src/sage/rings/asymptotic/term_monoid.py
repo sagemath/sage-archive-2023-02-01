@@ -2869,6 +2869,7 @@ class TermWithCoefficient(GenericTerm):
             sage: CT_ZZ(x^42, 42)
             Term with coefficient 42 and growth x^42
         """
+        super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
         try:
             coefficient = parent.coefficient_ring(coefficient)
         except (ValueError, TypeError):
@@ -2880,7 +2881,6 @@ class TermWithCoefficient(GenericTerm):
                 (coefficient, parent))
 
         self.coefficient = coefficient
-        super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
 
     def _repr_(self):
         r"""
@@ -4051,7 +4051,8 @@ class BTerm(TermWithCoefficient):
             sage: BT_ZZ(x, 1/2, valid_from={'x': 20})
             Traceback (most recent call last):
             ...
-            ValueError: 1/2 is not a coefficient in Integer Ring.
+            ValueError: 1/2 is not a coefficient in BTerm Monoid x^ZZ with
+            coefficients in Integer Ring.
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
@@ -4067,19 +4068,9 @@ class BTerm(TermWithCoefficient):
             ...
             ValueError: BTerm has valid_from variables defined which do not occur in the term.
         """
-        try:
-            coefficient = parent.coefficient_ring(coefficient)
-        except (ValueError, TypeError):
-            raise ValueError(f'{coefficient} is not a coefficient in '
-                             f'{parent.coefficient_ring}.')
-
-        if not coefficient:
-            raise ZeroCoefficientError(
-                f'Zero coefficient {coefficient} is not allowed in {parent}.')
-
+        super().__init__(parent=parent, growth=growth, coefficient=coefficient)
         self.coefficient = coefficient
         self.valid_from = valid_from
-
         for variable_name in self.valid_from.keys():
             if variable_name not in parent.growth_group.variable_names():
                 raise ValueError('BTerm has valid_from variables defined which do not occur in the term.')
@@ -4087,8 +4078,6 @@ class BTerm(TermWithCoefficient):
         for variable_name in growth.variable_names():
             if variable_name not in self.valid_from:
                 raise ValueError('BTerm has not defined all variables which occur in the term in valid_from.')
-
-        super().__init__(parent=parent, growth=growth, coefficient=coefficient)
 
     def _repr_(self):
         r"""

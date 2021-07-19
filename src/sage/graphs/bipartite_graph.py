@@ -43,6 +43,8 @@ from .generic_graph import GenericGraph
 from .graph import Graph
 from sage.rings.integer import Integer
 
+from sage.misc.decorators import rename_keyword
+
 class BipartiteGraph(Graph):
     r"""
     Bipartite graph.
@@ -1624,8 +1626,10 @@ class BipartiteGraph(Graph):
             raise ValueError('algorithm must be "Hopcroft-Karp", '
                              '"Eppstein", "Edmonds" or "LP"')
 
+    @rename_keyword(deprecation=32238, verbosity='verbose')
     def vertex_cover(self, algorithm="Konig", value_only=False,
-                     reduction_rules=True, solver=None, verbosity=0):
+                     reduction_rules=True, solver=None, verbose=0,
+                     *, integrality_tolerance=1e-3):
         r"""
         Return a minimum vertex cover of self represented by a set of vertices.
 
@@ -1673,18 +1677,20 @@ class BipartiteGraph(Graph):
           it might be faster to disable reduction rules.  This parameter is
           currently ignored when ``algorithm == "Konig"``.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solve`
-          of the class :class:`sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbosity`` -- non-negative integer (default: ``0``); set the level
-          of verbosity you want from the linear program solver. Since the
-          problem of computing a vertex cover is `NP`-complete, its solving may
-          take some time depending on the graph. A value of 0 means that there
-          will be no message printed by the solver. This option is only useful
-          if ``algorithm="MILP"``.
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -1731,7 +1737,8 @@ class BipartiteGraph(Graph):
         if not algorithm == "Konig":
             return Graph.vertex_cover(self, algorithm=algorithm, value_only=value_only,
                                           reduction_rules=reduction_rules, solver=solver,
-                                          verbosity=verbosity)
+                                          verbose=verbose,
+                                          integrality_tolerance=integrality_tolerance)
 
         if not self.is_connected():
             VC = []

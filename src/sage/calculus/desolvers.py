@@ -1710,8 +1710,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         des = [des]
 
     if ivar is None:
-        all_vars = set([])
-        all_vars.update(*[de.variables() for de in des])
+        all_vars = set().union(*[de.variables() for de in des])
         ivars = all_vars - set(dvars)
 
         if len(ivars)==1:

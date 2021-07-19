@@ -4070,14 +4070,14 @@ class BTerm(TermWithCoefficient):
         """
         super().__init__(parent=parent, growth=growth, coefficient=coefficient)
         self.coefficient = coefficient
-        self.valid_from = valid_from
-        for variable_name in self.valid_from.keys():
+        for variable_name in valid_from.keys():
             if variable_name not in parent.growth_group.variable_names():
                 raise ValueError('BTerm has valid_from variables defined which do not occur in the term.')
 
         for variable_name in growth.variable_names():
-            if variable_name not in self.valid_from:
+            if variable_name not in valid_from:
                 raise ValueError('BTerm has not defined all variables which occur in the term in valid_from.')
+        self.valid_from = valid_from
 
     def _repr_(self):
         r"""

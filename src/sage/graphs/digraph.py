@@ -1642,8 +1642,8 @@ class DiGraph(GenericGraph):
             D = DiGraph(self.edges(sort=False), multiedges=self.allows_multiple_edges(), loops=True)
             D.allow_loops(False)
             FAS = D.feedback_edge_set(constraint_generation=constraint_generation,
-                                          value_only=value_only, solver=solver, verbose=verbose,
-                                          integrality_tolerance=integrality_tolerance)
+                                      value_only=value_only, solver=solver, verbose=verbose,
+                                      integrality_tolerance=integrality_tolerance)
             if value_only:
                 return FAS + self.number_of_loops()
             else:
@@ -1658,8 +1658,8 @@ class DiGraph(GenericGraph):
             for h in self.strongly_connected_components_subgraphs():
                 if value_only:
                     FAS += h.feedback_edge_set(constraint_generation=constraint_generation,
-                                                value_only=True, solver=solver, verbose=verbose,
-                                                integrality_tolerance=integrality_tolerance)
+                                               value_only=True, solver=solver, verbose=verbose,
+                                               integrality_tolerance=integrality_tolerance)
                 else:
                     FAS.extend( h.feedback_edge_set(constraint_generation=constraint_generation,
                                                     value_only=False, solver=solver, verbose=verbose,

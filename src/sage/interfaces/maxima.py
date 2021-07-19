@@ -839,7 +839,8 @@ class Maxima(MaximaAbstract, Expect):
             4
         """
         marker = '__SAGE_SYNCHRO_MARKER_'
-        if self._expect is None: return
+        if self._expect is None:
+            return
         r = randrange(2147483647)
         s = marker + str(r+1)
 

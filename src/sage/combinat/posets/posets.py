@@ -50,6 +50,10 @@ List of Poset methods
     :meth:`~FinitePoset.lower_covers_iterator` | Return an iterator over elements covered by given element.
     :meth:`~FinitePoset.upper_covers_iterator` | Return an iterator over elements covering given element.
     :meth:`~FinitePoset.cover_relations_iterator` | Return an iterator over cover relations of the poset.
+    :meth:`~FinitePoset.common_upper_covers` | Return the list of all common upper covers of the given elements.
+    :meth:`~FinitePoset.common_lower_covers` | Return the list of all common lower covers of the given elements.
+    :meth:`~FinitePoset.meet` | Return the meet of given elements if it exists; ``None`` otherwise.
+    :meth:`~FinitePoset.join` | Return the join of given elements if it exists; ``None`` otherwise.
 
 **Properties of the poset**
 
@@ -2296,6 +2300,87 @@ class FinitePoset(UniqueRepresentation, Parent):
         vertices = list(map(self._element_to_vertex, elmts))
         return list(map(self._vertex_to_element, self._hasse_diagram.common_upper_covers(vertices)))
 
+    def common_lower_covers(self, elmts):
+        r"""
+        Return all of the common lower covers of the elements ``elmts``.
+
+        EXAMPLES::
+
+            sage: P = Poset({0: [1,2], 1: [3], 2: [3], 3: []})
+            sage: P.common_lower_covers([1, 2])
+            [0]
+        """
+        vertices = list(map(self._element_to_vertex, elmts))
+        return list(map(self._vertex_to_element, self._hasse_diagram.common_lower_covers(vertices)))
+
+    def meet(self, x, y):
+        r"""
+        Return the meet of two elements ``x, y`` in the poset if the meet
+        exists; and ``None`` otherwise.
+
+        EXAMPLES::
+
+            sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
+            sage: D.meet(2, 3)
+            1
+            sage: P = Poset({'a':['b', 'c'], 'b':['e', 'f'], 'c':['f', 'g'],
+            ....:            'd':['f', 'g']})
+            sage: P.meet('a', 'b')
+            'a'
+            sage: P.meet('e', 'a')
+            'a'
+            sage: P.meet('c', 'b')
+            'a'
+            sage: P.meet('e', 'f')
+            'b'
+            sage: P.meet('e', 'g')
+            'a'
+            sage: P.meet('c', 'd') is None
+            True
+            sage: P.meet('g', 'f') is None
+            True
+        """
+        i, j = map(self._element_to_vertex, (x, y))
+        mt = self._hasse_diagram._meet
+        if mt[i, j] == -1:
+            return None
+        else:
+            return self._vertex_to_element(mt[i, j])
+
+    def join(self, x, y):
+        r"""
+        Return the join of two elements ``x, y`` in the poset if the join
+        exists; and ``None`` otherwise.
+
+        EXAMPLES::
+
+            sage: D = Poset({1:[2,3], 2:[4], 3:[4]})
+            sage: D.join(2, 3)
+            4
+            sage: P = Poset({'e':['b'], 'f':['b', 'c', 'd'], 'g':['c', 'd'],
+            ....:            'b':['a'], 'c':['a']})
+            sage: P.join('a', 'b')
+            'a'
+            sage: P.join('e', 'a')
+            'a'
+            sage: P.join('c', 'b')
+            'a'
+            sage: P.join('e', 'f')
+            'b'
+            sage: P.join('e', 'g')
+            'a'
+            sage: P.join('c', 'd') is None
+            True
+            sage: P.join('g', 'f') is None
+            True
+        """
+        i, j = map(self._element_to_vertex, (x, y))
+        jn = self._hasse_diagram._join
+        if jn[i,j] == -1:
+            return None
+        else:
+            return self._vertex_to_element(jn[i,j])
+
     def is_d_complete(self) -> bool:
         r"""
         Return ``True`` if a poset is d-complete and ``False`` otherwise.
@@ -4270,7 +4355,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.combinat.posets.hasse_diagram import LatticeError
         try:
-            self._hasse_diagram._meet
+            self._hasse_diagram.meet_matrix()
         except LatticeError as error:
             if not certificate:
                 return False
@@ -4341,7 +4426,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         """
         from sage.combinat.posets.hasse_diagram import LatticeError
         try:
-            self._hasse_diagram._join
+            self._hasse_diagram.join_matrix()
         except LatticeError as error:
             if not certificate:
                 return False
@@ -6858,7 +6943,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.order_complex(on_ints=True)
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 3), (0, 2, 3)}
         """
-        from sage.homology.simplicial_complex import SimplicialComplex
+        from sage.topology.simplicial_complex import SimplicialComplex
         L = self.list()
         if on_ints:
             iso = dict([(L[i], i) for i in range(len(L))])
@@ -7052,7 +7137,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. SEEALSO::
 
             :meth:`is_bounded`, :meth:`h_polynomial`, :meth:`order_complex`,
-            :meth:`sage.homology.cell_complex.GenericCellComplex.f_vector`
+            :meth:`sage.topology.cell_complex.GenericCellComplex.f_vector`
 
         TESTS::
 
@@ -7120,7 +7205,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         .. SEEALSO::
 
             :meth:`is_bounded`, :meth:`f_polynomial`, :meth:`order_complex`,
-            :meth:`sage.homology.simplicial_complex.SimplicialComplex.h_vector`
+            :meth:`sage.topology.simplicial_complex.SimplicialComplex.h_vector`
         """
         q = polygen(ZZ, 'q')
         hasse = self._hasse_diagram

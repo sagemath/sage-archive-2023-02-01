@@ -544,8 +544,6 @@ class TensorField(ModuleElementWithMutability):
         self._is_zero = True
         return False
 
-    __nonzero__ = __bool__  # For Python2 compatibility
-
     ##### End of required methods for ModuleElement (beside arithmetic) #####
 
     def _repr_(self):
@@ -1021,9 +1019,8 @@ class TensorField(ModuleElementWithMutability):
         if self._domain is rst._domain:
             self.copy_from(rst)
         else:
-            self._restrictions[rst._domain] = rst.copy()
-            self._restrictions[rst._domain].set_name(name=self._name,
-                                            latex_name=self._latex_name)
+            self._restrictions[rst._domain] = rst.copy(name=self._name,
+                                                       latex_name=self._latex_name)
         self._is_zero = False  # a priori
 
     def restrict(self, subdomain, dest_map=None):
@@ -2282,9 +2279,7 @@ class TensorField(ModuleElementWithMutability):
             if other._tensor_type != self._tensor_type:
                 return False
             # Non-trivial open covers of the domain:
-            open_covers = self._domain.open_covers()[1:]  # the open cover 0
-                                                          # is trivial
-            for oc in open_covers:
+            for oc in self._domain.open_covers(trivial=False):
                 resu = True
                 for dom in oc:
                     try:

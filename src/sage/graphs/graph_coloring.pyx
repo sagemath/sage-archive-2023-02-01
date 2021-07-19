@@ -1205,7 +1205,7 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0,
 
     for v in g:
         for i in range(k):
-            if c[v,i] == 1:
+            if c[v,i]:
                 coloring[v] = i
                 break
 
@@ -1941,7 +1941,7 @@ def acyclic_edge_coloring(g, hex_colors=False, value_only=False, k=0,
 
     for i in range(k):
         for u,v in g.edge_iterator(labels=None):
-            if c[i,E(u,v)] == 1:
+            if c[i,E(u,v)]:
                 add((u,v), i)
 
     if hex_colors:

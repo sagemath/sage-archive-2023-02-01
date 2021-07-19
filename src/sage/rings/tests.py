@@ -108,7 +108,8 @@ def absolute_number_field(maxdeg=10):
     R = ZZ['x']
     while True:
         f = R.random_element(degree=ZZ.random_element(x=1,y=maxdeg),x=-100,y=100)
-        if f.degree() <= 0: continue
+        if f.degree() <= 0:
+            continue
         f = f + R.gen()**(f.degree()+1)  # make monic
         if f.is_irreducible():
             return NumberField(f, 'a')
@@ -131,7 +132,8 @@ def relative_number_field(n=2, maxdeg=2):
     while n >= 1:
         while True:
             f = R.random_element(degree=ZZ.random_element(x=1,y=maxdeg),x=-100,y=100)
-            if f.degree() <= 0: continue
+            if f.degree() <= 0:
+                continue
             f = f * f.denominator()  # bug trac #4781
             f = f + R.gen()**maxdeg  # make monic
             if f.is_irreducible():
@@ -314,7 +316,8 @@ def test_random_arith(level=MAX_LEVEL, trials=1):
               (i, get_memory_usage()))
         i += 1
         print(x)
-        a = x.random_element(); b = x.random_element()
+        a = x.random_element()
+        b = x.random_element()
         print(a, b)
         print(a*b+a-b+1)
         if i >= trials:

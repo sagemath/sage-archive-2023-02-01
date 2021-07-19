@@ -416,7 +416,8 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{22C2}{\ensuremath{\bigcap}}
     \DeclareUnicodeCharacter{22C3}{\ensuremath{\bigcup}}
     \DeclareUnicodeCharacter{00B1}{\pm}
-    \DeclareUnicodeCharacter{2A02}{\otimes}
+    \DeclareUnicodeCharacter{2A02}{\ensuremath{\bigotimes}}
+    \DeclareUnicodeCharacter{2297}{\ensuremath{\otimes}}
     \DeclareUnicodeCharacter{2A01}{\oplus}
     \DeclareUnicodeCharacter{00BD}{\nicefrac{1}{2}}
     \DeclareUnicodeCharacter{00D7}{\times}
@@ -426,6 +427,13 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{2308}{\lceil}
     \DeclareUnicodeCharacter{2309}{\rceil}
     \DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
+    \DeclareUnicodeCharacter{2227}{\ensuremath{\wedge}}
+    \DeclareUnicodeCharacter{22C0}{\ensuremath{\bigwedge}}
+    \DeclareUnicodeCharacter{2192}{\ensuremath{\to}}
+    \DeclareUnicodeCharacter{21A6}{\ensuremath{\mapsto}}
+    \DeclareUnicodeCharacter{211D}{\ensuremath{\mathbb{R}}}
+    \DeclareUnicodeCharacter{2102}{\ensuremath{\mathbb{C}}}
+    \DeclareUnicodeCharacter{2202}{\ensuremath{\partial}}
 
     \DeclareUnicodeCharacter{2070}{\ensuremath{{}^0}}
     \DeclareUnicodeCharacter{00B9}{\ensuremath{{}^1}}
@@ -709,7 +717,8 @@ def process_inherited(app, what, name, obj, options, docstringlines):
 dangling_debug = False
 
 def debug_inf(app, message):
-    if dangling_debug: app.info(message)
+    if dangling_debug:
+        app.info(message)
 
 def call_intersphinx(app, env, node, contnode):
     r"""

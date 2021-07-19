@@ -4208,12 +4208,11 @@ class BTerm(TermWithCoefficient):
             sage: t4 = ET(x^3, 5)
             sage: t1.absorb(t4) # not tested, see #32229
         """
-        if self.growth < other.growth:
+        if not (self.growth >= other.growth):
             raise ArithmeticError(f'{self} cannot absorb {other}')
 
         valid_from_new = dict()
-        union = {**self.valid_from, **other.valid_from}
-        for variable_name in union:
+        for variable_name in set().union(self.valid_from.keys(), other.valid_from.keys()):
             if variable_name in self.valid_from and other.valid_from:
                 valid_from_new[variable_name] = (max(self.valid_from[variable_name], other.valid_from[variable_name]))
             elif variable_name in self.valid_from:

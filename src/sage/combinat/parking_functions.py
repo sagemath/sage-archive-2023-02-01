@@ -1393,7 +1393,7 @@ class ParkingFunctions_all(ParkingFunctions):
 
     def _coerce_map_from_(self, S):
         """
-        Coercion from the homogenous component to the graded set.
+        Coercion from the homogeneous component to the graded set.
 
         EXAMPLES::
 

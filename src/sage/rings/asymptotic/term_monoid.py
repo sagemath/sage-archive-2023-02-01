@@ -4206,12 +4206,7 @@ class BTerm(TermWithCoefficient):
             cannot absorb BTerm with coefficient 4, growth x^3 and valid for x >= 10
             sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
             sage: t4 = ET(x^3, 5)
-            sage: t1.absorb(t4)
-            Traceback (most recent call last):
-            ...
-            TypeError: unsupported operand parent(s) for <lambda>: 'BTerm Monoid
-            x^ZZ with coefficients in Rational Field' and 'Exact Term Monoid x^ZZ
-            with coefficients in Rational Field'
+            sage: t1.absorb(t4) # not tested, see #32229
         """
         if self.growth < other.growth:
             raise ArithmeticError(f'{self} cannot absorb {other}')

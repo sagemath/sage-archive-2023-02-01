@@ -1484,7 +1484,7 @@ class SQLDatabase(SageObject):
                       as primary key
                     - ``index`` -- boolean, whether column has been set as
                       index
-                    - ``unique`` -- boolean, weather column has been set as
+                    - ``unique`` -- boolean, whether column has been set as
                       unique
                     - ``sql`` -- one of ``'TEXT'``, ``'BOOLEAN'``,
                       ``'INTEGER'``, ``'REAL'``, or other user defined type

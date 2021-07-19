@@ -241,7 +241,7 @@ class HasseDiagram(DiGraph):
 
         return supergreedy_rec(self, [])
 
-    def is_linear_extension(self, lin_ext=None):
+    def is_linear_extension(self, lin_ext=None) -> bool:
         r"""
         Test if an ordering is a linear extension.
 
@@ -286,7 +286,7 @@ class HasseDiagram(DiGraph):
         """
         return list(self.cover_relations_iterator())
 
-    def is_lequal(self, i, j):
+    def is_lequal(self, i, j) -> bool:
         """
         Return ``True`` if i is less than or equal to j in the poset, and
         ``False`` otherwise.
@@ -314,7 +314,7 @@ class HasseDiagram(DiGraph):
         """
         return i == j or (i < j and j in self.breadth_first_search(i))
 
-    def is_less_than(self, x, y):
+    def is_less_than(self, x, y) -> bool:
         r"""
         Return ``True`` if ``x`` is less than but not equal to ``y`` in the
         poset, and ``False`` otherwise.
@@ -339,7 +339,7 @@ class HasseDiagram(DiGraph):
             return False
         return self.is_lequal(x, y)
 
-    def is_gequal(self, x, y):
+    def is_gequal(self, x, y) -> bool:
         r"""
         Return ``True`` if ``x`` is greater than or equal to ``y``, and
         ``False`` otherwise.
@@ -364,7 +364,7 @@ class HasseDiagram(DiGraph):
         """
         return self.is_lequal(y, x)
 
-    def is_greater_than(self, x, y):
+    def is_greater_than(self, x, y) -> bool:
         """
         Return ``True`` if ``x`` is greater than but not equal to
         ``y``, and ``False`` otherwise.
@@ -435,7 +435,7 @@ class HasseDiagram(DiGraph):
             return min_elms[0]
         return None
 
-    def has_bottom(self):
+    def has_bottom(self) -> bool:
         """
         Return ``True`` if the poset has a unique minimal element.
 
@@ -468,7 +468,7 @@ class HasseDiagram(DiGraph):
             return max_elms[0]
         return None
 
-    def has_top(self):
+    def has_top(self) -> bool:
         """
         Return ``True`` if the poset contains a unique maximal element, and
         ``False`` otherwise.
@@ -484,7 +484,7 @@ class HasseDiagram(DiGraph):
         """
         return self.top() is not None
 
-    def is_bounded(self):
+    def is_bounded(self) -> bool:
         """
         Return ``True`` if the poset contains a unique maximal element and a
         unique minimal element, and ``False`` otherwise.
@@ -500,7 +500,7 @@ class HasseDiagram(DiGraph):
         """
         return self.has_top() and self.has_bottom()
 
-    def is_chain(self):
+    def is_chain(self) -> bool:
         """
         Return ``True`` if the poset is totally ordered, and ``False`` otherwise.
 
@@ -527,7 +527,7 @@ class HasseDiagram(DiGraph):
                 all(d <= 1 for d in self.out_degree()) and
                 all(d <= 1 for d in self.in_degree()))
 
-    def is_antichain_of_poset(self, elms):
+    def is_antichain_of_poset(self, elms) -> bool:
         """
         Return ``True`` if ``elms`` is an antichain of the Hasse
         diagram and ``False`` otherwise.
@@ -579,8 +579,8 @@ class HasseDiagram(DiGraph):
         Precompute all intervals of the poset.
 
         This will significantly speed up computing congruences. On the
-        other hand it will cost much more memory. Currently this is
-        "hidden" feature. See example below of using.
+        other hand, it will cost much more memory. Currently this is
+        a hidden feature. See the example below for how to use it.
 
         EXAMPLES::
 
@@ -598,30 +598,6 @@ class HasseDiagram(DiGraph):
                   for v in range(n)]
         self._intervals = [[sorted(up.intersection(down)) for down in v_down]
                            for up in v_up]
-        self.interval = self._alternate_interval
-
-    def _alternate_interval(self, x, y):
-        """
-        Return the list of the elements greater than or equal to ``x``
-        and less than or equal to ``y``.
-
-        The list is sorted by numerical value, which is one linear
-        extension for the elements of the interval, but not necessary
-        the same as returned by ``interval()``.
-
-        This will be taken to use when ``_precompute_intervals()``
-        is called.
-
-        EXAMPLES::
-
-            sage: P = posets.BooleanLattice(3)
-            sage: P.interval(1, 7)
-            [1, 3, 5, 7]
-            sage: P._hasse_diagram._precompute_intervals() # indirect doctest
-            sage: P.interval(1, 7)  # Uses this function
-            [1, 3, 5, 7]
-        """
-        return self._intervals[x][y]
 
     def interval(self, x, y):
         r"""
@@ -636,6 +612,13 @@ class HasseDiagram(DiGraph):
 
         -  ``y`` -- any element of the poset
 
+        .. NOTE::
+
+            The method :meth:`_precompute_intervals()` creates a cache
+            which is used if available, making the function very fast.
+
+        .. SEEALSO:: :meth:`interval_iterator`
+
         EXAMPLES::
 
             sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
@@ -646,8 +629,43 @@ class HasseDiagram(DiGraph):
             sage: I == set(H.interval(2,7))
             True
         """
-        return [z for z in range(x, y + 1) if
-                self.is_lequal(x, z) and self.is_lequal(z, y)]
+        try:
+            # when the intervals have been precomputed
+            return self._intervals[x][y]
+        except AttributeError:
+            return list(self.interval_iterator(x, y))
+
+    def interval_iterator(self, x, y):
+        r"""
+        Return an iterator of the elements `z` of ``self`` such that
+        `x \leq z \leq y`.
+
+        INPUT:
+
+        -  ``x`` -- any element of the poset
+
+        -  ``y`` -- any element of the poset
+
+        .. SEEALSO:: :meth:`interval`
+
+        .. NOTE::
+
+            This becomes much faster when first calling :meth:`_leq_storage`,
+            which precomputes the principal upper ideals.
+
+        EXAMPLES::
+
+            sage: uc = [[1,3,2],[4],[4,5,6],[6],[7],[7],[7],[]]
+            sage: dag = DiGraph(dict(zip(range(len(uc)),uc)))
+            sage: from sage.combinat.posets.hasse_diagram import HasseDiagram
+            sage: H = HasseDiagram(dag)
+            sage: I = set([2,5,6,4,7])
+            sage: I == set(H.interval_iterator(2,7))
+            True
+        """
+        for z in range(x, y + 1):
+            if self.is_lequal(x, z) and self.is_lequal(z, y):
+                yield z
 
     closed_interval = interval
 
@@ -822,7 +840,7 @@ class HasseDiagram(DiGraph):
         else:
             return self.rank_function()(element)
 
-    def is_ranked(self):
+    def is_ranked(self) -> bool:
         r"""
         Return ``True`` if the poset is ranked, and ``False`` otherwise.
 
@@ -1552,7 +1570,7 @@ class HasseDiagram(DiGraph):
             raise LatticeError('meet', x, y)
         return mt
 
-    def is_meet_semilattice(self):
+    def is_meet_semilattice(self) -> bool:
         r"""
         Return ``True`` if ``self`` has a meet operation, and
         ``False`` otherwise.
@@ -1709,7 +1727,7 @@ class HasseDiagram(DiGraph):
             raise LatticeError('join', x, y)
         return jn
 
-    def is_join_semilattice(self):
+    def is_join_semilattice(self) -> bool:
         r"""
         Return ``True`` if ``self`` has a join operation, and
         ``False`` otherwise.
@@ -1834,7 +1852,7 @@ class HasseDiagram(DiGraph):
         result.pop()  # Remove the top element.
         return result
 
-    def is_complemented(self):
+    def is_complemented(self) -> bool:
         """
         Return an element of the lattice that has no complement.
 
@@ -2375,7 +2393,7 @@ class HasseDiagram(DiGraph):
         for w in self.vertices():
             covers = self.neighbors_out(w)
             for i, x in enumerate(covers):
-                for y in covers[i+1:]:
+                for y in covers[i + 1:]:
                     zs = self.common_upper_covers([x, y])
                     if len(zs) != 1:
                         all_diamonds_completed = False
@@ -2743,7 +2761,7 @@ class HasseDiagram(DiGraph):
 
         return result
 
-    def is_convex_subset(self, S):
+    def is_convex_subset(self, S) -> bool:
         r"""
         Return ``True`` if `S` is a convex subset of the poset,
         and ``False`` otherwise.
@@ -3301,7 +3319,7 @@ class HasseDiagram(DiGraph):
                 yield c
                 congs[achain] = c
 
-    def is_congruence_normal(self):
+    def is_congruence_normal(self) -> bool:
         """
         Return ``True`` if the lattice can be constructed from the one-element
         lattice with Day doubling constructions of convex subsets.
@@ -3464,7 +3482,7 @@ class HasseDiagram(DiGraph):
             ValueError: wrong number of connected components after the covering relation is deleted
         """
         split_hasse = self.copy(self)
-        split_hasse.delete_edge(a,b)
+        split_hasse.delete_edge(a, b)
         components = split_hasse.connected_components_subgraphs()
         if not len(components) == 2:
             raise ValueError("wrong number of connected components after the covering relation is deleted")

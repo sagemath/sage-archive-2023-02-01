@@ -2547,6 +2547,48 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
                              "the action of {} on the {}".format(self, p))
         return self._express[chart](*(p._coordinates[chart]))
 
+    def preimage(self, codomain_subset, name=None, latex_name=None):
+        r"""
+        Return the preimage of ``codomain_subset``.
+
+        An alias is :meth:`pullback`.
+
+        INPUT:
+
+        - ``codomain_subset`` -- an instance of
+          :class:`~sage.sets.real_set.RealSet`
+        - ``name`` -- string; name (symbol) given to the subset
+        - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to
+          denote the subset; if none are provided, it is set to ``name``
+
+        OUTPUT:
+
+        - either a :class:`~sage.manifolds.manifold.TopologicalManifold` or
+          a :class:`~sage.manifolds.subsets.pullback.ManifoldSubsetPullback`
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x+y}, name='f')
+            sage: L = f.pullback(RealSet.point(1)); latex(L)
+            f^{-1}(\{1\})
+            sage: M((-1, 1)) in L
+            False
+            sage: M((0, 1)) in L
+            True
+
+            sage: M.zero_scalar_field().preimage(RealSet.point(0)) is M
+            True
+        """
+        if self.is_trivial_zero() and 0 in codomain_subset:
+            return self.domain()
+        from sage.manifolds.subsets.pullback import ManifoldSubsetPullback
+        return ManifoldSubsetPullback(self, codomain_subset,
+                                      name=name, latex_name=latex_name)
+
+    pullback = preimage
+
     def __pos__(self):
         r"""
         Unary plus operator.

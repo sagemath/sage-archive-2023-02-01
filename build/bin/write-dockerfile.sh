@@ -196,6 +196,8 @@ $RUN sh -x -c "\${BOOTSTRAP}" $ENDRUN
 
 FROM bootstrapped as configured
 #:configuring:
+# config.status needs to write in pkgs/sage-conf/
+ADD pkgs pkgs
 RUN mkdir -p logs/pkgs; ln -s logs/pkgs/config.log config.log
 ARG EXTRA_CONFIGURE_ARGS=""
 EOF
@@ -225,7 +227,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!rpy2,!symengine_py,!sage_sws2rst"
+ENV SAGE_CHECK_PACKAGES="!gfan,!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!rpy2,!symengine_py,!sage_sws2rst"
 #:make:
 ARG TARGETS_PRE="sagelib-build-deps"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_PRE} $ENDRUN
@@ -235,7 +237,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!rpy2,!symengine_py,!sage_sws2rst"
+ENV SAGE_CHECK_PACKAGES="!gfan,!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!rpy2,!symengine_py,!sage_sws2rst"
 ADD src src
 ARG TARGETS="build"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS} $ENDRUN
@@ -245,7 +247,7 @@ ARG NUMPROC=8
 ENV MAKE="make -j\${NUMPROC}"
 ARG USE_MAKEFLAGS="-k V=0"
 ENV SAGE_CHECK=warn
-ENV SAGE_CHECK_PACKAGES="!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!rpy2,!symengine_py,!sage_sws2rst"
+ENV SAGE_CHECK_PACKAGES="!gfan,!cython,!r,!python3,!python2,!nose,!pathpy,!gap,!cysignals,!linbox,!git,!ppl,!cmake,!networkx,!rpy2,!symengine_py,!sage_sws2rst"
 ARG TARGETS_OPTIONAL="ptest"
 $RUN make SAGE_SPKG="sage-spkg -y -o" \${USE_MAKEFLAGS} \${TARGETS_OPTIONAL} || echo "(error ignored)" $ENDRUN
 

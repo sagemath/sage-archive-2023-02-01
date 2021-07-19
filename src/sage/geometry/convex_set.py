@@ -223,7 +223,7 @@ class ConvexSet_base(SageObject, Set_base):
 
     def codimension(self):
         r"""
-        Return the codimension of ``self`` in `self.ambient()``.
+        Return the codimension of ``self`` in ``self.ambient()``.
 
         EXAMPLES::
 

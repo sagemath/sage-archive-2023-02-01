@@ -1270,9 +1270,11 @@ class Sets(Category_singleton):
 
             for x in S:
                 for y in S:
-                    if not x == y: continue
+                    if not x == y:
+                        continue
                     for z in S:
-                        if not y == z: continue
+                        if not y == z:
+                            continue
                         tester.assertTrue(x == z,
                             LazyFormat("non transitive equality:\n"
                                        "%s and %s but %s")%(
@@ -2333,7 +2335,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 except (AttributeError, NotImplementedError):
                     pass
                 else:
-                    if test: return test
+                    if test:
+                        return test
                 return all(c.is_finite() for c in f)
 
             def cardinality(self):

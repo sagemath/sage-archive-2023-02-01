@@ -25,3 +25,5 @@ Topological Manifolds
    sage/manifolds/family
 
    sage/manifolds/subsets/closure
+
+   sage/manifolds/subsets/pullback

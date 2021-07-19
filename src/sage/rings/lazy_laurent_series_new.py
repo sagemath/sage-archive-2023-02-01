@@ -79,6 +79,7 @@ from .integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+from sage.rings.integer import Integer
 
 class LLS(ModuleElement):
     r"""
@@ -176,6 +177,47 @@ class LLS(ModuleElement):
             step = n.step if n.step is not None else 1
             return [R(self._aux[k]) for k in range(start, n.stop, step)]
         return R(self._aux[n])
+
+
+    def __call__(self, other):
+        """
+        Return the composition of the series with ``other``.
+
+        INPUT:
+
+        - ``other`` -- other series
+
+        TESTS::
+
+            sage: L.<z> = LLSRing(QQ)
+            sage: LS.<y> = LLSRing(QQ)
+            sage: f = z^2 + 1 + z
+            sage: g = 0
+            sage: f(g)
+            1
+            sage: g = L(0)
+            sage: f(g)
+            1
+            sage: g = y - y                                                                             
+            sage: f(g)                                                                                    
+            1
+            sage: f = L(lambda n: n, 0); f                                                                
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: f(g)                                                                                    
+            0
+        """
+        # g = 0, val(f) >= 0
+        try:
+            if isinstance(other._aux, LLS_zero) and self.valuation() >= 0:
+                return self[0]
+        except AttributeError:
+            if other == 0:
+                return self[0]
+            raise ValueError()
+        
+        # g != 0, val(g) > 0 and g != 0, f has finitely many non-zero coefficients
+        P = self.parent()
+        return P.element_class(P, LLS_com(self._aux, other._aux, P.base_ring()))
 
     def _mul_(self, other):
         """
@@ -1469,6 +1511,32 @@ class LLS_div(LLS_binary):
                 c -= self[k] * self._right[n + rv - k]
             yield c * self._ainv
             n += 1
+
+
+class LLS_com(LLS_binary):
+    """
+    Return ``left`` composed by ``right``.
+    """
+    def __init__(self, left, right, ring):
+        lv = left.valuation()
+        rv = right.valuation()
+        self._ring = ring
+        self._lv = lv
+        self._rv = rv
+        self._ainv = ~right[rv]
+        super().__init__(left, right, left._is_sparse, min(lv, rv))
+    
+    def iterate_coefficients(self):
+        # g != 0, val(g) > 0
+        if self._rv > 0:
+            yield self._left[0]
+            z = self._ring(lambda n: self._left[n - 1], self._lv + 1)(self._right) * self._right
+            z.coefficient(1)
+            n = 1
+            while True:
+                yield z._stream[n]
+                n += 1
+
 
 #####################################################################
 ## Unary operations

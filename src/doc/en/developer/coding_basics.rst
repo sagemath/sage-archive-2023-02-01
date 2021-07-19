@@ -981,13 +981,9 @@ framework. Here is a comprehensive list:
 
   Distribution can be checked with loops::
 
-      sage: while ZZ.random_element() != 0:
-      ....:     pass
-      sage: total = ZZ.random_element(-2, 3)
-      sage: count = 1
-      sage: while abs(total/count) > 0.01:
-      ....:     total += ZZ.random_element(-2, 3)
-      ....:     count += 1
+      sage: found = {i: False for i in range(-2, 3)}
+      sage: while not all(found.values()):
+      ....:     found[ZZ.random_element(-2, 3)] = True
 
   This is mathematically correct, as it is
   guaranteed to terminate. However, there is a

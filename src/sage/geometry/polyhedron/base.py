@@ -11186,11 +11186,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: A = triangle.affine_hull_manifold(name='A'); A
             2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
             sage: A.embedding().display()
-            A --> E^3
-               (x0, x1) |--> (x, y, z) = (t0 + x0, t0 + x1, t0 - x0 - x1 + 1)
+            A → E^3
+               (x0, x1) ↦ (x, y, z) = (t0 + x0, t0 + x1, t0 - x0 - x1 + 1)
             sage: A.embedding().inverse().display()
-            E^3 --> A
-               (x, y, z) |--> (x0, x1) = (x, y)
+            E^3 → A
+               (x, y, z) ↦ (x0, x1) = (x, y)
             sage: A.adapted_chart()
             [Chart (E^3, (x0_E3, x1_E3, t0_E3))]
             sage: A.normal().display()
@@ -11205,11 +11205,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: A = triangle.affine_hull_manifold(name='A', orthogonal=True); A
             2-dimensional Riemannian submanifold A embedded in the Euclidean space E^3
             sage: A.embedding().display()
-            A --> E^3
-               (x0, x1) |--> (x, y, z) = (t0 - 1/2*x0 - 1/3*x1 + 1, t0 + 1/2*x0 - 1/3*x1, t0 + 2/3*x1)
+            A → E^3
+               (x0, x1) ↦ (x, y, z) = (t0 - 1/2*x0 - 1/3*x1 + 1, t0 + 1/2*x0 - 1/3*x1, t0 + 2/3*x1)
             sage: A.embedding().inverse().display()
-            E^3 --> A
-               (x, y, z) |--> (x0, x1) = (-x + y + 1, -1/2*x - 1/2*y + z + 1/2)
+            E^3 → A
+               (x, y, z) ↦ (x0, x1) = (-x + y + 1, -1/2*x - 1/2*y + z + 1/2)
 
         Arrangement of affine hull of facets::
 

@@ -164,6 +164,11 @@ have equal growth to be incomparable.
 
 
 Various
+.. WARNING::
+
+    As this code is experimental, warnings are thrown when a BTerm
+    is created for the first time in a session (see
+    :class:`sage.misc.superseded.experimental`).
 =======
 
 .. TODO::
@@ -4015,12 +4020,6 @@ class BTerm(TermWithCoefficient):
         its functionality or its interface might change without a formal deprecation.
         See https://trac.sagemath.org/31922 for details.
         BTerm with coefficient 3, growth x and valid for x >= 20
-
-    .. WARNING::
-
-        As this code is experimental, warnings are thrown when a BTerm
-        is created for the first time in a session (see
-        :class:`sage.misc.superseded.experimental`).
     """
     @experimental(trac_number=31922)
     def __init__(self, parent, growth, coefficient, valid_from):

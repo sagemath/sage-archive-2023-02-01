@@ -378,7 +378,8 @@ cpdef chromatic_number(G):
             return n
 
 
-def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, verbose=0):
+def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, verbose=0,
+                    *, integrality_tolerance=1e-3):
     r"""
     Compute Vertex colorings and chromatic numbers.
 
@@ -406,16 +407,20 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
       partition returned is a dictionary whose keys are colors and whose values
       are the color classes (ideal for plotting).
 
-    - ``solver`` -- (default: ``None``); specify a Linear Program (LP) solver to
-      be used. If set to ``None``, the default one is used. For more information
-      on LP solvers and which default solver is used, see the method
-      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
-      class :class:`MixedIntegerLinearProgram
+    - ``solver`` -- string (default: ``None``); specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+      :class:`MixedIntegerLinearProgram
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
       to 0 by default, which means quiet.
 
+    - ``integrality_tolerance`` -- float; parameter for use with MILP solvers
+      over an inexact base ring; see
+      :meth:`MixedIntegerLinearProgram.get_values`.
 
     OUTPUT:
 
@@ -498,7 +503,8 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
         while True:
             # tries to color the graph, increasing k each time it fails.
             tmp = vertex_coloring(g, k=k, value_only=value_only,
-                                  hex_colors=hex_colors, solver=solver, verbose=verbose)
+                                  hex_colors=hex_colors, solver=solver, verbose=verbose,
+                                  integrality_tolerance=integrality_tolerance)
             if tmp is not False:
                 if value_only:
                     return k
@@ -526,7 +532,8 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
                     tmp = vertex_coloring(g.subgraph(component), k=k,
                                           value_only=value_only,
                                           hex_colors=hex_colors,
-                                          solver=solver, verbose=verbose)
+                                          solver=solver, verbose=verbose,
+                                          integrality_tolerance=integrality_tolerance)
                     if tmp is False:
                         return False
                 return True
@@ -535,7 +542,8 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
                 tmp = vertex_coloring(g.subgraph(component), k=k,
                                       value_only=value_only,
                                       hex_colors=False,
-                                      solver=solver, verbose=verbose)
+                                      solver=solver, verbose=verbose,
+                                      integrality_tolerance=integrality_tolerance)
                 if tmp is False:
                     return False
                 colorings.append(tmp)
@@ -566,11 +574,13 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
                 return vertex_coloring(g.subgraph(list(vertices)), k=k,
                                        value_only=value_only,
                                        hex_colors=hex_colors,
-                                       solver=solver, verbose=verbose)
+                                       solver=solver, verbose=verbose,
+                                       integrality_tolerance=integrality_tolerance)
             value = vertex_coloring(g.subgraph(list(vertices)), k=k,
                                     value_only=value_only,
                                     hex_colors=False,
-                                    solver=solver, verbose=verbose)
+                                    solver=solver, verbose=verbose,
+                                    integrality_tolerance=integrality_tolerance)
             if value is False:
                 return False
             while deg:
@@ -609,13 +619,13 @@ def vertex_coloring(g, k=None, value_only=False, hex_colors=False, solver=None, 
         except MIPSolverException:
             return False
 
-        color = p.get_values(color)
+        color = p.get_values(color, convert=bool, tolerance=integrality_tolerance)
         # builds the color classes
         classes = [[] for i in range(k)]
 
         for v in g:
             for i in range(k):
-                if color[v,i] == 1:
+                if color[v,i]:
                     classes[i].append(v)
                     break
 
@@ -1199,7 +1209,8 @@ def b_coloring(g, k, value_only=True, solver=None, verbose=0):
 
     return obj, coloring
 
-def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=None, verbose=0):
+def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=None, verbose=0,
+                  *, integrality_tolerance=1e-3):
     r"""
     Compute chromatic index and edge colorings.
 
@@ -1228,15 +1239,20 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
       partition returned is a dictionary whose keys are colors and whose values
       are the color classes (ideal for plotting)
 
-    - ``solver`` -- (default: ``None``); specify a Linear Program (LP) solver to
-      be used. If set to ``None``, the default one is used. For more information
-      on LP solvers and which default solver is used, see the method
-      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
-      class :class:`MixedIntegerLinearProgram
+    - ``solver`` -- string (default: ``None``); specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+      :class:`MixedIntegerLinearProgram
       <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
       to 0 by default, which means quiet.
+
+    - ``integrality_tolerance`` -- float; parameter for use with MILP solvers
+      over an inexact base ring; see
+      :meth:`MixedIntegerLinearProgram.get_values`.
 
     OUTPUT:
 
@@ -1399,11 +1415,11 @@ def edge_coloring(g, value_only=False, vizing=False, hex_colors=False, solver=No
             for i in range(len(classes), k):
                 classes.append([])
             # add edges to color classes
-            color = p.get_values(color)
+            color = p.get_values(color, convert=bool, tolerance=integrality_tolerance)
             for e in h.edge_iterator(labels=False):
                 fe = frozenset(e)
                 for i in range(k):
-                    if color[fe,i] == 1:
+                    if color[fe,i]:
                         classes[i].append(e)
                         break
 

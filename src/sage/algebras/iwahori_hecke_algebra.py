@@ -8,6 +8,11 @@ AUTHORS:
 - Brant Jones, Travis Scrimshaw, Andrew Mathas (2013):
   Moved into the category framework and implemented the
   Kazhdan-Lusztig `C` and `C^{\prime}` bases
+
+- Chase Meadors, Tianyuan Xu (2021):
+  Implemented direct computation of products in the 
+  `C^{\prime}` basis using du Cloux's Coxeter3 package 
+
 """
 # ****************************************************************************
 #  Copyright (C) 2013 Brant Jones <brant at math.jmu.edu>
@@ -1950,23 +1955,120 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
     C_prime = Cp
 
-    class Cp_native(_Basis):
-        _basis_name = 'Cp_native'
+    class Cp_Coxeter3(_Basis):
+        r"""
+        Directly compute products in the `C^{\prime}`-basis by using du Cloux's Coxeter3 package.
+
+        [State assumptions] normalization/coxeter3 implementation
+
+        Expanding products of the form `C^{\prime}_x \cdot C^{\prime}_y` in the `C^{\prime}`-basis is useful for
+        computing Kazhdan-Lusztig cells of Coxeter systems and the corresponding cell modules of Iwahori-Hecke
+        algebras.  Such expansion is controlled by the following formula (and the analogous formula for
+        `C^{\prime}_s \cdot C^{\prime}_w`) under both the "standard" and the "normalized" presentations of the
+        Iwahori-Hecke algebra, where the quadratic relation is `(T_s-q^2)(T_s+1)=0` and `(T_s-q)(T_s+q^-1)=0` for
+        each generator `s`, respectively.
+
+        .. MATH::
+            C^{\prime}_s \cdot C^{\prime}_w = 
+            \begin{cases}
+               (q+q^-1)C^{\prime}_{w},                                         & \text{if } \ell(sw) = \ell(w)-1,\\
+               C^{\prime}_{sw}+\sum_{v\leq w, sv \leq v} \mu(v,w)C^{\prime}_v, & \text{if } \ell(sw) = \ell(w)+1.
+            \end{cases}
+
+        where `\leq` is the Bruhat order on the underlying Coxeter group and `\mu(v,w)` is the "leading coefficient
+        of Kazhdan-Lusztig polynomials"; see [KL1979]_ and [Lus2014]_ for more details.  
+
+        The emphasis of this class is to compute products in the `C^{\prime}`-basis directly, by using the above
+        formula and calling the necessary `\mu`-coefficients from Sage's implementation of Fokko du Cloux's
+        Coxeter3 package. This methods computes the products faster than the _Basis.product_on_basis method on Line
+        1298, which needs to convert the `C^{\prime}`-basis to the `T`-basis, calculate the product in the
+        `T`-basis, and convert the results back to the `C^{\prime}`-basis.  For example, the product
+        `C^{\prime}_{32345} * C^{\prime}_{23}` in the Hecke algebra of type 'B_9' takes more than 30 seconds with
+        the latter method but is instant using this class.
+        
+        .. TODO::
+            Use the analog of the displayed formula to implement `C^{\prime}`-products in the multi-parameter
+            Iwahori-Hecke algebra; see Section 6 of [Lus2013]_.  
+
+        EXAMPLES::
+
+            sage: R = LaurentPolynomialRing(QQ, 'q')
+            [A3 examples with warnings caused by wrong presentation or implementation...]
+
+            Create the Hecke algebra of type 'A3' and label the `C^{\prime}`-basis by `B`:
+
+            sage: H = IwahoriHeckeAlgebra('A3',implementation = 'coxeter3')
+            sage: B = H.Cp_Coxeter3()                                       [careful about printing: B or Cp]
+            
+            Product of the form `B_s \cdot B_y` where `s` is a generator are computed by the earlier formula:: 
+
+            sage: B[1] * B[1]
+            (q^-1+q) * B[1]
+            sage: B[1] * B[2]
+            B[1,2]
+            sage: B[1] * B[2,1]
+            B[1,2,1] + B[1]
+            sage: B[1] * B[2,1,3]
+            B[1,2,3,1] + B[3,1]
+            sage: B[2] * B[1,3,2,1,3]
+            B[1,2,3,1,2,1] + Cp[2,3,2,1] + Cp[1,2,3,1]
+
+
+            More generally, we can compute products of the form 'B_x \cdot B_y` for general `x, y`::
+
+            sage: B[1,2,1] * B[3,1]
+            (q^-1+q)*B[1,2,3,1]
+            sage: B[1,2,1] * B[3,1,2]                                                                                                                                             (q^-1+q)*B[1,2,3,1,2] + (q^-1+q)*B[1,2,1]
+
+            [More examples: B9 examples; showcase labelling, compare speed with the indirect method ]
+
+
+            .. NOTE::
+
+                The products `B_x \cdot B_y` are computed as follows: if `\ell(x) \leq \ell(y)`, then we first
+                decompose `B_x` into a linear combination of products of generators `B_s (s\in S)`, then multiplies
+                that linear combination onto `B_y`; otherwise we decompose `B_y` and multiply the result onto
+                `B_x`. For example, in the computation of `B[1,2,1] * B[3,1,2]` in type `A3`, the left term
+                `B[1,2,1]` is first (essentially) decomposed into the linear combination `B[1]*B[2]*B[1] - B[1]`
+                behind the scenes. The decomposition is achieved via the [_decompose_into_generators function],
+                which in turn uses an auxiliary free algebra with generators corresponding to the Coxeter
+                generators. 
+
+        .. SEEALSO::
+
+            :ref: [KL1979]_, [Lus2013]_
+            :meth:`sage.somewhere.other_useful_method`,
+            [coxeter3?]
+
+        TESTS::
+
+            [show our direct method yields the same results as the indirect method?]
+
+        """
+        _basis_name = 'Cp_Coxeter3'
 
         def __init__(self, algebra, prefix='Cp'):
             if not isinstance(algebra._W, Coxeter3Group):
-                raise ValueError('Algebra must be initialized with a coxeter3-implemented Coxeter group to use the Cp_native basis.')
+                raise ValueError('Algebra must be initialized with a coxeter3-implemented Coxeter group to use the
+                        Cp_Coxeter3 basis.')
 
             super(IwahoriHeckeAlgebra.Cp_native, self).__init__(algebra, prefix)
 
             self._W = algebra._W
+            self.delta = q + q^{-1}   #[better way to write this, maybe q as R.gen(0)?]
+
+            #[can we move the following to _decompose_into_generators and avoid it in the manual distribution part
+            # of product_on_basis? Not a big deal; we could also use the comment below.]
+            
+            # the auxiliary free algebra mentioned in ..NOTE::
             self.gen_algebra = FreeAlgebra(algebra.base_ring(), ['g' + str(i) for i in self.index_set()])
-            self.delta = algebra.q1() - algebra.q2()
 
         def _product_with_generator_on_basis(self, side, s, w):
-            # C_s * C_w = (v + 1/v) * C_w if s is a left descent, otherwise:
-            # Left:  C_s * C_w = C_{sw} + \sum_{sx < x < w} mu(x, w) C_x
-            # Right: C_w * C_s = C_{ws} + \sum_{xs < x < w} mu(x, w) C_x
+            r"""
+            Compute the product of `C^{\prime}_s` and `C^{\prime}_w`, putting `C^{\prime}_s` on the given ``side``.
+
+            [recycle the examples from the class' documentation, or not?]
+            """
             
             if w.has_descent(s, side=side):
                 return self.delta * self.monomial(w)
@@ -1984,13 +2086,20 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 return self.monomial(longer_word) + element
         
         def _product_with_generator(self, side, s, x):
+            r"""
+            Compute the product of `C^{\prime}_s` with any linear combination of `C^{\prime}`-basis elemens.
+            """
             return self.linear_combination((self._product_with_generator_on_basis(side, s, w), coeff) for (w, coeff) in x)
 
         def _decompose_into_generators(self, w):
             r"""
             Returns an element of self.gen_algebra, a free algebra over {g_1, ..., g_n} 
             describing how to write 'word' in terms of the generators
+
+            [need a good running example or several examples, maybe including how C_121=C_1*C_2*C_1-C_1 in type A;
+            decomposing from one side is probably enough in the example(s)] 
             """
+
             gs = self.gen_algebra.gens()
             if len(w) == 0:
                 return self.gen_algebra(1)
@@ -2023,6 +2132,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             return alg_element
         
         def product_on_basis(self, w1, w2):
+            r"""
+            Return the expansion of `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` in the `C^{\prime}`-basis.
+            
+            [recycle example from class' doc?]
+            """
             # Otherwise, decompose the first word into generators
             # (as expressed as an element of the FreeAlgebra over 'generator' variables g1, ..., gn)
             if len(w1) <= len(w2):
@@ -2034,6 +2148,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 gens = self._decompose_into_generators(w2)
                 other_element = self.monomial(w1)
             
+            # [I'm a little confused by 'powers' below; also, should we write a helper function earlier for the 'manual
+            # distribution'?]
+
             # Now, build everything back up, continually multiplying on the left by a single generator
             # Multiply gens by other_element, doing "manual distribution"
 

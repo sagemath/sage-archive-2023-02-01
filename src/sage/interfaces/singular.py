@@ -2365,7 +2365,7 @@ def generate_docstring_dictionary():
     nodes.clear()
     node_names.clear()
 
-    new_node = re.compile(r"File: singular\.hlp,  Node: ([^,]*),.*")
+    new_node = re.compile(r"File: singular\.[a-z]*,  Node: ([^,]*),.*")
     new_lookup = re.compile(r"\* ([^:]*):*([^.]*)\..*")
 
     L, in_node, curr_node = [], False, None
@@ -2373,7 +2373,7 @@ def generate_docstring_dictionary():
     from sage.libs.singular.singular import get_resource
     singular_info_file = get_resource('i')
 
-    # singular.hlp contains a few iso-5559-1 encoded special characters
+    # singular.hlp contains a few iso-8859-1 encoded special characters
     with io.open(singular_info_file,
                  encoding='latin-1') as f:
         for line in f:

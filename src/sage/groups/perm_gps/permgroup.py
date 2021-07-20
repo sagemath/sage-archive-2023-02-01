@@ -1549,12 +1549,12 @@ class PermutationGroup_generic(FiniteGroup):
         Action of `S_4` on sets of disjoint sets::
 
             sage: S4 = groups.permutation.Symmetric(4)
-            sage: O = S4.orbit(((1,2),(3,4)), action = "OnSetsDisjointSets")
+            sage: O = S4.orbit(((1,2),(3,4)), action="OnSetsDisjointSets")
             sage: {1, 2} in O[0] and {3, 4} in O[0]
             True
             sage: {1, 4} in O[1] and {2, 3} in O[1]
             True
-            sage: all(set(union(*x)) == {1,2,3,4} for x in O)
+            sage: all(x[0].union(x[1]) == {1,2,3,4} for x in O)
             True
 
         Action of `S_4` (on a nonstandard domain) on tuples of sets::

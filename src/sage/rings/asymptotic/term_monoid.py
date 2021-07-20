@@ -4013,13 +4013,38 @@ class BTerm(TermWithCoefficient):
     r"""
     This class implements the base structure for parents of BTerms.
 
-    Examples of BTerms with explanation:
+    We first explain what B-terms are. With
+    ::
 
-    - ``BT_ZZ(x^2, 5, valid_from={'x': 3})``. This is a term whose absolute value is bounded by ``5|x|^2 for |x| >= 3``.
+        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+        sage: G = MonomialGrowthGroup(ZZ, 'x')
+        sage: T = TermMonoid('B', growth_group=G, coefficient_ring=QQ)
+        doctest:warning
+        ...
+        FutureWarning: This class/method/function is marked as experimental.
+        It, its functionality or its interface might change without a formal deprecation.
+        See https://trac.sagemath.org/31922 for details.
 
-    - ``BT_ZZ(x^3, 42, valid_from={'x': 15, 'y': 15})``. This is a term whose absolute value is bounded by ``42|x|^3 for |x| >= 15 |y| >= 15``.
+    B-terms are, for example,
+    ::
 
-    - ``BT_ZZ(x^3*y^2, 42, valid_from={'x': 10, 'y': 20})``. This is a term whose absolute value is bounded by ``42|x|^3 |y|^2 for |x| >= 10 |y| >= 20``.
+        sage: T(x^2, coefficient=5, valid_from={'x': 3})
+        B(5*x^2, x >= 3)
+
+    a term whose absolute value is bounded by `5|x|^2` for `|x| >= 3`,
+    ::
+
+        sage: T(x^3, coefficient=42, valid_from={'x': 15, 'y': 15})  # not tested
+
+    a term whose absolute value is bounded by `42|x|^3` for `|x| >= 15` and
+    ` |y| >= 15`, or
+    ::
+
+        sage: T(x^3*y^2, coefficient=42, valid_from={'x': 10, 'y': 20})  # not tested
+
+    a term whose absolute value is bounded by `42 |x|^3 |y|^2` for
+    `|x| >= 10` and |y| >= 20`.
 
     INPUT:
 
@@ -4042,12 +4067,9 @@ class BTerm(TermWithCoefficient):
 
         sage: G = MonomialGrowthGroup(ZZ, 'x');
         sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
-        doctest:warning
-        ...
-        FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
-        See https://trac.sagemath.org/31922 for details.
         sage: BT_QQ(x, 3, valid_from={'x': 20})
         B(3*x, x >= 20)
+
     """
     def __init__(self, parent, growth, coefficient, valid_from):
         r"""

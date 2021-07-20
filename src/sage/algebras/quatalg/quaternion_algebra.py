@@ -1925,6 +1925,8 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: I.quaternion_algebra()
             Quaternion Algebra (-1, -3) with base ring Rational Field
         """
+        # TODO: when the ring() method is removed from this class, the
+        # following line can be changed to self.ring().
         return Ideal_fractional.ring(self)
 
     def _compute_order(self, side='left'):
@@ -2080,8 +2082,12 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
             sage: R.unit_ideal().quaternion_order() is R
+            doctest:...:  DeprecationWarning: quaternion_order() is deprecated, please use left_order() or right_order()
+            See https://trac.sagemath.org/31583 for details.
             True
         """
+        from sage.misc.superseded import deprecation
+        deprecation(31583, 'quaternion_order() is deprecated, please use left_order() or right_order()')
         try:
             return self.__quaternion_order
         except AttributeError:
@@ -2099,13 +2105,27 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         Return ring that this is a fractional ideal for.
 
+        The :meth:`ring` method will be removed from this class in the
+        future.  Calling :meth:`ring` will then return the ambient
+        quaternion algebra.  This is consistent with the behaviour for
+        number fields.
+
         EXAMPLES::
 
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
             sage: R.unit_ideal().ring() is R
+            doctest:...:  DeprecationWarning: ring() will return the quaternion algebra in the future, please use left_order() or right_order()
+            See https://trac.sagemath.org/31583 for details.
             True
         """
-        return self.quaternion_order()
+        from sage.misc.superseded import deprecation
+        deprecation(31583, 'ring() will return the quaternion algebra in the future, please use left_order() or right_order()')
+        if self.__left_order is not None:
+            return self.__left_order
+        elif self.__right_order is not None:
+            return self.__right_order
+        else:
+            raise RuntimeError("unable to determine quaternion order of ideal without known order")
 
     def basis(self):
         """
@@ -2355,11 +2375,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         assert r.is_square(), "first is bad!"
         r = r.sqrt()
         # If we know either the left- or the right order, use that one to compute the norm.
-        # Otherwise quaternion_order() will raise a RuntimeError and we compute the left order
-        try:
-            R = self.quaternion_order()
-        except RuntimeError:
-            R = self.left_order()
+        R = self.__left_order or self.__right_order or self.left_order()
         r/= R.discriminant()
         assert r.is_square(), "second is bad!"
         return r.sqrt()
@@ -2537,7 +2553,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             False
             sage: R[0].is_equivalent(R[0])
             True
-            sage: OO = R[0].quaternion_order()
+            sage: OO = R[0].left_order()
             sage: S = OO.right_ideal([3*a for a in R[0].basis()])
             sage: R[0].is_equivalent(S)
             True

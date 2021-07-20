@@ -1581,6 +1581,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             generic_T = H._generic_iwahori_hecke_algebra.T()
             return generic_T.to_Cp_basis(w).specialize_to(H)
 
+        def to_Cp_Coxeter3_basis(self, w):
+            H = self.realization_of()
+            generic_T = H._generic_iwahori_hecke_algebra.T()
+            return generic_T.to_Cp_Coxeter3_basis(w).specialize_to(H)
+
         def bar_on_basis(self, w):
             """
             Return the bar involution of `T_w`, which is `T^{-1}_{w^-1}`.
@@ -1932,6 +1937,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         """
         _basis_name = 'Cp'   # this is used, for example, by specialize_to and is the default prefix
 
+        def to_Cp_Coxeter3_basis(self, w):
+            A = self.realization_of()
+            Cp = A.Cp_Coxeter3()
+            return Cp.monomial(w)
+
         def hash_involution_on_basis(self, w):
             r"""
             Return the effect of applying the hash involution to the basis
@@ -1955,7 +1965,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
     C_prime = Cp
 
-    class Cp_Coxeter3(_Basis):
+    class Cp_Coxeter3(_KLHeckeBasis):
         r"""
         Directly compute products in the `C^{\prime}`-basis by using du Cloux's Coxeter3 package.
 
@@ -2061,6 +2071,19 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             
             # the auxiliary free algebra mentioned in ..NOTE::
             self.gen_algebra = FreeAlgebra(algebra.base_ring(), ['g' + str(i) for i in self.index_set()])
+
+            # Define conversion to the other Cp basis
+            self.module_morphism(self.to_Cp_basis, codomain=algebra.Cp(), category=self.category()
+                                 ).register_as_coercion()
+
+            # ...and from the other Cp basis to the Cp_Coxeter3 basis
+            Cp = algebra.Cp()
+            Cp.module_morphism(Cp.to_Cp_Coxeter3_basis, codomain=self, category=self.category()).register_as_coercion()
+
+        def to_Cp_basis(self, w):
+            A = self.realization_of()
+            Cp = A.Cp()
+            return Cp.monomial(w)
 
         def _product_with_generator_on_basis(self, side, s, w):
             r"""
@@ -2739,9 +2762,9 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
         r"""
         The `T`-basis for the generic Iwahori-Hecke algebra.
         """
-        @cached_method
-        def to_Cp_basis(self, w):
+        def _to_Cp_basis(self, w, Cp):
             r"""
+            TODO: Change this documentation and the two below
             Return `T_w` as a linear combination of `C^{\prime}`-basis
             elements.
 
@@ -2765,7 +2788,7 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                  + (u^-2*v^5)*Cp[1] + (u^-2*v^5)*Cp[2] + (-u^-3*v^6)
             """
             A = self.realization_of()
-            Cp = A.Cp()
+            # Cp = A.Cp() if not use_Cp_Coxeter3 else A.Cp_Coxeter3()
 
             if w == A._W.one():  # the identity element of the Coxeter group
                 return Cp.one()
@@ -2779,6 +2802,16 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                 result = result + c * A._root**x.length() * Cp.monomial(x)
 
             return result
+
+        @cached_method
+        def to_Cp_basis(self, w):
+            A = self.realization_of()
+            return self._to_Cp_basis(w, A.Cp())
+
+        @cached_method
+        def to_Cp_Coxeter3_basis(self, w):
+            A = self.realization_of()
+            return self._to_Cp_basis(w, A.Cp_Coxeter3())
 
         @cached_method
         def to_C_basis(self, w):
@@ -2890,6 +2923,14 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             return cpw_s
 
     C_prime = Cp
+
+    class Cp_Coxeter3(IwahoriHeckeAlgebra.Cp_Coxeter3):
+        @cached_method
+        def to_T_basis(self, w):
+            A = self.realization_of()
+            Cp = A.Cp()
+            T = A.T()
+            return T(Cp.monomial(w))
 
     class C(IwahoriHeckeAlgebra.C):
         r"""

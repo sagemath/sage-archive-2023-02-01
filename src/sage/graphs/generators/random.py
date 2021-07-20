@@ -1314,9 +1314,17 @@ def RandomTree(n):
         ....:      for i in range(100) )
         True
 
+    Random tree with one and zero vertices::
+
+        sage: graphs.RandomTree(0)
+        Graph on 0 vertices
+        sage: graphs.RandomTree(1)
+        Graph on 1 vertex
     """
     from sage.misc.prandom import randint
-    g = Graph()
+    g = Graph(n)
+    if n <= 1:
+        return g
 
     # create random Prufer code
     code = [ randint(0,n-1) for i in range(n-2) ]
@@ -1329,8 +1337,6 @@ def RandomTree(n):
     count = [0] * n
     for k in code:
         count[k] += 1
-
-    g.add_vertices(range(n))
 
     for s in code:
         for x in range(n):

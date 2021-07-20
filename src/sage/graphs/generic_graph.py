@@ -7404,7 +7404,8 @@ class GenericGraph(GenericGraph_pyx):
             return g
 
     def hamiltonian_path(self, s=None, t=None, use_edge_labels=False,
-                         maximize=False, algorithm='MILP', solver=None, verbose=0):
+                         maximize=False, algorithm='MILP', solver=None, verbose=0,
+                         *, integrality_tolerance=1e-3):
         r"""
         Return a Hamiltonian path of the current graph/digraph.
 
@@ -7450,14 +7451,20 @@ class GenericGraph(GenericGraph_pyx):
           * The backtrack algorithm does not support edge weighting, so setting
             ``use_edge_labels=True`` will force the use of the MILP algorithm.
 
-        - ``solver`` -- string (default: ``None``); specifies the Linear Program
-          (LP) solver to be used. If set to ``None``, the default one is used.
-          For more information on LP solvers and which default solver is used,
-          see the method :meth:`solve
-          <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity
-          with 0 meaning quiet
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -7645,7 +7652,8 @@ class GenericGraph(GenericGraph_pyx):
         try:
             tsp = g.traveling_salesman_problem(use_edge_labels=use_edge_labels,
                                                    maximize=maximize,
-                                                   solver=solver, verbose=verbose)
+                                                   solver=solver, verbose=verbose,
+                                                   integrality_tolerance=integrality_tolerance)
         except EmptySetError:
             return (0, None) if use_edge_labels else None
 
@@ -7657,7 +7665,8 @@ class GenericGraph(GenericGraph_pyx):
 
     def traveling_salesman_problem(self, use_edge_labels=False, maximize=False,
                                        solver=None, constraint_generation=None,
-                                       verbose=0, verbose_constraints=False):
+                                       verbose=0, verbose_constraints=False,
+                                       *, integrality_tolerance=1e-3):
         r"""
         Solve the traveling salesman problem (TSP)
 
@@ -7681,10 +7690,10 @@ class GenericGraph(GenericGraph_pyx):
           (or Hamiltonian cycle). This parameter is considered only if
           ``use_edge_labels == True``.
 
-        - ``solver`` -- string (default: ``None``); specifies a Linear Program
-          (LP) solver to be used. If set to ``None``, the default one is
-          used. For more information on LP solvers and which default solver is
-          used, see the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
@@ -7701,6 +7710,10 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``verbose_constraints`` -- boolean (default: ``False``); whether to
           display which constraints are being generated
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -8010,8 +8023,9 @@ class GenericGraph(GenericGraph_pyx):
                 while True:
                     # We build the DiGraph representing the current solution
                     h = DiGraph()
+                    b_val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
                     for u,v,l in g.edge_iterator():
-                        if p.get_values(b[u,v]) == 1:
+                        if b_val[u,v]:
                             h.add_edge(u,v,l)
 
                     # If there is only one circuit, we are done !
@@ -8057,7 +8071,8 @@ class GenericGraph(GenericGraph_pyx):
                 while True:
                     # We build the DiGraph representing the current solution
                     h = Graph()
-                    h.add_edges((u,v,l) for u,v,l in g.edge_iterator() if p.get_values(b[frozenset((u,v))]) == 1)
+                    b_val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+                    h.add_edges((u,v,l) for u,v,l in g.edge_iterator() if b_val[frozenset((u,v))])
 
                     # If there is only one circuit, we are done !
                     cc = h.connected_components(sort=False)
@@ -8149,7 +8164,7 @@ class GenericGraph(GenericGraph_pyx):
 
         try:
             p.solve(log=verbose)
-            f_val = p.get_values(f)
+            f_val = p.get_values(f, convert=bool, tolerance=integrality_tolerance)
             tsp.add_vertices(g.vertex_iterator())
             tsp.set_pos(g.get_pos())
             tsp.name("TSP from "+g.name())
@@ -8165,7 +8180,8 @@ class GenericGraph(GenericGraph_pyx):
 
 
     def hamiltonian_cycle(self, algorithm='tsp', solver=None, constraint_generation=None,
-                          verbose=0, verbose_constraints=False):
+                          verbose=0, verbose_constraints=False,
+                          *, integrality_tolerance=1e-3):
         r"""
         Return a Hamiltonian cycle/circuit of the current graph/digraph.
 
@@ -8187,10 +8203,10 @@ class GenericGraph(GenericGraph_pyx):
         - ``algorithm`` -- string (default: ``'tsp'``); one of 'tsp' or
           'backtrack'
 
-        - ``solver`` -- (default: ``None``); specifies a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
@@ -8208,6 +8224,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``verbose_constraints`` -- boolean (default: ``False``); whether to
           display which constraints are being generated
 
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -8281,7 +8300,8 @@ class GenericGraph(GenericGraph_pyx):
             try:
                 return self.traveling_salesman_problem(use_edge_labels=False, solver=solver,
                                                        constraint_generation=constraint_generation,
-                                                       verbose=verbose, verbose_constraints=verbose_constraints)
+                                                       verbose=verbose, verbose_constraints=verbose_constraints,
+                                                       integrality_tolerance=integrality_tolerance)
             except MIPSolverException:
                 from sage.categories.sets_cat import EmptySetError
                 raise EmptySetError("the given graph is not Hamiltonian")
@@ -22214,7 +22234,8 @@ class GenericGraph(GenericGraph_pyx):
         return (len(partition) == len(new_partition))
 
     def is_hamiltonian(self, solver=None, constraint_generation=None,
-                       verbose=0, verbose_constraints=False):
+                       verbose=0, verbose_constraints=False,
+                       *, integrality_tolerance=1e-3):
         r"""
         Test whether the current graph is Hamiltonian.
 
@@ -22230,22 +22251,28 @@ class GenericGraph(GenericGraph_pyx):
 
         INPUT:
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
-          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``constraint_generation`` (boolean) -- whether to use constraint
           generation when solving the Mixed Integer Linear Program.  When
           ``constraint_generation = None``, constraint generation is used
           whenever the graph has a density larger than 70%.
 
-        - ``verbose`` -- integer (default: ``0``). Sets the level of
+        - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
-        - ``verbose_constraints`` -- whether to display which constraints are
-          being generated.
+        - ``verbose_constraints`` -- boolean (default: ``False``); whether to
+          display which constraints are being generated
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -22292,7 +22319,8 @@ class GenericGraph(GenericGraph_pyx):
         try:
             self.traveling_salesman_problem(use_edge_labels=False, solver=solver,
                                             constraint_generation=constraint_generation,
-                                            verbose=verbose, verbose_constraints=verbose_constraints)
+                                            verbose=verbose, verbose_constraints=verbose_constraints,
+                                            integrality_tolerance=integrality_tolerance)
             return True
         except EmptySetError:
             return False

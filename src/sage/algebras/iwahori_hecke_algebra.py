@@ -2049,13 +2049,12 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def __init__(self, algebra, prefix='Cp'):
             if not isinstance(algebra._W, Coxeter3Group):
-                raise ValueError('Algebra must be initialized with a coxeter3-implemented Coxeter group to use the
-                        Cp_Coxeter3 basis.')
+                raise ValueError('algebra must be initialized with a coxeter3-implemented Coxeter group to use the Cp_Coxeter3 basis')
 
-            super(IwahoriHeckeAlgebra.Cp_native, self).__init__(algebra, prefix)
+            super(IwahoriHeckeAlgebra.Cp_Coxeter3, self).__init__(algebra, prefix)
 
             self._W = algebra._W
-            self.delta = q + q^{-1}   #[better way to write this, maybe q as R.gen(0)?]
+            self.delta = algebra.q1() + ~algebra.q1()   #[better way to write this, maybe q as R.gen(0)?]
 
             #[can we move the following to _decompose_into_generators and avoid it in the manual distribution part
             # of product_on_basis? Not a big deal; we could also use the comment below.]

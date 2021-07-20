@@ -205,6 +205,25 @@ class LLS(ModuleElement):
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: f(g)                                                                                    
             0
+            sage: L.<z> = LLSRing(QQ)                                                                                                                                                                     
+            sage: LS.<y> = LLSRing(QQ, sparse=True)                                                                                                                                                       
+            sage: f = L(lambda n : 1); f                                                                                                                                                                  
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: g = LS(lambda n: 0 if n != 2 else 1, 0); g                                                                                                                                              
+            y^2 + ...
+            sage: f(g)                                                                                                                                                                                    
+            1 + z^2 + z^4 + z^6 + ...
+            sage: g = LS(lambda n: 1 if n > 1 else 0, 0); g                                                                                                                                               
+            y^2 + y^3 + y^4 + y^5 + y^6 + ...
+            sage: f(g)                                                                                                                                                                                    
+            1 + z^2 + z^3 + 2*z^4 + 3*z^5 + 5*z^6 + ...
+            sage: L.<z> = LLSRing(QQ, sparse=True)                                                                                                                                                        
+            sage: f = L(lambda n : 1); f                                                                                                                                                                  
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: g = LS(lambda n: 1, 1); g                                                                                                                                                               
+            y + y^2 + y^3 + y^4 + y^5 + y^6 + y^7 + ...
+            sage: f(g)                                                                                                                                                                                    
+            1 + z + 2*z^2 + 4*z^3 + 8*z^4 + 16*z^5 + 32*z^6 + ...
         """
         # g = 0, val(f) >= 0
         try:
@@ -217,7 +236,7 @@ class LLS(ModuleElement):
         
         # g != 0, val(g) > 0 and g != 0, f has finitely many non-zero coefficients
         P = self.parent()
-        return P.element_class(P, LLS_com(self._aux, other._aux, P.base_ring()))
+        return P.element_class(P, LLS_com(self._aux, other._aux, P))
 
     def _mul_(self, other):
         """
@@ -1524,17 +1543,30 @@ class LLS_com(LLS_binary):
         self._lv = lv
         self._rv = rv
         self._ainv = ~right[rv]
-        super().__init__(left, right, left._is_sparse, min(lv, rv))
+        super().__init__(left, right, left._is_sparse, lv * rv)
+    
+    def get_coefficient(self, n):
+        # g != 0, val(g) > 0
+        if self._rv > 0:
+            if n == 0:
+                return self._left[0]
+            tail = self._ring(lambda n: self._left[n + 1], 0)
+            right_series = self._ring(lambda n: self._right[n], self._rv)
+            z = tail(right_series) * right_series
+            z.coefficient(1)
+            return z[n]
     
     def iterate_coefficients(self):
         # g != 0, val(g) > 0
         if self._rv > 0:
             yield self._left[0]
-            z = self._ring(lambda n: self._left[n - 1], self._lv + 1)(self._right) * self._right
+            tail = self._ring(lambda n: self._left[n + 1], 0)
+            right_series = self._ring(lambda n: self._right[n], self._rv)
+            z = tail(right_series) * right_series
             z.coefficient(1)
             n = 1
             while True:
-                yield z._stream[n]
+                yield z[n]
                 n += 1
 
 

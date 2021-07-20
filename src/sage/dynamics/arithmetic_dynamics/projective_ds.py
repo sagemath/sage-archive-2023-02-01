@@ -6472,7 +6472,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         return points[0]
 
-    def conjugating_set(self, other, R=None, num_cpus=1):
+    def conjugating_set(self, other, R=None, num_cpus=2):
         r"""
         Return the set of elements in PGL over the base ring
         that conjugates one dynamical system to the other.
@@ -6513,7 +6513,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         - ``R`` -- a field or embedding
 
-        - ``num_cpus`` -- (default: 1) the number of threads to run in parallel.
+        - ``num_cpus`` -- (default: 2) the number of threads to run in parallel.
           Increasing ``num_cpus`` can potentially greatly speed up this function.
 
         OUTPUT:
@@ -7806,7 +7806,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         The following keywords are used when the dimension of the domain
         is greater than 1:
 
-        - ``num_cpus`` -- (default: 1) the number of threads to use. Setting to a
+        - ``num_cpus`` -- (default: 2) the number of threads to use. Setting to a
           larger number can greatly speed up this function.
 
         The following keywords are used when the dimension of the domain is 1:
@@ -7893,7 +7893,7 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         absolute = kwds.get('absolute', False)
         iso_type = kwds.get('iso_type', False)
         return_functions = kwds.get('return_functions', False)
-        num_cpus = kwds.get('num_cpus', 1)
+        num_cpus = kwds.get('num_cpus', 2)
         if self.domain().dimension_relative() != 1:
             return self.conjugating_set(self, num_cpus)
         else:

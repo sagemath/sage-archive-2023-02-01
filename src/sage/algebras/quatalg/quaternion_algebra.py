@@ -1099,9 +1099,9 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
         We test out ``check=False``::
 
             sage: Q.quaternion_order([1,i,j,k], check=False)
-            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis [1, i, j, k]
+            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (1, i, j, k)
             sage: Q.quaternion_order([i,j,k], check=False)
-            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis [i, j, k]
+            Order of Quaternion Algebra (-11, -1) with base ring Rational Field with basis (i, j, k)
         """
         return QuaternionOrder(self, basis, check=check)
 
@@ -1411,7 +1411,7 @@ class QuaternionOrder(Algebra):
                     if any(a not in O for x in X for a in x):
                         raise ValueError("given lattice must be a ring")
 
-        self.__basis = basis
+        self.__basis = tuple(basis)
         self.__quaternion_algebra = A
         Parent.__init__(self, base=ZZ, facade=(A,), category=Algebras(ZZ))
 
@@ -1867,7 +1867,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
                 Q = basis[0].parent()
             basis = tuple([Q(v) for v in
                            (QQ**4).span([Q(v).coefficient_tuple() for v in basis], ZZ).basis()])
-        self.__basis = basis
+        self.__basis = tuple(basis)
 
     def scale(self, alpha, left=False):
         r"""
@@ -1906,7 +1906,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             gens = [alpha * b for b in self.basis()]
         else:
             gens = [b * alpha for b in self.basis()]
-        return Q.ideal(tuple(gens), left_order=self.__left_order,
+        return Q.ideal(gens, left_order=self.__left_order,
                        right_order=self.__right_order, check=False)
 
     def quaternion_algebra(self):

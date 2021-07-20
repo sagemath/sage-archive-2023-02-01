@@ -8521,7 +8521,9 @@ class GenericGraph(GenericGraph_pyx):
 
                 return [v for v in self if b_sol[v] == 1]
 
-    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True, vertex_bound=False, algorithm=None, solver=None, verbose=0):
+    def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True,
+             vertex_bound=False, algorithm=None, solver=None, verbose=0,
+             *, integrality_tolerance=1e-3):
         r"""
         Return a maximum flow in the graph from ``x`` to ``y``.
 
@@ -8576,20 +8578,26 @@ class GenericGraph(GenericGraph_pyx):
           True``, otherwise, we use ``igraph`` if it is available, ``FF`` if it
           is not available.
 
-        - ``solver`` -- string (default: ``None``); specifies a Linear Program
-          (LP) solver to be used. If set to ``None``, the default one is
-          used. For more information on LP solvers and which default solver is
-          used, see the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-          Only useful when LP is used to solve the flow problem.
+          Only useful when algorithm ``"LP"`` is used to solve the flow problem.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
-          verbosity. Set to 0 by default (quiet).
+          verbosity. Set to 0 by default, which means quiet.
 
-          Only useful when LP is used to solve the flow problem.
+          Only useful when algorithm ``"LP"`` is used to solve the flow problem.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
+
+          Only useful when ``algorithm == "LP"`` and ``integer == True``.
 
         .. NOTE::
 
@@ -8797,7 +8805,11 @@ class GenericGraph(GenericGraph_pyx):
         if integer or use_edge_labels is False:
             obj = Integer(round(obj))
 
-        flow = p.get_values(flow)
+        if integer:
+            flow = p.get_values(flow, convert=True, tolerance=integrality_tolerance)
+        else:
+            flow = p.get_values(flow)
+
         # Builds a clean flow Draph
         flow_graph = g._build_flow_graph(flow, integer=integer)
 
@@ -9193,7 +9205,9 @@ class GenericGraph(GenericGraph_pyx):
 
         return flow_intensity, g
 
-    def multicommodity_flow(self, terminals, integer=True, use_edge_labels=False, vertex_bound=False, solver=None, verbose=0):
+    def multicommodity_flow(self, terminals, integer=True, use_edge_labels=False,
+                            vertex_bound=False, solver=None, verbose=0,
+                            *, integrality_tolerance=1e-3):
         r"""
         Solve a multicommodity flow problem.
 
@@ -9224,19 +9238,25 @@ class GenericGraph(GenericGraph_pyx):
         - ``vertex_bound`` -- boolean (default: ``False``); whether to require
           that a vertex can stand at most `1` commodity of flow through it of
           intensity `1`. Terminals can obviously still send or receive several
-          units of flow even though vertex_bound is set to ``True``, as this
+          units of flow even though ``vertex_bound`` is set to ``True``, as this
           parameter is meant to represent topological properties.
 
-        - ``solver`` -- string (default: ``None``); specifies a Linear Program
-          (LP) solver to be used. If set to ``None``, the default one is
-          used. For more information on LP solvers and which default solver is
-          used, see the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
-          verbosity. Set to 0 by default (quiet).
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
+
+          Only useful when parameter ``ìnteger`` is ``True``.
 
         ALGORITHM:
 
@@ -9359,7 +9379,10 @@ class GenericGraph(GenericGraph_pyx):
             from sage.categories.sets_cat import EmptySetError
             raise EmptySetError("the multicommodity flow problem has no solution")
 
-        flow = p.get_values(flow)
+        if integer:
+            flow = p.get_values(flow, convert=True, tolerance=integrality_tolerance)
+        else:
+            flow = p.get_values(flow)
 
         # building clean flow digraphs
         flow_graphs = [g._build_flow_graph({e: f for (ii,e),f in flow.items() if ii == i}, integer=integer)
@@ -9461,7 +9484,8 @@ class GenericGraph(GenericGraph_pyx):
 
         return h
 
-    def disjoint_routed_paths(self, pairs, solver=None, verbose=0):
+    def disjoint_routed_paths(self, pairs, solver=None, verbose=0,
+                              *, integrality_tolerance=1e-3):
         r"""
         Return a set of disjoint routed paths.
 
@@ -9473,16 +9497,20 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``pairs`` -- list of pairs of vertices
 
-        - ``solver`` -- string (default: ``None``); specifies a Linear Program
-          (LP) solver to be used. If set to ``None``, the default one is
-          used. For more information on LP solvers and which default solver is
-          used, see the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
-          verbosity. Set to `0` by default (quiet).
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -9504,11 +9532,14 @@ class GenericGraph(GenericGraph_pyx):
         """
         from sage.categories.sets_cat import EmptySetError
         try:
-            return self.multicommodity_flow(pairs, vertex_bound=True, solver=solver, verbose=verbose)
+            return self.multicommodity_flow(pairs, integer=True, vertex_bound=True,
+                                            solver=solver, verbose=verbose,
+                                            integrality_tolerance=integrality_tolerance)
         except EmptySetError:
             raise EmptySetError("the disjoint routed paths do not exist")
 
-    def edge_disjoint_paths(self, s, t, algorithm="FF", solver=None, verbose=False):
+    def edge_disjoint_paths(self, s, t, algorithm="FF", solver=None, verbose=False,
+                            *, integrality_tolerance=1e-3):
         r"""
         Return a list of edge-disjoint paths between two vertices.
 
@@ -9528,16 +9559,26 @@ class GenericGraph(GenericGraph_pyx):
 
           * ``"LP"``, the flow problem is solved using Linear Programming
 
-        - ``solver`` -- string (default: ``None``); specifies a Linear Program
-          (LP) solver to be used. If set to ``None``, the default one is
-          used. For more information on LP solvers and which default solver is
-          used, see the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
+          Only used when `àlgorithm`` is ``"LP"``.
+
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+          Only used when `àlgorithm`` is ``"LP"``.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
+
+          Only used when `àlgorithm`` is ``"LP"``.
 
         .. NOTE::
 
@@ -9553,7 +9594,8 @@ class GenericGraph(GenericGraph_pyx):
             [[0, 2, 1], [0, 3, 1], [0, 4, 1]]
         """
         [obj, flow_graph] = self.flow(s, t, value_only=False, integer=True, use_edge_labels=False,
-                                      algorithm=algorithm, solver=solver, verbose=verbose)
+                                      algorithm=algorithm, solver=solver, verbose=verbose,
+                                      integrality_tolerance=integrality_tolerance)
 
         paths = []
 
@@ -9567,7 +9609,8 @@ class GenericGraph(GenericGraph_pyx):
 
         return paths
 
-    def vertex_disjoint_paths(self, s, t, solver=None, verbose=0):
+    def vertex_disjoint_paths(self, s, t, solver=None, verbose=0,
+                              *, integrality_tolerance=1e-3):
         r"""
         Return a list of vertex-disjoint paths between two vertices.
 
@@ -9582,10 +9625,10 @@ class GenericGraph(GenericGraph_pyx):
 
         - ``s,t`` -- two vertices of the graph.
 
-        - ``solver`` -- string (default: ``None``); specifies a Linear Program
-          (LP) solver to be used. If set to ``None``, the default one is
-          used. For more information on LP solvers and which default solver is
-          used, see the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
@@ -9593,6 +9636,9 @@ class GenericGraph(GenericGraph_pyx):
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
 
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -9613,7 +9659,8 @@ class GenericGraph(GenericGraph_pyx):
             []
         """
         obj, flow_graph = self.flow(s, t, value_only=False, integer=True, use_edge_labels=False,
-                                    vertex_bound=True, solver=solver, verbose=verbose)
+                                    vertex_bound=True, solver=solver, verbose=verbose,
+                                    integrality_tolerance=integrality_tolerance)
 
         paths = []
         if not obj:

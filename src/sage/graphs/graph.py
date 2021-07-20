@@ -3211,7 +3211,8 @@ class Graph(GenericGraph):
         return O
 
     @doc_index("Connectivity, orientations, trees")
-    def bounded_outdegree_orientation(self, bound, solver=None, verbose=False):
+    def bounded_outdegree_orientation(self, bound, solver=None, verbose=False,
+                                      *, integrality_tolerance=1e-3):
         r"""
         Computes an orientation of ``self`` such that every vertex `v` has
         out-degree less than `b(v)`
@@ -3230,16 +3231,20 @@ class Graph(GenericGraph):
          * A function associating to each vertex its associated maximum
            out-degree.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -3350,7 +3355,8 @@ class Graph(GenericGraph):
 
         # Solving the maximum flow
         value, flow = d.flow('s','t', value_only=False, integer=True,
-                             use_edge_labels=True, solver=solver, verbose=verbose)
+                             use_edge_labels=True, solver=solver, verbose=verbose,
+                             integrality_tolerance=integrality_tolerance)
 
         if value != self.size():
             raise ValueError("No orientation exists for the given bound")

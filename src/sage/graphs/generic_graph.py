@@ -6614,7 +6614,7 @@ class GenericGraph(GenericGraph_pyx):
                 l0 = []
                 l1 = []
                 for x in g:
-                    if x in v and v[x]:
+                    if v.get(x, False):
                         l1.append(x)
                     else:
                         l0.append(x)
@@ -6737,8 +6737,8 @@ class GenericGraph(GenericGraph_pyx):
                 l1 = []
                 for x in g:
                     # if the vertex is not in the cut
-                    if not (x in b and b[x]):
-                        if (x in v and v[x]):
+                    if not b.get(x, False):
+                        if v.get(x, False):
                             l1.append(x)
                         else:
                             l0.append(x)

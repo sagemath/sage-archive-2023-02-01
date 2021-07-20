@@ -807,3 +807,7 @@ init_libsingular()
 cdef void libsingular_error_callback(const_char_ptr s):
     _s = char_to_str(s)
     error_messages.append(_s)
+
+from sage.cpython.string cimport bytes_to_str
+def get_resource(id):
+    return bytes_to_str(feGetResource(<char>ord(id)))

@@ -2040,9 +2040,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 that linear combination onto `B_y`; otherwise we decompose `B_y` and multiply the result onto
                 `B_x`. For example, in the computation of `B[1,2,1] * B[3,1,2]` in type `A3`, the left term
                 `B[1,2,1]` is first (essentially) decomposed into the linear combination `B[1]*B[2]*B[1] - B[1]`
-                behind the scenes. The decomposition is achieved via the [_decompose_into_generators function],
-                which in turn uses an auxiliary free algebra with generators corresponding to the Coxeter
-                generators. 
+                behind the scenes. The decomposition is achieved via the [_decompose_into_generators function], which 
+                takes an element `B_w` and gives an element of the free algebra over \{ B_s \; : \; s \in S \}, whose 
+                image under the canonical homomorphism from the free algebra is precisely `B_w`.
 
         .. SEEALSO::
 
@@ -2065,11 +2065,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             self._W = algebra._W
             self.delta = algebra.q1() + ~algebra.q1()   #[better way to write this, maybe q as R.gen(0)?]
-
-            #[can we move the following to _decompose_into_generators and avoid it in the manual distribution part
-            # of product_on_basis? Not a big deal; we could also use the comment below.]
             
-            # the auxiliary free algebra mentioned in ..NOTE::
+            # The free algebra over our algebra generators, used in _decompose_into_generators
             self.gen_algebra = FreeAlgebra(algebra.base_ring(), ['g' + str(i) for i in self.index_set()])
 
             # Define conversion to the other Cp basis
@@ -2087,19 +2084,27 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def _product_with_generator_on_basis(self, side, s, w):
             r"""
-            Compute the product of `C^{\prime}_s` and `C^{\prime}_w`, putting `C^{\prime}_s` on the given ``side``.
+            Compute the product of `C^{\prime}_s` and `C^{\prime}_w`, putting
+            `C^{\prime}_s` on the given ``side``.
+
+            TODO: Repeat the explanation in Cp_Coxeter3's docstring about 
+            C_s * C_w = { cases ... }?
 
             [recycle the examples from the class' documentation, or not?]
             """
             
             if w.has_descent(s, side=side):
+                # Descent case, return (q + q^-1) C'_w
                 return self.delta * self.monomial(w)
             else:
+                # Additively build the sum \sum_{v \leq w; sv < v} mu(v, w) C'_v
                 element = self(0)
                 between = self._W.bruhat_interval([], w)
                 for x in between:
+                    # Get (coxeter3-implemented) group element corresponding to x
                     x_elt = self._W(x)
                     if x_elt.has_descent(s, side=side):
+                        # Compute mu-coefficient via coxeter3
                         element += x.mu_coefficient(w) * self.monomial(x_elt)
                 
                 # Doing self._W([s]) * w may not ensure that the word is is normal form
@@ -2110,6 +2115,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         def _product_with_generator(self, side, s, x):
             r"""
             Compute the product of `C^{\prime}_s` with any linear combination of `C^{\prime}`-basis elemens.
+
+            TODO: Say more here; maybe that this just does distribution? I think
+            the one line is fairly self-explanatory.
             """
             return self.linear_combination((self._product_with_generator_on_basis(side, s, w), coeff) for (w, coeff) in x)
 
@@ -2135,20 +2143,23 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             # Use the reverse of the left-multiplication by generator rule:
             # We know s is not a left descent, so
             # C_w = C_s * C_{w1} - \sum_{sy < y < w1} C_y
+            # TODO: Explain this ^ in the docstring?
         
-            # The sum from the above
-            rest = self(0)
+            # Additively build the sum just mentioned above
+            sum_term = self(0)
             between = self._W.bruhat_interval([], w1)
             for x in between:
+                # Get (coxeter3-implemented) group element corresponding to x
                 x_elt = self._W(x)
                 if x_elt.has_left_descent(s):
-                    rest += self.base_ring()(x.mu_coefficient(w1)) * self.monomial(x_elt)
+                    # Compute mu-coefficient via coxeter3
+                    sum_term += self.base_ring()(x.mu_coefficient(w1)) * self.monomial(x_elt)
         
             # In the expression above, we need to recurse and decompose C_{w1} into generators,
             # and then go through the terms of the sum 'rest' and decompose those C_y's into generators
             alg_element = gs[s] * self._decompose_into_generators(w1)
-            for (v, coeff) in rest:
-                # We're subtracting 'rest'
+            for (v, coeff) in sum_term:
+                # We're subtracting 'sum_term'
                 alg_element -= coeff * self._decompose_into_generators(v)
                 
             return alg_element
@@ -2173,20 +2184,24 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             # [I'm a little confused by 'powers' below; also, should we write a helper function earlier for the 'manual
             # distribution'?]
 
-            # Now, build everything back up, continually multiplying on the left by a single generator
-            # Multiply gens by other_element, doing "manual distribution"
+            # gens is a linear combination of products of the C' generators
+            # Now, build everything back up, continually multiplying on the left by a single generator at a time
 
             result = self(0)
+            # Iterate through the sum of terms
             for (p, coeff) in gens:
                 # p is a product of generators, i.e. 2*g1*g2*g1; multiply it by other_element
                 # Build summand multiplicatively, going through variables and thier powers in p
                 # If gens are on the right, we need to start at the left end of p, and vice versa.
                 summand = coeff * other_element
                 p_list = list(p) if side == 'right' else list(p)[::-1]
-                for (g, power) in p_list:
+                # Iterate through the product of generators
+                for (g, exponent) in p_list:
                     s = self.gen_algebra.gens().index(g)
-                    # Multiply this_element on the apppropriate side by the generator this variable g corresponds to
-                    for i in range(power):
+                    # Multiply this_element on the apppropriate side by the generator this variable g corresponds to,
+                    # however many times it is represented in the product (according to the exponent)
+                    for i in range(exponent):
+                        # Perform C'_s * (summand)
                         summand = self._product_with_generator(side, s, summand)
 
                 result += summand

@@ -4043,11 +4043,11 @@ class BTerm(TermWithCoefficient):
         sage: G = MonomialGrowthGroup(ZZ, 'x');
         sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
         sage: BT_QQ(x, 3, valid_from={'x': 20})
-        doctest:...:
-        FutureWarning: This class/method/function is marked as experimental. It,
-        its functionality or its interface might change without a formal deprecation.
+        doctest:warning
+        ...
+        FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See https://trac.sagemath.org/31922 for details.
-        BTerm with coefficient 3, growth x and valid for x >= 20
+        B(3*x, x >= 20)
     """
     @experimental(trac_number=31922)
     def __init__(self, parent, growth, coefficient, valid_from):
@@ -4084,9 +4084,9 @@ class BTerm(TermWithCoefficient):
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
             sage: BT_ZZ(x^3, 42, valid_from={'x': 10})
-            BTerm with coefficient 42, growth x^3 and valid for x >= 10
+            B(42*x^3, x >= 10)
             sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'y': 20})
-            BTerm with coefficient 42, growth x^3 and valid for x >= 10 and y >= 20
+            B(42*x^3, x >= 10, y >= 20)
             sage: BT_ZZ(x^3*y^2, 42, valid_from={'x': 10})
             Traceback (most recent call last):
             ValueError: BTerm has not defined all variables which occur in the term in valid_from.
@@ -4127,18 +4127,17 @@ class BTerm(TermWithCoefficient):
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
             sage: BT_QQ(x^3, 3, valid_from={'x': 20})
-            BTerm with coefficient 3, growth x^3 and valid for x >= 20
+            B(3*x^3, x >= 20)
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = BTermMonoid(TermMonoid, B, ZZ)
             sage: BT_ZZ(x^2, 4, valid_from={'x': 10, 'y': 15})
-            BTerm with coefficient 4, growth x^2 and valid for x >= 10 and y >= 15
+            B(4*x^2, x >= 10, y >= 15)
         """
-        valid_from_string = ' and '.join(f'{variable} >= {value}'
-                                         for variable, value in self.valid_from.items())
+        valid_from_string = ''.join(f', {variable} >= {value}'
+                                    for variable, value in self.valid_from.items())
 
-        return (f'BTerm with coefficient {self.coefficient}, growth {self.growth} '
-                f'and valid for {valid_from_string}')
+        return (f'B({self._repr_product_()}{valid_from_string})')
 
     def can_absorb(self, other):
         r"""
@@ -4192,11 +4191,11 @@ class BTerm(TermWithCoefficient):
             sage: t1 = BT(x, 3, valid_from={'x': 20}); t2 = BT(x^3, 5, valid_from={'x': 5})
             sage: t3 = BT(x^3, 10, valid_from={'x': 10})
             sage: t2.absorb(t1)
-            BTerm with coefficient 2003/400, growth x^3 and valid for x >= 20
+            B(2003/400*x^3, x >= 20)
             sage: t2.absorb(t3)
-            BTerm with coefficient 15, growth x^3 and valid for x >= 10
+            B(15*x^3, x >= 10)
             sage: t3.absorb(t2)
-            BTerm with coefficient 15, growth x^3 and valid for x >= 10
+            B(15*x^3, x >= 10)
         """
         if not isinstance(other, (BTerm, ExactTerm)):
             return False
@@ -4221,16 +4220,15 @@ class BTerm(TermWithCoefficient):
             sage: BT = BTermMonoid(TermMonoid, G, QQ)
             sage: t1 = BT(x^3, 4, valid_from={'x': 10}); t2 = BT(x, 5, valid_from={'x': 20})
             sage: t1
-            BTerm with coefficient 4, growth x^3 and valid for x >= 10
+            B(4*x^3, x >= 10)
             sage: t1.can_absorb(t2)
             True
             sage: t1.absorb(t2)
-            BTerm with coefficient 321/80, growth x^3 and valid for x >= 20
+            B(321/80*x^3, x >= 20)
             sage: t2.absorb(t1)
             Traceback (most recent call last):
             ...
-            ArithmeticError: BTerm with coefficient 5, growth x and valid for x >= 20
-            cannot absorb BTerm with coefficient 4, growth x^3 and valid for x >= 10
+            ArithmeticError: B(5*x, x >= 20) cannot absorb B(4*x^3, x >= 10)
             sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
             sage: t4 = ET(x^3, 5)
             sage: t1.absorb(t4) # not tested, see #32229
@@ -4332,7 +4330,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = BTermMonoid(TermMonoid, G, QQ)
             sage: BT(x^3, 4, valid_from={'x': 10})
-            BTerm with coefficient 4, growth x^3 and valid for x >= 10
+            B(4*x^3, x >= 10)
             sage: BT(x^3, 4, valid_from=10)
             Traceback (most recent call last):
             ...

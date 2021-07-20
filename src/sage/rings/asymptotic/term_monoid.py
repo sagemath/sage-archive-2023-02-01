@@ -4042,14 +4042,13 @@ class BTerm(TermWithCoefficient):
 
         sage: G = MonomialGrowthGroup(ZZ, 'x');
         sage: BT_QQ = BTermMonoid(TermMonoid, G, QQ)
-        sage: BT_QQ(x, 3, valid_from={'x': 20})
         doctest:warning
         ...
         FutureWarning: This class/method/function is marked as experimental. It, its functionality or its interface might change without a formal deprecation.
         See https://trac.sagemath.org/31922 for details.
+        sage: BT_QQ(x, 3, valid_from={'x': 20})
         B(3*x, x >= 20)
     """
-    @experimental(trac_number=31922)
     def __init__(self, parent, growth, coefficient, valid_from):
         r"""
         See :class:`BTerm` for more information.
@@ -4303,6 +4302,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
         sage: BT
         BTerm Monoid x^ZZ with coefficients in Rational Field
     """
+    __init__ = experimental(trac_number=31922)(GenericTermMonoid.__init__)
 
     # enable the category framework for elements
     Element = BTerm

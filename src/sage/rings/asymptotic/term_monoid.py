@@ -164,11 +164,13 @@ have equal growth to be incomparable.
 
 
 Various
+
 .. WARNING::
 
     As this code is experimental, warnings are thrown when a BTerm
     is created for the first time in a session (see
     :class:`sage.misc.superseded.experimental`).
+
 =======
 
 .. TODO::

@@ -1890,11 +1890,11 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: B = BrandtModule(5,37); I = B.right_ideals()[0]; i,j,k = B.quaternion_algebra().gens(); I
             Fractional ideal (2 + 2*j + 106*k, i + 2*j + 105*k, 4*j + 64*k, 148*k)
             sage: I.scale(i)
-            Fractional ideal [2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j]
+            Fractional ideal (2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j)
             sage: I.scale(i, left=True)
-            Fractional ideal [2*i - 212*j + 2*k, -2 - 210*j + 2*k, -128*j + 4*k, -296*j]
+            Fractional ideal (2*i - 212*j + 2*k, -2 - 210*j + 2*k, -128*j + 4*k, -296*j)
             sage: I.scale(i, left=False)
-            Fractional ideal [2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j]
+            Fractional ideal (2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j)
             sage: i * I.gens()[0]
             2*i - 212*j + 2*k
             sage: I.gens()[0] * i
@@ -1906,7 +1906,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             gens = [alpha * b for b in self.basis()]
         else:
             gens = [b * alpha for b in self.basis()]
-        return Q.ideal(gens, left_order=self.__left_order,
+        return Q.ideal(tuple(gens), left_order=self.__left_order,
                        right_order=self.__right_order, check=False)
 
     def quaternion_algebra(self):

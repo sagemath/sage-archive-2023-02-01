@@ -1399,6 +1399,33 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             return lower, upper
 
     @staticmethod
+    def interval(lower, upper, *, lower_closed=None, upper_closed=None):
+        """
+        Construct an interval
+
+        INPUT:
+
+        - ``lower``, ``upper`` -- two real numbers or infinity. They
+          will be sorted if necessary.
+
+        - ``lower_closed``, ``upper_closed`` -- boolean; whether the interval
+          is closed at the lower and upper bound of the interval, respectively.
+
+        OUTPUT:
+
+        A new :class:`RealSet`.
+
+        EXAMPLES::
+
+            sage: RealSet.interval(1, 0, lower_closed=True, upper_closed=False)
+            [0, 1)
+        """
+        if lower_closed is None or upper_closed is None:
+            raise ValueError('lower_closed and upper_closed must be explicitly given')
+        lower, upper = RealSet._prep(lower, upper)
+        return RealSet(InternalRealInterval(lower, lower_closed, upper, upper_closed))
+
+    @staticmethod
     def open(lower, upper):
         """
         Construct an open interval

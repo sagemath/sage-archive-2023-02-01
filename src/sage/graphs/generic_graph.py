@@ -8538,6 +8538,9 @@ class GenericGraph(GenericGraph_pyx):
             \mbox{Such that : }&\forall v \in G, \sum_{(u,v)\in G.edges()} b_{(u,v)}\leq 1\\
             &\forall x\in G, b_x\mbox{ is a binary variable}
 
+        Observe that the integrality of the flow variables is automatic for all
+        available solvers when all capacities are integers.
+
         INPUT:
 
         - ``x`` -- source vertex
@@ -8805,10 +8808,9 @@ class GenericGraph(GenericGraph_pyx):
         if integer or use_edge_labels is False:
             obj = Integer(round(obj))
 
-        if integer:
-            flow = p.get_values(flow, convert=True, tolerance=integrality_tolerance)
-        else:
-            flow = p.get_values(flow)
+        # If integer is True, flow variables will be converted to integers.
+        # Otherwise, the base ring of the MILP solver is used
+        flow = p.get_values(flow, convert=True, tolerance=integrality_tolerance)
 
         # Builds a clean flow Draph
         flow_graph = g._build_flow_graph(flow, integer=integer)
@@ -9379,10 +9381,9 @@ class GenericGraph(GenericGraph_pyx):
             from sage.categories.sets_cat import EmptySetError
             raise EmptySetError("the multicommodity flow problem has no solution")
 
-        if integer:
-            flow = p.get_values(flow, convert=True, tolerance=integrality_tolerance)
-        else:
-            flow = p.get_values(flow)
+        # If integer is True, flow variables will be converted to integers.
+        # Otherwise, the base ring of the MILP solver is used
+        flow = p.get_values(flow, convert=True, tolerance=integrality_tolerance)
 
         # building clean flow digraphs
         flow_graphs = [g._build_flow_graph({e: f for (ii,e),f in flow.items() if ii == i}, integer=integer)

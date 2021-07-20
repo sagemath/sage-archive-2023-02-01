@@ -4539,17 +4539,17 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         r"""
         Computes the ``n`` multiplier spectra of this dynamical system.
 
-        This is the set of multipliers of the periodic points of formal
+        This is the set of multipliers of all peroidic points of
         period ``n`` included with the appropriate multiplicity.
-        User can also specify to compute the ``n`` multiplier spectra
-        instead which includes the multipliers of all periodic points
-        of period ``n``. The map must be defined over
+        User can also specify to compute the formal ``n`` multiplier spectra
+        instead which includes the multipliers of all formal periodic points
+        of period ``n`` with appropriate multiplicity. The map must be defined over
         projective space over a number field or finite field.
 
         By default, the computations are done over the algebraic closure of the
         base field. If the map is defined over projective space of dimension 1,
         the computation can be done over the minimal extension of the base field that
-        contains the critical points. Otherwise, it will be done over the base ring
+        contains the periodic points. Otherwise, it will be done over the base ring
         of the map.
 
         INPUT:
@@ -4741,8 +4741,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f = DynamicalSystem_projective([x^2 + w*x*y + y^2, y^2, z^2])
             sage: f.multiplier_spectra(1)
             [
-            [1.000000000000000? - 1.572302755514847?*I                                         0]  [1.000000000000000? - 1.572302755514847?*I 0.618033988749895? - 1.757887921270715?*I]  [1.000000000000000? + 1.572302755514847?*I                                         0]  [1.000000000000000? + 1.572302755514847?*I 0.618033988749895? + 1.757887921270715?*I]
-            [                                        0                                         0], [                                        0                                         2], [                                        0                                         0], [                                        0                                         2],
+            [1.000000000000000? - 1.572302755514847?*I                                         0]
+            [1.000000000000000? - 1.572302755514847?*I 0.618033988749895? - 1.757887921270715?*I]
+            [1.000000000000000? + 1.572302755514847?*I                                         0]
+            [1.000000000000000? + 1.572302755514847?*I 0.618033988749895? + 1.757887921270715?*I]
+            [                                        0                                         0],
+            [                                        0                                         2],
+            [                                        0                                         0],
+            [                                        0                                         2],
             [0 0]  [0 0]  [                 2 2.236067977499790?]
             [0 0], [0 0], [                 0                  0]
             ]
@@ -4819,7 +4825,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                             for i in range(X_k.multiplicity(new_point)):
                                 points.append(PS(point))
                     else:
-                        # we find a finite extension which point the point
+                        # we find a finite extension which the current point
                         # and X coerce into
                         final_degree = K.degree()
                         new_point = []
@@ -4847,7 +4853,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         f = self.change_ring(embeds[0])
                     else:
                         raise ValueError("no embeddings of base field to algebraic closure")
-            elif PS.dimension_relative() == 1:
+            else:
                 embedding = self.field_of_definition_periodic(n, formal=formal, return_embedding=True)[1]
                 f = self.change_ring(embedding)
 

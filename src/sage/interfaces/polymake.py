@@ -331,8 +331,50 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             r = self.new("{" + ",".join(A) + "}")
             r.__sage_dict = z # do this to avoid having the entries of the list be garbage collected
             return r
-        else:
-            return super(PolymakeAbstract, self)._coerce_impl(x, use_special=use_special)
+
+        from sage.rings.all import Integer, Rational, RDF
+        from sage.rings.number_field.number_field import is_QuadraticField
+
+        def to_str(x):
+            if isinstance(x, list):
+                s = '['
+                for y in x:
+                    s += to_str(y) + ', '
+                s += ']'
+                return s
+            if isinstance(x, (Integer, Rational, int)):
+                return '{}'.format(x)
+            parent = None
+            try:
+                parent = x.parent()
+            except AttributeError:
+                pass
+
+            if is_QuadraticField(parent):
+                return x._polymake_init_()
+            try:
+                if x.parent().is_exact():
+                    # No other exact rings are supported.
+                    raise NotImplementedError
+            except AttributeError:
+                pass
+
+            try:
+                x = RDF(x)
+                return '{}'.format(x)
+            except:
+                pass
+
+            raise NotImplementedError
+
+        # Iteratively calling polymake for conversion takes a long time.
+        # However, it takes iterated arrays of integers, rationals and floats directly.
+        try:
+            return self.new(to_str(x))
+        except NotImplementedError:
+            pass
+
+        return super(PolymakeAbstract, self)._coerce_impl(x, use_special=use_special)
 
     def console(self):
         """
@@ -1512,6 +1554,48 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
         """
         T1, T2 = self.typeof()
         self._check_valid()
+        try:
+            # Try to just read things from the string representation.
+            if 'Sparse' in T1:
+                raise NotImplementedError
+
+            r = self._repr_()
+            if 'Float' in T1:
+                from sage.rings.all import RDF
+                base_ring = RDF
+                str_to_base_ring = lambda s: RDF(s)
+            elif 'QuadraticExtension' in T1 and 'r' in r:
+                i = r.find('r')
+                i1 = min((r[i:]+' ').find(' '), (r[i:]+'\n').find('\n'))
+                d = int(r[i+1:i+i1])
+                from sage.rings.number_field.number_field import QuadraticField
+                base_ring = QuadraticField(d)
+
+                def str_to_base_ring(s):
+                    m = re.match(r'(-?[0-9/]+)[+]?((-?[0-9/]+)r([0-9/]+))?', s)
+                    a, b = m.group(1), m.group(3)
+                    return base_ring(a) + base_ring(b)*base_ring.gen()
+
+            elif 'Rational' in T1:
+                from sage.rings.all import QQ
+                base_ring = QQ
+                str_to_base_ring = lambda s: QQ(s)
+            else:
+                raise NotImplementedError
+
+            if 'Vector' in T1:
+                from sage.modules.free_module_element import vector
+                if r == '':
+                    return vector(base_ring)
+                return vector(base_ring, [str_to_base_ring(s) for s in r.split(' ')])
+            elif 'Matrix' in T1:
+                from sage.matrix.constructor import matrix
+                if r == '':
+                    return matrix(base_ring)
+                return matrix(base_ring, [[str_to_base_ring(s) for s in t.split(' ')] for t in r.split('\n')])
+        except:
+            pass
+
         if T1:
             Temp = self.typename()
             if Temp:

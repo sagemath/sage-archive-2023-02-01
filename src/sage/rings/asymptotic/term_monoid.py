@@ -4362,10 +4362,6 @@ class BTermMonoid(TermWithCoefficientMonoid):
             Traceback (most recent call last):
             ...
             AttributeError: 'sage.rings.integer.Integer' object has no attribute 'keys'
-            sage: BT(x^3, 4, 10)
-            Traceback (most recent call last):
-            ...
-            TypeError: _element_constructor_() takes from 2 to 3 positional arguments but 4 were given
         """
         return self.element_class(self, growth, coefficient, valid_from)
 

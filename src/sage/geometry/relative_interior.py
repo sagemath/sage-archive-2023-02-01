@@ -53,6 +53,17 @@ class RelativeInterior(ConvexSet_relatively_open):
         """
         self._polyhedron = polyhedron
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: P = Polyhedron([[1, 2], [3, 4]])
+            sage: Q = Polyhedron([[3, 4], [1, 2]])
+            sage: hash(P.relative_interior()) == hash(Q.relative_interior())
+            True
+        """
+        return hash(self._polyhedron) ^ 1789
+
     def __contains__(self, point):
         r"""
         Return whether ``self`` contains ``point``.
@@ -242,6 +253,25 @@ class RelativeInterior(ConvexSet_relatively_open):
         # relatively open themselves.
         assert not self._polyhedron.is_relatively_open()
         return False
+
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self``.
+
+        If ``self`` is empty, no points are generated; no exception will be raised.
+
+        EXAMPLES::
+
+            sage: P = polytopes.simplex()
+            sage: ri_P = P.relative_interior()
+            sage: ri_P.an_element()              # indirect doctest
+            (1/4, 1/4, 1/4, 1/4)
+            sage: ri_P.some_elements()           # indirect doctest
+            [(1/4, 1/4, 1/4, 1/4), (1/2, 1/4, 1/8, 1/8)]
+        """
+        for p in self._polyhedron.some_elements():
+            if p in self:
+                yield p
 
     def _repr_(self):
         r"""

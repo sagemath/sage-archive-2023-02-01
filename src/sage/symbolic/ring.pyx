@@ -1133,7 +1133,7 @@ cdef class SymbolicRing(CommutativeRing):
             d = args[0]
         else:
             from sage.misc.superseded import deprecation
-            deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)")
+            deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)", stacklevel=3)
             d = {}
 
             vars = _the_element.variables()

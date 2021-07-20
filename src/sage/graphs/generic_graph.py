@@ -9447,7 +9447,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # add significant edges
         for (u,v),l in flow.items():
-            if l > 0 and not (integer and l < .5):
+            if l:
                 g.add_edge(u, v, l)
 
         while True:
@@ -9469,14 +9469,6 @@ class GenericGraph(GenericGraph_pyx):
                     g.delete_edge(u, v)
                 else:
                     g.set_edge_label(u, v, l)
-
-        # if integer is set, round values and deletes zeroes
-        if integer:
-            for u,v,l in g.edges(sort=False):
-                if l < .5:
-                    g.delete_edge(u, v)
-                else:
-                    g.set_edge_label(u, v, int(round(l)))
 
         # returning a graph with the same embedding, the corresponding name, etc ...
         h = self.subgraph(edges=[], immutable=False)

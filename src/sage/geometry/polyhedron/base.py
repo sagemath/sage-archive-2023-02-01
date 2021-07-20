@@ -8909,11 +8909,22 @@ class Polyhedron_base(Element, ConvexSet_closed):
             True
             sage: full.contains([0])
             False
+
+        TESTS:
+
+        Passing non-iterable objects does not cause an exception, see :trac:`32013`::
+
+            sage: None in Polyhedron(vertices=[(0,0)], rays=[(1,0)], base_ring=QQ)
+            False
         """
         try:
             p = vector(point)
         except TypeError:  # point not iterable or no common ring for elements
-            if len(point) > 0:
+            try:
+                l = len(point)
+            except TypeError:
+                return False
+            if l > 0:
                 return False
             else:
                 p = vector(self.base_ring(), [])
@@ -9012,7 +9023,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
         try:
             p = vector(point)
         except TypeError:  # point not iterable or no common ring for elements
-            if len(point) > 0:
+            try:
+                l = len(point)
+            except TypeError:
+                return False
+            if l > 0:
                 return False
             else:
                 p = vector(self.base_ring(), [])
@@ -9129,7 +9144,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
         try:
             p = vector(point)
         except TypeError:  # point not iterable or no common ring for elements
-            if len(point) > 0:
+            try:
+                l = len(point)
+            except TypeError:
+                return False
+            if l > 0:
                 return False
             else:
                 p = vector(self.base_ring(), [])

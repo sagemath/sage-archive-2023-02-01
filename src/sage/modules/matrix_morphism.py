@@ -76,7 +76,6 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         """
         INPUT:
 
-
         -  ``parent`` - a homspace
 
         -  ``A`` - matrix
@@ -803,7 +802,8 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
         ``characteristic_polynomial`` and ``char_poly`` are the same method.
 
         INPUT:
-            - var -- variable
+
+        - var -- variable
 
         EXAMPLES::
 
@@ -1592,7 +1592,7 @@ class MatrixMorphism_abstract(sage.categories.morphism.Morphism):
             V = sub.free_module()
         if self.side() == "right":
             A = self.matrix().transpose().restrict(V).transpose()
-        else :
+        else:
             A = self.matrix().restrict(V)
         H = sage.categories.homset.End(sub, self.domain().category())
         return H(A, side=self.side())

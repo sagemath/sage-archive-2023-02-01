@@ -4106,7 +4106,7 @@ class BTerm(TermWithCoefficient):
                 raise ValueError('BTerm has not defined all variables which occur in the term in valid_from.')
         self.valid_from = valid_from
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this B term.
 
@@ -4134,10 +4134,37 @@ class BTerm(TermWithCoefficient):
             sage: BT_ZZ(x^2, 4, valid_from={'x': 10, 'y': 15})
             B(4*x^2, x >= 10, y >= 15)
         """
-        valid_from_string = ''.join(f', {variable} >= {value}'
-                                    for variable, value in self.valid_from.items())
+        if latex:
+            valid_from_string = ''.join(f'{variable} >= {value}, '
+                                        for variable, value in self.valid_from.items())
+            return fr'B_{{{valid_from_string}}}\left({self._repr_product_(latex=True)}\right)'
+        else:
+            valid_from_string = ''.join(f', {variable} >= {value}'
+                                        for variable, value in self.valid_from.items())
+            return f'B({self._repr_product_()}{valid_from_string})'
 
-        return (f'B({self._repr_product_()}{valid_from_string})')
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this `B`-term.
+
+        OUTPUT:
+
+        A string
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = TermMonoid('B', G, QQ)
+            sage: latex(T(x, 5, valid_from={'x': 3}))
+            B_{x >= 3, }\left(5 x\right)
+            sage: latex(T(x^2, 3, valid_from={'x': 5}))
+            B_{x >= 5, }\left(3 x^{2}\right)
+            sage: latex(T(x^3, 6, valid_from={'x': 10}))
+            B_{x >= 10, }\left(6 x^{3}\right)
+        """
+        return self._repr_(latex=True)
 
     def can_absorb(self, other):
         r"""

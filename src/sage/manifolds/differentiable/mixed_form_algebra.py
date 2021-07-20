@@ -339,6 +339,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         res._comp = [self._domain.diff_form_module(j, dest_map=self._dest_map).zero()
                      for j in self.irange()]
         res._is_zero = True  # This element is certainly zero
+        res.set_immutable()
         return res
 
     @cached_method
@@ -359,6 +360,7 @@ class MixedFormAlgebra(Parent, UniqueRepresentation):
         res._comp = [self._domain.one_scalar_field(),
                      *(self._domain.diff_form_module(j, dest_map=self._dest_map).zero()
                        for j in self.irange(1))]
+        res.set_immutable()
         return res
 
     def vector_field_module(self):

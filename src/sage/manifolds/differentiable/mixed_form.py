@@ -25,10 +25,10 @@ AUTHORS:
 #******************************************************************************
 
 from sage.misc.cachefunc import cached_method
-from sage.structure.element import AlgebraElement
+from sage.structure.element import AlgebraElement, ModuleElementWithMutability
 from sage.rings.integer import Integer
 
-class MixedForm(AlgebraElement):
+class MixedForm(AlgebraElement, ModuleElementWithMutability):
     r"""
     An instance of this class is a mixed form along some differentiable map
     `\varphi: M \to N` between two differentiable manifolds `M` and `N`. More
@@ -206,12 +206,12 @@ class MixedForm(AlgebraElement):
         sage: z[0] = 1
         Traceback (most recent call last):
         ...
-        ValueError: the components of the element zero cannot be changed
+        ValueError: the components of an immutable element cannot be changed
         sage: one = M.mixed_form_algebra().one()
         sage: one[0] = 0
         Traceback (most recent call last):
         ...
-        ValueError: the components of the element one cannot be changed
+        ValueError: the components of an immutable element cannot be changed
 
     """
     def __init__(self, parent, name=None, latex_name=None):
@@ -616,6 +616,9 @@ class MixedForm(AlgebraElement):
             eta = g + F_1 + F_2 + F_3 + F_4
 
         """
+        if self.is_immutable():
+            raise ValueError("the name of an immutable element "
+                                 "cannot be changed")
         if name is not None:
             self._name = name
             if latex_name is None:
@@ -1211,9 +1214,9 @@ class MixedForm(AlgebraElement):
             A = x + y dx + x*y dx∧dy
 
         """
-        if self is self.parent().one() or self is self.parent().zero():
-            raise ValueError("the components of the element "
-                             f"{self._name} cannot be changed")
+        if self.is_immutable():
+            raise ValueError("the components of an immutable element "
+                             "cannot be changed")
         if isinstance(index, (int, Integer)):
             start, stop, step = index, index + 1, 1
         elif isinstance(index, slice):
@@ -1501,3 +1504,26 @@ class MixedForm(AlgebraElement):
 
         """
         return self[i]
+
+    def set_immutable(self):
+        r"""
+        Set ``self`` and homogeneous components of ``self`` immutable.
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field(x^2, name='f')
+            sage: A = M.mixed_form([f, 0, 0], name='A')
+            sage: A.set_immutable()
+            sage: A.is_immutable()
+            True
+            sage: A[0].is_immutable()
+            True
+            sage: f.is_immutable()
+            False
+
+        """
+        for form in self:
+            form.set_immutable()
+        super().set_immutable()

@@ -385,7 +385,7 @@ def minimize(func, x0, gradient=None, hessian=None, algorithm="default",
         (1.0, 1.0, 1.0)
     """
     from sage.symbolic.expression import Expression
-    from sage.ext.fast_eval import fast_callable
+    from sage.ext.fast_callable import fast_callable
     import numpy
     from scipy import optimize
     if isinstance(func, Expression):
@@ -505,7 +505,7 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         (805.985..., 1005.985...)
     """
     from sage.symbolic.expression import Expression
-    from sage.ext.fast_eval import fast_callable
+    from sage.ext.fast_callable import fast_callable
     import numpy
     from scipy import optimize
     function_type = type(lambda x,y: x+y)
@@ -779,7 +779,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
         raise ValueError("length of initial_guess does not coincide with the number of parameters")
 
     if isinstance(model, Expression):
-        from sage.ext.fast_eval import fast_callable
+        from sage.ext.fast_callable import fast_callable
         var_list = variables + parameters
         func = fast_callable(model, vars=var_list)
     else:

@@ -12572,24 +12572,6 @@ cdef class Expression(CommutativeRingElement):
     ###################
     # Fast Evaluation #
     ###################
-    def _fast_float_(self, *vars):
-        """
-        Return an object which provides fast floating point
-        evaluation of this symbolic expression.
-
-        See :mod:`sage.ext.fast_eval` for more information.
-
-        EXAMPLES::
-
-            sage: f = sqrt(x+1)
-            sage: ff = f._fast_float_('x')
-            sage: ff(1.0)
-            1.4142135623730951
-            sage: type(_)
-            <... 'float'>
-        """
-        from sage.symbolic.expression_conversions import fast_float
-        return fast_float(self, *vars)
 
     def _fast_callable_(self, etb):
         """

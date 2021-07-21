@@ -1463,9 +1463,6 @@ class QuaternionOrder(Algebra):
         """
         Compare orders self and other.
 
-        Two orders are equal if they
-        have the same basis and are in the same quaternion algebra.
-
         EXAMPLES::
 
             sage: R = QuaternionAlgebra(-11,-1).maximal_order()
@@ -1475,11 +1472,14 @@ class QuaternionOrder(Algebra):
             False
             sage: R == 5
             False
+            sage: Q.<i,j,k> = QuaternionAlgebra(-1,-19)
+            sage: Q.quaternion_order([1,-i,k,j+i*7]) == Q.quaternion_order([1,i,j,k])   # trac #32245
+            True
         """
         if not isinstance(R, QuaternionOrder):
             return False
         return (self.__quaternion_algebra == R.__quaternion_algebra and
-                self.__basis == R.__basis)
+                self.unit_ideal() == R.unit_ideal())
 
     def __ne__(self, other):
         """
@@ -1712,6 +1712,7 @@ class QuaternionOrder(Algebra):
         else:
             raise NotImplementedError("ideal only implemented for quaternion algebras over QQ")
 
+    @cached_method
     def unit_ideal(self):
         """
         Return the unit ideal in this quaternion order.

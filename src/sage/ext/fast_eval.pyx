@@ -9,47 +9,9 @@ point values. Doing this via recursive calls over a python
 representation of the object (even if Maxima or other outside packages
 are not involved) is extremely inefficient.
 
-Up until now the solution has been to use lambda expressions, but this
-is neither intuitive, Sage-like, nor efficient (compared to operating
-on raw C doubles).  This module provides a representation of algebraic
-expression in Reverse Polish Notation, and provides an efficient
-interpreter on C double values as a callable python object. It does
-what it can in C, and will call out to Python if necessary.
-
-Essential to the understanding of this class is the distinction
-between symbolic expressions and callable symbolic expressions (where
-the latter binds argument names to argument positions). The
-``*vars`` parameter passed around encapsulates this information.
-
-See the function ``fast_float(f, *vars)`` to create a fast-callable
-version of f.
-
-.. NOTE::
-
-    Sage temporarily has two implementations of this functionality ;
-    one in this file, which will probably be deprecated soon, and one in
-    fast_callable.pyx.  The following instructions are for the old
-    implementation; you probably want to be looking at fast_callable.pyx
-    instead.
-
-To provide this interface for a class, implement ``fast_float_(self, *vars)``.  The basic building blocks are
-provided by the functions ``fast_float_constant`` (returns a
-constant function), ``fast_float_arg`` (selects the ``n``-th value
-when called with ``\ge_n`` arguments), and ``fast_float_func`` which
-wraps a callable Python function. These may be combined with the
-standard Python arithmetic operators, and support many of the basic
-math functions such ``sqrt``, ``exp``, and trig functions.
-
-TESTS:
-
-This used to segfault because of an assumption that assigning None to a
-variable would raise a TypeError::
-
-    sage: from sage.ext.fast_eval import fast_float_arg, fast_float
-    sage: fast_float_arg(0)+None
-    Traceback (most recent call last):
-    ...
-    TypeError
+The solution implemented in this module, by Robert Bradshaw (2008-10),
+has been superseded by :func:`~sage.ext.fast_callable.fast_callable`.
+All that remains here is a compatible interface function :func:`fast_float`.
 
 AUTHORS:
 

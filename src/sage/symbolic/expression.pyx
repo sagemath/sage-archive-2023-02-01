@@ -12481,7 +12481,8 @@ cdef class Expression(CommutativeRingElement):
             else:
                 raise RuntimeError("no zero in the interval, since constant expression is not 0.")
         elif self.number_of_arguments() == 1:
-            f = self._fast_float_(self.default_variable())
+            from sage.ext.fast_callable import fast_callable
+            f = fast_callable(self, vars=[self.default_variable()])
             return find_root(f, a=a, b=b, xtol=xtol,
                              rtol=rtol,maxiter=maxiter,
                              full_output=full_output)

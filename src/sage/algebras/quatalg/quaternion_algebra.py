@@ -1115,8 +1115,7 @@ class QuaternionAlgebra_ab(QuaternionAlgebra_abstract):
 
         - ``gens`` -- a list of elements of this quaternion order
 
-        - ``check`` -- bool (default: ``True``); if ``False``, then ``gens`` must
-          4-tuple that forms a Hermite basis for an ideal
+        - ``check`` -- bool (default: ``True``)
 
         - ``left_order`` -- a quaternion order or ``None``
 
@@ -1679,8 +1678,7 @@ class QuaternionOrder(Algebra):
 
         - ``gens`` -- a list of elements of this quaternion order
 
-        - ``check`` -- bool (default: ``True``); if ``False``, then ``gens`` must
-          4-tuple that forms a Hermite basis for an ideal
+        - ``check`` -- bool (default: ``True``)
 
         EXAMPLES::
 
@@ -1701,8 +1699,7 @@ class QuaternionOrder(Algebra):
 
         - ``gens`` -- a list of elements of this quaternion order
 
-        - ``check`` -- bool (default: ``True``); if ``False``, then ``gens`` must
-          4-tuple that forms a Hermite basis for an ideal
+        - ``check`` -- bool (default: ``True``)
 
         EXAMPLES::
 
@@ -1837,7 +1834,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
       quaternion algebra whose `\\ZZ`-span is an ideal
 
     - ``check`` -- bool (default: ``True``); if ``False``, do no type
-      checking, and the input basis *must* be in Hermite form.
+      checking.
     """
     def __init__(self, basis, left_order=None, right_order=None, check=True):
         """
@@ -2114,9 +2111,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
     def basis(self):
         """
-        Return basis for this fractional ideal.
-
-        The basis is in Hermite form.
+        Return a basis for this fractional ideal.
 
         OUTPUT: tuple
 
@@ -2163,7 +2158,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         if not isinstance(right, QuaternionFractionalIdeal_rational):
             return False
-        return self.__basis == right.__basis
+        return self.basis_matrix() == right.basis_matrix()
 
     def __ne__(self, other):
         """
@@ -2198,6 +2193,7 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         return hash(self.__basis)
 
+    @cached_method
     def basis_matrix(self):
         r"""
         Return basis matrix `M` in Hermite normal form for self as a
@@ -2213,18 +2209,14 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         EXAMPLES::
 
             sage: QuaternionAlgebra(-11,-1).maximal_order().unit_ideal().basis_matrix()
-            [ 1/2  1/2    0    0]
-            [   0    0  1/2 -1/2]
-            [   0    1    0    0]
-            [   0    0    0   -1]
+            [1/2 1/2   0   0]
+            [  0   1   0   0]
+            [  0   0 1/2 1/2]
+            [  0   0   0   1]
         """
-        try:
-            return self.__hermite_basis_matrix
-        except AttributeError:
-            pass
         B = quaternion_algebra_cython.rational_matrix_from_rational_quaternions(self.__basis)
-        self.__hermite_basis_matrix = B
-        return B
+        C, d = B._clear_denom()
+        return C.hermite_form() / d
 
     def theta_series_vector(self, B):
         r"""
@@ -2483,10 +2475,10 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             [   0    0    0 20/7]
 
             sage: QuaternionAlgebra(-11,-1).maximal_order().unit_ideal().basis_matrix()
-            [ 1/2  1/2    0    0]
-            [   0    0  1/2 -1/2]
-            [   0    1    0    0]
-            [   0    0    0   -1]
+            [1/2 1/2   0   0]
+            [  0   1   0   0]
+            [  0   0 1/2 1/2]
+            [  0   0   0   1]
 
         The free module method is also useful since it allows for checking if
         one ideal is contained in another, computing quotients `I/J`, etc.::

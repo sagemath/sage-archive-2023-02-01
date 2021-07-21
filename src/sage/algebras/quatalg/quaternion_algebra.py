@@ -2138,11 +2138,9 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         """
         Compare this fractional quaternion ideal to ``right``.
 
-        If ``right`` is not a fractional quaternion ideal, return ``False``.
-
-        If the fractional ideals are in different ambient
-        quaternion algebras, then the quaternion algebras themselves
-        are compared.
+        If ``right`` is not a fractional quaternion ideal or if the
+        fractional ideals are in different ambient quaternion
+        algebras, return ``False``.
 
         INPUT:
 
@@ -2150,15 +2148,26 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
 
         EXAMPLES::
 
-            sage: I = QuaternionAlgebra(-11,-1).maximal_order().unit_ideal()
+            sage: I = QuaternionAlgebra(-11, -1).maximal_order().unit_ideal()
             sage: I == I                # indirect doctest
             True
             sage: I == 5
             False
+
+            sage: J = QuaternionAlgebra(-7, -1).maximal_order().unit_ideal()
+            sage: J == I
+            False
+
+        Ideals can be equal even if they are defined by different
+        bases (see :trac:`32245`)::
+
+            sage: I == I.scale(-1)
+            True
         """
         if not isinstance(right, QuaternionFractionalIdeal_rational):
             return False
-        return self.basis_matrix() == right.basis_matrix()
+        return (self.quaternion_algebra() == right.quaternion_algebra()
+                and self.basis_matrix() == right.basis_matrix())
 
     def __ne__(self, other):
         """

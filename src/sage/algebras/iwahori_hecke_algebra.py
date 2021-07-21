@@ -2036,18 +2036,18 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             .. NOTE::
 
                 The products `B_x \cdot B_y` are computed as follows: if `\ell(x) \leq \ell(y)`, then we first
-                decompose `B_x` into a linear combination of products of generators `B_s (s\in S)`, then multiplies
-                that linear combination onto `B_y`; otherwise we decompose `B_y` and multiply the result onto
-                `B_x`. For example, in the computation of `B[1,2,1] * B[3,1,2]` in type `A3`, the left term
-                `B[1,2,1]` is first (essentially) decomposed into the linear combination `B[1]*B[2]*B[1] - B[1]`
-                behind the scenes. The decomposition is achieved via the [_decompose_into_generators function], which 
-                takes an element `B_w` and gives an element of the free algebra over \{ B_s \; : \; s \in S \}, whose 
-                image under the canonical homomorphism from the free algebra is precisely `B_w`.
+                decompose `B_x` into a polynomial in the generators `B_s (s\in S)`, then multiplies that linear
+                combination onto `B_y`; otherwise we decompose `B_y` and multiply the result onto `B_x`. For
+                example, in the computation of `B[1,2,1] * B[3,1,2]` in type `A3`, the left term `B[1,2,1]` is
+                first (essentially) decomposed into the linear combination `B[1]*B[2]*B[1] - B[1]` behind the
+                scenes. The decomposition is achieved via the [_decompose_into_generators function], which takes an
+                element `B_w` and gives an element of the free algebra over \{ B_s \; : \; s \in S \}, whose image
+                under the canonical homomorphism from the free algebra is precisely `B_w`.
 
         .. SEEALSO::
 
             :ref: [KL1979]_, [Lus2013]_
-            :meth:`sage.somewhere.other_useful_method`,
+            :meth:`sage.somewhere.other_useful_method`, cell stuff
             [coxeter3?]
 
         TESTS::
@@ -2064,10 +2064,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             super(IwahoriHeckeAlgebra.Cp_Coxeter3, self).__init__(algebra, prefix)
 
             self._W = algebra._W
-            self.delta = algebra.q1() + ~algebra.q1()   #[better way to write this, maybe q as R.gen(0)?]
-            
-            # The free algebra over our algebra generators, used in _decompose_into_generators
+            self.delta = q + ~q   # need the normalizations q_1=q^2, q_2=-1 or q_1=q,q_2=-q^-1
+
+            # The free algebra over our algebra generators, used to create monomials in these generators in _decompose_into_generators
             self.gen_algebra = FreeAlgebra(algebra.base_ring(), ['g' + str(i) for i in self.index_set()])
+            
 
             # Define conversion to the other Cp basis
             self.module_morphism(self.to_Cp_basis, codomain=algebra.Cp(), category=self.category()
@@ -2087,8 +2088,23 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Compute the product of `C^{\prime}_s` and `C^{\prime}_w`, putting
             `C^{\prime}_s` on the given ``side``.
 
-            TODO: Repeat the explanation in Cp_Coxeter3's docstring about 
-            C_s * C_w = { cases ... }?
+            For each generator `s` and element `x`, the products `C^{\prime}_s \cdot C^{\prime}_w`
+            is given by the following formulas:
+
+            .. MATH::
+                C^{\prime}_s \cdot C^{\prime}_w = 
+                \begin{cases}
+                   (q+q^-1)C^{\prime}_{w},                                         & \text{if } \ell(sw) = \ell(w)-1,\\
+                   C^{\prime}_{sw}+\sum_{v\leq w, sv \leq v} \mu(v,w)C^{\prime}_v, & \text{if } \ell(sw) = \ell(w)+1.
+                \end{cases}
+
+                C^{\prime}_w \cdot C^{\prime}_s = 
+                \begin{cases}
+                   (q+q^-1)C^{\prime}_{w},                                         & \text{if } \ell(ws) = \ell(w)-1,\\
+                   C^{\prime}_{ws}+\sum_{v\leq w, vs \leq v} \mu(v,w)C^{\prime}_v, & \text{if } \ell(ws) = \ell(w)+1.
+                \end{cases}
+                
+            where `\leq` is the Bruhat order and the numbers `\mu(v,w)` are the `mu`-coefficients of [Lus2014]_.
 
             [recycle the examples from the class' documentation, or not?]
             """
@@ -2114,21 +2130,47 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         
         def _product_with_generator(self, side, s, x):
             r"""
-            Compute the product of `C^{\prime}_s` with any linear combination of `C^{\prime}`-basis elemens.
+            Compute the product of `C^{\prime}_s` with any linear combination of `C^{\prime}`-basis elements. 
 
-            TODO: Say more here; maybe that this just does distribution? I think
-            the one line is fairly self-explanatory.
+            EXAMPLE::
+
+            [one example is enough]
             """
             return self.linear_combination((self._product_with_generator_on_basis(side, s, w), coeff) for (w, coeff) in x)
 
         def _decompose_into_generators(self, w):
             r"""
-            Returns an element of self.gen_algebra, a free algebra over {g_1, ..., g_n} 
-            describing how to write 'word' in terms of the generators
+            Decompose `C^{\prime}_s` into a polynomial in the KL generators `C^{\prime}_s`. 
+            
+            The decomposition is obtained recursively, by induction on `\ell(w)`. If `ell(w) < 2` the decomposition
+            is trivial (see Examples). If `\ell(w) \geq 2`, write `w=su` where `s` is a left descent of `w` so that
+            `\ell(w) = \ell(u) + 1`, then use the formula that 
 
-            [need a good running example or several examples, maybe including how C_121=C_1*C_2*C_1-C_1 in type A;
-            decomposing from one side is probably enough in the example(s)] 
-            """
+            .. MATH::
+                C^{\prime}_s \cdot C^{\prime}_u = 
+                C^{\prime}_{su}+\sum_{v\leq u, sv \leq v} \mu(v,u)C^{\prime}_v
+
+            to conclude that            
+
+            .. MATH::
+                C^{\prime}_{w}= C^{\prime}_s \cdot C^{\prime}_u - \sum_{v\leq u, sv \leq v} \mu(v,u)C^{\prime}_v.
+
+            The element `u` and the elements `v` on the right side all have smaller length than `w`, so they can be
+            obtained by induction. 
+
+            
+            EXAMPLES::
+                # A3 
+                sage: _decompose_into_generators((1,2))
+                {[1,2]: 1}                    # C_{12}=C_1C_2
+                sage: _decompose_into_generators((1,2,1))
+                {[1,2,1]: 1, [1]:-1}          # C_{121}=C_1C_2C_1-C_1=m_121-m_1
+                sage: _decompose_into_generators((1,2,3,1,2))
+                the suitable dictionary     # use "monomial" somehow to get the result natively?
+
+            """            
+            # Returns an element of self.gen_algebra, a free algebra over {g_1, ..., g_n} 
+            # describing how to write 'word' in terms of the generators 
 
             gs = self.gen_algebra.gens()
             if len(w) == 0:
@@ -2139,12 +2181,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             s = w[0]
             w1 = w[1:]
         
-            # We have C_w = C_s * C_{w1}
-            # Use the reverse of the left-multiplication by generator rule:
-            # We know s is not a left descent, so
-            # C_w = C_s * C_{w1} - \sum_{sy < y < w1} C_y
-            # TODO: Explain this ^ in the docstring?
-        
+                
             # Additively build the sum just mentioned above
             sum_term = self(0)
             between = self._W.bruhat_interval([], w1)
@@ -2156,7 +2193,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sum_term += self.base_ring()(x.mu_coefficient(w1)) * self.monomial(x_elt)
         
             # In the expression above, we need to recurse and decompose C_{w1} into generators,
-            # and then go through the terms of the sum 'rest' and decompose those C_y's into generators
+            # and then go through the terms of the sum_term (lower order terms) and decompose those C_y's into generators
             alg_element = gs[s] * self._decompose_into_generators(w1)
             for (v, coeff) in sum_term:
                 # We're subtracting 'sum_term'
@@ -2181,10 +2218,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 gens = self._decompose_into_generators(w2)
                 other_element = self.monomial(w1)
             
-            # [I'm a little confused by 'powers' below; also, should we write a helper function earlier for the 'manual
-            # distribution'?]
-
-            # gens is a linear combination of products of the C' generators
+                       # gens is a linear combination of products of the C' generators
             # Now, build everything back up, continually multiplying on the left by a single generator at a time
 
             result = self(0)

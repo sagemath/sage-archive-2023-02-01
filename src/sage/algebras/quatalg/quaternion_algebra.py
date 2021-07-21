@@ -1895,6 +1895,8 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             Fractional ideal (2*i - 212*j + 2*k, -2 - 210*j + 2*k, -128*j + 4*k, -296*j)
             sage: I.scale(i, left=False)
             Fractional ideal (2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j)
+            sage: I.scale(1) == I   # trac #32245
+            True
             sage: i * I.gens()[0]
             2*i - 212*j + 2*k
             sage: I.gens()[0] * i

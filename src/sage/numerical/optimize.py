@@ -505,23 +505,24 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
         (805.985..., 1005.985...)
     """
     from sage.symbolic.expression import Expression
+    from sage.ext.fast_eval import fast_callable
     import numpy
     from scipy import optimize
     function_type = type(lambda x,y: x+y)
 
     if isinstance(func, Expression):
         var_list = func.variables()
-        var_names = [str(_) for _ in var_list]
-        fast_f = func._fast_float_(*var_names)
+        fast_f = fast_callable(func, vars=var_list)
         f = lambda p: fast_f(*p)
         gradient_list = func.gradient()
-        fast_gradient_functions = [gi._fast_float_(*var_names) for gi in gradient_list]
+        fast_gradient_functions = [ fast_callable(gi, vars=var_list)
+                                    for gi in gradient_list ]
         gradient = lambda p: numpy.array([ a(*p) for a in fast_gradient_functions])
         if isinstance(cons, Expression):
-            fast_cons = cons._fast_float_(*var_names)
+            fast_cons = fast_callable(cons, vars=var_list)
             cons = lambda p: numpy.array([fast_cons(*p)])
         elif isinstance(cons, list) and isinstance(cons[0], Expression):
-            fast_cons = [ci._fast_float_(*var_names) for ci in cons]
+            fast_cons = [fast_callable(ci, vars=var_list) for ci in cons]
             cons = lambda p: numpy.array([a(*p) for a in fast_cons])
     else:
         f = func
@@ -778,9 +779,9 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
         raise ValueError("length of initial_guess does not coincide with the number of parameters")
 
     if isinstance(model, Expression):
+        from sage.ext.fast_eval import fast_callable
         var_list = variables + parameters
-        var_names = [str(_) for _ in var_list]
-        func = model._fast_float_(*var_names)
+        func = fast_callable(model, vars=var_list)
     else:
         func = model
 

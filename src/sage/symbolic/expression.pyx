@@ -12561,11 +12561,13 @@ cdef class Expression(CommutativeRingElement):
         - William Stein (2007-12-07)
         """
         from sage.numerical.optimize import find_local_minimum
+        from sage.ext.fast_callable import fast_callable
 
         if var is None:
             var = self.default_variable()
-        return find_local_minimum(self._fast_float_(var),
-                                        a=a, b=b, tol=tol, maxfun=maxfun )
+
+        f = fast_callable(self, vars=[var])
+        return find_local_minimum(f, a=a, b=b, tol=tol, maxfun=maxfun)
 
     ###################
     # Fast Evaluation #

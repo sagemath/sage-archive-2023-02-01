@@ -5863,7 +5863,7 @@ cdef class Expression(CommutativeRingElement):
 
     def number_of_operands(self):
         """
-        Return the number of arguments of this expression.
+        Return the number of operands of this expression.
 
         EXAMPLES::
 
@@ -5884,7 +5884,7 @@ cdef class Expression(CommutativeRingElement):
 
     def __len__(self):
         """
-        Return the number of arguments of this expression.
+        Return the number of operands of this expression.
 
         This is deprecated; use :meth:`number_of_operands` instead.
 

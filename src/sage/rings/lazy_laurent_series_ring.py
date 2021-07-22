@@ -38,16 +38,16 @@ ring::
 
 Power series can be defined recursively::
 
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)                                                                                                                                                        
-    sage: L._sparse                                                                                                                                                                               
+    sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+    sage: L._sparse
     True
-    sage: s = L(None)                                                                                                                                                                             
-    sage: s._aux._is_sparse                                                                                                                                                                       
+    sage: s = L(None)
+    sage: s._aux._is_sparse
     True
-    sage: s._aux._approximate_valuation                                                                                                                                                           
+    sage: s._aux._approximate_valuation
     0
-    sage: s.define(1 + z*s^2)                                                                                                                                                                     
-    sage: s                                                                                                                                                                                       
+    sage: s.define(1 + z*s^2)
+    sage: s
     1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
 
 AUTHORS:
@@ -88,6 +88,7 @@ from .lazy_laurent_series import (
     LazyLaurentSeries_eventually_geometric,
     LazyLaurentSeries_uninitialized
 )
+
 
 class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     """

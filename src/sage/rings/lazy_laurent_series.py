@@ -81,6 +81,7 @@ from sage.arith.power import generic_power
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.integer import Integer
 
+
 class LazyLaurentSeries(ModuleElement):
     r"""
     A Laurent series where the coefficients are computed lazily.
@@ -131,6 +132,7 @@ class LazyLaurentSeries(ModuleElement):
         sage: g == f
         True
     """
+
     def __init__(self, parent, aux):
         """
         Initialize the series.
@@ -252,7 +254,7 @@ class LazyLaurentSeries(ModuleElement):
             y^-1 + 1 + y^2
             sage: fy.parent() is LS
             True
-            sage: g = y - y                                                                             
+            sage: g = y - y
             sage: f(g)
             Traceback (most recent call last):
             ...
@@ -266,7 +268,7 @@ class LazyLaurentSeries(ModuleElement):
 
             sage: f = L(lambda n: n, 0); f
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: f(0)                                                                                    
+            sage: f(0)
             0
             sage: f(y)
             y + 2*y^2 + 3*y^3 + 4*y^4 + 5*y^5 + 6*y^6 + ...
@@ -322,23 +324,23 @@ class LazyLaurentSeries(ModuleElement):
             y + y^2 + y^3 + y^4 + y^5 + y^6 + y^7 + ...
             sage: f(g)
             1 + y + 2*y^2 + 4*y^3 + 8*y^4 + 16*y^5 + 32*y^6 + ...
-                                                               
-            sage: f = z^-2 + 1 + z                                                                        
-            sage: g = 1/(y*(1-y)); g                                                                      
+
+            sage: f = z^-2 + 1 + z
+            sage: g = 1/(y*(1-y)); g
             y^-1 + 1 + y + y^2 + y^3 + y^4 + y^5 + ...
-            sage: f(g)                                                                                    
+            sage: f(g)
             y^-1 + 2 + y + 2*y^2 - y^3 + 2*y^4 + y^5 + ...
             sage: g^-2 + 1 + g
             y^-1 + 2 + y + 2*y^2 - y^3 + 2*y^4 + y^5 + ...
 
-            sage: f = z^-3 + z^-2 + 1                                                                     
-            sage: g = 1/(y^2*(1-y)); g                                                                    
+            sage: f = z^-3 + z^-2 + 1
+            sage: g = 1/(y^2*(1-y)); g
             y^-2 + y^-1 + 1 + y + y^2 + y^3 + y^4 + ...
-            sage: f(g)                                                                                    
+            sage: f(g)
             1 + y^4 - 2*y^5 + 2*y^6 + ...
             sage: g^-3 + g^-2 + 1
             1 + y^4 - 2*y^5 + 2*y^6 + ...
-            sage: z(y)                                                                                    
+            sage: z(y)
             y
         """
         # f = self and compute f(g)
@@ -504,7 +506,7 @@ class LazyLaurentSeries(ModuleElement):
         left = self._aux
         right = other._aux
         if (isinstance(left, LazyLaurentSeries_eventually_geometric)
-            and isinstance(right, LazyLaurentSeries_eventually_geometric)):
+                and isinstance(right, LazyLaurentSeries_eventually_geometric)):
             R = P._laurent_poly_ring
             c = left._constant + right._constant
             pl = left._laurent_polynomial
@@ -616,7 +618,7 @@ class LazyLaurentSeries(ModuleElement):
             return P.zero()
         right = other._aux
         if (isinstance(left, LazyLaurentSeries_eventually_geometric)
-            and isinstance(right, LazyLaurentSeries_eventually_geometric)):
+                and isinstance(right, LazyLaurentSeries_eventually_geometric)):
             if not left._constant and not right._constant:
                 ret = left._laurent_polynomial / right._laurent_polynomial
                 try:
@@ -1170,7 +1172,7 @@ class LazyLaurentSeries(ModuleElement):
                 return False
 
             if (not isinstance(self._aux, LazyLaurentSeries_eventually_geometric)
-                or not isinstance(other._aux, LazyLaurentSeries_eventually_geometric)):
+                    or not isinstance(other._aux, LazyLaurentSeries_eventually_geometric)):
                 # One of the lazy laurent series is not known to eventually be constant
                 # Implement the checking of the caches here.
                 n = min(self._aux._approximate_valuation, other._aux._approximate_valuation)
@@ -1284,9 +1286,9 @@ class LazyLaurentSeries(ModuleElement):
 
         Counting binary trees::
 
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)                                                                                                       
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: s = L(None, valuation=1)
-            sage: s.define(z + (s^2+s(z^2))/2) 
+            sage: s.define(z + (s^2+s(z^2))/2)
             sage: [s[i] for i in range(9)]
             [0, 1, 1, 1, 2, 3, 6, 11, 23]
 
@@ -1344,6 +1346,7 @@ class LazyLaurentSeries_aux():
     """
     Abstract base class for all auxillary LazyLaurentSeries.
     """
+
     def __init__(self, sparse, approximate_valuation):
         self._is_sparse = sparse
         self._approximate_valuation = approximate_valuation
@@ -1354,6 +1357,7 @@ class LazyLaurentSeries_inexact(LazyLaurentSeries_aux):
     LazyLaurentSeries aux class when it is not or we do not know if it is
     eventually geometric.
     """
+
     def __init__(self, is_sparse, approximate_valuation):
         super().__init__(is_sparse, approximate_valuation)
 
@@ -1441,6 +1445,7 @@ class LazyLaurentSeries_unary(LazyLaurentSeries_inexact):
     - ``series`` -- series upon which the operator operates
 
     """
+
     def __init__(self, series, *args, **kwargs):
         """
         Initialize.
@@ -1592,6 +1597,7 @@ class LazyLaurentSeries_eventually_geometric(LazyLaurentSeries_aux):
                 and self._laurent_polynomial == other._laurent_polynomial
                 and self._constant == other._constant)
 
+
 class LazyLaurentSeries_zero(LazyLaurentSeries_aux):
     def __init__(self, sparse):
         return super().__init__(sparse, 0)
@@ -1604,6 +1610,7 @@ class LazyLaurentSeries_zero(LazyLaurentSeries_aux):
 
     def __hash__(self):
         return 0
+
 
 class LazyLaurentSeries_coefficient_function(LazyLaurentSeries_inexact):
     def __init__(self, coefficient_function, ring, is_sparse, approximate_valuation):
@@ -1621,6 +1628,7 @@ class LazyLaurentSeries_coefficient_function(LazyLaurentSeries_inexact):
             yield ring(self._coefficient_function(n))
             n += 1
 
+
 class LazyLaurentSeries_uninitialized(LazyLaurentSeries_inexact):
     def __init__(self, is_sparse, approximate_valuation):
         self._target = None
@@ -1636,12 +1644,14 @@ class LazyLaurentSeries_uninitialized(LazyLaurentSeries_inexact):
             n += 1
 
 #####################################################################
-## Binary operations
+# Binary operations
+
 
 class LLS_add(LazyLaurentSeries_binary):
     """
     Operator for addition.
     """
+
     def __init__(self, left, right):
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
@@ -1658,10 +1668,12 @@ class LLS_add(LazyLaurentSeries_binary):
             yield self._left[n] + self._right[n]
             n += 1
 
+
 class LLS_sub(LazyLaurentSeries_binary):
     """
     Operator for subtraction.
     """
+
     def __init__(self, left, right):
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
@@ -1688,12 +1700,14 @@ class LLS_sub(LazyLaurentSeries_binary):
             yield self._left[n] - self._right[n]
             n += 1
 
+
 class LLS_mul(LazyLaurentSeries_binary):
     """
     Operator for multiplication.
 
     We are assuming commutativity of the coefficient ring here.
     """
+
     def __init__(self, left, right):
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
@@ -1705,9 +1719,9 @@ class LLS_mul(LazyLaurentSeries_binary):
         c = ZZ.zero()
         for k in range(self._left._approximate_valuation,
                        n - self._right._approximate_valuation + 1):
-            l = self._left[k]
-            if l:
-                c += l * self._right[n-k]
+            val = self._left[k]
+            if val:
+                c += val * self._right[n-k]
         return c
 
     def iterate_coefficients(self):
@@ -1716,16 +1730,18 @@ class LLS_mul(LazyLaurentSeries_binary):
             c = ZZ.zero()
             for k in range(self._left._approximate_valuation,
                            n - self._right._approximate_valuation + 1):
-                l = self._left[k]
-                if l:
-                    c += l * self._right[n-k]
+                val = self._left[k]
+                if val:
+                    c += val * self._right[n-k]
             yield c
             n += 1
+
 
 class LLS_div(LazyLaurentSeries_binary):
     """
     Return ``left`` divided by ``right``.
     """
+
     def __init__(self, left, right):
         lv = left.valuation()
         rv = right.valuation()
@@ -1771,6 +1787,7 @@ class LLS_composition(LazyLaurentSeries_binary):
     - ``f`` -- a :class:`LazyLaurentSeries_aux`
     - ``g`` -- a :class:`LazyLaurentSeries_aux` with positive valuation
     """
+
     def __init__(self, f, g):
         assert g._approximate_valuation > 0
         self._fv = f._approximate_valuation
@@ -1786,7 +1803,7 @@ class LLS_composition(LazyLaurentSeries_binary):
         self._pos_powers = [None, g]
         val = self._fv * self._gv
         super().__init__(f, g, f._is_sparse, val)
-    
+
     def get_coefficient(self, n):
         if n < 0:
             return sum(self._left[i] * self._neg_powers[-i][n] for i in range(self._fv, n // self._gv + 1))
@@ -1805,12 +1822,14 @@ class LLS_composition(LazyLaurentSeries_binary):
             n += 1
 
 #####################################################################
-## Unary operations
+# Unary operations
+
 
 class LLS_scalar(LazyLaurentSeries_unary):
     """
     Operator for multiplying with a scalar.
     """
+
     def __init__(self, series, scalar):
         self._scalar = scalar
 
@@ -1825,10 +1844,12 @@ class LLS_scalar(LazyLaurentSeries_unary):
             yield self._series[n] * self._scalar
             n += 1
 
+
 class LLS_neg(LazyLaurentSeries_unary):
     """
     Operator for negative of the series.
     """
+
     def __init__(self, series):
         super().__init__(series, series._is_sparse, series._approximate_valuation)
 
@@ -1841,10 +1862,12 @@ class LLS_neg(LazyLaurentSeries_unary):
             yield -self._series[n]
             n += 1
 
+
 class LLS_inv(LazyLaurentSeries_unary):
     """
     Operator for multiplicative inverse of the series.
     """
+
     def __init__(self, series):
         v = series.valuation()
         super().__init__(series, series._is_sparse, -v)
@@ -1875,10 +1898,12 @@ class LLS_inv(LazyLaurentSeries_unary):
             yield -c * self._ainv
             n += 1
 
+
 class LLS_apply_coeff(LazyLaurentSeries_unary):
     """
     Return the series with ``function`` applied to each coefficient of this series.
     """
+
     def __init__(self, series, function, ring):
         self._function = function
         self._ring = ring

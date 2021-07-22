@@ -156,14 +156,16 @@ class Representation_abstract(CombinatorialFreeModule):
 
         .. SEEALSO:
 
-            -:class:`~sage.modules.with_basis.invariant.FiniteDimensionalTwistedInvariantModule`
+            - :class:`~sage.modules.with_basis.invariant.FiniteDimensionalTwistedInvariantModule`
 
         INPUT:
 
         - ``chi`` -- a list/tuple of character values or an instance
           of :class:`~sage.groups.class_function.ClassFunction_gap`
-        - ``G`` -- (default: ``None``) a finitely-generated group.
-          Passing ``None`` picks the group to be ``self.semigroup()``.
+        - ``G`` -- a finitely-generated semigroup (default: the semigroup
+          this is a representation of)
+
+        This also accepts the group to be the first argument to be the group.
 
         OUTPUT:
 
@@ -172,17 +174,25 @@ class Representation_abstract(CombinatorialFreeModule):
         EXAMPLES::
 
             sage: G = SymmetricGroup(3)
-            sage: def action(g,x): return(M.term(g(x))) # permute coordinates
             sage: R = G.regular_representation(QQ)
             sage: T = R.twisted_invariant_module([2,0,-1])
             sage: T.basis()
             Finite family {0: B[0], 1: B[1], 2: B[2], 3: B[3]}
             sage: [T.lift(b) for b in T.basis()]
             [() - (1,2,3), -(1,2,3) + (1,3,2), (2,3) - (1,2), -(1,2) + (1,3)]
-            sage: TestSuite(T).run()
+
+        We check the different inputs work
+
+            sage: R.twisted_invariant_module([2,0,-1], G) is T
+            True
+            sage: R.twisted_invariant_module(G, [2,0,-1]) is T
+            True
         """
+        from sage.categories.groups import Groups
         if G is None:
             G = self.semigroup()
+        elif chi in Groups():
+            G, chi = chi, G
         side = kwargs.pop('side', self.side())
         if side == "twosided":
             side = "left"

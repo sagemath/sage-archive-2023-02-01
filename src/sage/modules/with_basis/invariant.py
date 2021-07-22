@@ -18,7 +18,6 @@ from sage.modules.with_basis.subquotient import SubmoduleWithBasis
 from sage.modules.with_basis.representation import Representation
 from sage.categories.finitely_generated_semigroups import FinitelyGeneratedSemigroups
 from sage.categories.finite_dimensional_modules_with_basis import FiniteDimensionalModulesWithBasis
-from sage.categories.groups import Groups
 from sage.sets.family import Family
 from sage.matrix.constructor import Matrix
 
@@ -35,15 +34,15 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
     INPUT:
 
-    - ``M`` - a module in the category of
-            :class:`~sage.categories.finite_dimensional_modules_with_basis.FiniteDimensionalModulesWithBasis`
+    - ``M`` -- a module in the category of
+      :class:`~sage.categories.finite_dimensional_modules_with_basis.FiniteDimensionalModulesWithBasis`
 
-    - ``S`` - a semigroup in the category of
-            :class:`~sage.categories.finitely_generated_semigroups.FinitelyGeneratedSemigroups`
+    - ``S`` -- a semigroup in the category of
+      :class:`~sage.categories.finitely_generated_semigroups.FinitelyGeneratedSemigroups`
 
-    - ``action`` - (default: ``operator.mul``) the action of ``S`` on ``M``.
+    - ``action`` -- (default: ``operator.mul``) the action of ``S`` on ``M``
 
-    - ``side`` - (default: ``'left'``) the side on which ``S`` acts.
+    - ``side`` -- (default: ``'left'``) the side on which ``S`` acts
 
     EXAMPLES:
 
@@ -549,30 +548,31 @@ class FiniteDimensionalInvariantModule(SubmoduleWithBasis):
 
 class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
     r"""
-    Construct the `\chi`-twisted invariant submodule of `M`. When a group 
-    `G` acts on a module `M`, the `\chi`-twisted invariant submodule of `M` 
-    is the isotypic component of the representation `M` corresponding to the
-    irreducible character `\chi`.
+    Construct the `\chi`-twisted invariant submodule of `M`.
+
+    When a group `G` acts on a module `M`, the `\chi`-*twisted invariant
+    submodule* of `M` is the isotypic component of the representation `M`
+    corresponding to the irreducible character `\chi`.
 
     For more information, see [Sta1979]_.
 
     INPUT:
 
-    - ``M`` - a module in the category of
-            :class:`~sage.categories.finite_dimensional_modules_with_basis.FiniteDimensionalModulesWithBasis`.
-            and whose base ring contains all the values passed to ``chi`` and `1/|G|`.
+    - ``M`` -- a module in the category of
+      :class:`~sage.categories.finite_dimensional_modules_with_basis.FiniteDimensionalModulesWithBasis`
+      and whose base ring contains all the values passed to ``chi`` and `1/|G|`
 
-    - ``G`` - a finitely generated group.
+    - ``G`` -- a finitely generated group
 
-    - ``chi`` - list/tuple of the character values of the irreducible representation
-                onto which you want to project. The order of values of `chi` must
-                agree with the order of ``G.conjugacy_classes()``.
+    - ``chi`` -- list/tuple of the character values of the irreducible representation
+      onto which you want to project. The order of values of `chi` must
+      agree with the order of ``G.conjugacy_classes()``
 
-    - ``action`` - (default: ``operator.mul``) the action of ``G`` on ``M``.
+    - ``action`` -- (default: ``operator.mul``) the action of ``G`` on ``M``
 
-    - ``side`` - (default: ``'left'``) the side on which ``G`` acts.
+    - ``side`` -- (default: ``'left'``) the side on which ``G`` acts
 
-    .. WARNING:
+    .. WARNING::
 
         The current implementation does not check if ``chi`` is irreducible.
         Passing character values of non-irreducible representations may lead
@@ -679,7 +679,44 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         sage: [sgn.lift(b) for b in sgn.basis()]
         [() - (2,3) - (1,2) + (1,2,3) + (1,3,2) - (1,3)]
 
-    .. TODO:
+    For the next example, we construct a twisted invariant by the character
+    for the 2 dimensional representation of `S_3` on the natural action on
+    the exterior algebra. While `S_3` acts by automorphisms, the twisted
+    invariants do not form an algebra in this case::
+
+        sage: G = SymmetricGroup(3); G.rename('S3')
+        sage: E = algebras.Exterior(QQ, 'x', 3); E.rename('E')
+        sage: def action(g,m): return E.prod([E.monomial((g(j+1)-1,)) for j in m])
+        sage: from sage.modules.with_basis.representation import Representation
+        sage: EA = Representation(G, E, action, category=Algebras(QQ).WithBasis().FiniteDimensional())
+        sage: T = EA.twisted_invariant_module([2,0,-1])
+        sage: t = T.an_element(); t
+        2*B[0] + 2*B[1] + 3*B[2]
+
+    We can still get meaningful information about the product
+    by taking the product in the ambient space::
+
+        sage: T.lift(t) * T.lift(t)
+        -36*x0*x1*x2
+
+    We can see this does not lie in this twisted invariant algebra::
+
+        sage: T.retract(T.lift(t) * T.lift(t))
+        Traceback (most recent call last):
+        ...
+        ValueError: -36*x0*x1*x2 is not in the image
+
+        sage: [T.lift(b) for b in T.basis()]
+        [x0 - x2, x1 - x2, x0*x1 - x1*x2, x0*x2 + x1*x2]
+
+    It happens to be in the trivial isotypic component (equivalently in
+    the usual invariant algebra) but Sage does not know this.
+
+    ::
+
+        sage: G.rename(); E.rename()  # reset the names
+
+    .. TODO::
 
         - Replace ``G`` by ``S`` in :class:`~sage.categories.finitely_generated_semigroups.FinitelyGeneratedSemigroups`
         - Allow for ``chi`` to be a :class:`~sage.modules.with_basis.representation.Representation`
@@ -687,9 +724,9 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
     """
 
     @staticmethod
-    def __classcall_private__(cls, M, G, chi, 
+    def __classcall_private__(cls, M, G, chi,
                               action=operator.mul, side='left', **kwargs):
-        """
+        r"""
         TESTS:
 
         Check that it works for lists::
@@ -697,30 +734,31 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             sage: M = CombinatorialFreeModule(QQ, [1,2,3])
             sage: G = SymmetricGroup(3)
             sage: def action(g,x): return M.term(g(x))
-            sage: import __main__
-            sage: __main__.action = action
             sage: T = M.twisted_invariant_module(G, [2,0,-1], action_on_basis=action)
-            sage: TestSuite(T).run()
 
         Check that it works for tuples::
 
-            sage: T = M.twisted_invariant_module(G, (2,0,-1), action_on_basis=action)
-            sage: TestSuite(T).run()
+            sage: T2 = M.twisted_invariant_module(G, (2,0,-1), action_on_basis=action)
+            sage: T is T2
+            True
 
         Check that it works for class functions::
 
             sage: chi = ClassFunction(G, [2,0,-1])
-            sage: T = M.twisted_invariant_module(G, chi, action_on_basis=action)
-            sage: TestSuite(T).run()
+            sage: T3 = M.twisted_invariant_module(G, chi, action_on_basis=action)
+            sage: T is T3
+            True
 
         Check that it works when the character values are not an instance of
         :class:`~sage.rings.integer.Integer`::
 
             sage: chi = [QQ(2), QQ(0), QQ(-1)]
-            sage: T = M.twisted_invariant_module(G, chi, action_on_basis=action)
-            sage: TestSuite(T).run()
+            sage: T4 = M.twisted_invariant_module(G, chi, action_on_basis=action)
+            sage: T is T4
+            True
 
-        Check the conversion to :class:`~sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`::
+        Check that the trivial character returns an instance of
+        :class:`~sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule`::
 
             sage: chi = [1, 1, 1] # check for list
             sage: T = M.twisted_invariant_module(G, chi, action_on_basis=action)
@@ -737,14 +775,14 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             sage: type(T)
             <class 'sage.modules.with_basis.invariant.FiniteDimensionalInvariantModule_with_category'>
 
-        Check the ``ValueErrors``::
-            
+        Check the ``ValueError``::
+
             sage: from sage.groups.class_function import ClassFunction_libgap
             sage: chi = ClassFunction_libgap(G, chi)
             sage: T = M.twisted_invariant_module(G, chi, action_on_basis=action)
             Traceback (most recent call last):
             ...
-            ValueError: chi must be a list/tuple or instance of sage.groups.class_function.ClassFunction_gap
+            ValueError: chi must be a list/tuple or a class function of the group G
         """
 
         from sage.groups.class_function import ClassFunction, ClassFunction_gap
@@ -752,13 +790,12 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         if isinstance(chi,(list,tuple)):
             chi = ClassFunction(G, chi)
         elif not isinstance(chi, ClassFunction_gap):
-            raise ValueError(f'chi must be a list/tuple or instance of \
-                             sage.groups.class_function.ClassFunction_gap')
+            raise ValueError("chi must be a list/tuple or a class function of the group G")
 
         try:
-            is_trivial = all([chi(conj.an_element()) == 1 for conj in G.conjugacy_classes()])
+            is_trivial = all(chi(conj.an_element()) == 1 for conj in G.conjugacy_classes())
         except AttributeError: # to handle ReflectionGroups
-            is_trivial = all([chi(G(list(conj)[0])) == 1 for conj in G.conjugacy_classes().values()])
+            is_trivial = all(chi(G(list(conj)[0])) == 1 for conj in G.conjugacy_classes().values())
 
         if is_trivial:
             action_on_basis = kwargs.pop('action_on_basis', None)
@@ -776,7 +813,8 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
 
         EXAMPLES:
 
-        As a first example we will consider the permutation representation of `S_3`::
+        As a first example we will consider the permutation representation
+        of `S_3`::
 
             sage: M = CombinatorialFreeModule(QQ, [1,2,3], prefix='M');
             sage: G = SymmetricGroup(3); G.conjugacy_classes()
@@ -785,14 +823,17 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
              Conjugacy class of cycle type [3] in Symmetric group of order 3! as a permutation group]
             sage: from sage.groups.class_function import ClassFunction
             sage: chi = ClassFunction(G, [2,0,-1]) # the standard representation character values
-            sage: action = lambda g,x: M.term(g(x))
+            sage: def action(g,x): return M.term(g(x))
+            sage: import __main__
+            sage: __main__.action = action
             sage: T = M.twisted_invariant_module(G, chi, action_on_basis=action)
+            sage: TestSuite(T).run()
 
         We know that the permutation representation decomposes as a direct
         sum of one copy of the standard representation which is two-dimensional
         and one copy of the trivial representation::
 
-            sage: T.basis() 
+            sage: T.basis()
             Finite family {0: B[0], 1: B[1]}
             sage: [T.lift(b) for b in T.basis()]
             [M[1] - M[3], M[2] - M[3]]
@@ -806,6 +847,7 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         self._chi = chi
         self._group = G
         self._action = action
+        self._side = side
 
         # define a private action to deal
         # with sidedness issues in the action.
@@ -890,15 +932,20 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             0
             sage: parent(t)
             Twist of (S3)-invariant submodule of M by character [2, 0, -1]
+
+            sage: G.rename(); M.rename()  # reset names
         """
         return self.retract(self.project_ambient(x))
 
     def project_ambient(self,x):
         r"""
-        Project ``x`` in the ambient module onto the submodule of the 
-        ambient module to which ``self`` is isomorphic. The image of
-        ``self.project_ambient`` is not in ``self`` but rather is in
-        ``self._ambient``.
+        Project ``x`` in the ambient representation onto the submodule of the
+        ambient representation to which ``self`` is isomorphic as a module.
+
+        .. NOTE::
+
+            The image of ``self.project_ambient`` is not in ``self`` but
+            rather is in ``self.ambient()``.
 
         EXAMPLES::
 
@@ -922,30 +969,34 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             Representation of S3 indexed by {1, 2, 3} over Rational Field
 
         Note that because of the construction of ``T``, ``self._ambient``
-        is an instance of 
+        is an instance of
         :class:`~sage.modules.with_basis.representation.Representation`,
         but you still may pass elements of ``M``, which is an instance of
-        :class:`~sage.combinat.free_module.CombinatorialFreeModule`, 
+        :class:`~sage.combinat.free_module.CombinatorialFreeModule`,
         because the underlying ``Representation`` is built off of ``M``
         and we can cannonically construct elements of the ``Representation``
         from elements of ``M``.
+
+        ::
+
+            sage: G.rename(); M.rename()  # reset names
         """
-        if (isinstance(self._ambient, Representation) 
+        if (isinstance(self._ambient, Representation)
             and x.parent() is self._ambient._module):
             x = self._ambient._element_constructor_(x)
         return self._project_ambient(x)
 
     def projection_matrix(self):
         r"""
-        Return the matrix defining the projection map from 
-        ``self._ambient`` onto ``self``.
+        Return the matrix defining the projection map from
+        the ambient representation onto ``self``.
 
         EXAMPLES::
 
             sage: M = CombinatorialFreeModule(QQ, [1,2,3])
             sage: def action(g,x): return(M.term(g(x)))
             sage: G = SymmetricGroup(3)
-        
+
         If the matrix `A` has columns form a basis for
         the subspace onto which we are trying to project,
         then we can find the projection matrix via the
@@ -972,48 +1023,30 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
         return self._projection_matrix
 
     class Element(SubmoduleWithBasis.Element):
-
-        def _mul_(self, other):
+        def _acted_upon_(self, scalar, self_on_left=False):
             r"""
-            Define the multiplication between elements of the t
-            Examples::
+            Return the action of ``scalar`` on ``self``.
 
-                sage: G = SymmetricGroup(3); G.rename('S3')
-                sage: M = algebras.Exterior(QQ, 'x', 3); M.rename('E')
-                sage: def action(g,m): return M.prod([M.monomial((g(j+1)-1,)) for j in m])
-                sage: T = M.twisted_invariant_module(G, [2,0,-1],
-                ....:                                action_on_basis=action,
-                ....:                                category=Algebras(QQ).WithBasis().FiniteDimensional())
-                sage: t = T.an_element(); t
-                2*B[0] + 2*B[1] + 3*B[2]
-                sage: T.zero()
-                0
-                sage: T.zero()*t
-                0
-                sage: parent(T.zero()*t)
-                Twist of (S3)-invariant submodule of E by character [2, 0, -1]
+            EXAMPLES::
 
-            The twisted invariant is not closed under multiplication.
-            The following example shows that the product is in the
-            ambient algebra::
-
-                sage: t*t
-                Traceback (most recent call last):
-                ...
-                ValueError: -36*x0*x1*x2 is not in the image
-
-            We can still get meaningful information about the product
-            by lifting the element then taking the product::
-
-                sage: T.lift(t)*T.lift(t)
-                -36*x0*x1*x2
-
-            In this example, it happens to be in the trivial isotypic
-            component (equivalently in the usual invariant algebra)
-            but Sage does not know this::
-                
-                sage: parent(T.lift(t)*T.lift(t))
-                Representation of S3 indexed by Subsets of {0, 1, 2} over Rational Field
+                sage: G = SymmetricGroup(3)
+                sage: R = G.regular_representation(QQ)
+                sage: T = R.twisted_invariant_module([2,0,-1])
+                sage: t = T.an_element()
+                sage: 5 * t
+                10*B[0] + 10*B[1] + 15*B[2]
+                sage: t * -2/3
+                -4/3*B[0] - 4/3*B[1] - 2*B[2]
+                sage: [g * t for g in G]
+                [2*B[0] + 2*B[1] + 3*B[2],
+                 -4*B[0] + 2*B[1] - 3*B[3],
+                 2*B[0] - 4*B[1] - 3*B[2] + 3*B[3],
+                 3*B[0] + 2*B[2] + 2*B[3],
+                 -3*B[1] - 4*B[2] + 2*B[3],
+                 -3*B[0] + 3*B[1] + 2*B[2] - 4*B[3]]
             """
             P = self.parent()
-            return P.retract(P.lift(self) * P.lift(other))
+            if scalar in P._group and self_on_left == (P._side == 'right'):
+                return P.retract(scalar * P.lift(self))
+            return super()._acted_upon_(scalar, self_on_left)
+

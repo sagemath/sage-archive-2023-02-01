@@ -12482,7 +12482,8 @@ cdef class Expression(CommutativeRingElement):
                 raise RuntimeError("no zero in the interval, since constant expression is not 0.")
         elif self.number_of_arguments() == 1:
             from sage.ext.fast_callable import fast_callable
-            f = fast_callable(self, vars=[self.default_variable()])
+            # The domain=float is important for numpy if we encounter NaN.
+            f = fast_callable(self, vars=[self.default_variable()], domain=float)
             return find_root(f, a=a, b=b, xtol=xtol,
                              rtol=rtol,maxiter=maxiter,
                              full_output=full_output)
@@ -12571,7 +12572,8 @@ cdef class Expression(CommutativeRingElement):
         if var is None:
             var = self.default_variable()
 
-        f = fast_callable(self, vars=[var])
+        # The domain=float is important for numpy if we encounter NaN.
+        f = fast_callable(self, vars=[var], domain=float)
         return find_local_minimum(f, a=a, b=b, tol=tol, maxfun=maxfun)
 
     ###################

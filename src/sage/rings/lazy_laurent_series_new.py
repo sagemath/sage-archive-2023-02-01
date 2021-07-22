@@ -1020,7 +1020,7 @@ class LLS(ModuleElement):
 
         EXAMPLES::
 
-            sage: L = LLSRing(ZZ, 'z')
+            sage: L.<z> = LLSRing(ZZ)
             sage: f = L([1,0,0,2,0,0,0,3], 5); f
             z^5 + 2*z^8 + 3*z^12
             sage: f.polynomial()
@@ -1048,12 +1048,18 @@ class LLS(ModuleElement):
             sage: M = L(lambda n: n^2, 0)
             sage: M.polynomial(5)
             25*z^5 + 16*z^4 + 9*z^3 + 4*z^2 + z
+
+            sage: f = 1/(1 + z)
+            sage: f.polynomial()
+            Traceback (most recent call last):
+            ...
+            ValueError: not a polynomial
         """
         if degree is None:
             if isinstance(self._aux, LLS_zero):
                 from sage.rings.all import PolynomialRing
                 return PolynomialRing(S.base_ring(), name=name).zero()
-            elif isinstance(self._aux, LLS_eventually_geometric) and self._aux._constant:
+            elif isinstance(self._aux, LLS_eventually_geometric) and not self._aux._constant:
                 m = self._aux._degree
             else:
                 raise ValueError("not a polynomial")

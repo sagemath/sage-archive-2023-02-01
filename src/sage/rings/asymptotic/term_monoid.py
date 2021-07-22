@@ -199,7 +199,6 @@ Classes and Methods
 # https://www.gnu.org/licenses/
 # *****************************************************************************
 
-from sage.misc.cachefunc import cached_method
 from sage.rings.big_oh import O
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory

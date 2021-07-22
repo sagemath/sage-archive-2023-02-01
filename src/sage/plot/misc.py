@@ -13,12 +13,8 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.fast_eval import fast_float
-
-from sage.structure.element import is_Vector, Expression
-
 def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
-    """
+    r"""
     Calculate the necessary parameters to construct a list of points,
     and make the functions fast_callable.
 
@@ -99,6 +95,22 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
         (<sage.ext...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [x, y])
         sage: sage.plot.misc.setup_for_eval_on_grid(x+y, [(y,1,-1),(x,-1,1)], return_vars=True)
         (<sage.ext...>, [(1.0, -1.0, 2.0), (-1.0, 1.0, 2.0)], [y, x])
+
+    TESTS:
+
+    Ensure that we can plot expressions with intermediate complex
+    terms as in :trac:`8450`::
+
+        sage: x, y = SR.var('x y')
+        sage: contour_plot(abs(x+i*y), (x,-1,1), (y,-1,1))
+        Graphics object consisting of 1 graphics primitive
+        sage: density_plot(abs(x+i*y), (x,-1,1), (y,-1,1))
+        Graphics object consisting of 1 graphics primitive
+        sage: plot3d(abs(x+i*y), (x,-1,1),(y,-1,1))
+        Graphics3d Object
+        sage: streamline_plot(abs(x+i*y), (x,-1,1),(y,-1,1))
+        Graphics object consisting of 1 graphics primitive
+
     """
     if max(map(len, ranges)) > 3:
         raise ValueError("At least one variable range has more than 3 entries: each should either have 2 or 3 entries, with one of the forms (xmin, xmax) or (x, xmin, xmax)")
@@ -133,22 +145,48 @@ def setup_for_eval_on_grid(funcs, ranges, plot_points=None, return_vars=False):
     if min(range_steps) == float(0):
         raise ValueError("plot start point and end point must be different")
 
-    options = {}
+    eov = False # eov = "expect one value"
     if nargs == 1:
-        options['expect_one_var'] = True
+        eov = True
 
-    if is_Vector(funcs):
-        funcs = list(funcs)
+    from sage.ext.fast_callable import fast_callable
+    def try_make_fast(f):
+        # If "f" supports fast_callable(), use it. We can't guarantee
+        # that our arguments will actually support fast_callable()
+        # because, for example, the user may already have done it
+        # himself, and the result of fast_callable() can't be
+        # fast-callabled again.
+        from sage.rings.complex_double import CDF
+        if hasattr(f, '_fast_callable_'):
+            ff = fast_callable(f, vars=vars, expect_one_var=eov, domain=CDF)
+            return FastCallablePlotWrapper(ff)
+        else:
+            if hasattr(f, '__call__'):
+                return f
+            else:
+                # Convert things like ZZ(0) into constant functions.
+                from sage.symbolic.ring import SR
+                ff = fast_callable(SR(f),
+                                   vars=vars,
+                                   expect_one_var=eov,
+                                   domain=CDF)
+                return FastCallablePlotWrapper(ff)
+
+    # Handle vectors, lists, tuples, etc.
+    if hasattr(funcs, "__iter__"):
+        funcs = tuple( try_make_fast(f) for f in funcs )
+    else:
+        funcs = try_make_fast(funcs)
 
     #TODO: raise an error if there is a function/method in funcs that takes more values than we have ranges
 
     if return_vars:
-        return (fast_float(funcs, *vars, **options),
+        return (funcs,
                 [tuple(_range + [range_step])
                  for _range, range_step in zip(ranges, range_steps)],
                 vars)
     else:
-        return (fast_float(funcs, *vars, **options),
+        return (funcs,
                 [tuple(_range + [range_step])
                  for _range, range_step in zip(ranges, range_steps)])
 
@@ -192,6 +230,7 @@ def unify_arguments(funcs):
     if not isinstance(funcs, (list, tuple)):
         funcs = [funcs]
 
+    from sage.structure.element import Expression
     for f in funcs:
         if isinstance(f, Expression) and f.is_callable():
             f_args = set(f.arguments())

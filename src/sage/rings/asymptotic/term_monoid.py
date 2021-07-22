@@ -1842,14 +1842,14 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
         if len(args) > 1:
             raise TypeError(
                 f'GenericTermMonoid._element_constructor_ '
-                f'takes one positional arguments, '
+                f'takes one positional argument, '
                 f'another positional argument is deprecated, '
                 f'but {len(args)+1} were given')
         elif len(args) == 1:
             from sage.misc.superseded import deprecation
             deprecation(
                 32215,
-                "Giving 'coefficient' as positional argument is deprecated; "
+                "Passing 'coefficient' as a positional argument is deprecated; "
                 "specify it as keyword argument 'coefficient=...'.")
             if 'coefficient' in kwds:
                 raise ValueError(f"Argument 'coefficient={kwds['coefficient']}' is ambiguous.")
@@ -1903,8 +1903,8 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
         OUTPUT:
 
-        Nothing, but ``growth`` in ``kwds_construction`` might be changed
-        or an error is raised.
+        Nothing, but ``growth`` in ``kwds_construction`` might be changed.
+        If ``growth`` is not valid, an error is raised.
 
         TESTS::
 
@@ -1964,8 +1964,8 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
         OUTPUT:
 
-        Nothing, but ``coefficient`` in ``kwds_construction`` might be changed
-        or an error is raised.
+        Nothing, but ``coefficient`` in ``kwds_construction`` might be changed.
+        If the coefficient is not valid, an error is raised.
 
         TESTS::
 

@@ -109,7 +109,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     def __init__(self, base_ring, names, sparse=False, category=None):
         """
-        Initialize.
+        Initialize the ring.
 
         TESTS::
 
@@ -175,6 +175,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.gens()
+            (z,)
             sage: 1/(1 - z)
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
         """

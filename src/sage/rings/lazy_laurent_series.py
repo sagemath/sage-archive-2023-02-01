@@ -1348,6 +1348,9 @@ class LazyLaurentSeries_aux():
     """
 
     def __init__(self, sparse, approximate_valuation):
+        """
+        Initialize the auxillary class for a LazyLaurentSeries.
+        """
         self._is_sparse = sparse
         self._approximate_valuation = approximate_valuation
 
@@ -1359,6 +1362,9 @@ class LazyLaurentSeries_inexact(LazyLaurentSeries_aux):
     """
 
     def __init__(self, is_sparse, approximate_valuation):
+        """
+        Initialize the auxillary class for a LazyLaurentSeries when it is not or it cannot be determined if it is eventually geometric.
+        """
         super().__init__(is_sparse, approximate_valuation)
 
         if self._is_sparse:
@@ -1369,6 +1375,9 @@ class LazyLaurentSeries_inexact(LazyLaurentSeries_aux):
             self._iter = self.iterate_coefficients()
 
     def __getstate__(self):
+        """
+        Remove the cache from the pickle information so that it can be pickled.
+        """
         d = dict(self.__dict__)
         if not self._is_sparse:
             # We cannot pickle a generator object, so we remove it and
@@ -1378,12 +1387,18 @@ class LazyLaurentSeries_inexact(LazyLaurentSeries_aux):
         return d
 
     def __setstate__(self, d):
+        """
+        Re-create the cache and the generator object when unpickling.
+        """
         self.__dict__ = d
         if not self._is_sparse:
             self._iter = self.iterate_coefficients()
             self._cache = []
 
     def __getitem__(self, n):
+        """
+        Return the `n`-th coefficient of the series.
+        """
         if n < self._approximate_valuation:
             return ZZ.zero()
 
@@ -1406,6 +1421,9 @@ class LazyLaurentSeries_inexact(LazyLaurentSeries_aux):
         return c
 
     def valuation(self):
+        """
+        Return the valuation of the series.
+        """
         if self._is_sparse:
             n = self._approximate_valuation
             cache = self._cache
@@ -1547,9 +1565,15 @@ class LazyLaurentSeries_binary(LazyLaurentSeries_inexact):
 class LazyLaurentSeries_binary_commutative(LazyLaurentSeries_binary):
 
     def __hash__(self):
+        """
+        Return the hash of ``self``.
+        """
         return hash((type(self), frozenset([self._left, self._right])))
 
     def __eq__(self, other):
+        """
+        Test the equality between ``self`` and ``other``.
+        """
         if not isinstance(other, type(self)):
             return False
         if self._left == other._left and self._right == other._right:
@@ -1561,6 +1585,9 @@ class LazyLaurentSeries_binary_commutative(LazyLaurentSeries_binary):
 
 class LazyLaurentSeries_eventually_geometric(LazyLaurentSeries_aux):
     def __init__(self, laurent_polynomial, is_sparse, constant=None, degree=None):
+        """
+        Initialize a series that is known to be eventually geometric.
+        """
         if constant is None:
             constant = ZZ.zero()
         if degree is None:
@@ -1581,17 +1608,29 @@ class LazyLaurentSeries_eventually_geometric(LazyLaurentSeries_aux):
         super().__init__(is_sparse, valuation)
 
     def __getitem__(self, n):
+        """
+        Get the ``n``-th coefficient of the series.
+        """
         if n >= self._degree:
             return self._constant
         return self._laurent_polynomial[n]
 
     def valuation(self):
+        """
+        Return the valuation of the series.
+        """
         return self._approximate_valuation
 
     def __hash__(self):
+        """
+        Return the hash of ``self``.
+        """
         return hash((self._laurent_polynomial, self._degree, self._constant))
 
     def __eq__(self, other):
+        """
+        Test the equality between ``self`` and ``other``.
+        """
         return (isinstance(other, type(self))
                 and self._degree == other._degree
                 and self._laurent_polynomial == other._laurent_polynomial
@@ -1600,28 +1639,49 @@ class LazyLaurentSeries_eventually_geometric(LazyLaurentSeries_aux):
 
 class LazyLaurentSeries_zero(LazyLaurentSeries_aux):
     def __init__(self, sparse):
+        """
+        Initialise a lazy Laurent series which is known to be zero.
+        """
         return super().__init__(sparse, 0)
 
     def __getitem__(self, n):
+        """
+        Return the ``n``-th coefficient of the series.
+        """
         return ZZ.zero()
 
     def valuation(self):
+        """
+        Return the valuation of the series.
+        """
         return infinity
 
     def __hash__(self):
+        """
+        Return the hash of ``self``.
+        """
         return 0
 
 
 class LazyLaurentSeries_coefficient_function(LazyLaurentSeries_inexact):
     def __init__(self, coefficient_function, ring, is_sparse, approximate_valuation):
+        """
+        Initialize the coefficient function of a lazy Laurent series.
+        """
         self._coefficient_function = coefficient_function
         self._ring = ring
         super().__init__(is_sparse, approximate_valuation)
 
     def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the series.
+        """
         return self._ring(self._coefficient_function(n))
 
     def iterate_coefficients(self):
+        """
+        Return a generator for the coefficients of the series.
+        """
         n = self._offset
         ring = self._ring
         while True:
@@ -1631,13 +1691,22 @@ class LazyLaurentSeries_coefficient_function(LazyLaurentSeries_inexact):
 
 class LazyLaurentSeries_uninitialized(LazyLaurentSeries_inexact):
     def __init__(self, is_sparse, approximate_valuation):
+        """
+        Initialize an uninitialized lazy laurent series.
+        """
         self._target = None
         super().__init__(is_sparse, approximate_valuation)
 
     def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the series.
+        """
         return self._target[n]
 
     def iterate_coefficients(self):
+        """
+        Return a generator for the coefficients of the series.
+        """
         n = self._approximate_valuation
         while True:
             yield self._target[n]
@@ -1653,6 +1722,9 @@ class LLS_add(LazyLaurentSeries_binary):
     """
 
     def __init__(self, left, right):
+        """
+        Initalize.
+        """
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
 
@@ -1660,9 +1732,15 @@ class LLS_add(LazyLaurentSeries_binary):
         super().__init__(left, right, left._is_sparse, a)
 
     def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the series when ``left`` is added to ``right``.
+        """
         return self._left[n] + self._right[n]
 
     def iterate_coefficients(self):
+        """
+        Return a generator for the coefficients of the series when ``left`` is added to ``right``.
+        """
         n = self._offset
         while True:
             yield self._left[n] + self._right[n]
@@ -1675,6 +1753,9 @@ class LLS_sub(LazyLaurentSeries_binary):
     """
 
     def __init__(self, left, right):
+        """
+        Initialize.
+        """
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
 
@@ -1683,18 +1764,14 @@ class LLS_sub(LazyLaurentSeries_binary):
 
     def get_coefficient(self, n):
         """
-        Return the `n`-th coefficient of the series ``s``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = (1 + z)*(1 - z)
-            sage: f.coefficient(2)
-            -1
+        Return the ``n``-th coefficient of the series when ``right`` is subtracted from ``left``.
         """
         return self._left[n] - self._right[n]
 
     def iterate_coefficients(self):
+        """
+        Return the generator for the coefficients of the series when ``right`` is subtracted from ``left``.
+        """
         n = self._offset
         while True:
             yield self._left[n] - self._right[n]
@@ -1709,6 +1786,9 @@ class LLS_mul(LazyLaurentSeries_binary):
     """
 
     def __init__(self, left, right):
+        """
+        Initialize.
+        """
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
 
@@ -1716,6 +1796,9 @@ class LLS_mul(LazyLaurentSeries_binary):
         super().__init__(left, right, left._is_sparse, a)
 
     def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the series when ``left`` is multiplied by ``right``.
+        """
         c = ZZ.zero()
         for k in range(self._left._approximate_valuation,
                        n - self._right._approximate_valuation + 1):
@@ -1725,6 +1808,9 @@ class LLS_mul(LazyLaurentSeries_binary):
         return c
 
     def iterate_coefficients(self):
+        """
+        Return the generator for the coefficients of the series when ``left`` is multiplied by ``right``.
+        """
         n = self._offset
         while True:
             c = ZZ.zero()
@@ -1743,6 +1829,9 @@ class LLS_div(LazyLaurentSeries_binary):
     """
 
     def __init__(self, left, right):
+        """
+        Initialize.
+        """
         lv = left.valuation()
         rv = right.valuation()
         self._lv = lv
@@ -1751,6 +1840,9 @@ class LLS_div(LazyLaurentSeries_binary):
         super().__init__(left, right, left._is_sparse, lv - rv)
 
     def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the series when ``left`` is divided by ``right``.
+        """
         lv = self._lv
         rv = self._rv
         if n == lv - rv:
@@ -1761,6 +1853,9 @@ class LLS_div(LazyLaurentSeries_binary):
         return c * self._ainv
 
     def iterate_coefficients(self):
+        """
+        Return the generator for the coefficients of the series when ``left`` is divided by ``right``.
+        """
         n = self._offset
         lv = self._lv
         rv = self._rv
@@ -1789,6 +1884,9 @@ class LLS_composition(LazyLaurentSeries_binary):
     """
 
     def __init__(self, f, g):
+        """
+        Initialize.
+        """
         assert g._approximate_valuation > 0
         self._fv = f._approximate_valuation
         self._gv = g._approximate_valuation
@@ -1805,6 +1903,9 @@ class LLS_composition(LazyLaurentSeries_binary):
         super().__init__(f, g, f._is_sparse, val)
 
     def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the series when ``f`` is composed by ``g``.
+        """
         if n < 0:
             return sum(self._left[i] * self._neg_powers[-i][n] for i in range(self._fv, n // self._gv + 1))
         # n > 0
@@ -1816,6 +1917,9 @@ class LLS_composition(LazyLaurentSeries_binary):
         return ret + sum(self._left[i] * self._pos_powers[i][n] for i in range(1, n // self._gv+1))
 
     def iterate_coefficients(self):
+        """
+        Return the generator for the coefficients of the series when ``f`` is composed by ``g``.
+        """
         n = self._approximate_valuation
         while True:
             yield self.get_coefficient(n)
@@ -1831,14 +1935,23 @@ class LLS_scalar(LazyLaurentSeries_unary):
     """
 
     def __init__(self, series, scalar):
+        """
+        Initialize.
+        """
         self._scalar = scalar
 
         super().__init__(series, series._is_sparse, series._approximate_valuation)
 
     def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the ``series`` when multiplied by the ``scalar``.
+        """
         return self._series[n] * self._scalar
 
     def iterate_coefficients(self):
+        """
+        Return the generator for the coefficients of the ``series`` when multiplied by the ``scalar``.
+        """
         n = self._offset
         while True:
             yield self._series[n] * self._scalar
@@ -1851,12 +1964,21 @@ class LLS_neg(LazyLaurentSeries_unary):
     """
 
     def __init__(self, series):
+        """
+        Initialize.
+        """
         super().__init__(series, series._is_sparse, series._approximate_valuation)
 
     def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the ``series`` when negated.
+        """
         return -self._series[n]
 
     def iterate_coefficients(self):
+        """
+        Return the generator for the coefficients of the ``series`` when negated.
+        """
         n = self._offset
         while True:
             yield -self._series[n]
@@ -1869,6 +1991,9 @@ class LLS_inv(LazyLaurentSeries_unary):
     """
 
     def __init__(self, series):
+        """
+        Initialize.
+        """
         v = series.valuation()
         super().__init__(series, series._is_sparse, -v)
 
@@ -1876,6 +2001,9 @@ class LLS_inv(LazyLaurentSeries_unary):
         self._zero = ZZ.zero()
 
     def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the multiplicative inverse of the ``series``.
+        """
         v = self._approximate_valuation
         if n == v:
             return self._ainv
@@ -1885,6 +2013,9 @@ class LLS_inv(LazyLaurentSeries_unary):
         return -c * self._ainv
 
     def iterate_coefficients(self):
+        """
+        Return the generator for the coefficients of the multiplicative inverse of the ``series``.
+        """
         n = self._offset
         while True:
             v = self._approximate_valuation
@@ -1905,15 +2036,24 @@ class LLS_apply_coeff(LazyLaurentSeries_unary):
     """
 
     def __init__(self, series, function, ring):
+        """
+        Initialize.
+        """
         self._function = function
         self._ring = ring
         super().__init__(series, series._is_sparse, series._approximate_valuation)
 
     def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the series with ``function`` applied to each coefficient.
+        """
         c = self._ring(self._function(self._series[n]))
         return c
 
     def iterate_coefficients(self):
+        """
+        Return the generator for the coefficients of the series with ``function`` applied to each coefficient.
+        """
         n = self._offset
         while True:
             c = self._ring(self._function(self._series[n]))

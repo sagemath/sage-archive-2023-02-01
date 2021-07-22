@@ -4567,9 +4567,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
        - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
           algebraic closure. Using the algebraic closure can sometimes lead to numerical instability
           and extraneous errors. For most accurate results, set to ``False``.
-          If False, and he map is defined over projective space of
+          If False, and the map is defined over projective space of
           dimension 1, uses the smallest extension of the base field
-          containing all the critical points. If the map is defined over projective space
+          containing all the periodic points. If the map is defined over projective space
           of dimension greater than 1, then the base ring of the map is used.
 
         OUTPUT:

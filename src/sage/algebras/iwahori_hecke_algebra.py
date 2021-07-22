@@ -2073,6 +2073,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     # If this algebra is generic, it's only being used to coerce to the T basis, not perform computations
                     raise ValueError('the Cp_Coxeter3 basis is only supported in a Hecke algebra with standard normalizations (explain)')
 
+            # Construct a free algebra over generators representing the C' generators: { Cp_s : s in S }
+            self._generator_algebra = FreeAlgebra(algebra.base_ring(), ['Cp{}'.format(s) for s in self.index_set()])
+            # The correspondence between indices and generators of the generator algebra
+            self._generators = { s: self._generator_algebra('Cp{}'.format(s)) for s in self.index_set() }
+            self._index_of_generator = { v: k for (k, v) in self._generators.items() }
 
             # Define conversion to the other Cp basis
             self.module_morphism(self.to_Cp_basis, codomain=algebra.Cp(), category=self.category()
@@ -2144,7 +2149,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def _decompose_into_generators(self, w):
             r"""
-            Decompose `C^{\prime}_s` into a polynomial in the KL generators `C^{\prime}_s`. 
+            Decompose `C^{\prime}_w` into a polynomial in the KL generators `C^{\prime}_s` (an element of the
+            free algebra `self.generator_algebra`)
             
             The decomposition is obtained recursively, by induction on `\ell(w)`. If `ell(w) < 2` the decomposition
             is trivial (see Examples). If `\ell(w) \geq 2`, write `w=su` where `s` is a left descent of `w` so that
@@ -2166,27 +2172,23 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
                 # A3 
                 sage: _decompose_into_generators((1,2))
-                {[1,2]: 1}                    # C_{12}=C_1C_2
+                Cp1*Cp2                         # C_{12} = C_1C_2
                 sage: _decompose_into_generators((1,2,1))
-                {[1,2,1]: 1, [1]:-1}          # C_{121}=C_1C_2C_1-C_1=m_121-m_1
+                Cp1*Cp2*Cp1 - Cp1               # C_{121} = C_1C_2C_1 - C_1
                 sage: _decompose_into_generators((1,2,3,1,2))
                 the suitable dictionary     # use "monomial" somehow to get the result natively?
 
-            """            
-            # Returns an element of self.gen_algebra, a free algebra over {g_1, ..., g_n} 
-            # describing how to write 'word' in terms of the generators 
-
-            gs = self.gen_algebra.gens()
+            """
             if len(w) == 0:
-                return self.gen_algebra(1)
+                return self.generator_algebra(1)
             if len(w) == 1:
-                return gs[w[0]]
+                return self._generators[w[0]]
             
             s = w[0]
             w1 = w[1:]
         
                 
-            # Additively build the sum just mentioned above
+            # Additively build the sum term (lower order terms)
             sum_term = self(0)
             between = self._W.bruhat_interval([], w1)
             for x in between:
@@ -2197,8 +2199,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sum_term += self.base_ring()(x.mu_coefficient(w1)) * self.monomial(x_elt)
         
             # In the expression above, we need to recurse and decompose C_{w1} into generators,
-            # and then go through the terms of the sum_term (lower order terms) and decompose those C_y's into generators
-            alg_element = gs[s] * self._decompose_into_generators(w1)
+            # and then go through the terms of sum_term (lower order terms) and decompose those C_y's into generators
+            alg_element = self._generators[s] * self._decompose_into_generators(w1)
             for (v, coeff) in sum_term:
                 # We're subtracting 'sum_term'
                 alg_element -= coeff * self._decompose_into_generators(v)
@@ -2215,31 +2217,33 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             # (as expressed as an element of the FreeAlgebra over 'generator' variables g1, ..., gn)
             if len(w1) <= len(w2):
                 side = 'left'
-                gens = self._decompose_into_generators(w1)
+                gen_expression = self._decompose_into_generators(w1)
                 other_element = self.monomial(w2)
             else:
                 side = 'right'
-                gens = self._decompose_into_generators(w2)
+                gen_expression = self._decompose_into_generators(w2)
                 other_element = self.monomial(w1)
             
-                       # gens is a linear combination of products of the C' generators
+            # gen_expression is a linear combination of products of the C' generators
             # Now, build everything back up, continually multiplying on the left by a single generator at a time
 
             result = self(0)
             # Iterate through the sum of terms
-            for (p, coeff) in gens:
+            for (p, coeff) in gen_expression:
                 # p is a product of generators, i.e. 2*g1*g2*g1; multiply it by other_element
-                # Build summand multiplicatively, going through variables and thier powers in p
-                # If gens are on the right, we need to start at the left end of p, and vice versa.
+                # Build summand multiplicatively, going through variables (and their exponents) in p
+                # If gen_expression is being multiplied on the right, we need to start at the left 
+                # end of p, and vice versa.
                 summand = coeff * other_element
                 p_list = list(p) if side == 'right' else list(p)[::-1]
                 # Iterate through the product of generators
-                for (g, exponent) in p_list:
-                    s = self.gen_algebra.gens().index(g)
-                    # Multiply this_element on the apppropriate side by the generator this variable g corresponds to,
-                    # however many times it is represented in the product (according to the exponent)
+                for (gen, exponent) in p_list:
+                    s = self._index_of_generator[self._generator_algebra(gen)]
+                    # gen is in the underlying monoid of _generator_algebra, so coercion is required
                     for i in range(exponent):
-                        # Perform C'_s * (summand)
+                        # Perform C'_s * summand (on the appropriate side),
+                        # however many times C'_s is represented in the product
+                        # according to the exponent.
                         summand = self._product_with_generator(side, s, summand)
 
                 result += summand

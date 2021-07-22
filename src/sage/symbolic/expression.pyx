@@ -12519,16 +12519,20 @@ cdef class Expression(CommutativeRingElement):
 
         INPUT:
 
-        -  ``var`` - variable (default: first variable in
-           self)
+        -  ``a`` - real number; left endpoint of interval on which to
+           minimize
 
-        -  ``a,b`` - endpoints of interval on which to minimize
-           self.
+        -  ``b`` - real number; right endpoint of interval on which to
+           minimize
 
-        -  ``tol`` - the convergence tolerance
+        -  ``var`` - variable (default: first variable in self); the
+           variable in self to maximize over
 
-        -  ``maxfun`` - maximum function evaluations
+        -  ``tol`` - positive real (default: 1.48e-08); the convergence
+           tolerance
 
+        -  ``maxfun`` - natural number (default: 500); maximum function
+           evaluations
 
         OUTPUT:
 

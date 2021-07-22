@@ -1404,7 +1404,7 @@ class PolyhedralComplex(GenericCellComplex):
             sage: all(p.dimension() == 1 for p in rbd_cells)
             True
             sage: pc_lower_dim = PolyhedralComplex([p3])
-            sage: [p.vertices() for p in pc_lower_dim.relative_boundary_cells()]
+            sage: sorted([p.vertices() for p in pc_lower_dim.relative_boundary_cells()])
             [(A vertex at (0, 2),), (A vertex at (1, 2),)]
 
         Test on polyhedral complex which is not pure::

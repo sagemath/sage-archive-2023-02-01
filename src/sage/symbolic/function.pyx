@@ -613,7 +613,7 @@ cdef class Function(SageObject):
 
     def name(self):
         """
-        Returns the name of this function.
+        Return the name of this function.
 
         EXAMPLES::
 
@@ -625,7 +625,7 @@ cdef class Function(SageObject):
 
     def number_of_arguments(self):
         """
-        Returns the number of arguments that this function takes.
+        Return the number of arguments that this function takes.
 
         EXAMPLES::
 
@@ -644,8 +644,7 @@ cdef class Function(SageObject):
 
     def variables(self):
         """
-        Returns the variables (of which there are none) present in
-        this SFunction.
+        Return the variables (of which there are none) present in this function.
 
         EXAMPLES::
 
@@ -656,7 +655,7 @@ cdef class Function(SageObject):
 
     def default_variable(self):
         """
-        Returns a default variable.
+        Return a default variable.
 
         EXAMPLES::
 
@@ -1318,7 +1317,7 @@ cdef class SymbolicFunction(Function):
 
 
     cdef _is_registered(SymbolicFunction self):
-        # see if there is already an SFunction with the same state
+        # see if there is already a SymbolicFunction with the same state
         cdef Function sfunc
         cdef long myhash = self._hash_()
         for sfunc in sfunction_serial_dict.itervalues():
@@ -1335,7 +1334,7 @@ cdef class SymbolicFunction(Function):
     # a function with the same properties
     cdef long _hash_(self) except -1:
         if not self.__hinit:
-            # create a string representation of this SFunction
+            # create a string representation of this SymbolicFunction
             slist = [self._nargs, self._name, str(self._latex_name),
                     self._evalf_params_first]
             for fname in sfunctions_funcs:
@@ -1365,18 +1364,18 @@ cdef class SymbolicFunction(Function):
 
     def __getstate__(self):
         """
-        Returns a tuple describing the state of this object for pickling.
+        Return a tuple describing the state of this object for pickling.
 
-        Pickling SFunction objects is limited by the ability to pickle
-        functions in python. We use sage.misc.fpickle.pickle_function for
+        Pickling :class:`SymbolicFunction` objects is limited by the ability to pickle
+        functions in python. We use :func:`~sage.misc.fpickle.pickle_function` for
         this purpose, which only works if there are no nested functions.
 
 
         This should return all information that will be required to unpickle
         the object. The functionality for unpickling is implemented in
-        __setstate__().
+        :meth:`__setstate__`.
 
-        In order to pickle SFunction objects, we return a tuple containing
+        In order to pickle :class:`SymbolicFunction` objects, we return a tuple containing
 
          * 0  - as pickle version number
                 in case we decide to change the pickle format in the feature
@@ -1385,16 +1384,16 @@ cdef class SymbolicFunction(Function):
          * latex_name
          * a tuple containing attempts to pickle the following optional
            functions, in the order below
-           * eval_f
-           * evalf_f
-           * conjugate_f
-           * real_part_f
-           * imag_part_f
-           * derivative_f
-           * power_f
-           * series_f
-           * print_f
-           * print_latex_f
+           * ``eval_f``
+           * ``evalf_f``
+           * ``conjugate_f``
+           * ``real_part_f``
+           * ``imag_part_f``
+           * ``derivative_f``
+           * ``power_f``
+           * ``series_f``
+           * ``print_f``
+           * ``print_latex_f``
 
         EXAMPLES::
 
@@ -1453,9 +1452,9 @@ cdef class SymbolicFunction(Function):
 
     def __setstate__(self, state):
         """
-        Initializes the state of the object from data saved in a pickle.
+        Initialize the state of the object from data saved in a pickle.
 
-        During unpickling __init__ methods of classes are not called, the saved
+        During unpickling ``__init__`` methods of classes are not called, the saved
         data is passed to the class via this function instead.
 
         TESTS::
@@ -1479,7 +1478,7 @@ cdef class SymbolicFunction(Function):
             sage: f(x+1).conjugate() # now there is a special method
             2*x + 2
 
-        Note that the other direction doesn't work here, since foo._hash_()
+        Note that the other direction doesn't work here, since ``foo._hash_()``
         hash already been initialized.::
 
             sage: bar
@@ -1515,8 +1514,9 @@ cdef class SymbolicFunction(Function):
 
 def get_sfunction_from_serial(serial):
     """
-    Return an already created SFunction given the serial. These are stored in
-    the dictionary ``sage.symbolic.function.sfunction_serial_dict``.
+    Return an already created :class:`SymbolicFunction` given the serial.
+
+    These are stored in the dictionary ``sage.symbolic.function.sfunction_serial_dict``.
 
     EXAMPLES::
 
@@ -1529,9 +1529,11 @@ def get_sfunction_from_serial(serial):
 
 def pickle_wrapper(f):
     """
-    Returns a pickled version of the function f if f is not None;
-    otherwise, it returns None.  This is a wrapper around
-    :func:`pickle_function`.
+    Return a pickled version of the function ``f``.
+
+    If ``f`` is ``None``, just return ``None``.
+
+    This is a wrapper around :func:`pickle_function`.
 
     EXAMPLES::
 
@@ -1548,9 +1550,11 @@ def pickle_wrapper(f):
 
 def unpickle_wrapper(p):
     """
-    Returns a unpickled version of the function defined by *p* if *p*
-    is not None; otherwise, it returns None.  This is a wrapper around
-    :func:`unpickle_function`.
+    Return a unpickled version of the function defined by ``p``.
+
+    If ``p`` is ``None``, just return ``None``.
+
+    This is a wrapper around :func:`unpickle_function`.
 
     EXAMPLES::
 

@@ -2064,11 +2064,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             super(IwahoriHeckeAlgebra.Cp_Coxeter3, self).__init__(algebra, prefix)
 
             self._W = algebra._W
-            self.delta = q + ~q   # need the normalizations q_1=q^2, q_2=-1 or q_1=q,q_2=-q^-1
 
-            # The free algebra over our algebra generators, used to create monomials in these generators in _decompose_into_generators
-            self.gen_algebra = FreeAlgebra(algebra.base_ring(), ['g' + str(i) for i in self.index_set()])
-            
+            v = algebra.base_ring().gen(0)
+            if ((algebra.q1() == v**2 and algebra.q2() == -1) or (algebra.q1() == v and algebra.q2() == -1/v)):
+                self.delta = v + ~v
+            else:
+                if not algebra._is_generic:
+                    # If this algebra is generic, it's only being used to coerce to the T basis, not perform computations
+                    raise ValueError('the Cp_Coxeter3 basis is only supported in a Hecke algebra with standard normalizations (explain)')
+
 
             # Define conversion to the other Cp basis
             self.module_morphism(self.to_Cp_basis, codomain=algebra.Cp(), category=self.category()

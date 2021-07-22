@@ -242,6 +242,13 @@ class LLSRing(UniqueRepresentation, Parent):
             sage: f[30]
             -219
 
+            sage: L(valuation=2, constant=1)
+            y^2 + y^3 + y^4 + ...
+            sage: L(constant=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: you must specify the degree for the polynomial 0
+
         Alternatively, the ``coefficient_function`` can be a list of elements of the
         base ring. Then these elements are read as coefficients of the terms of
         degrees starting from the ``valuation``. In this case, ``constant``
@@ -261,6 +268,7 @@ class LLSRing(UniqueRepresentation, Parent):
             return self.element_class(self, LLS_uninitialized(self._sparse, valuation))
 
         R = self._laurent_poly_ring
+        BR = self.base_ring()
         try:
             # Try to build stuff using the polynomial ring constructor
             x = R(x)
@@ -268,12 +276,16 @@ class LLSRing(UniqueRepresentation, Parent):
             pass
         if isinstance(constant, (tuple, list)):
             constant, degree = constant
+        if constant is not None:
+            constant = BR(constant)
         if x in R:
             if not x and not constant:
                 aux = LLS_zero(self._sparse)
             else:
-                if valuation:
+                if x and valuation:
                     x = x.shift(valuation - x.valuation())
+                if degree is None and not x:
+                    degree = valuation
                 aux = LLS_eventually_geometric(R(x), self._sparse, constant, degree)
             return self.element_class(self, aux)
         if isinstance(x, LLS):

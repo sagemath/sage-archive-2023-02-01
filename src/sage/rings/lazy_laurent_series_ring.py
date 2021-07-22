@@ -38,8 +38,16 @@ ring::
 
 Power series can be defined recursively::
 
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-    sage: L.series(lambda s,n: (1 + z*s^2)[n], valuation=0)
+    sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)                                                                                                                                                        
+    sage: L._sparse                                                                                                                                                                               
+    True
+    sage: s = L(None)                                                                                                                                                                             
+    sage: s._aux._is_sparse                                                                                                                                                                       
+    True
+    sage: s._aux._approximate_valuation                                                                                                                                                           
+    0
+    sage: s.define(1 + z*s^2)                                                                                                                                                                     
+    sage: s                                                                                                                                                                                       
     1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
 
 AUTHORS:
@@ -70,16 +78,16 @@ from sage.categories.sets_cat import Sets
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing_generic
+from .integer_ring import ZZ
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, LaurentPolynomialRing_generic
 
-from .lazy_laurent_series import LazyLaurentSeries
-from .lazy_laurent_series_operator import (
-    LazyLaurentSeriesOperator_gen,
-    LazyLaurentSeriesOperator_constant,
-    LazyLaurentSeriesOperator_list,
-    LazyLaurentSeriesOperator_polynomial
+from .lazy_laurent_series import (
+    LazyLaurentSeries,
+    LazyLaurentSeries_coefficient_function,
+    LazyLaurentSeries_zero,
+    LazyLaurentSeries_eventually_geometric,
+    LazyLaurentSeries_uninitialized
 )
-
 
 class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     """
@@ -98,7 +106,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     """
     Element = LazyLaurentSeries
 
-    def __init__(self, base_ring, names, category=None):
+    def __init__(self, base_ring, names, sparse=False, category=None):
         """
         Initialize.
 
@@ -107,6 +115,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L = LazyLaurentSeriesRing(ZZ, 't')
             sage: TestSuite(L).run(skip='_test_elements')
         """
+        self._sparse = sparse
+        self._laurent_poly_ring = LaurentPolynomialRing(base_ring, names, sparse=sparse)
         Parent.__init__(self, base=base_ring, names=names,
                         category=MagmasAndAdditiveMagmas().or_subcategory(category))
 
@@ -138,10 +148,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         if n != 0:
             raise IndexError("there is only one generator")
-
-        op = LazyLaurentSeriesOperator_gen(self)
-        c = (self.base_ring().zero(), 2)
-        return self.element_class(self, coefficient=op, valuation=1, constant=c)
+        R = self._laurent_poly_ring
+        aux = LazyLaurentSeries_eventually_geometric(R.gen(n), self._sparse, ZZ.zero(), 2)
+        return self.element_class(self, aux)
 
     def ngens(self):
         """
@@ -157,6 +166,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         return 1
 
+    @cached_method
     def gens(self):
         """
         Return the tuple of the generator.
@@ -167,7 +177,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: 1/(1 - z)
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
         """
-        return (self.gen(),)
+        return tuple([self.gen(n) for n in range(self.ngens())])
 
     def _coerce_map_from_(self, S):
         """
@@ -184,18 +194,15 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if self.base_ring().has_coerce_map_from(S):
             return True
 
-        if isinstance(S, (PolynomialRing_general, LaurentPolynomialRing_generic)) and S.ngens() == 1:
+        R = self._laurent_poly_ring
+        if R.has_coerce_map_from(S):
             def make_series_from(poly):
-                op = LazyLaurentSeriesOperator_polynomial(self, poly)
-                a = poly.valuation()
-                c = (self.base_ring().zero(), poly.degree() + 1)
-                return self.element_class(self, coefficient=op, valuation=a, constant=c)
-
+                return self.element_class(self, LazyLaurentSeries_eventually_geometric(R(poly), self._sparse))
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
 
         return False
 
-    def _element_constructor_(self, x):
+    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
         """
         Construct a Laurent series from ``x``.
 
@@ -206,12 +213,97 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             0
             sage: L(3)
             1
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+
+            sage: L(lambda i: i, 5, 1, 10)
+            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
+            sage: L(lambda i: i, 5, (1, 10))
+            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
+
+            sage: X = L(constant=5, degree=2); X
+            5*z^2 + 5*z^3 + 5*z^4 + ...
+            sage: X.valuation()
+            2
+
+            sage: def g(i):
+            ....:     if i < 0:
+            ....:         return 1
+            ....:     else:
+            ....:         return 1 + sum(k for k in range(i+1))
+            sage: e = L(g, -5); e
+            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
+            sage: f = e^-1; f
+            z^5 - z^6 - z^11 + ...
+            sage: f.coefficient(10)
+            0
+            sage: f[20]
+            9
+            sage: f[30]
+            -219
+
+            sage: L(valuation=2, constant=1)
+            z^2 + z^3 + z^4 + ...
+            sage: L(constant=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: you must specify the degree for the polynomial 0
+
+        Alternatively, the ``coefficient_function`` can be a list of elements of the
+        base ring. Then these elements are read as coefficients of the terms of
+        degrees starting from the ``valuation``. In this case, ``constant``
+        may be just an element of the base ring instead of a tuple or can be
+        simply omitted if it is zero::
+
+            sage: f = L([1,2,3,4], -5)
+            sage: f
+            z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
+            sage: g = L([1,3,5,7,9], 5, -1)
+            sage: g
+            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
         """
-        R = self.base_ring()
+        if x is None:
+            if valuation is None:
+                valuation = 0
+            return self.element_class(self, LazyLaurentSeries_uninitialized(self._sparse, valuation))
 
-        op = LazyLaurentSeriesOperator_constant(self, R(x))
-
-        return self.element_class(self, coefficient=op, valuation=0, constant=(R.zero(), 1))
+        R = self._laurent_poly_ring
+        BR = self.base_ring()
+        try:
+            # Try to build stuff using the polynomial ring constructor
+            x = R(x)
+        except (TypeError, ValueError):
+            pass
+        if isinstance(constant, (tuple, list)):
+            constant, degree = constant
+        if constant is not None:
+            constant = BR(constant)
+        if x in R:
+            if not x and not constant:
+                aux = LazyLaurentSeries_zero(self._sparse)
+            else:
+                if x and valuation:
+                    x = x.shift(valuation - x.valuation())
+                if degree is None and not x:
+                    degree = valuation
+                aux = LazyLaurentSeries_eventually_geometric(R(x), self._sparse, constant, degree)
+            return self.element_class(self, aux)
+        if isinstance(x, LazyLaurentSeries):
+            if x._aux._is_sparse is self._sparse:
+                return self.element_class(self, x._aux)
+            # TODO: Implement a way to make a self._sparse copy
+            raise NotImplementedError("cannot convert between sparse and dense")
+        if callable(x):
+            if valuation is None:
+                valuation = 0
+            if degree is not None:
+                if constant is None:
+                    constant = ZZ.zero()
+                z = R.gen()
+                p = R.sum(x(i) * z**i for i in range(valuation, degree))
+                return self.element_class(self, LazyLaurentSeries_eventually_geometric(p, self._sparse, constant, degree))
+            return self.element_class(self, LazyLaurentSeries_coefficient_function(x, self.base_ring(), self._sparse, valuation))
+        raise ValueError(f"unable to convert {x} into a lazy Laurent series")
 
     def _an_element_(self):
         """
@@ -220,21 +312,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         EXAMPLES::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: L.an_element()  # random
-            z^-10 + z^-9 + z^-8 + z^-7 + z^-6 + z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + ...
+            sage: L.an_element()
+            z^-10 + z^-9 + z^-8 + ...
         """
-        N = 10
+        c = self.base_ring().an_element()
+        R = self._laurent_poly_ring
+        return self.element_class(self, LazyLaurentSeries_eventually_geometric(R.zero(), self._sparse, c, -10))
 
-        e = self.base_ring().an_element()
-
-        def r(s, i):
-            return self.base_ring().an_element()
-
-        n = random.randint(-N,N)
-        m = random.randint(0,N)
-
-        return self.element_class(self, coefficient=r, valuation=n, constant=(e,n+m))
-
+    @cached_method
     def one(self):
         """
         Return the constant series `1`.
@@ -245,8 +330,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L.one()
             1
         """
-        return self._element_constructor_(1)
+        R = self._laurent_poly_ring
+        return self.element_class(self, LazyLaurentSeries_eventually_geometric(R.one(), self._sparse, ZZ.zero(), 1))
 
+    @cached_method
     def zero(self):
         """
         Return the zero series.
@@ -257,89 +344,4 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L.zero()
             0
         """
-        return self._element_constructor_(0)
-
-    def series(self, coefficient, valuation, constant=None):
-        r"""
-        Return a lazy Laurent series.
-
-        INPUT:
-
-        - ``coefficient`` -- Python function that computes coefficients
-
-        - ``valuation`` -- integer; approximate valuation of the series
-
-        - ``constant`` -- either ``None`` or pair of an element of the base ring and an integer
-
-        Let the coefficient of index `i` mean the coefficient of the term of the
-        series with exponent `i`.
-
-        Python function ``coefficient`` returns the value of the coefficient of
-        index `i` from input `s` and `i` where `s` is the series itself.
-
-        Let ``valuation`` be `n`. All coefficients of index below `n` are zero.
-        If ``constant`` is ``None``, then the ``coefficient`` function is responsible to
-        compute the values of all coefficients of index `\ge n`. If
-        ``constant`` is a pair `(c,m)`, then the ``coefficient`` function is responsible
-        to compute the values of all coefficients of index `\ge n` and `< m`
-        and all the coefficients of index `\ge m` is the constant `c`.
-
-        EXAMPLES::
-
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: L.series(lambda s, i: i, 5, (1,10))
-            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
-
-            sage: def g(s, i):
-            ....:     if i < 0:
-            ....:         return 1
-            ....:     else:
-            ....:         return s.coefficient(i - 1) + i
-            sage: e = L.series(g, -5); e
-            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
-            sage: f = e^-1; f
-            z^5 - z^6 - z^11 + ...
-            sage: f.coefficient(10)
-            0
-            sage: f.coefficient(20)
-            9
-            sage: f.coefficient(30)
-            -219
-
-        Alternatively, the ``coefficient`` can be a list of elements of the
-        base ring. Then these elements are read as coefficients of the terms of
-        degrees starting from the ``valuation``. In this case, ``constant``
-        may be just an element of the base ring instead of a tuple or can be
-        simply omitted if it is zero.
-
-        EXAMPLES::
-
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: f = L.series([1,2,3,4], -5)
-            sage: f
-            z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
-            sage: g = L.series([1,3,5,7,9], 5, -1)
-            sage: g
-            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
-        """
-        if isinstance(coefficient, (tuple, list)):
-            if isinstance(constant, tuple):
-                constant = constant[0]
-            if constant is None:
-                constant = self.base_ring().zero()
-            elif constant not in self.base_ring():
-                raise ValueError("constant is not an element of the base ring")
-            constant = (constant, valuation + len(coefficient))
-            coefficient = LazyLaurentSeriesOperator_list(self, coefficient, valuation)
-        elif constant is not None:
-            try:
-                c,m = constant
-            except TypeError:
-                raise TypeError('not a tuple')
-
-            if valuation > m and c: # weird case
-                raise ValueError('inappropriate valuation')
-
-            constant = (self.base_ring()(c), m)
-
-        return self.element_class(self, coefficient=coefficient, valuation=valuation, constant=constant)
+        return self.element_class(self, LazyLaurentSeries_zero(self._sparse))

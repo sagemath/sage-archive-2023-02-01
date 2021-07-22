@@ -28,11 +28,11 @@ Polymake needs a working installation of Perl, including its shared
 library and some modules (XML::Writer XML::LibXML XML::LibXSLT
 Term::ReadLine::Gnu JSON SVG). The Polymake interface in Sage
 additionally needs File::Slurp. For full functionality including
-polymake's polyDB, also the Perl module MongoDB is required.
+polymake's polyDB, also the Perl module MongoDB is needed.
 
 These are not provided by a Sage package. The script package
-perl_cpan_polymake_prereq will signal an error at build time if these
-prerequisites are not met.
+perl_cpan_polymake_prereq will signal an error at build time if the
+required prerequisites are not met.
 
 The configure script will inform you about the equivalent system
 packages that you should install. Otherwise, you can use CPAN (see

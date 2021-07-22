@@ -132,7 +132,7 @@ or by the following special syntax::
 
     sage: mip.<a,b> = MixedIntegerLinearProgram(solver='GLPK')
     sage: a
-    MIPVariable of dimension 1
+    MIPVariable a with 0 real components
     sage: 5 + a[1] + 2*b[3]
     5 + x_0 + 2*x_1
 
@@ -744,7 +744,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: x = p.new_variable(); x
-            MIPVariable of dimension 1
+            MIPVariable with 0 real components
             sage: x0 = x[0]; x0
             x_0
 
@@ -796,7 +796,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
         shorthand for generating new variables with default settings::
 
             sage: mip.<x, y, z> = MixedIntegerLinearProgram(solver='GLPK')
-            sage: mip.add_constraint(x[0] + y[1] + z[2] <= 10) 
+            sage: mip.add_constraint(x[0] + y[1] + z[2] <= 10)
             sage: mip.show()
             Maximization:
             <BLANKLINE>
@@ -835,7 +835,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.default_variable()
-            MIPVariable of dimension 1
+            MIPVariable with 0 real components
         """
         if self._default_mipvariable is None:
             self._default_mipvariable = self.new_variable()
@@ -1309,7 +1309,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             name = varid_explainer[i]
             lb, ub = b.col_bounds(i)
             print('  {0} is {1} variable (min={2}, max={3})'.format(
-                name, var_type, 
+                name, var_type,
                 lb if lb is not None else "-oo",
                 ub if ub is not None else "+oo"))
 
@@ -1636,7 +1636,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
 
             sage: p.add_constraint(x[5] + 3*x[7] == x[6] + 3)
             sage: p.add_constraint(x[5] + 3*x[7] <= x[6] + 3 <= x[8] + 27)
-        
+
         Using this notation, the previous program can be written as::
 
             sage: p = MixedIntegerLinearProgram(maximization=True, solver='GLPK')
@@ -1819,8 +1819,8 @@ cdef class MixedIntegerLinearProgram(SageObject):
                 raise ValueError('min and max must not be specified for (in)equalities')
             relation = linear_function
             M = relation.parent().linear_tensors().free_module()
-            self.add_constraint(relation.lhs() - relation.rhs(), 
-                                min=M(0) if relation.is_equation() else None, 
+            self.add_constraint(relation.lhs() - relation.rhs(),
+                                min=M(0) if relation.is_equation() else None,
                                 max=M(0), name=name)
         else:
             raise ValueError('argument must be a linear function or constraint, got '+str(linear_function))
@@ -2712,7 +2712,7 @@ cdef class MixedIntegerLinearProgram(SageObject):
             if back_end.variable_lower_bound(i) != 0:
                 raise ValueError('Problem variables must have 0 as lower bound')
             if back_end.variable_upper_bound(i) is not None:
-                raise ValueError('Problem variables must not have upper bound') 
+                raise ValueError('Problem variables must not have upper bound')
 
         # Construct 'A'
         coef_matrix = []
@@ -2847,7 +2847,7 @@ cdef class MIPVariable(SageObject):
           underlying linear program.
 
         - ``vtype`` (integer) -- Defines the type of the variables
-          (default is ``REAL``).
+          (default is ``REAL``, i.e., ``vtype=-1``).
 
         - ``name`` -- A name for the ``MIPVariable``.
 
@@ -2869,7 +2869,7 @@ cdef class MIPVariable(SageObject):
 
             sage: p = MixedIntegerLinearProgram(solver='GLPK')
             sage: p.new_variable(nonnegative=True)
-            MIPVariable of dimension 1
+            MIPVariable with 0 real components, >= 0
         """
         self._dict = {}
         self._p = mip
@@ -2957,7 +2957,7 @@ cdef class MIPVariable(SageObject):
             sage: x[11]
             Traceback (most recent call last):
             ...
-            IndexError: 11 does not index a component of MIPVariable of dimension 1
+            IndexError: 11 does not index a component of MIPVariable with 7 real components
 
         Indices can be more than just integers::
 
@@ -2979,7 +2979,7 @@ cdef class MIPVariable(SageObject):
             sage: x[0]
             Traceback (most recent call last):
             ...
-            IndexError: 0 does not index a component of MIPVariable of dimension 1
+            IndexError: 0 does not index a component of MIPVariable with 0 real components
 
         """
         cdef int j
@@ -3041,7 +3041,7 @@ cdef class MIPVariable(SageObject):
             sage: qv[5]
             Traceback (most recent call last):
             ...
-            IndexError: 5 does not index a component of MIPVariable of dimension 1
+            IndexError: 5 does not index a component of MIPVariable with 2 real components
 
         """
         cdef MIPVariable cp = type(self)(mip, self._vtype, self._name,
@@ -3131,12 +3131,38 @@ cdef class MIPVariable(SageObject):
 
         EXAMPLES::
 
-            sage: p=MixedIntegerLinearProgram(solver='GLPK')
-            sage: v=p.new_variable()
+            sage: p = MixedIntegerLinearProgram(solver='GLPK')
+            sage: v = p.new_variable()
             sage: v
-            MIPVariable of dimension 1
+            MIPVariable with 0 real components
+            sage: x = p.new_variable(integer=True, nonnegative=True, name="x")
+            sage: x[0]
+            x_0
+            sage: x
+            MIPVariable x with 1 integer component, >= 0
+            sage: x[1]
+            x_1
+            sage: x
+            MIPVariable x with 2 integer components, >= 0
+            sage: y = p.new_variable(real=True,  name="y", indices=range(5))
+            sage: y.set_min(0)
+            sage: y.set_max(17)
+            sage: y
+            MIPVariable y with 5 real components, >= 0, <= 17
+            sage: z = p.new_variable(binary=True, name="z", indices=range(7))
+            sage: z
+            MIPVariable z with 7 binary components
         """
-        return "MIPVariable of dimension 1"
+        s = 'MIPVariable{0} with {1} {2} component{3}'.format(
+            " " + self._name if self._name else "",
+            len(self._dict),
+            {0:"binary", -1:"real", 1:"integer"}[self._vtype],
+            "s" if len(self._dict) != 1 else "")
+        if (self._vtype != 0) and (self._lower_bound is not None):
+            s += ', >= {0}'.format(self._lower_bound)
+        if (self._vtype != 0) and (self._upper_bound is not None):
+            s += ', <= {0}'.format(self._upper_bound)
+        return s
 
     def keys(self):
         r"""

@@ -901,8 +901,11 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         4
 
         sage: f = sqrt(x + 1/x^2)
-        sage: integrate(f, x)
-        1/3*(2*sqrt(x^3 + 1) - log(sqrt(x^3 + 1) + 1) + log(abs(sqrt(x^3 + 1) - 1)))*sgn(x)
+        sage: actual = integrate(f, x)
+        sage: expected = (1/3*(2*sqrt(x^3 + 1) - log(sqrt(x^3 + 1) + 1)
+        ....:             + log(abs(sqrt(x^3 + 1) - 1)))*sgn(x))
+        sage: bool(actual == expected)
+        True
 
         sage: g = abs(sin(x)*cos(x))
         sage: g.integrate(x, 0, 2*pi)
@@ -912,7 +915,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         2*sqrt(x*sgn(x))/sgn(x)
 
         sage: integrate(sgn(x) - sgn(1-x), x)
-        x*(sgn(x) - sgn(-x + 1)) + sgn(-x + 1)
+        abs(x - 1) + abs(x)
 
         sage: integrate(1 / (1 + abs(x-5)), x, -5, 6)
         log(11) + log(2)

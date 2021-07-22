@@ -156,6 +156,7 @@ def request_wolfram_alpha(input, verbose=False):
          'error',
          'host',
          'id',
+         'inputstring',
          'numpods',
          'parsetimedout',
          'parsetiming',
@@ -374,7 +375,7 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
         sage: fricas_integrator(cos(x), x)                                      # optional - fricas
         sin(x)
         sage: fricas_integrator(1/(x^2-2), x, 0, 1)                             # optional - fricas
-        1/4*sqrt(2)*(log(3*sqrt(2) - 4) - log(sqrt(2)))
+        -1/8*sqrt(2)*(log(2) - log(-24*sqrt(2) + 34))
         sage: fricas_integrator(1/(x^2+6), x, -oo, oo)                          # optional - fricas
         1/6*sqrt(6)*pi
 
@@ -387,33 +388,46 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
 
     Check that in case of failure one gets unevaluated integral::
 
-        sage: integral(cos(ln(cos(x))), x, 0, pi/8, algorithm='fricas')   # optional - fricas
+        sage: integral(cos(ln(cos(x))), x, 0, pi/8, algorithm='fricas')         # optional - fricas
         integrate(cos(log(cos(x))), x, 0, 1/8*pi)
-        sage: integral(cos(ln(cos(x))), x, algorithm='fricas')   # optional - fricas
+
+        sage: integral(cos(ln(cos(x))), x, algorithm='fricas')                  # optional - fricas
         integral(cos(log(cos(x))), x)
+
+    Check that :trac:`28641` is fixed::
+
+        sage: integrate(sqrt(2)*x^2 + 2*x, x, algorithm="fricas")               # optional - fricas
+        1/3*sqrt(2)*x^3 + x^2
+
+        sage: integrate(sqrt(2), x, algorithm="fricas")                         # optional - fricas
+        sqrt(2)*x
+
+        sage: integrate(1, x, algorithm="fricas")                               # optional - fricas
+        x
     """
     if not isinstance(expression, Expression):
         expression = SR(expression)
 
     from sage.interfaces.fricas import fricas
-    ex = fricas(expression)
+    e_fricas = fricas(expression)
+    v_fricas = fricas(v)
 
     if a is None:
-        result = ex.integrate(v)
+        result = e_fricas.integrate(v_fricas)
     else:
-        seg = fricas.equation(v, fricas.segment(a, b))
+        seg = fricas.equation(v_fricas, fricas.segment(a, b))
 
         if noPole:
-            result = ex.integrate(seg, '"noPole"')
+            result = e_fricas.integrate(seg, '"noPole"')
         else:
-            result = ex.integrate(seg)
+            result = e_fricas.integrate(seg)
 
     result = result.sage()
 
     if result == "failed":
-        return expression.integrate(v, a, b, hold=True)
+        result = expression.integrate(v, a, b, hold=True)
 
-    if result == "potentialPole":
+    elif result == "potentialPole":
         raise ValueError("The integrand has a potential pole"
                          " in the integration interval")
 
@@ -421,7 +435,7 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
 
 
 def giac_integrator(expression, v, a=None, b=None):
-    """
+    r"""
     Integration using Giac
 
     EXAMPLES::
@@ -436,6 +450,15 @@ def giac_integrator(expression, v, a=None, b=None):
 
         sage: giac_integrator(e^(-x^2)*log(x), x)
         integrate(e^(-x^2)*log(x), x)
+
+    Check that :trac:`30133` is fixed::
+
+        sage: ee = SR.var('e')
+        sage: giac_integrator(ee^x, x)
+        e^x/log(e)
+        sage: y = SR.var('π')
+        sage: giac_integrator(cos(y), y)
+        sin(π)
     """
     ex = expression._giac_()
     if a is None:

@@ -5483,7 +5483,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 3._bnfisnorm(QuadraticField(-1, 'i'))
             (1, 3)
             sage: 7._bnfisnorm(CyclotomicField(7))
-            (-zeta7^5 - zeta7^4 - 2*zeta7^3 - zeta7^2 - zeta7 - 1, 1)
+            (zeta7^5 - zeta7^2, 1)
         """
         from sage.rings.rational_field import QQ
         return QQ(self)._bnfisnorm(K, proof=proof, extra_primes=extra_primes)

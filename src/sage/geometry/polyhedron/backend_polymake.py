@@ -417,8 +417,8 @@ class Polyhedron_polymake(Polyhedron_base):
             sage: parent = Polyhedra_polymake(ZZ, 1, 'polymake')
             sage: Vrep = [[[0], [1]], [], []]
             sage: Hrep = [[[0, 1], [1, -1]], []]
-            sage: p = Polyhedron_polymake(parent, Vrep, Hrep,
-            ....:                         Vrep_minimal=True, Hrep_minimal=True)  # indirect doctest  # optional - polymake
+            sage: p = Polyhedron_polymake(parent, Vrep, Hrep,  # indirect doctest  # optional - polymake
+            ....:                         Vrep_minimal=True, Hrep_minimal=True)
             sage: p  # optional - polymake
             A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
         """

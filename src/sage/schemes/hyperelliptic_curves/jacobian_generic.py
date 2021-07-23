@@ -187,7 +187,7 @@ class HyperellipticJacobian_generic(Jacobian_generic):
           strictly speaking this has not been proven to be ``False`` until one
           has exhibited a non-trivial endomorphism, which these methods are not
           designed to carry out. If one is convinced that this method should
-          return `True`, but it is returning `False`, then this can be
+          return ``True``, but it is returning ``False``, then this can be
           exhibited by increasing `B`.
 
         OUTPUT:
@@ -254,11 +254,11 @@ class HyperellipticJacobian_generic(Jacobian_generic):
 
         - ``proof`` -- (default: False) whether or not to insist on a provably
           correct answer. This is related to the warning in the module docstring
-          of `jacobian_endomorphisms.py`: if this function returns `False`, then
-          strictly speaking this has not been proven to be `False` until one has
+          of `jacobian_endomorphisms.py`: if this function returns ``False``, then
+          strictly speaking this has not been proven to be ``False`` until one has
           exhibited a non-trivial endomorphism, which the methods in that module
           are not designed to carry out. If one is convinced that this method
-          should return `True`, but it is returning `False`, then this can be
+          should return ``True``, but it is returning ``False``, then this can be
           exhibited by increasing `B`.
 
         OUTPUT:

@@ -17,9 +17,12 @@ from typing import Any
 from copy import copy
 
 from sage.structure.sage_object import SageObject
+from sage.sets.set import Set_base
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
+from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 
@@ -33,7 +36,7 @@ class AffineHullProjectionData:
     section_translation: Any = None
 
 
-class ConvexSet_base(SageObject):
+class ConvexSet_base(SageObject, Set_base):
     """
     Abstract base class for convex sets.
     """
@@ -54,6 +57,60 @@ class ConvexSet_base(SageObject):
             True
         """
         return self.dim() < 0
+
+    def is_finite(self):
+        r"""
+        Test whether ``self`` is a finite set.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: p.is_finite()
+            True
+            sage: q = Polyhedron(ambient_dim=2); q
+            The empty polyhedron in ZZ^2
+            sage: q.is_finite()
+            True
+            sage: r = Polyhedron(rays=[(1, 0)]); r
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: r.is_finite()
+            False
+        """
+        return self.dim() < 1
+
+    def cardinality(self):
+        """
+        Return the cardinality of this set.
+
+        OUTPUT:
+
+        Either an integer or ``Infinity``.
+
+        EXAMPLES::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: p.cardinality()
+            0
+            sage: q = Polyhedron(ambient_dim=2); q
+            The empty polyhedron in ZZ^2
+            sage: q.cardinality()
+            0
+            sage: r = Polyhedron(rays=[(1, 0)]); r
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: r.cardinality()
+            +Infinity
+        """
+        if self.dim() < 0:
+            return ZZ(0)
+        if self.dim() == 0:
+            return ZZ(1)
+        return infinity
 
     def is_universe(self):
         r"""
@@ -583,7 +640,7 @@ class ConvexSet_base(SageObject):
             ....:         return 42
             ....:     def ambient_dim(self):
             ....:         return 91
-            sage: TestSuite(FaultyConvexSet()).run(skip=('_test_pickling', '_test_contains'))
+            sage: TestSuite(FaultyConvexSet()).run(skip=('_test_pickling', '_test_contains', '_test_as_set_object'))
             Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
@@ -597,7 +654,7 @@ class ConvexSet_base(SageObject):
             ....:         return QQ^3
             ....:     def ambient_dim(self):
             ....:         return 3
-            sage: TestSuite(BiggerOnTheInside()).run(skip=('_test_pickling', '_test_contains'))
+            sage: TestSuite(BiggerOnTheInside()).run(skip=('_test_pickling', '_test_contains', '_test_as_set_object'))
             Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set

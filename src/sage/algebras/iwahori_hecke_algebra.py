@@ -2215,25 +2215,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Compute the product of `C^{\prime}_s` and `C^{\prime}_w`, putting
             `C^{\prime}_s` on the given ``side``.
 
-            For each generator `s` and element `x`, the products `C^{\prime}_s
-            \cdot C^{\prime}_w` is given by the following formulas:
-
-            .. MATH::
-
-                C^{\prime}_s \cdot C^{\prime}_w = 
-                \begin{cases}
-                   (q+q^-1)C^{\prime}_{w},                                         & \text{if } \ell(sw) = \ell(w)-1,\\
-                   C^{\prime}_{sw}+\sum_{v\leq w, sv \leq v} \mu(v,w)C^{\prime}_v, & \text{if } \ell(sw) = \ell(w)+1.
-                \end{cases}
-
-                C^{\prime}_w \cdot C^{\prime}_s = 
-                \begin{cases}
-                   (q+q^-1)C^{\prime}_{w},                                         & \text{if } \ell(ws) = \ell(w)-1,\\
-                   C^{\prime}_{ws}+\sum_{v\leq w, vs \leq v} \mu(v,w)C^{\prime}_v, & \text{if } \ell(ws) = \ell(w)+1.
-                \end{cases}
-                
-            where `\leq` is the Bruhat order and the numbers `\mu(v,w)` are the `mu`-coefficients of [Lus2014]_.
-
             INPUT:
 
             - ``side`` -- string; 'left' or 'right'
@@ -2301,35 +2282,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         def _decompose_into_generators(self, w):
             r"""
             Decompose `C^{\prime}_w` into a polynomial in the KL generators
-            `C^{\prime}_s` (an element of the free algebra
-            `self.generator_algebra`)
-
-            The decomposition is obtained recursively, by induction on
-            `\ell(w)`. If `ell(w) < 2` the decomposition is trivial (see
-            Examples). If `\ell(w) \geq 2`, write `w=su` where `s` is a left
-            descent of `w` so that `\ell(w) = \ell(u) + 1`, then use the formula
-            that 
-
-            .. MATH::
-                C^{\prime}_s \cdot C^{\prime}_u = 
-                C^{\prime}_{su}+\sum_{v\leq u, sv \leq v} \mu(v,u)C^{\prime}_v
-
-            to conclude that            
-
-            .. MATH::
-                C^{\prime}_{w}= C^{\prime}_s \cdot C^{\prime}_u - \sum_{v\leq u, sv \leq v} \mu(v,u)C^{\prime}_v.
-
-            The element `u` and the elements `v` on the right side all have
-            smaller length than `w`, so they can be obtained by induction. 
-
-            INPUT:
-
-            - ``w`` -- word in self.coxeter_group()
-
-            OUTPUT:
-
-            An element of ``self._generator_algebra`` describing how to express
-            `C^{\prime}_w` in terms of the generators `C^{\prime}_s`.
+            `C^{\prime}_s`.
             
             EXAMPLES::
 

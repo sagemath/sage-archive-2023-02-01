@@ -426,7 +426,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.version()   >= '21.07.15'   # optional database_knotinfo
+            sage: ki_db.version()   >= '2021.7.21'   # optional database_knotinfo
             True
         """
         self._feature.require()

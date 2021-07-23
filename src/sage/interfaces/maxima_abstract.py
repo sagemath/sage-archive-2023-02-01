@@ -670,9 +670,11 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
 ##         represented in 2-d.
 
 ##         INPUT:
-##             flag -- bool (default: True)
 
-##         EXAMPLES
+##         flag -- bool (default: True)
+
+##         EXAMPLES::
+
 ##             sage: maxima('1/2')
 ##             1/2
 ##             sage: maxima.display2d(True)

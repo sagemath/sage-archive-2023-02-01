@@ -4055,7 +4055,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         - `Li_n(`self`)`
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: Qp(2)(-1)._polylog_res_1(6) == 0
             True

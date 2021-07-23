@@ -399,6 +399,80 @@ class Polyhedron_polymake(Polyhedron_base):
             return dict(AFFINE_HULL=eqns,
                         FACETS=ieqs)
 
+    def _init_from_Vrepresentation_and_Hrepresentation(self, Vrep, Hrep):
+        """
+        Construct polyhedron from V-representation and H-representation data.
+
+        See :class:`Polyhedron_base` for a description of ``Vrep`` and ``Hrep``.
+
+        .. WARNING::
+
+            The representation is assumed to be correct.
+            It is not checked.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.polyhedron.parent import Polyhedra_polymake
+            sage: from sage.geometry.polyhedron.backend_polymake import Polyhedron_polymake
+            sage: parent = Polyhedra_polymake(ZZ, 1, 'polymake')
+            sage: Vrep = [[[0], [1]], [], []]
+            sage: Hrep = [[[0, 1], [1, -1]], []]
+            sage: p = Polyhedron_polymake(parent, Vrep, Hrep,  # indirect doctest  # optional - polymake
+            ....:                         Vrep_minimal=True, Hrep_minimal=True)
+            sage: p  # optional - polymake
+            A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
+        """
+        Vrep = [list(x) for x in Vrep]
+        Hrep = [list(x) for x in Hrep]
+        p = self._polymake_polytope_from_Vrepresentation_and_Hrepresentation(Vrep, Hrep)
+        if p is None:
+            self._init_empty_polyhedron()
+            return
+
+        self._polymake_polytope = p
+
+        # As the conversion from polymake to sage is slow,
+        # we skip it.
+        parent = self.parent()
+        vertices, rays, lines = Vrep
+        inequalities, equations = Hrep
+        self._Vrepresentation = []
+        self._Hrepresentation = []
+        for x in vertices:
+            parent._make_Vertex(self, x)
+        for x in rays:
+            parent._make_Ray(self, x)
+        for x in lines:
+            parent._make_Line(self, x)
+        for x in inequalities:
+            parent._make_Inequality(self, x)
+        for x in equations:
+            parent._make_Equation(self, x)
+        self._Vrepresentation = tuple(self._Vrepresentation)
+        self._Hrepresentation = tuple(self._Hrepresentation)
+
+    def _polymake_polytope_from_Vrepresentation_and_Hrepresentation(self, Vrep, Hrep):
+        if not any(Vrep):
+            # The empty polyhedron.
+            return
+
+        from sage.interfaces.polymake import polymake
+        data = self._polymake_Vrepresentation_data(*Vrep, minimal=True)
+
+        if any(Vrep[1:]):
+            from sage.matrix.constructor import Matrix
+            polymake_rays = [r for r in data['VERTICES'] if r[0] == 0]
+            if Matrix(data['VERTICES']).rank() == Matrix(polymake_rays).rank() + 1:
+                # The recession cone is full-dimensional.
+                # In this case the homogenized inequalities
+                # do not ensure nonnegativy in the last coordinate.
+                # In the homogeneous cone the far face is a facet.
+                Hrep[0] += [[1] + [0]*self.ambient_dim()]
+        data.update(self._polymake_Hrepresentation_data(*Hrep, minimal=True))
+
+        polymake_field = polymake(self.base_ring().fraction_field())
+        return polymake.new_object("Polytope<{}>".format(polymake_field), **data)
+
     def _init_Vrepresentation_from_polymake(self):
         r"""
         Create the Vrepresentation objects from the polymake polyhedron.
@@ -612,26 +686,10 @@ class Polyhedron_polymake(Polyhedron_base):
             inequalities = self.inequalities()
             equations = self.equations()
 
-        if not vertices and not rays and not lines:
-            # The empty polyhedron.
-            return
 
-        from sage.interfaces.polymake import polymake
-        data = self._polymake_Vrepresentation_data(vertices, rays, lines, minimal=True)
-
-        if rays or lines:
-            from sage.matrix.constructor import Matrix
-            polymake_rays = [r for r in data['VERTICES'] if r[0] == 0]
-            if Matrix(data['VERTICES']).rank() == Matrix(polymake_rays).rank() + 1:
-                # The recession cone is full-dimensional.
-                # In this case the homogenized inequalities
-                # do not ensure nonnegativy in the last coordinate.
-                # In the homogeneous cone the far face is a facet.
-                inequalities.append([1] + [0]*self.ambient_dim())
-        data.update(self._polymake_Hrepresentation_data(inequalities, equations, minimal=True))
-
-        polymake_field = polymake(self.base_ring().fraction_field())
-        self._polymake_polytope = polymake.new_object("Polytope<{}>".format(polymake_field), **data)
+        p = self._polymake_polytope_from_Vrepresentation_and_Hrepresentation([vertices, rays, lines], [inequalities, equations])
+        if p is not None:
+            self._polymake_polytope = p
 
     def _test_polymake_pickling(self, tester=None, other=None, **options):
         """

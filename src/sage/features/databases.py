@@ -5,7 +5,40 @@ Testing for databases at runtime
 
 
 from . import StaticFile, PythonModule
-from sage.env import CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR
+from sage.env import (
+    CONWAY_POLYNOMIALS_DATA_DIR,
+    CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR)
+
+
+class DatabaseConwayPolynomials(StaticFile):
+    r"""
+    A :class:`Feature` which describes the presence of Frank Luebeck's
+    database of Conway polynomials.
+
+    EXAMPLES::
+
+        sage: from sage.features.databases import DatabaseConwayPolynomials
+        sage: DatabaseConwayPolynomials().is_present()
+        FeatureTestResult("Frank Luebeck's database of Conway polynomials", True)
+    """
+
+    def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.databases import DatabaseConwayPolynomials
+            sage: isinstance(DatabaseConwayPolynomials(), DatabaseConwayPolynomials)
+            True
+        """
+        if CONWAY_POLYNOMIALS_DATA_DIR:
+            search_path = [CONWAY_POLYNOMIALS_DATA_DIR]
+        else:
+            search_path = []
+        StaticFile.__init__(self, "Frank Luebeck's database of Conway polynomials",
+                            filename='conway_polynomials.p',
+                            search_path=search_path,
+                            spkg='conway_polynomials')
+
 
 CREMONA_DATA_DIRS = set([CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR])
 
@@ -41,6 +74,7 @@ class DatabaseCremona(StaticFile):
                             search_path=CREMONA_DATA_DIRS,
                             spkg=spkg,
                             url="https://github.com/JohnCremona/ecdata")
+
 
 class DatabaseJones(StaticFile):
     r"""

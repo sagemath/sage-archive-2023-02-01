@@ -488,10 +488,11 @@ class DiffMap(ContinuousMap):
             sage: f._inverse
 
         """
-        ContinuousMap._init_derived(self)  # derived quantities of the mother
-                                           # class
-        self._diff = {} # dict. of the coord. expressions of the differential
-                        # keys: pair of charts
+        ContinuousMap._init_derived(self)
+        # derived quantities of the mother class
+        self._diff = {}
+        # dict. of the coord. expressions of the differential
+        # keys: pair of charts
 
     def _del_derived(self):
         r"""
@@ -795,7 +796,7 @@ class DiffMap(ContinuousMap):
         .. MATH::
 
             J = \left( \frac{\partial Y^i}{\partial x^j}
-              \right)_{{1 \leq i \leq m \atop 1 \leq j \leq n}},
+              \right)_{\substack{1 \leq i \leq m \\ 1 \leq j \leq n}},
 
         where `i` is the row index and `j` the column one.
 
@@ -988,7 +989,7 @@ class DiffMap(ContinuousMap):
             si1 = fmodule1._sindex
             of1 = fmodule1._output_formatter
             si2 = dom2._sindex
-            resu = fmodule1.tensor((0,ncov), name=resu_name,
+            resu = fmodule1.tensor((0, ncov), name=resu_name,
                                    latex_name=resu_latex_name, sym=tensor._sym,
                                    antisym=tensor._antisym)
 

@@ -526,6 +526,40 @@ def roots_interval_cached(f, x0):
         return result
 
 
+def populate_roots_interval_cache(inputs):
+    r"""
+    Call func:`roots_interval` to the inputs that have not been computed previously,
+    and cache them.
+
+    INPUT:
+
+    - ``inputs`` -- a list of tuples (f, x0)
+
+    EXAMPLES::
+
+        sage: from sage.schemes.curves.zariski_vankampen import populate_roots_interval_cache, roots_interval_cache
+        sage: R.<x,y> = QQ[]
+        sage: f = y^5 - x^2
+        sage: (f, 3) in roots_interval_cache
+        False
+        sage: populate_roots_interval_cache([(f, 3)])
+        sage: (f, 3) in roots_interval_cache
+        True
+        sage: roots_interval_cache[(f, 3)]
+        {-1.255469441943070? - 0.9121519421827974?*I: -2.? - 1.?*I,
+         -1.255469441943070? + 0.9121519421827974?*I: -2.? + 1.?*I,
+         0.4795466549853897? - 1.475892845355996?*I: 1.? - 2.?*I,
+         0.4795466549853897? + 1.475892845355996?*I: 1.? + 2.?*I,
+         14421467174121563/9293107134194871: 2.? + 0.?*I}
+
+    """
+    global roots_interval_cache
+    tocompute = [inp for inp in inputs if inp not in roots_interval_cache]
+    result = roots_interval(tocompute)
+    for r in result:
+        roots_interval_cache[r[0][0]] = r[1]
+
+
 @parallel
 def braid_in_segment(g, x0, x1):
     """
@@ -901,10 +935,8 @@ def braid_monodromy(f):
     I = QQbar.gen()
     segs = [(a[0]+I*a[1], b[0]+I*b[1]) for (a, b) in segs]
     vertices = list(set(flatten(segs)))
-    noncachedverts = [(g, v) for v in vertices if (g, v) not in roots_interval_cache]
-    for noncachedvert in roots_interval(noncachedverts):
-        roots_interval_cache[noncachedvert[0][0]] = noncachedvert[1]
-    _ = [roots_interval_cached(g, v) for v in vertices]
+    tocacheverts = [(g, v) for v in vertices]
+    populate_roots_interval_cache(tocacheverts)
     gfac = g.factor()
     try:
         braidscomputed = list(braid_in_segment([(gfac, seg[0], seg[1]) for seg in segs]))

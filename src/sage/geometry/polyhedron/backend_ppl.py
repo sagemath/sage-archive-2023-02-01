@@ -2,6 +2,7 @@
 The PPL (Parma Polyhedra Library) backend for polyhedral computations
 """
 
+from sage.structure.element import Element
 from sage.rings.all import ZZ
 from sage.rings.integer import Integer
 from sage.arith.functions import LCM_list
@@ -34,6 +35,32 @@ class Polyhedron_ppl(Polyhedron_base):
         sage: TestSuite(p).run()
     """
 
+    def __init__(self, parent, Vrep, Hrep, ppl_polyhedron=None, **kwds):
+        """
+        Initializes the polyhedron.
+
+        See :class:`Polyhedron_ppl` for a description of the input
+        data.
+
+        TESTS::
+
+            sage: p = Polyhedron()
+            sage: TestSuite(p).run()
+            sage: p = Polyhedron(vertices=[(1, 1)], rays=[(0, 1)])
+            sage: TestSuite(p).run()
+            sage: q = polytopes.cube()
+            sage: p = q.parent().element_class(q.parent(), None, None, q._ppl_polyhedron)
+            sage: TestSuite(p).run()
+        """
+        if ppl_polyhedron:
+            if Hrep is not None or Vrep is not None:
+                raise ValueError("only one of Vrep, Hrep, or ppl_polyhedron can be different from None")
+            Element.__init__(self, parent=parent)
+            minimize = True if 'minimize' in kwds and kwds['minimize'] else False
+            self._init_from_ppl_polyhedron(ppl_polyhedron, minimize)
+        else:
+            Polyhedron_base.__init__(self, parent, Vrep, Hrep, **kwds)
+
     def _init_from_Vrepresentation(self, vertices, rays, lines, minimize=True, verbose=False):
         """
         Construct polyhedron from V-representation data.
@@ -64,34 +91,18 @@ class Polyhedron_ppl(Polyhedron_base):
         gs = Generator_System()
         if vertices is None: vertices = []
         for v in vertices:
-            d = LCM_list([denominator(v_i) for v_i in v])
-            if d.is_one():
-                gs.insert(point(Linear_Expression(v, 0)))
-            else:
-                dv = [ d*v_i for v_i in v ]
-                gs.insert(point(Linear_Expression(dv, 0), d))
+            gs.insert(self._convert_generator_to_ppl(v, 2))
         if rays is None: rays = []
         for r in rays:
-            d = LCM_list([denominator(r_i) for r_i in r])
-            if d.is_one():
-                gs.insert(ray(Linear_Expression(r, 0)))
-            else:
-                dr = [ d*r_i for r_i in r ]
-                gs.insert(ray(Linear_Expression(dr, 0)))
+            gs.insert(self._convert_generator_to_ppl(r, 3))
         if lines is None: lines = []
         for l in lines:
-            d = LCM_list([denominator(l_i) for l_i in l])
-            if d.is_one():
-                gs.insert(line(Linear_Expression(l, 0)))
-            else:
-                dl = [ d*l_i for l_i in l ]
-                gs.insert(line(Linear_Expression(dl, 0)))
+            gs.insert(self._convert_generator_to_ppl(l, 4))
         if gs.empty():
-            self._ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'empty')
+            ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'empty')
         else:
-            self._ppl_polyhedron = C_Polyhedron(gs)
-        self._init_Vrepresentation_from_ppl(minimize)
-        self._init_Hrepresentation_from_ppl(minimize)
+            ppl_polyhedron = C_Polyhedron(gs)
+        self._init_from_ppl_polyhedron(ppl_polyhedron, minimize)
 
     def _init_from_Hrepresentation(self, ieqs, eqns, minimize=True, verbose=False):
         """
@@ -119,22 +130,27 @@ class Polyhedron_ppl(Polyhedron_base):
         cs = Constraint_System()
         if ieqs is None: ieqs = []
         for ieq in ieqs:
-            d = LCM_list([denominator(ieq_i) for ieq_i in ieq])
-            dieq = [ ZZ(d*ieq_i) for ieq_i in ieq ]
-            b = dieq[0]
-            A = dieq[1:]
-            cs.insert(Linear_Expression(A, b) >= 0)
+            cs.insert(self._convert_constraint_to_ppl(ieq, 0))
         if eqns is None: eqns = []
         for eqn in eqns:
-            d = LCM_list([denominator(eqn_i) for eqn_i in eqn])
-            deqn = [ ZZ(d*eqn_i) for eqn_i in eqn ]
-            b = deqn[0]
-            A = deqn[1:]
-            cs.insert(Linear_Expression(A, b) == 0)
+            cs.insert(self._convert_constraint_to_ppl(eqn, 1))
         if cs.empty():
-            self._ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'universe')
+            ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'universe')
         else:
-            self._ppl_polyhedron = C_Polyhedron(cs)
+            ppl_polyhedron = C_Polyhedron(cs)
+        self._init_from_ppl_polyhedron(ppl_polyhedron, minimize)
+
+    def _init_from_ppl_polyhedron(self, ppl_polyhedron, minimize=True):
+        """
+        Create the V-/Hrepresentation objects from the ppl polyhedron.
+
+        TESTS::
+
+            sage: p = Polyhedron(backend='ppl')
+            sage: from sage.geometry.polyhedron.backend_ppl import Polyhedron_ppl
+            sage: Polyhedron_ppl._init_from_Hrepresentation(p, [], [])  # indirect doctest
+        """
+        self._ppl_polyhedron = ppl_polyhedron
         self._init_Vrepresentation_from_ppl(minimize)
         self._init_Hrepresentation_from_ppl(minimize)
 
@@ -223,6 +239,72 @@ class Polyhedron_ppl(Polyhedron_base):
         """
         super(Polyhedron_ppl, self)._init_empty_polyhedron()
         self._ppl_polyhedron = C_Polyhedron(self.ambient_dim(), 'empty')
+
+    @staticmethod
+    def _convert_generator_to_ppl(v, typ):
+        r"""
+        Convert a generator to ``ppl``.
+
+        INPUT:
+
+        - ``v`` -- a vertex, ray, or line.
+
+        - ``typ`` -- integer; 2 -- vertex; 3 -- ray; 4 -- line
+
+        EXAMPLES::
+
+            sage: P = Polyhedron()
+            sage: P._convert_generator_to_ppl([1, 1/2, 3], 2)
+            point(2/2, 1/2, 6/2)
+            sage: P._convert_generator_to_ppl([1, 1/2, 3], 3)
+            ray(2, 1, 6)
+            sage: P._convert_generator_to_ppl([1, 1/2, 3], 4)
+            line(2, 1, 6)
+        """
+        if typ == 2:
+            ob = point
+        elif typ == 3:
+            ob = ray
+        else:
+            ob = line
+
+        d = LCM_list([denominator(v_i) for v_i in v])
+        if d.is_one():
+            return ob(Linear_Expression(v, 0))
+        else:
+            dv = [ d*v_i for v_i in v ]
+            if typ == 2:
+                return ob(Linear_Expression(dv, 0), d)
+            else:
+                return ob(Linear_Expression(dv, 0))
+
+    @staticmethod
+    def _convert_constraint_to_ppl(c, typ):
+        r"""
+        Convert a constraint to ``ppl``.
+
+        INPUT:
+
+        - ``c`` -- an inequality or equation.
+
+        - ``typ`` -- integer; 0 -- inequality; 3 -- equation
+
+        EXAMPLES::
+
+            sage: P = Polyhedron()
+            sage: P._convert_constraint_to_ppl([1, 1/2, 3], 0)
+            x0+6*x1+2>=0
+            sage: P._convert_constraint_to_ppl([1, 1/2, 3], 1)
+            x0+6*x1+2==0
+        """
+        d = LCM_list([denominator(c_i) for c_i in c])
+        dc = [ ZZ(d*c_i) for c_i in c ]
+        b = dc[0]
+        A = dc[1:]
+        if typ == 0:
+            return Linear_Expression(A, b) >= 0
+        else:
+            return Linear_Expression(A, b) == 0
 
 
 

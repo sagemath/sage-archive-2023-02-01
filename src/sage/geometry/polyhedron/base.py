@@ -6075,29 +6075,29 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: W2 = Q.wedge(Q.faces(2)[7]); W2
             A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 9 vertices
             sage: W2.vertices()
-            (A vertex at (0, 1, 0, 1, 0),
-             A vertex at (0, 0, 1, 1, 0),
-             A vertex at (1, 0, 0, 1, -1),
-             A vertex at (1, 0, 0, 1, 1),
-             A vertex at (1, 0, 1, 0, 1),
+            (A vertex at (1, 1, 0, 0, 1),
              A vertex at (1, 1, 0, 0, -1),
-             A vertex at (0, 1, 1, 0, 0),
+             A vertex at (1, 0, 1, 0, 1),
              A vertex at (1, 0, 1, 0, -1),
-             A vertex at (1, 1, 0, 0, 1))
+             A vertex at (1, 0, 0, 1, 1),
+             A vertex at (1, 0, 0, 1, -1),
+             A vertex at (0, 0, 1, 1, 0),
+             A vertex at (0, 1, 1, 0, 0),
+             A vertex at (0, 1, 0, 1, 0))
 
             sage: W3 = Q.wedge(Q.faces(1)[11]); W3
             A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 10 vertices
             sage: W3.vertices()
-            (A vertex at (0, 1, 0, 1, 0),
-             A vertex at (0, 0, 1, 1, 0),
-             A vertex at (1, 0, 0, 1, -1),
-             A vertex at (1, 0, 0, 1, 1),
-             A vertex at (1, 0, 1, 0, 2),
-             A vertex at (0, 1, 1, 0, 1),
-             A vertex at (1, 0, 1, 0, -2),
+            (A vertex at (1, 1, 0, 0, -2),
              A vertex at (1, 1, 0, 0, 2),
-             A vertex at (0, 1, 1, 0, -1),
-             A vertex at (1, 1, 0, 0, -2))
+             A vertex at (1, 0, 1, 0, -2),
+             A vertex at (1, 0, 1, 0, 2),
+             A vertex at (1, 0, 0, 1, 1),
+             A vertex at (1, 0, 0, 1, -1),
+             A vertex at (0, 1, 0, 1, 0),
+             A vertex at (0, 1, 1, 0, 1),
+             A vertex at (0, 0, 1, 1, 0),
+             A vertex at (0, 1, 1, 0, -1))
 
             sage: C_3_7 = polytopes.cyclic_polytope(3,7)
             sage: P_6 = polytopes.regular_polygon(6)

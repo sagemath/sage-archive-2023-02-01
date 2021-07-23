@@ -1,29 +1,33 @@
 # -*- coding: utf-8 -*-
 r"""
-Endomorphism rings of Jacobians of hyperelliptic curves.
+Some functions regarding geometric endomorphism rings of Jacobians of
+hyperelliptic curves.
 
-Given the Jacobian `J` of a hyperelliptic curve over a number field `K`,
-the class ``EndomorphismRing`` constructs the ring `\textup{End}_{K}(J)`
-of endomorphisms of J which are defined over `K`.
+There are currently two main functions in this module, associated to the
+Jacobian `J` of a genus 2 curve over the rational numbers `\QQ`:
 
-Currently the only functionality is for genus 2 curves over the rational
-numbers `\QQ`, for which there are two methods associated to an instance
-`E` of ``EndomorphismRing``:
+- ``get_is_geom_field``
+- ``is_geom_trivial_when_field``
 
-- ``is_geometrically_field(E)``
-- ``is_geometrically_trivial(E)``
+``get_is_geom_field`` determines whether the geometric endomorphism
+algebra \textup{End}_{\overline{\QQ}}(J) \otimes \QQ` is a field.
 
-``is_geometrically_field(E)`` determines whether the geometric endomorphism
-algebra \textup{End}_{\overline{K}}(J) \otimes \QQ` is a field.
+``is_geom_trivial_when_field`` determines whether the geometric endomorphism ring
+`\textup{End}_{\overline{\QQ}}(J)` is equal to the integer ring `\ZZ`, assuming
+the geometric endomorphism algebra is a field. If this is the case, one says
+that `J` is ``generic``.
 
-``is_geometrically_trivial(E)`` determines whether the geometric endomorphism ring
-`\textup{End}_{\overline{K}}(J)` is equal to the integer ring `\ZZ`. If this
-is the case, one says that `J` is ``generic``.
+These functions are used in `jacobian_generic.py` in the following two
+analogous methods associated to the Jacobian `J` of a genus 2 curve over the
+rational numbers `\QQ`:
+
+- ``geometric_endomorphism_algebra_is_field(J)``
+- ``is_generic(J)``
 
 Both of these are important attributes of the Jacobian J.
 
-The algorithms of these two methods are implementations of Algorithms 4.10 and
-4.15 from Lombardo's paper [Lom2019]_.
+The algorithms in the functions in this module are implementations of
+Algorithms 4.10 and 4.15 from Lombardo's paper [Lom2019]_.
 
 The following examples have been verified with the corresponding LMFDB entries.
 
@@ -36,8 +40,7 @@ Here is an example of a generic Jacobian; the LMFDB label of the curve is
     sage: f = x^6 + 2*x^3 + 4*x^2 + 4*x + 1
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
-    sage: E = A.endomorphism_ring()
-    sage: E.is_geometrically_trivial()
+    sage: A.is_generic()
     True
 
 Here is an example of a Jacobian whose endomorphism algebra is a field but not
@@ -46,8 +49,9 @@ the rational number field; the LMFDB label of the curve is 529.a.529.1::
     sage: f = x^6 - 4*x^5 + 2*x^4 + 2*x^3 + x^2 + 2*x + 1
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
-    sage: E = A.endomorphism_ring()
-    sage: E.is_geometrically_trivial()
+    sage: A.geometric_endomorphism_algebra_is_field()
+    True
+    sage: A.is_generic()
     False
 
 Here is an example of a Jacobian whose endomorphism algebra is not a field;
@@ -56,8 +60,7 @@ the LMFDB label of the curve is 169.a.169.1::
     sage: f = x^6 + 4*x^5 + 6*x^4 + 2*x^3 + x^2 + 2*x + 1
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
-    sage: E = A.endomorphism_ring()
-    sage: E.is_geometrically_trivial()
+    sage: A.geometric_endomorphism_algebra_is_field()
     False
 
 .. WARNING:
@@ -90,7 +93,6 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.rings.all import QQ, ZZ, PolynomialRing, FiniteField, NumberField
 from sage.misc.lazy_import import lazy_import
-from sage.misc.lazy_attribute import lazy_attribute
 from sage.rings.fast_arith import prime_range
 from sage.arith.all import gcd
 lazy_import('sage.interfaces.genus2reduction', ['genus2reduction', 'Genus2reduction'])
@@ -133,7 +135,7 @@ def get_is_geom_field(f, C, bad_primes, B=200):
 
     An additional optimisation comes from Part (2) of Theorem 4.8 in
     [Lom2019]_, from which we can conclude that the endomorphism ring
-    is geometrically trivial., and from Proposition 4.7 in loc. cit. from
+    is geometrically trivial, and from Proposition 4.7 in loc. cit. from
     which we can rule out potential QM.
 
     INPUT:
@@ -188,7 +190,6 @@ def get_is_geom_field(f, C, bad_primes, B=200):
         sage: C = HyperellipticCurve(f)
         sage: get_is_geom_field(f,C,[277])
         (True, True)
-
     """
 
     if C.has_odd_degree_model():
@@ -309,217 +310,3 @@ def is_geom_trivial_when_field(C, bad_primes, B=200):
                     if running_gcd <= 24:
                         return True
     return False
-
-
-class EndomorphismRing(SageObject):
-    r"""
-    The ring of endomorphisms of this Jacobian which are defined over the
-    base field.
-
-    EXAMPLES::
-
-        sage: R.<x> = QQ[]
-        sage: f = x**5 + 17
-        sage: C = HyperellipticCurve(f)
-        sage: J = C.jacobian()
-        sage: E = J.endomorphism_ring()
-        sage: E
-        Endomorphism ring of Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^5 + 17
-    """
-
-    def __init__(self, A):
-        r"""
-        See ``EndomorphismRing`` for documentation.
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: f = x^6 - 2*x^4 + 6*x^3 + x + 57
-            sage: C = HyperellipticCurve(f)
-            sage: J = C.jacobian()
-            sage: E = J.endomorphism_ring()
-            sage: E
-            Endomorphism ring of Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^6 - 2*x^4 + 6*x^3 + x + 57
-        """
-        self._A = A
-        self._have_established_geometrically_field = False
-        self._have_established_geometrically_trivial = False
-
-    def _repr_(self):
-        r"""
-        String representation of endomorphism ring.
-
-        EXAMPLES::
-
-            sage: R.<x> = QQ[]
-            sage: f = x^6 + 78*x^5 + 16*x^2 + x + 7
-            sage: C = HyperellipticCurve(f)
-            sage: J = C.jacobian()
-            sage: E = J.endomorphism_ring()
-            sage: E
-            Endomorphism ring of Jacobian of Hyperelliptic Curve over Rational Field defined by y^2 = x^6 + 78*x^5 + 16*x^2 + x + 7
-
-        """
-        return "Endomorphism ring of " + repr(self._A)
-
-    def is_geometrically_field(self, B=200, proof=False):
-        r"""
-        Return whether the geometric endomorphism algebra is a field.
-
-        This implies that the Jacobian of the curve is geometrically
-        simple. It is based on Algorithm 4.10 from from [Lom2019]_
-
-        INPUT:
-
-        - ``B`` -- (default: 200) the bound which appears in the statement of
-          the algorithm from [Lom2019]_
-
-        - ``proof`` -- (default: False) whether or not to insist on a provably
-          correct answer. This is related to the warning in the docstring
-          of this module: if this function returns ``False``, then
-          strictly speaking this has not been proven to be ``False`` until one
-          has exhibited a non-trivial endomorphism, which these methods are not
-          designed to carry out. If one is convinced that this method should
-          return `True`, but it is returning `False`, then this can be
-          exhibited by increasing `B`.
-
-        OUTPUT:
-
-        Boolean indicating whether or not the geometric endomorphism
-        algebra is a field.
-
-        EXAMPLES:
-
-        This is LMFDB curve 262144.d.524288.2 which has QM. Although its
-        Jacobian is geometrically simple, the geometric endomorphism algebra
-        is not a field::
-
-            sage: R.<x> = QQ[]
-            sage: f = x^5 + x^4 + 4*x^3 + 8*x^2 + 5*x + 1
-            sage: C = HyperellipticCurve(f)
-            sage: J = C.jacobian()
-            sage: E = J.endomorphism_ring()
-            sage: E.is_geometrically_field()
-            False
-
-        This is LMFDB curve 50000.a.200000.1::
-
-            sage: f = 8*x^5 + 1
-            sage: C = HyperellipticCurve(f)
-            sage: J = C.jacobian()
-            sage: E = J.endomorphism_ring()
-            sage: E.is_geometrically_field()
-            True
-        """
-        if self._have_established_geometrically_field:
-            return True
-        C = self._A.curve()
-        if C.genus() != 2:
-            raise NotImplementedError("Current implementation requires the curve to be of genus 2")
-        if C.base_ring() != QQ:
-            raise NotImplementedError("Current implementation requires the curve to be defined over the rationals")
-        f, h = C.hyperelliptic_polynomials()
-        if h != 0:
-            raise NotImplementedError("Current implementation requires the curve to be in the form y^2 = f(x)")
-        red_data = genus2reduction(0,f)
-        cond_C = red_data.conductor  # WARNING: this is only the prime_to_2 conductor.
-        bad_primes = cond_C.prime_divisors()
-        self.bad_primes = bad_primes
-
-        is_abs_simp, is_def_geom_trivial = get_is_geom_field(f, C, bad_primes, B)
-
-        if is_def_geom_trivial:
-            self._have_established_geometrically_trivial = True
-        if is_abs_simp:
-            self._have_established_geometrically_field = True
-            return True
-        if proof:
-            raise NotImplementedError("Rigorous computation of lower bounds of endomorphism algebras has not yet been implemented.")
-        return False
-
-    def is_geometrically_trivial(self, B=200, proof=False):
-        r"""
-        Return whether the geometric endomorphism algebra is the integer
-        ring `\ZZ`.
-
-        INPUT:
-
-        - ``B`` -- (default: 200) the bound which appears in the statement of
-          the algorithm from [Lom2019]_
-
-        - ``proof`` -- (default: False) whether or not to insist on a provably
-          correct answer. This is related to the warning in the docstring
-          of this module: if this function returns ``False``, then
-          strictly speaking this has not been proven to be ``False`` until one
-          has exhibited a non-trivial endomorphism, which these methods are not
-          designed to carry out. If one is convinced that this method should
-          return `True`, but it is returning `False`, then this can be
-          exhibited by increasing `B`.
-
-        OUTPUT:
-
-        Boolean indicating whether or not the geometric endomorphism
-        ring is isomorphic to the integer ring.
-
-        EXAMPLES:
-
-        This is LMFDB curve 708.a.181248.1::
-
-            sage: R.<x> = QQ[]
-            sage: f = -3*x^6 - 16*x^5 + 36*x^4 + 194*x^3 - 164*x^2 - 392*x - 143
-            sage: C = HyperellipticCurve(f)
-            sage: J = C.jacobian()
-            sage: E = J.endomorphism_ring()
-            sage: E.is_geometrically_trivial()
-            True
-
-        This is LMFDB curve 10609.a.10609.1 whose geometric endomorphism ring
-        is an order in a real quadratic field::
-
-            sage: f = x^6 + 2*x^4 + 2*x^3 + 5*x^2 + 6*x + 1
-            sage: C = HyperellipticCurve(f)
-            sage: J = C.jacobian()
-            sage: E = J.endomorphism_ring()
-            sage: E.is_geometrically_trivial()
-            False
-
-        This is LMFDB curve 160000.c.800000.1 whose geometric endomorphism ring
-        is an order in a CM field::
-
-            sage: f = x^5 - 1
-            sage: C = HyperellipticCurve(f)
-            sage: J = C.jacobian()
-            sage: E = J.endomorphism_ring()
-            sage: E.is_geometrically_trivial()
-            False
-
-        This is LMFDB curve 262144.d.524288.2 whose geometric endomorphism ring
-        is an order in a quaternion algebra::
-
-            sage: f = x^5 + x^4 + 4*x^3 + 8*x^2 + 5*x + 1
-            sage: C = HyperellipticCurve(f)
-            sage: J = C.jacobian()
-            sage: E = J.endomorphism_ring()
-            sage: E.is_geometrically_trivial()
-            False
-
-        This is LMFDB curve 578.a.2312.1 whose geometric endomorphism ring
-        is `\QQ \times \QQ`::
-
-            sage: f = 4*x^5 - 7*x^4 + 10*x^3 - 7*x^2 + 4*x
-            sage: C = HyperellipticCurve(f)
-            sage: J = C.jacobian()
-            sage: E = J.endomorphism_ring()
-            sage: E.is_geometrically_trivial()
-            False
-        """
-        if self._have_established_geometrically_trivial:
-            return True
-        is_abs_simple = self.is_geometrically_field()
-        if self._have_established_geometrically_trivial:
-            return True
-        if is_abs_simple and is_geom_trivial_when_field(self._A.curve(), self.bad_primes):
-            return True
-        if proof:
-            raise NotImplementedError("Rigorous computation of lower bounds of endomorphism rings has not yet been implemented.")
-        return False

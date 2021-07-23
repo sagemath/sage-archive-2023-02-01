@@ -62,7 +62,6 @@ from sage.cpython.string import bytes_to_str
 from sage.misc.misc import ECL_TMP
 from sage.misc.multireplace import multiple_replace
 from sage.structure.richcmp import richcmp, rich_to_bool
-import sage.server.support
 
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
                         InterfaceFunction, AsciiArtString)
@@ -166,9 +165,6 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             ...
         """
         cmd = '{} --very-quiet --batch-string="{}({});" '.format(MAXIMA, command, s)
-        if sage.server.support.EMBEDDED_MODE:
-            cmd += '< /dev/null'
-
         env = os.environ.copy()
         env['TMPDIR'] = str(ECL_TMP)
 

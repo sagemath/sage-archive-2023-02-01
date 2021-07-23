@@ -7819,13 +7819,25 @@ class Polyhedron_base(Element, ConvexSet_closed):
             'cdd'
         """
         assert self.is_compact(), "Not a polytope."
+        c = self.center()
 
-        new_verts = \
-            [[0] + x for x in self.Vrep_generator()] + \
-            [[1] + list(self.center())]
+        from itertools import chain
+        new_verts = chain(([0] + x for x in self.Vrep_generator()),
+                          [[1] + list(c)])
+        new_ieqs = chain(([i.b()] + [-c*i.A() - i.b()] + list(i.A()) for i in self.inequalities()),
+                         [[0, 1] + [0]*self.ambient_dim()])
+        new_eqns = ([e.b()] + [0] + list(e.A()) for e in self.equations())
 
+        pref_rep = 'Hrep' if self.n_vertices() > self.n_inequalities() else 'Vrep'
         parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
-        return parent.element_class(parent, [new_verts, [], []], None)
+
+        if self.n_vertices() == 1:
+            # Fix the polyhedron with one vertex.
+            return parent.element_class(parent, [new_verts, [], []], None)
+
+        return parent.element_class(parent, [new_verts, [], []],
+                                    [new_ieqs, new_eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     def _test_pyramid(self, tester=None, **options):
         """
@@ -7874,6 +7886,18 @@ class Polyhedron_base(Element, ConvexSet_closed):
             check_pyramid_certificate(polar_pyr, cert)
 
             tester.assertTrue(pyr_polar.is_combinatorially_isomorphic(pyr_polar))
+
+            # Basic properties of the pyramid.
+
+            # Check that the prism preserves the backend.
+            tester.assertEqual(pyr.backend(), self.backend())
+
+            tester.assertEqual(1 + self.n_vertices(), pyr.n_vertices())
+            tester.assertEqual(self.n_equations(), pyr.n_equations())
+            tester.assertEqual(1 + self.n_inequalities(), pyr.n_inequalities())
+
+            if self.n_vertices() < 15 and self.n_facets() < 15:
+                pyr._test_basic_properties()
 
     def bipyramid(self):
         """

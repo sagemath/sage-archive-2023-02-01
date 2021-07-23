@@ -1969,7 +1969,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         r"""
         Directly compute products in the `C^{\prime}`-basis by using du Cloux's Coxeter3 package.
 
-        [State assumptions] normalization/coxeter3 implementation
+        TODO: [State assumptions] normalization/coxeter3 implementation
 
         Expanding products of the form `C^{\prime}_x \cdot C^{\prime}_y` in the `C^{\prime}`-basis is useful for
         computing Kazhdan-Lusztig cells of Coxeter systems and the corresponding cell modules of Iwahori-Hecke
@@ -2000,49 +2000,86 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Use the analog of the displayed formula to implement `C^{\prime}`-products in the multi-parameter
             Iwahori-Hecke algebra; see Section 6 of [Lus2013]_.  
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: R = LaurentPolynomialRing(QQ, 'q')
-            [A3 examples with warnings caused by wrong presentation or implementation...]
+        Basic usage::
 
-            Create the Hecke algebra of type 'A3' and label the `C^{\prime}`-basis by `B`:
+            sage: R.<v> = LaurentPolynomialRing(ZZ)
+            sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
+            sage: s1, s2, s3 = A3.simple_reflections()
+            sage: H = IwahoriHeckeAlgebra(A3, v**2)
+            sage: Cp = H.Cp_Coxeter3()
+            sage: Cp(s1*s2*s1)
+            Cp[1,2,1]
+            sage: Cp(s1)**2
+            (v^-1+v)*Cp[1]
+            sage: Cp(s1)*Cp(s2)*Cp(s1)
+            Cp[1,2,1] + Cp[1]
+            sage: Cp[1]*Cp[2]*Cp[3]*Cp[1]*Cp[2]
+            Cp[1,2,1,3,2] + Cp[1,2,1] + Cp[1,3,2]
 
-            sage: H = IwahoriHeckeAlgebra('A3',implementation = 'coxeter3')
-            sage: B = H.Cp_Coxeter3()                                       [careful about printing: B or Cp]
+        The IwahoriHeckeAlgebra must be initialized with a ``CoxeterGroup``
+        implemented with coxeter3 and the Hecke parameters must be v^2, -1 or 
+        v, -1/v:: 
+
+            sage: H = IwahoriHeckeAlgebra('A3', v**2)
+            sage: H.Cp_Coxeter3()
+            Traceback (most recent call last):
+            ...
+            ValueError: algebra must be initialized with a coxeter3-implemented Coxeter group to use the Cp_Coxeter3 basis
+            sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
+            sage: H = IwahoriHeckeAlgebra(A3, QQ(1))
+            sage: H.Cp_Coxeter3()
+            Traceback (most recent call last):
+            ...
+            ValueError: the Cp_Coxeter3 basis is only supported in a Hecke algebra with standard normalizations (explain)
             
-            Product of the form `B_s \cdot B_y` where `s` is a generator are computed by the earlier formula:: 
+        Products of the form `Cp_s \cdot Cp_y` where `s` is a generator are computed by the earlier formula:: 
 
-            sage: B[1] * B[1]
-            (q^-1+q) * B[1]
-            sage: B[1] * B[2]
-            B[1,2]
-            sage: B[1] * B[2,1]
-            B[1,2,1] + B[1]
-            sage: B[1] * B[2,1,3]
-            B[1,2,3,1] + B[3,1]
-            sage: B[2] * B[1,3,2,1,3]
-            B[1,2,3,1,2,1] + Cp[2,3,2,1] + Cp[1,2,3,1]
+            sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
+            sage: H = IwahoriHeckeAlgebra(A3, v**2)
+            sage: Cp = H.Cp_Coxeter3()
+            sage: Cp[1] * Cp[1]
+            (v^-1+v)*Cp[1]
+            sage: Cp[1] * Cp[2]
+            Cp[1,2]
+            sage: Cp[1] * Cp[2,1]
+            Cp[1,2,1] + Cp[1]
+            sage: Cp[1] * Cp[2,1,3]
+            Cp[1,2,1,3] + Cp[1,3]
+            sage: Cp[2] * Cp[1,3,2,1,3]
+            Cp[1,2,1,3,2,1] + Cp[1,2,1,3] + Cp[2,3,2,1]
+
+        More generally, we can compute products of the form `C^{\prime}_x \cdot C^{\prime}_y` for
+        general `x, y`::
+
+            sage: Cp[1,2,1] * Cp[3,1]
+            (v^-1+v)*Cp[1,2,1,3]
+            sage: Cp[1,2,1] * Cp[3,1,2]
+            (v^-1+v)*Cp[1,2,1,3,2] + (v^-1+v)*Cp[1,2,1] + (v^-1+v)*Cp[1,3,2] - (v^-1+v)*Cp[3,1,2]
+
+        We can compute complex products in in type `B9`, while relabelling the
+        generators so that the long braid is between the first two generators::
+
+            sage: B9 = CoxeterGroup(CoxeterType(['B', 9]).relabel({ i: 9-i+1 for i in range(1, 10) }), implementation='coxeter3')
+            sage: H = IwahoriHeckeAlgebra(B9, v, -1/v)
+            sage: Cp = H.Cp_Coxeter3()
+            sage: Cp[1,2,1,2]
+            Cp[1,2,1,2]
+            sage: Cp[3,2,3,4,5] * Cp[2,3]
+            (v^-1+v)*Cp[2,3,2,4,3,5] + (v^-1+v)*Cp[2,3,2,5]
 
 
-            More generally, we can compute products of the form 'B_x \cdot B_y` for general `x, y`::
+        .. NOTE::
 
-            sage: B[1,2,1] * B[3,1]
-            (q^-1+q)*B[1,2,3,1]
-            sage: B[1,2,1] * B[3,1,2]                                                                                                                                             (q^-1+q)*B[1,2,3,1,2] + (q^-1+q)*B[1,2,1]
-
-            [More examples: B9 examples; showcase labelling, compare speed with the indirect method ]
-
-
-            .. NOTE::
-
-                The products `B_x \cdot B_y` are computed as follows: if `\ell(x) \leq \ell(y)`, then we first
-                decompose `B_x` into a polynomial in the generators `B_s (s\in S)`, then multiplies that linear
-                combination onto `B_y`; otherwise we decompose `B_y` and multiply the result onto `B_x`. For
-                example, in the computation of `B[1,2,1] * B[3,1,2]` in type `A3`, the left term `B[1,2,1]` is
-                first (essentially) decomposed into the linear combination `B[1]*B[2]*B[1] - B[1]` behind the
-                scenes. The decomposition is achieved via the [_decompose_into_generators function], which takes an
-                element `B_w` and gives an element of the free algebra over \{ B_s \; : \; s \in S \}, whose image
-                under the canonical homomorphism from the free algebra is precisely `B_w`.
+            The products `B_x \cdot B_y` are computed as follows: if `\ell(x) \leq \ell(y)`, then we first
+            decompose `B_x` into a polynomial in the generators `B_s (s\in S)`, then multiplies that linear
+            combination onto `B_y`; otherwise we decompose `B_y` and multiply the result onto `B_x`. For
+            example, in the computation of `B[1,2,1] * B[3,1,2]` in type `A3`, the left term `B[1,2,1]` is
+            first (essentially) decomposed into the linear combination `B[1]*B[2]*B[1] - B[1]` behind the
+            scenes. The decomposition is achieved via the [_decompose_into_generators function], which takes an
+            element `B_w` and gives an element of the free algebra over \{ B_s \; : \; s \in S \}, whose image
+            under the canonical homomorphism from the free algebra is precisely `B_w`.
 
         .. SEEALSO::
 
@@ -2050,14 +2087,27 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             :meth:`sage.somewhere.other_useful_method`, cell stuff
             [coxeter3?]
 
-        TESTS::
-
-            [show our direct method yields the same results as the indirect method?]
-
         """
         _basis_name = 'Cp_Coxeter3'
 
         def __init__(self, algebra, prefix='Cp'):
+            r"""
+            Initialize the Cp_Coxeter3 Kazdahn-Luzstig basis of the 
+            Iwahori-Hecke algebra ``algebra''.
+
+            EXAMPLES::
+
+                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
+                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
+                sage: H = IwahoriHeckeAlgebra(A3, v**2)
+                sage: Cp = H.Cp_Coxeter3()
+                <BLANKLINE>
+                sage: H = IwahoriHeckeAlgebra('A3', v**2)
+                sage: Cp = H.Cp_Coxeter3()
+                Traceback (most recent call last):
+                ...
+                ValueError: algebra must be initialized with a coxeter3-implemented Coxeter group to use the Cp_Coxeter3 basis
+            """
             if not isinstance(algebra._W, Coxeter3Group):
                 raise ValueError('algebra must be initialized with a coxeter3-implemented Coxeter group to use the Cp_Coxeter3 basis')
 
@@ -2066,16 +2116,19 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             self._W = algebra._W
 
             v = algebra.base_ring().gen(0)
-            if ((algebra.q1() == v**2 and algebra.q2() == -1) or (algebra.q1() == v and algebra.q2() == -1/v)):
+
+            # TODO: rewrite this horribly ugly condition:
+            if v != algebra.base_ring().one() and ((algebra.q1() == v**2 and algebra.q2() == -1) or (algebra.q1() == v and algebra.q2() == -1/v)):
                 self.delta = v + ~v
             else:
                 if not algebra._is_generic:
                     # If this algebra is generic, it's only being used to coerce to the T basis, not perform computations
+                    # TODO: Better error message
                     raise ValueError('the Cp_Coxeter3 basis is only supported in a Hecke algebra with standard normalizations (explain)')
 
             # Construct a free algebra over generators representing the C' generators: { Cp_s : s in S }
             self._generator_algebra = FreeAlgebra(algebra.base_ring(), ['Cp{}'.format(s) for s in self.index_set()])
-            # The correspondence between indices and generators of the generator algebra
+            # The correspondence between indices and formal generators of the generator algebra
             self._generators = { s: self._generator_algebra('Cp{}'.format(s)) for s in self.index_set() }
             self._index_of_generator = { v: k for (k, v) in self._generators.items() }
 
@@ -2088,6 +2141,22 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Cp.module_morphism(Cp.to_Cp_Coxeter3_basis, codomain=self, category=self.category()).register_as_coercion()
 
         def to_Cp_basis(self, w):
+            r"""
+            Return the element ``self[w]`` as a linear combination of 
+            ``Cp``-basis elements. This transformation is trivial as both
+            bases are implementations of the `C^{\prime}` basis.
+
+            EXAMPLES::
+
+                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
+                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
+                sage: H = IwahoriHeckeAlgebra(A3, v**2); Cp=H.Cp(); CpC=H.Cp_Coxeter3()
+                sage: s1, s2, s3 = A3.simple_reflections()
+                sage: CpC.to_Cp_basis(s1*s2)
+                Cp[1,2]
+                sage: CpC.to_Cp_basis(s1*s2*s1)
+                Cp[1,2,1]
+            """
             A = self.realization_of()
             Cp = A.Cp()
             return Cp.monomial(w)

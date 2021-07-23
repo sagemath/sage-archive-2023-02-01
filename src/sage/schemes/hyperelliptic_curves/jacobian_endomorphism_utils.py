@@ -22,7 +22,7 @@ analogous methods associated to the Jacobian `J` of a genus 2 curve over the
 rational numbers `\QQ`:
 
 - ``geometric_endomorphism_algebra_is_field(J)``
-- ``is_generic(J)``
+- ``geometric_endomorphism_ring_is_ZZ(J)``
 
 Both of these are important attributes of the Jacobian J.
 
@@ -40,7 +40,7 @@ Here is an example of a generic Jacobian; the LMFDB label of the curve is
     sage: f = x^6 + 2*x^3 + 4*x^2 + 4*x + 1
     sage: C = HyperellipticCurve(f)
     sage: A = C.jacobian()
-    sage: A.is_generic()
+    sage: A.geometric_endomorphism_ring_is_ZZ()
     True
 
 Here is an example of a Jacobian whose endomorphism algebra is a field but not
@@ -51,7 +51,7 @@ the rational number field; the LMFDB label of the curve is 529.a.529.1::
     sage: A = C.jacobian()
     sage: A.geometric_endomorphism_algebra_is_field()
     True
-    sage: A.is_generic()
+    sage: A.geometric_endomorphism_ring_is_ZZ()
     False
 
 Here is an example of a Jacobian whose endomorphism algebra is not a field;

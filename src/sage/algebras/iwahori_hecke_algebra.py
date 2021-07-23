@@ -2173,7 +2173,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     # TODO: Better error message
                     raise ValueError('the Cp_Coxeter3 basis is only supported in a Hecke algebra with standard normalizations (explain)')
 
-            # Construct a free algebra over generators representing the C' generators: { Cp_s : s in S }
+            # Construct a free algebra over generators representing the Cp generators: { Cp_s : s in S }
+            # We use this to represent polynomials in the Cp generators. e.g., we represent the element 
+            # Cp_{121} as Cp1*Cp2*Cp1 - Cp1
             self._generator_algebra = FreeAlgebra(algebra.base_ring(), ['Cp{}'.format(s) for s in self.index_set()])
             # The correspondence between indices and formal generators of the generator algebra
             self._generators = { s: self._generator_algebra('Cp{}'.format(s)) for s in self.index_set() }
@@ -2399,26 +2401,27 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 gen_expression = self._decompose_into_generators(w2)
                 other_element = self.monomial(w1)
             
-            # gen_expression is a linear combination of products of the C' generators
-            # Now, build everything back up, continually multiplying on the left by a single generator at a time
+            # gen_expression is a linear combination of products of the Cp
+            # generators. e.g., gen_expression = 2*Cp1*Cp2*Cp1 - Cp1 We now
+            # perform (2*Cp1*Cp2*Cp1 - Cp1) * other_element by proceeding one
+            # generator at a time.
 
             result = self(0)
-            # Iterate through the sum of terms
+            # Proceed through the terms, multiplying each term onto other_element
+            # and adding that summand onto result.
             for (p, coeff) in gen_expression:
-                # p is a product of generators, i.e. 2*g1*g2*g1; multiply it by other_element
-                # Build summand multiplicatively, going through variables (and their exponents) in p
-                # If gen_expression is being multiplied on the right, we need to start at the left 
-                # end of p, and vice versa.
+                # is a term, e.g. p = Cp1*Cp2*Cp1 and coeff = 2
                 summand = coeff * other_element
                 p_list = list(p) if side == 'right' else list(p)[::-1]
-                # Iterate through the product of generators
+                # Iterate through the generators in the term, multiplying each generator
+                # onto other_element and multiplying the result onto summand.
                 for (gen, exponent) in p_list:
+                    # gen is some formal generator Cp{s} (it is in the
+                    # underlying monoid of self._generator_algebra so coercion
+                    # is required). e.g. gen = Cp1 and exponent = 1.
                     s = self._index_of_generator[self._generator_algebra(gen)]
-                    # gen is in the underlying monoid of _generator_algebra, so coercion is required
                     for i in range(exponent):
-                        # Perform C'_s * summand (on the appropriate side),
-                        # however many times C'_s is represented in the product
-                        # according to the exponent.
+                        # Perform the product C'_s * summand, exponent-many times.
                         summand = self._product_with_generator(side, s, summand)
 
                 result += summand

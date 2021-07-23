@@ -165,6 +165,20 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
     gens = simple_reflections
 
+    def from_reduced_word(self, w):
+        """
+        Return an element of ``self`` from its (reduced) word.
+
+        EXAMPLES::
+
+            sage: W = CoxeterGroup(['A', 3], implementation='coxeter3')
+            sage: W.from_reduced_word([1, 3])
+            [1, 3]
+            sage: W.from_reduced_word([3, 1])
+            [1, 3]
+        """
+        return self.element_class(self, w)
+
     def rank(self):
         """
         Return the rank of this Coxeter group, that is, the number of generators.

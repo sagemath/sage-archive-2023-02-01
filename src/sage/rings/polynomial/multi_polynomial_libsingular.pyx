@@ -235,8 +235,6 @@ from sage.rings.number_field.number_field_base cimport NumberField
 from sage.structure.element import coerce_binop
 
 from sage.structure.parent cimport Parent
-from sage.structure.parent_base cimport ParentWithBase
-from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.category_object cimport CategoryObject
 
 from sage.structure.coerce cimport coercion_model

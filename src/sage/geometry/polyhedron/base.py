@@ -125,6 +125,8 @@ class Polyhedron_base(Element, ConvexSet_closed):
        one of``Vrep`` or ``Hrep`` to pick this in case the backend
        cannot initialize from complete double description
 
+    - ``mutable`` -- ignored
+
     If both ``Vrep`` and ``Hrep`` are provided, then
     ``Vrep_minimal`` and ``Hrep_minimal`` must be set to ``True``.
 
@@ -171,7 +173,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         sage: TestSuite(P).run()
     """
 
-    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, pref_rep=None, **kwds):
+    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, pref_rep=None, mutable=False, **kwds):
         """
         Initializes the polyhedron.
 
@@ -607,7 +609,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         """
         new_parent = self.parent().base_extend(base_ring, backend)
-        return new_parent(self)
+        return new_parent(self, copy=True)
 
     def change_ring(self, base_ring, backend=None):
         """
@@ -733,7 +735,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: P > Q
             False
          """
-        if self._Vrepresentation is None or other._Vrepresentation is None:
+        if self.Vrepresentation() is None or other.Vrepresentation() is None:
             raise RuntimeError('some V representation is missing')
             # make sure deleted polyhedra are not used in cache
 
@@ -777,6 +779,30 @@ class Polyhedron_base(Element, ConvexSet_closed):
         return all(other_H.contains(self_V)
                    for other_H in other.Hrepresentation()
                    for self_V in self.Vrepresentation())
+
+    def is_mutable(self):
+        r"""
+        Return True if the polyhedron is mutable, i.e. it can be modified in place.
+
+        EXAMPLES::
+
+            sage: p = polytopes.cube(backend='field')
+            sage: p.is_mutable()
+            False
+        """
+        return False
+
+    def is_immutable(self):
+        r"""
+        Return True if the polyhedron is immutable, i.e. it cannot be modified in place.
+
+        EXAMPLES::
+
+            sage: p = polytopes.cube(backend='field')
+            sage: p.is_immutable()
+            True
+        """
+        return True
 
     @cached_method
     def vertex_facet_graph(self, labels=True):
@@ -1706,10 +1732,10 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         EXAMPLES::
 
-            sage: p = polytopes.hypercube(3)
+            sage: p = polytopes.hypercube(3, backend='field')
             sage: p.Hrepresentation(0)
             An inequality (-1, 0, 0) x + 1 >= 0
-            sage: p.Hrepresentation(0) == p.Hrepresentation() [0]
+            sage: p.Hrepresentation(0) == p.Hrepresentation()[0]
             True
         """
         if index is None:
@@ -5668,7 +5694,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
         new_eqns = self.equations() + other.equations()
         parent = self.parent()
         try:
-            return parent.element_class(parent, None, [new_ieqs, new_eqns])
+            intersection = parent.element_class(parent, None, [new_ieqs, new_eqns])
+
+            # Force calculation of the vertices.
+            _ = intersection.n_vertices()
+            return intersection
         except TypeError as msg:
             if self.base_ring() is ZZ:
                 parent = parent.base_extend(QQ)
@@ -6638,6 +6668,48 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: P = polytopes.regular_polygon(4).pyramid()
             sage: D = P.hasse_diagram(); D
             Digraph on 20 vertices
+            sage: D.degree_polynomial()
+            x^5 + x^4*y + x*y^4 + y^5 + 4*x^3*y + 8*x^2*y^2 + 4*x*y^3
+
+        Faces of an mutable polyhedron are not hashable. Hence those are not suitable as
+        vertices of the hasse diagram. Use the combinatorial polyhedron instead::
+
+            sage: P = polytopes.regular_polygon(4).pyramid()
+            sage: parent = P.parent()
+            sage: parent = parent.change_ring(QQ, backend='ppl')
+            sage: Q = parent._element_constructor_(P, mutable=True)
+            sage: Q.hasse_diagram()
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable polyhedra are unhashable
+            sage: C = Q.combinatorial_polyhedron()
+            sage: D = C.hasse_diagram()
+            sage: set(D.vertices()) == set(range(20))
+            True
+            sage: def index_to_combinatorial_face(n):
+            ....:     return C.face_by_face_lattice_index(n)
+            sage: D.relabel(index_to_combinatorial_face, inplace=True)
+            sage: D.vertices()
+            [A -1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 3-dimensional face of a 3-dimensional combinatorial polyhedron]
             sage: D.degree_polynomial()
             x^5 + x^4*y + x*y^4 + y^5 + 4*x^3*y + 8*x^2*y^2 + 4*x*y^3
         """
@@ -10671,7 +10743,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         if self.n_vertices():
             tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center()))
 
-        if self.n_vertices() < 20 and self.n_facets() < 20:
+        if self.n_vertices() < 20 and self.n_facets() < 20 and self.is_immutable():
             tester.assertTrue(self.is_combinatorially_isomorphic(ZZ(4)*self, algorithm='face_lattice'))
             if self.n_vertices():
                 tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))

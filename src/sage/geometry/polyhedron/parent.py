@@ -306,6 +306,8 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             Vrep._polyhedron = None
         polyhedron._Hrepresentation = None
         polyhedron._Vrepresentation = None
+        if polyhedron.is_mutable():
+            polyhedron._dependent_objects = []
 
     def ambient_dim(self):
         r"""
@@ -575,6 +577,45 @@ class Polyhedra_base(UniqueRepresentation, Parent):
             A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 2 vertices
             sage: P.intersection(Q)
             A 1-dimensional polyhedron in RDF^1 defined as the convex hull of 2 vertices
+
+        The default is not to copy an object if the parent is ``self``::
+
+            sage: p = polytopes.cube(backend='field')
+            sage: P = p.parent()
+            sage: q = P._element_constructor_(p)
+            sage: q is p
+            True
+            sage: r = P._element_constructor_(p, copy=True)
+            sage: r is p
+            False
+
+        When the parent of the object is not ``self``, the default is not to copy::
+
+            sage: Q = P.base_extend(AA)
+            sage: q = Q._element_constructor_(p)
+            sage: q is p
+            False
+            sage: q = Q._element_constructor_(p, copy=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: you need to make a copy when changing the parent
+
+        For mutable polyhedra either ``copy`` or ``mutable`` must be specified::
+
+            sage: p = Polyhedron(vertices=[[0, 1], [1, 0]], mutable=True)
+            sage: P = p.parent()
+            sage: q = P._element_constructor_(p)
+            Traceback (most recent call last):
+            ...
+            ValueError: must make a copy to obtain immutable object from mutable input
+            sage: q = P._element_constructor_(p, mutable=True)
+            sage: q is p
+            True
+            sage: r = P._element_constructor_(p, copy=True)
+            sage: r.is_mutable()
+            False
+            sage: r is p
+            False
         """
         nargs = len(args)
         convert = kwds.pop('convert', True)
@@ -606,8 +647,18 @@ class Polyhedra_base(UniqueRepresentation, Parent):
                 Vrep = [convert_base_ring(_) for _ in Vrep]
             return self.element_class(self, Vrep, Hrep, **kwds)
         if nargs == 1 and is_Polyhedron(args[0]):
+            copy = kwds.pop('copy', args[0].parent() is not self)
+            mutable = kwds.pop('mutable', False)
+
+            if not copy and args[0].parent() is not self:
+                raise ValueError("you need to make a copy when changing the parent")
+            if args[0].is_mutable() and not copy and not mutable:
+                raise ValueError("must make a copy to obtain immutable object from mutable input")
+            if not copy and mutable is args[0].is_mutable():
+                return args[0]
+
             polyhedron = args[0]
-            return self._element_constructor_polyhedron(polyhedron, **kwds)
+            return self._element_constructor_polyhedron(polyhedron, mutable=mutable, **kwds)
         if nargs == 1 and args[0] == 0:
             return self.zero()
         raise ValueError('Cannot convert to polyhedron object.')
@@ -1105,8 +1156,9 @@ class Polyhedra_ZZ_ppl(Polyhedra_base):
             sage: P(p)
             A 3-dimensional polyhedron in ZZ^3 defined as the convex hull of 4 vertices
         """
+        from copy import copy
         if polyhedron.backend() == "ppl":
-            return self._element_constructor_(None, None, ppl_polyhedron=polyhedron._ppl_polyhedron)
+            return self._element_constructor_(None, None, ppl_polyhedron=copy(polyhedron._ppl_polyhedron), **kwds)
         else:
             return Polyhedra_base._element_constructor_polyhedron(self, polyhedron, **kwds)
 
@@ -1136,8 +1188,9 @@ class Polyhedra_QQ_ppl(Polyhedra_base):
             sage: P(p)
             A 3-dimensional polyhedron in QQ^3 defined as the convex hull of 4 vertices
         """
+        from copy import copy
         if polyhedron.backend() == "ppl":
-            return self._element_constructor_(None, None, ppl_polyhedron=polyhedron._ppl_polyhedron)
+            return self._element_constructor_(None, None, ppl_polyhedron=copy(polyhedron._ppl_polyhedron), **kwds)
         else:
             return Polyhedra_base._element_constructor_polyhedron(self, polyhedron, **kwds)
 

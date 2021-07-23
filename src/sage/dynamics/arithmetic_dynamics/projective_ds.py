@@ -4535,7 +4535,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             raise ValueError("algorithm must be either 'variety' or 'cyclegraph'")
 
-    def multiplier_spectra(self, n, formal=False, type='point', use_algebraic_closure=True):
+    def multiplier_spectra(self, n, formal=False, type='point', use_algebraic_closure=True, check=True):
         r"""
         Computes the ``n`` multiplier spectra of this dynamical system.
 
@@ -4564,13 +4564,19 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
           or ``'cycle'`` depending on whether you compute one multiplier
           per point or one per cycle
 
-       - ``use_algebraic_closure`` -- boolean (default: True) -- If True uses the
+        - ``use_algebraic_closure`` -- boolean (default: ``True``) -- If ``True`` uses the
           algebraic closure. Using the algebraic closure can sometimes lead to numerical instability
-          and extraneous errors. For most accurate results, set to ``False``.
-          If False, and the map is defined over projective space of
+          and extraneous errors. For most accurate results in dimension 1, set to ``False``.
+          If ``False``, and the map is defined over projective space of
           dimension 1, uses the smallest extension of the base field
           containing all the periodic points. If the map is defined over projective space
           of dimension greater than 1, then the base ring of the map is used.
+
+        - ``check`` -- (defualt: ``True``) whether to check if the
+          full multiplier spectra was computed. If ``False``, can lead to
+          mathematically incorrect answers in dimension greater than 1. Ignored
+          if ``use_algebraic_closure`` is ``True`` or if this dynamical system is defined
+          over projective space of dimension 1.
 
         OUTPUT:
 
@@ -4752,6 +4758,16 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             [0 0]  [0 0]  [                 2 2.236067977499790?]
             [0 0], [0 0], [                 0                  0]
             ]
+
+        ::
+
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem_projective([x^2, z^2, y^2])
+            sage: f.multiplier_spectra(1, use_algebraic_closure=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: failed to compute the full multiplier spectra. Try use_algebraic_closure=True
+            or extend the base ring of this dynamical system
         """
         PS = self.domain()
         n = Integer(n)
@@ -4841,6 +4857,22 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                 else:
                     for i in range(X.multiplicity(point)):
                         points.append(point)
+            if not use_algebraic_closure:
+                if check:
+                    # we check if we computed the full multiplier spectra
+                    d = self.degree()
+                    N = self.domain().ambient_space().dimension_relative()
+                    if not formal:
+                        expected_number = sum(d**(n*i) for i in range(N+1))
+                    else:
+                        expected_number = 0
+                        for D in n.divisors():
+                            u = moebius(n/D)
+                            inner_sum = sum(d**(D*j) for j in range(N+1))
+                            expected_number += u*inner_sum
+                    if len(points) != expected_number:
+                        raise ValueError('failed to compute the full multiplier spectra. Try use_algebraic_closure=True'
+                         + ' or extend the base ring of this dynamical system')
         else:
             K = FractionField(self.codomain().base_ring())
             if use_algebraic_closure:

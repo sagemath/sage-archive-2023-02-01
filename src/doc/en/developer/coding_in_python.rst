@@ -465,24 +465,31 @@ Note that the syntax in ``except`` is to list all the exceptions that
 are caught as a tuple, followed by an error message.
 
 
-Integer Return Value
-====================
+Integer Return Values
+=====================
 
-Many functions and methods of objects in Sage return an integer, which users
-often treat mathematically and may want to explore its number-theoretic
-properties such as prime factorization. Hence if a function or method for your
-object returns an integer, consider returning Sage integer of type ``Integer``
-rather than Python integer of type ``int``, unless there is a good reason not
-to (such as performance or compatibility with Python code). If ``i`` is an
-integer of type ``int``, then code for the return statement would be
+Many functions and methods in Sage return integer values.
+Those should usually be returned as Sage integers of class
+:class:`Integer <sage.rings.integer.Integer>` rather than
+as Python integers of class :class:`int`, as users may want
+to explore the resulting integers' number-theoretic properties
+such as prime factorization. Exceptions should be made when
+there are good reasons such as performance or compatibility
+with Python code, for instance in methods such as
+``__hash__``, ``__len__``, and ``__int__``.
+
+To return a Python integer ``i`` as a Sage integer, use:
 
 .. CODE-BLOCK:: python
 
     from sage.rings.integer import Integer
     return Integer(i)
 
-Notable definite exceptions to this rule are special methods like ``__hash__``,
-``__len__``, and ``__int__``.
+To return a Sage integer ``i`` as a Python ineger, use:
+
+.. CODE-BLOCK:: python
+
+    return int(i)
 
 
 Importing

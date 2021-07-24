@@ -260,25 +260,23 @@ def from_gap_list(G, src):
     # src is now a list of group elements
     return src
 
-def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, category=None):
+def PermutationGroup(gens=None, *args, **kwds):
     """
     Return the permutation group associated to `x` (typically a
     list of generators).
 
     INPUT:
 
+    -  ``gens`` -- (default: ``None``) list of generators
 
-    -  ``gens`` - list of generators (default: ``None``)
+    -  ``gap_group`` -- (optional) a gap permutation group
 
-    -  ``gap_group`` - a gap permutation group (default: ``None``)
-
-    -  ``canonicalize`` - bool (default: ``True``); if ``True``,
+    -  ``canonicalize`` -- boolean (default: ``True``); if ``True``,
        sort generators and remove duplicates
-
 
     OUTPUT:
 
-    - A permutation group.
+    - a permutation group
 
     EXAMPLES::
 
@@ -344,11 +342,36 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
         Traceback (most recent call last):
         ...
         TypeError: gens must be a tuple, list, or GapElement
+
+    This will raise an error after the deprecation period::
+
+        sage: G = PermutationGroup([(1,2,3,4)], [(1,7,3,5)])
+        doctest:warning
+        ...
+        DeprecationWarning: gap_group, domain, canonicalize, category will become keyword only
+        See https://trac.sagemath.org/31510 for details.
     """
     if not is_ExpectElement(gens) and hasattr(gens, '_permgroup_'):
         return gens._permgroup_()
     if gens is not None and not isinstance(gens, (tuple, list, GapElement)):
         raise TypeError("gens must be a tuple, list, or GapElement")
+    gap_group = kwds.get("gap_group", None)
+    domain = kwds.get("domain", None)
+    canonicalize = kwds.get("canonicalize", True)
+    category = kwds.get("category", None)
+    if args:
+        from sage.misc.superseded import deprecation
+        deprecation(31510, "gap_group, domain, canonicalize, category will become keyword only")
+        if len(args) > 4:
+            raise ValueError("invalid input")
+        args = list(args)
+        gap_group = args.pop(0)
+        if args:
+            domain = args.pop(0)
+            if args:
+                canonicalize = args.pop(0)
+                if args:
+                    category = args.pop(0)
     return PermutationGroup_generic(gens=gens, gap_group=gap_group, domain=domain,
                                     canonicalize=canonicalize, category=category)
 

@@ -841,6 +841,20 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: lp = E.padic_lseries(2)
             sage: lp.series(6)
             2^2 + 2^6 + O(2^7) + (2 + O(2^4))*T + O(2^3)*T^2 + (2^2 + O(2^3))*T^3 + (2 + O(2^2))*T^4 + O(T^5)
+
+        Check that twists by odd Teichmuller charachters are ok (:trac:`32258`)::
+
+            sage: E = EllipticCurve("443c1")
+            sage: lp = E.padic_lseries(17, implementation="num")
+            sage: l8 = lp.series(2,eta=8,prec=3)
+            sage: l8.list()[0] - 1/lp.alpha()
+            O(17^4)
+            sage: lp = E.padic_lseries(2, implementation="num")
+            sage: l1 = lp.series(8,eta=1,prec=3)
+            sage: l1.list()[0] - 4/lp.alpha()^2
+            O(2^9)
+
+
         """
         n = ZZ(n)
         if n < 1:
@@ -919,7 +933,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
         gamma_power = K(1)
         teich = self.teichmuller(padic_prec)
         if p == 2:
-            teich = [0, 1,-1]
+            teich = [0, 1, -1]
             gamma = K(5)
             p_power = 2**(n-2)
             a_range = 3

@@ -512,16 +512,21 @@ def generating_function_of_integral_points(polyhedron, split=False,
 
     parts = None
     if split is True:
-        split = (
-            (Polyhedron(
-                ieqs=[tuple(1 if i==b else (-1 if i==a or i==0 and a > b else 0)
-                            for i in range(d+1))
-                      for a, b in zip(pi[:-1], pi[1:])]),
-             'b{}'.format(pi[0]-1) +
-             ''.join((' <= ' if a < b else ' < ') +
-                     'b{}'.format(b-1)
-                     for a, b in zip(pi[:-1], pi[1:])))
-            for pi in Permutations(d))
+        def polyhedron_from_permutation(pi):
+            def ieq(a, b):
+                return ((0 if a < b else -1,) +
+                        tuple(1 if i==b else (-1 if i==a else 0)
+                              for i in range(1, d+1)))
+            def ieq_repr_rhs(a, b):
+                return (' <= ' if a < b else ' < ') + 'b{}'.format(b-1)
+            def ieqs_repr_lhs(pi):
+                return 'b{}'.format(pi[0]-1)
+
+            ieqs, repr_rhss = zip(*[(ieq(a, b), ieq_repr_rhs(a, b))
+                                     for a, b in zip(pi[:-1], pi[1:])])
+            return Polyhedron(ieqs=ieqs),  ieqs_repr_lhs(pi) + ''.join(repr_rhss)
+
+        split = (polyhedron_from_permutation(pi) for pi in Permutations(d))
         parts = ZZ(d).factorial()
     else:
         if isinstance(split, (list, tuple)):

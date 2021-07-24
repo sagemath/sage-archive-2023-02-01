@@ -4627,6 +4627,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (x^(-1) + 1).series(x,1)
             1*x^(-1) + 1 + Order(x)
+
+        Check that :trac:`32115` is fixed::
+
+            sage: exp(log(1+x)*(1/x)).series(x)
+            (e) + (-1/2*e)*x + (11/24*e)*x^2 + (-7/16*e)*x^3 + (2447/5760*e)*x^4 + ...
         """
         cdef Expression symbol0 = self.coerce_in(symbol)
         cdef GEx x

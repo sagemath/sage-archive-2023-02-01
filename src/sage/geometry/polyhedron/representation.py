@@ -2,7 +2,7 @@
 H(yperplane) and V(ertex) representation objects for polyhedra
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2008 Marshall Hampton <hamptonio@gmail.com>
 #       Copyright (C) 2011 Volker Braun <vbraun.name@gmail.com>
 #
@@ -10,8 +10,8 @@ H(yperplane) and V(ertex) representation objects for polyhedra
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 
 from sage.structure.sage_object import SageObject
@@ -20,7 +20,6 @@ from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.all import ZZ
 from sage.modules.free_module_element import vector
 from copy import copy
-
 
 
 #########################################################################
@@ -436,6 +435,8 @@ class Hrepresentation(PolyhedronRepresentation):
         self._index = len(polyhedron._Hrepresentation)
         polyhedron._Hrepresentation.append(self)
         self._polyhedron = polyhedron
+        if polyhedron.is_mutable():
+            polyhedron._add_dependent_object(self)
 
     def is_H(self):
         """
@@ -607,10 +608,10 @@ class Hrepresentation(PolyhedronRepresentation):
 
     def eval(self, Vobj):
         r"""
-        Evaluates the left hand side `A\vec{x}+b` on the given
+        Evaluate the left hand side `A\vec{x}+b` on the given
         vertex/ray/line.
 
-        .. NOTES:
+        .. NOTE:
 
           * Evaluating on a vertex returns `A\vec{x}+b`
 
@@ -750,7 +751,6 @@ class Inequality(Hrepresentation):
             False
         """
         return self.INEQUALITY
-
 
     def is_inequality(self):
         """
@@ -929,7 +929,7 @@ class Inequality(Hrepresentation):
             [True, True, False, True, False, True, False, False]
         """
         try:
-            if Vobj.is_vector(): # assume we were passed a point
+            if Vobj.is_vector():  # assume we were passed a point
                 return self.polyhedron()._is_nonneg( self.eval(Vobj) )
         except AttributeError:
             pass
@@ -1168,6 +1168,8 @@ class Vrepresentation(PolyhedronRepresentation):
         self._index = len(polyhedron._Vrepresentation)
         polyhedron._Vrepresentation.append(self)
         self._polyhedron = polyhedron
+        if polyhedron.is_mutable():
+            polyhedron._add_dependent_object(self)
 
     def is_V(self):
         """

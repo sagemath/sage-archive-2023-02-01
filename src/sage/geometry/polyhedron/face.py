@@ -158,6 +158,8 @@ class PolyhedronFace(ConvexSet_closed):
         self._ambient_Hrepresentation_indices = tuple(H_indices)
         self._ambient_Vrepresentation = tuple( polyhedron.Vrepresentation(i) for i in V_indices )
         self._ambient_Hrepresentation = tuple( polyhedron.Hrepresentation(i) for i in H_indices )
+        if polyhedron.is_mutable():
+            polyhedron._add_dependent_object(self)
 
     def __hash__(self):
         r"""

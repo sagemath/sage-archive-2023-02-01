@@ -576,7 +576,7 @@ $(1)-no-deps:
 	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
 
 $(1)-clean:
-	-sage --pip uninstall -y -r '$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt'
+	-sage --pip uninstall --isolated --yes --no-input -r '$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt'
 
 .PHONY: $(1) $(1)-clean $(1)-build-deps $(1)-no-deps
 endef

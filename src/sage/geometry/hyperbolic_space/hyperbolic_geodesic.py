@@ -140,13 +140,11 @@ class HyperbolicGeodesic(SageObject):
         r"""
         See :class:`HyperbolicGeodesic` for full documentation.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: HyperbolicPlane().UHP().get_geodesic(I, 2 + I)
             Geodesic in UHP from I to I + 2
-
         """
-
         self._model = model
         self._start = start
         self._end = end

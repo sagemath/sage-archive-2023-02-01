@@ -2328,7 +2328,7 @@ cdef class Polynomial_rational_flint(Polynomial):
             sage: f.factor_padic(3,-1)
             Traceback (most recent call last):
             ...
-            ValueError: prec_cap must be non-negative.
+            ValueError: prec_cap must be non-negative
             sage: f.factor_padic(6,10)
             Traceback (most recent call last):
             ...

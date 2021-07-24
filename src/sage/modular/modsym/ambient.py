@@ -72,6 +72,7 @@ factor `x`.
 #                  https://www.gnu.org/licenses/
 ################################################################################
 # Sage packages
+from sage.misc.cachefunc import cached_method
 import sage.misc.latex as latex
 from sage.misc.verbose import verbose
 
@@ -2414,6 +2415,125 @@ class ModularSymbolsAmbient(ModularSymbolsSpace, hecke.AmbientHeckeModule):
                                                         lift=False, nz=nz)))
         return ans
 
+    def __pari__(self):
+        """
+        Return a PARI object corresponding to ``self``.
+
+        TESTS::
+
+            sage: ModularSymbols(Gamma1(5), 2).__pari__()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: PARI modular symbols are only implemented for Gamma0(n)
+        """
+        raise NotImplementedError('PARI modular symbols are only implemented for Gamma0(n)')
+
+    def _pari_pairing(self):
+        r"""
+        Return the matrix of the canonical pairing between this space and
+        the corresponding space of modular symbols in PARI.
+
+        Let `M` be an ambient space of modular symbols over a field `K`
+        of characteristic 0.  The corresponding space `P` in PARI is
+        canonically dual to `M`, giving rise to a `K`-bilinear map
+
+        .. MATH::
+
+            E\colon M \times P \to K.
+
+        OUTPUT: The matrix of the bilinear map `E`.
+
+        This is currently only implemented for spaces of modular
+        symbols of trivial character.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(Gamma0(5), 6)
+            sage: P = M.__pari__()
+            sage: E = M._pari_pairing(); E
+            [  0  -1   0   0]
+            [  0   0   8 -27]
+            [  8   0   0  13]
+            [ 24   0   8  37]
+
+        The duality is compatible with (for example) Hecke operators
+        and the star involution::
+
+            sage: M.hecke_matrix(5) * E == E * P.mshecke(5)
+            True
+            sage: M.star_involution().matrix() * E == E * P.msstar()
+            True
+        """
+        if self.weight() == 2:
+            return self._pari_tensor().inverse()
+        from sage.matrix.constructor import matrix
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        P = self.__pari__()
+        I = matrix.identity(self.rank()).__pari__()
+        m = Integer(self.weight() - 2)
+        R = PolynomialRing(QQ, 'x')
+        x = R.gen()
+        def ev(s):
+            # The Manin symbol s = X^i (c, d) corresponds to the
+            # modular symbol (dX - bY)^i (-cX + aY)^(m - i) {b/d, a/c}.
+            # The code below computes the canonical pairing of this
+            # modular symbol with the distinguished basis of P.
+            i = s.i
+            a, b, c, d = s.lift_to_sl2z()
+            e = [R(p) for p in P.mseval(I, matrix(2, 2, [b, a, d, c]))]
+            g = (d*x - b)**i * (-c*x + a)**(m - i)
+            return [sum(f[j] * g[m - j] / m.binomial(j) for j in range(m + 1))
+                    for f in e]
+        return matrix([ev(s) for s in self.manin_symbols_basis()])
+
+    def _pari_tensor(self):
+        r"""
+        Return a matrix expressing the duality between this space and the
+        corresponding space of modular symbols in PARI.
+
+        Let `M` be an ambient space of modular symbols over a field `K`
+        of characteristic 0.  The corresponding space `P` in PARI is
+        canonically dual to `M`, giving rise to an element
+
+        .. MATH::
+
+            T \in P \otimes_K M.
+
+        OUTPUT: The matrix of the element `T \in P \otimes_K M`.
+        This is the inverse of the matrix returned by
+        :meth:`_pari_pairing`.
+
+        This is currently only implemented for spaces of modular
+        symbols of trivial character.
+
+        EXAMPLES::
+
+            sage: M = ModularSymbols(Gamma0(37), 2)
+            sage: P = M.__pari__()
+            sage: T = M._pari_tensor(); T
+            [ 1  0  0  0  0]
+            [ 0  0 -1  0  0]
+            [ 0  0  1 -1  0]
+            [ 0 -1  0 -1  1]
+            [ 0  0  0  1 -1]
+
+        The duality is compatible with (for example) Hecke operators
+        and the star involution::
+
+            sage: T * M.hecke_matrix(3) == P.mshecke(3) * T
+            True
+            sage: T * M.star_involution().matrix() == P.msstar() * T
+            True
+        """
+        if self.weight() != 2:
+            return self._pari_pairing().inverse()
+        from sage.matrix.constructor import matrix
+        gens = self.__pari__().mspathgens()[0][:self.rank()].sage()
+        # gens is a basis for the space of modular symbols of weight 2
+        # (in the sense of Sage), and the distinguished basis of the
+        # corresponding PARI space of modular symbols is dual to this.
+        return matrix([self.modular_symbol(g).element() for g in gens])
+
 
 class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
     r"""
@@ -2722,6 +2842,34 @@ class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):
         N = self.level()
         return heilbronn.hecke_images_gamma0_weight_k(c.u,c.v, c.i, N, self.weight(),
                                                       v, self.manin_gens_to_basis())
+
+    @cached_method
+    def __pari__(self):
+        """
+        Return a PARI object corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: ModularSymbols(Gamma0(1), 2).__pari__()
+            [[[[Vecsmall([0, 1])], [0], 1, [Vecsmall([]), Vecsmall([])],
+               Vecsmall([1]), Vecsmall([]), Vecsmall([])],
+              0, 0, 0, Vecsmall([1]), 0, 0, [[1, 1; [0, 1; -1, 0], 1]],
+              [[1, 1; [0, -1; 1, -1], 1; [-1, 1; -1, 0], 1]], 0,
+              Vecsmall([0, 0, 1, 1, 2]), [[Vecsmall([1, 0]), Vecsmall([0, 1])]],
+              0, 0, 0, [Vecsmall([1, 1]), [Vecsmall([0, 1]), 0], [Vecsmall([1, 0])]]],
+             [0, [;], [[;], [;], 1, Vecsmall([])]],
+             [[], Vecsmall([2, 0]), Vecsmall([0, 0]), 0, [[;], [;], 1, Vecsmall([])]]]
+
+        .. NOTE::
+
+            Spaces of modular symbols as implemented in PARI are
+            canonically dual to those implemented in Sage.  See
+            :meth:`ModularSymbolsAmbient._pari_pairing` and
+            :meth:`ModularSymbolsAmbient._pari_tensor` for how to use
+            this duality.
+        """
+        return self.level().__pari__().msinit(self.weight(), self.sign())
+
 
 class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
     r"""

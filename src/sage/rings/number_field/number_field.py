@@ -134,7 +134,6 @@ from sage.categories.number_fields import NumberFields
 
 import sage.rings.ring
 from sage.misc.latex import latex_variable_name
-from sage.misc.misc import union
 
 from .unit_group import UnitGroup
 from .class_group import ClassGroup
@@ -10047,7 +10046,7 @@ class NumberField_absolute(NumberField_generic):
         """
         a, b = self(a), self(b)
         d = self.ideal(1)
-        for p in union(union( self.ideal(2).prime_factors(), self.ideal(a).prime_factors()), self.ideal(b).prime_factors()):
+        for p in set(self.ideal(2).prime_factors()).union(self.ideal(a).prime_factors()).union(self.ideal(b).prime_factors()):
             if self.hilbert_symbol(a,b,p) == -1:
                 d *= p
         return d

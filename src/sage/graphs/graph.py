@@ -4187,7 +4187,8 @@ class Graph(GenericGraph):
             raise ValueError('algorithm must be set to either "Edmonds" or "LP"')
 
     @doc_index("Algorithmically hard stuff")
-    def has_homomorphism_to(self, H, core=False, solver=None, verbose=0):
+    def has_homomorphism_to(self, H, core=False, solver=None, verbose=0,
+                            *, integrality_tolerance=1e-3):
         r"""
         Checks whether there is a homomorphism between two graphs.
 
@@ -4208,16 +4209,20 @@ class Graph(GenericGraph):
           of the mapping's image (see note below). This is set to ``False`` by
           default.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         .. NOTE::
 
@@ -4287,12 +4292,13 @@ class Graph(GenericGraph):
 
         try:
             p.solve(log = verbose)
-            b = p.get_values(b)
-            mapping = dict(x[0] for x in b.items() if x[1])
-            return mapping
-
         except MIPSolverException:
             return False
+
+        b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+        mapping = dict(x[0] for x in b.items() if x[1])
+        return mapping
+
 
     @doc_index("Clique-related methods")
     def fractional_clique_number(self, solver='PPL', verbose=0,
@@ -4453,7 +4459,8 @@ class Graph(GenericGraph):
             return g_mad
 
     @doc_index("Algorithmically hard stuff")
-    def independent_set_of_representatives(self, family, solver=None, verbose=0):
+    def independent_set_of_representatives(self, family, solver=None, verbose=0,
+                                           *, integrality_tolerance=1e-3):
         r"""
         Return an independent set of representatives.
 
@@ -4472,16 +4479,20 @@ class Graph(GenericGraph):
         - ``family`` -- A list of lists defining the family `F` (actually, a
           Family of subsets of ``G.vertices()``).
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -4557,19 +4568,19 @@ class Graph(GenericGraph):
         except Exception:
             return None
 
-        classss = p.get_values(classss)
+        classss = p.get_values(classss, convert=bool, tolerance=integrality_tolerance)
 
         repr = []
         for i,f in enumerate(family):
             for v in f:
-                if classss[v,i] == 1:
+                if classss[v,i]:
                     repr.append(v)
                     break
 
         return repr
 
     @doc_index("Algorithmically hard stuff")
-    def minor(self, H, solver=None, verbose=0):
+    def minor(self, H, solver=None, verbose=0, *, integrality_tolerance=1e-3):
         r"""
         Return the vertices of a minor isomorphic to `H` in the current graph.
 
@@ -4585,14 +4596,20 @@ class Graph(GenericGraph):
 
         - ``H`` -- The minor to find for in the current graph.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
-          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -4722,11 +4739,11 @@ class Graph(GenericGraph):
         except MIPSolverException:
             raise ValueError("This graph has no minor isomorphic to H !")
 
-        rs = p.get_values(rs)
+        rs = p.get_values(rs, convert=bool, tolerance=integrality_tolerance)
 
         rs_dict = {}
         for h in H:
-            rs_dict[h] = [v for v in self if rs[h,v]==1]
+            rs_dict[h] = [v for v in self if rs[h,v]]
 
         return rs_dict
 
@@ -5783,7 +5800,8 @@ class Graph(GenericGraph):
         f.close()
 
     @doc_index("Algorithmically hard stuff")
-    def topological_minor(self, H, vertices=False, paths=False, solver=None, verbose=0):
+    def topological_minor(self, H, vertices=False, paths=False, solver=None, verbose=0,
+                          *, integrality_tolerance=1e-3):
         r"""
         Return a topological `H`-minor from ``self`` if one exists.
 
@@ -5798,16 +5816,20 @@ class Graph(GenericGraph):
 
         - ``H`` -- The topological minor to find in the current graph.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -5981,15 +6003,15 @@ class Graph(GenericGraph):
 
         minor = G.subgraph(immutable=False)
 
-        is_repr = p.get_values(is_repr)
-        v_repr = p.get_values(v_repr)
-        flow = p.get_values(flow)
+        is_repr = p.get_values(is_repr, convert=bool, tolerance=integrality_tolerance)
+        v_repr = p.get_values(v_repr, convert=bool, tolerance=integrality_tolerance)
+        flow = p.get_values(flow, convert=bool, tolerance=integrality_tolerance)
 
         for u,v in minor.edge_iterator(labels=False):
             used = False
             for C in H.edge_iterator(labels=False):
 
-                if flow[C,(u,v)] + flow[C,(v,u)] > .5:
+                if flow[C,(u,v)] or flow[C,(v,u)]:
                     used = True
                     minor.set_edge_label(u, v, C)
                     break
@@ -5999,9 +6021,9 @@ class Graph(GenericGraph):
         minor.delete_vertices(v for v in minor if minor.degree(v) == 0)
 
         for g in minor:
-            if is_repr[g] > .5:
+            if is_repr[g]:
                 for h in H:
-                    if v_repr[h,v] > .5:
+                    if v_repr[h,v]:
                         minor.set_vertex(g, h)
                         break
 

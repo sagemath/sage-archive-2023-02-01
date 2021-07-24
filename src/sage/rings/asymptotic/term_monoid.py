@@ -4038,13 +4038,13 @@ class BTerm(TermWithCoefficient):
         sage: T(x^3, coefficient=42, valid_from={'x': 15, 'y': 15})  # not tested
 
     a term whose absolute value is bounded by `42|x|^3` for `|x| >= 15` and
-    ` |y| >= 15`, or
+    `|y| >= 15`, or
     ::
 
         sage: T(x^3*y^2, coefficient=42, valid_from={'x': 10, 'y': 20})  # not tested
 
     a term whose absolute value is bounded by `42 |x|^3 |y|^2` for
-    `|x| >= 10` and |y| >= 20`.
+    `|x| >= 10` and `|y| >= 20`.
 
     INPUT:
 

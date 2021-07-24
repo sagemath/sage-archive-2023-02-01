@@ -88,8 +88,8 @@ The following example shows all these steps::
       x_3 is an integer variable (min=0.0, max=+oo)
     sage: print('Objective Value: {}'.format(p.solve()))
     Objective Value: 2.0
-    sage: for i, v in sorted(p.get_values(w).items()):
-    ....:     print('w_%s = %s' % (i, int(round(v))))
+    sage: for i, v in sorted(p.get_values(w, convert=ZZ, tolerance=1e-3).items()):
+    ....:     print(f'w_{i} = {v}')
     w_0 = 15
     w_1 = 10
     w_2 = 3

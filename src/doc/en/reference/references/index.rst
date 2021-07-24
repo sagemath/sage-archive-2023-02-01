@@ -2700,7 +2700,7 @@ REFERENCES:
             transformations. Mathematical Programming, 147 (2014)
             155-170.
 
-.. [Gu] GUAVA manual, http://www.gap-system.org/Packages/guava.html
+.. [Gu] GUAVA manual, https://www.gap-system.org/Packages/guava.html
 
 .. [Gut2001] Carsten Gutwenger and Petra Mutzel. *A Linear Time Implementation
              of SPQR-Trees*, International Symposium on Graph Drawing,

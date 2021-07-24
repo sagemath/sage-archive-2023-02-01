@@ -2072,7 +2072,7 @@ def _inverse_laplace_latex_(self, *args):
     return "\\mathcal{L}^{-1}\\left(%s\\right)" % (', '.join(latex(x) for x in args))
 
 
-# Return un-evaluated expression as instances of SFunction class
+# Return un-evaluated expression as instances of NewSymbolicFunction
 _laplace = function_factory('laplace', print_latex_func=_laplace_latex_)
 _inverse_laplace = function_factory('ilt',
         print_latex_func=_inverse_laplace_latex_)
@@ -2242,7 +2242,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     delayed_functions = maxima_qp.findall(s)
     if len(delayed_functions):
         for X in delayed_functions:
-            if X == '?%at':  # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
+            if X == '?%at':  # we will replace Maxima's "at" with symbolic evaluation, not a SymbolicFunction
                 pass
             else:
                 function_syms[X[2:]] = function_factory(X[2:])

@@ -436,7 +436,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
         ....:     sort_factors=True, names=('a', 'b'))
         Traceback (most recent call last):
         ...
-        ValueError: exactly one variable name has to be provided
+        NotImplementedError: exactly one variable name has to be provided
         sage: generating_function_of_integral_points(P2[0],
         ....:     sort_factors=True, name='a', names=('a',))
         1 * (-a0 + 1)^-1 * (-a1 + 1)^-1 * (-a0*a2 + 1)^-1
@@ -494,7 +494,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
     if names is not None:
         names = normalize_names(-1, names)
         if len(names) != 1:
-            raise ValueError('exactly one variable name has to be provided')
+            raise NotImplementedError('exactly one variable name has to be provided')
         if name is not None and name != names[0]:
             raise ValueError("keyword argument 'name' cannot be combined with 'names'")
         name = names[0]

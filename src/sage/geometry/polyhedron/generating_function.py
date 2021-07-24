@@ -594,7 +594,7 @@ def _generating_function_of_integral_points_(
         raise ValueError('not all coefficient vectors of the equations '
                          'have the same length')
 
-    mods = TransformMod.generate_mods(equations)
+    mods = _TransformMod.generate_mods(equations)
     logger.debug('splitting by moduli %s', mods)
 
     return tuple(__generating_function_of_integral_points__(
@@ -642,15 +642,15 @@ def __generating_function_of_integral_points__(
     logger.info('preprocessing %s inequalities and %s equations...',
                  len(inequalities), len(equations))
 
-    T_mod = TransformMod(inequalities, equations, B, mod)
+    T_mod = _TransformMod(inequalities, equations, B, mod)
     inequalities = T_mod.inequalities
     equations = T_mod.equations
 
-    T_equations = EliminateByEquations(inequalities, equations, B)
+    T_equations = _EliminateByEquations(inequalities, equations, B)
     inequalities = T_equations.inequalities
     equations = T_equations.equations
 
-    T_inequalities = SplitOffSimpleInequalities(inequalities, equations, B)
+    T_inequalities = _SplitOffSimpleInequalities(inequalities, equations, B)
     inequalities = T_inequalities.inequalities
     equations = T_inequalities.equations
     assert not equations
@@ -757,7 +757,7 @@ def _generating_function_via_Omega_(inequalities, B, skip_indices=()):
     return _simplify_(numerator, terms)
 
 
-class TransformHrepresentation(object):
+class _TransformHrepresentation(object):
     r"""
     An abstract base class for transformations of the
     Hrepresentation of a polyhedron together with its
@@ -792,18 +792,18 @@ class TransformHrepresentation(object):
     ``equations`` is equal to the generating function of the
     attributes ``inequalities`` and ``equations`` in which ``rules``
     were substituted and ``factor`` was multiplied (via
-    :meth:`~TransformHrepresentation.apply_rules`).
+    :meth:`~_TransformHrepresentation.apply_rules`).
     """
 
     def __init__(self, inequalities, equations, B):
         r"""
-        See :class:`TransformHrepresentation` for details.
+        See :class:`_TransformHrepresentation` for details.
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.generating_function import TransformHrepresentation
+            sage: from sage.geometry.polyhedron.generating_function import _TransformHrepresentation
             sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
-            sage: TransformHrepresentation([(1, 2, 3)], [(0, -1, 1)], B)
+            sage: _TransformHrepresentation([(1, 2, 3)], [(0, -1, 1)], B)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -822,9 +822,9 @@ class TransformHrepresentation(object):
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.generating_function import TransformHrepresentation
+            sage: from sage.geometry.polyhedron.generating_function import _TransformHrepresentation
             sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
-            sage: TransformHrepresentation([(1, 2, 3)], [(0, -1, 1)], B)
+            sage: _TransformHrepresentation([(1, 2, 3)], [(0, -1, 1)], B)
             Traceback (most recent call last):
             ...
             NotImplementedError
@@ -852,7 +852,7 @@ class TransformHrepresentation(object):
 
         EXAMPLES::
 
-            sage: from sage.geometry.polyhedron.generating_function import SplitOffSimpleInequalities as prepare
+            sage: from sage.geometry.polyhedron.generating_function import _SplitOffSimpleInequalities as prepare
             sage: from sage.geometry.polyhedron.generating_function import _generating_function_via_Omega_ as gf
             sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
             sage: ieqs = [(0, -1, 1, 0)]
@@ -865,7 +865,7 @@ class TransformHrepresentation(object):
                 tuple(t.subs(self.rules) for t in terms))
 
 
-class SplitOffSimpleInequalities(TransformHrepresentation):
+class _SplitOffSimpleInequalities(_TransformHrepresentation):
     r"""
     Split off (simple) inequalities which can be handled better
     without passing them to Omega.
@@ -899,11 +899,11 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
     ``equations`` is equal to the generating function of the
     attributes ``inequalities`` and ``equations`` in which ``rules``
     were substitited and ``factor`` was multiplied (via
-    :meth:`~TransformHrepresentation.apply_rules`).
+    :meth:`~_TransformHrepresentation.apply_rules`).
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import SplitOffSimpleInequalities as prepare
+        sage: from sage.geometry.polyhedron.generating_function import _SplitOffSimpleInequalities as prepare
         sage: from sage.geometry.polyhedron.generating_function import _generating_function_via_Omega_ as gf
 
         sage: def eq(A, B):
@@ -1091,13 +1091,13 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
         Do the actual transformation.
 
         This is called during initialization.
-        See :class:`SplitOffSimpleInequalities` for details.
+        See :class:`_SplitOffSimpleInequalities` for details.
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.generating_function import SplitOffSimpleInequalities
+            sage: from sage.geometry.polyhedron.generating_function import _SplitOffSimpleInequalities
             sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
-            sage: T = SplitOffSimpleInequalities([(1, 1, 1)], [], B)  # indirect doctest
+            sage: T = _SplitOffSimpleInequalities([(1, 1, 1)], [], B)  # indirect doctest
         """
         inequalities = self.inequalities
         B = self.B
@@ -1175,7 +1175,7 @@ class SplitOffSimpleInequalities(TransformHrepresentation):
         self.rules = dict(rules_pre)
 
 
-class EliminateByEquations(TransformHrepresentation):
+class _EliminateByEquations(_TransformHrepresentation):
     r"""
     Prepare the substitutions coming from "eliminated" variables
     in the given equations.
@@ -1215,14 +1215,14 @@ class EliminateByEquations(TransformHrepresentation):
     ``equations`` is equal to the generating function of the
     attributes ``inequalities`` and ``equations`` in which ``rules``
     were substitited and ``factor`` was multiplied (via
-    :meth:`~TransformHrepresentation.apply_rules`).
+    :meth:`~_TransformHrepresentation.apply_rules`).
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import EliminateByEquations
+        sage: from sage.geometry.polyhedron.generating_function import _EliminateByEquations
 
         sage: def prepare_equations(equations, B):
-        ....:     T = EliminateByEquations([], equations, B)
+        ....:     T = _EliminateByEquations([], equations, B)
         ....:     return T.factor, T.rules, T.indices
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 4)
@@ -1250,13 +1250,13 @@ class EliminateByEquations(TransformHrepresentation):
         Do the actual transformation.
 
         This is called during initialization.
-        See :class:`EliminateByEquations` for details.
+        See :class:`_EliminateByEquations` for details.
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.generating_function import EliminateByEquations
+            sage: from sage.geometry.polyhedron.generating_function import _EliminateByEquations
             sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
-            sage: T = EliminateByEquations([], [], B)  # indirect doctest
+            sage: T = _EliminateByEquations([], [], B)  # indirect doctest
         """
         from sage.matrix.constructor import matrix
         from sage.misc.misc_c import prod
@@ -1271,7 +1271,7 @@ class EliminateByEquations(TransformHrepresentation):
             self.indices = ()
             return
 
-        TE, indices, indicesn = EliminateByEquations.prepare_equations_transformation(E)
+        TE, indices, indicesn = _EliminateByEquations.prepare_equations_transformation(E)
 
         gens = (1,) + B.gens()
         z = tuple(gens[i] for i in indices)
@@ -1314,11 +1314,11 @@ class EliminateByEquations(TransformHrepresentation):
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.generating_function import EliminateByEquations
+            sage: from sage.geometry.polyhedron.generating_function import _EliminateByEquations
 
-            sage: EliminateByEquations.prepare_equations_transformation(matrix([(0, 1, 0, -2)]))
+            sage: _EliminateByEquations.prepare_equations_transformation(matrix([(0, 1, 0, -2)]))
             ([   0 -1/2    0    1], (3,), (0, 1))
-            sage: EliminateByEquations.prepare_equations_transformation(matrix([(0, 1, -2, 0), (0, 2, 0, -3)]))
+            sage: _EliminateByEquations.prepare_equations_transformation(matrix([(0, 1, -2, 0), (0, 2, 0, -3)]))
             (
             [   0 -1/2    1    0]
             [   0 -2/3    0    1], (2, 3), (0, 1)
@@ -1344,7 +1344,7 @@ class EliminateByEquations(TransformHrepresentation):
         return TE, indices, indicesn
 
 
-class TransformMod(TransformHrepresentation):
+class _TransformMod(_TransformHrepresentation):
     r"""
     Prepare the substitutions coming from the moduli.
 
@@ -1381,15 +1381,15 @@ class TransformMod(TransformHrepresentation):
     ``equations`` is equal to the generating function of the
     attributes ``inequalities`` and ``equations`` in which ``rules``
     were substitited and ``factor`` was multiplied (via
-    :meth:`~TransformHrepresentation.apply_rules`).
+    :meth:`~_TransformHrepresentation.apply_rules`).
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import TransformMod
+        sage: from sage.geometry.polyhedron.generating_function import _TransformMod
 
         sage: def prepare_mod(mod, B, *vecs):
         ....:     inequalities, equations = vecs
-        ....:     T = TransformMod(inequalities, equations, B, mod)
+        ....:     T = _TransformMod(inequalities, equations, B, mod)
         ....:     return T.factor, T.rules, T.inequalities, T.equations
 
         sage: B = LaurentPolynomialRing(ZZ, 'y', 3)
@@ -1403,30 +1403,30 @@ class TransformMod(TransformHrepresentation):
 
     def __init__(self, inequalities, equations, B, mod):
         r"""
-        See :class:`TransformMod` for details.
+        See :class:`_TransformMod` for details.
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.generating_function import TransformMod
+            sage: from sage.geometry.polyhedron.generating_function import _TransformMod
             sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
-            sage: TransformMod([], [], B, {})
-            <...TransformMod object at 0x...>
+            sage: _TransformMod([], [], B, {})
+            <..._TransformMod object at 0x...>
         """
         self.mod = mod
-        super(TransformMod, self).__init__(inequalities, equations, B)
+        super(_TransformMod, self).__init__(inequalities, equations, B)
 
     def _transform_(self):
         r"""
         Do the actual transformation.
 
         This is called during initialization.
-        See :class:`TransformMod` for details.
+        See :class:`_TransformMod` for details.
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.generating_function import TransformMod
+            sage: from sage.geometry.polyhedron.generating_function import _TransformMod
             sage: B = LaurentPolynomialRing(ZZ, 'y', 2)
-            sage: T = TransformMod([], [], B, {})  # indirect doctest
+            sage: T = _TransformMod([], [], B, {})  # indirect doctest
         """
         from sage.matrix.constructor import matrix
         from sage.modules.free_module_element import vector
@@ -1474,8 +1474,8 @@ class TransformMod(TransformHrepresentation):
 
         TESTS::
 
-            sage: from sage.geometry.polyhedron.generating_function import TransformMod
-            sage: TransformMod.generate_mods([(0, 1, 1, -2)])
+            sage: from sage.geometry.polyhedron.generating_function import _TransformMod
+            sage: _TransformMod.generate_mods([(0, 1, 1, -2)])
             ({0: (2, 0), 1: (2, 0)}, {0: (2, 1), 1: (2, 1)})
         """
         from sage.arith.all import lcm
@@ -1483,7 +1483,7 @@ class TransformMod(TransformHrepresentation):
         from sage.rings.integer_ring import ZZ
         from sage.rings.rational_field import QQ
 
-        TE, TEi, TEin = EliminateByEquations.prepare_equations_transformation(matrix(equations))
+        TE, TEi, TEin = _EliminateByEquations.prepare_equations_transformation(matrix(equations))
         TEin = TEin[1:]
         if TE.base_ring() == ZZ:
             mods = [{}]

@@ -857,6 +857,14 @@ def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
         1/factorial(n + 1)
         sage: symbolic_product(f(i), i, 1, n).log().log_expand()
         sum(log(f(i)), i, 1, n)
+
+    TESTS:
+
+    Verify that :trac:`30520` is fixed::
+
+        sage: symbolic_product(-x^2,x,1,n)
+        (-1)^n*factorial(n)^2
+
     """
     if not is_SymbolicVariable(v):
         if isinstance(v, str):

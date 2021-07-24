@@ -123,8 +123,7 @@ class PolyhedronFace(ConvexSet_closed):
 
     TESTS::
 
-        sage: TestSuite(face).run(skip='_test_pickling')
-
+        sage: TestSuite(face).run()
     """
 
     def __init__(self, polyhedron, V_indices, H_indices):
@@ -377,7 +376,9 @@ class PolyhedronFace(ConvexSet_closed):
         if not isinstance(other, PolyhedronFace):
             return NotImplemented
         if self._polyhedron is not other._polyhedron:
-            return NotImplemented
+            if (self._polyhedron.Vrepresentation() != other._polyhedron.Vrepresentation()
+                    or self._polyhedron.Hrepresentation() != other._polyhedron.Hrepresentation()):
+                return NotImplemented
         return richcmp(self._ambient_Vrepresentation_indices,
                        other._ambient_Vrepresentation_indices, op)
 

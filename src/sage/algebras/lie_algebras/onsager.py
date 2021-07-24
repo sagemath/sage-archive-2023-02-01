@@ -938,6 +938,7 @@ class OnsagerAlgebraACE(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
         [\mathcal{A}_k, \mathcal{A}_m] & = \mathcal{B}_{k-m} - \mathcal{B}_{m-k},
         \\ [\mathcal{A}_k, \mathcal{B}_m] & = \mathcal{A}_{k+m} - \mathcal{A}_{k-m},
         \\ [\mathcal{B}_k, \mathcal{B}_m] & = 0.
+        \end{aligned}
 
     This has a natural injection from the Onsager algebra by the map `\iota`
     defined by

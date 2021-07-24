@@ -3794,6 +3794,36 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable):
         else:
             return self._points
 
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self`` as a convex polytope.
+
+        In contrast to :meth:`points`, these are not necessarily lattice points.
+
+        EXAMPLE::
+
+            sage: o = lattice_polytope.cross_polytope(3)
+            sage: o.some_elements()  # indirect doctest
+            [(1, 0, 0),
+            (1/2, 1/2, 0),
+            (1/4, 1/4, 1/2),
+            (-3/8, 1/8, 1/4),
+            (-3/16, -7/16, 1/8),
+            (-3/32, -7/32, -7/16)]
+        """
+        if not self._vertices:
+            return
+        V = self.ambient_vector_space()
+        v_iter = iter(self._vertices)
+        p = V(next(v_iter))
+        yield p
+        for i in range(5):
+            try:
+                p = (p + next(v_iter)) / 2
+            except StopIteration:
+                return
+            yield p
+
     def polar(self):
         r"""
         Return the polar polytope, if this polytope is reflexive.

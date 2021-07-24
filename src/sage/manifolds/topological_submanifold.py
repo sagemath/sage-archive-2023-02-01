@@ -136,20 +136,20 @@ class TopologicalSubmanifold(TopologicalManifold):
         sage: t = var('t')
         sage: phi = N.continuous_map(M, {(CN,CM): [u, v, t+u^2+v^2]})
         sage: phi.display()
-        N --> M
-           (u, v) |--> (x, y, z) = (u, v, u^2 + v^2 + t)
+        N → M
+           (u, v) ↦ (x, y, z) = (u, v, u^2 + v^2 + t)
 
     The foliation inverse maps are needed for computing the adapted chart on
     the ambient manifold::
 
         sage: phi_inv = M.continuous_map(N, {(CM, CN): [x, y]})
         sage: phi_inv.display()
-        M --> N
-           (x, y, z) |--> (u, v) = (x, y)
+        M → N
+           (x, y, z) ↦ (u, v) = (x, y)
         sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
         sage: phi_inv_t.display()
-        M --> R
-        (x, y, z) |--> -x^2 - y^2 + z
+        M → ℝ
+        (x, y, z) ↦ -x^2 - y^2 + z
 
     `\phi` can then be declared as an embedding `N\to M`::
 
@@ -418,16 +418,16 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: t = var('t')
             sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]})
             sage: phi.display()
-            N --> M
-               (u, v) |--> (x, y, z) = (u, v, u^2 + v^2 + t)
+            N → M
+               (u, v) ↦ (x, y, z) = (u, v, u^2 + v^2 + t)
             sage: phi_inv = M.continuous_map(N, {(CM,CN): [x,y]})
             sage: phi_inv.display()
-            M --> N
-                (x, y, z) |--> (u, v) = (x, y)
+            M → N
+                (x, y, z) ↦ (u, v) = (x, y)
             sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
             sage: phi_inv_t.display()
-            M --> R
-            (x, y, z) |--> -x^2 - y^2 + z
+            M → ℝ
+            (x, y, z) ↦ -x^2 - y^2 + z
             sage: N.set_immersion(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse={t: phi_inv_t})
 
@@ -543,16 +543,16 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: t = var('t')
             sage: phi = N.continuous_map(M, {(CN,CM): [u,v,t+u^2+v^2]})
             sage: phi.display()
-            N --> M
-               (u, v) |--> (x, y, z) = (u, v, u^2 + v^2 + t)
+            N → M
+               (u, v) ↦ (x, y, z) = (u, v, u^2 + v^2 + t)
             sage: phi_inv = M.continuous_map(N, {(CM,CN): [x,y]})
             sage: phi_inv.display()
-            M --> N
-                (x, y, z) |--> (u, v) = (x, y)
+            M → N
+                (x, y, z) ↦ (u, v) = (x, y)
             sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
             sage: phi_inv_t.display()
-            M --> R
-            (x, y, z) |--> -x^2 - y^2 + z
+            M → ℝ
+            (x, y, z) ↦ -x^2 - y^2 + z
             sage: N.set_embedding(phi, inverse=phi_inv, var=t,
             ....:                 t_inverse={t: phi_inv_t})
 
@@ -881,8 +881,7 @@ class TopologicalSubmanifold(TopologicalManifold):
             sage: M = Manifold(2, 'M', structure="topological")
             sage: N = Manifold(1, 'N', ambient=M, structure="topological")
             sage: CM.<x,y> = M.chart()
-            sage: CN.<u> = N.chart()
-            sage: CN.add_restrictions([u > -1, u < 1])
+            sage: CN.<u> = N.chart(coord_restrictions=lambda u: [u > -1, u < 1])
             sage: phi = N.continuous_map(M, {(CN,CM): [u, u^2]})
             sage: N.set_embedding(phi)
             sage: N

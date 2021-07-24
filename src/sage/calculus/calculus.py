@@ -1274,6 +1274,11 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: limit(e^(-1/x), x=0, dir='left', algorithm='fricas')              # optional - fricas
         +Infinity
 
+    One can also call Mathematica's online interface::
+
+        sage: limit(pi+log(x)/x,x=oo, algorithm='mathematica_free') # optional - internet
+        pi
+
     TESTS::
 
         sage: lim(x^2, x=2, dir='nugget')
@@ -1427,6 +1432,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
             l = libgiac.limit(ex, v, a, 1).sage()
         elif dir in dir_minus:
             l = libgiac.limit(ex, v, a, -1).sage()
+    elif algorithm == 'mathematica_free':
+        return mma_free_limit(ex, v, a, dir)
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
     return ex.parent()(l)
@@ -1434,6 +1441,45 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
 # lim is alias for limit
 lim = limit
+
+
+def mma_free_limit(expression, v, a, dir=None):
+    """
+    Limit using Mathematica's online interface.
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import mma_free_limit
+        sage: mma_free_limit(sin(x)/x, x=0) # optional - internet
+        1
+
+    Another simple limit::
+
+        sage: mma_free_limit(e^(-x), x, a=oo) # optional - internet
+        0
+    """
+    from sage.interfaces.mathematica import request_wolfram_alpha, parse_moutput_from_json, symbolic_expression_from_mathematica_string
+    dir_plus = ['plus', '+', 'above', 'right']
+    dir_minus = ['minus', '-', 'below', 'left']
+    math_expr = expression._mathematica_init_()
+    variable = v._mathematica_init_()
+    a = a._mathematica_init_()
+    if dir is None:
+        input = "Limit[{},{} -> {}]".format(math_expr, variable, a)
+    elif dir in dir_plus:
+        dir = 'Direction -> "FromAbove"'
+        input = "Limit[{}, {} -> {}, {}]".format(math_expr, variable, a, dir)
+    elif dir in dir_minus:
+        dir = 'Direction -> "FromBelow"'
+        input = "Limit[{}, {} -> {}, {}]".format(math_expr, variable, a, dir)
+    else:
+        raise ValueError('wrong input for limit')
+    json_page_data = request_wolfram_alpha(input)
+    all_outputs = parse_moutput_from_json(json_page_data)
+    if not all_outputs:
+        raise ValueError("no outputs found in the answer from Wolfram Alpha")
+    first_output = all_outputs[0]
+    return symbolic_expression_from_mathematica_string(first_output)
 
 
 ###################################################################

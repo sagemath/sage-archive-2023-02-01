@@ -129,6 +129,7 @@ from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent
+from sage.misc.lazy_attribute import lazy_attribute
 from .expression cimport new_Expression_from_GEx, Expression
 from .ring import SR
 
@@ -749,6 +750,24 @@ cdef class Function(SageObject):
             gg(x)
         """
         return self._conversions.get('sympy', self._name)
+
+    @lazy_attribute
+    def _sympy_(self):
+        """
+        EXAMPLES::
+
+            sage: cos._sympy_()
+            cos
+            sage: _(0)
+            1
+        """
+        f = self._sympy_init_()
+        import sympy
+        if getattr(sympy, f, None):
+            def return_sympy():
+                return getattr(sympy, f)
+            return return_sympy
+        return NotImplemented
 
     def _maxima_init_(self, I=None):
         """

@@ -66,15 +66,16 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
         from sage.symbolic.constants import pi
         from sage.libs.pynac.pynac import I
 
+        dom = cmat[0][0]._domain
         rk = len(cmat)
-        dim = cmat[0][0]._domain._dim
+        dim = dom._dim
         ran = min(rk, dim//2)
         fac = I / (2*pi)
-        res = []
+        res = dom.mixed_form_algebra().one()
         m = cmat
         for k in range(1, ran):
             c = -sum(m[i][i] for i in range(rk)) / k
-            res.append(fac * c)
+            res += fac * c
             for i in range(rk):
                 m[i][i] += c
             fac *= I / (2*pi)
@@ -94,17 +95,18 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
         """
         from sage.symbolic.constants import pi
 
+        dom = cmat[0][0]._domain
         rk = len(cmat)
-        dim = cmat[0][0]._domain._dim
+        dim = dom._dim
         ran = min(rk//2, dim//4)
         fac = -1 / (2*pi)**2
-        res = []
+        res = dom.mixed_form_algebra().one()
         m = cmat2 = [[sum(cmat[i][l].wedge(cmat[l][j])
                           for l in range(rk))
                       for j in range(rk)] for i in range(rk)]
         for k in range(1, ran):
             c = -sum(m[i][i] for i in range(rk)) / (2*k)
-            res.append(fac * c)
+            res += fac * c
             for i in range(rk):
                 m[i][i] += c
             fac *= -1 / (2*pi)**2
@@ -123,6 +125,8 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
         """
         from sage.symbolic.constants import pi
 
+        dom = cmat[0][0]._domain
+        A = dom.mixed_form_algebra()
         rk = len(cmat)
         ran = rk // 2
         m = a = [cmat[i].copy() for i in range(rk)]
@@ -137,4 +141,5 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
             m = [[sum(a[i][l].wedge(m[l][j]) for l in range(rk))
                   for j in range(rk)] for i in range(rk)]
         c = -sum(m[i][i] for i in range(rk)) / (2*rk)
-        return (-1/(2*pi))**rk * c
+        c *= (-1/(2*pi))**rk  # normalize
+        return A(c)

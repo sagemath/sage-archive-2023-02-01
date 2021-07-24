@@ -2392,6 +2392,10 @@ REFERENCES:
             toric varieties defined by atomic lattices*. Inventiones
             Mathematicae. **155** (2004), no. 3, pp. 515-536.
 
+.. [FZ2001] \S. Fomin and A. Zelevinsky. *Cluster algebras I. Foundations*,
+            \J. Amer. Math. Soc. **15** (2002), no. 2, pp. 497-529.
+            :arxiv:`math/0104151` (2001).
+
 .. [FZ2007] \S. Fomin and \A. Zelevinsky, *Cluster algebras IV. Coefficients*,
             Compos. Math. 143 (2007), no. 1, 112-164.
 

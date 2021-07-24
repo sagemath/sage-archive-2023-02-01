@@ -1494,10 +1494,10 @@ class _TransformMod(_TransformHrepresentation):
             else:
                 cols = TE.columns()
                 assert all(cols[j][i] == 1 for i, j in enumerate(TEi))
-                pre_mods = compositions_mod((tuple(ZZ(cc*m) for cc in cols[i])
-                                             for i in TEin),
-                                            m, r=(-cc*m for cc in cols[0]),
-                                            multidimensional=True)
+                pre_mods = _compositions_mod((tuple(ZZ(cc*m) for cc in cols[i])
+                                              for i in TEin),
+                                             m, r=(-cc*m for cc in cols[0]),
+                                             multidimensional=True)
                 mods = tuple({i-1: (aa.modulus(), ZZ(aa))
                               for i, aa in zip(TEin, a) if aa.modulus() > 1}
                              for a in pre_mods)
@@ -1508,7 +1508,7 @@ class _TransformMod(_TransformHrepresentation):
         return mods
 
 
-def compositions_mod(u, m, r=0, multidimensional=False):
+def _compositions_mod(u, m, r=0, multidimensional=False):
     r"""
     Return an iterable of all tuples `a` such that `a u^T \equiv r \mod m`.
 
@@ -1540,38 +1540,38 @@ def compositions_mod(u, m, r=0, multidimensional=False):
 
     EXAMPLES::
 
-        sage: from sage.geometry.polyhedron.generating_function import compositions_mod
+        sage: from sage.geometry.polyhedron.generating_function import _compositions_mod
         sage: def show_cm(cm):
         ....:     print(', '.join('({})'.format(
         ....:                     ', '.join('{}mod{}'.format(aa, aa.modulus())
         ....:                               for aa in a))
         ....:                     for a in cm))
 
-        sage: list(compositions_mod([1, 1], 2))
+        sage: list(_compositions_mod([1, 1], 2))
         [(0, 0), (1, 1)]
-        sage: show_cm(compositions_mod([1, 1], 2))
+        sage: show_cm(_compositions_mod([1, 1], 2))
         (0mod2, 0mod2), (1mod2, 1mod2)
-        sage: show_cm(compositions_mod([1, 2, 3], 6))
+        sage: show_cm(_compositions_mod([1, 2, 3], 6))
         (0mod6, 0mod3, 0mod2), (1mod6, 1mod3, 1mod2), (2mod6, 2mod3, 0mod2),
         (3mod6, 0mod3, 1mod2), (4mod6, 1mod3, 0mod2), (5mod6, 2mod3, 1mod2)
-        sage: show_cm(compositions_mod([2, 2, 2], 6))
+        sage: show_cm(_compositions_mod([2, 2, 2], 6))
         (0mod3, 0mod3, 0mod3), (0mod3, 1mod3, 2mod3), (0mod3, 2mod3, 1mod3),
         (1mod3, 0mod3, 2mod3), (1mod3, 1mod3, 1mod3), (1mod3, 2mod3, 0mod3),
         (2mod3, 0mod3, 1mod3), (2mod3, 1mod3, 0mod3), (2mod3, 2mod3, 2mod3)
 
     ::
 
-        sage: show_cm(compositions_mod([(1, 0), (0, 1)], 2,
+        sage: show_cm(_compositions_mod([(1, 0), (0, 1)], 2,
         ....:                       multidimensional=True))
         (0mod2, 0mod2)
-        sage: show_cm(compositions_mod([(1, 2), (2, 2), (3, 2)], 6,
+        sage: show_cm(_compositions_mod([(1, 2), (2, 2), (3, 2)], 6,
         ....:                       multidimensional=True))
         (0mod6, 0mod3, 0mod6), (1mod6, 1mod3, 1mod6), (2mod6, 2mod3, 2mod6),
         (3mod6, 0mod3, 3mod6), (4mod6, 1mod3, 4mod6), (5mod6, 2mod3, 5mod6)
 
     TESTS::
 
-        sage: show_cm(compositions_mod([1, 0], 2))
+        sage: show_cm(_compositions_mod([1, 0], 2))
         (0mod2, 0mod1)
     """
     from sage.arith.functions import lcm

@@ -1119,12 +1119,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
             sage: R.<x,y> = QQ[]
             sage: macaulay2(R)  # optional - macaulay2
-            QQ[x, y]
+            QQ[x...y]
 
             sage: R.<x,y> = GF(17)[]
             sage: macaulay2(R)  # optional - macaulay2
             ZZ
-            --[x, y]
+            --[x...y]
             17
         """
         try:

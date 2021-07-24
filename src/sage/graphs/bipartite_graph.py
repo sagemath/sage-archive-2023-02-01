@@ -1458,7 +1458,8 @@ class BipartiteGraph(Graph):
         return matrix(len(self.right), len(self.left), D, sparse=sparse)
 
     def matching(self, value_only=False, algorithm=None,
-                 use_edge_labels=False, solver=None, verbose=0):
+                 use_edge_labels=False, solver=None, verbose=0,
+                 *, integrality_tolerance=1e-3):
         r"""
         Return a maximum matching of the graph represented by the list of its
         edges.
@@ -1494,11 +1495,21 @@ class BipartiteGraph(Graph):
 
           - when set to ``False``, each edge has weight `1`
 
-        - ``solver`` -- (default: ``None``) a specific Linear Program (LP)
-          solver to be used
+        - ``solver`` -- string (default: ``None``); specify a Mixed
+          Integer Linear Programming (MILP) solver to be used. If set
+          to ``None``, the default one is used. For more information
+          on MILP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
+          class :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
-          set to 0 by default, which means quiet
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with
+          MILP solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         .. SEEALSO::
 
@@ -1619,7 +1630,8 @@ class BipartiteGraph(Graph):
             return Graph.matching(self, value_only=value_only,
                                   algorithm=algorithm,
                                   use_edge_labels=use_edge_labels,
-                                  solver=solver, verbose=verbose)
+                                  solver=solver, verbose=verbose,
+                                  integrality_tolerance=integrality_tolerance)
         else:
             raise ValueError('algorithm must be "Hopcroft-Karp", '
                              '"Eppstein", "Edmonds" or "LP"')

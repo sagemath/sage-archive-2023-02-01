@@ -36,6 +36,7 @@ from sage.misc.fast_methods import Singleton
 from sage.structure.element import Element, is_InfinityElement
 from sage.structure.richcmp import richcmp
 
+from sage.libs.pari.all import pari, pari_gen
 from sage.modular.modsym.p1list import lift_to_sl2z_llong
 from sage.structure.element import is_Matrix
 
@@ -144,6 +145,13 @@ class Cusp(Element):
             Traceback (most recent call last):
             ...
             TypeError: unable to convert (Infinity, +Infinity) to a cusp
+
+        Conversion from PARI is supported (see :trac:`32091`)::
+
+            sage: Cusp(pari.oo())
+            Infinity
+            sage: Cusp(pari(2/3))
+            2/3
         """
         if parent is None:
             parent = Cusps
@@ -161,7 +169,8 @@ class Cusp(Element):
             elif isinstance(a, Rational):
                 self.__a = a.numer()
                 self.__b = a.denom()
-            elif is_InfinityElement(a):
+            elif (is_InfinityElement(a) or
+                  (isinstance(a, pari_gen) and a.type() == 't_INFINITY')):
                 self.__a = ZZ.one()
                 self.__b = ZZ.zero()
             elif isinstance(a, Cusp):
@@ -982,6 +991,20 @@ class Cusp(Element):
         # Now that we've computed the Galois action, we efficiently
         # construct the corresponding cusp as a Cusp object.
         return Cusp(a, b, check=False)
+
+    def __pari__(self):
+        """
+        Return a PARI representation of ``self``.
+
+        EXAMPLES::
+
+            sage: Cusp(1, 0).__pari__()
+            +oo
+            sage: pari(Cusp(3, 2))
+            3/2
+        """
+        b = self.__b
+        return pari(self.__a / b) if b else pari.oo()
 
 
 class Cusps_class(Singleton, Parent):

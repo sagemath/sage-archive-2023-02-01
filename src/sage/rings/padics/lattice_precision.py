@@ -1446,7 +1446,8 @@ class DifferentialPrecisionGeneric(SageObject):
                             hist.append(self._format_history(total_time, status, timings))
                         if event == 'partial reduce':
                             code = 'r'
-                        else: code = 'R'
+                        else:
+                            code = 'R'
                         status_red = status[:index] + (len(status) - index) * [code]
                         hist.append(self._format_history(tme, status_red, timings))
                         total_time = 0
@@ -2503,7 +2504,8 @@ class PrecisionModule(UniqueRepresentation, DifferentialPrecisionGeneric):
                     a2 = v*col[length]
                     a = a1 + a2
                     b1 = up*col[length-1]
-                    b2 = vp*col[length]; b = b1 + b2
+                    b2 = vp * col[length]
+                    b = b1 + b2
                     if a.valuation() > min(a1.valuation(), a2.valuation()) + self._zero_cap:
                         col[length-1] = self._approx_zero
                     else:

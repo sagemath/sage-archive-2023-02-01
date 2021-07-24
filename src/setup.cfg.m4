@@ -65,7 +65,6 @@ dnl From Makefile.in: DOC_DEPENDENCIES
         | sed "2,\$s/^/    /;"')dnl
 dnl Other Python packages that are standard spkg, used in doctests
     esyscmd(`sage-get-system-packages install-requires \
-        cvxopt         \
         rpy2           \
         fpylll         \
         | sed "2,\$s/^/    /;"')dnl

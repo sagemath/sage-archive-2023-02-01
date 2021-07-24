@@ -968,7 +968,7 @@ class Multizetas(CombinatorialFreeModule):
         r"""
         Convert ``x`` into ``self``.
 
-        INPUT
+        INPUT:
 
         - ``x`` -- either a list, tuple, word or a multiple zeta value
 
@@ -1884,7 +1884,7 @@ class Multizetas_iterated(CombinatorialFreeModule):
         r"""
         Convert ``x`` into ``self``.
 
-        INPUT
+        INPUT:
 
         - ``x`` -- either a list, tuple, word or a multiple zeta value
 
@@ -2151,7 +2151,7 @@ class All_iterated(CombinatorialFreeModule):
         r"""
         Convert ``x`` into ``self``.
 
-        INPUT
+        INPUT:
 
         - ``x`` -- either a list, tuple, word
 

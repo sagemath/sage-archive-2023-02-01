@@ -169,7 +169,6 @@ code = setup(
                  'bin/sage-rebase.sh',
                  'bin/sage-rebaseall.bat',
                  'bin/sage-rebaseall.sh',
-                 'bin/sage-rst2txt',
                  'bin/sage-run',
                  'bin/sage-run-cython',
                  'bin/sage-startuptime.py',

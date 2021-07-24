@@ -428,10 +428,10 @@ AS_IF([test "x$enable_download_from_upstream_url" = "xyes"], [
 ])
 AC_SUBST([SAGE_SPKG_OPTIONS])
 
-AC_ARG_ENABLE([sagelib],
-  AS_HELP_STRING([--disable-sagelib],
-                 [disable build of the Sage library and packages depending on it]), [
-    for pkg in sagelib sage_docbuild; do
+AC_ARG_ENABLE([cvxopt],
+  AS_HELP_STRING([--disable-cvxopt],
+                 [disable build of the cvxopt package and its prerequisite suitesparse]), [
+    for pkg in cvxopt suitesparse; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])
@@ -448,6 +448,14 @@ AC_ARG_ENABLE([r],
   AS_HELP_STRING([--disable-r],
                  [disable build of the R package and related packages]), [
     for pkg in r rpy2 r_jupyter; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
+
+AC_ARG_ENABLE([sagelib],
+  AS_HELP_STRING([--disable-sagelib],
+                 [disable build of the Sage library and packages depending on it]), [
+    for pkg in sagelib sage_docbuild; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])

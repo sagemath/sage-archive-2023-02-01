@@ -13,11 +13,12 @@ Various
 
 AUTHORS:
 
-- Daniel Krenn (2016)
+- Daniel Krenn (2016, 2021)
 
 ACKNOWLEDGEMENT:
 
-- Daniel Krenn is supported by the Austrian Science Fund (FWF): P 24644-N26.
+- Daniel Krenn is supported by the Austrian Science Fund (FWF): P 24644-N26
+  and by the Austrian Science Fund (FWF): P 28466-N35.
 
 
 Functions

@@ -217,7 +217,8 @@ from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.geometry.relative_interior import RelativeInterior
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import column_matrix, matrix, MatrixSpace
-from sage.misc.all import cached_method, flatten, latex
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import flatten, latex
 from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, ZZ
 from sage.structure.all import SageObject, parent
@@ -3528,6 +3529,33 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             of 1 vertex
         """
         return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
+
+    def an_affine_basis(self):
+        r"""
+        Return points in ``self`` that form a basis for the affine hull.
+
+        EXAMPLES::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+            sage: ray = Cone([(1, 1)]
+            Traceback (most recent call last):
+            ...
+            SyntaxError: unexpected EOF while parsing
+            sage: ray.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NameError: name 'ray' is not defined
+            sage: line = Cone([(1,0), (-1,0)])
+            sage: line.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+        """
+        return self.polyhedron().an_affine_basis()
 
     @cached_method
     def strict_quotient(self):

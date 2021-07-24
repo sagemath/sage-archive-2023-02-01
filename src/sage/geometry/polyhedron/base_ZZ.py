@@ -13,7 +13,7 @@ Base class for polyhedra over `\ZZ`
 # ****************************************************************************
 
 from sage.rings.all import ZZ, QQ
-from sage.misc.all import cached_method
+from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from .base_QQ import Polyhedron_QQ
 from sage.arith.all import gcd

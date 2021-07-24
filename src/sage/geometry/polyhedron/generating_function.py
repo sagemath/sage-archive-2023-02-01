@@ -43,7 +43,7 @@ def generating_function_of_integral_points(polyhedron, split=False,
                                            **kwds):
     r"""
     Return the multivariate generating function of the
-    integral points of the polyhedron.
+    integral points of the ``polyhedron``.
 
     To be precise, this returns
 
@@ -58,12 +58,17 @@ def generating_function_of_integral_points(polyhedron, split=False,
       :class:`~sage.geometry.polyhedron.base.Polyhedron_base`
       (see also :mod:`sage.geometry.polyhedron.constructor`)
 
-    - ``split`` -- (default: ``False``) a boolean
+    - ``split`` -- (default: ``False``) a boolean or list
 
-      ``False`` computes the generating
-      function directly, whereas ``True`` splits the ``polyhedron``
-      into several small disjoint polyhedra and adds the results.
-      ``split`` may also be a list of disjoint polyhedra.
+      - ``split=False`` computes the generating function directly,
+        without any splitting.
+
+      - When ``split`` is a list of disjoint polyhedra, then
+        for each of these polyhedra, ``polyhedron`` is intersected with it,
+        its generating function computed and all these generating functions
+        are summed up.
+
+      - ``split=True`` splits into `d!` disjoint polyhedra.
 
     - ``result_as_tuple`` -- (default: ``None``) a boolean or ``None``
 

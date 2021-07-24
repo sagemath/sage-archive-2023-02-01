@@ -8719,37 +8719,53 @@ class Polyhedron_base(Element):
         The following keyword arguments are passed to
         :func:`~sage.geometry.polyhedron.generating_function.generating_function_of_integral_points`:
 
-        - ``split`` -- (default: ``False``) ``False`` computes the generating
-          function directly, whereas ``True`` splits the ``polyhedron``
-          into several small disjoint polyhedra and adds the results.
-          ``split`` may also be a list of disjoint polyhedra.
+        - ``split`` -- (default: ``False``) a boolean or list
+
+          - ``split=False`` computes the generating function directly,
+            without any splitting.
+
+          - When ``split`` is a list of disjoint polyhedra, then
+            for each of these polyhedra, this polyhedron is intersected with it,
+            its generating function computed and all these generating functions
+            are summed up.
+
+          - ``split=True`` splits into `d!` disjoint polyhedra.
 
         - ``result_as_tuple`` -- (default: ``None``) a boolean or ``None``
-          specifying whether the output is a (partial) factorization
+
+          This specifies whether the output is a (partial) factorization
           (``result_as_tuple=False``) or a sum of such (partial)
           factorizations (``result_as_tuple=True``). By default
           (``result_as_tuple=None``), this is automatically determined.
           If the output is a sum, it is represented as a tuple whose
           entries are the summands.
 
-        - ``indices`` -- (default: ``None``) a list or tuple. If this
+        - ``indices`` -- (default: ``None``) a list or tuple
+
+          If this
           is ``None``, this is automatically determined.
 
-        - ``name`` -- (default: ``'y'``) a string.
+        - ``name`` -- (default: ``'y'``) a string
+
           The variable names of the Laurent polynomial ring of the output
           are this string followed by an integer.
 
-        - ``names`` -- a list or tuple of names (strings), or a comma separated string.
+        - ``names`` -- a list or tuple of names (strings), or a comma separated string
+
           ``name`` is extracted from ``names``, therefore ``names`` has to contain
           exactly one variable name, and ``name`` and``names`` cannot be specified
           both at the same time.
 
         - ``Factorization_sort`` (default: ``False``) and
-          ``Factorization_simplify`` (default: ``True``) -- are passed on to
+          ``Factorization_simplify`` (default: ``True``) -- booleans
+
+          These are passed on to
           :class:`sage.structure.factorization.Factorization` when creating
           the result.
 
-        - ``sort_factors`` -- (default: ``False``) a boolean. If set, then
+        - ``sort_factors`` -- (default: ``False``) a boolean
+
+          If set, then
           the factors of the output are sorted such that the numerator is
           first and only then all factors of the denominator. It is ensured
           that the sorting is always the same; use this for doctesting.
@@ -8758,9 +8774,15 @@ class Polyhedron_base(Element):
 
         The generating function as a (partial)
         :class:`~sage.structure.factorization.Factorization`
-        of the result whose factors are laurent polynomials.
+        of the result whose factors are Laurent polynomials
+
         The result might be a tuple of such factorizations
         (depending on the parameter ``result_as_tuple``) as well.
+
+        .. NOTE::
+
+            At the moment, only polyhedra with nonnegative coordinates
+            (i.e. a polyhedron in the nonnegative orthant) are handled.
 
         EXAMPLES::
 

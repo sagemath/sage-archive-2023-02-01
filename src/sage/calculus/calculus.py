@@ -1614,6 +1614,22 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: inverse_laplace(L, s, t)
         t*e^(a + 2*t)*sin(t)
 
+    The Laplace transform of the exponential function::
+
+        sage: laplace(exp(x), x, s)
+        1/(s - 1)
+
+    Dirac's delta distribution is handled (the output of SymPy is
+    related to a choice that has to be made when defining Laplace
+    transforms of distributions)::
+
+        sage: laplace(dirac_delta(t), t, s)
+        1
+        sage: laplace(dirac_delta(t), t, s, algorithm='sympy')
+        (-heaviside(0) + 1, -oo, True)
+        sage: laplace(dirac_delta(t), t, s, algorithm='giac')
+        1
+
     Heaviside step function can be handled with different interfaces.
     Try with Maxima::
 
@@ -1790,8 +1806,16 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         -1/3*(sqrt(3)*e^(1/2*t - 1/2)*sin(1/2*sqrt(3)*(t - 1)) - cos(1/2*sqrt(3)*(t - 1))*e^(1/2*t - 1/2) +
         e^(-t + 1))*heaviside(t - 1) + 2/3*(2*cos(1/2*sqrt(3)*(t - 2))*e^(1/2*t - 1) + e^(-t + 2))*heaviside(t - 2)
 
-    Dirac delta function can also be handled::
+        sage: inverse_laplace(1/(s - 1), s, x)
+        e^x
 
+    The inverse Laplace transform of a constant is a delta
+    distribution::
+
+        sage: inverse_laplace(1, s, t)
+        dirac_delta(t)
+        sage: inverse_laplace(1, s, t, algorithm='sympy')
+        dirac_delta(t)
         sage: inverse_laplace(1, s, t, algorithm='giac')
         dirac_delta(t)
 

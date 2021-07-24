@@ -5263,6 +5263,11 @@ REFERENCES:
             Electronic Journal of Combinatorics. **19(2)**. 2012.
             :arxiv:`1104.2359`
 
+.. [Sta1979] Richard Stanley. *Invariants of Finite Groups and their,
+            applications to combinatorics*.
+            Bulletin (New Series) of the American Mathematical Society,
+            ***1*** no.3 (1979), 457-511.
+
 .. [St1986] Richard Stanley. *Two poset polytopes*,
             Discrete Comput. Geom. (1986), :doi:`10.1007/BF02187680`
 

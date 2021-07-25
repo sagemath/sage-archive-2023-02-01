@@ -125,6 +125,8 @@ class Polyhedron_base(Element, ConvexSet_closed):
        one of``Vrep`` or ``Hrep`` to pick this in case the backend
        cannot initialize from complete double description
 
+    - ``mutable`` -- ignored
+
     If both ``Vrep`` and ``Hrep`` are provided, then
     ``Vrep_minimal`` and ``Hrep_minimal`` must be set to ``True``.
 
@@ -171,7 +173,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         sage: TestSuite(P).run()
     """
 
-    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, pref_rep=None, **kwds):
+    def __init__(self, parent, Vrep, Hrep, Vrep_minimal=None, Hrep_minimal=None, pref_rep=None, mutable=False, **kwds):
         """
         Initializes the polyhedron.
 
@@ -607,7 +609,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         """
         new_parent = self.parent().base_extend(base_ring, backend)
-        return new_parent(self)
+        return new_parent(self, copy=True)
 
     def change_ring(self, base_ring, backend=None):
         """
@@ -733,7 +735,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: P > Q
             False
          """
-        if self._Vrepresentation is None or other._Vrepresentation is None:
+        if self.Vrepresentation() is None or other.Vrepresentation() is None:
             raise RuntimeError('some V representation is missing')
             # make sure deleted polyhedra are not used in cache
 
@@ -777,6 +779,30 @@ class Polyhedron_base(Element, ConvexSet_closed):
         return all(other_H.contains(self_V)
                    for other_H in other.Hrepresentation()
                    for self_V in self.Vrepresentation())
+
+    def is_mutable(self):
+        r"""
+        Return True if the polyhedron is mutable, i.e. it can be modified in place.
+
+        EXAMPLES::
+
+            sage: p = polytopes.cube(backend='field')
+            sage: p.is_mutable()
+            False
+        """
+        return False
+
+    def is_immutable(self):
+        r"""
+        Return True if the polyhedron is immutable, i.e. it cannot be modified in place.
+
+        EXAMPLES::
+
+            sage: p = polytopes.cube(backend='field')
+            sage: p.is_immutable()
+            True
+        """
+        return True
 
     @cached_method
     def vertex_facet_graph(self, labels=True):
@@ -1706,10 +1732,10 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         EXAMPLES::
 
-            sage: p = polytopes.hypercube(3)
+            sage: p = polytopes.hypercube(3, backend='field')
             sage: p.Hrepresentation(0)
             An inequality (-1, 0, 0) x + 1 >= 0
-            sage: p.Hrepresentation(0) == p.Hrepresentation() [0]
+            sage: p.Hrepresentation(0) == p.Hrepresentation()[0]
             True
         """
         if index is None:
@@ -3992,22 +4018,22 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: R = Q.prism()
             sage: R.is_prism(certificate=True)
             (True,
-             [[A vertex at (1, 0, 0, 0),
+             [[A vertex at (1, 6, 36, 216),
+               A vertex at (1, 0, 0, 0),
+               A vertex at (1, 7, 49, 343),
+               A vertex at (1, 5, 25, 125),
                A vertex at (1, 1, 1, 1),
                A vertex at (1, 2, 4, 8),
-               A vertex at (1, 3, 9, 27),
                A vertex at (1, 4, 16, 64),
-               A vertex at (1, 5, 25, 125),
-               A vertex at (1, 6, 36, 216),
-               A vertex at (1, 7, 49, 343)],
-              [A vertex at (0, 0, 0, 0),
+               A vertex at (1, 3, 9, 27)],
+              [A vertex at (0, 3, 9, 27),
+               A vertex at (0, 6, 36, 216),
+               A vertex at (0, 0, 0, 0),
+               A vertex at (0, 7, 49, 343),
+               A vertex at (0, 5, 25, 125),
                A vertex at (0, 1, 1, 1),
                A vertex at (0, 2, 4, 8),
-               A vertex at (0, 3, 9, 27),
-               A vertex at (0, 4, 16, 64),
-               A vertex at (0, 5, 25, 125),
-               A vertex at (0, 6, 36, 216),
-               A vertex at (0, 7, 49, 343)]])
+               A vertex at (0, 4, 16, 64)]])
 
         TESTS::
 
@@ -4131,7 +4157,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: p = Polyhedron(vertices = [[0,0],[0,1],[1,0]])
             sage: p2 = p.prism()
             sage: p2.gale_transform()
-            ((-1, -1), (1, 0), (0, 1), (1, 1), (-1, 0), (0, -1))
+            ((-1, 0), (0, -1), (1, 1), (-1, -1), (1, 0), (0, 1))
 
         REFERENCES:
 
@@ -5668,7 +5694,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
         new_eqns = self.equations() + other.equations()
         parent = self.parent()
         try:
-            return parent.element_class(parent, None, [new_ieqs, new_eqns])
+            intersection = parent.element_class(parent, None, [new_ieqs, new_eqns])
+
+            # Force calculation of the vertices.
+            _ = intersection.n_vertices()
+            return intersection
         except TypeError as msg:
             if self.base_ring() is ZZ:
                 parent = parent.base_extend(QQ)
@@ -5939,7 +5969,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: hexaprism = polytopes.regular_polygon(6).prism()
             sage: hexaprism.f_vector()
             (1, 12, 18, 8, 1)
-            sage: square_face = hexaprism.faces(2)[0]
+            sage: square_face = hexaprism.faces(2)[2]
             sage: stacked_hexaprism = hexaprism.stack(square_face)
             sage: stacked_hexaprism.f_vector()
             (1, 13, 22, 11, 1)
@@ -6075,29 +6105,29 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: W2 = Q.wedge(Q.faces(2)[7]); W2
             A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 9 vertices
             sage: W2.vertices()
-            (A vertex at (0, 1, 0, 1, 0),
-             A vertex at (0, 0, 1, 1, 0),
-             A vertex at (1, 0, 0, 1, -1),
-             A vertex at (1, 0, 0, 1, 1),
-             A vertex at (1, 0, 1, 0, 1),
+            (A vertex at (1, 1, 0, 0, 1),
              A vertex at (1, 1, 0, 0, -1),
-             A vertex at (0, 1, 1, 0, 0),
+             A vertex at (1, 0, 1, 0, 1),
              A vertex at (1, 0, 1, 0, -1),
-             A vertex at (1, 1, 0, 0, 1))
+             A vertex at (1, 0, 0, 1, 1),
+             A vertex at (1, 0, 0, 1, -1),
+             A vertex at (0, 0, 1, 1, 0),
+             A vertex at (0, 1, 1, 0, 0),
+             A vertex at (0, 1, 0, 1, 0))
 
             sage: W3 = Q.wedge(Q.faces(1)[11]); W3
             A 4-dimensional polyhedron in QQ^5 defined as the convex hull of 10 vertices
             sage: W3.vertices()
-            (A vertex at (0, 1, 0, 1, 0),
-             A vertex at (0, 0, 1, 1, 0),
-             A vertex at (1, 0, 0, 1, -1),
-             A vertex at (1, 0, 0, 1, 1),
-             A vertex at (1, 0, 1, 0, 2),
-             A vertex at (0, 1, 1, 0, 1),
-             A vertex at (1, 0, 1, 0, -2),
+            (A vertex at (1, 1, 0, 0, -2),
              A vertex at (1, 1, 0, 0, 2),
-             A vertex at (0, 1, 1, 0, -1),
-             A vertex at (1, 1, 0, 0, -2))
+             A vertex at (1, 0, 1, 0, -2),
+             A vertex at (1, 0, 1, 0, 2),
+             A vertex at (1, 0, 0, 1, 1),
+             A vertex at (1, 0, 0, 1, -1),
+             A vertex at (0, 1, 0, 1, 0),
+             A vertex at (0, 1, 1, 0, 1),
+             A vertex at (0, 0, 1, 1, 0),
+             A vertex at (0, 1, 1, 0, -1))
 
             sage: C_3_7 = polytopes.cyclic_polytope(3,7)
             sage: P_6 = polytopes.regular_polygon(6)
@@ -6638,6 +6668,48 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: P = polytopes.regular_polygon(4).pyramid()
             sage: D = P.hasse_diagram(); D
             Digraph on 20 vertices
+            sage: D.degree_polynomial()
+            x^5 + x^4*y + x*y^4 + y^5 + 4*x^3*y + 8*x^2*y^2 + 4*x*y^3
+
+        Faces of an mutable polyhedron are not hashable. Hence those are not suitable as
+        vertices of the hasse diagram. Use the combinatorial polyhedron instead::
+
+            sage: P = polytopes.regular_polygon(4).pyramid()
+            sage: parent = P.parent()
+            sage: parent = parent.change_ring(QQ, backend='ppl')
+            sage: Q = parent._element_constructor_(P, mutable=True)
+            sage: Q.hasse_diagram()
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable polyhedra are unhashable
+            sage: C = Q.combinatorial_polyhedron()
+            sage: D = C.hasse_diagram()
+            sage: set(D.vertices()) == set(range(20))
+            True
+            sage: def index_to_combinatorial_face(n):
+            ....:     return C.face_by_face_lattice_index(n)
+            sage: D.relabel(index_to_combinatorial_face, inplace=True)
+            sage: D.vertices()
+            [A -1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 0-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 1-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 2-dimensional face of a 3-dimensional combinatorial polyhedron,
+             A 3-dimensional face of a 3-dimensional combinatorial polyhedron]
             sage: D.degree_polynomial()
             x^5 + x^4*y + x*y^4 + y^5 + 4*x^3*y + 8*x^2*y^2 + 4*x*y^3
         """
@@ -7819,13 +7891,25 @@ class Polyhedron_base(Element, ConvexSet_closed):
             'cdd'
         """
         assert self.is_compact(), "Not a polytope."
+        c = self.center()
 
-        new_verts = \
-            [[0] + x for x in self.Vrep_generator()] + \
-            [[1] + list(self.center())]
+        from itertools import chain
+        new_verts = chain(([0] + x for x in self.Vrep_generator()),
+                          [[1] + list(c)])
+        new_ieqs = chain(([i.b()] + [-c*i.A() - i.b()] + list(i.A()) for i in self.inequalities()),
+                         [[0, 1] + [0]*self.ambient_dim()])
+        new_eqns = ([e.b()] + [0] + list(e.A()) for e in self.equations())
 
+        pref_rep = 'Hrep' if self.n_vertices() > self.n_inequalities() else 'Vrep'
         parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
-        return parent.element_class(parent, [new_verts, [], []], None)
+
+        if self.n_vertices() == 1:
+            # Fix the polyhedron with one vertex.
+            return parent.element_class(parent, [new_verts, [], []], None)
+
+        return parent.element_class(parent, [new_verts, [], []],
+                                    [new_ieqs, new_eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
 
     def _test_pyramid(self, tester=None, **options):
         """
@@ -7875,6 +7959,18 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
             tester.assertTrue(pyr_polar.is_combinatorially_isomorphic(pyr_polar))
 
+            # Basic properties of the pyramid.
+
+            # Check that the prism preserves the backend.
+            tester.assertEqual(pyr.backend(), self.backend())
+
+            tester.assertEqual(1 + self.n_vertices(), pyr.n_vertices())
+            tester.assertEqual(self.n_equations(), pyr.n_equations())
+            tester.assertEqual(1 + self.n_inequalities(), pyr.n_inequalities())
+
+            if self.n_vertices() < 15 and self.n_facets() < 15:
+                pyr._test_basic_properties()
+
     def bipyramid(self):
         """
         Return a polyhedron that is a bipyramid over the original.
@@ -7907,15 +8003,77 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: polytopes.simplex(backend='cdd').bipyramid().backend()
             'cdd'
         """
-        new_verts = \
-            [[ 0] + list(x) for x in self.vertex_generator()] + \
-            [[ 1] + list(self.center())] + \
-            [[-1] + list(self.center())]
-        new_rays = [[0] + r for r in self.rays()]
-        new_lines = [[0] + list(l) for l in self.lines()]
+        c = self.center()
+        from itertools import chain
+        new_verts = chain(([0] + list(x) for x in self.vertex_generator()),
+                          [[1] + list(c), [-1] + list(c)])
+        new_rays =  ([0] + r for r in self.rays())
+        new_lines = ([0] + l for l in self.lines())
+        new_ieqs = chain(([i.b()] + [ c*i.A() + i.b()] + list(i.A()) for i in self.inequalities()),
+                         ([i.b()] + [-c*i.A() - i.b()] + list(i.A()) for i in self.inequalities()))
+        new_eqns = ([e.b()] + [0] + list(e.A()) for e in self.equations())
 
+        pref_rep = 'Hrep' if 2 + (self.n_vertices() + self.n_rays()) >= 2*self.n_inequalities() else 'Vrep'
         parent = self.parent().base_extend(self.center().parent(), ambient_dim=self.ambient_dim()+1)
-        return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
+
+        if c not in self.relative_interior():
+            # Fix polyhedra with non-proper center.
+            return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
+
+        return parent.element_class(parent, [new_verts, new_rays, new_lines],
+                                    [new_ieqs, new_eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
+
+    def _test_bipyramid(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.bipyramid`.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_bipyramid()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        if (self.n_vertices() + self.n_rays() >= 40
+                or self.n_facets() >= 40
+                or self.n_vertices() <= 1):
+            return
+
+        bipyramid = self.bipyramid()
+
+        # Check that the double description is set up correctly.
+        if self.base_ring().is_exact() and self.n_vertices() + self.n_rays() < 15 and self.n_facets() < 15:
+            bipyramid._test_basic_properties(tester)
+
+        # Check that the bipyramid preserves the backend.
+        tester.assertEqual(bipyramid.backend(), self.backend())
+
+        if self.center() not in self.relative_interior():
+            # In this case (unbounded) the bipyramid behaves a bit different.
+            return
+
+        tester.assertEqual(2 + self.n_vertices(), bipyramid.n_vertices())
+        tester.assertEqual(self.n_rays(), bipyramid.n_rays())
+        tester.assertEqual(self.n_lines(), bipyramid.n_lines())
+        tester.assertEqual(self.n_equations(), bipyramid.n_equations())
+        tester.assertEqual(2*self.n_inequalities(), bipyramid.n_inequalities())
+
+        if not self.is_compact():
+            # ``is_bipyramid`` is only implemented for compact polyhedra.
+            return
+
+        b, cert = bipyramid.is_bipyramid(certificate=True)
+        tester.assertTrue(b)
+
+        if not self.is_bipyramid() and self.base_ring().is_exact():
+            # In this case the certificate is unique.
+
+            R = self.base_ring()
+            a = (R(1),) + tuple(self.center())
+            b = (R(-1),) + tuple(self.center())
+            c, d = [tuple(v) for v in cert]
+            tester.assertEqual(sorted([a, b]), sorted([c, d]))
 
     def prism(self):
         """
@@ -7936,14 +8094,72 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: polytopes.simplex(backend='cdd').prism().backend()
             'cdd'
         """
-        new_verts = []
-        new_verts.extend( [ [0] + v for v in self.vertices()] )
-        new_verts.extend( [ [1] + v for v in self.vertices()] )
-        new_rays =        [ [0] + r for r in self.rays()]
-        new_lines =       [ [0] + l for l in self.lines()]
+        from itertools import chain
+        new_verts = chain(([0] + v for v in self.vertices()),
+                          ([1] + v for v in self.vertices()))
+        new_rays =  ([0] + r for r in self.rays())
+        new_lines = ([0] + l for l in self.lines())
+        new_eqns = ([e.b()] + [0] + list(e[1:]) for e in self.equations())
+        new_ieqs = chain(([i.b()] + [0] + list(i[1:]) for i in self.inequalities()),
+                         [[0, 1] + [0]*self.ambient_dim(), [1, -1] + [0]*self.ambient_dim()])
 
+        pref_rep = 'Hrep' if 2*(self.n_vertices() + self.n_rays()) >= self.n_inequalities() + 2 else 'Vrep'
         parent = self.parent().change_ring(self.base_ring(), ambient_dim=self.ambient_dim()+1)
-        return parent.element_class(parent, [new_verts, new_rays, new_lines], None)
+
+        if not self.vertices():
+            # Fix the empty polyhedron.
+            return parent.element_class(parent, [[], [], []], None)
+
+        return parent.element_class(parent, [new_verts, new_rays, new_lines],
+                                    [new_ieqs, new_eqns],
+                                    Vrep_minimal=True, Hrep_minimal=True, pref_rep=pref_rep)
+
+    def _test_prism(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.prism`.
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3)._test_prism()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        if self.n_vertices() + self.n_rays() < 40 and self.n_facets() < 40:
+            prism = self.prism()
+
+            # Check that the double description is set up correctly.
+            if self.base_ring().is_exact() and self.n_vertices() + self.n_rays() < 15 and self.n_facets() < 15:
+                prism._test_basic_properties(tester)
+
+            # Check that the prism preserves the backend.
+            tester.assertEqual(prism.backend(), self.backend())
+
+            tester.assertEqual(2*self.n_vertices(), prism.n_vertices())
+            tester.assertEqual(self.n_rays(), prism.n_rays())
+            tester.assertEqual(self.n_lines(), prism.n_lines())
+            tester.assertEqual(self.n_equations(), prism.n_equations())
+            if self.is_empty():
+                return
+
+            tester.assertEqual(2 + self.n_inequalities(), prism.n_inequalities())
+
+            if not self.is_compact():
+                # ``is_prism`` only implemented for compact polyhedra.
+                return
+
+            b, cert = prism.is_prism(certificate=True)
+            tester.assertTrue(b)
+
+            if not self.is_prism() and self.base_ring().is_exact():
+                # In this case the certificate is unique.
+
+                R = self.base_ring()
+                cert_set = set(frozenset(tuple(v) for v in f) for f in cert)
+                expected_cert = set(frozenset((i,) + tuple(v)
+                                              for v in self.vertices())
+                                    for i in (R(0), R(1)))
+                tester.assertEqual(cert_set, expected_cert)
 
     def one_point_suspension(self, vertex):
         """
@@ -8909,11 +9125,22 @@ class Polyhedron_base(Element, ConvexSet_closed):
             True
             sage: full.contains([0])
             False
+
+        TESTS:
+
+        Passing non-iterable objects does not cause an exception, see :trac:`32013`::
+
+            sage: None in Polyhedron(vertices=[(0,0)], rays=[(1,0)], base_ring=QQ)
+            False
         """
         try:
             p = vector(point)
         except TypeError:  # point not iterable or no common ring for elements
-            if len(point) > 0:
+            try:
+                l = len(point)
+            except TypeError:
+                return False
+            if l > 0:
                 return False
             else:
                 p = vector(self.base_ring(), [])
@@ -9012,7 +9239,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
         try:
             p = vector(point)
         except TypeError:  # point not iterable or no common ring for elements
-            if len(point) > 0:
+            try:
+                l = len(point)
+            except TypeError:
+                return False
+            if l > 0:
                 return False
             else:
                 p = vector(self.base_ring(), [])
@@ -9129,7 +9360,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
         try:
             p = vector(point)
         except TypeError:  # point not iterable or no common ring for elements
-            if len(point) > 0:
+            try:
+                l = len(point)
+            except TypeError:
+                return False
+            if l > 0:
                 return False
             else:
                 p = vector(self.base_ring(), [])
@@ -10508,7 +10743,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         if self.n_vertices():
             tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center()))
 
-        if self.n_vertices() < 20 and self.n_facets() < 20:
+        if self.n_vertices() < 20 and self.n_facets() < 20 and self.is_immutable():
             tester.assertTrue(self.is_combinatorially_isomorphic(ZZ(4)*self, algorithm='face_lattice'))
             if self.n_vertices():
                 tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))

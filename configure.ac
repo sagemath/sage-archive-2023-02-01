@@ -428,6 +428,14 @@ AS_IF([test "x$enable_download_from_upstream_url" = "xyes"], [
 ])
 AC_SUBST([SAGE_SPKG_OPTIONS])
 
+AC_ARG_ENABLE([cvxopt],
+  AS_HELP_STRING([--disable-cvxopt],
+                 [disable build of the cvxopt package and its prerequisite suitesparse]), [
+    for pkg in cvxopt suitesparse; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
+
 AC_ARG_ENABLE([notebook],
   AS_HELP_STRING([--disable-notebook],
                  [disable build of the Jupyter notebook and related packages]), [

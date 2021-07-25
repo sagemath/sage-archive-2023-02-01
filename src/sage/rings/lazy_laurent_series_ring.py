@@ -210,6 +210,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         Construct a Laurent series from ``x``.
 
+        INPUT:
+
+        - ``x`` -- a Laurent series, a Laurent polynomial, a Python function, or a list of elements in the base ring
+
+        - ``valuation`` -- an integer or ``None`` (default: ``None``), the approximate valuation of the series
+
+        - ``constant`` -- either ``None`` (default: ``None``) or pair of an element of the base ring and an integer
+
         EXAMPLES::
 
             sage: L = LazyLaurentSeriesRing(GF(2), 'z')
@@ -253,8 +261,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ...
             ValueError: you must specify the degree for the polynomial 0
 
-        Alternatively, the ``coefficient_function`` can be a list of elements of the
-        base ring. Then these elements are read as coefficients of the terms of
+        Alternatively, ``x`` can be a list of elements of the base ring.
+        Then these elements are read as coefficients of the terms of
         degrees starting from the ``valuation``. In this case, ``constant``
         may be just an element of the base ring instead of a tuple or can be
         simply omitted if it is zero::
@@ -265,6 +273,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g = L([1,3,5,7,9], 5, -1)
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
+
+        TODO::
+
+            Add a method to make a copy of self._sparse.
         """
         if x is None:
             if valuation is None:

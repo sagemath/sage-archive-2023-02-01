@@ -2077,7 +2077,7 @@ def _plot(funcs, xrange, parametric=False,
     plot properly (:trac:`13246`)::
 
         sage: parametric_plot((x, arcsec(x)), (x, -2, 2))
-        Graphics object consisting of 2 graphics primitives
+        Graphics object consisting of 1 graphics primitive
 
     Verify that :trac:`31089` is fixed::
 

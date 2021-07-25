@@ -166,3 +166,6 @@ from .asymptotic.all import *
 
 # Register classes in numbers abc
 from . import numbers_abc
+
+# Rings of modular forms
+from .find_generators import ModularFormsRing

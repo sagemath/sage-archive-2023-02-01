@@ -26,17 +26,14 @@ from sage.misc.all import prod
 from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
-from .constructor                 import ModularForms
-from .element import is_ModularFormElement, GradedModularFormElement
-from .space import is_ModularFormsSpace
+from sage.modular.modform.constructor                 import ModularForms
+from sage.modular.modform.element import is_ModularFormElement, GradedModularFormElement
+from sage.modular.modform.space import is_ModularFormsSpace
 from random import shuffle
 
 from sage.structure.parent import Parent
 
 from sage.categories.graded_algebras import GradedAlgebras
-
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.find_generators', 'ModularFormsRing', deprecation=31559)
 
 def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=False):
     r"""
@@ -137,7 +134,7 @@ def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=Fals
         verbose('span has dimension %s' % W.rank(), t)
         return W
 
-def find_generators(*args):
+def find_generators(*args): #sage: from sage.modular.modform.find_generators import find_generators
     r"""
     This function, which existed in earlier versions of Sage, has now been
     replaced by the :meth:`~ModularFormsRing.generators` method of
@@ -145,7 +142,7 @@ def find_generators(*args):
 
     EXAMPLES::
 
-        sage: from sage.modular.modform.find_generators import find_generators
+        sage: from sage.rings.find_generators import find_generators
         sage: find_generators()
         Traceback (most recent call last):
         ...
@@ -153,7 +150,7 @@ def find_generators(*args):
     """
     raise NotImplementedError("find_generators has been removed -- use ModularFormsRing.generators()")
 
-def basis_for_modform_space(*args):
+def basis_for_modform_space(*args): # sage: from sage.modular.modform.find_generators import basis_for_modform_space
     r"""
     This function, which existed in earlier versions of Sage, has now been
     replaced by the :meth:`~ModularFormsRing.q_expansion_basis` method of
@@ -161,7 +158,7 @@ def basis_for_modform_space(*args):
 
     EXAMPLES::
 
-        sage: from sage.modular.modform.find_generators import basis_for_modform_space
+        sage: from sage.rings.find_generators import basis_for_modform_space
         sage: basis_for_modform_space()
         Traceback (most recent call last):
         ...

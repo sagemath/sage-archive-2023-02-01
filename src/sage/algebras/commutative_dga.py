@@ -864,18 +864,18 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
       1, and if both ``names`` and ``degrees`` are omitted, an error is
       raised.
 
+    - ``max_degree`` -- (optional, default None) the maximal degree of the
+      graded algebra. If omitted, no maximal degree is assumed. Otherwise an
+      instance of
+      :class:`sage.algebras.commutative_graded_algebra_finite.FiniteCommutativeGradedAlgebra`
+      is created.
+
     - ``R`` (optional, default None) -- the ring over which the
       algebra is defined: if this is specified, the algebra is defined
       to be ``R/I``.
 
     - ``I`` (optional, default None) -- an ideal in ``R``. It should include,
       among other relations, the squares of the generators of odd degree
-
-    - ``max_degree`` -- (optional, default None) the maximal degree of the
-      graded algebra. If omitted, no maximal degree is assumed. Otherwise an
-      instance of
-      :class:`sage.algebras.commutative_graded_algebra_finite.FiniteCommutativeGradedAlgebra`
-      is created.
 
     As described in the module-level documentation, these are graded
     algebras for which oddly graded elements anticommute and evenly
@@ -906,7 +906,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
     """
     # TODO: This should be a __classcall_private__?
     @staticmethod
-    def __classcall__(cls, base, names=None, degrees=None, R=None, I=None, category=None, max_degree=None):
+    def __classcall__(cls, base, names=None, degrees=None, max_degree=None, R=None, I=None, category=None):
         r"""
         Normalize the input for the :meth:`__init__` method and the
         unique representation.
@@ -920,13 +920,14 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         - ``degrees`` -- the degrees of the generators; by default, set to 1
 
+        - ``max_degree`` -- set the maximal degree; if omitted, no maximal
+          degree is assumed
+
         - ``R`` -- an underlying `g`-algebra; only meant to be used by the
           quotient method
 
         - ``I`` -- a two-sided ideal in ``R``, with the desired relations;
           Only meant to be used by the quotient method
-
-        - ``max_degree`` -- set the maximal degree
 
         TESTS::
 

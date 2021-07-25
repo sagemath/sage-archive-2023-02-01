@@ -90,6 +90,7 @@ from .lazy_laurent_series import (
 
 from sage.data_structures.coefficient_stream import LazyLaurentSeries_zero
 
+
 class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     """
     Lazy Laurent series ring.

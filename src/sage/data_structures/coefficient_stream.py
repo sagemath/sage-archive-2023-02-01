@@ -1,15 +1,29 @@
+r"""
+Coefficient Stream
+
+This module provides lazy class implementations of basic operators
+on coefficient streams. The classes implemented in this module
+can be used to build up more complex streams for different kinds of
+series (Laurent, Dirichlet, etc).
+"""
+
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 
 
 class CoefficientStream():
     """
-    Abstract base class for all auxillary LazyLaurentSeries.
+    Abstract base class for all streams.
+
+    INPUT:
+
+    - ``sparse`` -- boolean; whether the implementation of the series is sparse
+    - ``approximate_valuation`` -- the approximate valuation of the series
     """
 
     def __init__(self, sparse, approximate_valuation):
         """
-        Initialize the auxillary class for a LazyLaurentSeries.
+        Initialize the auxillary class for any series.
         """
         self._is_sparse = sparse
         self._approximate_valuation = approximate_valuation
@@ -17,13 +31,14 @@ class CoefficientStream():
 
 class LazyLaurentSeries_inexact(CoefficientStream):
     """
-    LazyLaurentSeries aux class when it is not or we do not know if it is
+    LazyLaurentSeries stream class when it is not or we do not know if it is
     eventually geometric.
     """
 
     def __init__(self, is_sparse, approximate_valuation):
         """
-        Initialize the auxillary class for a LazyLaurentSeries when it is not or it cannot be determined if it is eventually geometric.
+        Initialize the stream class for a LazyLaurentSeries when it is not 
+        or it cannot be determined if it is eventually geometric.
         """
         super().__init__(is_sparse, approximate_valuation)
 

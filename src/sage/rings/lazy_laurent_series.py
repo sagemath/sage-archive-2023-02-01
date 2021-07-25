@@ -79,7 +79,7 @@ from .integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.rings.coefficient_stream import (
+from sage.data_structures.coefficient_stream import (
     CoefficientStream_add,
     CoefficientStream_mul,
     CoefficientStream_sub,
@@ -565,7 +565,7 @@ class LazyLaurentSeries(ModuleElement):
             sage: X = A - B; X
             0
             sage: type(X._coeff_stream)
-            <class 'sage.rings.coefficient_stream.LazyLaurentSeries_zero'>
+            <class 'sage.data_structures.coefficient_stream.LazyLaurentSeries_zero'>
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M

@@ -84,11 +84,11 @@ from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing,
 from .lazy_laurent_series import (
     LazyLaurentSeries,
     LazyLaurentSeries_coefficient_function,
-    LazyLaurentSeries_zero,
     LazyLaurentSeries_eventually_geometric,
     LazyLaurentSeries_uninitialized
 )
 
+from sage.data_structures.coefficient_stream import LazyLaurentSeries_zero
 
 class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     """

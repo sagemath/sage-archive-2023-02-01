@@ -1,5 +1,5 @@
-from .integer_ring import ZZ
-from .infinity import infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.infinity import infinity
 
 class CoefficientStream():
     """

@@ -25,13 +25,95 @@ from sage.rings.ring import Algebra
 
 class FiniteCommutativeGradedAlgebra(CombinatorialFreeModule, Algebra):
     r"""
+    Finitely generated commutative graded algebras with finite degree.
+
+    INPUT:
+
+    - ``base`` -- the base field
+    - ``max_degree`` -- the maximal degree of the graded algebra. For
+      commutative graded algebras without maximal grading, use
+      :class:`sage.algebras.commutative_dga.GCAlgebra` instead.
+    - ``names`` -- (optional) names of the generators: a list of
+      strings or a single string with the names separated by
+      commas. If not specified, the generators are named "x0", "x1",...
+    - ``degrees`` -- (optional) a tuple or list specifying the degrees
+      of the generators; if omitted, each generator is given degree
+      1, and if both ``names`` and ``degrees`` are omitted, an error is
+      raised.
+
+    EXAMPLES::
+
+        sage: A.<p1,p2> = GradedCommutativeAlgebra(QQ, degrees=(4,8), max_degree=10)
+        sage: A
+        Graded commutative algebra with generators ('p1', 'p2') in degrees
+         (4, 8) with maximal finite degree 10
+        sage: p1*p2
+        0
 
     """
 
     Element = CombinatorialFreeModule.Element
 
-    def __init__(self, base_ring, degrees, max_deg, names=None):
+    @staticmethod
+    def __classcall__(cls, base, max_degree, names=None, degrees=None,
+                      category=None):
         r"""
+        Normalize the input for the :meth:`__init__` method and the
+        unique representation.
+
+        INPUT:
+
+        - ``base`` -- the base ring of the algebra
+        - ``max_degree`` -- the maximal degree of the algebra
+        - ``names`` -- the names of the variables; by default, set to ``x1``,
+          ``x2``, etc.
+        - ``degrees`` -- the degrees of the generators; by default, set to 1
+
+        TESTS::
+
+            sage: A1 = GradedCommutativeAlgebra(GF(2), 'x,y', (3, 6), max_degree=12)
+            sage: A2 = GradedCommutativeAlgebra(GF(2), ['x', 'y'], [3, 6], max_degree=12)
+            sage: A1 is A2
+            True
+
+        """
+        if names is None:
+            if degrees is None:
+                raise ValueError("You must specify names or degrees")
+            else:
+                n = len(degrees)
+            names = tuple('x{}'.format(i) for i in range(n))
+        elif isinstance(names, str):
+            names = tuple(names.split(','))
+            n = len(names)
+        else:
+            n = len(names)
+            names = tuple(names)
+        if degrees is None:
+            degrees = tuple([1 for i in range(n)])
+        else:
+            degrees = tuple(degrees)
+        if max_degree < max(degrees):
+            raise ValueError(f'max_degree must not deceed {max(degrees)}')
+
+        return super(FiniteCommutativeGradedAlgebra, cls).__classcall__(cls,
+                                                   base=base, names=names,
+                                                   degrees=degrees,
+                                                   max_degree=max_degree,
+                                                   category=category)
+
+    def __init__(self, base, max_degree, names, degrees, category=None):
+        r"""
+        Construct a commutative graded algebra with finite degree.
+
+        TESTS::
+
+            sage: A.<x,y,z,t> = GradedCommutativeAlgebra(QQ, max_degree=6)
+            sage: TestSuite(A).run()
+            sage: A = GradedCommutativeAlgebra(QQ, ('x','y','z'), [2,3,4], max_degree=8)
+            sage: TestSuite(A).run()
+            sage: A = GradedCommutativeAlgebra(QQ, ('x','y','z','t'), [1,2,3,4], max_degree=10)
+            sage: TestSuite(A).run()
 
         """
         from sage.arith.misc import gcd
@@ -39,16 +121,17 @@ class FiniteCommutativeGradedAlgebra(CombinatorialFreeModule, Algebra):
         self._names = names
         self.__ngens = len(self._names)
         self._degrees = degrees
-        self._max_deg = max_deg
+        self._max_deg = max_degree
         self._weighted_vectors = WeightedIntegerVectors(degrees)
         step = gcd(degrees)
         indices = [w for k in range(0, self._max_deg + 1, step)
                    for w in WeightedIntegerVectors(k, degrees)]
         sorting_key = self._weighted_vectors.grading
-        cat = Algebras(base_ring).WithBasis().Graded().FiniteDimensional()
-        CombinatorialFreeModule.__init__(self, base_ring, indices,
+        if category is None:
+            category = Algebras(base).WithBasis().Graded().FiniteDimensional()
+        CombinatorialFreeModule.__init__(self, base, indices,
                                          sorting_key=sorting_key,
-                                         category=cat)
+                                         category=category)
 
     def _repr_(self):
         """
@@ -121,7 +204,7 @@ class FiniteCommutativeGradedAlgebra(CombinatorialFreeModule, Algebra):
             elif w[i] == 1:
                 res += self._names[i]
             else:
-                res += self._names[i] + '^{{{}}}'.format(w[i])
+                res += self._names[i] + f'^{{w[i]}}'
         return res
 
     def algebra_generators(self):

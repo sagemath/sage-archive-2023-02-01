@@ -23,7 +23,7 @@ from sage.misc.cachefunc import cached_method
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.rings.ring import Algebra
 
-class FiniteCommutativeGradedAlgebra(CombinatorialFreeModule, Algebra):
+class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
     r"""
     Finitely generated commutative graded algebras with finite degree.
 
@@ -96,11 +96,10 @@ class FiniteCommutativeGradedAlgebra(CombinatorialFreeModule, Algebra):
         if max_degree < max(degrees):
             raise ValueError(f'max_degree must not deceed {max(degrees)}')
 
-        return super(FiniteCommutativeGradedAlgebra, cls).__classcall__(cls,
-                                                   base=base, names=names,
-                                                   degrees=degrees,
-                                                   max_degree=max_degree,
-                                                   category=category)
+        return super(FiniteGCAlgebra, cls).__classcall__(cls, base=base,
+                                                  names=names, degrees=degrees,
+                                                  max_degree=max_degree,
+                                                  category=category)
 
     def __init__(self, base, max_degree, names, degrees, category=None):
         r"""
@@ -151,7 +150,26 @@ class FiniteCommutativeGradedAlgebra(CombinatorialFreeModule, Algebra):
     @cached_method
     def product_on_basis(self, w1, w2):
         r"""
-        Return the product of two basis vectors.
+        Return the product of two indices within the algebra.
+
+        EXAMPLES::
+
+            sage: A.<p1,p2,e> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
+            sage: e*p1
+            e*p1
+            sage: p1^3
+            0
+            sage: 5*e + 4*e*p1
+            5*e + 4*e*p1
+
+        TESTS::
+
+            sage: A.<p1,p2,e> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
+            sage: weighted_vectors = A._weighted_vectors
+            sage: w1 = A._weighted_vectors([1,0,1])
+            sage: w2 = A._weighted_vectors([0,0,0])
+            sage: A.product_on_basis(w1, w2)
+            e*p1
 
         """
         # TODO: Add graded-commutativity (-1)^(d_1 d_2)
@@ -166,7 +184,27 @@ class FiniteCommutativeGradedAlgebra(CombinatorialFreeModule, Algebra):
 
     def degree_on_basis(self, i):
         r"""
-        Return the degree of the a homogeneous element with index `i`.
+        Return the degree of a homogeneous element with index `i`.
+
+        EXAMPLES::
+
+            sage: A.<c1,c2,c3> = GradedCommutativeAlgebra(QQ, degrees=(2,4,6), max_degree=7)
+            sage: c1.degree()
+            2
+            sage: (2*c1*c2).degree()
+            6
+            sage: (c1+c2).degree()
+            Traceback (most recent call last):
+            ...
+            ValueError: element is not homogeneous
+
+        TESTS::
+
+            sage: A.<c1,c2,c3> = GradedCommutativeAlgebra(QQ, degrees=(2,4,6), max_degree=7)
+            sage: weighted_vectors = A._weighted_vectors
+            sage: i = A._weighted_vectors([1,1,0])
+            sage: A.degree_on_basis(i)
+            6
 
         """
         return self._weighted_vectors.grading(i)
@@ -186,7 +224,7 @@ class FiniteCommutativeGradedAlgebra(CombinatorialFreeModule, Algebra):
             elif w[i] == 1:
                 res += self._names[i] + '*'
             else:
-                res += self._names[i] + '^{{{}}}'.format(w[i]) + '*'
+                res += self._names[i] + f'^{w[i]}*'
         return res[:-1]
 
     def _latex_term(self, w):

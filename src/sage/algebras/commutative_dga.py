@@ -3272,7 +3272,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
     - ``max_degree`` -- the maximal degree of the graded algebra. If omitted,
       no maximal degree is assumed and an instance of :class:`GCAlgebra` is
       returned. Otherwise, an instance of
-      :class:`sage.algebras.commutative_graded_algebra_finite.FiniteCommutativeGradedAlgebra`
+      :class:`sage.algebras.commutative_graded_algebra_finite.FiniteGCAlgebra`
       is created.
 
     Once such an algebra has been defined, one can use its associated
@@ -3432,10 +3432,9 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
         ValueError: You must specify names or degrees
     """
     if max_degree:
-        from .commutative_graded_algebra_finite import FiniteCommutativeGradedAlgebra
-        return FiniteCommutativeGradedAlgebra(ring, names=names,
-                                              degrees=degrees,
-                                              max_degree=max_degree)
+        from .commutative_graded_algebra_finite import FiniteGCAlgebra
+        return FiniteGCAlgebra(ring, names=names, degrees=degrees,
+                               max_degree=max_degree)
     multi = False
     if degrees:
         try:

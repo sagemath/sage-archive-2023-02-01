@@ -162,6 +162,16 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
             sage: 5*e + 4*e*p1
             5*e + 4*e*p1
 
+        ::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=5)
+            sage: 2*x*y
+            2*y*x
+            sage: x^2
+            0
+            sage: x*z
+            -z*x
+
         TESTS::
 
             sage: A.<p1,p2,e> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
@@ -171,16 +181,25 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
             sage: A.product_on_basis(w1, w2)
             e*p1
 
+        ::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=5)
+            sage: weighted_vectors = A._weighted_vectors
+            sage: w1 = A._weighted_vectors([0,0,1])
+            sage: w2 = A._weighted_vectors([1,0,0])
+            sage: A.product_on_basis(w1, w2)
+            -z*x
+
         """
-        # TODO: Add graded-commutativity (-1)^(d_1 d_2)
         grading = self._weighted_vectors.grading
         deg_left = grading(w1)
         deg_right = grading(w2)
         deg_tot = deg_left + deg_right
-        if deg_tot > self._max_deg:
+        if (deg_tot > self._max_deg) or (w1 == w2 and deg_left % 2 != 0):
             return self.zero()
         w_tot = self._weighted_vectors([sum(w) for w in zip(w1, w2)])
-        return self.basis()[w_tot]
+        sign = (-1)**(deg_left*deg_right)
+        return sign * self.basis()[w_tot]
 
     def degree_on_basis(self, i):
         r"""

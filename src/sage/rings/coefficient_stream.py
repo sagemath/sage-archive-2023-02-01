@@ -1,7 +1,7 @@
 from .integer_ring import ZZ
 from .infinity import infinity
 
-class LazyLaurentSeries_aux():
+class CoefficientStream():
     """
     Abstract base class for all auxillary LazyLaurentSeries.
     """
@@ -14,7 +14,7 @@ class LazyLaurentSeries_aux():
         self._approximate_valuation = approximate_valuation
 
 
-class LazyLaurentSeries_inexact(LazyLaurentSeries_aux):
+class LazyLaurentSeries_inexact(CoefficientStream):
     """
     LazyLaurentSeries aux class when it is not or we do not know if it is
     eventually geometric.
@@ -242,7 +242,7 @@ class LazyLaurentSeries_binary_commutative(LazyLaurentSeries_binary):
         return False
 
 
-class LazyLaurentSeries_zero(LazyLaurentSeries_aux):
+class LazyLaurentSeries_zero(CoefficientStream):
     def __init__(self, sparse):
         """
         Initialise a lazy Laurent series which is known to be zero.
@@ -271,7 +271,7 @@ class LazyLaurentSeries_zero(LazyLaurentSeries_aux):
 # Binary operations
 
 
-class LLS_add(LazyLaurentSeries_binary):
+class CoefficientStream_add(LazyLaurentSeries_binary):
     """
     Operator for addition.
     """
@@ -302,7 +302,7 @@ class LLS_add(LazyLaurentSeries_binary):
             n += 1
 
 
-class LLS_sub(LazyLaurentSeries_binary):
+class CoefficientStream_sub(LazyLaurentSeries_binary):
     """
     Operator for subtraction.
     """
@@ -333,7 +333,7 @@ class LLS_sub(LazyLaurentSeries_binary):
             n += 1
 
 
-class LLS_mul(LazyLaurentSeries_binary):
+class CoefficientStream_mul(LazyLaurentSeries_binary):
     """
     Operator for multiplication.
 
@@ -378,7 +378,7 @@ class LLS_mul(LazyLaurentSeries_binary):
             n += 1
 
 
-class LLS_div(LazyLaurentSeries_binary):
+class CoefficientStream_div(LazyLaurentSeries_binary):
     """
     Return ``left`` divided by ``right``.
     """
@@ -426,7 +426,7 @@ class LLS_div(LazyLaurentSeries_binary):
             n += 1
 
 
-class LLS_composition(LazyLaurentSeries_binary):
+class CoefficientStream_composition(LazyLaurentSeries_binary):
     r"""
     Return ``f`` composed by ``g``.
 
@@ -434,8 +434,8 @@ class LLS_composition(LazyLaurentSeries_binary):
 
     INPUT:
 
-    - ``f`` -- a :class:`LazyLaurentSeries_aux`
-    - ``g`` -- a :class:`LazyLaurentSeries_aux` with positive valuation
+    - ``f`` -- a :class:`CoefficientStream`
+    - ``g`` -- a :class:`CoefficientStream` with positive valuation
     """
 
     def __init__(self, f, g):
@@ -446,12 +446,12 @@ class LLS_composition(LazyLaurentSeries_binary):
         self._fv = f._approximate_valuation
         self._gv = g._approximate_valuation
         if self._fv < 0:
-            ginv = LLS_inv(g)
+            ginv = CoefficientStream_inv(g)
             # the constant part makes no contribution to the negative
             # we need this for the case so self._neg_powers[0][n] => 0
             self._neg_powers = [LazyLaurentSeries_zero(f._is_sparse), ginv]
             for i in range(1, -self._fv):
-                self._neg_powers.append(LLS_mul(self._neg_powers[-1], ginv))
+                self._neg_powers.append(CoefficientStream_mul(self._neg_powers[-1], ginv))
         # Placeholder None to make this 1-based
         self._pos_powers = [None, g]
         val = self._fv * self._gv
@@ -465,7 +465,7 @@ class LLS_composition(LazyLaurentSeries_binary):
             return sum(self._left[i] * self._neg_powers[-i][n] for i in range(self._fv, n // self._gv + 1))
         # n > 0
         while len(self._pos_powers) <= n // self._gv:
-            self._pos_powers.append(LLS_mul(self._pos_powers[-1], self._right))
+            self._pos_powers.append(CoefficientStream_mul(self._pos_powers[-1], self._right))
         ret = sum(self._left[i] * self._neg_powers[-i][n] for i in range(self._fv, 0))
         if n == 0:
             ret += self._left[0]
@@ -484,7 +484,7 @@ class LLS_composition(LazyLaurentSeries_binary):
 # Unary operations
 
 
-class LLS_scalar(LazyLaurentSeries_unary):
+class CoefficientStream_scalar(LazyLaurentSeries_unary):
     """
     Operator for multiplying with a scalar.
     """
@@ -513,7 +513,7 @@ class LLS_scalar(LazyLaurentSeries_unary):
             n += 1
 
 
-class LLS_neg(LazyLaurentSeries_unary):
+class CoefficientStream_neg(LazyLaurentSeries_unary):
     """
     Operator for negative of the series.
     """
@@ -540,7 +540,7 @@ class LLS_neg(LazyLaurentSeries_unary):
             n += 1
 
 
-class LLS_inv(LazyLaurentSeries_unary):
+class CoefficientStream_inv(LazyLaurentSeries_unary):
     """
     Operator for multiplicative inverse of the series.
     """
@@ -585,7 +585,7 @@ class LLS_inv(LazyLaurentSeries_unary):
             n += 1
 
 
-class LLS_apply_coeff(LazyLaurentSeries_unary):
+class CoefficientStream_apply_coeff(LazyLaurentSeries_unary):
     """
     Return the series with ``function`` applied to each coefficient of this series.
     """

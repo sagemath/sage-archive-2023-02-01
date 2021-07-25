@@ -42,9 +42,9 @@ Power series can be defined recursively::
     sage: L._sparse
     True
     sage: s = L(None)
-    sage: s._aux._is_sparse
+    sage: s._coeff_stream._is_sparse
     True
-    sage: s._aux._approximate_valuation
+    sage: s._coeff_stream._approximate_valuation
     0
     sage: s.define(1 + z*s^2)
     sage: s
@@ -150,8 +150,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if n != 0:
             raise IndexError("there is only one generator")
         R = self._laurent_poly_ring
-        aux = LazyLaurentSeries_eventually_geometric(R.gen(n), self._sparse, ZZ.zero(), 2)
-        return self.element_class(self, aux)
+        coeff_stream = LazyLaurentSeries_eventually_geometric(R.gen(n), self._sparse, ZZ.zero(), 2)
+        return self.element_class(self, coeff_stream)
 
     def ngens(self):
         """
@@ -283,17 +283,17 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             constant = BR(constant)
         if x in R:
             if not x and not constant:
-                aux = LazyLaurentSeries_zero(self._sparse)
+                coeff_stream = LazyLaurentSeries_zero(self._sparse)
             else:
                 if x and valuation:
                     x = x.shift(valuation - x.valuation())
                 if degree is None and not x:
                     degree = valuation
-                aux = LazyLaurentSeries_eventually_geometric(R(x), self._sparse, constant, degree)
-            return self.element_class(self, aux)
+                coeff_stream = LazyLaurentSeries_eventually_geometric(R(x), self._sparse, constant, degree)
+            return self.element_class(self, coeff_stream)
         if isinstance(x, LazyLaurentSeries):
-            if x._aux._is_sparse is self._sparse:
-                return self.element_class(self, x._aux)
+            if x._coeff_stream._is_sparse is self._sparse:
+                return self.element_class(self, x._coeff_stream)
             # TODO: Implement a way to make a self._sparse copy
             raise NotImplementedError("cannot convert between sparse and dense")
         if callable(x):

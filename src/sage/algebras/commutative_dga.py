@@ -868,9 +868,14 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
       algebra is defined: if this is specified, the algebra is defined
       to be ``R/I``.
 
-    - ``I`` (optional, default None) -- an ideal in ``R``. It is
-      should include, among other relations, the squares of the
-      generators of odd degree
+    - ``I`` (optional, default None) -- an ideal in ``R``. It should include,
+      among other relations, the squares of the generators of odd degree
+
+    - ``max_degree`` -- (optional, default None) the maximal degree of the
+      graded algebra. If omitted, no maximal degree is assumed. Otherwise an
+      instance of
+      :class:`sage.algebras.commutative_graded_algebra_finite.FiniteCommutativeGradedAlgebra`
+      is created.
 
     As described in the module-level documentation, these are graded
     algebras for which oddly graded elements anticommute and evenly
@@ -901,7 +906,7 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
     """
     # TODO: This should be a __classcall_private__?
     @staticmethod
-    def __classcall__(cls, base, names=None, degrees=None, R=None, I=None, category=None):
+    def __classcall__(cls, base, names=None, degrees=None, R=None, I=None, category=None, max_degree=None):
         r"""
         Normalize the input for the :meth:`__init__` method and the
         unique representation.
@@ -920,6 +925,8 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
 
         - ``I`` -- a two-sided ideal in ``R``, with the desired relations;
           Only meant to be used by the quotient method
+
+        - ``max_degree`` -- set the maximal degree
 
         TESTS::
 
@@ -976,6 +983,9 @@ class GCAlgebra(UniqueRepresentation, QuotientRing_nc):
                     if sorted(degrees) != list(degrees):
                         raise ValueError("the generators should be ordered in increasing degree")
             degrees = tuple(degrees)
+        if max_degree:
+            from .commutative_graded_algebra_finite import FiniteCommutativeGradedAlgebra
+            return FiniteCommutativeGradedAlgebra(base, degrees, max_degree, names)
         if not R or not I:
             if n > 1:
                 F = FreeAlgebra(base, n, names)

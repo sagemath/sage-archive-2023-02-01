@@ -1,5 +1,3 @@
-from sage.env import SAGE_ENV
-
 from . import Executable
 from .join_feature import JoinFeature
 
@@ -9,6 +7,7 @@ class FourTi2Executable(Executable):
     Feature for the 4ti2 executables.
     """
     def __init__(self, name):
+        from sage.env import SAGE_ENV
         Executable.__init__(self,
                             name="4ti2-" + name,
                             executable=SAGE_ENV.get("FOURTITWO_" + name.upper(), None) or name,

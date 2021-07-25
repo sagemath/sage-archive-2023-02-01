@@ -3317,11 +3317,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, relations=None):
     algebra" -- the word "differential" is missing. Also, it has no
     default ``differential``::
 
-        sage: AQ.differential()  # py2
-        Traceback (most recent call last):
-        ...
-        TypeError: differential() takes exactly 2 arguments (1 given)
-        sage: AQ.differential()  # py3
+        sage: AQ.differential()
         Traceback (most recent call last):
         ...
         TypeError: differential() missing 1 required positional argument:

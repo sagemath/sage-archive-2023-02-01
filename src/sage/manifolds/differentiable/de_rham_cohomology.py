@@ -171,7 +171,7 @@ class DeRhamCohomologyClass(RingElement):
             sage: omega = M.diff_form(2, name='omega')
             sage: omega[0,1] = x
             sage: omega.display()
-            omega = x dx/\dy
+            omega = x dx∧dy
             sage: u = H(omega); u
             [omega]
             sage: u.representative()
@@ -218,7 +218,7 @@ class DeRhamCohomologyClass(RingElement):
             sage: omega = M.diff_form(1, [1,1], name='omega')
             sage: eta = M.diff_form(1, [1,-1], name='eta')
             sage: H(omega).cup(H(eta))
-            [omega/\eta]
+            [omega∧eta]
 
         """
         return self * other
@@ -236,7 +236,7 @@ class DeRhamCohomologyClass(RingElement):
             sage: omega = M.diff_form(1, [1,1], name='omega')
             sage: eta = M.diff_form(1, [1,-1], name='eta')
             sage: H(omega) * H(eta)
-            [omega/\eta]
+            [omega∧eta]
 
         """
         return self.parent()(self.representative().wedge(other.representative()))

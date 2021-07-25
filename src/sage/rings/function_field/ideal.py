@@ -1994,7 +1994,8 @@ class FunctionFieldIdeal_polymod(FunctionFieldIdeal):
 
         The method closely follows Algorithm 4.8.17 of [Coh1993]_.
         """
-        if ideal.is_zero(): return infinity
+        if ideal.is_zero():
+            return infinity
 
         O = self.ring()
         F = O.fraction_field()
@@ -2301,10 +2302,13 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal_polymod):
             G = itertools.product(R.polynomials(max_degree=d), repeat=n)
             for g in G:
                 # discard duplicate cases
-                if max(c.degree() for c in g) != d: continue
+                if max(c.degree() for c in g) != d:
+                    continue
                 for j in range(n):
-                    if g[j] != 0: break
-                if g[j].leading_coefficient() != 1: continue
+                    if g[j] != 0:
+                        break
+                if g[j].leading_coefficient() != 1:
+                    continue
 
                 alpha = sum([c1*c2 for c1,c2 in zip(g, basis)])
                 if check(alpha):

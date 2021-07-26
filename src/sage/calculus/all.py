@@ -104,6 +104,15 @@ def symbolic_expression(x):
         sage: v.parent()
         Vector space of dimension 3 over Symbolic Ring
 
+    If ``x`` is a list or tuple of lists/tuples/vectors, create a matrix of symbolic expressions::
+
+        sage: M = symbolic_expression([[1, x, x^2], (x, x^2, x^3), vector([x^2, x^3, x^4])]); M
+        [  1   x x^2]
+        [  x x^2 x^3]
+        [x^2 x^3 x^4]
+        sage: M.parent()
+        Full MatrixSpace of 3 by 3 dense matrices over Symbolic Ring
+
     If ``x`` is a matrix, create a matrix of symbolic expressions::
 
         sage: A = matrix([[1, 2, 3], [4, 5, 6]])
@@ -193,6 +202,8 @@ def symbolic_expression(x):
         if not expressions:
             # Make sure it is symbolic also when length is 0
             return vector(SR.subring(no_variables=True), 0)
+        if is_FreeModuleElement(expressions[0]):
+            return matrix(expressions)
         return vector(expressions)
     elif is_Matrix(x):
         if not x.nrows() or not x.ncols():

@@ -587,18 +587,19 @@ class CoefficientStream_inv(LazyLaurentSeries_unary):
         """
         Return the generator for the coefficients of the multiplicative inverse of the ``series``.
         """
-        n = self._offset
+        v = self._approximate_valuation  # shorthand name
+        n = 0  # Counts the number of places from the valuation
+        yield self._ainv
+        # Note that first entry of the cache will correspond to z^v
         while True:
-            v = self._approximate_valuation
-            if n == v:
-                yield self._ainv
-                n += 1
-                continue
-            c = self._zero
-            for k in range(v, n):
-                c += self[k] * self._series[n - v - k]
-            yield -c * self._ainv
             n += 1
+            c = self._zero
+            m = min(len(self._cache), n)
+            for k in range(m):
+                c += self._cache[k] * self._series[n - k]
+            for k in range(m, n):
+                c += self[v+k] * self._series[n - k]
+            yield -c * self._ainv
 
 
 class CoefficientStream_apply_coeff(LazyLaurentSeries_unary):

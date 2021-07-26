@@ -130,15 +130,15 @@ class DifferentiableCurve(DiffMap):
     shows the coordinate representations in various charts of manifold ``M``::
 
         sage: c.display()
-        c: (0, 2*pi) --> M
-           t |--> (x, y) = (sin(t), 1/2*sin(2*t))
+        c: (0, 2*pi) → M
+           t ↦ (x, y) = (sin(t), 1/2*sin(2*t))
 
     Another map method is using the usual call syntax, which returns
     the image of a point in the curve's domain::
 
         sage: t0 = pi/2
         sage: I(t0)
-        Point on the Real number line R
+        Point on the Real number line ℝ
         sage: c(I(t0))
         Point on the 2-dimensional differentiable manifold M
         sage: c(I(t0)).coord(X)
@@ -160,16 +160,16 @@ class DifferentiableCurve(DiffMap):
         sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), chart=X, name='c') ; c
         Curve c in the 2-dimensional differentiable manifold M
         sage: c.display()
-        c: (0, 2*pi) --> M
-           t |--> (x, y) = (sin(t), 1/2*sin(2*t))
+        c: (0, 2*pi) → M
+           t ↦ (x, y) = (sin(t), 1/2*sin(2*t))
 
     Since ``X`` is the default chart on ``M``, it can be omitted::
 
         sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c') ; c
         Curve c in the 2-dimensional differentiable manifold M
         sage: c.display()
-        c: (0, 2*pi) --> M
-           t |--> (x, y) = (sin(t), 1/2*sin(2*t))
+        c: (0, 2*pi) → M
+           t ↦ (x, y) = (sin(t), 1/2*sin(2*t))
 
     Note that a curve in `M` can also be created as a differentiable
     map `I \to M`::
@@ -201,7 +201,7 @@ class DifferentiableCurve(DiffMap):
         Vector field c' along the Real interval (0, 2*pi) with values on the
          2-dimensional differentiable manifold M
         sage: v.display()
-        c' = cos(t) d/dx + (2*cos(t)^2 - 1) d/dy
+        c' = cos(t) ∂/∂x + (2*cos(t)^2 - 1) ∂/∂y
 
     Plot of the curve and its tangent vector field::
 
@@ -226,7 +226,7 @@ class DifferentiableCurve(DiffMap):
         sage: v.at(R(pi)) in M.tangent_space(c(R(pi)))
         True
         sage: v.at(R(pi)).display()
-        c' = -d/dx + d/dy
+        c' = -∂/∂x + ∂/∂y
 
     Curves `\RR \to \RR` can be composed: the operator `\circ` is
     given by ``*``::
@@ -234,15 +234,15 @@ class DifferentiableCurve(DiffMap):
         sage: f = R.curve(t^2, (t,-oo,+oo))
         sage: g = R.curve(cos(t), (t,-oo,+oo))
         sage: s = g*f ; s
-        Differentiable map from the Real number line R to itself
+        Differentiable map from the Real number line ℝ to itself
         sage: s.display()
-        R --> R
-           t |--> cos(t^2)
+        ℝ → ℝ
+           t ↦ cos(t^2)
         sage: s = f*g ; s
-        Differentiable map from the Real number line R to itself
+        Differentiable map from the Real number line ℝ to itself
         sage: s.display()
-        R --> R
-           t |--> cos(t)^2
+        ℝ → ℝ
+           t ↦ cos(t)^2
 
     .. RUBRIC:: Curvature and torsion of a curve in a Riemannian manifold
 
@@ -266,8 +266,8 @@ class DifferentiableCurve(DiffMap):
         sage: norm(T)
         Scalar field |C'| on the Real interval (0, 6*pi)
         sage: norm(T).display()
-        |C'|: (0, 6*pi) --> R
-           s |--> 1
+        |C'|: (0, 6*pi) → ℝ
+           s ↦ 1
 
     Vector fields along `C` are defined by the method
     :meth:`~sage.manifolds.differentiable.manifold.DifferentiableManifold.vector_field`
@@ -589,7 +589,7 @@ class DifferentiableCurve(DiffMap):
             Vector field c' along the Real interval (0, 2*pi) with values on
              the 2-dimensional differentiable manifold R^2
             sage: v.display()
-            c' = -sin(t) d/dx + cos(t) d/dy
+            c' = -sin(t) ∂/∂x + cos(t) ∂/∂y
             sage: latex(v)
             {c'}
             sage: v.parent()
@@ -607,7 +607,7 @@ class DifferentiableCurve(DiffMap):
             sage: vp.parent() is M.tangent_space(c(R(pi)))
             True
             sage: vp.display()
-            c' = -d/dy
+            c' = -∂/∂y
 
         Tangent vector field to a curve in a non-parallelizable manifold (the
         2-sphere `S^2`): first, we introduce the 2-sphere::
@@ -637,13 +637,13 @@ class DifferentiableCurve(DiffMap):
             ....:              name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
             sage: vc = c.tangent_vector_field() ; vc
-            Vector field c' along the Real number line R with values on
+            Vector field c' along the Real number line ℝ with values on
              the 2-dimensional differentiable manifold M
             sage: vc.parent()
-            Module X(R,c) of vector fields along the Real number line R
+            Module X(ℝ,c) of vector fields along the Real number line ℝ
              mapped into the 2-dimensional differentiable manifold M
             sage: vc.display(c_spher.frame().along(c.restrict(R,A)))
-            c' = -1/5*e^(1/10*t)/(e^(1/5*t) + 1) d/dth + d/dph
+            c' = -1/5*e^(1/10*t)/(e^(1/5*t) + 1) ∂/∂th + ∂/∂ph
 
         """
         vmodule = self._domain.vector_field_module(dest_map=self)
@@ -816,8 +816,8 @@ class DifferentiableCurve(DiffMap):
             sage: F = S2.diff_map(R3, {(XS, X3): [sin(th)*cos(ph),
             ....:                      sin(th)*sin(ph), cos(th)]}, name='F')
             sage: F.display()
-            F: S^2 --> R^3
-            on U: (th, ph) |--> (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
+            F: S^2 → R^3
+            on U: (th, ph) ↦ (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
             sage: c = S2.curve([2*atan(exp(-t/10)), t], (t, -oo, +oo), name='c')
             sage: graph_c = c.plot(mapping=F, max_range=40,
             ....:                  plot_points=200, thickness=2, label_axes=False)  # 3D plot

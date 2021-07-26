@@ -2049,7 +2049,7 @@ class RealChart(Chart):
             return self._bounds[i-self._sindex]
 
     def codomain(self):
-        """
+        r"""
         Return the codomain of ``self`` as a set.
 
         EXAMPLES::

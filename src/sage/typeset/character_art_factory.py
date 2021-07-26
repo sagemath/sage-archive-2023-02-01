@@ -327,7 +327,7 @@ class CharacterArtFactory(SageObject):
 
         Check that :trac:`29447` is fixed::
 
-            sage: ascii_art({'a': '', '': ''})  # py3
+            sage: ascii_art({'a': '', '': ''})
             { a:, : }
         """
         comma = self.art_type([self.string_type(', ')],

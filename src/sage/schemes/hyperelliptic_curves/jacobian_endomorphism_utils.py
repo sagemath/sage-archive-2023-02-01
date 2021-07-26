@@ -90,7 +90,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.structure.sage_object import SageObject
 from sage.rings.all import QQ, ZZ, PolynomialRing, FiniteField, NumberField
 from sage.misc.lazy_import import lazy_import
 from sage.rings.fast_arith import prime_range
@@ -105,7 +104,7 @@ def satisfies_coefficient_condition(g, p):
 
     EXAMPLES::
 
-        sage: from sage.schemes.hyperelliptic_curves.jacobian_endomorphisms import satisfies_coefficient_condition
+        sage: from sage.schemes.hyperelliptic_curves.jacobian_endomorphism_utils import satisfies_coefficient_condition
         sage: R.<x> = ZZ[]
         sage: f = x^4 + x^3 + 17*x^2 + 5*x
         sage: satisfies_coefficient_condition(f,17)
@@ -170,7 +169,7 @@ def get_is_geom_field(f, C, bad_primes, B=200):
 
     This is LMFDB curve 940693.a.960693.1::
 
-        sage: from sage.schemes.hyperelliptic_curves.jacobian_endomorphisms import get_is_geom_field
+        sage: from sage.schemes.hyperelliptic_curves.jacobian_endomorphism_utils import get_is_geom_field
         sage: R.<x> = QQ[]
         sage: f = 4*x^6 - 12*x^5 + 20*x^3 - 8*x^2 - 4*x + 1
         sage: C = HyperellipticCurve(f)
@@ -277,7 +276,7 @@ def is_geom_trivial_when_field(C, bad_primes, B=200):
 
     This is LMFDB curve 461.a.461.2::
 
-        sage: from sage.schemes.hyperelliptic_curves.jacobian_endomorphisms import is_geom_trivial_when_field
+        sage: from sage.schemes.hyperelliptic_curves.jacobian_endomorphism_utils import is_geom_trivial_when_field
         sage: R.<x> = QQ[]
         sage: f = 4*x^5 - 4*x^4 - 156*x^3 + 40*x^2 + 1088*x - 1223
         sage: C = HyperellipticCurve(f)

@@ -163,10 +163,64 @@ class HyperellipticJacobian_generic(Jacobian_generic):
 
     @lazy_attribute
     def _have_established_geometrically_trivial(self):
+        r"""
+        Initialize the flag which determines whether or not we have
+        already established if the geometric endomorphism ring is
+        trivial.
+
+        This is related to the warning at the top of the
+        `jacobian_endomorphism_utils.py` module.
+
+        INPUT:
+
+        - ``self`` -- The Jacobian.
+
+        OUTPUT:
+
+        The boolean ``False``; this will be updated by other methods.
+
+        EXAMPLES:
+
+        This is LMFDB curve 262144.d.524288.2::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^5 + x^4 + 4*x^3 + 8*x^2 + 5*x + 1
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: J._have_established_geometrically_trivial
+            False
+        """
         return False
 
     @lazy_attribute
     def _have_established_geometrically_field(self):
+        r"""
+        Initialize the flag which determines whether or not we have
+        already established if the geometric endomorphism ring is
+        trivial.
+
+        This is related to the warning at the top of the
+        `jacobian_endomorphism_utils.py` module.
+
+        INPUT:
+
+        - ``self`` -- The Jacobian.
+
+        OUTPUT:
+
+        The boolean ``False``; this will be updated by other methods.
+
+        EXAMPLES:
+
+        This is LMFDB curve 262144.d.524288.2::
+
+            sage: R.<x> = QQ[]
+            sage: f = x^5 + x^4 + 4*x^3 + 8*x^2 + 5*x + 1
+            sage: C = HyperellipticCurve(f)
+            sage: J = C.jacobian()
+            sage: J._have_established_geometrically_field
+            False
+        """
         return False
 
     def geometric_endomorphism_algebra_is_field(self, B=200, proof=False):

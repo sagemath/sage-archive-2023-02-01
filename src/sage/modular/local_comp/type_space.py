@@ -370,8 +370,13 @@ class TypeSpace(SageObject):
 
             sage: f = Newforms(256,names='a')[0]
             sage: T = TypeSpace(f,2)
-            sage: g = T.minimal_twist(); g
-            q - a*q^3 + O(q^6)
+            sage: g = T.minimal_twist()
+            sage: g[0:3]
+            [0, 1, 0]
+            sage: str(g[3]) in ('a', '-a', '-1/2*a', '1/2*a')
+            True
+            sage: g[4:]
+            []
             sage: g.level()
             64
         """

@@ -767,6 +767,29 @@ cdef class Expression(CommutativeRingElement):
         """
         return new_Expression_from_GEx(self._parent, self._gobj)
 
+    def __enter__(self):
+        """
+        Method used by temporary variables with Python `with` to
+        automatically clean up after themselves.
+        """
+        return self
+
+    def __exit__(self, *args):
+        """
+        Method used by temporary variables with Python `with` to
+        automatically clean up after themselves.
+
+        TESTS::
+
+            sage: symbols_copy = SR.symbols.copy()
+            sage: with SR.temp_var() as t: pass
+            sage: symbols_copy == SR.symbols
+            True
+
+        """
+        SR.cleanup_var(self)
+        return False
+
     def _repr_(self):
         r"""
         Return string representation of this symbolic expression.
@@ -4890,11 +4913,10 @@ cdef class Expression(CommutativeRingElement):
             (-x)^(3/4)
             sage: forget()
 
-        Check that :trac:`31077` is fixed (also see :trac:`31679`)::
+        Check that :trac:`31077` and :trac:`31585` are fixed (also see :trac:`31679`)::
 
             sage: a,b,c,d = var("a b c d")
-            sage: f = ((a + b + c)^30 * (3*b + d - 5/d)^3).expand().subs(a=0,b=2,c=-1)
-            sage: sum(sign(s) * (abs(ZZ(s)) % ZZ(2^30)) * d^i for s,i in f.coefficients())
+            sage: ((a + b + c)^30 * (3*b + d - 5/d)^3).expand().subs(a=0,b=2,c=-1)
             d^3 + 18*d^2 + 93*d - 465/d + 450/d^2 - 125/d^3 + 36
 
         Check that :trac:`31411` is fixed::
@@ -4903,8 +4925,7 @@ cdef class Expression(CommutativeRingElement):
             sage: A = q^(2/3) + q^(2/5)
             sage: B = product(1 - q^j, j, 1, 31) * q^(1/24)
             sage: bool((A * B).expand() == (A * B.expand()).expand())
-            True  # 64-bit
-            True  # 32-bit # known bug (#31585)
+            True
         """
         if side is not None:
             if not is_a_relational(self._gobj):
@@ -5533,6 +5554,26 @@ cdef class Expression(CommutativeRingElement):
             sage: (a + b*x).series(x, 2).subs(a=a, b=b)
             (a) + (b)*x + Order(x^2)
 
+        Check that :trac:`31585` is fixed::
+
+            sage: m = -2^31
+            sage: (-x).subs(x=m)
+            2147483648
+            sage: abs(x).subs(x=m)
+            2147483648
+            sage: (2*x).subs(x=m)
+            -4294967296
+            sage: (m*x + 1)*x
+            -(2147483648*x - 1)*x
+            sage: m = -2^63
+            sage: (-x).subs(x=m)
+            9223372036854775808
+            sage: abs(x).subs(x=m)
+            9223372036854775808
+            sage: (2*x).subs(x=m)
+            -18446744073709551616
+            sage: (m*x + 1)*x
+            -(9223372036854775808*x - 1)*x
         """
         cdef dict sdict = {}
         cdef GEx res
@@ -8155,6 +8196,16 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (6*exp(i*pi/3)-6*exp(i*2*pi/3)).real_part()
             6
+
+        Check that :trac:`28357` is fixed::
+
+            sage: m = var('m')
+            sage: assume(m, 'integer')
+            sage: (I^m).real_part()
+            cos(1/2*pi*m)
+            sage: (I^m).imag_part()
+            sin(1/2*pi*m)
+            sage: forget()
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_real_part, self._gobj, hold))
@@ -12904,25 +12955,25 @@ cdef class Expression(CommutativeRingElement):
 
         if not self.has(Y):
             raise ValueError("Expression {} contains no {} terms".format(self, Y))
-        x = SR.symbol()
-        yy = SR.symbol()
-        y = SymbolicFunction('y', 1)(x)
-        f = SymbolicFunction('f', 2)(x, yy)
-        Fx = f.diff(x)
-        Fy = f.diff(yy)
-        G = -(Fx/Fy)
-        G = G.subs({yy: y})
-        di = {y.diff(x): -self.diff(X)/self.diff(Y)}
-        R = G
-        S = G.diff(x, n - 1)
-        for i in range(n + 1):
-            di[y.diff(x, i + 1).subs({x: x})] = R
-            S = S.subs(di)
-            R = G.diff(x, i)
-            for j in range(n + 1 - i):
-                di[f.diff(x, i, yy, j).subs({x: x, yy: y})] = self.diff(X, i, Y, j)
-                S = S.subs(di)
-        return S
+        with SR.temp_var() as x:
+            with SR.temp_var() as yy:
+                y = SymbolicFunction('y', 1)(x)
+                f = SymbolicFunction('f', 2)(x, yy)
+                Fx = f.diff(x)
+                Fy = f.diff(yy)
+                G = -(Fx/Fy)
+                G = G.subs({yy: y})
+                di = {y.diff(x): -self.diff(X)/self.diff(Y)}
+                R = G
+                S = G.diff(x, n - 1)
+                for i in range(n + 1):
+                    di[y.diff(x, i + 1).subs({x: x})] = R
+                    S = S.subs(di)
+                    R = G.diff(x, i)
+                    for j in range(n + 1 - i):
+                        di[f.diff(x, i, yy, j).subs({x: x, yy: y})] = self.diff(X, i, Y, j)
+                        S = S.subs(di)
+                return S
 
 def solve_diophantine(f,  *args, **kwds):
     """

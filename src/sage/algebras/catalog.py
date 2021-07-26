@@ -49,10 +49,12 @@ Let ``<tab>`` indicate pressing the tab key.  So begin by typing
   <sage.algebras.orlik_terao.OrlikTeraoAlgebra>`
 - :class:`algebras.OrlikSolomon
   <sage.algebras.orlik_solomon.OrlikSolomonAlgebra>`
-- :class:`algebras.QuantumMatrixCoordinate
-  <sage.algebras.quantum_matrix_coordinate_algebra.QuantumMatrixCoordinateAlgebra>`
+- :class:`algebras.QuantumClifford
+  <sage.algebras.quantum_clifford.QuantumCliffordAlgebra'>`
 - :class:`algebras.QuantumGL
   <sage.algebras.quantum_matrix_coordinate_algebra.QuantumGL>`
+- :class:`algebras.QuantumMatrixCoordinate
+  <sage.algebras.quantum_matrix_coordinate_algebra.QuantumMatrixCoordinateAlgebra>`
 - :class:`algebras.QSym <sage.combinat.ncsf_qsym.qsym.QuasiSymmetricFunctions>`
 - :class:`algebras.Partition <sage.combinat.diagram_algebras.PartitionAlgebra>`
 - :class:`algebras.PlanarPartition <sage.combinat.diagram_algebras.PlanarAlgebra>`
@@ -115,6 +117,7 @@ lazy_import('sage.combinat.chas.wqsym', 'WordQuasiSymmetricFunctions', 'WQSym')
 lazy_import('sage.combinat.chas.fsym', 'FreeSymmetricFunctions', 'FSym')
 lazy_import('sage.combinat.ncsf_qsym.qsym', 'QuasiSymmetricFunctions', 'QSym')
 lazy_import('sage.combinat.grossman_larson_algebras', 'GrossmanLarsonAlgebra', 'GrossmanLarson')
+lazy_import('sage.algebras.quantum_clifford', 'QuantumCliffordAlgebra', 'QuantumClifford')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra',
             'QuantumMatrixCoordinateAlgebra', 'QuantumMatrixCoordinate')
 lazy_import('sage.algebras.quantum_matrix_coordinate_algebra', 'QuantumGL')

@@ -64,6 +64,10 @@
 #    If $SAGE_DESTDIR is not set then the command is run with $SAGE_SUDO, if
 #    set.
 #
+# - sdh_pip_uninstall [...]
+#
+#    Runs `pip uninstall` with the given arguments.  If unsuccessful, it displays a warning.
+#
 # - sdh_cmake [...]
 #
 #    Runs `cmake` in the current directory with the given arguments, as well as
@@ -266,6 +270,22 @@ sdh_store_and_pip_install_wheel() {
     fi
     $sudo sage-pip-install $root "$wheel" || \
         sdh_die "Error installing ${wheel##*/}"
+    if [ -n "${SAGE_PKG_DIR}" ]; then
+        # Record name of installed distribution name for uninstallation.
+        wheel=${wheel##*/}
+        echo "${wheel%%-*}" >> ${SAGE_PKG_DIR}/spkg-piprm-requirements.txt
+    fi
+}
+
+sdh_pip_uninstall() {
+    # --disable-pip-version-check: Don't periodically check PyPI to determine whether a new version of pip is available
+    # --no-input: Disable prompting for input.
+    # --yes: Don't ask for confirmation of uninstall deletions
+    # See sage-pip-install for a discussion of the other flags.
+    python3 -m pip uninstall --isolated --disable-pip-version-check --yes --no-input "$@"
+    if [ $? -ne 0 ]; then
+        echo "Warning: pip exited with status $?" >&2
+    fi
 }
 
 sdh_cmake() {

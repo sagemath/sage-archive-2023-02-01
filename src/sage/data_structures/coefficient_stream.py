@@ -5,8 +5,83 @@ This module provides lazy class implementations of basic operators
 on coefficient streams. The classes implemented in this module
 can be used to build up more complex streams for different kinds of
 series (Laurent, Dirichlet, etc).
+
+EXAMPLES::
+
+    The coefficient stream can be used to build up a Lazy laurent series::
+
+    sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+    sage: f = L(lambda n: n, True)
+    sage: f
+    z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + 7*z^7 + ...
+    sage: type(f._coeff_stream)
+    <class 'sage.rings.lazy_laurent_series.LazyLaurentSeries_coefficient_function'>
+
+    There are basic unary and binary operators available for the coefficient streams.
+    For example, we can add two streams together::
+
+    sage: g = L(lambda n: -n, True)
+    sage: f + g
+    0 + ...
+
+    Coefficient streams can be subtracted::
+
+    sage: f - g
+    2*z + 4*z^2 + 6*z^3 + 8*z^4 + 10*z^5 + 12*z^6 + 14*z^7 + ...
+
+    Coefficient streams can be multiplied::
+
+    sage: g = L(lambda n: n^2, True)
+    sage: f * g
+    z^2 + 6*z^3 + 20*z^4 + 50*z^5 + 105*z^6 + 196*z^7 + 336*z^8 + ...
+
+    Coefficient streams can be divided::
+
+    sage: f / g
+    1 - 2*z + 2*z^2 - 2*z^3 + 2*z^4 - 2*z^5 + 2*z^6 + ...
+
+    Two coefficient streams can be composed (depending on whether it exists)::
+
+    sage: f(g)
+    z + 6*z^2 + 28*z^3 + 124*z^4 + 527*z^5 + 2172*z^6 + 8755*z^7 + ...
+
+    We can also use the unary negation operator on a coefficient stream::
+
+    sage: -f
+    -z - 2*z^2 - 3*z^3 - 4*z^4 - 5*z^5 - 6*z^6 - 7*z^7 + ...
+
+    Coefficient streams can be multiplied by a scalar::
+
+    sage: f * 2
+    2*z + 4*z^2 + 6*z^3 + 8*z^4 + 10*z^5 + 12*z^6 + 14*z^7 + ...
+
+    The multiplicative inverse of a series can also be obtained::
+
+    sage: f = L(lambda n: 1, True, 1); f
+    z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + ...
+    sage: ~f
+    z^-1 - 1 + ...
+
+    Functions can also be applied to a coefficient stream::
+
+    sage: f.map_coefficients(lambda n: n*3)
+    3*z + 3*z^2 + 3*z^3 + 3*z^4 + 3*z^5 + 3*z^6 + 3*z^7 + ...
+
+AUTHORS:
+
+- Kwankyu Lee (2019-02-24): initial version
+
 """
 
+# ****************************************************************************
+#       Copyright (C) 2019 Kwankyu Lee <ekwankyu@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
 
@@ -18,12 +93,22 @@ class CoefficientStream():
     INPUT:
 
     - ``sparse`` -- boolean; whether the implementation of the series is sparse
+
     - ``approximate_valuation`` -- the approximate valuation of the series
+
+    EXAMPLES::
+
     """
 
     def __init__(self, sparse, approximate_valuation):
         """
         Initialize the auxillary class for any series.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream
+            sage: type(CoefficientStream(True, 1))
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream'>
         """
         self._is_sparse = sparse
         self._approximate_valuation = approximate_valuation

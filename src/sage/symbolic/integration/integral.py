@@ -107,7 +107,9 @@ class IndefiniteIntegral(BuiltinFunction):
 
         Check that :trac:`32002` is fixed::
 
-            sage: integral(2*min_symbolic(x,2*x),x)
+            sage: result = integral(2*min_symbolic(x,2*x),x)
+            ...
+            sage: result
             -1/2*x^2*sgn(x) + 3/2*x^2
         """
         # Check for x
@@ -218,7 +220,9 @@ class DefiniteIntegral(BuiltinFunction):
 
         Check that :trac:`32002` is fixed::
 
-            sage: integral(2*min_symbolic(x,2*x),x,-1,1)
+            sage: result = integral(2*min_symbolic(x,2*x),x,-1,1)
+            ...
+            sage: result
             -1
         """
         # Check for x

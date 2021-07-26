@@ -226,7 +226,7 @@ class KnotInfoFilename(Enum):
         """
         return '%s.csv' %(self.value[1])
 
-    def num_knots(self):
+    def num_knots(self, version):
         r"""
         Return the file name under which the number of knots is stored
         in an sobj-file.
@@ -235,10 +235,10 @@ class KnotInfoFilename(Enum):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.filename.knots.num_knots()
-            'num_knots.sobj'
+            sage: ki_db.filename.knots.num_knots('21.7')
+            'num_knots_21.7.sobj'
         """
-        return 'num_knots.sobj'
+        return 'num_knots_%s.sobj' %version
 
     def sobj_row(self):
         r"""
@@ -391,7 +391,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         from sage.misc.misc import sage_makedirs
         sage_makedirs(sobj_path)
 
-        num_knots_file = os.path.join(sobj_path, self.filename.knots.num_knots())
+        num_knots_file = os.path.join(sobj_path, self.filename.knots.num_knots(self.version()))
         knot_list = self.knot_list()
         num_knots = len(knot_list) - 1
         save(num_knots, num_knots_file)
@@ -399,6 +399,39 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         self._create_col_dict_sobj()
         self._create_data_sobj()
         return
+
+
+    def version(self):
+        r"""
+        Return the version of the database currently installed on the device.
+
+        .. NOTE::
+
+            The development of the original databases on the KnotInfo and
+            LinkInfo web-pages is in a continuous flow. The installed version
+            can be behind the current available state of these databases. Every
+            month a cronjob on the
+            `GitHub repository <https://github.com/soehms/database_knotinfo/>`__
+            searches for differences and creates a new release on
+            `PyPI <https://pypi.org/project/database-knotinfo/>`__ in case of
+            success.
+
+            If you note that your version is behind the version on PyPI
+            and would like to have Sage working with that release you should
+            first try to upgrade using ``sage -i database_knotinfo``. If this
+            is not successful even though you are on the latest Sage release
+            please create an issue for that in the GitHub repository.
+
+        EXAMPLES::
+
+            sage: from sage.databases.knotinfo_db import KnotInfoDataBase
+            sage: ki_db = KnotInfoDataBase()
+            sage: ki_db.version()   >= '2021.7.21'   # optional database_knotinfo
+            True
+        """
+        self._feature.require()
+        from database_knotinfo import version
+        return version()
 
 
     def demo_version(self):
@@ -415,7 +448,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         """
         if self._demo is None:
             if self._feature.is_present():
-                num_knots_file = os.path.join(self._sobj_path, self.filename.knots.num_knots())
+                num_knots_file = os.path.join(self._sobj_path, self.filename.knots.num_knots(self.version()))
                 from builtins import FileNotFoundError
                 try:
                     self._num_knots =  load(num_knots_file)
@@ -612,8 +645,8 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: len(ki_db.read_column_dict())       # optional - database_knotinfo
-            125
+            sage: len(ki_db.read_column_dict()) > 120       # optional - database_knotinfo
+            True
         """
         if self.demo_version():
             return column_demo_sample

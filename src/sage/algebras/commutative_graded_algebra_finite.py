@@ -141,11 +141,11 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
         desc += f'degree {self._max_deg}'
         return desc
 
-    def quotient(self, *args, **kwargs):
+    def ngens(self):
         r"""
 
         """
-        raise NotImplementedError('no quotient implemented for {}'.format(self))
+        return self.__ngens
 
     @cached_method
     def product_on_basis(self, w1, w2):
@@ -171,6 +171,10 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
             0
             sage: x*z
             -z*x
+            sage: z*x
+            z*x
+            sage: x*y*z
+            0
 
         TESTS::
 
@@ -185,21 +189,22 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
 
             sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=5)
             sage: weighted_vectors = A._weighted_vectors
-            sage: w1 = A._weighted_vectors([0,0,1])
-            sage: w2 = A._weighted_vectors([1,0,0])
+            sage: w1 = A._weighted_vectors([1,0,0])
+            sage: w2 = A._weighted_vectors([0,0,1])
             sage: A.product_on_basis(w1, w2)
             -z*x
+            sage: A.product_on_basis(w2, w1)
+            z*x
 
         """
         grading = self._weighted_vectors.grading
         deg_left = grading(w1)
         deg_right = grading(w2)
         deg_tot = deg_left + deg_right
-        if (deg_tot > self._max_deg) or (w1 == w2 and deg_left % 2 != 0):
+        if deg_tot > self._max_deg:
             return self.zero()
         w_tot = self._weighted_vectors([sum(w) for w in zip(w1, w2)])
-        sign = (-1)**(deg_left*deg_right)
-        return sign * self.basis()[w_tot]
+        return self.basis()[w_tot]
 
     def degree_on_basis(self, i):
         r"""
@@ -237,7 +242,7 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
             return '1'
         # Non-trivial case:
         res = ''
-        for i in reversed(range(len(w))):
+        for i in range(len(w)):
             if w[i] == 0:
                 continue
             elif w[i] == 1:
@@ -255,7 +260,7 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
             return '1'
         # Non-trivial case:
         res = ''
-        for i in reversed(range(len(w))):
+        for i in range(len(w)):
             if w[i] == 0:
                 continue
             elif w[i] == 1:

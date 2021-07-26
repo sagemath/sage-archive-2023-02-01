@@ -233,9 +233,10 @@ from sage.coding.linear_code_no_metric import AbstractLinearCodeNoMetric
 from .encoder import Encoder
 from .decoder import Decoder
 
-#******************************************************************************
+# *****************************************************************************
 # coding theory functions
-#******************************************************************************
+# *****************************************************************************
+
 
 def _dump_code_in_leon_format(C):
     r"""
@@ -950,7 +951,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         A linear code `C` over a field is called *projective* when its dual `Cd`
         has minimum weight `\geq 3`, i.e. when no two coordinate positions of
         `C` are linearly independent (cf. definition 3 from [BS2011]_ or 9.8.1 from
-        [BH12]_).
+        [BH2012]_).
 
         EXAMPLES::
 
@@ -1302,13 +1303,12 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: C.is_galois_closed()
             False
         """
-        F = self.base_ring()
-        p = F.characteristic()
+        p = self.base_ring().characteristic()
         return self == self.galois_closure(GF(p))
 
     def _magma_init_(self, magma):
         r"""
-        Retun a string representation in Magma of this linear code.
+        Return a string representation in Magma of this linear code.
 
         EXAMPLES::
 
@@ -1316,11 +1316,9 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
             sage: Cm = magma(C)                 # optional - magma, indirect doctest
             sage: Cm.MinimumWeight()            # optional - magma
             3
-
         """
         G = magma(self.generator_matrix())._ref()
-        s = 'LinearCode(%s)' % G
-        return s
+        return 'LinearCode(%s)' % G
 
     @cached_method
     def minimum_distance(self, algorithm=None):
@@ -2117,7 +2115,7 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         for v in C_basis:
             i = v.support()[0]
             U_basis.remove(i)  # swap e_{i+1} with v
-        U_basis = [e(i+1) for i in U_basis]
+        U_basis = [e(i + 1) for i in U_basis]
 
         V = VectorSpace(F, self.length())
         U = V.span(U_basis)
@@ -2130,16 +2128,16 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
         Ainv = A.inverse()
 
         Pei = []  # projection of e_i on U
-        for i in range(1, self.length()+1):
+        for i in range(1, self.length() + 1):
             ei = e(i)
             if ei in U:
                 Pei.append(ei)
             else:
                 a = Ainv * ei
                 # get zero vector and sum a[i]u_i to it
-                v = vector(F, [0]*self.length())
-                for i in range(len(U_basis)):
-                    v += a[i]*U_basis[i]
+                v = vector(F, [0] * self.length())
+                for ai, Ui in zip(a, U_basis):
+                    v += ai * Ui
                 if not v.is_zero():  # don't care about 0 vectors
                     v.set_immutable()
                     Pei.append(v)

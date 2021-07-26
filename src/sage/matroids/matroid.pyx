@@ -1121,7 +1121,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``N`` -- An instance of a ``Matroid`` object,
-        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns
+        - ``certificate`` -- Boolean (Default: ``False``) If ``True``, returns
           ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
           and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
 
@@ -3943,7 +3943,7 @@ cdef class Matroid(SageObject):
         INPUT:
 
         - ``N`` -- An instance of a ``Matroid`` object,
-        - ``certificate`` -- Boolean (Defalt: ``False``) If ``True``, returns
+        - ``certificate`` -- Boolean (Default: ``False``) If ``True``, returns
           ``True, (X, Y, dic) where ``N`` is isomorphic to ``self.minor(X, Y)``,
           and ``dic`` is an isomorphism between ``N`` and ``self.minor(X, Y)``.
 
@@ -4044,7 +4044,6 @@ cdef class Matroid(SageObject):
             hyperlines = self.flats(self.full_rank() - 2)
         else:
             hyperlines = [frozenset(X) for X in hyperlines]
-            allright = True
             for X in hyperlines:
                 if not X.issubset(self.groundset()):
                     raise ValueError("input sets need to be subset of the groundset.")
@@ -6967,7 +6966,7 @@ cdef class Matroid(SageObject):
 
     cpdef _intersection_augmentation(self, other, weights, Y):
         r"""
-        Return a an augmenting set for the matroid intersection problem.
+        Return an augmenting set for the matroid intersection problem.
 
         INPUT:
 
@@ -7801,7 +7800,7 @@ cdef class Matroid(SageObject):
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
              and facets {(1, 3, 5), (1, 4, 5), (2, 3, 5), (2, 4, 5)}
         """
-        from sage.homology.simplicial_complex import SimplicialComplex
+        from sage.topology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))
 
     def union(self, matroids):

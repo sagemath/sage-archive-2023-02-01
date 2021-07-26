@@ -65,8 +65,8 @@ def trace(code, preparse=True):
 
         sage: print(s.before[s.before.find(b'--'):].decode())
         --...
-        ipdb> c
-        2 * 5
+        ...ipdb> c
+        ...2 * 5...
 
     Re-enable garbage collection::
 

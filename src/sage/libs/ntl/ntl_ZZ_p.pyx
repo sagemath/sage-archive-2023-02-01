@@ -1,4 +1,8 @@
-# distutils: libraries = ntl gmp m
+# distutils: libraries = NTL_LIBRARIES gmp m
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 
 #*****************************************************************************
@@ -47,8 +51,11 @@ def ntl_ZZ_p_random_element(v):
 
     EXAMPLES::
 
-        sage: sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(17)
-        9
+        sage: a = sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p_random_element(17)
+        sage: type(a)
+        <class 'sage.libs.ntl.ntl_ZZ_p.ntl_ZZ_p'>
+        sage: a.modulus()
+        17
     """
     current_randstate().set_seed_ntl(False)
 

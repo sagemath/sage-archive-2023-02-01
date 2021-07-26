@@ -27,7 +27,7 @@ EXAMPLES: We illustrate each of the calculus functional functions.
     sage: laplace( e^(x+a), x, a)
     e^a/(a - 1)
     sage: inverse_laplace( e^a/(a-1), x, a)
-    ilt(e^a/(a - 1), x, a)
+    dirac_delta(a)*e^a/(a - 1)
 """
 
 from .calculus import SR
@@ -53,7 +53,7 @@ def simplify(f):
         return f
 
 def derivative(f, *args, **kwds):
-    """
+    r"""
     The derivative of `f`.
 
     Repeated differentiation is supported by the syntax given in the
@@ -143,7 +143,7 @@ def derivative(f, *args, **kwds):
         sage: derivative(a)
         2-form da on the 2-dimensional differentiable manifold M
         sage: derivative(a).display()
-        da = 2 dx/\dy
+        da = 2 dx∧dy
 
     """
     try:

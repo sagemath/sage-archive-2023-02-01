@@ -85,6 +85,7 @@ def late_import():
     global AlgebraicNumber_base
     global AlgebraicNumber
     global AlgebraicReal
+    global UniversalCyclotomicField
     global AA, QQbar, SR
     global CLF, RLF, CDF
     if NumberFieldElement_quadratic is None:
@@ -96,6 +97,7 @@ def late_import():
         AlgebraicNumber_base = sage.rings.qqbar.AlgebraicNumber_base
         AlgebraicNumber = sage.rings.qqbar.AlgebraicNumber
         AlgebraicReal = sage.rings.qqbar.AlgebraicReal
+        from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
         AA = sage.rings.qqbar.AA
         QQbar = sage.rings.qqbar.QQbar
         import sage.symbolic.ring
@@ -233,7 +235,7 @@ class ComplexField_class(ring.Field):
         sage: C(S.gen())
         Traceback (most recent call last):
         ...
-        TypeError: unable to coerce to a ComplexNumber: <type 'sage.rings.polynomial.polynomial_rational_flint.Polynomial_rational_flint'>
+        TypeError: cannot convert nonconstant polynomial
 
     This illustrates precision::
 
@@ -294,7 +296,8 @@ class ComplexField_class(ring.Field):
         self._prec = int(prec)
         from sage.categories.fields import Fields
         ParentWithGens.__init__(self, self._real_field(), ('I',), False, category=Fields().Infinite().Metric().Complete())
-        self._populate_coercion_lists_(coerce_list=[RRtoCC(self._real_field(), self)])
+        self._populate_coercion_lists_(coerce_list=[RRtoCC(self._real_field(), self)],
+                convert_method_name='_complex_mpfr_')
 
     def __reduce__(self):
         """
@@ -557,6 +560,13 @@ class ComplexField_class(ring.Field):
             else:
                 return None
         if S in [AA, QQbar, CLF, RLF]:
+            return self._generic_coerce_map(S)
+        # Needed to discover the correct coerce map. Without this, the maps
+        # (direct or via QQbar, with slightly different behavior wrt imaginary
+        # parts of real elements) that get picked for conversion from UCF both
+        # to CC and to other types of complex fields depend in which order the
+        # coercions are discovered.
+        if isinstance(S, UniversalCyclotomicField):
             return self._generic_coerce_map(S)
         return self._coerce_map_via([CLF], S)
 
@@ -1217,6 +1227,13 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             5
             sage: a^5
             -38.0000000000000 + 41.0000000000000*I
+
+        TESTS:
+
+        Check that :trac:`11323` is fixed::
+
+            sage: float(5)^(0.5 + 14.1347251*i)
+            -1.62414637645790 - 1.53692828324508*I
         """
         self._multiplicative_order = Integer(n)
 
@@ -1680,7 +1697,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         try:
             return (self.log()*right).exp()
-        except TypeError:
+        except (AttributeError, TypeError):
             pass
 
         try:

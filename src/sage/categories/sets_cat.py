@@ -22,9 +22,9 @@ from sage.categories.category_singleton import Category_singleton
 # Do not use sage.categories.all here to avoid initialization loop
 from sage.categories.sets_with_partial_maps import SetsWithPartialMaps
 from sage.categories.subquotients import SubquotientsCategory
-from sage.categories.quotients    import QuotientsCategory
-from sage.categories.subobjects   import SubobjectsCategory
-from sage.categories.isomorphic_objects   import IsomorphicObjectsCategory
+from sage.categories.quotients import QuotientsCategory
+from sage.categories.subobjects import SubobjectsCategory
+from sage.categories.isomorphic_objects import IsomorphicObjectsCategory
 from sage.categories.algebra_functor import AlgebrasCategory
 from sage.categories.cartesian_product import CartesianProductsCategory, CartesianProductFunctor
 from sage.categories.realizations import RealizationsCategory, Category_realization_of_parent
@@ -241,13 +241,13 @@ class Sets(Category_singleton):
            Proper forgetful functors will eventually be implemented, with
            another syntax.
         """
-        if enumerated_set and type(X) in (tuple,list,range):
+        if enumerated_set and type(X) in (tuple, list, range):
             from sage.categories.enumerated_sets import EnumeratedSets
             return EnumeratedSets()(X)
         from sage.sets.set import Set
         return Set(X)
 
-    def example(self, choice = None):
+    def example(self, choice=None):
         """
         Return examples of objects of ``Sets()``, as per
         :meth:`Category.example()
@@ -280,7 +280,7 @@ class Sets(Category_singleton):
             from sage.categories.examples.sets_cat import PrimeNumbers_Wrapper
             return PrimeNumbers_Wrapper()
         else:
-            raise ValueError("Unkown choice")
+            raise ValueError("unknown choice")
 
     class SubcategoryMethods:
 
@@ -1270,9 +1270,11 @@ class Sets(Category_singleton):
 
             for x in S:
                 for y in S:
-                    if not x == y: continue
+                    if not x == y:
+                        continue
                     for z in S:
-                        if not y == z: continue
+                        if not y == z:
+                            continue
                         tester.assertTrue(x == z,
                             LazyFormat("non transitive equality:\n"
                                        "%s and %s but %s")%(
@@ -1458,7 +1460,7 @@ class Sets(Category_singleton):
             and if it returns the latter, then it is supposed that ``F(O)==self`.
             The test verifies this assumption.
 
-            EXAMPLE:
+            EXAMPLES:
 
             We create a parent that returns a wrong construction (its construction
             returns the rational field rather than the parent itself)::
@@ -1685,6 +1687,47 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                                         category=algebra_category, **kwds)
             result.__doc__ = Sets.ParentMethods.algebra.__doc__
             return result
+
+        def _sympy_(self):
+            """
+            Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+            The default implementation creates an instance of
+            :class:`~sage.interfaces.sympy_wrapper`.
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSets().example(); F
+                An example of a finite enumerated set: {1,2,3}
+                sage: sF = F._sympy_(); sF
+                SageSet(An example of a finite enumerated set: {1,2,3})
+                sage: sF.is_finite_set
+                True
+                sage: bool(sF)
+                True
+                sage: len(sF)
+                3
+                sage: list(sF)
+                [1, 2, 3]
+                sage: from sympy import FiniteSet
+                sage: FiniteSet.fromiter(sF)
+                FiniteSet(1, 2, 3)
+
+                sage: RR._sympy_().is_finite_set
+                False
+
+                sage: F = Family([1, 2])
+                sage: F is Family([1, 2])
+                False
+                sage: sF = F._sympy_(); sF
+                SageSet(Family (1, 2))
+                sage: sF._sage_() is F
+                True
+            """
+            from sage.interfaces.sympy_wrapper import SageSet
+            from sage.interfaces.sympy import sympy_init
+            sympy_init()
+            return SageSet(self)
 
     class ElementMethods:
         ## Should eventually contain the basic operations which are no math
@@ -2292,7 +2335,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 except (AttributeError, NotImplementedError):
                     pass
                 else:
-                    if test: return test
+                    if test:
+                        return test
                 return all(c.is_finite() for c in f)
 
             def cardinality(self):
@@ -2437,6 +2481,23 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     sage: C._cartesian_product_of_elements(S.an_element() for S in X)
                     (42, 47, 42)
                 """
+
+            def _sympy_(self):
+                """
+                Return a SymPy ``ProductSet`` corresponding to ``self``.
+
+                EXAMPLES::
+
+                    sage: ZZ3 = cartesian_product([ZZ, ZZ, ZZ])
+                    sage: sZZ3 = ZZ3._sympy_(); sZZ3
+                    ProductSet(Integers, Integers, Integers)
+                    sage: (1, 2, 3) in sZZ3
+                    True
+                """
+                from sympy import ProductSet
+                from sage.interfaces.sympy import sympy_init
+                sympy_init()
+                return ProductSet(*self.cartesian_factors())
 
         class ElementMethods:
 
@@ -2601,7 +2662,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
             from sage.categories.examples.with_realizations import SubsetAlgebra
             return SubsetAlgebra(base_ring, set)
 
-
         class ParentMethods:
 
             def _test_with_realizations(self, **options):
@@ -2688,7 +2748,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     sage: e = S.e(); e
                     Symmetric Functions over Integer Ring in the elementary basis
 
-                This method automatizes the process::
+                This method automates the process::
 
                     sage: S.inject_shorthands()
                     Defining e as shorthand for Symmetric Functions over Integer Ring in the elementary basis
@@ -2957,7 +3017,7 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     sage: In = A.In(); In
                     The subset algebra of {1, 2, 3} over Rational Field in the In basis
 
-                In the example above, :meth:`repr` was overriden by
+                In the example above, :meth:`repr` was overridden by
                 the category ``A.Realizations()``. We now add a new
                 (fake) realization which is not in
                 ``A.Realizations()`` to actually exercise this

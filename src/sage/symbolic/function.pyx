@@ -129,6 +129,7 @@ from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent
+from sage.misc.lazy_attribute import lazy_attribute
 from .expression cimport new_Expression_from_GEx, Expression
 from .ring import SR
 
@@ -540,7 +541,7 @@ cdef class Function(SageObject):
         Check that `real_part` and `imag_part` still works after :trac:`21216`::
 
             sage: import numpy
-            sage: a = numpy.array([1+2*I, -2-3*I], dtype=numpy.complex)
+            sage: a = numpy.array([1+2*I, -2-3*I], dtype=complex)
             sage: real_part(a)
             array([ 1., -2.])
             sage: imag_part(a)
@@ -749,6 +750,24 @@ cdef class Function(SageObject):
             gg(x)
         """
         return self._conversions.get('sympy', self._name)
+
+    @lazy_attribute
+    def _sympy_(self):
+        """
+        EXAMPLES::
+
+            sage: cos._sympy_()
+            cos
+            sage: _(0)
+            1
+        """
+        f = self._sympy_init_()
+        import sympy
+        if getattr(sympy, f, None):
+            def return_sympy():
+                return getattr(sympy, f)
+            return return_sympy
+        return NotImplemented
 
     def _maxima_init_(self, I=None):
         """
@@ -1111,7 +1130,14 @@ cdef class BuiltinFunction(Function):
                 import mpmath as module
                 custom = self._eval_mpmath_
             elif all(isinstance(arg, float) for arg in args):
-                import math as module
+                # We do not include the factorial here as
+                # factorial(integer-valued float) is deprecated in Python 3.9.
+                # This special case should be removed when
+                # Python always raise an error for factorial(float).
+                # This case will be delegated to the gamma function.
+                # see Trac ticket #30764
+                if self._name != 'factorial':
+                    import math as module
             elif all(isinstance(arg, complex) for arg in args):
                 import cmath as module
 
@@ -1123,7 +1149,7 @@ cdef class BuiltinFunction(Function):
                 if callable(func):
                     try:
                         return func(*args)
-                    except (ValueError,TypeError):
+                    except (ValueError, TypeError):
                         pass
 
             if custom is not None:

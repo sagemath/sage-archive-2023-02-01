@@ -215,12 +215,11 @@ Note that Sage verifies that the morphism is valid::
 
 Endomorphism of power series ring::
 
-    sage: R.<t> = PowerSeriesRing(QQ); R
+    sage: R.<t> = PowerSeriesRing(QQ, default_prec=10); R
     Power Series Ring in t over Rational Field
     sage: f = R.hom([t^2]); f
     Ring endomorphism of Power Series Ring in t over Rational Field
       Defn: t |--> t^2
-    sage: R.set_default_prec(10)
     sage: s = 1/(1 + t); s
     1 - t + t^2 - t^3 + t^4 - t^5 + t^6 - t^7 + t^8 - t^9 + O(t^10)
     sage: f(s)
@@ -1010,6 +1009,24 @@ cdef class RingHomomorphism(RingMap):
             of Multivariate Polynomial Ring in x, y over Algebraic Field
             sage: f(J) <= I
             True
+
+        TESTS:
+
+        Check that :trac:`31367` is fixed::
+
+            sage: A.<t> = QQ[]
+            sage: B.<x,y> = QQ['x,y'].quotient('y')
+            sage: f = A.hom([x], B)
+            sage: f.kernel()
+            Principal ideal (0) of Univariate Polynomial Ring in t over Rational Field
+
+        ::
+
+            sage: A.<t,u> = QQ[]
+            sage: B.<x,y,z> = QQ['x,y,z'].quotient('z')
+            sage: f = A.hom([x, y], B)
+            sage: f.kernel()
+            Ideal (0) of Multivariate Polynomial Ring in t, u over Rational Field
         """
         from .polynomial.polynomial_quotient_ring import is_PolynomialQuotientRing
         from .quotient_ring import is_QuotientRing
@@ -1033,8 +1050,9 @@ cdef class RingHomomorphism(RingMap):
         if is_QuotientRing(Q):
             # elimination_ideal does not work with quotient rings, so
             # switch to the cover ring
-            preimage = (Q.cover()._inverse_image_ideal(graph_I)
-                        .elimination_ideal([y.lift() for y in gens_B]))
+            gens_B_lifted = Q.cover_ring().gens()[:B.ngens()]
+            graph_I_lifted = Q.cover()._inverse_image_ideal(graph_I)
+            preimage = graph_I_lifted.elimination_ideal(gens_B_lifted)
             _, ambient_to_A = to_A
             return ambient_to_A(preimage)
         else:
@@ -1053,11 +1071,30 @@ cdef class RingHomomorphism(RingMap):
             sage: f = R.hom([y, x], R)
             sage: f.inverse_image(x), f.inverse_image(y)  # indirect doctest
             (0, 0)
+
+        Check cases involving quotient rings in which a generator is constant
+        (:trac:`31178`)::
+
+            sage: R.<x,y> = QQ[]
+            sage: B.<c,d> = R.quotient(R.ideal(x))
+            sage: g = R.hom([d^2, d^3], B)
+            sage: g.inverse_image(d)
+            Traceback (most recent call last):
+            ...
+            ValueError: element d does not have preimage
+            sage: g.inverse_image(d^2)
+            x
+            sage: g.inverse_image(d^3)
+            y
+            sage: A.<a,b> = R.quotient(R.ideal(y^2 - x^3))
+            sage: h = A.hom([d^2, d^3], B)
+            sage: h.inverse_image(d^2)
+            a
         """
         graph, from_B, to_A = self._graph_ideal()
-        gens_B = graph.ring().gens()[:self.codomain().ngens()]
+        gens_A = graph.ring().gens()[-self.domain().ngens():]
         a = graph.reduce(from_B(b))
-        if not (a.lm() < min(gens_B)) and not a.is_zero():
+        if not all(x in gens_A for x in a.lm().variables()):
             raise ValueError(f"element {b} does not have preimage")
         return to_A(a)
 

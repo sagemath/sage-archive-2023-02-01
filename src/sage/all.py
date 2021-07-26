@@ -29,11 +29,9 @@ except for the known bad apples::
     ....:     if module is None: return False
     ....:     return not any(module.__name__.startswith(name) for name in allowed)
     sage: [inspect.getmodule(f).__name__ for f in frames if is_not_allowed(f)]
-    ['sage.combinat.species.generating_series']
+    []
 
-
-Check that the Sage Notebook is not imported at startup (see
-:trac:`15335`)::
+Check that the Sage Notebook is not imported at startup (see :trac:`15335`)::
 
     sage: sagenb
     Traceback (most recent call last):
@@ -65,7 +63,7 @@ import math
 ############ setup warning filters before importing Sage stuff ####
 import warnings
 
-__with_pydebug = hasattr(sys, 'gettotalrefcount')   # This is a Python debug build (--with-pydebug) 
+__with_pydebug = hasattr(sys, 'gettotalrefcount')   # This is a Python debug build (--with-pydebug)
 if __with_pydebug:
     # a debug build does not install the default warning filters. Sadly, this breaks doctests so we
     # have to re-add them:
@@ -74,7 +72,8 @@ if __with_pydebug:
     warnings.filterwarnings('ignore', category=ResourceWarning)
 else:
     deprecationWarning = ('ignore', None, DeprecationWarning, None, 0)
-    if deprecationWarning in warnings.filters: warnings.filters.remove(deprecationWarning)
+    if deprecationWarning in warnings.filters:
+        warnings.filters.remove(deprecationWarning)
 
 # The psutil swap_memory() function tries to collect some statistics
 # that may not be available and that we don't need. Hide the warnings
@@ -86,14 +85,14 @@ warnings.filterwarnings('ignore', category=RuntimeWarning,
 
 # Ignore all deprecations from IPython etc.
 warnings.filterwarnings('ignore', category=DeprecationWarning,
-    module='.*(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic|jedi)')
+    module='(IPython|ipykernel|jupyter_client|jupyter_core|nbformat|notebook|ipywidgets|storemagic|jedi)')
 
 # scipy 1.18 introduced reprecation warnings on a number of things they are moving to
 # numpy, e.g. DeprecationWarning: scipy.array is deprecated
 #             and will be removed in SciPy 2.0.0, use numpy.array instead
 # This affects networkx 2.2 up and including 2.4 (cf. :trac:29766)
 warnings.filterwarnings('ignore', category=DeprecationWarning,
-    module='.*(scipy|networkx)')
+    module='(scipy|networkx)')
 
 # Ignore collections.abc warnings, there are a lot of them but they are
 # harmless.
@@ -101,15 +100,15 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
     message='.*collections[.]abc.*')
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default', category=DeprecationWarning,
-    message=r'[\s\S]*See https\?://trac\.sagemath\.org/[0-9]* for details.')
+    message=r'[\s\S]*See https?://trac\.sagemath\.org/[0-9]* for details.')
 
 # Ignore Python 3.9 deprecation warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning,
-    module='.*ast')
+    module='ast')
 
 # Ignore packaging 20.5 deprecation warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning,
-    module='.*packaging')
+    module='(.*[.]_vendor[.])?packaging')
 
 ################ end setup warnings ###############################
 
@@ -183,6 +182,7 @@ from sage.geometry.riemannian_manifolds.all   import *
 from sage.dynamics.all   import *
 
 from sage.homology.all   import *
+from sage.topology.all   import *
 
 from sage.quadratic_forms.all import *
 
@@ -204,7 +204,7 @@ from sage.parallel.all   import *
 from sage.ext.fast_callable  import fast_callable
 from sage.ext.fast_eval      import fast_float
 
-sage.misc.lazy_import.lazy_import('sage.sandpiles.all', '*', globals())
+from sage.sandpiles.all import *
 
 from sage.tensor.all     import *
 
@@ -218,8 +218,7 @@ from sage.manifolds.all import *
 
 from cysignals.alarm import alarm, cancel_alarm
 
-# Lazily import notebook functions and interacts (#15335)
-lazy_import('sage.interacts.debugger', 'debug')
+# Lazily import interacts (#15335)
 lazy_import('sage.interacts', 'all', 'interacts')
 
 from copy import copy, deepcopy
@@ -312,36 +311,6 @@ sage.misc.lazy_import.save_cache_file()
 ### Debugging for Singular, see trac #10903
 # from sage.libs.singular.ring import poison_currRing
 # sys.settrace(poison_currRing)
-
-
-# Write a file indicating that Sage was started up successfully.
-# This is called by the sage-starts script.
-def _write_started_file():
-    """
-    Write a ``sage-started.txt`` file if it does not exist.  The
-    contents of this file do not matter, only its existence.
-
-    The non-existence of this file will be used as a trigger to run
-    ``sage-starts`` during the Sage build.
-
-    TESTS:
-
-    Check that the file exists when Sage is running (note, this file is not
-    necessarily installed or used by downstream packages of Sage)::
-
-        sage: started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-        sage: os.path.isfile(started_file)  # optional - build
-        True
-    """
-    started_file = os.path.join(SAGE_LOCAL, 'etc', 'sage-started.txt')
-
-    # Current time with a resolution of 1 second
-    import datetime
-    t = datetime.datetime.now().replace(microsecond=0)
-
-    O = open(started_file, 'w')
-    O.write("Sage {} was started at {}\n".format(sage.version.version, t))
-    O.close()
 
 
 # Set a new random number seed as the very last thing

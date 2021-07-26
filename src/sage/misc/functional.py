@@ -746,6 +746,14 @@ def integral(x, *args, **kwds):
         sage: f = sympy.Function('f')
         sage: SR(sympy.Integral(f(x,y,z), x, y, z))
         integrate(integrate(integrate(f(x, y, z), x), y), z)
+
+    Ensure that the following integral containing a signum term from
+    :trac:`11590` can be integrated::
+
+        sage: x = SR.symbol('x', domain='real')
+        sage: integrate(x * sgn(x^2 - 1/4), x, -1, 0)
+        -1/4
+
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)

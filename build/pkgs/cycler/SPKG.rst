@@ -1,10 +1,10 @@
-cycler
-======
+cycler: Composable cycles
+=========================
 
 Description
 -----------
 
-Cycler is a small break of of matplotlib to deal with "composable
+Cycler is a small break-off of matplotlib to deal with "composable
 cycles". It is a required dependency of matplotlib 1.5.0.
 
 License

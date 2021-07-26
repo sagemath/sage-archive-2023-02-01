@@ -661,8 +661,11 @@ class FractionField_generic(ring.Field):
             # Below, v is the variable with highest priority,
             # and the x[i] are rational functions in the
             # remaining variables.
+            d = x.poldegree()
+            if d.type() == 't_INFINITY':
+                return self.zero()
             v = self._element_class(self, x.variable(), 1)
-            x = sum(self(x[i]) * v**i for i in range(x.poldegree() + 1))
+            x = sum(self(x[i]) * v**i for i in range(d + 1))
 
         def resolve_fractions(x, y):
             xn = x.numerator()

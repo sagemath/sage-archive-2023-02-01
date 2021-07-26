@@ -137,6 +137,8 @@ from .ideal import (
     FunctionFieldIdealInfinite_rational,
     FunctionFieldIdealInfinite_polymod)
 
+from .hermite_form_polynomial import reversed_hermite_form
+
 
 class FunctionFieldOrder_base(CachedRepresentation, Parent):
     """
@@ -336,7 +338,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
 
     def _element_constructor_(self, f):
         """
-        Constuct an element of this order from ``f``.
+        Construct an element of this order from ``f``.
 
         INPUT:
 
@@ -357,7 +359,7 @@ class FunctionFieldOrder_basis(FunctionFieldOrder):
 
         V, fr_V, to_V = F.vector_space()
         f_vector = to_V(f)
-        if not f_vector in self._module:
+        if f_vector not in self._module:
             raise TypeError("{} is not an element of {}".format(f_vector, self))
 
         return f
@@ -1475,10 +1477,8 @@ class FunctionFieldMaximalOrder_polymod(FunctionFieldMaximalOrder):
         # so that we get a unique hnf. Here the hermite form
         # algorithm also makes the pivots monic.
 
-        # compute the reverse hermite form with zero rows deleted
-        mat.reverse_rows_and_columns()
-        mat._hermite_form_euclidean(normalization=lambda p: ~p.lc())
-        mat.reverse_rows_and_columns()
+        # compute the reversed hermite form with zero rows deleted
+        reversed_hermite_form(mat)
         i = 0
         while i < mat.nrows() and mat.row(i).is_zero():
             i += 1
@@ -2605,9 +2605,7 @@ class FunctionFieldMaximalOrderInfinite_polymod(FunctionFieldMaximalOrderInfinit
                 k = x * k
 
                 h2 = block_matrix([[h],[k]])
-                h2.reverse_rows_and_columns()
-                h2._hermite_form_euclidean(normalization=lambda p: ~p.lc())
-                h2.reverse_rows_and_columns()
+                reversed_hermite_form(h2)
                 i = 0
                 while i < h2.nrows() and h2.row(i).is_zero():
                     i += 1

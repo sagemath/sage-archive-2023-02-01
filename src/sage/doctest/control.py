@@ -44,11 +44,14 @@ optionaltag_regex = re.compile(r'^\w+$')
 
 # Optional tags which are always automatically added
 
-from sage.libs.arb.arb_version import version as arb_vers
-arb_tag = 'arb2' + arb_vers().split('.')[1]
+auto_optional_tags = set(['py3'])
 
-auto_optional_tags = set(['py3', arb_tag])
-
+try:
+    from sage.libs.arb.arb_version import version as arb_vers
+    arb_tag = 'arb2' + arb_vers().split('.')[1]
+    auto_optional_tags.add(arb_tag)
+except ImportError:
+    pass
 
 class DocTestDefaults(SageObject):
     """
@@ -93,7 +96,6 @@ class DocTestDefaults(SageObject):
         self.nthreads = 1
         self.serial = False
         self.timeout = -1
-        self.memlimit = 0
         self.all = False
         self.logfile = None
         self.long = False
@@ -150,7 +152,7 @@ class DocTestDefaults(SageObject):
         for k in sorted(dict_difference(self.__dict__, DocTestDefaults().__dict__).keys()):
             if s[-1] != "(":
                 s += ", "
-            s += str(k) + "=" + repr(getattr(self,k))
+            s += str(k) + "=" + repr(getattr(self, k))
         s += ")"
         return s
 
@@ -172,7 +174,7 @@ class DocTestDefaults(SageObject):
 
     def __ne__(self, other):
         """
-        Test for unequality.
+        Test for non-equality.
 
         EXAMPLES::
 
@@ -377,10 +379,6 @@ class DocTestController(SageObject):
                 options.optional |= auto_optional_tags
 
         self.options = options
-
-        if options.memlimit > 0:
-            # Allow tests that require a virtual memory limit to be set
-            options.optional.add('memlimit')
 
         self.files = args
         if options.logfile:
@@ -641,33 +639,6 @@ class DocTestController(SageObject):
         self.logger.write(s + end)
         self.logger.flush()
 
-    def test_safe_directory(self, dir=None):
-        """
-        Test that the given directory is safe to run Python code from.
-
-        TESTS::
-
-            sage: from sage.doctest.control import DocTestDefaults, DocTestController
-            sage: DD = DocTestDefaults()
-            sage: DC = DocTestController(DD, [])
-            sage: DC.test_safe_directory()
-            sage: d = os.path.join(tmp_dir(), "test")
-            sage: os.mkdir(d)
-            sage: os.chmod(d, 0o777)
-            sage: DC.test_safe_directory(d)
-            Traceback (most recent call last):
-            ...
-            RuntimeError: refusing to run doctests...
-        """
-        import stat
-        is_world_writeable = bool(os.stat(dir or os.getcwd()).st_mode & stat.S_IWOTH)
-        if is_world_writeable:
-            raise RuntimeError(
-                  "refusing to run doctests from the current "
-                  "directory '{}' since untrusted users could put files in "
-                  "this directory, making it unsafe to run Sage code from"
-                  .format(os.getcwd()))
-
     def create_run_id(self):
         """
         Creates the run id.
@@ -724,6 +695,7 @@ class DocTestController(SageObject):
             # don't make sense to run outside a build environment
             if have_git:
                 self.files.append(opj(SAGE_SRC, 'sage_setup'))
+                self.files.append(opj(SAGE_SRC, 'sage_docbuild'))
             self.files.append(SAGE_DOC_SRC)
 
         if self.options.all or (self.options.new and not have_git):
@@ -1036,7 +1008,7 @@ class DocTestController(SageObject):
         for o in ("all", "long", "force_lib", "verbose", "failed", "new"):
             if o in opt:
                 cmd += "--%s "%o
-        for o in ("timeout", "memlimit", "randorder", "stats_path"):
+        for o in ("timeout", "randorder", "stats_path"):
             if o in opt:
                 cmd += "--%s=%s "%(o, opt[o])
         if "optional" in opt:
@@ -1207,7 +1179,6 @@ class DocTestController(SageObject):
                 return 2
             return self.run_val_gdb()
         else:
-            self.test_safe_directory()
             self.create_run_id()
             from sage.env import SAGE_ROOT_GIT
             # SAGE_ROOT_GIT can be None on distributions which typically
@@ -1268,6 +1239,7 @@ def run_doctests(module, options=None):
     """
     import sys
     sys.stdout.flush()
+
     def stringify(x):
         if isinstance(x, (list, tuple)):
             F = [stringify(a) for a in x]

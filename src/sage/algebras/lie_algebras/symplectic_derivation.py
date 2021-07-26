@@ -7,7 +7,7 @@ AUTHORS:
 - Travis Scrimshaw (2020-10): Initial version
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2020 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 
 from sage.categories.lie_algebras import LieAlgebras
 from sage.sets.family import Family
@@ -26,12 +26,13 @@ from sage.algebras.lie_algebras.lie_algebra import InfinitelyGeneratedLieAlgebra
 from sage.sets.non_negative_integers import NonNegativeIntegers
 from sage.combinat.partition import _Partitions, Partitions
 
+
 class SymplecticDerivationLieAlgebra(InfinitelyGeneratedLieAlgebra, IndexedGenerators):
     r"""
     The symplectic derivation Lie algebra.
 
     Fix a `g \geq 4` and let `R` be a commutative ring. Let `H = R^{2g}`
-    be equiped with a symplectic form `\mu` with the basis
+    be equipped with a symplectic form `\mu` with the basis
     `a_1, \ldots, a_g, b_1, \ldots, b_g` such that
 
     .. MATH::

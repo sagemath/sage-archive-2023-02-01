@@ -91,7 +91,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
 
       * ``morphism_or_polys`` is a list of polynomials or rational
         functions and ``domain`` is unspecified; ``domain`` is then
-        taken to be the affine space of appropriate dimension over the 
+        taken to be the affine space of appropriate dimension over the
         common base ring, if one exists, of the elements of ``morphism_or_polys``
 
       * ``morphism_or_polys`` is a single polynomial or rational
@@ -259,7 +259,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
         else:
             polys = [morphism_or_polys]
 
-        PR = get_coercion_model().common_parent(*polys)         
+        PR = get_coercion_model().common_parent(*polys)
         fraction_field = any(is_FractionField(poly.parent()) for poly in polys)
         if fraction_field:
             K = PR.base_ring().fraction_field()
@@ -281,7 +281,7 @@ class DynamicalSystem_affine(SchemeMorphism_polynomial_affine_space,
                 PR = PR.ring()
             domain = AffineSpace(PR)
         else:
-            # Check if we can coerce the given polynomials over the given domain 
+            # Check if we can coerce the given polynomials over the given domain
             PR = domain.ambient_space().coordinate_ring()
             try:
                 if fraction_field:
@@ -1020,7 +1020,7 @@ class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,
         V = []
         E = []
         from sage.schemes.affine.affine_space import is_AffineSpace
-        if is_AffineSpace(self.domain()) == True:
+        if is_AffineSpace(self.domain()):
             for P in self.domain():
                 V.append(str(P))
                 Q = self(P)
@@ -1036,6 +1036,4 @@ class DynamicalSystem_affine_finite_field(DynamicalSystem_affine_field,
                 except TypeError:  # not on the scheme
                     pass
         from sage.graphs.digraph import DiGraph
-        g = DiGraph(dict(zip(V, E)), loops=True)
-        return g
-
+        return DiGraph(dict(zip(V, E)), loops=True)

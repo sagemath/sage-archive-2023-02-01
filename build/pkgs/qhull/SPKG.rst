@@ -1,5 +1,5 @@
-Qhull
-=====
+qhull: Compute convex hulls, Delaunay triangulations, Voronoi diagrams
+======================================================================
 
 Description
 -----------

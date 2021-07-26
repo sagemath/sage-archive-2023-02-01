@@ -1818,7 +1818,7 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
         """
         W = WeylGroup(['A', k, 1], prefix='s')
         if len(t) > 0:
-            if isinstance(t[0], list) or isinstance(t[0], tuple):
+            if isinstance(t[0], (list, tuple)):
                 w_tuple = tuple(W.from_reduced_word(p) for p in t)
             else:
                 w_tuple = tuple(W(r) for r in t)
@@ -2546,7 +2546,7 @@ class StrongTableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass)
             sage: all( T._is_valid_standard() for T in StrongTableaux.standard_marked_iterator(4, 6))
             True
 
-        Inner shape is not a a 3-core::
+        Inner shape is not a 3-core::
 
             sage: StrongTableau([[None, None, None], [-1]], 2)
             Traceback (most recent call last):

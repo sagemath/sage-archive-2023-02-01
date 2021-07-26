@@ -277,7 +277,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return r"\Bold{C}"
 
-    def __call__(self, x, im=None):
+    def __call__(self, x=None, im=None):
         """
         Create a complex double using ``x`` and optionally an imaginary part
         ``im``.
@@ -313,7 +313,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF(QQ['x'].0)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial to float
+            TypeError: cannot convert nonconstant polynomial
 
         One can convert back and forth between double precision complex
         numbers and higher-precision ones, though of course there may be
@@ -329,8 +329,19 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             True
             sage: b == CC(a)
             True
+
+        TESTS:
+
+        Check that :trac:`31836` is fixed::
+
+            sage: a = CDF() ; a
+            0.0
+            sage: a.parent()
+            Complex Double Field
         """
         # We implement __call__ to gracefully accept the second argument.
+        if x is None:
+            return self.zero()
         if im is not None:
             x = x, im
         return Parent.__call__(self, x)

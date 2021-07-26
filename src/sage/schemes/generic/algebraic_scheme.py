@@ -247,7 +247,7 @@ class AlgebraicScheme(scheme.Scheme):
         scheme.Scheme.__init__(self, A.base_scheme())
 
     def _latex_(self):
-        """
+        r"""
         Return a LaTeX representation of this algebraic scheme.
 
         TESTS::
@@ -257,9 +257,9 @@ class AlgebraicScheme(scheme.Scheme):
             sage: S = AlgebraicScheme(P); S
             Subscheme of Projective Space of dimension 3 over Integer Ring
             sage: S._latex_()
-            '\text{Subscheme of } {\\mathbf P}_{\\Bold{Z}}^3'
+            '\\text{Subscheme of ${\\mathbf P}_{\\Bold{Z}}^3$}'
         """
-        return "\text{Subscheme of } %s" % latex(self.__A)
+        return r"\text{{Subscheme of ${}$}}".format(latex(self.__A))
 
     def is_projective(self):
         """
@@ -1214,7 +1214,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             w^5 - 2*z^3*v^2
             ]
 
-        We verify that the irrelevant ideal isn't accidently returned
+        We verify that the irrelevant ideal is not accidentally returned
         (see :trac:`6920`)::
 
             sage: PP.<x,y,z,w> = ProjectiveSpace(3,QQ)
@@ -1920,7 +1920,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             Closed subscheme of Projective Space of dimension 1 over Complex Field
             with 53 bits of precision defined by:
               x^2 + (0.623489801858734 + 0.781831482468030*I)*y^2
-            sage: X.change_ring(K).change_ring(K.embeddings(QQbar)[0])
+            sage: X.change_ring(K).change_ring(K.embeddings(QQbar)[3])
             Closed subscheme of Projective Space of dimension 1 over Algebraic Field defined by:
               x^2 + (-0.9009688679024191? - 0.4338837391175581?*I)*y^2
 

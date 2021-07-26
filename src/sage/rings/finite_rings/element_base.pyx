@@ -1,11 +1,23 @@
 """
 Base class for finite field elements
 
-AUTHORS::
+AUTHORS:
 
-- David Roe (2010-1-14) -- factored out of sage.structure.element
-- Sebastian Oehms (2018-7-19) -- add :meth:`conjugate` (see :trac:`26761`)
+- David Roe (2010-1-14): factored out of sage.structure.element
+
+- Sebastian Oehms (2018-7-19): added :meth:`conjugate` (see :trac:`26761`)
+
 """
+
+# ****************************************************************************
+#       Copyright (C) 2010 David Roe <roed@math.harvard.edu>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 2 of the License, or
+# (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.element cimport Element
 from sage.structure.parent cimport Parent
@@ -845,3 +857,20 @@ cdef class FinitePolyExtElement(FiniteRingElement):
         k = k2 / 2
 
         return self.pth_power(k=k)
+
+cdef class Cache_base(SageObject):
+    cpdef FinitePolyExtElement fetch_int(self, number):
+        """
+        Given an integer less than `p^n` with base `2`
+        representation `a_0 + a_1 \cdot 2 + \cdots + a_k 2^k`, this returns
+        `a_0 + a_1 x + \cdots + a_k x^k`, where `x` is the
+        generator of this finite field.
+
+        EXAMPLES::
+
+            sage: k.<a> = GF(2^48)
+            sage: k._cache.fetch_int(2^33 + 2 + 1)
+            a^33 + a + 1
+        """
+        raise NotImplementedError("this must be implemented by subclasses")
+

@@ -194,6 +194,15 @@ def init_sage(controller=None):
     from sage.cpython._py2_random import Random
     sage.misc.randstate.DEFAULT_PYTHON_RANDOM = Random
 
+    # IPython's pretty printer sorts the repr of dicts by their keys by default
+    # (or their keys' str() if they are not otherwise orderable).  However, it
+    # disables this for CPython 3.6+ opting to instead display dicts' "natural"
+    # insertion order, which is preserved in those versions).
+    # However, this order is random in some instances.
+    # Also modifications of code may affect the order.
+    # So here we fore sorted dict printing.
+    IPython.lib.pretty.for_type(dict, _sorted_dict_pprinter_factory('{', '}'))
+
     if controller is None:
         import sage.repl.ipython_kernel.all_jupyter
     else:
@@ -216,22 +225,17 @@ def init_sage(controller=None):
     from sage.repl.rich_output.backend_doctest import BackendDoctest
     dm.switch_backend(BackendDoctest())
 
-    # IPython's pretty printer sorts the repr of dicts by their keys by default
-    # (or their keys' str() if they are not otherwise orderable).  However, it
-    # disables this for CPython 3.6+ opting to instead display dicts' "natural"
-    # insertion order, which is preserved in those versions).
-    # However, this order is random in some instances.
-    # Also modifications of code may affect the order.
-    # So here we fore sorted dict printing.
-    IPython.lib.pretty.for_type(dict, _sorted_dict_pprinter_factory('{', '}'))
-
     # Switch on extra debugging
     from sage.structure.debug_options import debug
     debug.refine_category_hash_check = True
 
     # We import readline before forking, otherwise Pdb doesn't work
     # on OS X: http://trac.sagemath.org/14289
-    import readline
+    try:
+        import readline
+    except ModuleNotFoundError:
+        # Do not require readline for running doctests (Trac #31160).
+        pass
 
     try:
         import sympy

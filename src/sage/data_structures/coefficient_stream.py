@@ -596,9 +596,9 @@ class CoefficientStream_inv(LazyLaurentSeries_unary):
             c = self._zero
             m = min(len(self._cache), n)
             for k in range(m):
-                c += self._cache[k] * self._series[n - k]
-            for k in range(m, n):
-                c += self[v+k] * self._series[n - k]
+                c += self._cache[k] * self._series[n - v - k]
+            for k in range(v+m, v+n):
+                c += self[k] * self._series[n - k]
             yield -c * self._ainv
 
 

@@ -4182,6 +4182,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                         Z(list(Q))
                     except TypeError:
                         good_points.append(Q)
+                good_points.sort()
                 return good_points
             else:
                 raise NotImplementedError("ring must a number field or finite field")
@@ -4526,6 +4527,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
                             Z(list(Q))
                         except TypeError:
                             good_points.append(Q)
+                    good_points.sort()
                     return good_points
                 else:
                     raise NotImplementedError("ring must be a number field or finite field")

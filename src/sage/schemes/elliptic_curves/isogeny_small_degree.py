@@ -2334,14 +2334,13 @@ def isogenies_prime_degree(E, l, minimal_models=True):
         sage: E.isogenies_prime_degree(73) # slower (2s)
         []
 
-    Test that :trac:`32269` is fixed.
+    Test that :trac:`32269` is fixed::
 
         sage: K = QuadraticField(-11)
         sage: E = EllipticCurve(K, [0,1,0,-117,-541])
         sage: E.isogenies_prime_degree(37)
-        [Isogeny of degree 37 from Elliptic Curve defined by y^2 = x^3 + x^2 + (-117)*x + (-541) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I to Elliptic Curve defined by y^2 = x^3 + x^2 + (98560*a+42123)*x + (-12561472*a-61946205) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I,
-         Isogeny of degree 37 from Elliptic Curve defined by y^2 = x^3 + x^2 + (-117)*x + (-541) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I to Elliptic Curve defined by y^2 = x^3 + x^2 + (-98560*a+42123)*x + (12561472*a-61946205) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I]
-
+        [Isogeny of degree 37 from Elliptic Curve defined by y^2 = x^3 + x^2 + (-117)*x + (-541) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I to Elliptic Curve defined by y^2 = x^3 + x^2 + (30800*a+123963)*x + (3931312*a-21805005) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I,
+         Isogeny of degree 37 from Elliptic Curve defined by y^2 = x^3 + x^2 + (-117)*x + (-541) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I to Elliptic Curve defined by y^2 = x^3 + x^2 + (-30800*a+123963)*x + (-3931312*a-21805005) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I]
 
     """
     if not l.is_prime():

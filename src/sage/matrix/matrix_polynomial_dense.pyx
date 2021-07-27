@@ -1639,7 +1639,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: P.is_weak_popov() and U.is_invertible()
             True
 
-        Demonstrating shifts::
+        Demonstrating shifts and ordered forms::
 
             sage: P = M.weak_popov_form(shifts=[0,2,4])
             sage: P
@@ -1649,8 +1649,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
             sage: P.leading_positions(shifts=[0,2,4])
             [2, 1]
-            sage: M.weak_popov_form(shifts=[0,2,4], \
-                    ordered=True).leading_positions(shifts=[0,2,4])
+            sage: P = M.weak_popov_form(shifts=[0,2,4],ordered=True); P
+            [                      5*x + 5 5*x^4 + x^3 + 9*x^2 + 3*x + 4                       8*x + 1]
+            [                      6*x + 4                   5*x^3 + 5*x               6*x^2 + 2*x + 2]
+            sage: P.leading_positions(shifts=[0,2,4])
             [1, 2]
 
         Column-wise form is the row-wise form of the transpose:

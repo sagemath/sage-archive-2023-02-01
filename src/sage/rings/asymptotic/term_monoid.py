@@ -164,14 +164,26 @@ have equal growth to be incomparable.
 
 
 Various
+=======
 
 .. WARNING::
 
-    As this code is experimental, warnings are thrown when a BTerm
+    The code for :class:`B-Terms <BTermMonoid>` is experimental, so
+    a warning is thrown when a :class:`BTerm`
     is created for the first time in a session (see
     :class:`sage.misc.superseded.experimental`).
 
-=======
+    ::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+        sage: T = TermMonoid('B', growth_group=GrowthGroup('x^ZZ'), coefficient_ring=QQ)
+        doctest:warning
+        ...
+        FutureWarning: This class/method/function is marked as experimental.
+        It, its functionality or its interface might change without a formal deprecation.
+        See https://trac.sagemath.org/31922 for details.
+
 
 .. TODO::
 
@@ -4019,11 +4031,6 @@ class BTerm(TermWithCoefficient):
         sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
         sage: G = MonomialGrowthGroup(ZZ, 'x')
         sage: T = TermMonoid('B', growth_group=G, coefficient_ring=QQ)
-        doctest:warning
-        ...
-        FutureWarning: This class/method/function is marked as experimental.
-        It, its functionality or its interface might change without a formal deprecation.
-        See https://trac.sagemath.org/31922 for details.
 
     B-terms are, for example,
     ::

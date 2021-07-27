@@ -175,7 +175,7 @@ def basis_for_modform_space(*args):
 
 @richcmp_method
 class ModularFormsRing(Parent):
-    
+
     Element = GradedModularFormElement
 
     def __init__(self, group, base_ring=QQ):
@@ -323,7 +323,7 @@ class ModularFormsRing(Parent):
 
     def polynomial_ring(self, names, gens=None):
         r"""
-        Return the polynomial ring of which ``self`` is a quotient.
+        Return a polynomial ring of which ``self`` is a quotient.
 
         INPUT:
 
@@ -362,47 +362,33 @@ class ModularFormsRing(Parent):
         degs = [f.weight() for f in gens]
         return PolynomialRing(self.base_ring(), len(gens), names, order=TermOrder('wdeglex', degs)) # Should we remove the deg lexicographic ordering here?
 
-    def _weights_of_generators(self, gens):
-        r"""
-        Return a list of the weights of generators of the given ``ModularFormsRing``
-
-        EXAMPLES::
-
-            sage: M = ModularFormsRing(1)
-            sage: M._weights_of_generators(M.gen_forms())
-            [4, 6]
-            sage: M = ModularFormsRing(Gamma0(6))
-            sage: M._weights_of_generators(M.gen_forms())
-            [2, 2, 2]
-        """
-        return [gens[i].weight() for i in range(0, len(gens))]
-
     def _monomials_of_weight(self, weight, gens, poly_parent):
         r"""
         Returns the dictionnary of all homogeneous monomials of weight ``weight`` given by
         products of generators. The keys of the dictionnary are the monomials living in
         `poly_parent` and the values are the modular forms associated to these polynomials.
 
-        EXAMPLES::
+        TESTS::
 
-        sage: M = ModularFormsRing(1)
-        sage: gens = M.gen_forms()
-        sage: M._monomials_of_weight(24, gens, QQ['E4, E6'])
-        {E6^4: 1 - 2016*q + 1457568*q^2 - 411997824*q^3 + 16227967392*q^4 + 6497071680960*q^5 + O(q^6),
-        E4^3*E6^2: 1 - 288*q - 325728*q^2 + 11700864*q^3 + 35176468896*q^4 + 6601058210880*q^5 + O(q^6),
-        E4^6: 1 + 1440*q + 876960*q^2 + 292072320*q^3 + 57349833120*q^4 + 6660135541440*q^5 + O(q^6)}
-        sage: M = ModularFormsRing(Gamma0(6))
-        sage: gens = M.gen_forms()
-        sage: M._monomials_of_weight(4, gens, QQ['g0, g1, g2'])
-        {g2^2: q^4 - 4*q^5 + O(q^6),
-        g1*g2: q^3 - 2*q^4 + 8*q^5 + O(q^6),
-        g0*g2: q^2 - 2*q^3 + 3*q^4 + 24*q^5 + O(q^6),
-        g1^2: q^2 + 10*q^4 - 4*q^5 + O(q^6),
-        g0*g1: q + 5*q^3 + 22*q^4 + 6*q^5 + O(q^6),
-        g0^2: 1 + 48*q^3 + O(q^6)}
+            sage: M = ModularFormsRing(1)
+            sage: gens = M.gen_forms()
+            sage: M._monomials_of_weight(24, gens, QQ['E4, E6'])
+            {E6^4: 1 - 2016*q + 1457568*q^2 - 411997824*q^3 + 16227967392*q^4 + 6497071680960*q^5 + O(q^6),
+            E4^3*E6^2: 1 - 288*q - 325728*q^2 + 11700864*q^3 + 35176468896*q^4 + 6601058210880*q^5 + O(q^6),
+            E4^6: 1 + 1440*q + 876960*q^2 + 292072320*q^3 + 57349833120*q^4 + 6660135541440*q^5 + O(q^6)}
+            sage: M = ModularFormsRing(Gamma0(6))
+            sage: gens = M.gen_forms()
+            sage: M._monomials_of_weight(4, gens, QQ['g0, g1, g2'])
+            {g2^2: q^4 - 4*q^5 + O(q^6),
+            g1*g2: q^3 - 2*q^4 + 8*q^5 + O(q^6),
+            g0*g2: q^2 - 2*q^3 + 3*q^4 + 24*q^5 + O(q^6),
+            g1^2: q^2 + 10*q^4 - 4*q^5 + O(q^6),
+            g0*g1: q + 5*q^3 + 22*q^4 + 6*q^5 + O(q^6),
+            g0^2: 1 + 48*q^3 + O(q^6)}
         """
         # create the set of "weighted exponents"
-        W = WeightedIntegerVectors(weight, self._weights_of_generators(gens)).list()
+        weights_of_generators = [gens[i].weight() for i in range(0, len(gens))]
+        W = WeightedIntegerVectors(weight, weights_of_generators).list()
         if len(W) == 0:
             raise ValueError("there is no modular forms of the given weight (%s) for %s"%(weight, self.group()))
 
@@ -446,8 +432,8 @@ class ModularFormsRing(Parent):
 
     def from_polynomial(self, pol, gens=None):
         r"""
-        Convert the given polynomial ``pol`` to a graded form living in ``self``. If 
-        ``gens`` is ``None`` then the list of generators given by the method :meth: gen_forms
+        Convert the given polynomial ``pol`` to a graded form living in ``self``. If
+        ``gens`` is ``None`` then the list of generators given by the method :meth:`gen_forms`
         will be used. Otherwise, ``gens`` should be a list of generators.
 
         INPUT:
@@ -472,8 +458,8 @@ class ModularFormsRing(Parent):
             sage: M.0 + M.1 + M.2
             1 + q + q^2 + 27*q^3 + q^4 + 6*q^5 + O(q^6)
 
-        ..TODO:: 
-        
+        ..TODO::
+
             * add conversion for symbolic expressions?
         """
         if not isinstance(pol, (MPolynomial, Polynomial)):

@@ -3575,11 +3575,9 @@ class GradedModularFormElement(ModuleElement):
         soln = mat.solve_right(coef_self)
 
         # initialize the polynomial associated to self
-        iter = 0
-        poly = 0
-        for p in monomials.keys():
+        poly = 0 # TODO : this should be the zero polynomial, not the integer 0
+        for iter, p in enumerate(monomials):
             poly += soln[iter, 0]*p
-            iter += 1
         return poly
 
     def to_polynomial(self, names='x', gens=None):

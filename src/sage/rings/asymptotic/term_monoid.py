@@ -4024,33 +4024,16 @@ class BTerm(TermWithCoefficient):
     r"""
     Class for asymptotic B-terms.
 
-    We first explain what B-terms are. With
-    ::
+    A B-term represents all functions which (in absolute value) is bounded
+    by the given ``growth`` and ``coefficient`` for the parameters
+    given by ``valid_from``.
+    For example, we have terms that represent functions
 
-        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
-        sage: G = MonomialGrowthGroup(ZZ, 'x')
-        sage: T = TermMonoid('B', growth_group=G, coefficient_ring=QQ)
+    - bounded by `5|x|^2` for `|x| >= 3` (see below for the actual example),
 
-    B-terms are, for example,
-    ::
+    - bounded by `42|x|^3` for `|x| >= 15` and `|y| >= 15`, or
 
-        sage: T(x^2, coefficient=5, valid_from={'x': 3})
-        B(5*x^2, x >= 3)
-
-    a term whose absolute value is bounded by `5|x|^2` for `|x| >= 3`,
-    ::
-
-        sage: T(x^3, coefficient=42, valid_from={'x': 15, 'y': 15})  # not tested
-
-    a term whose absolute value is bounded by `42|x|^3` for `|x| >= 15` and
-    `|y| >= 15`, or
-    ::
-
-        sage: T(x^3*y^2, coefficient=42, valid_from={'x': 10, 'y': 20})  # not tested
-
-    a term whose absolute value is bounded by `42 |x|^3 |y|^2` for
-    `|x| >= 10` and `|y| >= 20`.
+    - bounded by `42 |x|^3 |y|^2` for `|x| >= 10` and `|y| >= 20`.
 
     INPUT:
 
@@ -4074,6 +4057,18 @@ class BTerm(TermWithCoefficient):
         sage: BT_QQ = TermMonoid('B', G, QQ)
         sage: BT_QQ(x, 3, valid_from={'x': 20})
         B(3*x, x >= 20)
+
+    We revisit the example from the introduction::
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: G = GrowthGroup('x^ZZ * y^ZZ')
+        sage: T = TermMonoid('B', growth_group=G, coefficient_ring=ZZ)
+        sage: x, y = G('x'), G('y')
+        sage: T(x^2, coefficient=5, valid_from={'x': 3})
+        B(5*x^2, x >= 3)
+        sage: T(x^3, coefficient=42, valid_from={'x': 15, 'y': 15})
+        B(42*x^3, x >= 15, y >= 15)
+        sage: T(x^3*y^2, coefficient=42, valid_from={'x': 10, 'y': 20})
+        B(42*x^3*y^2, x >= 10, y >= 20)
 
     """
     def __init__(self, parent, growth, coefficient, valid_from):

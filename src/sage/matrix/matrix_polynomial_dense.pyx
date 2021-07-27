@@ -1564,18 +1564,31 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 row_wise=row_wise,
                 include_zero_vectors=include_zero_vectors)
 
-    def weak_popov_form(self, transformation=False, shifts=None):
+    def weak_popov_form(self,
+            transformation=False,
+            shifts=None,
+            row_wise=True,
+            ordered=False,
+            include_zero_vectors=True):
         r"""
-        Return a (row-wise) weak Popov form of this matrix.
+        Return a (shifted) (ordered) weak Popov form of this matrix.
 
         A polynomial matrix is said to be in (row-wise) weak Popov form if the
         (shifted) leading positions of its nonzero rows are pairwise distinct.
-        The leading position of a row is the right-most position whose entry has
+        The leading position of a row is the rightmost position whose entry has
         the maximal degree in the row, see :meth:`leading_positions`. See the
         class description for an introduction to shifts.
 
-        The weak Popov form is non-canonical, so an input matrix have many weak
-        Popov forms (for any given shifts).
+        TODO text to improve, better say what options are. Note: zero rows
+        are also removed in the transfo.
+
+        The weak Popov form is non-canonical: each matrix has many weak Popov
+        forms (for any fixed shifts). The form returned by this algorithm can
+        be required to be ordered: it has rows (resp. columns) ordered by
+        increasing leading positions. Furthermore, the potential zero rows
+        (resp. columns) are positioned at the bottom (resp. the right) of the
+        matrix; sometimes, one forbids weak Popov forms to have zero rows
+        (resp. columns), this is made possible here by an optional parameter.
 
         INPUT:
 
@@ -1587,12 +1600,19 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         - ``shifts`` -- (optional, default: ``None``) list of integers;
           ``None`` is interpreted as ``shifts=[0,...,0]``.
 
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if one does not allow zero rows (resp. zero columns) in
+          (ordered) weak Popov forms.
+
         OUTPUT:
 
-        - A polynomial matrix `W` which is a weak Popov form of ``self`` if
-          ``transformation=False``; otherwise two polynomial matrices `W, U`
-          such that `UA = W` and `W` is in weak Popov form and `U` is unimodular
-          where `A` is ``self``.
+        - A polynomial matrix `W` which is a (shifted) (ordered) weak Popov
+          form of ``self`` if ``transformation=False``; otherwise two
+          polynomial matrices `W, U` such that `UA = W` and `W` is a shifted
+          ordered weak Popov form and `U` is unimodular, where `A` is ``self``.
 
         ALGORITHM:
 
@@ -1634,9 +1654,42 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             :meth:`reduced_form` ,
             :meth:`hermite_form` .
         """
+        # if column-wise, call the algorithm on transpose
+        if not row_wise:
+            W = self.T.weak_popov_form(transformation,
+                        shifts,
+                        True,
+                        ordered,
+                        include_zero_vectors)
+            return (W[0].T,W[1].T) if transformation else W.T
+        # --> now, below, we are working row-wise
+        # call main procedure to compute weak Popov and transformation
         self._check_shift_dimension(shifts,row_wise=True)
         M = self.__copy__()
         U = M._weak_popov_form(transformation=transformation, shifts=shifts)
+        # remove zero rows if asked to
+        if not include_zero_vectors:
+            zero_rows = [i for i in range(M.nrows()) if M[i].is_zero()]
+            M = M.delete_rows(zero_rows)
+            if transformation:
+                U = U.delete_rows(zero_rows)
+        if ordered:
+            leading_positions = self.leading_positions(shifts, row_wise=True)
+            m = len(leading_positions)
+            # find permutation that sorts leading_positions in increasing order
+            # --> force max value to zero rows so that they will be bottom rows
+            if include_zero_vectors: # otherwise, zero rows already removed
+                for i in range(m):
+                    if leading_positions[i] == -1:
+                        leading_positions[i] = m
+            from sage.combinat.permutation import Permutation
+            row_permutation = Permutation(list(zip(*sorted([ \
+                (leading_positions[i],i+1) for i in range(m)]))[1]))
+            # apply permutation to weak Popov form and the transformation
+            M.permute_rows(row_permutation)
+            if transformation:
+                U.permute_rows(row_permutation)
+        # set immutable and return
         M.set_immutable()
         if transformation:
             U.set_immutable()
@@ -1760,10 +1813,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if transformation:
             return U
 
-    def reduced_form(self, transformation=None, shifts=None, row_wise=True):
+    def reduced_form(self,
+            transformation=None,
+            shifts=None,
+            row_wise=True,
+            include_zero_vectors=True):
         r"""
         Return a row reduced form of this matrix (resp. a column reduced form
-        if the optional parameter `row_wise` is set to `False`).
+        if the optional parameter ``row_wise`` is set to ``False``).
 
         An $m \times n$ univariate polynomial matrix $M$ is said to be in
         (shifted) row reduced form if it has $k$ nonzero rows with $k \leq n$
@@ -1785,6 +1842,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
           working row-wise (see the class description).
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if one does not allow zero rows in row reduced forms (resp.
+          zero columns in column reduced forms).
 
         OUTPUT:
 
@@ -1872,10 +1933,18 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             :meth:`is_reduced` ,
             :meth:`weak_popov_form` .
         """
-        self._check_shift_dimension(shifts,row_wise)
         if not row_wise:
-            return self.T.reduced_form(transformation, shifts, row_wise=True).T
-        return self.weak_popov_form(transformation, shifts)
+            return self.T.reduced_form(transformation,
+                    shifts,
+                    True,
+                    False,
+                    include_zero_vectors).T
+        self._check_shift_dimension(shifts,row_wise=True)
+        return self.weak_popov_form(transformation,
+                shifts,
+                row_wise,
+                False,
+                include_zero_vectors)
 
     def hermite_form(self, include_zero_rows=True, transformation=False):
         """

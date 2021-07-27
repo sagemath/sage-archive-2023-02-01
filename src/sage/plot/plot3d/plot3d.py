@@ -1084,12 +1084,8 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
     elif adaptive:
         P = plot3d_adaptive(f, urange, vrange, **kwds)
     else:
-        from sage.ext.fast_callable import fast_callable, ExpressionTreeBuilder
-        etb = ExpressionTreeBuilder(vars=('u','v'))
-        u = etb.var('u')
-        v = etb.var('v')
-        arg1 = fast_callable(u, vars=[u,v])
-        arg2 = fast_callable(v, vars=[u,v])
+        arg1 = lambda u,v: u
+        arg2 = lambda u,v: v
         P = parametric_plot3d.parametric_plot3d((arg1,arg2,f),
                                                 urange,
                                                 vrange,

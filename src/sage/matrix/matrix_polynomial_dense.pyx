@@ -1573,18 +1573,24 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         the class description for an introduction to shifts.
 
         If the input matrix is $A$, a weak Popov form of $A$ is any matrix $P$
-        such that $UA = P$ for some unimodular matrix $U$, called the
-        transformation. The first optional argument allows one to specify
-        whether to return this transformation.
+        in weak Popov form and such that $UA = P$ for some unimodular matrix
+        $U$. The latter matrix is called the transformation, and the first
+        optional argument allows one to specify whether to return this
+        transformation.
 
         Sometimes, one forbids weak Popov forms to have zero rows (resp.
         columns) in the above definitions; an optional parameter allows one to
         adopt this more restrictive setting. If zero rows (resp. columns) are
         allowed, the convention here is to place them as the bottommost rows
-        (resp. the rightmost columns) of the output weak Popov form. Note that,
-        in this case, the returned transformation is still the complete
-        unimodular matrix, with its bottommost rows (resp. rightmost columns)
-        yielding a basis of the left (resp. right) kernel of the input matrix.
+        (resp. the rightmost columns) of the output weak Popov form.
+
+        Note that, if asking for the transformation and discarding zero vectors
+        (i.e. ``transformation=True`` and ``include_zero_vectors=False``), then
+        the returned transformation is still the complete unimodular matrix,
+        including its bottommost rows (resp. rightmost columns) which
+        correspond to zero rows (resp. columns) of the complete weak Popov
+        form. In fact, this bottom part of the transformation yields a basis of
+        the left (resp. right) kernel of the input matrix.
 
         INPUT:
 
@@ -1601,19 +1607,20 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
           seeking an ordered weak Popov form.
 
         - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
-          ``False`` if one does not allow zero rows (resp. zero columns) in
-          (ordered) weak Popov forms.
+          ``False`` if zero rows (resp. zero columns) should be discarded from
+          the (ordered) weak Popov forms.
 
         OUTPUT:
 
-        - A polynomial matrix which is a (shifted) (ordered) weak Popov form of
-          ``self`` if ``transformation`` is ``False``; otherwise two polynomial
-          matrices which are a (shifted) (ordered) weak Popov form of ``self``
-          and the corresponding unimodular transformation.
+        - A polynomial matrix which is a weak Popov form of ``self`` if
+          ``transformation`` is ``False``; otherwise two polynomial matrices
+          which are a weak Popov form of ``self`` and the corresponding
+          unimodular transformation.
 
         ALGORITHM:
 
-        This method implements the Mulders-Storjohann algorithm of [MS2003]_.
+        This method implements the Mulders-Storjohann algorithm of [MS2003]_,
+        straightforwardly extended to the case of shifted forms.
 
         EXAMPLES::
 
@@ -1660,6 +1667,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                         include_zero_vectors)
             return (W[0].T,W[1].T) if transformation else W.T
         # --> now, below, we are working row-wise
+        # row dimension:
+        m = self.nrows()
         # make shift nonnegative, required by main call _weak_popov_form
         self._check_shift_dimension(shifts,row_wise=True)
         if shifts==None:
@@ -1671,30 +1680,38 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         M = self.__copy__()
         U = M._weak_popov_form(transformation=transformation,
                 shifts=nonnegative_shifts)
-        # remove zero rows if asked to
-        if not include_zero_vectors:
-            zero_rows = [i for i in range(M.nrows()) if M[i].is_zero()]
-            M = M.delete_rows(zero_rows)
-            # TODO zero rows
-            if transformation:
-                U = U.delete_rows(zero_rows)
+        # move zero rows to the bottom of the matrix
+        from sage.combinat.permutation import Permutation
+        zero_rows = []
+        nonzero_rows = []
+        for i in range(m):
+            # note the "i+1" due to the format of permutation used below
+            if M[i].is_zero():
+                zero_rows.append(i+1)
+            else:
+                nonzero_rows.append(i+1)
+        M.permute_rows(Permutation(nonzero_rows + zero_rows))
+        if transformation:
+            U.permute_rows(Permutation(nonzero_rows + zero_rows))
+        # order other rows by increasing leading positions
         if ordered:
             leading_positions = self.leading_positions(nonnegative_shifts,
                     row_wise=True)
-            m = len(leading_positions)
             # find permutation that sorts leading_positions in increasing order
-            # --> force max value to zero rows so that they will be bottom rows
+            # --> force max value to zero rows so that they remain bottom rows
             if include_zero_vectors: # otherwise, zero rows already removed
                 for i in range(m):
                     if leading_positions[i] == -1:
                         leading_positions[i] = m
-            from sage.combinat.permutation import Permutation
             row_permutation = Permutation(list(zip(*sorted([
                 (leading_positions[i],i+1) for i in range(m)]))[1]))
             # apply permutation to weak Popov form and the transformation
             M.permute_rows(row_permutation)
             if transformation:
                 U.permute_rows(row_permutation)
+        # remove zero rows if asked to
+        if not include_zero_vectors:
+            M = M.delete_rows(range(m-len(zero_rows),m))
         # set immutable and return
         M.set_immutable()
         if transformation:
@@ -1885,9 +1902,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: A = matrix([[x*(x-1)*(x+1)],[x*(x-2)*(x+2)],[x]])
             sage: R = A.reduced_form()
             sage: R
-            [0]
-            [0]
             [x]
+            [0]
+            [0]
 
         A zero matrix is already reduced::
 

@@ -1934,11 +1934,11 @@ class OEISSequence(SageObject, UniqueRepresentation):
             language = line[1:end].lower()  # normalise the language names
             if '(' in language:
                 return None
+            for special in known_langs:
+                if special in language:
+                    language = special
             if ' ' in language:  # get rid of language versions
                 language = language.split(' ')[0]
-            for special in known_langs:
-                if language.startswith(special):
-                    language = special
             if language == 'c#' or language == 'c++':
                 language = 'c'
             if language.isalnum():

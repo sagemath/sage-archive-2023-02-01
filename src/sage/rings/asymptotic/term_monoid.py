@@ -4096,7 +4096,7 @@ class BTerm(TermWithCoefficient):
             sage: BT_ZZ(x, 1/2, valid_from={'x': 20})
             Traceback (most recent call last):
             ...
-            ValueError: 1/2 is not a coefficient in BTerm Monoid x^ZZ with
+            ValueError: 1/2 is not a coefficient in B-Term Monoid x^ZZ with
             coefficients in Integer Ring.
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
@@ -4121,7 +4121,7 @@ class BTerm(TermWithCoefficient):
 
         for variable_name in growth.variable_names():
             if variable_name not in valid_from:
-                raise ValueError('BTerm has not defined all variables which occur in the term in valid_from.')
+                raise ValueError('B-Term has not defined all variables which occur in the term in valid_from.')
         self.valid_from = valid_from
 
     def _repr_(self, latex=False):

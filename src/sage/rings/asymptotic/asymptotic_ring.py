@@ -3359,6 +3359,48 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         else:
             raise ValueError("Cannot determine limit of {}".format(self))
 
+    def B(self, valid_from):
+        r"""
+        Convert all terms in this asymptotic expansion to `B`-terms.
+
+        INPUT:
+
+        - ``valid_from``-- dictionary mapping variable names to lower bounds
+          for the corresponding variable. The bound implied by this term is valid when
+          all variables are at least their corresponding lower bound
+
+        OUTPUT:
+
+        An asymptotic expansion
+
+        EXAMPLES::
+
+            sage: AR.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: AR.B(2*x^2, {x: 10})
+            B(2*x^2, {x: 10})
+            sage: expr = 42*x^42 + x^10 + AR.B(x^2, 20); expr
+            42*x^42 + x^10 + B(x^2, x >= 20)
+        """
+        # examples which do not work yet
+        #     sage: type(B(x))
+        #     <class 'sage.rings.asymptotic.asymptotic_ring.AsymptoticRing_with_category.element_class'>
+        #     sage: 2*z^3 + AR.B(5*z^2, {z: 20})
+        #     sage: (2*x).B({z: 20})
+        # TESTS::
+        # tests do not work yet
+        #     sage: AR(0).B()
+        #     Traceback (most recent call last):
+        #     ...
+        #     NotImplementedOZero: got B(0)
+        #     The error term B(0) means B for sufficiently large x.
+        # """
+        if not self.summands:
+            from .misc import NotImplementedOZero
+            raise NotImplementedOZero(self.parent(), exact_part=self.parent().zero())
+        return sum(self.parent().create_summand('B', growth=element, valid_from=valid_from)
+                   for element in self.summands.elements())
+
+
 class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
     r"""
     A ring consisting of :class:`asymptotic expansions <AsymptoticExpansion>`.
@@ -4627,6 +4669,29 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
                                       category=self.category(),
                                       cls=self._underlying_class()),
                 self.coefficient_ring)
+
+    @staticmethod
+    def B(self, valid_from):
+        r""""
+        Create a B-term.
+
+        INPUT:
+
+        - ``valid_from``-- dictionary mapping variable names to lower bounds
+          for the corresponding variable. The bound implied by this term is valid when
+          all variables are at least their corresponding lower bound
+
+        OUTPUT:
+
+        A B-term
+
+        EXAMPLES::
+
+            sage: A.<x> = AsymptoticRing(growth_group='x^ZZ * QQ^y', coefficient_ring=QQ)
+            sage: A.B(2*x^3, {x: 5})
+
+        """
+        return self.B(valid_from)
 
 
 from sage.categories.pushout import ConstructionFunctor

@@ -1617,7 +1617,7 @@ class GenericGrowthElement(MultiplicativeGroupElement):
 
         INPUT:
 
-        - ``valid_from`` --dictionary mapping variable names to lower bounds
+        - ``valid_from`` -- dictionary mapping variable names to lower bounds
           for the corresponding variable. The bound implied by this term is valid when
           all variables are at least their corresponding lower bound
         OUTPUT:

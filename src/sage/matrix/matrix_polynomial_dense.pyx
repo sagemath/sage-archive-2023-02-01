@@ -1624,33 +1624,54 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         EXAMPLES::
 
-            sage: PF.<x> = GF(11)[]
-            sage: A = matrix(PF,[[1,  3*x^9 + x^2 + 1 ],
-            ....:                [0,         x^11 + x ]])
-            sage: W, U = A.weak_popov_form(transformation=True); W
-            [              8*x^7 + 3*x^5 + 1    9*x^6 + 3*x^5 + 2*x^4 + x^2 + 1]
-            [                          7*x^2                  7*x^4 + 7*x^2 + x]
-            sage: U * A == W
-            True
-            sage: W.is_weak_popov()
-            True
-            sage: U.is_invertible()
+            sage: pR.<x> = GF(11)[]
+            sage: M = Matrix(pR, [                                 \
+                [      6*x+4,       5*x^3+5*x,       6*x^2+2*x+2], \
+                [4*x^2+5*x+2, x^4+5*x^2+2*x+4, 4*x^3+6*x^2+6*x+5]])
+
+            sage: P,U = M.weak_popov_form(transformation=True)
+            sage: P
+            [                  6*x + 4               5*x^3 + 5*x           6*x^2 + 2*x + 2]
+            [          5*x^2 + 2*x + 2           4*x^2 + 2*x + 4 5*x^3 + 10*x^2 + 10*x + 5]
+            sage: U
+            [  1   0]
+            [2*x   1]
+            sage: P.is_weak_popov() and U.is_invertible()
             True
 
         Demonstrating shifts::
 
-            sage: A.weak_popov_form(shifts=[2, 0])
-            [              8*x^7 + 1 8*x^7 + 9*x^6 + x^2 + 1]
-            [                  7*x^2       7*x^4 + 7*x^2 + x]
-            sage: A.weak_popov_form(shifts=[10, 0]) == A
+            sage: P = M.weak_popov_form(shifts=[0,2,4])
+            sage: P
+            [                      6*x + 4                   5*x^3 + 5*x               6*x^2 + 2*x + 2]
+            [                      5*x + 5 5*x^4 + x^3 + 9*x^2 + 3*x + 4                       8*x + 1]
+            sage: P==M.weak_popov_form(shifts=[-10,-8,-6])
+            True
+            sage: P.leading_positions(shifts=[0,2,4])
+            [2, 1]
+            sage: M.weak_popov_form(shifts=[0,2,4], \
+                    ordered=True).leading_positions(shifts=[0,2,4])
+            [1, 2]
+
+        Column-wise form is the row-wise form of the transpose:
+
+            sage: M.weak_popov_form() == M.T.weak_popov_form(row_wise=False).T
             True
 
-        A zero matrix will return itself::
+        Zero vectors can be discarded::
 
-            sage: Z = matrix(PF,2,2)
-            sage: Z.weak_popov_form()
-            [0 0]
-            [0 0]
+            sage: M.weak_popov_form(row_wise=False)
+            [10  2  0]
+            [ 8  0  0]
+
+            sage: P,U = M.weak_popov_form(transformation=True,      \
+                                          row_wise=False,           \
+                                          include_zero_vectors=False)
+            sage: P
+            [10  2]
+            [ 8  0]
+            sage: M*U[:,:2] == P and (M*U[:,2]).is_zero()
+            True
 
         .. SEEALSO::
 
@@ -1704,7 +1725,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                     if leading_positions[i] == -1:
                         leading_positions[i] = m
             row_permutation = Permutation(list(zip(*sorted([
-                (leading_positions[i],i+1) for i in range(m)]))[1]))
+                (leading_positions[i],i+1) for i in range(m)])))[1])
             # apply permutation to weak Popov form and the transformation
             M.permute_rows(row_permutation)
             if transformation:

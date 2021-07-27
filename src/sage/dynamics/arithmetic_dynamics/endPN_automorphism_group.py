@@ -1795,12 +1795,19 @@ def conjugating_set_initializer(f, g):
     Return a conjugation invariant set together with information
     to reduce the combinatorics of checking all possible conjugations.
 
-    This function constructs the conjugation invariant set (``source``)
-    necessary for the conjugating set algorithm described in  [FMV2014]_.
-    Additionally, it keeps track of multipliers to reduce the combinatorics.
+    This function constructs the invariant pair (``source``, ``possible_targets``)
+    necessary for the conjugating set algorithm described in [FMV2014]_.
+    Let `f` and `g` be dynamical systems on `\mathbb{P}^n`.
+    An invariant pair is a pair of two sets `U`, `V` such that
+    `|U| = |V|` and for all `\phi \in PGL` such that `f^\phi = g`,
+    `\phi(u) \in V` for all `u \in U`. Invariant pairs can be used
+    to determine all conjugations from `f` to `g`. For details
+    in the `\mathbb{P}^1` case, see [FMV2014]_.
+
+    Additionally, this function keeps track of multipliers to reduce the combinatorics.
     This information is then passed to ``conjugating_set_helper`` or
     ``is_conjugate_helper``, which check all possible conjugations determined
-    by the conjugation invariant set.
+    by the invariant pair.
 
     Do not call this function directly, instead use ``f.conjugating_set(g)``.
 
@@ -2020,10 +2027,17 @@ def conjugating_set_initializer(f, g):
 
 def greedy_independence_check(P, repeated_mult, point_to_mult):
     r"""
-    Return a conjugation invariant set together with information
+    Return an invariant pair together with information
     to reduce the combinatorics of checking all possible conjugations.
 
-    This function may sometimes fail to find the conjugation invariant
+    Let `f` and `g` be dynamical systems on `\mathbb{P}^n`.
+    An invariant pair is a pair of two sets `U`, `V` such that
+    `|U| = |V|` and for all `\phi \in PGL` such that `f^\phi = g`,
+    `\phi(u) \in V` for all `u \in U`. Invariant pairs can be used
+    to determine all conjugations from `f` to `g`. For details
+    in the `\mathbb{P}^1` case, see [FMV2014]_.
+
+    This function may sometimes fail to find the invariant pair
     set even though one exists. It is useful, however, as it is fast
     and returns a set which usually minimizes the combinatorics of
     checking all conjugations.
@@ -2049,13 +2063,13 @@ def greedy_independence_check(P, repeated_mult, point_to_mult):
 
     Otherwise, a tuple of the form (``source``, ``corresponding``) is returned.
 
-    - ``source`` -- a conjugation invariant set of `n+2` points of the domain of `f`,
-      of which no `n+1` are linearly dependent. Used to specify a possible conjugation
-      from `f` to `g`.
+    - ``source`` -- the set `U` of the conjugation invariant pair. A set of `n+2` points
+      of the domain of `f`, of which no `n+1` are linearly dependent.
 
     - ``corresponding`` -- a list of tuples of the form ((multiplier, level), repeat) where the
       (multiplier, level) pair is the multiplier of a point in ``source`` and repeat
-      specifies how many points in source have that (multiplier, level) pair
+      specifies how many points in source have that (multiplier, level) pair. This
+      information specifies the set `V` of the invariant pair.
 
     EXAMPLES::
 
@@ -2092,18 +2106,17 @@ def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
     Return the set of elements in PGL over the base ring
     that conjugates ``f`` to ``g``.
 
-    This function takes as input the conjugation invariant set
+    This function takes as input the invariant pair
     and multiplier data from ``conjugating_set_initializer``.
 
-    Do not call this function directly, instead do ``f.conjugate_set(g)``.
+    Do not call this function directly, instead use ``f.conjugate_set(g)``.
 
     INPUT:
 
     - ``f`` -- a rational function of degree at least 2, and the same
       degree as ``g``
 
-    - ``g`` -- a rational function of the same
-      degree as ``f``
+    - ``g`` -- a rational function of the same degree as ``f``
 
     - ``num_cpus`` -- the number of threads to run in parallel
 
@@ -2114,9 +2127,7 @@ def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
       is a list of ``points`` which are possible targets for point(s) in ``source``. ``repeated``
       specifies how many points in ``source`` have points in ``points`` as their possible target.
 
-    OUTPUT:
-
-    a list of elements of PGL which conjugate ``f`` to ``g``.
+    OUTPUT: a list of elements of PGL which conjugate ``f`` to ``g``.
 
     EXAMPLES::
 
@@ -2239,18 +2250,17 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
     r"""
     Return if ``f`` is conjugate to ``g``.
 
-    This function takes as input the conjugation invariant set
+    This function takes as input the invariant pair
     and multiplier data from ``conjugating_set_initializer``.
 
-    Do not call this function directly, instead do ``f.is_conjugate(g)``.
+    Do not call this function directly, instead use ``f.is_conjugate(g)``.
 
     INPUT:
 
     - ``f`` -- a rational function of degree at least 2, and the same
       degree as ``g``
 
-    - ``g`` -- a rational function of the same
-      degree as ``f``
+    - ``g`` -- a rational function of the same degree as ``f``
 
     - ``num_cpus`` -- the number of threads to run in parallel
 
@@ -2261,9 +2271,7 @@ def is_conjugate_helper(f, g, num_cpus, source, possible_targets):
       is a list of ``points`` which are possible targets for point(s) in ``source``. ``repeated``
       specifies how many points in ``source`` have points in ``points`` as their possible target.
 
-    OUTPUT:
-
-    ``True`` if ``f`` is conjugate to ``g``, ``False`` otherwise.
+    OUTPUT: ``True`` if ``f`` is conjugate to ``g``, ``False`` otherwise.
 
     EXAMPLES::
 

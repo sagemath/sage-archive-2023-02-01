@@ -3250,7 +3250,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         The following keywords are used in most cases:
 
-        - ``num_cpus`` -- (default: 1) the number of threads to use. Setting to a
+        - ``num_cpus`` -- (default: 2) the number of threads to use. Setting to a
           larger number can greatly speed up this function.
 
         The following keywords are used only when the dimension of the domain is 1 and
@@ -3285,14 +3285,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         EXAMPLES::
 
-            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: R.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2-y^2, x*y])
             sage: f.automorphism_group(return_functions=True)
             [x, -x]
 
         ::
 
-            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: R.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 + 5*x*y + 5*y^2, 5*x^2 + 5*x*y + y^2])
             sage: f.automorphism_group()
             [
@@ -3302,14 +3302,21 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem([x^3, y^3, z^3])
+            sage: len(f.automorphism_group())
+            24
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2-2*x*y-2*y^2, -2*x^2-2*x*y+y^2])
             sage: f.automorphism_group(return_functions=True)
             [x, 1/x, -x - 1, -x/(x + 1), (-x - 1)/x, -1/(x + 1)]
 
         ::
 
-            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: R.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([3*x^2*y - y^3, x^3 - 3*x*y^2])
             sage: lst, label = f.automorphism_group(algorithm='CRT', return_functions=True, iso_type=True)
             sage: sorted(lst), label
@@ -3318,7 +3325,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: A.<z> = AffineSpace(QQ,1)
+            sage: A.<z> = AffineSpace(QQ, 1)
             sage: f = DynamicalSystem_affine([1/z^3])
             sage: F = f.homogenize(1)
             sage: F.automorphism_group()
@@ -3329,7 +3336,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x**2 + x*z, y**2, z**2])
             sage: f.automorphism_group()
             [
@@ -3353,7 +3360,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         p = kwds.get('starting_prime', 5)
         return_functions = kwds.get('return_functions', False)
         iso_type = kwds.get('iso_type', False)
-        num_cpus = kwds.get('num_cpus', 1)
+        num_cpus = kwds.get('num_cpus', 2)
         if self.domain().dimension_relative() != 1:
             return self.conjugating_set(self, num_cpus)
         if self.base_ring() != QQ  and self.base_ring() != ZZ:
@@ -6531,7 +6538,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: m = matrix(QQbar, 2, 2, [-1, 3, 2, 1])
             sage: g = f.conjugate(m)
@@ -6543,15 +6550,15 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         Increasing ``num_cpus`` can speed up computation::
 
-            sage: P.<x,y,z,w> = ProjectiveSpace(QQ,3)
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
             sage: f = DynamicalSystem_projective([x^2, y^2, z^2, w^2])
-            sage: len(f.conjugating_set(f, num_cpus=2))
+            sage: len(f.conjugating_set(f, num_cpus=3))
             24
 
         ::
 
             sage: K.<w> = QuadraticField(-1)
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: f = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: m = matrix(K, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
@@ -6564,7 +6571,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         ::
 
             sage: K.<i> = QuadraticField(-1)
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: D8 = DynamicalSystem_projective([y^3, x^3])
             sage: sorted(D8.conjugating_set(D8))
             [
@@ -6574,7 +6581,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: D8 = DynamicalSystem_projective([y^2, x^2])
             sage: D8.conjugating_set(D8)
             Traceback (most recent call last):
@@ -6583,7 +6590,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(GF(7),1)
+            sage: P.<x,y> = ProjectiveSpace(GF(7), 1)
             sage: D6 = DynamicalSystem_projective([y^2, x^2])
             sage: D6.conjugating_set(D6)
             [
@@ -6593,7 +6600,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x^2 + x*z, y^2, z^2])
             sage: f.conjugating_set(f)
             [
@@ -6623,7 +6630,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         note that only one possible conjugation is returned::
 
-            sage: P.<x,y,z> = ProjectiveSpace(GF(11),2)
+            sage: P.<x,y,z> = ProjectiveSpace(GF(11), 2)
             sage: f = DynamicalSystem_projective([2*x + 12*y, 11*y+2*z, x+z])
             sage: m1 = matrix(GF(11), 3, 3, [1,4,1,0,2,1,1,1,1])
             sage: g = f.conjugate(m1)
@@ -6650,7 +6657,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         Make sure the caching problem is fixed, see #28070 ::
 
             sage: K.<i> = QuadraticField(-1)
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: m = matrix(QQ, 2, 2, [-1, 3, 2, 1])
             sage: g = f.conjugate(m)
@@ -6724,7 +6731,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                                 if f.conjugate(m_emb) == g:
                                     return [m_emb]
                 else: #finite field case
-                    #always comes from prime field so an coerce
+                    #always comes from prime field so can coerce
                     m = matrix(base, M, M, [base(u.as_finite_field_element()[1]) for t in list(m) for u in t])
                     return [m]
             #not similar
@@ -6740,7 +6747,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         source, possible_targets = tup
         return conjugating_set_helper(f, g, num_cpus, source, possible_targets)
 
-    def is_conjugate(self, other, R=None, num_cpus=1):
+    def is_conjugate(self, other, R=None, num_cpus=2):
         r"""
         Return whether two dynamical systems are conjugate over their
         base ring (by default) or over the ring `R` entered as an
@@ -6761,7 +6768,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         - ``R`` -- a field or embedding
 
-        - ``num_cpus`` -- (default: 1) the number of threads to run in parallel.
+        - ``num_cpus`` -- (default: 2) the number of threads to run in parallel.
           Increasing ``num_cpus`` can potentially greatly speed up this function.
 
         OUTPUT: boolean
@@ -6773,7 +6780,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         - Implemented by Rebecca Lauren Miller as part of GSOC 2016.
 
-        - Algorithmic improvement by Alexander Galarraga as part of GSOC 2016.
+        - Algorithmic improvement by Alexander Galarraga as part of GSOC 2021.
 
         EXAMPLES::
 
@@ -7889,6 +7896,13 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
              [1 0]
              [0 1]
              ]]
+
+        ::
+
+            sage: R.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: f = DynamicalSystem_projective([x^3 + x*z^2, y^3 + y*z^2, z^3])
+            sage: all([f.conjugate(m) == f for m in f.automorphism_group()])
+            True
         """
         absolute = kwds.get('absolute', False)
         iso_type = kwds.get('iso_type', False)

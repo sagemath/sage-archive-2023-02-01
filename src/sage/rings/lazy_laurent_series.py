@@ -102,12 +102,6 @@ class LazyLaurentSeries(ModuleElement):
     r"""
     A Laurent series where the coefficients are computed lazily.
 
-    INPUT:
-
-    - ``parent`` -- The base ring for the series
-
-    - ``coeff_stream`` -- The auxiliary class that handles the coefficient stream
-
     EXAMPLES::
 
         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
@@ -134,7 +128,12 @@ class LazyLaurentSeries(ModuleElement):
 
     def __init__(self, parent, coeff_stream):
         """
-        Initialize the series.
+        Initialize ``self``.
+
+        INPUT:
+
+        - ``parent`` -- the base ring for the series
+        - ``coeff_stream`` -- the coefficient stream defining the series
 
         TESTS::
 
@@ -153,7 +152,7 @@ class LazyLaurentSeries(ModuleElement):
 
         - ``n`` -- integer
 
-        TESTS::
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: f = z/(1 - 2*z^3)
@@ -181,19 +180,20 @@ class LazyLaurentSeries(ModuleElement):
 
     def __call__(self, g):
         r"""
-        Return the composition of the series with ``g``.
+        Return the composition of ``self`` with ``g``.
 
-        Given two Laurent Series `f` and `g` over the same base ring, the composition of `f` with `g`,
-        `(f \circ g)(z) = f(g(z))`, is defined if and only if:
-            - `g = 0` and `val(f) >= 0`
-            - `g` is non-zero and `f` has only finitely many non-zero coefficients
-            - `g` is non-zero and `val(g) > 0`
+        Given two Laurent Series `f` and `g` over the same base ring, the
+        composition `(f \circ g)(z) = f(g(z))` is defined if and only if:
+
+        - `g = 0` and `val(f) >= 0`,
+        - `g` is non-zero and `f` has only finitely many non-zero coefficients,
+        - `g` is non-zero and `val(g) > 0`.
 
         INPUT:
 
         - ``g`` -- other series
 
-        TESTS::
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: f = z^2 + 1 + z
@@ -804,14 +804,14 @@ class LazyLaurentSeries(ModuleElement):
 
     def map_coefficients(self, func, ring=None):
         """
-        Return the series with ``func`` applied to each coefficient of this series.
+        Return the series with ``func`` applied to each coefficient of ``self``.
 
         INPUT:
 
-        - ``func`` -- Python function that takes in a coefficient and returns
+        - ``func`` -- function that takes in a coefficient and returns
           a new coefficient
 
-        TESTS::
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: s = z/(1 - 2*z)
@@ -849,7 +849,7 @@ class LazyLaurentSeries(ModuleElement):
 
         - ``ring`` -- a ring
 
-        TESTS::
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: s = 2 + z
@@ -887,7 +887,7 @@ class LazyLaurentSeries(ModuleElement):
 
         - ``d`` -- integer
 
-        TESTS::
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: alpha = 1/(1-z)
@@ -921,9 +921,9 @@ class LazyLaurentSeries(ModuleElement):
 
         INPUT:
 
-        - ``n`` -- integer, the power to which to raise the series
+        - ``n`` -- integer; the power to which to raise the series
 
-        TESTS::
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: (1 - z)^-1
@@ -959,12 +959,12 @@ class LazyLaurentSeries(ModuleElement):
 
         - ``prec`` -- an integer
 
-        - ``name`` -- name of the variable; if it is ``None``, the name of the variable
-          of the series is used
+        - ``name`` -- name of the variable; if it is ``None``, the name of
+          the variable of the series is used
 
         OUTPUT: a Laurent series with absolute precision ``prec``
 
-        TESTS::
+        EXAMPLES::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: z = L.gen()
@@ -1001,7 +1001,7 @@ class LazyLaurentSeries(ModuleElement):
         """
         Return the precision of the series, which is infinity.
 
-        TESTS::
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: f = 1/(1 - z)
@@ -1011,7 +1011,7 @@ class LazyLaurentSeries(ModuleElement):
         return infinity
 
     def polynomial(self, degree=None, name=None):
-        """
+        r"""
         Return the polynomial or Laurent polynomial if the series is actually so.
 
         INPUT:
@@ -1021,7 +1021,9 @@ class LazyLaurentSeries(ModuleElement):
         - ``name`` -- name of the variable; if it is ``None``, the name of the variable
           of the series is used
 
-        OUTPUT: a Laurent polynomial if the valuation of the series is negative or
+        OUTPUT:
+
+        A Laurent polynomial if the valuation of the series is negative or
         a polynomial otherwise.
 
         If ``degree`` is not ``None``, the terms of the series of degree
@@ -1093,14 +1095,14 @@ class LazyLaurentSeries(ModuleElement):
             return R([self[i] for i in range(m)])
 
     def valuation(self):
-        """
-        Return the valuation of the series.
+        r"""
+        Return the valuation of ``self``.
 
         This method determines the valuation of the series by looking for a
         nonzero coefficient. Hence if the series happens to be zero, then it
         may run forever.
 
-        TESTS::
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: s = 1/(1 - z) - 1/(1 - 2*z)
@@ -1152,8 +1154,9 @@ class LazyLaurentSeries(ModuleElement):
         return ret + ' + ...'
 
     def _richcmp_(self, other, op):
-        """
-        Compare ``self` with ``other`` with respect to the comparison operator ``op``.
+        r"""
+        Compare ``self` with ``other`` with respect to the comparison
+        operator ``op``.
 
         Equality is verified if the corresponding coefficients of both series
         can be checked for equality without computing coefficients
@@ -1168,7 +1171,7 @@ class LazyLaurentSeries(ModuleElement):
 
         - ``op`` -- comparison operator
 
-        TESTS::
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: z + z^2 == z^2 + z
@@ -1359,3 +1362,4 @@ class LazyLaurentSeries(ModuleElement):
         if not isinstance(self._coeff_stream, CoefficientStream_uninitialized) or self._coeff_stream._target is not None:
             raise ValueError("series already defined")
         self._coeff_stream._target = s._coeff_stream
+

@@ -65,7 +65,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-import random
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
@@ -98,8 +97,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     INPUT:
 
     - ``base_ring`` -- base ring of this Laurent series ring
-
     - ``names`` -- name of the generator of this Laurent series ring
+    - ``sparse`` -- (default: ``False``) whether this series is sparse or not
 
     EXAMPLES::
 
@@ -110,7 +109,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     def __init__(self, base_ring, names, sparse=False, category=None):
         """
-        Initialize the ring.
+        Initialize ``self``.
 
         TESTS::
 
@@ -133,10 +132,23 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         return "Lazy Laurent Series Ring in {} over {}".format(self.variable_name(), self.base_ring())
 
+    def _latex_(self):
+        r"""
+        Return a latex representation of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
+            sage: latex(L)
+            \Bold{F}_{2} [\![z]\!]
+        """
+        from sage.misc.latex import latex
+        return latex(self.base_ring()) + r"[\![{}]\!]".format(self.variable_name())
+
     @cached_method
     def gen(self, n=0):
         """
-        Return the generator of this Laurent series ring.
+        Return the ``n``-th generator of ``self``.
 
         EXAMPLES::
 
@@ -155,8 +167,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         return self.element_class(self, coeff_stream)
 
     def ngens(self):
-        """
-        Return the number of generators of this Laurent series ring.
+        r"""
+        Return the number of generators of ``self``.
 
         This is always 1.
 
@@ -171,7 +183,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     @cached_method
     def gens(self):
         """
-        Return the tuple of the generator.
+        Return the generators of ``self``.
 
         EXAMPLES::
 
@@ -212,11 +224,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``x`` -- a Laurent series, a Laurent polynomial, a Python function, or a list of elements in the base ring
-
-        - ``valuation`` -- an integer or ``None`` (default: ``None``), the approximate valuation of the series
-
-        - ``constant`` -- either ``None`` (default: ``None``) or pair of an element of the base ring and an integer
+        - ``x`` -- data used to the define a Laurent series
+        - ``valuation`` -- integer (optional); the valuation of the series
+        - ``constant`` -- (optional) the eventual constant of the series
+        - ``degree`` -- (optional) the degree when the series is ``constant``
 
         EXAMPLES::
 
@@ -274,9 +285,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
 
-        TODO::
+        .. TODO::
 
-            Add a method to make a copy of self._sparse.
+            Add a method to change the sparse/dense implementation.
         """
         if x is None:
             if valuation is None:
@@ -323,7 +334,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     def _an_element_(self):
         """
-        Return a Laurent series in this ring.
+        Return a Laurent series in ``self``.
 
         EXAMPLES::
 
@@ -337,7 +348,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     @cached_method
     def one(self):
-        """
+        r"""
         Return the constant series `1`.
 
         EXAMPLES::
@@ -351,7 +362,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     @cached_method
     def zero(self):
-        """
+        r"""
         Return the zero series.
 
         EXAMPLES::
@@ -361,3 +372,4 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             0
         """
         return self.element_class(self, CoefficientStream_zero(self._sparse))
+

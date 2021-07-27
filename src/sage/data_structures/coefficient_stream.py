@@ -15,7 +15,7 @@ EXAMPLES::
     sage: f
     z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + 7*z^7 + ...
     sage: type(f._coeff_stream)
-    <class 'sage.rings.lazy_laurent_series.LazyLaurentSeries_coefficient_function'>
+    <class 'sage.data_structures.coefficient_stream.CoefficientStream_coefficient_function'>
 
     There are basic unary and binary operators available for the coefficient streams.
     For example, we can add two streams together::
@@ -114,15 +114,15 @@ class CoefficientStream():
         self._approximate_valuation = approximate_valuation
 
 
-class LazyLaurentSeries_inexact(CoefficientStream):
+class CoefficientStream_inexact(CoefficientStream):
     """
-    LazyLaurentSeries stream class when it is not or we do not know if it is
+    CoefficientStream stream class when it is not or we do not know if it is
     eventually geometric.
     """
 
     def __init__(self, is_sparse, approximate_valuation):
         """
-        Initialize the stream class for a LazyLaurentSeries when it is not 
+        Initialize the stream class for a CoefficientStream when it is not
         or it cannot be determined if it is eventually geometric.
         """
         super().__init__(is_sparse, approximate_valuation)
@@ -214,7 +214,286 @@ class LazyLaurentSeries_inexact(CoefficientStream):
                     n += 1
 
 
-class LazyLaurentSeries_unary(LazyLaurentSeries_inexact):
+class CoefficientStream_eventually_geometric(CoefficientStream):
+    r"""
+    A lazy Laurent series which is known to be eventually geometric
+
+    INPUT:
+
+        - ``laurent_polynomial`` -- a Laurent polynomial
+
+        - ``is_sparse`` -- a boolean, which specifies whether the series is sparse
+
+        - ``constant`` -- either ``None`` (default: ``None``) or pair of an element of the base ring and an integer
+
+        - ``degree`` -- either ``None`` (default: ``None``) or an integer, the degree of the polynomial
+
+    EXAMPLES::
+
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+        sage: f = 1 + z^2
+        sage: f[2]
+        1
+
+    You can do arithmetic operations with eventually geometric series::
+
+        sage: g = z^3 + 1
+        sage: s = f + g
+        sage: s[2]
+        1
+        sage: s
+        2 + z^2 + z^3
+        sage: s = f - g
+        sage: s[2]
+        1
+        sage: s
+        z^2 - z^3
+    """
+
+    def __init__(self, laurent_polynomial, is_sparse, constant=None, degree=None):
+        """
+        Initialize a series that is known to be eventually geometric.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: M = z^2 + z
+            sage: type(M._coeff_stream)
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_eventually_geometric'>
+        """
+        if constant is None:
+            constant = ZZ.zero()
+        if degree is None:
+            if not laurent_polynomial:
+                raise ValueError("you must specify the degree for the polynomial 0")
+            degree = laurent_polynomial.degree() + 1
+        else:
+            # Consistency check
+            assert not laurent_polynomial or laurent_polynomial.degree() < degree
+
+        self._constant = constant
+        self._degree = degree
+        self._laurent_polynomial = laurent_polynomial
+        if not laurent_polynomial:
+            valuation = degree
+        else:
+            valuation = laurent_polynomial.valuation()
+        super().__init__(is_sparse, valuation)
+
+    def __getitem__(self, n):
+        """
+        Return the coefficient of the term with exponent ``n`` of the series.
+
+        INPUT:
+
+        - ``n`` -- integer, the degree for which the coefficient is required
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: f = 1 + z + z^2 + z^3
+            sage: f[3]
+            1
+            sage: f[8]
+            0
+        """
+        if n >= self._degree:
+            return self._constant
+        return self._laurent_polynomial[n]
+
+    def valuation(self):
+        """
+        Return the valuation of the series.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: f = 1 + z + z^2 + z^3
+            sage: f.valuation()
+            0
+        """
+        return self._approximate_valuation
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: f = 1 + z + z^2 + z^3
+            sage: {f: 1}
+            {1 + z + z^2 + z^3: 1}
+        """
+        return hash((self._laurent_polynomial, self._degree, self._constant))
+
+    def __eq__(self, other):
+        """
+        Test the equality between ``self`` and ``other``.
+
+        INPUT:
+
+        - ``other`` -- a lazy Laurent series which is known to be eventaully geometric
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: f = 1 + z + z^2 + z^3
+            sage: m = 1 + z + z^2 + z^3
+            sage: f == m
+            True
+        """
+        return (isinstance(other, type(self))
+                and self._degree == other._degree
+                and self._laurent_polynomial == other._laurent_polynomial
+                and self._constant == other._constant)
+
+
+class CoefficientStream_coefficient_function(CoefficientStream_inexact):
+    r"""
+    The coefficient function of a lazy Laurent series.
+
+    INPUT:
+
+    - ``coefficient_function`` -- a python function that generates the coefficients of the series
+
+    - ``ring`` -- the base ring of the series
+
+    - ``is_sparse`` -- a boolean, which specifies whether the series is sparse
+
+    - ``approximate_valuation`` -- the approximate valuation of the series
+
+    EXAMPLES::
+
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+        sage: M = L(lambda n: n, True); M
+        z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + 7*z^7 + ...
+        sage: M[4]
+        4
+    """
+
+    def __init__(self, coefficient_function, ring, is_sparse, approximate_valuation):
+        """
+        Initialize the coefficient function of a lazy Laurent series.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: type(L(lambda n:n, True)._coeff_stream)
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_coefficient_function'>
+        """
+        self._coefficient_function = coefficient_function
+        self._ring = ring
+        super().__init__(is_sparse, approximate_valuation)
+
+    def get_coefficient(self, n):
+        """
+        Return the coefficient of the term with exponent ``n`` of the series.
+
+        INPUT:
+
+        - ``n`` -- integer, the degree for which the coefficient is required
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: M = L(lambda n: n, True)
+            sage: M._coeff_stream.get_coefficient(4)
+            4
+        """
+        return self._ring(self._coefficient_function(n))
+
+    def iterate_coefficients(self):
+        """
+        Return a generator for the coefficients of the series.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: M = L(lambda n: n, False)
+            sage: n = M._coeff_stream.iterate_coefficients()
+            sage: [next(n) for _ in range(10)]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        """
+        n = self._offset
+        ring = self._ring
+        while True:
+            yield ring(self._coefficient_function(n))
+            n += 1
+
+
+class CoefficientStream_uninitialized(CoefficientStream_inexact):
+    r"""
+    An uninitialized lazy Laurent series.
+
+    INPUT:
+
+    - ``is_sparse`` -- a boolean, which specifies whether the series is sparse
+
+    - ``approximate_valuation`` -- the approximate valuation of the series
+
+    EXAMPLES::
+
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+        sage: N = L(None)
+        sage: N
+        Uninitialized Lazy Laurent Series
+    """
+
+    def __init__(self, is_sparse, approximate_valuation):
+        """
+        Initialize an uninitialized lazy laurent series.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: N = L(None, 2)
+            sage: N
+            Uninitialized Lazy Laurent Series
+        """
+        self._target = None
+        super().__init__(is_sparse, approximate_valuation)
+
+    def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of the series.
+
+        INPUT:
+
+        - ``n`` -- integer, the degree for which the coefficient is required
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+            sage: C = L(None)
+            sage: C.define(1 + z*C^2)
+            sage: C._coeff_stream.get_coefficient(4)
+            14
+
+        """
+        return self._target[n]
+
+    def iterate_coefficients(self):
+        """
+        Return a generator for the coefficients of the series.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: C = L(None)
+            sage: C.define(1 + z*C^2)
+            sage: n = C._coeff_stream.iterate_coefficients()
+            sage: [next(n) for _ in range(6)]
+            [1, 1, 2, 5, 14, 42]
+
+        """
+        n = self._approximate_valuation
+        while True:
+            yield self._target[n]
+            n += 1
+
+
+class CoefficientStream_unary(CoefficientStream_inexact):
     """
     Abstract base class for unary operators.
 
@@ -272,7 +551,7 @@ class LazyLaurentSeries_unary(LazyLaurentSeries_inexact):
         return isinstance(other, type(self)) and self._series == other._series
 
 
-class LazyLaurentSeries_binary(LazyLaurentSeries_inexact):
+class CoefficientStream_binary(CoefficientStream_inexact):
 
     def __init__(self, left, right, *args, **kwargs):
         """
@@ -322,7 +601,7 @@ class LazyLaurentSeries_binary(LazyLaurentSeries_inexact):
         return self._left == other._left and self._right == other._right
 
 
-class LazyLaurentSeries_binary_commutative(LazyLaurentSeries_binary):
+class CoefficientStream_binary_commutative(CoefficientStream_binary):
 
     def __hash__(self):
         """
@@ -343,7 +622,7 @@ class LazyLaurentSeries_binary_commutative(LazyLaurentSeries_binary):
         return False
 
 
-class LazyLaurentSeries_zero(CoefficientStream):
+class CoefficientStream_zero(CoefficientStream):
     def __init__(self, sparse):
         """
         Initialise a lazy Laurent series which is known to be zero.
@@ -372,7 +651,7 @@ class LazyLaurentSeries_zero(CoefficientStream):
 # Binary operations
 
 
-class CoefficientStream_add(LazyLaurentSeries_binary):
+class CoefficientStream_add(CoefficientStream_binary):
     """
     Operator for addition.
     """
@@ -403,7 +682,7 @@ class CoefficientStream_add(LazyLaurentSeries_binary):
             n += 1
 
 
-class CoefficientStream_sub(LazyLaurentSeries_binary):
+class CoefficientStream_sub(CoefficientStream_binary):
     """
     Operator for subtraction.
     """
@@ -434,7 +713,7 @@ class CoefficientStream_sub(LazyLaurentSeries_binary):
             n += 1
 
 
-class CoefficientStream_mul(LazyLaurentSeries_binary):
+class CoefficientStream_mul(CoefficientStream_binary):
     """
     Operator for multiplication.
 
@@ -479,7 +758,7 @@ class CoefficientStream_mul(LazyLaurentSeries_binary):
             n += 1
 
 
-class CoefficientStream_div(LazyLaurentSeries_binary):
+class CoefficientStream_div(CoefficientStream_binary):
     """
     Return ``left`` divided by ``right``.
     """
@@ -527,7 +806,7 @@ class CoefficientStream_div(LazyLaurentSeries_binary):
             n += 1
 
 
-class CoefficientStream_composition(LazyLaurentSeries_binary):
+class CoefficientStream_composition(CoefficientStream_binary):
     r"""
     Return ``f`` composed by ``g``.
 
@@ -550,7 +829,7 @@ class CoefficientStream_composition(LazyLaurentSeries_binary):
             ginv = CoefficientStream_inv(g)
             # the constant part makes no contribution to the negative
             # we need this for the case so self._neg_powers[0][n] => 0
-            self._neg_powers = [LazyLaurentSeries_zero(f._is_sparse), ginv]
+            self._neg_powers = [CoefficientStream_zero(f._is_sparse), ginv]
             for i in range(1, -self._fv):
                 self._neg_powers.append(CoefficientStream_mul(self._neg_powers[-1], ginv))
         # Placeholder None to make this 1-based
@@ -585,7 +864,7 @@ class CoefficientStream_composition(LazyLaurentSeries_binary):
 # Unary operations
 
 
-class CoefficientStream_scalar(LazyLaurentSeries_unary):
+class CoefficientStream_scalar(CoefficientStream_unary):
     """
     Operator for multiplying with a scalar.
     """
@@ -614,7 +893,7 @@ class CoefficientStream_scalar(LazyLaurentSeries_unary):
             n += 1
 
 
-class CoefficientStream_neg(LazyLaurentSeries_unary):
+class CoefficientStream_neg(CoefficientStream_unary):
     """
     Operator for negative of the series.
     """
@@ -641,7 +920,7 @@ class CoefficientStream_neg(LazyLaurentSeries_unary):
             n += 1
 
 
-class CoefficientStream_inv(LazyLaurentSeries_unary):
+class CoefficientStream_inv(CoefficientStream_unary):
     """
     Operator for multiplicative inverse of the series.
     """
@@ -687,7 +966,7 @@ class CoefficientStream_inv(LazyLaurentSeries_unary):
             yield -c * self._ainv
 
 
-class CoefficientStream_apply_coeff(LazyLaurentSeries_unary):
+class CoefficientStream_apply_coeff(CoefficientStream_unary):
     """
     Return the series with ``function`` applied to each coefficient of this series.
     """

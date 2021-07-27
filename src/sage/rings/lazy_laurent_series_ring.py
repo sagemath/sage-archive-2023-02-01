@@ -81,14 +81,14 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from .integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, LaurentPolynomialRing_generic
 
-from .lazy_laurent_series import (
-    LazyLaurentSeries,
-    LazyLaurentSeries_coefficient_function,
-    LazyLaurentSeries_eventually_geometric,
-    LazyLaurentSeries_uninitialized
-)
+from .lazy_laurent_series import LazyLaurentSeries
 
-from sage.data_structures.coefficient_stream import LazyLaurentSeries_zero
+from sage.data_structures.coefficient_stream import (
+    CoefficientStream_zero,
+    CoefficientStream_coefficient_function,
+    CoefficientStream_eventually_geometric,
+    CoefficientStream_uninitialized
+)
 
 
 class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
@@ -151,7 +151,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if n != 0:
             raise IndexError("there is only one generator")
         R = self._laurent_poly_ring
-        coeff_stream = LazyLaurentSeries_eventually_geometric(R.gen(n), self._sparse, ZZ.zero(), 2)
+        coeff_stream = CoefficientStream_eventually_geometric(R.gen(n), self._sparse, ZZ.zero(), 2)
         return self.element_class(self, coeff_stream)
 
     def ngens(self):
@@ -201,7 +201,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         R = self._laurent_poly_ring
         if R.has_coerce_map_from(S):
             def make_series_from(poly):
-                return self.element_class(self, LazyLaurentSeries_eventually_geometric(R(poly), self._sparse))
+                return self.element_class(self, CoefficientStream_eventually_geometric(R(poly), self._sparse))
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
 
         return False
@@ -281,7 +281,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if x is None:
             if valuation is None:
                 valuation = 0
-            return self.element_class(self, LazyLaurentSeries_uninitialized(self._sparse, valuation))
+            return self.element_class(self, CoefficientStream_uninitialized(self._sparse, valuation))
 
         R = self._laurent_poly_ring
         BR = self.base_ring()
@@ -296,13 +296,13 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             constant = BR(constant)
         if x in R:
             if not x and not constant:
-                coeff_stream = LazyLaurentSeries_zero(self._sparse)
+                coeff_stream = CoefficientStream_zero(self._sparse)
             else:
                 if x and valuation:
                     x = x.shift(valuation - x.valuation())
                 if degree is None and not x:
                     degree = valuation
-                coeff_stream = LazyLaurentSeries_eventually_geometric(R(x), self._sparse, constant, degree)
+                coeff_stream = CoefficientStream_eventually_geometric(R(x), self._sparse, constant, degree)
             return self.element_class(self, coeff_stream)
         if isinstance(x, LazyLaurentSeries):
             if x._coeff_stream._is_sparse is self._sparse:
@@ -317,8 +317,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                     constant = ZZ.zero()
                 z = R.gen()
                 p = R.sum(x(i) * z**i for i in range(valuation, degree))
-                return self.element_class(self, LazyLaurentSeries_eventually_geometric(p, self._sparse, constant, degree))
-            return self.element_class(self, LazyLaurentSeries_coefficient_function(x, self.base_ring(), self._sparse, valuation))
+                return self.element_class(self, CoefficientStream_eventually_geometric(p, self._sparse, constant, degree))
+            return self.element_class(self, CoefficientStream_coefficient_function(x, self.base_ring(), self._sparse, valuation))
         raise ValueError(f"unable to convert {x} into a lazy Laurent series")
 
     def _an_element_(self):
@@ -333,7 +333,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         c = self.base_ring().an_element()
         R = self._laurent_poly_ring
-        return self.element_class(self, LazyLaurentSeries_eventually_geometric(R.zero(), self._sparse, c, -10))
+        return self.element_class(self, CoefficientStream_eventually_geometric(R.zero(), self._sparse, c, -10))
 
     @cached_method
     def one(self):
@@ -347,7 +347,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             1
         """
         R = self._laurent_poly_ring
-        return self.element_class(self, LazyLaurentSeries_eventually_geometric(R.one(), self._sparse, ZZ.zero(), 1))
+        return self.element_class(self, CoefficientStream_eventually_geometric(R.one(), self._sparse, ZZ.zero(), 1))
 
     @cached_method
     def zero(self):
@@ -360,4 +360,4 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L.zero()
             0
         """
-        return self.element_class(self, LazyLaurentSeries_zero(self._sparse))
+        return self.element_class(self, CoefficientStream_zero(self._sparse))

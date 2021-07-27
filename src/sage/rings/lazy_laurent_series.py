@@ -90,8 +90,11 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_inv,
     CoefficientStream_apply_coeff,
     CoefficientStream,
-    LazyLaurentSeries_inexact,
-    LazyLaurentSeries_zero
+    CoefficientStream_inexact,
+    CoefficientStream_zero,
+    CoefficientStream_eventually_geometric,
+    CoefficientStream_coefficient_function,
+    CoefficientStream_uninitialized
 )
 
 
@@ -349,7 +352,7 @@ class LazyLaurentSeries(ModuleElement):
         P = g.parent()
 
         # g = 0 case
-        if (not isinstance(g, LazyLaurentSeries) and not g) or (isinstance(g, LazyLaurentSeries) and isinstance(g._coeff_stream, LazyLaurentSeries_zero)):
+        if (not isinstance(g, LazyLaurentSeries) and not g) or (isinstance(g, LazyLaurentSeries) and isinstance(g._coeff_stream, CoefficientStream_zero)):
             if self._coeff_stream._approximate_valuation >= 0:
                 return P(self[0])
             # Perhaps we just don't yet know if the valuation is non-negative
@@ -359,21 +362,21 @@ class LazyLaurentSeries(ModuleElement):
             return P(self[0])
 
         # f has finite length
-        if isinstance(self._coeff_stream, LazyLaurentSeries_zero):  # constant 0
+        if isinstance(self._coeff_stream, CoefficientStream_zero):  # constant 0
             return self
-        if isinstance(self._coeff_stream, LazyLaurentSeries_eventually_geometric) and not self._coeff_stream._constant:
+        if isinstance(self._coeff_stream, CoefficientStream_eventually_geometric) and not self._coeff_stream._constant:
             # constant polynomial
             if self._coeff_stream._laurent_polynomial.is_constant():
                 return self
             if not isinstance(g, LazyLaurentSeries):
                 return self._coeff_stream._laurent_polynomial(g)
             # g also has finite length, compose the polynomials
-            if isinstance(g._coeff_stream, LazyLaurentSeries_eventually_geometric) and not g._coeff_stream._constant:
+            if isinstance(g._coeff_stream, CoefficientStream_eventually_geometric) and not g._coeff_stream._constant:
                 R = P._laurent_poly_ring
                 try:
                     ret = self._coeff_stream._laurent_polynomial(g._coeff_stream._laurent_polynomial)
                     if ret.parent() is R:
-                        return P.element_class(P, LazyLaurentSeries_eventually_geometric(ret, self._coeff_stream._is_sparse, 0))
+                        return P.element_class(P, CoefficientStream_eventually_geometric(ret, self._coeff_stream._is_sparse, 0))
                 except TypeError:  # the result is not a Laurent polynomial
                     pass
 
@@ -448,20 +451,20 @@ class LazyLaurentSeries(ModuleElement):
         P = self.parent()
         left = self._coeff_stream
         right = other._coeff_stream
-        if isinstance(left, LazyLaurentSeries_zero) or isinstance(right, LazyLaurentSeries_zero):
+        if isinstance(left, CoefficientStream_zero) or isinstance(right, CoefficientStream_zero):
             return P.zero()
 
         R = P._laurent_poly_ring
-        if isinstance(left, LazyLaurentSeries_eventually_geometric):
+        if isinstance(left, CoefficientStream_eventually_geometric):
             if not left._constant:
                 if left._laurent_polynomial == R.one():  # self == 1
                     return other
-                if isinstance(right, LazyLaurentSeries_eventually_geometric):
+                if isinstance(right, CoefficientStream_eventually_geometric):
                     if not right._constant:
                         p = left._laurent_polynomial * right._laurent_polynomial
                         c = left._constant
-                        return P.element_class(P, LazyLaurentSeries_eventually_geometric(p, P._sparse, c))
-        elif isinstance(right, LazyLaurentSeries_eventually_geometric) and not right._constant and right._laurent_polynomial == R.one():  # other == 1
+                        return P.element_class(P, CoefficientStream_eventually_geometric(p, P._sparse, c))
+        elif isinstance(right, CoefficientStream_eventually_geometric) and not right._constant and right._laurent_polynomial == R.one():  # other == 1
             return self
         return P.element_class(P, CoefficientStream_mul(self._coeff_stream, other._coeff_stream))
 
@@ -507,8 +510,8 @@ class LazyLaurentSeries(ModuleElement):
         P = self.parent()
         left = self._coeff_stream
         right = other._coeff_stream
-        if (isinstance(left, LazyLaurentSeries_eventually_geometric)
-                and isinstance(right, LazyLaurentSeries_eventually_geometric)):
+        if (isinstance(left, CoefficientStream_eventually_geometric)
+                and isinstance(right, CoefficientStream_eventually_geometric)):
             R = P._laurent_poly_ring
             c = left._constant + right._constant
             pl = left._laurent_polynomial
@@ -519,7 +522,7 @@ class LazyLaurentSeries(ModuleElement):
             p = pl + pr
             if not p and not c:
                 return P.zero()
-            return P.element_class(P, LazyLaurentSeries_eventually_geometric(p, P._sparse, c, d))
+            return P.element_class(P, CoefficientStream_eventually_geometric(p, P._sparse, c, d))
         return P.element_class(P, CoefficientStream_add(self._coeff_stream, other._coeff_stream))
 
     def _sub_(self, other):
@@ -554,7 +557,7 @@ class LazyLaurentSeries(ModuleElement):
             sage: X = A - B; X
             0
             sage: type(X._coeff_stream)
-            <class 'sage.data_structures.coefficient_stream.LazyLaurentSeries_zero'>
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_zero'>
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
@@ -567,7 +570,7 @@ class LazyLaurentSeries(ModuleElement):
         P = self.parent()
         left = self._coeff_stream
         right = other._coeff_stream
-        if (isinstance(left, LazyLaurentSeries_eventually_geometric) and isinstance(right, LazyLaurentSeries_eventually_geometric)):
+        if (isinstance(left, CoefficientStream_eventually_geometric) and isinstance(right, CoefficientStream_eventually_geometric)):
             R = P._laurent_poly_ring
             c = left._constant - right._constant
             pl = left._laurent_polynomial
@@ -578,7 +581,7 @@ class LazyLaurentSeries(ModuleElement):
             p = pl - pr
             if not p and not c:
                 return P.zero()
-            return P.element_class(P, LazyLaurentSeries_eventually_geometric(p, P._sparse, c, d))
+            return P.element_class(P, CoefficientStream_eventually_geometric(p, P._sparse, c, d))
         if left == right:
             return P.zero()
         return P.element_class(P, CoefficientStream_sub(self._coeff_stream, other._coeff_stream))
@@ -611,21 +614,21 @@ class LazyLaurentSeries(ModuleElement):
             sage: P = M / N; P
             z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
         """
-        if isinstance(other._coeff_stream, LazyLaurentSeries_zero):
+        if isinstance(other._coeff_stream, CoefficientStream_zero):
             raise ZeroDivisionError("cannot divide by 0")
 
         P = self.parent()
         left = self._coeff_stream
-        if isinstance(left, LazyLaurentSeries_zero):
+        if isinstance(left, CoefficientStream_zero):
             return P.zero()
         right = other._coeff_stream
-        if (isinstance(left, LazyLaurentSeries_eventually_geometric)
-                and isinstance(right, LazyLaurentSeries_eventually_geometric)):
+        if (isinstance(left, CoefficientStream_eventually_geometric)
+                and isinstance(right, CoefficientStream_eventually_geometric)):
             if not left._constant and not right._constant:
                 ret = left._laurent_polynomial / right._laurent_polynomial
                 try:
                     ret = P._laurent_poly_ring(ret)
-                    return P.element_class(P, LazyLaurentSeries_eventually_geometric(ret, P._sparse, left._constant))
+                    return P.element_class(P, CoefficientStream_eventually_geometric(ret, P._sparse, left._constant))
                 except (TypeError, ValueError):
                     # We cannot divide the polynomials, so the result must be a series
                     pass
@@ -675,10 +678,10 @@ class LazyLaurentSeries(ModuleElement):
         if scalar == 1:
             return self
 
-        if isinstance(self._coeff_stream, LazyLaurentSeries_eventually_geometric):
+        if isinstance(self._coeff_stream, CoefficientStream_eventually_geometric):
             c = scalar * self._coeff_stream._constant
             p = scalar * self._coeff_stream._laurent_polynomial
-            return P.element_class(P, LazyLaurentSeries_eventually_geometric(p, P._sparse, c, self._coeff_stream._degree))
+            return P.element_class(P, CoefficientStream_eventually_geometric(p, P._sparse, c, self._coeff_stream._degree))
 
         return P.element_class(P, CoefficientStream_scalar(self._coeff_stream, scalar))
 
@@ -706,11 +709,11 @@ class LazyLaurentSeries(ModuleElement):
             -3*z - z^2 + 4*z^3
         """
         P = self.parent()
-        if isinstance(self._coeff_stream, LazyLaurentSeries_eventually_geometric):
+        if isinstance(self._coeff_stream, CoefficientStream_eventually_geometric):
             p = -self._coeff_stream._laurent_polynomial
             c = -self._coeff_stream._constant
             d = self._coeff_stream._degree
-            return P.element_class(P, LazyLaurentSeries_eventually_geometric(p, P._sparse, c, d))
+            return P.element_class(P, CoefficientStream_eventually_geometric(p, P._sparse, c, d))
         # -(-f) = f
         if isinstance(self._coeff_stream, CoefficientStream_neg):
             return P.element_class(P, self._coeff_stream._series)
@@ -739,9 +742,9 @@ class LazyLaurentSeries(ModuleElement):
             1 - z
         """
         P = self.parent()
-        if isinstance(self._coeff_stream, LazyLaurentSeries_eventually_geometric) and self._coeff_stream._laurent_polynomial == P.gen():
+        if isinstance(self._coeff_stream, CoefficientStream_eventually_geometric) and self._coeff_stream._laurent_polynomial == P.gen():
             ret = 1 / self._coeff_stream._laurent_polynomial
-            return P.element_class(P, LazyLaurentSeries_eventually_geometric(ret, P._sparse, self._coeff_stream._constant))
+            return P.element_class(P, CoefficientStream_eventually_geometric(ret, P._sparse, self._coeff_stream._constant))
         # (f^-1)^-1 = f
         if isinstance(self._coeff_stream, CoefficientStream_inv):
             return P.element_class(P, self._coeff_stream._series)
@@ -830,12 +833,12 @@ class LazyLaurentSeries(ModuleElement):
         """
         P = self.parent()
         R = P.base_ring()
-        if isinstance(self._coeff_stream, LazyLaurentSeries_eventually_geometric):
+        if isinstance(self._coeff_stream, CoefficientStream_eventually_geometric):
             p = p.map_coefficients(func)
             c = func(c)
             if not p and not c:
                 return P.zero()
-            return P.element_class(P, LazyLaurentSeries_eventually_geometric(p, self._coeff_stream._is_sparse, c, d))
+            return P.element_class(P, CoefficientStream_eventually_geometric(p, self._coeff_stream._is_sparse, c, d))
         return P.element_class(P, CoefficientStream_apply_coeff(self._coeff_stream, func, R))
 
     def change_ring(self, ring):
@@ -910,7 +913,7 @@ class LazyLaurentSeries(ModuleElement):
         R = P._laurent_poly_ring
         z = R.gen()
         p = R.sum(self[i] * z**i for i in range(self._coeff_stream._approximate_valuation, d))
-        return P.element_class(P, LazyLaurentSeries_eventually_geometric(p, P._sparse, ZZ.zero(), d))
+        return P.element_class(P, CoefficientStream_eventually_geometric(p, P._sparse, ZZ.zero(), d))
 
     def __pow__(self, n):
         """
@@ -1064,10 +1067,10 @@ class LazyLaurentSeries(ModuleElement):
             ValueError: not a polynomial
         """
         if degree is None:
-            if isinstance(self._coeff_stream, LazyLaurentSeries_zero):
+            if isinstance(self._coeff_stream, CoefficientStream_zero):
                 from sage.rings.all import PolynomialRing
                 return PolynomialRing(S.base_ring(), name=name).zero()
-            elif isinstance(self._coeff_stream, LazyLaurentSeries_eventually_geometric) and not self._coeff_stream._constant:
+            elif isinstance(self._coeff_stream, CoefficientStream_eventually_geometric) and not self._coeff_stream._constant:
                 m = self._coeff_stream._degree
             else:
                 raise ValueError("not a polynomial")
@@ -1125,16 +1128,16 @@ class LazyLaurentSeries(ModuleElement):
             sage: -1/(1 + 2*z)
             -1 + 2*z - 4*z^2 + 8*z^3 - 16*z^4 + 32*z^5 - 64*z^6 + ...
         """
-        if isinstance(self._coeff_stream, LazyLaurentSeries_zero):
+        if isinstance(self._coeff_stream, CoefficientStream_zero):
             return '0'
-        if isinstance(self._coeff_stream, LazyLaurentSeries_uninitialized) and self._coeff_stream._target is None:
+        if isinstance(self._coeff_stream, CoefficientStream_uninitialized) and self._coeff_stream._target is None:
             return 'Uninitialized Lazy Laurent Series'
 
         atomic_repr = self.base_ring()._repr_option('element_is_atomic')
         X = self.parent().variable_name()
         v = self._coeff_stream._approximate_valuation
 
-        if not isinstance(self._coeff_stream, LazyLaurentSeries_eventually_geometric):
+        if not isinstance(self._coeff_stream, CoefficientStream_eventually_geometric):
             m = v + 7  # long enough
         elif not self._coeff_stream._constant:
             # Just a polynonial, so let that print itself
@@ -1178,13 +1181,13 @@ class LazyLaurentSeries(ModuleElement):
             False
         """
         if op is op_EQ:
-            if isinstance(self._coeff_stream, LazyLaurentSeries_zero):  # self == 0
-                return isinstance(other._coeff_stream, LazyLaurentSeries_zero)
-            if isinstance(other._coeff_stream, LazyLaurentSeries_zero):  # self != 0 but other == 0
+            if isinstance(self._coeff_stream, CoefficientStream_zero):  # self == 0
+                return isinstance(other._coeff_stream, CoefficientStream_zero)
+            if isinstance(other._coeff_stream, CoefficientStream_zero):  # self != 0 but other == 0
                 return False
 
-            if (not isinstance(self._coeff_stream, LazyLaurentSeries_eventually_geometric)
-                    or not isinstance(other._coeff_stream, LazyLaurentSeries_eventually_geometric)):
+            if (not isinstance(self._coeff_stream, CoefficientStream_eventually_geometric)
+                    or not isinstance(other._coeff_stream, CoefficientStream_eventually_geometric)):
                 # One of the lazy laurent series is not known to eventually be constant
                 # Implement the checking of the caches here.
                 n = min(self._coeff_stream._approximate_valuation, other._coeff_stream._approximate_valuation)
@@ -1196,7 +1199,7 @@ class LazyLaurentSeries(ModuleElement):
                     return True
                 raise ValueError("undecidable as lazy Laurent series")
 
-            # Both are LazyLaurentSeries_eventually_geometric, which implements a full check
+            # Both are CoefficientStream_eventually_geometric, which implements a full check
             return self._coeff_stream == other._coeff_stream
 
         if op is op_NE:
@@ -1235,9 +1238,9 @@ class LazyLaurentSeries(ModuleElement):
             sage: M.is_zero()
             False
         """
-        if isinstance(self._coeff_stream, LazyLaurentSeries_zero):
+        if isinstance(self._coeff_stream, CoefficientStream_zero):
             return False
-        if isinstance(self._coeff_stream, LazyLaurentSeries_eventually_geometric):
+        if isinstance(self._coeff_stream, CoefficientStream_eventually_geometric):
             # This should always end up being True, but let's be careful about it for now...
             return self._coeff_stream._laurent_polynomial or self._coeff_stream._constant
 
@@ -1353,285 +1356,6 @@ class LazyLaurentSeries(ModuleElement):
             ...
             ValueError: series already defined
         """
-        if not isinstance(self._coeff_stream, LazyLaurentSeries_uninitialized) or self._coeff_stream._target is not None:
+        if not isinstance(self._coeff_stream, CoefficientStream_uninitialized) or self._coeff_stream._target is not None:
             raise ValueError("series already defined")
         self._coeff_stream._target = s._coeff_stream
-
-
-class LazyLaurentSeries_eventually_geometric(CoefficientStream):
-    r"""
-    A lazy Laurent series which is known to be eventually geometric
-
-    INPUT:
-
-        - ``laurent_polynomial`` -- a Laurent polynomial
-
-        - ``is_sparse`` -- a boolean, which specifies whether the series is sparse
-
-        - ``constant`` -- either ``None`` (default: ``None``) or pair of an element of the base ring and an integer
-
-        - ``degree`` -- either ``None`` (default: ``None``) or an integer, the degree of the polynomial
-
-    EXAMPLES::
-
-        sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-        sage: f = 1 + z^2
-        sage: f[2]
-        1
-
-    You can do arithmetic operations with eventually geometric series::
-
-        sage: g = z^3 + 1
-        sage: s = f + g
-        sage: s[2]
-        1
-        sage: s
-        2 + z^2 + z^3
-        sage: s = f - g
-        sage: s[2]
-        1
-        sage: s
-        z^2 - z^3
-    """
-
-    def __init__(self, laurent_polynomial, is_sparse, constant=None, degree=None):
-        """
-        Initialize a series that is known to be eventually geometric.
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: M = z^2 + z
-            sage: type(M._coeff_stream)
-            <class 'sage.rings.lazy_laurent_series.LazyLaurentSeries_eventually_geometric'>
-        """
-        if constant is None:
-            constant = ZZ.zero()
-        if degree is None:
-            if not laurent_polynomial:
-                raise ValueError("you must specify the degree for the polynomial 0")
-            degree = laurent_polynomial.degree() + 1
-        else:
-            # Consistency check
-            assert not laurent_polynomial or laurent_polynomial.degree() < degree
-
-        self._constant = constant
-        self._degree = degree
-        self._laurent_polynomial = laurent_polynomial
-        if not laurent_polynomial:
-            valuation = degree
-        else:
-            valuation = laurent_polynomial.valuation()
-        super().__init__(is_sparse, valuation)
-
-    def __getitem__(self, n):
-        """
-        Return the coefficient of the term with exponent ``n`` of the series.
-
-        INPUT:
-
-        - ``n`` -- integer, the degree for which the coefficient is required
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: f = 1 + z + z^2 + z^3
-            sage: f[3]
-            1
-            sage: f[8]
-            0
-        """
-        if n >= self._degree:
-            return self._constant
-        return self._laurent_polynomial[n]
-
-    def valuation(self):
-        """
-        Return the valuation of the series.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: f = 1 + z + z^2 + z^3
-            sage: f.valuation()
-            0
-        """
-        return self._approximate_valuation
-
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: f = 1 + z + z^2 + z^3
-            sage: {f: 1}
-            {1 + z + z^2 + z^3: 1}
-        """
-        return hash((self._laurent_polynomial, self._degree, self._constant))
-
-    def __eq__(self, other):
-        """
-        Test the equality between ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- a lazy Laurent series which is known to be eventaully geometric
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: f = 1 + z + z^2 + z^3
-            sage: m = 1 + z + z^2 + z^3
-            sage: f == m
-            True
-        """
-        return (isinstance(other, type(self))
-                and self._degree == other._degree
-                and self._laurent_polynomial == other._laurent_polynomial
-                and self._constant == other._constant)
-
-
-class LazyLaurentSeries_coefficient_function(LazyLaurentSeries_inexact):
-    r"""
-    The coefficient function of a lazy Laurent series.
-
-    INPUT:
-
-    - ``coefficient_function`` -- a python function that generates the coefficients of the series
-
-    - ``ring`` -- the base ring of the series
-
-    - ``is_sparse`` -- a boolean, which specifies whether the series is sparse
-
-    - ``approximate_valuation`` -- the approximate valuation of the series
-
-    EXAMPLES::
-
-        sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-        sage: M = L(lambda n: n, True); M
-        z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + 7*z^7 + ...
-        sage: M[4]
-        4
-    """
-
-    def __init__(self, coefficient_function, ring, is_sparse, approximate_valuation):
-        """
-        Initialize the coefficient function of a lazy Laurent series.
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: type(L(lambda n:n, True)._coeff_stream)
-            <class 'sage.rings.lazy_laurent_series.LazyLaurentSeries_coefficient_function'>
-        """
-        self._coefficient_function = coefficient_function
-        self._ring = ring
-        super().__init__(is_sparse, approximate_valuation)
-
-    def get_coefficient(self, n):
-        """
-        Return the coefficient of the term with exponent ``n`` of the series.
-
-        INPUT:
-
-        - ``n`` -- integer, the degree for which the coefficient is required
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: M = L(lambda n: n, True)
-            sage: M._coeff_stream.get_coefficient(4)
-            4
-        """
-        return self._ring(self._coefficient_function(n))
-
-    def iterate_coefficients(self):
-        """
-        Return a generator for the coefficients of the series.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: M = L(lambda n: n, False)
-            sage: n = M._coeff_stream.iterate_coefficients()
-            sage: [next(n) for _ in range(10)]
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-        """
-        n = self._offset
-        ring = self._ring
-        while True:
-            yield ring(self._coefficient_function(n))
-            n += 1
-
-
-class LazyLaurentSeries_uninitialized(LazyLaurentSeries_inexact):
-    r"""
-    An uninitialized lazy Laurent series.
-
-    INPUT:
-
-    - ``is_sparse`` -- a boolean, which specifies whether the series is sparse
-
-    - ``approximate_valuation`` -- the approximate valuation of the series
-
-    EXAMPLES::
-
-        sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-        sage: N = L(None)
-        sage: N
-        Uninitialized Lazy Laurent Series
-    """
-
-    def __init__(self, is_sparse, approximate_valuation):
-        """
-        Initialize an uninitialized lazy laurent series.
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: N = L(None, 2)
-            sage: N
-            Uninitialized Lazy Laurent Series
-        """
-        self._target = None
-        super().__init__(is_sparse, approximate_valuation)
-
-    def get_coefficient(self, n):
-        """
-        Return the ``n``-th coefficient of the series.
-
-        INPUT:
-
-        - ``n`` -- integer, the degree for which the coefficient is required
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: C = L(None)
-            sage: C.define(1 + z*C^2)
-            sage: C._coeff_stream.get_coefficient(4)
-            14
-
-        """
-        return self._target[n]
-
-    def iterate_coefficients(self):
-        """
-        Return a generator for the coefficients of the series.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: C = L(None)
-            sage: C.define(1 + z*C^2)
-            sage: n = C._coeff_stream.iterate_coefficients()
-            sage: [next(n) for _ in range(6)]
-            [1, 1, 2, 5, 14, 42]
-
-        """
-        n = self._approximate_valuation
-        while True:
-            yield self._target[n]
-            n += 1

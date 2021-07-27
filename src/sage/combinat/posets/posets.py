@@ -3641,6 +3641,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: U.magnitude() == m1 + m2
             True
             sage: P.magnitude() == m1*m2
+            True
 
             sage: Poset({}).magnitude()
             0

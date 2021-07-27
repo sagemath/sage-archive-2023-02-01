@@ -366,7 +366,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         except OverflowError:
             raise ValueError('value {} of index is negative'.format(n)) from None
 
-    def from_recurrence(self, *args, offset=0):
+    def from_recurrence(self, *args, **kwds):
         r"""
         Construct a `k`-regular sequence that fulfills the recurrence relations
         given in ``equations``.
@@ -547,7 +547,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
         """
         RP = RecurrenceParser(self.k, self.coefficient_ring())
-        mu, left, right = RP(*args, offset=offset)
+        mu, left, right = RP(*args, **kwds)
         return self(mu, left, right)
 
 

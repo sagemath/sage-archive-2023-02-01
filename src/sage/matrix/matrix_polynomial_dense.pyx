@@ -1663,10 +1663,17 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                         include_zero_vectors)
             return (W[0].T,W[1].T) if transformation else W.T
         # --> now, below, we are working row-wise
-        # call main procedure to compute weak Popov and transformation
+        # make shift nonnegative, required by main call _weak_popov_form
         self._check_shift_dimension(shifts,row_wise=True)
+        if shifts==None:
+            nonnegative_shifts = None
+        else:
+            min_shifts = min(shifts)
+            nonnegative_shifts = [s-min_shifts for s in shifts]
+        # call main procedure to compute weak Popov and transformation
         M = self.__copy__()
-        U = M._weak_popov_form(transformation=transformation, shifts=shifts)
+        U = M._weak_popov_form(transformation=transformation,
+                shifts=nonnegative_shifts)
         # remove zero rows if asked to
         if not include_zero_vectors:
             zero_rows = [i for i in range(M.nrows()) if M[i].is_zero()]
@@ -1674,7 +1681,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             if transformation:
                 U = U.delete_rows(zero_rows)
         if ordered:
-            leading_positions = self.leading_positions(shifts, row_wise=True)
+            leading_positions = self.leading_positions(nonnegative_shifts,
+                    row_wise=True)
             m = len(leading_positions)
             # find permutation that sorts leading_positions in increasing order
             # --> force max value to zero rows so that they will be bottom rows
@@ -1683,7 +1691,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                     if leading_positions[i] == -1:
                         leading_positions[i] = m
             from sage.combinat.permutation import Permutation
-            row_permutation = Permutation(list(zip(*sorted([ \
+            row_permutation = Permutation(list(zip(*sorted([
                 (leading_positions[i],i+1) for i in range(m)]))[1]))
             # apply permutation to weak Popov form and the transformation
             M.permute_rows(row_permutation)
@@ -1748,8 +1756,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if transformation:
             from sage.matrix.constructor import identity_matrix
             U = identity_matrix(R, m)
-
-        self._check_shift_dimension(shifts,row_wise=True)
 
         # initialise to_row and conflicts list
         to_row = [[] for i in range(n)]

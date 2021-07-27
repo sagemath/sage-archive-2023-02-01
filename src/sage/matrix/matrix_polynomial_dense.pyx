@@ -1209,15 +1209,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Return a boolean indicating whether this matrix is in (shifted)
         (ordered) weak Popov form.
 
-        If working row-wise (resp. column-wise), a polynomial matrix is said to
-        be in weak Popov form if the leading positions of its nonzero rows
-        (resp. columns) are pairwise distinct (for the ordered weak Popov form,
-        these positions must be strictly increasing, except for the possibly
-        repeated -1 entries which are at the end).
-
-        Sometimes, one forbids $M$ to have zero rows (resp. columns) in the
-        above definitions; an optional parameter allows one to adopt this more
-        restrictive setting.
+        See :meth:`weak_popov_form` for a definition of weak Popov forms.
 
         INPUT:
 
@@ -1573,29 +1565,31 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         r"""
         Return a (shifted) (ordered) weak Popov form of this matrix.
 
-        A polynomial matrix is said to be in (row-wise) weak Popov form if the
-        (shifted) leading positions of its nonzero rows are pairwise distinct.
-        The leading position of a row is the rightmost position whose entry has
-        the maximal degree in the row, see :meth:`leading_positions`. See the
-        class description for an introduction to shifts.
+        If working row-wise (resp. column-wise), a polynomial matrix is said to
+        be in weak Popov form if the leading positions of its nonzero rows
+        (resp. columns) are pairwise distinct. For the ordered weak Popov form,
+        these positions must be strictly increasing, except for the possibly
+        repeated -1 entries which are at the end. For the shifted variants, see
+        the class description for an introduction to shifts.
 
-        TODO text to improve, better say what options are. Note: zero rows
-        are also removed in the transfo.
+        If the input matrix is $A$, a weak Popov form of $A$ is any matrix $P$
+        such that $UA = P$ for some unimodular matrix $U$, called the
+        transformation. The first optional argument allows one to specify
+        whether to return this transformation.
 
-        The weak Popov form is non-canonical: each matrix has many weak Popov
-        forms (for any fixed shifts). The form returned by this algorithm can
-        be required to be ordered: it has rows (resp. columns) ordered by
-        increasing leading positions. Furthermore, the potential zero rows
-        (resp. columns) are positioned at the bottom (resp. the right) of the
-        matrix; sometimes, one forbids weak Popov forms to have zero rows
-        (resp. columns), this is made possible here by an optional parameter.
+        Sometimes, one forbids weak Popov forms to have zero rows (resp.
+        columns) in the above definitions; an optional parameter allows one to
+        adopt this more restrictive setting. If zero rows (resp. columns) are
+        allowed, the convention here is to place them as the bottommost rows
+        (resp. the rightmost columns) of the output weak Popov form. Note that,
+        in this case, the returned transformation is still the complete
+        unimodular matrix, with its bottommost rows (resp. rightmost columns)
+        yielding a basis of the left (resp. right) kernel of the input matrix.
 
         INPUT:
 
         - ``transformation`` -- (optional, default: ``False``). If this
-          is ``True``, the transformation matrix `U` will be returned as well:
-          this is a unimodular matrix over `\Bold{K}[x]` such that ``self``
-          equals `UW`, where `W` is the output matrix.
+          is ``True``, the transformation matrix `U` will be returned as well.
 
         - ``shifts`` -- (optional, default: ``None``) list of integers;
           ``None`` is interpreted as ``shifts=[0,...,0]``.
@@ -1603,16 +1597,19 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
           working row-wise (see the class description).
 
+        - ``ordered`` -- (optional, default: ``False``) boolean, ``True`` if
+          seeking an ordered weak Popov form.
+
         - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
           ``False`` if one does not allow zero rows (resp. zero columns) in
           (ordered) weak Popov forms.
 
         OUTPUT:
 
-        - A polynomial matrix `W` which is a (shifted) (ordered) weak Popov
-          form of ``self`` if ``transformation=False``; otherwise two
-          polynomial matrices `W, U` such that `UA = W` and `W` is a shifted
-          ordered weak Popov form and `U` is unimodular, where `A` is ``self``.
+        - A polynomial matrix which is a (shifted) (ordered) weak Popov form of
+          ``self`` if ``transformation`` is ``False``; otherwise two polynomial
+          matrices which are a (shifted) (ordered) weak Popov form of ``self``
+          and the corresponding unimodular transformation.
 
         ALGORITHM:
 
@@ -1678,6 +1675,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if not include_zero_vectors:
             zero_rows = [i for i in range(M.nrows()) if M[i].is_zero()]
             M = M.delete_rows(zero_rows)
+            # TODO zero rows
             if transformation:
                 U = U.delete_rows(zero_rows)
         if ordered:

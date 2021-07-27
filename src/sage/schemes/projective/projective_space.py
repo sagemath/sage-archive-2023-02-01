@@ -107,6 +107,7 @@ from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.combinat.permutation import Permutation
 from sage.combinat.tuple import Tuples
 from sage.combinat.tuple import UnorderedTuples
+from sage.combinat.subset import Subsets
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import prepare
 from sage.schemes.generic.ambient_space import AmbientSpace
@@ -1719,8 +1720,9 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
          - ``points`` -- a list of points in this projective space.
 
-         - ``n`` -- (Optional) An integer. Specifies the size of the subsets to
-           check for linear independence.
+         - ``n`` -- (Optional) A positive integer less than or equal to the length
+           of ``points``. Specifies the size of the subsets to check for
+           linear independence.
 
         OUTPUT:
 
@@ -1741,7 +1743,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
             sage: P.<x,y,z> = ProjectiveSpace(GF(5), 2)
             sage: points = [P((1, 0, 1)), P((1, 2, 1)), P((1, 3, 4)), P((0, 0 ,1))]
-            sage: P.is_linearly_independent(points, 3)
+            sage: P.is_linearly_independent(points, 2)
             True
 
         ::
@@ -1767,6 +1769,15 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: points = [P((k, k^2, 1)), P((0, k, 1)), P((1, 0, 4)), P((0, 0 ,1))]
             sage: P.is_linearly_independent(points, 3)
             True
+
+        TESTS::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: points = [P(1, 0), P(1, 1), P(2, 1)]
+            sage: P.is_linearly_independent(points, 5)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be a non negative integer not greater than the length of points
         """
         if not isinstance(points, list):
             raise TypeError("points must be a list")
@@ -1774,17 +1785,23 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             raise TypeError("points must be a list of projective points")
         if any(x.codomain() != self for x in points):
             raise ValueError("points not in this projective space")
-        if not n is None:
-            n = Integer(n)
-        M = matrix([list(t) for t in points])
-        N = self.dimension_relative()
-        if len(points) < n or n == None:
-            if M.rank() == len(points):
-                return True
-            return False
-        if any(l == 0 for l in M.minors(n)):
-            return False
-        return True
+        if n is None:
+            M = matrix([list(t) for t in points])
+            return M.rank() == len(points)
+        n = Integer(n)
+        if n < 1 or n > len(points):
+            raise ValueError('n must be a non negative integer not greater than the length of points')
+        all_subsets = Subsets(range(len(points)), n)
+        linearly_independent = True
+        for subset in all_subsets:
+            point_list = []
+            for index in subset:
+                point_list.append(list(points[index]))
+            M = matrix(point_list)
+            if M.rank() != n:
+                linearly_independent = False
+                break
+        return linearly_independent
 
 class ProjectiveSpace_field(ProjectiveSpace_ring):
     def _point_homset(self, *args, **kwds):

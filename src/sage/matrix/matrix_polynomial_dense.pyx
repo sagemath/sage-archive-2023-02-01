@@ -1624,36 +1624,39 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         EXAMPLES::
 
-            sage: pR.<x> = GF(11)[]
+            sage: pR.<x> = GF(7)[]
             sage: M = Matrix(pR, [                                 \
                 [      6*x+4,       5*x^3+5*x,       6*x^2+2*x+2], \
                 [4*x^2+5*x+2, x^4+5*x^2+2*x+4, 4*x^3+6*x^2+6*x+5]])
 
             sage: P,U = M.weak_popov_form(transformation=True)
             sage: P
-            [                  6*x + 4               5*x^3 + 5*x           6*x^2 + 2*x + 2]
-            [          5*x^2 + 2*x + 2           4*x^2 + 2*x + 4 5*x^3 + 10*x^2 + 10*x + 5]
+            [              4             x^2   6*x^2 + x + 2]
+            [              2 4*x^2 + 2*x + 4               5]
             sage: U
-            [  1   0]
-            [2*x   1]
+            [2*x^2 + 1       4*x]
+            [      4*x         1]
             sage: P.is_weak_popov() and U.is_invertible()
             True
 
-        Demonstrating shifts and ordered forms::
+        Demonstrating the ``ordered`` option:
+            sage: P.leading_positions()
+            [2, 1]
+            sage: PP = M.weak_popov_form(ordered=True); PP
+            [              2 4*x^2 + 2*x + 4               5]
+            [              4             x^2   6*x^2 + x + 2]
+            sage: PP.leading_positions()
+            [1, 2]
+            sage: PP == Matrix([P[1],P[0]])
+            True
 
-            sage: P = M.weak_popov_form(shifts=[0,2,4])
-            sage: P
-            [                      6*x + 4                   5*x^3 + 5*x               6*x^2 + 2*x + 2]
-            [                      5*x + 5 5*x^4 + x^3 + 9*x^2 + 3*x + 4                       8*x + 1]
+        Demonstrating shifts::
+
+            sage: P = M.weak_popov_form(shifts=[0,2,4]); P
+            [            6*x^2 + 6*x + 4 5*x^4 + 4*x^3 + 5*x^2 + 5*x                     2*x + 2]
+            [                          2             4*x^2 + 2*x + 4                           5]
             sage: P==M.weak_popov_form(shifts=[-10,-8,-6])
             True
-            sage: P.leading_positions(shifts=[0,2,4])
-            [2, 1]
-            sage: P = M.weak_popov_form(shifts=[0,2,4],ordered=True); P
-            [                      5*x + 5 5*x^4 + x^3 + 9*x^2 + 3*x + 4                       8*x + 1]
-            [                      6*x + 4                   5*x^3 + 5*x               6*x^2 + 2*x + 2]
-            sage: P.leading_positions(shifts=[0,2,4])
-            [1, 2]
 
         Column-wise form is the row-wise form of the transpose:
 
@@ -1663,15 +1666,15 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Zero vectors can be discarded::
 
             sage: M.weak_popov_form(row_wise=False)
-            [10  2  0]
-            [ 8  0  0]
+            [x + 4     6     0]
+            [    5     1     0]
 
             sage: P,U = M.weak_popov_form(transformation=True,      \
                                           row_wise=False,           \
                                           include_zero_vectors=False)
             sage: P
-            [10  2]
-            [ 8  0]
+            [x + 4     6]
+            [    5     1]
             sage: M*U[:,:2] == P and (M*U[:,2]).is_zero()
             True
 

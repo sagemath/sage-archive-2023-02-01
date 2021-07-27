@@ -1918,6 +1918,8 @@ class OEISSequence(SageObject, UniqueRepresentation):
         else:
             table = []
 
+        known_langs = ['sage', 'python', 'scheme']
+
         def is_starting_line(line):
             """
             Help to split the big OEIS code block into blocks by language.
@@ -1934,7 +1936,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
                 return None
             if ' ' in language:  # get rid of language versions
                 language = language.split(' ')[0]
-            for special in ['sage', 'python']:
+            for special in known_langs:
                 if language.startswith(special):
                     language = special
             if language == 'c#' or language == 'c++':

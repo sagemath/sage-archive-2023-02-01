@@ -1639,7 +1639,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: P.is_weak_popov() and U.is_invertible()
             True
 
-        Demonstrating the ``ordered`` option:
+        Demonstrating the ``ordered`` option::
+
             sage: P.leading_positions()
             [2, 1]
             sage: PP = M.weak_popov_form(ordered=True); PP
@@ -1675,6 +1676,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: P
             [x + 4     6]
             [    5     1]
+            sage: U
+            [                5*x + 2         5*x^2 + 4*x + 4 3*x^3 + 3*x^2 + 2*x + 4]
+            [                      1                       1                 2*x + 1]
+            [                5*x + 5                       2                       6]
             sage: M*U[:,:2] == P and (M*U[:,2]).is_zero()
             True
 

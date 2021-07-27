@@ -1749,8 +1749,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             from sage.matrix.constructor import identity_matrix
             U = identity_matrix(R, m)
 
-        if shifts and len(shifts) != M.ncols():
-            raise ValueError("the number of shifts must equal the number of columns")
+        self._check_shift_dimension(shifts,row_wise=True)
 
         # initialise to_row and conflicts list
         to_row = [[] for i in range(n)]

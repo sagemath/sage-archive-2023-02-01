@@ -2079,15 +2079,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: Cp[1]*Cp[2]*Cp[3]*Cp[1]*Cp[2]       
             Cp[1,2,1,3,2] + Cp[1,2,1] + Cp[1,3,2]
 
-        Another example, with the Hecke algebra of type `B9` in the normalized
-        presentation ::
+        Below is another example, with the Hecke algebra of type `B9` in the normalized
+        presentation. The (optional) relabeling command ensures that `m(1,2)=4`, i.e., that
+        the generators 1, 2 form the strong bond in the Dynkin diagram. ::
 
             sage: B9 = CoxeterGroup(CoxeterType(['B', 9]).relabel({ i: 9-i+1 for i in range(1, 10) }), implementation='coxeter3')
-            # the (optional) relabeling above ensures `m(1,2)=4`, i.e., that
-            # the generators 1, 2 form the strong bond in the Dynkin diagram.  
-
             sage: H = IwahoriHeckeAlgebra(B9, v, -1/v) 
-            sage: Cp = H.Cp_Coxeter3() 
+            sage: Cp = H.Cp_Coxeter3()
+
+            # TODO: create s1 to s9
             sage: Cp[1,2,1,2] 
             Cp[1,2,1,2] 
 
@@ -2118,25 +2118,44 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             ValueError: the Cp_Coxeter3 basis is only supported in a Hecke
             algebra with the standard or normalized presentations (i.e., need
             `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\}` as sets)
-            sage: H.Cp_Coxeter3()
-            <BLANKLINE>                          
 
 
         ALGORITHM :
             Write `b` for `C^{\prime}`. This class computes each product `b_x
-            \cdot b_y` as follows. 
+            \cdot b_y` in two steps as follows. 
 
             If `\ell(x) \leq \ell(y)`, then we first decompose `b_x` into a
             polynomial in the generators `b_s (s\in S)` and then multiply that
-            polynomial with `b_y`. Both steps are carried out by repeated
-            application of the formula for `b_s * b_w` mentioned before. For
-            example, in the computation of the product `b[1,2,1] * b[3,1,2]` in
-            type `A3`, the left term `b_{121}` is first decomposed into the
-            linear combination `b_1*b_2*b_1 - b_1` behind the scenes.
+            polynomial with `b_y`. If `\ell(x) > \ell(y)`, we decompose `b_y`
+            into a polynomial in `b_s (s\in S)` and multiply that polynomial
+            with `b_x`. The second step (multiplication) is done by repeatedly
+            applying the key formulas displayed earlier directly. The first
+            step (decomposition) is done by induction on the Bruhat order as
+            follows: for every element `u\in W` with length `\ell(u)>1` and
+            every left descent `s` of `u`, write `u=sw` (so `w=su`) and note
+            that
 
-            If `\ell(x) > \ell(y)`, we decompose `b_y` into a polynomial in
-            `b_s (s\in S)` and multiply that polynomial with `b_x`.
+            .. MATH:: 
+               C^{\prime}_u = C^{\prime}_s * C^{\prime}_{w} - \sum_{v\le u; sv<
+               v} \mu(v,w) C^{\prime}_v
 
+            by the key formulas, where the element `w` and all elements `v`'s
+            on the right side are lower than `u` in the Bruhat order; this
+            allows us to finish the computation by decomposing the lower order
+            terms `b_w` and each `b_v`. For example, for `u=121, s=1, w=21` in
+            type `A3` we have 
+
+            .. MATH::
+               b_{121} = b_1*b_{21} - b_1,
+
+            where the lower order term `b_{21}` further decomposes into
+            `b_2*b_1`, therefore `b_{121}=b_1*b_2 b_1 -b1`. We note that the
+            the base cases `\ell(x)=1` or `\ell(x)=0` of the above induction
+            occur when `x` is itself a Coxeter generator `s` or the group
+            identity, respectively. The decomposition is trivial in these cases
+            (we have `C_x=C_s` or `C_x=1`, the unit of the Hecke algebra).
+        
+            
         .. SEEALSO::
 
         # TODO: edit the following
@@ -2147,6 +2166,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         .. TODO::
             
+            Accommodate generic presentations of the Hecke algebra other than
+            the standard and normalized ones.
+
             Use the analog of the displayed formulas to implement
             `C^{\prime}`-products in the multi-parameter Iwahori-Hecke algebra;
             see Section 6 of [Lus2013]_.  
@@ -2167,6 +2189,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: H = IwahoriHeckeAlgebra(A3, v**2)
                 sage: Cp = H.Cp_Coxeter3()
                 <BLANKLINE>
+
                 sage: H = IwahoriHeckeAlgebra('A3', v**2)
                 sage: Cp = H.Cp_Coxeter3()
                 Traceback (most recent call last):
@@ -2184,7 +2207,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             # TODO: rewrite this horribly ugly condition:
             if v != algebra.base_ring().one() and ((algebra.q1() == v**2 and algebra.q2() == -1) or (algebra.q1() == v and algebra.q2() == -1/v)):
-                self.delta = v + ~v
+                self.delta = v + ~v   # TODO: this is why we need the two normalizations
             else:
                 if not algebra._is_generic:
                     # If this algebra is generic, it's only being used to coerce to the T basis, not perform computations
@@ -2245,8 +2268,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Compute the product of `C^{\prime}_s` and `C^{\prime}_w`, putting
             `C^{\prime}_s` on the given ``side``.
 
-            # TODO: again, 'Cp' might be bad; put left as default side (since s
-            # comes before w in the input tuple)?
+            # TODO: again, 'Cp' might be bad;
 
             INPUT:
 
@@ -2286,14 +2308,12 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     if x_elt.has_descent(s, side=side):
                         # Compute mu-coefficient via coxeter3
                         element += x.mu_coefficient(w) * self.monomial(x_elt)
-                
+                # TODO: do something about the following; there's the bug fix now 
                 # Doing self._W([s]) * w may not ensure that the word is
                 # normal form Since W's element constructor does ensure that,
                 # use the constructor.
-                # TODO: change the above for better reader friendliness. 
-                longer_word = self._W([s] + list(w) if side == 'left' else
-                        list(w) + [s]) return self.monomial(longer_word) +
-                element
+                longer_word = self._W([s] + list(w) if side == 'left' else list(w) + [s]) 
+                return self.monomial(longer_word) + element
         
         def _product_with_generator(self, side, s, x): 
         r""" 
@@ -2319,25 +2339,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             """
             return self.linear_combination((self._product_with_generator_on_basis(side, s, w), coeff) for (w, coeff) in x)
 
-        def _decompose_into_generators(self, w):
+        def _decompose_into_generators(self, w): 
             r"""
             Decompose `C^{\prime}_w` into a polynomial in the KL generators
-            `C^{\prime}_s`.
+            `C^{\prime}_s`; see "ALGORITHM".
             
-            For every element `y\in W` with length `\ell(w)>1` and every left descent `s` of
-            `y`, write `y=sw` (so `x=sw`) and note that
-
-            .. MATH:: 
-               C^{\prime}_y = C^{\prime}_s * C^{\prime}_{w} - \sum_{v\le w; sv<
-               v} \mu(v,w) C^{\prime}_v
-            
-            by the formula for `C^{\prime}_s * C^{\prime}_w`. All `v`'s in the
-            sum on the right side are lower than `w` in the Bruhat order and
-            hence shorter than `w`, so the above formula allows us to decompose
-            `C^{\prime}_y` into the generators `C^{\prime}_s` by induction on
-            `\ell(y)`, with the base case being `\ell(y)=1` where `y` is itself
-            a Coxeter generator. (For the group identity `e` we have `C_e=1` in
-            the Hecke algebra.)
             
             EXAMPLES::
             
@@ -2348,25 +2354,23 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: H = IwahoriHeckeAlgebra(A3, v**2); Cp=H.Cp_Coxeter3()
 
             When `y` is itself a generator `s`, the decomposition is trivial ::
-
-                sage: Cp._decompose_into_generators(A3([1])) 
+                sage: w= A3([1])
+                sage: Cp._decompose_into_generators(w) 
                 Cp[1]
 
-            Another example, where it happens that `C^{\prime}_y = C^{\prime}_s * C^{\prime}_{w}` exactly :: 
+            Another example, where `C^{\prime}_y` happens to be a monomial ::
 
                 sage: Cp._decompose_into_generators(A3([2,1])) # C_{21} = C_2C_1
                 Cp[2]*Cp[1]
 
-            In more general situations the sum is a linear combination because
-            of the lower order terms `v`'s that can appear in each intermediate
-            step; for example, we have C_121=C_1*C_21 - C_1= C_1*C_2*C_1-C_1 ::
+            In more general situations the sum is a polynomial :: 
 
                 sage: Cp._decompose_into_generators(A3([1,2,1])) # C_{121} = C_1C_2C_1 - C_1
                 -Cp1 + Cp1*Cp2*Cp1
                 sage: Cp._decompose_into_generators(A3([1,2,3,1,2]))
                 Cp1 - Cp1*Cp2*Cp1 - Cp1*Cp3*Cp2 + Cp1*Cp2*Cp1*Cp3*Cp2
             """
-            # \ell(y) < 1
+            # \ell(y) \leq 1
             if len(w) == 0:
                 return self.generator_algebra(1)
             if len(w) == 1:
@@ -2404,11 +2408,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             The product is computed in the two steps as described in "ALGORITHM".
 
-            # When `w` is the identity, `C_w` is the identity of the algebra.
-            TODO: Describe our decision to decompose the smaller word...? Or is
-            class docs enough here. I lean towards describing the algorithm once
-            in the class docs. AGREED!
-
             EXAMPLES::
 
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
@@ -2429,7 +2428,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 side = 'right'
                 gen_expression = self._decompose_into_generators(w2)
                 other_element = self.monomial(w1)
-            
             result = self(0)
             # Proceed through the terms, multiplying each term onto other_element
             # and adding that summand onto result.
@@ -2451,6 +2449,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 result += summand
 
             return result
+        
 
     class C(_KLHeckeBasis):
         r"""

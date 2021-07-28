@@ -168,4 +168,4 @@ from .asymptotic.all import *
 from . import numbers_abc
 
 # Rings of modular forms
-from .find_generators import ModularFormsRing
+from sage.rings.find_generators import ModularFormsRing

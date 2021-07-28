@@ -23,7 +23,3 @@ from .hecke_operator_on_qexp import hecke_operator_on_qexp, hecke_operator_on_ba
 from .numerical import NumericalEigenforms as numerical_eigenforms
 
 from .element import delta_lseries
-
-# deprecation: find_generators.py is now in sage.rings
-from sage.misc.lazy_import import lazy_import as _lazy_import
-_lazy_import('sage.rings.find_generators', 'ModularFormsRing', deprecation=31559)

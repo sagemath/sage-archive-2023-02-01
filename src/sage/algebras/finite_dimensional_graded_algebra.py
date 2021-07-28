@@ -1,5 +1,5 @@
 r"""
-Finitely generated commutative graded algebras with finite degree
+Finite dimensional generated commutative graded algebras
 
 AUTHORS:
 
@@ -22,10 +22,11 @@ from sage.categories.all import Algebras
 from sage.misc.cachefunc import cached_method
 from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 from sage.rings.ring import Algebra
+from sage.misc.functional import is_odd, is_even
 
 class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
     r"""
-    Finitely generated commutative graded algebras with finite degree.
+    Finite dimensional generated commutative graded algebras.
 
     INPUT:
 
@@ -98,10 +99,9 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
 
         return super(FiniteGCAlgebra, cls).__classcall__(cls, base=base,
                                                   names=names, degrees=degrees,
-                                                  max_degree=max_degree,
-                                                  category=category)
+                                                  max_degree=max_degree)
 
-    def __init__(self, base, max_degree, names, degrees, category=None):
+    def __init__(self, base, max_degree, names, degrees):
         r"""
         Construct a commutative graded algebra with finite degree.
 
@@ -124,10 +124,10 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
         self._weighted_vectors = WeightedIntegerVectors(degrees)
         step = gcd(degrees)
         indices = [w for k in range(0, self._max_deg + 1, step)
-                   for w in WeightedIntegerVectors(k, degrees)]
+                   for w in WeightedIntegerVectors(k, degrees)
+                   if not any(i > 1 for i, d in zip(w, degrees) if is_odd(d))]
         sorting_key = self._weighted_vectors.grading
-        if category is None:
-            category = Algebras(base).WithBasis().Graded().FiniteDimensional()
+        category = Algebras(base).WithBasis().Graded().FiniteDimensional()
         CombinatorialFreeModule.__init__(self, base, indices,
                                          sorting_key=sorting_key,
                                          category=category)
@@ -204,7 +204,21 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
         if deg_tot > self._max_deg:
             return self.zero()
         w_tot = self._weighted_vectors([sum(w) for w in zip(w1, w2)])
-        return self.basis()[w_tot]
+        if any(i > 1 for i, d in zip(w_tot, self._degrees) if is_odd(d)):
+            return self.zero()
+        # determine sign
+        n = self.__ngens
+        c = 0
+        for p, i, d in zip(reversed(range(n)), reversed(w1), reversed(self._degrees)):
+            if is_even(d) or i == 0:
+                continue
+            for q, j, b in zip(range(n), w2, self._degrees):
+                if q == p:
+                    break
+                if j == 0 or is_even(b):
+                    continue
+                c += 1
+        return (-1)**c * self.basis()[w_tot]
 
     def degree_on_basis(self, i):
         r"""

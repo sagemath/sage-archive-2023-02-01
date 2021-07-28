@@ -1,5 +1,5 @@
 r"""
-Finite dimensional generated commutative graded algebras
+Finite dimensional graded commutative algebras
 
 AUTHORS:
 
@@ -26,7 +26,7 @@ from sage.misc.functional import is_odd, is_even
 
 class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
     r"""
-    Finite dimensional generated commutative graded algebras.
+    Finite dimensional graded commutative algebras.
 
     INPUT:
 
@@ -41,14 +41,17 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
       of the generators; if omitted, each generator is given degree
       1, and if both ``names`` and ``degrees`` are omitted, an error is
       raised.
+    - ``mul_symbol`` -- (optional) symbol used for multiplication. If omitted,
+      the string "*" is used.
+    - ``mul_latex_symbol`` -- (optional) latex symbol used for multiplication.
+      If omitted, the empty string is used.
 
     EXAMPLES::
 
-        sage: A.<p1,p2> = GradedCommutativeAlgebra(QQ, degrees=(4,8), max_degree=10)
+        sage: A.<x,y> = GradedCommutativeAlgebra(QQ, degrees=(4,8), max_degree=10)
         sage: A
-        Graded commutative algebra with generators ('p1', 'p2') in degrees
-         (4, 8) with maximal finite degree 10
-        sage: p1*p2
+        Graded commutative algebra with generators ('x', 'y') in degrees (4, 8) with maximal finite degree 10
+        sage: x*y
         0
 
     """
@@ -57,7 +60,7 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
 
     @staticmethod
     def __classcall__(cls, base, max_degree, names=None, degrees=None,
-                      category=None):
+                      **kwargs):
         r"""
         Normalize the input for the :meth:`__init__` method and the
         unique representation.
@@ -98,10 +101,10 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
             raise ValueError(f'max_degree must not deceed {max(degrees)}')
 
         return super(FiniteGCAlgebra, cls).__classcall__(cls, base=base,
-                                                  names=names, degrees=degrees,
-                                                  max_degree=max_degree)
+                                                names=names, degrees=degrees,
+                                                max_degree=max_degree, **kwargs)
 
-    def __init__(self, base, max_degree, names, degrees):
+    def __init__(self, base, max_degree, names, degrees, **kwargs):
         r"""
         Construct a commutative graded algebra with finite degree.
 
@@ -122,18 +125,31 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
         self._degrees = degrees
         self._max_deg = max_degree
         self._weighted_vectors = WeightedIntegerVectors(degrees)
+        self._mul_symbol = kwargs.pop('mul_symbol', '*')
+        self._mul_latex_symbol = kwargs.pop('mul_latex_symbol', '')
         step = gcd(degrees)
         indices = [w for k in range(0, self._max_deg + 1, step)
                    for w in WeightedIntegerVectors(k, degrees)
                    if not any(i > 1 for i, d in zip(w, degrees) if is_odd(d))]
         sorting_key = self._weighted_vectors.grading
-        category = Algebras(base).WithBasis().Graded().FiniteDimensional()
+        category = kwargs.pop('category', None)
+        base_cat = Algebras(base).WithBasis().Graded().FiniteDimensional()
+        category = base_cat.or_subcategory(category, join=True)
         CombinatorialFreeModule.__init__(self, base, indices,
                                          sorting_key=sorting_key,
                                          category=category)
 
     def _repr_(self):
         """
+        Return the string representation of ``self``.
+
+        TESTS::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=8)
+            sage: A._repr_()
+            "Graded commutative algebra with generators ('x', 'y', 'z') in degrees (1, 2, 3) with maximal finite degree 8"
+            sage: A  # indirect doctest
+            Graded commutative algebra with generators ('x', 'y', 'z') in degrees (1, 2, 3) with maximal finite degree 8
 
         """
         desc = f'Graded commutative algebra with generators {self._names} in '
@@ -143,6 +159,13 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
 
     def ngens(self):
         r"""
+        Return the number of generators of ``self``.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
+            sage: A.ngens()
+            3
 
         """
         return self.__ngens
@@ -154,36 +177,36 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
 
         EXAMPLES::
 
-            sage: A.<p1,p2,e> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
-            sage: e*p1
-            e*p1
-            sage: p1^3
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
+            sage: z*x
+            x*z
+            sage: x^3
             0
-            sage: 5*e + 4*e*p1
-            5*e + 4*e*p1
+            sage: 5*z + 4*z*x
+            5*z + 4*x*z
 
         ::
 
             sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=5)
             sage: 2*x*y
-            2*y*x
+            2*x*y
             sage: x^2
             0
             sage: x*z
-            -z*x
+            x*z
             sage: z*x
-            z*x
+            -x*z
             sage: x*y*z
             0
 
         TESTS::
 
-            sage: A.<p1,p2,e> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
             sage: weighted_vectors = A._weighted_vectors
             sage: w1 = A._weighted_vectors([1,0,1])
             sage: w2 = A._weighted_vectors([0,0,0])
             sage: A.product_on_basis(w1, w2)
-            e*p1
+            x*z
 
         ::
 
@@ -192,9 +215,20 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
             sage: w1 = A._weighted_vectors([1,0,0])
             sage: w2 = A._weighted_vectors([0,0,1])
             sage: A.product_on_basis(w1, w2)
-            -z*x
+            x*z
             sage: A.product_on_basis(w2, w1)
-            z*x
+            -x*z
+
+        ::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=10)
+            sage: weighted_vectors = A._weighted_vectors
+            sage: w1 = A._weighted_vectors([1,1,0])
+            sage: w2 = A._weighted_vectors([0,1,1])
+            sage: A.product_on_basis(w1, w2)
+            x*y^2*z
+            sage: A.product_on_basis(w2, w1)
+            -x*y^2*z
 
         """
         grading = self._weighted_vectors.grading
@@ -226,19 +260,19 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
 
         EXAMPLES::
 
-            sage: A.<c1,c2,c3> = GradedCommutativeAlgebra(QQ, degrees=(2,4,6), max_degree=7)
-            sage: c1.degree()
+            sage: A.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=(2,4,6), max_degree=7)
+            sage: a.degree()
             2
-            sage: (2*c1*c2).degree()
+            sage: (2*a*b).degree()
             6
-            sage: (c1+c2).degree()
+            sage: (a+b).degree()
             Traceback (most recent call last):
             ...
             ValueError: element is not homogeneous
 
         TESTS::
 
-            sage: A.<c1,c2,c3> = GradedCommutativeAlgebra(QQ, degrees=(2,4,6), max_degree=7)
+            sage: A.<a,b,c> = GradedCommutativeAlgebra(QQ, degrees=(2,4,6), max_degree=7)
             sage: weighted_vectors = A._weighted_vectors
             sage: i = A._weighted_vectors([1,1,0])
             sage: A.degree_on_basis(i)
@@ -249,44 +283,85 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
 
     def _repr_term(self, w):
         r"""
+        Return the string representation of basis with index ``w``.
+
+        TESTS::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=8)
+            sage: w = A._weighted_vectors([1,2,1])
+            sage: A._repr_term(w)
+            'x*y^2*z'
+            sage: x*y^2*z  # indirect doctest
+            x*y^2*z
+
+        ::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=8, mul_symbol='⌣')
+            sage: w = A._weighted_vectors([1,2,1])
+            sage: A._repr_term(w)
+            'x⌣y^2⌣z'
+            sage: x*y^2*z  # indirect doctest
+            x⌣y^2⌣z
 
         """
         # Trivial case:
         if sum(w) == 0:
             return '1'
         # Non-trivial case:
-        res = ''
+        terms = []
         for i in range(len(w)):
             if w[i] == 0:
                 continue
             elif w[i] == 1:
-                res += self._names[i] + '*'
+                terms.append(self._names[i])
             else:
-                res += self._names[i] + f'^{w[i]}*'
-        return res[:-1]
+                terms.append(self._names[i] + f'^{w[i]}')
+        return self._mul_symbol.join(terms)
 
     def _latex_term(self, w):
         r"""
+        Return the LaTeX representation of basis with index ``w``.
+
+        TESTS::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=8)
+            sage: w = A._weighted_vectors([1,2,1])
+            sage: A._latex_term(w)
+            'x y^{2} z'
+            sage: latex(x*y^2*z)  # indirect doctest
+            x y^{2} z
+
+        ::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=8, mul_latex_symbol=r'\smile')
+            sage: A._latex_term(w)
+            'x\\smile y^{2}\\smile z'
+            sage: latex(x*y^2*z)  # indirect doctest
+            x\smile y^{2}\smile z
 
         """
         # Trivial case:
         if sum(w) == 0:
             return '1'
         # Non-trivial case:
-        res = ''
+        terms = []
         for i in range(len(w)):
             if w[i] == 0:
                 continue
             elif w[i] == 1:
-                res += self._names[i]
+                terms.append(self._names[i])
             else:
-                res += self._names[i] + f'^{{w[i]}}'
-        return res
+                terms.append(self._names[i] + '^{' + str(w[i]) + '}')
+        latex_mul = self._mul_latex_symbol + ' '  # add whitespace
+        return latex_mul.join(terms)
 
     def algebra_generators(self):
         r"""
-        Return the generators of ``self`` as a
-        :class:`sage.sets.family.Family`.
+        Return the generators of ``self`` as a :class:`sage.sets.family.Family`.
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
+            sage: A.algebra_generators()
+            Family (x, y, z)
 
         """
         from sage.sets.family import Family
@@ -298,6 +373,16 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
         r"""
         Return the index of the one element of ``self``.
 
+        EXAMPLES::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
+            sage: ind = A.one_basis(); ind
+            [0, 0, 0]
+            sage: A.monomial(ind)
+            1
+            sage: A.one()  # indirect doctest
+            1
+
         """
         n = len(self._degrees)
         return self._weighted_vectors([0 for _ in range(n)])
@@ -305,6 +390,12 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
     def gens(self):
         r"""
         Return the generators of ``self`` as a list.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
+            sage: A.gens()
+            [x, y, z]
 
         """
         n = len(self._degrees)
@@ -321,5 +412,32 @@ class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):
         r"""
         Return the `i`-th generator of ``self``.
 
+        EXAMPLES::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(4,8,2), max_degree=10)
+            sage: A.gen(0)
+            x
+            sage: A.gen(1)
+            y
+            sage: A.gen(2)
+            z
+
         """
         return self.gens()[i]
+
+    def maximal_degree(self):
+        r"""
+        Return the maximal degree of ``self``.
+
+        EXAMPLES::
+
+            sage: A.<x,y,z> = GradedCommutativeAlgebra(QQ, degrees=(1,2,3), max_degree=8)
+            sage: A.maximal_degree()
+            Traceback (most recent call last):
+            ...
+            8
+
+        """
+        return self._max_deg
+
+    max_degree = maximal_degree

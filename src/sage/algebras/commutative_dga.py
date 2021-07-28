@@ -3250,7 +3250,7 @@ class DifferentialGCAlgebra_multigraded(DifferentialGCAlgebra,
 
 
 def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
-                             relations=None):
+                             **kwargs):
     r"""
     A graded commutative algebra.
 
@@ -3434,7 +3434,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
     if max_degree:
         from .finite_dimensional_graded_algebra import FiniteGCAlgebra
         return FiniteGCAlgebra(ring, names=names, degrees=degrees,
-                               max_degree=max_degree)
+                               max_degree=max_degree, **kwargs)
     multi = False
     if degrees:
         try:

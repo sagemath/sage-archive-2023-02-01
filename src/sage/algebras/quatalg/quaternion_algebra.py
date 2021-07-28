@@ -1759,7 +1759,6 @@ class QuaternionOrder(Algebra):
             Fractional ideal (1/10 + 3/10*j, 1/10*i + 3/10*k, j, k)
         """
         return self.unit_ideal() + other
-    __radd__ = __add__
 
     def quadratic_form(self):
         """
@@ -2439,6 +2438,8 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             sage: I.multiply_by_conjugate(I)
             Fractional ideal (16 + 16*j + 224*k, 8*i + 16*j + 136*k, 32*j + 128*k, 320*k)
         """
+        if isinstance(right, QuaternionOrder):
+            right = right.unit_ideal()
         if not isinstance(right, QuaternionFractionalIdeal_rational):
             return self.scale(right, left=False)
         gens = [a*b for a in self.basis() for b in right.basis()]
@@ -2467,7 +2468,6 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
         if not isinstance(other, QuaternionFractionalIdeal_rational):
             raise TypeError("can only add quaternion ideals")
         return self.quaternion_algebra().ideal(self.basis() + other.basis())
-    __radd__ = __add__
 
     def _acted_upon_(self, other, on_left):
         """

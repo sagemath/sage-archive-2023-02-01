@@ -24,8 +24,8 @@ Free associative algebras and quotients
    sage/algebras/free_algebra_quotient
    sage/algebras/free_algebra_quotient_element
 
-Finite dimensional algebras
----------------------------
+Generic finite dimensional algebras
+-----------------------------------
 
 .. toctree::
    :maxdepth: 2
@@ -87,6 +87,7 @@ Various associative algebras
 
    sage/algebras/associated_graded
    sage/algebras/cellular_basis
+   sage/algebras/finite_dimensional_graded_algebra
    sage/algebras/commutative_dga
    sage/algebras/q_system
    sage/algebras/splitting_algebra

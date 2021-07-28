@@ -3272,7 +3272,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
     - ``max_degree`` -- the maximal degree of the graded algebra. If omitted,
       no maximal degree is assumed and an instance of :class:`GCAlgebra` is
       returned. Otherwise, an instance of
-      :class:`sage.algebras.commutative_graded_algebra_finite.FiniteGCAlgebra`
+      :class:`sage.algebras.finite_dimensional_graded_algebra.FiniteGCAlgebra`
       is created.
 
     Once such an algebra has been defined, one can use its associated

@@ -62,30 +62,31 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     For the rest of this class description, we assume that one is working
     row-wise. For a given such module, all its bases are equivalent under
-    left-multiplication by a unimodular matrix, that is, a matrix which has
-    determinant in $\Bold{K}\setminus\{0\}$.
+    left-multiplication by a unimodular matrix, that is, a square matrix which
+    has determinant in $\Bold{K}\setminus\{0\}$.
 
     There are bases which are called reduced or minimal: their rows have the
-    minimal degree possible among all bases of this module. The degree of a row
-    is the maximum of the degrees of the entries of the row. An equivalent
-    condition is that the leading matrix of this basis has full rank (see the
-    description of :meth:`leading_matrix`). There is a unique minimal basis,
-    called the Popov basis of the module, which satisfies some additional
-    normalization condition (see the description of :meth:`row_degrees`).
+    minimal degree possible among all bases of this module; here the degree of
+    a row is the maximum of the degrees of the entries of the row. An
+    equivalent condition is that the leading matrix of this basis has full rank
+    (see :meth:`leading_matrix`, :meth:`reduced_form`, :meth:`is_reduced`).
+    There is a unique minimal basis, called the Popov basis of the module,
+    which satisfies some additional normalization condition (see
+    :meth:`popov_form`, :meth:`is_popov`).
 
     These notions can be extended via a more general degree measure, involving
     a tuple of integers which is called shift and acts as column degree shifts
     in the definition of row degree. Precisely, for given $s_1,\ldots,s_n \in
     \ZZ$ and a row vector $[p_1 \; \cdots \; p_n] \in \Bold{K}[x]^{1 \times
     n}$, its shifted row degree is the maximum of $\deg(p_j) + s_j$ for $1 \leq
-    j \leq n$. Then, minimal bases and Popov bases are defined similarly, with
-    respect to this notion of degree.
+    j \leq n$ (see :meth:`row_degrees`). Then, reduced bases and Popov bases
+    are defined similarly, with respect to this notion of degree.
 
-    Another important canonical basis is the Hermite basis, which is a lower
+    Another important canonical basis is the Hermite basis, which is an upper
     triangular matrix satisfying a normalization condition similar to that for
     the Popov basis. In fact, if $d$ is the largest degree appearing in the
     Hermite basis, then the Hermite basis coincide with the shifted Popov basis
-    with the shifts $(0,d,2d,\ldots,(n-1)d)$.
+    with the shifts $((n-1)d,\ldots,2d,d,0)$.
     """
 
     def _check_shift_dimension(self, shifts, row_wise=True):
@@ -1209,7 +1210,12 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         Return a boolean indicating whether this matrix is in (shifted)
         (ordered) weak Popov form.
 
-        See :meth:`weak_popov_form` for a definition of weak Popov forms.
+        If working row-wise (resp. column-wise), a polynomial matrix is said to
+        be in weak Popov form if the leading positions of its nonzero rows
+        (resp. columns) are pairwise distinct. For the ordered weak Popov form,
+        these positions must be strictly increasing, except for the possibly
+        repeated -1 entries which are at the end. For the shifted variants, see
+        the class description for an introduction to shifts.
 
         INPUT:
 
@@ -1470,7 +1476,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         Note that, for any integer $d$ strictly greater than all degrees
         appearing in the Hermite form, then the Hermite form coincides with the
-        shifted Popov form with the shifts $(0,d,2d,\ldots,(n-1)d)$, where $n$
+        shifted Popov form with the shifts $((n-1)d,\ldots,2d,d,0)$, where $n$
         is the column dimension.
 
         If working column-wise, a polynomial matrix is said to be in Hermite
@@ -1565,18 +1571,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         r"""
         Return a (shifted) (ordered) weak Popov form of this matrix.
 
-        If working row-wise (resp. column-wise), a polynomial matrix is said to
-        be in weak Popov form if the leading positions of its nonzero rows
-        (resp. columns) are pairwise distinct. For the ordered weak Popov form,
-        these positions must be strictly increasing, except for the possibly
-        repeated -1 entries which are at the end. For the shifted variants, see
-        the class description for an introduction to shifts.
-
-        If the input matrix is $A$, a weak Popov form of $A$ is any matrix $P$
-        in weak Popov form and such that $UA = P$ for some unimodular matrix
-        $U$. The latter matrix is called the transformation, and the first
-        optional argument allows one to specify whether to return this
-        transformation.
+        See :meth:`is_weak_popov` for a definition of weak Popov forms. If the
+        input matrix is $A$, a weak Popov form of $A$ is any matrix $P$ in weak
+        Popov form and such that $UA = P$ for some unimodular matrix $U$. The
+        latter matrix is called the transformation, and the first optional
+        argument allows one to specify whether to return this transformation.
 
         Sometimes, one forbids weak Popov forms to have zero rows (resp.
         columns) in the above definitions; an optional parameter allows one to
@@ -1869,7 +1868,42 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             include_zero_vectors=True):
         r"""
         Return the (shifted) Popov form of this matrix.
-        ref: Mulders and Storjohann. 
+
+        See :meth:`is_popov` for a definition of Popov forms. If the input
+        matrix is $A$, the (shifted) Popov form of $A$ is the unique matrix $P$
+        in (shifted) Popov form and such that $UA = P$ for some unimodular
+        matrix $U$. The latter matrix is called the transformation, and the
+        first optional argument allows one to specify whether to return this
+        transformation. We refer to the description of :meth:`weak_popov_form`
+        for an explanation of the option ``include_zero_vectors`` .
+
+        INPUT:
+
+        - ``transformation`` -- (optional, default: ``False``). If this
+          is ``True``, the transformation matrix `U` will be returned as well.
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if zero rows (resp. zero columns) should be discarded from
+          the Popov forms.
+
+        OUTPUT:
+
+        - A polynomial matrix which is the Popov form of ``self`` if
+          ``transformation`` is ``False``; otherwise two polynomial matrices
+          which are the Popov form of ``self`` and the corresponding unimodular
+          transformation.
+
+        ALGORITHM:
+
+        This method implements the Mulders-Storjohann algorithm of [MS2003]_
+        for transforming a weak Popov form into Popov form, straightforwardly
+        extended to the case of shifted forms.
 
         EXAMPLES::
 
@@ -2161,22 +2195,23 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         Return the Hermite form of this matrix.
 
-        The Hermite form is also normalized, i.e., the pivot polynomials
-        are monic.
+        See :meth:`is_hermite` for a definition of Hermite forms. If the input
+        is a matrix $A$, then its Hermite form is the unique matrix $H$ in Hermite
+        form such that $UA = H$ for some unimodular matrix $U$.
 
         INPUT:
 
         - ``include_zero_rows`` -- boolean (default: ``True``); if ``False``,
-          the zero rows in the output matrix are deleted
+          the zero rows in the output matrix are deleted.
 
         - ``transformation`` -- boolean (default: ``False``); if ``True``,
-          return the transformation matrix
+          return the transformation matrix.
 
         OUTPUT:
 
-        - the Hermite normal form `H` of this matrix `A`
+        - the Hermite normal form `H` of this matrix `A` .
 
-        - (optional) transformation matrix `U` such that `UA = H`
+        - (optional) transformation matrix `U` such that `UA = H` .
  
         EXAMPLES::
 

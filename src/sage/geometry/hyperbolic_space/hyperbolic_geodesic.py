@@ -1810,7 +1810,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             [   1.0    0.0]
             [   0.0 -1.0*I]
             sage: type(B)
-            <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
+            <class 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
 
       ::
 
@@ -1818,7 +1818,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             [ 1  0]
             [ 0 -I]
             sage: type(B)
-            <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
+            <class 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
 
       ::
 
@@ -1826,7 +1826,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             [   1.0    0.0]
             [   0.0 -1.0*I]
             sage: type(B)
-            <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
+            <class 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
 
       ::
 
@@ -1836,8 +1836,7 @@ class HyperbolicGeodesicUHP(HyperbolicGeodesic):
             sage: type(B[1,1])
             <class 'sage.rings.qqbar.AlgebraicNumber'>
             sage: type(B)
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
-
+            <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
         """
         from sage.structure.element import Element
         from sage.symbolic.expression import Expression

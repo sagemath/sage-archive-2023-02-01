@@ -2781,6 +2781,10 @@ REFERENCES:
 .. [Hat2002] Allen Hatcher, "Algebraic Topology", Cambridge University
              Press (2002).
 
+.. [Hayashi1990] \T. Hayashi. `q`-*analogues of Clifford and Weyl algebras -
+                 spinor and oscillator representations of quantum enveloping
+                 algebras*. Comm. Math. Phys. **127** (1990) pp. 129-144.
+
 .. [HC2006] Mark van Hoeij and John Cremona, Solving Conics over
             function fields. J. Théor. Nombres Bordeaux, 2006.
 
@@ -3643,6 +3647,11 @@ REFERENCES:
               over the Quantum Superalgebra* `U_q(\mathfrak{gl}(m|n))`.
               International Mathematics Research Notices. Vol. 2014, No. 2,
               pp. 512-550 (2012)
+
+.. [Kwon2014] Jae-Hoon Kwon. `q`-*deformed Clifford algebra and level zero 
+              fundamental representations of quantum affine algebras*.
+              J. Algebra, **399** (2014), pp. 927--947.
+              :doi:`10.1016/j.jalgebra.2013.10.026`.
 
 .. [KX1998] \S. König and C. Xi.
             *On the structure of cellular algebras*.

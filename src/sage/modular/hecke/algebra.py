@@ -410,8 +410,12 @@ class HeckeAlgebra_base(CachedRepresentation, sage.rings.commutative_algebra.Com
             [0 2])
 
             sage: M = ModularSymbols(Gamma0(22), sign=1)
-            sage: [B[0,0] for B in M.hecke_algebra().basis()]
-            [-955, -994, -706, -490, -1070]
+            sage: H = M.hecke_algebra()
+            sage: B = H.basis()
+            sage: len(B)
+            5
+            sage: all(b in H for b in B)
+            True
             sage: [B[0, 0] for B in M.anemic_hecke_algebra().basis()]
             Traceback (most recent call last):
             ...

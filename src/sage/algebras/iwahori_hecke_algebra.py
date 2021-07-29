@@ -2180,15 +2180,17 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Initialize the Cp_Coxeter3 Kazdahn-Luzstig basis of the
             Iwahori-Hecke algebra ``algebra''.
 
-            EXAMPLES::
+            EXAMPLES:
 
-            TODO: Do we still need all these here? Space after <BLANKLINE> (to
-            separate good and bad)
+            Valid construction::
+
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(A3, v**2)
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')
+                sage: H = IwahoriHeckeAlgebra(W, v**2)
                 sage: Cp = H.Cp_Coxeter3()
                 <BLANKLINE>
+
+            Invalid construction::
 
                 sage: H = IwahoriHeckeAlgebra('A3', v**2)
                 sage: Cp = H.Cp_Coxeter3()
@@ -2231,9 +2233,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(A3, v**2); Cp=H.Cp(); CpC=H.Cp_Coxeter3()
-                sage: s1, s2, s3 = A3.simple_reflections()
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')
+                sage: H = IwahoriHeckeAlgebra(W, v**2); Cp=H.Cp(); CpC=H.Cp_Coxeter3()
+                sage: s1, s2, s3 = W.simple_reflections()
                 sage: CpC.to_Cp_basis(s1*s2)
                 Cp[1,2]
                 sage: CpC.to_Cp_basis(s1*s2*s1)
@@ -2261,13 +2263,13 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(A3, v**2); Cp=H.Cp_Coxeter3()
-                sage: Cp._product_with_generator_on_basis('left', 1, A3([2,1]))
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')
+                sage: H = IwahoriHeckeAlgebra(W, v**2); Cp=H.Cp_Coxeter3()
+                sage: Cp._product_with_generator_on_basis('left', 1, W([2,1]))
                 Cp[1,2,1] + Cp[1]
-                sage: Cp._product_with_generator_on_basis('right', 1, A3([2,1]))
-                (v+v^-1) * Cp[1]
-                sage: Cp._product_with_generator_on_basis('right', 2, A3([1,3,2,1,3]))
+                sage: Cp._product_with_generator_on_basis('right', 1, W([2,1]))
+                (v^-1+v)*Cp[2,1]
+                sage: Cp._product_with_generator_on_basis('right', 2, W([1,3,2,1,3]))
                 Cp[1,2,1,3,2,1] + Cp[1,2,3,2] + Cp[1,3,2,1]
             """
 
@@ -2306,8 +2308,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             EXAMPLES::
 
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(A3, v**2); Cp=H.Cp_Coxeter3()
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')
+                sage: H = IwahoriHeckeAlgebra(W, v**2); Cp=H.Cp_Coxeter3()
                 sage: Cp._product_with_generator('left', 1, Cp[1]+Cp[2])
                 Cp[1,2] + (v^-1+v)*Cp[1]
                 sage: Cp._product_with_generator('right', 1, Cp[1]+Cp[2])
@@ -2326,7 +2328,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(A3, v**2); Cp=H.Cp_Coxeter3()
+                sage: H = IwahoriHeckeAlgebra(W, v**2); Cp=H.Cp_Coxeter3()
 
             When `y` is itself a generator `s`, the decomposition is trivial::
 
@@ -2336,16 +2338,16 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Another example, where Cp_y happens to be a monomial; Cp_{21} =
             Cp_2*Cp_1::
 
-                sage: Cp._decompose_into_generators(A3([2,1]))
+                sage: Cp._decompose_into_generators(W([2,1]))
                 {(2, 1): 1}
 
-            In more general situations the sum is a polynomial; Cp_{121} =
+            In more general situations the sum is a polynomial; e.g. Cp_{121} =
             Cp_1*Cp_2*Cp_1 - Cp_1
 
-                sage: Cp._decompose_into_generators(A3([1,2,1])) # C_{121} = C_1C_2C_1 - C_1
-                {(1, 2, 1): 1, (1,): -1}
-                sage: Cp._decompose_into_generators(A3([1,2,3,1,2]))
-                {(1, 2, 1, 3, 2): 1, (1, 2, 1): -1, (1,): 1, (1, 3, 2): -1}
+                sage: Cp._decompose_into_generators(W([1,2,1]))
+                {(1,): -1, (1, 2, 1): 1}
+                sage: Cp._decompose_into_generators(W([1,2,3,1,2]))
+                {(1,): 1, (1, 2, 1): -1, (1, 2, 1, 3, 2): 1, (1, 3, 2): -1}
             """
             # \ell(y) \leq 1
             if len(w) == 0:
@@ -2385,16 +2387,17 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Return the expansion of `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` in
             the `C^{\prime}`-basis.
 
-            The product is computed in the two steps as described in "ALGORITHM".
+            The product is computed in the two steps as described in
+            "ALGORITHM". TODO: Reference "ALGORITHM"
 
             EXAMPLES::
 
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(A3, v**2); Cp=H.Cp_Coxeter3()
-                sage: Cp.product_on_basis(A3([1,2,1]), A3([3,1]))
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')
+                sage: H = IwahoriHeckeAlgebra(W, v**2); Cp=H.Cp_Coxeter3()
+                sage: Cp.product_on_basis(W([1,2,1]), W([3,1]))
                 (v^-1+v)*Cp[1,2,1,3]
-                sage: Cp.product_on_basis(A3([1,2,1]), A3([3,1,2]))
+                sage: Cp.product_on_basis(W([1,2,1]), W([3,1,2]))
                 (v^-1+v)*Cp[1,2,1,3,2] + (v^-1+v)*Cp[1,2,1]
             """
             # Decompose one of Cp_{w1} and Cp_{w2} into a polynomial in the

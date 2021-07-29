@@ -2073,8 +2073,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         and its (shifted) leading matrix has rank $k$. See :meth:`is_reduced`
         for more information.
 
-        A row reduced form is non-canonical and a given matrix has many row
-        reduced forms; this method returns just one.
+        Currently, the implementation of this method is a direct call to
+        :meth:`weak_popov_form`.
 
         INPUT:
 

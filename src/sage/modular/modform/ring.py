@@ -35,8 +35,7 @@ from sage.structure.parent import Parent
 
 from sage.categories.graded_algebras import GradedAlgebras
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.modular.modform.ring', ('_span_of_forms_in_weight','ModularFormsRing'), deprecation=31559)
+from sage.misc.superseded import deprecated_function_alias
 
 def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=False):
     r"""

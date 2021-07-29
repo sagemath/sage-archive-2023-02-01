@@ -2086,7 +2086,11 @@ def greedy_independence_check(P, repeated_mult, point_to_mult):
     for r in sorted(repeated_mult.keys()):
         for point_lst in repeated_mult[r]:
             for point in point_lst:
-                if P.is_linearly_independent(source + [point], n+1):
+                if len(source) == n+1:
+                    independent = P.is_linearly_independent(source + [point], n+1)
+                else:
+                    independent = P.is_linearly_independent(source + [point])
+                if independent:
                     source.append(point)
                     mult = point_to_mult[point]
                     # if another point with this multiplier and level pair is in S

@@ -2273,7 +2273,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             # TODO: consistency in our docstring: ticks or not + other things.
 
-            # If `s` is a descent of `w` on the `side`, the product is (v + v^-1) C'_w:
+            # If `s` is a descent of `w` on the `side`, the product is (v + v^-1) Cp_w:
             if w.has_descent(s, side=side):
                 return self.delta * self.monomial(w)
             # Otherwise the product is \sum_{v \leq w; sv < v} mu(v, w) C'_v
@@ -2288,11 +2288,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     if x_elt.has_descent(s, side=side):
                         # Compute mu-coefficient via coxeter3
                         element += x.mu_coefficient(w) * self.monomial(x_elt)
-                # TODO: do something about the following; there's the bug fix now 
-                # Doing self._W([s]) * w may not ensure that the word is
-                # normal form Since W's element constructor does ensure that,
-                # use the constructor.
-                longer_word = self._W([s] + list(w) if side == 'left' else list(w) + [s]) 
+                longer_word = self._W([s]) * w if side == 'left' else w * self._W([s])
                 return self.monomial(longer_word) + element
         
         def _product_with_generator(self, side, s, x): 
@@ -2305,7 +2301,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             - ``s`` -- integer in self.index_set()
 
-            - ``w`` -- any element of self
+            - ``x`` -- any element of self
 
             EXAMPLES::
 

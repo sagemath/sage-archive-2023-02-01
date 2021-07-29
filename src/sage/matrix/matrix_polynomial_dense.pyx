@@ -215,14 +215,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         self._check_shift_dimension(shifts,row_wise)
         if shifts is None:
             return self.apply_map(lambda x: x.degree())
-        from sage.matrix.constructor import Matrix
+        from sage.matrix.constructor import matrix
         zero_degree = min(shifts) - 1
         if row_wise: 
-            return Matrix( ZZ, [[ self[i,j].degree() + shifts[j]
+            return matrix( ZZ, [[ self[i,j].degree() + shifts[j]
                 if self[i,j] != 0 else zero_degree
                 for j in range(self.ncols()) ] for i in range(self.nrows())] )
         else:
-            return Matrix( ZZ, [[ self[i,j].degree() + shifts[i]
+            return matrix( ZZ, [[ self[i,j].degree() + shifts[i]
                 if self[i,j] != 0 else zero_degree
                 for j in range(self.ncols()) ] for i in range(self.nrows())] )
 
@@ -247,8 +247,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [1 1 2 0]
             [4 1 5 6]
         """
-        from sage.matrix.constructor import Matrix
-        return Matrix([[self[i,j].constant_coefficient()
+        from sage.matrix.constructor import matrix
+        return matrix([[self[i,j].constant_coefficient()
             for j in range(self.ncols())] for i in range(self.nrows())])
 
     def is_constant(self):
@@ -369,8 +369,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError("length of input degree list should be the " \
                                       + "column dimension of the input matrix")
 
-        from sage.matrix.constructor import Matrix
-        return Matrix(self.base_ring().base_ring(), m, n,
+        from sage.matrix.constructor import matrix
+        return matrix(self.base_ring().base_ring(), m, n,
                 [[self[i,j][d[i]] if row_wise else self[i,j][d[j]]
             for j in range(n)] for i in range(m)])
 
@@ -449,7 +449,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         m = self.nrows()
         n = self.ncols()
-        from sage.matrix.constructor import Matrix
+        from sage.matrix.constructor import matrix
 
         # if d is an integer, make it a uniform list
         if not isinstance(d,list):
@@ -463,7 +463,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError("length of input precision list should be the " \
                                       + "column dimension of the input matrix")
 
-        return Matrix(self.base_ring(), m, n, [[self[i,j].truncate(d[i])
+        return matrix(self.base_ring(), m, n, [[self[i,j].truncate(d[i])
             if row_wise else self[i,j].truncate(d[j])
             for j in range(n)] for i in range(m)])
 
@@ -541,7 +541,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         m = self.nrows()
         n = self.ncols()
-        from sage.matrix.constructor import Matrix
+        from sage.matrix.constructor import matrix
 
         # if d is an integer, make it a uniform list
         if not isinstance(d,list):
@@ -555,7 +555,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError("length of input shift list should be the " \
                                       + "column dimension of the input matrix")
 
-        return Matrix(self.base_ring(), m, n, [[self[i,j].shift(d[i])
+        return matrix(self.base_ring(), m, n, [[self[i,j].shift(d[i])
             if row_wise else self[i,j].shift(d[j])
             for j in range(n)] for i in range(m)])
 
@@ -678,11 +678,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         m = self.nrows()
         n = self.ncols()
-        from sage.matrix.constructor import Matrix
+        from sage.matrix.constructor import matrix
 
         # if entry_wise, just return the matrix with all entries reversed
         if entry_wise:
-            return Matrix(self.base_ring(), m, n, [[self[i,j].reverse()
+            return matrix(self.base_ring(), m, n, [[self[i,j].reverse()
                 for j in range(n)] for i in range(m)])
 
         # if degree is None, make it the matrix degree
@@ -700,7 +700,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError("length of input degree list should be the " \
                                       + "column dimension of the input matrix")
 
-        return Matrix(self.base_ring(), m, n, [[self[i,j].reverse(degree[i])
+        return matrix(self.base_ring(), m, n, [[self[i,j].reverse(degree[i])
             if row_wise else self[i,j].reverse(degree[j])
             for j in range(n)] for i in range(m)])
 
@@ -909,26 +909,26 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [1 0 0]
         """
         self._check_shift_dimension(shifts,row_wise)
-        from sage.matrix.constructor import Matrix
+        from sage.matrix.constructor import matrix
         if row_wise:
             row_degrees = self.row_degrees(shifts)
             if shifts is None:
-                return Matrix([ [ self[i,j].leading_coefficient()
+                return matrix([ [ self[i,j].leading_coefficient()
                     if self[i,j].degree() == row_degrees[i] else 0
                     for j in range(self.ncols()) ]
                     for i in range(self.nrows()) ])
-            return Matrix([ [ self[i,j].leading_coefficient()
+            return matrix([ [ self[i,j].leading_coefficient()
                 if self[i,j].degree() + shifts[j] == row_degrees[i] else 0
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
         else:
             column_degrees = self.column_degrees(shifts)
             if shifts is None:
-                return Matrix([ [ self[i,j].leading_coefficient()
+                return matrix([ [ self[i,j].leading_coefficient()
                     if self[i,j].degree() == column_degrees[j] else 0
                     for j in range(self.ncols()) ]
                     for i in range(self.nrows()) ])
-            return Matrix([ [ self[i,j].leading_coefficient()
+            return matrix([ [ self[i,j].leading_coefficient()
                 if self[i,j].degree() + shifts[i] == column_degrees[j] else 0
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
@@ -1636,7 +1636,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: U
             [2*x^2 + 1       4*x]
             [      4*x         1]
-            sage: P.is_weak_popov() and U.is_invertible()
+            sage: P.is_weak_popov() and U.is_invertible() and U*M==P
             True
 
         Demonstrating the ``ordered`` option::
@@ -1648,8 +1648,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [              4             x^2   6*x^2 + x + 2]
             sage: PP.leading_positions()
             [1, 2]
-            sage: PP == Matrix([P[1],P[0]])
-            True
 
         Demonstrating shifts::
 
@@ -1687,6 +1685,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             :meth:`is_weak_popov` ,
             :meth:`reduced_form` ,
+            :meth:`popov_form` ,
             :meth:`hermite_form` .
         """
         # if column-wise, call the algorithm on transpose
@@ -1726,16 +1725,15 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             U.permute_rows(Permutation(nonzero_rows + zero_rows))
         # order other rows by increasing leading positions
         if ordered:
-            leading_positions = self.leading_positions(nonnegative_shifts,
-                    row_wise=True)
+            lpos = M.leading_positions(nonnegative_shifts,row_wise=True)
             # find permutation that sorts leading_positions in increasing order
             # --> force max value to zero rows so that they remain bottom rows
             if include_zero_vectors: # otherwise, zero rows already removed
                 for i in range(m):
-                    if leading_positions[i] == -1:
-                        leading_positions[i] = m
-            row_permutation = Permutation(list(zip(*sorted([
-                (leading_positions[i],i+1) for i in range(m)])))[1])
+                    if lpos[i] == -1:
+                        lpos[i] = m
+            sorted_lpos = sorted([(lpos[i],i+1) for i in range(m)])
+            row_permutation = Permutation([elt[1] for elt in sorted_lpos])
             # apply permutation to weak Popov form and the transformation
             M.permute_rows(row_permutation)
             if transformation:
@@ -1864,6 +1862,166 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if transformation:
             return U
 
+    def popov_form(self,
+            transformation=False,
+            shifts=None,
+            row_wise=True,
+            include_zero_vectors=True):
+        r"""
+        Return the (shifted) Popov form of this matrix.
+        ref: Mulders and Storjohann. 
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, [                                 \
+                [      6*x+4,       5*x^3+5*x,       6*x^2+2*x+2], \
+                [4*x^2+5*x+2, x^4+5*x^2+2*x+4, 4*x^3+6*x^2+6*x+5]])
+
+            sage: P,U = M.popov_form(transformation=True)
+            sage: P
+            [            4 x^2 + 4*x + 1             3]
+            [            0       4*x + 1 x^2 + 6*x + 1]
+            sage: U
+            [            x             2]
+            [5*x^2 + x + 6       3*x + 2]
+            sage: P.is_popov() and U.is_invertible() and U*M==P
+            True
+
+        Demonstrating shifts and specific case of Hermite form::
+
+            sage: P = M.popov_form(shifts=[0,2,4]); P
+            [              4*x^2 + 3*x + 4 x^4 + 3*x^3 + 5*x^2 + 5*x + 5                             0]
+            [                            6               5*x^2 + 6*x + 5                             1]
+            sage: P.is_popov(shifts=[0,2,4])
+            True
+            sage: P==M.popov_form(shifts=[-6,-4,-2])
+            True
+            sage: dd=sum(M.row_degrees())+1
+            sage: M.popov_form(shifts=[2*dd,dd,0]) == M.hermite_form()
+            True
+
+        Column-wise form is the row-wise form of the transpose:
+
+            sage: M.popov_form() == M.T.popov_form(row_wise=False).T
+            True
+
+        Zero vectors can be discarded::
+
+            sage: M.popov_form(row_wise=False)
+            [x + 2     6     0]
+            [    0     1     0]
+
+            sage: P,U = M.popov_form(transformation=True,      \
+                                     row_wise=False,           \
+                                     include_zero_vectors=False)
+            sage: P
+            [x + 2     6]
+            [    0     1]
+            sage: U
+            [        3*x^2 + 6*x + 3         5*x^2 + 4*x + 4 3*x^3 + 3*x^2 + 2*x + 4]
+            [                      3                       1                 2*x + 1]
+            [                5*x + 2                       2                       6]
+            sage: M*U[:,:2] == P and (M*U[:,2]).is_zero()
+            True
+
+        .. SEEALSO::
+
+            :meth:`is_popov` ,
+            :meth:`reduced_form` ,
+            :meth:`weak_popov_form` ,
+            :meth:`hermite_form` .
+
+        """
+        # if column-wise, call the algorithm on transpose
+        if not row_wise:
+            P = self.T.popov_form(transformation,
+                        shifts,
+                        True,
+                        include_zero_vectors)
+            return (P[0].T,P[1].T) if transformation else P.T
+        # --> now, below, we are working row-wise
+        # row dimension:
+        nrows_zero = self.nrows()
+
+        # compute row-wise weak Popov form:
+        # -> non-ordered since we will soon order rows otherwise anyway
+        # -> without zero rows, we will re-insert them later if asked to
+        WP = self.weak_popov_form(transformation,shifts,True,False,False)
+        if transformation:
+            P,UU = WP[0].__copy__(),WP[1]
+        else:
+            P = WP.__copy__()
+        m = P.nrows()
+        # for now, only consider rows of transformation corresponding to
+        # nonzero rows, other rows will be reinserted later
+        if transformation:
+            U = UU[:m].__copy__()
+
+        # compute leading positions and shifted row degrees
+        lpos,rdeg = P.leading_positions(shifts,True,True)
+        if shifts != None:
+            rdeg = [rdeg[i] + shifts[lpos[i]] for i in range(m)]
+
+        # 1/ transform P into ascending order (as defined in
+        # [Mulders&Storjohann, 2003, p394], recall here P has no zero rows)
+        # -> sort the (degree,pivot) couples by lex order,
+        #        keeping track of the performed permutation
+        # -> and permute P,U,lpos,rdeg accordingly
+        from sage.combinat.permutation import Permutation
+        sorted_rdeg_lpos = sorted([(rdeg[i],lpos[i],i+1) for i in range(m)])
+        rdeg = [elt[0] for elt in sorted_rdeg_lpos]
+        lpos = [elt[1] for elt in sorted_rdeg_lpos]
+        row_permutation = Permutation([elt[2] for elt in sorted_rdeg_lpos])
+        P.permute_rows(row_permutation)
+        if transformation:
+            U.permute_rows(row_permutation)
+
+        # 2/ ensure all pivots are monic
+        for i in range(m):
+            inv_lc = 1/P[i,lpos[i]].leading_coefficient()
+            P.rescale_row(i,inv_lc)
+            if transformation:
+                U.rescale_row(i,inv_lc)
+
+        # 3/ reduce degrees as much as possible, row by row
+        # (this works because of the above ascending order)
+        for i in range(1,m):
+            # use rows k=0...i-1 to reduce degrees of row i in column lpos[k]
+            delta = 0
+            while delta >= 0:
+                # see [Mulders&Storjohann, 2003, Algo. PopovForm, p396]
+                delta = -1
+                j = -1
+                for k in range(i):
+                    if P[i,lpos[k]].degree() - P[k,lpos[k]].degree() > delta:
+                        delta = P[i,lpos[k]].degree() - P[k,lpos[k]].degree()
+                        j = k
+                if delta>=0:
+                    # recall the leading coefficient of P[j,lpos[j]] is 1
+                    c = - P[i,lpos[j]].leading_coefficient()
+                    shifted_row_Pj = c * P[j,:].shift(delta)
+                    P[i,:] = P[i,:] + shifted_row_Pj
+                    if transformation:
+                        shifted_row_Uj = c * U[j,:].shift(delta)
+                        U[i,:] = U[i,:] + shifted_row_Uj
+
+        # 4/ transform so as to have increasing leading positions
+        sorted_lpos = sorted([(lpos[i],i+1) for i in range(m)])
+        row_permutation = Permutation([elt[1] for elt in sorted_lpos])
+        P.permute_rows(row_permutation)
+        if transformation:
+            U.permute_rows(row_permutation)
+
+        # reinsert zero rows: in U in all cases, in P if asked to
+        if transformation:
+            U = U.stack(UU[m:,:])
+        if include_zero_vectors:
+            from sage.matrix.constructor import matrix
+            P = P.stack(matrix(self.base_ring(),nrows_zero-m,self.ncols()))
+        # return
+        return (P,U) if transformation else P
+
     def reduced_form(self,
             transformation=None,
             shifts=None,
@@ -1982,7 +2140,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         .. SEEALSO::
 
             :meth:`is_reduced` ,
-            :meth:`weak_popov_form` .
+            :meth:`weak_popov_form` ,
+            :meth:`popov_form` ,
+            :meth:`hermite_form` .
         """
         if not row_wise:
             return self.T.reduced_form(transformation,
@@ -2049,6 +2209,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         .. SEEALSO::
         
             :meth:`is_hermite` .
+            :meth:`popov_form` ,
         """
         A = self.__copy__()
         U = A._hermite_form_euclidean(transformation=transformation,
@@ -2786,13 +2947,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # compute kernel basis
         if row_wise:
             if d is -1: # matrix is zero
-                from sage.matrix.constructor import Matrix
-                return Matrix.identity(self.base_ring(), m, m)
+                from sage.matrix.constructor import matrix
+                return matrix.identity(self.base_ring(), m, m)
 
             if m <= n and self.constant_matrix().rank() == m:
                 # early exit: kernel is empty
-                from sage.matrix.constructor import Matrix
-                return Matrix(self.base_ring(), 0, m)
+                from sage.matrix.constructor import matrix
+                return matrix(self.base_ring(), 0, m)
 
             # degree bounds on the kernel basis
             degree_bound = min(m,n)*d+max(shifts)
@@ -2812,13 +2973,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         else:
             if d is -1: # matrix is zero
-                from sage.matrix.constructor import Matrix
-                return Matrix.identity(self.base_ring(), n, n)
+                from sage.matrix.constructor import matrix
+                return matrix.identity(self.base_ring(), n, n)
 
             if n <= m and self.constant_matrix().rank() == n:
                 # early exit: kernel is empty
-                from sage.matrix.constructor import Matrix
-                return Matrix(self.base_ring(), n, 0)
+                from sage.matrix.constructor import matrix
+                return matrix(self.base_ring(), n, 0)
 
             # degree bounds on the kernel basis
             degree_bound = min(m,n)*d+max(shifts)

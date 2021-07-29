@@ -2181,13 +2181,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             :meth:`popov_form` ,
             :meth:`hermite_form` .
         """
-        if not row_wise:
-            return self.T.reduced_form(transformation,
-                    shifts,
-                    True,
-                    False,
-                    include_zero_vectors).T
-        self._check_shift_dimension(shifts,row_wise=True)
         return self.weak_popov_form(transformation,
                 shifts,
                 row_wise,

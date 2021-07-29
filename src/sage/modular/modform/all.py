@@ -23,3 +23,5 @@ from .hecke_operator_on_qexp import hecke_operator_on_qexp, hecke_operator_on_ba
 from .numerical import NumericalEigenforms as numerical_eigenforms
 
 from .element import delta_lseries
+
+from .find_generators import ModularFormsRing # span_of_series, modform_generators

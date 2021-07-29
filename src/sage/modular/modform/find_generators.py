@@ -35,9 +35,6 @@ from sage.structure.parent import Parent
 
 from sage.categories.graded_algebras import GradedAlgebras
 
-from sage.misc.lazy_import import lazy_import
-lazy_import('sage.rings.find_generators', 'ModularFormsRing', deprecation=31559)
-
 def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=False):
     r"""
     Utility function. Given a nonempty list of pairs ``(k,f)``, where `k` is an

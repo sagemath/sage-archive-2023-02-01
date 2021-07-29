@@ -1085,9 +1085,12 @@ class GraphDatabase(SQLDatabase):
         """
         Generate an interact shell to query the database.
 
-        This method generates an interact shell (in the notebook only) that
-        allows the user to manipulate query parameters and see the updated
-        results.
+        .. WARNING::
+
+            This is no longer implemented since the switch to Python3.
+
+        This method generates an interact shell that allows the user
+        to manipulate query parameters and see the updated results.
 
         .. TODO::
 
@@ -1098,16 +1101,13 @@ class GraphDatabase(SQLDatabase):
         EXAMPLES::
 
             sage: D = GraphDatabase()
-            sage: D.interactive_query(display_cols=['graph6', 'num_vertices', 'degree_sequence'], num_edges=5, max_degree=3)  # py2 # optional -- sagenb
-            <html>...</html>
-
-        .. WARNING::
-
-            Above doctest is known to fail with Python 3 due to ``sagenb``. See
-            :trac:`27435` for more details.
+            sage: D.interactive_query(display_cols=['graph6', 'num_vertices', 'degree_sequence'], num_edges=5, max_degree=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not available in Jupyter notebook
         """
-        from sagenb.notebook.interact import interact
-        print('<html><h1>Interactive Graph Query</h1></html>')
-        f = self._gen_interact_func(display=display_cols, **kwds)
-        interact(f)
+        raise NotImplementedError('not available in Jupyter notebook')
+        # print('<html><h1>Interactive Graph Query</h1></html>')
+        # f = self._gen_interact_func(display=display_cols, **kwds)
+        # interact(f)
 

@@ -21,6 +21,9 @@ AUTHORS:
 
 - Vincent Neiger (2021-03-11): added matrix-wise basic functions for univariate
   polynomials (shifts, reverse, truncate, get coefficient of specified degree)
+
+- Vincent Neiger (2021-07-29): added popov_form(). Added more options to
+  weak_popov_form() (column-wise, ordered, zero rows).
 """
 # ****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>

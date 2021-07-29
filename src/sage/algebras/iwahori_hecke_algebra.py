@@ -2052,54 +2052,70 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
      
         EXAMPLES:
 
-        Basic usage::
-            
-            # To create the basis, define the Coxeter group with 'coxeter3' and
-            # the Hecke algebra with the standard or normalized presentation.
+        To create the basis, define the Coxeter group with 'coxeter3' and the
+        Hecke algebra with the standard or normalized presentation::
 
             sage: R.<v> = LaurentPolynomialRing(ZZ)
-            sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
-            sage: H = IwahoriHeckeAlgebra(A3, v**2)                            # standard presentation
-            sage: Cp = H.Cp_Coxeter3()
+            sage: W = CoxeterGroup('A3', implementation='coxeter3')
+            sage: H = IwahoriHeckeAlgebra(W, v**2)         # standard presentation
+            sage: CpC = H.Cp_Coxeter3()
 
-        # TODO: 1. avoid Cp, maybe CpC or CpC3? 2. show that CpC3 IS Cp (more reason for 1)
+        Perform computations with the `C^{\prime}` basis elements indexed by W::
 
-            sage: s1, s2, s3 = A3.simple_reflections()
-            sage: Cp(s1*s2*s1)
+            sage: s1, s2, s3 = W.simple_reflections()
+            sage: CpC(s1*s2*s1)
             Cp[1,2,1]
-            sage: Cp(s1)**2
+            sage: CpC(s1)**2
             (v^-1+v)*Cp[1]
-            sage: Cp(s1)*Cp(s2)*Cp(s1)
+            sage: CpC(s1)*CpC(s2)*CpC(s1)
             Cp[1,2,1] + Cp[1]
 
-        The following computation take a long time in the
+        TODO: Change the prefix (so that items print CpC[1,2,1] etc.), or not?
+        This would make this block in particular clearer, but not much elsewhere.
+
+        This basis is a reimplementation of the ``Cp`` basis. The computations
+        are identical::
+
+            sage: Cp = H.Cp()
+            sage: Cp(s1)*Cp(s2)*Cp(s1)
+            Cp[1,2,1] + Cp[1]
+            sage: CpC(Cp(s1)*Cp(s2)*Cp(s1))
+            Cp[1,2,1] + Cp[1]
+            sage: Cp(CpC(s1)*CpC(s2)*CpC(s1))
+            Cp[1,2,1] + Cp[1]
+
+        TODO: reference
+        The following computation takes a long time in the
         _Basis.product_on_basis method as mentioned on Line 1941, but it is
-        instant in the current method :: 
+        instant in the current method:: 
 
             sage: Cp[1]*Cp[2]*Cp[3]*Cp[1]*Cp[2]       
             Cp[1,2,1,3,2] + Cp[1,2,1] + Cp[1,3,2]
 
-        Below is another example, with the Hecke algebra of type `B9` in the normalized
-        presentation. The (optional) relabeling command ensures that `m(1,2)=4`, i.e., that
-        the generators 1, 2 form the strong bond in the Dynkin diagram. ::
+        Below is another example, with the Hecke algebra of type `B9` in the
+        normalized presentation. The (optional) relabeling command ensures that
+        `m(1,2)=4`, i.e., that the generators 1, 2 form the strong bond in the
+        Dynkin diagram::
 
-            sage: B9 = CoxeterGroup(CoxeterType(['B', 9]).relabel({ i: 9-i+1 for i in range(1, 10) }), implementation='coxeter3')
-            sage: H = IwahoriHeckeAlgebra(B9, v, -1/v) 
+            sage: B9 = CoxeterType(['B', 9]).relabel({ i: 9-i+1 for i in range(1, 10) })
+            sage: W = CoxeterGroup(B9, implementation='coxeter3')
+            sage: H = IwahoriHeckeAlgebra(W, v, -1/v) 
             sage: Cp = H.Cp_Coxeter3()
+            sage: s = W.simple_reflections()
+            sage: Cp(s[1]*s[2]*s[1]*s[2])
+            Cp[1,2,1,2]
 
-            # TODO: create s1 to s9
-            sage: Cp[1,2,1,2] 
-            Cp[1,2,1,2] 
-
+        TODO: reference
         The following computation also takes a long time in
         _Basis.product_on_basis,  but it is instant here ::
 
             sage: Cp[3,2,3,4,5] * Cp[2,3] 
             (v^-1+v)*Cp[2,3,2,4,3,5] + (v^-1+v)*Cp[2,3,2,5]
 
-        Directly creating a Hecke algebra from its Coxeter type does not work
-        currently. Instead, a Coxeter group implemented with 'coxeter3' must be
-        created first ::
+        Since the underlying Coxeter group must be implemented with
+        ``coxeter3``, directly creating a Hecke algebra from its Coxeter type
+        does not work. Instead, a Coxeter group implemented with 'coxeter3' must
+        be created first::
 
             sage: H = IwahoriHeckeAlgebra('A3', v**2)
             sage: H.Cp_Coxeter3()
@@ -2108,10 +2124,10 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             ValueError: algebra must be initialized with a coxeter3-implemented Coxeter group to use the Cp_Coxeter3 basis
 
         With the Coxeter group created first, the Hecke algebra must be defined
-        with the standard or normalized presentation mentioned before ::
+        with the standard or normalized presentation mentioned before::
 
-            sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
-            sage: H = IwahoriHeckeAlgebra(A3, QQ(1))                          
+            sage: W = CoxeterGroup('A3', implementation='coxeter3')
+            sage: H = IwahoriHeckeAlgebra(W, QQ(1))                          
             sage: H.Cp_Coxeter3()
             Traceback (most recent call last):
             ...
@@ -2207,14 +2223,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             v = algebra.base_ring().gen(0)
 
-            # TODO: rewrite this horribly ugly condition:
-            if v != algebra.base_ring().one() and ((algebra.q1() == v**2 and algebra.q2() == -1) or (algebra.q1() == v and algebra.q2() == -1/v)):
-                self.delta = v + ~v   # TODO: this is why we need the two normalizations
+            parameters = {algebra.q1(), algebra.q2()}
+            if v != algebra.base_ring().one() and (parameters == {v**2, -1} or parameters == {v, -1/v}):
+                # TODO: this is why we need the two normalizations
+                self.delta = v + ~v
             else:
                 if not algebra._is_generic:
                     # If this algebra is generic, it's only being used to coerce to the T basis, not perform computations
-                    # TODO: Better error message (TX made some changes)
-                    raise ValueError('the Cp_Coxeter3 basis is only supported in a Hecke algebra with the standard or normalized presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\}` as sets)')
+                    raise ValueError('the Cp_Coxeter3 basis is only supported in a Hecke algebra with the standard or normalized \
+presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\}` as sets)')
 
             # Define conversion to the other Cp basis
             self.module_morphism(self.to_Cp_basis, codomain=algebra.Cp(), category=self.category()
@@ -2273,13 +2290,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 Cp[1,2,1,3,2,1] + Cp[1,2,3,2] + Cp[1,3,2,1]
             """
 
-            # TODO: consistency in our docstring: ticks or not + other things.
-
             # If `s` is a descent of `w` on the `side`, the product is (v + v^-1) Cp_w:
             if w.has_descent(s, side=side):
                 return self.delta * self.monomial(w)
-            # Otherwise the product is \sum_{v \leq w; sv < v} mu(v, w) C'_v
-            # if `side` is left and \sum_{v \leq w; vs < v} mu(v, w) C'_s if
+            # Otherwise the product is \sum_{v \leq w; sv < v} mu(v, w) Cp_v
+            # if `side` is left and \sum_{v \leq w; vs < v} mu(v, w) Cp_s if
             # `side` is right, as mentioned before. 
             else:
                 element = self(0)

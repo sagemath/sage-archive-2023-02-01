@@ -2316,8 +2316,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 return self.monomial(longer_word) + element
         
         def _product_with_generator(self, side, s, x): 
-        r""" 
-        Compute the product of `C^{\prime}_s` with any linear combination of `C^{\prime}`-basis elements. 
+            r""" 
+            Compute the product of `C^{\prime}_s` with any linear combination of `C^{\prime}`-basis elements. 
 
             INPUT:
 

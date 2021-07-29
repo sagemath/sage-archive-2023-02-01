@@ -3079,7 +3079,13 @@ class EisensteinSeries(ModularFormElement):
 
 class GradedModularFormElement(ModuleElement):
     r"""
-    The element class for ``ModularFormsRing``
+    The element class for ``ModularFormsRing``. A ``GradedModularFormElement`` is basically a
+    formal sum of modular forms of different weight: `f_1 + f_2 + ... + f_n`. Note that a
+    ``GradedModularFormElement`` is not necessarily a modular form (as it can have mixed weight
+    components).
+
+    A ``GradedModularFormElement`` should not be constructed directly via this class. Instead,
+    one should use the element constructor of the parent class (``ModularFormsRing``).
     """
     def __init__(self, parent, forms_datum):
         r"""
@@ -3116,15 +3122,6 @@ class GradedModularFormElement(ModuleElement):
             2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
             sage: M({4:f, 2:g})
             2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
-
-        TESTS::
-
-            sage: M = ModularFormsRing(1)
-            sage: TestSuite(M).run()
-            sage: M15 = ModularFormsRing(Gamma1(5))
-            sage: TestSuite(M15).run()
-            sage: M013 = ModularFormsRing(Gamma0(13))
-            sage: TestSuite(M013).run()
         """
         forms_dictionary = {}
         if isinstance(forms_datum, dict):
@@ -3510,7 +3507,11 @@ class GradedModularFormElement(ModuleElement):
             sage: F = F4 + F6 + F8
             sage: F.weights_list()
             [4, 6, 8]
+            sage: M(0).weights_list()
+            [0]
         """
+        if self.is_zero():
+            return [ZZ(0)]
         return sorted(self._forms_dictionary)
 
     def is_homogeneous(self):

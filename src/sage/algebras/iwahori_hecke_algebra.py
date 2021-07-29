@@ -2214,26 +2214,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     # TODO: Better error message (TX made some changes)
                     raise ValueError('the Cp_Coxeter3 basis is only supported in a Hecke algebra with the standard or normalized presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\}` as sets)')
 
-            # TODO: change the name systematically, bad to use Cp. (sorry I
-            # went back to g)
-
-            # Construct a free algebra over generators {g_s:s in S}
-            # The free algebra is merely a formal device to encode polynomials
-            # in the `C^{prime}`-basis. For example, we mentioned in
-            # "ALGORITHM" how it is useful to decompose `b_{121}` to the
-            # polynomial `b_1*b_2* b_1 - b_1` where `b` stands for
-            # `C^{\prime}`. The polynomial will be encoded as `g_1*g_2*g_1 -
-            # g_1`. While this formal construction may seem unnecessary, it
-            # appears to be the most convenient way to encode the polynomials
-            # mentioned above, and we are not able to remove it at the moment. 
-
-            # TODO: better explain the last sentence, maybe with an example?
-
-            self._generator_algebra = FreeAlgebra(algebra.base_ring(), ['Cp{}'.format(s) for s in self.index_set()])
-            # The correspondence between indices and formal generators of the generator algebra
-            self._generators = { s: self._generator_algebra('Cp{}'.format(s)) for s in self.index_set() }
-            self._index_of_generator = { v: k for (k, v) in self._generators.items() }
-
             # Define conversion to the other Cp basis
             self.module_morphism(self.to_Cp_basis, codomain=algebra.Cp(), category=self.category()
                                  ).register_as_coercion()
@@ -2342,39 +2322,40 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         def _decompose_into_generators(self, w): 
             r"""
             Decompose `C^{\prime}_w` into a polynomial in the KL generators
-            `C^{\prime}_s`; see "ALGORITHM".
-            
-            
-            EXAMPLES::
-            
-            # TODO: fix notation
+            `C^{\prime}_s`; see "ALGORITHM". TODO: Reference "ALGORITHM"
+
+            EXAMPLES:
+
+            ::
 
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')
                 sage: H = IwahoriHeckeAlgebra(A3, v**2); Cp=H.Cp_Coxeter3()
 
-            When `y` is itself a generator `s`, the decomposition is trivial ::
-                sage: w= A3([1])
-                sage: Cp._decompose_into_generators(w) 
-                Cp[1]
+            When `y` is itself a generator `s`, the decomposition is trivial::
 
-            Another example, where `C^{\prime}_y` happens to be a monomial ::
+                sage: Cp._decompose_into_generators(W([1])) 
+                {(1,): 1}
 
-                sage: Cp._decompose_into_generators(A3([2,1])) # C_{21} = C_2C_1
-                Cp[2]*Cp[1]
+            Another example, where Cp_y happens to be a monomial; Cp_{21} =
+            Cp_2*Cp_1::
 
-            In more general situations the sum is a polynomial :: 
+                sage: Cp._decompose_into_generators(A3([2,1]))
+                {(2, 1): 1}
+
+            In more general situations the sum is a polynomial; Cp_{121} =
+            Cp_1*Cp_2*Cp_1 - Cp_1
 
                 sage: Cp._decompose_into_generators(A3([1,2,1])) # C_{121} = C_1C_2C_1 - C_1
-                -Cp1 + Cp1*Cp2*Cp1
+                {(1, 2, 1): 1, (1,): -1}
                 sage: Cp._decompose_into_generators(A3([1,2,3,1,2]))
-                Cp1 - Cp1*Cp2*Cp1 - Cp1*Cp3*Cp2 + Cp1*Cp2*Cp1*Cp3*Cp2
+                {(1, 2, 1, 3, 2): 1, (1, 2, 1): -1, (1,): 1, (1, 3, 2): -1}
             """
             # \ell(y) \leq 1
             if len(w) == 0:
-                return self.generator_algebra(1)
+                return {(): 1}
             if len(w) == 1:
-                return self._generators[w[0]]
+                return {(w[0],): 1}
             # \ell(y) > 1, we use the induction on `\ell(y)` and recursively
             # find the decomposition 
             s = w[0]
@@ -2392,14 +2373,16 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     # Compute mu-coefficient via coxeter3
                     sum_term += self.base_ring()(x.mu_coefficient(w1)) * self.monomial(x_elt)
         
-            # In the expression above, we need to recurse and decompose C_{w1} into generators,
-            # and then go through the terms of sum_term (lower order terms) and decompose those C_y's into generators
-            alg_element = self._generators[s] * self._decompose_into_generators(w1)
-            for (v, coeff) in sum_term:
-                # We're subtracting 'sum_term'
-                alg_element -= coeff * self._decompose_into_generators(v)
+            # Recurse and decompose C_{w1} into generators, then go through the
+            # lower order terms in sum_term and decompose those into generators.
+            # Perform (distrubute) Cp_s * Cp_{w1}
+            result = {(s,) + gens: coeff for (gens, coeff) in self._decompose_into_generators(w1).items()}
+            for (v, c1) in sum_term:
+                # Subtract off each term from `sum_term`.
+                for (gens, c2) in self._decompose_into_generators(v).items():
+                    result[gens] = result.get(gens, 0) - c1*c2
                 
-            return alg_element
+            return result
         
         def product_on_basis(self, w1, w2):
             r"""
@@ -2418,7 +2401,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: Cp.product_on_basis(A3([1,2,1]), A3([3,1,2]))
                 (v^-1+v)*Cp[1,2,1,3,2] + (v^-1+v)*Cp[1,2,1]
             """
-            # Decompose one of `C_{w_1}` and `C_{w_2}` into a polynomial in the
+            # Decompose one of Cp_{w1} and Cp_{w2} into a polynomial in the
             # generators, then multiply the remaining one with the polynomial.
             if len(w1) <= len(w2):
                 side = 'left'
@@ -2429,22 +2412,13 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 gen_expression = self._decompose_into_generators(w2)
                 other_element = self.monomial(w1)
             result = self(0)
-            # Proceed through the terms, multiplying each term onto other_element
-            # and adding that summand onto result.
-            for (p, coeff) in gen_expression:
-                # is a term, e.g. p = Cp1*Cp2*Cp1 and coeff = 2
+            # Proceed through the terms, multiplying the generators in each term
+            # onto other_element and adding that summand onto result.
+            for (p, coeff) in gen_expression.items():
                 summand = coeff * other_element
                 p_list = list(p) if side == 'right' else list(p)[::-1]
-                # Iterate through the generators in the term, multiplying each generator
-                # onto other_element and multiplying the result onto summand.
-                for (gen, exponent) in p_list:
-                    # gen is some formal generator Cp{s} (it is in the
-                    # underlying monoid of self._generator_algebra so coercion
-                    # is required). e.g. gen = Cp1 and exponent = 1.
-                    s = self._index_of_generator[self._generator_algebra(gen)]
-                    for i in range(exponent):
-                        # Perform the product C'_s * summand, exponent-many times.
-                        summand = self._product_with_generator(side, s, summand)
+                for s in p_list:
+                    summand = self._product_with_generator(side, s, summand)
 
                 result += summand
 

@@ -16,11 +16,12 @@ from sage.structure.category_object import normalize_names
 from sage.structure.parent import Parent, Set_generic
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.sets_cat import Sets
+from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import _stable_uniq
 from sage.symbolic.expression import is_Expression
 from sage.symbolic.callable import is_CallableSymbolicExpression
-from sage.symbolic.ring import SymbolicRing, SR, is_SymbolicVariable
+from sage.symbolic.ring import SR
 
 from .set import Set, Set_base, Set_boolean_operators, Set_add_sub_operators
 
@@ -87,6 +88,21 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
         sage: vector([1, 1, 1]) in P_inter_B_again
         False
 
+    Iterating over subsets determined by predicates::
+
+        sage: Odds = ConditionSet(ZZ, is_odd); Odds
+        { x ∈ Integer Ring : <function is_odd at 0x...>(x) }
+        sage: list(Odds.iterator_range(stop=6))
+        [1, -1, 3, -3, 5, -5]
+
+        sage: R = IntegerModRing(8)
+        sage: R_primes = ConditionSet(R, is_prime); R_primes
+        { x ∈ Ring of integers modulo 8 : <function is_prime at 0x...>(x) }
+        sage: R_primes.is_finite()
+        True
+        sage: list(R_primes)
+        [2, 6]
+
     Using ``ConditionSet`` without predicates provides a way of attaching variable names
     to a set::
 
@@ -125,7 +141,9 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
             category = Sets()
         if isinstance(universe, Parent):
             if universe in Sets().Finite():
-                category = category & Sets().Finite()
+                category &= Sets().Finite()
+            if universe in EnumeratedSets():
+                category &= EnumeratedSets()
 
         if vars is not None:
             if names is not None:
@@ -475,3 +493,19 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
                                 *(self._predicates + X._predicates),
                                 vars=self.arguments())
         return super().intersection(X)
+
+    def __iter__(self):
+        r"""
+        Iterate over ``self``.
+
+        TESTS::
+
+            sage: Odds = ConditionSet(ZZ, is_odd); Odds
+            { x ∈ Integer Ring : <function is_odd at 0x...>(x) }
+            sage: list(Odds.iterator_range(stop=6))
+            [1, -1, 3, -3, 5, -5]
+
+        """
+        for x in self._universe:
+            if x in self:
+                yield x

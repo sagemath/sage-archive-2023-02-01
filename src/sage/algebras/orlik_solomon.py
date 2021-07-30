@@ -450,42 +450,37 @@ class OrlikSolomonAlgebra(CombinatorialFreeModule):
 
 class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
     r"""
-    Give the invariant algebra of the Orlik-Solomon algebra from the
-    action on `A(M)` which is induced from the ``action_on_groundset``.
+    The invariant algebra of the Orlik-Solomon algebra from the
+    action on `A(M)` induced from the ``action_on_groundset``.
 
     INPUT:
 
     - ``R`` -- the ring of coefficients
     - ``M`` -- a matroid
     - ``G`` -- a semigroup
-    - ``action_on_groundset`` -- a function defining the action of
-    ``G`` on the elements of the groundset of ``M`` default
-
-    OUTPUT:
-
-    - The invariant algebra of the Orlik-Solomon algebra induced by
-    the action of ``action_on_groundset``
+    - ``action_on_groundset`` -- (optional) a function defining the action
+      of ``G`` on the elements of the groundset of ``M``; default is ``g(x)``
 
     EXAMPLES:
 
-    Lets start with the action of `S_3` on the rank-`2` braid matroid::
+    Lets start with the action of `S_3` on the rank `2` braid matroid::
 
         sage: M = matroids.CompleteGraphic(3)
         sage: M.groundset()
         frozenset({0, 1, 2})
         sage: G = SymmetricGroup(3)
 
-    Calling elements ``g`` of ``G`` on an element `i` of `\{1,2,3\}`
-    defines the action we want, but since the groundset is `\{0,1,2\}`
+    Calling elements ``g`` of ``G`` on an element `i` of `\{1, 2, 3\}`
+    defines the action we want, but since the groundset is `\{0, 1, 2\}`
     we first add `1` and then subtract `1`::
 
-        sage: def on_groundset(g,x):
-        ....:     return g(x+1)-1
+        sage: def on_groundset(g, x):
+        ....:     return g(x+1) - 1
 
     Now that we have defined an action we can create the invariant, and
     get its basis::
 
-        sage: OSG = M.orlik_solomon_algebra(QQ, invariant = (G, on_groundset))
+        sage: OSG = M.orlik_solomon_algebra(QQ, invariant=(G, on_groundset))
         sage: OSG.basis()
         Finite family {0: B[0], 1: B[1]}
         sage: [OSG.lift(b) for b in OSG.basis()]
@@ -497,22 +492,22 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
         2*B[0] + 2*B[1]
         sage: g = G.an_element(); g
         (2,3)
-        sage: g*x
+        sage: g * x
         2*B[0] + 2*B[1]
 
         sage: x = OSG.random_element()
         sage: g = G.random_element()
-        sage: g*x == x
+        sage: g * x == x
         True
 
-    The underlying ambient module is a ``Representation`` and so the
-    Orlik-Solomon algebra itself is the ``.ambient()._module``::
+    The underlying ambient module the Orlik-Solomon algebra,
+    which is accessible via :meth:`ambient()`::
 
-        sage: M.orlik_solomon_algebra(QQ) is OSG.ambient()._module
+        sage: M.orlik_solomon_algebra(QQ) is OSG.ambient()
         True
 
     There is not much structure here, so lets look at a bigger example.
-    Here we will look at the rank-`3` braid matroid, and to make things
+    Here we will look at the rank `3` braid matroid, and to make things
     easier, we'll start the indexing at `1` so that the `S_6` action
     on the groundset is simply calling `g`::
 
@@ -522,67 +517,112 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
         sage: M = Matroid(bases=new_bases); M.groundset()
         frozenset({1, 2, 3, 4, 5, 6})
         sage: G = SymmetricGroup(6)
-        sage: OSG = M.orlik_solomon_algebra(QQ, invariant = G)
+        sage: OSG = M.orlik_solomon_algebra(QQ, invariant=G)
         sage: OSG.basis()
         Finite family {0: B[0], 1: B[1]}
         sage: [OSG.lift(b) for b in OSG.basis()]
         [OS{}, OS{1} + OS{2} + OS{3} + OS{4} + OS{5} + OS{6}]
         sage: (OSG.basis()[1])^2
         0
+        sage: 5 * OSG.basis()[1]
+        5*B[1]
 
+    Next, we look at the same matroid but with an `S_3 \times S_3` action
+    (here realized as a Young subgroup of `S_6`)::
+
+        sage: H = G.young_subgroup([3, 3])
+        sage: OSH = M.orlik_solomon_algebra(QQ, invariant=H)
+        sage: OSH.basis()
+        Finite family {0: B[0], 1: B[1], 2: B[2]}
+        sage: [OSH.lift(b) for b in OSH.basis()]
+        [OS{}, OS{1} + OS{2} + OS{3}, OS{4} + OS{5} + OS{6}]
+
+    We implement an `S_4` action on the vertices::
+
+        sage: M = matroids.CompleteGraphic(4)
+        sage: G = SymmetricGroup(4)
+        sage: edge_map = {i: M.groundset_to_edges([i])[0][:2] for i in M.groundset()}
+        sage: inv_map = {v: k for k, v in edge_map.items()}
+        sage: def vert_action(g, x):
+        ....:     a, b = edge_map[x]
+        ....:     return inv_map[tuple(sorted([g(a+1)-1, g(b+1)-1]))]
+        sage: OSG = M.orlik_solomon_algebra(QQ, invariant=(G, vert_action))
+        sage: B = OSG.basis()
+        sage: [OSG.lift(b) for b in B]
+        [OS{}, OS{0} + OS{1} + OS{2} + OS{3} + OS{4} + OS{5}]
+
+    We use this to describe the Young subgroup `S_2 \times S_2` action::
+
+        sage: H = G.young_subgroup([2,2])
+        sage: OSH = M.orlik_solomon_algebra(QQ, invariant=(H, vert_action))
+        sage: B = OSH.basis()
+        sage: [OSH.lift(b) for b in B]
+        [OS{},
+         OS{0}, OS{1} + OS{2} + OS{3} + OS{4}, OS{5},
+         OS{0, 1} + OS{0, 2} + OS{0, 3} + OS{0, 4}, OS{0, 5},
+         OS{1, 2} - 2*OS{1, 5} + OS{3, 4} - 2*OS{3, 5},
+         OS{0, 1, 2} - 2*OS{0, 1, 5} + OS{0, 3, 4} - 2*OS{0, 3, 5}]
+
+    We demonstrate the algebra structure::
+
+        sage: matrix([[b*bp for b in B] for bp in B])                                                                              
+        [ B[0]  B[1]  B[2]  B[3]  B[4]  B[5]  B[6]  B[7]]
+        [ B[1]     0 -B[4] -B[5]     0     0  B[7]     0]
+        [ B[2]  B[4]     0  B[6]     0  B[7]     0     0]
+        [ B[3]  B[5] -B[6]     0 -B[7]     0     0     0]
+        [ B[4]     0     0 -B[7]     0     0     0     0]
+        [ B[5]     0  B[7]     0     0     0     0     0]
+        [ B[6]  B[7]     0     0     0     0     0     0]
+        [ B[7]     0     0     0     0     0     0     0]
     """
     def __init__(self, R, M, G, action_on_groundset=None, *args, **kwargs):
         r"""
         Initialize ``self``.
 
-        Examples::
+        EXAMPLES::
 
             sage: M = matroids.CompleteGraphic(4)
             sage: new_bases = [frozenset(i+1 for i in j) for j in M.bases()]
             sage: M = Matroid(bases=new_bases)
             sage: G = SymmetricGroup(6)
-            sage: OSG = M.orlik_solomon_algebra(QQ, invariant = G)
+            sage: OSG = M.orlik_solomon_algebra(QQ, invariant=G)
             sage: TestSuite(OSG).run()
-
         """
-        ordering = kwargs.pop('ordering',None)
-        self._OS = OrlikSolomonAlgebra(R,M,ordering)
-        self._semigroup = G
+        ordering = kwargs.pop('ordering', None)
+        OS = OrlikSolomonAlgebra(R, M, ordering)
+        self._ambient = OS
 
-        if action_on_groundset:
-            self._groundset_action = action_on_groundset
-        else: # if sage knows the action, we don't need to provide it
-            self._groundset_action = lambda g,x: g.__call__(x)
+        if action_on_groundset is None:
+            # if sage knows the action, we don't need to provide it
+            action_on_groundset = lambda g, x: g(x)
 
-        from sage.modules.with_basis.representation import Representation
+        self._groundset_action = action_on_groundset
 
-        side = kwargs.pop('side','left')
-        category = kwargs.pop('category', self._OS.category().Subobjects())
+        side = kwargs.pop('side', 'left')
+        category = kwargs.pop('category', OS.category().Subobjects())
 
-        R = Representation(G, self._OS, self._basis_action,
-                           category=category, side=side)
+        def action(g, m):
+            return OS.sum(c * self._basis_action(g, x)
+                          for x,c in m._monomial_coefficients.items())
 
-        action = kwargs.pop('action', operator.mul)
-
-        FiniteDimensionalInvariantModule.__init__(self, R, G,
-                                                  action = action,
+        FiniteDimensionalInvariantModule.__init__(self, OS, G,
+                                                  action=action,
                                                   *args, **kwargs)
-
 
     def _basis_action(self, g, f):
         r"""
-        Let ``f`` be an n.b.c. set so that it indexes a basis
-        element of the ambient Orlik-Solomon algebra of ``M``.
+        Return the action of the group element ``g`` on the n.b.c. set ``f``
+        in the ambient Orlik-Solomon algebra.
 
         INPUT:
 
         - ``g`` -- a group element
-        - ``f`` -- a ``frozenset`` representing an n.b.c. set
+        - ``f`` -- ``frozenset`` for an n.b.c. set
 
         OUTPUT:
 
-        - ``x`` -- the result of the action of ``g`` on ``f`` inside
-        of the Orlik-Solomon algebra
+        - the result of the action of ``g`` on ``f`` inside
+          of the Orlik-Solomon algebra
 
         EXAMPLES::
 
@@ -608,13 +648,13 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
             sage: OS1 = M.orlik_solomon_algebra(QQ)
             sage: OS1.subset_image(fset)
             -OS{0, 1} + OS{0, 2}
-            sage: OS2 = M.orlik_solomon_algebra(QQ,range(2,-1,-1))
+            sage: OS2 = M.orlik_solomon_algebra(QQ, range(2,-1,-1))
             sage: OS2.subset_image(fset)
             OS{1, 2}
 
             sage: OSG2 = M.orlik_solomon_algebra(QQ,
-            ....:                            invariant=(G,on_groundset),
-            ....:                            ordering=range(2,-1,-1))
+            ....:                                invariant=(G,on_groundset),
+            ....:                                ordering=range(2,-1,-1))
             sage: g = G.an_element(); g
             (2,3)
 
@@ -626,19 +666,19 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
             sage: OSG2._basis_action(g, fset)
             -OS{1, 2}
         """
-
-        OS = self._OS
-        if f == frozenset():
-            return OS(f)
+        OS = self._ambient
+        if not f:
+            return OS.one()
 
         # basis_elt is an n.b.c. set, but it should be
         # in a standardized order to deal with sign issues
-        basis_elt = sorted(f, key = lambda e: OS._sorting[e])
+        basis_elt = sorted(f, key=OS._sorting.__getitem__)
 
         gx = OS.one()
 
         for e in basis_elt:
-            fset = frozenset({self._groundset_action(g,e)})
-            gx = gx*OS.subset_image(fset)
+            fset = frozenset([self._groundset_action(g, e)])
+            gx = gx * OS.subset_image(fset)
 
         return gx
+

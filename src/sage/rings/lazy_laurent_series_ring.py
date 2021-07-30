@@ -85,7 +85,7 @@ from .lazy_laurent_series import LazyLaurentSeries
 from sage.data_structures.coefficient_stream import (
     CoefficientStream_zero,
     CoefficientStream_coefficient_function,
-    CoefficientStream_eventually_geometric,
+    CoefficientStream_exact,
     CoefficientStream_uninitialized
 )
 
@@ -163,7 +163,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if n != 0:
             raise IndexError("there is only one generator")
         R = self._laurent_poly_ring
-        coeff_stream = CoefficientStream_eventually_geometric(R.gen(n), self._sparse, ZZ.zero(), 2)
+        coeff_stream = CoefficientStream_exact([R.gen(n)[1]], self._sparse, constant=ZZ.zero(), degree=2)
         return self.element_class(self, coeff_stream)
 
     def ngens(self):
@@ -213,7 +213,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         R = self._laurent_poly_ring
         if R.has_coerce_map_from(S):
             def make_series_from(poly):
-                return self.element_class(self, CoefficientStream_eventually_geometric(R(poly), self._sparse))
+                return self.element_class(self, CoefficientStream_exact([R(poly)], self._sparse))
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
 
         return False
@@ -225,7 +225,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         INPUT:
 
         - ``x`` -- data used to the define a Laurent series
-        - ``valuation`` -- integer (optional); the valuation of the series
+        - ``valuation`` -- integer (optional); integer; a lower bound for the valuation of the series
         - ``constant`` -- (optional) the eventual constant of the series
         - ``degree`` -- (optional) the degree when the series is ``constant``
 
@@ -313,7 +313,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                     x = x.shift(valuation - x.valuation())
                 if degree is None and not x:
                     degree = valuation
-                coeff_stream = CoefficientStream_eventually_geometric(R(x), self._sparse, constant, degree)
+                coeff_stream = CoefficientStream_exact([x], self._sparse, constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
         if isinstance(x, LazyLaurentSeries):
             if x._coeff_stream._is_sparse is self._sparse:
@@ -327,8 +327,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 if constant is None:
                     constant = ZZ.zero()
                 z = R.gen()
-                p = R.sum(x(i) * z**i for i in range(valuation, degree))
-                return self.element_class(self, CoefficientStream_eventually_geometric(p, self._sparse, constant, degree))
+                # p = R.sum(x(i) * z**i for i in range(valuation, degree))
+                p = [x(i) for i in range(valuation, degree)]
+                return self.element_class(self, CoefficientStream_exact(p, self._sparse, constant=constant, degree=degree))
             return self.element_class(self, CoefficientStream_coefficient_function(x, self.base_ring(), self._sparse, valuation))
         raise ValueError(f"unable to convert {x} into a lazy Laurent series")
 
@@ -344,7 +345,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         c = self.base_ring().an_element()
         R = self._laurent_poly_ring
-        return self.element_class(self, CoefficientStream_eventually_geometric(R.zero(), self._sparse, c, -10))
+        return self.element_class(self, CoefficientStream_exact([R.zero()], self._sparse, c, -10))
 
     @cached_method
     def one(self):
@@ -358,7 +359,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             1
         """
         R = self._laurent_poly_ring
-        return self.element_class(self, CoefficientStream_eventually_geometric(R.one(), self._sparse, ZZ.zero(), 1))
+        return self.element_class(self, CoefficientStream_exact([R.one()], self._sparse, constant=ZZ.zero(), degree=1))
 
     @cached_method
     def zero(self):

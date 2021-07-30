@@ -11,7 +11,7 @@ Bibliography
     Programming, Version 4.4; 2005, https://www.gap-system.org
 
 ..  [GAPkg] GAP Packages,
-    http://www.gap-system.org/Packages/packages.html
+    https://www.gap-system.org/Packages/packages.html
 
 ..  [GP] PARI/GP https://pari.math.u-bordeaux.fr/.
 

@@ -60,17 +60,10 @@ from functools import reduce
 from io import StringIO
 from random import randint
 
-from sage.misc.misc import sage_makedirs
 from sage.misc.temporary_file import tmp_filename
-from sage.env import SAGE_LOCAL
-from sage.doctest import DOCTEST_MODE
-
 from sage.misc.fast_methods cimport hash_by_id
-
 from sage.modules.free_module_element import vector
-
 from sage.rings.real_double import RDF
-from sage.misc.temporary_file import tmp_filename
 from .texture import Texture
 from .transform cimport Transformation, point_c, face_c
 include "point_c.pxi"

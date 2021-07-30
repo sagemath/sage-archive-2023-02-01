@@ -1320,8 +1320,10 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None,
         q = tuple(q)
 
     p,k = q
-    if not isinstance(p, Integer): p = Integer(p)
-    if not isinstance(k, Integer): k = Integer(k)
+    if not isinstance(p, Integer):
+        p = Integer(p)
+    if not isinstance(k, Integer):
+        k = Integer(k)
 
     if check:
         if not p.is_prime() or k <=0:

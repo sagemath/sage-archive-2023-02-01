@@ -9187,13 +9187,13 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
-    def is_diagonal(self):
+    def is_diagonal(self) -> bool:
         """
-        Return True if this matrix is a diagonal matrix.
+        Return ``True`` if this matrix is a diagonal matrix.
 
         OUTPUT:
 
-        - whether self is a diagonal matrix.
+        boolean
 
         EXAMPLES::
 
@@ -9221,9 +9221,51 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
-    def is_unitary(self):
+    def is_triangular(self, side="lower") -> bool:
+        """
+        Return ``True`` if this matrix is a triangular matrix.
+
+        INPUT:
+
+        - ``side`` -- either ``"lower"`` (default) or ``"upper"``
+
+        OUTPUT:
+
+        boolean
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ, 2, 2, range(4))
+            sage: m.is_triangular()
+            False
+            sage: m = matrix(QQ, 2, [5, 0, 0, 5])
+            sage: m.is_triangular()
+            True
+            sage: m = matrix(QQ, 2, [1, 2, 0, 1])
+            sage: m.is_triangular("upper")
+            True
+            sage: m.is_triangular("lower")
+            False
+        """
+        if not self.is_square():
+            return False
+        cdef Py_ssize_t i, j
+
+        if side == "upper":
+            for i in range(1, self._nrows):
+                for j in range(i):
+                    if not self.get_unsafe(i, j).is_zero():
+                        return False
+        else:
+            for i in range(self._nrows - 1):
+                for j in range(i + 1, self._ncols):
+                    if not self.get_unsafe(i, j).is_zero():
+                        return False
+        return True
+
+    def is_unitary(self) -> bool:
         r"""
-        Returns ``True`` if the columns of the matrix are an orthonormal basis.
+        Return ``True`` if the columns of the matrix are an orthonormal basis.
 
         For a matrix with real entries this determines if a matrix is
         "orthogonal" and for a matrix with complex entries this determines
@@ -10665,19 +10707,19 @@ cdef class Matrix(Matrix1):
           correctness. Set this to ``False`` for a speedup if the eigenvalues
           are known to be correct.
 
-        NOTES:
+        .. NOTE::
 
-        Currently, the Jordan normal form is not computed over inexact rings
-        in any but the trivial cases when the matrix is either `0 \times 0`
-        or `1 \times 1`.
+            Currently, the Jordan normal form is not computed over
+            inexact rings in any but the trivial cases when the matrix
+            is either `0 \times 0` or `1 \times 1`.
 
-        In the case of exact rings, this method does not compute any
-        generalized form of the Jordan normal form, but is only able to
-        compute the result if the characteristic polynomial of the matrix
-        splits over the specific base ring.
+            In the case of exact rings, this method does not compute any
+            generalized form of the Jordan normal form, but is only able to
+            compute the result if the characteristic polynomial of the matrix
+            splits over the specific base ring.
 
-        Note that the base ring must be a field or a ring with an implemented
-        fraction field.
+            Note that the base ring must be a field or a ring with an
+            implemented fraction field.
 
         EXAMPLES::
 
@@ -17731,16 +17773,17 @@ def _binomial(Py_ssize_t n, Py_ssize_t k):
         i, n, k = i + 1, n - 1, k - 1
     return result
 
+
 def _jordan_form_vector_in_difference(V, W):
     r"""
     Given two lists of vectors ``V`` and ``W`` over the same base field,
     returns a vector in the difference ``V - W``.  If the difference is
     empty, returns ``None``.
 
-    NOTES:
+    .. NOTE::
 
-    This is meant to be a private helper method for the ``jordan_form`` method
-    in the above class.
+        This is meant to be a private helper method for the
+        ``jordan_form`` method in the above class.
 
     TESTS::
 

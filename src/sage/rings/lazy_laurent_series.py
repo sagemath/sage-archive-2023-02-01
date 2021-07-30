@@ -92,9 +92,12 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream,
     CoefficientStream_inexact,
     CoefficientStream_zero,
+    CoefficientStream_exact,
     CoefficientStream_eventually_geometric,
     CoefficientStream_coefficient_function,
-    CoefficientStream_uninitialized
+    CoefficientStream_uninitialized,
+    CoefficientStream_dirichlet_convolution,
+    CoefficientStream_dirichlet_inv
 )
 
 
@@ -352,7 +355,9 @@ class LazyLaurentSeries(ModuleElement):
         P = g.parent()
 
         # g = 0 case
-        if (not isinstance(g, LazyLaurentSeries) and not g) or (isinstance(g, LazyLaurentSeries) and isinstance(g._coeff_stream, CoefficientStream_zero)):
+        if ((not isinstance(g, LazyLaurentSeries) and not g)
+            or (isinstance(g, LazyLaurentSeries)
+                and isinstance(g._coeff_stream, CoefficientStream_zero))):
             if self._coeff_stream._approximate_valuation >= 0:
                 return P(self[0])
             # Perhaps we just don't yet know if the valuation is non-negative
@@ -1363,3 +1368,487 @@ class LazyLaurentSeries(ModuleElement):
             raise ValueError("series already defined")
         self._coeff_stream._target = s._coeff_stream
 
+######################################################################
+
+class LazyDirichletSeries(ModuleElement):
+    r"""
+    A Dirichlet series where the coefficients are computed lazily.
+
+    INPUT:
+
+    - ``parent`` -- The base ring for the series
+
+    - ``coeff_stream`` -- The auxiliary class that handles the coefficient stream
+
+    EXAMPLES::
+
+        sage: L = LazyDirichletSeriesRing(ZZ, "z")
+        sage: f = L(constant=1)^2; f
+        1 + 2/2^z + 2/3^z + 3/4^z + 2/5^z + 4/6^z + 2/7^z + ...
+        sage: f.coefficient(100) == number_of_divisors(100)
+        True
+
+    Lazy Dirichlet series is picklable::
+
+        sage: g = loads(dumps(f))
+        sage: g
+        1 + 2/2^z + 2/3^z + 3/4^z + 2/5^z + 4/6^z + 2/7^z + ...
+        sage: g == f
+        True
+    """
+
+    def __init__(self, parent, coeff_stream):
+        """
+        Initialize the series.
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(QQbar, 'z')
+            sage: g = L(constant=1)
+            sage: TestSuite(g).run()
+        """
+        ModuleElement.__init__(self, parent)
+        self._coeff_stream = coeff_stream
+
+    def __getitem__(self, n):
+        """
+        Return the coefficient of the term with exponent ``n`` of the series.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: f = L(lambda n: n)
+            sage: [f[n] for n in range(1, 11)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            sage: f[1:11]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+            sage: M = L(lambda n: n)
+            sage: [M[n] for n in range(1, 11)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
+            sage: M = L(lambda n: n)
+            sage: [M[n] for n in range(1, 11)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        """
+        R = self.base_ring()
+        if isinstance(n, slice):
+            if n.stop is None:
+                raise NotImplementedError("cannot list an infinite set")
+            start = n.start if n.start is not None else self._coeff_stream.valuation()
+            step = n.step if n.step is not None else 1
+            return [R(self._coeff_stream[k]) for k in range(start, n.stop, step)]
+        return R(self._coeff_stream[n])
+
+    def _mul_(self, other):
+        """
+        Return the product of this series with ``other``.
+
+        INPUT:
+
+        - ``other`` -- other series
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: g = L(constant=1); g
+            1 + 1/(2^z) + 1/(3^z) + ...
+            sage: g*g
+            1 + 2/2^z + 2/3^z + 3/4^z + 2/5^z + 4/6^z + 2/7^z + ...
+            sage: [number_of_divisors(n) for n in range(1, 8)]
+            [1, 2, 2, 3, 2, 4, 2]
+
+            sage: mu = L(moebius); mu
+            1 + -1/2^z + -1/3^z + -1/5^z + 1/(6^z) + -1/7^z + ...
+            sage: g*mu
+            1 + ...
+            sage: L.one() * mu is mu
+            True
+            sage: mu * L.one() is mu
+            True
+        """
+        P = self.parent()
+        left = self._coeff_stream
+        right = other._coeff_stream
+        coeff = CoefficientStream_dirichlet_convolution(left, right)
+        return P.element_class(P, coeff)
+
+    def _add_(self, other):
+        """
+        Return the sum of this series with ``other``.
+
+        INPUT:
+
+        - ``other`` -- other series
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+        """
+        P = self.parent()
+        left = self._coeff_stream
+        right = other._coeff_stream
+        if (isinstance(left, CoefficientStream_exact)
+            and isinstance(right, CoefficientStream_exact)):
+            c = left._constant + right._constant
+            v = min(left.valuation(), right.valuation())
+            d = max(left._degree(), right._degree())
+            initial_coefficients = [left[i] + right[i] for i in range(v, d)]
+            if not any(initial_terms) and not c:
+                return P.zero()
+            return P.element_class(P, CoefficientStream_exact(initial_terms, P._sparse,
+                                                              valuation=v, degree=d, constant=c))
+        return P.element_class(P, CoefficientStream_add(self._coeff_stream, other._coeff_stream))
+
+    def _rmul_(self, scalar):
+        """
+        Return the scalar multiplication of this series by ``scalar``.
+
+        INPUT:
+
+        - ``scalar`` -- an element of the base ring
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: g = L.gen(1)
+            sage: 2*g
+            2/2^z
+            sage: -1*g
+            -1/2^z
+            sage: 0*g
+            0
+            sage: M = L(lambda n: n); M
+            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
+            sage: M * 3
+            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + ...
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
+            sage: M = L(lambda n: n); M
+            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
+            sage: M * 3
+            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + ...
+
+        TESTS::
+
+            sage: 1 * M is M
+            True
+            sage: M * 1 is M
+            True
+        """
+        P = self.parent()
+        if not scalar:
+            return P.zero()
+        if scalar == 1:
+            return self
+
+        if isinstance(self._coeff_stream, CoefficientStream_exact):
+            c = scalar * self._coeff_stream._constant
+            v = self._coeff_stream.valuation()
+            initial_coefficients = [scalar * v for v in self._coeff_stream._initial_coefficients]
+            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
+                                                              valuation=v, constant=c,
+                                                              degree=self._coeff_stream._degree))
+
+        return P.element_class(P, CoefficientStream_scalar(self._coeff_stream, scalar))
+
+    _lmul_ = _rmul_
+
+    def __invert__(self):
+        """
+        Return the multiplicative inverse of the element.
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=False)
+            sage: ~L(constant=1) - L(moebius)
+            0
+            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
+            sage: ~L(constant=1) - L(moebius)
+            0
+
+        """
+        P = self.parent()
+        return P.element_class(P, CoefficientStream_dirichlet_inv(self._coeff_stream))
+
+
+    def coefficient(self, n):
+        """
+        Return the coefficient of the term with exponent ``n`` of the series.
+
+        INPUT:
+
+        - ``n`` -- integer
+
+        EXAMPLES::
+
+        TESTS::
+
+        """
+        return self.__getitem__(n)
+
+    def map_coefficients(self, func, ring=None):
+        """
+        Return the series with ``func`` applied to each coefficient of this series.
+
+        INPUT:
+
+        - ``func`` -- Python function that takes in a coefficient and returns
+          a new coefficient
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+        """
+        P = self.parent()
+        R = P.base_ring()
+        if isinstance(self._coeff_stream, CoefficientStream_exact):
+            p = p.map_coefficients(func)
+            c = func(c)
+            if not p and not c:
+                return P.zero()
+            return P.element_class(P, CoefficientStream_exact(p, self._coeff_stream._is_sparse, c, d))
+        return P.element_class(P, CoefficientStream_apply_coeff(self._coeff_stream, func, R))
+
+    def change_ring(self, ring):
+        """
+        Return this series with coefficients converted to elements of ``ring``.
+
+        INPUT:
+
+        - ``ring`` -- a ring
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=False)
+        """
+        from .lazy_laurent_series_ring import LazyDirichletSeriesRing
+        Q = LazyDirichletSeriesRing(ring, names=self.parent().variable_names())
+        return Q.element_class(Q, self._coeff_stream)
+
+    def truncate(self, d):
+        """
+        Return this series with its terms of degree >= ``d`` truncated.
+
+        INPUT:
+
+        - ``d`` -- integer
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=False)
+        """
+        P = self.parent()
+        R = P._laurent_poly_ring
+        z = R.gen()
+        p = R.sum(self[i] * z**i for i in range(self._coeff_stream._approximate_valuation, d))
+        return P.element_class(P, CoefficientStream_eventually_geometric(p, P._sparse, ZZ.zero(), d))
+
+    def __pow__(self, n):
+        """
+        Return the ``n``-th power of the series.
+
+        INPUT:
+
+        - ``n`` -- integer, the power to which to raise the series
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+        """
+        if n == 0:
+            return self.parent().one()
+
+        return generic_power(self, n)
+
+    def prec(self):
+        """
+        Return the precision of the series, which is infinity.
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: f = L(1)
+            sage: f.prec()
+            +Infinity
+        """
+        return infinity
+
+    def valuation(self):
+        """
+        Return the valuation of the series.
+
+        This method determines the valuation of the series by looking for a
+        nonzero coefficient. Hence if the series happens to be zero, then it
+        may run forever.
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: mu = L(moebius); mu.valuation()
+            1
+            sage: (mu - mu).valuation()                                         # known bug
+            +Infinity
+            sage: g = L(constant=1, valuation=2)
+            sage: g.valuation()
+            2
+            sage: (g*g).valuation()
+            4
+        """
+        return self._coeff_stream.valuation()
+
+    def _repr_(self):
+        """
+        Return the string representation of this Dirichlet series.
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+        """
+        if isinstance(self._coeff_stream, CoefficientStream_zero):
+            return '0'
+        if isinstance(self._coeff_stream, CoefficientStream_uninitialized) and self._coeff_stream._target is None:
+            return 'Uninitialized Lazy Dirichlet Series'
+
+        atomic_repr = self.base_ring()._repr_option('element_is_atomic')
+        X = self.parent().variable_name()
+        v = self._coeff_stream._approximate_valuation
+
+        if not isinstance(self._coeff_stream, CoefficientStream_exact):
+            m = v + 7  # long enough
+        else:
+            m = self._coeff_stream._degree + 3
+
+        # Use the symbolic ring printing
+        from sage.calculus.var import var
+        from sage.symbolic.ring import SR
+        variable = var(self.parent().variable_name())
+        ret = " + ".join([repr(SR(self._coeff_stream[i])*i**(-variable))
+                          for i in range(v, m) if self._coeff_stream[i]])
+        if not ret:
+            return "0"
+        # TODO: Better handling when ret == 0 but we have not checked up to the constant term
+
+        if isinstance(self._coeff_stream, CoefficientStream_exact) and not self._coeff_stream._constant:
+            return ret
+        return ret + ' + ...'
+
+    def _richcmp_(self, other, op):
+        """
+        Compare ``self` with ``other`` with respect to the comparison operator ``op``.
+
+        Equality is verified if the corresponding coefficients of both series
+        can be checked for equality without computing coefficients
+        indefinitely.  Otherwise an exception is raised to declare that
+        equality is not decidable.
+
+        Inequality is not defined for lazy Dirichlet series.
+
+        INPUT:
+
+        - ``other`` -- another Dirichlet series
+
+        - ``op`` -- comparison operator
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(QQ, "z")
+        """
+        if op is op_EQ:
+            if isinstance(self._coeff_stream, CoefficientStream_zero):  # self == 0
+                return isinstance(other._coeff_stream, CoefficientStream_zero)
+            if isinstance(other._coeff_stream, CoefficientStream_zero):  # self != 0 but other == 0
+                return False
+
+            if (not isinstance(self._coeff_stream, CoefficientStream_eventually_geometric)
+                    or not isinstance(other._coeff_stream, CoefficientStream_eventually_geometric)):
+                # One of the lazy laurent series is not known to eventually be constant
+                # Implement the checking of the caches here.
+                n = min(self._coeff_stream._approximate_valuation, other._coeff_stream._approximate_valuation)
+                m = max(self._coeff_stream._approximate_valuation, other._coeff_stream._approximate_valuation)
+                for i in range(n, m):
+                    if self[i] != other[i]:
+                        return False
+                if self._coeff_stream == other._coeff_stream:
+                    return True
+                raise ValueError("undecidable as lazy Dirichlet series")
+
+            # Both are CoefficientStream_eventually_geometric, which implements a full check
+            return self._coeff_stream == other._coeff_stream
+
+        if op is op_NE:
+            return not (self == other)
+
+        return False
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+        """
+        return hash(self._coeff_stream)
+
+    def __bool__(self):
+        """
+        Test whether ``self`` is not zero.
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+        """
+        if isinstance(self._coeff_stream, CoefficientStream_zero):
+            return False
+
+        for a in self._coeff_stream._cache:
+            if a:
+                return True
+        if self[self._coeff_stream._approximate_valuation]:
+            return True
+        raise ValueError("undecidable as lazy Dirichlet series")
+
+    def define(self, s):
+        r"""
+        Define an equation by ``self = s``.
+
+        INPUT::
+
+        - ``s`` -- a Dirichlet series
+
+        EXAMPLES:
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: g = L(constant=1, valuation=2)
+            sage: F = L(None); F.define(1 + g*F)
+            sage: [F[i] for i in range(1, 16)]
+            [1, 1, 1, 2, 1, 3, 1, 4, 2, 3, 1, 8, 1, 3, 3]
+            sage: oeis(_)                                                       # optional, internet
+            0: A002033: Number of perfect partitions of n.
+            1: A074206: Kalmár's [Kalmar's] problem: number of ordered factorizations of n.
+            ...
+
+            sage: F = L(None); F.define(1 + g*F*F)
+            sage: [F[i] for i in range(1, 16)]
+            [1, 1, 1, 3, 1, 5, 1, 10, 3, 5, 1, 24, 1, 5, 5]
+
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
+            sage: g = L(constant=1, valuation=2)
+            sage: e = L(None)
+            sage: e.define(1 + g*e)
+            sage: e.define(1 + g*e)
+            Traceback (most recent call last):
+            ...
+            ValueError: series already defined
+        """
+        if not isinstance(self._coeff_stream, CoefficientStream_uninitialized) or self._coeff_stream._target is not None:
+            raise ValueError("series already defined")
+        self._coeff_stream._target = s._coeff_stream

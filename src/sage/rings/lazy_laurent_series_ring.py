@@ -78,12 +78,14 @@ from sage.misc.cachefunc import cached_method
 
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from .integer_ring import ZZ
+from .infinity import infinity
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, LaurentPolynomialRing_generic
 
-from .lazy_laurent_series import LazyLaurentSeries
+from .lazy_laurent_series import LazyLaurentSeries, LazyDirichletSeries
 
 from sage.data_structures.coefficient_stream import (
     CoefficientStream_zero,
+    CoefficientStream_exact,
     CoefficientStream_coefficient_function,
     CoefficientStream_eventually_geometric,
     CoefficientStream_uninitialized
@@ -373,3 +375,259 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         return self.element_class(self, CoefficientStream_zero(self._sparse))
 
+
+######################################################################
+
+class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
+    """
+    Lazy Dirichlet series ring.
+
+    INPUT:
+
+    - ``base_ring`` -- base ring of this Dirichlet series ring
+
+    - ``names`` -- name of the generator of this Dirichlet series ring
+
+    EXAMPLES::
+
+        sage: LazyDirichletSeriesRing(ZZ, 't')
+        Lazy Dirichlet Series Ring in t over Integer Ring
+    """
+    Element = LazyDirichletSeries
+
+    def __init__(self, base_ring, names, sparse=False, category=None):
+        """
+        Initialize the ring.
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 't')
+            sage: TestSuite(L).run(skip='_test_elements')
+        """
+        if base_ring.characteristic() > 0:
+            raise ValueError("positive characteristic not allowed for Dirichlet series")
+
+        self._sparse = sparse
+        Parent.__init__(self, base=base_ring, names=names,
+                        category=MagmasAndAdditiveMagmas().or_subcategory(category))
+
+    def _repr_(self):
+        """
+        String representation of this Dirichlet series ring.
+
+        EXAMPLES::
+
+            sage: LazyDirichletSeriesRing(QQbar, 'z')
+            Lazy Dirichlet Series Ring in z over Algebraic Field
+        """
+        return "Lazy Dirichlet Series Ring in {} over {}".format(self.variable_name(), self.base_ring())
+
+    @cached_method
+    def gen(self, n=0):
+        """
+        Return the `n`-th generator of this Dirichlet series ring.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.gen()
+            1
+            sage: L.gen(3)
+            1/(4^z)
+
+        """
+        assert n >= 0
+        coeff_stream = CoefficientStream_exact([1], self._sparse, valuation=n+1, constant=ZZ.zero())
+        return self.element_class(self, coeff_stream)
+
+    def ngens(self):
+        """
+        Return the number of generators of this Dirichlet series ring.
+
+        This is always `\infty`.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "s")
+            sage: L.ngens()
+            +Infinity
+        """
+        return infinity
+
+    @cached_method
+    def gens(self):
+        """
+        Return the tuple of the generator.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: L.gens()
+            Lazy family (<lambda>(i))_{i in Positive integers}
+            sage: L.gens()[1]
+            1/(2^z)
+
+        """
+        from sage.sets.family import Family
+        from sage.sets.positive_integers import PositiveIntegers
+
+        return Family(PositiveIntegers(), lambda n: self.gen(n))
+
+    def _coerce_map_from_(self, S):
+        """
+        Return ``True`` if a coercion from ``S`` exists.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.has_coerce_map_from(ZZ)
+            True
+            sage: L.has_coerce_map_from(QQ)
+            False
+        """
+        if self.base_ring().has_coerce_map_from(S):
+            return True
+
+        return False
+
+    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
+        """
+        Construct a Dirichlet series from ``x``.
+
+        INPUT:
+
+        - ``x`` -- a Dirichlet series, a Dirichlet polynomial, a Python function, or a list of elements in the base ring
+
+        - ``constant`` -- either ``None`` (default: ``None``) or pair of an element of the base ring and an integer
+
+        EXAMPLES::
+
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L(3)
+            3
+            sage: L(lambda i: i, constant=1, degree=6)
+            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 1/(6^z) + 1/(7^z) + 1/(8^z) + ...
+
+            sage: X = L(constant=5, degree=3); X
+            5/3^z + 5/4^z + 5/5^z + ...
+            sage: X.valuation()
+            3
+            sage: e = L(moebius); e
+            1 + -1/2^z + -1/3^z + -1/5^z + 1/(6^z) + -1/7^z + ...
+
+            sage: L([0], constant=1)
+            1/(2^z) + 1/(3^z) + 1/(4^z) + ...
+
+            sage: L(constant=1)
+            1 + 1/(2^z) + 1/(3^z) + ...
+
+        Alternatively, ``x`` can be a list of elements of the base ring.
+        Then these elements are read as coefficients of the terms of
+        degrees starting from the ``valuation``. In this case, ``constant``
+        may be just an element of the base ring instead of a tuple or can be
+        simply omitted if it is zero::
+
+            sage: f = L([1,2,3,4], 4); f
+            1/(4^z) + 2/5^z + 3/6^z + 4/7^z
+            sage: g = L([1,3,5,7,9], 6, -1); g
+            1/(6^z) + 3/7^z + 5/8^z + 7/9^z + 9/10^z + -1/11^z + -1/12^z + -1/13^z + ...
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(GF(2), 'z')
+            Traceback (most recent call last):
+            ...
+            ValueError: positive characteristic not allowed for Dirichlet series
+
+        TODO::
+
+            Add a method to make a copy of self._sparse.
+        """
+        if valuation is None:
+            valuation = 1
+        assert valuation > 0, "the valuation of a Dirichlet series must be positive"
+
+        if x is None:
+            return self.element_class(self, CoefficientStream_uninitialized(self._sparse, valuation))
+
+        BR = self.base_ring()
+        if constant is None:
+            constant = ZZ.zero()
+        elif isinstance(constant, (tuple, list)):
+            constant, degree = constant
+        constant = BR(constant)
+
+        if x in BR:
+            x = BR(x)
+            if not x and not constant:
+                coeff_stream = CoefficientStream_zero(self._sparse)
+                return self.element_class(self, coeff_stream)
+            elif not x:
+                x = []
+            else:
+                x = [x]
+        if isinstance(x, (tuple, list)):
+            coeff_stream = CoefficientStream_exact(x, self._sparse,
+                                                   valuation=valuation,
+                                                   constant=constant,
+                                                   degree=degree)
+            return self.element_class(self, coeff_stream)
+
+        if isinstance(x, LazyDirichletSeries):
+            if x._coeff_stream._is_sparse is self._sparse:
+                return self.element_class(self, x._coeff_stream)
+            # TODO: Implement a way to make a self._sparse copy
+            raise NotImplementedError("cannot convert between sparse and dense")
+        if callable(x):
+            if degree is not None:
+                if constant is None:
+                    constant = ZZ.zero()
+                x = [BR(x(i)) for i in range(1, degree)]
+                coeff_stream = CoefficientStream_exact(x, self._sparse,
+                                                       valuation=valuation,
+                                                       constant=constant,
+                                                       degree=degree)
+                return self.element_class(self, coeff_stream)
+            coeff_stream = CoefficientStream_coefficient_function(x, BR, self._sparse, valuation)
+            return self.element_class(self, coeff_stream)
+        raise ValueError(f"unable to convert {x} into a lazy Dirichlet series")
+
+    def _an_element_(self):
+        """
+        Return a Dirichlet series in this ring.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.an_element()
+            1/(4^z) + 1/(5^z) + 1/(6^z) + ...
+        """
+        c = self.base_ring().an_element()
+        return self.element_class(self, CoefficientStream_exact([], self._sparse, constant=c, valuation=4))
+
+    @cached_method
+    def one(self):
+        """
+        Return the constant series `1`.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.one()
+            1
+        """
+        return self.element_class(self, CoefficientStream_exact([1], self._sparse, valuation=1))
+
+    @cached_method
+    def zero(self):
+        """
+        Return the zero series.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.zero()
+            0
+        """
+        return self.element_class(self, CoefficientStream_zero(self._sparse))

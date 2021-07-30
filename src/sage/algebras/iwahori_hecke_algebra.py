@@ -2019,7 +2019,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         `T`-basis, and converting the results back to the `C^{\prime}`-basis
         (see Line 1303). The latter approach is used in the
         _Basis.product_on_basis method on Line 1298. The direct
-        method significantly speeds up the product computations. 
+        method implemented here significantly speeds up the product computations. 
 
         The following formulas for products of the forms `C^{\prime}_s \cdot
         C^{\prime}_w`  and `C^{\prime}_w \cdot C^{\prime}_s`, where `s` is a
@@ -2140,38 +2140,37 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Write `b` for `C^{\prime}`. This class computes each product `b_x
             \cdot b_y` in two steps as follows. 
 
-            If `\ell(x) \leq \ell(y)`, then we first decompose `b_x` into a
+            If `\ell(x) \leq \ell(y)`, we first decompose `b_x` into a
             polynomial in the generators `b_s (s\in S)` and then multiply that
             polynomial with `b_y`. If `\ell(x) > \ell(y)`, we decompose `b_y`
             into a polynomial in `b_s (s\in S)` and multiply that polynomial
             with `b_x`. The second step (multiplication) is done by repeatedly
             applying the key formulas displayed earlier directly. The first
             step (decomposition) is done by induction on the Bruhat order as
-            follows: for every element `u\in W` with length `\ell(u)>1` and
-            every left descent `s` of `u`, write `u=sw` (so `w=su`) and note
-            that
+            follows: for every element `u\in W` with length `\ell(u)>1`, pick a
+            left descent `s` of `u` and write `u=sw` (so `w=su`), then note that
 
             .. MATH:: 
                C^{\prime}_u = C^{\prime}_s * C^{\prime}_{w} - \sum_{v\le u; sv<
                v} \mu(v,w) C^{\prime}_v
 
-            by the key formulas, where the element `w` and all elements `v`'s
-            on the right side are lower than `u` in the Bruhat order; this
-            allows us to finish the computation by decomposing the lower order
-            terms `b_w` and each `b_v`. For example, for `u=121, s=1, w=21` in
-            type `A3` we have 
+            by the key formulas mentioned earlier, where the element `w` and
+            all elements `v`'s on the right side are lower than `u` in the
+            Bruhat order; this allows us to finish the computation by
+            decomposing the lower order terms `b_w` and each `b_v`. For
+            example, for `u=121, s=1, w=21` in type `A3` we have 
 
             .. MATH::
                b_{121} = b_1*b_{21} - b_1,
 
             where the lower order term `b_{21}` further decomposes into
             `b_2*b_1`, therefore `b_{121}=b_1*b_2 b_1 -b1`. We note that the
-            the base cases `\ell(x)=1` or `\ell(x)=0` of the above induction
-            occur when `x` is itself a Coxeter generator `s` or the group
-            identity, respectively. The decomposition is trivial in these cases
-            (we have `C_x=C_s` or `C_x=1`, the unit of the Hecke algebra).
-        
+            base cases `\ell(x)=1` or `\ell(x)=0` of the above induction occur
+            when `x` is itself a Coxeter generator `s` or the group identity,
+            respectively. The decomposition is trivial in these cases (we have
+            `C_x=C_s` or `C_x=1`, the unit of the Hecke algebra).        
             
+
         .. SEEALSO::
 
         # TODO: edit the following
@@ -2185,15 +2184,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Accommodate generic presentations of the Hecke algebra other than
             the standard and normalized ones.
 
-            Use the analog of the displayed formulas to implement
-            `C^{\prime}`-products in the multi-parameter Iwahori-Hecke algebra;
-            see Section 6 of [Lus2013]_.  
+            Use analogs of the key formulas to implement `C^{\prime}`-products
+            in the multi-parameter Iwahori-Hecke algebra; see Section 6 of
+            [Lus2013]_.  
         """
         _basis_name = 'Cp_Coxeter3'
 
         def __init__(self, algebra, prefix='Cp'):
             r"""
-            Initialize the Cp_Coxeter3 Kazdahn-Luzstig basis of the
+            Initialize the Cp_Coxeter3 Kazdahn-Lusztig basis of the
             Iwahori-Hecke algebra ``algebra''.
 
             EXAMPLES:
@@ -2332,10 +2331,12 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
             """
             return self.linear_combination((self._product_with_generator_on_basis(side, s, w), coeff) for (w, coeff) in x)
 
-        def _decompose_into_generators(self, w): 
+        def _decompose_into_generators(self, u): 
             r"""
-            Decompose `C^{\prime}_w` into a polynomial in the KL generators
+            Decompose `C^{\prime}_u` into a polynomial in the KL generators
             `C^{\prime}_s`; see "ALGORITHM". TODO: Reference "ALGORITHM"
+
+            TODO: 1. describe output; 2. possibly: change w to u?
 
             EXAMPLES:
 
@@ -2365,34 +2366,27 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
                 {(1,): 1, (1, 2, 1): -1, (1, 2, 1, 3, 2): 1, (1, 3, 2): -1}
             """
             # \ell(y) \leq 1
-            if len(w) == 0:
+            if len(u) == 0:
                 return {(): 1}
-            if len(w) == 1:
-                return {(w[0],): 1}
-            # \ell(y) > 1, we use the induction on `\ell(y)` and recursively
-            # find the decomposition 
-            s = w[0]
-            w1 = w[1:]
-        
-            # TODO: remove some doc strings below. We've explained the ideas in enough detail. 
-
-            # Additively build the sum term (lower order terms)
+            if len(u) == 1:
+                return {(u[0],): 1}
+            # \ell(y) > 1, use the recursive method described in ALGORITHM
+            s = u[0]
+            w = u[1:]  # so C^{prime}_s * C^{\prime}_{w} = C^\prime{u} + lower order terms
+            # get the lower order terms ("sum_term")
             sum_term = self(0)
-            between = self._W.bruhat_interval([], w1)
-            for x in between:
-                # Get (coxeter3-implemented) group element corresponding to x
-                x_elt = self._W(x)
-                if x_elt.has_left_descent(s):
+            between = self._W.bruhat_interval([], w)
+            for v in between:
+                # Get (coxeter3-implemented) group element corresponding to v
+                v_elt = self._W(x)
+                if v_elt.has_left_descent(s):
                     # Compute mu-coefficient via coxeter3
-                    sum_term += self.base_ring()(x.mu_coefficient(w1)) * self.monomial(x_elt)
-        
-            # Recurse and decompose C_{w1} into generators, then go through the
-            # lower order terms in sum_term and decompose those into generators.
-            # Perform (distrubute) Cp_s * Cp_{w1}
-            result = {(s,) + gens: coeff for (gens, coeff) in self._decompose_into_generators(w1).items()}
-            for (v, c1) in sum_term:
+                    sum_term += self.base_ring()(v.mu_coefficient(w)) * self.monomial(v_elt)        
+            # Recurse now: decompose C_s * C_{w} and the lower order terms
+            result = {(s,) + gens: coeff for (gens, coeff) in self._decompose_into_generators(w).items()}
+            for (z, c1) in sum_term:
                 # Subtract off each term from `sum_term`.
-                for (gens, c2) in self._decompose_into_generators(v).items():
+                for (gens, c2) in self._decompose_into_generators(z).items():
                     result[gens] = result.get(gens, 0) - c1*c2
                 
             return result
@@ -2402,8 +2396,9 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
             Return the expansion of `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` in
             the `C^{\prime}`-basis.
 
-            The product is computed in the two steps as described in
-            "ALGORITHM". TODO: Reference "ALGORITHM"
+            The product is computed in the two steps (decomposition +
+            multiplication) as described in "ALGORITHM". TODO: Reference
+            "ALGORITHM"
 
             EXAMPLES::
 
@@ -2415,8 +2410,8 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
                 sage: Cp.product_on_basis(W([1,2,1]), W([3,1,2]))
                 (v^-1+v)*Cp[1,2,1,3,2] + (v^-1+v)*Cp[1,2,1]
             """
-            # Decompose one of Cp_{w1} and Cp_{w2} into a polynomial in the
-            # generators, then multiply the remaining one with the polynomial.
+            # Decomposition: write one of Cp_{w1} and Cp_{w2} as a polynomial in the
+            # generators
             if len(w1) <= len(w2):
                 side = 'left'
                 gen_expression = self._decompose_into_generators(w1)
@@ -2426,16 +2421,14 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
                 gen_expression = self._decompose_into_generators(w2)
                 other_element = self.monomial(w1)
             result = self(0)
-            # Proceed through the terms, multiplying the generators in each term
-            # onto other_element and adding that summand onto result.
+            # Multiplication: multiply the generators in each term of the above
+            # polynomial onto other_element and add that summand onto result.
             for (p, coeff) in gen_expression.items():
                 summand = coeff * other_element
                 p_list = list(p) if side == 'right' else list(p)[::-1]
                 for s in p_list:
                     summand = self._product_with_generator(side, s, summand)
-
                 result += summand
-
             return result
         
 

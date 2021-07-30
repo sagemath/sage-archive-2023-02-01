@@ -500,7 +500,7 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
         sage: g * x == x
         True
 
-    The underlying ambient module the Orlik-Solomon algebra,
+    The underlying ambient module is the Orlik-Solomon algebra,
     which is accessible via :meth:`ambient()`::
 
         sage: M.orlik_solomon_algebra(QQ) is OSG.ambient()
@@ -574,6 +574,13 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
         [ B[5]     0  B[7]     0     0     0     0     0]
         [ B[6]  B[7]     0     0     0     0     0     0]
         [ B[7]     0     0     0     0     0     0     0]
+
+    .. NOTE::
+
+        The algebra structure only exists when the action on the
+        groundset yeilds an equivariant matroid, in the sense that
+        `g \cdot I \in \mathcal{I}` for every `g \in G` and for
+        every `I \in \mathcal{I}`.
     """
     def __init__(self, R, M, G, action_on_groundset=None, *args, **kwargs):
         r"""

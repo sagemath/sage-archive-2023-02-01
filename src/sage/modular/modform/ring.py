@@ -68,7 +68,7 @@ def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=Fals
 
     EXAMPLES::
 
-        sage: import sage.modular.modform.find_generators as f
+        sage: import sage.modular.modform.ring as f
         sage: forms = [(4, 240*eisenstein_series_qexp(4,5)), (6,504*eisenstein_series_qexp(6,5))]
         sage: f._span_of_forms_in_weight(forms, 12, prec=5)
         Vector space of degree 5 and dimension 2 over Rational Field
@@ -135,38 +135,6 @@ def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=Fals
         W = V.span(G)
         verbose('span has dimension %s' % W.rank(), t)
         return W
-
-def find_generators(*args):
-    r"""
-    This function, which existed in earlier versions of Sage, has now been
-    replaced by the :meth:`~ModularFormsRing.generators` method of
-    ModularFormsRing objects.
-
-    EXAMPLES::
-
-        sage: from sage.modular.modform.find_generators import find_generators
-        sage: find_generators()
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: find_generators has been removed -- use ModularFormsRing.generators()
-    """
-    raise NotImplementedError("find_generators has been removed -- use ModularFormsRing.generators()")
-
-def basis_for_modform_space(*args):
-    r"""
-    This function, which existed in earlier versions of Sage, has now been
-    replaced by the :meth:`~ModularFormsRing.q_expansion_basis` method of
-    ModularFormsRing objects.
-
-    EXAMPLES::
-
-        sage: from sage.modular.modform.find_generators import basis_for_modform_space
-        sage: basis_for_modform_space()
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: basis_for_modform_space has been removed -- use ModularFormsRing.q_expansion_basis()
-    """
-    raise NotImplementedError("basis_for_modform_space has been removed -- use ModularFormsRing.q_expansion_basis()")
 
 @richcmp_method
 class ModularFormsRing(Parent):
@@ -640,6 +608,33 @@ class ModularFormsRing(Parent):
             1 + 17/5*q + 26/5*q^2 + 43/5*q^3 + 94/5*q^4 + 77/5*q^5 + 154/5*q^6 + 86/5*q^7 + 36*q^8 + 146/5*q^9 + O(q^10)
             sage: ModularFormsRing(11).generators(start_gens = [(2, f)])
             [(2, 1 + 17/5*q + 26/5*q^2 + 43/5*q^3 + 94/5*q^4 + 77/5*q^5 + 154/5*q^6 + 86/5*q^7 + 36*q^8 + 146/5*q^9 + O(q^10)), (2, 1 + 12*q^2 + 12*q^3 + 12*q^4 + 12*q^5 + 24*q^6 + 24*q^7 + 36*q^8 + 36*q^9 + O(q^10)), (4, 1 + O(q^10))]
+
+        TESTS::
+
+            sage: from sage.modular.modform.ring import find_generators
+            sage: find_generators(ModularFormsRing(1))
+            doctest:warning
+            ...
+            DeprecationWarning: find_generators is deprecated. Please use sage.modular.modform.ring.generators instead.
+            See https://trac.sagemath.org/31559 for details.
+            [(4,
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + 60480*q^6 + 82560*q^7 + 140400*q^8 + 181680*q^9 + O(q^10)),
+            (6,
+            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 - 4058208*q^6 - 8471232*q^7 - 17047800*q^8 - 29883672*q^9 + O(q^10))]
+
+        ::
+
+            sage: from sage.modular.modform.find_generators import find_generators
+            sage: find_generators(ModularFormsRing(1))
+            doctest:warning
+            ...
+            DeprecationWarning: Importing find_generators from here is deprecated. If you need to use it, please import it directly from sage.modular.modform.ring
+            See https://trac.sagemath.org/31559 for details.
+            [(4,
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + 60480*q^6 + 82560*q^7 + 140400*q^8 + 181680*q^9 + O(q^10)),
+            (6,
+            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 - 4058208*q^6 - 8471232*q^7 - 17047800*q^8 - 29883672*q^9 + O(q^10))]
+
         """
         sgs = []
         for x in start_gens:
@@ -869,6 +864,16 @@ class ModularFormsRing(Parent):
 
             sage: ModularFormsRing(11).q_expansion_basis(10, prec=5)
             [1 + O(q^5), q + O(q^5), q^2 + O(q^5), q^3 + O(q^5), q^4 + O(q^5), O(q^5), O(q^5), O(q^5), O(q^5), O(q^5)]
+
+        TESTS::
+
+            sage: from sage.modular.modform.ring import basis_for_modform_space
+            sage: basis_for_modform_space(ModularFormsRing(1), 4)
+            doctest:warning
+            ...
+            DeprecationWarning: basis_for_modform_space is deprecated. Please use sage.modular.modform.ring.q_expansion_basis instead.
+            See https://trac.sagemath.org/31559 for details.
+            [1 + 240*q + O(q^2)]
         """
         d = self.modular_forms_of_weight(weight).dimension()
         if d == 0:
@@ -1038,3 +1043,8 @@ class ModularFormsRing(Parent):
 
         R = G[0][1].parent()
         return [R(list(x), prec=prec) for x in W.gens()]
+
+
+# Deprecated functions
+find_generators = deprecated_function_alias(31559, ModularFormsRing.generators)
+basis_for_modform_space = deprecated_function_alias(31559, ModularFormsRing.q_expansion_basis)

@@ -774,6 +774,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             :meth:`sage.rings.polynomial.polynomial_element.Polynomial.inverse_series_trunc` .
 
+        .. TODO::
+
+            July 2021: in the current state of polynomial matrix
+            multiplication, it would be highly beneficial to use conversions
+            and rely on polynomials with matrix coefficients when the matrix
+            size is "large" and the degree "small", see
+            [https://trac.sagemath.org/ticket/31472#comment:5].
         """
         if d <= 0:
             raise ValueError("the precision must be positive")

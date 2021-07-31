@@ -2018,8 +2018,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         `C^{\prime}`-basis to the `T`-basis, calculating the product in the
         `T`-basis, and converting the results back to the `C^{\prime}`-basis
         #TODO:(see Line 1303). The latter approach is used in the
-        #TODO:_Basis.product_on_basis method on Line 1298. The direct
-        method implemented here significantly speeds up the product computations. 
+        #TODO:_Basis.product_on_basis method on Line 1298. The direct method
+        implemented here significantly speeds up the product computations. 
 
         The following formulas for products of the forms `C^{\prime}_s \cdot
         C^{\prime}_w`  and `C^{\prime}_w \cdot C^{\prime}_s`, where `s` is a
@@ -2028,13 +2028,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         presentation of the Hecke algebra, and they control the products of the
         `C^{\prime}_x \cdot C^{\prime}_y` for arbitrary `x,y`.  
 
-        .. MATH:: 
-            C^{\prime}_s \cdot C^{\prime}_w = 
-            \begin{cases}
-                (q+q^-1)C^{\prime}_{w},         & \text{if } \ell(sw) = \ell(w)-1,\\
-                C^{\prime}_{sw}+\sum_{v\leq w, sv \leq v} \mu(v,w)C^{\prime}_v, 
-                                                & \text{if } \ell(sw) = \ell(w)+1. 
-            \end{cases}
+        .. MATH:: C^{\prime}_s \cdot C^{\prime}_w = \begin{cases}
+            (q+q^-1)C^{\prime}_{w},         & \text{if } \ell(sw) = \ell(w)-1,\\
+                C^{\prime}_{sw}+\sum_{v\leq w, sv \leq v} \mu(v,w)C^{\prime}_v,
+                                                & \text{if } \ell(sw) =
+                                                \ell(w)+1. \end{cases}
 
             C^{\prime}_w \cdot C^{\prime}_s = 
             \begin{cases}
@@ -2045,11 +2043,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         In the above, `\leq` is the Bruhat order on the Coxeter group and
         `\mu(v,w)` is the "leading coefficient of Kazhdan-Lusztig polynomials";
-        see [KL1979]_ and [Lus2014]_ for more details. The method designates
-        the computation of the `\mu`-coefficients to Fokko du Cloux's
-        'coxeter3' package (wrapped in Sage), which is why the method requires
-        the creation of the Coxeter group in the 'coxeter3' implementation.        
-     
+        see [KL1979]_ and [Lus2014]_ for more details. The method designates the
+        computation of the `\mu`-coefficients to Fokko du Cloux's 'coxeter3'
+        package (wrapped in Sage), which is why the method requires the creation
+        of the Coxeter group in the 'coxeter3' implementation.        
+
         EXAMPLES:
 
         To create the basis, define the Coxeter group with 'coxeter3' and the
@@ -2060,33 +2058,38 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: H = IwahoriHeckeAlgebra(W, v**2)         # standard presentation
             sage: CpC = H.Cp_Coxeter3()
 
-        The new basis here (CpC) and Cp basis are both implementations of the
-        the `C^{\prime}` basis. The only difference between the implementations
-        lies in their different methods for computing products::
+        The new basis here (``CpC``) and ``Cp`` basis are both implementations
+        of the the `C^{\prime}` basis. The only difference between the
+        implementations lies in their different methods for computing products,
+        elements can be converted between the two trivially TODO: I'm not sure
+        this example block is as useful or clear as it could be::
 
             sage: s1, s2, s3 = W.simple_reflections()
             sage: Cp = H.Cp()
-            sage: a = CpC(s1*s2*s1)
+            sage: a = CpC(s1*s2*s1); a
             CpC[1,2,1]
-            sage: b = Cp(s1*s2*s1)
+            sage: b = Cp(s1*s2*s1); b
             Cp[1,2,1]
-            sage: a == b
+            sage: Cp(a) == b
             True
+            sage: a == CpC(b)
+            True
+
+        This example demonstrates an example that takes a long time in the
+        existing ``Cp`` basis, but is fast using this implementation::
 
             sage: CpC(s1)**2
             (v^-1+v)*CpC[1]
             sage: Cp(s1)**2
             (v^-1+v)*Cp[1]
-
             sage: Cp(s1)*Cp(s2)*Cp(s1)
             Cp[1,2,1] + Cp[1]
             sage: CpC(s1)*CpC(s2)*CpC(s1)
             CpC[1,2,1] + CpC[1]
-
-            sage: Cp[1]*Cp[2]*Cp[3]*Cp[1]*Cp[2]       
-            Cp[1,2,1,3,2] + Cp[1,2,1] + Cp[1,3,2]     # long time in the Cp implementation; TODO: ref Line 1941
+            sage: Cp[1]*Cp[2]*Cp[3]*Cp[1]*Cp[2]       # long time
+            Cp[1,2,1,3,2] + Cp[1,2,1] + Cp[1,3,2]
             sage: CpC[1]*CpC[2]*CpC[3]*CpC[1]*CpC[2]       
-            CpC[1,2,1,3,2] + CpC[1,2,1] + CpC[1,3,2]  # instant in the CpC implementation
+            CpC[1,2,1,3,2] + CpC[1,2,1] + CpC[1,3,2]
 
         Below is another example, with the Hecke algebra of type `B9` in the
         normalized presentation. The (optional) relabeling command ensures that
@@ -2100,15 +2103,14 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: s = W.simple_reflections()
             sage: Cp(s[1]*s[2]*s[1]*s[2])
             Cp[1,2,1,2]
-
-            sage: Cp[3,2,3,4,5] * Cp[2,3] 
-            (v^-1+v)*Cp[2,3,2,4,3,5] + (v^-1+v)*Cp[2,3,2,5]# long time in the Cp implementation;
+            sage: Cp[3,2,3,4,5] * Cp[2,3]                      # long time
+            (v^-1+v)*Cp[2,3,2,4,3,5] + (v^-1+v)*Cp[2,3,2,5]
             sage: CpC[3,2,3,4,5] * CpC[2,3] 
-            (v^-1+v)*CpC[2,3,2,4,3,5] + (v^-1+v)*CpC[2,3,2,5] # instant in the CpC implementation
+            (v^-1+v)*CpC[2,3,2,4,3,5] + (v^-1+v)*CpC[2,3,2,5]
 
-        Note that to use the CpC basis for a Hecke algebra, a Coxeter group
-        must be created first with implemntation 'coxeter3'. Directly creating
-        a Hecke algebra from its Coxeter type does not work::
+        Note that to use the CpC basis for a Hecke algebra, a Coxeter group must
+        be created first with implemntation 'coxeter3'. Directly creating a
+        Hecke algebra from its Coxeter type does not work::
 
             sage: H = IwahoriHeckeAlgebra('A3', v**2)
             sage: H.Cp_Coxeter3()
@@ -2129,9 +2131,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\}` as sets)
 
 
-        ALGORITHM :
-            Write `b` for `C^{\prime}`. This class computes each product `b_x
-            \cdot b_y` in two steps as follows. 
+        ALGORITHM : Write `b` for `C^{\prime}`. This class computes each product
+            `b_x \cdot b_y` in two steps as follows. 
 
             If `\ell(x) \leq \ell(y)`, we first decompose `b_x` into a
             polynomial in the generators `b_s (s\in S)` and then multiply that
@@ -2162,7 +2163,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             when `x` is itself a Coxeter generator `s` or the group identity,
             respectively. The decomposition is trivial in these cases (we have
             `C_x=C_s` or `C_x=1`, the unit of the Hecke algebra).        
-            
+
 
         .. SEEALSO::
 
@@ -2173,7 +2174,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             :package?[coxeter3?]
 
         .. TODO::
-            
+
             Accommodate generic presentations of the Hecke algebra other than
             the standard and normalized ones.
 
@@ -3027,9 +3028,9 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                 sage: Cp(T(s1))
                 v*Cp[1] + (-u^-1*v^2)
                 sage: T._to_Cp_basis(s1, CpC)
-                v*Cp[1] + (-u^-1*v^2)
+                v*CpC[1] + (-u^-1*v^2)
                 sage: CpC(T(s1))
-                v*Cp[1] + (-u^-1*v^2)
+                v*CpC[1] + (-u^-1*v^2)
             """
             A = self.realization_of()
             # Cp = A.Cp() if not use_Cp_Coxeter3 else A.Cp_Coxeter3()
@@ -3086,19 +3087,19 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                 sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(A2)
                 sage: s1,s2 = H.coxeter_group().simple_reflections()
                 sage: T = H.T()
-                sage: Cp = H.Cp_Coxeter3()
+                sage: CpC = H.Cp_Coxeter3()
                 sage: T.to_Cp_Coxeter3_basis(s1)
-                v*Cp[1] + (-u^-1*v^2)
-                sage: Cp(T(s1))
-                v*Cp[1] + (-u^-1*v^2)
-                sage: Cp(T(s1)+1)
-                v*Cp[1] + (-u^-1*v^2+1)
-                sage: Cp(T(s1*s2)+T(s1)+T(s2)+1)
-                v^2*Cp[1,2] + (-u^-1*v^3+v)*Cp[1] + (-u^-1*v^3+v)*Cp[2]
+                v*CpC[1] + (-u^-1*v^2)
+                sage: CpC(T(s1))
+                v*CpC[1] + (-u^-1*v^2)
+                sage: CpC(T(s1)+1)
+                v*CpC[1] + (-u^-1*v^2+1)
+                sage: CpC(T(s1*s2)+T(s1)+T(s2)+1)
+                v^2*CpC[1,2] + (-u^-1*v^3+v)*CpC[1] + (-u^-1*v^3+v)*CpC[2]
                  + (u^-2*v^4-2*u^-1*v^2+1)
-                sage: Cp(T(s1*s2*s1))
-                v^3*Cp[1,2,1] + (-u^-1*v^4)*Cp[1,2] + (-u^-1*v^4)*Cp[2,1]
-                 + (u^-2*v^5)*Cp[1] + (u^-2*v^5)*Cp[2] + (-u^-3*v^6)
+                sage: CpC(T(s1*s2*s1))
+                v^3*CpC[1,2,1] + (-u^-1*v^4)*CpC[1,2] + (-u^-1*v^4)*CpC[2,1]
+                 + (u^-2*v^5)*CpC[1] + (u^-2*v^5)*CpC[2] + (-u^-3*v^6)
             """
             A = self.realization_of()
             return self._to_Cp_basis(w, A.Cp_Coxeter3())

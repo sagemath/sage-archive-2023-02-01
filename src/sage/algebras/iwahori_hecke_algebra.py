@@ -2048,6 +2048,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         Cloux's ``coxeter3`` package, which is why the method requires the
         creation of the Coxeter group using the 'coxeter3' implementation.
 
+        The multiplication algorithm is described in detail in
+        :func:`product_on_basis`.
+
         EXAMPLES:
 
         To create the basis, define the Coxeter group with
@@ -2169,50 +2172,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             ValueError: the Cp_Coxeter3 basis is only supported in a Hecke
             algebra with the standard or normalized presentations (i.e., need
             {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)
-
-
-        ALGORITHM:
-
-        Write `b` for `C^{\prime}`. This class computes each product `b_x \cdot
-        b_y` in two steps as follows. 
-
-        If `\ell(x) \leq \ell(y)`, we first decompose `b_x` into a polynomial in
-        the generators `b_s (s\in S)` and then multiply that polynomial with
-        `b_y`. If `\ell(x) > \ell(y)`, we decompose `b_y` into a polynomial in
-        `b_s (s\in S)` and multiply that polynomial with `b_x`. The second step
-        (multiplication) is done by repeatedly applying the key formulas
-        displayed earlier directly. The first step (decomposition) is done by
-        induction on the Bruhat order as follows: for every element `u\in W`
-        with length `\ell(u)>1`, pick a left descent `s` of `u` and write `u=sw`
-        (so `w=su`), then note that
-
-        .. MATH:: C^{\prime}_u = C^{\prime}_s \cdot C^{\prime}_{w} - \sum_{v\le
-            u; sv< v} \mu(v,w) C^{\prime}_v
-
-        by the key formulas mentioned earlier, where the element `w` and all
-        elements `v`'s on the right side are lower than `u` in the Bruhat order;
-        this allows us to finish the computation by decomposing the lower order
-        terms `b_w` and each `b_v`. For example, for `u=121, s=1, w=21` in type
-        `A3` we have 
-
-        .. MATH:: b_{121} = b_1  b_{21} - b_1,
-
-        where the lower order term `b_{21}` further decomposes into `b_2 b_1`,
-        therefore `b_{121}=b_1 b_2 b_1 - b_1`. We note that the base cases
-        `\ell(x)=1` or `\ell(x)=0` of the above induction occur when `x` is
-        itself a Coxeter generator `s` or the group identity, respectively. The
-        decomposition is trivial in these cases (we have `b_x=C_s` or `b_x=1`,
-        the unit of the Hecke algebra).     
-        TODO: Edit seealso; We can probably not reference cell stuff given our
-        decision on that, and we *can't* reference _Basis.product_on_basis.
-        coxeter3? 
-
-
-        .. SEEALSO::
-
-            [KL1979]_, [Lus2013]_
-            :meth: _Basis.product_on_basis, cell stuff
-            :package?[coxeter3?]
 
         .. TODO::
 
@@ -2336,7 +2295,7 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
                 sage: CpC._product_with_generator_on_basis(2, W([1,3,2,1,3]), 'right')  # optional - coxeter3
                 CpC[1,2,1,3,2,1] + CpC[1,2,3,2] + CpC[1,3,2,1]
             """
-            # use the product formula described in ALGORITHM
+            # use the product formula described in product_on_basis
             if w.has_descent(s, side=side):
                 return self.delta * self.monomial(w)
             else:
@@ -2379,7 +2338,7 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
             r"""
             Decompose `C^{\prime}_u` into a polynomial in the KL generators
             `C^{\prime}_s`; see the ALGORITHM section of
-            :class:`IwahoriHeckeAlgebra.Cp_Coxeter3`.
+            :func:`product_on_basis`.
 
             OUTPUT:
 
@@ -2421,7 +2380,7 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
             if len(u) == 1:
                 return {(u[0],): 1}
 
-            # l(y) > 1, use the recursive method described in ALGORITHM
+            # l(y) > 1, use the recursive method described in product_on_basis
             s = u[0]
             w = u[1:]  # so CpC_s * CpC_w = CpC_u + lower order terms
 
@@ -2449,9 +2408,45 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
             Return the expansion of `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` in
             the `C^{\prime}`-basis.
 
-            The product is computed in the two steps (decomposition +
-            multiplication) as described in the ALGORITHM section of
-            :class:`IwahoriHeckeAlgebra.Cp_Coxeter3`
+            ALGORITHM:
+
+            This class computes each product `C^{\prime}_x \cdot C^{\prime}_y`
+            in two steps as follows. 
+
+            If `\ell(x) \leq \ell(y)`, we first decompose `C^{\prime}_x` into a
+            polynomial in the generators `C^{\prime}_s (s\in S)` and then
+            multiply that polynomial with `C^{\prime}_y`. If `\ell(x) >
+            \ell(y)`, we decompose `C^{\prime}_y` into a polynomial in
+            `C^{\prime}_s (s\in S)` and multiply that polynomial with
+            `C^{\prime}_x`. The second step (multiplication) is done by
+            repeatedly applying the key formulas displayed earlier directly. The
+            first step (decomposition) is done by induction on the Bruhat order
+            as follows: for every element `u\in W` with length `\ell(u)>1`, pick
+            a left descent `s` of `u` and write `u=sw` (so `w=su`), then note
+            that
+
+            .. MATH:: C^{\prime}_u = C^{\prime}_s \cdot C^{\prime}_{w} - \sum_{v\le u; sv< v} \mu(v,w) C^{\prime}_v
+
+            by the key formulas mentioned earlier, where the element `w` and all
+            elements `v`'s on the right side are lower than `u` in the Bruhat
+            order; this allows us to finish the computation by decomposing the
+            lower order terms `C^{\prime}_w` and each `C^{\prime}_v`. For
+            example, for `u=121, s=1, w=21` in type `A_3` we have
+            `C^{\prime}_{121} = C^{\prime}_1  C^{\prime}_{21} - C^{\prime}_1`,
+            where the lower order term `C^{\prime}_{21}` further decomposes into
+            `C^{\prime}_2 C^{\prime}_1`, therefore
+
+            .. MATH:: C^{\prime}_{121}=C^{\prime}_1 C^{\prime}_2 C^{\prime}_1 - C^{\prime}_1
+
+            We note that the base cases `\ell(x)=1` or `\ell(x)=0` of the above
+            induction occur when `x` is itself a Coxeter generator `s` or the
+            group identity, respectively. The decomposition is trivial in these
+            cases (we have `C^{\prime}_x=C^{\prime}_s` or `C^{\prime}_x=1`, the
+            unit of the Hecke algebra).
+
+            .. SEEALSO::
+
+                [KL1979]_, [Lus2013]_
 
             EXAMPLES::
 

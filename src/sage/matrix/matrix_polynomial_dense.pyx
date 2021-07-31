@@ -743,29 +743,29 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         EXAMPLES::
 
             sage: pR.<x> = GF(7)[]
-            sage: M = Matrix(pR, 3, 3,                            \
+            sage: A = Matrix(pR, 3, 3,                            \
                 [[4*x+5,           5*x^2 + x + 1, 4*x^2 + 4],     \
                  [6*x^2 + 6*x + 6, 4*x^2 + 5*x,   4*x^2 + x + 3], \
                  [3*x^2 + 2,       4*x + 1,       x^2 + 3*x]])
-            sage: Q = M.inverse_series_trunc(4); Q
+            sage: B = A.inverse_series_trunc(4); B
             [    x^3 + 5*x^2 + x + 4   x^3 + 5*x^2 + 6*x + 4         6*x^2 + 5*x + 3]
             [        4*x^2 + 5*x + 6     6*x^3 + x^2 + x + 6       3*x^3 + 2*x^2 + 2]
             [5*x^3 + 5*x^2 + 6*x + 6 4*x^3 + 2*x^2 + 6*x + 4   6*x^3 + x^2 + 6*x + 1]
-            sage: (Q*M).truncate(4) == 1
+            sage: (B*A).truncate(4) == 1
             True
 
-            sage: M.inverse_series_trunc(0)
+            sage: A.inverse_series_trunc(0)
             Traceback (most recent call last):
             ...
             ValueError: the precision must be positive
 
-            sage: M[:2,:].inverse_series_trunc(4)
+            sage: A[:2,:].inverse_series_trunc(4)
             Traceback (most recent call last):
             ...
             ArithmeticError: the input matrix must be square
 
-            sage: M[0,:] = M[0,:] - M[0,:](0) + M[1,:](0) + M[2,:](0)
-            sage: M.inverse_series_trunc(4)
+            sage: A[0,:] = A[0,:] - A[0,:](0) + A[1,:](0) + A[2,:](0)
+            sage: A.inverse_series_trunc(4)
             Traceback (most recent call last):
             ...
             ZeroDivisionError: the constant matrix term self(0) must be invertible
@@ -803,6 +803,268 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             inv_trunc = (mul_trunc * inv_trunc).truncate(next_prec)
         return inv_trunc
 
+    def solve_left_series_trunc(self, B, d):
+        r"""
+        Try to find a solution `X` to the equation `X A = B`, at precision
+        ``d``.
+
+        If ``self`` is a matrix `A`, then this function returns a vector or
+        matrix `X` such that `X A = B \bmod x^d`. If `B` is a vector then `X`
+        is a vector, and if `B` is a matrix then `X` is a matrix.
+
+        Raises ``ValueError`` if ``d`` is not strictly positive, or if there is
+        a dimension mismatch between `A` and `B`, or if there is no solution to
+        the given matrix equation at the specified precision.
+
+        INPUT:
+
+        - ``B`` -- a polynomial matrix or polynomial vector.
+
+        - ``d`` -- a positive integer.
+
+        OUTPUT:
+
+        A solution to the matrix equation, returned as polynomial matrix of
+        degree less than ``d`` if ``B`` is a polynomial matrix; a polynomial
+        vector of degree less than ``d`` if `B` is a polynomial vector.
+
+        ALGORITHM:
+
+        If `A` is square with invertible constant term, then the unique
+        solution is found by calling :meth:`inverse_series_trunc` and using the
+        Dixon & Moenck-Carter iteration. Otherwise, a left minimal approximant
+        basis of a matrix formed by `A` and `B` is computed, for an appropriate
+        shift which ensures that this basis reveals either a solution `X` or
+        the fact that no such solution exists.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 3, 3,                            \
+                [[4*x+5,           5*x^2 + x + 1, 4*x^2 + 4],     \
+                 [6*x^2 + 6*x + 6, 4*x^2 + 5*x,   4*x^2 + x + 3], \
+                 [3*x^2 + 2,       4*x + 1,       x^2 + 3*x]])
+            sage: A.is_square() and A.constant_matrix().is_invertible()
+            True
+            sage: B = vector([2*x^2 + 6*x + 6, 0, x + 6])
+            sage: X = A.solve_left_series_trunc(B,4); X
+            (3*x^3 + 3*x^2 + 2*x + 4, 4*x^3 + x^2 + 2*x + 6, 6*x^3 + x + 3)
+            sage: B == X*A % x**4
+            True
+
+            sage: B = Matrix(pR, 2, 3,                  \
+                    [[3*x, x^2 + x + 2, x^2 + 2*x + 3], \
+                    [  0,   6*x^2 + 1,             1]])
+            sage: A.solve_left_series_trunc(B,3)
+            [6*x^2 + 2*x + 2         4*x + 3     2*x^2 + 3*x]
+            [3*x^2 + 4*x + 5       4*x^2 + 3   x^2 + 6*x + 3]
+            sage: X = A.solve_left_series_trunc(B,37); B == X*A % x**37
+            True
+
+        Dimensions of input are checked::
+
+            sage: A.solve_left_series_trunc(B[:,:2],3)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of columns of self must equal number of columns of right-hand side
+
+        Raises an exception when no solution::
+
+            sage: A[2:,:].solve_left_series_trunc(B,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+            sage: Ax = x*A; C = vector(pR, [1,1,1])
+            sage: Ax.solve_left_series_trunc(C,5)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+        Supports rectangular and rank-deficient cases::
+
+            sage: A[:,:2].solve_left_series_trunc(B[:,:2],4)
+            [5*x^2 + 2*x + 5         5*x + 5         2*x + 4]
+            [5*x^3 + 2*x + 1 2*x^2 + 2*x + 5           4*x^2]
+
+            sage: V = Matrix([[3*x^2 + 4*x + 1, 4*x]])
+            sage: A[:2,:].solve_left_series_trunc(V*A[:2,:], 4) == V
+            True
+
+            sage: A[1,:] = (x+1) * A[0,:]; A[2,:] = (x+5) * A[0,:]
+            sage: B = (3*x^3+x^2+2)*A[0,:]
+            sage: A.solve_left_series_trunc(B, 6)
+            [4*x^2 + 6*x + 2       3*x^2 + x               0]
+
+        .. SEEALSO::
+
+            :meth:`solve_right_series_trunc`
+
+        """
+        from sage.structure.element import is_Vector
+        if is_Vector(B):
+            if self.ncols() != B.degree():
+                raise ValueError("number of columns of self must equal "
+                                 "degree of right-hand side")
+        else:
+            if self.ncols() != B.ncols():
+                raise ValueError("number of columns of self must equal "
+                                 "number of columns of right-hand side")
+
+        if d <= 0:
+            raise ValueError("the precision must be positive")
+        try:
+            # case where self is square, with invertible constant term
+            precA = 1+self.degree()
+            if is_Vector(B):
+                BB = B.row()
+                X = B.row().parent().zero()
+            else:
+                BB = B.__copy__()
+                X = B.parent().zero()
+            inv_self = self.inverse_series_trunc(precA)
+            for k in range(0,(d/precA).ceil()):
+                # compute XX = BB * invA mod x^precA
+                XX = (BB * inv_self).truncate(precA)
+                # compute BB = (BB - XX*A) x^(-precA)
+                BB = (BB - XX*self).shift(-precA)
+                # update X = X + x^(k*precA) * XX
+                X = X + XX.shift(k*precA)
+            return X.truncate(d)[0] if is_Vector(B) else X.truncate(d)
+        except (ZeroDivisionError,ArithmeticError):
+            # general case (possibly no solution)
+            m = self.nrows()
+            from sage.matrix.constructor import matrix
+            if is_Vector(B):
+                F = matrix.block([[self],[-B.row()]])
+                s = [0]*m + [d]
+            else:
+                F = matrix.block([[self],[-B]])
+                s = [0]*m + [d]*(B.nrows())
+            # Warning: the next call works, with the current implementation
+            # (Beckermann-Labahn style) of minimal approximant basis, but this
+            # implementation is modified then one might have to require Popov
+            # basis with the option "normal_form=True"
+            P = F.minimal_approximant_basis(d,s)
+            if P[m:,m:] != 1:
+                raise ValueError("matrix equation has no solutions")
+            else:
+                return P[m][:m] if is_Vector(B) else P[m:,:m]
+
+    def solve_right_series_trunc(self, B, d):
+        r"""
+        Try to find a solution `X` to the equation `A X = B`, at precision
+        ``d``.
+
+        If ``self`` is a matrix `A`, then this function returns a vector or
+        matrix `X` such that `A X = B \bmod x^d`. If `B` is a vector then `X`
+        is a vector, and if `B` is a matrix then `X` is a matrix.
+
+        Raises ``ValueError`` if ``d`` is not strictly positive, or if there is
+        a dimension mismatch between `A` and `B`, or if there is no solution to
+        the given matrix equation at the specified precision.
+
+        INPUT:
+
+        - ``B`` -- a polynomial matrix or polynomial vector.
+
+        - ``d`` -- a positive integer.
+
+        OUTPUT:
+
+        A solution to the matrix equation, returned as polynomial matrix of
+        degree less than ``d`` if ``B`` is a polynomial matrix; a polynomial
+        vector of degree less than ``d`` if `B` is a polynomial vector.
+
+        ALGORITHM:
+
+        If `A` is square with invertible constant term, then the unique
+        solution is found by calling :meth:`inverse_series_trunc` and using the
+        Dixon & Moenck-Carter iteration. Otherwise, a right minimal approximant
+        basis of a matrix formed by `A` and `B` is computed, for an appropriate
+        shift which ensures that this basis reveals either a solution `X` or
+        the fact that no such solution exists.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 3, 3,                            \
+                [[4*x+5,           5*x^2 + x + 1, 4*x^2 + 4],     \
+                 [6*x^2 + 6*x + 6, 4*x^2 + 5*x,   4*x^2 + x + 3], \
+                 [3*x^2 + 2,       4*x + 1,       x^2 + 3*x]])
+            sage: A.is_square() and A.constant_matrix().is_invertible()
+            True
+            sage: B = vector([2*x^2 + 6*x + 6, 0, x + 6])
+            sage: X = A.solve_right_series_trunc(B,4); X
+            (2*x^3 + x^2, 5*x^3 + x^2 + 5*x + 6, 4*x^3 + 6*x^2 + 4*x)
+            sage: B == A*X % x**4
+            True
+
+            sage: B = Matrix(pR, 3, 2,                       \
+                        [[5*x^2 + 6*x + 3, 4*x^2 + 6*x + 4], \
+                         [  x^2 + 4*x + 2,         5*x + 2], \
+                         [        5*x + 3,               0]])
+            sage: A.solve_right_series_trunc(B,3)
+            [  3*x^2 + x + 1 5*x^2 + 4*x + 3]
+            [6*x^2 + 3*x + 1         4*x + 1]
+            [      6*x^2 + 1   2*x^2 + x + 4]
+            sage: X = A.solve_right_series_trunc(B,37); B == A*X % x**37
+            True
+
+        Dimensions of input are checked::
+
+            sage: A.solve_right_series_trunc(B[:2,:],3)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of rows of self must equal number of rows of right-hand side
+
+        Raises an exception when no solution::
+
+            sage: A[:,2:].solve_right_series_trunc(B,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+            sage: Ax = x*A; C = vector(pR, [1,1,1])
+            sage: Ax.solve_right_series_trunc(C,5)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+        Supports rectangular and rank-deficient cases::
+
+            sage: A[:2,:].solve_right_series_trunc(B[:2,:],4)
+            [    5*x^2 + 4*x           x + 4]
+            [  x^2 + 3*x + 5 3*x^2 + 4*x + 4]
+            [        5*x + 3         3*x + 2]
+
+            sage: V = Matrix([[2*x^2 + 5*x + 1], [3*x^2+4]])
+            sage: A[:,:2].solve_right_series_trunc(A[:,:2]*V, 4) == V
+            True
+
+            sage: A[:,1] = (x+1) * A[:,0]; A[:,2] = (x+5) * A[:,0]
+            sage: B = (3*x^3+x^2+2)*A[:,0]
+            sage: A.solve_right_series_trunc(B, 6)
+            [4*x^2 + 6*x + 2]
+            [      3*x^2 + x]
+            [              0]
+
+        .. SEEALSO::
+
+            :meth:`solve_left_series_trunc`
+
+        """
+        from sage.structure.element import is_Vector
+        if is_Vector(B):
+            try:
+                return self.transpose().solve_left_series_trunc(B, d)
+            except ValueError as e:
+                raise ValueError(str(e).replace('column', 'row'))
+        else:
+            try:
+                return self.transpose().solve_left_series_trunc(B.transpose(), d).transpose()
+            except ValueError as e:
+                raise ValueError(str(e).replace('column', 'row'))
 
     def row_degrees(self, shifts=None):
         r"""

@@ -2076,8 +2076,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: a == CpC(b)
             True
 
-        This example demonstrates an example that takes a long time in the
-        existing ``Cp`` basis, but is fast using this implementation::
+        Some computations that agree with computations in the existing ``Cp``
+        basis; the last example is one that significantly faster in this
+        implementation than in ``Cp``::
 
             sage: CpC(s1)**2
             (v^-1+v)*CpC[1]
@@ -2087,15 +2088,35 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Cp[1,2,1] + Cp[1]
             sage: CpC(s1)*CpC(s2)*CpC(s1)
             CpC[1,2,1] + CpC[1]
-            sage: Cp[1]*Cp[2]*Cp[3]*Cp[1]*Cp[2]       # long time
+            sage: Cp[1]*Cp[2]*Cp[3]*Cp[1]*Cp[2]
             Cp[1,2,1,3,2] + Cp[1,2,1] + Cp[1,3,2]
-            sage: CpC[1]*CpC[2]*CpC[3]*CpC[1]*CpC[2]       
+            sage: CpC[1]*CpC[2]*CpC[3]*CpC[1]*CpC[2]
             CpC[1,2,1,3,2] + CpC[1,2,1] + CpC[1,3,2]
+
+        A computation in type `H_4` that is significantly faster in this
+        implementation than in the existing ``Cp`` basis::
+
+            sage: W = CoxeterGroup('H4', implementation='coxeter3')
+            sage: H = IwahoriHeckeAlgebra(W, v**2)
+            sage: Cp = H.Cp(); CpC = H.Cp_Coxeter3()
+            sage: Cp[3,4,3]*Cp[3,4,3,4]*Cp[1,2,3,4]                     # long time (5 seconds)
+            (v^-2+2+v^2)*Cp[4,3,4,3,4,1,2,3,4]
+            + (v^-2+2+v^2)*Cp[4,3,4,3,4,1,2]
+            + (v^-1+v)*Cp[3,4,1,2,3,4]
+            + (v^-3+3*v^-1+3*v+v^3)*Cp[4,3,4,3,4,1]
+            + (v^-1+v)*Cp[3,4,1,2]
+            sage: CpC[3,4,3]*CpC[3,4,3,4]*CpC[1,2,3,4]
+            (v^-2+2+v^2)*CpC[4,3,4,3,4,1,2,3,4]
+            + (v^-2+2+v^2)*CpC[4,3,4,3,4,1,2]
+            + (v^-1+v)*CpC[3,4,1,2,3,4]
+            + (v^-3+3*v^-1+3*v+v^3)*CpC[4,3,4,3,4,1]
+            + (v^-1+v)*CpC[3,4,1,2]
 
         Below is another example, with the Hecke algebra of type `B_9` in the
         normalized presentation. The (optional) relabeling command ensures that
         `m(1,2)=4`, i.e., that the generators 1, 2 form the strong bond in the
-        Dynkin diagram::
+        Dynkin diagram. The final two examples are calculations that are very
+        quick using this implementation, but infeasible for the ``Cp`` basis::
 
             sage: B9 = CoxeterType(['B', 9]).relabel({ i: 9-i+1 for i in range(1, 10) })
             sage: W = CoxeterGroup(B9, implementation='coxeter3')
@@ -2104,10 +2125,27 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: s = W.simple_reflections()
             sage: Cp(s[1]*s[2]*s[1]*s[2])
             Cp[1,2,1,2]
-            sage: Cp[3,2,3,4,5] * Cp[2,3]                      # long time
+            sage: Cp[3,2,3,4,5] * Cp[2,3]                      
             (v^-1+v)*Cp[2,3,2,4,3,5] + (v^-1+v)*Cp[2,3,2,5]
             sage: CpC[3,2,3,4,5] * CpC[2,3] 
             (v^-1+v)*CpC[2,3,2,4,3,5] + (v^-1+v)*CpC[2,3,2,5]
+            sage: CpC[9,5,6,7,8,9,2,3,4,5,6,7,8,9] * CpC[9,8,7,6]     
+            (v^-3+3*v^-1+3*v+v^3)*CpC[2,3,4,5,4,6,5,7,6,8,7,9,8,7,6]
+            sage: CpC[1,5,4,3,2,1,8,7,6,5,4,3,2,1] * CpC[1,2,3,4]     # long time (4 seconds)
+            (v^-1+v)*CpC[1,5,4,3,2,1,8,7,6,5,4,3,2,1,2,3,4]
+            + (v^-1+v)*CpC[1,2,1,5,4,3,2,1,2,3,8,7,6,5,4]
+            + (v^-1+v)*CpC[1,3,2,1,5,4,3,2,1,2,3,4,8,7,6]
+            + (v^-1+v)*CpC[1,4,3,2,1,5,4,3,2,1,2,3,4,8,7]
+            + (v^-1+v)*CpC[1,5,4,3,2,1,2,3,8,7,6,5,4,3,2]
+            + (v^-1+v)*CpC[1,2,5,4,3,2,1,8,7,6,5,4,3]
+            + (v^-1+v)*CpC[1,2,5,4,3,2,8,7,6,5,4,3,2]
+            + (v^-1+v)*CpC[1,2,3,2,5,4,3,2,8,7,6]
+            + (v^-1+v)*CpC[1,2,4,3,2,5,4,3,2,8,7]
+            + (v^-1+v)*CpC[1,2,5,4,3,2,8,7,6,5,4]
+            + (v^-1+v)*CpC[1,5,4,3,2,1,8,7,6,5,4]
+            + (v^-1+v)*CpC[1,5,4,3,8,7,6,5,4,3,2]
+            + (v^-1+v)*CpC[1,3,5,4,3,2,8,7,6]
+            + (v^-1+v)*CpC[1,4,3,5,4,3,2,8,7]
 
         Note that to use the CpC basis for a Hecke algebra, a Coxeter group must
         be created first with ``implementation='coxeter3'``. Directly creating a

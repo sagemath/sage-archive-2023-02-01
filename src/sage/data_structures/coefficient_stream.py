@@ -1161,14 +1161,18 @@ class CoefficientStream_dirichlet_convolution(CoefficientStream_binary_commutati
 
     EXAMPLES::
 
-        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_mul, CoefficientStream_coefficient_function)
-        sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 0)
-        sage: g = CoefficientStream_coefficient_function(lambda n: 1, ZZ, True, 0)
+        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_dirichlet_convolution, CoefficientStream_coefficient_function, CoefficientStream_exact)
+        sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 1)
+        sage: g = CoefficientStream_exact([0], True, constant=1)
         sage: h = CoefficientStream_dirichlet_convolution(f, g)
-        sage: [h[i] for i in range(1, 11)]
+        sage: [h[i] for i in range(1, 10)]
+        [1, 3, 4, 7, 6, 12, 8, 15, 13]
+        sage: [sigma(n) for n in range(1, 10)]
+        [1, 3, 4, 7, 6, 12, 8, 15, 13]
 
         sage: u = CoefficientStream_dirichlet_convolution(g, f)
-        sage: [u[i] for i in range(1, 11)]
+        sage: [u[i] for i in range(1, 10)]
+        [1, 3, 4, 7, 6, 12, 8, 15, 13]
 
     """
     def __init__(self, left, right):
@@ -1178,7 +1182,7 @@ class CoefficientStream_dirichlet_convolution(CoefficientStream_binary_commutati
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
 
-        assert left._approximate_valuation > 0 and right._approximate_valuation > 0
+        assert left._approximate_valuation > 0 and right._approximate_valuation > 0, "Dirichlet convolution is only defined for coefficient streams with valuation at least 1"
 
         vl = left._approximate_valuation
         vr = right._approximate_valuation
@@ -1204,16 +1208,6 @@ class CoefficientStream_dirichlet_convolution(CoefficientStream_binary_commutati
     def iterate_coefficients(self):
         """
         A generator for the coefficients of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_mul)
-            sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, False, 0)
-            sage: g = CoefficientStream_coefficient_function(lambda n: n^3, ZZ, False, 0)
-            sage: h = CoefficientStream_mul(f, g)
-            sage: n = h.iterate_coefficients()
-            sage: [next(n) for i in range(1, 11)]
-            [0, 1, 9, 36, 100, 225, 441, 784, 1296, 2025]
         """
         n = self._offset
         while True:
@@ -1235,11 +1229,13 @@ class CoefficientStream_dirichlet_inv(CoefficientStream_unary):
 
     EXAMPLES::
 
-        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_inv, CoefficientStream_coefficient_function)
+        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_dirichlet_inv, CoefficientStream_coefficient_function)
         sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, True, 1)
-        sage: g = CoefficientStream_inv(f)
+        sage: g = CoefficientStream_dirichlet_inv(f)
         sage: [g[i] for i in range(10)]
-        [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        [0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
+        sage: [moebius(i) for i in range(10)]
+        [0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
     """
     def __init__(self, series):
         """
@@ -1247,11 +1243,12 @@ class CoefficientStream_dirichlet_inv(CoefficientStream_unary):
 
         TESTS::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_inv, CoefficientStream_coefficient_function)
-            sage: f = CoefficientStream_coefficient_function(lambda n: -1, ZZ, True, 0)
-            sage: g = CoefficientStream_inv(f)
-            sage: [g[i] for i in range(10)]
-            [-1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_exact, CoefficientStream_dirichlet_inv)
+            sage: f = CoefficientStream_exact([0, 0], True, constant=1)
+            sage: g = CoefficientStream_dirichlet_inv(f)
+            Traceback (most recent call last):
+            ...
+            AssertionError: the Dirichlet inverse only exists if the coefficient with index 1 is non-zero
         """
         assert series[1], "the Dirichlet inverse only exists if the coefficient with index 1 is non-zero"
         super().__init__(series, series._is_sparse, 1)
@@ -1266,16 +1263,6 @@ class CoefficientStream_dirichlet_inv(CoefficientStream_unary):
         INPUT:
 
         - ``n`` -- integer; the degree for the coefficient
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_inv, CoefficientStream_coefficient_function)
-            sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 1)
-            sage: g = CoefficientStream_inv(f)
-            sage: g.get_coefficient(5)
-            0
-            sage: [g.get_coefficient(i) for i in range(10)]
-            [-2, 1, 0, 0, 0, 0, 0, 0, 0, 0]
         """
         if n == 1:
             return self._ainv
@@ -1290,15 +1277,6 @@ class CoefficientStream_dirichlet_inv(CoefficientStream_unary):
     def iterate_coefficients(self):
         """
         A generator for the coefficients of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_inv, CoefficientStream_coefficient_function)
-            sage: f = CoefficientStream_coefficient_function(lambda n: n^2, ZZ, False, 1)
-            sage: g = CoefficientStream_inv(f)
-            sage: n = g.iterate_coefficients()
-            sage: [next(n) for i in range(10)]
-            [1, -4, 7, -8, 8, -8, 8, -8, 8, -8]
         """
         n = 1
         yield self._ainv
@@ -1743,7 +1721,7 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
 
 class CoefficientStream_apply_coeff(CoefficientStream_unary):
     """
-    Return the series with ``function`` applied to each coefficient of this series.
+    Return the stream with ``function`` applied to each coefficient of this series.
 
     INPUT:
 

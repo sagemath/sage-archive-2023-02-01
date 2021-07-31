@@ -1588,17 +1588,17 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             EXAMPLES::
 
-                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(A3, v**2); T=H.T(); CpC=H.Cp_Coxeter3()
-                sage: s1,s2,s3 = A3.simple_reflections()
-                sage: T.to_Cp_Coxeter3_basis(s1)
+                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                            # optional - coxeter3
+                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')                # optional - coxeter3
+                sage: H = IwahoriHeckeAlgebra(A3, v**2); T=H.T(); CpC=H.Cp_Coxeter3()   # optional - coxeter3
+                sage: s1,s2,s3 = A3.simple_reflections()                                # optional - coxeter3
+                sage: T.to_Cp_Coxeter3_basis(s1)                                        # optional - coxeter3
                 v*CpC[1] - 1
-                sage: CpC(T(s1))
+                sage: CpC(T(s1))                                                        # optional - coxeter3
                 v*CpC[1] - 1
-                sage: CpC(T[1] + 1)
+                sage: CpC(T[1] + 1)                                                     # optional - coxeter3
                 v*CpC[1]
-                sage: CpC(T[1,2] + T[1] + T[2] + 1)
+                sage: CpC(T[1,2] + T[1] + T[2] + 1)                                     # optional - coxeter3
                 v^2*CpC[1,2]
             """
             H = self.realization_of()
@@ -2054,10 +2054,10 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         ``implementation='coxeter3'`` and the Hecke algebra with the standard or
         normalized presentation::
 
-            sage: R.<v> = LaurentPolynomialRing(ZZ)
-            sage: W = CoxeterGroup('A3', implementation='coxeter3')
-            sage: H = IwahoriHeckeAlgebra(W, v**2)
-            sage: CpC = H.Cp_Coxeter3()
+            sage: R.<v> = LaurentPolynomialRing(ZZ)                     # optional - coxeter3
+            sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
+            sage: H = IwahoriHeckeAlgebra(W, v**2)                      # optional - coxeter3
+            sage: CpC = H.Cp_Coxeter3()                                 # optional - coxeter3
 
         The new basis here (``CpC``) and ``Cp`` basis are both implementations
         of the the `C^{\prime}` basis. The only difference between the
@@ -2065,47 +2065,47 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         elements can be converted between the two trivially TODO: I'm not sure
         this example block is as useful or clear as it could be::
 
-            sage: s1, s2, s3 = W.simple_reflections()
-            sage: Cp = H.Cp()
-            sage: a = CpC(s1*s2*s1); a
+            sage: s1, s2, s3 = W.simple_reflections()       # optional - coxeter3
+            sage: Cp = H.Cp()                               # optional - coxeter3
+            sage: a = CpC(s1*s2*s1); a                      # optional - coxeter3
             CpC[1,2,1]
-            sage: b = Cp(s1*s2*s1); b
+            sage: b = Cp(s1*s2*s1); b                       # optional - coxeter3
             Cp[1,2,1]
-            sage: Cp(a) == b
+            sage: Cp(a) == b                                # optional - coxeter3
             True
-            sage: a == CpC(b)
+            sage: a == CpC(b)                               # optional - coxeter3
             True
 
         Some computations that agree with computations in the existing ``Cp``
         basis; the last example is one that significantly faster in this
         implementation than in ``Cp``::
 
-            sage: CpC(s1)**2
+            sage: CpC(s1)**2                                # optional - coxeter3
             (v^-1+v)*CpC[1]
-            sage: Cp(s1)**2
+            sage: Cp(s1)**2                                 # optional - coxeter3
             (v^-1+v)*Cp[1]
-            sage: Cp(s1)*Cp(s2)*Cp(s1)
+            sage: Cp(s1)*Cp(s2)*Cp(s1)                      # optional - coxeter3
             Cp[1,2,1] + Cp[1]
-            sage: CpC(s1)*CpC(s2)*CpC(s1)
+            sage: CpC(s1)*CpC(s2)*CpC(s1)                   # optional - coxeter3
             CpC[1,2,1] + CpC[1]
-            sage: Cp[1]*Cp[2]*Cp[3]*Cp[1]*Cp[2]
+            sage: Cp[1]*Cp[2]*Cp[3]*Cp[1]*Cp[2]             # optional - coxeter3
             Cp[1,2,1,3,2] + Cp[1,2,1] + Cp[1,3,2]
-            sage: CpC[1]*CpC[2]*CpC[3]*CpC[1]*CpC[2]
+            sage: CpC[1]*CpC[2]*CpC[3]*CpC[1]*CpC[2]        # optional - coxeter3
             CpC[1,2,1,3,2] + CpC[1,2,1] + CpC[1,3,2]
 
         A computation in type `H_4` that is significantly faster in this
         implementation than in the existing ``Cp`` basis::
 
-            sage: W = CoxeterGroup('H4', implementation='coxeter3')
-            sage: H = IwahoriHeckeAlgebra(W, v**2)
-            sage: Cp = H.Cp(); CpC = H.Cp_Coxeter3()
-            sage: Cp[3,4,3]*Cp[3,4,3,4]*Cp[1,2,3,4]                     # long time (5 seconds)
+            sage: W = CoxeterGroup('H4', implementation='coxeter3')     # optional - coxeter3
+            sage: H = IwahoriHeckeAlgebra(W, v**2)                      # optional - coxeter3
+            sage: Cp = H.Cp(); CpC = H.Cp_Coxeter3()                    # optional - coxeter3
+            sage: Cp[3,4,3]*Cp[3,4,3,4]*Cp[1,2,3,4]                     # long time (5 seconds) # optional - coxeter3
             (v^-2+2+v^2)*Cp[4,3,4,3,4,1,2,3,4]
             + (v^-2+2+v^2)*Cp[4,3,4,3,4,1,2]
             + (v^-1+v)*Cp[3,4,1,2,3,4]
             + (v^-3+3*v^-1+3*v+v^3)*Cp[4,3,4,3,4,1]
             + (v^-1+v)*Cp[3,4,1,2]
-            sage: CpC[3,4,3]*CpC[3,4,3,4]*CpC[1,2,3,4]
+            sage: CpC[3,4,3]*CpC[3,4,3,4]*CpC[1,2,3,4]                  # optional - coxeter3
             (v^-2+2+v^2)*CpC[4,3,4,3,4,1,2,3,4]
             + (v^-2+2+v^2)*CpC[4,3,4,3,4,1,2]
             + (v^-1+v)*CpC[3,4,1,2,3,4]
@@ -2118,20 +2118,21 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         Dynkin diagram. The final two examples are calculations that are very
         quick using this implementation, but infeasible for the ``Cp`` basis::
 
-            sage: B9 = CoxeterType(['B', 9]).relabel({ i: 9-i+1 for i in range(1, 10) })
-            sage: W = CoxeterGroup(B9, implementation='coxeter3')
-            sage: H = IwahoriHeckeAlgebra(W, v, -1/v) 
-            sage: CpC, Cp = H.Cp_Coxeter3(), H.Cp()
-            sage: s = W.simple_reflections()
-            sage: Cp(s[1]*s[2]*s[1]*s[2])
+            sage: B9 = CoxeterType(['B', 9])
+            sage: B9 = B9.relabel({ i: 9-i+1 for i in range(1, 10) })    # optional - coxeter3
+            sage: W = CoxeterGroup(B9, implementation='coxeter3')        # optional - coxeter3
+            sage: H = IwahoriHeckeAlgebra(W, v, -1/v)                    # optional - coxeter3
+            sage: CpC, Cp = H.Cp_Coxeter3(), H.Cp()                      # optional - coxeter3
+            sage: s = W.simple_reflections()                             # optional - coxeter3
+            sage: Cp(s[1]*s[2]*s[1]*s[2])                                # optional - coxeter3
             Cp[1,2,1,2]
-            sage: Cp[3,2,3,4,5] * Cp[2,3]                      
+            sage: Cp[3,2,3,4,5] * Cp[2,3]                                # optional - coxeter3
             (v^-1+v)*Cp[2,3,2,4,3,5] + (v^-1+v)*Cp[2,3,2,5]
-            sage: CpC[3,2,3,4,5] * CpC[2,3] 
+            sage: CpC[3,2,3,4,5] * CpC[2,3]                              # optional - coxeter3
             (v^-1+v)*CpC[2,3,2,4,3,5] + (v^-1+v)*CpC[2,3,2,5]
-            sage: CpC[9,5,6,7,8,9,2,3,4,5,6,7,8,9] * CpC[9,8,7,6]     
+            sage: CpC[9,5,6,7,8,9,2,3,4,5,6,7,8,9] * CpC[9,8,7,6]        # optional - coxeter3
             (v^-3+3*v^-1+3*v+v^3)*CpC[2,3,4,5,4,6,5,7,6,8,7,9,8,7,6]
-            sage: CpC[1,5,4,3,2,1,8,7,6,5,4,3,2,1] * CpC[1,2,3,4]     # long time (4 seconds)
+            sage: CpC[1,5,4,3,2,1,8,7,6,5,4,3,2,1] * CpC[1,2,3,4]        # long time (4 seconds) # optional - coxeter3
             (v^-1+v)*CpC[1,5,4,3,2,1,8,7,6,5,4,3,2,1,2,3,4]
             + (v^-1+v)*CpC[1,2,1,5,4,3,2,1,2,3,8,7,6,5,4]
             + (v^-1+v)*CpC[1,3,2,1,5,4,3,2,1,2,3,4,8,7,6]
@@ -2151,8 +2152,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         be created first with ``implementation='coxeter3'``. Directly creating a
         Hecke algebra from its Coxeter type does not work::
 
-            sage: H = IwahoriHeckeAlgebra('A3', v**2)
-            sage: H.Cp_Coxeter3()
+            sage: H = IwahoriHeckeAlgebra('A3', v**2)   # optional - coxeter3  
+            sage: H.Cp_Coxeter3()                       # optional - coxeter3
             Traceback (most recent call last):
             ...
             ValueError: algebra must be initialized with a coxeter3-implemented Coxeter group to use the Cp_Coxeter3 basis
@@ -2160,9 +2161,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         With the Coxeter group created first, the Hecke algebra must be defined
         with the standard or normalized presentation mentioned before::
 
-            sage: W = CoxeterGroup('A3', implementation='coxeter3')
-            sage: H = IwahoriHeckeAlgebra(W, QQ(1))                          
-            sage: H.Cp_Coxeter3()
+            sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
+            sage: H = IwahoriHeckeAlgebra(W, QQ(1))                     # optional - coxeter3        
+            sage: H.Cp_Coxeter3()                                       # optional - coxeter3
             Traceback (most recent call last):
             ...
             ValueError: the Cp_Coxeter3 basis is only supported in a Hecke
@@ -2233,17 +2234,17 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             Valid construction::
 
-                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: W = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(W, v**2)
-                sage: CpC = H.Cp_Coxeter3()
+                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
+                sage: H = IwahoriHeckeAlgebra(W, v**2)                      # optional - coxeter3
+                sage: CpC = H.Cp_Coxeter3()                                 # optional - coxeter3
                 <BLANKLINE>
 
             Invalid construction (not creating a Coxeter group with
             'coxeter3')::
 
-                sage: H = IwahoriHeckeAlgebra('A3', v**2)
-                sage: H.Cp_Coxeter3()
+                sage: H = IwahoriHeckeAlgebra('A3', v**2)   # optional - coxeter3
+                sage: H.Cp_Coxeter3()                       # optional - coxeter3
                 Traceback (most recent call last):
                 ...
                 ValueError: algebra must be initialized with a coxeter3-implemented Coxeter group to use the Cp_Coxeter3 basis
@@ -2251,9 +2252,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             Invalid construction (bad presentation for Hecke algebra)::
 
-                sage: W = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(W, QQ(1))                          
-                sage: H.Cp_Coxeter3()
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
+                sage: H = IwahoriHeckeAlgebra(W, QQ(1))                     # optional - coxeter3       
+                sage: H.Cp_Coxeter3()                                       # optional - coxeter3
                 Traceback (most recent call last):
                 ...
                 ValueError: the Cp_Coxeter3 basis is only supported in a Hecke
@@ -2296,13 +2297,14 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
 
             EXAMPLES::
 
-                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: W = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(W, v**2); Cp=H.Cp(); CpC=H.Cp_Coxeter3()
-                sage: s1, s2, s3 = W.simple_reflections()
-                sage: CpC.to_Cp_basis(s1*s2)
+                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
+                sage: H = IwahoriHeckeAlgebra(W, v**2)                      # optional - coxeter3
+                sage: Cp=H.Cp(); CpC=H.Cp_Coxeter3()                        # optional - coxeter3
+                sage: s1, s2, s3 = W.simple_reflections()                   # optional - coxeter3
+                sage: CpC.to_Cp_basis(s1*s2)                                # optional - coxeter3
                 Cp[1,2]
-                sage: CpC.to_Cp_basis(s1*s2*s1)
+                sage: CpC.to_Cp_basis(s1*s2*s1)                             # optional - coxeter3
                 Cp[1,2,1]
             """
             A = self.realization_of()
@@ -2324,14 +2326,14 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
 
             EXAMPLES::
 
-                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: W = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(W, v**2); CpC=H.Cp_Coxeter3()
-                sage: CpC._product_with_generator_on_basis(1, W([2,1]), 'left')
+                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                            # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')                 # optional - coxeter3
+                sage: H = IwahoriHeckeAlgebra(W, v**2); CpC=H.Cp_Coxeter3()             # optional - coxeter3
+                sage: CpC._product_with_generator_on_basis(1, W([2,1]), 'left')         # optional - coxeter3
                 CpC[1,2,1] + CpC[1]
-                sage: CpC._product_with_generator_on_basis(1, W([2,1]), 'right')
+                sage: CpC._product_with_generator_on_basis(1, W([2,1]), 'right')        # optional - coxeter3
                 (v^-1+v)*CpC[2,1]
-                sage: CpC._product_with_generator_on_basis(2, W([1,3,2,1,3]), 'right')
+                sage: CpC._product_with_generator_on_basis(2, W([1,3,2,1,3]), 'right')  # optional - coxeter3
                 CpC[1,2,1,3,2,1] + CpC[1,2,3,2] + CpC[1,3,2,1]
             """
             # use the product formula described in ALGORITHM
@@ -2363,12 +2365,12 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
 
             EXAMPLES::
 
-                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: W = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(W, v**2); CpC=H.Cp_Coxeter3()
-                sage: CpC._product_with_generator(1, CpC[1]+CpC[2], 'left')
+                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                    # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')         # optional - coxeter3
+                sage: H = IwahoriHeckeAlgebra(W, v**2); CpC=H.Cp_Coxeter3()     # optional - coxeter3
+                sage: CpC._product_with_generator(1, CpC[1]+CpC[2], 'left')     # optional - coxeter3
                 CpC[1,2] + (v^-1+v)*CpC[1]
-                sage: CpC._product_with_generator(1, CpC[1]+CpC[2], 'right')
+                sage: CpC._product_with_generator(1, CpC[1]+CpC[2], 'right')    # optional - coxeter3
                 CpC[2,1] + (v^-1+v)*CpC[1]
             """
             return self.linear_combination((self._product_with_generator_on_basis(s, w, side), coeff) for (w, coeff) in x)
@@ -2390,27 +2392,27 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
 
             ::
 
-                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: W = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(W, v**2); CpC=H.Cp_Coxeter3()
+                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                    # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')         # optional - coxeter3
+                sage: H = IwahoriHeckeAlgebra(W, v**2); CpC=H.Cp_Coxeter3()     # optional - coxeter3
 
             When `u` is itself a generator `s`, the decomposition is trivial::
 
-                sage: CpC._decompose_into_generators(W([1])) 
+                sage: CpC._decompose_into_generators(W([1]))    # optional - coxeter3
                 {(1,): 1}
 
             Another example, where `C^{\prime}_u` happens to be a monomial
             (e.g., CpC_{21}  = CpC_2 * CpC_1)::
 
-                sage: CpC._decompose_into_generators(W([2,1]))
+                sage: CpC._decompose_into_generators(W([2,1]))  # optional - coxeter3
                 {(2, 1): 1}          
 
             In more general situations the sum is a polynomial (e.g.,
             CpC_{121}=CpC_1*CpC_2*CpC_1-CpC_1)::
 
-                sage: CpC._decompose_into_generators(W([1,2,1]))
+                sage: CpC._decompose_into_generators(W([1,2,1]))        # optional - coxeter3
                 {(1,): -1, (1, 2, 1): 1}                         
-                sage: CpC._decompose_into_generators(W([1,2,3,1,2]))
+                sage: CpC._decompose_into_generators(W([1,2,3,1,2]))    # optional - coxeter3
                 {(1,): 1, (1, 2, 1): -1, (1, 2, 1, 3, 2): 1, (1, 3, 2): -1}
             """
             # l(y) = 0 or 1
@@ -2453,12 +2455,12 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
 
             EXAMPLES::
 
-                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: W = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(W, v**2); CpC=H.Cp_Coxeter3()
-                sage: CpC.product_on_basis(W([1,2,1]), W([3,1]))
+                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                    # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')         # optional - coxeter3
+                sage: H = IwahoriHeckeAlgebra(W, v**2); CpC=H.Cp_Coxeter3()     # optional - coxeter3
+                sage: CpC.product_on_basis(W([1,2,1]), W([3,1]))                # optional - coxeter3
                 (v^-1+v)*CpC[1,2,1,3]
-                sage: CpC.product_on_basis(W([1,2,1]), W([3,1,2]))
+                sage: CpC.product_on_basis(W([1,2,1]), W([3,1,2]))              # optional - coxeter3
                 (v^-1+v)*CpC[1,2,1,3,2] + (v^-1+v)*CpC[1,2,1]
             """
             # Decomposition: write one of C'_{w1} and C'_{w2} as a polynomial in the
@@ -3064,20 +3066,29 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             - ``Cp`` -- the target `C^{\prime}` basis to use; either ``Cp`` or
               ``Cp_Coxeter3``
 
-            EXAMPLES::
+            EXAMPLES:
 
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
+            ::
+
+                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')                            # optional - coxeter3
+                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(A3)   # optional - coxeter3
+                sage: s1,s2,s3 = A3.simple_reflections()                                            # optional - coxeter3
+                sage: T = H.T(); CpC = H.Cp_Coxeter3()                                              # optional - coxeter3
+                sage: T._to_Cp_basis(s1, CpC)                                                       # optional - coxeter3
+                v*CpC[1] + (-u^-1*v^2)
+                sage: CpC(T(s1))                                                                    # optional - coxeter3
+                v*CpC[1] + (-u^-1*v^2)
+
+            ::
+
+                sage: A3 = CoxeterGroup('A3')
                 sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(A3)
                 sage: s1,s2,s3 = A3.simple_reflections()
-                sage: T = H.T(); Cp = H.Cp(); CpC = H.Cp_Coxeter3()
+                sage: T = H.T(); Cp = H.Cp()
                 sage: T._to_Cp_basis(s1, Cp)
                 v*Cp[1] + (-u^-1*v^2)
                 sage: Cp(T(s1))
                 v*Cp[1] + (-u^-1*v^2)
-                sage: T._to_Cp_basis(s1, CpC)
-                v*CpC[1] + (-u^-1*v^2)
-                sage: CpC(T(s1))
-                v*CpC[1] + (-u^-1*v^2)
             """
             A = self.realization_of()
             # Cp = A.Cp() if not use_Cp_Coxeter3 else A.Cp_Coxeter3()
@@ -3130,21 +3141,21 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
 
             EXAMPLES::
 
-                sage: A2 = CoxeterGroup('A2', implementation='coxeter3')
-                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(A2)
-                sage: s1,s2 = H.coxeter_group().simple_reflections()
-                sage: T = H.T()
-                sage: CpC = H.Cp_Coxeter3()
-                sage: T.to_Cp_Coxeter3_basis(s1)
+                sage: A2 = CoxeterGroup('A2', implementation='coxeter3')                            # optional - coxeter3
+                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(A2)   # optional - coxeter3
+                sage: s1,s2 = H.coxeter_group().simple_reflections()                                # optional - coxeter3
+                sage: T = H.T()                                                                     # optional - coxeter3
+                sage: CpC = H.Cp_Coxeter3()                                                         # optional - coxeter3
+                sage: T.to_Cp_Coxeter3_basis(s1)                                                    # optional - coxeter3
                 v*CpC[1] + (-u^-1*v^2)
-                sage: CpC(T(s1))
+                sage: CpC(T(s1))                                                                    # optional - coxeter3
                 v*CpC[1] + (-u^-1*v^2)
-                sage: CpC(T(s1)+1)
+                sage: CpC(T(s1)+1)                                                                  # optional - coxeter3
                 v*CpC[1] + (-u^-1*v^2+1)
-                sage: CpC(T(s1*s2)+T(s1)+T(s2)+1)
+                sage: CpC(T(s1*s2)+T(s1)+T(s2)+1)                                                   # optional - coxeter3
                 v^2*CpC[1,2] + (-u^-1*v^3+v)*CpC[1] + (-u^-1*v^3+v)*CpC[2]
                  + (u^-2*v^4-2*u^-1*v^2+1)
-                sage: CpC(T(s1*s2*s1))
+                sage: CpC(T(s1*s2*s1))                                                              # optional - coxeter3
                 v^3*CpC[1,2,1] + (-u^-1*v^4)*CpC[1,2] + (-u^-1*v^4)*CpC[2,1]
                  + (u^-2*v^5)*CpC[1] + (u^-2*v^5)*CpC[2] + (-u^-3*v^6)
             """

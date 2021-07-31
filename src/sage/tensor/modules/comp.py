@@ -2384,21 +2384,16 @@ class Components(SageObject):
         si = self._sindex
         imax = self._dim - 1 + si
         ind = [si for k in range(self._nid)]
-        ind_end = [si for k in range(self._nid)]
-        ind_end[0] = imax+1
-        while ind != ind_end:
+        while True:
             yield tuple(ind)
-            ret = 1
             for pos in range(self._nid-1,-1,-1):
                 if ind[pos] != imax:
-                    ind[pos] += ret
-                    ret = 0
-                elif ret == 1:
-                    if pos == 0:
-                        ind[pos] = imax + 1 # end point reached
-                    else:
-                        ind[pos] = si
-                        ret = 1
+                    ind[pos] += 1
+                    break
+                elif pos != 0:
+                    ind[pos] = si
+                else:
+                    return # end point reached
 
     def non_redundant_index_generator(self):
         r"""

@@ -338,8 +338,10 @@ class CoefficientStream_exact(CoefficientStream):
         TESTS::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: CoefficientStream_exact([], False)[0]
-            0
+            sage: CoefficientStream_exact([], False)
+            Traceback (most recent call last):
+            ...
+            AssertionError: CoefficientStream_exact should only be used for non-zero streams
 
         """
         if constant is None:
@@ -384,9 +386,9 @@ class CoefficientStream_exact(CoefficientStream):
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: s = CoefficientStream_exact([], False)
+            sage: s = CoefficientStream_exact([1], False)
             sage: [s[i] for i in range(-2, 5)]
-            [0, 0, 0, 0, 0, 0, 0]
+            [0, 0, 1, 0, 0, 0, 0]
 
             sage: s = CoefficientStream_exact([], False, constant=1)
             sage: [s[i] for i in range(-2, 5)]
@@ -1812,145 +1814,3 @@ class CoefficientStream_apply_coeff(CoefficientStream_unary):
             c = self._ring(self._function(self._series[n]))
             yield c
             n += 1
-
-class CoefficientStream_exact(CoefficientStream):
-    r"""
-    A stream of eventually constant coefficients.
-
-    INPUT:
-
-        - ``initial_values`` -- a list of initial values
-
-        - ``is_sparse`` -- a boolean, which specifies whether the
-          series is sparse
-
-        - ``valuation`` -- (default: 0), an integer, determining the
-          degree of the first element of ``initial_values``
-
-        - ``degree`` -- (default: None), an integer, determining the
-          degree of the first element which is known to be equal to
-          ``constant``
-
-        - ``constant`` -- (default: 0), an integer, the coefficient
-          of every index larger than or equal to ``degree``
-    """
-    def __init__(self, initial_coefficients, is_sparse, constant=None, degree=None, valuation=None):
-        """
-        Initialize a series that is known to be eventually geometric.
-
-        TESTS::
-
-            sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: CoefficientStream_exact([], False)[0]
-            0
-
-        """
-        if constant is None:
-            self._constant = ZZ.zero()
-        else:
-            self._constant = constant
-        if valuation is None:
-            valuation = 0
-        if degree is None:
-            self._degree = valuation + len(initial_coefficients)
-        else:
-            self._degree = degree
-
-        assert valuation + len(initial_coefficients) <= self._degree
-
-        for i, v in enumerate(initial_coefficients):
-            if v:
-                valuation += i
-                initial_coefficients = initial_coefficients[i:]
-                for j, w in enumerate(reversed(initial_coefficients)):
-                    if w:
-                        break
-                    initial_coefficients.pop()
-                self._initial_coefficients = tuple(initial_coefficients)
-                break
-        else:
-            valuation = self._degree
-            self._initial_coefficients = tuple()
-
-        assert self._initial_coefficients or self._constant, "CoefficientStream_exact should only be used for non-zero streams"
-
-        super().__init__(is_sparse, valuation)
-
-    def __getitem__(self, n):
-        """
-        Return the coefficient of the term with exponent ``n`` of the series.
-
-        INPUT:
-
-        - ``n`` -- integer, the degree for which the coefficient is required
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: s = CoefficientStream_exact([], False)
-            sage: [s[i] for i in range(-2, 5)]
-            [0, 0, 0, 0, 0, 0, 0]
-
-            sage: s = CoefficientStream_exact([], False, constant=1)
-            sage: [s[i] for i in range(-2, 5)]
-            [0, 0, 1, 1, 1, 1, 1]
-
-            sage: s = CoefficientStream_exact([2], False, constant=1)
-            sage: [s[i] for i in range(-2, 5)]
-            [0, 0, 2, 1, 1, 1, 1]
-
-            sage: s = CoefficientStream_exact([2], False, valuation=-1, constant=1)
-            sage: [s[i] for i in range(-2, 5)]
-            [0, 2, 1, 1, 1, 1, 1]
-
-            sage: s = CoefficientStream_exact([2], False, valuation=-1, degree=2, constant=1)
-            sage: [s[i] for i in range(-2, 5)]
-            [0, 2, 0, 0, 1, 1, 1]
-
-            sage: t = CoefficientStream_exact([0, 2, 0], False, valuation=-2, degree=2, constant=1)
-            sage: t == s
-            True
-        """
-        if n >= self._degree:
-            return self._constant
-        i = n - self._approximate_valuation
-        if i < 0 or i >= len(self._initial_coefficients):
-            return 0
-        return self._initial_coefficients[i]
-
-    def valuation(self):
-        return self._approximate_valuation
-
-    def __hash__(self):
-        """
-        Return the hash of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: f = 1 + z + z^2 + z^3
-            sage: {f: 1}
-            {1 + z + z^2 + z^3: 1}
-        """
-        return hash((self._initial_coefficients, self._degree, self._constant))
-
-    def __eq__(self, other):
-        """
-        Test the equality between ``self`` and ``other``.
-
-        INPUT:
-
-        - ``other`` -- a lazy Laurent series which is known to be eventaully geometric
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: f = 1 + z + z^2 + z^3
-            sage: m = 1 + z + z^2 + z^3
-            sage: f == m
-            True
-        """
-        return (isinstance(other, type(self))
-                and self._degree == other._degree
-                and self._initial_coefficients == other._initial_coefficients
-                and self._constant == other._constant)

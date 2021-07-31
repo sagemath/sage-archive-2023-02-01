@@ -2065,24 +2065,18 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         The new basis here (``CpC``) and ``Cp`` basis are both implementations
         of the the `C^{\prime}` basis. The only difference between the
         implementations lies in their different methods for computing products,
-        elements can be converted between the two trivially TODO: I'm not sure
-        this example block is as useful or clear as it could be::
+        elements can be converted between the two trivially::
+
+            sage: Cp = H.Cp()       # optional - coxeter3
+            sage: Cp(CpC[1,2,1])    # optional - coxeter3
+            Cp[1,2,1]
+            sage: CpC(Cp[1,2,1])    # optional - coxeter3
+            CpC[1,2,1]
+
+        Some computations; these agree with computations in the existing ``Cp``
+        basis::
 
             sage: s1, s2, s3 = W.simple_reflections()       # optional - coxeter3
-            sage: Cp = H.Cp()                               # optional - coxeter3
-            sage: a = CpC(s1*s2*s1); a                      # optional - coxeter3
-            CpC[1,2,1]
-            sage: b = Cp(s1*s2*s1); b                       # optional - coxeter3
-            Cp[1,2,1]
-            sage: Cp(a) == b                                # optional - coxeter3
-            True
-            sage: a == CpC(b)                               # optional - coxeter3
-            True
-
-        Some computations that agree with computations in the existing ``Cp``
-        basis; the last example is one that significantly faster in this
-        implementation than in ``Cp``::
-
             sage: CpC(s1)**2                                # optional - coxeter3
             (v^-1+v)*CpC[1]
             sage: Cp(s1)**2                                 # optional - coxeter3

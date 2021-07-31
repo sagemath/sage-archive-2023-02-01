@@ -338,8 +338,10 @@ class CoefficientStream_exact(CoefficientStream):
         TESTS::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: CoefficientStream_exact([], False)[0]
-            0
+            sage: CoefficientStream_exact([], False)
+            Traceback (most recent call last):
+            ...
+            AssertionError: CoefficientStream_exact should only be used for non-zero streams
 
         """
         if constant is None:
@@ -384,9 +386,9 @@ class CoefficientStream_exact(CoefficientStream):
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: s = CoefficientStream_exact([], False)
+            sage: s = CoefficientStream_exact([1], False)
             sage: [s[i] for i in range(-2, 5)]
-            [0, 0, 0, 0, 0, 0, 0]
+            [0, 0, 1, 0, 0, 0, 0]
 
             sage: s = CoefficientStream_exact([], False, constant=1)
             sage: [s[i] for i in range(-2, 5)]
@@ -1411,6 +1413,7 @@ class CoefficientStream_scalar(CoefficientStream_unary):
             yield self._series[n] * self._scalar
             n += 1
 
+
 class CoefficientStream_neg(CoefficientStream_unary):
     """
     Operator for negative of the stream.
@@ -1642,4 +1645,3 @@ class CoefficientStream_apply_coeff(CoefficientStream_unary):
             c = self._ring(self._function(self._series[n]))
             yield c
             n += 1
-

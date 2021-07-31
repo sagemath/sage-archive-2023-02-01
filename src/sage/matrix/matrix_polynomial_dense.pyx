@@ -708,6 +708,95 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             if row_wise else self[i,j].reverse(degree[j])
             for j in range(n)] for i in range(m)])
 
+    def inverse_series_trunc(self, d):
+        r"""
+        Return a matrix polynomial approximation of precision ``d`` of the
+        inverse series of this matrix polynomial.
+
+        Here matrix polynomial means that ``self`` is seen as a univariate
+        polynomial with matrix coefficients, meaning that this method has the
+        same output as if one: 1) converts this matrix to a univariate
+        polynomial with matrix coefficients, 2) calls
+
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.inverse_series_trunc`
+
+        on that univariate polynomial, and 3) converts back to a matrix of
+        polynomials.
+
+        Raises a ``ZeroDivisionError`` if the constant matrix of ``self`` is
+        not invertible (i.e. has zero determinant); raises an
+        ``ArithmeticError`` if ``self`` is nonsquare; and raises a
+        ``ValueError`` if the precision ``d`` is not positive.
+
+        INPUT: a positive integer `d` .
+
+        OUTPUT: the unique polynomial matrix $B$ of degree less than `d` such
+        that `AB` and `BA` are the identity matrix modulo `x^d`, where `A` is
+        ``self``.
+
+        ALGORITHM:
+
+        This uses Newton iteration, performing about `\log(d)` polynomial
+        matrix multiplications in size `m \times m` and in degree less than
+        `2d`, where `m` is the row dimension of ``self``.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, 3, 3,                            \
+                [[4*x+5,           5*x^2 + x + 1, 4*x^2 + 4],     \
+                 [6*x^2 + 6*x + 6, 4*x^2 + 5*x,   4*x^2 + x + 3], \
+                 [3*x^2 + 2,       4*x + 1,       x^2 + 3*x]])
+            sage: Q = M.inverse_series_trunc(4); Q
+            [    x^3 + 5*x^2 + x + 4   x^3 + 5*x^2 + 6*x + 4         6*x^2 + 5*x + 3]
+            [        4*x^2 + 5*x + 6     6*x^3 + x^2 + x + 6       3*x^3 + 2*x^2 + 2]
+            [5*x^3 + 5*x^2 + 6*x + 6 4*x^3 + 2*x^2 + 6*x + 4   6*x^3 + x^2 + 6*x + 1]
+            sage: (Q*M).truncate(4) == 1
+            True
+
+            sage: M.inverse_series_trunc(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision must be positive
+
+            sage: M[:2,:].inverse_series_trunc(4)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: the input matrix must be square
+
+            sage: M[0,:] = M[0,:] - M[0,:](0) + M[1,:](0) + M[2,:](0)
+            sage: M.inverse_series_trunc(4)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: the constant matrix term self(0) must be invertible
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.inverse_series_trunc` .
+
+        """
+        if d <= 0:
+            raise ValueError("the precision must be positive")
+        try:
+            inv_trunc = self.constant_matrix().inverse()
+        except ZeroDivisionError:
+            raise ZeroDivisionError("the constant matrix term self(0)" \
+                                                    " must be invertible")
+        except ArithmeticError:
+            raise ArithmeticError("the input matrix must be square")
+
+        # in comments below, A=self, B=inv_trunc
+        # at this point, B = A^{-1} mod x
+        from sage.misc.misc import newton_method_sizes
+        for next_prec in newton_method_sizes(d)[1:]:
+            # Newton iteration: B = (2I - B*A)*B mod x^next_prec
+            mul_trunc = - (inv_trunc*self).truncate(next_prec)
+            for i in range(self.nrows()):
+                mul_trunc[i,i] += 2
+            inv_trunc = (mul_trunc * inv_trunc).truncate(next_prec)
+        return inv_trunc
+
+
     def row_degrees(self, shifts=None):
         r"""
         Return the (shifted) row degrees of this matrix.

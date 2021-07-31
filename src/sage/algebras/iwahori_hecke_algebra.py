@@ -2006,7 +2006,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         To use this class, the Hecke algebra needs to be created in the
         "standard" presentation where `\{q_1,q_2\} = \{v^2,1\}` as sets or the
-        "normalized" presentations where `\{q_1,q_2\} = \{v,-v^-1\}` as sets.
+        "normalized" presentations where `\{q_1,q_2\} = \{v,-v^{-1}\}` as sets.
         The Hecke algebra also needs to be created from a Coxeter group defined
         using the 'coxeter3' implementation; see the examples to follow. 
 
@@ -2016,10 +2016,10 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         algebras. The emphasis of this class is to compute such products more
         directly in the `C^{\prime}`-basis, as opposed to converting the
         `C^{\prime}`-basis to the `T`-basis, calculating the product in the
-        `T`-basis, and converting the results back to the `C^{\prime}`-basis
-        #TODO:(see Line 1303). The latter approach is used in the
-        #TODO:_Basis.product_on_basis method on Line 1298. The direct method
-        implemented here significantly speeds up the product computations. 
+        `T`-basis, and converting the results back to the `C^{\prime}`-basis, as
+        is the default technique in ``_Basis.product_on_basis``, used by the
+        :class:`IwahoriHeckeAlgebra.Cp` basis. The direct method implemented
+        here significantly speeds up the product computations.
 
         The following formulas for products of the forms `C^{\prime}_s \cdot
         C^{\prime}_w`  and `C^{\prime}_w \cdot C^{\prime}_s`, where `s` is a
@@ -2043,19 +2043,20 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         In the above, `\leq` is the Bruhat order on the Coxeter group and
         `\mu(v,w)` is the "leading coefficient of Kazhdan-Lusztig polynomials";
-        see [KL1979]_ and [Lus2014]_ for more details. The method designates the
-        computation of the `\mu`-coefficients to Fokko du Cloux's 'coxeter3'
-        package (wrapped in Sage), which is why the method requires the creation
-        of the Coxeter group in the 'coxeter3' implementation.        
+        see [KL1979]_ and [Lus2013]_ for more details. The method designates the
+        computation of the `\mu`-coefficients to Sage's interface to Fokko du
+        Cloux's ``coxeter3`` package, which is why the method requires the
+        creation of the Coxeter group using the 'coxeter3' implementation.
 
         EXAMPLES:
 
-        To create the basis, define the Coxeter group with 'coxeter3' and the
-        Hecke algebra with the standard or normalized presentation::
+        To create the basis, define the Coxeter group with
+        ``implementation='coxeter3'`` and the Hecke algebra with the standard or
+        normalized presentation::
 
             sage: R.<v> = LaurentPolynomialRing(ZZ)
             sage: W = CoxeterGroup('A3', implementation='coxeter3')
-            sage: H = IwahoriHeckeAlgebra(W, v**2)         # standard presentation
+            sage: H = IwahoriHeckeAlgebra(W, v**2)
             sage: CpC = H.Cp_Coxeter3()
 
         The new basis here (``CpC``) and ``Cp`` basis are both implementations
@@ -2091,7 +2092,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: CpC[1]*CpC[2]*CpC[3]*CpC[1]*CpC[2]       
             CpC[1,2,1,3,2] + CpC[1,2,1] + CpC[1,3,2]
 
-        Below is another example, with the Hecke algebra of type `B9` in the
+        Below is another example, with the Hecke algebra of type `B_9` in the
         normalized presentation. The (optional) relabeling command ensures that
         `m(1,2)=4`, i.e., that the generators 1, 2 form the strong bond in the
         Dynkin diagram::
@@ -2109,7 +2110,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             (v^-1+v)*CpC[2,3,2,4,3,5] + (v^-1+v)*CpC[2,3,2,5]
 
         Note that to use the CpC basis for a Hecke algebra, a Coxeter group must
-        be created first with implemntation 'coxeter3'. Directly creating a
+        be created first with ``implementation='coxeter3'``. Directly creating a
         Hecke algebra from its Coxeter type does not work::
 
             sage: H = IwahoriHeckeAlgebra('A3', v**2)
@@ -2128,48 +2129,49 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             ...
             ValueError: the Cp_Coxeter3 basis is only supported in a Hecke
             algebra with the standard or normalized presentations (i.e., need
-            `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\}` as sets)
+            {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)
 
 
-        ALGORITHM : Write `b` for `C^{\prime}`. This class computes each product
-            `b_x \cdot b_y` in two steps as follows. 
+        ALGORITHM:
 
-            If `\ell(x) \leq \ell(y)`, we first decompose `b_x` into a
-            polynomial in the generators `b_s (s\in S)` and then multiply that
-            polynomial with `b_y`. If `\ell(x) > \ell(y)`, we decompose `b_y`
-            into a polynomial in `b_s (s\in S)` and multiply that polynomial
-            with `b_x`. The second step (multiplication) is done by repeatedly
-            applying the key formulas displayed earlier directly. The first
-            step (decomposition) is done by induction on the Bruhat order as
-            follows: for every element `u\in W` with length `\ell(u)>1`, pick a
-            left descent `s` of `u` and write `u=sw` (so `w=su`), then note that
+        Write `b` for `C^{\prime}`. This class computes each product `b_x \cdot
+        b_y` in two steps as follows. 
 
-            .. MATH:: 
-               C^{\prime}_u = C^{\prime}_s * C^{\prime}_{w} - \sum_{v\le u; sv<
-               v} \mu(v,w) C^{\prime}_v
+        If `\ell(x) \leq \ell(y)`, we first decompose `b_x` into a polynomial in
+        the generators `b_s (s\in S)` and then multiply that polynomial with
+        `b_y`. If `\ell(x) > \ell(y)`, we decompose `b_y` into a polynomial in
+        `b_s (s\in S)` and multiply that polynomial with `b_x`. The second step
+        (multiplication) is done by repeatedly applying the key formulas
+        displayed earlier directly. The first step (decomposition) is done by
+        induction on the Bruhat order as follows: for every element `u\in W`
+        with length `\ell(u)>1`, pick a left descent `s` of `u` and write `u=sw`
+        (so `w=su`), then note that
 
-            by the key formulas mentioned earlier, where the element `w` and
-            all elements `v`'s on the right side are lower than `u` in the
-            Bruhat order; this allows us to finish the computation by
-            decomposing the lower order terms `b_w` and each `b_v`. For
-            example, for `u=121, s=1, w=21` in type `A3` we have 
+        .. MATH:: C^{\prime}_u = C^{\prime}_s \cdot C^{\prime}_{w} - \sum_{v\le
+            u; sv< v} \mu(v,w) C^{\prime}_v
 
-            .. MATH::
-               b_{121} = b_1*b_{21} - b_1,
+        by the key formulas mentioned earlier, where the element `w` and all
+        elements `v`'s on the right side are lower than `u` in the Bruhat order;
+        this allows us to finish the computation by decomposing the lower order
+        terms `b_w` and each `b_v`. For example, for `u=121, s=1, w=21` in type
+        `A3` we have 
 
-            where the lower order term `b_{21}` further decomposes into
-            `b_2*b_1`, therefore `b_{121}=b_1*b_2 b_1 -b1`. We note that the
-            base cases `\ell(x)=1` or `\ell(x)=0` of the above induction occur
-            when `x` is itself a Coxeter generator `s` or the group identity,
-            respectively. The decomposition is trivial in these cases (we have
-            `C_x=C_s` or `C_x=1`, the unit of the Hecke algebra).        
+        .. MATH:: b_{121} = b_1  b_{21} - b_1,
+
+        where the lower order term `b_{21}` further decomposes into `b_2 b_1`,
+        therefore `b_{121}=b_1 b_2 b_1 - b_1`. We note that the base cases
+        `\ell(x)=1` or `\ell(x)=0` of the above induction occur when `x` is
+        itself a Coxeter generator `s` or the group identity, respectively. The
+        decomposition is trivial in these cases (we have `b_x=C_s` or `b_x=1`,
+        the unit of the Hecke algebra).     
+        TODO: Edit seealso; We can probably not reference cell stuff given our
+        decision on that, and we *can't* reference _Basis.product_on_basis.
+        coxeter3? 
 
 
         .. SEEALSO::
 
-        # TODO: edit the following
-
-            :ref: [KL1979]_, [Lus2013]_
+            [KL1979]_, [Lus2013]_
             :meth: _Basis.product_on_basis, cell stuff
             :package?[coxeter3?]
 
@@ -2180,7 +2182,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             Use analogs of the key formulas to implement `C^{\prime}`-products
             in the multi-parameter Iwahori-Hecke algebra; see Section 6 of
-            [Lus2013]_.  
+            [Lus2013]_.
         """
         _basis_name = 'Cp_Coxeter3'
 
@@ -2199,7 +2201,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: CpC = H.Cp_Coxeter3()
                 <BLANKLINE>
 
-            Invalid construction (not creating a Coxeter group with 'coxeter3')::
+            Invalid construction (not creating a Coxeter group with
+            'coxeter3')::
 
                 sage: H = IwahoriHeckeAlgebra('A3', v**2)
                 sage: H.Cp_Coxeter3()
@@ -2217,7 +2220,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 ...
                 ValueError: the Cp_Coxeter3 basis is only supported in a Hecke
                 algebra with the standard or normalized presentations (i.e., need
-                `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\}` as sets)
+                {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)
             """
             if not isinstance(algebra._W, Coxeter3Group):
                 raise ValueError('algebra must be initialized with a coxeter3-implemented Coxeter group to use the Cp_Coxeter3 basis')
@@ -2237,7 +2240,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 if not algebra._is_generic:
                     # If this algebra is generic, it's only being used to coerce to the T basis, not perform computations
                     raise ValueError('the Cp_Coxeter3 basis is only supported in a Hecke algebra with the standard or normalized \
-presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\}` as sets)')
+presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)')
 
             # Define conversion to the other Cp basis
             self.module_morphism(self.to_Cp_basis, codomain=algebra.Cp(), category=self.category()
@@ -2293,7 +2296,7 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
                 sage: CpC._product_with_generator_on_basis(2, W([1,3,2,1,3]), 'right')
                 CpC[1,2,1,3,2,1] + CpC[1,2,3,2] + CpC[1,3,2,1]
             """
-            # use the product formula from TODO: ref algorithm
+            # use the product formula described in ALGORITHM
             if w.has_descent(s, side=side):
                 return self.delta * self.monomial(w)
             else:
@@ -2335,9 +2338,15 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
         def _decompose_into_generators(self, u): 
             r"""
             Decompose `C^{\prime}_u` into a polynomial in the KL generators
-            `C^{\prime}_s`; see "ALGORITHM". TODO: Reference "ALGORITHM"
+            `C^{\prime}_s`; see the ALGORITHM section of
+            :class:`IwahoriHeckeAlgebra.Cp_Coxeter3`.
 
-            TODO: explain output format 
+            OUTPUT:
+
+            A dictionary keyed by tuples with integer values. Each entry
+            represents a term, where the tuple contains the indices of the KL
+            generators in the term, and its value is the coefficient of that
+            term.
 
             EXAMPLES:
 
@@ -2372,7 +2381,7 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
             if len(u) == 1:
                 return {(u[0],): 1}
 
-            # l(y) > 1, use the recursive method described in TODO:ref ALGORITHM
+            # l(y) > 1, use the recursive method described in ALGORITHM
             s = u[0]
             w = u[1:]  # so CpC_s * CpC_w = CpC_u + lower order terms
 
@@ -2401,8 +2410,8 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
             the `C^{\prime}`-basis.
 
             The product is computed in the two steps (decomposition +
-            multiplication) as described in "ALGORITHM". TODO: Reference
-            "ALGORITHM"
+            multiplication) as described in the ALGORITHM section of
+            :class:`IwahoriHeckeAlgebra.Cp_Coxeter3`
 
             EXAMPLES::
 

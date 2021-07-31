@@ -5572,6 +5572,9 @@ REFERENCES:
 .. [Ter2021] Paul Terwilliger. *The alternating central extension of the*
              `q`*-Onsager algebra*. Preprint, :arxiv:`2103.03028` (2021).
 
+.. [Ter2021b] Paul Terwilliger. *The alternating central extension of the
+              Onsager Lie algebra*. Preprint, :arxiv:`2104.08106` (2021).
+
 .. [TP1994] \J. Thas, S. Payne, *Spreads and ovoids in finite generalized
             quadrangles*. Geometriae Dedicata, Vol. 52, pp. 227-253, 1994.
 

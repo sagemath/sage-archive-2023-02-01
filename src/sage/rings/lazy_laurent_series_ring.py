@@ -163,7 +163,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if n != 0:
             raise IndexError("there is only one generator")
         R = self._laurent_poly_ring
-        coeff_stream = CoefficientStream_exact([R.gen(n)[1]], self._sparse, constant=ZZ.zero(), degree=2)
+        coeff_stream = CoefficientStream_exact([R.gen(n)[1]], self._sparse, constant=ZZ.zero(), valuation=1, degree=2)
         return self.element_class(self, coeff_stream)
 
     def ngens(self):
@@ -213,7 +213,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         R = self._laurent_poly_ring
         if R.has_coerce_map_from(S):
             def make_series_from(poly):
-                return self.element_class(self, CoefficientStream_exact([R(poly)], self._sparse))
+                p_list = [poly[i] for i in range(poly.valuation(), poly.degree() + 1)]
+                return self.element_class(self, CoefficientStream_exact(p_list, self._sparse, valuation=poly.valuation()))
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
 
         return False
@@ -293,7 +294,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             if valuation is None:
                 valuation = 0
             return self.element_class(self, CoefficientStream_uninitialized(self._sparse, valuation))
-
+        
         R = self._laurent_poly_ring
         BR = self.base_ring()
         try:
@@ -312,8 +313,22 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 if x and valuation:
                     x = x.shift(valuation - x.valuation())
                 if degree is None and not x:
+                    if valuation is None:
+                        raise ValueError("you must specify the degree for the polynomial 0")
                     degree = valuation
-                coeff_stream = CoefficientStream_exact([x], self._sparse, constant=constant, degree=degree)
+                # print('it breaks here')
+                # print(x)
+                # x = R(x)
+                # print(x)
+                # x = [R(x)]
+                # print(x)
+                # print(x)
+                # print(type(x))
+                if x == R.zero():
+                    coeff_stream = CoefficientStream_exact([x], self._sparse, valuation=degree-1, constant=constant)
+                    return self.element_class(self, coeff_stream)
+                p_list = [x[i] for i in range(x.valuation(), x.degree() + 1)]
+                coeff_stream = CoefficientStream_exact(p_list, self._sparse, valuation=x.valuation(), constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
         if isinstance(x, LazyLaurentSeries):
             if x._coeff_stream._is_sparse is self._sparse:
@@ -327,9 +342,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 if constant is None:
                     constant = ZZ.zero()
                 z = R.gen()
-                # p = R.sum(x(i) * z**i for i in range(valuation, degree))
                 p = [x(i) for i in range(valuation, degree)]
-                return self.element_class(self, CoefficientStream_exact(p, self._sparse, constant=constant, degree=degree))
+                return self.element_class(self, CoefficientStream_exact(p, self._sparse, valuation=valuation, constant=constant, degree=degree))
             return self.element_class(self, CoefficientStream_coefficient_function(x, self.base_ring(), self._sparse, valuation))
         raise ValueError(f"unable to convert {x} into a lazy Laurent series")
 
@@ -343,9 +357,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L.an_element()
             z^-10 + z^-9 + z^-8 + ...
         """
-        c = self.base_ring().an_element()
+        c = self.base_ring()(1)
         R = self._laurent_poly_ring
-        return self.element_class(self, CoefficientStream_exact([R.zero()], self._sparse, c, -10))
+        return self.element_class(self, CoefficientStream_exact([R.zero()], self._sparse, valuation=-11, constant=c))
 
     @cached_method
     def one(self):

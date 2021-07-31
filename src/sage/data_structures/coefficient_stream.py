@@ -174,10 +174,8 @@ class CoefficientStream_inexact(CoefficientStream):
         TESTS::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-            sage: Y = LaurentPolynomialRing(QQ, 'z')
-            sage: h = CoefficientStream_exact(Y(1), True)
-            sage: g = CoefficientStream_exact(Y([1, -1, -1]), True)
+            sage: h = CoefficientStream_exact([1], True)
+            sage: g = CoefficientStream_exact([1, -1, -1], True)
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_div
             sage: u = CoefficientStream_div(h, g)
             sage: [u[i] for i in range(10)]
@@ -205,10 +203,8 @@ class CoefficientStream_inexact(CoefficientStream):
         TESTS::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-            sage: Y = LaurentPolynomialRing(QQ, 'z')
-            sage: h = CoefficientStream_exact(Y(-1), True)
-            sage: g = CoefficientStream_exact(Y([1, -1]), True)
+            sage: h = CoefficientStream_exact([-1], True)
+            sage: g = CoefficientStream_exact([1, -1], True)
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_div
             sage: u = CoefficientStream_div(h, g)
             sage: [u[i] for i in range(10)]
@@ -455,149 +451,6 @@ class CoefficientStream_exact(CoefficientStream):
                 and self._degree == other._degree
                 and self._initial_coefficients == other._initial_coefficients
                 and self._constant == other._constant)
-
-
-# class CoefficientStream_exact(CoefficientStream):
-#     r"""
-#     Coefficient stream for a series which is known to be eventually geometric.
-
-#     INPUT:
-
-#     - ``laurent_polynomial`` -- a Laurent polynomial
-#     - ``is_sparse`` -- boolean; specifies whether the series is sparse
-#     - ``constant`` -- (default: 0) the eventual constant value
-#     - ``degree`` -- (default: the degree of ``laurent_polynomial`` plus 1)
-#       the degree where the coefficient stream becomes ``constant``
-
-#     EXAMPLES::
-
-#         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-#         sage: f = 1 + z^2
-#         sage: f[2]
-#         1
-
-#     You can do arithmetic operations with eventually geometric series::
-
-#         sage: g = z^3 + 1
-#         sage: s = f + g
-#         sage: s[2]
-#         1
-#         sage: s
-#         2 + z^2 + z^3
-#         sage: s = f - g
-#         sage: s[2]
-#         1
-#         sage: s
-#         z^2 - z^3
-#     """
-
-#     def __init__(self, laurent_polynomial, is_sparse, constant=None, degree=None):
-#         """
-#         Initialize ``self``.
-
-#         TESTS::
-
-#             sage: R.<z> = LaurentPolynomialRing(QQ)
-#             sage: from sage.data_structures.coefficient_stream import CoefficientStream_eventually_geometric
-#             sage: X = CoefficientStream_eventually_geometric(z^2 + z^-1, False)
-#             sage: [X[i] for i in range(-1,8)]
-#             [1, 0, 0, 1, 0, 0, 0, 0, 0]
-#             sage: X = CoefficientStream_eventually_geometric(z^2 + z^-1, True, 5)
-#             sage: [X[i] for i in range(-1,8)]
-#             [1, 0, 0, 1, 5, 5, 5, 5, 5]
-#             sage: X = CoefficientStream_eventually_geometric(z^2 + z^-1, False, 5, 4)
-#             sage: [X[i] for i in range(-1,8)]
-#             [1, 0, 0, 1, 0, 5, 5, 5, 5]
-#         """
-#         if constant is None:
-#             constant = ZZ.zero()
-#         if degree is None:
-#             if not laurent_polynomial:
-#                 raise ValueError("you must specify the degree for the polynomial 0")
-#             degree = laurent_polynomial.degree() + 1
-#         else:
-#             # Consistency check
-#             assert not laurent_polynomial or laurent_polynomial.degree() < degree
-
-#         self._constant = constant
-#         self._degree = degree
-#         self._laurent_polynomial = laurent_polynomial
-#         if not laurent_polynomial:
-#             valuation = degree
-#         else:
-#             valuation = laurent_polynomial.valuation()
-#         super().__init__(is_sparse, valuation)
-
-#     def __getitem__(self, n):
-#         """
-#         Return the coefficient of the term with exponent ``n`` of the series.
-
-#         INPUT:
-
-#         - ``n`` -- integer; the degree for which the coefficient is required
-
-#         EXAMPLES::
-
-#             sage: R.<z> = LaurentPolynomialRing(QQ)
-#             sage: from sage.data_structures.coefficient_stream import CoefficientStream_eventually_geometric
-#             sage: f = CoefficientStream_eventually_geometric(z^2 + z^-1, False, 3, 10)
-#             sage: f[2]
-#             1
-#             sage: f[8]
-#             0
-#             sage: f[15]
-#             3
-#         """
-#         if n >= self._degree:
-#             return self._constant
-#         return self._laurent_polynomial[n]
-
-#     def valuation(self):
-#         """
-#         Return the valuation of the series.
-
-#         EXAMPLES::
-
-#             sage: L.<z> = LazyLaurentSeriesRing(QQ)
-#             sage: f = 1 + z + z^2 + z^3
-#             sage: f.valuation()
-#             0
-#         """
-#         return self._approximate_valuation
-
-#     def __hash__(self):
-#         """
-#         Return the hash of ``self``.
-
-#         EXAMPLES::
-
-#             sage: L.<z> = LazyLaurentSeriesRing(QQ)
-#             sage: f = 1 + z + z^2 + z^3
-#             sage: {f: 1}
-#             {1 + z + z^2 + z^3: 1}
-#         """
-#         return hash((self._laurent_polynomial, self._degree, self._constant))
-
-#     def __eq__(self, other):
-#         """
-#         Test the equality between ``self`` and ``other``.
-
-#         INPUT:
-
-#         - ``other`` -- a stream for a series which is known to be eventually geometric
-
-#         EXAMPLES::
-
-#             sage: L.<z> = LazyLaurentSeriesRing(QQ)
-#             sage: f = 1 + z + z^2 + z^3
-#             sage: m = 1 + z + z^2 + z^3
-#             sage: f == m
-#             True
-#         """
-#         return (isinstance(other, type(self))
-#                 and self._degree == other._degree
-#                 and self._laurent_polynomial == other._laurent_polynomial
-#                 and self._constant == other._constant)
 
 
 class CoefficientStream_coefficient_function(CoefficientStream_inexact):

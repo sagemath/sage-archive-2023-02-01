@@ -2268,29 +2268,29 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
             Cp = A.Cp()
             return Cp.monomial(w)
 
-        def _product_with_generator_on_basis(self, side, s, w):
+        def _product_with_generator_on_basis(self, s, w, side='left'):
             r"""
             Compute the product of `C^{\prime}_s` and `C^{\prime}_w`, putting
             `C^{\prime}_s` on the given ``side``.
 
             INPUT:
 
-            - ``side`` -- string; 'left' or 'right'
-
             - ``s`` -- integer in self.index_set()
 
             - ``w`` -- a word in self.coxeter_group()
+
+            - ``side`` -- string; 'left' or 'right'
 
             EXAMPLES::
 
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')
                 sage: H = IwahoriHeckeAlgebra(W, v**2); CpC=H.Cp_Coxeter3()
-                sage: CpC._product_with_generator_on_basis('left', 1, W([2,1]))
+                sage: CpC._product_with_generator_on_basis(1, W([2,1]), 'left')
                 CpC[1,2,1] + CpC[1]
-                sage: CpC._product_with_generator_on_basis('right', 1, W([2,1]))
+                sage: CpC._product_with_generator_on_basis(1, W([2,1]), 'right')
                 (v^-1+v)*CpC[2,1]
-                sage: CpC._product_with_generator_on_basis('right', 2, W([1,3,2,1,3]))
+                sage: CpC._product_with_generator_on_basis(2, W([1,3,2,1,3]), 'right')
                 CpC[1,2,1,3,2,1] + CpC[1,2,3,2] + CpC[1,3,2,1]
             """
             # use the product formula from TODO: ref algorithm
@@ -2308,29 +2308,29 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
                 longer_word = self._W([s]) * w if side == 'left' else w * self._W([s])
                 return self.monomial(longer_word) + element
         
-        def _product_with_generator(self, side, s, x): 
+        def _product_with_generator(self, s, x, side='left'): 
             r""" 
             Compute the product of `C^{\prime}_s` with any linear combination of `C^{\prime}`-basis elements. 
 
             INPUT:
 
-            - ``side`` -- string; 'left' or 'right'
-
             - ``s`` -- integer in self.index_set()
 
             - ``x`` -- any element of self
+
+            - ``side`` -- string; 'left' or 'right'
 
             EXAMPLES::
 
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')
                 sage: H = IwahoriHeckeAlgebra(W, v**2); CpC=H.Cp_Coxeter3()
-                sage: CpC._product_with_generator('left', 1, CpC[1]+CpC[2])
+                sage: CpC._product_with_generator(1, CpC[1]+CpC[2], 'left')
                 CpC[1,2] + (v^-1+v)*CpC[1]
-                sage: CpC._product_with_generator('right', 1, CpC[1]+CpC[2])
+                sage: CpC._product_with_generator(1, CpC[1]+CpC[2], 'right')
                 CpC[2,1] + (v^-1+v)*CpC[1]
             """
-            return self.linear_combination((self._product_with_generator_on_basis(side, s, w), coeff) for (w, coeff) in x)
+            return self.linear_combination((self._product_with_generator_on_basis(s, w, side), coeff) for (w, coeff) in x)
 
         def _decompose_into_generators(self, u): 
             r"""
@@ -2431,7 +2431,7 @@ presentations (i.e., need `\{q_1,q_2\} = \{v^2,1\}` or `\{q_1,q_2\} = \{v,-v^-1\
                 summand = coeff * other_element
                 p_list = list(p) if side == 'right' else list(p)[::-1]
                 for s in p_list:
-                    summand = self._product_with_generator(side, s, summand)
+                    summand = self._product_with_generator(s, summand, side)
                 result += summand
             return result
         

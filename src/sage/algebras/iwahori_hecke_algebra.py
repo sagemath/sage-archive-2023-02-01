@@ -2008,7 +2008,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         "standard" presentation where `\{q_1,q_2\} = \{v^2,1\}` as sets or the
         "normalized" presentations where `\{q_1,q_2\} = \{v,-v^{-1}\}` as sets.
         The Hecke algebra also needs to be created from a Coxeter group defined
-        using the 'coxeter3' implementation; see the examples to follow. 
+        using the 'coxeter3' implementation, because this class designates the
+        computation of certain important coefficients to 'coxeter3'.
 
         Expanding products of the form `C^{\prime}_x \cdot C^{\prime}_y` in the
         `C^{\prime}`-basis is useful for computing Kazhdan-Lusztig cells of
@@ -2016,10 +2017,10 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         algebras. The emphasis of this class is to compute such products more
         directly in the `C^{\prime}`-basis, as opposed to converting the
         `C^{\prime}`-basis to the `T`-basis, calculating the product in the
-        `T`-basis, and converting the results back to the `C^{\prime}`-basis, as
-        is the default technique in ``_Basis.product_on_basis``, used by the
-        :class:`IwahoriHeckeAlgebra.Cp` basis. The direct method implemented
-        here significantly speeds up the product computations.
+        `T`-basis, and converting the results back to the `C^{\prime}`-basis.
+        The latter approach is used in the function ``_Basis.product_on_basis``
+        of for the :class:`IwahoriHeckeAlgebra.Cp` basis. The direct method
+        implemented here significantly speeds up the product computations.
 
         The following formulas for products of the forms `C^{\prime}_s \cdot
         C^{\prime}_w`  and `C^{\prime}_w \cdot C^{\prime}_s`, where `s` is a
@@ -2064,8 +2065,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         The new basis here (``CpC``) and ``Cp`` basis are both implementations
         of the the `C^{\prime}` basis. The only difference between the
-        implementations lies in their different methods for computing products,
-        elements can be converted between the two trivially::
+        implementations lies in their different methods for computing products.
+        The conversion between ``CpC`` and ``Cp`` is trivial::
 
             sage: Cp = H.Cp()       # optional - coxeter3
             sage: Cp(CpC[1,2,1])    # optional - coxeter3
@@ -2073,14 +2074,14 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: CpC(Cp[1,2,1])    # optional - coxeter3
             CpC[1,2,1]
 
-        Some computations; these agree with computations in the existing ``Cp``
-        basis::
+        Some computations in the ``CpC`` basis; these agree with computations
+        in the existing ``Cp`` basis::
 
             sage: s1, s2, s3 = W.simple_reflections()       # optional - coxeter3
-            sage: CpC(s1)**2                                # optional - coxeter3
-            (v^-1+v)*CpC[1]
             sage: Cp(s1)**2                                 # optional - coxeter3
             (v^-1+v)*Cp[1]
+            sage: CpC(s1)**2                                # optional - coxeter3
+            (v^-1+v)*CpC[1]
             sage: Cp(s1)*Cp(s2)*Cp(s1)                      # optional - coxeter3
             Cp[1,2,1] + Cp[1]
             sage: CpC(s1)*CpC(s2)*CpC(s1)                   # optional - coxeter3
@@ -2090,7 +2091,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: CpC[1]*CpC[2]*CpC[3]*CpC[1]*CpC[2]        # optional - coxeter3
             CpC[1,2,1,3,2] + CpC[1,2,1] + CpC[1,3,2]
 
-        A computation in type `H_4` that is significantly faster in this
+        A computation in type `H_4` that is significantly faster in the ``CpC``
         implementation than in the existing ``Cp`` basis::
 
             sage: W = CoxeterGroup('H4', implementation='coxeter3')     # optional - coxeter3
@@ -2112,8 +2113,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         Below is another example, with the Hecke algebra of type `B_9` in the
         normalized presentation. The (optional) relabeling command ensures that
         `m(1,2)=4`, i.e., that the generators 1, 2 form the strong bond in the
-        Dynkin diagram. The final two examples are calculations that are very
-        quick using this implementation, but infeasible for the ``Cp`` basis::
+        Dynkin diagram. The final two examples are calculations that are quick
+        in this implementation but seem prohibitively slow for the ``Cp``
+        basis::
 
             sage: B9 = CoxeterType(['B', 9])
             sage: B9 = B9.relabel({ i: 9-i+1 for i in range(1, 10) })    # optional - coxeter3
@@ -2172,7 +2174,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Accommodate generic presentations of the Hecke algebra other than
             the standard and normalized ones.
 
-            Use analogs of the key formulas to implement `C^{\prime}`-products
+            Use analogs of the formulas for `C^{\prime}_s C^{\prime}_w` and
+            `C^{\prime}_w C^{\prime}_s` to implement `C^{\prime}`-products
             in the multi-parameter Iwahori-Hecke algebra; see Section 6 of
             [Lus2013]_.
         """
@@ -2180,7 +2183,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def __init__(self, algebra, prefix='CpC'):
             r"""
-            Initialize the Cp_Coxeter3 Kazdahn-Lusztig basis of the
+            Initialize the Cp_Coxeter3 Kazhdan-Lusztig basis of the
             Iwahori-Hecke algebra ``algebra''.
 
             EXAMPLES:
@@ -2226,7 +2229,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             parameters = {algebra.q1(), algebra.q2()}
             if v != algebra.base_ring().one() and (parameters == {v**2, -1} or parameters == {v, -1/v}):
                 # The following quantity delta is used in product computations.
-                # To use it we need the standard or normalized normalizations.
+                # To use v+~v as its value we need the standard or normalized presentations of the Hecke algebra.
                 self.delta = v + ~v
             else:
                 if not algebra._is_generic:
@@ -2234,7 +2237,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     raise ValueError('the Cp_Coxeter3 basis is only supported in a Hecke algebra with the standard or normalized \
 presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)')
 
-            # Define conversion to the other Cp basis
+            # Define the (trivial) conversion to the other Cp basis
             self.module_morphism(self.to_Cp_basis, codomain=algebra.Cp(), category=self.category()
                                  ).register_as_coercion()
 
@@ -2289,7 +2292,7 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
                 sage: CpC._product_with_generator_on_basis(2, W([1,3,2,1,3]), 'right')  # optional - coxeter3
                 CpC[1,2,1,3,2,1] + CpC[1,2,3,2] + CpC[1,3,2,1]
             """
-            # use the product formula described in product_on_basis
+            # use the product formula described in the class' documentation
             if w.has_descent(s, side=side):
                 return self.delta * self.monomial(w)
             else:
@@ -2337,9 +2340,10 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
             OUTPUT:
 
             A dictionary keyed by tuples with integer values. Each entry
-            represents a term, where the tuple contains the indices of the KL
-            generators in the term, and its value is the coefficient of that
-            term.
+            represents a term, where the tuple represents a monomial term in
+            the KL generators and the value represents the coefficient of that
+            term. For example, an item `(1,2): 3` stands for `3 *
+            C^{\prime}_1C^{\prime}_2`.
 
             EXAMPLES:
 
@@ -2430,17 +2434,13 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
             where the lower order term `C^{\prime}_{21}` further decomposes into
             `C^{\prime}_2 C^{\prime}_1`, therefore
 
-            .. MATH:: C^{\prime}_{121}=C^{\prime}_1 C^{\prime}_2 C^{\prime}_1 - C^{\prime}_1
+            .. MATH:: C^{\prime}_{121}=C^{\prime}_1 C^{\prime}_2 C^{\prime}_1 - C^{\prime}_1.
 
             We note that the base cases `\ell(x)=1` or `\ell(x)=0` of the above
             induction occur when `x` is itself a Coxeter generator `s` or the
             group identity, respectively. The decomposition is trivial in these
             cases (we have `C^{\prime}_x=C^{\prime}_s` or `C^{\prime}_x=1`, the
             unit of the Hecke algebra).
-
-            .. SEEALSO::
-
-                [KL1979]_, [Lus2013]_
 
             EXAMPLES::
 

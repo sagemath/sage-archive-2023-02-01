@@ -88,6 +88,20 @@ def nodes(degree, prec):
         ....:      for a, b in zip(L1, L2))
         True
 
+    TESTS::
+
+        sage: from sage.numerical.gauss_legendre import nodes
+        sage: nodes(1,100)
+        Traceback (most recent call last):
+        ...
+        ValueError: degree=1 not supported (degree must be 3 or even)
+
+        sage: from sage.numerical.gauss_legendre import nodes
+        sage: nodes(3,100)
+        [(0.11270166537925831148207346002, 0.27777777777777777777777777778),
+         (0.50000000000000000000000000000, 0.44444444444444444444444444444),
+         (0.88729833462074168851792653998, 0.27777777777777777777777777778)]
+
     .. TODO::
 
         It may be worth testing if using the Arb algorithm for finding the
@@ -112,7 +126,7 @@ def nodes(degree, prec):
     TWO = 2*ONE
     rnd = R.rnd
     epsilon = R(1)>>(prec+8)
-    if degree == 1:
+    if degree == 3:
         x = (R(3)/5).sqrt()
         w = R(5)/18
         nodes = [((1-x)/2,w),(HALF,R(4)/9),((1+x)/2,w)]

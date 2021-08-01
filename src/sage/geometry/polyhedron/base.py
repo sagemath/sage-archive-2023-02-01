@@ -30,16 +30,14 @@ Base class for polyhedra
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-
-from dataclasses import dataclass
-from typing import Any
 import itertools
 
 from sage.structure.element import Element, coerce_binop, is_Vector, is_Matrix
 from sage.structure.richcmp import rich_to_bool, op_NE
 from sage.cpython.string import bytes_to_str
 
-from sage.misc.all import cached_method, prod
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import prod
 from sage.misc.randstate import current_randstate
 from sage.misc.superseded import deprecated_function_alias
 
@@ -51,7 +49,7 @@ from sage.matrix.constructor import matrix
 from sage.functions.other import sqrt, floor, ceil
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
-from sage.geometry.convex_set import ConvexSet_closed
+from sage.geometry.convex_set import ConvexSet_closed, AffineHullProjectionData
 
 from .constructor import Polyhedron
 from sage.geometry.relative_interior import RelativeInterior
@@ -2283,13 +2281,17 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
     def an_affine_basis(self):
         """
-        Return vertices that are a basis for the affine
-        span of the polytope.
+        Return points in ``self`` that are a basis for the affine span of the polytope.
 
-        This basis is obtained by considering a maximal chain of faces
-        in the face lattice and picking for each cover relation
-        one vertex that is in the difference. Thus this method
-        is independent of the concrete realization of the polytope.
+        This implementation of the method :meth:`ConvexSet_base.an_affine_basis`
+        for polytopes guarantees the following:
+
+        - All points are vertices.
+
+        - The basis is obtained by considering a maximal chain of faces
+          in the face lattice and picking for each cover relation
+          one vertex that is in the difference. Thus this method
+          is independent of the concrete realization of the polytope.
 
         EXAMPLES::
 
@@ -8810,7 +8812,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             affine_hull_data = self.affine_hull_projection(orthogonal=True, as_polyhedron=True, as_affine_map=True)
             A = affine_hull_data.projection_linear_map.matrix()
             Adet = (A.transpose() * A).det()
-            scaled_volume = affine_hull_data.polyhedron.volume(measure='ambient', engine=engine, **kwds)
+            scaled_volume = affine_hull_data.image.volume(measure='ambient', engine=engine, **kwds)
             if Adet.is_square():
                 sqrt_Adet = Adet.sqrt()
             else:
@@ -8994,7 +8996,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
             # use an orthogonal transformation
             affine_hull_data = self.affine_hull_projection(orthogonal=True, return_all_data=True)
-            polyhedron = affine_hull_data.polyhedron
+            polyhedron = affine_hull_data.image
             from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
             R = PolynomialRing(affine_hull_data.section_linear_map.base_ring(), 'x', self.dim())
             coordinate_images = affine_hull_data.section_linear_map.matrix().transpose() * vector(R.gens()) + affine_hull_data.section_translation
@@ -10749,7 +10751,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
                 tester.assertTrue(self.is_combinatorially_isomorphic(self + self.center(), algorithm='face_lattice'))
 
     def affine_hull(self, *args, **kwds):
-        """
+        r"""
         Return the affine hull of ``self`` as a polyhedron.
 
         EXAMPLES::
@@ -10768,18 +10770,174 @@ class Polyhedron_base(Element, ConvexSet_closed):
         self_as_face = self.faces(self.dimension())[0]
         return self_as_face.affine_tangent_cone()
 
-    @dataclass
-    class AffineHullProjectionData:
-        polyhedron: Any = None
-        projection_linear_map: Any = None
-        projection_translation: Any = None
-        section_linear_map: Any = None
-        section_translation: Any = None
-
     @cached_method
-    def affine_hull_projection(self, as_polyhedron=None, as_affine_map=False, orthogonal=False,
-                               orthonormal=False, extend=False, minimal=False, return_all_data=False):
-        """Return the polyhedron projected into its affine hull.
+    def _affine_hull_projection(self, *,
+                                as_convex_set=True, as_affine_map=True, as_section_map=True,
+                                orthogonal=False, orthonormal=False,
+                                extend=False, minimal=False):
+        r"""
+        Return ``self`` projected into its affine hull.
+
+        INPUT:
+
+        See :meth:`affine_hull_projection`.
+
+        OUTPUT:
+
+        An instance of :class:`~sage.geometry.convex_set.AffineHullProjectionData`.
+        See :meth:`affine_hull_projection` for details.
+
+        TESTS:
+
+        Check that :trac:`23355` is fixed::
+
+            sage: P = Polyhedron([[7]]); P
+            A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
+            sage: P.affine_hull_projection()
+            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+            sage: P.affine_hull_projection(orthonormal='True')
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
+            sage: P.affine_hull_projection(orthogonal='True')
+            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
+
+        Check that :trac:`24047` is fixed::
+
+            sage: P1 = Polyhedron(vertices=([[-1, 1], [0, -1], [0, 0], [-1, -1]]))
+            sage: P2 = Polyhedron(vertices=[[1, 1], [1, -1], [0, -1], [0, 0]])
+            sage: P = P1.intersection(P2)
+            sage: A, b = P.affine_hull_projection(as_affine_map=True, orthonormal=True, extend=True)
+
+            sage: Polyhedron([(2,3,4)]).affine_hull_projection()
+            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
+
+        Check that backend is preserved::
+
+            sage: polytopes.simplex(backend='field').affine_hull_projection().backend()
+            'field'
+
+            sage: P = Polyhedron(vertices=[[0,0], [1,0]], backend='field')
+            sage: P.affine_hull_projection(orthogonal=True, orthonormal=True, extend=True).backend()
+            'field'
+
+        Check that :trac:`29116` is fixed::
+
+            sage: V =[
+            ....:    [1, 0, -1, 0, 0],
+            ....:    [1, 0, 0, -1, 0],
+            ....:    [1, 0, 0, 0, -1],
+            ....:    [1, 0, 0, +1, 0],
+            ....:    [1, 0, 0, 0, +1],
+            ....:    [1, +1, 0, 0, 0]
+            ....:     ]
+            sage: P = Polyhedron(V)
+            sage: P.affine_hull_projection()
+            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 6 vertices
+            sage: P.affine_hull_projection(orthonormal=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: the base ring needs to be extended; try with "extend=True"
+            sage: P.affine_hull_projection(orthonormal=True, extend=True)
+            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 6 vertices
+        """
+        result = AffineHullProjectionData()
+
+        if self.is_empty():
+            raise ValueError('affine hull projection of an empty polyhedron is undefined')
+
+        # handle trivial full-dimensional case
+        if self.ambient_dim() == self.dim():
+            if as_convex_set:
+                result.image = self
+            if as_affine_map:
+                identity = linear_transformation(matrix(self.base_ring(),
+                                                        self.dim(),
+                                                        self.dim(),
+                                                        self.base_ring().one()))
+                result.projection_linear_map = result.section_linear_map = identity
+                result.projection_translation = result.section_translation = self.ambient_space().zero()
+        elif orthogonal or orthonormal:
+            # see TODO
+            if not self.is_compact():
+                raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
+            affine_basis = self.an_affine_basis()
+            v0 = affine_basis[0].vector()
+            # We implicitly translate the first vertex of the affine basis to zero.
+            vi = tuple(v.vector() - v0 for v in affine_basis[1:])
+            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), vi)
+
+            # Switch base_ring to AA if necessary,
+            # since gram_schmidt needs to be able to take square roots.
+            # Pick orthonormal basis and transform all vertices accordingly
+            # if the orthonormal transform makes it necessary, change base ring.
+            try:
+                A, G = M.gram_schmidt(orthonormal=orthonormal)
+            except TypeError:
+                if not extend:
+                    raise ValueError('the base ring needs to be extended; try with "extend=True"')
+                M = matrix(AA, M)
+                A = M.gram_schmidt(orthonormal=orthonormal)[0]
+                if minimal:
+                    from sage.rings.qqbar import number_field_elements_from_algebraics
+                    new_ring = number_field_elements_from_algebraics(A.list(), embedded=True, minimal=True)[0]
+                    A = A.change_ring(new_ring)
+            L = linear_transformation(A, side='right')
+            ambient_translation = -vector(A.base_ring(), affine_basis[0])
+            image_translation = A * ambient_translation
+            # Note the order. We compute ``A*self`` and then translate the image.
+            # ``A*self`` uses the incidence matrix and we avoid recomputation.
+            # Also, if the new base ring is ``AA``, we want to avoid computing the incidence matrix in that ring.
+            # ``convert=True`` takes care of the case, where there might be no coercion (``AA`` and quadratic field).
+            if as_convex_set:
+                result.image = self.linear_transformation(A, new_base_ring=A.base_ring()) + image_translation
+            if as_affine_map:
+                result.projection_linear_map = L
+                result.projection_translation = image_translation
+            if as_section_map:
+                L_dagger = linear_transformation(A.transpose() * (A * A.transpose()).inverse(), side='right')
+                result.section_linear_map = L_dagger
+                result.section_translation = v0.change_ring(A.base_ring())
+        else:
+            # translate one vertex to the origin
+            v0 = self.vertices()[0].vector()
+            gens = []
+            for v in self.vertices()[1:]:
+                gens.append(v.vector() - v0)
+            for r in self.rays():
+                gens.append(r.vector())
+            for l in self.lines():
+                gens.append(l.vector())
+
+            # Pick subset of coordinates to coordinatize the affine span
+            M = matrix(gens)
+            pivots = M.pivots()
+
+            A = matrix(self.base_ring(), len(pivots), self.ambient_dim(),
+                       [[1 if j == i else 0 for j in range(self.ambient_dim())] for i in pivots])
+            if as_affine_map:
+                image_translation = vector(self.base_ring(), self.dim())
+                L = linear_transformation(A, side='right')
+                result.projection_linear_map = L
+                result.projection_translation = image_translation
+            if as_convex_set:
+                result.image = A*self
+            if as_section_map:
+                if self.dim():
+                    B = M.transpose()/(A*M.transpose())
+                else:
+                    B = matrix(self.ambient_dim(), 0)
+                L_section = linear_transformation(B, side='right')
+                result.section_linear_map = L_section
+                result.section_translation = v0 - L_section(L(v0) + image_translation)
+
+        return result
+
+    def affine_hull_projection(self,
+                               as_polyhedron=None, as_affine_map=False,
+                               orthogonal=False, orthonormal=False,
+                               extend=False, minimal=False,
+                               return_all_data=False,
+                               *, as_convex_set=None):
+        r"""Return the polyhedron projected into its affine hull.
 
         Each polyhedron is contained in some smallest affine subspace
         (possibly the entire ambient space) -- its affine hull.  We
@@ -10794,7 +10952,8 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         INPUT:
 
-        - ``as_polyhedron`` -- (boolean or the default ``None``) and
+        - ``as_polyhedron`` (or ``as_convex_set``) -- (boolean or the default
+          ``None``) and
 
         - ``as_affine_map`` -- (boolean, default ``False``) control the output
 
@@ -10811,14 +10970,17 @@ class Polyhedron_base(Element, ConvexSet_closed):
           ``A(v)+b``.
 
           If both ``as_polyhedron`` and ``as_affine_map`` are set, then
-          both are returned, encapsulated in an instance of ``AffineHullProjectionData``.
+          both are returned, encapsulated in an instance of
+          :class:`~sage.geometry.convex_set.AffineHullProjectionData`.
 
         - ``return_all_data`` -- (boolean, default ``False``)
 
           If set, then ``as_polyhedron`` and ``as_affine_map`` will set
           (possibly overridden) and additional (internal) data concerning
           the transformation is returned. Everything is encapsulated
-          in an instance of ``AffineHullProjectionData`` in this case.
+          in an instance of
+          :class:`~sage.geometry.convex_set.AffineHullProjectionData` in
+          this case.
 
         - ``orthogonal`` -- boolean (default: ``False``); if ``True``,
           provide an orthogonal transformation.
@@ -10840,13 +11002,14 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         A full-dimensional polyhedron or an affine transformation,
         depending on the parameters ``as_polyhedron`` and ``as_affine_map``,
-        or an instance of ``AffineHullProjectionData`` containing all data
-        (parameter ``return_all_data``).
+        or an instance of :class:`~sage.geometry.convex_set.AffineHullProjectionData`
+        containing all data (parameter ``return_all_data``).
 
-        If the output is an instance of ``AffineHullProjectionData``, the
+        If the output is an instance of
+        :class:`~sage.geometry.convex_set.AffineHullProjectionData`, the
         following fields may be set:
 
-        - ``polyhedron`` -- the projection of the original polyhedron
+        - ``image`` -- the projection of the original polyhedron
 
         - ``projection_map`` -- the affine map as a pair whose first component
           is a linear transformation and its second component a shift;
@@ -11086,7 +11249,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: data = S.affine_hull_projection(orthogonal=True,
             ....:                                 as_polyhedron=True,
             ....:                                 as_affine_map=True); data
-            Polyhedron_base.AffineHullProjectionData(polyhedron=A 2-dimensional polyhedron in QQ^2
+            AffineHullProjectionData(image=A 2-dimensional polyhedron in QQ^2
                     defined as the convex hull of 3 vertices,
                 projection_linear_map=Vector space morphism represented by the matrix:
                     [  -1 -1/2]
@@ -11101,7 +11264,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         Return all data::
 
             sage: data = S.affine_hull_projection(orthogonal=True, return_all_data=True); data
-            Polyhedron_base.AffineHullProjectionData(polyhedron=A 2-dimensional polyhedron in QQ^2
+            AffineHullProjectionData(image=A 2-dimensional polyhedron in QQ^2
                     defined as the convex hull of 3 vertices,
                 projection_linear_map=Vector space morphism represented by the matrix:
                     [  -1 -1/2]
@@ -11118,13 +11281,13 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         The section map is a right inverse of the projection map::
 
-            sage: data.polyhedron.linear_transformation(data.section_linear_map.matrix().transpose()) + data.section_translation == S
+            sage: data.image.linear_transformation(data.section_linear_map.matrix().transpose()) + data.section_translation == S
             True
 
         Same without ``orthogonal=True``::
 
             sage: data = S.affine_hull_projection(return_all_data=True); data
-            Polyhedron_base.AffineHullProjectionData(polyhedron=A 2-dimensional polyhedron in ZZ^2
+            AffineHullProjectionData(image=A 2-dimensional polyhedron in ZZ^2
                     defined as the convex hull of 3 vertices,
                 projection_linear_map=Vector space morphism represented by the matrix:
                     [1 0]
@@ -11137,7 +11300,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
                     [ 0  1 -1]
                     Domain: Vector space of dimension 2 over Rational Field
                     Codomain: Vector space of dimension 3 over Rational Field, section_translation=(0, 0, 1))
-            sage: data.polyhedron.linear_transformation(data.section_linear_map.matrix().transpose()) + data.section_translation == S
+            sage: data.image.linear_transformation(data.section_linear_map.matrix().transpose()) + data.section_translation == S
             True
 
         ::
@@ -11158,165 +11321,14 @@ class Polyhedron_base(Element, ConvexSet_closed):
             [  1/3  -1/6  -1/2 -1/12]
             Domain: Vector space of dimension 5 over Rational Field
             Codomain: Vector space of dimension 4 over Rational Field
-
-        TESTS:
-
-        Check that :trac:`23355` is fixed::
-
-            sage: P = Polyhedron([[7]]); P
-            A 0-dimensional polyhedron in ZZ^1 defined as the convex hull of 1 vertex
-            sage: P.affine_hull_projection()
-            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
-            sage: P.affine_hull_projection(orthonormal='True')
-            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
-            sage: P.affine_hull_projection(orthogonal='True')
-            A 0-dimensional polyhedron in QQ^0 defined as the convex hull of 1 vertex
-
-        Check that :trac:`24047` is fixed::
-
-            sage: P1 = Polyhedron(vertices=([[-1, 1], [0, -1], [0, 0], [-1, -1]]))
-            sage: P2 = Polyhedron(vertices=[[1, 1], [1, -1], [0, -1], [0, 0]])
-            sage: P = P1.intersection(P2)
-            sage: A, b = P.affine_hull_projection(as_affine_map=True, orthonormal=True, extend=True)
-
-            sage: Polyhedron([(2,3,4)]).affine_hull_projection()
-            A 0-dimensional polyhedron in ZZ^0 defined as the convex hull of 1 vertex
-
-        Check that backend is preserved::
-
-            sage: polytopes.simplex(backend='field').affine_hull_projection().backend()
-            'field'
-
-            sage: P = Polyhedron(vertices=[[0,0], [1,0]], backend='field')
-            sage: P.affine_hull_projection(orthogonal=True, orthonormal=True, extend=True).backend()
-            'field'
-
-        Check that :trac:`29116` is fixed::
-
-            sage: V =[
-            ....:    [1, 0, -1, 0, 0],
-            ....:    [1, 0, 0, -1, 0],
-            ....:    [1, 0, 0, 0, -1],
-            ....:    [1, 0, 0, +1, 0],
-            ....:    [1, 0, 0, 0, +1],
-            ....:    [1, +1, 0, 0, 0]
-            ....:     ]
-            sage: P = Polyhedron(V)
-            sage: P.affine_hull_projection()
-            A 4-dimensional polyhedron in ZZ^4 defined as the convex hull of 6 vertices
-            sage: P.affine_hull_projection(orthonormal=True)
-            Traceback (most recent call last):
-            ...
-            ValueError: the base ring needs to be extended; try with "extend=True"
-            sage: P.affine_hull_projection(orthonormal=True, extend=True)
-            A 4-dimensional polyhedron in AA^4 defined as the convex hull of 6 vertices
         """
-        if as_polyhedron is None:
-            as_polyhedron = not as_affine_map
-        if not as_affine_map and not as_polyhedron:
-            raise ValueError('combining "as_affine_map=False" and '
-                             '"as_polyhedron=False" not allowed')
-        if return_all_data:
-            as_polyhedron = True
-            as_affine_map = True
-
-        result = self.AffineHullProjectionData()
-
-        if self.is_empty():
-            raise ValueError('affine hull projection of an empty polyhedron is undefined')
-
-        # handle trivial full-dimensional case
-        if self.ambient_dim() == self.dim():
-            if as_polyhedron:
-                result.polyhedron = self
-            if as_affine_map:
-                identity = linear_transformation(matrix(self.base_ring(),
-                                                        self.dim(),
-                                                        self.dim(),
-                                                        self.base_ring().one()))
-                result.projection_linear_map = result.section_linear_map = identity
-                result.projection_translation = result.section_translation = self.ambient_space().zero()
-        elif orthogonal or orthonormal:
-            # see TODO
-            if not self.is_compact():
-                raise NotImplementedError('"orthogonal=True" and "orthonormal=True" work only for compact polyhedra')
-            affine_basis = self.an_affine_basis()
-            v0 = affine_basis[0].vector()
-            # We implicitly translate the first vertex of the affine basis to zero.
-            vi = tuple(v.vector() - v0 for v in affine_basis[1:])
-            M = matrix(self.base_ring(), self.dim(), self.ambient_dim(), vi)
-
-            # Switch base_ring to AA if necessary,
-            # since gram_schmidt needs to be able to take square roots.
-            # Pick orthonormal basis and transform all vertices accordingly
-            # if the orthonormal transform makes it necessary, change base ring.
-            try:
-                A, G = M.gram_schmidt(orthonormal=orthonormal)
-            except TypeError:
-                if not extend:
-                    raise ValueError('the base ring needs to be extended; try with "extend=True"')
-                M = matrix(AA, M)
-                A = M.gram_schmidt(orthonormal=orthonormal)[0]
-                if minimal:
-                    from sage.rings.qqbar import number_field_elements_from_algebraics
-                    new_ring = number_field_elements_from_algebraics(A.list(), embedded=True, minimal=True)[0]
-                    A = A.change_ring(new_ring)
-            L = linear_transformation(A, side='right')
-            ambient_translation = -vector(A.base_ring(), affine_basis[0])
-            image_translation = A * ambient_translation
-            # Note the order. We compute ``A*self`` and then translate the image.
-            # ``A*self`` uses the incidence matrix and we avoid recomputation.
-            # Also, if the new base ring is ``AA``, we want to avoid computing the incidence matrix in that ring.
-            # ``convert=True`` takes care of the case, where there might be no coercion (``AA`` and quadratic field).
-            if as_polyhedron:
-                result.polyhedron = self.linear_transformation(A, new_base_ring=A.base_ring()) + image_translation
-            if as_affine_map:
-                result.projection_linear_map = L
-                result.projection_translation = image_translation
-            if return_all_data:
-                L_dagger = linear_transformation(A.transpose() * (A * A.transpose()).inverse(), side='right')
-                result.section_linear_map = L_dagger
-                result.section_translation = v0.change_ring(A.base_ring())
-        else:
-            # translate one vertex to the origin
-            v0 = self.vertices()[0].vector()
-            gens = []
-            for v in self.vertices()[1:]:
-                gens.append(v.vector() - v0)
-            for r in self.rays():
-                gens.append(r.vector())
-            for l in self.lines():
-                gens.append(l.vector())
-
-            # Pick subset of coordinates to coordinatize the affine span
-            M = matrix(gens)
-            pivots = M.pivots()
-
-            A = matrix(self.base_ring(), len(pivots), self.ambient_dim(),
-                       [[1 if j == i else 0 for j in range(self.ambient_dim())] for i in pivots])
-            if as_affine_map:
-                image_translation = vector(self.base_ring(), self.dim())
-                L = linear_transformation(A, side='right')
-                result.projection_linear_map = L
-                result.projection_translation = image_translation
-            if as_polyhedron:
-                result.polyhedron = A*self
-            if return_all_data:
-                if self.dim():
-                    B = M.transpose()/(A*M.transpose())
-                else:
-                    B = matrix(self.ambient_dim(), 0)
-                L_section = linear_transformation(B, side='right')
-                result.section_linear_map = L_section
-                result.section_translation = v0 - L_section(L(v0) + image_translation)
-
-        # assemble result
-        if return_all_data or (as_polyhedron and as_affine_map):
-            return result
-        elif as_affine_map:
-            return (result.projection_linear_map, result.projection_translation)
-        else:
-            return result.polyhedron
+        if as_polyhedron is not None:
+            as_convex_set = as_polyhedron
+        return super().affine_hull_projection(
+            as_convex_set=as_convex_set, as_affine_map=as_affine_map,
+            orthogonal=orthogonal, orthonormal=orthonormal,
+            extend=extend, minimal=minimal,
+            return_all_data=return_all_data)
 
     def _test_affine_hull_projection(self, tester=None, verbose=False, **options):
         """
@@ -11360,18 +11372,18 @@ class Polyhedron_base(Element, ConvexSet_closed):
             M = data.projection_linear_map.matrix().transpose()
             tester.assertEqual(self.linear_transformation(M, new_base_ring=M.base_ring())
                                + data.projection_translation,
-                               data.polyhedron)
+                               data.image)
 
             M = data.section_linear_map.matrix().transpose()
             if M.base_ring() is AA:
                 self_extend = self.change_ring(AA)
             else:
                 self_extend = self
-            tester.assertEqual(data.polyhedron.linear_transformation(M)
+            tester.assertEqual(data.image.linear_transformation(M)
                                + data.section_translation,
                                self_extend)
             if i == 0:
-                tester.assertEqual(data.polyhedron.base_ring(), self.base_ring())
+                tester.assertEqual(data.image.base_ring(), self.base_ring())
             else:
                 # Test whether the map is orthogonal.
                 M = data.projection_linear_map.matrix()
@@ -11382,7 +11394,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             if i == 3:
                 # Test that the extension is indeed minimal.
                 if self.base_ring() is not AA:
-                    tester.assertIsNot(data.polyhedron.base_ring(), AA)
+                    tester.assertIsNot(data.image.base_ring(), AA)
 
     def affine_hull_manifold(self, name=None, latex_name=None, start_index=0, ambient_space=None,
                              ambient_chart=None, names=None, **kwds):

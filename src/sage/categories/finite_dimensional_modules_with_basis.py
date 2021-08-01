@@ -434,6 +434,56 @@ class FiniteDimensionalModulesWithBasis(CategoryWithAxiom_over_base_ring):
             from sage.modules.with_basis.invariant import FiniteDimensionalInvariantModule
             return FiniteDimensionalInvariantModule(M, S, action=action, side=side, **kwargs)
 
+        def twisted_invariant_module(self, G, chi,
+                                     action=operator.mul,
+                                     action_on_basis=None,
+                                     side='left',
+                                     **kwargs):
+            r"""
+            Create the isotypic component of the action of ``G`` on
+            ``self`` with irreducible character given by ``chi``.
+
+            .. SEEALSO:
+
+                -:class:`~sage.modules.with_basis.invariant.FiniteDimensionalTwistedInvariantModule`
+
+            INPUT:
+
+            - ``G`` -- a finitely-generated group
+            - ``chi`` -- a list/tuple of character values or an instance of
+              :class:`~sage.groups.class_function.ClassFunction_gap`
+            - ``action`` -- a function (default: :obj:`operator.mul`)
+            - ``action_on_basis`` -- (optional) define the action of ``g``
+              on the basis of ``self``
+            - ``side`` -- ``'left'`` or ``'right'`` (default: ``'right'``);
+              which side of ``self`` the elements of ``S`` acts
+
+            OUTPUT:
+
+            - :class:`~sage.modules.with_basis.invariant.FiniteDimensionalTwistedInvariantModule`
+
+            EXAMPLES::
+
+                sage: M = CombinatorialFreeModule(QQ, [1,2,3])
+                sage: G = SymmetricGroup(3)
+                sage: def action(g,x): return(M.term(g(x))) # permute coordinates
+                sage: T = M.twisted_invariant_module(G, [2,0,-1], action_on_basis=action)
+                sage: import __main__; __main__.action = action
+                sage: TestSuite(T).run()
+            """
+
+            if action_on_basis is not None:
+                from sage.modules.with_basis.representation import Representation
+                from sage.categories.modules import Modules
+                category = kwargs.pop('category', Modules(self.base_ring()).WithBasis())
+                M = Representation(G, self, action_on_basis, side=side, category=category)
+            else:
+                M = self
+
+            from sage.modules.with_basis.invariant import FiniteDimensionalTwistedInvariantModule
+            return FiniteDimensionalTwistedInvariantModule(M, G, chi,
+                                                          action, side, **kwargs)
+
     class ElementMethods:
         def dense_coefficient_list(self, order=None):
             """

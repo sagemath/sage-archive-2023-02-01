@@ -1262,7 +1262,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
     def is_reducible(self):
         """
-        Check weather the braid is reducible.
+        Check whether the braid is reducible.
 
         EXAMPLES::
 
@@ -1279,7 +1279,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
     def is_periodic(self):
         """
-        Check weather the braid is periodic.
+        Check whether the braid is periodic.
 
         EXAMPLES::
 

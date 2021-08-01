@@ -1082,7 +1082,7 @@ class ContinuousMap(Morphism):
 
         A simple reparamentrization::
 
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: I = R.open_interval(0, 2*pi)
             sage: J = R.open_interval(2*pi, 6*pi)
             sage: h = J.continuous_map(I, ((t-2*pi)/2,), name='h')

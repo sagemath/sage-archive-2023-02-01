@@ -624,7 +624,7 @@ class ComplexBallField(UniqueRepresentation, Field):
         The following conversions used to yield incorrect enclosures::
 
             sage: a = CBF(airy_ai(1)); a
-            [0.1352924163128814 +/- 4.17e-17]
+            [0.1352924163128814 +/- 6.95e-17]
             sage: a.overlaps(ComplexBallField(100).one().airy_ai())
             True
             sage: v = CBF(zetaderiv(1, 3/2)); v
@@ -2117,7 +2117,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(exp(I*pi/3)).accuracy()
-            52
+            51
             sage: CBF(I/2).accuracy() == CBF.base().maximal_accuracy()
             True
             sage: CBF('nan', 'inf').accuracy() == -CBF.base().maximal_accuracy()
@@ -4510,8 +4510,8 @@ cdef class ComplexBall(RingElement):
             sage: CBF(0,1).elliptic_invariants()
             ([189.07272012923 +/- ...e-12], [+/- ...e-12])
             sage: CBF(sqrt(2)/2, sqrt(2)/2).elliptic_invariants()
-            ([+/- ...e-12] + [-332.53380314654 +/- ...e-12]*I,
-             [1254.4684215774 +/- ...e-11] + [1254.4684215774 +/- ...e-11]*I)
+            ([+/- ...e-12] + [-332.5338031465...]*I,
+             [1254.46842157...] + [1254.46842157...]*I)
         """
         cdef ComplexBall g2 = self._new()
         cdef ComplexBall g3 = self._new()

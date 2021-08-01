@@ -817,7 +817,8 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
 
     return [item[0] == item[1] for item in zip(parameters, estimated_params)]
 
-def binpacking(items, maximum=1, k=None, solver=None, verbose=0):
+def binpacking(items, maximum=1, k=None, solver=None, verbose=0,
+               *, integrality_tolerance=1e-3):
     r"""
     Solve the bin packing problem.
 
@@ -851,14 +852,19 @@ def binpacking(items, maximum=1, k=None, solver=None, verbose=0):
       - When set to ``None``, the function returns a partition of the items
         using the least possible number of bins.
 
-    - ``solver`` -- (default: ``None``); Specify a Linear Program (LP) solver to
-      be used. If set to ``None``, the default one is used. For more information
-      on LP solvers and which default solver is used, see the method
-      :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of the class
-      :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+    - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+      (MILP) solver to be used. If set to ``None``, the default one is used. For
+      more information on MILP solvers and which default solver is used, see
+      the method
+      :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+      of the class
+      :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
       to 0 by default, which means quiet.
+
+    - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+      inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
     OUTPUT:
 
@@ -940,7 +946,8 @@ def binpacking(items, maximum=1, k=None, solver=None, verbose=0):
         while True:
             from sage.numerical.mip import MIPSolverException
             try:
-                return binpacking(items, k=k, maximum=maximum, solver=solver, verbose=verbose)
+                return binpacking(items, k=k, maximum=maximum, solver=solver, verbose=verbose,
+                                  integrality_tolerance=integrality_tolerance)
             except MIPSolverException:
                 k = k + 1
 
@@ -963,12 +970,12 @@ def binpacking(items, maximum=1, k=None, solver=None, verbose=0):
     except MIPSolverException:
         raise ValueError("this problem has no solution !")
 
-    box = p.get_values(box)
+    box = p.get_values(box, convert=bool, tolerance=integrality_tolerance)
 
     boxes = [[] for i in range(k)]
 
     for i,b in box:
-        if box[i,b] == 1:
+        if box[i,b]:
             boxes[b].append(weight[i] if isinstance(items, list) else i)
 
     return boxes

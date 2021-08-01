@@ -3539,14 +3539,11 @@ class FiniteWord_class(Word_class):
             sage: Word('121212').primitive_length()
             2
         """
-        l = lu = self.length()
+        l = self.length()
         if l == 0:
             return 0
-        p = self.prefix_function_table()
-        while l > 0:
-            l = p[l-1]
-            if lu % (lu - l) == 0:
-                return lu - l
+        p = self.minimal_period()
+        return p if l % p == 0 else l
 
     def is_primitive(self):
         r"""

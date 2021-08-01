@@ -1237,6 +1237,16 @@ class Chart(UniqueRepresentation, SageObject):
             sage: M((0, 0)) in McF
             False
 
+        Pulling back the integers::
+
+            sage: R = manifolds.RealLine(); R
+            Real number line ℝ
+            sage: McZ = R.canonical_chart().pullback(ZZ, name='ℤ'); McZ
+            Subset ℤ of the Real number line ℝ
+            sage: R((3/2,)) in McZ
+            False
+            sage: R((-2,)) in McZ
+            True
         """
         from .subsets.pullback import ManifoldSubsetPullback
         return ManifoldSubsetPullback(self, codomain_subset,

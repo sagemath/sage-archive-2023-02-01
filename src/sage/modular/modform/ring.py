@@ -138,14 +138,43 @@ def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=Fals
 
 @richcmp_method
 class ModularFormsRing(Parent):
+    r"""
+    The ring of modular forms (of weights 0 or at least 2) for a congruence
+    subgroup of `{\rm SL}_2(\ZZ)`, with coefficients in a specified base ring.
+
+    EXAMPLES::
+
+        sage: ModularFormsRing(Gamma1(13))
+        Ring of Modular Forms for Congruence Subgroup Gamma1(13) over Rational Field
+        sage: m = ModularFormsRing(4); m
+        Ring of Modular Forms for Congruence Subgroup Gamma0(4) over Rational Field
+        sage: m.modular_forms_of_weight(2)
+        Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(4) of weight 2 over Rational Field
+        sage: m.modular_forms_of_weight(10)
+        Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(4) of weight 10 over Rational Field
+        sage: m == loads(dumps(m))
+        True
+        sage: m.generators()
+        [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10)),
+        (2, q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10))]
+        sage: m.q_expansion_basis(2,10)
+        [1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10),
+            q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10)]
+        sage: m.q_expansion_basis(3,10)
+        []
+        sage: m.q_expansion_basis(10,10)
+        [1 + 10560*q^6 + 3960*q^8 + O(q^10),
+        q - 8056*q^7 - 30855*q^9 + O(q^10),
+        q^2 - 796*q^6 - 8192*q^8 + O(q^10),
+        q^3 + 66*q^7 + 832*q^9 + O(q^10),
+        q^4 + 40*q^6 + 528*q^8 + O(q^10),
+        q^5 + 20*q^7 + 190*q^9 + O(q^10)]
+    """
 
     Element = GradedModularFormElement
 
     def __init__(self, group, base_ring=QQ):
         r"""
-        The ring of modular forms (of weights 0 or at least 2) for a congruence
-        subgroup of `{\rm SL}_2(\ZZ)`, with coefficients in a specified base ring.
-
         INPUT:
 
         - ``group`` -- a congruence subgroup of `{\rm SL}_2(\ZZ)`, or a
@@ -154,35 +183,7 @@ class ModularFormsRing(Parent):
         - ``base_ring`` (ring, default: `\QQ`) -- a base ring, which should be
           `\QQ`, `\ZZ`, or the integers mod `p` for some prime `p`.
 
-        EXAMPLES::
-
-            sage: ModularFormsRing(Gamma1(13))
-            Ring of Modular Forms for Congruence Subgroup Gamma1(13) over Rational Field
-            sage: m = ModularFormsRing(4); m
-            Ring of Modular Forms for Congruence Subgroup Gamma0(4) over Rational Field
-            sage: m.modular_forms_of_weight(2)
-            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(4) of weight 2 over Rational Field
-            sage: m.modular_forms_of_weight(10)
-            Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(4) of weight 10 over Rational Field
-            sage: m == loads(dumps(m))
-            True
-            sage: m.generators()
-            [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10)),
-            (2, q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10))]
-            sage: m.q_expansion_basis(2,10)
-            [1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10),
-             q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10)]
-            sage: m.q_expansion_basis(3,10)
-            []
-            sage: m.q_expansion_basis(10,10)
-            [1 + 10560*q^6 + 3960*q^8 + O(q^10),
-             q - 8056*q^7 - 30855*q^9 + O(q^10),
-             q^2 - 796*q^6 - 8192*q^8 + O(q^10),
-             q^3 + 66*q^7 + 832*q^9 + O(q^10),
-             q^4 + 40*q^6 + 528*q^8 + O(q^10),
-             q^5 + 20*q^7 + 190*q^9 + O(q^10)]
-
-        TESTS:
+        TESTS::
 
         Check that :trac:`15037` is fixed::
 
@@ -534,7 +535,7 @@ class ModularFormsRing(Parent):
             track of a lifting to characteristic 0 when the base ring is a
             finite field.
 
-        .. note::
+        .. NOTE::
 
             If called with the default values of ``start_gens`` (an empty list)
             and ``start_weight`` (2), the values will be cached for re-use on
@@ -608,33 +609,6 @@ class ModularFormsRing(Parent):
             1 + 17/5*q + 26/5*q^2 + 43/5*q^3 + 94/5*q^4 + 77/5*q^5 + 154/5*q^6 + 86/5*q^7 + 36*q^8 + 146/5*q^9 + O(q^10)
             sage: ModularFormsRing(11).generators(start_gens = [(2, f)])
             [(2, 1 + 17/5*q + 26/5*q^2 + 43/5*q^3 + 94/5*q^4 + 77/5*q^5 + 154/5*q^6 + 86/5*q^7 + 36*q^8 + 146/5*q^9 + O(q^10)), (2, 1 + 12*q^2 + 12*q^3 + 12*q^4 + 12*q^5 + 24*q^6 + 24*q^7 + 36*q^8 + 36*q^9 + O(q^10)), (4, 1 + O(q^10))]
-
-        TESTS::
-
-            sage: from sage.modular.modform.ring import find_generators
-            sage: find_generators(ModularFormsRing(1))
-            doctest:warning
-            ...
-            DeprecationWarning: find_generators is deprecated. Please use sage.modular.modform.ring.generators instead.
-            See https://trac.sagemath.org/31559 for details.
-            [(4,
-            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + 60480*q^6 + 82560*q^7 + 140400*q^8 + 181680*q^9 + O(q^10)),
-            (6,
-            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 - 4058208*q^6 - 8471232*q^7 - 17047800*q^8 - 29883672*q^9 + O(q^10))]
-
-        ::
-
-            sage: from sage.modular.modform.find_generators import find_generators
-            sage: find_generators(ModularFormsRing(1))
-            doctest:warning
-            ...
-            DeprecationWarning: Importing find_generators from here is deprecated. If you need to use it, please import it directly from sage.modular.modform.ring
-            See https://trac.sagemath.org/31559 for details.
-            [(4,
-            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + 60480*q^6 + 82560*q^7 + 140400*q^8 + 181680*q^9 + O(q^10)),
-            (6,
-            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 - 4058208*q^6 - 8471232*q^7 - 17047800*q^8 - 29883672*q^9 + O(q^10))]
-
         """
         sgs = []
         for x in start_gens:
@@ -681,7 +655,7 @@ class ModularFormsRing(Parent):
         - ``start_weight`` (integer, default: 2) -- calculate the graded
           subalgebra of forms of weight at least ``start_weight``.
 
-        .. note::
+        .. NOTE::
 
             If called with the default values of ``start_gens`` (an empty list)
             and ``start_weight`` (2), the values will be cached for re-use on
@@ -864,16 +838,6 @@ class ModularFormsRing(Parent):
 
             sage: ModularFormsRing(11).q_expansion_basis(10, prec=5)
             [1 + O(q^5), q + O(q^5), q^2 + O(q^5), q^3 + O(q^5), q^4 + O(q^5), O(q^5), O(q^5), O(q^5), O(q^5), O(q^5)]
-
-        TESTS::
-
-            sage: from sage.modular.modform.ring import basis_for_modform_space
-            sage: basis_for_modform_space(ModularFormsRing(1), 4)
-            doctest:warning
-            ...
-            DeprecationWarning: basis_for_modform_space is deprecated. Please use sage.modular.modform.ring.q_expansion_basis instead.
-            See https://trac.sagemath.org/31559 for details.
-            [1 + 240*q + O(q^2)]
         """
         d = self.modular_forms_of_weight(weight).dimension()
         if d == 0:

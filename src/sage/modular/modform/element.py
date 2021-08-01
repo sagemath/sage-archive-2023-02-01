@@ -3086,11 +3086,31 @@ class GradedModularFormElement(ModuleElement):
 
     A ``GradedModularFormElement`` should not be constructed directly via this class. Instead,
     one should use the element constructor of the parent class (``ModularFormsRing``).
+
+    EXAMPLES::
+
+        sage: M = ModularFormsRing(1)
+        sage: D = CuspForms(1, 12).0
+        sage: E4 = ModularForms(1, 4).0
+        sage: M({4:E4, 12:D})
+        1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
+        sage: M([E4, D])
+        1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
+        sage: M([E4, D]) == E4 + D
+        True
+
+    ::
+
+        sage: M = ModularFormsRing(Gamma0(3))
+        sage: f = ModularForms(Gamma0(3), 4).0
+        sage: g = ModularForms(Gamma0(3), 2).0
+        sage: M([f, g])
+        2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
+        sage: M({4:f, 2:g})
+        2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
     """
     def __init__(self, parent, forms_datum):
         r"""
-        An element of a graded ring of modular forms.
-
         INPUT:
 
         - ``parent`` - an object of the class ``ModularFormsRing``
@@ -3100,28 +3120,6 @@ class GradedModularFormElement(ModuleElement):
         OUTPUT:
 
         A ``GradedModularFormElement`` corresponding to `f_1 + f_2 + ... + f_n`
-
-        EXAMPLES::
-
-            sage: M = ModularFormsRing(1)
-            sage: D = CuspForms(1, 12).0
-            sage: E4 = ModularForms(1, 4).0
-            sage: M({4:E4, 12:D})
-            1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
-            sage: M([E4, D])
-            1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
-            sage: M([E4, D]) == E4 + D
-            True
-
-        ::
-
-            sage: M = ModularFormsRing(Gamma0(3))
-            sage: f = ModularForms(Gamma0(3), 4).0
-            sage: g = ModularForms(Gamma0(3), 2).0
-            sage: M([f, g])
-            2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
-            sage: M({4:f, 2:g})
-            2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
         """
         forms_dictionary = {}
         if isinstance(forms_datum, dict):

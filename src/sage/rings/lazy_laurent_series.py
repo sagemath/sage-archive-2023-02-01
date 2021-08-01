@@ -180,6 +180,93 @@ class LazySequencesModuleElement(ModuleElement):
         return P.element_class(P, CoefficientStream_add(self._coeff_stream, other._coeff_stream))
 
 
+    def _lmul_(self, scalar):
+        """
+        Scalar multiplication for module elements with the module
+        element on the left and the scalar on the right.
+
+        INPUT:
+
+        - ``scalar`` -- an element of the base ring
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: 2*z
+            2*z
+            sage: -1*z
+            -z
+            sage: 0*z
+            0
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: M * 3
+            3*z + 6*z^2 + 9*z^3 + 12*z^4 + 15*z^5 + 18*z^6 + ...
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: M * 3
+            3*z + 6*z^2 + 9*z^3 + 12*z^4 + 15*z^5 + 18*z^6 + ...
+            sage: N = L(lambda n: 1); N
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: N * 4
+            4 + 4*z + 4*z^2 + 4*z^3 + 4*z^4 + 4*z^5 + 4*z^6 + ...
+
+            sage: 1 * M is M
+            True
+            sage: M * 1 is M
+            True
+
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_scalar
+            sage: isinstance((M*3)._coeff_stream, CoefficientStream_scalar)
+            True
+            sage: isinstance((3*M)._coeff_stream, CoefficientStream_scalar)
+            True
+
+        Similarly for Dirichlet series::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: g = L.gen(1)
+            sage: 2*g
+            2/2^z
+            sage: -1*g
+            -1/2^z
+            sage: 0*g
+            0
+            sage: M = L(lambda n: n); M
+            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
+            sage: M * 3
+            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + ...
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
+            sage: M = L(lambda n: n); M
+            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
+            sage: M * 3
+            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + ...
+
+            sage: 1 * M is M
+            True
+            sage: M * 1 is M
+            True
+        """
+        P = self.parent()
+        if not scalar:
+            return P.zero()
+        if scalar == 1:
+            return self
+
+        if isinstance(self._coeff_stream, CoefficientStream_exact):
+            c = scalar * self._coeff_stream._constant
+            v = self._coeff_stream.valuation()
+            initial_coefficients = [scalar * v for v in self._coeff_stream._initial_coefficients]
+            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
+                                                              valuation=v, constant=c,
+                                                              degree=self._coeff_stream._degree))
+
+        return P.element_class(P, CoefficientStream_scalar(self._coeff_stream, scalar))
+
+
 class LazyLaurentSeries(LazySequencesModuleElement):
     r"""
     A Laurent series where the coefficients are computed lazily.
@@ -697,59 +784,6 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
         return P.element_class(P, CoefficientStream_cauchy_product(left, CoefficientStream_cauchy_inverse(right)))
 
-    def _rmul_(self, scalar):
-        """
-        Return the scalar multiplication of this series by ``scalar``.
-
-        INPUT:
-
-        - ``scalar`` -- an element of the base ring
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: 2*z
-            2*z
-            sage: -1*z
-            -z
-            sage: 0*z
-            0
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: M * 3
-            3*z + 6*z^2 + 9*z^3 + 12*z^4 + 15*z^5 + 18*z^6 + ...
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: M * 3
-            3*z + 6*z^2 + 9*z^3 + 12*z^4 + 15*z^5 + 18*z^6 + ...
-            sage: N = L(lambda n: 1); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
-            sage: N * 4
-            4 + 4*z + 4*z^2 + 4*z^3 + 4*z^4 + 4*z^5 + 4*z^6 + ...
-
-            sage: 1 * M is M
-            True
-            sage: M * 1 is M
-            True
-        """
-        P = self.parent()
-        if not scalar:
-            return P.zero()
-        if scalar == 1:
-            return self
-
-        if isinstance(self._coeff_stream, CoefficientStream_exact):
-            R = P._laurent_poly_ring
-            z = R.gen()
-            c = scalar * self._coeff_stream._constant
-            pl = R(sum([self._coeff_stream[i] * z**i for i in range(self._coeff_stream._approximate_valuation, self._coeff_stream._degree)]))
-            p = scalar * pl
-            p_list = [p[i] for i in range(p.valuation(), p.degree() + 1)]
-            return P.element_class(P, CoefficientStream_exact(p_list, P._sparse, valuation=p.valuation(), constant=c, degree=self._coeff_stream._degree))
-
-        return P.element_class(P, CoefficientStream_scalar(self._coeff_stream, scalar))
 
     def _neg_(self):
         """
@@ -1557,60 +1591,6 @@ class LazyDirichletSeries(LazySequencesModuleElement):
         coeff = CoefficientStream_dirichlet_convolution(left, right)
         return P.element_class(P, coeff)
 
-
-    def _rmul_(self, scalar):
-        """
-        Return the scalar multiplication of this series by ``scalar``.
-
-        INPUT:
-
-        - ``scalar`` -- an element of the base ring
-
-        TESTS::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "z")
-            sage: g = L.gen(1)
-            sage: 2*g
-            2/2^z
-            sage: -1*g
-            -1/2^z
-            sage: 0*g
-            0
-            sage: M = L(lambda n: n); M
-            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
-            sage: M * 3
-            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + ...
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
-            sage: M = L(lambda n: n); M
-            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
-            sage: M * 3
-            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + ...
-
-        TESTS::
-
-            sage: 1 * M is M
-            True
-            sage: M * 1 is M
-            True
-        """
-        P = self.parent()
-        if not scalar:
-            return P.zero()
-        if scalar == 1:
-            return self
-
-        if isinstance(self._coeff_stream, CoefficientStream_exact):
-            c = scalar * self._coeff_stream._constant
-            v = self._coeff_stream.valuation()
-            initial_coefficients = [scalar * v for v in self._coeff_stream._initial_coefficients]
-            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
-                                                              valuation=v, constant=c,
-                                                              degree=self._coeff_stream._degree))
-
-        return P.element_class(P, CoefficientStream_scalar(self._coeff_stream, scalar))
-
-    _lmul_ = _rmul_
 
     def __invert__(self):
         """

@@ -5419,6 +5419,53 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             return False
 
+    def post_critical_set(self):
+        r"""
+        Return the post critical set of this dynamical system.
+
+        Raises an error if this dynamical system is not post-critically finite.
+
+        Note that the orbit of all critical points is found, even if the
+        critical points are defined in an extension of the base ring of
+        this dynamical system.
+
+        OUTPUT: The combined orbits of the critical points, as a set
+
+        EXAMPLES::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([x^3 - 3/2* x*y^2, y^3])
+            sage: f.post_critical_set()
+            [(-1/2*a : 1), (1/2*a : 1), (1 : 0)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([3*x^3 - 9/2* x^2*y+y^3, y^3])
+            sage: f.post_critical_set()
+            [(0 : 1), (1 : 1), (-1/2 : 1), (1 : 0)]
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem([-4*y^2, 9*x^2 - 12*x*y])
+            sage: f.post_critical_set()
+            [(2/3 : 1), (1 : 1), (4/3 : 1), (1 : 0), (0 : 1)]
+        """
+        if not is_ProjectiveSpace(self.domain()):
+            raise ValueError('must not be a dynamical system on a subscheme')
+        if self.domain().dimension_relative() != 1:
+            raise ValueError('must be defined on projective space of dimension 1')
+        f = self.change_ring(self.field_of_definition_critical())
+        critical_points = f.critical_points()
+        post_critical_list = []
+        for point in critical_points:
+            next_point = point
+            while not(next_point in post_critical_list):
+                post_critical_list.append(next_point)
+                next_point = f(next_point)
+        return post_critical_list
+
 
 class DynamicalSystem_projective_field(DynamicalSystem_projective,
                                        SchemeMorphism_polynomial_projective_space_field):

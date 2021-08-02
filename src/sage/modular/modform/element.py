@@ -3089,18 +3089,20 @@ class GradedModularFormElement(ModuleElement):
 
     EXAMPLES::
 
-    Using the element constructor of the parent class, it is possible to construct
-    a graded modular form element via a dictionnary or a list::
-
         sage: M = ModularFormsRing(1)
         sage: D = CuspForms(1, 12).0
+        sage: M(D).parent()
+        Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+
+    A graded modular form can be initated via a dictionnary or a list::
+
         sage: E4 = ModularForms(1, 4).0
         sage: M({4:E4, 12:D}) # dictionnary
         1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
         sage: M([E4, D]) # list
         1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
 
-    Also, when adding two modular forms of different weight, a graded modular form element will be created::
+    Also, when adding two modular forms of different weights, a graded modular form element will be created::
 
         sage: (E4 + D).parent()
         Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field

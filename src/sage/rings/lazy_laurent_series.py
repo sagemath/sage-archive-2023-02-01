@@ -168,11 +168,11 @@ class LazySequenceElement(ModuleElement):
         P = self.parent()
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, CoefficientStream_exact):
-            initial_values = [func(i) if i else 0 for i in coeff_stream._initial_values]
-            c = func(coeffs._constant) if coeffs._constant else 0
+            initial_values = [func(i) if i else 0 for i in coeff_stream._initial_coefficients]
+            c = func(coeff_stream._constant) if coeff_stream._constant else 0
             if not any(initial_values) and not c:
                 return P.zero()
-            coeff_stream = CoefficientStream_exact(p_list, self._coeff_stream._is_sparse,
+            coeff_stream = CoefficientStream_exact(initial_values, self._coeff_stream._is_sparse,
                                                    valuation=coeff_stream._approximate_valuation,
                                                    degree=coeff_stream._degree,
                                                    constant=c)
@@ -1169,7 +1169,6 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         if isinstance(self._coeff_stream, CoefficientStream_cauchy_inverse):
             return P.element_class(P, self._coeff_stream._series)
         return P.element_class(P, CoefficientStream_cauchy_inverse(self._coeff_stream))
-
 
     def __pow__(self, n):
         """

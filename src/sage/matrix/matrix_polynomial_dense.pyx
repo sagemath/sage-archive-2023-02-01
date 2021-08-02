@@ -2632,7 +2632,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 [[4*x^2 + 3*x + 3, 3*x^2 + 3*x + 1,   4*x^2 + x + 4], \
                  [6*x^2 + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
                  [5*x^2 + 3*x + 6,   6*x^2 + x + 4, 3*x^2 + 3*x + 2]])
-            sage: Q,R = A.quo_rem(B); (Q,R)
+            sage: Q,R = A.right_quo_rem(B); (Q,R)
             (
             [    4*x   x + 2 6*x + 1]  [  x + 2 6*x + 1 5*x + 4]
             [4*x + 3   x + 6 3*x + 4], [4*x + 2 2*x + 3 4*x + 3]
@@ -2659,18 +2659,95 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             True
 
         """
-        if B.is_reduced(row_wise=False):
+        if B.is_reduced(row_wise=False,include_zero_vectors=False):
+            # case of B column reduced (without zero columns):
+            # direct matrix version of univariate polynomial quo_rem
             return self._right_quo_rem_reduced(B)
-        else:
-            try:
-                return self._right_quo_rem_solve(B)
-                
-            except ValueError:
-                return True
+        try:
+            # more generally, case of B full column rank:
+            # (or "luck": A = XB has a rational solution)
+            # method via solving A = XB
+            return self._right_quo_rem_solve(B)
+        except ValueError:
+            # more generally, any B
+            # (compute remainder in division by XXX )
+            return True
+
+    def _right_quo_rem_reduced(self, B):
+        r"""
+        If ``self`` is a `k x m` polynomial matrix (written `A` below), and the
+        input `B` is an `m x m` polynomial matrix in column reduced form, this
+        computes the unique couple `(Q,R)` of `k x m` polynomial matrices such
+        that `A = QB + R`, with the column degrees of `R` entrywise less than
+        those of `B`.
+
+        The fact that `B` is in column reduced form is required, and not
+        checked. Reference: we follow the folklore algorithm which generalizes
+        the fast division of univariate polynomials; precisely we implement
+        [Neiger-Vu, ISSAC 2017, Algorithm 1] .
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 2, 3,                              \
+                [[3*x^3 + 3*x, 3*x^3 + 6*x + 5,   2*x^3 + 2*x + 6], \
+                 [2*x^3 + 4,   6*x^3 + 5*x^2 + 1, 3*x^2 + 2*x + 2]])
+
+            sage: B = Matrix(pR, 3, 3,                                \
+                [[4*x^2 + 3*x + 3, 3*x^2 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x^2 + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [5*x^2 + 3*x + 6,   6*x^2 + x + 4, 3*x^2 + 3*x + 2]])
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: Q,R = A._right_quo_rem_reduced(B); (Q,R)
+            (
+            [    4*x   x + 2 6*x + 1]  [  x + 2 6*x + 1 5*x + 4]
+            [4*x + 3   x + 6 3*x + 4], [4*x + 2 2*x + 3 4*x + 3]
+            )
+            sage: A == Q*B+R and R.degree() < 2
+            True
+
+            sage: B = Matrix(pR, 3, 3,                              \
+                [[4*x + 3*x + 3, 3*x^3 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [6,             6*x^3 + x + 4,   3*x^2 + 3*x + 2]])
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: Q,R = A._right_quo_rem_reduced(B); (Q,R)
+            (
+            [2*x^2 + 4*x + 6     3*x^2 + 5*x     6*x^2 + 3*x]
+            [6*x^2 + 4*x + 1   2*x^2 + x + 5 4*x^2 + 6*x + 1],
+            <BLANKLINE>
+            [              3               6         2*x + 3]
+            [              1 5*x^2 + 2*x + 3         6*x + 3]
+            )
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+
+        """
+        # Step 0: find parameter d  (delta in above reference)
+        cdegA = self.column_degrees() # zero columns of A --> entries -1 in cdegA
+        cdeg = B.column_degrees()  # all non-negative since column reduced
+        d = max([cdegA[i]-cdeg[i]+1 for i in range(B.nrows())])
+        if d<=0: # A already reduced modulo B, quotient is zero
+            return (self.parent().zero(), self)
+        # Step 1: reverse input matrices
+        # Brev = B(1/x) diag(x^(cdeg[i]))
+        # Arev = A(1/x) diag(x^(d+cdeg[i]-1)) 
+        Brev = B.reverse(degree=cdeg, row_wise=False)
+        Arev = self.reverse(degree=[d+c-1 for c in cdeg], row_wise=False)
+        # Step 2: compute quotient
+        # compute Qrev = Arev Brev^{-1} mod x^d
+        # then quotient is the reverse Q = x^(d-1) Qrev(1/x)
+        Q = Brev.solve_left_series_trunc(Arev, d).reverse(degree=d-1)
+        # Step 3: deduce remainder and return
+        R = self - Q*B
+        return Q,R
 
     def _right_quo_rem_solve(self, B):
         r"""
-        If ``self`` is a `k x m` polynomial matrix (written `A` below), and the
+        If ``self`` is a `k x n` polynomial matrix (written `A` below), and the
         input `B` is an `m x n` polynomial matrix with full column rank, this
         computes a couple `(Q,R)` polynomial matrices, of sizes `k x m` and `k
         x n` respectively, such that `A = QB + R`, with the column degrees of
@@ -2801,79 +2878,93 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         R = self - Q*B
         return (Q,R)
 
-
-
-    def _right_quo_rem_reduced(self, B):
+    def reduce(self, B, shifts=None, row_wise=True, return_quotient=False):
         r"""
-        If ``self`` is a `k x m` polynomial matrix (written `A` below), and the
-        input `B` is an `m x m` polynomial matrix in column reduced form, this
-        computes the unique couple `(Q,R)` of `k x m` polynomial matrices such
-        that `A = QB + R`, with the column degrees of `R` entrywise less than
-        those of `B`.
+        Reduce ``self``, i.e. compute its normal form, modulo the row space of
+        `B` with respect to `shifts`.
 
-        The fact that `B` is in column reduced form is required, and not
-        checked. Reference: we follow the folklore algorithm which generalizes
-        the fast division of univariate polynomials; precisely we implement
-        [Neiger-Vu, ISSAC 2017, Algorithm 1] .
+        If ``self`` is a `k x n` polynomial matrix (written `A` below), and the
+        input `B` is an `m x n` polynomial matrix, this computes the normal
+        form `R` of `A` with respect the row space of `B` and the monomial
+        order defined by ``shifts`` (written `s` below). This means that the
+        `i`th row of `R` is equal to the `i`th row of `A` up to addition of an
+        element in the row space of `B`, and if `J = (j_1,\ldots,j_r)` are the
+        `s`-leading positions of the `s`-Popov form `P` of `A`, then the
+        submatrix `R_{*,J}` (submatrix of `R` formed by its columns in `J`) has
+        column degrees smaller entrywise than the column degrees of `P_{*,J}`.
+        
+        If the option ``row_wise`` is set to ``False``, the same operation is
+        performed, but with everything considered column-wise: column space of
+        `B`, `i`th column of `R` and `A`, column-wise `s`-leading positions and
+        `s`-Popov form, and submatrices `R_{J,*}` and `P_{J,*}`.
 
-        EXAMPLES::
+        The operation above can be seen as a generalization of division with
+        remainder for univariate polynomials. If the option ``return_quotient``
+        is set to ``True``, this method returns both the normal form `R` and a
+        quotient matrix `Q` such that `A = QB + R`. This quotient is not unique
+        unless `B` has a trivial left kernel (i.e. has full row rank).
 
-            sage: pR.<x> = GF(7)[]
-            sage: A = Matrix(pR, 2, 3,                              \
-                [[3*x^3 + 3*x, 3*x^3 + 6*x + 5,   2*x^3 + 2*x + 6], \
-                 [2*x^3 + 4,   6*x^3 + 5*x^2 + 1, 3*x^2 + 2*x + 2]])
+        This method checks whether `B` is in `s`-Popov form, and if not,
+        computes the `s`-Popov form `P` of `B`, which can take some time.
+        Therefore, if `P` is already known or is to be re-used, this method
+        should be called directly with `P` (yielding the same normal form `R`
+        since `P` and `B` have the same row space).
 
-            sage: B = Matrix(pR, 3, 3,                                \
-                [[4*x^2 + 3*x + 3, 3*x^2 + 3*x + 1,   4*x^2 + x + 4], \
-                 [6*x^2 + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
-                 [5*x^2 + 3*x + 6,   6*x^2 + x + 4, 3*x^2 + 3*x + 2]])
-            sage: B.is_reduced(row_wise=False)
-            True
-            sage: Q,R = A._right_quo_rem_reduced(B); (Q,R)
-            (
-            [    4*x   x + 2 6*x + 1]  [  x + 2 6*x + 1 5*x + 4]
-            [4*x + 3   x + 6 3*x + 4], [4*x + 2 2*x + 3 4*x + 3]
-            )
-            sage: A == Q*B+R and R.degree() < 2
-            True
+        A ``ValueError`` is raised if the dimensions of the shifts and/or of
+        the matrices are not conformal.
 
-            sage: B = Matrix(pR, 3, 3,                              \
-                [[4*x + 3*x + 3, 3*x^3 + 3*x + 1,   4*x^2 + x + 4], \
-                 [6*x + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
-                 [6,             6*x^3 + x + 4,   3*x^2 + 3*x + 2]])
-            sage: B.is_reduced(row_wise=False)
-            True
-            sage: Q,R = A._right_quo_rem_reduced(B); (Q,R)
-            (
-            [2*x^2 + 4*x + 6     3*x^2 + 5*x     6*x^2 + 3*x]
-            [6*x^2 + 4*x + 1   2*x^2 + x + 5 4*x^2 + 6*x + 1],
-            <BLANKLINE>
-            [              3               6         2*x + 3]
-            [              1 5*x^2 + 2*x + 3         6*x + 3]
-            )
-            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
-            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
-            True
+        INPUT:
+
+        - ``B`` -- polynomial matrix.
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
+
+        - ``return_quotient`` -- (optional, default: ``False``). If this
+          is ``True``, the quotient will be returned as well.
+
+        OUTPUT: a polynomial matrix.
 
         """
-        # Step 0: find parameter d  (delta in above reference)
-        cdegA = self.column_degrees() # zero columns of A --> entries -1 in cdegA
-        cdeg = B.column_degrees()  # all non-negative since column reduced
-        d = max([cdegA[i]-cdeg[i]+1 for i in range(B.nrows())])
-        if d<=0: # A already reduced modulo B, quotient is zero
-            return (self.parent().zero(), self)
-        # Step 1: reverse input matrices
-        # Brev = B(1/x) diag(x^(cdeg[i]))
-        # Arev = A(1/x) diag(x^(d+cdeg[i]-1)) 
-        Brev = B.reverse(degree=cdeg, row_wise=False)
-        Arev = self.reverse(degree=[d+c-1 for c in cdeg], row_wise=False)
-        # Step 2: compute quotient
-        # compute Qrev = Arev Brev^{-1} mod x^d
-        # then quotient is the reverse Q = x^(d-1) Qrev(1/x)
-        Q = Brev.solve_left_series_trunc(Arev, d).reverse(degree=d-1)
-        # Step 3: deduce remainder and return
-        R = self - Q*B
-        return Q,R
+        # note: is_popov calls B._check_shift_dimension(shifts,row_wise)
+        # TODO handle zero vectors better? is popov_form expensive when
+        # is already popov up to zero vectors?
+        if B.is_popov(shifts,row_wise,False,False):
+            lpos = B.leading_positions(shifts=shifts,row_wise=row_wise)
+            set_lpos = set(lpos) # to make things faster for huge matrices..
+            if row_wise:
+                non_lpos = [j for j in range(B.ncols()) if j not in set_lpos]
+                # A_{*,J} = Q B_{*,J} + R0
+                Q,R0 = self[:,lpos]._right_quo_rem_reduced(B[:,lpos])
+                # other columns are given by A_{*,not J} - Q B_{*, not J}
+                R = self.parent().zero()
+                R[:,lpos] = R0
+                R[:,non_lpos] = self[:,non_lpos] - Q * B[:,non_lpos]
+                return Q,R if return_quotient else R
+            else:
+                non_lpos = [i for i in range(B.nrows()) if i not in set_lpos]
+                # A_{I,*} = B_{I,*} Q + R0
+                Q,R0 = self[lpos,:].T._right_quo_rem_reduced(B[lpos,:].T)
+                Q = Q.T
+                R0 = R0.T
+                # other columns are given by A_{not I,*} - B_{not I,*} Q
+                R = self.parent().zero()
+                R[lpos,:] = R0
+                R[non_lpos,:] = self[non_lpos,:] - B[non_lpos,:] * Q
+                return Q,R if return_quotient else R
+        elif return_quotient:
+            P,U = B.popov_form(True,shifts,row_wise,False)
+            Q,R = self.reduce(P,shifts,row_wise,True)
+            # row-wise: UB = P and A = QP + R ==> A = QUB + R
+            # --> careful: the last rows of U may correspond to zero rows of P,
+            # which have been discarded... so not exactly UB = P
+            return Q*U[:P.nrows(),:], R if row_wise else U[:,:P.ncols()] * Q, R
+        else:
+            P = B.popov_form(True,shifts,row_wise,False)
+            return self.reduce(P,shifts,row_wise,False)
 
     def is_minimal_approximant_basis(self,
             pmat,

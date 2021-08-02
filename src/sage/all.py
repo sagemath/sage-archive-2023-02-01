@@ -183,6 +183,7 @@ from sage.geometry.riemannian_manifolds.all   import *
 from sage.dynamics.all   import *
 
 from sage.homology.all   import *
+from sage.topology.all   import *
 
 from sage.quadratic_forms.all import *
 

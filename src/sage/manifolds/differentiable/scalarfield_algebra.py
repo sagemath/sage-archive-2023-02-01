@@ -93,11 +93,11 @@ class DiffScalarFieldAlgebra(ScalarFieldAlgebra):
     algebras over `\RR` (represented here by Sage's Symbolic Ring)::
 
         sage: CM.category()
-        Category of commutative algebras over Symbolic Ring
+        Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
         sage: CM.base_ring()
         Symbolic Ring
         sage: CW.category()
-        Category of commutative algebras over Symbolic Ring
+        Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
         sage: CW.base_ring()
         Symbolic Ring
 

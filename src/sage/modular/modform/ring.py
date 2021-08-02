@@ -334,30 +334,6 @@ class ModularFormsRing(Parent):
             Traceback (most recent call last):
             ...
             ValueError: the group (Modular Group SL(2,Z)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of Modular Forms for Modular Group SL(2,Z) over Integer Ring
-            sage: M = ModularFormsRing(1)
-            sage: E4 = ModularForms(1,4).0
-            sage: E4
-            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
-            sage: M({6:E4})
-            Traceback (most recent call last):
-            ...
-            ValueError: at least one key (6) of the defining dictionary does not correspond to the weight of its value (1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)). Real weight: 4
-            sage: M({4:'f'})
-            Traceback (most recent call last):
-            ...
-            ValueError: at least one value (f) of the defining dictionary is not a `ModularFormElement`
-            sage: M({4.:E4})
-            Traceback (most recent call last):
-            ...
-            ValueError: at least one key (4.00000000000000) of the defining dictionary is not an integer
-            sage: M({0:E4})
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field to Rational Field
-            sage: M([E4, x])
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Symbolic Ring to Rational Field
             sage: M(x)
             Traceback (most recent call last):
             ...

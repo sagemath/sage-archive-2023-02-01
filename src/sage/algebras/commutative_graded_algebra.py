@@ -28,7 +28,7 @@ from sage.sets.condition_set import ConditionSet
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
-class GradedCommutativeAlgebraWithMaxDeg(CombinatorialFreeModule, Algebra):
+class GCAlgebraWithMaxDegree(CombinatorialFreeModule, Algebra):
     r"""
     Graded commutative algebras.
 
@@ -211,16 +211,16 @@ class GradedCommutativeAlgebraWithMaxDeg(CombinatorialFreeModule, Algebra):
         self._weighted_vectors = WeightedIntegerVectors(degrees)
         self._mul_symbol = kwargs.pop('mul_symbol', '*')
         self._mul_latex_symbol = kwargs.pop('mul_latex_symbol', '')
+        base_cat = Algebras(base).WithBasis().Super().Supercommutative()
         if max_degree < infinity:
             from sage.arith.misc import gcd
 
             step = gcd(degrees)
             universe = DisjointUnionEnumeratedSets(self._weighted_vectors.subset(k)
                                                    for k in range(0, max_degree, step))
-            base_cat = Algebras(base).WithBasis().Super().FiniteDimensional()
+            base_cat = base_cat.FiniteDimensional()
         else:
             universe = self._weighted_vectors
-            base_cat = Algebras(base).WithBasis().Super()
         indices = ConditionSet(universe, self._valid_index)
         sorting_key = self._weighted_vectors.grading
         category = base_cat.or_subcategory(category, join=True)

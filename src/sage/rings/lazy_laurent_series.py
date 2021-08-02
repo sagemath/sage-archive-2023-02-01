@@ -2106,25 +2106,23 @@ class LazyTaylorSeries(LazySequencesModuleElement):
 
         if not isinstance(self._coeff_stream, CoefficientStream_exact):
             m = v + 7  # long enough
-        elif not self._coeff_stream._constant:
-            # Just a polynonial, so let that print itself
-            R = self.parent()._poly_ring
-            if len(self.parent().variable_names()) == 1:
-                z = R.gen()
-                return repr(R.sum(self._coeff_stream[i] * z**i for i in range(v, self._coeff_stream._degree)))
-            else:
-                return repr(R.sum(self._coeff_stream[i] for i in range(v, self._coeff_stream._degree)))
         else:
             m = self._coeff_stream._degree + 3
 
-        # Use the polynomial printing
         R = self.parent()._poly_ring
         if len(self.parent().variable_names()) == 1:
             z = R.gen()
-            ret = repr(R.sum(self._coeff_stream[i] * z**i for i in range(v, m)))
+            ret = " + ".join([repr(R(self._coeff_stream[i] * z**i)) for i in range(v, m)
+                              if self._coeff_stream[i]])
         else:
-            ret = repr(R.sum(self._coeff_stream[i] for i in range(v, m)))
+            ret = " + ".join([repr(R(self._coeff_stream[i])) for i in range(v, m)
+                              if self._coeff_stream[i]])
+
+        if not ret:
+            return "0"
         # TODO: Better handling when ret == 0 but we have not checked up to the constant term
+        if isinstance(self._coeff_stream, CoefficientStream_exact) and not self._coeff_stream._constant:
+            return ret
         return ret + ' + ...'
 
 

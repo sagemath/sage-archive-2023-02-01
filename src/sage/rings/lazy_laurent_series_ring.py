@@ -578,28 +578,19 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             sage: X.valuation()
             2
 
-            sage: def g(i):
-            ....:     if i < 0:
-            ....:         return 1
-            ....:     else:
-            ....:         return 1 + sum(k for k in range(i+1))
-            sage: e = L(g, -5); e
-            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
+            sage: e = L(lambda n: n+1); e
+            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
             sage: f = e^-1; f
-            z^5 - z^6 - z^11 + ...
+            1 + -2*z + z^2 + ...
             sage: f.coefficient(10)
             0
             sage: f[20]
-            9
-            sage: f[30]
-            -219
+            0
 
             sage: L(valuation=2, constant=1)
             z^2 + z^3 + z^4 + ...
             sage: L(constant=1)
-            Traceback (most recent call last):
-            ...
-            ValueError: you must specify the degree for the polynomial 0
+            1 + z + z^2 + ...
 
         Alternatively, ``x`` can be a list of elements of the base ring.
         Then these elements are read as coefficients of the terms of
@@ -607,12 +598,11 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         may be just an element of the base ring instead of a tuple or can be
         simply omitted if it is zero::
 
-            sage: f = L([1,2,3,4], -5)
-            sage: f
-            z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
-            sage: g = L([1,3,5,7,9], 5, -1)
-            sage: g
-            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
+            sage: f = L([1,2,3,4], 1); f
+            z + 2*z^2 + 3*z^3 + 4*z^4
+
+            sage: g = L([1,3,5,7,9], 5, -1); g
+            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 + -z^10 + -z^11 + -z^12 + ...
 
         .. TODO::
 
@@ -621,9 +611,10 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         if valuation is None:
             valuation = 0
         assert valuation >= 0, "the valuation of a Taylor series must be positive"
-        
+
         R = self._poly_ring
         if x is None:
+            assert degree is None
             coeff_stream = CoefficientStream_uninitialized(self._sparse, valuation)
             return self.element_class(self, coeff_stream)
 
@@ -640,13 +631,13 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             if not x and not constant:
                 coeff_stream = CoefficientStream_zero(self._sparse)
             else:
-                if x and valuation:
-                    valuation = valuation - v
-                if degree is None and not x:
-                    degree = valuation
-                if x == R.zero():
-                    coeff_stream = CoefficientStream_exact([x], self._sparse, valuation=degree-1, constant=constant)
+                if not x:
+                    coeff_stream = CoefficientStream_exact([], self._sparse,
+                                                           valuation=valuation,
+                                                           degree=degree,
+                                                           constant=constant)
                     return self.element_class(self, coeff_stream)
+
                 if len(self.variable_names()) == 1:
                     v = x.valuation()
                     d = x.degree()
@@ -656,11 +647,13 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
                     v = min(p_dict.keys())
                     d = max(p_dict.keys())
                     p_list = [p_dict.get(i, 0) for i in range(v, d + 1)]
+
                 coeff_stream = CoefficientStream_exact(p_list, self._sparse,
                                                        valuation=valuation,
                                                        constant=constant,
                                                        degree=degree)
             return self.element_class(self, coeff_stream)
+
         if isinstance(x, LazyTaylorSeries):
             if x._coeff_stream._is_sparse is self._sparse:
                 return self.element_class(self, x._coeff_stream)
@@ -689,7 +682,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
 
             sage: L = LazyTaylorSeriesRing(ZZ, 'z')
             sage: L.an_element()
-            z^-10 + z^-9 + z^-8 + ...
+            z + z^2 + z^3 + z^4 + ...
         """
         c = self.base_ring()(1)
         R = self._poly_ring

@@ -3418,7 +3418,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
         sage: A.<p,e> = GradedCommutativeAlgebra(QQ, degrees=(4,2), max_degree=6)
         sage: A
         Graded commutative algebra with generators ('p', 'e') in degrees (4, 2)
-         with maximal finite degree 6
+         with maximal degree 6
         sage: p^2
         0
 

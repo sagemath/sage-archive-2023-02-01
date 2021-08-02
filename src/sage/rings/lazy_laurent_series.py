@@ -93,13 +93,29 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_inexact,
     CoefficientStream_zero,
     CoefficientStream_exact,
-    CoefficientStream_coefficient_function,
     CoefficientStream_uninitialized,
     CoefficientStream_dirichlet_convolution,
     CoefficientStream_dirichlet_inv
 )
 
 class LazySequenceElement(ModuleElement):
+    def __init__(self, parent, coeff_stream):
+        """
+        Initialize the series.
+
+        TESTS::
+
+            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
+            sage: z = L.gen()
+            sage: TestSuite(z).run()
+
+            sage: L = LazyDirichletSeriesRing(QQbar, 'z')
+            sage: g = L(constant=1)
+            sage: TestSuite(g).run()
+        """
+        ModuleElement.__init__(self, parent)
+        self._coeff_stream = coeff_stream
+
     def __getitem__(self, n):
         """
         Return the coefficient of the term with exponent ``n`` of the series.
@@ -143,7 +159,7 @@ class LazySequenceElement(ModuleElement):
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
         """
-        R = self.base_ring()
+        R = self.parent()._coeff_ring
         if isinstance(n, slice):
             if n.stop is None:
                 raise NotImplementedError("cannot list an infinite set")
@@ -204,7 +220,8 @@ class LazySequenceElement(ModuleElement):
                                                    degree=coeff_stream._degree,
                                                    constant=c)
             return P.element_class(P, coeff_stream)
-        return P.element_class(P, CoefficientStream_apply_coeff(self._coeff_stream, func, P.base_ring()))
+        coeff_stream = CoefficientStream_apply_coeff(self._coeff_stream, func, P._coeff_ring)
+        return P.element_class(P, coeff_stream)
 
     def truncate(self, d):
         """
@@ -237,10 +254,11 @@ class LazySequenceElement(ModuleElement):
             z + 2*z^2 + 3*z^3
         """
         P = self.parent()
-        coeff_stream = self._coeff_stream
-        initial_values = [coeff_stream[i] for i in range(coeff_stream._approximate_valuation, d)]
-        return P.element_class(P, CoefficientStream_exact(initial_values, P._sparse,
-                                                          valuation=coeff_stream._approximate_valuation))
+        initial_values = [self._coeff_stream[i]
+                          for i in range(coeff_stream._approximate_valuation, d)]
+        coeff_stream = CoefficientStream_exact(initial_values, P._sparse,
+                                               valuation=coeff_stream._approximate_valuation)
+        return P.element_class(P, coeff_stream)
 
     def prec(self):
         """
@@ -521,23 +539,6 @@ class LazySequenceElement(ModuleElement):
 
 
 class LazySequencesModuleElement(LazySequenceElement):
-    def __init__(self, parent, coeff_stream):
-        """
-        Initialize the series.
-
-        TESTS::
-
-            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
-            sage: z = L.gen()
-            sage: TestSuite(z).run()
-
-            sage: L = LazyDirichletSeriesRing(QQbar, 'z')
-            sage: g = L(constant=1)
-            sage: TestSuite(g).run()
-        """
-        ModuleElement.__init__(self, parent)
-        self._coeff_stream = coeff_stream
-
     def _add_(self, other):
         """
         Return the sum of ``self`` and ``other``.
@@ -1170,21 +1171,6 @@ class LazyLaurentSeries(LazySequencesModuleElement):
                     return self
         return P.element_class(P, CoefficientStream_cauchy_product(self._coeff_stream, other._coeff_stream))
 
-        P = self.parent()
-        left = self._coeff_stream
-        right = other._coeff_stream
-        if (isinstance(left, CoefficientStream_exact)
-            and isinstance(right, CoefficientStream_exact)):
-            c = left._constant + right._constant
-            v = min(left.valuation(), right.valuation())
-            d = max(left._degree(), right._degree())
-            initial_coefficients = [left[i] + right[i] for i in range(v, d)]
-            if not any(initial_terms) and not c:
-                return P.zero()
-            return P.element_class(P, CoefficientStream_exact(initial_terms, P._sparse,
-                                                              valuation=v, degree=d, constant=c))
-        return P.element_class(P, CoefficientStream_add(self._coeff_stream, other._coeff_stream))
-
     def _div_(self, other):
         """
         Return ``self`` divided by ``other``.
@@ -1474,6 +1460,670 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         # Use the polynomial printing
         R = self.parent()._laurent_poly_ring
         ret = repr(R([self._coeff_stream[i] for i in range(v, m)]).shift(v))
+        # TODO: Better handling when ret == 0 but we have not checked up to the constant term
+        return ret + ' + ...'
+
+class LazyTaylorSeries(LazySequencesModuleElement):
+    r"""
+    A Taylor series where the coefficients are computed lazily.
+
+    EXAMPLES::
+
+        sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+        sage: L(lambda i: i, valuation=-3, constant=(-1,3))
+        -3*z^-3 - 2*z^-2 - z^-1 + z + 2*z^2 - z^3 - z^4 - z^5 + ...
+        sage: L(lambda i: i, valuation=-3, constant=-1, degree=3)
+        -3*z^-3 - 2*z^-2 - z^-1 + z + 2*z^2 - z^3 - z^4 - z^5 + ...
+
+    ::
+
+        sage: f = 1 / (1 - z - z^2); f
+        1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
+        sage: f.coefficient(100)
+        573147844013817084101
+
+    Lazy Taylor series is picklable::
+
+        sage: g = loads(dumps(f))
+        sage: g
+        1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
+        sage: g == f
+        True
+    """
+    def change_ring(self, ring):
+        """
+        Return this series with coefficients converted to elements of ``ring``.
+
+        INPUT:
+
+        - ``ring`` -- a ring
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ, sparse=False)
+            sage: s = 2 + z
+            sage: t = s.change_ring(QQ)
+            sage: t^-1
+            1/2 - 1/4*z + 1/8*z^2 - 1/16*z^3 + 1/32*z^4 - 1/64*z^5 + 1/128*z^6 + ...
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: N = M.change_ring(QQ)
+            sage: N.parent()
+            Lazy Taylor Series Ring in z over Rational Field
+            sage: M.parent()
+            Lazy Taylor Series Ring in z over Integer Ring
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: M.parent()
+            Lazy Taylor Series Ring in z over Integer Ring
+            sage: N = M.change_ring(QQ)
+            sage: N.parent()
+            Lazy Taylor Series Ring in z over Rational Field
+            sage: M ^-1
+            z^-1 - 2 + z + ...
+        """
+        from .lazy_laurent_series_ring import LazyTaylorSeriesRing
+        Q = LazyTaylorSeriesRing(ring, names=self.parent().variable_names())
+        return Q.element_class(Q, self._coeff_stream)
+
+    def __call__(self, g):
+        r"""
+        Return the composition of ``self`` with ``g``.
+
+        Given two Taylor Series `f` and `g` over the same base ring, the
+        composition `(f \circ g)(z) = f(g(z))` is defined if and only if:
+
+        - `g = 0` and `val(f) >= 0`,
+        - `g` is non-zero and `f` has only finitely many non-zero coefficients,
+        - `g` is non-zero and `val(g) > 0`.
+
+        INPUT:
+
+        - ``g`` -- other series
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: f = z^2 + 1 + z
+            sage: f(0)
+            1
+            sage: f(L(0))
+            1
+            sage: f(f)
+            3 + 3*z + 4*z^2 + 2*z^3 + z^4
+            sage: g = z^-3/(1-2*z); g
+            z^-3 + 2*z^-2 + 4*z^-1 + 8 + 16*z + 32*z^2 + 64*z^3 + ...
+            sage: f(g)
+            z^-6 + 4*z^-5 + 12*z^-4 + 33*z^-3 + 82*z^-2 + 196*z^-1 + 457 + ...
+            sage: g^2 + 1 + g
+            z^-6 + 4*z^-5 + 12*z^-4 + 33*z^-3 + 82*z^-2 + 196*z^-1 + 457 + ...
+
+            sage: f = z^-2 + z + 4*z^3
+            sage: f(f)
+            4*z^-6 + 12*z^-3 + z^-2 + 48*z^-1 + 12 + ...
+            sage: f^-2 + f + 4*f^3
+            4*z^-6 + 12*z^-3 + z^-2 + 48*z^-1 + 12 + ...
+            sage: f(g)
+            4*z^-9 + 24*z^-8 + 96*z^-7 + 320*z^-6 + 960*z^-5 + 2688*z^-4 + 7169*z^-3 + ...
+            sage: g^-2 + g + 4*g^3
+            4*z^-9 + 24*z^-8 + 96*z^-7 + 320*z^-6 + 960*z^-5 + 2688*z^-4 + 7169*z^-3 + ...
+
+            sage: f = z^-3 + z^-2 + 1 / (1 + z^2); f
+            z^-3 + z^-2 + 1 - z^2 + ...
+            sage: g = z^3 / (1 + z - z^3); g
+            z^3 - z^4 + z^5 - z^7 + 2*z^8 - 2*z^9 + ...
+            sage: f(g)
+            z^-9 + 3*z^-8 + 3*z^-7 - z^-6 - 4*z^-5 - 2*z^-4 + z^-3 + ...
+            sage: g^-3 + g^-2 + 1 / (1 + g^2)
+            z^-9 + 3*z^-8 + 3*z^-7 - z^-6 - 4*z^-5 - 2*z^-4 + z^-3 + ...
+
+            sage: f = L(lambda n: n); f
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: f(z^2)
+            z^2 + 2*z^4 + 3*z^6 + ...
+
+            sage: f = L(lambda n: n, -2); f
+            -2*z^-2 - z^-1 + z + 2*z^2 + 3*z^3 + 4*z^4 + ...
+            sage: f3 = f(z^3); f3
+            -2*z^-6 - z^-3 + ...
+            sage: [f3[i] for i in range(-6,13)]
+            [-2, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4]
+
+        We compose a Taylor polynomial with a generic element::
+
+            sage: R.<x> = QQ[]
+            sage: f = z^2 + 1 + z^-1
+            sage: g = x^2 + x + 3
+            sage: f(g)
+            (x^6 + 3*x^5 + 12*x^4 + 19*x^3 + 37*x^2 + 28*x + 31)/(x^2 + x + 3)
+            sage: f(g) == g^2 + 1 + g^-1
+            True
+
+        We compose with another lazy Taylor series::
+
+            sage: LS.<y> = LazyTaylorSeriesRing(QQ)
+            sage: f = z^2 + 1 + z^-1
+            sage: fy = f(y); fy
+            y^-1 + 1 + y^2
+            sage: fy.parent() is LS
+            True
+            sage: g = y - y
+            sage: f(g)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: the valuation of the series must be nonnegative
+
+            sage: g = 1 - y
+            sage: f(g)
+            3 - y + 2*y^2 + y^3 + y^4 + y^5 + y^6 + ...
+            sage: g^2 + 1 + g^-1
+            3 - y + 2*y^2 + y^3 + y^4 + y^5 + y^6 + ...
+
+            sage: f = L(lambda n: n, 0); f
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: f(0)
+            0
+            sage: f(y)
+            y + 2*y^2 + 3*y^3 + 4*y^4 + 5*y^5 + 6*y^6 + ...
+            sage: fp = f(y - y)
+            sage: fp == 0
+            True
+            sage: fp.parent() is LS
+            True
+
+            sage: f = z^2 + 3 + z
+            sage: f(y - y)
+            3
+
+        With both of them sparse::
+
+            sage: L.<z> = LazyTaylorSeriesRing(QQ, sparse=True)
+            sage: LS.<y> = LazyTaylorSeriesRing(QQ, sparse=True)
+            sage: f = L(lambda n: 1); f
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: f(y^2)
+            1 + y^2 + y^4 + y^6 + ...
+
+            sage: fp = f - 1 + z^-2; fp
+            z^-2 + z + z^2 + z^3 + z^4 + ...
+            sage: fpy = fp(y^2); fpy
+            y^-4 + y^2 + ...
+            sage: [fpy[i] for i in range(-4,11)]
+            [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
+
+            sage: g = LS(valuation=2, constant=1); g
+            y^2 + y^3 + y^4 + ...
+            sage: fg = f(g); fg
+            1 + y^2 + y^3 + 2*y^4 + 3*y^5 + 5*y^6 + ...
+            sage: 1 + g + g^2 + g^3 + g^4 + g^5 + g^6
+            1 + y^2 + y^3 + 2*y^4 + 3*y^5 + 5*y^6 + ...
+
+            sage: h = LS(lambda n: 1 if n % 2 else 0, 2); h
+            y^3 + y^5 + y^7 + ...
+            sage: fgh = fg(h); fgh
+            1 + y^6 + ...
+            sage: [fgh[i] for i in range(0, 15)]
+            [1, 0, 0, 0, 0, 0, 1, 0, 2, 1, 3, 3, 6, 6, 13]
+            sage: t = 1 + h^2 + h^3 + 2*h^4 + 3*h^5 + 5*h^6
+            sage: [t[i] for i in range(0, 15)]
+            [1, 0, 0, 0, 0, 0, 1, 0, 2, 1, 3, 3, 6, 6, 13]
+
+        We look at mixing the sparse and the dense::
+
+            sage: L.<z> = LazyTaylorSeriesRing(QQ)
+            sage: f = L(lambda n: 1); f
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: g = LS(lambda n: 1, 1); g
+            y + y^2 + y^3 + y^4 + y^5 + y^6 + y^7 + ...
+            sage: f(g)
+            1 + y + 2*y^2 + 4*y^3 + 8*y^4 + 16*y^5 + 32*y^6 + ...
+
+            sage: f = z^-2 + 1 + z
+            sage: g = 1/(y*(1-y)); g
+            y^-1 + 1 + y + y^2 + y^3 + y^4 + y^5 + ...
+            sage: f(g)
+            y^-1 + 2 + y + 2*y^2 - y^3 + 2*y^4 + y^5 + ...
+            sage: g^-2 + 1 + g
+            y^-1 + 2 + y + 2*y^2 - y^3 + 2*y^4 + y^5 + ...
+
+            sage: f = z^-3 + z^-2 + 1
+            sage: g = 1/(y^2*(1-y)); g
+            y^-2 + y^-1 + 1 + y + y^2 + y^3 + y^4 + ...
+            sage: f(g)
+            1 + y^4 - 2*y^5 + 2*y^6 + ...
+            sage: g^-3 + g^-2 + 1
+            1 + y^4 - 2*y^5 + 2*y^6 + ...
+            sage: z(y)
+            y
+        """
+        # f = self and compute f(g)
+        P = g.parent()
+
+        # g = 0 case
+        if ((not isinstance(g, LazyTaylorSeries) and not g)
+            or (isinstance(g, LazyTaylorSeries)
+                and isinstance(g._coeff_stream, CoefficientStream_zero))):
+            if self._coeff_stream._approximate_valuation >= 0:
+                return P(self[0])
+            # Perhaps we just don't yet know if the valuation is non-negative
+            if any(self._coeff_stream[i] for i in range(self._coeff_stream._approximate_valuation, 0)):
+                raise ZeroDivisionError("the valuation of the series must be nonnegative")
+            self._coeff_stream._approximate_valuation = 0
+            return P(self[0])
+
+        # f has finite length
+        if isinstance(self._coeff_stream, CoefficientStream_zero):  # constant 0
+            return self
+        if isinstance(self._coeff_stream, CoefficientStream_exact) and not self._coeff_stream._constant:
+            # constant polynomial
+            R = self.parent()._poly_ring
+            z = R.gen()
+            poly = R(sum([self._coeff_stream[i] * z**i for i in range(self._coeff_stream._approximate_valuation, self._coeff_stream._degree)]))
+            if poly.is_constant():
+                return self
+            if not isinstance(g, LazyTaylorSeries):
+                return poly(g)
+            # g also has finite length, compose the polynomials
+            if isinstance(g._coeff_stream, CoefficientStream_exact) and not g._coeff_stream._constant:
+                try:
+                    R = P._poly_ring
+                    g_poly = R(sum([g._coeff_stream[i] * z**i for i in range(g._coeff_stream._approximate_valuation, g._coeff_stream._degree)]))
+                    ret = poly(g_poly)
+                    if ret.parent() is R:
+                        p_list = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
+                        return P.element_class(P, CoefficientStream_exact(p_list, self._coeff_stream._is_sparse, valuation=ret.valuation()))
+                except TypeError:  # the result is not a Taylor polynomial
+                    pass
+
+            # Return the sum since g is not known to be finite or we do not get a Taylor polynomial
+            # TODO: Optimize when f has positive valuation
+            ret = P.zero()
+            gp = P.one()
+            # We build this iteratively so each power can benefit from the caching
+            # Equivalent to P.sum(poly[i] * g**i for i in range(poly.valuation(), poly.degree()+1))
+            # We could just do "return poly(g)" if we don't care about speed
+            deg = poly.degree()
+            for i in range(deg):
+                ret += poly[i] * gp
+                gp *= g
+            ret += poly[deg] * gp
+            gi = ~g
+            gp = P.one()
+            for i in range(-1, poly.valuation()-1, -1):
+                gp *= gi
+                ret += poly[i] * gp
+            return ret
+
+        # g != 0 and val(g) > 0
+        if not isinstance(g, LazyTaylorSeries):
+            try:
+                g = self.parent()(g)
+            except (TypeError, ValueError):
+                raise NotImplementedError("can only compose with a lazy Taylor series")
+        # Perhaps we just don't yet know if the valuation is positive
+        if g._coeff_stream._approximate_valuation <= 0:
+            if any(g._coeff_stream[i] for i in range(self._coeff_stream._approximate_valuation)):
+                raise ValueError("can only compose with a positive valuation series")
+            g._coeff_stream._approximate_valuation = 1
+
+        return P.element_class(P, CoefficientStream_composition(self._coeff_stream, g._coeff_stream))
+
+    def _mul_(self, other):
+        """
+        Return the product of this series with ``other``.
+
+        INPUT:
+
+        - ``other`` -- other series
+
+        TESTS::
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: (1 - z)*(1 - z)
+            1 - 2*z + z^2
+            sage: (1 - z)*(1 - z)*(1 - z)
+            1 - 3*z + 3*z^2 - z^3
+            sage: M = L(lambda n: n)
+            sage: M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: N = M * (1 - M)
+            sage: N
+            z + z^2 - z^3 - 6*z^4 - 15*z^5 - 29*z^6 + ...
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: N = L(lambda n: 1); N
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: M * N
+            z + 3*z^2 + 6*z^3 + 10*z^4 + 15*z^5 + 21*z^6 + ...
+
+            sage: L.one() * M is M
+            True
+            sage: M * L.one() is M
+            True
+        """
+        P = self.parent()
+        left = self._coeff_stream
+        right = other._coeff_stream
+        if isinstance(left, CoefficientStream_zero) or isinstance(right, CoefficientStream_zero):
+            return P.zero()
+
+        R = P._poly_ring
+        z = R.gen()
+        if isinstance(left, CoefficientStream_exact):
+            if not left._constant:
+                if left._initial_coefficients == (P._coeff_ring.one(),) and not left.valuation():
+                    return other  # self == 1
+                if isinstance(right, CoefficientStream_exact):
+                    if not right._constant:
+                        # left and right polynomials
+                        il = left._initial_coefficients
+                        ir = right._initial_coefficients
+                        initial_coefficients = [sum(il[k]*ir[n-k]
+                                                    for k in range(max(n-len(ir)+1, 0),
+                                                                   min(len(il)-1, n) + 1))
+                                                for n in range(len(il) + len(ir))]
+                        v = left.valuation() + right.valuation()
+                        coeff_stream = CoefficientStream_exact(initial_coefficients, P._sparse, valuation=v)
+                        return P.element_class(P, coeff_stream)
+        elif isinstance(right, CoefficientStream_exact):
+            if not right._constant:
+                if right._initial_coefficients == (P._coeff_ring.one(),) and not right.valuation():
+                    return self  # other == 1
+        return P.element_class(P, CoefficientStream_cauchy_product(self._coeff_stream, other._coeff_stream))
+
+    def _div_(self, other):
+        """
+        Return ``self`` divided by ``other``.
+
+        INPUT:
+
+        - ``other`` -- nonzero series
+
+        TESTS::
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: z/(1 - z)
+            z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + ...
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: N = L(lambda n: 1); N
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: P = M / N; P
+            z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: N = L(lambda n: 1); N
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: P = M / N; P
+            z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+        """
+        if isinstance(other._coeff_stream, CoefficientStream_zero):
+            raise ZeroDivisionError("cannot divide by 0")
+
+        P = self.parent()
+        left = self._coeff_stream
+        if isinstance(left, CoefficientStream_zero):
+            return P.zero()
+        right = other._coeff_stream
+        if (isinstance(left, CoefficientStream_exact)
+                and isinstance(right, CoefficientStream_exact)):
+            if not left._constant and not right._constant:
+                R = P._poly_ring
+                z = R.gen()
+                pl = R(sum([left[i] * z**i for i in range(left._approximate_valuation, left._degree)]))
+                pr = R(sum([right[i] * z**i for i in range(right._approximate_valuation, right._degree)]))
+                ret = pl / pr
+                try:
+                    ret = P._poly_ring(ret)
+                    p_list = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
+                    return P.element_class(P, CoefficientStream_exact(p_list, P._sparse, valuation=ret.valuation(), constant=left._constant))
+                except (TypeError, ValueError):
+                    # We cannot divide the polynomials, so the result must be a series
+                    pass
+
+        return P.element_class(P, CoefficientStream_cauchy_product(left, CoefficientStream_cauchy_inverse(right)))
+
+    def __invert__(self):
+        """
+        Return the multiplicative inverse of the element.
+
+        TESTS::
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ, sparse=False)
+            sage: ~(1 - z)
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: P = ~M; P
+            z^-1 - 2 + z + ...
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: P = ~M; P
+            z^-1 - 2 + z + ...
+
+            sage: ~(~(1 - z))
+            1 - z
+        """
+        P = self.parent()
+        R = P._poly_ring
+        z = R.gen()
+        if isinstance(self._coeff_stream, CoefficientStream_exact):
+            poly = R(sum([self._coeff_stream[i] * z**i for i in range(self._coeff_stream._approximate_valuation, self._coeff_stream._degree)]))
+            if poly == R.gen():
+                ret = 1 / poly
+                p_list = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
+                return P.element_class(P, CoefficientStream_exact(p_list, P._sparse, valuation=ret.valuation(), constant=self._coeff_stream._constant))
+        # (f^-1)^-1 = f
+        if isinstance(self._coeff_stream, CoefficientStream_cauchy_inverse):
+            return P.element_class(P, self._coeff_stream._series)
+        return P.element_class(P, CoefficientStream_cauchy_inverse(self._coeff_stream))
+
+
+    def __pow__(self, n):
+        """
+        Return the ``n``-th power of the series.
+
+        INPUT:
+
+        - ``n`` -- integer; the power to which to raise the series
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: (1 - z)^-1
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: (1 - z)^0
+            1
+            sage: (1 - z)^3
+            1 - 3*z + 3*z^2 - z^3
+            sage: (1 - z)^-3
+            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + ...
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: M ^ 2
+            z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + ...
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: M ^ 2
+            z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + ...
+        """
+        if n == 0:
+            return self.parent().one()
+
+        return generic_power(self, n)
+
+    def approximate_series(self, prec, name=None):
+        """
+        Return the Taylor series with absolute precision ``prec`` approximated
+        from this series.
+
+        INPUT:
+
+        - ``prec`` -- an integer
+
+        - ``name`` -- name of the variable; if it is ``None``, the name of
+          the variable of the series is used
+
+        OUTPUT: a Taylor series with absolute precision ``prec``
+
+        EXAMPLES::
+
+            sage: L = LazyTaylorSeriesRing(ZZ, 'z')
+            sage: z = L.gen()
+            sage: f = (z - 2*z^3)^5/(1 - 2*z)
+            sage: f
+            z^5 + 2*z^6 - 6*z^7 - 12*z^8 + 16*z^9 + 32*z^10 - 16*z^11 + ...
+            sage: g = f.approximate_series(10)
+            sage: g
+            z^5 + 2*z^6 - 6*z^7 - 12*z^8 + 16*z^9 + O(z^10)
+            sage: g.parent()
+            Power Series Ring in z over Integer Ring
+            sage: h = (f^-1).approximate_series(3)
+            sage: h
+            z^-5 - 2*z^-4 + 10*z^-3 - 20*z^-2 + 60*z^-1 - 120 + 280*z - 560*z^2 + O(z^3)
+            sage: h.parent()
+            Taylor Series Ring in z over Integer Ring
+        """
+        S = self.parent()
+
+        if name is None:
+            name = S.variable_name()
+
+        if self.valuation() < 0:
+            from sage.rings.all import TaylorSeriesRing
+            R = TaylorSeriesRing(S.base_ring(), name=name)
+            n = self.valuation()
+            return R([self[i] for i in range(n, prec)], n).add_bigoh(prec)
+        else:
+            from sage.rings.all import PowerSeriesRing
+            R = PowerSeriesRing(S.base_ring(), name=name)
+            return R([self[i] for i in range(prec)]).add_bigoh(prec)
+
+    def polynomial(self, degree=None, name=None):
+        r"""
+        Return the polynomial or Taylor polynomial if the series is actually so.
+
+        INPUT:
+
+        - ``degree`` -- ``None`` or an integer
+
+        - ``name`` -- name of the variable; if it is ``None``, the name of the variable
+          of the series is used
+
+        OUTPUT:
+
+        A Taylor polynomial if the valuation of the series is negative or
+        a polynomial otherwise.
+
+        If ``degree`` is not ``None``, the terms of the series of degree
+        greater than ``degree`` are truncated first. If ``degree`` is ``None``
+        and the series is not a polynomial or a Taylor polynomial, a
+        ``ValueError`` is raised.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: f = L([1,0,0,2,0,0,0,3], 5); f
+            z^5 + 2*z^8 + 3*z^12
+            sage: f.polynomial()
+            3*z^12 + 2*z^8 + z^5
+
+        TESTS::
+
+            sage: g = L([1,0,0,2,0,0,0,3], -5); g
+            z^-5 + 2*z^-2 + 3*z^2
+            sage: g.polynomial()
+            z^-5 + 2*z^-2 + 3*z^2
+            sage: z = L.gen()
+            sage: f = (1 + z)/(z^3 - z^5)
+            sage: f
+            z^-3 + z^-2 + z^-1 + 1 + z + z^2 + z^3 + ...
+            sage: f.polynomial(5)
+            z^-3 + z^-2 + z^-1 + 1 + z + z^2 + z^3 + z^4 + z^5
+            sage: f.polynomial(0)
+            z^-3 + z^-2 + z^-1 + 1
+            sage: f.polynomial(-5)
+            0
+            sage: M = L(lambda n: n^2, 0)
+            sage: M.polynomial(3)
+            9*z^3 + 4*z^2 + z
+            sage: M = L(lambda n: n^2, 0)
+            sage: M.polynomial(5)
+            25*z^5 + 16*z^4 + 9*z^3 + 4*z^2 + z
+
+            sage: f = 1/(1 + z)
+            sage: f.polynomial()
+            Traceback (most recent call last):
+            ...
+            ValueError: not a polynomial
+        """
+        if degree is None:
+            if isinstance(self._coeff_stream, CoefficientStream_zero):
+                from sage.rings.all import PolynomialRing
+                return PolynomialRing(S.base_ring(), name=name).zero()
+            elif isinstance(self._coeff_stream, CoefficientStream_exact) and not self._coeff_stream._constant:
+                m = self._coeff_stream._degree
+            else:
+                raise ValueError("not a polynomial")
+        else:
+            m = degree + 1
+
+        S = self.parent()
+
+        if name is None:
+            name = S.variable_name()
+
+        from sage.rings.all import PolynomialRing
+        R = PolynomialRing(S.base_ring(), name=name)
+        return R([self[i] for i in range(m)])
+
+    def _repr_(self):
+        """
+        Return the string representation of this Taylor series.
+
+        TESTS::
+
+            sage: L.<z> = LazyTaylorSeriesRing(ZZ)
+            sage: -1/(1 + 2*z)
+            -1 + 2*z - 4*z^2 + 8*z^3 - 16*z^4 + 32*z^5 - 64*z^6 + ...
+        """
+        if isinstance(self._coeff_stream, CoefficientStream_zero):
+            return '0'
+        if isinstance(self._coeff_stream, CoefficientStream_uninitialized) and self._coeff_stream._target is None:
+            return 'Uninitialized Lazy Taylor Series'
+
+        atomic_repr = self.base_ring()._repr_option('element_is_atomic')
+        X = self.parent().variable_name()
+        v = self._coeff_stream._approximate_valuation
+
+        if not isinstance(self._coeff_stream, CoefficientStream_exact):
+            m = v + 7  # long enough
+        elif not self._coeff_stream._constant:
+            # Just a polynonial, so let that print itself
+            R = self.parent()._poly_ring
+            if len(self.parent().variable_names()) == 1:
+                z = R.gen()
+                return repr(R.sum(self._coeff_stream[i] * z**i for i in range(v, self._coeff_stream._degree)))
+            else:
+                return repr(R.sum(self._coeff_stream[i] for i in range(v, self._coeff_stream._degree)))
+        else:
+            m = self._coeff_stream._degree + 3
+
+        # Use the polynomial printing
+        R = self.parent()._poly_ring
+        if len(self.parent().variable_names()) == 1:
+            z = R.gen()
+            ret = repr(R.sum(self._coeff_stream[i] * z**i for i in range(v, m)))
+        else:
+            ret = repr(R.sum(self._coeff_stream[i] for i in range(v, m)))
         # TODO: Better handling when ret == 0 but we have not checked up to the constant term
         return ret + ' + ...'
 

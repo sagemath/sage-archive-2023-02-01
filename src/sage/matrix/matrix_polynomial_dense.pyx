@@ -49,7 +49,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     For a field $\Bold{K}$, we consider matrices over the univariate
     polynomial ring $\Bold{K}[x]$.
-    
+
     They are often used to represent bases of some $\Bold{K}[x]$-modules. In
     this context, there are two possible representations which are both
     commonly used in the literature.
@@ -2619,6 +2619,261 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             U.set_immutable()
 
         return (A, U) if transformation else A
+
+    def right_quo_rem(self, B):
+        r"""
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 2, 3,                              \
+                [[3*x^3 + 3*x, 3*x^3 + 6*x + 5,   2*x^3 + 2*x + 6], \
+                 [2*x^3 + 4,   6*x^3 + 5*x^2 + 1, 3*x^2 + 2*x + 2]])
+            sage: B = Matrix(pR, 3, 3,                                \
+                [[4*x^2 + 3*x + 3, 3*x^2 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x^2 + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [5*x^2 + 3*x + 6,   6*x^2 + x + 4, 3*x^2 + 3*x + 2]])
+            sage: Q,R = A.quo_rem(B); (Q,R)
+            (
+            [    4*x   x + 2 6*x + 1]  [  x + 2 6*x + 1 5*x + 4]
+            [4*x + 3   x + 6 3*x + 4], [4*x + 2 2*x + 3 4*x + 3]
+            )
+            sage: A == Q*B+R and R.degree() < 2
+            True
+
+            sage: B = Matrix(pR, 3, 3,                              \
+                [[4*x + 3*x + 3, 3*x^3 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [6,             6*x^3 + x + 4,   3*x^2 + 3*x + 2]])
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: Q,R = A._right_quo_rem_reduced(B); (Q,R)
+            (
+            [2*x^2 + 4*x + 6     3*x^2 + 5*x     6*x^2 + 3*x]
+            [6*x^2 + 4*x + 1   2*x^2 + x + 5 4*x^2 + 6*x + 1],
+            <BLANKLINE>
+            [              3               6         2*x + 3]
+            [              1 5*x^2 + 2*x + 3         6*x + 3]
+            )
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+
+        """
+        if B.is_reduced(row_wise=False):
+            return self._right_quo_rem_reduced(B)
+        else:
+            try:
+                return self._right_quo_rem_solve(B)
+                
+            except ValueError:
+                return True
+
+    def _right_quo_rem_solve(self, B):
+        r"""
+        If ``self`` is a `k x m` polynomial matrix (written `A` below), and the
+        input `B` is an `m x n` polynomial matrix with full column rank, this
+        computes a couple `(Q,R)` polynomial matrices, of sizes `k x m` and `k
+        x n` respectively, such that `A = QB + R`, with the column degrees of
+        `R` entrywise less than those of `B`.
+
+        Algorithm: this method follows the folklore approach based on solving
+        the matrix equation `A = XB` and separating `X` into its polynomial
+        part and proper fraction part.
+
+        The fact that `B` is in column reduced form is not required, and not
+        checked. If `B` does not have full column rank, two situations can
+        arise. Either the above matrix equation has a solution `X`, which
+        implies the existence of a quotient and remainder as described above,
+        and such a quotient and remainder is returned by the method. Or this
+        matrix equation has no solution and this method fails: this raises
+        ``ValueError``; however this is not a proof that there is no valid
+        division with remainder (see the last example below). 
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 2, 3,                              \
+                [[3*x^3 + 3*x, 3*x^3 + 6*x + 5,   2*x^3 + 2*x + 6], \
+                 [2*x^3 + 4,   6*x^3 + 5*x^2 + 1, 3*x^2 + 2*x + 2]])
+
+            sage: B = Matrix(pR, 3, 3,                              \
+                [[4*x + 3*x + 3, 3*x^3 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [6,             6*x^3 + x + 4,   3*x^2 + 3*x + 2]])
+            sage: Q,R = A._right_quo_rem_solve(B); (Q,R)
+            (
+            [2*x^2 + 4*x + 6     3*x^2 + 5*x     6*x^2 + 3*x]
+            [6*x^2 + 4*x + 1   2*x^2 + x + 5 4*x^2 + 6*x + 1],
+            <BLANKLINE>
+            [              3               6         2*x + 3]
+            [              1 5*x^2 + 2*x + 3         6*x + 3]
+            )
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+
+        With a nonsingular but also non-reduced matrix, there exists a solution
+        and one is found by this method, but it might not be unique::
+
+            sage: B = Matrix(pR, 3, 3,                            \
+                    [[              5,               0, 2*x + 6], \
+                     [            4*x, 3*x^2 + 4*x + 5,   x + 1], \
+                     [3*x^2 + 5*x + 2, 6*x^3 + 4*x + 6,       3]])
+            sage: B.det() != 0 and (not B.is_reduced(row_wise=False))
+            True
+            sage: Q,R = A._right_quo_rem_solve(B); (Q,R)
+            (
+            [    6*x^2 + 3*x 4*x^2 + 3*x + 1         5*x + 1]
+            [  x^2 + 5*x + 5 5*x^2 + 3*x + 5           x + 2],
+            <BLANKLINE>
+            [      4*x + 5 x^2 + 2*x + 1             2]
+            [      6*x + 3     5*x^2 + 6             3]
+            )
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+
+            sage: Q2 = Matrix(pR, 2, 3,                           \
+                    [[6*x^2 + 3*x + 1, 4*x^2 + 3*x + 6, 5*x + 1], \
+                     [  x^2 + 5*x + 3, 5*x^2 + 3*x + 2,   x + 2]])
+            sage: R2 = Matrix(pR, 2, 3,     \
+                    [[    5*x, 3*x + 4, 5], \
+                     [4*x + 6,     5*x, 4]])
+            sage: A == Q2*B + R2
+            True
+
+        The same remark holds more generally for full column rank matrices:
+        there exists a solution and this method will find one. However for all
+        other cases (rank-deficient or strictly fewer rows than columns) there
+        might be no solution::
+
+            sage: C = B.stack(B[1,:] + B[2,:]) # matrix 4 x 3, full column rank
+            sage: Q,R = A._right_quo_rem_solve(C); (Q,R)
+            (
+            [    6*x^2 + 3*x 4*x^2 + 3*x + 1         5*x + 1               0]
+            [  x^2 + 5*x + 5 5*x^2 + 3*x + 5           x + 2               0],
+            <BLANKLINE>
+            [      4*x + 5 x^2 + 2*x + 1             2]
+            [      6*x + 3     5*x^2 + 6             3]
+            )
+
+            sage: A._right_quo_rem_solve(B[:2,:]) # matrix 2 x 3, full row rank
+            Traceback (most recent call last):
+            ...
+            ValueError: dividing via system solving yields no solution
+            sage: D = B.__copy__(); D[2,:] = B[0,:]+B[1,:] # square, singular
+            sage: A._right_quo_rem_solve(D)
+            Traceback (most recent call last):
+            ...
+            ValueError: dividing via system solving yields no solution
+
+        In the latter case (rank-deficient or strictly fewer rows than
+        columns), even when there is a solution, this method might not find
+        it::
+
+            sage: B = Matrix(pR, 1, 2, [[x, x]])
+            sage: A = Matrix(pR, 1, 2, [[x, x+2]])
+            sage: A == 1*B + Matrix([[0,2]])    # a valid quo_rem
+            True
+            sage: A._right_quo_rem_solve(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: dividing via system solving yields no solution
+
+        """
+        k = self.nrows()
+        m = B.nrows()
+        # find rational Q such that QB = A
+        try:
+            X = B.solve_left(self)
+        except ValueError:
+            raise ValueError("dividing via system solving yields no solution")
+        from sage.arith.functions import lcm
+        f = lcm([X[i,j].denom() for j in range(m) for i in range(k)])
+        # Write X = Q + R/r with Q and R having polynomial entries;
+        # keep only the Q part
+        for i in range(k):
+            for j in range(m):
+                X[i,j] = ((X[i,j].numer() * f) // X[i,j].denom()) // f
+        Q = X.change_ring(self.base_ring())
+        R = self - Q*B
+        return (Q,R)
+
+
+
+    def _right_quo_rem_reduced(self, B):
+        r"""
+        If ``self`` is a `k x m` polynomial matrix (written `A` below), and the
+        input `B` is an `m x m` polynomial matrix in column reduced form, this
+        computes the unique couple `(Q,R)` of `k x m` polynomial matrices such
+        that `A = QB + R`, with the column degrees of `R` entrywise less than
+        those of `B`.
+
+        The fact that `B` is in column reduced form is required, and not
+        checked. Reference: we follow the folklore algorithm which generalizes
+        the fast division of univariate polynomials; precisely we implement
+        [Neiger-Vu, ISSAC 2017, Algorithm 1] .
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 2, 3,                              \
+                [[3*x^3 + 3*x, 3*x^3 + 6*x + 5,   2*x^3 + 2*x + 6], \
+                 [2*x^3 + 4,   6*x^3 + 5*x^2 + 1, 3*x^2 + 2*x + 2]])
+
+            sage: B = Matrix(pR, 3, 3,                                \
+                [[4*x^2 + 3*x + 3, 3*x^2 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x^2 + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [5*x^2 + 3*x + 6,   6*x^2 + x + 4, 3*x^2 + 3*x + 2]])
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: Q,R = A._right_quo_rem_reduced(B); (Q,R)
+            (
+            [    4*x   x + 2 6*x + 1]  [  x + 2 6*x + 1 5*x + 4]
+            [4*x + 3   x + 6 3*x + 4], [4*x + 2 2*x + 3 4*x + 3]
+            )
+            sage: A == Q*B+R and R.degree() < 2
+            True
+
+            sage: B = Matrix(pR, 3, 3,                              \
+                [[4*x + 3*x + 3, 3*x^3 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [6,             6*x^3 + x + 4,   3*x^2 + 3*x + 2]])
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: Q,R = A._right_quo_rem_reduced(B); (Q,R)
+            (
+            [2*x^2 + 4*x + 6     3*x^2 + 5*x     6*x^2 + 3*x]
+            [6*x^2 + 4*x + 1   2*x^2 + x + 5 4*x^2 + 6*x + 1],
+            <BLANKLINE>
+            [              3               6         2*x + 3]
+            [              1 5*x^2 + 2*x + 3         6*x + 3]
+            )
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+
+        """
+        # Step 0: find parameter d  (delta in above reference)
+        cdegA = self.column_degrees() # zero columns of A --> entries -1 in cdegA
+        cdeg = B.column_degrees()  # all non-negative since column reduced
+        d = max([cdegA[i]-cdeg[i]+1 for i in range(B.nrows())])
+        if d<=0: # A already reduced modulo B, quotient is zero
+            return (self.parent().zero(), self)
+        # Step 1: reverse input matrices
+        # Brev = B(1/x) diag(x^(cdeg[i]))
+        # Arev = A(1/x) diag(x^(d+cdeg[i]-1)) 
+        Brev = B.reverse(degree=cdeg, row_wise=False)
+        Arev = self.reverse(degree=[d+c-1 for c in cdeg], row_wise=False)
+        # Step 2: compute quotient
+        # compute Qrev = Arev Brev^{-1} mod x^d
+        # then quotient is the reverse Q = x^(d-1) Qrev(1/x)
+        Q = Brev.solve_left_series_trunc(Arev, d).reverse(degree=d-1)
+        # Step 3: deduce remainder and return
+        R = self - Q*B
+        return Q,R
 
     def is_minimal_approximant_basis(self,
             pmat,

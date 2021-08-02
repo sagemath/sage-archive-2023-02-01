@@ -909,10 +909,12 @@ class Polyhedron_QQ(Polyhedron_base):
 
     def fixed_subpolytopes(self, conj_class_reps):
         r"""
-        Return the fixed subpolytope of an element in each conjugacy class of a
-        given subgroup of the automorphism group of this polytope.
+        Return the fixed subpolytopes of this polytope under the actions of the
+        given conjugacy class representatives.
 
-        For an element of the automorphism group, the fixed subpolytope of
+        The ``conj_class_reps`` are representatives of the conjugacy classes of
+        a subgroup of the automorphism group of this polytope.
+        For an element of the automorphism group, the fixed subpolytope
         is the subset of this polytope that is fixed pointwise.
 
         INPUT:
@@ -924,8 +926,8 @@ class Polyhedron_QQ(Polyhedron_base):
 
         OUTPUT:
 
-        A dictionary with ``conj_class_reps`` as keys and the fixed subpolytopes
-        as values.
+        A dictionary where the elements of ``conj_class_reps`` are keys and the
+        fixed subpolytopes are values.
 
         .. NOTE::
 

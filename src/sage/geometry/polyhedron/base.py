@@ -9808,24 +9808,6 @@ class Polyhedron_base(Element):
                 group_dict[perm] = permutation_to_matrix(perm, V, Vplus, W)
         return group_dict
 
-    def is_full_dimensional(self):
-        """
-        Return whether the polyhedron is full dimensional.
-
-        OUTPUT:
-
-        Boolean. Whether the polyhedron is not contained in any strict
-        affine subspace.
-
-        EXAMPLES::
-
-            sage: polytopes.hypercube(3).is_full_dimensional()
-            True
-            sage: Polyhedron(vertices=[(1,2,3)], rays=[(1,0,0)]).is_full_dimensional()
-            False
-        """
-        return self.dim() == self.ambient_dim()
-
     def is_combinatorially_isomorphic(self, other, algorithm='bipartite_graph'):
         r"""
         Return whether the polyhedron is combinatorially isomorphic to another polyhedron.

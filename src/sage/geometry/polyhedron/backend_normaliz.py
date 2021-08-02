@@ -35,13 +35,10 @@ from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
 from sage.matrix.constructor import vector
-from sage.calculus.all import var
 
 from .base import Polyhedron_base
 from .base_QQ import Polyhedron_QQ
 from .base_ZZ import Polyhedron_ZZ
-
-from sage.groups.conjugacy_classes import ConjugacyClassGAP
 
 
 def _number_field_elements_from_algebraics_list_of_lists_of_lists(listss, **kwds):
@@ -2301,6 +2298,11 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             sage: lin = P._Hstar_function_normaliz(G,output = 'Hstar_as_lin_comb'); lin # optional - pynormaliz
             ((t^4 + 3*t^3 + 8*t^2 + 3*t + 1)/(t + 1), (3*t^3 + 2*t^2 + 3*t)/(t + 1))
         """
+        from sage.groups.conjugacy_classes import ConjugacyClassGAP
+        from sage.rings.all import CyclotomicField
+        from sage.matrix.all import MatrixSpace
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.matrix.special import identity_matrix
         # Setting the group
         G_perm = self.restricted_automorphism_group(output='permutation')
 
@@ -2321,12 +2323,10 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         n_classes = len(conj_reps)
         irrG_perm_gap = G_perm_gap.Irr()
         ct = [[irrG_perm_gap[i, j] for j in range(n_classes)] for i in range(n_classes)]
-        from sage.rings.all import CyclotomicField
         e = irrG_perm_gap.Flat().Conductor()
         K = CyclotomicField(e)
         ct = [[K(x) for x in v] for v in ct]
         # Finally return the result as a matrix.
-        from sage.matrix.all import MatrixSpace
         MS = MatrixSpace(K, n_classes)
         char_initial = MS(ct)
 
@@ -2345,8 +2345,6 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         list_es = [fix_polys[g].ehrhart_series() for g in conj_reps]
 
         # get the list of the denominators det([Id - rho (t)])
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        from sage.matrix.special import identity_matrix
         Ring = PolynomialRing(QQbar, 't')
         det_vector = list()
         dim = group_dict[G_perm.gens()[0]].dimensions()[0]
@@ -2356,9 +2354,11 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
         # create a flag to fix the determinant if polytope isn't full dimensional
         flag = False
-        if not self.is_full_dimensional():
+        polytope_dim = self.dim()
+        polytope_ambient = self.ambient_dim()
+        if not polytope_dim == polytope_ambient:
             flag = True
-            codim = self.ambient_dim() - self.dim()
+            codim = polytope_ambient - polytope_dim
 
         for perm in conj_reps:
             mat = group_dict[perm]
@@ -2375,7 +2375,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         Char = char_initial.change_ring(FF)
         new_result = Char.solve_left(initial_result)
 
-        new_new_result = self._express_Hstar_as_rational_fn_in_t(new_result)
+        new_new_result = self._Hstar_as_rat_fct(new_result)
         if output is None:
             return(new_new_result)
         elif output == 'e_series_list':
@@ -2395,7 +2395,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             results_dictionary['is_effective'] = self._is_effective_normaliz(new_new_result, new_result)
             return(results_dictionary)
 
-    def _express_Hstar_as_rational_fn_in_t(self, initial_Hstar):
+    def _Hstar_as_rat_fct(self, initial_Hstar):
         r"""
         Rewrite the vector representing `H^*(t)` given as a linear combination
         of the irreducible representations of the acting group as a rational
@@ -2450,11 +2450,11 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             [ 1  1 -1 -1  1]
             [ 2  0  0  0 -2]
         """
-        chi_vars = var(','.join('chi_{}'.format(i) for i in range(len(initial_Hstar))))
+        chi_vars = ','.join('chi_{}'.format(i) for i in range(len(initial_Hstar)))
         Chi_ring = PolynomialRing(QQbar, chi_vars)
         virtual_ring = PolynomialRing(Chi_ring, initial_Hstar.base_ring().gens())
         fraction_virtual_ring = virtual_ring.fraction_field()
-        new_result = initial_Hstar.change_ring(fraction_virtual_ring)*vector(fraction_virtual_ring, chi_vars)
+        new_result = initial_Hstar.change_ring(fraction_virtual_ring)*vector(fraction_virtual_ring, Chi_ring.gens())
         return new_result
 
     def _is_effective_normaliz(self, Hstar, Hstar_as_lin_comb):

@@ -3079,12 +3079,48 @@ class EisensteinSeries(ModularFormElement):
 
 class GradedModularFormElement(ModuleElement):
     r"""
-    The element class for ``ModularFormsRing``
+    The element class for ``ModularFormsRing``. A ``GradedModularFormElement`` is basically a
+    formal sum of modular forms of different weight: `f_1 + f_2 + ... + f_n`. Note that a
+    ``GradedModularFormElement`` is not necessarily a modular form (as it can have mixed weight
+    components).
+
+    A ``GradedModularFormElement`` should not be constructed directly via this class. Instead,
+    one should use the element constructor of the parent class (``ModularFormsRing``).
+
+    EXAMPLES::
+
+        sage: M = ModularFormsRing(1)
+        sage: D = CuspForms(1, 12).0
+        sage: M(D).parent()
+        Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+
+    A graded modular form can be initated via a dictionnary or a list::
+
+        sage: E4 = ModularForms(1, 4).0
+        sage: M({4:E4, 12:D}) # dictionnary
+        1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
+        sage: M([E4, D]) # list
+        1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
+
+    Also, when adding two modular forms of different weights, a graded modular form element will be created::
+
+        sage: (E4 + D).parent()
+        Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+        sage: M([E4, D]) == E4 + D
+        True
+
+    Graded modular forms elements for congruence subgroups are also supported::
+
+        sage: M = ModularFormsRing(Gamma0(3))
+        sage: f = ModularForms(Gamma0(3), 4).0
+        sage: g = ModularForms(Gamma0(3), 2).0
+        sage: M([f, g])
+        2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
+        sage: M({4:f, 2:g})
+        2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
     """
     def __init__(self, parent, forms_datum):
         r"""
-        An element of a graded ring of modular forms.
-
         INPUT:
 
         - ``parent`` - an object of the class ``ModularFormsRing``
@@ -3095,36 +3131,38 @@ class GradedModularFormElement(ModuleElement):
 
         A ``GradedModularFormElement`` corresponding to `f_1 + f_2 + ... + f_n`
 
-        EXAMPLES::
-
-            sage: M = ModularFormsRing(1)
-            sage: D = CuspForms(1, 12).0
-            sage: E4 = ModularForms(1, 4).0
-            sage: M({4:E4, 12:D})
-            1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
-            sage: M([E4, D])
-            1 + 241*q + 2136*q^2 + 6972*q^3 + 16048*q^4 + 35070*q^5 + O(q^6)
-            sage: M([E4, D]) == E4 + D
-            True
-
-        ::
-
-            sage: M = ModularFormsRing(Gamma0(3))
-            sage: f = ModularForms(Gamma0(3), 4).0
-            sage: g = ModularForms(Gamma0(3), 2).0
-            sage: M([f, g])
-            2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
-            sage: M({4:f, 2:g})
-            2 + 12*q + 36*q^2 + 252*q^3 + 84*q^4 + 72*q^5 + O(q^6)
-
         TESTS::
 
             sage: M = ModularFormsRing(1)
-            sage: TestSuite(M).run()
-            sage: M15 = ModularFormsRing(Gamma1(5))
-            sage: TestSuite(M15).run()
-            sage: M013 = ModularFormsRing(Gamma0(13))
-            sage: TestSuite(M013).run()
+            sage: E4 = ModularForms(1,4).0
+            sage: M({6:E4})
+            Traceback (most recent call last):
+            ...
+            ValueError: at least one key (6) of the defining dictionary does not correspond to the weight of its value (1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)). Real weight: 4
+            sage: M({4:'f'})
+            Traceback (most recent call last):
+            ...
+            ValueError: at least one value (f) of the defining dictionary is not a `ModularFormElement`
+            sage: M({4.:E4})
+            Traceback (most recent call last):
+            ...
+            ValueError: at least one key (4.00000000000000) of the defining dictionary is not an integer
+            sage: M({0:E4})
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field to Rational Field
+            sage: M([E4, x])
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from Symbolic Ring to Rational Field
+            sage: M([E4, ModularForms(3, 6).0])
+            Traceback (most recent call last):
+            ...
+            ValueError: the group and/or the base ring of at least one modular form (q - 6*q^2 + 9*q^3 + 4*q^4 + 6*q^5 + O(q^6)) is not consistant with the base space
+            sage: M({4:E4, 6:ModularForms(3, 6).0})
+            Traceback (most recent call last):
+            ...
+            ValueError: the group and/or the base ring of at least one modular form (q - 6*q^2 + 9*q^3 + 4*q^4 + 6*q^5 + O(q^6)) is not consistant with the base space
         """
         forms_dictionary = {}
         if isinstance(forms_datum, dict):
@@ -3510,7 +3548,11 @@ class GradedModularFormElement(ModuleElement):
             sage: F = F4 + F6 + F8
             sage: F.weights_list()
             [4, 6, 8]
+            sage: M(0).weights_list()
+            [0]
         """
+        if self.is_zero():
+            return [ZZ(0)]
         return sorted(self._forms_dictionary)
 
     def is_homogeneous(self):

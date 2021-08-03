@@ -26,14 +26,16 @@ from sage.misc.all import prod
 from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
-from sage.modular.modform.constructor                 import ModularForms
-from sage.modular.modform.element import is_ModularFormElement, GradedModularFormElement
-from sage.modular.modform.space import is_ModularFormsSpace
+from .constructor                 import ModularForms
+from .element import is_ModularFormElement, GradedModularFormElement
+from .space import is_ModularFormsSpace
 from random import shuffle
 
 from sage.structure.parent import Parent
 
 from sage.categories.graded_algebras import GradedAlgebras
+
+from sage.misc.superseded import deprecated_function_alias
 
 def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=False):
     r"""
@@ -66,7 +68,7 @@ def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=Fals
 
     EXAMPLES::
 
-        sage: import sage.modular.modform.find_generators as f
+        sage: import sage.modular.modform.ring as f
         sage: forms = [(4, 240*eisenstein_series_qexp(4,5)), (6,504*eisenstein_series_qexp(6,5))]
         sage: f._span_of_forms_in_weight(forms, 12, prec=5)
         Vector space of degree 5 and dimension 2 over Rational Field
@@ -134,48 +136,45 @@ def _span_of_forms_in_weight(forms, weight, prec, stop_dim=None, use_random=Fals
         verbose('span has dimension %s' % W.rank(), t)
         return W
 
-def find_generators(*args): #sage: from sage.modular.modform.find_generators import find_generators
-    r"""
-    This function, which existed in earlier versions of Sage, has now been
-    replaced by the :meth:`~ModularFormsRing.generators` method of
-    ModularFormsRing objects.
-
-    EXAMPLES::
-
-        sage: from sage.rings.find_generators import find_generators
-        sage: find_generators()
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: find_generators has been removed -- use ModularFormsRing.generators()
-    """
-    raise NotImplementedError("find_generators has been removed -- use ModularFormsRing.generators()")
-
-def basis_for_modform_space(*args): # sage: from sage.modular.modform.find_generators import basis_for_modform_space
-    r"""
-    This function, which existed in earlier versions of Sage, has now been
-    replaced by the :meth:`~ModularFormsRing.q_expansion_basis` method of
-    ModularFormsRing objects.
-
-    EXAMPLES::
-
-        sage: from sage.rings.find_generators import basis_for_modform_space
-        sage: basis_for_modform_space()
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: basis_for_modform_space has been removed -- use ModularFormsRing.q_expansion_basis()
-    """
-    raise NotImplementedError("basis_for_modform_space has been removed -- use ModularFormsRing.q_expansion_basis()")
-
 @richcmp_method
 class ModularFormsRing(Parent):
+    r"""
+    The ring of modular forms (of weights 0 or at least 2) for a congruence
+    subgroup of `{\rm SL}_2(\ZZ)`, with coefficients in a specified base ring.
+
+    EXAMPLES::
+
+        sage: ModularFormsRing(Gamma1(13))
+        Ring of Modular Forms for Congruence Subgroup Gamma1(13) over Rational Field
+        sage: m = ModularFormsRing(4); m
+        Ring of Modular Forms for Congruence Subgroup Gamma0(4) over Rational Field
+        sage: m.modular_forms_of_weight(2)
+        Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(4) of weight 2 over Rational Field
+        sage: m.modular_forms_of_weight(10)
+        Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(4) of weight 10 over Rational Field
+        sage: m == loads(dumps(m))
+        True
+        sage: m.generators()
+        [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10)),
+        (2, q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10))]
+        sage: m.q_expansion_basis(2,10)
+        [1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10),
+            q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10)]
+        sage: m.q_expansion_basis(3,10)
+        []
+        sage: m.q_expansion_basis(10,10)
+        [1 + 10560*q^6 + 3960*q^8 + O(q^10),
+        q - 8056*q^7 - 30855*q^9 + O(q^10),
+        q^2 - 796*q^6 - 8192*q^8 + O(q^10),
+        q^3 + 66*q^7 + 832*q^9 + O(q^10),
+        q^4 + 40*q^6 + 528*q^8 + O(q^10),
+        q^5 + 20*q^7 + 190*q^9 + O(q^10)]
+    """
 
     Element = GradedModularFormElement
 
     def __init__(self, group, base_ring=QQ):
         r"""
-        The ring of modular forms (of weights 0 or at least 2) for a congruence
-        subgroup of `{\rm SL}_2(\ZZ)`, with coefficients in a specified base ring.
-
         INPUT:
 
         - ``group`` -- a congruence subgroup of `{\rm SL}_2(\ZZ)`, or a
@@ -184,35 +183,7 @@ class ModularFormsRing(Parent):
         - ``base_ring`` (ring, default: `\QQ`) -- a base ring, which should be
           `\QQ`, `\ZZ`, or the integers mod `p` for some prime `p`.
 
-        EXAMPLES::
-
-            sage: ModularFormsRing(Gamma1(13))
-            Ring of Modular Forms for Congruence Subgroup Gamma1(13) over Rational Field
-            sage: m = ModularFormsRing(4); m
-            Ring of Modular Forms for Congruence Subgroup Gamma0(4) over Rational Field
-            sage: m.modular_forms_of_weight(2)
-            Modular Forms space of dimension 2 for Congruence Subgroup Gamma0(4) of weight 2 over Rational Field
-            sage: m.modular_forms_of_weight(10)
-            Modular Forms space of dimension 6 for Congruence Subgroup Gamma0(4) of weight 10 over Rational Field
-            sage: m == loads(dumps(m))
-            True
-            sage: m.generators()
-            [(2, 1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10)),
-            (2, q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10))]
-            sage: m.q_expansion_basis(2,10)
-            [1 + 24*q^2 + 24*q^4 + 96*q^6 + 24*q^8 + O(q^10),
-             q + 4*q^3 + 6*q^5 + 8*q^7 + 13*q^9 + O(q^10)]
-            sage: m.q_expansion_basis(3,10)
-            []
-            sage: m.q_expansion_basis(10,10)
-            [1 + 10560*q^6 + 3960*q^8 + O(q^10),
-             q - 8056*q^7 - 30855*q^9 + O(q^10),
-             q^2 - 796*q^6 - 8192*q^8 + O(q^10),
-             q^3 + 66*q^7 + 832*q^9 + O(q^10),
-             q^4 + 40*q^6 + 528*q^8 + O(q^10),
-             q^5 + 20*q^7 + 190*q^9 + O(q^10)]
-
-        TESTS:
+        TESTS::
 
         Check that :trac:`15037` is fixed::
 
@@ -363,30 +334,6 @@ class ModularFormsRing(Parent):
             Traceback (most recent call last):
             ...
             ValueError: the group (Modular Group SL(2,Z)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of Modular Forms for Modular Group SL(2,Z) over Integer Ring
-            sage: M = ModularFormsRing(1)
-            sage: E4 = ModularForms(1,4).0
-            sage: E4
-            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
-            sage: M({6:E4})
-            Traceback (most recent call last):
-            ...
-            ValueError: at least one key (6) of the defining dictionary does not correspond to the weight of its value (1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)). Real weight: 4
-            sage: M({4:'f'})
-            Traceback (most recent call last):
-            ...
-            ValueError: at least one value (f) of the defining dictionary is not a `ModularFormElement`
-            sage: M({4.:E4})
-            Traceback (most recent call last):
-            ...
-            ValueError: at least one key (4.00000000000000) of the defining dictionary is not an integer
-            sage: M({0:E4})
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field to Rational Field
-            sage: M([E4, x])
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion from Symbolic Ring to Rational Field
             sage: M(x)
             Traceback (most recent call last):
             ...
@@ -564,7 +511,7 @@ class ModularFormsRing(Parent):
             track of a lifting to characteristic 0 when the base ring is a
             finite field.
 
-        .. note::
+        .. NOTE::
 
             If called with the default values of ``start_gens`` (an empty list)
             and ``start_weight`` (2), the values will be cached for re-use on
@@ -684,7 +631,7 @@ class ModularFormsRing(Parent):
         - ``start_weight`` (integer, default: 2) -- calculate the graded
           subalgebra of forms of weight at least ``start_weight``.
 
-        .. note::
+        .. NOTE::
 
             If called with the default values of ``start_gens`` (an empty list)
             and ``start_weight`` (2), the values will be cached for re-use on
@@ -1036,3 +983,8 @@ class ModularFormsRing(Parent):
 
         R = G[0][1].parent()
         return [R(list(x), prec=prec) for x in W.gens()]
+
+
+# Deprecated functions
+find_generators = deprecated_function_alias(31559, ModularFormsRing.generators)
+basis_for_modform_space = deprecated_function_alias(31559, ModularFormsRing.q_expansion_basis)

@@ -1159,7 +1159,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             ...
             TypeError: unsupported operand parent(s) for +: 'Modular Forms space of dimension 7 for Congruence Subgroup Gamma0(5) of weight 12 over Rational Field' and 'Modular Forms space of dimension 1 for Modular Group SL(2,Z) of weight 4 over Rational Field'
         """
-        from sage.rings.find_generators import ModularFormsRing
+        from .ring import ModularFormsRing
         if isinstance(other, ModularFormsSpace):
             if self.group() == other.group() and self.base_ring() == other.base_ring():
                 if self.weight() == other.weight():

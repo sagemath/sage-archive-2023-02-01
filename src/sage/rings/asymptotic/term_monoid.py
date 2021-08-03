@@ -4053,11 +4053,6 @@ class BTerm(TermWithCoefficient):
         sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
         sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
-        sage: G = MonomialGrowthGroup(ZZ, 'x');
-        sage: BT_QQ = TermMonoid('B', G, QQ)
-        sage: BT_QQ(x, 3, valid_from={'x': 20})
-        B(3*x, x >= 20)
-
     We revisit the example from the introduction::
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: G = GrowthGroup('x^ZZ * y^ZZ')

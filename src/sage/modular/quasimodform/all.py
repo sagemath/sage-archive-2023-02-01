@@ -1,1 +1,2 @@
-from .quasimodform import QuasiModularForms
+# Quasimodular forms rings
+from .ring import QuasiModularForms

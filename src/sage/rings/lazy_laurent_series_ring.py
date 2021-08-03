@@ -50,6 +50,16 @@ Power series can be defined recursively::
     sage: s
     1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
 
+The implementation of the Ring can be either be a sparse or a dense one.
+The default is a dense implementation.::
+
+    sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+    sage: L._sparse
+    True
+    sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+    sage: L._sparse
+    False
+
 AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version
@@ -101,7 +111,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     - ``base_ring`` -- base ring of this Laurent series ring
     - ``names`` -- name of the generator of this Laurent series ring
-    - ``sparse`` -- (default: ``False``) whether this series is sparse or not
+    - ``sparse`` -- (default: ``False``) whether the implementation of the series is sparse or not
 
     EXAMPLES::
 
@@ -216,8 +226,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         R = self._laurent_poly_ring
         if R.has_coerce_map_from(S):
             def make_series_from(poly):
-                p_list = [poly[i] for i in range(poly.valuation(), poly.degree() + 1)]
-                return self.element_class(self, CoefficientStream_exact(p_list, self._sparse, valuation=poly.valuation()))
+                inital_coefficients = [poly[i] for i in range(poly.valuation(), poly.degree() + 1)]
+                coeff_stream = CoefficientStream_exact(inital_coefficients, self._sparse, valuation=poly.valuation())
+                return self.element_class(self, coeff_stream)
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
 
         return False
@@ -341,8 +352,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 if x == R.zero():
                     coeff_stream = CoefficientStream_exact([x], self._sparse, valuation=degree-1, constant=constant)
                     return self.element_class(self, coeff_stream)
-                p_list = [x[i] for i in range(x.valuation(), x.degree() + 1)]
-                coeff_stream = CoefficientStream_exact(p_list, self._sparse, valuation=x.valuation(), constant=constant, degree=degree)
+                inital_coefficients = [x[i] for i in range(x.valuation(), x.degree() + 1)]
+                coeff_stream = CoefficientStream_exact(inital_coefficients, self._sparse, valuation=x.valuation(), constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
         if isinstance(x, LazyLaurentSeries):
             if x._coeff_stream._is_sparse is self._sparse:
@@ -357,7 +368,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                     constant = ZZ.zero()
                 z = R.gen()
                 p = [x(i) for i in range(valuation, degree)]
-                return self.element_class(self, CoefficientStream_exact(p, self._sparse, valuation=valuation, constant=constant, degree=degree))
+                coeff_stream = CoefficientStream_exact(p, self._sparse, valuation=valuation, constant=constant, degree=degree)
+                return self.element_class(self, coeff_stream)
             if len(signature(x).parameters) > 1:
                 return self.element_class(self, CoefficientStream_recursive(x, self.base_ring(), self._sparse, valuation))
             return self.element_class(self, CoefficientStream_coefficient_function(x, self.base_ring(), self._sparse, valuation))
@@ -375,7 +387,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         c = self.base_ring()(1)
         R = self._laurent_poly_ring
-        return self.element_class(self, CoefficientStream_exact([R.zero()], self._sparse, valuation=-11, constant=c))
+        coeff_stream = CoefficientStream_exact([R.zero()], self._sparse, valuation=-11, constant=c)
+        return self.element_class(self,coeff_stream)
 
     @cached_method
     def one(self):
@@ -389,7 +402,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             1
         """
         R = self._laurent_poly_ring
-        return self.element_class(self, CoefficientStream_exact([R.one()], self._sparse, constant=ZZ.zero(), degree=1))
+        coeff_stream = CoefficientStream_exact([R.one()], self._sparse, constant=ZZ.zero(), degree=1)
+        return self.element_class(self, coeff_stream)
 
     @cached_method
     def zero(self):

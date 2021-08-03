@@ -4159,7 +4159,7 @@ class BTerm(TermWithCoefficient):
             B(4*x^2, x >= 10, y >= 15)
         """
         if latex:
-            valid_from_string = ', '.join(f'{variable} >= {value}'
+            valid_from_string = ', '.join(f'{variable} \ge {value}'
                                           for variable, value in self.valid_from.items())
             return fr'B_{{{valid_from_string}}}\left({self._repr_product_(latex=True)}\right)'
         else:
@@ -4182,11 +4182,11 @@ class BTerm(TermWithCoefficient):
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = TermMonoid('B', G, QQ)
             sage: latex(T(x, 5, valid_from={'x': 3}))
-            B_{x >= 3}\left(5 x\right)
+            B_{x \ge 3}\left(5 x\right)
             sage: latex(T(x^2, 3, valid_from={'x': 5}))
-            B_{x >= 5}\left(3 x^{2}\right)
+            B_{x \ge 5}\left(3 x^{2}\right)
             sage: latex(T(x^3, 6, valid_from={'x': 10}))
-            B_{x >= 10}\left(6 x^{3}\right)
+            B_{x \ge 10}\left(6 x^{3}\right)
         """
         return self._repr_(latex=True)
 

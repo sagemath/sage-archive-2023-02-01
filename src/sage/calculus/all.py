@@ -151,18 +151,18 @@ def symbolic_expression(x):
     Lists, tuples, and vectors of length 0 become vectors over a symbolic ring::
 
         sage: symbolic_expression([]).parent()
-        Vector space of dimension 0 over Symbolic Constants Subring
+        Vector space of dimension 0 over Symbolic Ring
         sage: symbolic_expression(()).parent()
-        Vector space of dimension 0 over Symbolic Constants Subring
+        Vector space of dimension 0 over Symbolic Ring
         sage: symbolic_expression(vector(QQ, 0)).parent()
-        Vector space of dimension 0 over Symbolic Constants Subring
+        Vector space of dimension 0 over Symbolic Ring
 
     If a matrix has dimension 0, the result is still a matrix over a symbolic ring::
 
         sage: symbolic_expression(matrix(QQ, 2, 0)).parent()
-        Full MatrixSpace of 2 by 0 dense matrices over Symbolic Constants Subring
+        Full MatrixSpace of 2 by 0 dense matrices over Symbolic Ring
         sage: symbolic_expression(matrix(QQ, 0, 3)).parent()
-        Full MatrixSpace of 0 by 3 dense matrices over Symbolic Constants Subring
+        Full MatrixSpace of 0 by 3 dense matrices over Symbolic Ring
 
     Also functions defined using ``def`` can be used, but we do not advertise it as a use case::
 
@@ -201,7 +201,7 @@ def symbolic_expression(x):
         expressions = [symbolic_expression(item) for item in x]
         if not expressions:
             # Make sure it is symbolic also when length is 0
-            return vector(SR.subring(no_variables=True), 0)
+            return vector(SR, 0)
         if is_FreeModuleElement(expressions[0]):
             return matrix(expressions)
         return vector(expressions)
@@ -209,7 +209,7 @@ def symbolic_expression(x):
         if not x.nrows() or not x.ncols():
             # Make sure it is symbolic and of correct dimensions
             # also when a matrix dimension is 0
-            return matrix(SR.subring(no_variables=True), x.nrows(), x.ncols())
+            return matrix(SR, x.nrows(), x.ncols())
         rows = [symbolic_expression(row) for row in x.rows()]
         return matrix(rows)
     elif callable(x):

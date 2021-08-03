@@ -1117,6 +1117,15 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             sage: f = L(lambda n: n, 0)
             sage: f(g)
             0 + ...
+        
+        We cannot compose if `g` has a negative valuation::
+
+            sage: f = L(lambda n: n, 1)
+            sage: g = 1 + z
+            sage: f(g)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
 
         """
         # f = self and compute f(g)
@@ -1185,7 +1194,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
                 raise NotImplementedError("can only compose with a lazy Laurent series")
         # Perhaps we just don't yet know if the valuation is positive
         if g._coeff_stream._approximate_valuation <= 0:
-            if any(g._coeff_stream[i] for i in range(self._coeff_stream._approximate_valuation, 1)):
+            if any(g._coeff_stream[i] for i in range(min(self._coeff_stream._approximate_valuation, 0), 1)):
                 raise ValueError("can only compose with a positive valuation series")
             g._coeff_stream._approximate_valuation = 1
 

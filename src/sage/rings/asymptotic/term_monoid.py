@@ -4024,7 +4024,7 @@ class BTerm(TermWithCoefficient):
     r"""
     Class for asymptotic B-terms.
 
-    A B-term represents all functions which (in absolute value) is bounded
+    A B-term represents all functions which (in absolute value) are bounded
     by the given ``growth`` and ``coefficient`` for the parameters
     given by ``valid_from``.
     For example, we have terms that represent functions

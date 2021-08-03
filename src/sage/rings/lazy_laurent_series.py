@@ -211,11 +211,11 @@ class LazySequenceElement(ModuleElement):
         P = self.parent()
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, CoefficientStream_exact):
-            initial_values = [func(i) if i else 0 for i in coeff_stream._initial_values]
-            c = func(coeffs._constant) if coeffs._constant else 0
+            initial_values = [func(i) if i else 0 for i in coeff_stream._initial_coefficients]
+            c = func(coeff_stream._constant) if coeff_stream._constant else 0
             if not any(initial_values) and not c:
                 return P.zero()
-            coeff_stream = CoefficientStream_exact(p_list, self._coeff_stream._is_sparse,
+            coeff_stream = CoefficientStream_exact(initial_values, self._coeff_stream._is_sparse,
                                                    valuation=coeff_stream._approximate_valuation,
                                                    degree=coeff_stream._degree,
                                                    constant=c)
@@ -539,6 +539,24 @@ class LazySequenceElement(ModuleElement):
 
 
 class LazySequencesModuleElement(LazySequenceElement):
+    def __init__(self, parent, coeff_stream):
+        """
+        Initialize the series.
+
+        TESTS::
+
+            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
+            sage: z = L.gen()
+            sage: TestSuite(z).run()
+
+            sage: L = LazyDirichletSeriesRing(QQbar, 'z')
+            sage: g = L(constant=1)
+            sage: TestSuite(g).run()
+
+        """
+        ModuleElement.__init__(self, parent)
+        self._coeff_stream = coeff_stream
+
     def _add_(self, other):
         """
         Return the sum of ``self`` and ``other``.
@@ -599,6 +617,7 @@ class LazySequencesModuleElement(LazySequenceElement):
             sage: r = L([1,2,3], constant=-1)
             sage: r + t
             2 + 3/2^z + 4/3^z
+
         """
         P = self.parent()
         left = self._coeff_stream
@@ -762,7 +781,6 @@ class LazySequencesModuleElement(LazySequenceElement):
             return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
                                                               valuation=v, constant=c,
                                                               degree=self._coeff_stream._degree))
-
         return P.element_class(P, CoefficientStream_scalar(self._coeff_stream, scalar))
 
     def _neg_(self):
@@ -1260,7 +1278,6 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         if isinstance(self._coeff_stream, CoefficientStream_cauchy_inverse):
             return P.element_class(P, self._coeff_stream._series)
         return P.element_class(P, CoefficientStream_cauchy_inverse(self._coeff_stream))
-
 
     def __pow__(self, n):
         """

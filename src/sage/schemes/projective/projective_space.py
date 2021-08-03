@@ -79,7 +79,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from typing import Type
 from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import (PolynomialRing,
                             Integer,

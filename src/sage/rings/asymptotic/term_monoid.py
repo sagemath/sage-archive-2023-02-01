@@ -4048,23 +4048,32 @@ class BTerm(TermWithCoefficient):
       for the corresponding variable. The bound implied by this term is valid when
       all variables are at least their corresponding lower bound
 
-    EXAMPLES::
-
-        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
-        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+    EXAMPLES:
 
     We revisit the example from the introduction::
 
+        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: G = GrowthGroup('x^ZZ * y^ZZ')
         sage: T = TermMonoid('B', growth_group=G, coefficient_ring=ZZ)
         sage: x, y = G('x'), G('y')
         sage: T(x^2, coefficient=5, valid_from={'x': 3})
         B(5*x^2, x >= 3)
+
+    This is a term bounded by `5|x|^2` for `|x| >= 3`.
+    ::
+
         sage: T(x^3, coefficient=42, valid_from={'x': 15, 'y': 15})
         B(42*x^3, x >= 15, y >= 15)
+
+    This is a term bounded by `42|x|^3` for `|x| >= 15` and `|y| >= 15`.
+    ::
+
         sage: T(x^3*y^2, coefficient=42, valid_from={'x': 10, 'y': 20})
         B(42*x^3*y^2, x >= 10, y >= 20)
+
+    This is a term bounded by `42 |x|^3 |y|^2` for `|x| >= 10` and `|y| >= 20`.
 
     """
     def __init__(self, parent, growth, coefficient, valid_from):

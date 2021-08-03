@@ -5419,48 +5419,83 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         else:
             return False
 
-    def post_critical_set(self):
+    def postcritical_set(self, check=True):
         r"""
-        Return the post critical set of this dynamical system.
+        Return the postcritical set of this dynamical system.
 
-        Raises an error if this dynamical system is not post-critically finite.
+        Raises an error if this dynamical system is not postcritically finite.
+
+        The postcritical set is union of points which are in the forward orbits
+        of the critical points. In other words, the set of points `Q` such that
+        `f^n(P) = Q` for some positive integer `n` and critical point `P`, where
+        `f` is this map.
 
         Note that the orbit of all critical points is found, even if the
         critical points are defined in an extension of the base ring of
-        this dynamical system.
+        this dynamical system. We extend to the field defined by
+        ``f.field_of_definition_critical()``, where ``f`` is this map.
 
-        OUTPUT: The combined orbits of the critical points, as a set
+        INPUT:
+
+        - ``check`` -- (default: ``True``) boolean; whether to check
+          if this dynamical system is postcritically finite or not.
+
+        OUTPUT: The set of postcritical points.
 
         EXAMPLES::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem([x^3 - 3/2* x*y^2, y^3])
-            sage: f.post_critical_set()
-            [(-1/2*a : 1), (1/2*a : 1), (1 : 0)]
+            sage: f.postcritical_set()
+            [(1/2*a : 1), (-1/2*a : 1), (1 : 0)]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem([3*x^3 - 9/2* x^2*y+y^3, y^3])
-            sage: f.post_critical_set()
-            [(0 : 1), (1 : 1), (-1/2 : 1), (1 : 0)]
+            sage: f.postcritical_set(check=False)
+            [(1 : 1), (-1/2 : 1), (1 : 0)]
 
         ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem([-4*y^2, 9*x^2 - 12*x*y])
-            sage: f.post_critical_set()
-            [(2/3 : 1), (1 : 1), (4/3 : 1), (1 : 0), (0 : 1)]
+            sage: f.postcritical_set()
+            [(1 : 1), (4/3 : 1), (1 : 0), (0 : 1)]
+
+        ::
+
+            sage: K.<v> = QuadraticField(2)
+            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: f = DynamicalSystem([x^2 + (-2)*y^2, y^2])
+            sage: m = matrix(K, 2, 2, [v, 1, 0, 1])
+            sage: g = f.conjugate(m)
+            sage: g.postcritical_set()
+            [(-3/2*a : 1), (1/2*a : 1), (1 : 0)]
+
+        ::
+
+            sage: F.<z> = FiniteField(9)
+            sage: P.<x,y> = ProjectiveSpace(F, 1)
+            sage: f = DynamicalSystem([x^2 + (-2)*y^2, y^2])
+            sage: m = matrix(F, 2, 2, [z, 1, 0, 1])
+            sage: g = f.conjugate(m)
+            sage: g.postcritical_set()
+            [(1 : 0), (0 : 1), (a + 2 : 1)]
         """
         if not is_ProjectiveSpace(self.domain()):
-            raise ValueError('must not be a dynamical system on a subscheme')
+            raise ValueError('must be a dynamical system on projective space')
         if self.domain().dimension_relative() != 1:
             raise ValueError('must be defined on projective space of dimension 1')
-        f = self.change_ring(self.field_of_definition_critical())
+        if check:
+            if not self.is_postcritically_finite():
+                raise ValueError('map must be postcritically finite')
+        new_base_ring = self.field_of_definition_critical(return_embedding=True)[1]
+        f = self.change_ring(new_base_ring)
         critical_points = f.critical_points()
         post_critical_list = []
         for point in critical_points:
-            next_point = point
+            next_point = f(point)
             while not(next_point in post_critical_list):
                 post_critical_list.append(next_point)
                 next_point = f(next_point)

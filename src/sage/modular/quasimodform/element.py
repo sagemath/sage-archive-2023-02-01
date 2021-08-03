@@ -21,14 +21,39 @@ from sage.modular.modform.element import GradedModularFormElement, ModularFormEl
 
 from sage.rings.all import Integer, QQ, ZZ
 
-from sage.structure.element import Element
+from sage.structure.element import ModuleElement
 from sage.structure.richcmp import richcmp, op_NE, op_EQ
 
 from sage.rings.polynomial.polynomial_element import Polynomial
 
-class QuasiModularFormsElement(Element):
+class QuasiModularFormsElement(ModuleElement):
     r"""
     A quasimodular forms ring element
+
+    EXAMPLES::
+
+        sage: QM = QuasiModularForms()
+        sage: QM.gens()
+        [1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6),
+        1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
+        1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)]
+        sage: QM.0 + QM.1
+        2 + 216*q + 2088*q^2 + 6624*q^3 + 17352*q^4 + 30096*q^5 + O(q^6)
+        sage: QM.0 * QM.1
+        1 + 216*q - 3672*q^2 - 62496*q^3 - 322488*q^4 - 1121904*q^5 + O(q^6)
+        sage: (QM.0)^2
+        1 - 48*q + 432*q^2 + 3264*q^3 + 9456*q^4 + 21600*q^5 + O(q^6)
+        sage: QM.0 == QM.1
+        False
+
+    Quasimodular forms ring element can be created via a polynomial in `E2`::
+
+        sage: E2 = QM.polygen()
+        sage: QM(E2)
+        1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
+        sage: M = QM.modular_forms_subring()
+        sage: QM(M.0 * E2 + M.1 * E2^2)
+        2 - 336*q + 4320*q^2 + 398400*q^3 - 3772992*q^4 - 89283168*q^5 + O(q^6)
     """
     def __init__(self, parent, polynomial):
         r"""
@@ -36,23 +61,26 @@ class QuasiModularFormsElement(Element):
 
         INPUTS:
 
-        - ``parent`` - QuasiModularForms
+        - ``parent`` - A quasimodular forms ring.
         - ``polynomial`` - a polynomial `f_0 + f_1 E_2 + ... + f_n E_2^n` where each `f_i`
-          are modular forms or base ring elements and `E_2` correspond to the weight 2 Eisenstein series.
+          are modular forms ring elements and `E_2` correspond to the weight 2 Eisenstein series.
 
         OUTPUT:
 
         - ``QuasiModularFormsElement``
 
-        EXAMPLES::
+        TESTS::
 
-            sage: QM = QuasiModularForms()
-            sage: QM.gens()
-            [1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6),
-            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
-            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)]
-            sage: QM.0 + QM.1
-            2 + 216*q + 2088*q^2 + 6624*q^3 + 17352*q^4 + 30096*q^5 + O(q^6)
+            sage: QM = QuasiModularForms(1)
+            sage: QM.element_class(QM, 'E2')
+            Traceback (most recent call last):
+            ...
+            TypeError: 'polynomial' argument should be of type 'Polynomial'
+            sage: x = polygen(QQ)
+            sage: QM.element_class(QM, x^2 + 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: at least one coefficient is not a 'GradedModularFormElement'
         """
         if not isinstance(polynomial, Polynomial):
             raise TypeError("'polynomial' argument should be of type 'Polynomial'")
@@ -62,11 +90,13 @@ class QuasiModularFormsElement(Element):
         self._polynomial = polynomial
         self._coefficients = polynomial.coefficients(sparse=False)
         self.__base_ring = parent.base_ring()
-        Element.__init__(self, parent)
+        ModuleElement.__init__(self, parent)
 
     def q_expansion(self, prec=6):
         r"""
         Computes the `q`-expansion of self to precision `prec`.
+
+        An alias of this method is ``qexp``.
 
         EXAMPLES:::
 
@@ -96,7 +126,7 @@ class QuasiModularFormsElement(Element):
             sage: QM.2
             1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)
         """
-        return "%s" % (self.q_expansion())
+        return str(self.q_expansion())
 
     def _richcmp_(self, other, op):
         r"""

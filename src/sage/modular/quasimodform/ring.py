@@ -1,9 +1,52 @@
 r"""
-Graded quasi-modular forms ring
+Graded quasimodular forms ring
+
+Let `E_2` be the weight 2 Eisenstein series defined by
+
+.. MATH::
+
+    E_2(z) = 1 - \frac{2k}{B_k} \sum_{n=1}^{\infty} \sigma(n) q^n
+
+where `\sigma` is the sum of divisors function and `q = \mathrm{exp}(2\pi i z)` is
+the classical parameter at infinity, with `\mathrm{im}(z)>0`. This weight 2
+Eisenstein series is not a modular forms as it does not statisfies the modularity
+condition:
+
+.. MATH::
+
+    z^2 E_2(-1/z) = E_2(z) + \frac{2k}{4\pi i B_k z}.
+
+`E_2` is a quasimodular form of weight 2. General quasimodular forms of given weight
+can also be defined. We denotes by `QM` the graded ring of quasimodular forms for the
+full modular group `\mathrm{SL}_2(\ZZ)`.
+
+The SageMath implementation of the graded ring of quasimodular forms uses the following
+isomorphism:
+
+.. MATH::
+
+    QM \cong M_* [E_2]
+
+where `M_* \cong \CC[E_4, E_6]` is the graded ring of modular forms for `\mathrm{SL}_2(\ZZ)`.
+(see :meth:`sage.modular.modform.ring.ModularFormRing`).
+
+EXAMPLES::
+
+    sage: QM = QuasiModularForms(1); QM
+    Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field
+    sage: QM.gens()
+    [1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6),
+    1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
+    1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)]
+    sage: E2 = QM.0; E4 = QM.1; E6 = QM.2
+    sage: E2 * E4 + E6
+    2 - 288*q - 20304*q^2 - 185472*q^3 - 855216*q^4 - 2697408*q^5 + O(q^6)
+    sage: E2.parent()
+    Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field
 
 .. NOTE:
 
-    Only the space of quasimodular forms for the full modular group have been implemented.
+    Only the ring of quasimodular forms for the full modular group have been implemented.
 
 AUTHORS:
 
@@ -44,12 +87,17 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
     EXAMPLES::
 
-        sage: QM = QuasiModularForms(); QM
+        sage: QM = QuasiModularForms(1); QM
         Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field
         sage: QM.gens()
         [1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6),
         1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
         1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)]
+
+    It is possible to access the weight 2 Eisenstein series::
+
+        sage: QM.weigt_2_eisenstein_series()
+        1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
     """
     Element = QuasiModularFormsElement
     def __init__(self, group=1, base_ring=QQ, name='E2'):
@@ -57,10 +105,13 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         INPUT:
 
         - ``group`` (default: `{\rm SL}_2(\ZZ)`) -- a congruence subgroup of `{\rm SL}_2(\ZZ)`, or a
-          positive integer `N` (interpreted as `\Gamma_0(N)`)
+          positive integer `N` (interpreted as `\Gamma_0(N)`).
 
         - ``base_ring`` (ring, default: `\QQ`) -- a base ring, which should be
           `\QQ`, `\ZZ`, or the integers mod `p` for some prime `p`.
+
+        - ``name`` (str, default: ``'E2'``) -- a variable name corresponding to the
+          weight 2 Eisenstein series.
 
         TESTS:
 
@@ -88,6 +139,8 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
             sage: TestSuite(QuasiModularForms(1)).run()
         """
+        if not isinstance(name, str):
+            raise TypeError("`name` must be a string")
         #check if the group is SL2(Z)
         if isinstance(group, (int, Integer)):
             if group>1:
@@ -154,6 +207,38 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         """
         return self.__modular_forms_subring
 
+    def modular_forms_of_weight(self, weight):
+        r"""
+        Return the space of modular forms on this group of the given weight.
+
+        EXAMPLES::
+
+            sage: QM = QuasiModularForms(1)
+            sage: QM.modular_forms_of_weight(12)
+            Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+        """
+        return self.__modular_forms_subring.modular_forms_of_weight(weight)
+
+    def quasimodular_forms_of_weight(self, weight):
+        r"""
+        Return the space of quasimodular forms on this group of the given weight.
+
+        INPUT:
+
+        - ``weight`` (int, Integer)
+
+        OUTPUT: A quasimodular forms space of the given weight.
+
+        EXAMPLES::
+
+            sage: QuasiModularForms(1).quasimodular_forms_of_weight(4)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: spaces of quasimodular forms of fixed weight not yet implemented
+
+        """
+        raise NotImplementedError("spaces of quasimodular forms of fixed weight not yet implemented")
+
     def _repr_(self):
         r"""
         String representation of self.
@@ -186,6 +271,8 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: f = ModularForms(1, 12).0
             sage: E2 + f
             1 - 23*q - 96*q^2 + 156*q^3 - 1640*q^4 + 4686*q^5 + O(q^6)
+            sage: f + E2
+            1 - 23*q - 96*q^2 + 156*q^3 - 1640*q^4 + 4686*q^5 + O(q^6)
         """
         if isinstance(M, (ModularFormsRing, ModularFormsSpace)):
             if M.group() == self.group() and self.has_coerce_map_from(M.base_ring()):
@@ -213,7 +300,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
                 datum[idx] = self.__modular_forms_subring(f) #to ensure that every forms is a GradedModularFormElement
             datum = self.__polynomial_subring(datum)
         elif isinstance(datum, (GradedModularFormElement, ModularFormElement)):
-            datum = self.__modular_forms_subring(datum)
+            datum = self.__modular_forms_subring(datum) # GradedModularFormElement
             datum = self.__polynomial_subring(datum)
         elif isinstance(datum, Polynomial):
             datum = self.__polynomial_subring(datum.coefficients(sparse=False))

@@ -1140,6 +1140,14 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             False
             sage: 15/36 in Integers(6)
             False
+
+        Check that :trac:`32078` is fixed::
+
+            sage: P = Frac(ZZ['x,y'])
+            sage: P(1) in ZZ
+            True
+            sage: P(1/2) in ZZ
+            False
         """
         P = parent(x)
         if P is self or P == self:
@@ -1163,7 +1171,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             # SR is ultra-permissive about letting other rings
             # coerce in, but ultra-strict about doing
             # comparisons.
-        except (TypeError, ValueError, ZeroDivisionError):
+        except (TypeError, ValueError, ArithmeticError):
             return False
 
     cpdef coerce(self, x):

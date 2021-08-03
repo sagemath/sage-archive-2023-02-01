@@ -392,40 +392,50 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{03A5}{\ensuremath{\Upsilon}}
     \DeclareUnicodeCharacter{2113}{\ell}
 
-    \DeclareUnicodeCharacter{2148}{\id}
-    \DeclareUnicodeCharacter{2202}{\partial}
+    \DeclareUnicodeCharacter{2148}{\ensuremath{\id}}
+    \DeclareUnicodeCharacter{2202}{\ensuremath{\partial}}
     \DeclareUnicodeCharacter{2205}{\ensuremath{\emptyset}}
-    \DeclareUnicodeCharacter{2208}{\in}
-    \DeclareUnicodeCharacter{2209}{\notin}
-    \DeclareUnicodeCharacter{2211}{\sum}
+    \DeclareUnicodeCharacter{2208}{\ensuremath{\in}}
+    \DeclareUnicodeCharacter{2209}{\ensuremath{\notin}}
+    \DeclareUnicodeCharacter{2211}{\ensuremath{\sum}}
     \DeclareUnicodeCharacter{221A}{\ensuremath{\sqrt{}}}
-    \DeclareUnicodeCharacter{221E}{\infty}
+    \DeclareUnicodeCharacter{221E}{\ensuremath{\infty}}
     \DeclareUnicodeCharacter{2227}{\ensuremath{\wedge}}
     \DeclareUnicodeCharacter{2228}{\ensuremath{\vee}}
     \DeclareUnicodeCharacter{2229}{\ensuremath{\cap}}
     \DeclareUnicodeCharacter{222A}{\ensuremath{\cup}}
     \DeclareUnicodeCharacter{222B}{\ensuremath{\int}}
-    \DeclareUnicodeCharacter{2248}{\approx}
-    \DeclareUnicodeCharacter{2260}{\neq}
-    \DeclareUnicodeCharacter{2264}{\leq}
-    \DeclareUnicodeCharacter{2265}{\geq}
+    \DeclareUnicodeCharacter{2248}{\ensuremath{\approx}}
+    \DeclareUnicodeCharacter{2260}{\ensuremath{\neq}}
+    \DeclareUnicodeCharacter{2264}{\ensuremath{\leq}}
+    \DeclareUnicodeCharacter{2265}{\ensuremath{\geq}}
     \DeclareUnicodeCharacter{2293}{\ensuremath{\sqcap}}
     \DeclareUnicodeCharacter{2294}{\ensuremath{\sqcup}}
     \DeclareUnicodeCharacter{22C0}{\ensuremath{\bigwedge}}
     \DeclareUnicodeCharacter{22C1}{\ensuremath{\bigvee}}
     \DeclareUnicodeCharacter{22C2}{\ensuremath{\bigcap}}
     \DeclareUnicodeCharacter{22C3}{\ensuremath{\bigcup}}
-    \DeclareUnicodeCharacter{00B1}{\pm}
-    \DeclareUnicodeCharacter{2A02}{\otimes}
-    \DeclareUnicodeCharacter{2A01}{\oplus}
-    \DeclareUnicodeCharacter{00BD}{\nicefrac{1}{2}}
-    \DeclareUnicodeCharacter{00D7}{\times}
-    \DeclareUnicodeCharacter{00B7}{\cdot}
-    \DeclareUnicodeCharacter{230A}{\lfloor}
-    \DeclareUnicodeCharacter{230B}{\rfloor}
-    \DeclareUnicodeCharacter{2308}{\lceil}
-    \DeclareUnicodeCharacter{2309}{\rceil}
+    \DeclareUnicodeCharacter{00B1}{\ensuremath{\pm}}
+    \DeclareUnicodeCharacter{2A02}{\ensuremath{\bigotimes}}
+    \DeclareUnicodeCharacter{2297}{\ensuremath{\otimes}}
+    \DeclareUnicodeCharacter{2A01}{\ensuremath{\oplus}}
+    \DeclareUnicodeCharacter{00BD}{\ensuremath{\nicefrac{1}{2}}}
+    \DeclareUnicodeCharacter{00D7}{\ensuremath{\times}}
+    \DeclareUnicodeCharacter{00B7}{\ensuremath{\cdot}}
+    \DeclareUnicodeCharacter{230A}{\ensuremath{\lfloor}}
+    \DeclareUnicodeCharacter{230B}{\ensuremath{\rfloor}}
+    \DeclareUnicodeCharacter{2308}{\ensuremath{\lceil}}
+    \DeclareUnicodeCharacter{2309}{\ensuremath{\rceil}}
     \DeclareUnicodeCharacter{22C5}{\ensuremath{\cdot}}
+    \DeclareUnicodeCharacter{2227}{\ensuremath{\wedge}}
+    \DeclareUnicodeCharacter{22C0}{\ensuremath{\bigwedge}}
+    \DeclareUnicodeCharacter{2192}{\ensuremath{\to}}
+    \DeclareUnicodeCharacter{21A6}{\ensuremath{\mapsto}}
+    \DeclareUnicodeCharacter{2102}{\ensuremath{\mathbb{C}}}
+    \DeclareUnicodeCharacter{211A}{\ensuremath{\mathbb{Q}}}
+    \DeclareUnicodeCharacter{211D}{\ensuremath{\mathbb{R}}}
+    \DeclareUnicodeCharacter{2124}{\ensuremath{\mathbb{Z}}}
+    \DeclareUnicodeCharacter{2202}{\ensuremath{\partial}}
 
     \DeclareUnicodeCharacter{2070}{\ensuremath{{}^0}}
     \DeclareUnicodeCharacter{00B9}{\ensuremath{{}^1}}
@@ -709,7 +719,8 @@ def process_inherited(app, what, name, obj, options, docstringlines):
 dangling_debug = False
 
 def debug_inf(app, message):
-    if dangling_debug: app.info(message)
+    if dangling_debug:
+        app.info(message)
 
 def call_intersphinx(app, env, node, contnode):
     r"""

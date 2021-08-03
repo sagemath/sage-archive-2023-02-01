@@ -1069,9 +1069,8 @@ class SR_generic(MPolynomialSystemGenerator):
         EXAMPLES::
 
             sage: sr = mq.SR(2, 2, 2, 4)
-            sage: sr.random_state_array()
-            [              a^2       a^3 + a + 1]
-            [a^3 + a^2 + a + 1             a + 1]
+            sage: sr.random_state_array().parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Finite Field in a of size 2^4
         """
         return random_matrix(self.base_ring(), self._r, self._c, *args, **kwds)
 
@@ -1082,24 +1081,8 @@ class SR_generic(MPolynomialSystemGenerator):
 
         EXAMPLES::
 
-            sage: sr = mq.SR(2, 2, 2, 4)
-            sage: sr.random_vector()
-            [              a^2]
-            [            a + 1]
-            [          a^2 + 1]
-            [                a]
-            [a^3 + a^2 + a + 1]
-            [          a^3 + a]
-            [              a^3]
-            [        a^3 + a^2]
-            [      a^3 + a + 1]
-            [          a^3 + 1]
-            [    a^3 + a^2 + 1]
-            [    a^3 + a^2 + a]
-            [            a + 1]
-            [          a^2 + 1]
-            [                a]
-            [              a^2]
+            sage: mq.SR(2, 2, 2, 4).random_vector().parent()
+            Full MatrixSpace of 16 by 1 dense matrices over Finite Field in a of size 2^4
 
         .. note::
 
@@ -1122,13 +1105,10 @@ class SR_generic(MPolynomialSystemGenerator):
         EXAMPLES::
 
             sage: sr = mq.SR()
-            sage: sr.random_element()
-            [    a^2]
-            [  a + 1]
-            [a^2 + 1]
-            [      a]
-            sage: sr.random_element('state_array')
-            [a^3 + a + 1]
+            sage: sr.random_element().parent()
+            Full MatrixSpace of 4 by 1 dense matrices over Finite Field in a of size 2^4
+            sage: sr.random_element('state_array').parent()
+            Full MatrixSpace of 1 by 1 dense matrices over Finite Field in a of size 2^4
 
         Passes extra positional or keyword arguments through::
 
@@ -1861,7 +1841,7 @@ class SR_generic(MPolynomialSystemGenerator):
             sage: k = sr.base_ring()
             sage: p = [k.random_element() for _ in range(sr.r*sr.c)]
             sage: sr.round_polynomials(0, plaintext=p)
-            (w100 + k000 + (a^2 + 1), w101 + k001 + (a), w102 + k002 + (a^2), w103 + k003 + (a + 1))
+            (w100 + k000..., w101 + k001..., w102 + k002..., w103 + k003...)
         """
         r = self._r
         c = self._c
@@ -2073,8 +2053,6 @@ class SR_generic(MPolynomialSystemGenerator):
             (C000, C001, C002, C003)
             sage: P = sr.vars("P",0)
             sage: F,s = sr.polynomial_system(P=P,C=C)
-            sage: [(k,v) for k,v in sorted(s.items())] # this can be ignored
-            [(k003, 1), (k002, 1), (k001, 0), (k000, 1)]
             sage: F
             Polynomial Sequence with 36 Polynomials in 28 Variables
             sage: F.part(0)
@@ -2085,7 +2063,12 @@ class SR_generic(MPolynomialSystemGenerator):
         We show that the (returned) key is a solution to the returned system::
 
             sage: sr = mq.SR(3,4,4,8, star=True, gf2=True, polybori=True)
-            sage: F,s = sr.polynomial_system()
+            sage: while True:  # workaround (see :trac:`31891`)
+            ....:     try:
+            ....:         F, s = sr.polynomial_system()
+            ....:         break
+            ....:     except ZeroDivisionError:
+            ....:         pass
             sage: F.subs(s).groebner_basis() # long time
             Polynomial Sequence with 1248 Polynomials in 1248 Variables
         """
@@ -2257,8 +2240,6 @@ class SR_gf2n(SR_generic):
 
             sage: sr = mq.SR()
             sage: A = sr.random_state_array()
-            sage: A
-            [a^2]
             sage: sr.antiphi(sr.phi(A)) == A
             True
         """
@@ -2663,8 +2644,6 @@ class SR_gf2(SR_generic):
 
             sage: sr = mq.SR(gf2=True)
             sage: A = sr.random_state_array()
-            sage: A
-            [a^2]
             sage: sr.antiphi(sr.phi(A)) == A
             True
         """

@@ -36,7 +36,7 @@ cdef struct iter_s:
     face_list_t* new_faces
 
     # After having visited a face completely, we want to add it to ``visited_all``.
-    # ``first_time[i]`` will indicate, wether there is one more face in
+    # ``first_time[i]`` will indicate, whether there is one more face in
     # ``newfaces[i]`` then ``n_newfaces[i]`` suggests
     # that has to be added to ``visited_all``.
     # If ``first_time[i] == False``, we still need to

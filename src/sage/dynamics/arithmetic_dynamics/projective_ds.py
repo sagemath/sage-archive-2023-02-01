@@ -4017,7 +4017,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: R.<z> = QQ[]
             sage: K.<v> = NumberField(z^4 - z^2 - 1)
             sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
-            sage: f.preperiodic_points(2, 1, R=K)
+
+            sage: f.preperiodic_points(2, 1, R=K)   # 64-bit (the ordering differs on 32bit systems)
             [(v : 1), (-v : 1)]
 
         ::
@@ -4075,6 +4076,15 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ...
             ValueError: dynamical system is not a morphism, cannot calculate minimal or formal preperiodic points
+
+        We reproduce an example above for 32bit architectures::
+
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: R.<z> = QQ[]
+            sage: K.<v> = NumberField(z^4 - z^2 - 1)
+            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
+            sage: sorted(f.preperiodic_points(2, 1, R=K), key=str)
+            [(-v : 1), (v : 1)]
         """
         n = ZZ(n)
         m = ZZ(m)

@@ -79,7 +79,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from typing import Type
 from sage.arith.all import gcd, binomial, srange
 from sage.rings.all import (PolynomialRing,
                             Integer,
@@ -1708,7 +1707,6 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             points.append(source_points)
         return self.point_transformation_matrix(points[0], points[1])
 
-
     def is_linearly_independent(self, points, n=None):
         r"""
         Return whether the set of points is linearly independent.
@@ -1718,21 +1716,17 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
         INPUT:
 
-         - ``points`` -- a list of points in this projective space.
+        - ``points`` -- a list of points in this projective space.
 
-         - ``n`` -- (Optional) A positive integer less than or equal to the length
-           of ``points``. Specifies the size of the subsets to check for
-           linear independence.
+        - ``n`` -- (Optional) A positive integer less than or equal to the length
+          of ``points``. Specifies the size of the subsets to check for
+          linear independence.
 
         OUTPUT:
 
-         - ``True`` if ``points`` is linearly independent, ``False`` otherwise.
+        - ``True`` if ``points`` is linearly independent, ``False`` otherwise.
 
-            sage: points = [P((1, 0)), P((1, 1))]
-            sage: P.is_linearly_independent(points)
-            True
-
-        ::
+        EXAMPLES::
 
             sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
             sage: points = [P((1, 0, 1)), P((1, 2, 1)), P((1, 3, 4))]
@@ -1770,9 +1764,15 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
             sage: P.is_linearly_independent(points, 3)
             True
 
-        TESTS::
+        ::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: points = [P((1, 0)), P((1, 1))]
+            sage: P.is_linearly_independent(points)
+            True
+
+        TESTS::
+
             sage: points = [P(1, 0), P(1, 1), P(2, 1)]
             sage: P.is_linearly_independent(points, 5)
             Traceback (most recent call last):

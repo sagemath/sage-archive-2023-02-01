@@ -235,8 +235,6 @@ def init_ecl():
     """
     global list_of_objects
     global read_from_string_clobj
-    global make_unicode_string_clobj
-    global unicode_string_codepoints_clobj
     global conditions_to_handle_clobj
     global ecl_has_booted
     cdef char *argv[1]
@@ -291,26 +289,13 @@ def init_ecl():
     conditions_to_handle_clobj=ecl_list1(ecl_make_symbol(b"SERIOUS-CONDITION", b"COMMON-LISP"))
     insert_node_after(list_of_objects,conditions_to_handle_clobj)
 
-    cl_eval(string_to_object(b"""
-        (defun sage-make-unicode-string (codepoints)
-            (map 'string #'code-char codepoints))
-        """))
-    make_unicode_string_clobj = cl_eval(string_to_object(b"#'sage-make-unicode-string"))
-
-    cl_eval(string_to_object(b"""
-        (defun sage-unicode-string-codepoints (s)
-            (map 'list #'char-code s))
-        """))
-    unicode_string_codepoints_clobj = cl_eval(string_to_object(b"#'sage-unicode-string-codepoints"))
-
     ecl_has_booted = 1
 
 cdef ecl_string_to_python(cl_object s):
     if bint_base_string_p(s):
         return char_to_str(ecl_base_string_pointer_safe(s))
     else:
-        s = cl_funcall(2, unicode_string_codepoints_clobj, s)
-        return ''.join(chr(code) for code in ecl_to_python(s))
+        return ''.join(chr(ecl_char(s, i)) for i in range(ecl_length(s)))
 
 cdef cl_object ecl_safe_eval(cl_object form) except NULL:
     """
@@ -455,8 +440,9 @@ cdef cl_object python_to_ecl(pyobj, bint read_strings) except NULL:
         try:
             s = str_to_bytes(pyobj, 'ascii')
         except UnicodeEncodeError:
-            o = cl_funcall(2, make_unicode_string_clobj,
-                           python_to_ecl([ord(c) for c in pyobj], read_strings))
+            o = cl_make_string(1, ecl_make_fixnum(len(pyobj)))
+            for i in range(len(pyobj)):
+                ecl_char_set(o, i, ord(pyobj[i]))
         else:
             o = ecl_cstring_to_base_string_or_nil(s)
 

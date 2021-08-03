@@ -3396,16 +3396,16 @@ class MonomialGrowthElement(GenericGrowthElement):
             sage: l1._find_minimum_(valid_from={'x': 5})
             Traceback (most recent call last):
             ...
-            NotImplementedError: log(x)^2 is not implemented
+            NotImplementedError: Minimum of log(x)^2 is not implemented
             sage: I = GrowthGroup('log(log(x))^ZZ')
             sage: l2 = I(raw_element=5)
             sage: l2._find_minimum_(valid_from={'x': 5})
             Traceback (most recent call last):
             ...
-            NotImplementedError: log(log(x))^5 is not implemented
+            NotImplementedError: Minimum of log(log(x))^5 is not implemented
         """
         if not self.parent().gens_monomial():
-            raise NotImplementedError(f'{self} is not implemented')
+            raise NotImplementedError(f'Minimum of {self} is not implemented')
         if self.is_lt_one():
             raise DecreasingGrowthElementError(self, f'the growth of {self} is less than one')
         elif self.is_one():

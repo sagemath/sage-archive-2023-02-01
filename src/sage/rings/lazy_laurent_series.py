@@ -168,11 +168,11 @@ class LazySequenceElement(ModuleElement):
         P = self.parent()
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, CoefficientStream_exact):
-            initial_values = [func(i) if i else 0 for i in coeff_stream._initial_coefficients]
+            inital_coefficients = [func(i) if i else 0 for i in coeff_stream._initial_coefficients]
             c = func(coeff_stream._constant) if coeff_stream._constant else 0
-            if not any(initial_values) and not c:
+            if not any(inital_coefficients) and not c:
                 return P.zero()
-            coeff_stream = CoefficientStream_exact(initial_values, self._coeff_stream._is_sparse,
+            coeff_stream = CoefficientStream_exact(inital_coefficients, self._coeff_stream._is_sparse,
                                                    valuation=coeff_stream._approximate_valuation,
                                                    degree=coeff_stream._degree,
                                                    constant=c)
@@ -211,8 +211,8 @@ class LazySequenceElement(ModuleElement):
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
-        initial_values = [coeff_stream[i] for i in range(coeff_stream._approximate_valuation, d)]
-        return P.element_class(P, CoefficientStream_exact(initial_values, P._sparse,
+        inital_coefficients = [coeff_stream[i] for i in range(coeff_stream._approximate_valuation, d)]
+        return P.element_class(P, CoefficientStream_exact(inital_coefficients, P._sparse,
                                                           valuation=coeff_stream._approximate_valuation))
 
     def prec(self):

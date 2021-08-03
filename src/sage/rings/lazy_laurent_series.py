@@ -112,13 +112,33 @@ from sage.data_structures.coefficient_stream import (
 )
 
 class LazySequenceElement(ModuleElement):
+    r"""
+    An Abstract Base class for the element of a lazy series.
+
+    EXAMPLES::
+
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+        sage: f = 1/(1 - z)
+        sage: f.parent()
+        Lazy Laurent Series Ring in z over Integer Ring
+        sage: f
+        1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+        sage: f = 1/(1 - z)
+        sage: f.parent()
+        Lazy Laurent Series Ring in z over Integer Ring
+        sage: f
+        1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+    """
+
     def __getitem__(self, n):
         """
         Return the coefficient of the term with exponent ``n`` of the series.
 
         INPUT:
 
-        - ``n`` -- integer
+        - ``n`` -- integer; the exponent of the term whose coefficient is desired
 
         EXAMPLES::
 
@@ -136,7 +156,6 @@ class LazySequenceElement(ModuleElement):
             sage: M = L(lambda n: n)
             sage: [M[n] for n in range(20)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
-
         """
         R = self.base_ring()
         if isinstance(n, slice):
@@ -160,6 +179,8 @@ class LazySequenceElement(ModuleElement):
 
         EXAMPLES::
 
+        Dense Implementation::
+
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: s = z/(1 - 2*z^2)
             sage: t = s.map_coefficients(lambda c: c + 1)
@@ -172,12 +193,20 @@ class LazySequenceElement(ModuleElement):
             sage: N = M.map_coefficients(lambda c: c + 1); N
             2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
 
+        Sparse Implementation::
+
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: N = M.map_coefficients(lambda c: c + 1); N
             2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
 
+        An example where the series is known to be exact::
+
+            sage: f = z + z^2 + z^3
+            sage: m = f.map_coefficients(lambda c: c + 1)
+            sage: m
+            2*z + 2*z^2 + 2*z^3
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
@@ -199,9 +228,11 @@ class LazySequenceElement(ModuleElement):
 
         INPUT:
 
-        - ``d`` -- integer
+        - ``d`` -- integer; the degree from which the series is truncated
 
         EXAMPLES::
+
+        Dense Implementation::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: alpha = 1/(1-z)
@@ -217,11 +248,20 @@ class LazySequenceElement(ModuleElement):
             sage: M.truncate(4)
             z + 2*z^2 + 3*z^3
 
+        Sparse Implementation::
+
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: M.truncate(4)
             z + 2*z^2 + 3*z^3
+        
+        Series which are known to be exact can also be truncated::
+
+            sage: M = z + z^2 + z^3 + z^4
+            sage: M.truncate(4)
+            z + z^2 + z^3
+
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
@@ -264,7 +304,6 @@ class LazySequenceElement(ModuleElement):
             1
             sage: (M - M).valuation()
             +Infinity
-
         """
         return self._coeff_stream.valuation()
 
@@ -283,7 +322,6 @@ class LazySequenceElement(ModuleElement):
         INPUT:
 
         - ``other`` -- another Laurent series
-
         - ``op`` -- comparison operator
 
         EXAMPLES::
@@ -403,7 +441,7 @@ class LazySequenceElement(ModuleElement):
             sage: t[:9]
             [1, 1, 2, 7, 24, 95, 386, 1641, 7150]
 
-        An bigger example::
+        A bigger example::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: A = L(None, 5)
@@ -471,7 +509,6 @@ class LazySequenceElement(ModuleElement):
             Traceback (most recent call last):
             ...
             ValueError: series already defined
-
         """
         if not isinstance(self._coeff_stream, CoefficientStream_uninitialized) or self._coeff_stream._target is not None:
             raise ValueError("series already defined")
@@ -479,15 +516,61 @@ class LazySequenceElement(ModuleElement):
 
 
 class LazySequencesModuleElement(LazySequenceElement):
+    r"""
+    An abstract base class for a lazy series.
+
+    INPUT:
+
+    - ``parent`` -- the parent ring of the series
+    - ``coeff_stream`` -- the stream of coefficients of the series
+
+    EXAMPLES::
+
+        sage: from sage.rings.lazy_laurent_series import LazySequencesModuleElement
+        sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+        sage: M = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 0))
+        sage: N = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: 1, ZZ, True, 0))
+        sage: [M._coeff_stream[i] for i in range(10)]
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        sage: [N._coeff_stream[i] for i in range(10)]
+        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+    Two sequences can be added::
+
+        sage: O = M + N
+        sage: [O._coeff_stream[i] for i in range(10)]
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    Two sequences can be subracted::
+
+        sage: P = M - N
+        sage: [P._coeff_stream[i] for i in range(10)]
+        [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8]
+
+    A sequence can be multiplied by a scalar::
+
+        sage: Q = 2 * M
+        sage: [Q._coeff_stream[i] for i in range(10)]
+        [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+
+    The negation of a sequence can also be found::
+
+        sage: R = -M
+        sage: [R._coeff_stream[i] for i in range(10)]
+        [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
+
+    """
     def __init__(self, parent, coeff_stream):
         """
         Initialize the series.
 
         TESTS::
 
-            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
-            sage: z = L.gen()
-            sage: TestSuite(z).run()
+            sage: from sage.rings.lazy_laurent_series import LazySequencesModuleElement
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_exact([1], True))
 
         """
         ModuleElement.__init__(self, parent)
@@ -501,36 +584,35 @@ class LazySequencesModuleElement(LazySequenceElement):
 
         - ``other`` -- other series
 
-        TESTS::
+        EXAMPLES::
 
+        Dense series can be added::
+
+            sage: from sage.rings.lazy_laurent_series import LazySequencesModuleElement
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function, CoefficientStream_exact
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: (1 - z)*(1 - z)
-            1 - 2*z + z^2
-            sage: (1 - z)*(1 - z)*(1 - z)
-            1 - 3*z + 3*z^2 - z^3
-            sage: z + z
-            2*z
-            sage: z^2 + 3*z^2
-            4*z^2
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = L(lambda n: 1); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
-            sage: P = M + N; P
-            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: 1 + n, ZZ, False, 0))
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: -n, ZZ, False, 0))
+            sage: O = M + N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
-            sage: A = L(1, constant=2, degree=3)
-            sage: B = L(2, constant=-2, degree=5)
-            sage: A + B
-            3 + 2*z^3 + 2*z^4
+        Sparse series can be added::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = L(lambda n: 1); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
-            sage: P = M + N; P
-            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: 1 + n, ZZ, True, 0))
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: -n, ZZ, True, 0))
+            sage: O = M + N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+        Series which are known to be exact can be added::
+
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_exact([1], True))
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_exact([0, 1], True))
+            sage: O = M + N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
         """
         P = self.parent()
@@ -559,39 +641,42 @@ class LazySequencesModuleElement(LazySequenceElement):
 
         - ``other`` -- other series
 
-        TESTS::
+        EXAMPLES::
 
+        Dense series can be subtracted::
+
+            sage: from sage.rings.lazy_laurent_series import LazySequencesModuleElement
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function, CoefficientStream_exact
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: z - z
-            0
-            sage: 3*z - 2*z
-            z
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = L(lambda n: 1); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
-            sage: P = M - N; P
-            -1 + z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + ...
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: 1 + n, ZZ, False, 0))
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: -n, ZZ, False, 0))
+            sage: O = M - N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
 
-            sage: A = L(1, constant=2, degree=3)
-            sage: B = L(2, constant=3, degree=5)
-            sage: A - B
-            -1 + 2*z^3 + 2*z^4 - z^5 - z^6 - z^7 + ...
-
-            sage: A = L(1, constant=2, degree=3)
-            sage: B = L([1,0,0,2,2], constant=2)
-            sage: X = A - B; X
-            0
-            sage: type(X._coeff_stream)
-            <class 'sage.data_structures.coefficient_stream.CoefficientStream_zero'>
+        Sparse series can be subtracted::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = L(lambda n: 1); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
-            sage: P = M - N; P
-            -1 + z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + ...
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: 1 + n, ZZ, True, 0))
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: -n, ZZ, True, 0))
+            sage: O = M - N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+
+        Series which are known to be exact can be subtracted::
+
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_exact([1], True))
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_exact([0, 1], True))
+            sage: O = M - N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [1, -1, 0, 0, 0, 0, 0, 0, 0, 0]
+
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_exact([1], True))
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_exact([1], True))
+            sage: O = M - N
+            sage: O
+            0
+
         """
         P = self.parent()
         left = self._coeff_stream
@@ -621,40 +706,65 @@ class LazySequencesModuleElement(LazySequenceElement):
 
         - ``scalar`` -- an element of the base ring
 
-        TESTS::
+        EXAMPLES::
 
+        Dense series can be multiplied with a scalar::
+
+            sage: from sage.rings.lazy_laurent_series import LazySequencesModuleElement
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function, CoefficientStream_exact
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: 2*z
-            2*z
-            sage: -1*z
-            -z
-            sage: 0*z
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: 1 + n, ZZ, False, 0))
+            sage: O = 2 * M
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+            sage: O = 2 * 3 * M
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
+            sage: O = 1 * M
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            sage: O == M
+            True
+            sage: O = 0 * M
+            sage: O
             0
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: M * 3
-            3*z + 6*z^2 + 9*z^3 + 12*z^4 + 15*z^5 + 18*z^6 + ...
+
+        Sparse series can be multiplied with a scalar::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: M * 3
-            3*z + 6*z^2 + 9*z^3 + 12*z^4 + 15*z^5 + 18*z^6 + ...
-            sage: N = L(lambda n: 1); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
-            sage: N * 4
-            4 + 4*z + 4*z^2 + 4*z^3 + 4*z^4 + 4*z^5 + 4*z^6 + ...
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: 1 + n, ZZ, True, 0))
+            sage: O = 2 * M
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+            sage: O = 2 * 3 * M
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
+            sage: O = 1 * M
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            sage: O == M
+            True
+            sage: O = 0 * M
+            sage: O
+            0
 
-            sage: 1 * M is M
-            True
-            sage: M * 1 is M
-            True
+        Series which are known to be exact can be multiplied with a scalar::
 
-            sage: from sage.data_structures.coefficient_stream import CoefficientStream_scalar
-            sage: isinstance((M*3)._coeff_stream, CoefficientStream_scalar)
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_exact([0, 1], True))
+            sage: O = -1 * N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [0, -1, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: O = 2 * 4 * N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [0, 8, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: O = 1 * N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: O == N
             True
-            sage: isinstance((3*M)._coeff_stream, CoefficientStream_scalar)
-            True
+            sage: O = 0 * N
+            sage: O
+            0
 
         """
         P = self.parent()
@@ -677,24 +787,60 @@ class LazySequencesModuleElement(LazySequenceElement):
         """
         Return the negative of this series.
 
-        TESTS::
+        EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: z = L.gen()
-            sage: -(1 - z)
-            -1 + z
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: P = -M; P
-            -z - 2*z^2 - 3*z^3 - 4*z^4 - 5*z^5 - 6*z^6 + ...
+        Dense series can be negated::
+
+            sage: from sage.rings.lazy_laurent_series import LazySequencesModuleElement
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function, CoefficientStream_exact
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: n, ZZ, False, 0))
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: -n, ZZ, False, 0))
+            sage: O = -N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: O = -M
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
+            sage: O = -(-M)
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: O == M
+            True
+
+        Sparse series can be negated::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: P = -M; P
-            -z - 2*z^2 - 3*z^3 - 4*z^4 - 5*z^5 - 6*z^6 + ...
-            sage: -(z^2 + 3*z - 4*z^3)
-            -3*z - z^2 + 4*z^3
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 0))
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_coefficient_function(lambda n: -n, ZZ, True, 0))
+            sage: O = -N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: O = -M
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
+            sage: O = -(-M)
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            sage: O == M
+            True
+
+        Series which are known to be exact can be negated::
+
+            sage: M = LazySequencesModuleElement(L, CoefficientStream_exact([1], True))
+            sage: N = LazySequencesModuleElement(L, CoefficientStream_exact([0, 1], True))
+            sage: O = -N
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [0, -1, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: O = -M
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: O = -(-M)
+            sage: [O._coeff_stream[i] for i in range(10)]
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: O == M
+            True
+
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
@@ -738,6 +884,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         sage: g == f
         True
     """
+
     def change_ring(self, ring):
         """
         Return this series with coefficients converted to elements of ``ring``.
@@ -747,6 +894,8 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         - ``ring`` -- a ring
 
         EXAMPLES::
+
+        Dense Implementation::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: s = 2 + z
@@ -760,6 +909,8 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             Lazy Laurent Series Ring in z over Rational Field
             sage: M.parent()
             Lazy Laurent Series Ring in z over Integer Ring
+
+        Sparse Implementation::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
@@ -945,6 +1096,28 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             1 + y^4 - 2*y^5 + 2*y^6 + ...
             sage: z(y)
             y
+        
+        We look at cases where the composition does not exist.
+        `g = 0` and `val(f) < 0`::
+
+            sage: g = L(0)
+            sage: f = z^-1 + z^-2
+            sage: f.valuation() < 0
+            True
+            sage: f(g)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: the valuation of the series must be nonnegative
+        
+        `g` is non-zero and `val(g) <= 0 and f has infinitely many non-zero coefficients`::
+
+            sage: g = z^-1 + z^-2
+            sage: g.valuation() <= 0
+            True
+            sage: f = L(lambda n: n, 0)
+            sage: f(g)
+            0 + ...
+
         """
         # f = self and compute f(g)
         P = g.parent()
@@ -1012,7 +1185,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
                 raise NotImplementedError("can only compose with a lazy Laurent series")
         # Perhaps we just don't yet know if the valuation is positive
         if g._coeff_stream._approximate_valuation <= 0:
-            if any(g._coeff_stream[i] for i in range(self._coeff_stream._approximate_valuation)):
+            if any(g._coeff_stream[i] for i in range(self._coeff_stream._approximate_valuation, 1)):
                 raise ValueError("can only compose with a positive valuation series")
             g._coeff_stream._approximate_valuation = 1
 
@@ -1026,19 +1199,26 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
         - ``other`` -- other series
 
-        TESTS::
+        EXAMPLES::
+
+        Lazy Laurent series that are known to be exact can be multiplied::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: (1 - z)*(1 - z)
             1 - 2*z + z^2
             sage: (1 - z)*(1 - z)*(1 - z)
             1 - 3*z + 3*z^2 - z^3
+
+        Lazy Laurent series that have a dense implementation can be multiplied::
+
             sage: M = L(lambda n: n)
             sage: M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: N = M * (1 - M)
             sage: N
             z + z^2 - z^3 - 6*z^4 - 15*z^5 - 29*z^6 + ...
+
+            
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
@@ -1102,7 +1282,9 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
         - ``other`` -- nonzero series
 
-        TESTS::
+        EXAMPLES::
+
+        Lazy Laurent series that have a dense implementation can be divided::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: z/(1 - z)
@@ -1114,6 +1296,8 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             sage: P = M / N; P
             z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
 
+        Lazy Laurent series that have a sparse implementation can be divided::
+
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
@@ -1121,6 +1305,13 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
             sage: P = M / N; P
             z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+
+        Lazy Laurent series that are known to be exact can be divided::
+
+            M = z^2 + 2*z + 1
+            N = z + 1
+            O = M / N; O
+            z + 1
         """
         if isinstance(other._coeff_stream, CoefficientStream_zero):
             raise ZeroDivisionError("cannot divide by 0")
@@ -1152,7 +1343,9 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         """
         Return the multiplicative inverse of the element.
 
-        TESTS::
+        EXAMPLES::
+
+        Lazy Laurent series that have a dense implementation can be inverted::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: ~(1 - z)
@@ -1161,6 +1354,9 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: P = ~M; P
             z^-1 - 2 + z + ...
+        
+        Lazy Laurent series that have a sparse implementation can be inverted::
+
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
@@ -1169,6 +1365,12 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
             sage: ~(~(1 - z))
             1 - z
+        
+        Lazy Laurent series that are known to be exact can be inverted::
+
+            sage: ~z
+            z^-1
+
         """
         P = self.parent()
         R = P._laurent_poly_ring
@@ -1194,6 +1396,8 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
         EXAMPLES::
 
+        Lazy Laurent series that have a dense implementation can be raised to the power ``n``::
+
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: (1 - z)^-1
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
@@ -1208,11 +1412,22 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             sage: M ^ 2
             z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + ...
 
+        Lazy Laurent series that have a sparse implementation can be raised to the power ``n``::
+
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: M ^ 2
             z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + ...
+
+        Lazy Laurent series that are known to be exact can be raised to the power ``n``::
+
+            sage: z^2
+            z^2
+            sage: (1 - z)^2
+            1 - 2*z + z^2
+            sage: (1 + z)^2
+            1 + 2*z + z^2
         """
         if n == 0:
             return self.parent().one()
@@ -1227,7 +1442,6 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         INPUT:
 
         - ``prec`` -- an integer
-
         - ``name`` -- name of the variable; if it is ``None``, the name of
           the variable of the series is used
 
@@ -1273,7 +1487,6 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         INPUT:
 
         - ``degree`` -- ``None`` or an integer
-
         - ``name`` -- name of the variable; if it is ``None``, the name of the variable
           of the series is used
 
@@ -1354,11 +1567,15 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         """
         Return the string representation of this Laurent series.
 
-        TESTS::
+        EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: -1/(1 + 2*z)
             -1 + 2*z - 4*z^2 + 8*z^3 - 16*z^4 + 32*z^5 - 64*z^6 + ...
+            sage: L(None)
+            Uninitialized Lazy Laurent Series
+            sage: L(0)
+            0
         """
         if isinstance(self._coeff_stream, CoefficientStream_zero):
             return '0'

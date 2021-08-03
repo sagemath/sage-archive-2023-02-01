@@ -417,4 +417,3 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             0
         """
         return self.element_class(self, CoefficientStream_zero(self._sparse))
-

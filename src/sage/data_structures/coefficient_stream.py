@@ -435,10 +435,10 @@ class CoefficientStream_exact(CoefficientStream):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: f = 1 + z + z^2 + z^3
-            sage: {f: 1}
-            {1 + z + z^2 + z^3: 1}
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
+            sage: s = CoefficientStream_exact([1], False)
+            sage: hash(s) == hash(s)
+            True
         """
         return hash((self._initial_coefficients, self._degree, self._constant))
 
@@ -754,10 +754,11 @@ class CoefficientStream_unary(CoefficientStream_inexact):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = ~(1 - z)
-            sage: {f: 1}
-            {1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...: 1}
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_unary
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function
+            sage: M = CoefficientStream_unary(CoefficientStream_coefficient_function(lambda n: 1, ZZ, False, 1), True, 0)
+            sage: hash(M) == hash(M)
+            True
         """
         return hash((type(self), self._series))
 
@@ -834,10 +835,13 @@ class CoefficientStream_binary(CoefficientStream_inexact):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = 1/(1 - z) + 1/(1 + z)
-            sage: {f: 1}
-            {2 + 2*z^2 + 2*z^4 + 2*z^6 + ...: 1}
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_binary
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function
+            sage: M = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 0)
+            sage: N = CoefficientStream_coefficient_function(lambda n: -2*n, ZZ, True, 0)
+            sage: O = CoefficientStream_binary(M, N, True, 0)
+            sage: hash(O) == hash(O)
+            True
         """
         return hash((type(self), self._left, self._right))
 
@@ -875,10 +879,6 @@ class CoefficientStream_binary_commutative(CoefficientStream_binary):
     Abstract base class for commutative binary operators for the
     coefficient stream.
 
-    INPUT:
-
-    - ``other`` -- a :class:`CoefficientStream`
-
     EXAMPLES::
 
         sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_add)
@@ -899,10 +899,13 @@ class CoefficientStream_binary_commutative(CoefficientStream_binary):
 
         EXAMPLES::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = z^2 + z
-            sage: {f: 1}
-            {z + z^2: 1}
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_add)
+            sage: f = CoefficientStream_coefficient_function(lambda n: 2*n, ZZ, True, 0)
+            sage: g = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 1)
+            sage: h = CoefficientStream_add(f, g)
+            sage: u = CoefficientStream_add(g, f)
+            sage: hash(h) == hash(u)
+            True
         """
         return hash((type(self), frozenset([self._left, self._right])))
 
@@ -1007,10 +1010,10 @@ class CoefficientStream_zero(CoefficientStream):
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_zero
             sage: s = CoefficientStream_zero(False)
-            sage: a = s.__hash__(); a
+            sage: a = hash(s); a
             0
             sage: t = CoefficientStream_zero(False)
-            sage: b = t.__hash__(); b
+            sage: b = hash(t); b
             0
             sage: b == a
             True

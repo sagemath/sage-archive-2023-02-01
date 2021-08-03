@@ -28,7 +28,14 @@ from sage.rings.polynomial.polynomial_element import Polynomial
 
 class QuasiModularFormsElement(ModuleElement):
     r"""
-    A quasimodular forms ring element
+    A quasimodular forms ring element. Such an element is describbed by SageMath
+    as a polynomial
+
+    .. MATH::
+
+        f_0 + f_1 E_2 + f_2 E_2^2 + \cdots + f_m E_2^m
+
+    where each `f_i` a graded modular form element (see :meth:``)
 
     EXAMPLES::
 
@@ -57,13 +64,12 @@ class QuasiModularFormsElement(ModuleElement):
     """
     def __init__(self, parent, polynomial):
         r"""
-        An element of a graded ring of quasimodular form.
-
         INPUTS:
 
         - ``parent`` - A quasimodular forms ring.
-        - ``polynomial`` - a polynomial `f_0 + f_1 E_2 + ... + f_n E_2^n` where each `f_i`
-          are modular forms ring elements and `E_2` correspond to the weight 2 Eisenstein series.
+        - ``polynomial`` - a polynomial `f_0 + f_1 E_2 + ... + f_n E_2^n` where
+          each `f_i` are modular forms ring elements and `E_2` correspond to the
+          weight 2 Eisenstein series.
 
         OUTPUT:
 
@@ -270,3 +276,48 @@ class QuasiModularFormsElement(ModuleElement):
             False
         """
         return self._polynomial.is_one()
+
+    def is_graded_modular_form(self):
+        r"""
+        Return ``True`` if the given quasiform is a graded modular forms element
+        and ``False`` otherwise.
+
+        EXAMPLES::
+
+            sage: QM = QuasiModularForms(1)
+            sage: (QM.0).is_graded_modular_form()
+            False
+            sage: (QM.1).is_graded_modular_form()
+            True
+            sage: (QM.1 + QM.0^2).is_graded_modular_form()
+            False
+            sage: (QM.1^2 + QM.2).is_graded_modular_form()
+            True
+
+        .. NOTE::
+
+            A graded modular form in SageMath is not necessarily a modular form
+            as it can have mixed weight components. To check for modular forms
+            only, see the method :meth:`is_modular_form`.
+        """
+        return not self._polynomial.degree()
+
+    def is_modular_form(self):
+        r"""
+        Return ``True`` if the given quasiform is a modular form and ``False``
+        otherwise.
+
+        EXAMPLES::
+
+            sage: QM = QuasiModularForms(1)
+            sage: (QM.0).is_modular_form()
+            False
+            sage: (QM.1).is_modular_form()
+            True
+            sage: (QM.1 + QM.2).is_modular_form() # mixed weight components
+            False
+        """
+        if not self._polynomial.degree():
+            return self._polynomial[0].is_modular_form()
+        else:
+            return False

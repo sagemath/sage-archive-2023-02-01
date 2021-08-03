@@ -7,28 +7,28 @@ Let `E_2` be the weight 2 Eisenstein series defined by
 
     E_2(z) = 1 - \frac{2k}{B_k} \sum_{n=1}^{\infty} \sigma(n) q^n
 
-where `\sigma` is the sum of divisors function and `q = \mathrm{exp}(2\pi i z)` is
-the classical parameter at infinity, with `\mathrm{im}(z)>0`. This weight 2
-Eisenstein series is not a modular forms as it does not statisfies the modularity
-condition:
+where `\sigma` is the sum of divisors function and `q = \mathrm{exp}(2\pi i z)`
+is the classical parameter at infinity, with `\mathrm{im}(z)>0`. This weight 2
+Eisenstein series is not a modular forms as it does not statisfies the
+modularity condition:
 
 .. MATH::
 
     z^2 E_2(-1/z) = E_2(z) + \frac{2k}{4\pi i B_k z}.
 
-`E_2` is a quasimodular form of weight 2. General quasimodular forms of given weight
-can also be defined. We denotes by `QM` the graded ring of quasimodular forms for the
-full modular group `\mathrm{SL}_2(\ZZ)`.
+`E_2` is a quasimodular form of weight 2. General quasimodular forms of given
+weight can also be defined. We denotes by `QM` the graded ring of quasimodular
+forms for the full modular group `\mathrm{SL}_2(\ZZ)`.
 
-The SageMath implementation of the graded ring of quasimodular forms uses the following
-isomorphism:
+The SageMath implementation of the graded ring of quasimodular forms uses the
+following isomorphism:
 
 .. MATH::
 
     QM \cong M_* [E_2]
 
-where `M_* \cong \CC[E_4, E_6]` is the graded ring of modular forms for `\mathrm{SL}_2(\ZZ)`.
-(see :meth:`sage.modular.modform.ring.ModularFormRing`).
+where `M_* \cong \CC[E_4, E_6]` is the graded ring of modular forms for
+`\mathrm{SL}_2(\ZZ)`. (see :meth:`sage.modular.modform.ring.ModularFormRing`).
 
 EXAMPLES::
 
@@ -46,7 +46,8 @@ EXAMPLES::
 
 .. NOTE:
 
-    Only the ring of quasimodular forms for the full modular group have been implemented.
+    Only the ring of quasimodular forms for the full modular group have been
+    implemented.
 
 AUTHORS:
 
@@ -82,8 +83,8 @@ from .element import QuasiModularFormsElement
 
 class QuasiModularForms(Parent, UniqueRepresentation):
     r"""
-    The graded ring of quasimodular forms for the full modular group `{\rm SL}_2(\ZZ)`, with
-    coefficients in a ring.
+    The graded ring of quasimodular forms for the full modular group
+    `{\rm SL}_2(\ZZ)`, with coefficients in a ring.
 
     EXAMPLES::
 
@@ -104,14 +105,15 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         r"""
         INPUT:
 
-        - ``group`` (default: `{\rm SL}_2(\ZZ)`) -- a congruence subgroup of `{\rm SL}_2(\ZZ)`, or a
-          positive integer `N` (interpreted as `\Gamma_0(N)`).
+        - ``group`` (default: `{\rm SL}_2(\ZZ)`) -- a congruence subgroup of
+          `{\rm SL}_2(\ZZ)`, or a positive integer `N` (interpreted as
+          `\Gamma_0(N)`).
 
         - ``base_ring`` (ring, default: `\QQ`) -- a base ring, which should be
           `\QQ`, `\ZZ`, or the integers mod `p` for some prime `p`.
 
-        - ``name`` (str, default: ``'E2'``) -- a variable name corresponding to the
-          weight 2 Eisenstein series.
+        - ``name`` (str, default: ``'E2'``) -- a variable name corresponding to
+          the weight 2 Eisenstein series.
 
         TESTS:
 
@@ -164,7 +166,8 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
     def group(self):
         r"""
-        Return the congruence subgroup for which this is the ring of quasimodular forms.
+        Return the congruence subgroup for which this is the ring of
+        quasimodular forms.
 
         EXAMPLES::
 
@@ -287,9 +290,41 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
         INPUT:
 
-        - datum - list, GradedModularFormElement, ModularFormElement, Polynomial, base ring element
+        - ``datum`` - list, GradedModularFormElement, ModularFormElement,
+          Polynomial, base ring element
 
         OUTPUT: QuasiModularFormElement
+
+        TESTS::
+
+            sage: QM = QuasiModularForms(1)
+            sage: M = QM.modular_forms_subring()
+            sage: m12 = QM.modular_forms_of_weight(12)
+            sage: QM([M.0, M.1])
+            2 - 288*q - 2448*q^2 + 319104*q^3 + 3681936*q^4 + 21775680*q^5 + O(q^6)
+            sage: QM([m12.0, m12.1])
+            1 + 49627/691*q + 132611664/691*q^2 + 8380115796/691*q^3 - 13290096200/691*q^4 - 4248043226454/691*q^5 + O(q^6)
+            sage: QM([])
+            Traceback (most recent call last):
+            ...
+            ValueError: the given list should be non-empty
+            sage: QM(M.0)
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+            sage: QM(m12.0)
+            q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+            sage: y = polygen(QQ)
+            sage: QM(y)
+            1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
+            sage: QM(1 + y + y^2)
+            3 - 72*q + 360*q^2 + 3168*q^3 + 9288*q^4 + 21456*q^5 + O(q^6)
+            sage: QM(1)
+            1
+            sage: QM(1/2)
+            1/2
+            sage: QM('E2')
+            Traceback (most recent call last):
+            ...
+            TypeError: no canonical coercion from <class 'str'> to Univariate Polynomial Ring in E2 over Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
         """
         if isinstance(datum, list):
             if len(datum) == 0:
@@ -324,8 +359,9 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
     def gens(self):
         r"""
-        Return a list of generators of the quasimodular forms ring. Note that the generators
-        of the modular forms subring is given are the one given by the method
+        Return a list of generators of the quasimodular forms ring. Note that
+        the generators of the modular forms subring is given are the one given
+        by the method
         :meth: `sage.modular.modform.ring.ModularFormsRing.gen_forms`
 
         EXAMPLES::
@@ -405,9 +441,10 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
     def polygen(self):
         r"""
-        Return the generator of this quasimodular form space as a polynomial ring over the modular
-        form subring. Note that this generator correspond to the weight-2 Eisenstein series. The default
-        name of this generator is 'E2'.
+        Return the generator of this quasimodular form space as a polynomial
+        ring over the modular form subring. Note that this generator correspond
+        to the weight-2 Eisenstein series. The default name of this generator is
+        'E2'.
 
         EXAMPLES::
 
@@ -423,11 +460,13 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
     def differentiation_operator(self, f):
         r"""
-        Compute the formal derivative `q\frac{d}{dq}` of the q-expansion of a quasimodular form `f`
+        Compute the formal derivative `q\frac{d}{dq}` of the q-expansion of a
+        quasimodular form `f`
 
         INPUT:
 
-        - ``f`` -- a power serie in corresponding to the q-expansion of a quasimodular form.
+        - ``f`` -- a power serie in corresponding to the q-expansion of a
+          quasimodular form.
 
         OUTPUT:
 

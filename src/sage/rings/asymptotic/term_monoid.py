@@ -187,7 +187,7 @@ Various
 
 .. TODO::
 
-    - Implementation of more term types (e.g. `L` terms,
+    - Implementation of more term types (e.g.
       `\Omega` terms, `o` terms, `\Theta` terms).
 
 AUTHORS:
@@ -195,6 +195,7 @@ AUTHORS:
 - Benjamin Hackl (2015)
 - Daniel Krenn (2015)
 - Clemens Heuberger (2016)
+- Thomas Hagelmayer (2021)
 
 ACKNOWLEDGEMENT:
 
@@ -202,6 +203,8 @@ ACKNOWLEDGEMENT:
   Austrian Science Fund (FWF): P 24644-N26.
 
 - Benjamin Hackl is supported by the Google Summer of Code 2015.
+
+- Thomas Hagelmayer is supported by Google Summer of Code 2021.
 
 
 Classes and Methods

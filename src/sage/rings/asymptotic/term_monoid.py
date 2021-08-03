@@ -4032,11 +4032,11 @@ class BTerm(TermWithCoefficient):
     given by ``valid_from``.
     For example, we have terms that represent functions
 
-    - bounded by `5|x|^2` for `|x| >= 3` (see below for the actual example),
+    - bounded by `5|x|^2` for `|x| >= 3`,
 
     - bounded by `42|x|^3` for `|x| >= 15` and `|y| >= 15`, or
 
-    - bounded by `42 |x|^3 |y|^2` for `|x| >= 10` and `|y| >= 20`.
+    - bounded by `42 |x|^3 |y|^2` for `|x| >= 10` and `|y| >= 20` (see below for the actual examples).
 
     INPUT:
 

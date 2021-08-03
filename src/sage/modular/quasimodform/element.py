@@ -29,10 +29,6 @@ from sage.rings.polynomial.polynomial_element import Polynomial
 class QuasiModularFormsElement(Element):
     r"""
     A quasimodular forms ring element
-
-    .. TODO::
-
-    Move this class somewhere else?
     """
     def __init__(self, parent, polynomial):
         r"""
@@ -83,6 +79,8 @@ class QuasiModularFormsElement(Element):
         """
         E2 = eisenstein_series_qexp(2, prec=prec, K=self.__base_ring, normalization='constant') #normalization -> to force integer coefficients
         return sum(f.q_expansion(prec=prec)*E2**idx for idx, f in enumerate(self._coefficients))
+
+    qexp = q_expansion # alias
 
     def _repr_(self):
         r"""
@@ -196,3 +194,49 @@ class QuasiModularFormsElement(Element):
             3/2 - 36*q - 108*q^2 - 144*q^3 - 252*q^4 - 216*q^5 + O(q^6)
         """
         return self.__class__(self.parent(), c * self._polynomial)
+
+    def __bool__(self):
+        r"""
+        Return "True" if ``self`` is non-zero and "False" otherwise.
+
+        EXAMPLES::
+
+            sage: QM = QuasiModularForms(1)
+            sage: bool(QM(0))
+            False
+            sage: bool(QM(1))
+            True
+            sage: bool(QM.0)
+            True
+        """
+        return bool(self._polynomial)
+
+    def is_zero(self):
+        r"""
+        Return "True" if the quasiform is 0 and "False" otherwise
+
+        EXAMPLES::
+
+            sage: QM = QuasiModularForms(1)
+            sage: QM(0).is_zero()
+            True
+            sage: QM(1/2).is_zero()
+            False
+            sage: (QM.0).is_zero()
+            False
+        """
+        return not self
+
+    def is_one(self):
+        r"""
+        Return "True" if the quasiform is 1 and "False" otherwise
+
+        EXAMPLES::
+
+            sage: QM = QuasiModularForms(1)
+            sage: QM(1).is_one()
+            True
+            sage: (QM.0).is_one()
+            False
+        """
+        return self._polynomial.is_one()

@@ -83,6 +83,10 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: M2 = QuasiModularForms(1, GF(7))
             sage: M == M2
             False
+
+        ::
+
+            sage: TestSuite(QuasiModularForms(1)).run()
         """
         #check if the group is SL2(Z)
         if isinstance(group, (int, Integer)):
@@ -270,6 +274,47 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)
         """
         return self.gens()[n]
+
+    def zero(self):
+        r"""
+        Return the zero element of this ring.
+
+        EXAMPLES::
+
+            sage: QM = QuasiModularForms(1)
+            sage: QM.zero()
+            0
+            sage: QM.zero().is_zero()
+            True
+        """
+        return self.element_class(self, self.__polynomial_subring.zero())
+
+    def one(self):
+        r"""
+        Return the one element of this ring.
+
+        EXAMPLES::
+
+            sage: QM = QuasiModularForms(1)
+            sage: QM.one()
+            1
+            sage: QM.one().is_one()
+            True
+        """
+        return self.element_class(self, self.__polynomial_subring.one())
+
+    def some_elements(self):
+        r"""
+        Return a list of generators of ``self``.
+
+        EXAMPLES::
+
+            sage: QuasiModularForms(1).some_elements()
+            [1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6),
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
+            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)]
+        """
+        return self.gens()
 
     def polygen(self):
         r"""

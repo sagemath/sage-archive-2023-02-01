@@ -211,11 +211,11 @@ class LazySequenceElement(ModuleElement):
         P = self.parent()
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, CoefficientStream_exact):
-            inital_coefficients = [func(i) if i else 0 for i in coeff_stream._initial_coefficients]
+            initial_coefficients = [func(i) if i else 0 for i in coeff_stream._initial_coefficients]
             c = func(coeff_stream._constant) if coeff_stream._constant else 0
-            if not any(inital_coefficients) and not c:
+            if not any(initial_coefficients) and not c:
                 return P.zero()
-            coeff_stream = CoefficientStream_exact(inital_coefficients, self._coeff_stream._is_sparse,
+            coeff_stream = CoefficientStream_exact(initial_coefficients, self._coeff_stream._is_sparse,
                                                    valuation=coeff_stream._approximate_valuation,
                                                    degree=coeff_stream._degree,
                                                    constant=c)
@@ -265,8 +265,8 @@ class LazySequenceElement(ModuleElement):
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
-        inital_coefficients = [coeff_stream[i] for i in range(coeff_stream._approximate_valuation, d)]
-        return P.element_class(P, CoefficientStream_exact(inital_coefficients, P._sparse,
+        initial_coefficients = [coeff_stream[i] for i in range(coeff_stream._approximate_valuation, d)]
+        return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
                                                           valuation=coeff_stream._approximate_valuation))
 
     def prec(self):
@@ -1116,7 +1116,9 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             True
             sage: f = L(lambda n: n, 0)
             sage: f(g)
-            0 + ...
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
         
         We cannot compose if `g` has a negative valuation::
 
@@ -1162,8 +1164,8 @@ class LazyLaurentSeries(LazySequencesModuleElement):
                     g_poly = R(sum([g._coeff_stream[i] * z**i for i in range(g._coeff_stream._approximate_valuation, g._coeff_stream._degree)]))
                     ret = poly(g_poly)
                     if ret.parent() is R:
-                        inital_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
-                        return P.element_class(P, CoefficientStream_exact(inital_coefficients, self._coeff_stream._is_sparse, valuation=ret.valuation()))
+                        initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
+                        return P.element_class(P, CoefficientStream_exact(initial_coefficients, self._coeff_stream._is_sparse, valuation=ret.valuation()))
                 except TypeError:  # the result is not a Laurent polynomial
                     pass
 
@@ -1194,7 +1196,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
                 raise NotImplementedError("can only compose with a lazy Laurent series")
         # Perhaps we just don't yet know if the valuation is positive
         if g._coeff_stream._approximate_valuation <= 0:
-            if any(g._coeff_stream[i] for i in range(min(self._coeff_stream._approximate_valuation, 0), 1)):
+            if any(g._coeff_stream[i] for i in range(g._coeff_stream._approximate_valuation, 1)):
                 raise ValueError("can only compose with a positive valuation series")
             g._coeff_stream._approximate_valuation = 1
 
@@ -1259,8 +1261,8 @@ class LazyLaurentSeries(LazySequencesModuleElement):
                         pr = R(sum([right[i] * z**i for i in range(right._approximate_valuation, right._degree)]))
                         p = pl * pr
                         c = left._constant
-                        inital_coefficients = [p[i] for i in range(p.valuation(), p.degree() + 1)]
-                        return P.element_class(P, CoefficientStream_exact(inital_coefficients, P._sparse, valuation=p.valuation(), constant=c))
+                        initial_coefficients = [p[i] for i in range(p.valuation(), p.degree() + 1)]
+                        return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, valuation=p.valuation(), constant=c))
         elif isinstance(right, CoefficientStream_exact):
             if not right._constant:
                 pr = R(sum([right[i] * z**i for i in range(right._approximate_valuation, right._degree)]))
@@ -1340,8 +1342,8 @@ class LazyLaurentSeries(LazySequencesModuleElement):
                 ret = pl / pr
                 try:
                     ret = P._laurent_poly_ring(ret)
-                    inital_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
-                    return P.element_class(P, CoefficientStream_exact(inital_coefficients, P._sparse, valuation=ret.valuation(), constant=left._constant))
+                    initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
+                    return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, valuation=ret.valuation(), constant=left._constant))
                 except (TypeError, ValueError):
                     # We cannot divide the polynomials, so the result must be a series
                     pass
@@ -1388,8 +1390,8 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             poly = R(sum([self._coeff_stream[i] * z**i for i in range(self._coeff_stream._approximate_valuation, self._coeff_stream._degree)]))
             if poly == R.gen():
                 ret = 1 / poly
-                inital_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
-                return P.element_class(P, CoefficientStream_exact(inital_coefficients, P._sparse, valuation=ret.valuation(), constant=self._coeff_stream._constant))
+                initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
+                return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, valuation=ret.valuation(), constant=self._coeff_stream._constant))
         # (f^-1)^-1 = f
         if isinstance(self._coeff_stream, CoefficientStream_cauchy_inverse):
             return P.element_class(P, self._coeff_stream._series)

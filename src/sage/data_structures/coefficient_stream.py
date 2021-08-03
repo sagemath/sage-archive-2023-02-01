@@ -1047,7 +1047,7 @@ class CoefficientStream_add(CoefficientStream_binary_commutative):
     """
     def __init__(self, left, right):
         """
-        Initalize.
+        Initialize.
 
         TESTS::
 
@@ -1127,7 +1127,7 @@ class CoefficientStream_sub(CoefficientStream_binary):
 
     def __init__(self, left, right):
         """
-        Initalize ``self``.
+        initialize ``self``.
 
         TESTS::
 
@@ -1208,7 +1208,7 @@ class CoefficientStream_cauchy_product(CoefficientStream_binary_commutative):
     """
     def __init__(self, left, right):
         """
-        Initalize ``self``.
+        initialize ``self``.
 
         TESTS::
 
@@ -1300,7 +1300,7 @@ class CoefficientStream_div(CoefficientStream_binary):
 
     def __init__(self, left, right):
         """
-        Initalize ``self``.
+        initialize ``self``.
 
         TESTS::
 
@@ -1398,7 +1398,7 @@ class CoefficientStream_composition(CoefficientStream_binary):
     """
     def __init__(self, f, g):
         """
-        Initalize ``self``.
+        initialize ``self``.
 
         TESTS::
 

@@ -226,8 +226,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         R = self._laurent_poly_ring
         if R.has_coerce_map_from(S):
             def make_series_from(poly):
-                inital_coefficients = [poly[i] for i in range(poly.valuation(), poly.degree() + 1)]
-                coeff_stream = CoefficientStream_exact(inital_coefficients, self._sparse, valuation=poly.valuation())
+                initial_coefficients = [poly[i] for i in range(poly.valuation(), poly.degree() + 1)]
+                coeff_stream = CoefficientStream_exact(initial_coefficients, self._sparse, valuation=poly.valuation())
                 return self.element_class(self, coeff_stream)
             return SetMorphism(Hom(S, self, Sets()), make_series_from)
 
@@ -352,8 +352,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 if x == R.zero():
                     coeff_stream = CoefficientStream_exact([x], self._sparse, valuation=degree-1, constant=constant)
                     return self.element_class(self, coeff_stream)
-                inital_coefficients = [x[i] for i in range(x.valuation(), x.degree() + 1)]
-                coeff_stream = CoefficientStream_exact(inital_coefficients, self._sparse, valuation=x.valuation(), constant=constant, degree=degree)
+                initial_coefficients = [x[i] for i in range(x.valuation(), x.degree() + 1)]
+                coeff_stream = CoefficientStream_exact(initial_coefficients, self._sparse, valuation=x.valuation(), constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
         if isinstance(x, LazyLaurentSeries):
             if x._coeff_stream._is_sparse is self._sparse:

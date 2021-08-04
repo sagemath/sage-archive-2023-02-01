@@ -4053,7 +4053,7 @@ class BTerm(TermWithCoefficient):
 
     EXAMPLES:
 
-    We revisit the example from the introduction::
+    We revisit the examples from the introduction::
 
         sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup

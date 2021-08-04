@@ -9779,8 +9779,7 @@ class GenericGraph(GenericGraph_pyx):
            computing PageRank of ``G``. The following algorithms are
            supported:
 
-          - ``NetworkX`` -- uses NetworkX's PageRank algorithm implementation
-            Note that ``'networkx'`` does not support multigraphs.
+          - ``NetworkX`` -- uses NetworkX's default implementation (Scipy as of 2.6)
 
           - ``"Scipy"`` -- uses Scipy's PageRank algorithm implementation
 

@@ -4032,11 +4032,11 @@ class BTerm(TermWithCoefficient):
     given by ``valid_from``.
     For example, we have terms that represent functions
 
-    - bounded by `5|x|^2` for `|x| >= 3`,
+    - bounded by `5|x|^2` for `|x| \ge 3`,
 
-    - bounded by `42|x|^3` for `|x| >= 15` and `|y| >= 15`, or
+    - bounded by `42|x|^3` for `|x| \ge 15` and `|y| \ge 15`, or
 
-    - bounded by `42 |x|^3 |y|^2` for `|x| >= 10` and `|y| >= 20` (see below for the actual examples).
+    - bounded by `42 |x|^3 |y|^2` for `|x| \ge 10` and `|y| \ge 20` (see below for the actual examples).
 
     INPUT:
 
@@ -4063,19 +4063,19 @@ class BTerm(TermWithCoefficient):
         sage: T(x^2, coefficient=5, valid_from={'x': 3})
         B(5*x^2, x >= 3)
 
-    This is a term bounded by `5|x|^2` for `|x| >= 3`.
+    This is a term bounded by `5|x|^2` for `|x| \ge 3`.
     ::
 
         sage: T(x^3, coefficient=42, valid_from={'x': 15, 'y': 15})
         B(42*x^3, x >= 15, y >= 15)
 
-    This is a term bounded by `42|x|^3` for `|x| >= 15` and `|y| >= 15`.
+    This is a term bounded by `42|x|^3` for `|x| \ge 15` and `|y| \ge 15`.
     ::
 
         sage: T(x^3*y^2, coefficient=42, valid_from={'x': 10, 'y': 20})
         B(42*x^3*y^2, x >= 10, y >= 20)
 
-    This is a term bounded by `42 |x|^3 |y|^2` for `|x| >= 10` and `|y| >= 20`.
+    This is a term bounded by `42 |x|^3 |y|^2` for `|x| \ge 10` and `|y| \ge 20`.
 
     """
     def __init__(self, parent, growth, coefficient, valid_from):

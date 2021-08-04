@@ -4011,14 +4011,19 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
               x^8*z^4 - x^4*z^8,
               x^7*y*z^4 - x^3*y*z^8
 
-        ::
+        When the ring over which to find the preperiodic points is a number
+        field, the ordering of the preperiodic points might depend on the
+        architecture (32 or 64 bits)::
 
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: R.<z> = QQ[]
             sage: K.<v> = NumberField(z^4 - z^2 - 1)
             sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
 
-            sage: f.preperiodic_points(2, 1, R=K)   # 64-bit (the ordering differs on 32bit systems)
+            sage: f.preperiodic_points(2, 1, R=K)   # 32-bit
+            [(-v : 1), (v : 1)]
+
+            sage: f.preperiodic_points(2, 1, R=K)   # 64-bit
             [(v : 1), (-v : 1)]
 
         ::
@@ -4076,15 +4081,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             Traceback (most recent call last):
             ...
             ValueError: dynamical system is not a morphism, cannot calculate minimal or formal preperiodic points
-
-        We reproduce an example above for 32bit architectures::
-
-            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
-            sage: R.<z> = QQ[]
-            sage: K.<v> = NumberField(z^4 - z^2 - 1)
-            sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
-            sage: sorted(f.preperiodic_points(2, 1, R=K), key=str)
-            [(-v : 1), (v : 1)]
         """
         n = ZZ(n)
         m = ZZ(m)

@@ -87,7 +87,7 @@ AUTHORS:
 
 
 from .infinity import infinity
-from sage.structure.element import ModuleElement, parent
+from sage.structure.element import ModuleElement, RingElement, parent
 from .integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
@@ -795,7 +795,6 @@ class LazySequencesModuleElement(LazySequenceElement):
             return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
                                                               valuation=v, constant=c,
                                                               degree=self._coeff_stream._degree))
-
         return P.element_class(P, CoefficientStream_scalar(self._coeff_stream, scalar))
 
     def _neg_(self):
@@ -869,7 +868,147 @@ class LazySequencesModuleElement(LazySequenceElement):
         return P.element_class(P, CoefficientStream_neg(coeff_stream))
 
 
-class LazyLaurentSeries(LazySequencesModuleElement):
+class LazyCauchyProductSeries(RingElement):
+    """
+    A class for series where multiplication is the Cauchy product.
+
+    We are assuming that :meth:`polynomial`
+    """
+    def __init__(self, parent):
+        RingElement.__init__(self, parent)
+
+    def _mul_(self, other):
+        """
+        Return the product of this series with ``other``.
+
+        INPUT:
+
+        - ``other`` -- other series
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: (1 - z)*(1 - z)
+            1 - 2*z + z^2
+            sage: (1 - z)*(1 - z)*(1 - z)
+            1 - 3*z + 3*z^2 - z^3
+            sage: M = L(lambda n: n)
+            sage: M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: N = M * (1 - M)
+            sage: N
+            z + z^2 - z^3 - 6*z^4 - 15*z^5 - 29*z^6 + ...
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            sage: N = L(lambda n: 1); N
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            sage: M * N
+            z + 3*z^2 + 6*z^3 + 10*z^4 + 15*z^5 + 21*z^6 + ...
+
+            sage: L.one() * M is M
+            True
+            sage: M * L.one() is M
+            True
+
+        """
+        P = self.parent()
+        left = self._coeff_stream
+        right = other._coeff_stream
+        if isinstance(left, CoefficientStream_zero) or isinstance(right, CoefficientStream_zero):
+            return P.zero()
+
+        # the product is exact if and only if both of the factors are
+        # exact, and one has eventually 0 coefficients:
+        #   (p + a x^d/(1-x))(q + b x^e/(1-x))
+        #   = p q + (a x^d q + b x^e p)/(1-x) + a b x^(d+e)/(1-x)^2
+        # for the moment we only consider the case where bothe have eventually 0 coefficients
+        if (isinstance(left, CoefficientStream_exact) and not left._constant
+            and isinstance(right, CoefficientStream_exact) and not right._constant):
+            il = left._initial_coefficients
+            ir = right._initial_coefficients
+            initial_coefficients = [sum(il[k]*ir[n-k]
+                                        for k in range(max(n-len(ir)+1, 0),
+                                                       min(len(il)-1, n) + 1))
+                                    for n in range(len(il) + len(ir))]
+            v = left.valuation() + right.valuation()
+            coeff_stream = CoefficientStream_exact(initial_coefficients, P._sparse, valuation=v)
+            return P.element_class(P, coeff_stream)
+        if isinstance(left, CoefficientStream_exact) and left._initial_coefficients == (P._coeff_ring.one(),) and left.valuation() == 0:
+            return other  # self == 1
+        if isinstance(right, CoefficientStream_exact) and right._initial_coefficients == (P._coeff_ring.one(),) and right.valuation() == 0:
+            return self
+        return P.element_class(P, CoefficientStream_cauchy_product(left, right))
+
+    def __invert__(self):
+        """
+        Return the multiplicative inverse of the element.
+
+        EXAMPLES:
+
+        Lazy Laurent series that have a dense implementation can be inverted::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+            sage: ~(1 - z)
+            1 + z + z^2 + O(z^3)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: P = ~M; P
+            z^-1 - 2 + z + O(z^6)
+
+        Lazy Laurent series that have a sparse implementation can be inverted::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: P = ~M; P
+            z^-1 - 2 + z + O(z^6)
+
+            sage: ~(~(1 - z))
+            1 - z
+
+        Lazy Laurent series that are known to be exact can be inverted::
+
+            sage: ~z
+            z^-1
+
+        """
+        P = self.parent()
+        coeff_stream = self._coeff_stream
+        # the inverse is exact if and only if coeff_stream corresponds to one of
+        # cx^d/(1-x) ... (c, ...)
+        # cx^d       ... (c, 0, ...)
+        # cx^d (1-x) ... (c, -c, 0, ...)
+        if isinstance(coeff_stream, CoefficientStream_exact):
+            initial_coefficients = coeff_stream._initial_coefficients
+            if not initial_coefficients:
+                i = 1 / coeff_stream._constant
+                v = -coeff_stream.valuation()
+                c = P._coeff_ring.zero()
+                coeff_stream = CoefficientStream_exact((i, -i), P._sparse,
+                                                       valuation=v, constant=c)
+                return P.element_class(P, coeff_stream)
+            if len(initial_coefficients) == 1:
+                i = 1 / initial_coefficients[0]
+                v = -coeff_stream.valuation()
+                c = P._coeff_ring.zero()
+                coeff_stream = CoefficientStream_exact((i,), P._sparse,
+                                                       valuation=v, constant=c)
+                return P.element_class(P, coeff_stream)
+            if len(initial_coefficients) == 2 and not (initial_coefficients[0] + initial_coefficients[1]):
+                v = -coeff_stream.valuation()
+                c = 1 / initial_coefficients[0]
+                coeff_stream = CoefficientStream_exact((), P._sparse,
+                                                       valuation=v, constant=c)
+                return P.element_class(P, coeff_stream)
+
+        # (f^-1)^-1 = f
+        if isinstance(coeff_stream, CoefficientStream_cauchy_inverse):
+            return P.element_class(P, coeff_stream._series)
+        return P.element_class(P, CoefficientStream_cauchy_inverse(coeff_stream))
+
+
+class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
     r"""
     A Laurent series where the coefficients are computed lazily.
 
@@ -1030,7 +1169,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             sage: f(g)
             3 - y + 2*y^2 + y^3 + y^4 + y^5 + y^6 + O(y^7)
             sage: g^2 + 1 + g^-1
-            3 - y + 2*y^2 + y^3 + y^4 + y^5 + y^6 + O(y^7)
+            3 - y + 2*y^2 + y^3 + y^4 + y^5 + O(y^6)
 
             sage: f = L(lambda n: n, 0); f
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
@@ -1218,88 +1357,6 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
         return P.element_class(P, CoefficientStream_composition(self._coeff_stream, g._coeff_stream))
 
-    def _mul_(self, other):
-        """
-        Return the product of this series with ``other``.
-
-        INPUT:
-
-        - ``other`` -- other series
-
-        EXAMPLES:
-
-        Lazy Laurent series that are known to be exact can be multiplied::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
-            sage: (1 - z)*(1 - z)
-            1 - 2*z + z^2
-            sage: (1 - z)*(1 - z)*(1 - z)
-            1 - 3*z + 3*z^2 - z^3
-
-        Lazy Laurent series that have a dense implementation can be multiplied::
-
-            sage: M = L(lambda n: n)
-            sage: M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: N = M * (1 - M)
-            sage: N
-            z + z^2 - z^3 - 6*z^4 - 15*z^5 - 29*z^6 + O(z^7)
-
-            sage: z * M
-            z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + 6*z^7 + O(z^8)
-            sage: M * z^-2
-            z^-1 + 2 + 3*z + 4*z^2 + 5*z^3 + 6*z^4 + O(z^5)
-
-            sage: L.one() * M is M
-            True
-            sage: M * L.one() is M
-            True
-
-        We check the sparse implementation::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: N = L(lambda n: 1); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-            sage: M * N
-            z + 3*z^2 + 6*z^3 + 10*z^4 + 15*z^5 + 21*z^6 + O(z^7)
-            sage: z * M
-            z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + 6*z^7 + O(z^8)
-            sage: M * z^-2
-            z^-1 + 2 + 3*z + 4*z^2 + 5*z^3 + 6*z^4 + O(z^5)
-
-            sage: L.one() * M is M
-            True
-            sage: M * L.one() is M
-            True
-        """
-        P = self.parent()
-        left = self._coeff_stream
-        right = other._coeff_stream
-        if isinstance(left, CoefficientStream_zero) or isinstance(right, CoefficientStream_zero):
-            return P.zero()
-
-        R = P._laurent_poly_ring
-        z = R.gen()
-        if isinstance(left, CoefficientStream_exact):
-            if not left._constant:
-                if left._approximate_valuation == 0 and left._initial_coefficients == (1,):  # self == 1
-                    return other
-                pl = left.polynomial_part(z)
-                if isinstance(right, CoefficientStream_exact):
-                    if not right._constant:
-                        pr = right.polynomial_part(z)
-                        p = pl * pr
-                        c = left._constant
-                        initial_coefficients = [p[i] for i in range(p.valuation(), p.degree() + 1)]
-                        return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, valuation=p.valuation(), constant=c))
-        elif isinstance(right, CoefficientStream_exact):
-            if not right._constant:
-                if right._approximate_valuation == 0 and right._initial_coefficients == (1,):  # other == 1
-                    return self
-        return P.element_class(P, CoefficientStream_cauchy_product(self._coeff_stream, other._coeff_stream))
-
     def _div_(self, other):
         r"""
         Return ``self`` divided by ``other``.
@@ -1373,53 +1430,6 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
         return P.element_class(P, CoefficientStream_cauchy_product(left, CoefficientStream_cauchy_inverse(right)))
 
-    def __invert__(self):
-        """
-        Return the multiplicative inverse of the element.
-
-        EXAMPLES:
-
-        Lazy Laurent series that have a dense implementation can be inverted::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
-            sage: ~(1 - z)
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: P = ~M; P
-            z^-1 - 2 + z + O(z^6)
-
-        Lazy Laurent series that have a sparse implementation can be inverted::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: P = ~M; P
-            z^-1 - 2 + z + O(z^6)
-
-            sage: ~(~(1 - z))
-            1 - z
-
-        Lazy Laurent series that are known to be exact can be inverted::
-
-            sage: ~z
-            z^-1
-
-        """
-        P = self.parent()
-        R = P._laurent_poly_ring
-        z = R.gen()
-        if isinstance(self._coeff_stream, CoefficientStream_exact):
-            poly = R(sum([self._coeff_stream[i] * z**i for i in range(self._coeff_stream._approximate_valuation, self._coeff_stream._degree)]))
-            if poly == R.gen():
-                ret = 1 / poly
-                initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
-                return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, valuation=ret.valuation(), constant=self._coeff_stream._constant))
-        # (f^-1)^-1 = f
-        if isinstance(self._coeff_stream, CoefficientStream_cauchy_inverse):
-            return P.element_class(P, self._coeff_stream._series)
-        return P.element_class(P, CoefficientStream_cauchy_inverse(self._coeff_stream))
-
     def __pow__(self, n):
         """
         Return the ``n``-th power of the series.
@@ -1435,7 +1445,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: (1 - z)^-1
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+            1 + z + z^2 + O(z^3)
             sage: (1 - z)^0
             1
             sage: (1 - z)^3

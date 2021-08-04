@@ -383,7 +383,7 @@ class DocTestController(SageObject):
         self.files = args
         if options.logfile:
             try:
-                self.logfile = open(options.logfile, 'a')
+                self.logfile = options.logfile
             except IOError:
                 print("Unable to open logfile {!r}\nProceeding without logging.".format(options.logfile))
                 self.logfile = None

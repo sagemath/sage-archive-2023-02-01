@@ -106,7 +106,6 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_inexact,
     CoefficientStream_zero,
     CoefficientStream_exact,
-    CoefficientStream_coefficient_function,
     CoefficientStream_uninitialized
 )
 
@@ -130,6 +129,19 @@ class LazySequenceElement(ModuleElement):
         sage: f
         1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
     """
+    def __init__(self, parent, coeff_stream):
+        """
+        Initialize the series.
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: TestSuite(L.an_element()).run()
+
+        """
+        ModuleElement.__init__(self, parent)
+        self._coeff_stream = coeff_stream
+
     def __getitem__(self, n):
         """
         Return the coefficient of the term with exponent ``n`` of the series.
@@ -156,7 +168,7 @@ class LazySequenceElement(ModuleElement):
             sage: [M[n] for n in range(20)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
         """
-        R = self.base_ring()
+        R = self.parent()._coeff_ring
         if isinstance(n, slice):
             if n.stop is None:
                 raise NotImplementedError("cannot list an infinite set")
@@ -220,7 +232,8 @@ class LazySequenceElement(ModuleElement):
                                                    degree=coeff_stream._degree,
                                                    constant=c)
             return P.element_class(P, coeff_stream)
-        return P.element_class(P, CoefficientStream_apply_coeff(self._coeff_stream, func, P.base_ring()))
+        coeff_stream = CoefficientStream_apply_coeff(self._coeff_stream, func, P._coeff_ring)
+        return P.element_class(P, coeff_stream)
 
     def truncate(self, d):
         r"""
@@ -586,18 +599,6 @@ class LazySequencesModuleElement(LazySequenceElement):
         sage: R[:10]
         [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
     """
-    def __init__(self, parent, coeff_stream):
-        """
-        Initialize the series.
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: TestSuite(L.an_element()).run()
-        """
-        ModuleElement.__init__(self, parent)
-        self._coeff_stream = coeff_stream
-
     def _add_(self, other):
         """
         Return the sum of ``self`` and ``other``.
@@ -1121,7 +1122,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             Traceback (most recent call last):
             ...
             ZeroDivisionError: the valuation of the series must be nonnegative
-        
+
         `g \neq 0` and `val(g) \leq 0` and `f` has infinitely many
         non-zero coefficients`::
 
@@ -1133,7 +1134,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
-        
+
         We cannot compose if `g` has a negative valuation::
 
             sage: f = L(lambda n: n, 1)
@@ -1255,7 +1256,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             True
 
         We check the sparse implementation::
-            
+
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
@@ -1298,21 +1299,6 @@ class LazyLaurentSeries(LazySequencesModuleElement):
                 if right._approximate_valuation == 0 and right._initial_coefficients == (1,):  # other == 1
                     return self
         return P.element_class(P, CoefficientStream_cauchy_product(self._coeff_stream, other._coeff_stream))
-
-        P = self.parent()
-        left = self._coeff_stream
-        right = other._coeff_stream
-        if (isinstance(left, CoefficientStream_exact)
-            and isinstance(right, CoefficientStream_exact)):
-            c = left._constant + right._constant
-            v = min(left.valuation(), right.valuation())
-            d = max(left._degree(), right._degree())
-            initial_coefficients = [left[i] + right[i] for i in range(v, d)]
-            if not any(initial_terms) and not c:
-                return P.zero()
-            return P.element_class(P, CoefficientStream_exact(initial_terms, P._sparse,
-                                                              valuation=v, degree=d, constant=c))
-        return P.element_class(P, CoefficientStream_add(self._coeff_stream, other._coeff_stream))
 
     def _div_(self, other):
         r"""
@@ -1402,7 +1388,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
             sage: P = ~M; P
             z^-1 - 2 + z + O(z^6)
-        
+
         Lazy Laurent series that have a sparse implementation can be inverted::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
@@ -1413,7 +1399,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
             sage: ~(~(1 - z))
             1 - z
-        
+
         Lazy Laurent series that are known to be exact can be inverted::
 
             sage: ~z
@@ -1805,4 +1791,3 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         if isinstance(self._coeff_stream, CoefficientStream_uninitialized) and self._coeff_stream._target is None:
             return UnicodeArt('Uninitialized Lazy Laurent Series')
         return self._format_series(unicode_art, True)
-

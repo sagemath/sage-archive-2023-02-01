@@ -121,6 +121,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: TestSuite(L).run(skip='_test_elements')
         """
         self._sparse = sparse
+        self._coeff_ring = base_ring
         self._laurent_poly_ring = LaurentPolynomialRing(base_ring, names, sparse=sparse)
         Parent.__init__(self, base=base_ring, names=names,
                         category=MagmasAndAdditiveMagmas().or_subcategory(category))
@@ -182,8 +183,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         if n != 0:
             raise IndexError("there is only one generator")
-        R = self._laurent_poly_ring
-        coeff_stream = CoefficientStream_exact([R.gen(n)[1]], self._sparse, constant=ZZ.zero(), valuation=1, degree=2)
+        R = self.base_ring()
+        coeff_stream = CoefficientStream_exact([R.one()], self._sparse, constant=ZZ.zero(), valuation=1)
         return self.element_class(self, coeff_stream)
 
     def ngens(self):
@@ -309,7 +310,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             if valuation is None:
                 valuation = 0
             return self.element_class(self, CoefficientStream_uninitialized(self._sparse, valuation))
-        
+
         R = self._laurent_poly_ring
         BR = self.base_ring()
         try:

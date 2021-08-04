@@ -89,8 +89,7 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_zero,
     CoefficientStream_coefficient_function,
     CoefficientStream_exact,
-    CoefficientStream_uninitialized,
-    CoefficientStream_recursive
+    CoefficientStream_uninitialized
 )
 
 
@@ -301,25 +300,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g = L([1,3,5,7,9], 5, -1)
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
-        
-        ``x`` can be a function that recursively calculates the elements of
-        the series. The function must then take an additional parameter (which
-        must come first) to describe the series.
-
-            sage: def g(s, i):
-            ....:     if i < 0:
-            ....:         return 1
-            ....:     else:
-            ....:         return s[i-1] + i
-            sage: L(g, -5)
-            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + O(z^2)
-            sage: s = L(g, -5)
-            sage: s
-            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + O(z^2)
-            sage: s[:10]
-            [1, 1, 1, 1, 1, 1, 2, 4, 7, 11, 16, 22, 29, 37, 46]
-            sage: ~s
-            z^5 - z^6 - z^11 + O(z^12)
 
         .. TODO::
 
@@ -372,8 +352,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 p = [x(i) for i in range(valuation, degree)]
                 coeff_stream = CoefficientStream_exact(p, self._sparse, valuation=valuation, constant=constant, degree=degree)
                 return self.element_class(self, coeff_stream)
-            if len(signature(x).parameters) > 1:
-                return self.element_class(self, CoefficientStream_recursive(x, self._sparse, valuation))
             return self.element_class(self, CoefficientStream_coefficient_function(x, self.base_ring(), self._sparse, valuation))
         raise ValueError(f"unable to convert {x} into a lazy Laurent series")
 
@@ -493,7 +471,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: L.series(lambda s, i: i, 5, (1,10))
-            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + O(z^12)
+            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
 
             sage: def g(s, i):
             ....:     if i < 0:
@@ -538,7 +516,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if degree is not None and valuation > degree and constant:
             raise ValueError('inappropriate valuation')
 
-        coeff_stream = CoefficientStream_recursive(coefficient, self._sparse, valuation)
-        ret = self.element_class(self, coeff_stream)
-        return ret
+        t = None
+        t = self(lambda n: coefficient(t, n), valuation=valuation,
+                 constant=constant, degree=degree)
+        return t
 

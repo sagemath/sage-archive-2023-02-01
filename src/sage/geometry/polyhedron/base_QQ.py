@@ -883,7 +883,7 @@ class Polyhedron_QQ(Polyhedron_base):
         if not self.is_compact():
             raise NotImplementedError('Unbounded polyhedra are not supported')
 
-        orbits = Set([Set(i) for i in vertex_permutation.cycle_tuples(singletons=True)])
+        orbits = frozenset([frozenset(i) for i in vertex_permutation.cycle_tuples(singletons=True)])
 
         # If its the identity, returns the polytope
         if not orbits:

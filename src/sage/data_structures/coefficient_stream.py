@@ -1704,8 +1704,9 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
 
 
 class CoefficientStream_apply_coeff(CoefficientStream_unary):
-    """
-    Return the stream with ``function`` applied to each coefficient of this series.
+    r"""
+    Return the stream with ``function`` applied to each nonzero
+    coefficient of ``series``.
 
     INPUT:
 
@@ -1748,15 +1749,20 @@ class CoefficientStream_apply_coeff(CoefficientStream_unary):
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import (CoefficientStream_apply_coeff, CoefficientStream_coefficient_function)
-            sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 1)
-            sage: g = CoefficientStream_apply_coeff(f, lambda n: n^2, ZZ)
+            sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, -1)
+            sage: g = CoefficientStream_apply_coeff(f, lambda n: n^2 + 1, ZZ)
             sage: g.get_coefficient(5)
-            25
-            sage: [g.get_coefficient(i) for i in range(10)]
-            [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+            26
+            sage: [g.get_coefficient(i) for i in range(-1, 10)]
+            [2, 0, 2, 5, 10, 17, 26, 37, 50, 65, 82]
+
+            sage: R.<x,y> = ZZ[]
+            sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, -1)
+            sage: g = CoefficientStream_apply_coeff(f, lambda n: n.degree() + 1, R)
+            sage: [g.get_coefficient(i) for i in range(-1, 3)]
+            [1, 0, 1, 1]
         """
-        c = self._ring(self._function(self._series[n])) if self._series[n] else self._ring(self._series[n])
-        return c
+        return self._function(self._ring(self._series[n])) if self._series[n] else self._series[n]
 
     def iterate_coefficients(self):
         """
@@ -1765,14 +1771,21 @@ class CoefficientStream_apply_coeff(CoefficientStream_unary):
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import (CoefficientStream_apply_coeff, CoefficientStream_coefficient_function)
-            sage: f = CoefficientStream_coefficient_function(lambda n: n^2, ZZ, False, 1)
-            sage: g = CoefficientStream_apply_coeff(f, lambda n: 2*n, ZZ)
+            sage: f = CoefficientStream_coefficient_function(lambda n: n^2, ZZ, False, -1)
+            sage: g = CoefficientStream_apply_coeff(f, lambda n: 2*n + 1, ZZ)
             sage: n = g.iterate_coefficients()
-            sage: [next(n) for i in range(10)]
-            [2, 8, 18, 32, 50, 72, 98, 128, 162, 200]
+            sage: [next(n) for i in range(-1, 11)]
+            [3, 0, 3, 9, 19, 33, 51, 73, 99, 129, 163, 201]
+
+            sage: R.<x,y> = ZZ[]
+            sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, False, -1)
+            sage: g = CoefficientStream_apply_coeff(f, lambda n: n.degree() + 1, R)
+            sage: n = g.iterate_coefficients()
+            sage: [next(n) for i in range(-1, 3)]
+            [1, 0, 1, 1]
         """
         n = self._offset
         while True:
-            c = self._ring(self._function(self._series[n])) if self._series[n] else self._ring(self._series[n])
-            yield c
+            yield self._function(self._ring(self._series[n])) if self._series[n] else self._series[n]
             n += 1
+

@@ -84,6 +84,7 @@ from .infinity import infinity
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, LaurentPolynomialRing_generic
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.structure.global_options import GlobalOptions
+from sage.symbolic.ring import SR
 
 from .lazy_laurent_series import LazyLaurentSeries, LazyDirichletSeries, LazyTaylorSeries
 
@@ -167,6 +168,22 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             True
         """
         return self._sparse
+
+    @cached_method
+    def monomial(self, c, n):
+        r"""
+        Return the interpretation of the coefficient ``c`` at index ``n``.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.monomial(1, 3)
+            z^3
+            sage: L.monomial(2, -4)
+            2*z^-4
+        """
+        L = self._laurent_poly_ring
+        return L(c) * L.gen() ** n
 
     @cached_method
     def gen(self, n=0):
@@ -556,11 +573,11 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             sage: TestSuite(L).run(skip='_test_elements')
         """
         self._sparse = sparse
-        self._poly_ring = PolynomialRing(base_ring, names)
         if len(names) == 1:
             self._coeff_ring = base_ring
         else:
             self._coeff_ring = PolynomialRing(base_ring, names)
+        self._laurent_poly_ring = PolynomialRing(base_ring, names)
         Parent.__init__(self, base=base_ring, names=names,
                         category=MagmasAndAdditiveMagmas().or_subcategory(category))
 
@@ -593,6 +610,23 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         return latex(self.base_ring()) + r"[\![{}]\!]".format(generators_rep)
 
     @cached_method
+    def monomial(self, c, n):
+        r"""
+        Return the interpretation of the coefficient ``c`` at index ``n``.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.monomial(2, 3)
+            2*z^3
+        """
+        m = len(self.variable_names())
+        L = self._laurent_poly_ring
+        if m == 1:
+            return L(c) * L.gen() ** n
+        return L(c)
+
+    @cached_method
     def gen(self, n=0):
         """
         Return the ``n``-th generator of ``self``.
@@ -613,7 +647,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
                 raise IndexError("there is only one generator")
             raise IndexError("there are only %s generators" % m)
 
-        R = self._poly_ring
+        R = self._laurent_poly_ring
         if len(self.variable_names()) == 1:
             coeff_stream = CoefficientStream_exact([1], self._sparse, constant=ZZ.zero(), valuation=1)
         else:
@@ -666,7 +700,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         if self.base_ring().has_coerce_map_from(S):
             return True
 
-        R = self._poly_ring
+        R = self._laurent_poly_ring
         if R.has_coerce_map_from(S):
             def make_series_from(poly):
                 p_dict = poly.homogeneous_components()
@@ -744,7 +778,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             valuation = 0
         assert valuation >= 0, "the valuation of a Taylor series must be positive"
 
-        R = self._poly_ring
+        R = self._laurent_poly_ring
         if x is None:
             assert degree is None
             coeff_stream = CoefficientStream_uninitialized(self._sparse, valuation)
@@ -817,7 +851,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             z + z^2 + z^3 + z^4 + ...
         """
         c = self.base_ring()(1)
-        R = self._poly_ring
+        R = self._laurent_poly_ring
         coeff_stream = CoefficientStream_exact([R.one()], self._sparse, valuation=1, constant=c)
         return self.element_class(self, coeff_stream)
 
@@ -832,7 +866,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             sage: L.one()
             1
         """
-        R = self._poly_ring
+        R = self._laurent_poly_ring
         coeff_stream = CoefficientStream_exact([R.one()], self._sparse, constant=ZZ.zero(), degree=1)
         return self.element_class(self, coeff_stream)
 
@@ -848,6 +882,18 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             0
         """
         return self.element_class(self, CoefficientStream_zero(self._sparse))
+
+    # add options to class
+    class options(GlobalOptions):
+        NAME = 'LazyTaylorSeriesRing'
+        module = 'sage.rings.lazy_laurent_series_ring'
+        display_length = dict(default=7,
+                              description='the number of coefficients to display from the valuation',
+                              checker=lambda x: x in ZZ and x > 0)
+        constant_length = dict(default=3,
+                               description='the number of coefficients to display for nonzero constant series',
+                               checker=lambda x: x in ZZ and x > 0)
+
 
 ######################################################################
 
@@ -882,6 +928,7 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
 
         self._sparse = sparse
         self._coeff_ring = base_ring
+        self._laurent_poly_ring = SR
         Parent.__init__(self, base=base_ring, names=names,
                         category=MagmasAndAdditiveMagmas().or_subcategory(category))
 
@@ -897,7 +944,21 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
         return "Lazy Dirichlet Series Ring in {} over {}".format(self.variable_name(), self.base_ring())
 
     @cached_method
-    def gen(self, n=0):
+    def monomial(self, c, n):
+        r"""
+        Return the interpretation of the coefficient ``c`` at index ``n``.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.monomial(5, 3)
+            5/3^z
+        """
+        L = self._laurent_poly_ring
+        return L(c) * L(n) ** -L(self.variable_name())
+
+    @cached_method
+    def gen(self, n=1):
         """
         Return the `n`-th generator of this Dirichlet series ring.
 
@@ -906,12 +967,12 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
             sage: L = LazyDirichletSeriesRing(ZZ, 'z')
             sage: L.gen()
             1
-            sage: L.gen(3)
+            sage: L.gen(4)
             1/(4^z)
 
         """
-        assert n >= 0
-        coeff_stream = CoefficientStream_exact([1], self._sparse, valuation=n+1, constant=ZZ.zero())
+        assert n >= 1
+        coeff_stream = CoefficientStream_exact([1], self._sparse, valuation=n, constant=ZZ.zero())
         return self.element_class(self, coeff_stream)
 
     def ngens(self):
@@ -938,7 +999,7 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: L.gens()
             Lazy family (<lambda>(i))_{i in Positive integers}
-            sage: L.gens()[1]
+            sage: L.gens()[2]
             1/(2^z)
 
         """
@@ -1105,3 +1166,14 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
             0
         """
         return self.element_class(self, CoefficientStream_zero(self._sparse))
+
+    # add options to class
+    class options(GlobalOptions):
+        NAME = 'LazyDirichletSeriesRing'
+        module = 'sage.rings.lazy_laurent_series_ring'
+        display_length = dict(default=7,
+                              description='the number of coefficients to display from the valuation',
+                              checker=lambda x: x in ZZ and x > 0)
+        constant_length = dict(default=3,
+                               description='the number of coefficients to display for nonzero constant series',
+                               checker=lambda x: x in ZZ and x > 0)

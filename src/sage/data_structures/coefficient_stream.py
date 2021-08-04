@@ -478,6 +478,14 @@ class CoefficientStream_exact(CoefficientStream):
                 and self._initial_coefficients == other._initial_coefficients
                 and self._constant == other._constant)
 
+    def polynomial_part(self, gen):
+        """
+        Return the initial part of ``self`` as a polynomial in ``gen``.
+        """
+        R = gen.parent()
+        v = self._approximate_valuation
+        return R(sum(val * gen**(v+i) for i, val in enumerate(self._initial_coefficients)))
+
 
 class CoefficientStream_recursive(CoefficientStream_inexact):
     r"""

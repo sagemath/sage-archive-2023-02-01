@@ -409,7 +409,7 @@ class LazySequenceElement(ModuleElement):
         r"""
         Define an equation by ``self = s``.
 
-        INPUT::
+        INPUT:
 
         - ``s`` -- a Laurent polynomial
 
@@ -584,7 +584,7 @@ class LazySequencesModuleElement(LazySequenceElement):
 
         - ``other`` -- other series
 
-        EXAMPLES::
+        EXAMPLES:
 
         Dense series can be added::
 
@@ -641,7 +641,7 @@ class LazySequencesModuleElement(LazySequenceElement):
 
         - ``other`` -- other series
 
-        EXAMPLES::
+        EXAMPLES:
 
         Dense series can be subtracted::
 
@@ -698,7 +698,7 @@ class LazySequencesModuleElement(LazySequenceElement):
         return P.element_class(P, CoefficientStream_sub(self._coeff_stream, other._coeff_stream))
 
     def _lmul_(self, scalar):
-        """
+        r"""
         Scalar multiplication for module elements with the module
         element on the left and the scalar on the right.
 
@@ -706,7 +706,7 @@ class LazySequencesModuleElement(LazySequenceElement):
 
         - ``scalar`` -- an element of the base ring
 
-        EXAMPLES::
+        EXAMPLES:
 
         Dense series can be multiplied with a scalar::
 
@@ -785,9 +785,9 @@ class LazySequencesModuleElement(LazySequenceElement):
 
     def _neg_(self):
         """
-        Return the negative of this series.
+        Return the negative of ``self``.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Dense series can be negated::
 
@@ -893,7 +893,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
         - ``ring`` -- a ring
 
-        EXAMPLES::
+        EXAMPLES:
 
         Dense Implementation::
 
@@ -1049,6 +1049,8 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             z^-2 + z + z^2 + z^3 + z^4 + ...
             sage: fpy = fp(y^2); fpy
             y^-4 + y^2 + ...
+            sage: fpy.parent() is LS
+            True
             sage: [fpy[i] for i in range(-4,11)]
             [1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
 
@@ -1096,7 +1098,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             1 + y^4 - 2*y^5 + 2*y^6 + ...
             sage: z(y)
             y
-        
+
         We look at cases where the composition does not exist.
         `g = 0` and `val(f) < 0`::
 
@@ -1152,22 +1154,24 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             # constant polynomial
             R = self.parent()._laurent_poly_ring
             z = R.gen()
-            poly = R(sum([self._coeff_stream[i] * z**i for i in range(self._coeff_stream._approximate_valuation, self._coeff_stream._degree)]))
+            poly = self._coeff_stream.polynomial_part(z)
             if poly.is_constant():
                 return self
             if not isinstance(g, LazyLaurentSeries):
                 return poly(g)
             # g also has finite length, compose the polynomials
             if isinstance(g._coeff_stream, CoefficientStream_exact) and not g._coeff_stream._constant:
+                R = P._laurent_poly_ring
+                g_poly = g._coeff_stream.polynomial_part(R.gen())
                 try:
-                    R = P._laurent_poly_ring
-                    g_poly = R(sum([g._coeff_stream[i] * z**i for i in range(g._coeff_stream._approximate_valuation, g._coeff_stream._degree)]))
                     ret = poly(g_poly)
-                    if ret.parent() is R:
-                        initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
-                        return P.element_class(P, CoefficientStream_exact(initial_coefficients, self._coeff_stream._is_sparse, valuation=ret.valuation()))
-                except TypeError:  # the result is not a Laurent polynomial
-                    pass
+                except (ValueError, TypeError):  # the result is not a Laurent polynomial
+                    ret = None
+                if ret is not None and ret.parent() is R:
+                    val = ret.valuation()
+                    deg = ret.degree() + 1
+                    initial_coefficients = [ret[i] for i in range(val, deg)]
+                    return P.element_class(P, CoefficientStream_exact(initial_coefficients, self._coeff_stream._is_sparse, 0, deg, val))
 
             # Return the sum since g is not known to be finite or we do not get a Laurent polynomial
             # TODO: Optimize when f has positive valuation
@@ -1210,11 +1214,11 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
         - ``other`` -- other series
 
-        EXAMPLES::
+        EXAMPLES:
 
         Lazy Laurent series that are known to be exact can be multiplied::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: (1 - z)*(1 - z)
             1 - 2*z + z^2
             sage: (1 - z)*(1 - z)*(1 - z)
@@ -1229,6 +1233,17 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             sage: N
             z + z^2 - z^3 - 6*z^4 - 15*z^5 - 29*z^6 + ...
 
+            sage: z * M
+            z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + 6*z^7 + ...
+            sage: M * z^-2
+            z^-1 + 2 + 3*z + 4*z^2 + 5*z^3 + 6*z^4 + ...
+
+            sage: L.one() * M is M
+            True
+            sage: M * L.one() is M
+            True
+
+        We check the sparse implementation::
             
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
@@ -1237,6 +1252,10 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
             sage: M * N
             z + 3*z^2 + 6*z^3 + 10*z^4 + 15*z^5 + 21*z^6 + ...
+            sage: z * M
+            z^2 + 2*z^3 + 3*z^4 + 4*z^5 + 5*z^6 + 6*z^7 + ...
+            sage: M * z^-2
+            z^-1 + 2 + 3*z + 4*z^2 + 5*z^3 + 6*z^4 + ...
 
             sage: L.one() * M is M
             True
@@ -1253,20 +1272,19 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         z = R.gen()
         if isinstance(left, CoefficientStream_exact):
             if not left._constant:
-                pl = R(sum([left[i] * z**i for i in range(left._approximate_valuation, left._degree)]))
-                if pl == R.one():  # self == 1
+                if left._approximate_valuation == 0 and left._initial_coefficients == (1,):  # self == 1
                     return other
+                pl = left.polynomial_part(z)
                 if isinstance(right, CoefficientStream_exact):
                     if not right._constant:
-                        pr = R(sum([right[i] * z**i for i in range(right._approximate_valuation, right._degree)]))
+                        pr = right.polynomial_part(z)
                         p = pl * pr
                         c = left._constant
                         initial_coefficients = [p[i] for i in range(p.valuation(), p.degree() + 1)]
                         return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, valuation=p.valuation(), constant=c))
         elif isinstance(right, CoefficientStream_exact):
             if not right._constant:
-                pr = R(sum([right[i] * z**i for i in range(right._approximate_valuation, right._degree)]))
-                if pr == R.one():  # other == 1
+                if right._approximate_valuation == 0 and right._initial_coefficients == (1,):  # other == 1
                     return self
         return P.element_class(P, CoefficientStream_cauchy_product(self._coeff_stream, other._coeff_stream))
 
@@ -1293,7 +1311,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
         - ``other`` -- nonzero series
 
-        EXAMPLES::
+        EXAMPLES:
 
         Lazy Laurent series that have a dense implementation can be divided::
 
@@ -1337,8 +1355,8 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             if not left._constant and not right._constant:
                 R = P._laurent_poly_ring
                 z = R.gen()
-                pl = R(sum([left[i] * z**i for i in range(left._approximate_valuation, left._degree)]))
-                pr = R(sum([right[i] * z**i for i in range(right._approximate_valuation, right._degree)]))
+                pl = left.polynomial_part(z)
+                pr = right.polynomial_part(z)
                 ret = pl / pr
                 try:
                     ret = P._laurent_poly_ring(ret)
@@ -1354,7 +1372,7 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         """
         Return the multiplicative inverse of the element.
 
-        EXAMPLES::
+        EXAMPLES:
 
         Lazy Laurent series that have a dense implementation can be inverted::
 
@@ -1405,9 +1423,10 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
         - ``n`` -- integer; the power to which to raise the series
 
-        EXAMPLES::
+        EXAMPLES:
 
-        Lazy Laurent series that have a dense implementation can be raised to the power ``n``::
+        Lazy Laurent series that have a dense implementation can be
+        raised to the power ``n``::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: (1 - z)^-1
@@ -1420,18 +1439,26 @@ class LazyLaurentSeries(LazySequencesModuleElement):
             1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + ...
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: M ^ 2
+            sage: M^2
             z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + ...
 
-        Lazy Laurent series that have a sparse implementation can be raised to the power ``n``::
+        We can create a really large power of a monomial, even with
+        the dense implementation::
+
+            sage: z^1000000
+            z^1000000
+
+        Lazy Laurent series that have a sparse implementation can be
+        raised to the power ``n``::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: M ^ 2
+            sage: M^2
             z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + ...
 
-        Lazy Laurent series that are known to be exact can be raised to the power ``n``::
+        Lazy Laurent series that are known to be exact can be raised
+        to the power ``n``::
 
             sage: z^2
             z^2
@@ -1442,6 +1469,18 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         """
         if n == 0:
             return self.parent().one()
+
+        cs = self._coeff_stream
+        if (isinstance(cs, CoefficientStream_exact)
+            and not cs._constant and n in ZZ
+            and (n > 0 or len(cs._initial_coefficients) == 1)):
+            P = self.parent()
+            z = P._laurent_poly_ring.gen()
+            ret = cs.polynomial_part(z) ** ZZ(n)
+            val = ret.valuation()
+            deg = ret.degree() + 1
+            initial_coefficients = [ret[i] for i in range(val, deg)]
+            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, self._coeff_stream._constant, deg, val))
 
         return generic_power(self, n)
 
@@ -1493,13 +1532,13 @@ class LazyLaurentSeries(LazySequencesModuleElement):
 
     def polynomial(self, degree=None, name=None):
         r"""
-        Return the polynomial or Laurent polynomial if the series is actually so.
+        Return ``self`` as a Laurent polynomial if ``self`` is actually so.
 
         INPUT:
 
         - ``degree`` -- ``None`` or an integer
-        - ``name`` -- name of the variable; if it is ``None``, the name of the variable
-          of the series is used
+        - ``name`` -- name of the variable; if it is ``None``, the name of
+          the variable of the series is used
 
         OUTPUT:
 
@@ -1612,3 +1651,4 @@ class LazyLaurentSeries(LazySequencesModuleElement):
         ret = repr(R([self._coeff_stream[i] for i in range(v, m)]).shift(v))
         # TODO: Better handling when ret == 0 but we have not checked up to the constant term
         return ret + ' + ...'
+

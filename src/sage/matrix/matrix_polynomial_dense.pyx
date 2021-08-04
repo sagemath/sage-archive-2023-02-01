@@ -2620,18 +2620,125 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         return (A, U) if transformation else A
 
+    def left_quo_rem(self, B):
+        r"""
+        Return, if it exists, the quotient and remainder `(Q,R)` such that
+        ``self`` is `BQ+R`, where `R` has row degrees less than those of `B`
+        entrywise.
+
+        This method directly calls :meth:`right_quo_rem` on transposed
+        matrices, and transposes the result. See :meth:`right_quo_rem` for a
+        complete documentation and tests.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 3, 2,                           \
+                        [[      3*x^3 + 3*x,         2*x^3 + 4], \
+                         [  3*x^3 + 6*x + 5, 6*x^3 + 5*x^2 + 1], \
+                         [  2*x^3 + 2*x + 6,   3*x^2 + 2*x + 2]])
+            sage: B = Matrix(pR, 3, 3,                                    \
+                        [[              3,       x + 3,               6], \
+                         [3*x^3 + 3*x + 1, 4*x^2 + 3*x,   6*x^3 + x + 4], \
+                         [  4*x^2 + x + 4, 3*x^2 + 4*x, 3*x^2 + 3*x + 2]])
+            sage: Q,R = A.left_quo_rem(B); (Q,R)
+            (
+            [2*x^2 + 4*x + 6 6*x^2 + 4*x + 1]  [              3               1]
+            [    3*x^2 + 5*x   2*x^2 + x + 5]  [              6 5*x^2 + 2*x + 3]
+            [    6*x^2 + 3*x 4*x^2 + 6*x + 1], [        2*x + 3         6*x + 3]
+            )
+            sage: rdegR = R.row_degrees(); rdegB = B.row_degrees()
+            sage: A == B*Q+R and all([rdegR[i] < rdegB[i] for i in range(3)])
+            True
+
+            sage: A[:2,:].left_quo_rem(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: row dimension of self should be the row dimension of
+            the input matrix
+
+        Rectangular or rank-deficient matrices are supported but there may be
+        no quotient and remainder (unless the matrix has full row rank, see
+        :meth:`right_quo_rem`)::
+
+            sage: Q,R = A[:2,:].left_quo_rem(B[:2,:]); (Q,R)
+            (
+            [      3*x + 3       2*x + 1]
+            [  3*x^2 + 5*x 2*x^2 + x + 5]  [            5             0]
+            [            0             0], [4*x^2 + x + 2     4*x^2 + x]
+            )
+            sage: rdegR = R.row_degrees(); rdegB = B[:2,:].row_degrees()
+            sage: A[:2,:] == B[:2,:]*Q+R
+            True
+            sage: all([rdegR[i] < rdegB[i] for i in range(len(rdegR))])
+            True
+
+            sage: A.left_quo_rem(B[:,:2])
+            Traceback (most recent call last):
+            ...
+            ValueError: division of these matrices does not admit a remainder
+            with the required degree property
+
+        .. SEEALSO::
+
+            :meth:`right_quo_rem` ,
+            :meth:`reduce` .
+
+        """
+        if self.nrows() != B.nrows():
+            raise ValueError("row dimension of self should be the" \
+                                + " row dimension of the input matrix")
+        (Q,R) = self.T.right_quo_rem(B.T)
+        return (Q.T,R.T)
+
     def right_quo_rem(self, B):
         r"""
-        EXAMPLES::
+        Return, if it exists, the quotient and remainder `(Q,R)` such that
+        ``self`` is `QB+R`, where `R` has column degrees less than those of `B`
+        entrywise.
+
+        If ``self`` is a `k \times m` polynomial matrix (written `A` below),
+        and the input `B` is an `m \times m` polynomial matrix in column
+        reduced form, then `(Q,R)` is unique. Both `Q` and `R` have dimensions
+        `k \times m`. In this case, this method implements Newton iteration of
+        a reversed polynomial matrix `B`, generalizing to matrices the fast
+        division of univariate polynomials.
+
+        If `A` is a `k \times n` polynomial matrix, and the input `B` is an `m
+        \times n` polynomial matrix such that `B` has full column rank, or more
+        generally such that the matrix equation `A = XB` has a rational
+        solution, then there exists such a `(Q,R)` but it may not be unique;
+        the algorithm returns one such quotient and remainder. Here `Q` is `k
+        \times m` and `R` is `k \times n`. In this case, this method follows
+        the folklore approach based on solving the matrix equation `A = XB` and
+        splitting `X` into its polynomial part and proper fraction part.
+
+        Finally, if the matrix equation `A = XB` has no rational solution, this
+        method computes the normal form `R` and quotient `Q` of the rows of `A`
+        with respect to the row space of `B` (see :meth:`reduce`). Doing this
+        for a well-chosen shift ensures that either `R` does not have column
+        degrees less than those of `B`, and then there is no valid quotient and
+        remainder, or it does satisfy this degree constraint, and then this `R`
+        can be returned as a remainder along with the quotient `Q`.
+
+        A ``ValueError`` is raised if the dimensions of ``self`` and `B` are
+        not conformal, or if there exists no quotient and remainder.
+
+        EXAMPLES:
+
+        Case where `B` is a square, column reduced matrix::
 
             sage: pR.<x> = GF(7)[]
             sage: A = Matrix(pR, 2, 3,                              \
                 [[3*x^3 + 3*x, 3*x^3 + 6*x + 5,   2*x^3 + 2*x + 6], \
                  [2*x^3 + 4,   6*x^3 + 5*x^2 + 1, 3*x^2 + 2*x + 2]])
+
             sage: B = Matrix(pR, 3, 3,                                \
                 [[4*x^2 + 3*x + 3, 3*x^2 + 3*x + 1,   4*x^2 + x + 4], \
                  [6*x^2 + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
                  [5*x^2 + 3*x + 6,   6*x^2 + x + 4, 3*x^2 + 3*x + 2]])
+            sage: B.is_reduced(row_wise=False)
+            True
             sage: Q,R = A.right_quo_rem(B); (Q,R)
             (
             [    4*x   x + 2 6*x + 1]  [  x + 2 6*x + 1 5*x + 4]
@@ -2639,14 +2746,19 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             )
             sage: A == Q*B+R and R.degree() < 2
             True
+            sage: A[:,:2].right_quo_rem(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: column dimension of self should be the column dimension
+            of the input matrix
 
-            sage: B = Matrix(pR, 3, 3,                              \
-                [[4*x + 3*x + 3, 3*x^3 + 3*x + 1,   4*x^2 + x + 4], \
-                 [6*x + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
-                 [6,             6*x^3 + x + 4,   3*x^2 + 3*x + 2]])
+            sage: B = Matrix(pR, 3, 3,                    \
+                [[3,     3*x^3 + 3*x + 1, 4*x^2 + x + 4], \
+                 [x + 3, 4*x^2 + 3*x,     3*x^2 + 4*x],   \
+                 [6,     6*x^3 + x + 4,   3*x^2 + 3*x + 2]])
             sage: B.is_reduced(row_wise=False)
             True
-            sage: Q,R = A._right_quo_rem_reduced(B); (Q,R)
+            sage: Q,R = A.right_quo_rem(B); (Q,R)
             (
             [2*x^2 + 4*x + 6     3*x^2 + 5*x     6*x^2 + 3*x]
             [6*x^2 + 4*x + 1   2*x^2 + x + 5 4*x^2 + 6*x + 1],
@@ -2658,20 +2770,106 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
             True
 
+        With a nonsingular but also non-reduced matrix, there exists a
+        solution, but it might not be unique::
+
+            sage: B = Matrix(pR, 3, 3,                            \
+                    [[              5,               0, 2*x + 6], \
+                     [            4*x, 3*x^2 + 4*x + 5,   x + 1], \
+                     [3*x^2 + 5*x + 2, 6*x^3 + 4*x + 6,       3]])
+            sage: B.det() != 0 and (not B.is_reduced(row_wise=False))
+            True
+            sage: Q,R = A.right_quo_rem(B); (Q,R)
+            (
+            [    6*x^2 + 3*x 4*x^2 + 3*x + 1         5*x + 1]
+            [  x^2 + 5*x + 5 5*x^2 + 3*x + 5           x + 2],
+            <BLANKLINE>
+            [      4*x + 5 x^2 + 2*x + 1             2]
+            [      6*x + 3     5*x^2 + 6             3]
+            )
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+
+            sage: Q2 = Matrix(pR, 2, 3,                           \
+                    [[6*x^2 + 3*x + 1, 4*x^2 + 3*x + 6, 5*x + 1], \
+                     [  x^2 + 5*x + 3, 5*x^2 + 3*x + 2,   x + 2]])
+            sage: R2 = Matrix(pR, 2, 3,     \
+                    [[    5*x, 3*x + 4, 5], \
+                     [4*x + 6,     5*x, 4]])
+            sage: A == Q2*B + R2
+            True
+
+        The same remark holds more generally for full column rank matrices:
+        there exists a solution, but it might not be unique. However, for all
+        other cases (rank-deficient matrix `B` or matrix `B` having strictly
+        fewer rows than columns) there may be no solution::
+
+            sage: C = B.stack(B[1,:] + B[2,:]) # matrix 4 x 3, full column rank
+            sage: Q,R = A.right_quo_rem(C); (Q,R)
+            (
+            [    6*x^2 + 3*x 4*x^2 + 3*x + 1         5*x + 1               0]
+            [  x^2 + 5*x + 5 5*x^2 + 3*x + 5           x + 2               0],
+            <BLANKLINE>
+            [      4*x + 5 x^2 + 2*x + 1             2]
+            [      6*x + 3     5*x^2 + 6             3]
+            )
+
+            sage: A.right_quo_rem(B[:2,:]) # matrix 2 x 3, full row rank
+            Traceback (most recent call last):
+            ...
+            ValueError: division of these matrices does not admit a remainder
+            with the required degree property
+            sage: D = B.__copy__(); D[2,:] = B[0,:]+B[1,:] # square, singular
+            sage: A.right_quo_rem(D)
+            Traceback (most recent call last):
+            ...
+            ValueError: division of these matrices does not admit a remainder
+            with the required degree property
+
+        In the latter case (rank-deficient or strictly fewer rows than columns,
+        with no solution to `A = XB`), there might stil be a quotient and
+        remainder, in which case this method will find it via normal form
+        computation::
+
+            sage: B = Matrix(pR, 1, 2, [[x, x]])
+            sage: A = Matrix(pR, 1, 2, [[x, x+2]])
+            sage: A.right_quo_rem(B)
+            ([1], [0 2])
+            sage: A == 1*B + Matrix([[0,2]])
+            True
+
+        .. SEEALSO::
+
+            :meth:`left_quo_rem` ,
+            :meth:`reduce` .
+
         """
-        if B.is_reduced(row_wise=False,include_zero_vectors=False):
+        if self.ncols() != B.ncols():
+            raise ValueError("column dimension of self should be the" \
+                                + " column dimension of the input matrix")
+        if B.is_square() and \
+           B.is_reduced(row_wise=False,include_zero_vectors=False):
             # case of B column reduced (without zero columns):
             # direct matrix version of univariate polynomial quo_rem
             return self._right_quo_rem_reduced(B)
         try:
-            # more generally, case of B full column rank:
-            # (or "luck": A = XB has a rational solution)
-            # method via solving A = XB
+            # more generally, method via solving A = XB over rationals
+            # (always possible if B has full column rank, otherwise might still
+            # work if this matrix equation has a solution "by luck")
             return self._right_quo_rem_solve(B)
         except ValueError:
             # more generally, any B
-            # (compute remainder in division by XXX )
-            return True
+            # (compute normal form w.r.t a well-chosen shift and check degrees
+            # are as expected)
+            s = [-d for d in B.column_degrees()]
+            (Q,R) = self.reduce(B,shifts=s,return_quotient=True)
+            cdeg = R.column_degrees()
+            if all([cdeg[i] + s[i] < 0 for i in range(B.ncols())]):
+                return (Q,R)
+            else:
+                raise ValueError("division of these matrices does not admit" \
+                        + " a remainder with the required degree property")
 
     def _right_quo_rem_reduced(self, B):
         r"""
@@ -2998,6 +3196,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [-1  0]
             [-1 -1]
 
+        .. SEEALSO::
+
+            :meth:`left_quo_rem` ,
+            :meth:`right_quo_rem` .
+    
         """
         if row_wise and self.ncols() != B.ncols():
             raise ValueError("column dimension of self should be the" \

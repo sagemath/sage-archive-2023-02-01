@@ -104,9 +104,6 @@ from copy import copy
 from sage.parallel.ncpus import ncpus
 from sage.parallel.use_fork import p_iter_fork
 from sage.dynamics.arithmetic_dynamics.projective_ds_helper import (_fast_possible_periods,_all_periodic_points)
-from sage.sets.set import Set
-from sage.combinat.permutation import Arrangements
-from sage.combinat.subset import Subsets
 from sage.symbolic.ring import SR
 from itertools import count, product
 from .endPN_automorphism_group import (

@@ -4055,7 +4055,6 @@ class BTerm(TermWithCoefficient):
 
     We revisit the example from the introduction::
 
-        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
         sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
         sage: from sage.rings.asymptotic.growth_group import GrowthGroup
         sage: G = GrowthGroup('x^ZZ * y^ZZ')

@@ -4161,7 +4161,7 @@ class BTerm(TermWithCoefficient):
             B(4*x^2, x >= 10, y >= 15)
         """
         if latex:
-            valid_from_string = ', '.join(f'{variable} \ge {value}'
+            valid_from_string = ', '.join(fr'{variable} \ge {value}'
                                           for variable, value in self.valid_from.items())
             return fr'B_{{{valid_from_string}}}\left({self._repr_product_(latex=True)}\right)'
         else:

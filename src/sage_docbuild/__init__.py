@@ -1512,37 +1512,38 @@ def help_message_short(option=None, opt_str=None, value=None, parser=None,
         setattr(parser.values, 'printed_help', 1)
 
 
-def help_wrapper(option, opt_str, value, parser):
+class help_wrapper(argparse.Action):
     """
     A helper wrapper for command-line options to the Sage
     documentation builder that print lists, such as document names,
     formats, and document-specific commands.
     """
-    if option.dest == 'commands':
-        print(help_commands(value), end="")
-    if option.dest == 'documents':
-        print(help_documents(), end="")
-    if option.dest == 'formats':
-        print(help_formats(), end="")
-    if option.dest == 'all_documents':
-        if value == 'en/reference' or value == 'reference':
-            b = ReferenceBuilder('reference')
-            refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
-            s = b.get_all_documents(refdir)
-            # Put the bibliography first, because it needs to be built first:
-            s.remove('reference/references')
-            s.insert(0, 'reference/references')
-        elif value == 'all':
-            s = get_documents()
-            # Put the reference manual first, because it needs to be built first:
-            s.remove('reference')
-            s.insert(0, 'reference')
-        else:
-            raise ValueError("argument for --all-documents must be either 'all'"
-                             " or 'reference'")
-        for d in s:
-            print(d)
-    setattr(parser.values, 'printed_list', 1)
+    def __call__(self, parser, namespace, values, option_string=None):
+        if self.dest == 'commands':
+            print(help_commands(values), end="")
+        if self.dest == 'documents':
+            print(help_documents(), end="")
+        if self.dest == 'formats':
+            print(help_formats(), end="")
+        if self.dest == 'all_documents':
+            if values == 'en/reference' or values == 'reference':
+                b = ReferenceBuilder('reference')
+                refdir = os.path.join(os.environ['SAGE_DOC_SRC'], 'en', b.name)
+                s = b.get_all_documents(refdir)
+                # Put the bibliography first, because it needs to be built first:
+                s.remove('reference/references')
+                s.insert(0, 'reference/references')
+            elif values == 'all':
+                s = get_documents()
+                # Put the reference manual first, because it needs to be built first:
+                s.remove('reference')
+                s.insert(0, 'reference')
+            else:
+                raise ValueError("argument for --all-documents must be either 'all'"
+                                 " or 'reference'")
+            for d in s:
+                print(d)
+        setattr(parser.values, 'printed_list', 1)
 
 
 def setup_parser():
@@ -1565,14 +1566,14 @@ def setup_parser():
                         action="callback", callback=help_message_long,
                         help="show an extended help message and exit")
     standard.add_argument("-D", "--documents", dest="documents",
-                        action="callback", callback=help_wrapper,
+                        action=help_wrapper,
                         help="list all available DOCUMENTs")
     standard.add_argument("-F", "--formats", dest="formats",
-                        action="callback", callback=help_wrapper,
+                        action=help_wrapper,
                         help="list all output FORMATs")
     standard.add_argument("-C", "--commands", dest="commands",
                         type="string", metavar="DOC",
-                        action="callback", callback=help_wrapper,
+                        action=help_wrapper,
                         help="list all COMMANDs for DOCUMENT DOC; use 'all' to list all")
 
     standard.add_argument("-i", "--inherited", dest="inherited",
@@ -1633,7 +1634,7 @@ def setup_parser():
                         help="Do not abort on errors but continue as much as possible after an error")
     advanced.add_argument("--all-documents", dest="all_documents",
                         type="str", metavar="ARG",
-                        action="callback", callback=help_wrapper,
+                        action=help_wrapper,
                         help="if ARG is 'reference', list all subdocuments"
                         " of en/reference. If ARG is 'all', list all main"
                         " documents")

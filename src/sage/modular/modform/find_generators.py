@@ -52,3 +52,6 @@ TESTS::
     [        1         0    196560  16773120 398034000]
     [        0         1       -24       252     -1472]
 """
+
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.modular.modform.ring', ('_span_of_forms_in_weight', 'find_generators', 'basis_for_modform_space', 'ModularFormsRing'), deprecation=31559)

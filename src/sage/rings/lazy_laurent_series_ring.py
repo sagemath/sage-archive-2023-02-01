@@ -14,7 +14,7 @@ global namespace. You need to import it explicitly to use it::
     sage: L.category()
     Category of magmas and additive magmas
     sage: 1/(1 - z)
-    1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+    1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
     sage: 1/(1 - z) == 1/(1 - z)
     True
 
@@ -34,7 +34,7 @@ ring::
     sage: L.<z> = LazyLaurentSeriesRing(ZZ); L
     Lazy Laurent Series Ring in z over Integer Ring
     sage: 1/(1 - 2*z)^3
-    1 + 6*z + 24*z^2 + 80*z^3 + 240*z^4 + 672*z^5 + 1792*z^6 + ...
+    1 + 6*z + 24*z^2 + 80*z^3 + 240*z^4 + 672*z^5 + 1792*z^6 + O(z^7)
 
 Power series can be defined recursively::
 
@@ -48,7 +48,7 @@ Power series can be defined recursively::
     0
     sage: s.define(1 + z*s^2)
     sage: s
-    1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + ...
+    1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + O(z^7)
 
 The implementation of the Ring can be either be a sparse or a dense one.
 The default is a dense implementation.::
@@ -91,6 +91,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
 from .integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, LaurentPolynomialRing_generic
+from sage.structure.global_options import GlobalOptions
 
 from .lazy_laurent_series import LazyLaurentSeries
 
@@ -204,7 +205,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L.gens()
             (z,)
             sage: 1/(1 - z)
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
         """
         return tuple([self.gen(n) for n in range(self.ngens())])
 
@@ -240,7 +241,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         INPUT:
 
         - ``x`` -- data used to the define a Laurent series
-        - ``valuation`` -- integer (optional); integer; a lower bound for the valuation of the series
+        - ``valuation`` -- integer (optional); integer; a lower bound for
+          the valuation of the series
         - ``constant`` -- (optional) the eventual constant of the series
         - ``degree`` -- (optional) the degree when the series is ``constant``
 
@@ -255,12 +257,12 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
 
             sage: L(lambda i: i, 5, 1, 10)
-            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
+            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
             sage: L(lambda i: i, 5, (1, 10))
-            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
+            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
 
             sage: X = L(constant=5, degree=2); X
-            5*z^2 + 5*z^3 + 5*z^4 + ...
+            5*z^2 + 5*z^3 + 5*z^4 + O(z^5)
             sage: X.valuation()
             2
 
@@ -270,9 +272,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ....:     else:
             ....:         return 1 + sum(k for k in range(i+1))
             sage: e = L(g, -5); e
-            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
+            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + O(z^2)
             sage: f = e^-1; f
-            z^5 - z^6 - z^11 + ...
+            z^5 - z^6 - z^11 + O(z^12)
             sage: f.coefficient(10)
             0
             sage: f[20]
@@ -281,7 +283,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             -219
 
             sage: L(valuation=2, constant=1)
-            z^2 + z^3 + z^4 + ...
+            z^2 + z^3 + z^4 + O(z^5)
             sage: L(constant=1)
             Traceback (most recent call last):
             ...
@@ -298,7 +300,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
             sage: g = L([1,3,5,7,9], 5, -1)
             sage: g
-            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + ...
+            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
         
         ``x`` can be a function that recursively calculates the elements of
         the series. The function must then take an additional parameter (which
@@ -310,14 +312,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ....:     else:
             ....:         return s[i-1] + i
             sage: L(g, -5)
-            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
+            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + O(z^2)
             sage: s = L(g, -5)
             sage: s
-            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
+            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + O(z^2)
             sage: s[:10]
             [1, 1, 1, 1, 1, 1, 2, 4, 7, 11, 16, 22, 29, 37, 46]
             sage: ~s
-            z^5 - z^6 - z^11 + ...
+            z^5 - z^6 - z^11 + O(z^12)
 
         .. TODO::
 
@@ -383,12 +385,12 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: L.an_element()
-            z^-10 + z^-9 + z^-8 + ...
+            z^-2 + 3*z^-1 + 2*z + z^2 + z^3 + z^4 + z^5 + O(z^6)
         """
-        c = self.base_ring()(1)
-        R = self._laurent_poly_ring
-        coeff_stream = CoefficientStream_exact([R.zero()], self._sparse, valuation=-11, constant=c)
-        return self.element_class(self,coeff_stream)
+        R = self.base_ring()
+        coeff_stream = CoefficientStream_exact([R.an_element(), 3, 0, 2*R.an_element(), 1],
+                                               self._sparse, valuation=-2, constant=1)
+        return self.element_class(self, coeff_stream)
 
     @cached_method
     def one(self):
@@ -401,7 +403,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L.one()
             1
         """
-        R = self._laurent_poly_ring
+        R = self.base_ring()
         coeff_stream = CoefficientStream_exact([R.one()], self._sparse, constant=ZZ.zero(), degree=1)
         return self.element_class(self, coeff_stream)
 
@@ -417,3 +419,47 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             0
         """
         return self.element_class(self, CoefficientStream_zero(self._sparse))
+
+    # add options to class
+    class options(GlobalOptions):
+        r"""
+        Set and display the options for Lazy Laurent series.
+
+        If no parameters are set, then the function returns a copy of
+        the options dictionary.
+
+        The ``options`` to Lazy Laurent series can be accessed as the method
+        :meth:`LazyLaurentSeriesRing.options` of :class:`LazyLaurentSeriesRing`.
+
+        @OPTIONS@
+
+        EXAMPLES::
+
+            sage: LLS.<z> = LazyLaurentSeriesRing(QQ)
+            sage: LLS.options.display_length
+            7
+            sage: f = 1/(1-z)
+            sage: f
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+            sage: LLS.options.display_length = 10
+            sage: f
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + z^8 + z^9 + O(z^10)
+            sage: g = LLS(lambda n: n^2, valuation=-2, degree=5, constant=42)
+            sage: g
+            4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + 42*z^5 + 42*z^6 + 42*z^7 + O(z^8)
+            sage: LLS.options.constant_length = 1
+            sage: g
+            4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + 42*z^5 + O(z^6)
+            sage: LazyLaurentSeriesRing.options._reset()
+            sage: LazyLaurentSeriesRing.options.display_length
+            7
+        """
+        NAME = 'LazyLaurentSeriesRing'
+        module = 'sage.rings.lazy_laurent_series_ring'
+        display_length = dict(default=7,
+                              description='the number of coefficients to display from the valuation',
+                              checker=lambda x: x in ZZ and x > 0)
+        constant_length = dict(default=3,
+                               description='the number of coefficients to display for nonzero constant series',
+                               checker=lambda x: x in ZZ and x > 0)
+

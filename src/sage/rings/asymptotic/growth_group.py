@@ -3370,9 +3370,10 @@ class MonomialGrowthElement(GenericGrowthElement):
 
         INPUT:
 
-        - ``valid_from`` -- dictionary mapping variable names to lower bounds
-          for the corresponding variable. The bound implied by this term is valid when
-          all variables are at least their corresponding lower bound
+        - ``valid_from`` -- a dictionary describing the range of the minimization:
+          the keys are names of variables and the range is the intersection over
+          the ranges where the absolute value of the variable designated by the
+          key is at least the corresponding value
 
         OUTPUT:
 

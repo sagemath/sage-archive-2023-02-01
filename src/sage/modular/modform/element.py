@@ -3596,6 +3596,8 @@ class GradedModularFormElement(ModuleElement):
             x0
             sage: M.1._homogeneous_to_polynomial('E4, E6', gens)
             E6
+            sage: M(1/2).to_polynomial()
+            1/2
             sage: p = ((M.0)**3 + (M.1)**2)._homogeneous_to_polynomial('x', gens); p
             x0^3 + x1^2
             sage: M(p) == (M.0)**3 + (M.1)**2
@@ -3608,6 +3610,8 @@ class GradedModularFormElement(ModuleElement):
         M = self.parent()
         k = self.weight() #only if self is homogeneous
         poly_parent = M.polynomial_ring(names, gens)
+        if k == 0:
+            return poly_parent(self[k])
         monomials = M._monomials_of_weight(k, gens, poly_parent)
 
         # initialize the matrix of coefficients

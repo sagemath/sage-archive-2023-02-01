@@ -444,6 +444,9 @@ class ModularFormsRing(Parent):
             1 + q + q^2 + 27*q^3 + q^4 + 6*q^5 + O(q^6)
             sage: M.0 + M.1 + M.2
             1 + q + q^2 + 27*q^3 + q^4 + 6*q^5 + O(q^6)
+            sage: P = x.parent()
+            sage: M.from_polynomial(P(1/2))
+            1/2
 
         ..TODO::
 
@@ -451,6 +454,8 @@ class ModularFormsRing(Parent):
         """
         if not isinstance(pol, (MPolynomial, Polynomial)):
             raise TypeError('`pol` must be a polynomial')
+        if pol.is_constant():
+            return self(pol.constant_coefficient())
         if gens is None:
             gens = self.gen_forms()
         dict = self._generators_variables_dictionnary(pol.parent(), gens)

@@ -1975,11 +1975,6 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             return UnicodeArt('Uninitialized Lazy Laurent Series')
         return self._format_series(unicode_art, True)
 
-        # Use the polynomial printing
-        R = self.parent()._laurent_poly_ring
-        ret = repr(R([self._coeff_stream[i] for i in range(v, m)]).shift(v))
-        # TODO: Better handling when ret == 0 but we have not checked up to the constant term
-        return ret + ' + ...'
 
 class LazyTaylorSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
     r"""

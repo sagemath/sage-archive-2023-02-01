@@ -921,10 +921,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             precA = 1+self.degree()
             if is_Vector(B):
                 BB = B.row()
-                X = B.row().parent().zero()
+                X = B.row().parent().zero().__copy__()
             else:
                 BB = B.__copy__()
-                X = B.parent().zero()
+                X = B.parent().zero().__copy__()
             inv_self = self.inverse_series_trunc(precA)
             for k in range(0,(d/precA).ceil()):
                 # compute XX = BB * invA mod x^precA
@@ -2731,7 +2731,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         cdeg = B.column_degrees()  # all non-negative since column reduced
         d = max([cdegA[i]-cdeg[i]+1 for i in range(B.nrows())])
         if d<=0: # A already reduced modulo B, quotient is zero
-            return (self.parent().zero(), self)
+            return (self.parent().zero().__copy__(), self)
         # Step 1: reverse input matrices
         # Brev = B(1/x) diag(x^(cdeg[i]))
         # Arev = A(1/x) diag(x^(d+cdeg[i]-1)) 
@@ -2881,34 +2881,38 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
     def reduce(self, B, shifts=None, row_wise=True, return_quotient=False):
         r"""
         Reduce ``self``, i.e. compute its normal form, modulo the row space of
-        `B` with respect to `shifts`.
+        `B` with respect to ``shifts``.
 
-        If ``self`` is a `k x n` polynomial matrix (written `A` below), and the
-        input `B` is an `m x n` polynomial matrix, this computes the normal
-        form `R` of `A` with respect the row space of `B` and the monomial
-        order defined by ``shifts`` (written `s` below). This means that the
-        `i`th row of `R` is equal to the `i`th row of `A` up to addition of an
-        element in the row space of `B`, and if `J = (j_1,\ldots,j_r)` are the
-        `s`-leading positions of the `s`-Popov form `P` of `A`, then the
-        submatrix `R_{*,J}` (submatrix of `R` formed by its columns in `J`) has
-        column degrees smaller entrywise than the column degrees of `P_{*,J}`.
-        
+        If ``self`` is a `k \times n` polynomial matrix (written `A` below),
+        and the input `B` is an `m \times n` polynomial matrix, this computes
+        the normal form `R` of `A` with respect the row space of `B` and the
+        monomial order defined by ``shifts`` (written `s` below). This means
+        that the `i` th row of `R` is equal to the `i` th row of `A` up to
+        addition of an element in the row space of `B`, and if `J =
+        (j_1,\ldots,j_r)` are the `s`-leading positions of the `s`-Popov form
+        `P` of `A`, then the submatrix `R_{*,J}` (submatrix of `R` formed by
+        its columns in `J`) has column degrees smaller entrywise than the
+        column degrees of `P_{*,J}`.
+
         If the option ``row_wise`` is set to ``False``, the same operation is
         performed, but with everything considered column-wise: column space of
-        `B`, `i`th column of `R` and `A`, column-wise `s`-leading positions and
-        `s`-Popov form, and submatrices `R_{J,*}` and `P_{J,*}`.
+        `B`, `i` th column of `R` and `A`, column-wise `s`-leading positions
+        and `s`-Popov form, and submatrices `R_{J,*}` and `P_{J,*}`.
 
         The operation above can be seen as a generalization of division with
         remainder for univariate polynomials. If the option ``return_quotient``
         is set to ``True``, this method returns both the normal form `R` and a
-        quotient matrix `Q` such that `A = QB + R`. This quotient is not unique
-        unless `B` has a trivial left kernel (i.e. has full row rank).
+        quotient matrix `Q` such that `A = QB + R` (or `A = BQ + R` if
+        ``row_wise`` is ``False``). This quotient is not unique unless `B` has
+        a trivial left kernel i.e. has full row rank (or right kernel, full
+        column rank if ``row_wise`` is ``False``).
 
         This method checks whether `B` is in `s`-Popov form, and if not,
         computes the `s`-Popov form `P` of `B`, which can take some time.
         Therefore, if `P` is already known or is to be re-used, this method
-        should be called directly with `P` (yielding the same normal form `R`
-        since `P` and `B` have the same row space).
+        should be called directly with `P`, yielding the same normal form `R`
+        since `P` and `B` have the same row space (or column space, if
+        ``row_wise`` is ``False``).
 
         A ``ValueError`` is raised if the dimensions of the shifts and/or of
         the matrices are not conformal.
@@ -2926,12 +2930,83 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         - ``return_quotient`` -- (optional, default: ``False``). If this
           is ``True``, the quotient will be returned as well.
 
-        OUTPUT: a polynomial matrix.
+        OUTPUT: a polynomial matrix if ``return_quotient=False``, two
+        polynomial matrices otherwise.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: B = Matrix(pR, [                                 \
+                [      6*x+4,       5*x^3+5*x,       6*x^2+2*x+2], \
+                [4*x^2+5*x+2, x^4+5*x^2+2*x+4, 4*x^3+6*x^2+6*x+5]])
+            sage: A = Matrix(pR, 1, 3, [ \
+                [3*x^4+3*x^3+4*x^2+5*x+1, x^4+x^3+5*x^2+4*x+4, 4*x^4+2*x^3+x]])
+
+            sage: (Q,R) = A.reduce(B,return_quotient=True); R
+            [3*x^4 + 3*x^3 + 4*x + 3                 2*x + 2                 2*x + 6]
+            sage: A == Q*B + R
+            True
+            sage: P = B.popov_form(); P.leading_positions(return_degree=True)
+            ([1, 2], [2, 2])
+            sage: R.degree_matrix()
+            [4 1 1]
+            sage: A.reduce(P) == R
+            True
+            sage: A.reduce(P[:,:2])
+            Traceback (most recent call last):
+            ...
+            ValueError: column dimension of self should be the column
+            dimension of the input matrix
+
+        Demonstrating shifts::
+
+            sage: (Qs,Rs) = A.reduce(B,shifts=[0,2,4],return_quotient=True); Rs
+            [3*x^4 + 3*x^3 + 6*x + 2             4*x^3 + 5*x                       0]
+            sage: A == Qs*B + Rs
+            True
+            sage: Ps = B.popov_form(shifts=[0,2,4])
+            sage: Ps.leading_positions(shifts=[0,2,4],return_degree=True)
+            ([1, 2], [4, 0])
+            sage: Rs.degree_matrix()
+            [ 4  3 -1]
+            sage: A.reduce(Ps, shifts=[0,2,4]) == Rs
+            True
+
+        If ``return_quotient`` is ``False``, only the normal form is returned::
+
+            sage: R == A.reduce(B) and Rs == A.reduce(B,shifts=[0,2,4])
+            True
+
+        Demonstrating column-wise normal forms, with a matrix `A` which has
+        several columns, and a matrix `B` which does not have full column rank
+        (its column-wise Popov form has a zero column)::
+
+            sage: A = Matrix(pR, 2, 2,                               \
+                [[5*x^3 + 2*x^2 + 4*x + 1,           x^3 + 4*x + 4], \
+                 [2*x^3 + 5*x^2 + 2*x + 4,         2*x^3 + 3*x + 2]])
+            sage: (Q,R) = A.reduce(B,row_wise=False,return_quotient=True); R
+            [0 3]
+            [0 0]
+            sage: A == B*Q + R
+            True
+            sage: P = B.popov_form(row_wise=False); P
+            [x + 2     6     0]
+            [    0     1     0]
+            sage: P.leading_positions(row_wise=False, return_degree=True)
+            ([0, 1, -1], [1, 0, -1])
+            sage: R.degree_matrix()
+            [-1  0]
+            [-1 -1]
 
         """
+        if row_wise and self.ncols() != B.ncols():
+            raise ValueError("column dimension of self should be the" \
+                                + " column dimension of the input matrix")
+        if not row_wise and (self.nrows() != B.nrows()):
+            raise ValueError("row dimension of self should be the" \
+                                + " row dimension of the input matrix")
         # note: is_popov calls B._check_shift_dimension(shifts,row_wise)
-        # TODO handle zero vectors better? is popov_form expensive when
-        # is already popov up to zero vectors?
+        # --> no need to check here again
         if B.is_popov(shifts,row_wise,False,False):
             lpos = B.leading_positions(shifts=shifts,row_wise=row_wise)
             set_lpos = set(lpos) # to make things faster for huge matrices..
@@ -2940,10 +3015,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 # A_{*,J} = Q B_{*,J} + R0
                 Q,R0 = self[:,lpos]._right_quo_rem_reduced(B[:,lpos])
                 # other columns are given by A_{*,not J} - Q B_{*, not J}
-                R = self.parent().zero()
+                R = self.parent().zero().__copy__()
                 R[:,lpos] = R0
                 R[:,non_lpos] = self[:,non_lpos] - Q * B[:,non_lpos]
-                return Q,R if return_quotient else R
+                return (Q,R) if return_quotient else R
             else:
                 non_lpos = [i for i in range(B.nrows()) if i not in set_lpos]
                 # A_{I,*} = B_{I,*} Q + R0
@@ -2951,19 +3026,20 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 Q = Q.T
                 R0 = R0.T
                 # other columns are given by A_{not I,*} - B_{not I,*} Q
-                R = self.parent().zero()
+                R = self.parent().zero().__copy__()
                 R[lpos,:] = R0
                 R[non_lpos,:] = self[non_lpos,:] - B[non_lpos,:] * Q
-                return Q,R if return_quotient else R
+                return (Q,R) if return_quotient else R
         elif return_quotient:
             P,U = B.popov_form(True,shifts,row_wise,False)
             Q,R = self.reduce(P,shifts,row_wise,True)
             # row-wise: UB = P and A = QP + R ==> A = QUB + R
             # --> careful: the last rows of U may correspond to zero rows of P,
             # which have been discarded... so not exactly UB = P
-            return Q*U[:P.nrows(),:], R if row_wise else U[:,:P.ncols()] * Q, R
+            return (Q*U[:P.nrows(),:], R) if row_wise \
+                    else (U[:,:P.ncols()] * Q, R)
         else:
-            P = B.popov_form(True,shifts,row_wise,False)
+            P = B.popov_form(False,shifts,row_wise,False)
             return self.reduce(P,shifts,row_wise,False)
 
     def is_minimal_approximant_basis(self,
@@ -3594,10 +3670,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # column Popov and column Hermite forms of self are the identity
         if row_wise:
             hnf = self.transpose().hermite_form(include_zero_rows=False)
-            # TODO replace by popov_form (likely more efficient) once it is written
+            # TODO benchmark to see if should be replaced by popov_form
         else:
             hnf = self.hermite_form(include_zero_rows=False)
-            # TODO replace by popov_form (likely more efficient) once it is written
+            # TODO benchmark to see if should be replaced by popov_form
         if hnf != 1:
             return False
 

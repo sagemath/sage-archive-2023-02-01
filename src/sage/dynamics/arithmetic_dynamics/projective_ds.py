@@ -4019,12 +4019,8 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: R.<z> = QQ[]
             sage: K.<v> = NumberField(z^4 - z^2 - 1)
             sage: f = DynamicalSystem_projective([x^2 - y^2, y^2])
-
-            sage: f.preperiodic_points(2, 1, R=K)   # 32-bit
+            sage: sorted(f.preperiodic_points(2, 1, R=K), key=str)
             [(-v : 1), (v : 1)]
-
-            sage: f.preperiodic_points(2, 1, R=K)   # 64-bit
-            [(v : 1), (-v : 1)]
 
         ::
 

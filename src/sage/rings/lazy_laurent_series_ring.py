@@ -1,14 +1,10 @@
 r"""
 Lazy Laurent Series Rings
 
-The ring of lazy Laurent series over a ring has usual arithmetic operations,
-but it is actually not a ring in the usual sense since every
-arithmetic operation gives a new series.
+The ring of Laurent series over a ring with the usual arithmetic where the
+coefficients are computed lazily.
 
-EXAMPLES:
-
-The definition of Laurent series rings is not initially imported into the
-global namespace. You need to import it explicitly to use it::
+EXAMPLES::
 
     sage: L.<z> = LazyLaurentSeriesRing(QQ)
     sage: L.category()
@@ -28,8 +24,8 @@ Lazy Laurent series ring over a finite field::
     sage: e.coefficient(100).parent()
     Finite Field of size 3
 
-Generating functions of integer sequences are Laurent series over the integer
-ring::
+Generating functions of integer sequences are Laurent series over the
+integer ring::
 
     sage: L.<z> = LazyLaurentSeriesRing(ZZ); L
     Lazy Laurent Series Ring in z over Integer Ring
@@ -38,27 +34,21 @@ ring::
 
 Power series can be defined recursively::
 
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-    sage: L._sparse
-    True
+    sage: L.<z> = LazyLaurentSeriesRing(ZZ)
     sage: s = L(None)
-    sage: s._coeff_stream._is_sparse
-    True
-    sage: s._coeff_stream._approximate_valuation
-    0
     sage: s.define(1 + z*s^2)
     sage: s
     1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + O(z^7)
 
-The implementation of the Ring can be either be a sparse or a dense one.
-The default is a dense implementation.::
+The implementation of the ring can be either be a sparse or a dense one.
+The default is a dense implementation::
 
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-    sage: L._sparse
-    True
     sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-    sage: L._sparse
+    sage: L.is_sparse()
     False
+    sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+    sage: L.is_sparse()
+    True
 
 AUTHORS:
 
@@ -106,13 +96,14 @@ from sage.data_structures.coefficient_stream import (
 
 class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     """
-    Lazy Laurent series ring.
+    The ring of lazy Laurent series.
 
     INPUT:
 
-    - ``base_ring`` -- base ring of this Laurent series ring
-    - ``names`` -- name of the generator of this Laurent series ring
-    - ``sparse`` -- (default: ``False``) whether the implementation of the series is sparse or not
+    - ``base_ring`` -- base ring
+    - ``names`` -- name of the generator
+    - ``sparse`` -- (default: ``False``) whether the implementation of
+      the series is sparse or not
 
     EXAMPLES::
 
@@ -137,7 +128,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
     def _repr_(self):
         """
-        String representation of this Laurent series ring.
+        Return a string representation of ``self``.
 
         EXAMPLES::
 
@@ -159,9 +150,25 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         from sage.misc.latex import latex
         return latex(self.base_ring()) + r"[\![{}]\!]".format(self.variable_name())
 
+    def is_sparse(self):
+        """
+        Return if ``self`` is sparse or not.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.is_sparse()
+            False
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z', sparse=True)
+            sage: L.is_sparse()
+            True
+        """
+        return self._sparse
+
     @cached_method
     def gen(self, n=0):
-        """
+        r"""
         Return the ``n``-th generator of ``self``.
 
         EXAMPLES::
@@ -225,14 +232,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             return True
 
         R = self._laurent_poly_ring
-        if R.has_coerce_map_from(S):
-            def make_series_from(poly):
-                initial_coefficients = [poly[i] for i in range(poly.valuation(), poly.degree() + 1)]
-                coeff_stream = CoefficientStream_exact(initial_coefficients, self._sparse, valuation=poly.valuation())
-                return self.element_class(self, coeff_stream)
-            return SetMorphism(Hom(S, self, Sets()), make_series_from)
-
-        return False
+        return R.has_coerce_map_from(S)
 
     def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
         """
@@ -373,7 +373,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 coeff_stream = CoefficientStream_exact(p, self._sparse, valuation=valuation, constant=constant, degree=degree)
                 return self.element_class(self, coeff_stream)
             if len(signature(x).parameters) > 1:
-                return self.element_class(self, CoefficientStream_recursive(x, self.base_ring(), self._sparse, valuation))
+                return self.element_class(self, CoefficientStream_recursive(x, self._sparse, valuation))
             return self.element_class(self, CoefficientStream_coefficient_function(x, self.base_ring(), self._sparse, valuation))
         raise ValueError(f"unable to convert {x} into a lazy Laurent series")
 
@@ -462,4 +462,83 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         constant_length = dict(default=3,
                                description='the number of coefficients to display for nonzero constant series',
                                checker=lambda x: x in ZZ and x > 0)
+
+    def series(self, coefficient, valuation, constant=None, degree=None):
+        r"""
+        Return a lazy Laurent series.
+
+        INPUT:
+
+        - ``coefficient`` -- Python function that computes coefficients or a list
+        - ``valuation`` -- integer; approximate valuation of the series
+        - ``constant`` -- (optional) an element of the base ring or a
+          pair of an element of the base ring and an integer
+        - ``degree`` -- (optional) integer
+
+        Let the coefficient of index `i` mean the coefficient of the term
+        of the series with exponent `i`.
+
+        Python function ``coefficient`` returns the value of the coefficient
+        of index `i` from input `s` and `i` where `s` is the series itself.
+
+        Let ``valuation`` be `n`. All coefficients of index below `n` are zero.
+        If ``constant`` is not specified, then the ``coefficient`` function is
+        responsible to compute the values of all coefficients of index `\ge n`.
+        If ``constant`` is a pair `(c,m)`, then the ``coefficient`` function
+        is responsible to compute the values of all coefficients of index
+        `\ge n` and `< m` and all the coefficients of index `\ge m` is
+        the constant `c`.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.series(lambda s, i: i, 5, (1,10))
+            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + O(z^12)
+
+            sage: def g(s, i):
+            ....:     if i < 0:
+            ....:         return 1
+            ....:     else:
+            ....:         return s.coefficient(i - 1) + i
+            sage: e = L.series(g, -5); e
+            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
+            sage: f = e^-1; f
+            z^5 - z^6 - z^11 + ...
+            sage: f.coefficient(10)
+            0
+            sage: f.coefficient(20)
+            9
+            sage: f.coefficient(30)
+            -219
+
+        Alternatively, the ``coefficient`` can be a list of elements of the
+        base ring. Then these elements are read as coefficients of the terms of
+        degrees starting from the ``valuation``. In this case, ``constant``
+        may be just an element of the base ring instead of a tuple or can be
+        simply omitted if it is zero. ::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: f = L.series([1,2,3,4], -5); f
+            z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
+            sage: g = L.series([1,3,5,7,9], 5, -1); g
+            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
+        """
+        if isinstance(constant, (list, tuple)):
+            constant, degree = constant
+
+        if isinstance(coefficient, (tuple, list)):
+            if constant is None:
+                constant = self.base_ring().zero()
+            if degree is None:
+                degree = valuation + len(coefficient)
+            coeff_stream = CoefficientStream_exact(coefficient, self._sparse, valuation=valuation,
+                                                   constant=constant, degree=degree)
+            return self.element_class(self, coeff_stream)
+
+        if degree is not None and valuation > degree and constant:
+            raise ValueError('inappropriate valuation')
+
+        coeff_stream = CoefficientStream_recursive(coefficient, self._sparse, valuation)
+        ret = self.element_class(self, coeff_stream)
+        return ret
 

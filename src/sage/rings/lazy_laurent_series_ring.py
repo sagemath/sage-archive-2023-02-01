@@ -735,28 +735,28 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             sage: L = LazyTaylorSeriesRing(ZZ, 'z')
 
             sage: L(lambda i: i, 5, 1, 10)
-            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
+            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
             sage: L(lambda i: i, 5, (1, 10))
-            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + ...
+            5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
 
             sage: X = L(constant=5, degree=2); X
-            5*z^2 + 5*z^3 + 5*z^4 + ...
+            5*z^2 + 5*z^3 + 5*z^4 + O(z^5)
             sage: X.valuation()
             2
 
             sage: e = L(lambda n: n+1); e
-            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + ...
+            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
             sage: f = e^-1; f
-            1 + -2*z + z^2 + ...
+            1 - 2*z + z^2 + O(z^7)
             sage: f.coefficient(10)
             0
             sage: f[20]
             0
 
             sage: L(valuation=2, constant=1)
-            z^2 + z^3 + z^4 + ...
+            z^2 + z^3 + z^4 + O(z^5)
             sage: L(constant=1)
-            1 + z + z^2 + ...
+            1 + z + z^2 + O(z^3)
 
         Alternatively, ``x`` can be a list of elements of the base ring.
         Then these elements are read as coefficients of the terms of
@@ -768,7 +768,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             z + 2*z^2 + 3*z^3 + 4*z^4
 
             sage: g = L([1,3,5,7,9], 5, -1); g
-            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 + -z^10 + -z^11 + -z^12 + ...
+            z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
 
         .. TODO::
 
@@ -1042,20 +1042,20 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
             sage: L(3)
             3
             sage: L(lambda i: i, constant=1, degree=6)
-            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 1/(6^z) + 1/(7^z) + 1/(8^z) + ...
+            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 1/(6^z) + 1/(7^z) + 1/(8^z) + O(1/(9^z))
 
             sage: X = L(constant=5, degree=3); X
-            5/3^z + 5/4^z + 5/5^z + ...
+            5/3^z + 5/4^z + 5/5^z + O(1/(6^z))
             sage: X.valuation()
             3
             sage: e = L(moebius); e
-            1 + -1/2^z + -1/3^z + -1/5^z + 1/(6^z) + -1/7^z + ...
+            1 - 1/(2^z) - 1/(3^z) - 1/(5^z) + 1/(6^z) - 1/(7^z) + O(1/(8^z))
 
             sage: L([0], constant=1)
-            1/(2^z) + 1/(3^z) + 1/(4^z) + ...
+            1/(2^z) + 1/(3^z) + 1/(4^z) + O(1/(5^z))
 
             sage: L(constant=1)
-            1 + 1/(2^z) + 1/(3^z) + ...
+            1 + 1/(2^z) + 1/(3^z) + O(1/(4^z))
 
         Alternatively, ``x`` can be a list of elements of the base ring.
         Then these elements are read as coefficients of the terms of
@@ -1066,7 +1066,7 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
             sage: f = L([1,2,3,4], 4); f
             1/(4^z) + 2/5^z + 3/6^z + 4/7^z
             sage: g = L([1,3,5,7,9], 6, -1); g
-            1/(6^z) + 3/7^z + 5/8^z + 7/9^z + 9/10^z + -1/11^z + -1/12^z + -1/13^z + ...
+            1/(6^z) + 3/7^z + 5/8^z + 7/9^z + 9/10^z - 1/(11^z) - 1/(12^z) - 1/(13^z) + O(1/(14^z))
 
         TESTS::
 

@@ -1080,19 +1080,19 @@ class LazySequencesModuleElement(LazySequenceElement):
             sage: 2*g
             2/2^z
             sage: -1*g
-            -1/2^z
+            -1/(2^z)
             sage: 0*g
             0
             sage: M = L(lambda n: n); M
-            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
+            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + O(1/(8^z))
             sage: M * 3
-            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + ...
+            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + O(1/(8^z))
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
             sage: M = L(lambda n: n); M
-            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
+            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + O(1/(8^z))
             sage: M * 3
-            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + ...
+            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + O(1/(8^z))
 
             sage: 1 * M is M
             True
@@ -1233,9 +1233,9 @@ class LazyCauchyProductSeries(RingElement):
 
             sage: L.<x, y, z> = LazyTaylorSeriesRing(ZZ)
             sage: (1 - x)*(1 - y)
-            1 + -x - y + x*y
+            1 + (-x-y) + x*y
             sage: (1 - x)*(1 - y)*(1 - z)
-            1 + -x - y - z + x*y + x*z + y*z + -x*y*z
+            1 + (-x-y-z) + (x*y+x*z+y*z) + (-x*y*z)
 
         """
         P = self.parent()
@@ -1243,7 +1243,10 @@ class LazyCauchyProductSeries(RingElement):
         right = other._coeff_stream
         if isinstance(left, CoefficientStream_zero) or isinstance(right, CoefficientStream_zero):
             return P.zero()
-
+        if isinstance(left, CoefficientStream_exact) and left._initial_coefficients == (P._coeff_ring.one(),) and left.valuation() == 0:
+            return other  # self == 1
+        if isinstance(right, CoefficientStream_exact) and right._initial_coefficients == (P._coeff_ring.one(),) and right.valuation() == 0:
+            return self
         # the product is exact if and only if both of the factors are
         # exact, and one has eventually 0 coefficients:
         #   (p + a x^d/(1-x))(q + b x^e/(1-x))
@@ -1260,10 +1263,7 @@ class LazyCauchyProductSeries(RingElement):
             v = left.valuation() + right.valuation()
             coeff_stream = CoefficientStream_exact(initial_coefficients, P._sparse, valuation=v)
             return P.element_class(P, coeff_stream)
-        if isinstance(left, CoefficientStream_exact) and left._initial_coefficients == (P._coeff_ring.one(),) and left.valuation() == 0:
-            return other  # self == 1
-        if isinstance(right, CoefficientStream_exact) and right._initial_coefficients == (P._coeff_ring.one(),) and right.valuation() == 0:
-            return self
+
         return P.element_class(P, CoefficientStream_cauchy_product(left, right))
 
     def __invert__(self):
@@ -2031,24 +2031,18 @@ class LazyTaylorSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
 
     EXAMPLES::
 
-        sage: L.<z> = LazyTaylorSeriesRing(ZZ)
-        sage: L(lambda i: i, valuation=3, constant=(-1, 6))
-        3*z^3 + 4*z^4 + 5*z^5 + -z^6 + -z^7 + -z^8 + ...
-        sage: L(lambda i: i, valuation=3, constant=-1, degree=6)
-        3*z^3 + 4*z^4 + 5*z^5 + -z^6 + -z^7 + -z^8 + ...
-
-    ::
-
-        sage: f = 1 / (1 - z - z^2); f
-        1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
-        sage: f.coefficient(100)
-        573147844013817084101
+        sage: L.<x, y> = LazyTaylorSeriesRing(ZZ)
+        sage: f = 1 / (1 - x^2 + y^3); f
+        1 + x^2 + (-y^3) + x^4 + (-2*x^2*y^3) + (x^6+y^6) + O(x,y)^7
+        sage: P.<x, y> = PowerSeriesRing(ZZ, default_prec=101)
+        sage: g = 1 / (1 - x^2 + y^3); f[100] - g[100]
+        0
 
     Lazy Taylor series is picklable::
 
         sage: g = loads(dumps(f))
         sage: g
-        1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + ...
+        1 + x^2 + (-y^3) + x^4 + (-2*x^2*y^3) + (x^6+y^6) + O(x,y)^7
         sage: g == f
         True
     """
@@ -2066,7 +2060,7 @@ class LazyTaylorSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             sage: s = 2 + z
             sage: t = s.change_ring(QQ)
             sage: t^-1
-            1/2 + -1/4*z + 1/8*z^2 + -1/16*z^3 + 1/32*z^4 + -1/64*z^5 + 1/128*z^6 + ...
+            1/2 - 1/4*z + 1/8*z^2 - 1/16*z^3 + 1/32*z^4 - 1/64*z^5 + 1/128*z^6 + O(z^7)
             sage: t.parent()
             Lazy Taylor Series Ring in z over Rational Field
 
@@ -2082,15 +2076,14 @@ class LazyTaylorSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
         TESTS::
 
             sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
-            sage: f = 1 / (2 - x^2 - y)
-            sage: f._format_series(ascii_art, True)
+            sage: f = 1 / (2 - x^2 + y)
+            sage: f._format_series(repr)
+            '1/2 + (-1/4*y) + (1/4*x^2+1/8*y^2) + (-1/4*x^2*y-1/16*y^3) + (1/8*x^4+3/16*x^2*y^2+1/32*y^4) + (-3/16*x^4*y-1/8*x^2*y^3-1/64*y^5) + (1/16*x^6+3/16*x^4*y^2+5/64*x^2*y^4+1/128*y^6) + O(x,y)^7'
 
+            sage: f = (2 - x^2 + y)
+            sage: f._format_series(repr)
+            '2 + y + (-x^2)'
         """
-        if format_strings:
-            strformat = formatter
-        else:
-            strformat = lambda x: x
-
         P = self.parent()
         cs = self._coeff_stream
         v = cs._approximate_valuation
@@ -2102,13 +2095,48 @@ class LazyTaylorSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
         else:
             m = v + P.options.display_length
 
-        # atomic_repr = P._coeff_ring._repr_option('element_is_atomic')
+        atomic_repr = P._coeff_ring._repr_option('element_is_atomic')
+        mons = [P.monomial(self[i], i) for i in range(v, m) if self[i]]
+        if not isinstance(cs, CoefficientStream_exact) or cs._constant:
+            if P._coeff_ring is P.base_ring():
+                bigO = ["O(%s)" % P.monomial(1, m)]
+            else:
+                bigO = ["O(%s)^%s" % (', '.join(str(g) for g in P._names), m)]
+        else:
+            bigO = []
 
-        poly = [formatter(P.monomial(self[i], i)) for i in range(v, m) if self[i]]
-        poly = " + ".join(poly)
-        if isinstance(cs, CoefficientStream_exact) and not cs._constant:
-            return poly
-        return poly + strformat(" + O({})".format(formatter(P.monomial(1, m))))
+        from sage.misc.latex import latex
+        from sage.typeset.unicode_art import unicode_art
+        from sage.typeset.ascii_art import ascii_art
+        from sage.misc.repr import repr_lincomb
+        from sage.typeset.symbols import ascii_left_parenthesis, ascii_right_parenthesis
+        from sage.typeset.symbols import unicode_left_parenthesis, unicode_right_parenthesis
+        if formatter == repr:
+            poly = repr_lincomb([(1, m) for m in mons + bigO], strip_one=True)
+        elif formatter == latex:
+            poly = repr_lincomb([(1, m) for m in mons + bigO], is_latex=True, strip_one=True)
+        elif formatter == ascii_art:
+            if atomic_repr:
+                poly = ascii_art(*(mons + bigO), sep = " + ")
+            else:
+                def parenthesize(m):
+                    a = ascii_art(m)
+                    h = a.height()
+                    return ascii_art(ascii_left_parenthesis.character_art(h),
+                                     a, ascii_right_parenthesis.character_art(h))
+                poly = ascii_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
+        elif formatter == unicode_art:
+            if atomic_repr:
+                poly = unicode_art(*(mons + bigO), sep = " + ")
+            else:
+                def parenthesize(m):
+                    a = unicode_art(m)
+                    h = a.height()
+                    return unicode_art(unicode_left_parenthesis.character_art(h),
+                                       a, unicode_right_parenthesis.character_art(h))
+                poly = unicode_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
+
+        return poly
 
 
 class LazyDirichletSeries(LazySequencesModuleElement):
@@ -2149,16 +2177,16 @@ class LazyDirichletSeries(LazySequencesModuleElement):
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: g = L(constant=1); g
-            1 + 1/(2^z) + 1/(3^z) + ...
+            1 + 1/(2^z) + 1/(3^z) + O(1/(4^z))
             sage: g*g
-            1 + 2/2^z + 2/3^z + 3/4^z + 2/5^z + 4/6^z + 2/7^z + ...
+            1 + 2/2^z + 2/3^z + 3/4^z + 2/5^z + 4/6^z + 2/7^z + O(1/(8^z))
             sage: [number_of_divisors(n) for n in range(1, 8)]
             [1, 2, 2, 3, 2, 4, 2]
 
             sage: mu = L(moebius); mu
-            1 + -1/2^z + -1/3^z + -1/5^z + 1/(6^z) + -1/7^z + ...
+            1 - 1/(2^z) - 1/(3^z) - 1/(5^z) + 1/(6^z) - 1/(7^z) + O(1/(8^z))
             sage: g*mu
-            1 + ...
+            1 + O(1/(8^z))
             sage: L.one() * mu is mu
             True
             sage: mu * L.one() is mu
@@ -2167,6 +2195,15 @@ class LazyDirichletSeries(LazySequencesModuleElement):
         P = self.parent()
         left = self._coeff_stream
         right = other._coeff_stream
+        if (isinstance(left, CoefficientStream_exact)
+            and left._initial_coefficients == (P._coeff_ring.one(),)
+            and left.valuation() == 1):
+            return other  # self == 1
+        if (isinstance(right, CoefficientStream_exact)
+            and right._initial_coefficients == (P._coeff_ring.one(),)
+            and right.valuation() == 1):
+            return self
+
         coeff = CoefficientStream_dirichlet_convolution(left, right)
         return P.element_class(P, coeff)
 
@@ -2178,10 +2215,10 @@ class LazyDirichletSeries(LazySequencesModuleElement):
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=False)
             sage: ~L(constant=1) - L(moebius)
-            0
+            O(1/(8^z))
             sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
             sage: ~L(constant=1) - L(moebius)
-            0
+            O(1/(8^z))
 
         """
         P = self.parent()
@@ -2220,38 +2257,75 @@ class LazyDirichletSeries(LazySequencesModuleElement):
 
         return generic_power(self, n)
 
-    def _repr_(self):
+    def _format_series(self, formatter, format_strings=False):
         """
-        Return the string representation of this Dirichlet series.
+        Return nonzero ``self`` formatted by ``formatter``.
 
         TESTS::
 
-            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: L = LazyDirichletSeriesRing(QQ, "s")
+            sage: f = L(constant=1)
+            sage: f._format_series(repr)
+            '1 + 1/(2^s) + 1/(3^s) + O(1/(4^s))'
+
+            sage: L([1,-1,1])._format_series(repr)
+            '1 - 1/(2^s) + 1/(3^s)'
+
+            sage: L([1,-1,1])._format_series(ascii_art)
+                  -s    -s
+            1 + -2   + 3
+
         """
-        if isinstance(self._coeff_stream, CoefficientStream_zero):
-            return '0'
-        if isinstance(self._coeff_stream, CoefficientStream_uninitialized) and self._coeff_stream._target is None:
-            return 'Uninitialized Lazy Dirichlet Series'
-
-        atomic_repr = self.base_ring()._repr_option('element_is_atomic')
-        X = self.parent().variable_name()
-        v = self._coeff_stream._approximate_valuation
-
-        if not isinstance(self._coeff_stream, CoefficientStream_exact):
-            m = v + 7  # long enough
+        P = self.parent()
+        cs = self._coeff_stream
+        v = cs._approximate_valuation
+        if isinstance(cs, CoefficientStream_exact):
+            if not cs._constant:
+                m = cs._degree
+            else:
+                m = cs._degree + P.options.constant_length
         else:
-            m = self._coeff_stream._degree + 3
+            m = v + P.options.display_length
 
-        # Use the symbolic ring printing
-        from sage.calculus.var import var
-        from sage.symbolic.ring import SR
-        variable = var(self.parent().variable_name())
-        ret = " + ".join([repr(SR(self._coeff_stream[i])*i**(-variable))
-                          for i in range(v, m) if self._coeff_stream[i]])
-        if not ret:
-            return "0"
-        # TODO: Better handling when ret == 0 but we have not checked up to the constant term
+        atomic_repr = P._coeff_ring._repr_option('element_is_atomic')
+        mons = [P.monomial(self[i], i) for i in range(v, m) if self[i]]
+        if not isinstance(cs, CoefficientStream_exact) or cs._constant:
+            if P._coeff_ring is P.base_ring():
+                bigO = ["O(%s)" % P.monomial(1, m)]
+            else:
+                bigO = ["O(%s)^%s" % (', '.join(str(g) for g in P._names), m)]
+        else:
+            bigO = []
 
-        if isinstance(self._coeff_stream, CoefficientStream_exact) and not self._coeff_stream._constant:
-            return ret
-        return ret + ' + ...'
+        from sage.misc.latex import latex
+        from sage.typeset.unicode_art import unicode_art
+        from sage.typeset.ascii_art import ascii_art
+        from sage.misc.repr import repr_lincomb
+        from sage.typeset.symbols import ascii_left_parenthesis, ascii_right_parenthesis
+        from sage.typeset.symbols import unicode_left_parenthesis, unicode_right_parenthesis
+        if formatter == repr:
+            poly = repr_lincomb([(1, m) for m in mons + bigO], strip_one=True)
+        elif formatter == latex:
+            poly = repr_lincomb([(1, m) for m in mons + bigO], is_latex=True, strip_one=True)
+        elif formatter == ascii_art:
+            if atomic_repr:
+                poly = ascii_art(*(mons + bigO), sep = " + ")
+            else:
+                def parenthesize(m):
+                    a = ascii_art(m)
+                    h = a.height()
+                    return ascii_art(ascii_left_parenthesis.character_art(h),
+                                     a, ascii_right_parenthesis.character_art(h))
+                poly = ascii_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
+        elif formatter == unicode_art:
+            if atomic_repr:
+                poly = unicode_art(*(mons + bigO), sep = " + ")
+            else:
+                def parenthesize(m):
+                    a = unicode_art(m)
+                    h = a.height()
+                    return unicode_art(unicode_left_parenthesis.character_art(h),
+                                       a, unicode_right_parenthesis.character_art(h))
+                poly = unicode_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
+
+        return poly

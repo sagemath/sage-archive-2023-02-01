@@ -46,8 +46,9 @@ EXAMPLES::
 
 .. NOTE:
 
-    Only the ring of quasimodular forms for the full modular group have been
+    - Only the ring of quasimodular forms for the full modular group have been
     implemented.
+    - Currently, the only supported base ring is the Rational Field.
 
 AUTHORS:
 
@@ -102,6 +103,17 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
         sage: QM.weigt_2_eisenstein_series()
         1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
+
+    The current implementation of quasimodular forms is only for the full modular group and for the ring of rationnal numbers::
+
+        sage: QuasiModularForms(Gamma0(2))
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: space of quasimodular forms are only implemented for the full modular group
+        sage: QuasiModularForms(1, GF(5))
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: base ring other than Q are not yet supported for quasimodular forms ring
     """
     Element = QuasiModularFormsElement
     def __init__(self, group=1, base_ring=QQ, name='E2'):
@@ -154,12 +166,11 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         elif not is_CongruenceSubgroup(group):
             raise ValueError("Group (=%s) should be a congruence subgroup" % group)
         elif group is not Gamma0(1):
-            raise NotImplementedError("space of quasimodular forms are implemented for the full modular group")
+            raise NotImplementedError("space of quasimodular forms are only implemented for the full modular group")
 
-        #Check if the base ring is a field
-        #For some reasons, there is a problem when computing a basis of ModularForms
-        if not base_ring.is_field():
-            raise ValueError("The base ring must be a field")
+        #Check if the base ring is the rationnal field
+        if not base_ring != QQ:
+            raise NotImplementedError("base ring other than Q are not yet supported for quasimodular forms ring")
 
         self.__group = group
         self.__base_ring = base_ring

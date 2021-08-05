@@ -35,7 +35,8 @@ class QuasiModularFormsElement(ModuleElement):
 
         f_0 + f_1 E_2 + f_2 E_2^2 + \cdots + f_m E_2^m
 
-    where each `f_i` a graded modular form element (see :meth:``)
+    where each `f_i` a graded modular form element
+    (see :class:`~sage.modular.modform.element.GradedModularFormElement`)
 
     EXAMPLES::
 
@@ -53,9 +54,11 @@ class QuasiModularFormsElement(ModuleElement):
         sage: QM.0 == QM.1
         False
 
-    Quasimodular forms ring element can be created via a polynomial in `E2`::
+    Quasimodular forms ring element can be created via a polynomial in `E2` over the ring of modular forms::
 
         sage: E2 = QM.polygen()
+        sage: E2.parent()
+        Univariate Polynomial Ring in E2 over Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
         sage: QM(E2)
         1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
         sage: M = QM.modular_forms_subring()

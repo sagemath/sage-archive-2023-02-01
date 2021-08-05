@@ -370,7 +370,7 @@ def text(string, xy, **options):
         sage: botleft = dict(horizontal_alignment='left', vertical_alignment='bottom')
         sage: botright = dict(horizontal_alignment='right', vertical_alignment='bottom')
         sage: tp = text(r'$z_P = e^{3i\pi/4}$', (-a, a), **botright)
-        sage: tq = text(r'$Q = (\sqrt{2}/2, \sqrt{2}/2)$', (a, a), **botleft)
+        sage: tq = text(r'$Q = (\frac{\sqrt{2}}{2}, \frac{\sqrt{2}}{2})$', (a, a), **botleft)
         sage: A + PQ + tp + tq
         Graphics object consisting of 4 graphics primitives
 
@@ -382,7 +382,7 @@ def text(string, xy, **options):
         botleft = dict(horizontal_alignment='left', vertical_alignment='bottom')
         botright = dict(horizontal_alignment='right', vertical_alignment='bottom')
         tp = text(r'$z_P = e^{3i\pi/4}$', (-a, a), **botright)
-        tq = text(r'$Q = (\sqrt{2}/2, \sqrt{2}/2)$', (a, a), **botleft)
+        tq = text(r'$Q = (\frac{\sqrt{2}}{2}, \frac{\sqrt{2}}{2})$', (a, a), **botleft)
         sphinx_plot(A + PQ + tp + tq)
 
     Text coordinates must be 2D, an error is raised if 3D coordinates are passed::
@@ -402,12 +402,12 @@ def text(string, xy, **options):
         sage: t.plot3d()  # text at position (1, 2, 0)
         Graphics3d Object
 
-    Extra options will get passed on to show(), as long as they are valid::
+    Extra options will get passed on to ``show()``, as long as they are valid. Hence this ::
 
         sage: text("MATH IS AWESOME", (0, 0), fontsize=40, axes=False)
         Graphics object consisting of 1 graphics primitive
 
-    Equivalently, these options can be passed to show::
+    is equivalent to ::
 
         sage: text("MATH IS AWESOME", (0, 0), fontsize=40).show(axes=False)
     """

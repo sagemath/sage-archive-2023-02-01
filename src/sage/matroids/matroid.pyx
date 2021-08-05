@@ -2991,19 +2991,45 @@ cdef class Matroid(SageObject):
             sage: SimplicialComplex(M.no_broken_circuits_sets([5,4,3,2,1]))
             Simplicial complex with vertex set (1, 2, 3, 4, 5)
              and facets {(1, 3, 5), (2, 3, 5), (2, 4, 5), (3, 4, 5)}
+
+        ALGORITHM:
+
+        The following algorithm is adapted from page 7 of [BDPR2011]_.
+
+        .. NOTE::
+
+            Sage uses the convention that a broken circuit is found by
+            removing a minimal element from a circuit, while [BDPR2011]_.
+            use the convention that removal of the *maximal* element of
+            circuit yeilds a broken circuit. This implementation reverses
+            the provided order so that it returns n.b.c. sets under the
+            minimal-removal convention, while the implementation is not
+            modified from the published algorithm.
         """
-        ret = []
-        BC = self.broken_circuits(ordering)
-        for r in range(self.rank() + 1):
-            for I in self.independent_r_sets(r):
-                add = True
-                for b in BC:
-                    if b.issubset(I):
-                        add = False
-                        break
-                if add:
-                    ret.append(I)
-        return ret
+        from collections import deque
+
+        if not ordering:
+            ordering = sorted(self.groundset())
+
+        Tmax = len(self.groundset())
+
+        # The algorithm uses the convention that the maximum element is removed.
+        # Sage uses the convention that the minimum element is removed. The keys
+        # of order_dict are adjusted accordingly.
+        order_dict = {Tmax-i-1:e for i,e in enumerate(ordering)}
+        reverse_dict = {value:key for key,value in order_dict.items()}
+
+        B = list()
+        Q = deque(([],))
+        i = 0
+        while Q:
+            H = Q.popleft()
+            tp = reverse_dict[H[-1]] if len(H)>0 else -1
+            Ht = [H+[order_dict[i]] for i in range(tp+1,Tmax)]
+            if all(map(self.is_independent, Ht)):
+                B.append(frozenset(H))
+                Q.extend(Ht)
+        return B
 
     def orlik_solomon_algebra(self, R, ordering=None):
         """

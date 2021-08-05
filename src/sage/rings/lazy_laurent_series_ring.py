@@ -733,7 +733,6 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             1
 
             sage: L = LazyTaylorSeriesRing(ZZ, 'z')
-
             sage: L(lambda i: i, 5, 1, 10)
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
             sage: L(lambda i: i, 5, (1, 10))
@@ -773,17 +772,26 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         .. TODO::
 
             Add a method to change the sparse/dense implementation.
+
+        TESTS::
+
+            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L(constant=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: constant must be zero for multivariate Taylor series
+
         """
         if valuation is None:
             valuation = 0
-        assert valuation >= 0, "the valuation of a Taylor series must be positive"
+        if valuation < 0:
+            raise ValueError("the valuation of a Taylor series must be positive")
 
         R = self._laurent_poly_ring
         if x is None:
             assert degree is None
             coeff_stream = CoefficientStream_uninitialized(self._sparse, valuation)
             return self.element_class(self, coeff_stream)
-
         try:
             # Try to build stuff using the polynomial ring constructor
             x = R(x)
@@ -793,6 +801,8 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             constant, degree = constant
         if constant is not None:
             constant = R(constant)
+            if len(self.variable_names()) > 1 and constant:
+                raise ValueError(f"constant must be zero for multivariate Taylor series")
         if x in R:
             if not x and not constant:
                 coeff_stream = CoefficientStream_zero(self._sparse)

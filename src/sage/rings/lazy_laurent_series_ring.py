@@ -321,6 +321,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
 
+        TESTS::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L(lambda n: 1/(n+1), degree=3)
+            Traceback (most recent call last):
+            ...
+            TypeError: no conversion of this rational to integer
+
         .. TODO::
 
             Add a method to change the sparse/dense implementation.
@@ -369,7 +377,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 if constant is None:
                     constant = ZZ.zero()
                 z = R.gen()
-                p = [x(i) for i in range(valuation, degree)]
+                p = [BR(x(i)) for i in range(valuation, degree)]
                 coeff_stream = CoefficientStream_exact(p, self._sparse, valuation=valuation, constant=constant, degree=degree)
                 return self.element_class(self, coeff_stream)
             return self.element_class(self, CoefficientStream_coefficient_function(x, self.base_ring(), self._sparse, valuation))
@@ -713,7 +721,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
 
         return False
 
-    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
+    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None, check=True):
         """
         Construct a Taylor series from ``x``.
 
@@ -723,6 +731,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         - ``valuation`` -- integer (optional); integer; a lower bound for the valuation of the series
         - ``constant`` -- (optional) the eventual constant of the series
         - ``degree`` -- (optional) the degree when the series is ``constant``
+        - ``check`` -- (optional) check that coefficients are homogeneous of the correct degree when they are retrieved
 
         EXAMPLES::
 
@@ -775,11 +784,29 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
 
         TESTS::
 
-            sage: L.<x,y> = LazyTaylorSeriesRing(QQ)
+            sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
             sage: L(constant=1)
             Traceback (most recent call last):
             ...
             ValueError: constant must be zero for multivariate Taylor series
+
+            sage: L(lambda n: 0)
+            O(x,y)^7
+
+            sage: L(lambda n: n)[3];
+            Traceback (most recent call last):
+            ...
+            ValueError: coefficient 1 at degree 1 is not a homogeneous polynomial
+
+            sage: L([1, 2, 3]);
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert [1, 2, 3] into a lazy Taylor series
+
+            sage: L(lambda n: n, degree=3);
+            Traceback (most recent call last):
+            ...
+            ValueError: coefficients must be homogeneous polynomials of the correct degree
 
         """
         if valuation is None:
@@ -788,6 +815,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             raise ValueError("the valuation of a Taylor series must be positive")
 
         R = self._laurent_poly_ring
+        BR = self.base_ring()
         if x is None:
             assert degree is None
             coeff_stream = CoefficientStream_uninitialized(self._sparse, valuation)
@@ -840,13 +868,27 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
                 if constant is None:
                     constant = ZZ.zero()
                 z = R.gen()
-                p = [x(i) for i in range(valuation, degree)]
+                if len(self.variable_names()) == 1:
+                    p = [BR(x(i)) for i in range(valuation, degree)]
+                else:
+                    p = [R(x(i)) for i in range(valuation, degree)]
+                    if not all(e.is_homogeneous() and e.degree() == i
+                               for i, e in enumerate(p, valuation)):
+                        raise ValueError("coefficients must be homogeneous polynomials of the correct degree")
                 coeff_stream = CoefficientStream_exact(p, self._sparse,
                                                        valuation=valuation,
                                                        constant=constant,
                                                        degree=degree)
                 return self.element_class(self, coeff_stream)
-            coeff_stream = CoefficientStream_coefficient_function(x, self._coeff_ring, self._sparse, valuation)
+            if check and len(self.variable_names()) > 1:
+                def y(n):
+                    e = R(x(n))
+                    if not e or e.is_homogeneous() and e.degree() == n:
+                        return e
+                    raise ValueError("coefficient %s at degree %s is not a homogeneous polynomial" % (e, n))
+                coeff_stream = CoefficientStream_coefficient_function(y, self._coeff_ring, self._sparse, valuation)
+            else:
+                coeff_stream = CoefficientStream_coefficient_function(x, self._coeff_ring, self._sparse, valuation)
             return self.element_class(self, coeff_stream)
         raise ValueError(f"unable to convert {x} into a lazy Taylor series")
 

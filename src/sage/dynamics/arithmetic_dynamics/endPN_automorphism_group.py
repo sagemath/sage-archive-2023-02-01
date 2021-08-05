@@ -1831,17 +1831,21 @@ def conjugating_set_initializer(f, g):
       is a list of ``points`` which are possible targets for point(s) in ``source``. ``repeated``
       specifies how many points in ``source`` have points in ``points`` as their possible target.
 
-    EXAMPLES::
+    EXAMPLES:
+
+    We check that ``source`` has no `n+1` linearly dependent points, and that
+    ``possible_targets`` tracks multiplier information::
 
         sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
         sage: f = DynamicalSystem([(8*x^7 - 35*x^4*y^3 - 35*x^4*z^3 - 7*x*y^6 - 140*x*y^3*z^3 \
                   - 7*x*z^6), (-7*x^6*y - 35*x^3*y^4 - 140*x^3*y*z^3 + 8*y^7 - 35*y^4*z^3 \
                   - 7*y*z^6), -7*x^6*z - 140*x^3*y^3*z - 35*x^3*z^4 - 7*y^6*z - 35*y^3*z^4 + 8*z^7])
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import conjugating_set_initializer
-        sage: conjugating_set_initializer(f, f)
-        ([(-1 : 0 : 1), (0 : -1 : 1), (0 : 1 : 0), (1 : 0 : 0)],
-         [[[(-1 : 0 : 1), (0 : -1 : 1), (-1 : 1 : 0)], 2],
-         [[(0 : 1 : 0), (1 : 0 : 0), (1 : 1 : 1), (0 : 0 : 1)], 2]])
+        sage: source, possible_targets = conjugating_set_initializer(f, f)
+        sage: P.is_linearly_independent(source, 3)
+        True
+        sage: f.multiplier(possible_targets[0][0][0], 1) == f.multiplier(source[0], 1)
+        True
     """
     n = f.domain().dimension_relative()
 
@@ -2140,10 +2144,10 @@ def conjugating_set_helper(f, g, num_cpus, source, possible_targets):
         sage: source = [P((1, 1)), P((0, 1)), P((1, 0))]
         sage: possible_targets = [[[P((1, 1))], 1], [[P((0, 1)), P((1, 0))], 2]]
         sage: from sage.dynamics.arithmetic_dynamics.endPN_automorphism_group import conjugating_set_helper
-        sage: conjugating_set_helper(f, f, 2, source, possible_targets)
+        sage: sorted(conjugating_set_helper(f, f, 2, source, possible_targets))
         [
-        [1 0]  [0 1]
-        [0 1], [1 0]
+        [0 1]  [1 0]
+        [1 0], [0 1]
         ]
     """
     Conj = []

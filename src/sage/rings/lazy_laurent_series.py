@@ -98,7 +98,8 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_sub,
     CoefficientStream_div,
     CoefficientStream_composition,
-    CoefficientStream_scalar,
+    CoefficientStream_lmul,
+    CoefficientStream_rmul,
     CoefficientStream_neg,
     CoefficientStream_cauchy_inverse,
     CoefficientStream_apply_coeff,
@@ -1010,7 +1011,7 @@ class LazySequencesModuleElement(LazySequenceElement):
     def _lmul_(self, scalar):
         r"""
         Scalar multiplication for module elements with the module
-        element on the left and the scalar on the right.
+        element on the right and the scalar on the left.
 
         INPUT:
 
@@ -1078,26 +1079,18 @@ class LazySequencesModuleElement(LazySequenceElement):
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: g = L.gen(2)
-            sage: 2*g
+            sage: 2 * g
             2/2^z
-            sage: -1*g
+            sage: -1 * g
             -1/(2^z)
             sage: 0*g
             0
             sage: M = L(lambda n: n); M
             1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + O(1/(8^z))
-            sage: M * 3
-            3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + O(1/(8^z))
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=True)
-            sage: M = L(lambda n: n); M
-            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + O(1/(8^z))
-            sage: M * 3
+            sage: 3 * M
             3 + 6/2^z + 9/3^z + 12/4^z + 15/5^z + 18/6^z + 21/7^z + O(1/(8^z))
 
             sage: 1 * M is M
-            True
-            sage: M * 1 is M
             True
 
         """
@@ -1114,7 +1107,51 @@ class LazySequencesModuleElement(LazySequenceElement):
             return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
                                                               valuation=v, constant=c,
                                                               degree=self._coeff_stream._degree))
-        return P.element_class(P, CoefficientStream_scalar(self._coeff_stream, scalar))
+        return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
+
+    def _rmul_(self, scalar):
+        r"""
+        Scalar multiplication for module elements with the module
+        element on the left and the scalar on the right.
+
+        INPUT:
+
+        - ``scalar`` -- an element of the base ring
+
+        EXAMPLES:
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+            sage: M = L(lambda n: 1 + n, valuation=0)
+            sage: 2 * M == M * 2
+            True
+
+        We take care of noncommutativity of the base ring::
+
+            sage: M = MatrixSpace(ZZ, 2)
+            sage: L.<t> = LazyTaylorSeriesRing(M)
+            sage: m = M([[1, 1],[0, 1]])
+            sage: n = M([[1, 0],[1, 1]])
+            sage: a = L(lambda k: n^k)
+            sage: (m*a - a*m)[3]
+            [-3  0]
+            [ 0  3]
+
+        """
+        P = self.parent()
+        if not scalar:
+            return P.zero()
+        if scalar == 1:
+            return self
+
+        if isinstance(self._coeff_stream, CoefficientStream_exact):
+            c = self._coeff_stream._constant * scalar
+            v = self._coeff_stream.valuation()
+            initial_coefficients = [v * scalar for v in self._coeff_stream._initial_coefficients]
+            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
+                                                              valuation=v, constant=c,
+                                                              degree=self._coeff_stream._degree))
+        return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
+
 
     def _neg_(self):
         """

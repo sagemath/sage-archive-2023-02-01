@@ -521,4 +521,3 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         t = self(lambda n: coefficient(t, n), valuation=valuation,
                  constant=constant, degree=degree)
         return t
-

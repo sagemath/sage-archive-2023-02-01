@@ -476,6 +476,14 @@ class CoefficientStream_exact(CoefficientStream):
     def polynomial_part(self, gen):
         """
         Return the initial part of ``self`` as a polynomial in ``gen``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
+            sage: s = CoefficientStream_exact([2], False, valuation=-1, degree=2, constant=1)
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: s.polynomial_part(z)
+            2*z^-1
         """
         R = gen.parent()
         v = self._approximate_valuation

@@ -3014,11 +3014,11 @@ cdef class Matroid(SageObject):
         - ``R`` -- the base ring
         - ``ordering`` -- (optional) an ordering of the ground set
         - optional parameter ``invariant`` -- (optional, default: None) either
-        a semigroup ``G`` whose ``__call__`` acts on the groundset, or pair
-        ``(G, action)`` where ``G`` is a semigroup and ``action``
-        is a function ``action(g,e)`` which takes a pair of a group
-        element and a grounset element and returns the groundset
-        element which is the result of ``e`` acted upon by ``g``
+          a semigroup ``G`` whose ``__call__`` acts on the groundset, or pair
+          ``(G, action)`` where ``G`` is a semigroup and ``action``
+          is a function ``action(g,e)`` which takes a pair of a group
+          element and a grounset element and returns the groundset
+          element which is the result of ``e`` acted upon by ``g``
 
         .. SEEALSO::
 
@@ -3058,9 +3058,9 @@ cdef class Matroid(SageObject):
             from sage.algebras.orlik_solomon import OrlikSolomonInvariantAlgebra
 
             return OrlikSolomonInvariantAlgebra(R, self, G,
-                                            action_on_groundset = action,
-                                            ordering=ordering,
-                                            **kwargs)
+                                                action_on_groundset=action,
+                                                ordering=ordering,
+                                                **kwargs)
 
         from sage.algebras.orlik_solomon import OrlikSolomonAlgebra
         return OrlikSolomonAlgebra(R, self, ordering)

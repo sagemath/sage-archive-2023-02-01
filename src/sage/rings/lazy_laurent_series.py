@@ -107,6 +107,7 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_zero,
     CoefficientStream_exact,
     CoefficientStream_uninitialized,
+    CoefficientStream_coefficient_function,
     CoefficientStream_dirichlet_convolution,
     CoefficientStream_dirichlet_inv
 )
@@ -2046,6 +2047,86 @@ class LazyTaylorSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
         sage: g == f
         True
     """
+    def __call__(self, *g):
+        r"""Return the composition of ``self`` with ``g``.
+
+        The arity of ``self`` must be equal to the number of
+        arguments provided.
+
+        Given two Taylor Series `f` and `g` over the same base ring, the
+        composition `(f \circ g)(z) = f(g(z))` is defined if and only if:
+
+        - `g = 0` and `val(f) >= 0`,
+        - `g` is non-zero and `f` has only finitely many non-zero coefficients,
+        - `g` is non-zero and `val(g) > 0`.
+
+        INPUT:
+
+        - ``g`` -- other series, all of the same parent.
+
+        EXAMPLES::
+
+            sage: L.<x, y, z> = LazyTaylorSeriesRing(QQ)
+            sage: M.<a, b> = LazyTaylorSeriesRing(ZZ)
+            sage: g1 = 1/(1-x); g2 = x+y^2
+            sage: p = a^2 + b + 1
+            sage: p(g1, g2) - g1^2 - g2 - 1
+            O(x,y,z)^7
+
+            sage: L.<x, y, z> = LazyTaylorSeriesRing(QQ)
+            sage: M.<a> = LazyTaylorSeriesRing(QQ)
+
+        The number of mappings from a set with `m` elements to a set
+        with `n` elements::
+
+            sage: Ea = M(lambda n: 1/factorial(n))
+            sage: Ex = L(lambda n: 1/factorial(n)*x^n)
+            sage: Ea(Ex*y)[5]
+            1/24*x^4*y + 2/3*x^3*y^2 + 3/4*x^2*y^3 + 1/6*x*y^4 + 1/120*y^5
+
+        So, there are `3! 2! 2/3 = 8` mappings from a three element
+        set to a two element set.
+
+        TESTS::
+
+            sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+            sage: f = 1/(1-x-y)
+            sage: f(f)
+            Traceback (most recent call last):
+            ...
+            ValueError: arity of must be equal to the number of arguments provided
+
+        """
+        if len(g) != len(self.parent().variable_names()):
+            raise ValueError("arity of must be equal to the number of arguments provided")
+
+        # f has finite length
+        if isinstance(self._coeff_stream, CoefficientStream_exact) and not self._coeff_stream._constant:
+            # constant polynomial
+            poly = self.finite_part()
+            if poly.is_constant():
+                return self
+            return poly(g)
+
+        g0 = g[0]
+        P = g0.parent()
+        R = P._coeff_ring
+        if len(g) == 1:
+            # we assume that the valuation of self[i](g) is at least i
+            def coefficient(n):
+                r = R(0)
+                for i in range(n+1):
+                    r += self[i]*(g0 ** i)[n]
+                return r
+        else:
+            def coefficient(n):
+                r = R(0)
+                for i in range(n+1):
+                    r += self[i](g)[n]
+                return r
+        coeff_stream = CoefficientStream_coefficient_function(coefficient, P._coeff_ring, P._sparse, 0)
+        return P.element_class(P, coeff_stream)
+
     def change_ring(self, ring):
         """
         Return this series with coefficients converted to elements of ``ring``.

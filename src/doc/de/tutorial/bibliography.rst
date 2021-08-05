@@ -8,10 +8,10 @@ Literaturverzeichnis
     http://www.diveintopython.net/.
 
 ..  [GAP] The GAP Group, GAP - Groups, Algorithms, and
-    Programming, Version 4.4; 2005, http://www.gap-system.org/.
+    Programming, Version 4.4; 2005, https://www.gap-system.org/.
 
 ..  [GAPkg] GAP Packages,
-    http://www.gap-system.org/Packages/packages.html/.
+    https://www.gap-system.org/Packages/packages.html/.
 
 ..  [GP] PARI/GP, http://pari.math.u-bordeaux.fr/.
 

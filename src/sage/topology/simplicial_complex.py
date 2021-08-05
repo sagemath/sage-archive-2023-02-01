@@ -148,7 +148,6 @@ We can also make mutable copies of an immutable simplicial complex
     sage: S == T
     True
 """
-from operator import index as PyNumber_Index
 
 # possible future directions for SimplicialComplex:
 #
@@ -171,12 +170,11 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.structure.category_object import normalize_names
 from sage.misc.latex import latex
-from sage.misc.misc import union
 from sage.matrix.constructor import matrix
 from sage.homology.chain_complex import ChainComplex
 from sage.graphs.graph import Graph
 from functools import reduce, total_ordering
-from itertools import combinations
+from itertools import combinations, chain
 lazy_import('sage.categories.simplicial_complexes', 'SimplicialComplexes')
 
 
@@ -1005,7 +1003,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         Parent.__init__(self, category=category)
 
         C = None
-        vertex_set = ()
+        vertices = ()
         if from_characteristic_function is not None:
             from sage.combinat.subsets_hereditary import subsets_with_hereditary_property
             f, X = from_characteristic_function
@@ -1022,8 +1020,13 @@ class SimplicialComplex(Parent, GenericCellComplex):
                 if not isinstance(maximal_faces, (list, tuple, Simplex)):
                     # Convert it into a list (in case it is an iterable)
                     maximal_faces = list(maximal_faces)
-                if maximal_faces:
-                    vertex_set = reduce(union, maximal_faces)
+                if len(maximal_faces) == 1 and isinstance(maximal_faces[0], (int, Integer)):
+                    # list containing a single non-negative integer n;
+                    # construct the simplicial complex with a single n-simplex as the only facet.
+                    vertices = tuple(range(maximal_faces[0] + 1))
+                    maximal_faces = [vertices]
+                elif maximal_faces:
+                    vertices = tuple(set(chain.from_iterable(maximal_faces)))
         if C is not None:
             self._facets = list(C.facets())
             self._faces = copy(C._faces)
@@ -1037,16 +1040,6 @@ class SimplicialComplex(Parent, GenericCellComplex):
             if not is_mutable or is_immutable:
                 self.set_immutable()
             return
-
-        try:
-            # Check whether vertex_set is an integer
-            n = PyNumber_Index(vertex_set)
-        except TypeError:
-            pass
-        else:
-            vertex_set = range(n + 1)
-
-        vertices = tuple(vertex_set)
 
         gen_dict = {}
         for v in vertices:
@@ -2719,8 +2712,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
             self._facets.append(Simplex(-1))
 
         # Recreate the vertex set
-        from sage.misc.misc import union
-        vertices = tuple(reduce(union, self._facets))
+        vertices = set(chain.from_iterable(self._facets))
         for v in self.vertices():
             if v not in vertices:
                 del self._vertex_to_index[v]
@@ -4615,7 +4607,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         else:
             return Skel.chromatic_number() == d
 
-    def is_partitionable(self, certificate=False):
+    def is_partitionable(self, certificate=False,
+                         *, solver=None, integrality_tolerance=1e-3):
         r"""
         Determine whether ``self`` is partitionable.
 
@@ -4639,6 +4632,17 @@ class SimplicialComplex(Parent, GenericCellComplex):
         - ``certificate`` -- (default: ``False``)  If ``True``,
           and ``self`` is partitionable, then return a list of pairs `(R,F)`
           that form a partitioning.
+
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+          (MILP) solver to be used. If set to ``None``, the default one is used. For
+          more information on MILP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+          inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -4676,7 +4680,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         RFPairs = [(Simplex(r), f, f.dimension() - len(r) + 1)
                    for f in self.facets() for r in Set(f).subsets()]
         n = len(RFPairs)
-        IP = MixedIntegerLinearProgram()
+        IP = MixedIntegerLinearProgram(solver=solver)
         y = IP.new_variable(binary=True)
         for i0, pair0 in enumerate(RFPairs):
             for i1, pair1 in enumerate(RFPairs):
@@ -4690,8 +4694,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         elif not certificate:
             return True
         else:
-            x = IP.get_values(y)
-            return [RFPairs[i] for i in range(n) if x[i] == 1]
+            x = IP.get_values(y, convert=bool, tolerance=integrality_tolerance)
+            return [RFPairs[i] for i in range(n) if x[i]]
 
     def intersection(self, other):
         r"""

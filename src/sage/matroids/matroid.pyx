@@ -3044,7 +3044,7 @@ cdef class Matroid(SageObject):
             True
 
         """
-        if 'invariant' in kwargs.keys():
+        if 'invariant' in kwargs:
             G_action = kwargs.pop('invariant')
             from sage.categories.semigroups import Semigroups
 

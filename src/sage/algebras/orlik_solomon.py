@@ -541,7 +541,8 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
 
         sage: M = matroids.CompleteGraphic(4)
         sage: G = SymmetricGroup(4)
-        sage: edge_map = {i: M.groundset_to_edges([i])[0][:2] for i in M.groundset()}
+        sage: edge_map = {i: M.groundset_to_edges([i])[0][:2]
+        ....:             for i in M.groundset()}
         sage: inv_map = {v: k for k, v in edge_map.items()}
         sage: def vert_action(g, x):
         ....:     a, b = edge_map[x]
@@ -565,7 +566,7 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
 
     We demonstrate the algebra structure::
 
-        sage: matrix([[b*bp for b in B] for bp in B])                                                                              
+        sage: matrix([[b*bp for b in B] for bp in B])
         [ B[0]  B[1]  B[2]  B[3]  B[4]  B[5]  B[6]  B[7]]
         [ B[1]     0 -B[4] -B[5]     0     0  B[7]     0]
         [ B[2]  B[4]     0  B[6]     0  B[7]     0     0]
@@ -601,20 +602,45 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
 
         if action_on_groundset is None:
             # if sage knows the action, we don't need to provide it
-            action_on_groundset = lambda g, x: g(x)
+            def action_on_groundset(g, x): return g(x)
 
         self._groundset_action = action_on_groundset
 
-        side = kwargs.pop('side', 'left')
+        self._side = side = kwargs.pop('side', 'left')
         category = kwargs.pop('category', OS.category().Subobjects())
 
         def action(g, m):
             return OS.sum(c * self._basis_action(g, x)
                           for x,c in m._monomial_coefficients.items())
 
-        FiniteDimensionalInvariantModule.__init__(self, OS, G,
-                                                  action=action,
-                                                  *args, **kwargs)
+        self._action = action
+
+        # Since an equivariant matroid yields a degree-preserving action
+        # on the basis of OS, the matrix which computes the action when
+        # computing the invariant will be a block matrix. To avoid dealing
+        # with huge matrices, we can split it up into graded pieces.
+
+        max_deg = max([b.degree() for b in OS.basis()])
+        B = []  #initialize the basis
+        for d in range(max_deg+1):
+            OS_d = OS.homogeneous_component(d)
+            OSG_d = OS_d.invariant_module(G, action=action, category=category)
+            B += [OS_d.lift(OSG_d.lift(b)) for b in OSG_d.basis()]
+
+        # `FiniteDimensionalInvariantModule.__init__` is already called
+        # by `OS_d.invariant_module`, and so we pass to the superclass
+        # of `FiniteDimensionalInvariantModule`, which is `SubmoduleWithBasis`.
+        from sage.modules.with_basis.subquotient import SubmoduleWithBasis
+        SubmoduleWithBasis.__init__(self, Family(B),
+                                    support_order=OS._compute_support_order(B),
+                                    ambient=OS,
+                                    unitriangular=False,
+                                    category=category,
+                                    *args, **kwargs)
+
+        # To subclass FiniteDimensionalInvariant module, we also need a
+        # self._semigroup method.
+        self._semigroup = G
 
     def _basis_action(self, g, f):
         r"""
@@ -640,7 +666,8 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
             sage: def on_groundset(g,x):
             ....:     return g(x+1)-1
             sage: OSG = M.orlik_solomon_algebra(QQ, invariant=(G,on_groundset))
-            sage: act = lambda g: (OSG._basis_action(g,frozenset({0,1})), OSG._basis_action(g,frozenset({0,2})))
+            sage: act = lambda g: (OSG._basis_action(g,frozenset({0,1})),
+            ....:                  OSG._basis_action(g,frozenset({0,2})))
             sage: [act(g) for g in G]
             [(OS{0, 1}, OS{0, 2}),
              (-OS{0, 2}, OS{0, 1} - OS{0, 2}),
@@ -688,4 +715,3 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
             gx = gx * OS.subset_image(fset)
 
         return gx
-

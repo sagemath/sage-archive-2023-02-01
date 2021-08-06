@@ -575,8 +575,6 @@ class ModularForm_abstract(ModuleElement):
 
         return parent_space(der)
 
-    theta_operator = serre_derivative
-
     def atkin_lehner_eigenvalue(self, d=None, embedding=None):
         """
         Return the eigenvalue of the Atkin-Lehner operator `W_d`

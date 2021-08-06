@@ -17,9 +17,7 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.modular.modform.eis_series import eisenstein_series_qexp
-from sage.modular.modform.element import GradedModularFormElement, ModularFormElement
-
-from sage.rings.all import Integer, QQ, ZZ
+from sage.modular.modform.element import GradedModularFormElement
 
 from sage.structure.element import ModuleElement
 from sage.structure.richcmp import richcmp, op_NE, op_EQ
@@ -107,7 +105,7 @@ class QuasiModularFormsElement(ModuleElement):
 
         An alias of this method is ``qexp``.
 
-        EXAMPLES:::
+        EXAMPLES::
 
             sage: QM = QuasiModularForms()
             sage: E2 = QM.0

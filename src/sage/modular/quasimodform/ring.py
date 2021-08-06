@@ -137,9 +137,6 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             Modular Group SL(2,Z)
             sage: M.base_ring()
             Rational Field
-            sage: M = QuasiModularForms(1, Integers(5))
-            sage: M.base_ring()
-            Ring of integers modulo 5
             sage: QuasiModularForms(2)
             Traceback (most recent call last):
             ...
@@ -148,9 +145,6 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             ValueError: Group (=Ring of integers modulo 5) should be a congruence subgroup
-            sage: M2 = QuasiModularForms(1, GF(7))
-            sage: M == M2
-            False
 
         ::
 
@@ -169,7 +163,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             raise NotImplementedError("space of quasimodular forms are only implemented for the full modular group")
 
         #Check if the base ring is the rationnal field
-        if not base_ring != QQ:
+        if base_ring != QQ:
             raise NotImplementedError("base ring other than Q are not yet supported for quasimodular forms ring")
 
         self.__group = group
@@ -208,8 +202,10 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
             sage: QuasiModularForms(1).base_ring()
             Rational Field
-            sage: QuasiModularForms(1, base_ring=Integers(5)).base_ring()
-            Ring of integers modulo 5
+            sage: QuasiModularForms(1, GF(5))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: base ring other than Q are not yet supported for quasimodular forms ring
         """
         return self.__base_ring
 
@@ -264,8 +260,6 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
             sage: QuasiModularForms(1)._repr_()
             'Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field'
-            sage: QuasiModularForms(1, base_ring=Integers(13))._repr_()
-            'Ring of Quasimodular Forms for Modular Group SL(2,Z) over Ring of integers modulo 13'
         """
         return "Ring of Quasimodular Forms for %s over %s" % (self.group(), self.base_ring())
 

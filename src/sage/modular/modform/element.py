@@ -523,6 +523,60 @@ class ModularForm_abstract(ModuleElement):
             self.__q_expansion = (prec, f)
             return f
 
+    def serre_derivative(self):
+        """
+        Return the Serre derivative of the given modular form. If ``self`` is of
+        weight `k`, then the returned modular form will be of weight `k+2`.
+
+        EXAMPLES::
+
+            sage: E4 = ModularForms(1, 4).0
+            sage: E4.serre_derivative()
+            -1/3 + 168*q + 5544*q^2 + 40992*q^3 + 177576*q^4 + 525168*q^5 + O(q^6)
+            sage: Del = ModularForms(1, 12).0
+            sage: Del.serre_derivative()
+            0
+            sage: f = ModularForms(DirichletGroup(7).0, 5).0
+            sage: Df = f.serre_derivative(); Df
+            7/12*q + 10*q^2 + (-31/12*zeta6 + 329/12)*q^3 + (-17/6*zeta6 + 137/6)*q^4 + (125/4*zeta6 - 125/2)*q^5 + O(q^6)
+            sage: f.weight()
+            5
+            sage: Df.weight()
+            7
+        """
+        # the result is not always integral
+        # but maybe this can be fixed by changing the normalization of E2
+        if not self.base_ring().is_field():
+            raise NotImplementedError("the base ring of the modular form should be a field")
+        if self.base_ring().characteristic():
+            raise NotImplementedError("the characteristic of the base ring should be zero")
+
+        from .eis_series import eisenstein_series_qexp
+        from .constructor import ModularForms
+
+        # check if the parent space has a character or not
+        if self.parent().has_character():
+            group = self.parent().character()
+        else:
+            group = self.parent().group()
+
+        # raise the weight by 2
+        parent_space = ModularForms(group, self.weight() + 2, self.base_ring())
+
+        # compute the precision for q-expansions
+        bound = parent_space._q_expansion_module().degree() + 1
+        E2 = eisenstein_series_qexp(2, prec=bound, K=self.base_ring(), normalization='integral')
+        self_qexp = self.q_expansion(prec=bound)
+
+        # compute the derivative via q-expansions
+        q = self_qexp.parent().gen()
+
+        der = q * self_qexp.derivative() + (self.weight()/12)*E2*self_qexp
+
+        return parent_space(der)
+
+    theta_operator = serre_derivative
+
     def atkin_lehner_eigenvalue(self, d=None, embedding=None):
         """
         Return the eigenvalue of the Atkin-Lehner operator `W_d`

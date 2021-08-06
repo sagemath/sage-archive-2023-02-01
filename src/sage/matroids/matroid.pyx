@@ -345,6 +345,7 @@ from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.matroids.lean_matrix cimport BinaryMatrix, TernaryMatrix
 from sage.misc.prandom import shuffle
 
+cimport cython
 
 # On some systems, macros "minor()" and "major()" are defined in system header
 # files. This will undefine those:
@@ -2964,6 +2965,8 @@ cdef class Matroid(SageObject):
                     break
         return frozenset(ret)
 
+    @cython.boundscheck(False)  # deactivate bound checks
+    @cython.wraparound(False)   # deactivate negative indexing
     cpdef no_broken_circuits_sets(self, ordering=None):
         r"""
         Return the no broken circuits (NBC) sets of ``self``.
@@ -3006,29 +3009,37 @@ cdef class Matroid(SageObject):
             minimal-removal convention, while the implementation is not
             modified from the published algorithm.
         """
-        from collections import deque
+        cdef list rev_order
 
-        if not ordering:
-            ordering = sorted(self.groundset())
-
-        Tmax = len(self.groundset())
+        if ordering is None:
+            rev_order = sorted(self.groundset(), reverse=True)
+        else:
+            if frozenset(ordering) != self.groundset():
+                raise ValueError("not an ordering of the groundset")
+            rev_order = list(reversed(ordering))
 
         # The algorithm uses the convention that the maximum element is removed.
         # Sage uses the convention that the minimum element is removed. The keys
         # of order_dict are adjusted accordingly.
-        order_dict = {Tmax-i-1:e for i,e in enumerate(ordering)}
-        reverse_dict = {value:key for key,value in order_dict.items()}
+        cdef Py_ssize_t Tmax = len(rev_order)
+        cdef dict reverse_dict = {value: key for key, value in enumerate(rev_order)}
 
-        B = list()
-        Q = deque(([],))
-        i = 0
-        while Q:
-            H = Q.popleft()
-            tp = reverse_dict[H[-1]] if len(H)>0 else -1
-            Ht = [H+[order_dict[i]] for i in range(tp+1,Tmax)]
-            if all(map(self.is_independent, Ht)):
-                B.append(frozenset(H))
-                Q.extend(Ht)
+        cdef list H, Ht, B = [frozenset()]
+        cdef list next_level = [[val] for val in rev_order]
+        cdef list cur_level
+        cdef Py_ssize_t i = 0
+        cdef Py_ssize_t tp
+        cdef Py_ssize_t level = -1
+        while next_level:
+            cur_level = next_level
+            next_level = []
+            level += 1
+            for H in cur_level:
+                tp = (<Py_ssize_t> reverse_dict[H[level]]) + 1
+                Ht = [H + [rev_order[i]] for i in range(tp, Tmax)]
+                if all(map(self.is_independent, Ht)):
+                    B.append(frozenset(H))
+                    next_level.extend(Ht)
         return B
 
     def orlik_solomon_algebra(self, R, ordering=None):

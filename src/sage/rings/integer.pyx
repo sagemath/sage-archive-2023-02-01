@@ -7148,14 +7148,13 @@ def GCD_list(v):
         sage: GCD_list([])
         0
     """
-    if not isinstance(v, list):
-        v = list(v)
-
     cdef int i, n = len(v)
     cdef Integer z = <Integer>PY_NEW(Integer)
 
     for i from 0 <= i < n:
         if not isinstance(v[i], Integer):
+            if not isinstance(v, list):
+                v = list(v)
             v[i] = Integer(v[i])
 
     if n == 0:

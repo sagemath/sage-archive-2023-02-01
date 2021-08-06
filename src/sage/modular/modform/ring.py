@@ -351,7 +351,7 @@ class ModularFormsRing(Parent):
 
     def _monomials_of_weight(self, weight, gens, poly_parent):
         r"""
-        Returns the dictionnary of all homogeneous monomials of weight ``weight`` given by
+        Return the dictionnary of all homogeneous monomials of weight ``weight`` given by
         products of generators. The keys of the dictionnary are the monomials living in
         `poly_parent` and the values are the modular forms associated to these polynomials.
 

@@ -3025,7 +3025,8 @@ cdef class Matroid(SageObject):
         cdef dict reverse_dict = {value: key for key, value in enumerate(rev_order)}
 
         cdef list H, Ht, B = [frozenset()]
-        cdef list next_level = [[val] for val in rev_order]
+        cdef frozenset loops = self.loops()
+        cdef list next_level = [[val] for val in rev_order if val not in loops]
         cdef list cur_level
         cdef Py_ssize_t i = 0
         cdef Py_ssize_t tp
@@ -3037,7 +3038,7 @@ cdef class Matroid(SageObject):
             for H in cur_level:
                 tp = (<Py_ssize_t> reverse_dict[H[level]]) + 1
                 Ht = [H + [rev_order[i]] for i in range(tp, Tmax)]
-                if all(map(self.is_independent, Ht)):
+                if all(map(self._is_independent, map(frozenset, Ht))):
                     B.append(frozenset(H))
                     next_level.extend(Ht)
         return B

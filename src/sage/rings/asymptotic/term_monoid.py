@@ -4572,7 +4572,7 @@ class BTerm(TermWithCoefficient):
 
         OUTPUT:
 
-        A pair ``(cls, kwds)`` such that``cls(**kwds)`` equals this term.
+        A pair ``(cls, kwds)`` such that ``cls(**kwds)`` equals this term.
 
         EXAMPLES::
 

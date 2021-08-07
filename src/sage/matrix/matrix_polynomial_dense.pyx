@@ -25,8 +25,8 @@ AUTHORS:
 - Vincent Neiger (2021-07-29): added popov_form(). Added more options to
   weak_popov_form() (column-wise, ordered, zero rows).
 
-- Vincent Neiger (2021-08-02): added inverse_series_trunc(),
-  solve_left_series_trunc().
+- Vincent Neiger (2021-08-07): added inverse_series_trunc(),
+  solve_{left/right}_series_trunc(), {left/right}_quo_rem(), reduce().
 """
 # ****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>
@@ -737,11 +737,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         that `AB` and `BA` are the identity matrix modulo `x^d`, where `A` is
         ``self``.
 
-        ALGORITHM:
-
-        This uses Newton iteration, performing about `\log(d)` polynomial
-        matrix multiplications in size `m \times m` and in degree less than
-        `2d`, where `m` is the row dimension of ``self``.
+        ALGORITHM: This uses Newton iteration, performing about `\log(d)`
+        polynomial matrix multiplications in size `m \times m` and in degree
+        less than `2d`, where `m` is the row dimension of ``self``.
 
         EXAMPLES::
 
@@ -779,10 +777,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. TODO::
 
-            July 2021: in the current state of polynomial matrix
-            multiplication, it would be highly beneficial to use conversions
-            and rely on polynomials with matrix coefficients when the matrix
-            size is "large" and the degree "small", see
+            in the current state of polynomial matrix multiplication (July
+            2021), it would be highly beneficial to use conversions and rely on
+            polynomials with matrix coefficients when the matrix size is
+            "large" and the degree "small", see
             [https://trac.sagemath.org/ticket/31472#comment:5].
         """
         if d <= 0:
@@ -2020,7 +2018,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: P==M.weak_popov_form(shifts=[-10,-8,-6])
             True
 
-        Column-wise form is the row-wise form of the transpose:
+        Column-wise form is the row-wise form of the transpose::
 
             sage: M.weak_popov_form() == M.T.weak_popov_form(row_wise=False).T
             True
@@ -2299,7 +2297,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.popov_form(shifts=[2*dd,dd,0]) == M.hermite_form()
             True
 
-        Column-wise form is the row-wise form of the transpose:
+        Column-wise form is the row-wise form of the transpose::
 
             sage: M.popov_form() == M.T.popov_form(row_wise=False).T
             True
@@ -2600,8 +2598,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. SEEALSO::
         
-            :meth:`is_hermite` .
-            :meth:`popov_form` ,
+            :meth:`is_hermite` ,
+            :meth:`popov_form` .
         """
         A = self.__copy__()
         U = A._hermite_form_euclidean(transformation=transformation,
@@ -2628,7 +2626,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         This method directly calls :meth:`right_quo_rem` on transposed
         matrices, and transposes the result. See :meth:`right_quo_rem` for a
-        complete documentation and tests.
+        complete documentation and more examples.
 
         EXAMPLES::
 
@@ -2820,7 +2818,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             ...
             ValueError: division of these matrices does not admit a remainder
             with the required degree property
-            sage: D = B.__copy__(); D[2,:] = B[0,:]+B[1,:] # square, singular
+            sage: D = copy(B); D[2,:] = B[0,:]+B[1,:] # square, singular
             sage: A.right_quo_rem(D)
             Traceback (most recent call last):
             ...
@@ -3038,7 +3036,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             Traceback (most recent call last):
             ...
             ValueError: dividing via system solving yields no solution
-            sage: D = B.__copy__(); D[2,:] = B[0,:]+B[1,:] # square, singular
+            sage: D = copy(B); D[2,:] = B[0,:]+B[1,:] # square, singular
             sage: A._right_quo_rem_solve(D)
             Traceback (most recent call last):
             ...
@@ -3097,13 +3095,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         `B`, `i` th column of `R` and `A`, column-wise `s`-leading positions
         and `s`-Popov form, and submatrices `R_{J,*}` and `P_{J,*}`.
 
-        The operation above can be seen as a generalization of division with
-        remainder for univariate polynomials. If the option ``return_quotient``
-        is set to ``True``, this method returns both the normal form `R` and a
-        quotient matrix `Q` such that `A = QB + R` (or `A = BQ + R` if
-        ``row_wise`` is ``False``). This quotient is not unique unless `B` has
-        a trivial left kernel i.e. has full row rank (or right kernel, full
-        column rank if ``row_wise`` is ``False``).
+        The operation above can be seen as a matrix generalization of division
+        with remainder for univariate polynomials. If the option
+        ``return_quotient`` is set to ``True``, this method returns both the
+        normal form `R` and a quotient matrix `Q` such that `A = QB + R` (or `A
+        = BQ + R` if ``row_wise`` is ``False``). Whereas the remainder is
+        unique, this quotient is not unique unless `B` has a trivial left
+        kernel i.e. has full row rank (or right kernel, full column rank if
+        ``row_wise`` is ``False``).
 
         This method checks whether `B` is in `s`-Popov form, and if not,
         computes the `s`-Popov form `P` of `B`, which can take some time.

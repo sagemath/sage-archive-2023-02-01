@@ -572,7 +572,7 @@ class ModularForm_abstract(ModuleElement):
         R = self.base_ring()
         q = self_qexp.parent().gen()
         mult = R(self.weight()) * R(12).inverse_of_unit()
-        der = q * self_qexp.derivative() + (mult)*E2*self_qexp
+        der = q * self_qexp.derivative() + (mult) * E2 * self_qexp
 
         return parent_space(der)
 

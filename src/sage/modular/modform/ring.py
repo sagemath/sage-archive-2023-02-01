@@ -30,7 +30,7 @@ from .constructor                 import ModularForms
 from .element import is_ModularFormElement, GradedModularFormElement
 from .space import is_ModularFormsSpace
 from random import shuffle
-from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
+
 from sage.rings.polynomial.multi_polynomial import MPolynomial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -349,47 +349,6 @@ class ModularFormsRing(Parent):
         degs = [f.weight() for f in gens]
         return PolynomialRing(self.base_ring(), len(gens), names, order=TermOrder('wdeglex', degs)) # Should we remove the deg lexicographic ordering here?
 
-    def _monomials_of_weight(self, weight, gens, poly_parent):
-        r"""
-        Returns the dictionnary of all homogeneous monomials of weight ``weight`` given by
-        products of generators. The keys of the dictionnary are the monomials living in
-        `poly_parent` and the values are the modular forms associated to these polynomials.
-
-        TESTS::
-
-            sage: M = ModularFormsRing(1)
-            sage: gens = M.gen_forms()
-            sage: M._monomials_of_weight(24, gens, QQ['E4, E6'])
-            {E6^4: 1 - 2016*q + 1457568*q^2 - 411997824*q^3 + 16227967392*q^4 + 6497071680960*q^5 + O(q^6),
-            E4^3*E6^2: 1 - 288*q - 325728*q^2 + 11700864*q^3 + 35176468896*q^4 + 6601058210880*q^5 + O(q^6),
-            E4^6: 1 + 1440*q + 876960*q^2 + 292072320*q^3 + 57349833120*q^4 + 6660135541440*q^5 + O(q^6)}
-            sage: M = ModularFormsRing(Gamma0(6))
-            sage: gens = M.gen_forms()
-            sage: M._monomials_of_weight(4, gens, QQ['g0, g1, g2'])
-            {g2^2: q^4 - 4*q^5 + O(q^6),
-            g1*g2: q^3 - 2*q^4 + 8*q^5 + O(q^6),
-            g0*g2: q^2 - 2*q^3 + 3*q^4 + 24*q^5 + O(q^6),
-            g1^2: q^2 + 10*q^4 - 4*q^5 + O(q^6),
-            g0*g1: q + 5*q^3 + 22*q^4 + 6*q^5 + O(q^6),
-            g0^2: 1 + 48*q^3 + O(q^6)}
-        """
-        # create the set of "weighted exponents"
-        weights_of_generators = [gens[i].weight() for i in range(0, len(gens))]
-        W = WeightedIntegerVectors(weight, weights_of_generators).list()
-        if len(W) == 0:
-            raise ValueError("there is no modular forms of the given weight (%s) for %s"%(weight, self.group()))
-
-        # for each weighted exponents, establish an association between the monomials
-        dict_of_monomials = {}
-        for exponents in W:
-            monomial_forms = 1; monomial_poly = 1
-            iter = 0
-            for e, g in zip(exponents, gens):
-                monomial_forms *= self(g)**e
-                monomial_poly *= poly_parent.gen(iter)**e
-                iter += 1
-            dict_of_monomials[monomial_poly] = monomial_forms
-        return dict_of_monomials
 
     def _generators_variables_dictionnary(self, poly_parent, gens):
         r"""

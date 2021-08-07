@@ -828,9 +828,9 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         if isinstance(constant, (tuple, list)):
             constant, degree = constant
         if constant is not None:
-            constant = R(constant)
             if len(self.variable_names()) > 1 and constant:
                 raise ValueError(f"constant must be zero for multivariate Taylor series")
+            constant = BR(constant)
         if x in R:
             if not x and not constant:
                 coeff_stream = CoefficientStream_zero(self._sparse)

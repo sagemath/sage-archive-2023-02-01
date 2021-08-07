@@ -1114,11 +1114,11 @@ class CoefficientStream_sub(CoefficientStream_binary):
             n += 1
 
 
-class CoefficientStream_cauchy_product(CoefficientStream_binary_commutative):
+class CoefficientStream_cauchy_product(CoefficientStream_binary):
     """
     Operator for multiplication of two coefficient streams.
 
-    We are assuming commutativity of the coefficient ring here.
+    We are not assuming commutativity of the coefficient ring here.
 
     INPUT:
 

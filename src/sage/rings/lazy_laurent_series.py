@@ -1125,7 +1125,7 @@ class LazySequencesModuleElement(LazySequenceElement):
             sage: 2 * M == M * 2
             True
 
-        We take care of noncommutativity of the base ring::
+        We take care of noncommutative base rings::
 
             sage: M = MatrixSpace(ZZ, 2)
             sage: L.<t> = LazyTaylorSeriesRing(M)
@@ -1147,9 +1147,12 @@ class LazySequencesModuleElement(LazySequenceElement):
             c = self._coeff_stream._constant * scalar
             v = self._coeff_stream.valuation()
             initial_coefficients = [v * scalar for v in self._coeff_stream._initial_coefficients]
-            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
-                                                              valuation=v, constant=c,
-                                                              degree=self._coeff_stream._degree))
+            coeff_stream = CoefficientStream_exact(initial_coefficients, P._sparse,
+                                                   valuation=v, constant=c,
+                                                   degree=self._coeff_stream._degree)
+            return P.element_class(P, coeff_stream)
+        if P.base_ring().is_commutative():
+            return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
         return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
 
 
@@ -1246,14 +1249,11 @@ class LazyCauchyProductSeries(RingElement):
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: (1 - z)*(1 - z)
             1 - 2*z + z^2
-            sage: (1 - z)*(1 - z)*(1 - z)
-            1 - 3*z + 3*z^2 - z^3
-            sage: M = L(lambda n: n)
-            sage: M
+            sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
-            sage: N = M * (1 - M)
-            sage: N
+            sage: N = M * (1 - M); N
             z + z^2 - z^3 - 6*z^4 - 15*z^5 - 29*z^6 + ...
+
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
@@ -1275,6 +1275,41 @@ class LazyCauchyProductSeries(RingElement):
             sage: (1 - x)*(1 - y)*(1 - z)
             1 + (-x-y-z) + (x*y+x*z+y*z) + (-x*y*z)
 
+        We take care of noncommutative base rings::
+
+            sage: M = MatrixSpace(ZZ, 2)
+            sage: L.<t> = LazyTaylorSeriesRing(M)
+            sage: m = M([[1, 1],[0, 1]])
+            sage: n = M([[1, 0],[1, 1]])
+            sage: a = 1/(1-m*t)
+            sage: b = 1 + n*t
+            sage: (b*a-a*b)[20]
+            [-19   0]
+            [  0  19]
+
+        Multiplication of series with eventually constant
+        coefficients may yield another such series::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR)
+            sage: var("a b c d e u v w")
+            (a, b, c, d, e, u, v, w)
+            sage: s = a/z^2 + b*z + c*z^2 + d*z^3 + e*z^4
+            sage: t = L([u, v], constant=w, valuation=-1)
+            sage: s1 = s.approximate_series(44)
+            sage: t1 = t.approximate_series(44)
+            sage: s1 * t1 - (s * t).approximate_series(42)
+            O(z^42)
+
+        Noncommutative::
+
+            sage: M = MatrixSpace(ZZ, 2)
+            sage: L.<t> = LazyTaylorSeriesRing(M)
+            sage: a = L([m], degree=1)
+            sage: b = n*~(1-t)
+            sage: (a*b)[0]
+            [2 1]
+            [1 1]
+
         """
         P = self.parent()
         left = self._coeff_stream
@@ -1289,17 +1324,38 @@ class LazyCauchyProductSeries(RingElement):
         # exact, and one has eventually 0 coefficients:
         #   (p + a x^d/(1-x))(q + b x^e/(1-x))
         #   = p q + (a x^d q + b x^e p)/(1-x) + a b x^(d+e)/(1-x)^2
-        # for the moment we only consider the case where bothe have eventually 0 coefficients
-        if (isinstance(left, CoefficientStream_exact) and not left._constant
-            and isinstance(right, CoefficientStream_exact) and not right._constant):
+        if (isinstance(left, CoefficientStream_exact)
+            and isinstance(right, CoefficientStream_exact)
+            and not (left._constant and right._constant)):
             il = left._initial_coefficients
             ir = right._initial_coefficients
             initial_coefficients = [sum(il[k]*ir[n-k]
                                         for k in range(max(n-len(ir)+1, 0),
                                                        min(len(il)-1, n) + 1))
-                                    for n in range(len(il) + len(ir))]
-            v = left.valuation() + right.valuation()
-            coeff_stream = CoefficientStream_exact(initial_coefficients, P._sparse, valuation=v)
+                                    for n in range(len(il) + len(ir) - 1)]
+            lv = left.valuation()
+            rv = right.valuation()
+            # (a x^d q)/(1-x) has constant a q(1), and the initial
+            # values are the cumulative sums of the coeffcients of q
+            if right._constant:
+                d = right._degree
+                c = left._constant # this is zero
+                # left._constant must be 0 and thus len(il) >= 1
+                for k in range(len(il)-1):
+                    c += il[k] * right._constant
+                    initial_coefficients[d - rv + k] += c
+                c += il[-1] * right._constant
+            elif left._constant:
+                d = left._degree
+                c = right._constant # this is zero
+                # left._constant must be 0 and thus len(il) >= 1
+                for k in range(len(ir)):
+                    c += left._constant * ir[k]
+                    initial_coefficients[d - lv + k] += c
+                c += left._constant * ir[-1]
+            else:
+                c = left._constant # this is zero
+            coeff_stream = CoefficientStream_exact(initial_coefficients, P._sparse, valuation=lv + rv, constant=c)
             return P.element_class(P, coeff_stream)
 
         return P.element_class(P, CoefficientStream_cauchy_product(left, right))
@@ -1346,22 +1402,22 @@ class LazyCauchyProductSeries(RingElement):
         if isinstance(coeff_stream, CoefficientStream_exact):
             initial_coefficients = coeff_stream._initial_coefficients
             if not initial_coefficients:
-                i = 1 / coeff_stream._constant
-                v = -coeff_stream.valuation()
+                i = ~ coeff_stream._constant
+                v = - coeff_stream.valuation()
                 c = P._coeff_ring.zero()
                 coeff_stream = CoefficientStream_exact((i, -i), P._sparse,
                                                        valuation=v, constant=c)
                 return P.element_class(P, coeff_stream)
             if len(initial_coefficients) == 1:
-                i = 1 / initial_coefficients[0]
-                v = -coeff_stream.valuation()
+                i = ~ initial_coefficients[0]
+                v = - coeff_stream.valuation()
                 c = P._coeff_ring.zero()
                 coeff_stream = CoefficientStream_exact((i,), P._sparse,
                                                        valuation=v, constant=c)
                 return P.element_class(P, coeff_stream)
             if len(initial_coefficients) == 2 and not (initial_coefficients[0] + initial_coefficients[1]):
-                v = -coeff_stream.valuation()
-                c = 1 / initial_coefficients[0]
+                v = - coeff_stream.valuation()
+                c = ~ initial_coefficients[0]
                 coeff_stream = CoefficientStream_exact((), P._sparse,
                                                        valuation=v, constant=c)
                 return P.element_class(P, coeff_stream)

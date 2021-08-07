@@ -109,6 +109,7 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_uninitialized
 )
 
+
 class LazySequenceElement(ModuleElement):
     r"""
     An element of a lazy series.
@@ -129,6 +130,7 @@ class LazySequenceElement(ModuleElement):
         sage: f
         1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
     """
+
     def __init__(self, parent, coeff_stream):
         """
         Initialize the series.
@@ -599,6 +601,7 @@ class LazySequencesModuleElement(LazySequenceElement):
         sage: R[:10]
         [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
     """
+
     def _add_(self, other):
         """
         Return the sum of ``self`` and ``other``.
@@ -640,7 +643,7 @@ class LazySequencesModuleElement(LazySequenceElement):
         left = self._coeff_stream
         right = other._coeff_stream
         if (isinstance(left, CoefficientStream_exact)
-            and isinstance(right, CoefficientStream_exact)):
+                and isinstance(right, CoefficientStream_exact)):
             approximate_valuation = min(left.valuation(), right.valuation())
             degree = max(left._degree, right._degree)
             initial_coefficients = [left[i] + right[i] for i in range(approximate_valuation, degree)]
@@ -874,6 +877,7 @@ class LazyCauchyProductSeries(RingElement):
 
     We are assuming that :meth:`polynomial`
     """
+
     def __init__(self, parent):
         """
         Initialize.
@@ -934,7 +938,7 @@ class LazyCauchyProductSeries(RingElement):
         #   = p q + (a x^d q + b x^e p)/(1-x) + a b x^(d+e)/(1-x)^2
         # for the moment we only consider the case where bothe have eventually 0 coefficients
         if (isinstance(left, CoefficientStream_exact) and not left._constant
-            and isinstance(right, CoefficientStream_exact) and not right._constant):
+                and isinstance(right, CoefficientStream_exact) and not right._constant):
             il = left._initial_coefficients
             ir = right._initial_coefficients
             initial_coefficients = [sum(il[k]*ir[n-k]
@@ -1039,12 +1043,12 @@ class LazySpecialFunctions():
 
         sage: tan(z)
         z + 1/3*z^3 + 2/15*z^5 + O(z^7)
-    
+
     The arcsin of a series can be found. ::
 
         sage: arcsin(z)
         z + 1/6*z^3 + 3/40*z^5 + O(z^7)
-    
+
     The sinh of a series can be found. ::
 
         sage: sinh(z)
@@ -1054,17 +1058,17 @@ class LazySpecialFunctions():
 
         sage: cosh(z)
         1 + 1/2*z^2 + 1/24*z^4 + 1/720*z^6 + O(z^7)
-    
+
     The arctangent of a series can be found. ::
 
         sage: arctan(z)
         z - 1/3*z^3 + 1/5*z^5 + O(z^7)
-    
+
     The tanh of a series can be found. ::
 
         sage: tanh(z)
         z - 1/3*z^3 + 2/15*z^5 + O(z^7)
-    
+
     The arccosine of a series can be found. ::
 
         sage: L.<z> = LazyLaurentSeriesRing(RR)
@@ -1072,6 +1076,7 @@ class LazySpecialFunctions():
         1.57079632679490 - 1.00000000000000*z + 0.000000000000000*z^2 - 0.166666666666667*z^3 + 0.000000000000000*z^4 - 0.0750000000000000*z^5 + O(1.00000000000000*z^7)
 
     """
+
     def sin(self):
         r"""
         Return the sine of ``self``.
@@ -1097,7 +1102,7 @@ class LazySpecialFunctions():
 
         P = self.parent()
         return P(lambda n: (n % 2)/factorial(n) if n % 4 == 1 else -(n % 2)/factorial(n), 0)(self)
-    
+
     def cos(self):
         r"""
         Return the cosine of ``self``.
@@ -1153,7 +1158,7 @@ class LazySpecialFunctions():
 
         P = self.parent()
         return P(lambda n: factorial(n-1)/((4**((n-1)/2))*(factorial((n-1)/2)**2)*n) if n % 2 else ZZ.zero(), 0)(self)
-    
+
     def arccos(self):
         r"""
         Return the arccos of ``self``.
@@ -1178,7 +1183,7 @@ class LazySpecialFunctions():
 
         P = self.parent()
         return P(pi/2) - LazySpecialFunctions.arcsin(self)
-    
+
     def sinh(self):
         r"""
         Return the sinh of ``self``.
@@ -1205,7 +1210,7 @@ class LazySpecialFunctions():
 
         P = self.parent()
         return P(lambda n: 1/factorial(n) if n % 2 else ZZ.zero(), 0)(self)
-    
+
     def cosh(self):
         r"""
         Return the cosh of ``self``.
@@ -1232,7 +1237,7 @@ class LazySpecialFunctions():
 
         P = self.parent()
         return P(lambda n: ZZ.zero() if n % 2 else 1/factorial(n), 0)(self)
-    
+
     def tan(self):
         r"""
         Return the tangent of ``self``.
@@ -1257,7 +1262,7 @@ class LazySpecialFunctions():
         from sage.rings.lazy_laurent_series import LazySpecialFunctions
 
         return LazySpecialFunctions.sin(self)/LazySpecialFunctions.cos(self)
-    
+
     def arctan(self):
         r"""
         Return the arctangent of ``self``.
@@ -1281,7 +1286,7 @@ class LazySpecialFunctions():
         """
         P = self.parent()
         return P(lambda n: 1/n if n % 4 == 1 else ZZ.zero() if n % 2 == 0 else -1/n, 0)(self)
-    
+
     def tanh(self):
         r"""
         Return the tanh of ``self``.
@@ -1338,7 +1343,7 @@ class LazySpecialFunctions():
         from sage.rings.lazy_laurent_series import LazySpecialFunctions
 
         return ~LazySpecialFunctions.sin(self)
-    
+
     def sec(self):
         r"""
         Return the secant of ``self``.
@@ -1363,7 +1368,7 @@ class LazySpecialFunctions():
         from sage.rings.lazy_laurent_series import LazySpecialFunctions
 
         return ~LazySpecialFunctions.cos(self)
-    
+
     def cot(self):
         r"""
         Return the cotangent of ``self``.
@@ -1388,6 +1393,7 @@ class LazySpecialFunctions():
         from sage.rings.lazy_laurent_series import LazySpecialFunctions
 
         return ~LazySpecialFunctions.tan(self)
+
 
 class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries, LazySpecialFunctions):
     r"""
@@ -1889,7 +1895,7 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries, Laz
         cs = self._coeff_stream
         if (isinstance(cs, CoefficientStream_exact)
             and not cs._constant and n in ZZ
-            and (n > 0 or len(cs._initial_coefficients) == 1)):
+                and (n > 0 or len(cs._initial_coefficients) == 1)):
             P = self.parent()
             z = P._laurent_poly_ring.gen()
             ret = cs.polynomial_part(z) ** ZZ(n)
@@ -2048,7 +2054,7 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries, Laz
         if format_strings:
             strformat = formatter
         else:
-            strformat = lambda x: x
+            def strformat(x): return x
 
         if isinstance(cs, CoefficientStream_exact):
             poly = cs.polynomial_part(z)

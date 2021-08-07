@@ -3266,7 +3266,7 @@ class TermWithCoefficient(GenericTerm):
 
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = TermWithCoefficientMonoid(TermMonoid, G, ZZ)
-            sage: T(x^2, 5)._repr_product_()
+            sage: T(x^2, coefficient=5)._repr_product_()
             '5*x^2'
         """
         if latex:
@@ -4628,7 +4628,7 @@ class BTerm(TermWithCoefficient):
 
             sage: T = TermMonoid('B', GrowthGroup('x^ZZ'), QQ)
             sage: a = T.an_element(); a
-            B-Term with coefficient 1/2, growth x and valid for x >= 42
+            B(1/2*x, x >= 42)
             sage: cls, kwds = a.construction(); cls, kwds
             (<class 'sage.rings.asymptotic.term_monoid.BTermMonoid_with_category.element_class'>,
              {'coefficient': 1/2,
@@ -4667,12 +4667,12 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: BT_QQ = TermMonoid('B', G, QQ)
-            sage: BT_QQ(x^3, 3, valid_from={'x': 20})
+            sage: BT_QQ(x^3, coefficient=3, valid_from={'x': 20})
             B(3*x^3, x >= 20)
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = TermMonoid('B', B, ZZ)
-            sage: BT_ZZ(x^2, 4, valid_from={'x': 10, 'y': 15})
+            sage: BT_ZZ(x^2, coefficient=4, valid_from={'x': 10, 'y': 15})
             B(4*x^2, x >= 10, y >= 15)
         """
         if latex:
@@ -4698,11 +4698,11 @@ class BTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = TermMonoid('B', G, QQ)
-            sage: latex(T(x, 5, valid_from={'x': 3}))
+            sage: latex(T(x, coefficient=5, valid_from={'x': 3}))
             B_{x \ge 3}\left(5 x\right)
-            sage: latex(T(x^2, 3, valid_from={'x': 5}))
+            sage: latex(T(x^2, coefficient=3, valid_from={'x': 5}))
             B_{x \ge 5}\left(3 x^{2}\right)
-            sage: latex(T(x^3, 6, valid_from={'x': 10}))
+            sage: latex(T(x^3, coefficient=6, valid_from={'x': 10}))
             B_{x \ge 10}\left(6 x^{3}\right)
         """
         return self._repr_(latex=True)
@@ -4755,9 +4755,9 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = TermMonoid('B', G, QQ)
-            sage: t1 = BT(x, 3, valid_from={'x': 20})
-            sage: t2 = BT(x^3, 5, valid_from={'x': 5})
-            sage: t3 = BT(x^3, 10, valid_from={'x': 10})
+            sage: t1 = BT(x, coefficient=3, valid_from={'x': 20})
+            sage: t2 = BT(x^3, coefficient=5, valid_from={'x': 5})
+            sage: t3 = BT(x^3, coefficient=10, valid_from={'x': 10})
             sage: t2.absorb(t1)
             B(2003/400*x^3, x >= 20)
             sage: t2.absorb(t3)
@@ -4785,7 +4785,7 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = TermMonoid('B', G, QQ)
-            sage: t1 = BT(x^3, 4, valid_from={'x': 10}); t2 = BT(x, 5, valid_from={'x': 20})
+            sage: t1 = BT(x^3, coefficient=4, valid_from={'x': 10}); t2 = BT(x, coefficient=5, valid_from={'x': 20})
             sage: t1
             B(4*x^3, x >= 10)
             sage: t1.can_absorb(t2)
@@ -4797,7 +4797,7 @@ class BTerm(TermWithCoefficient):
             ...
             ArithmeticError: B(5*x, x >= 20) cannot absorb B(4*x^3, x >= 10)
             sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
-            sage: t4 = ET(x^3, 5)
+            sage: t4 = ET(x^3, coefficient=5)
             sage: t1.absorb(t4) # not tested, see #32229
         """
         if not (self.growth >= other.growth):
@@ -4895,13 +4895,13 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: T._default_kwds_construction_()
             {'coefficient': 1, 'valid_from': {'x': 0}}
             sage: T.from_construction((None, {'growth': G.gen()}))  # indirect doctest
-            B-Term with coefficient 1, growth x and valid for x >= 0
+            B(x, x >= 0)
             sage: T.from_construction(
             ....:     (None, {'growth': G.gen(), 'coefficient': 2}))  # indirect doctest
-            B-Term with coefficient 2, growth x and valid for x >= 0
+            B(2*x, x >= 0)
             sage: T.from_construction(
             ....:     (None, {'growth': G.gen(), 'valid_from': {'x': 5}}))  # indirect doctest
-            B-Term with coefficient 1, growth x and valid for x >= 5
+            B(x, x >= 5)
         """
         defaults = {}
         defaults.update(super()._default_kwds_construction_())
@@ -4949,24 +4949,24 @@ class BTermMonoid(TermWithCoefficientMonoid):
 
             sage: T = TermMonoid('B', G, ZZ)
             sage: T(TermMonoid('exact', G, QQ)(x, coefficient=42))
-            B-Term with coefficient 42, growth x and valid for x >= 0
+            B(42*x, x >= 0)
             sage: T(TermMonoid('O', G, QQ)(x))
-            B-Term with coefficient 1, growth x and valid for x >= 0
+            B(x, x >= 0)
             sage: T(TermMonoid('B', G, QQ)(x, coefficient=42))
-            B-Term with coefficient 42, growth x and valid for x >= 0
+            B(42*x, x >= 0)
             sage: T(TermMonoid('B', G, QQ)(x, coefficient=42, valid_from={'x': 7}))
-            B-Term with coefficient 42, growth x and valid for x >= 7
+            B(42*x, x >= 7)
 
         ::
 
             sage: T(TermMonoid('exact', G, QQ)(x, coefficient=-42))
-            B-Term with coefficient 42, growth x and valid for x >= 0
+            B(-42*x, x >= 0)
 
         ::
 
             sage: BT = TermMonoid('B', G, QQ)
             sage: BT(x^3, coefficient=4, valid_from={'x': 10})
-            B-Term with coefficient 4, growth x^3 and valid for x >= 10
+            B(4*x^3, x >= 10)
             sage: BT(x^3, coefficient=4, valid_from=10)
             Traceback (most recent call last):
             ...
@@ -4974,7 +4974,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: BT(x^3, coefficient=4, 10)
             Traceback (most recent call last):
             ...
-            TypeError: _element_constructor_() takes from 2 to 3 positional arguments but 4 were given
+            SyntaxError: positional argument follows keyword argument
         """
         # TODO handle negative coefficients of exact terms etc.
         pass
@@ -5058,7 +5058,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
             sage: G = GrowthGroup('x^ZZ')
             sage: TermMonoid('B', G, ZZ).an_element()  # indirect doctest
-            B-Term with coefficient 1, growth x and valid for x >= 42
+            B(x, x >= 42)
         """
         from sage.rings.semirings.non_negative_integer_semiring import NN
         return self(self.growth_group.an_element(),
@@ -5089,16 +5089,16 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: G = GrowthGroup('z^QQ')
             sage: T = TermMonoid('B', G, ZZ)
             sage: tuple(islice(T.some_elements(), int(10)))
-            (B-Term with coefficient 1, growth z^(1/2) and valid for z >= 0,
-             B-Term with coefficient 1, growth z^(-1/2) and valid for z >= 1,
-             B-Term with coefficient 1, growth z^(1/2) and valid for z >= 3,
-             B-Term with coefficient 1, growth z^2 and valid for z >= 42,
-             B-Term with coefficient 1, growth z^(-1/2) and valid for z >= 0,
-             B-Term with coefficient 2, growth z^(1/2) and valid for z >= 1,
-             B-Term with coefficient 1, growth z^(-2) and valid for z >= 3,
-             B-Term with coefficient 1, growth z^2 and valid for z >= 42,
-             B-Term with coefficient 2, growth z^(-1/2) and valid for z >= 0,
-             B-Term with coefficient 2, growth z^(1/2) and valid for z >= 1)
+            (B(z^(1/2), z >= 0),
+             B(z^(-1/2), z >= 1),
+             B(-z^(1/2), z >= 3),
+             B(z^2, z >= 42),
+             B(-z^(-1/2), z >= 0),
+             B(2*z^(1/2), z >= 1),
+             B(z^(-2), z >= 3),
+             B(-z^2, z >= 42),
+             B(2*z^(-1/2), z >= 0),
+             B(-2*z^(1/2), z >= 1))
         """
         from itertools import cycle
         from sage.misc.mrange import cantor_product

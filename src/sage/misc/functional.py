@@ -11,7 +11,7 @@ AUTHORS:
 
 - David Joyner (2005-12-20): More Examples
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
+# ****************************************************************************
 import builtins
 
 from sage.rings.complex_double import CDF
@@ -827,6 +827,7 @@ def is_commutative(x):
         sage: is_commutative(R)
         True
     """
+    deprecation(32347, "use X.is_commutative() or X in Rings().Commutative()")
     return x.is_commutative()
 
 
@@ -862,6 +863,7 @@ def is_integrally_closed(x):
         sage: is_integrally_closed(R)
         False
     """
+    deprecation(32347, "use X.is_integrally_closed()")
     return x.is_integrally_closed()
 
 
@@ -878,6 +880,7 @@ def is_field(x, proof=True):
         sage: is_field(F)
         True
     """
+    deprecation(32347, "use X.is_field() or X in Fields()")
     return x.is_field(proof=proof)
 
 

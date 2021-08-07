@@ -3380,7 +3380,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: AR.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: AR.B(2*x^2, {x: 10})
-            B(2*x^2, {x: 10})
+            doctest:warning
+            ...
+            FutureWarning: This class/method/function is marked as experimental.
+            It, its functionality or its interface might change without a formal deprecation.
+            See https://trac.sagemath.org/31922 for details.
+            B(2*x^2, x >= 10)
             sage: expr = 42*x^42 + x^10 + AR.B(x^2, 20); expr
             42*x^42 + x^10 + B(x^2, x >= 20)
         """
@@ -3400,6 +3405,10 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if not self.summands:
             from .misc import NotImplementedOZero
             raise NotImplementedOZero(self.parent(), exact_part=self.parent().zero())
+        if not isinstance(valid_from, dict):
+            valid_from = {self.variable_names()[0]: valid_from}
+        for variable in valid_from.keys():
+            valid_from = {f'{variable}': valid_from[variable]}
         return sum(self.parent().create_summand('B', growth=element, valid_from=valid_from)
                    for element in self.summands.elements())
 
@@ -4694,7 +4703,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
 
             sage: A.<x> = AsymptoticRing(growth_group='x^ZZ * QQ^y', coefficient_ring=QQ)
             sage: A.B(2*x^3, {x: 5})
-
+            B(2*x^3, x >= 5)
         """
         return self.B(valid_from)
 

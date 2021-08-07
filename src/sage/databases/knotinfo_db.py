@@ -386,18 +386,17 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         """
         if not self._feature.is_present():
             return
-        sobj_path = self._sobj_path
-        os.system('rm -rf %s' %sobj_path)
-        from sage.misc.misc import sage_makedirs
-        sage_makedirs(sobj_path)
 
-        num_knots_file = os.path.join(sobj_path, self.filename.knots.num_knots(self.version()))
-        knot_list = self.knot_list()
-        num_knots = len(knot_list) - 1
-        save(num_knots, num_knots_file)
-        self._num_knots = num_knots
-        self._create_col_dict_sobj()
-        self._create_data_sobj()
+        from sage.misc.temporary_file import atomic_dir
+        with atomic_dir(self._sobj_path) as d:
+            sobj_path = d.name
+            num_knots_file = os.path.join(sobj_path, self.filename.knots.num_knots(self.version()))
+            knot_list = self.knot_list()
+            num_knots = len(knot_list) - 1
+            save(num_knots, num_knots_file)
+            self._num_knots = num_knots
+            self._create_col_dict_sobj(sobj_path=sobj_path)
+            self._create_data_sobj(sobj_path=sobj_path)
         return
 
 
@@ -495,7 +494,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         self._link_list = link_list(proper_links=True)
         return self._link_list
 
-    def _create_col_dict_sobj(self):
+    def _create_col_dict_sobj(self, sobj_path=None):
         r"""
         Create ``sobj`` files containing the number of knots and a dictionary
         for the columns of the table.
@@ -512,10 +511,10 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         link_list = self.link_list()
         link_column_names = link_list[0]
 
-        from sage.misc.misc import sage_makedirs
-        sage_makedirs(self._sobj_path)
-
         column_dict = {}
+
+        if not sobj_path:
+            sobj_path = self._sobj_path
 
         # ----------------------------------------------------------------
         # Columns that exist for knots and links
@@ -549,11 +548,11 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
             col_type = KnotInfoColumnTypes.OnlyLinks
             column_dict[col] = [name, col_type]
 
-        save(column_dict, '%s/%s' %(self._sobj_path, self.filename.knots.sobj_column()))
+        save(column_dict, '%s/%s' %(sobj_path, self.filename.knots.sobj_column()))
 
 
 
-    def _create_data_sobj(self):
+    def _create_data_sobj(self, sobj_path=None):
         r"""
         Create ``sobj`` files containing the contents of the whole table.
         To each column there is created one file containing a list of
@@ -579,10 +578,15 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
         row_dict = {}
 
+        if not sobj_path:
+            sobj_path = self._sobj_path
+
         # ----------------------------------------------------------------
         # Columns that exist for knots and links
         # ----------------------------------------------------------------
-        for col in self.columns():
+        column_dict =  load('%s/%s' %(sobj_path, self.filename.knots.sobj_column()))
+        cols = KnotInfoColumns('ColsTemp', column_dict)
+        for col in cols:
             val_list = []
 
             if  col.column_type() != col.types.OnlyLinks:
@@ -606,9 +610,9 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
                     val_list.append(link_list[i][col.name])
 
             if val_list:
-                save(val_list, '%s/%s' %(self._sobj_path, self.filename.knots.sobj_data(col)))
+                save(val_list, '%s/%s' %(sobj_path, self.filename.knots.sobj_data(col)))
 
-        save(row_dict,    '%s/%s' %(self._sobj_path, self.filename.knots.sobj_row()))
+        save(row_dict,    '%s/%s' %(sobj_path, self.filename.knots.sobj_row()))
 
 
     @cached_method
@@ -779,7 +783,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: TestSuite(ki_db).run()    # long time
+            sage: TestSuite(ki_db).run()    # long time indirect doctest
         """
         from sage.knots.knotinfo import KnotInfo
         from sage.misc.misc import some_tuples

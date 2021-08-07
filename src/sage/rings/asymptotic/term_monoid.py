@@ -378,7 +378,7 @@ class GenericTerm(MultiplicativeGroupElement):
 
         OUTPUT:
 
-        A pair ``(cls, kwds)`` such that``cls(**kwds)`` equals this term.
+        A pair ``(cls, kwds)`` such that ``cls(**kwds)`` equals this term.
 
         EXAMPLES::
 
@@ -3144,7 +3144,7 @@ class TermWithCoefficient(GenericTerm):
 
         OUTPUT:
 
-        A pair ``(cls, kwds)`` such that``cls(**kwds)`` equals this term.
+        A pair ``(cls, kwds)`` such that ``cls(**kwds)`` equals this term.
 
         EXAMPLES::
 

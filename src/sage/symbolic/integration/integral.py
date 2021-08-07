@@ -915,7 +915,7 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
         2*sqrt(x*sgn(x))/sgn(x)
 
         sage: integrate(sgn(x) - sgn(1-x), x)
-        x*(sgn(x) - sgn(-x + 1)) + sgn(-x + 1)
+        abs(x - 1) + abs(x)
 
         sage: integrate(1 / (1 + abs(x-5)), x, -5, 6)
         log(11) + log(2)

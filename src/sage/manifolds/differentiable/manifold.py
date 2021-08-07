@@ -125,11 +125,8 @@ The inverse of the transition map is computed by the method ``inverse()``::
 
 At this stage, we have four open subsets on `S^2`::
 
-    sage: M.list_of_subsets()
-    [2-dimensional differentiable manifold S^2,
-     Open subset U of the 2-dimensional differentiable manifold S^2,
-     Open subset V of the 2-dimensional differentiable manifold S^2,
-     Open subset W of the 2-dimensional differentiable manifold S^2]
+    sage: M.subset_family()
+    Set {S^2, U, V, W} of open subsets of the 2-dimensional differentiable manifold S^2
 
 `W` is the open subset that is the complement of the two poles::
 
@@ -196,7 +193,7 @@ A differentiable scalar field on the sphere::
     Algebra of differentiable scalar fields on the 2-dimensional differentiable
      manifold S^2
     sage: f.parent().category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
 
 A differentiable manifold has a default vector frame, which, unless otherwise
 specified, is the coordinate frame associated with the first defined chart::
@@ -350,11 +347,8 @@ and we have::
 
 The following subsets and charts have been defined::
 
-    sage: M.list_of_subsets()
-    [Open subset A of the 1-dimensional complex manifold C*,
-     1-dimensional complex manifold C*,
-     Open subset U of the 1-dimensional complex manifold C*,
-     Open subset V of the 1-dimensional complex manifold C*]
+    sage: M.subset_family()
+    Set {A, C*, U, V} of open subsets of the 1-dimensional complex manifold C*
     sage: M.atlas()
     [Chart (U, (z,)), Chart (V, (w,)), Chart (A, (z,)), Chart (A, (w,))]
 
@@ -376,7 +370,7 @@ A constant map `\CC^* \rightarrow \CC`::
     Algebra of differentiable scalar fields on the 1-dimensional complex
      manifold C*
     sage: f.parent().category()
-    Category of commutative algebras over Symbolic Ring
+    Join of Category of commutative algebras over Symbolic Ring and Category of homsets of topological spaces
 
 A vector field on the Riemann sphere::
 
@@ -417,6 +411,7 @@ AUTHORS:
 - Eric Gourgoulhon (2015): initial version
 - Travis Scrimshaw (2016): review tweaks
 - Michael Jung (2020): tensor bundles and orientability
+- Matthias Koeppe (2021): refactoring of subsets code
 
 REFERENCES:
 
@@ -430,9 +425,13 @@ REFERENCES:
 """
 
 # ****************************************************************************
-#       Copyright (C) 2015 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
-#       Copyright (C) 2015 Michal Bejger <bejger@camk.edu.pl>
-#       Copyright (C) 2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2015-2019 Eric Gourgoulhon <eric.gourgoulhon@obspm.fr>
+#       Copyright (C) 2015      Michal Bejger <bejger@camk.edu.pl>
+#       Copyright (C) 2015-2016 Travis Scrimshaw <tscrimsh@umn.edu>
+#       Copyright (C) 2017      Karim Van Aelst
+#       Copyright (C) 2019      Hans Fotsing Tetsing
+#       Copyright (C) 2019-2020 Michael Jung
+#       Copyright (C) 2021      Matthias Koeppe
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
@@ -775,9 +774,8 @@ class DifferentiableManifold(TopologicalManifold):
 
         We have then::
 
-            sage: A.list_of_subsets()
-            [Open subset A of the 2-dimensional differentiable manifold M,
-             Open subset B of the 2-dimensional differentiable manifold M]
+            sage: A.subset_family()
+            Set {A, B} of open subsets of the 2-dimensional differentiable manifold M
             sage: B.is_subset(A)
             True
             sage: B.is_subset(M)

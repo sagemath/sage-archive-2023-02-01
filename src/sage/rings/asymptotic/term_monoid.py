@@ -165,9 +165,28 @@ have equal growth to be incomparable.
 Various
 =======
 
+.. WARNING::
+
+    The code for :class:`B-Terms <BTermMonoid>` is experimental, so
+    a warning is thrown when a :class:`BTerm`
+    is created for the first time in a session (see
+    :class:`sage.misc.superseded.experimental`).
+
+    ::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+        sage: T = TermMonoid('B', growth_group=GrowthGroup('x^ZZ'), coefficient_ring=QQ)
+        doctest:warning
+        ...
+        FutureWarning: This class/method/function is marked as experimental.
+        It, its functionality or its interface might change without a formal deprecation.
+        See https://trac.sagemath.org/31922 for details.
+
+
 .. TODO::
 
-    - Implementation of more term types (e.g. `L` terms,
+    - Implementation of more term types (e.g.
       `\Omega` terms, `o` terms, `\Theta` terms).
 
 AUTHORS:
@@ -175,13 +194,16 @@ AUTHORS:
 - Benjamin Hackl (2015)
 - Daniel Krenn (2015)
 - Clemens Heuberger (2016)
+- Thomas Hagelmayer (2021)
 
 ACKNOWLEDGEMENT:
 
 - Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
-- Benjamin Hackl is supported by the Google Summer of Code 2015.
+- Benjamin Hackl is supported by Google Summer of Code 2015.
+
+- Thomas Hagelmayer is supported by Google Summer of Code 2021.
 
 
 Classes and Methods
@@ -3146,6 +3168,7 @@ class TermWithCoefficient(GenericTerm):
             sage: CT_ZZ(x^42, coefficient=42)
             Term with coefficient 42 and growth x^42
         """
+        super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
         try:
             coefficient = parent.coefficient_ring(coefficient)
         except (ValueError, TypeError):
@@ -3157,7 +3180,6 @@ class TermWithCoefficient(GenericTerm):
                 (coefficient, parent))
 
         self.coefficient = coefficient
-        super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
 
     def construction(self):
         r"""
@@ -3221,6 +3243,59 @@ class TermWithCoefficient(GenericTerm):
         """
         return 'Term with coefficient %s and growth %s' % \
                (self.coefficient, self.growth)
+
+    def _repr_product_(self, latex=False):
+        r"""
+        A representation string for this term with coefficient as a product.
+
+        INPUT:
+
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned
+
+        OUTPUT:
+
+        A string
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = TermWithCoefficientMonoid(TermMonoid, G, ZZ)
+            sage: T(x^2, 5)._repr_product_()
+            '5*x^2'
+        """
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
+        g = f(self.growth)
+        c = f(self.coefficient)
+
+        if g == '1':
+            return c
+        elif c == '1':
+            return '{g}'.format(g=g)
+        elif c == '-1':
+            return '-{g}'.format(g=g)
+        elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
+            # note that -pi/2 is not atomic, but -5 is. As subtractions are handled
+            # in the asymptotic ring, we ignore such non-atomicity.
+            s = '{c} {g}' if latex else '{c}*{g}'
+        else:
+            s = r'\left({c}\right) {g}' if latex else '({c})*{g}'
+        s = s.format(c=c, g=g)
+
+        if latex:
+            import re
+            s = re.sub(r'([0-9])\s+([0-9])', r'\1 \\cdot \2', s)
+        return s
 
     def _mul_(self, other):
         r"""
@@ -3774,34 +3849,7 @@ class ExactTerm(TermWithCoefficient):
             sage: (1+a)/n
             (a + 1)*n^(-1)
         """
-        if latex:
-            from sage.misc.latex import latex as latex_repr
-            f = latex_repr
-        else:
-            f = repr
-
-        g = f(self.growth)
-        c = f(self.coefficient)
-
-        if g == '1':
-            return c
-        elif c == '1':
-            return '{g}'.format(g=g)
-        elif c == '-1':
-            return '-{g}'.format(g=g)
-        elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
-            # note that -pi/2 is not atomic, but -5 is. As subtractions are handled
-            # in the asymptotic ring, we ignore such non-atomicity.
-            s = '{c} {g}' if latex else '{c}*{g}'
-        else:
-            s = r'\left({c}\right) {g}' if latex else '({c})*{g}'
-        s = s.format(c=c, g=g)
-
-        if latex:
-            import re
-            s = re.sub(r'([0-9])\s+([0-9])', r'\1 \\cdot \2', s)
-
-        return s
+        return self._repr_product_(latex=latex)
 
     def _latex_(self):
         r"""
@@ -4451,13 +4499,16 @@ class BTerm(TermWithCoefficient):
     r"""
     Class for asymptotic B-terms.
 
-    Examples of B-terms with explanation:
+    A B-term represents all functions which (in absolute value) are bounded
+    by the given ``growth`` and ``coefficient`` for the parameters
+    given by ``valid_from``.
+    For example, we have terms that represent functions
 
-    - ``BT_ZZ(x^2, 5, valid_from={'x': 3})``. This is a term whose absolute value is bounded by ``5|x|^2 for |x| >= 3``.
+    - bounded by `5|x|^2` for `|x| \ge 3`,
 
-    - ``BT_ZZ(x^3, 42, valid_from={'x': 15, 'y': 15})``. This is a term whose absolute value is bounded by ``42|x|^3 for |x| >= 15 |y| >= 15``.
+    - bounded by `42|x|^3` for `|x| \ge 15` and `|y| \ge 15`, or
 
-    - ``BT_ZZ(x^3*y^2, 42, valid_from={'x': 10, 'y': 20})``. This is a term whose absolute value is bounded by ``42|x|^3 |y|^2 for |x| >= 10 |y| >= 20``.
+    - bounded by `42 |x|^3 |y|^2` for `|x| \ge 10` and `|y| \ge 20` (see below for the actual examples).
 
     INPUT:
 
@@ -4472,27 +4523,33 @@ class BTerm(TermWithCoefficient):
       for the corresponding variable. The bound implied by this term is valid when
       all variables are at least their corresponding lower bound
 
-    EXAMPLES::
+    EXAMPLES:
 
-        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+    We revisit the examples from the introduction::
+
         sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: G = GrowthGroup('x^ZZ * y^ZZ')
+        sage: T = TermMonoid('B', growth_group=G, coefficient_ring=ZZ)
+        sage: x, y = G('x'), G('y')
+        sage: T(x^2, coefficient=5, valid_from={'x': 3})
+        B(5*x^2, x >= 3)
 
-        sage: G = MonomialGrowthGroup(ZZ, 'x');
-        sage: BT_QQ = TermMonoid('B', G, QQ)
-        sage: BT_QQ(x, coefficient=3, valid_from={'x': 20})
-        doctest:...:
-        FutureWarning: This class/method/function is marked as experimental. It,
-        its functionality or its interface might change without a formal deprecation.
-        See https://trac.sagemath.org/31922 for details.
-        B-Term with coefficient 3, growth x and valid for x >= 20
+    This is a term bounded by `5|x|^2` for `|x| \ge 3`.
+    ::
 
-    .. WARNING::
+        sage: T(x^3, coefficient=42, valid_from={'x': 15, 'y': 15})
+        B(42*x^3, x >= 15, y >= 15)
 
-        As this code is experimental, warnings are thrown when a B-term
-        is created for the first time in a session (see
-        :class:`sage.misc.superseded.experimental`).
+    This is a term bounded by `42|x|^3` for `|x| \ge 15` and `|y| \ge 15`.
+    ::
+
+        sage: T(x^3*y^2, coefficient=42, valid_from={'x': 10, 'y': 20})
+        B(42*x^3*y^2, x >= 10, y >= 20)
+
+    This is a term bounded by `42 |x|^3 |y|^2` for `|x| \ge 10` and `|y| \ge 20`.
+
     """
-    @experimental(trac_number=31922)
     def __init__(self, parent, growth, coefficient, valid_from):
         r"""
         See :class:`BTerm` for more information.
@@ -4528,9 +4585,9 @@ class BTerm(TermWithCoefficient):
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = TermMonoid('B', B, ZZ)
             sage: BT_ZZ(x^3, 42, valid_from={'x': 10})
-            B-Term with coefficient 42, growth x^3 and valid for x >= 10
+            B(42*x^3, x >= 10)
             sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'y': 20})
-            B-Term with coefficient 42, growth x^3 and valid for x >= 10 and y >= 20
+            B(42*x^3, x >= 10, y >= 20)
             sage: BT_ZZ(x^3*y^2, 42, valid_from={'x': 10})
             Traceback (most recent call last):
             ValueError: B-Term has not defined all variables which occur in the term in valid_from.
@@ -4539,28 +4596,17 @@ class BTerm(TermWithCoefficient):
             ...
             ValueError: B-Term has valid_from variables defined which do not occur in the term.
         """
-        try:
-            coefficient = parent.coefficient_ring(coefficient)
-        except (ValueError, TypeError):
-            raise ValueError(f'{coefficient} is not a coefficient in '
-                             f'{parent.coefficient_ring}.')
-
-        if not coefficient:
-            raise ZeroCoefficientError(
-                f'Zero coefficient {coefficient} is not allowed in {parent}.')
-
+        super().__init__(parent=parent, growth=growth, coefficient=coefficient)
         self.coefficient = coefficient
-        self.valid_from = valid_from
-
-        for variable_name in self.valid_from.keys():
+        for variable_name in valid_from.keys():
             if variable_name not in parent.growth_group.variable_names():
                 raise ValueError('B-Term has valid_from variables defined which do not occur in the term.')
 
         for variable_name in growth.variable_names():
-            if variable_name not in self.valid_from:
+            if variable_name not in valid_from:
                 raise ValueError('B-Term has not defined all variables which occur in the term in valid_from.')
+        self.valid_from = valid_from
 
-        super().__init__(parent=parent, growth=growth, coefficient=coefficient)
 
     def construction(self):
         r"""
@@ -4602,7 +4648,7 @@ class BTerm(TermWithCoefficient):
         kwds.update({'valid_from': self.valid_from})
         return cls, kwds
 
-    def _repr_(self):
+    def _repr_(self, latex=False):
         r"""
         A representation string for this B-term.
 
@@ -4621,19 +4667,45 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x');
             sage: BT_QQ = TermMonoid('B', G, QQ)
-            sage: BT_QQ(x^3, coefficient=3, valid_from={'x': 20})
-            B-Term with coefficient 3, growth x^3 and valid for x >= 20
+            sage: BT_QQ(x^3, 3, valid_from={'x': 20})
+            B(3*x^3, x >= 20)
             sage: B = GrowthGroup('x^ZZ * y^ZZ');
             sage: x, y = B('x'), B('y')
             sage: BT_ZZ = TermMonoid('B', B, ZZ)
-            sage: BT_ZZ(x^2, coefficient=4, valid_from={'x': 10, 'y': 15})
-            B-Term with coefficient 4, growth x^2 and valid for x >= 10 and y >= 15
+            sage: BT_ZZ(x^2, 4, valid_from={'x': 10, 'y': 15})
+            B(4*x^2, x >= 10, y >= 15)
         """
-        valid_from_string = ' and '.join(f'{variable} >= {value}'
-                                         for variable, value in self.valid_from.items())
+        if latex:
+            valid_from_string = ', '.join(fr'{variable} \ge {value}'
+                                          for variable, value in self.valid_from.items())
+            return fr'B_{{{valid_from_string}}}\left({self._repr_product_(latex=True)}\right)'
+        else:
+            valid_from_string = ''.join(f', {variable} >= {value}'
+                                        for variable, value in self.valid_from.items())
+            return f'B({self._repr_product_()}{valid_from_string})'
 
-        return (f'B-Term with coefficient {self.coefficient}, growth {self.growth} '
-                f'and valid for {valid_from_string}')
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this `B`-term.
+
+        OUTPUT:
+
+        A string
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = TermMonoid('B', G, QQ)
+            sage: latex(T(x, 5, valid_from={'x': 3}))
+            B_{x \ge 3}\left(5 x\right)
+            sage: latex(T(x^2, 3, valid_from={'x': 5}))
+            B_{x \ge 5}\left(3 x^{2}\right)
+            sage: latex(T(x^3, 6, valid_from={'x': 10}))
+            B_{x \ge 10}\left(6 x^{3}\right)
+        """
+        return self._repr_(latex=True)
 
     def can_absorb(self, other):
         r"""
@@ -4683,15 +4755,15 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = TermMonoid('B', G, QQ)
-            sage: t1 = BT(x, coefficient=3, valid_from={'x': 20})
-            sage: t2 = BT(x^3, coefficient=5, valid_from={'x': 5})
-            sage: t3 = BT(x^3, coefficient=10, valid_from={'x': 10})
+            sage: t1 = BT(x, 3, valid_from={'x': 20})
+            sage: t2 = BT(x^3, 5, valid_from={'x': 5})
+            sage: t3 = BT(x^3, 10, valid_from={'x': 10})
             sage: t2.absorb(t1)
-            B-Term with coefficient 2003/400, growth x^3 and valid for x >= 20
+            B(2003/400*x^3, x >= 20)
             sage: t2.absorb(t3)
-            B-Term with coefficient 15, growth x^3 and valid for x >= 10
+            B(15*x^3, x >= 10)
             sage: t3.absorb(t2)
-            B-Term with coefficient 15, growth x^3 and valid for x >= 10
+            B(15*x^3, x >= 10)
         """
         if not isinstance(other, (BTerm, ExactTerm)):
             return False
@@ -4713,30 +4785,26 @@ class BTerm(TermWithCoefficient):
 
             sage: G = MonomialGrowthGroup(ZZ, 'x')
             sage: BT = TermMonoid('B', G, QQ)
-            sage: t1 = BT(x^3, coefficient=4, valid_from={'x': 10}); t1
-            B-Term with coefficient 4, growth x^3 and valid for x >= 10
-            sage: t2 = BT(x, coefficient=5, valid_from={'x': 20}); t2
-            B-Term with coefficient 5, growth x and valid for x >= 20
+            sage: t1 = BT(x^3, 4, valid_from={'x': 10}); t2 = BT(x, 5, valid_from={'x': 20})
+            sage: t1
+            B(4*x^3, x >= 10)
             sage: t1.can_absorb(t2)
             True
             sage: t1.absorb(t2)
-            B-Term with coefficient 321/80, growth x^3 and valid for x >= 20
+            B(321/80*x^3, x >= 20)
             sage: t2.absorb(t1)
             Traceback (most recent call last):
             ...
-            ArithmeticError: B-Term with coefficient 5, growth x and valid for x >= 20
-            cannot absorb B-Term with coefficient 4, growth x^3 and valid for x >= 10
+            ArithmeticError: B(5*x, x >= 20) cannot absorb B(4*x^3, x >= 10)
             sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
-            sage: t4 = ET(x^3, coefficient=5)
-            sage: t1.absorb(t4)
-            B-Term with coefficient 9, growth x^3 and valid for x >= 10
+            sage: t4 = ET(x^3, 5)
+            sage: t1.absorb(t4) # not tested, see #32229
         """
-        if self.growth < other.growth:
+        if not (self.growth >= other.growth):
             raise ArithmeticError(f'{self} cannot absorb {other}')
 
         valid_from_new = dict()
-        union = {**self.valid_from, **other.valid_from}
-        for variable_name in union:
+        for variable_name in set().union(self.valid_from.keys(), other.valid_from.keys()):
             if variable_name in self.valid_from and other.valid_from:
                 valid_from_new[variable_name] = (max(self.valid_from[variable_name], other.valid_from[variable_name]))
             elif variable_name in self.valid_from:
@@ -4777,6 +4845,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
         sage: BT is BTermMonoid(TermMonoid, G, QQ)
         True
     """
+    __init__ = experimental(trac_number=31922)(GenericTermMonoid.__init__)
 
     # enable the category framework for elements
     Element = BTerm

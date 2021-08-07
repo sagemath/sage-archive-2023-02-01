@@ -7037,8 +7037,8 @@ class Graph(GenericGraph):
         """
         if self.is_directed() or self.has_loops() or self.has_multiple_edges():
             raise ValueError("Self must be an undirected simple graph to have a clique complex.")
-        import sage.homology.simplicial_complex
-        C = sage.homology.simplicial_complex.SimplicialComplex(self.cliques_maximal(), maximality_check=True)
+        import sage.topology.simplicial_complex
+        C = sage.topology.simplicial_complex.SimplicialComplex(self.cliques_maximal(), maximality_check=True)
         C._graph = self
         return C
 

@@ -89,7 +89,7 @@ def base_field(x):
         return x.base_field()
     except AttributeError:
         y = x.base_ring()
-        if is_field(y):
+        if y.is_field():
             return y
         else:
             raise AttributeError("The base ring of %s is not a field" % x)
@@ -825,6 +825,8 @@ def is_commutative(x):
 
         sage: R = PolynomialRing(QQ, 'x')
         sage: is_commutative(R)
+        doctest:...DeprecationWarning: use X.is_commutative() or X in Rings().Commutative()
+        See https://trac.sagemath.org/32347 for details.
         True
     """
     deprecation(32347, "use X.is_commutative() or X in Rings().Commutative()")
@@ -857,6 +859,8 @@ def is_integrally_closed(x):
     EXAMPLES::
 
         sage: is_integrally_closed(QQ)
+        doctest:...DeprecationWarning: use X.is_integrally_closed()
+        See https://trac.sagemath.org/32347 for details.
         True
         sage: K.<a> = NumberField(x^2 + 189*x + 394)
         sage: R = K.order(2*a)
@@ -878,6 +882,8 @@ def is_field(x, proof=True):
         sage: R = PolynomialRing(QQ, 'x')
         sage: F = FractionField(R)
         sage: is_field(F)
+        doctest:...DeprecationWarning: use X.is_field() or X in Fields()
+        See https://trac.sagemath.org/32347 for details.
         True
     """
     deprecation(32347, "use X.is_field() or X in Fields()")
@@ -1426,6 +1432,7 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         return numerical_approx_generic(x, prec)
     else:
         return n(prec, algorithm=algorithm)
+
 
 n = numerical_approx
 N = numerical_approx

@@ -164,7 +164,6 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             raise NotImplementedError("base ring other than Q are not yet supported for quasimodular forms ring")
 
         self.__group = group
-        self.__base_ring = base_ring
         self.__modular_forms_subring = ModularFormsRing(group, base_ring)
         self.__polynomial_subring = self.__modular_forms_subring[name]
         Parent.__init__(self, base=base_ring, category=GradedAlgebras(base_ring))
@@ -190,21 +189,6 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             NotImplementedError: space of quasimodular forms are only implemented for the full modular group
         """
         return self.__group
-
-    def base_ring(self):
-        r"""
-        Return the coefficient ring of this quasimodular forms ring.
-
-        EXAMPLES::
-
-            sage: QuasiModularForms(1).base_ring()
-            Rational Field
-            sage: QuasiModularForms(1, GF(5))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: base ring other than Q are not yet supported for quasimodular forms ring
-        """
-        return self.__base_ring
 
     def modular_forms_subring(self):
         r"""

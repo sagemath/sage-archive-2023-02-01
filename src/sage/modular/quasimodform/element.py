@@ -96,7 +96,6 @@ class QuasiModularFormsElement(ModuleElement):
                 raise ValueError("at least one coefficient is not a 'GradedModularFormElement'")
         self._polynomial = polynomial
         self._coefficients = polynomial.coefficients(sparse=False)
-        self.__base_ring = parent.base_ring()
         ModuleElement.__init__(self, parent)
 
     def q_expansion(self, prec=6):
@@ -114,7 +113,7 @@ class QuasiModularFormsElement(ModuleElement):
             sage: E2.q_expansion(prec=10)
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 - 288*q^6 - 192*q^7 - 360*q^8 - 312*q^9 + O(q^10)
         """
-        E2 = eisenstein_series_qexp(2, prec=prec, K=self.__base_ring, normalization='constant') #normalization -> to force integer coefficients
+        E2 = eisenstein_series_qexp(2, prec=prec, K=self.base_ring(), normalization='constant') #normalization -> to force integer coefficients
         return sum(f.q_expansion(prec=prec)*E2**idx for idx, f in enumerate(self._coefficients))
 
     qexp = q_expansion # alias
@@ -318,7 +317,4 @@ class QuasiModularFormsElement(ModuleElement):
             sage: (QM.1 + QM.2).is_modular_form() # mixed weight components
             False
         """
-        if not self._polynomial.degree():
-            return self._polynomial[0].is_modular_form()
-        else:
-            return False
+        return not self._polynomial.degree() and self._polynomial[0].is_modular_form()

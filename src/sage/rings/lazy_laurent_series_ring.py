@@ -21,15 +21,17 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.categories.algebras import Algebras
+from sage.categories.rings import Rings
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
-from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields, CompleteDiscreteValuationRings
 
 from .laurent_series_ring_element import LaurentSeries
 from .ring import CommutativeRing
 
 from sage.misc.cachefunc import cached_method
 
+from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -342,6 +344,20 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
 
+        Finally, ``x`` can be a Laurent polynomial::
+
+            sage: P.<x> = LaurentPolynomialRing(QQ)
+            sage: p = x^-2 + 3*x^3
+            sage: L.<x> = LazyLaurentSeriesRing(ZZ)
+            sage: L(p)
+            x^-2 + 3*x^3
+
+            sage: L(p, valuation=0)
+            1 + 3*x^5
+
+            sage: L(p, valuation=1)
+            x + 3*x^6
+
         TESTS::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
@@ -374,7 +390,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             if not x and not constant:
                 coeff_stream = CoefficientStream_zero(self._sparse)
             else:
-                if x and valuation:
+                if x and valuation is not None:
                     x = x.shift(valuation - x.valuation())
                 if degree is None and not x:
                     if valuation is None:
@@ -598,7 +614,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         TESTS::
 
             sage: L = LazyTaylorSeriesRing(ZZ, 't')
-            sage: TestSuite(L).run(skip='_test_elements')
+            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
         """
         self._sparse = sparse
         if len(names) == 1:
@@ -606,8 +622,20 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         else:
             self._coeff_ring = PolynomialRing(base_ring, names)
         self._laurent_poly_ring = PolynomialRing(base_ring, names)
+        category = Algebras(base_ring.category())
+        if base_ring in Fields():
+            category &= CompleteDiscreteValuationRings()
+        elif base_ring in IntegralDomains():
+            category &= IntegralDomains()
+        elif base_ring in Rings().Commutative():
+            category = category.Commutative()
+
+        if base_ring.is_zero():
+            category = category.Finite()
+        else:
+            category = category.Infinite()
         Parent.__init__(self, base=base_ring, names=names,
-                        category=MagmasAndAdditiveMagmas().or_subcategory(category))
+                        category=category)
 
     def _repr_(self):
         """
@@ -729,17 +757,17 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             return True
 
         R = self._laurent_poly_ring
-        if R.has_coerce_map_from(S):
-            def make_series_from(poly):
-                p_dict = poly.homogeneous_components()
-                v = min(p_dict.keys())
-                d = max(p_dict.keys())
-                p_list = [p_dict.get(i, 0) for i in range(v, d + 1)]
-                coeff_stream = CoefficientStream_exact(p_list, self._sparse, valuation=v)
-                return self.element_class(self, coeff_stream)
-            return SetMorphism(Hom(S, self, Sets()), make_series_from)
+        return R.has_coerce_map_from(S)
 
-        return False
+    def _coerce_map_from_base_ring(self):
+        """
+        Return a coercion map from the base ring of ``self``.
+
+        """
+        # Return a DefaultConvertMap_unique; this can pass additional
+        # arguments to _element_constructor_, unlike the map returned
+        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
+        return self._generic_coerce_map(self.base_ring())
 
     def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None, check=True):
         """
@@ -802,6 +830,23 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
 
             Add a method to change the sparse/dense implementation.
 
+        Finally, ``x`` can be a polynomial::
+
+            sage: P.<x> = QQ[]
+            sage: p = x + 3*x^2 + x^5
+            sage: L.<x> = LazyTaylorSeriesRing(ZZ)
+            sage: L(p)
+            x + 3*x^2 + x^5
+
+            sage: L(p, valuation=0)
+            1 + 3*x + x^4
+
+            sage: P.<x, y> = QQ[]
+            sage: p = x + y^2 + x*y
+            sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
+            sage: L(p)
+            x + (x*y+y^2)
+
         TESTS::
 
             sage: L.<x,y> = LazyTaylorSeriesRing(ZZ)
@@ -829,10 +874,11 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             ValueError: coefficients must be homogeneous polynomials of the correct degree
 
         """
-        if valuation is None:
-            valuation = 0
-        if valuation < 0:
-            raise ValueError("the valuation of a Taylor series must be positive")
+        if valuation is not None:
+            if valuation < 0:
+                raise ValueError("the valuation of a Taylor series must be positive")
+            if len(self.variable_names()) > 1:
+                raise ValueError(f"valuation must not be specified for multivariate Taylor series")
 
         R = self._laurent_poly_ring
         BR = self.base_ring()
@@ -866,6 +912,8 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
                     v = x.valuation()
                     d = x.degree()
                     p_list = [x[i] for i in range(v, d + 1)]
+                    if valuation is not None:
+                        v = valuation
                 else:
                     p_dict = x.homogeneous_components()
                     v = min(p_dict.keys())
@@ -873,7 +921,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
                     p_list = [p_dict.get(i, 0) for i in range(v, d + 1)]
 
                 coeff_stream = CoefficientStream_exact(p_list, self._sparse,
-                                                       valuation=valuation,
+                                                       valuation=v,
                                                        constant=constant,
                                                        degree=degree)
             return self.element_class(self, coeff_stream)
@@ -884,6 +932,8 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             # TODO: Implement a way to make a self._sparse copy
             raise NotImplementedError("cannot convert between sparse and dense")
         if callable(x):
+            if valuation is None:
+                valuation = 0
             if degree is not None:
                 if constant is None:
                     constant = ZZ.zero()
@@ -993,7 +1043,7 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
         TESTS::
 
             sage: L = LazyDirichletSeriesRing(ZZ, 't')
-            sage: TestSuite(L).run(skip='_test_elements')
+            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
         """
         if base_ring.characteristic() > 0:
             raise ValueError("positive characteristic not allowed for Dirichlet series")
@@ -1001,8 +1051,15 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
         self._sparse = sparse
         self._coeff_ring = base_ring
         self._laurent_poly_ring = SR
+
+        category = Algebras(base_ring.category())
+        if base_ring in IntegralDomains():
+            category &= IntegralDomains()
+        elif base_ring in Rings().Commutative():
+            category = category.Commutative()
+        category = category.Infinite()
         Parent.__init__(self, base=base_ring, names=names,
-                        category=MagmasAndAdditiveMagmas().or_subcategory(category))
+                        category=category)
 
     def _repr_(self):
         """
@@ -1096,6 +1153,16 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
             return True
 
         return False
+
+    def _coerce_map_from_base_ring(self):
+        """
+        Return a coercion map from the base ring of ``self``.
+
+        """
+        # Return a DefaultConvertMap_unique; this can pass additional
+        # arguments to _element_constructor_, unlike the map returned
+        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
+        return self._generic_coerce_map(self.base_ring())
 
     def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
         """

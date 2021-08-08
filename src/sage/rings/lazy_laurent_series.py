@@ -1121,8 +1121,8 @@ class LazySequencesModuleElement(LazySequenceElement):
             sage: n = M([[1, 0],[1, 1]])
             sage: a = L(lambda k: n^k)
             sage: (m*a - a*m)[3]
-            [-3  0]
-            [ 0  3]
+            [ 3  0]
+            [ 0 -3]
 
         """
         P = self.parent()
@@ -1448,6 +1448,142 @@ class LazyCauchyProductSeries(RingElement):
         if isinstance(coeff_stream, CoefficientStream_cauchy_inverse):
             return P.element_class(P, coeff_stream._series)
         return P.element_class(P, CoefficientStream_cauchy_inverse(coeff_stream))
+
+    def _div_(self, other):
+        r"""
+        Return ``self`` divided by ``other``.
+
+        INPUT:
+
+        - ``other`` -- nonzero series
+
+        EXAMPLES:
+
+        Lazy Laurent series that have a dense implementation can be divided::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+            sage: z/(1 - z)
+            z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + O(z^8)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: N = L(lambda n: 1); N
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+            sage: P = M / N; P
+            z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+
+        Lazy Laurent series that have a sparse implementation can be divided::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: N = L(lambda n: 1); N
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+            sage: P = M / N; P
+            z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+
+        Lazy Laurent series that are known to be exact can be divided::
+
+            M = z^2 + 2*z + 1
+            N = z + 1
+            O = M / N; O
+            z + 1
+
+        An example over the ring of symmetric functions::
+
+            sage: e = SymmetricFunctions(QQ).e()
+            sage: R.<z> = LazyLaurentSeriesRing(e)
+            sage: 1 / (1 - e[1]*z)
+            e[] + e[1]*z + e[1, 1]*z^2 + e[1, 1, 1]*z^3 + e[1, 1, 1, 1]*z^4
+             + e[1, 1, 1, 1, 1]*z^5 + e[1, 1, 1, 1, 1, 1]*z^6 + O(e[]*z^7)
+        """
+        if isinstance(other._coeff_stream, CoefficientStream_zero):
+            raise ZeroDivisionError("cannot divide by 0")
+
+        P = self.parent()
+        left = self._coeff_stream
+        if isinstance(left, CoefficientStream_zero):
+            return P.zero()
+        right = other._coeff_stream
+        if (isinstance(left, CoefficientStream_exact)
+            and isinstance(right, CoefficientStream_exact)):
+            if not left._constant and not right._constant:
+                R = P._laurent_poly_ring
+                z = R.gen()
+                pl = self.finite_part()
+                pr = other.finite_part()
+                try:
+                    ret = pl / pr
+                    ret = P._laurent_poly_ring(ret)
+                    return P(ret)
+                except (TypeError, ValueError, NotImplementedError):
+                    # We cannot divide the polynomials, so the result must be a series
+                    pass
+
+        return P.element_class(P, CoefficientStream_cauchy_product(left, CoefficientStream_cauchy_inverse(right)))
+
+    def __pow__(self, n):
+        """
+        Return the ``n``-th power of the series.
+
+        INPUT:
+
+        - ``n`` -- integer; the power to which to raise the series
+
+        EXAMPLES:
+
+        Lazy Laurent series that have a dense implementation can be
+        raised to the power ``n``::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+            sage: (1 - z)^-1
+            1 + z + z^2 + O(z^3)
+            sage: (1 - z)^0
+            1
+            sage: (1 - z)^3
+            1 - 3*z + 3*z^2 - z^3
+            sage: (1 - z)^-3
+            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + O(z^7)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: M^2
+            z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + O(z^7)
+
+        We can create a really large power of a monomial, even with
+        the dense implementation::
+
+            sage: z^1000000
+            z^1000000
+
+        Lazy Laurent series that have a sparse implementation can be
+        raised to the power ``n``::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: M^2
+            z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + O(z^7)
+
+        Lazy Laurent series that are known to be exact can be raised
+        to the power ``n``::
+
+            sage: z^2
+            z^2
+            sage: (1 - z)^2
+            1 - 2*z + z^2
+            sage: (1 + z)^2
+            1 + 2*z + z^2
+        """
+        if n == 0:
+            return self.parent().one()
+
+        cs = self._coeff_stream
+        if (isinstance(cs, CoefficientStream_exact)
+            and not cs._constant and n in ZZ
+            and (n > 0 or len(cs._initial_coefficients) == 1)):
+            P = self.parent()
+            return P(self.finite_part() ** ZZ(n))
+
+        return generic_power(self, n)
 
 
 class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
@@ -1826,148 +1962,6 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             return f
         else:
             return f / z**(1 - self._coeff_stream._approximate_valuation)
-
-    def _div_(self, other):
-        r"""
-        Return ``self`` divided by ``other``.
-
-        INPUT:
-
-        - ``other`` -- nonzero series
-
-        EXAMPLES:
-
-        Lazy Laurent series that have a dense implementation can be divided::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
-            sage: z/(1 - z)
-            z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + O(z^8)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: N = L(lambda n: 1); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-            sage: P = M / N; P
-            z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-
-        Lazy Laurent series that have a sparse implementation can be divided::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: N = L(lambda n: 1); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-            sage: P = M / N; P
-            z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-
-        Lazy Laurent series that are known to be exact can be divided::
-
-            M = z^2 + 2*z + 1
-            N = z + 1
-            O = M / N; O
-            z + 1
-
-        An example over the ring of symmetric functions::
-
-            sage: e = SymmetricFunctions(QQ).e()
-            sage: R.<z> = LazyLaurentSeriesRing(e)
-            sage: 1 / (1 - e[1]*z)
-            e[] + e[1]*z + e[1, 1]*z^2 + e[1, 1, 1]*z^3 + e[1, 1, 1, 1]*z^4
-             + e[1, 1, 1, 1, 1]*z^5 + e[1, 1, 1, 1, 1, 1]*z^6 + O(e[]*z^7)
-        """
-        if isinstance(other._coeff_stream, CoefficientStream_zero):
-            raise ZeroDivisionError("cannot divide by 0")
-
-        P = self.parent()
-        left = self._coeff_stream
-        if isinstance(left, CoefficientStream_zero):
-            return P.zero()
-        right = other._coeff_stream
-        if (isinstance(left, CoefficientStream_exact)
-                and isinstance(right, CoefficientStream_exact)):
-            if not left._constant and not right._constant:
-                R = P._laurent_poly_ring
-                z = R.gen()
-                pl = left.polynomial_part(z)
-                pr = right.polynomial_part(z)
-                try:
-                    ret = pl / pr
-                    ret = P._laurent_poly_ring(ret)
-                    initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
-                    return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, valuation=ret.valuation(), constant=left._constant))
-                except (TypeError, ValueError, NotImplementedError):
-                    # We cannot divide the polynomials, so the result must be a series
-                    pass
-
-        return P.element_class(P, CoefficientStream_cauchy_product(left, CoefficientStream_cauchy_inverse(right)))
-
-    def __pow__(self, n):
-        """
-        Return the ``n``-th power of the series.
-
-        INPUT:
-
-        - ``n`` -- integer; the power to which to raise the series
-
-        EXAMPLES:
-
-        Lazy Laurent series that have a dense implementation can be
-        raised to the power ``n``::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
-            sage: (1 - z)^-1
-            1 + z + z^2 + O(z^3)
-            sage: (1 - z)^0
-            1
-            sage: (1 - z)^3
-            1 - 3*z + 3*z^2 - z^3
-            sage: (1 - z)^-3
-            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + O(z^7)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: M^2
-            z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + O(z^7)
-
-        We can create a really large power of a monomial, even with
-        the dense implementation::
-
-            sage: z^1000000
-            z^1000000
-
-        Lazy Laurent series that have a sparse implementation can be
-        raised to the power ``n``::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: M^2
-            z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + O(z^7)
-
-        Lazy Laurent series that are known to be exact can be raised
-        to the power ``n``::
-
-            sage: z^2
-            z^2
-            sage: (1 - z)^2
-            1 - 2*z + z^2
-            sage: (1 + z)^2
-            1 + 2*z + z^2
-        """
-        if n == 0:
-            return self.parent().one()
-
-        cs = self._coeff_stream
-        if (isinstance(cs, CoefficientStream_exact)
-            and not cs._constant and n in ZZ
-            and (n > 0 or len(cs._initial_coefficients) == 1)):
-            P = self.parent()
-            z = P._laurent_poly_ring.gen()
-            ret = cs.polynomial_part(z) ** ZZ(n)
-            val = ret.valuation()
-            deg = ret.degree() + 1
-            initial_coefficients = [ret[i] for i in range(val, deg)]
-            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, self._coeff_stream._constant, deg, val))
-
-        return generic_power(self, n)
 
     def approximate_series(self, prec, name=None):
         """

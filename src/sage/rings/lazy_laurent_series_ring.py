@@ -20,7 +20,14 @@ AUTHORS:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
-from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
+from sage.categories.algebras import Algebras
+from sage.categories.integral_domains import IntegralDomains
+from sage.categories.fields import Fields
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
+
+from .laurent_series_ring_element import LaurentSeries
+from .ring import CommutativeRing
+
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.integer_ring import ZZ
@@ -56,7 +63,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         sage: L.<z> = LazyLaurentSeriesRing(QQ)
         sage: L.category()
-        Category of magmas and additive magmas
+        Join of Category of complete discrete valuation fields and Category of commutative algebras over (number fields and quotient fields and metric spaces) and Category of infinite sets
+
+        sage: L in Fields
+        True
         sage: 1/(1 - z)
         1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
         sage: 1/(1 - z) == 1/(1 - z)
@@ -77,6 +87,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         sage: L.<z> = LazyLaurentSeriesRing(ZZ); L
         Lazy Laurent Series Ring in z over Integer Ring
+        sage: L in Fields
+        False
         sage: 1/(1 - 2*z)^3
         1 + 6*z + 24*z^2 + 80*z^3 + 240*z^4 + 672*z^5 + 1792*z^6 + O(z^7)
 
@@ -107,14 +119,26 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         TESTS::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 't')
-            sage: TestSuite(L).run(skip='_test_elements')
+            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
         """
         self._sparse = sparse
         self._coeff_ring = base_ring
         self._laurent_poly_ring = LaurentPolynomialRing(base_ring, names, sparse=sparse)
 
+        category = Algebras(base_ring.category())
+        if base_ring in Fields():
+            category &= CompleteDiscreteValuationFields()
+        elif base_ring in IntegralDomains():
+            category &= IntegralDomains()
+        elif base_ring in Rings().Commutative():
+            category = category.Commutative()
+
+        if base_ring.is_zero():
+            category = category.Finite()
+        else:
+            category = category.Infinite()
         Parent.__init__(self, base=base_ring, names=names,
-                        category=MagmasAndAdditiveMagmas().or_subcategory(category))
+                        category=category)
 
     def _repr_(self):
         """
@@ -239,6 +263,16 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         R = self._laurent_poly_ring
         return R.has_coerce_map_from(S)
+
+    def _coerce_map_from_base_ring(self):
+        """
+        Return a coercion map from the base ring of ``self``.
+
+        """
+        # Return a DefaultConvertMap_unique; this can pass additional
+        # arguments to _element_constructor_, unlike the map returned
+        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
+        return self._generic_coerce_map(self.base_ring())
 
     def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
         """

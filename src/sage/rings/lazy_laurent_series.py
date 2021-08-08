@@ -1,32 +1,31 @@
 r"""
 Lazy Laurent Series
 
-A lazy Laurent series is a Laurent series whose coefficients are computed as
-demanded or needed for inexact series. Unlike the usual Laurent series in Sage,
-lazy Laurent series do not have precisions because a lazy Laurent series knows
-(can be computed, lazily) all its coefficients.
+A lazy Laurent series is a Laurent series whose coefficients are
+computed on demand.  Therefore, unlike the usual Laurent series in
+Sage, lazy Laurent series have infinite precision.
 
 EXAMPLES:
 
-Generating functions are Laurent series over the integer ring::
+Laurent series over the integer ring are particularly useful as
+generating functions for sequences arising in combinatorics.::
 
     sage: L.<z> = LazyLaurentSeriesRing(ZZ)
 
-This defines the generating function of Fibonacci sequence::
+The generating function of the Fibonacci sequence is::
 
     sage: f = 1 / (1 - z - z^2)
     sage: f
     1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + O(z^7)
 
-The 100th element of Fibonacci sequence can be obtained from the generating
-function::
+In principle, we can now compute any coefficient of `f`::
 
     sage: f.coefficient(100)
     573147844013817084101
 
-Coefficients are computed depending on the type of implementation.
-For a sparse implementation, only the coefficients that are needed are
-calculated. ::
+Which coefficients are actually computed depends on the type of
+implementation.  For the sparse implementation, only the coefficients
+that are needed are computed.::
 
     sage: s = L(lambda n: n); s
     z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
@@ -35,8 +34,8 @@ calculated. ::
     sage: s._coeff_stream._cache
     {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 10: 10}
 
-For a dense implementation, all the coefficients up to
-the required coefficient are calculated. ::
+Using the dense implementation, all coefficients up to the required
+coefficient are computed.::
 
     sage: L.<x> = LazyLaurentSeriesRing(ZZ, sparse=False)
     sage: s = L(lambda n: n); s
@@ -46,7 +45,7 @@ the required coefficient are calculated. ::
     sage: s._coeff_stream._cache
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-You can do arithmetic with lazy power series::
+We can do arithmetic with lazy power series::
 
     sage: f
     1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + O(z^7)
@@ -57,7 +56,7 @@ You can do arithmetic with lazy power series::
     sage: g = (f + f^-1)*(f - f^-1); g
     4*z + 6*z^2 + 8*z^3 + 19*z^4 + 38*z^5 + 71*z^6 + O(z^7)
 
-You may need to change the base ring::
+We can change the base ring::
 
     sage: h = g.change_ring(QQ)
     sage: h.parent()
@@ -73,6 +72,7 @@ AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version
 - Tejasvi Chebrolu (2021-08): refactored and expanded functionality
+
 """
 
 # ****************************************************************************
@@ -996,7 +996,6 @@ class LazySequencesModuleElement(LazySequenceElement):
 
         - ``scalar`` -- an element of the base ring
 
-
         EXAMPLES:
 
         Dense series can be multiplied with a scalar::
@@ -1041,14 +1040,14 @@ class LazySequencesModuleElement(LazySequenceElement):
             return self
 
         if isinstance(self._coeff_stream, CoefficientStream_exact):
-            c = scalar * self._coeff_stream._constant
+            c = self._coeff_stream._constant * scalar
             v = self._coeff_stream.valuation()
             init_coeffs = self._coeff_stream._initial_coefficients
-            initial_coefficients = [scalar * val for val in init_coeffs]
+            initial_coefficients = [val * scalar for val in init_coeffs]
             return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
                                                               valuation=v, constant=c,
                                                               degree=self._coeff_stream._degree))
-        return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
+        return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
 
     def _rmul_(self, scalar):
         r"""
@@ -1136,13 +1135,13 @@ class LazySequencesModuleElement(LazySequenceElement):
             c = scalar * self._coeff_stream._constant
             v = self._coeff_stream.valuation()
             init_coeffs = self._coeff_stream._initial_coefficients
-            initial_coefficients = [val * scalar for val in init_coeffs]
+            initial_coefficients = [scalar * val for val in init_coeffs]
             return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
                                                               valuation=v, constant=c,
                                                               degree=self._coeff_stream._degree))
         if P.base_ring().is_commutative():
             return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
-        return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
+        return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
 
     def _neg_(self):
         """
@@ -1352,8 +1351,8 @@ class LazyCauchyProductSeries(RingElement):
             il = left._initial_coefficients
             ir = right._initial_coefficients
             initial_coefficients = [sum(il[k]*ir[n-k]
-                                        for k in range(max(n-len(ir)+1, 0),
-                                                       min(len(il)-1, n) + 1))
+                                        for k in range(max(n - len(ir) + 1, 0),
+                                                       min(len(il) - 1, n) + 1))
                                     for n in range(len(il) + len(ir) - 1)]
             lv = left.valuation()
             rv = right.valuation()
@@ -1810,6 +1809,10 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             z + O(z^8)
             sage: (1/z).revert()
             z^-1 + O(z^6)
+
+            sage: (z-z^2).revert()
+            z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
+
         """
         P = self.parent()
         z = P.gen()

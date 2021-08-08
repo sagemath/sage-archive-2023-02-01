@@ -888,15 +888,15 @@ class CoefficientStream_binary_commutative(CoefficientStream_binary):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_cauchy_product)
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_add)
             sage: f = CoefficientStream_coefficient_function(lambda n: 2*n, ZZ, True, 0)
             sage: g = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 1)
-            sage: h = CoefficientStream_cauchy_product(f, g)
+            sage: h = CoefficientStream_add(f, g)
             sage: [h[i] for i in range(10)]
-            [0, 0, 2, 8, 20, 40, 70, 112, 168, 240]
-            sage: u = CoefficientStream_cauchy_product(g, f)
+            [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
+            sage: u = CoefficientStream_add(g, f)
             sage: [u[i] for i in range(10)]
-            [0, 0, 2, 8, 20, 40, 70, 112, 168, 240]
+            [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
             sage: h == u
             True
         """
@@ -1124,7 +1124,7 @@ class CoefficientStream_sub(CoefficientStream_binary):
         return self._left[n] - self._right[n]
 
 
-class CoefficientStream_cauchy_product(CoefficientStream_binary_commutative):
+class CoefficientStream_cauchy_product(CoefficientStream_binary):
     """
     Operator for multiplication of two coefficient streams using the
     Cauchy product.

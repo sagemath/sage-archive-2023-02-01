@@ -719,6 +719,69 @@ class LazySequencesModuleElement(LazySequenceElement):
     def _lmul_(self, scalar):
         r"""
         Scalar multiplication for module elements with the module
+        element on the left and the scalar on the right.
+
+        INPUT:
+
+        - ``scalar`` -- an element of the base ring
+
+
+        EXAMPLES:
+
+        Dense series can be multiplied with a scalar::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+            sage: M = L(lambda n: 1 + n, valuation=0)
+            sage: O = M * 2
+            sage: O[0:10]
+            [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+            sage: M * 1== M
+            True
+            sage: M * 0
+            0
+
+        Sparse series can be multiplied with a scalar::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: 1 + n, valuation=0)
+            sage: O = M * 2
+            sage: O[0:10]
+            [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+            sage: M * 1== M
+            True
+            sage: M * 0
+            0
+
+        Series which are known to be exact can be multiplied with a scalar::
+
+            sage: N = L([0, 1])
+            sage: O = N * -1
+            sage: O[0:10]
+            [0, -1, 0, 0, 0, 0, 0, 0, 0, 0]
+            sage: N * 1 == N
+            True
+            sage: N * 0
+            0
+        """
+        P = self.parent()
+        if not scalar:
+            return P.zero()
+        if scalar == 1:
+            return self
+
+        if isinstance(self._coeff_stream, CoefficientStream_exact):
+            c = scalar * self._coeff_stream._constant
+            v = self._coeff_stream.valuation()
+            init_coeffs = self._coeff_stream._initial_coefficients
+            initial_coefficients = [scalar * val for val in init_coeffs]
+            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
+                                                              valuation=v, constant=c,
+                                                              degree=self._coeff_stream._degree))
+        return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
+
+    def _rmul_(self, scalar):
+        r"""
+        Scalar multiplication for module elements with the module
         element on the right and the scalar on the left.
 
         INPUT:
@@ -734,16 +797,9 @@ class LazySequencesModuleElement(LazySequenceElement):
             sage: O = 2 * M
             sage: O[0:10]
             [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-            sage: O = 2 * 3 * M
-            sage: O[0:10]
-            [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
-            sage: O = 1 * M
-            sage: O[0:10]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            sage: O == M
+            sage: 1 * M == M
             True
-            sage: O = 0 * M
-            sage: O
+            sage: 0 * M
             0
 
         Sparse series can be multiplied with a scalar::
@@ -753,16 +809,9 @@ class LazySequencesModuleElement(LazySequenceElement):
             sage: O = 2 * M
             sage: O[0:10]
             [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-            sage: O = 2 * 3 * M
-            sage: O[0:10]
-            [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
-            sage: O = 1 * M
-            sage: O[0:10]
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            sage: O == M
+            sage: 1 * M == M
             True
-            sage: O = 0 * M
-            sage: O
+            sage: 0 * M
             0
 
         Series which are known to be exact can be multiplied with a scalar::
@@ -771,16 +820,9 @@ class LazySequencesModuleElement(LazySequenceElement):
             sage: O = -1 * N
             sage: O[0:10]
             [0, -1, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: O = 2 * 4 * N
-            sage: O[0:10]
-            [0, 8, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: O = 1 * N
-            sage: O[0:10]
-            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: O == N
+            sage: 1 * N == N
             True
-            sage: O = 0 * N
-            sage: O
+            sage: 0 * N
             0
         """
         P = self.parent()
@@ -944,6 +986,18 @@ class LazyCauchyProductSeries(RingElement):
             sage: M * L.one() is M
             True
 
+        Multiplication of series with eventually constant
+        coefficients may yield another such series::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR)
+            sage: var("a b c d e u v w")
+            (a, b, c, d, e, u, v, w)
+            sage: s = a/z^2 + b*z + c*z^2 + d*z^3 + e*z^4
+            sage: t = L([u, v], constant=w, valuation=-1)
+            sage: s1 = s.approximate_series(44)
+            sage: t1 = t.approximate_series(44)
+            sage: s1 * t1 - (s * t).approximate_series(42)
+            O(z^42)
         """
         P = self.parent()
         left = self._coeff_stream
@@ -1040,14 +1094,14 @@ class LazyCauchyProductSeries(RingElement):
         if isinstance(coeff_stream, CoefficientStream_exact):
             initial_coefficients = coeff_stream._initial_coefficients
             if not initial_coefficients:
-                i = 1 / coeff_stream._constant
+                i = ~coeff_stream._constant
                 v = -coeff_stream.valuation()
                 c = P._coeff_ring.zero()
                 coeff_stream = CoefficientStream_exact((i, -i), P._sparse,
                                                        valuation=v, constant=c)
                 return P.element_class(P, coeff_stream)
             if len(initial_coefficients) == 1:
-                i = 1 / initial_coefficients[0]
+                i = ~initial_coefficients[0]
                 v = -coeff_stream.valuation()
                 c = P._coeff_ring.zero()
                 coeff_stream = CoefficientStream_exact((i,), P._sparse,
@@ -1055,7 +1109,7 @@ class LazyCauchyProductSeries(RingElement):
                 return P.element_class(P, coeff_stream)
             if len(initial_coefficients) == 2 and not (initial_coefficients[0] + initial_coefficients[1]):
                 v = -coeff_stream.valuation()
-                c = 1 / initial_coefficients[0]
+                c = ~initial_coefficients[0]
                 coeff_stream = CoefficientStream_exact((), P._sparse,
                                                        valuation=v, constant=c)
                 return P.element_class(P, coeff_stream)

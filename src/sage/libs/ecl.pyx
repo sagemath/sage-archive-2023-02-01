@@ -468,27 +468,17 @@ cdef cl_object python_to_ecl(pyobj, bint read_strings) except NULL:
     elif isinstance(pyobj,EclObject):
         return (<EclObject>pyobj).obj
     elif isinstance(pyobj, list):
-        if not pyobj:
-            return Cnil
-        else:
-            L = cl_cons(python_to_ecl(pyobj[0], read_strings),Cnil)
-            ptr = L
-            for a in pyobj[1:]:
-                cl_rplacd(ptr, cl_cons(python_to_ecl(a, read_strings), Cnil))
-                ptr = cl_cdr(ptr)
-            return L
+        L = Cnil
+        for i in range(len(pyobj)-1,-1,-1):
+            L = cl_cons(python_to_ecl(pyobj[i], read_strings), L)
+        return L
     elif isinstance(pyobj, tuple):
         if not pyobj:
             return Cnil
-        elif len(pyobj) == 1:
-            return python_to_ecl(pyobj[0], read_strings)
         else:
-            L = cl_cons(python_to_ecl(pyobj[0], read_strings), Cnil)
-            ptr = L
-            for a in pyobj[1:-1]:
-                cl_rplacd(ptr, cl_cons(python_to_ecl(a, read_strings), Cnil))
-                ptr = cl_cdr(ptr)
-            cl_rplacd(ptr, python_to_ecl(pyobj[-1], read_strings))
+            L = python_to_ecl(pyobj[-1], read_strings)
+            for i in range(len(pyobj)-2,-1,-1):
+                L = cl_cons(python_to_ecl(pyobj[i], read_strings), L)
             return L
     else:
         raise TypeError("Unimplemented type for python_to_ecl")

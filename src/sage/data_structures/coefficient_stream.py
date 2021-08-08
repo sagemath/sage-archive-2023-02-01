@@ -941,7 +941,7 @@ class CoefficientStream_zero(CoefficientStream):
         """
         Return the ``n``-th coefficient of ``self``.
 
-        INPUT::
+        INPUT:
 
         - ``n`` -- integer; the index
 

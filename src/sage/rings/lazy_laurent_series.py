@@ -2,9 +2,9 @@ r"""
 Lazy Laurent Series
 
 A lazy Laurent series is a Laurent series whose coefficients are computed as
-demanded or needed. Unlike the usual Laurent series in Sage, lazy Laurent
-series do not have precisions because a lazy Laurent series knows (can be
-computed, lazily) all its coefficients.
+demanded or needed for inexact series. Unlike the usual Laurent series in Sage,
+lazy Laurent series do not have precisions because a lazy Laurent series knows
+(can be computed, lazily) all its coefficients.
 
 EXAMPLES:
 
@@ -25,26 +25,26 @@ function::
     573147844013817084101
 
 Coefficients are computed depending on the type of implementation.
-For example, for a dense implementation, all the coefficients up to
-the required coefficient are calculated. ::
+For a sparse implementation, only the coefficients that are needed are
+calculated. ::
 
     sage: s = L(lambda n: n); s
     z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
     sage: s.coefficient(10)
     10
     sage: s._coeff_stream._cache
-    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 10: 10}
 
-For a sparse implementation, only the coefficients that are needed are
-calculated. ::
+For a dense implementation, all the coefficients up to
+the required coefficient are calculated. ::
 
-    sage: L.<x> = LazyLaurentSeriesRing(ZZ, sparse=True)
+    sage: L.<x> = LazyLaurentSeriesRing(ZZ, sparse=False)
     sage: s = L(lambda n: n); s
     x + 2*x^2 + 3*x^3 + 4*x^4 + 5*x^5 + 6*x^6 + O(x^7)
     sage: s.coefficient(10)
     10
     sage: s._coeff_stream._cache
-    {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 10: 10}
+    [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 You can do arithmetic with lazy power series::
 
@@ -72,7 +72,7 @@ You may need to change the base ring::
 AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version
-
+- Tejasvi Chebrolu (2021-08): refactored and expanded functionality
 """
 
 # ****************************************************************************
@@ -86,9 +86,9 @@ AUTHORS:
 # ****************************************************************************
 
 
-from .infinity import infinity
-from sage.structure.element import ModuleElement, RingElement, parent
-from .integer_ring import ZZ
+from sage.rings.infinity import infinity
+from sage.structure.element import ModuleElement, RingElement
+from sage.rings.integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -96,14 +96,12 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_add,
     CoefficientStream_cauchy_product,
     CoefficientStream_sub,
-    CoefficientStream_div,
     CoefficientStream_composition,
-    CoefficientStream_scalar,
+    CoefficientStream_lmul,
+    CoefficientStream_rmul,
     CoefficientStream_neg,
     CoefficientStream_cauchy_inverse,
-    CoefficientStream_apply_coeff,
-    CoefficientStream,
-    CoefficientStream_inexact,
+    CoefficientStream_map_coefficients,
     CoefficientStream_zero,
     CoefficientStream_exact,
     CoefficientStream_uninitialized
@@ -223,16 +221,18 @@ class LazySequenceElement(ModuleElement):
         P = self.parent()
         coeff_stream = self._coeff_stream
         if isinstance(coeff_stream, CoefficientStream_exact):
-            initial_coefficients = [func(i) if i else 0 for i in coeff_stream._initial_coefficients]
+            initial_coefficients = [func(i) if i else 0
+                                    for i in coeff_stream._initial_coefficients]
             c = func(coeff_stream._constant) if coeff_stream._constant else 0
             if not any(initial_coefficients) and not c:
                 return P.zero()
-            coeff_stream = CoefficientStream_exact(initial_coefficients, self._coeff_stream._is_sparse,
+            coeff_stream = CoefficientStream_exact(initial_coefficients,
+                                                   self._coeff_stream._is_sparse,
                                                    valuation=coeff_stream._approximate_valuation,
                                                    degree=coeff_stream._degree,
                                                    constant=c)
             return P.element_class(P, coeff_stream)
-        coeff_stream = CoefficientStream_apply_coeff(self._coeff_stream, func, P._coeff_ring)
+        coeff_stream = CoefficientStream_map_coefficients(self._coeff_stream, func, P._coeff_ring)
         return P.element_class(P, coeff_stream)
 
     def truncate(self, d):
@@ -277,9 +277,10 @@ class LazySequenceElement(ModuleElement):
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
-        initial_coefficients = [coeff_stream[i] for i in range(coeff_stream._approximate_valuation, d)]
+        v = coeff_stream._approximate_valuation
+        initial_coefficients = [coeff_stream[i] for i in range(v, d)]
         return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
-                                                          valuation=coeff_stream._approximate_valuation))
+                                                          valuation=v))
 
     def prec(self):
         """
@@ -718,7 +719,7 @@ class LazySequencesModuleElement(LazySequenceElement):
     def _lmul_(self, scalar):
         r"""
         Scalar multiplication for module elements with the module
-        element on the left and the scalar on the right.
+        element on the right and the scalar on the left.
 
         INPUT:
 
@@ -791,11 +792,12 @@ class LazySequencesModuleElement(LazySequenceElement):
         if isinstance(self._coeff_stream, CoefficientStream_exact):
             c = scalar * self._coeff_stream._constant
             v = self._coeff_stream.valuation()
-            initial_coefficients = [scalar * v for v in self._coeff_stream._initial_coefficients]
+            init_coeffs = self._coeff_stream._initial_coefficients
+            initial_coefficients = [val * scalar for val in init_coeffs]
             return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
                                                               valuation=v, constant=c,
                                                               degree=self._coeff_stream._degree))
-        return P.element_class(P, CoefficientStream_scalar(self._coeff_stream, scalar))
+        return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
 
     def _neg_(self):
         """
@@ -1378,14 +1380,19 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             z + O(z^8)
             sage: (1/z).revert()
             z^-1 + O(z^6)
-
         """
         P = self.parent()
         z = P.gen()
-        g = self if self._coeff_stream._approximate_valuation == 1 else self * z**(1 - self._coeff_stream._approximate_valuation)
+        if self._coeff_stream._approximate_valuation == 1:
+            g = self
+        else:
+            g = self * z**(1 - self._coeff_stream._approximate_valuation)
         f = P(None, valuation=1)
         f.define(z/((g/z)(f)))
-        return f if self._coeff_stream._approximate_valuation == 1 else f / z**(1 - self._coeff_stream._approximate_valuation)
+        if self._coeff_stream._approximate_valuation == 1:
+            return f
+        else:
+            return f / z**(1 - self._coeff_stream._approximate_valuation)
 
     def _div_(self, other):
         r"""
@@ -1454,7 +1461,7 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
                     ret = P._laurent_poly_ring(ret)
                     initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
                     return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, valuation=ret.valuation(), constant=left._constant))
-                except (TypeError, ValueError):
+                except (TypeError, ValueError, NotImplementedError):
                     # We cannot divide the polynomials, so the result must be a series
                     pass
 
@@ -1631,7 +1638,12 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             Traceback (most recent call last):
             ...
             ValueError: not a polynomial
+
+            sage: L.zero().polynomial()
+            0
         """
+        S = self.parent()
+
         if degree is None:
             if isinstance(self._coeff_stream, CoefficientStream_zero):
                 from sage.rings.all import PolynomialRing
@@ -1643,13 +1655,10 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
         else:
             m = degree + 1
 
-        S = self.parent()
-
         if name is None:
             name = S.variable_name()
 
         if self.valuation() < 0:
-            from sage.rings.all import LaurentPolynomialRing
             R = LaurentPolynomialRing(S.base_ring(), name=name)
             n = self.valuation()
             return R([self[i] for i in range(n, m)]).shift(n)
@@ -1831,3 +1840,4 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
         if isinstance(self._coeff_stream, CoefficientStream_uninitialized) and self._coeff_stream._target is None:
             return UnicodeArt('Uninitialized Lazy Laurent Series')
         return self._format_series(unicode_art, True)
+

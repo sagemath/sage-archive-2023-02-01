@@ -899,7 +899,7 @@ class LazyCauchyProductSeries(RingElement):
 
         TESTS::
 
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
             sage: (1 - z)*(1 - z)
             1 - 2*z + z^2
             sage: (1 - z)*(1 - z)*(1 - z)
@@ -910,7 +910,28 @@ class LazyCauchyProductSeries(RingElement):
             sage: N = M * (1 - M)
             sage: N
             z + z^2 - z^3 - 6*z^4 - 15*z^5 - 29*z^6 + ...
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+
+            sage: p = (1 - z)*(1 + z^2)^3 * z^-2
+            sage: p
+            z^-2 - z^-1 + 3 - 3*z + 3*z^2 - 3*z^3 + z^4 - z^5
+            sage: M = L(lambda n: n, valuation=-2, degree=5, constant=2)
+            sage: M
+            -2*z^-2 - z^-1 + z + 2*z^2 + 3*z^3 + 4*z^4 + 2*z^5 + 2*z^6 + 2*z^7 + O(z^8)
+            sage: M * p
+            -2*z^-4 + z^-3 - 5*z^-2 + 4*z^-1 - 2 + 7*z + 5*z^2 + 5*z^3
+             + 7*z^4 - 2*z^5 + 4*z^6 - 5*z^7 + z^8 - 2*z^9
+            sage: M * p == p * M
+            True
+
+            sage: q = (1 - 2*z)*(1 + z^2)^3 * z^-2
+            sage: q * M
+            -2*z^-4 + 3*z^-3 - 4*z^-2 + 10*z^-1 + 11*z + 2*z^2 - 3*z^3
+             - 6*z^4 - 22*z^5 - 14*z^6 - 27*z^7 - 16*z^8 - 20*z^9
+             - 16*z^10 - 16*z^11 - 16*z^12 + O(z^13)
+            sage: q * M == M * q
+            True
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: M = L(lambda n: n); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
             sage: N = L(lambda n: 1); N
@@ -927,29 +948,54 @@ class LazyCauchyProductSeries(RingElement):
         P = self.parent()
         left = self._coeff_stream
         right = other._coeff_stream
+
+        # Check some trivial products
         if isinstance(left, CoefficientStream_zero) or isinstance(right, CoefficientStream_zero):
             return P.zero()
+        if isinstance(left, CoefficientStream_exact) and left._initial_coefficients == (P._coeff_ring.one(),) and left.valuation() == 0:
+            return other  # self == 1
+        if isinstance(right, CoefficientStream_exact) and right._initial_coefficients == (P._coeff_ring.one(),) and right.valuation() == 0:
+            return self  # right == 1
 
         # the product is exact if and only if both of the factors are
         # exact, and one has eventually 0 coefficients:
         #   (p + a x^d/(1-x))(q + b x^e/(1-x))
         #   = p q + (a x^d q + b x^e p)/(1-x) + a b x^(d+e)/(1-x)^2
-        # for the moment we only consider the case where bothe have eventually 0 coefficients
-        if (isinstance(left, CoefficientStream_exact) and not left._constant
-            and isinstance(right, CoefficientStream_exact) and not right._constant):
+        if (isinstance(left, CoefficientStream_exact)
+            and isinstance(right, CoefficientStream_exact)
+            and not (left._constant and right._constant)):
             il = left._initial_coefficients
             ir = right._initial_coefficients
             initial_coefficients = [sum(il[k]*ir[n-k]
                                         for k in range(max(n-len(ir)+1, 0),
                                                        min(len(il)-1, n) + 1))
-                                    for n in range(len(il) + len(ir))]
-            v = left.valuation() + right.valuation()
-            coeff_stream = CoefficientStream_exact(initial_coefficients, P._sparse, valuation=v)
+                                    for n in range(len(il) + len(ir) - 1)]
+            lv = left.valuation()
+            rv = right.valuation()
+            # (a x^d q)/(1-x) has constant a q(1), and the initial
+            # values are the cumulative sums of the coeffcients of q
+            if right._constant:
+                d = right._degree
+                c = left._constant # this is zero
+                # left._constant must be 0 and thus len(il) >= 1
+                for k in range(len(il)-1):
+                    c += il[k] * right._constant
+                    initial_coefficients[d - rv + k] += c
+                c += il[-1] * right._constant
+            elif left._constant:
+                d = left._degree
+                c = right._constant # this is zero
+                # left._constant must be 0 and thus len(il) >= 1
+                for k in range(len(ir)-1):
+                    c += left._constant * ir[k]
+                    initial_coefficients[d - lv + k] += c
+                c += left._constant * ir[-1]
+            else:
+                c = left._constant # this is zero
+            coeff_stream = CoefficientStream_exact(initial_coefficients, P._sparse,
+                                                   valuation=lv+rv, constant=c)
             return P.element_class(P, coeff_stream)
-        if isinstance(left, CoefficientStream_exact) and left._initial_coefficients == (P._coeff_ring.one(),) and left.valuation() == 0:
-            return other  # self == 1
-        if isinstance(right, CoefficientStream_exact) and right._initial_coefficients == (P._coeff_ring.one(),) and right.valuation() == 0:
-            return self
+
         return P.element_class(P, CoefficientStream_cauchy_product(left, right))
 
     def __invert__(self):

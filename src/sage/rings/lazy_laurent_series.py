@@ -769,7 +769,7 @@ class LazySequencesModuleElement(LazySequenceElement):
             return self
 
         if isinstance(self._coeff_stream, CoefficientStream_exact):
-            c = scalar * self._coeff_stream._constant
+            c = self._coeff_stream._constant * scalar
             v = self._coeff_stream.valuation()
             init_coeffs = self._coeff_stream._initial_coefficients
             initial_coefficients = [val * scalar for val in init_coeffs]

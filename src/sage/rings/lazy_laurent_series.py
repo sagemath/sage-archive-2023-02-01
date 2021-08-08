@@ -1476,6 +1476,65 @@ class LazySpecialFunctions():
         P = self.parent()
         return P(lambda n: 1/n if n % 2 else ZZ.zero(), 0)(self)
 
+    def arccot(self):
+        r"""
+        Return the arctangent of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(RR)
+            sage: arccot(z)
+            1.57079632679490 - 1.00000000000000*z + 0.000000000000000*z^2 + 0.333333333333333*z^3 + 0.000000000000000*z^4 - 0.200000000000000*z^5 + O(1.00000000000000*z^7)
+            sage: arccot(z^2)
+            1.57079632679490 + 0.000000000000000*z - 1.00000000000000*z^2 + 0.000000000000000*z^3 + 0.000000000000000*z^4 + 0.000000000000000*z^5 + 0.333333333333333*z^6 + O(1.00000000000000*z^7)
+            sage: arccot(z + z^2)
+            1.57079632679490 - 1.00000000000000*z - 1.00000000000000*z^2 + 0.333333333333333*z^3 + 1.00000000000000*z^4 + 0.800000000000000*z^5 - 0.666666666666667*z^6 + O(1.00000000000000*z^7)
+            sage: arctan(0)
+            0
+            sage: arctan(1 + z)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
+
+        """
+
+        from sage.symbolic.constants import pi
+        from sage.rings.lazy_laurent_series import LazySpecialFunctions
+
+        P = self.parent()
+        return P(pi/2) - LazySpecialFunctions.arctan(self)
+
+    def hypergeometric(self, a, b, c):
+        r"""
+        Return the `{}_{p}F_{q}`-hypergeometric function
+        `\,_pF_{q}` where `(p,q)` is the parameterization of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
+            sage: LazySpecialFunctions.hypergeometric(z, 1, 2, 2)                                         
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+            sage: LazySpecialFunctions.hypergeometric(z, 2, 2, 2)                                         
+            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
+            sage: LazySpecialFunctions.hypergeometric(z, 2, 3, 2)                                         
+            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + O(z^7)
+            sage: LazySpecialFunctions.hypergeometric(z, 2, 3, 4)                                         
+            1 + 3/2*z + 9/5*z^2 + 2*z^3 + 15/7*z^4 + 9/4*z^5 + 7/3*z^6 + O(z^7)
+            
+        """
+        from sage.functions.other import factorial
+
+        def pochhammer(q, n):
+            if n:
+                c = 1
+                for i in range(n):
+                    c *= (q + i)
+                return c
+            return 1
+        P = self.parent()
+        return P(lambda n: (pochhammer(a, n) * pochhammer(b, n))/(pochhammer(c, n) * factorial(n)), 0)(self)
+
 
 class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries, LazySpecialFunctions):
     r"""

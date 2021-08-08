@@ -30,20 +30,20 @@ from cpython.object cimport Py_EQ, Py_NE
 #it would be preferrable to let bint_symbolp wrap an efficient macro
 #but the macro provided in object.h doesn't seem to work
 cdef bint bint_symbolp(cl_object obj):
-    return not(cl_symbolp(obj) == Cnil)
+    return not(cl_symbolp(obj) == ECL_NIL)
 
 #these type predicates are only provided in "cl_*" form, so we wrap them
 #with the proper type cast.
 
 cdef bint bint_numberp(cl_object obj):
-    return not(cl_numberp(obj) == Cnil)
+    return not(cl_numberp(obj) == ECL_NIL)
 cdef bint bint_integerp(cl_object obj):
-    return not(cl_integerp(obj) == Cnil)
+    return not(cl_integerp(obj) == ECL_NIL)
 cdef bint bint_rationalp(cl_object obj):
-    return not(cl_rationalp(obj) == Cnil)
+    return not(cl_rationalp(obj) == ECL_NIL)
 
 cdef bint bint_base_string_p(cl_object obj):
-    return not(si_base_string_p(obj) == Cnil)
+    return not(si_base_string_p(obj) == ECL_NIL)
 
 cdef extern from "eclsig.h":
     int ecl_sig_on() except 0
@@ -84,7 +84,7 @@ cdef cl_object insert_node_after(cl_object node,cl_object value):
     next=cl_cadr(node)
     newnode=cl_cons(value,cl_cons(next,node))
     cl_rplaca(cl_cdr(node),newnode)
-    if next != Cnil:
+    if next != ECL_NIL:
         cl_rplacd(cl_cdr(next),newnode)
     return newnode
 
@@ -92,9 +92,9 @@ cdef void remove_node(cl_object node):
     cdef cl_object next, prev
     next=cl_cadr(node)
     prev=cl_cddr(node)
-    if next != Cnil:
+    if next != ECL_NIL:
         cl_rplacd(cl_cdr(next),prev)
-    if prev != Cnil:
+    if prev != ECL_NIL:
         cl_rplaca(cl_cdr(prev),next)
 
 # our global list of pointers. This will be a pointer to a sentinel node,
@@ -271,7 +271,7 @@ def init_ecl():
 
     #initialise list of objects and bind to global variable
     # *SAGE-LIST-OF-OBJECTS* to make it rooted in the reachable tree for the GC
-    list_of_objects=cl_cons(Cnil,cl_cons(Cnil,Cnil))
+    list_of_objects=cl_cons(ECL_NIL,cl_cons(ECL_NIL,ECL_NIL))
     cl_set(string_to_object(b"*SAGE-LIST-OF-OBJECTS*"), list_of_objects)
 
     cl_eval(string_to_object(b"""
@@ -406,7 +406,7 @@ def print_objects():
         print(ecl_string_to_python(s))
 
         c = cl_cadr(c)
-        if c == Cnil:
+        if c == ECL_NIL:
             break
 
 cdef cl_object python_to_ecl(pyobj, bint read_strings) except NULL:
@@ -422,11 +422,11 @@ cdef cl_object python_to_ecl(pyobj, bint read_strings) except NULL:
 
     if isinstance(pyobj,bool):
         if pyobj:
-            return Ct
+            return ECL_T
         else:
-            return Cnil
+            return ECL_NIL
     elif pyobj is None:
-        return Cnil
+        return ECL_NIL
     elif isinstance(pyobj,long):
         if pyobj >= MOST_NEGATIVE_FIXNUM and pyobj <= MOST_POSITIVE_FIXNUM:
             return ecl_make_integer(pyobj)
@@ -468,13 +468,13 @@ cdef cl_object python_to_ecl(pyobj, bint read_strings) except NULL:
     elif isinstance(pyobj,EclObject):
         return (<EclObject>pyobj).obj
     elif isinstance(pyobj, list):
-        L = Cnil
+        L = ECL_NIL
         for i in range(len(pyobj)-1,-1,-1):
             L = cl_cons(python_to_ecl(pyobj[i], read_strings), L)
         return L
     elif isinstance(pyobj, tuple):
         if not pyobj:
-            return Cnil
+            return ECL_NIL
         else:
             L = python_to_ecl(pyobj[-1], read_strings)
             for i in range(len(pyobj)-2,-1,-1):
@@ -489,7 +489,7 @@ cdef ecl_to_python(cl_object o):
     cdef Integer N
     # conversions from an ecl object to a python object.
 
-    if o == Cnil:
+    if o == ECL_NIL:
         return None
     elif bint_fixnump(o):
         # Sage specific conversion
@@ -509,11 +509,11 @@ cdef ecl_to_python(cl_object o):
         # Python conversion
         # Since Sage mainly uses mpfr, perhaps "double is not an appropriate return type
         return ecl_to_double(o)
-    elif o == Ct:
+    elif o == ECL_T:
         return True
     elif bint_consp(o):
         L=[]
-        while o != Cnil:
+        while o != ECL_NIL:
             L.append(ecl_to_python(cl_car(o)))
             o = cl_cdr(o)
             if not(bint_listp(o)):
@@ -1337,7 +1337,7 @@ cdef class EclListIterator:
             self.current = self.current.cdr()
         else:
             r = self.current
-            self.current = ecl_wrap(Cnil)
+            self.current = ecl_wrap(ECL_NIL)
         return r
 
 #input: a cl-object. Output: EclObject wrapping that.

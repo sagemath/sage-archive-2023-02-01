@@ -73,8 +73,8 @@ cdef extern from "ecl/ecl.h":
 
     # predefined symbols
 
-    cl_object Cnil
-    cl_object Ct
+    cl_object ECL_NIL
+    cl_object ECL_T
     cl_fixnum MOST_POSITIVE_FIXNUM
     cl_fixnum MOST_NEGATIVE_FIXNUM
 

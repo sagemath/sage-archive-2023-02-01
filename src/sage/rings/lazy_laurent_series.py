@@ -773,11 +773,11 @@ class LazySequencesModuleElement(LazySequenceElement):
             c = scalar * self._coeff_stream._constant
             v = self._coeff_stream.valuation()
             init_coeffs = self._coeff_stream._initial_coefficients
-            initial_coefficients = [scalar * val for val in init_coeffs]
+            initial_coefficients = [val * scalar for val in init_coeffs]
             return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
                                                               valuation=v, constant=c,
                                                               degree=self._coeff_stream._degree))
-        return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
+        return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
 
     def _rmul_(self, scalar):
         r"""
@@ -835,11 +835,13 @@ class LazySequencesModuleElement(LazySequenceElement):
             c = scalar * self._coeff_stream._constant
             v = self._coeff_stream.valuation()
             init_coeffs = self._coeff_stream._initial_coefficients
-            initial_coefficients = [val * scalar for val in init_coeffs]
+            initial_coefficients = [scalar * val for val in init_coeffs]
             return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
                                                               valuation=v, constant=c,
                                                               degree=self._coeff_stream._degree))
-        return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
+        if P.base_ring().is_commutative():
+            return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
+        return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
 
     def _neg_(self):
         """
@@ -928,7 +930,6 @@ class LazyCauchyProductSeries(RingElement):
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: M = LazyCauchyProductSeries(L)
         """
-
         RingElement.__init__(self, parent)
 
     def _mul_(self, other):

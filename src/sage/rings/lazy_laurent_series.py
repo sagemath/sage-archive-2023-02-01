@@ -1019,8 +1019,8 @@ class LazyCauchyProductSeries(RingElement):
             il = left._initial_coefficients
             ir = right._initial_coefficients
             initial_coefficients = [sum(il[k]*ir[n-k]
-                                        for k in range(max(n-len(ir)+1, 0),
-                                                       min(len(il)-1, n) + 1))
+                                        for k in range(max(n - len(ir) + 1, 0),
+                                                       min(len(il) - 1, n) + 1))
                                     for n in range(len(il) + len(ir) - 1)]
             lv = left.valuation()
             rv = right.valuation()
@@ -1478,6 +1478,10 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             z + O(z^8)
             sage: (1/z).revert()
             z^-1 + O(z^6)
+
+            sage: (z-z^2).revert()
+            z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
+
         """
         P = self.parent()
         z = P.gen()

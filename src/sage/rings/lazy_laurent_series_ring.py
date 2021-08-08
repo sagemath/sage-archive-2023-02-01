@@ -1,55 +1,6 @@
 r"""
 Lazy Laurent Series Rings
 
-The ring of Laurent series over a ring with the usual arithmetic where the
-coefficients are computed lazily.
-
-EXAMPLES::
-
-    sage: L.<z> = LazyLaurentSeriesRing(QQ)
-    sage: L.category()
-    Category of magmas and additive magmas
-    sage: 1/(1 - z)
-    1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-    sage: 1/(1 - z) == 1/(1 - z)
-    True
-
-Lazy Laurent series ring over a finite field::
-
-    sage: L.<z> = LazyLaurentSeriesRing(GF(3)); L
-    Lazy Laurent Series Ring in z over Finite Field of size 3
-    sage: e = 1/(1 + z)
-    sage: e.coefficient(100)
-    1
-    sage: e.coefficient(100).parent()
-    Finite Field of size 3
-
-Generating functions of integer sequences are Laurent series over the
-integer ring::
-
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ); L
-    Lazy Laurent Series Ring in z over Integer Ring
-    sage: 1/(1 - 2*z)^3
-    1 + 6*z + 24*z^2 + 80*z^3 + 240*z^4 + 672*z^5 + 1792*z^6 + O(z^7)
-
-Power series can be defined recursively::
-
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-    sage: s = L(None)
-    sage: s.define(1 + z*s^2)
-    sage: s
-    1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + O(z^7)
-
-The implementation of the ring can be either be a sparse or a dense one.
-The default is a dense implementation::
-
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-    sage: L.is_sparse()
-    False
-    sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-    sage: L.is_sparse()
-    True
-
 AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version
@@ -66,27 +17,18 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from inspect import signature
-
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 
 from sage.categories.magmas_and_additive_magmas import MagmasAndAdditiveMagmas
-from sage.categories.morphism import SetMorphism
-from sage.categories.homset import Hom
-from sage.categories.sets_cat import Sets
-
 from sage.misc.cachefunc import cached_method
 
-from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
-from .integer_ring import ZZ
-from .infinity import infinity
-from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing, LaurentPolynomialRing_generic
+from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.lazy_laurent_series import LazyLaurentSeries, LazyTaylorSeries, LazyDirichletSeries
 from sage.structure.global_options import GlobalOptions
 from sage.symbolic.ring import SR
-
-from .lazy_laurent_series import LazyLaurentSeries, LazyDirichletSeries, LazyTaylorSeries
 
 from sage.data_structures.coefficient_stream import (
     CoefficientStream_zero,
@@ -100,21 +42,65 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     """
     The ring of lazy Laurent series.
 
+    The ring of Laurent series over a ring with the usual arithmetic
+    where the coefficients are computed lazily.
+
     INPUT:
 
     - ``base_ring`` -- base ring
     - ``names`` -- name of the generator
-    - ``sparse`` -- (default: ``False``) whether the implementation of
+    - ``sparse`` -- (default: ``True``) whether the implementation of
       the series is sparse or not
 
     EXAMPLES::
 
-        sage: LazyLaurentSeriesRing(ZZ, 't')
-        Lazy Laurent Series Ring in t over Integer Ring
+        sage: L.<z> = LazyLaurentSeriesRing(QQ)
+        sage: L.category()
+        Category of magmas and additive magmas
+        sage: 1/(1 - z)
+        1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
+        sage: 1/(1 - z) == 1/(1 - z)
+        True
+
+    Lazy Laurent series ring over a finite field::
+
+        sage: L.<z> = LazyLaurentSeriesRing(GF(3)); L
+        Lazy Laurent Series Ring in z over Finite Field of size 3
+        sage: e = 1 / (1 + z)
+        sage: e.coefficient(100)
+        1
+        sage: e.coefficient(100).parent()
+        Finite Field of size 3
+
+    Generating functions of integer sequences are Laurent series over the
+    integer ring::
+
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ); L
+        Lazy Laurent Series Ring in z over Integer Ring
+        sage: 1/(1 - 2*z)^3
+        1 + 6*z + 24*z^2 + 80*z^3 + 240*z^4 + 672*z^5 + 1792*z^6 + O(z^7)
+
+    Power series can be defined recursively::
+
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+        sage: s = L(None)
+        sage: s.define(1 + z*s^2)
+        sage: s
+        1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + O(z^7)
+
+    The implementation of the ring can be either be a sparse or a dense one.
+    The default is a sparse implementation::
+
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+        sage: L.is_sparse()
+        True
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+        sage: L.is_sparse()
+        False
     """
     Element = LazyLaurentSeries
 
-    def __init__(self, base_ring, names, sparse=False, category=None):
+    def __init__(self, base_ring, names, sparse=True, category=None):
         """
         Initialize ``self``.
 
@@ -126,6 +112,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         self._sparse = sparse
         self._coeff_ring = base_ring
         self._laurent_poly_ring = LaurentPolynomialRing(base_ring, names, sparse=sparse)
+
         Parent.__init__(self, base=base_ring, names=names,
                         category=MagmasAndAdditiveMagmas().or_subcategory(category))
 
@@ -148,10 +135,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             sage: L = LazyLaurentSeriesRing(GF(2), 'z')
             sage: latex(L)
-            \Bold{F}_{2} [\![z]\!]
+            \Bold{F}_{2} (\!(z)\!)
         """
         from sage.misc.latex import latex
-        return latex(self.base_ring()) + r"[\![{}]\!]".format(self.variable_name())
+        return latex(self.base_ring()) + r"(\!({})\!)".format(self.variable_name())
 
     def is_sparse(self):
         """
@@ -159,7 +146,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z', sparse=False)
             sage: L.is_sparse()
             False
 
@@ -376,7 +363,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             if degree is not None:
                 if constant is None:
                     constant = ZZ.zero()
-                z = R.gen()
                 p = [BR(x(i)) for i in range(valuation, degree)]
                 coeff_stream = CoefficientStream_exact(p, self._sparse, valuation=valuation, constant=constant, degree=degree)
                 return self.element_class(self, coeff_stream)

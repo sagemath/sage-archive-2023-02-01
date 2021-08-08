@@ -17,7 +17,6 @@ Power Series Rings and Laurent Series Rings
 
    sage/rings/lazy_laurent_series
    sage/rings/lazy_laurent_series_ring
-   sage/rings/lazy_laurent_series_operator
 
    sage/rings/puiseux_series_ring
    sage/rings/puiseux_series_ring_element

@@ -283,7 +283,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. SEEALSO::
 
-            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.is_constant` .
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.is_constant`
         """
         return all([self[i,j].is_constant()
             for j in range(self.ncols()) for i in range(self.nrows())])
@@ -899,8 +899,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. SEEALSO::
 
-            :meth:`solve_right_series_trunc`
-
+            :meth:`solve_right_series_trunc` .
         """
         from sage.structure.element import is_Vector
         if is_Vector(B):
@@ -1052,8 +1051,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. SEEALSO::
 
-            :meth:`solve_left_series_trunc`
-
+            :meth:`solve_left_series_trunc` .
         """
         from sage.structure.element import is_Vector
         if is_Vector(B):
@@ -2327,7 +2325,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             :meth:`reduced_form` ,
             :meth:`weak_popov_form` ,
             :meth:`hermite_form` .
-
         """
         # if column-wise, call the algorithm on transpose
         if not row_wise:
@@ -2681,7 +2678,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             :meth:`right_quo_rem` ,
             :meth:`reduce` .
-
         """
         if self.nrows() != B.nrows():
             raise ValueError("row dimension of self should be the" \
@@ -2841,7 +2837,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             :meth:`left_quo_rem` ,
             :meth:`reduce` .
-
         """
         if self.ncols() != B.ncols():
             raise ValueError("column dimension of self should be the" \
@@ -2920,7 +2915,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
             sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
             True
-
         """
         # Step 0: find parameter d  (delta in above reference)
         cdegA = self.column_degrees() # zero columns of A --> entries -1 in cdegA
@@ -3054,7 +3048,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             Traceback (most recent call last):
             ...
             ValueError: dividing via system solving yields no solution
-
         """
         k = self.nrows()
         m = B.nrows()
@@ -3199,7 +3192,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
             :meth:`left_quo_rem` ,
             :meth:`right_quo_rem` .
-    
         """
         if row_wise and self.ncols() != B.ncols():
             raise ValueError("column dimension of self should be the" \

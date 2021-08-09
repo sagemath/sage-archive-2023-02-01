@@ -1437,7 +1437,6 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
         if isinstance(self._coeff_stream, CoefficientStream_exact) and not self._coeff_stream._constant:
             # constant polynomial
             R = self.parent()._laurent_poly_ring
-            z = R.gen()
             poly = self._coeff_stream.polynomial_part(R)
             if poly.is_constant():
                 return self

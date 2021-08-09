@@ -1532,19 +1532,19 @@ class LazyCauchyProductSeries(RingElement):
             and isinstance(right, CoefficientStream_exact)):
             if not left._constant and not right._constant:
                 R = P._laurent_poly_ring
-                pl = left.polynomial_part(R)
-                pr = right.polynomial_part(R)
-                # pl = self.finite_part()
-                # pr = other.finite_part()
+                # pl = left.polynomial_part(R)
+                # pr = right.polynomial_part(R)
+                pl = self.finite_part()
+                pr = other.finite_part()
                 try:
-                    # ret = pl / pr
-                    # ret = P._laurent_poly_ring(ret)
-                    # return P(ret)
                     ret = pl / pr
                     ret = P._laurent_poly_ring(ret)
-                    initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
-                    return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
-                             valuation=ret.valuation(), constant=left._constant))                
+                    return P(ret)
+                    # ret = pl / pr
+                    # ret = P._laurent_poly_ring(ret)
+                    # initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
+                    # return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
+                    #          valuation=ret.valuation(), constant=left._constant))
                 except (TypeError, ValueError, NotImplementedError):
                     # We cannot divide the polynomials, so the result must be a series
                     pass
@@ -1611,13 +1611,13 @@ class LazyCauchyProductSeries(RingElement):
             and not cs._constant and n in ZZ
             and (n > 0 or len(cs._initial_coefficients) == 1)):
             P = self.parent()
-            # return P(self.finite_part() ** ZZ(n))
-            ret = cs.polynomial_part(P._laurent_poly_ring) ** ZZ(n)
-            val = ret.valuation()
-            deg = ret.degree() + 1
-            initial_coefficients = [ret[i] for i in range(val, deg)]
-            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
-                            constant=cs._constant, degree=deg, valuation=val))
+            return P(self.finite_part() ** ZZ(n))
+            # ret = cs.polynomial_part(P._laurent_poly_ring) ** ZZ(n)
+            # val = ret.valuation()
+            # deg = ret.degree() + 1
+            # initial_coefficients = [ret[i] for i in range(val, deg)]
+            # return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
+            #                 constant=cs._constant, degree=deg, valuation=val))
 
         return generic_power(self, n)
 

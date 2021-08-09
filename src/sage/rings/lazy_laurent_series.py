@@ -1493,34 +1493,6 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
 
         return P.element_class(P, CoefficientStream_composition(self._coeff_stream, g._coeff_stream))
 
-    def revert(self):
-        r"""
-        Return the compositional inverse of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: z.revert()
-            z + O(z^8)
-            sage: (1/z).revert()
-            z^-1 + O(z^6)
-
-            sage: (z-z^2).revert()
-            z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
-        """
-        P = self.parent()
-        z = P.gen()
-        if self._coeff_stream._approximate_valuation == 1:
-            g = self
-        else:
-            g = self * z**(1 - self._coeff_stream._approximate_valuation)
-        f = P(None, valuation=1)
-        f.define(z/((g/z)(f)))
-        if self._coeff_stream._approximate_valuation == 1:
-            return f
-        else:
-            return f / z**(1 - self._coeff_stream._approximate_valuation)
-
     def _div_(self, other):
         r"""
         Return ``self`` divided by ``other``.

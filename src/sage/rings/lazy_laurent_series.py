@@ -71,7 +71,8 @@ We can change the base ring::
 AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version
-- Tejasvi Chebrolu (2021-08): refactored and expanded functionality
+- Tejasvi Chebrolu, Martin Rubey, Travis Scrimshaw (2021-08):
+  refactored and expanded functionality
 
 """
 
@@ -1437,7 +1438,7 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             # constant polynomial
             R = self.parent()._laurent_poly_ring
             z = R.gen()
-            poly = self._coeff_stream.polynomial_part(z)
+            poly = self._coeff_stream.polynomial_part(R)
             if poly.is_constant():
                 return self
             if not isinstance(g, LazyLaurentSeries):
@@ -1445,7 +1446,7 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             # g also has finite length, compose the polynomials
             if isinstance(g._coeff_stream, CoefficientStream_exact) and not g._coeff_stream._constant:
                 R = P._laurent_poly_ring
-                g_poly = g._coeff_stream.polynomial_part(R.gen())
+                g_poly = g._coeff_stream.polynomial_part(R)
                 try:
                     ret = poly(g_poly)
                 except (ValueError, TypeError):  # the result is not a Laurent polynomial
@@ -1579,9 +1580,8 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
                 and isinstance(right, CoefficientStream_exact)):
             if not left._constant and not right._constant:
                 R = P._laurent_poly_ring
-                z = R.gen()
-                pl = left.polynomial_part(z)
-                pr = right.polynomial_part(z)
+                pl = left.polynomial_part(R)
+                pr = right.polynomial_part(R)
                 try:
                     ret = pl / pr
                     ret = P._laurent_poly_ring(ret)
@@ -1654,8 +1654,7 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             and not cs._constant and n in ZZ
             and (n > 0 or len(cs._initial_coefficients) == 1)):
             P = self.parent()
-            z = P._laurent_poly_ring.gen()
-            ret = cs.polynomial_part(z) ** ZZ(n)
+            ret = cs.polynomial_part(P._laurent_poly_ring) ** ZZ(n)
             val = ret.valuation()
             deg = ret.degree() + 1
             initial_coefficients = [ret[i] for i in range(val, deg)]
@@ -1817,7 +1816,7 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             strformat = lambda x: x
 
         if isinstance(cs, CoefficientStream_exact):
-            poly = cs.polynomial_part(z)
+            poly = cs.polynomial_part(R)
             if not cs._constant:
                 return formatter(poly)
             m = cs._degree + P.options.constant_length

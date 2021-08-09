@@ -1784,8 +1784,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
         TESTS::
 
-            sage: O_ZZ = TermMonoid('O', G_ZZ, QQ)
-            sage: O_ZZ(x^11)
+            sage: G = GrowthGroup('x^ZZ')
+            sage: OT = TermMonoid('O', G, ZZ)
+            sage: OT(x^11)
             O(x^11)
 
         ::
@@ -1809,6 +1810,30 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             sage: T_log(log(x))
             Term with coefficient 1 and growth log(x)
 
+        ::
+
+            sage: OT(G.gen(), coefficient=5, growth=G.gen())
+            Traceback (most recent call last):
+            ...
+            ValueError: Argument 'growth=x' is ambiguous.
+            sage: OT(SR(3*x), growth=G.gen())
+            Traceback (most recent call last):
+            ...
+            ValueError: Argument 'growth=x' is ambiguous.
+
+        ::
+
+            sage: OT(G.gen(), 4)
+            doctest:warning
+            ...
+            DeprecationWarning: Passing 'coefficient' as a positional argument is deprecated;
+            specify it as keyword argument 'coefficient=...'.
+            See https://trac.sagemath.org/32215 for details.
+            O(x)
+            sage: OT(G.gen(), 4, coefficient=5)
+            Traceback (most recent call last):
+            ...
+            ValueError: Argument 'coefficient=5' is ambiguous.
         """
         if len(args) > 1:
             raise TypeError(
@@ -1853,8 +1878,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
         if 'growth' in kwds:
             raise ValueError(f"Argument 'growth={kwds['growth']}' is ambiguous.")
-        if 'coefficient' in kwds:
-            raise ValueError(f"Argument 'coefficient={kwds['coefficient']}' is ambiguous.")
+
         return self.from_construction((None,
                                        {'growth': growth,
                                         'coefficient': coefficient}),

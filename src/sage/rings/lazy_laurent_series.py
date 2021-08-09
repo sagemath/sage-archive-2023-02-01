@@ -2095,23 +2095,23 @@ class LazySpecialFunctions():
         P = self.parent()
         return P(lambda n: 1/factorial(n) if n % 2 == 0 else ZZ.zero(), 0)(self)
     
-    def asech(self):
+    def sech(self):
         r"""
-        Return the inverse of the hyperbolic secant of ``self``.
+        Return the hyperbolic secant of ``self``.
 
         EXAMPLES::
 
             sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: LazySpecialFunctions.asech(z)
+            sage: LazySpecialFunctions.sech(z)
             1 - 1/2*z^2 + 5/24*z^4 - 61/720*z^6 + O(z^7)
-            sage: LazySpecialFunctions.asech(z^2)
+            sage: LazySpecialFunctions.sech(z^2)
             1 - 1/2*z^4 + O(z^7)
-            sage: LazySpecialFunctions.asech(z + z^2)
+            sage: LazySpecialFunctions.sech(z + z^2)
             1 - 1/2*z^2 - z^3 - 7/24*z^4 + 5/6*z^5 + 839/720*z^6 + O(z^7)
-            sage: LazySpecialFunctions.asech(L(0))
+            sage: LazySpecialFunctions.sech(L(0))
             1
-            sage: LazySpecialFunctions.asech(1 + z)
+            sage: LazySpecialFunctions.sech(1 + z)
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
@@ -2123,25 +2123,25 @@ class LazySpecialFunctions():
         P = self.parent()
         return P(lambda n: euler_number(n)/factorial(n) if n % 2 == 0 else ZZ.zero(), 0)(self)
     
-    def acosech(self):
+    def cosech(self):
         r"""
-        Return the inverse of the hyperbolic cosecant of ``self``.
+        Return the hyperbolic cosecant of ``self``.
 
         EXAMPLES::
 
             sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: LazySpecialFunctions.acosech(z)
+            sage: LazySpecialFunctions.cosech(z)
             z^-1 - 1/6*z + 7/360*z^3 - 31/15120*z^5 + O(z^6)
-            sage: LazySpecialFunctions.acosech(z^2)
+            sage: LazySpecialFunctions.cosech(z^2)
             z^-2 - 1/6*z^2 + O(z^5)
-            sage: LazySpecialFunctions.acosech(z + z^2)
+            sage: LazySpecialFunctions.cosech(z + z^2)
             z^-1 - 1 + 5/6*z - 7/6*z^2 + 367/360*z^3 - 113/120*z^4 + 15971/15120*z^5 + O(z^6)
-            sage: LazySpecialFunctions.acosech(L(0))
+            sage: LazySpecialFunctions.cosech(L(0))
             Traceback (most recent call last):
             ...
             ZeroDivisionError: the valuation of the series must be nonnegative
-            sage: LazySpecialFunctions.acosech(1 + z)
+            sage: LazySpecialFunctions.cosech(1 + z)
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
@@ -2153,25 +2153,25 @@ class LazySpecialFunctions():
         P = self.parent()
         return P(lambda n: (2 * (1 - 2 ** n) * bernoulli(n + 1))/factorial(n + 1) if n % 2 else ZZ.zero(), -1)(self)
     
-    def acoth(self):
+    def coth(self):
         r"""
-        Return the inverse of the hyperbolic cotangent of ``self``.
+        Return the hyperbolic cotangent of ``self``.
 
         EXAMPLES::
 
             sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: LazySpecialFunctions.acoth(z)
+            sage: LazySpecialFunctions.coth(z)
             z^-1 + 1/3*z - 1/45*z^3 + 2/945*z^5 + O(z^6)
-            sage: LazySpecialFunctions.acoth(z^2)
+            sage: LazySpecialFunctions.coth(z^2)
             z^-2 + 1/3*z^2 + O(z^5)
-            sage: LazySpecialFunctions.acoth(z + z^2)
+            sage: LazySpecialFunctions.coth(z + z^2)
             z^-1 - 1 + 4/3*z - 2/3*z^2 + 44/45*z^3 - 16/15*z^4 + 884/945*z^5 + O(z^6)
-            sage: LazySpecialFunctions.acoth(L(0))
+            sage: LazySpecialFunctions.coth(L(0))
             Traceback (most recent call last):
             ...
             ZeroDivisionError: the valuation of the series must be nonnegative
-            sage: LazySpecialFunctions.acoth(1 + z)
+            sage: LazySpecialFunctions.coth(1 + z)
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
@@ -2181,7 +2181,7 @@ class LazySpecialFunctions():
         from sage.arith.misc import bernoulli
 
         P = self.parent()
-        return P(lambda n: (2 ** (n + 1) * bernoulli(n + 1))/factorial(n + 1) if n % 2 else ZZ.zero(), -1)(self)
+        return P(lambda n: ((2 ** (n + 1)) * bernoulli(n + 1))/factorial(n + 1) if n % 2 else ZZ.zero(), -1)(self)
 
     def arccot(self):
         r"""

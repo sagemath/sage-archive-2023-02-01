@@ -1952,11 +1952,12 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
                 ret += poly[i] * gp
                 gp *= g
             ret += poly[deg] * gp
-            gi = ~g
-            gp = P.one()
-            for i in range(-1, poly.valuation()-1, -1):
-                gp *= gi
-                ret += poly[i] * gp
+            if poly.valuation() < 0:
+                gi = ~g
+                gp = P.one()
+                for i in range(-1, poly.valuation()-1, -1):
+                    gp *= gi
+                    ret += poly[i] * gp
             return ret
 
         # g != 0 and val(g) > 0

@@ -2047,7 +2047,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             Traceback (most recent call last):
             ...
             ValueError: Coefficient 3/2 is not 1,
-            but GenericTerm-Monoid x^ZZ with (implicit) coefficients
+            but GenericTerm Monoid x^ZZ with (implicit) coefficients
             in Rational Field does not support coefficients.
         """
         coefficient = kwds_construction.pop('coefficient', None)

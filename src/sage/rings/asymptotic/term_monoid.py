@@ -3145,7 +3145,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
     def _repr_(self):
         r"""
-        A representation string for this TermWithCoefficient-monoid.
+        A representation string for this TermWithCoefficient Monoid.
 
         INPUT:
 

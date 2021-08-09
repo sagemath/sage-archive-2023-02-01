@@ -2016,7 +2016,7 @@ class LazySpecialFunctions():
 
         return ~LazySpecialFunctions.tan(self)
 
-    def arsh(self):
+    def asinh(self):
         r"""
         Return the inverse of the hyperbolic sine of ``self``.
 
@@ -2024,15 +2024,15 @@ class LazySpecialFunctions():
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
-            sage: LazySpecialFunctions.arsh(z)
+            sage: LazySpecialFunctions.asinh(z)
             z - 1/6*z^3 + 3/40*z^5 + O(z^7)
-            sage: LazySpecialFunctions.arsh(z^2)                                                          
+            sage: LazySpecialFunctions.asinh(z^2)                                                          
             z^2 - 1/6*z^6 + O(z^7)
-            sage: LazySpecialFunctions.arsh(z + z^2)                                                      
+            sage: LazySpecialFunctions.asinh(z + z^2)                                                      
             z + z^2 - 1/6*z^3 - 1/2*z^4 - 17/40*z^5 + 5/24*z^6 + O(z^7)
-            sage: LazySpecialFunctions.arsh(L(0))
+            sage: LazySpecialFunctions.asinh(L(0))
             0
-            sage: LazySpecialFunctions.arsh(1 + z)
+            sage: LazySpecialFunctions.asinh(1 + z)
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
@@ -2043,7 +2043,7 @@ class LazySpecialFunctions():
         P = self.parent()
         return P(lambda n: ZZ.zero() if n % 2 == 0 else (((-1) ** ((n - 1)/2)) * factorial(n - 1))/(4 ** ((n - 1)/2) * (factorial((n - 1)/2) ** 2) * n), 0)(self)
 
-    def artanh(self):
+    def atanh(self):
         r"""
         Return the inverse of the hyperbolic tangent of ``self``.
 
@@ -2051,15 +2051,15 @@ class LazySpecialFunctions():
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
-            sage: LazySpecialFunctions.artanh(z)
+            sage: LazySpecialFunctions.atanh(z)
             z + 1/3*z^3 + 1/5*z^5 + O(z^7)
-            sage: LazySpecialFunctions.artanh(z^2)
+            sage: LazySpecialFunctions.atanh(z^2)
             z^2 + 1/3*z^6 + O(z^7)
-            sage: LazySpecialFunctions.artanh(L(0))
+            sage: LazySpecialFunctions.atanh(L(0))
             0
-            sage: LazySpecialFunctions.artanh(z + z^2)
+            sage: LazySpecialFunctions.atanh(z + z^2)
             z + z^2 + 1/3*z^3 + z^4 + 6/5*z^5 + 4/3*z^6 + O(z^7)
-            sage: LazySpecialFunctions.artanh(1 + z)
+            sage: LazySpecialFunctions.atanh(1 + z)
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
@@ -2081,9 +2081,9 @@ class LazySpecialFunctions():
             1.57079632679490 + 0.000000000000000*z - 1.00000000000000*z^2 + 0.000000000000000*z^3 + 0.000000000000000*z^4 + 0.000000000000000*z^5 + 0.333333333333333*z^6 + O(1.00000000000000*z^7)
             sage: arccot(z + z^2)
             1.57079632679490 - 1.00000000000000*z - 1.00000000000000*z^2 + 0.333333333333333*z^3 + 1.00000000000000*z^4 + 0.800000000000000*z^5 - 0.666666666666667*z^6 + O(1.00000000000000*z^7)
-            sage: arctan(0)
-            0
-            sage: arctan(1 + z)
+            sage: arccot(L(0))
+            1.57079632679490
+            sage: arccot(1 + z)
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
@@ -2473,6 +2473,11 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries, Laz
         r"""
         Return the compositional inverse of ``self``.
 
+        Given a Laurent Series `f` we want to find a Laurent Series `g` over the same base ring, such
+        that the composition `(f \circ g)(z) = f(g(z)) = z`. The composition inverse exists if and only if:
+        - `val(f) = 1' or `f(0) * f(1) != 0`,
+        
+
         EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
@@ -2486,20 +2491,53 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries, Laz
             z - z^2 + 2*z^3 - 5*z^4 + 14*z^5 - 42*z^6 + 132*z^7 + O(z^8)
             sage: (2*z).revert()
             1/2*z + O(z^8)
+            sage: s = L(lambda n: 1 if n == 1 else 0)
+            sage: s.revert()
+            z + O(z^8)
+        
+        We look at some cases where the compositional inverse does not exist.:
+
+        `f = 0`::
+
+            sage: L(0).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+            sage: (z - z).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+        
+        `val(f) ! = 1 and f(0) * f(1) = 0`::
+
+            sage: (z^2).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+            sage: L(1).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
 
         """
         P = self.parent()
         z = P.gen()
-        if self._coeff_stream._approximate_valuation == 1:
+        # g = 0 case
+        if isinstance(self._coeff_stream, CoefficientStream_zero):
+            raise ValueError('compositional inverse does not exist')
+        # val g > 0 and ensure that val(g) == 1
+        if self.valuation() >= 0 and self.valuation() != 1:
+            raise ValueError('compositional inverse does not exist')
+        if self.valuation() == 1:
             g = self
         else:
-            g = self * z**(1 - self._coeff_stream._approximate_valuation)
+            g = self * z**(1 - self.valuation())
         f = P(None, valuation=1)
         f.define(z/((g/z)(f)))
-        if self._coeff_stream._approximate_valuation == 1:
+        if self.valuation() == 1:
             return f
         else:
-            return f / z**(1 - self._coeff_stream._approximate_valuation)
+            return f / z**(1 - self.valuation())
 
     def approximate_series(self, prec, name=None):
         """

@@ -9,8 +9,12 @@ Coxeter Groups implemented with Coxeter3
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from collections import deque
+
 from sage.libs.coxeter3.coxeter import get_CoxGroup, CoxGroupElement
 from sage.misc.cachefunc import cached_method
+
+from sage.graphs.digraph import DiGraph
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.element_wrapper import ElementWrapper
@@ -21,6 +25,7 @@ from sage.structure.parent import Parent
 from sage.combinat.root_system.coxeter_matrix import CoxeterMatrix
 
 from sage.rings.integer_ring import ZZ
+from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 
@@ -422,6 +427,100 @@ class CoxeterGroup(UniqueRepresentation, Parent):
         P = PolynomialRing(ZZ, 'q', sparse=True)
         return P.sum((-1)**(z.length()) * self.kazhdan_lusztig_polynomial(u*z,v, constant_term_one=False).shift(z.length())
                      for z in WOI if (u*z).bruhat_le(v))
+
+    def kazhdan_lusztig_cell(self, w, side='left'):
+        r"""
+        Compute the left, right, or two-sided Kazhdan-Lusztig cell containing
+        the element ``w``.
+
+        This method products in the `C^{\prime}` basis by using the
+        :class:`IwahoriHeckeAlgebra.CpC` basis.
+
+        INPUT:
+
+        - ``w`` -- an element of self.
+
+        - ``side`` -- string; one of 'left', 'right', or 'both', corresponding
+          to the kind of cell to compute.
+
+        EXAMPLES:
+
+        Compute some cells in type `B_3`::
+
+            sage: W = CoxeterGroup('B3', implementation='coxeter3')     # optional - coxeter3
+            sage: s1,s2,s3 = W.simple_reflections()                     # optional - coxeter3
+            sage: W.kazhdan_lusztig_cell(s1*s2*s1)                      # optional - coxeter3
+            {[2, 1, 2], [2, 3, 2, 1, 2], [3, 2, 1, 2]}
+            sage: W.kazhdan_lusztig_cell(s2*s3*s2)                      # optional - coxeter3
+            {[1, 2], [1, 2, 3, 2], [2], [2, 3, 2], [3, 2]}
+            sage: W.kazhdan_lusztig_cell(s1*s2*s3)                      # optional - coxeter3
+            {[1, 2, 3], [2, 3], [3], [3, 2, 3]}
+            sage: W.kazhdan_lusztig_cell(s3)                            # optional - coxeter3
+            {[1, 2, 3], [2, 3], [3], [3, 2, 3]}
+            sage: W.kazhdan_lusztig_cell(s3, side='right')              # optional - coxeter3
+            {[3], [3, 2], [3, 2, 1], [3, 2, 3]}
+            sage: W.kazhdan_lusztig_cell(s3, side='both')               # optional - coxeter3
+            {[1], [1, 2], [1, 2, 3], [1, 2, 3, 2], [1, 2, 3, 2, 1], [2], [2, 1],
+             [2, 3], [2, 3, 2], [2, 3, 2, 1], [3], [3, 2], [3, 2, 1], [3, 2, 3]}
+
+        Some slightly longer computations in type `B_4`::
+
+            sage: W = CoxeterGroup('B4', implementation='coxeter3')     # optional - coxeter3
+            sage: s1,s2,s3,s4 = W.simple_reflections()                  # optional - coxeter3
+            sage: W.kazhdan_lusztig_cell(s1)                            # long time (4 seconds) # optional - coxeter3
+            {[1],
+             [1, 2, 3, 4, 3, 2, 1],
+             [2, 1],
+             [2, 3, 4, 3, 2, 1],
+             [3, 2, 1],
+             [3, 4, 3, 2, 1],
+             [4, 3, 2, 1]}
+            sage: W.kazhdan_lusztig_cell(s4*s2*s3*s4)                   # long time (2 seconds) # optional - coxeter3
+            {[2, 3, 4, 1, 2, 3, 4],
+             [3, 4, 1, 2, 3, 4],
+             [3, 4, 2, 3, 4],
+             [3, 4, 2, 3, 4, 1, 2, 3, 4],
+             [4, 1, 2, 3, 4],
+             [4, 2, 3, 4],
+             [4, 2, 3, 4, 1, 2, 3, 4],
+             [4, 3, 4, 1, 2, 3, 4],
+             [4, 3, 4, 2, 3, 4],
+             [4, 3, 4, 2, 3, 4, 1, 2, 3, 4]}
+        """
+        from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
+
+        R = LaurentPolynomialRing(ZZ, 'v')
+        v = R.gen(0)
+        H = IwahoriHeckeAlgebra(self, v**2)
+        CpC = H.Cp_Coxeter3()
+
+        w = self(w)
+
+        vertices, edges = {w}, set()
+        queue = deque([w])
+
+        while queue:
+            x = queue.pop()
+            cp_x = CpC(x)
+            for s in self.simple_reflections():
+                cp_s = CpC(s)
+                terms = []
+                # Determine the Cp basis elements appearing in the product of Cp_s and Cp_w
+                if side == 'left' or side == 'both':
+                    terms.extend(list(cp_s * cp_x))
+                if side == 'right' or side == 'both':
+                    terms.extend(list(cp_x * cp_s))
+                for (y, coeff) in terms:
+                    # the result of multiplication will always have coeff != 0
+                    if y != x:
+                        edges.add((x, y))
+                    if y not in vertices:
+                        vertices.add(y)
+                        queue.appendleft(y)
+        
+        g = DiGraph([list(vertices), list(edges)])
+        return set(g.strongly_connected_component_containing_vertex(w))
+
 
     class Element(ElementWrapper):
         wrapped_class = CoxGroupElement

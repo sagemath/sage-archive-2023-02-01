@@ -4,9 +4,7 @@ Coefficient Stream
 This module provides lazy class implementations of basic operators
 on coefficient streams. The classes implemented in this module
 can be used to build up more complex streams for different kinds of
-series (Laurent, Dirichlet, etc). The classes CS_zero and CS_exact
-enable us to bypass the checks in CS._getitem_ in the most important
-cases to improve performance.
+series (Laurent, Dirichlet, etc).
 
 EXAMPLES:
 
@@ -50,8 +48,9 @@ Coefficient streams can be multiplied::
 
 Coefficient streams can be divided::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_div
-    sage: h = CoefficientStream_div(f, g)
+    sage: from sage.data_structures.coefficient_stream import CoefficientStream_cauchy_inverse
+    sage: ginv = CoefficientStream_cauchy_inverse(g)
+    sage: h = CoefficientStream_cauchy_product(f, ginv)
     sage: [h[i] for i in range(10)]
     [0, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
@@ -72,8 +71,8 @@ We can also use the unary negation operator on a coefficient stream::
 
 Coefficient streams can be multiplied by a scalar::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_scalar
-    sage: h = CoefficientStream_scalar(f, 2)
+    sage: from sage.data_structures.coefficient_stream import CoefficientStream_lmul
+    sage: h = CoefficientStream_lmul(f, 2)
     sage: [h[i] for i in range(10)]
     [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
 
@@ -86,15 +85,16 @@ The multiplicative inverse of a series can also be obtained::
 
 Functions can also be applied to a coefficient stream::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_apply_coeff
-    sage: h = CoefficientStream_apply_coeff(f, lambda n: n^2, QQ)
+    sage: from sage.data_structures.coefficient_stream import CoefficientStream_map_coefficients
+    sage: h = CoefficientStream_map_coefficients(f, lambda n: n^2, QQ)
     sage: [h[i] for i in range(10)]
     [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
 
 AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version
-
+- Tejasvi Chebrolu, Martin Rubey, Travis Scrimshaw (2021-08):
+  refactored and expanded functionality
 """
 
 # ****************************************************************************
@@ -109,7 +109,7 @@ AUTHORS:
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.infinity import infinity
-
+from sage.arith.misc import divisors
 
 class CoefficientStream():
     """
@@ -117,8 +117,9 @@ class CoefficientStream():
 
     INPUT:
 
-    - ``sparse`` -- boolean; whether the implementation of the series is sparse
-    - ``approximate_valuation`` -- integer; a lower bound for the valuation of the series
+    - ``sparse`` -- boolean; whether the implementation of the stream is sparse
+    - ``approximate_valuation`` -- integer; a lower bound for the valuation
+      of the stream
     """
     def __init__(self, sparse, approximate_valuation):
         """
@@ -140,8 +141,9 @@ class CoefficientStream_inexact(CoefficientStream):
 
     INPUT:
 
-    - ``sparse`` -- boolean; whether the implementation of the series is sparse
-    - ``approximate_valuation`` -- integer; a lower bound for the valuation of the series
+    - ``sparse`` -- boolean; whether the implementation of the stream is sparse
+    - ``approximate_valuation`` -- integer; a lower bound for the valuation
+      of the stream
     """
     def __init__(self, is_sparse, approximate_valuation):
         """
@@ -167,20 +169,40 @@ class CoefficientStream_inexact(CoefficientStream):
 
     def __getstate__(self):
         """
-        Remove the cache from the pickle information so that it can be pickled.
+        Build the dictionary for pickling ``self``.
+
+        We remove the cache from the pickle information when it is a dense
+        implementation as iterators cannot be pickled.
 
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_cauchy_product
             sage: h = CoefficientStream_exact([1], True)
             sage: g = CoefficientStream_exact([1, -1, -1], True)
-            sage: from sage.data_structures.coefficient_stream import CoefficientStream_div
-            sage: u = CoefficientStream_div(h, g)
+            sage: u = CoefficientStream_cauchy_product(h, g)
             sage: [u[i] for i in range(10)]
-            [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]
+            [1, -1, -1, 0, 0, 0, 0, 0, 0, 0]
+            sage: u._cache
+            {0: 1, 1: -1, 2: -1, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
             sage: m = loads(dumps(u))
+            sage: m._cache
+            {0: 1, 1: -1, 2: -1, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
             sage: [m[i] for i in range(10)]
-            [1, 1, 2, 3, 5, 8, 13, 21, 34, 55]
+            [1, -1, -1, 0, 0, 0, 0, 0, 0, 0]
+
+            sage: h = CoefficientStream_exact([1], False)
+            sage: g = CoefficientStream_exact([1, -1, -1], False)
+            sage: u = CoefficientStream_cauchy_product(h, g)
+            sage: [u[i] for i in range(10)]
+            [1, -1, -1, 0, 0, 0, 0, 0, 0, 0]
+            sage: u._cache
+            [1, -1, -1, 0, 0, 0, 0, 0, 0, 0]
+            sage: m = loads(dumps(u))
+            sage: m._cache
+            []
+            sage: [m[i] for i in range(10)]
+            [1, -1, -1, 0, 0, 0, 0, 0, 0, 0]
         """
         d = dict(self.__dict__)
         if not self._is_sparse:
@@ -192,7 +214,7 @@ class CoefficientStream_inexact(CoefficientStream):
 
     def __setstate__(self, d):
         """
-        Re-create the cache and the generator object when unpickling.
+        Build an object from ``d``.
 
         INPUT:
 
@@ -203,10 +225,10 @@ class CoefficientStream_inexact(CoefficientStream):
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
             sage: h = CoefficientStream_exact([-1], True)
             sage: g = CoefficientStream_exact([1, -1], True)
-            sage: from sage.data_structures.coefficient_stream import CoefficientStream_div
-            sage: u = CoefficientStream_div(h, g)
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_cauchy_product
+            sage: u = CoefficientStream_cauchy_product(h, g)
             sage: [u[i] for i in range(10)]
-            [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
+            [-1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
             sage: loads(dumps(u)) == u
             True
         """
@@ -217,11 +239,11 @@ class CoefficientStream_inexact(CoefficientStream):
 
     def __getitem__(self, n):
         """
-        Return the `n`-th coefficient of the series.
+        Return the `n`-th coefficient of ``self``.
 
         INPUT:
 
-        - ``n`` -- integer; the index of the coefficient to return
+        - ``n`` -- integer; the index
 
         EXAMPLES::
 
@@ -267,9 +289,28 @@ class CoefficientStream_inexact(CoefficientStream):
 
         return c
 
+    def iterate_coefficients(self):
+        """
+        A generator for the coefficients of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_composition)
+            sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, False, 1)
+            sage: g = CoefficientStream_coefficient_function(lambda n: n^3, ZZ, False, 1)
+            sage: h = CoefficientStream_composition(f, g)
+            sage: n = h.iterate_coefficients()
+            sage: [next(n) for i in range(10)]
+            [1, 9, 44, 207, 991, 4752, 22769, 109089, 522676, 2504295]
+        """
+        n = self._approximate_valuation
+        while True:
+            yield self.get_coefficient(n)
+            n += 1
+
     def valuation(self):
         """
-        Return the valuation of the series.
+        Return the valuation of ``self``.
 
         EXAMPLES::
 
@@ -310,21 +351,18 @@ class CoefficientStream_inexact(CoefficientStream):
 
 class CoefficientStream_exact(CoefficientStream):
     r"""
-    A stream of eventually constant coefficients which helps in
-    improving performance in important cases.
+    A stream of eventually constant coefficients.
 
     INPUT:
 
-        - ``initial_values`` -- a list of initial values
-        - ``is_sparse`` -- a boolean, which specifies whether the
-          series is sparse
-        - ``valuation`` -- (default: 0), an integer, determining the
-          degree of the first element of ``initial_values``
-        - ``degree`` -- (default: None), an integer, determining the
-          degree of the first element which is known to be equal to
-          ``constant``
-        - ``constant`` -- (default: 0), an integer, the coefficient
-          of every index larger than or equal to ``degree``
+    - ``initial_values`` -- a list of initial values
+    - ``is_sparse`` -- boolean; specifies whether the stream is sparse
+    - ``valuation`` -- integer (default: 0); determining the degree
+      of the first element of ``initial_values``
+    - ``degree`` -- integer (optional); determining the degree
+      of the first element which is known to be equal to ``constant``
+    - ``constant`` -- integer (default: 0); the coefficient
+      of every index larger than or equal to ``degree``
     """
     def __init__(self, initial_coefficients, is_sparse, constant=None, degree=None, valuation=None):
         """
@@ -351,6 +389,9 @@ class CoefficientStream_exact(CoefficientStream):
 
         assert valuation + len(initial_coefficients) <= self._degree
 
+        # We do not insist that the last entry of initial_coefficients
+        #   is different from constant in case comparisons can be
+        #   expensive such as in the symbolic ring
         for i, v in enumerate(initial_coefficients):
             if v:
                 valuation += i
@@ -371,11 +412,11 @@ class CoefficientStream_exact(CoefficientStream):
 
     def __getitem__(self, n):
         """
-        Return the coefficient of the term with exponent ``n`` of the series.
+        Return the ``n``-th coefficient of ``self``.
 
         INPUT:
 
-        - ``n`` -- integer, the degree for which the coefficient is required
+        - ``n`` -- integer; the index
 
         EXAMPLES::
 
@@ -408,12 +449,12 @@ class CoefficientStream_exact(CoefficientStream):
             return self._constant
         i = n - self._approximate_valuation
         if i < 0 or i >= len(self._initial_coefficients):
-            return 0
+            return ZZ.zero()
         return self._initial_coefficients[i]
 
     def valuation(self):
         """
-        Return the valuation of the series.
+        Return the valuation of ``self``.
 
         EXAMPLES::
 
@@ -443,8 +484,7 @@ class CoefficientStream_exact(CoefficientStream):
 
         INPUT:
 
-        - ``other`` -- a series which is known to be eventaully geometric
-            sage
+        - ``other`` -- a coefficient stream
 
         EXAMPLES::
 
@@ -473,21 +513,20 @@ class CoefficientStream_exact(CoefficientStream):
                 and self._initial_coefficients == other._initial_coefficients
                 and self._constant == other._constant)
 
-    def polynomial_part(self, gen):
+    def polynomial_part(self, R):
         """
-        Return the initial part of ``self`` as a polynomial in ``gen``.
+        Return the initial part of ``self`` as a Laurent polynomial in ``R``.
 
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
             sage: s = CoefficientStream_exact([2], False, valuation=-1, degree=2, constant=1)
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: s.polynomial_part(z)
+            sage: s.polynomial_part(L._laurent_poly_ring)
             2*z^-1
         """
-        R = gen.parent()
         v = self._approximate_valuation
-        return R(sum(val * gen**(v+i) for i, val in enumerate(self._initial_coefficients)))
+        return R(self._initial_coefficients).shift(v)
 
 
 class CoefficientStream_coefficient_function(CoefficientStream_inexact):
@@ -496,11 +535,12 @@ class CoefficientStream_coefficient_function(CoefficientStream_inexact):
 
     INPUT:
 
-    - ``coefficient_function`` -- a python function that generates the
-      coefficients of the series
-    - ``ring`` -- the base ring of the series
-    - ``is_sparse`` -- boolean; specifies whether the series is sparse
-    - ``approximate_valuation`` -- integer; a lower bound for the valuation of the series
+    - ``coefficient_function`` -- a function that generates the
+      coefficients of the stream
+    - ``ring`` -- the base ring
+    - ``is_sparse`` -- boolean; specifies whether the stream is sparse
+    - ``approximate_valuation`` -- integer; a lower bound for the valuation
+      of the stream
 
     EXAMPLES::
 
@@ -568,8 +608,9 @@ class CoefficientStream_uninitialized(CoefficientStream_inexact):
 
     INPUT:
 
-    - ``is_sparse`` -- boolean; which specifies whether the series is sparse
-    - ``approximate_valuation`` -- integer; a lower bound for the valuation of the series
+    - ``is_sparse`` -- boolean; which specifies whether the stream is sparse
+    - ``approximate_valuation`` -- integer; a lower bound for the valuation
+      of the stream
 
     EXAMPLES::
 
@@ -584,7 +625,7 @@ class CoefficientStream_uninitialized(CoefficientStream_inexact):
     """
     def __init__(self, is_sparse, approximate_valuation):
         """
-        Initialize an uninitialized lazy laurent series.
+        Initialize ``self``.
 
         TESTS::
 
@@ -640,7 +681,7 @@ class CoefficientStream_uninitialized(CoefficientStream_inexact):
 
 class CoefficientStream_unary(CoefficientStream_inexact):
     r"""
-    Class for unary operators for the coefficient stream.
+    Base class for unary operators on coefficient streams.
 
     INPUT:
 
@@ -648,12 +689,12 @@ class CoefficientStream_unary(CoefficientStream_inexact):
 
     EXAMPLES::
 
-        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_cauchy_inverse, CoefficientStream_scalar)
+        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_cauchy_inverse, CoefficientStream_lmul)
         sage: f = CoefficientStream_coefficient_function(lambda n: 2*n, ZZ, False, 1)
         sage: g = CoefficientStream_cauchy_inverse(f)
         sage: [g[i] for i in range(10)]
         [-1, 1/2, 0, 0, 0, 0, 0, 0, 0, 0]
-        sage: g = CoefficientStream_scalar(f, 2)
+        sage: g = CoefficientStream_lmul(f, 2)
         sage: [g[i] for i in range(10)]
         [0, 4, 8, 12, 16, 20, 24, 28, 32, 36]
     """
@@ -699,11 +740,11 @@ class CoefficientStream_unary(CoefficientStream_inexact):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_scalar)
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_rmul)
             sage: f = CoefficientStream_coefficient_function(lambda n: 2*n, ZZ, False, 1)
             sage: g = CoefficientStream_coefficient_function(lambda n: n, ZZ, False, 1)
-            sage: h = CoefficientStream_scalar(f, 2)
-            sage: n = CoefficientStream_scalar(g, 2)
+            sage: h = CoefficientStream_rmul(f, 2)
+            sage: n = CoefficientStream_rmul(g, 2)
             sage: h == n
             False
             sage: n == n
@@ -716,7 +757,7 @@ class CoefficientStream_unary(CoefficientStream_inexact):
 
 class CoefficientStream_binary(CoefficientStream_inexact):
     """
-    Class for binary operators for the coefficient stream.
+    Base class for binary operators on coefficient streams.
 
     INPUT:
 
@@ -738,7 +779,7 @@ class CoefficientStream_binary(CoefficientStream_inexact):
 
     def __init__(self, left, right, *args, **kwargs):
         """
-        Initialize.
+        Initialize ``self``.
 
         TESTS::
 
@@ -804,8 +845,7 @@ class CoefficientStream_binary(CoefficientStream_inexact):
 
 class CoefficientStream_binary_commutative(CoefficientStream_binary):
     r"""
-    Abstract base class for commutative binary operators for the
-    coefficient stream.
+    Base class for commutative binary operators on coefficient streams.
 
     EXAMPLES::
 
@@ -847,15 +887,15 @@ class CoefficientStream_binary_commutative(CoefficientStream_binary):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_cauchy_product)
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_add)
             sage: f = CoefficientStream_coefficient_function(lambda n: 2*n, ZZ, True, 0)
             sage: g = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 1)
-            sage: h = CoefficientStream_cauchy_product(f, g)
+            sage: h = CoefficientStream_add(f, g)
             sage: [h[i] for i in range(10)]
-            [0, 0, 2, 8, 20, 40, 70, 112, 168, 240]
-            sage: u = CoefficientStream_cauchy_product(g, f)
+            [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
+            sage: u = CoefficientStream_add(g, f)
             sage: [u[i] for i in range(10)]
-            [0, 0, 2, 8, 20, 40, 70, 112, 168, 240]
+            [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
             sage: h == u
             True
         """
@@ -870,8 +910,7 @@ class CoefficientStream_binary_commutative(CoefficientStream_binary):
 
 class CoefficientStream_zero(CoefficientStream):
     """
-    A coefficient Stream that is exactly equal to zero that
-    helps in improving performance in important cases.
+    A coefficient stream that is exactly equal to zero.
 
     INPUT:
 
@@ -899,11 +938,11 @@ class CoefficientStream_zero(CoefficientStream):
 
     def __getitem__(self, n):
         """
-        Return the ``n``-th coefficient of the series.
+        Return the ``n``-th coefficient of ``self``.
 
-        INPUT::
+        INPUT:
 
-        - ``n`` -- integer; the index of the coefficient to be returned
+        - ``n`` -- integer; the index
 
         EXAMPLES::
 
@@ -918,7 +957,7 @@ class CoefficientStream_zero(CoefficientStream):
 
     def valuation(self):
         """
-        Return the valuation of the series.
+        Return the valuation of ``self``.
 
         EXAMPLES::
 
@@ -1022,25 +1061,6 @@ class CoefficientStream_add(CoefficientStream_binary_commutative):
         """
         return self._left[n] + self._right[n]
 
-    def iterate_coefficients(self):
-        """
-        A generator for the coefficients of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_add)
-            sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, False, 0)
-            sage: g = CoefficientStream_coefficient_function(lambda n: n^3, ZZ, False, 0)
-            sage: h = CoefficientStream_add(f, g)
-            sage: n = h.iterate_coefficients()
-            sage: [next(n) for i in range(10)]
-            [1, 2, 9, 28, 65, 126, 217, 344, 513, 730]
-        """
-        n = self._offset
-        while True:
-            yield self._left[n] + self._right[n]
-            n += 1
-
 
 class CoefficientStream_sub(CoefficientStream_binary):
     """
@@ -1102,31 +1122,14 @@ class CoefficientStream_sub(CoefficientStream_binary):
         """
         return self._left[n] - self._right[n]
 
-    def iterate_coefficients(self):
-        """
-        A generator for the coefficients of ``self``.
 
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_sub)
-            sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, False, 0)
-            sage: g = CoefficientStream_coefficient_function(lambda n: n^3, ZZ, False, 0)
-            sage: h = CoefficientStream_sub(f, g)
-            sage: n = h.iterate_coefficients()
-            sage: [next(n) for i in range(10)]
-            [1, 0, -7, -26, -63, -124, -215, -342, -511, -728]
-        """
-        n = self._offset
-        while True:
-            yield self._left[n] - self._right[n]
-            n += 1
-
-
-class CoefficientStream_cauchy_product(CoefficientStream_binary_commutative):
+class CoefficientStream_cauchy_product(CoefficientStream_binary):
     """
-    Operator for multiplication of two coefficient streams.
+    Operator for multiplication of two coefficient streams using the
+    Cauchy product.
 
-    We are assuming commutativity of the coefficient ring here.
+    We are *not* assuming commutativity of the coefficient ring here,
+    only that the coefficient ring commutes with the (implicit) variable.
 
     INPUT:
 
@@ -1189,71 +1192,51 @@ class CoefficientStream_cauchy_product(CoefficientStream_binary_commutative):
                 c += val * self._right[n-k]
         return c
 
-    def iterate_coefficients(self):
-        """
-        A generator for the coefficients of ``self``.
 
-        EXAMPLES::
+class CoefficientStream_dirichlet_convolution(CoefficientStream_binary_commutative):
+    """Operator for the convolution of two coefficient streams.
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_cauchy_product)
-            sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, False, 0)
-            sage: g = CoefficientStream_coefficient_function(lambda n: n^3, ZZ, False, 0)
-            sage: h = CoefficientStream_cauchy_product(f, g)
-            sage: n = h.iterate_coefficients()
-            sage: [next(n) for i in range(10)]
-            [0, 1, 9, 36, 100, 225, 441, 784, 1296, 2025]
-        """
-        n = self._offset
-        while True:
-            c = ZZ.zero()
-            for k in range(self._left._approximate_valuation,
-                           n - self._right._approximate_valuation + 1):
-                val = self._left[k]
-                if val:
-                    c += val * self._right[n-k]
-            yield c
-            n += 1
-
-
-class CoefficientStream_div(CoefficientStream_binary):
-    """
-    Operator for division of two coefficient streams.
+    We are assuming commutativity of the coefficient ring here.
+    Moreover, the valuation must be non-negative.
 
     INPUT:
 
     - ``left`` -- stream of coefficients on the left side of the operator
     - ``right`` -- stream of coefficients on the right side of the operator
 
+    The coefficient of `n^{-s}` in the convolution of `l` and `r`
+    equals `\sum_{k | n} l_k r_{n/k}`.  Note that `l[n]` yields the
+    coefficient of `(n+1)^{-s}`!
+
     EXAMPLES::
 
-        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_div, CoefficientStream_coefficient_function)
+        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_dirichlet_convolution, CoefficientStream_coefficient_function, CoefficientStream_exact)
         sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 1)
-        sage: g = CoefficientStream_coefficient_function(lambda n: 1, ZZ, True, 1)
-        sage: h = CoefficientStream_div(f, g)
-        sage: [h[i] for i in range(10)]
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        sage: u = CoefficientStream_div(g, f)
-        sage: [u[i] for i in range(10)]
-        [1, -1, 0, 0, 0, 0, 0, 0, 0, 0]
-    """
+        sage: g = CoefficientStream_exact([0], True, constant=1)
+        sage: h = CoefficientStream_dirichlet_convolution(f, g)
+        sage: [h[i] for i in range(1, 10)]
+        [1, 3, 4, 7, 6, 12, 8, 15, 13]
+        sage: [sigma(n) for n in range(1, 10)]
+        [1, 3, 4, 7, 6, 12, 8, 15, 13]
 
+        sage: u = CoefficientStream_dirichlet_convolution(g, f)
+        sage: [u[i] for i in range(1, 10)]
+        [1, 3, 4, 7, 6, 12, 8, 15, 13]
+
+    """
     def __init__(self, left, right):
         """
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_div)
-            sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, True, 1)
-            sage: g = CoefficientStream_coefficient_function(lambda n: n^2, ZZ, True, 1)
-            sage: h = CoefficientStream_div(f, g)
+        Initalize ``self``.
         """
-        lv = left.valuation()
-        rv = right.valuation()
-        self._lv = lv
-        self._rv = rv
-        self._ainv = ~right[rv]
-        super().__init__(left, right, left._is_sparse, lv - rv)
+        if left._is_sparse != right._is_sparse:
+            raise NotImplementedError
+
+        assert left._approximate_valuation > 0 and right._approximate_valuation > 0, "Dirichlet convolution is only defined for coefficient streams with valuation at least 1"
+
+        vl = left._approximate_valuation
+        vr = right._approximate_valuation
+        a = vl * vr
+        super().__init__(left, right, left._is_sparse, a)
 
     def get_coefficient(self, n):
         """
@@ -1263,53 +1246,69 @@ class CoefficientStream_div(CoefficientStream_binary):
 
         - ``n`` -- integer; the degree for the coefficient
 
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_div)
-            sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 1)
-            sage: g = CoefficientStream_coefficient_function(lambda n: n^2, ZZ, True, 1)
-            sage: h = CoefficientStream_div(f, g)
-            sage: h.get_coefficient(5)
-            -2
-            sage: [h.get_coefficient(i) for i in range(10)]
-            [1, -2, 2, -2, 2, -2, 2, -2, 2, -2]
         """
-        lv = self._lv
-        rv = self._rv
-        if n == lv - rv:
-            return self._left[lv] / self._right[rv]
-        c = self._left[n + rv]
-        for k in range(lv - rv, n):
-            c -= self[k] * self._right[n + rv - k]
-        return c * self._ainv
+        c = ZZ.zero()
+        for k in divisors(n):
+            val = self._left[k]
+            if val:
+                c += val * self._right[n//k]
+        return c
 
-    def iterate_coefficients(self):
+
+class CoefficientStream_dirichlet_inv(CoefficientStream_unary):
+    """
+    Operator for multiplicative inverse of the stream.
+
+    INPUT:
+
+    - ``series`` -- a :class:`CoefficientStream`
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_dirichlet_inv, CoefficientStream_coefficient_function)
+        sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, True, 1)
+        sage: g = CoefficientStream_dirichlet_inv(f)
+        sage: [g[i] for i in range(10)]
+        [0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
+        sage: [moebius(i) for i in range(10)]
+        [0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
+    """
+    def __init__(self, series):
         """
-        A generator for the coefficients of ``self``.
+        Initialize.
 
-        EXAMPLES::
+        TESTS::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_div)
-            sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, False, 1)
-            sage: g = CoefficientStream_coefficient_function(lambda n: n^3, ZZ, False, 1)
-            sage: h = CoefficientStream_div(f, g)
-            sage: n = h.iterate_coefficients()
-            sage: [next(n) for i in range(10)]
-            [1, -7, 30, -114, 426, -1590, 5934, -22146, 82650, -308454]
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_exact, CoefficientStream_dirichlet_inv)
+            sage: f = CoefficientStream_exact([0, 0], True, constant=1)
+            sage: g = CoefficientStream_dirichlet_inv(f)
+            Traceback (most recent call last):
+            ...
+            AssertionError: the Dirichlet inverse only exists if the coefficient with index 1 is non-zero
         """
-        n = self._offset
-        lv = self._lv
-        rv = self._rv
-        while True:
-            if n == lv - rv:
-                yield self._left[lv] / self._right[rv]
-                n += 1
-                continue
-            c = self._left[n + rv]
-            for k in range(lv - rv, n):
-                c -= self[k] * self._right[n + rv - k]
-            yield c * self._ainv
-            n += 1
+        assert series[1], "the Dirichlet inverse only exists if the coefficient with index 1 is non-zero"
+        super().__init__(series, series._is_sparse, 1)
+
+        self._ainv = ~series[1]
+        self._zero = ZZ.zero()
+
+    def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of ``self``.
+
+        INPUT:
+
+        - ``n`` -- integer; the degree for the coefficient
+        """
+        if n == 1:
+            return self._ainv
+        c = self._zero
+        for k in divisors(n):
+            if k < n:
+                val = self._series[n//k]
+                if val:
+                    c += self[k] * val
+        return -c * self._ainv
 
 
 class CoefficientStream_composition(CoefficientStream_binary):
@@ -1390,32 +1389,14 @@ class CoefficientStream_composition(CoefficientStream_binary):
             ret += self._left[0]
         return ret + sum(self._left[i] * self._pos_powers[i][n] for i in range(1, n // self._gv+1))
 
-    def iterate_coefficients(self):
-        """
-        A generator for the coefficients of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_composition)
-            sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, False, 1)
-            sage: g = CoefficientStream_coefficient_function(lambda n: n^3, ZZ, False, 1)
-            sage: h = CoefficientStream_composition(f, g)
-            sage: n = h.iterate_coefficients()
-            sage: [next(n) for i in range(10)]
-            [1, 9, 44, 207, 991, 4752, 22769, 109089, 522676, 2504295]
-        """
-        n = self._approximate_valuation
-        while True:
-            yield self.get_coefficient(n)
-            n += 1
-
 
 #####################################################################
 # Unary operations
 
-class CoefficientStream_scalar(CoefficientStream_unary):
+class CoefficientStream_rmul(CoefficientStream_unary):
     """
-    Operator for multiplying a coefficient stream with a scalar.
+    Operator for multiplying a coefficient stream with a scalar
+    as ``scalar * self``.
 
     INPUT:
 
@@ -1424,11 +1405,13 @@ class CoefficientStream_scalar(CoefficientStream_unary):
 
     EXAMPLES::
 
-        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_scalar, CoefficientStream_coefficient_function)
-        sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, True, 1)
-        sage: g = CoefficientStream_scalar(f, 2)
-        sage: [g[i] for i in range(10)]
-        [0, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_rmul, CoefficientStream_coefficient_function)
+        sage: W = algebras.DifferentialWeyl(QQ, names=('x',))
+        sage: x, dx = W.gens()
+        sage: f = CoefficientStream_coefficient_function(lambda n: x^n, W, True, 1)
+        sage: g = CoefficientStream_rmul(f, dx)
+        sage: [g[i] for i in range(5)]
+        [0, x*dx + 1, x^2*dx + 2*x, x^3*dx + 3*x^2, x^4*dx + 4*x^3]
     """
     def __init__(self, series, scalar):
         """
@@ -1436,9 +1419,9 @@ class CoefficientStream_scalar(CoefficientStream_unary):
 
         TESTS::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_scalar, CoefficientStream_coefficient_function)
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_rmul, CoefficientStream_coefficient_function)
             sage: f = CoefficientStream_coefficient_function(lambda n: -1, ZZ, True, 0)
-            sage: g = CoefficientStream_scalar(f, 3)
+            sage: g = CoefficientStream_rmul(f, 3)
         """
         self._scalar = scalar
         super().__init__(series, series._is_sparse, series._approximate_valuation)
@@ -1453,33 +1436,69 @@ class CoefficientStream_scalar(CoefficientStream_unary):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_scalar, CoefficientStream_coefficient_function)
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_rmul, CoefficientStream_coefficient_function)
             sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 1)
-            sage: g = CoefficientStream_scalar(f, 3)
+            sage: g = CoefficientStream_rmul(f, 3)
+            sage: g.get_coefficient(5)
+            15
+            sage: [g.get_coefficient(i) for i in range(10)]
+            [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
+        """
+        return self._scalar * self._series[n]
+
+
+class CoefficientStream_lmul(CoefficientStream_unary):
+    """
+    Operator for multiplying a coefficient stream with a scalar
+    as ``self * scalar``.
+
+    INPUT:
+
+    - ``series`` -- a :class:`CoefficientStream`
+    - ``scalar`` -- a scalar
+
+    EXAMPLES::
+
+        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_lmul, CoefficientStream_coefficient_function)
+        sage: W = algebras.DifferentialWeyl(QQ, names=('x',))
+        sage: x, dx = W.gens()
+        sage: f = CoefficientStream_coefficient_function(lambda n: x^n, W, True, 1)
+        sage: g = CoefficientStream_lmul(f, dx)
+        sage: [g[i] for i in range(5)]
+        [0, x*dx, x^2*dx, x^3*dx, x^4*dx]
+    """
+    def __init__(self, series, scalar):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_lmul, CoefficientStream_coefficient_function)
+            sage: f = CoefficientStream_coefficient_function(lambda n: -1, ZZ, True, 0)
+            sage: g = CoefficientStream_lmul(f, 3)
+        """
+        self._scalar = scalar
+        super().__init__(series, series._is_sparse, series._approximate_valuation)
+
+    def get_coefficient(self, n):
+        """
+        Return the ``n``-th coefficient of ``self``.
+
+        INPUT:
+
+        - ``n`` -- integer; the degree for the coefficient
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_lmul, CoefficientStream_coefficient_function)
+            sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 1)
+            sage: g = CoefficientStream_lmul(f, 3)
             sage: g.get_coefficient(5)
             15
             sage: [g.get_coefficient(i) for i in range(10)]
             [0, 3, 6, 9, 12, 15, 18, 21, 24, 27]
         """
         return self._series[n] * self._scalar
-
-    def iterate_coefficients(self):
-        """
-        A generator for the coefficients of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_scalar, CoefficientStream_coefficient_function)
-            sage: f = CoefficientStream_coefficient_function(lambda n: n^2, ZZ, False, 1)
-            sage: g = CoefficientStream_scalar(f, 4)
-            sage: n = g.iterate_coefficients()
-            sage: [next(n) for i in range(10)]
-            [4, 16, 36, 64, 100, 144, 196, 256, 324, 400]
-        """
-        n = self._offset
-        while True:
-            yield self._series[n] * self._scalar
-            n += 1
 
 
 class CoefficientStream_neg(CoefficientStream_unary):
@@ -1530,24 +1549,6 @@ class CoefficientStream_neg(CoefficientStream_unary):
             [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
         """
         return -self._series[n]
-
-    def iterate_coefficients(self):
-        """
-        A generator for the coefficients of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_neg, CoefficientStream_coefficient_function)
-            sage: f = CoefficientStream_coefficient_function(lambda n: n^2, ZZ, False, 1)
-            sage: g = CoefficientStream_neg(f)
-            sage: n = g.iterate_coefficients()
-            sage: [next(n) for i in range(10)]
-            [-1, -4, -9, -16, -25, -36, -49, -64, -81, -100]
-        """
-        n = self._offset
-        while True:
-            yield -self._series[n]
-            n += 1
 
 
 class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
@@ -1605,7 +1606,9 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
             return self._ainv
         c = self._zero
         for k in range(v, n):
-            c += self[k] * self._series[n - v - k]
+            l = self[k]
+            if l:
+                c += l * self._series[n - v - k]
         return -c * self._ainv
 
     def iterate_coefficients(self):
@@ -1630,13 +1633,17 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
             c = self._zero
             m = min(len(self._cache), n)
             for k in range(m):
-                c += self._cache[k] * self._series[n - v - k]
+                l = self._cache[k]
+                if l:
+                    c += l * self._series[n - v - k]
             for k in range(v+m, v+n):
-                c += self[k] * self._series[n - k]
+                l = self[k]
+                if l:
+                    c += l * self._series[n - k]
             yield -c * self._ainv
 
 
-class CoefficientStream_apply_coeff(CoefficientStream_unary):
+class CoefficientStream_map_coefficients(CoefficientStream_unary):
     r"""
     Return the stream with ``function`` applied to each nonzero
     coefficient of ``series``.
@@ -1649,9 +1656,9 @@ class CoefficientStream_apply_coeff(CoefficientStream_unary):
 
     EXAMPLES::
 
-        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_apply_coeff, CoefficientStream_coefficient_function)
+        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_map_coefficients, CoefficientStream_coefficient_function)
         sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, True, 1)
-        sage: g = CoefficientStream_apply_coeff(f, lambda n: -n, ZZ)
+        sage: g = CoefficientStream_map_coefficients(f, lambda n: -n, ZZ)
         sage: [g[i] for i in range(10)]
         [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     """
@@ -1661,9 +1668,9 @@ class CoefficientStream_apply_coeff(CoefficientStream_unary):
 
         TESTS::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_apply_coeff, CoefficientStream_coefficient_function)
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_map_coefficients, CoefficientStream_coefficient_function)
             sage: f = CoefficientStream_coefficient_function(lambda n: -1, ZZ, True, 0)
-            sage: g = CoefficientStream_apply_coeff(f, lambda n: n + 1, ZZ)
+            sage: g = CoefficientStream_map_coefficients(f, lambda n: n + 1, ZZ)
             sage: TestSuite(g).run(skip="_test_pickling")
         """
         self._function = function
@@ -1680,9 +1687,9 @@ class CoefficientStream_apply_coeff(CoefficientStream_unary):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_apply_coeff, CoefficientStream_coefficient_function)
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_map_coefficients, CoefficientStream_coefficient_function)
             sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, -1)
-            sage: g = CoefficientStream_apply_coeff(f, lambda n: n^2 + 1, ZZ)
+            sage: g = CoefficientStream_map_coefficients(f, lambda n: n^2 + 1, ZZ)
             sage: g.get_coefficient(5)
             26
             sage: [g.get_coefficient(i) for i in range(-1, 10)]
@@ -1690,34 +1697,11 @@ class CoefficientStream_apply_coeff(CoefficientStream_unary):
 
             sage: R.<x,y> = ZZ[]
             sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, -1)
-            sage: g = CoefficientStream_apply_coeff(f, lambda n: n.degree() + 1, R)
+            sage: g = CoefficientStream_map_coefficients(f, lambda n: n.degree() + 1, R)
             sage: [g.get_coefficient(i) for i in range(-1, 3)]
             [1, 0, 1, 1]
         """
-        return self._function(self._ring(self._series[n])) if self._series[n] else self._series[n]
-
-    def iterate_coefficients(self):
-        """
-        A generator for the coefficients of ``self``.
-
-        EXAMPLES::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_apply_coeff, CoefficientStream_coefficient_function)
-            sage: f = CoefficientStream_coefficient_function(lambda n: n^2, ZZ, False, -1)
-            sage: g = CoefficientStream_apply_coeff(f, lambda n: 2*n + 1, ZZ)
-            sage: n = g.iterate_coefficients()
-            sage: [next(n) for i in range(-1, 11)]
-            [3, 0, 3, 9, 19, 33, 51, 73, 99, 129, 163, 201]
-
-            sage: R.<x,y> = ZZ[]
-            sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, False, -1)
-            sage: g = CoefficientStream_apply_coeff(f, lambda n: n.degree() + 1, R)
-            sage: n = g.iterate_coefficients()
-            sage: [next(n) for i in range(-1, 3)]
-            [1, 0, 1, 1]
-        """
-        n = self._offset
-        while True:
-            yield self._function(self._ring(self._series[n])) if self._series[n] else self._series[n]
-            n += 1
-
+        c = self._series[n]
+        if c:
+            return self._function(self._ring(c))
+        return c

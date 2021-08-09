@@ -93,8 +93,8 @@ Functions can also be applied to a coefficient stream::
 AUTHORS:
 
 - Kwankyu Lee (2019-02-24): initial version
-- Tejasvi Chebrolu (2021-08): refactored and expanded functionality
-
+- Tejasvi Chebrolu, Martin Rubey, Travis Scrimshaw (2021-08):
+  refactored and expanded functionality
 """
 
 # ****************************************************************************
@@ -513,21 +513,20 @@ class CoefficientStream_exact(CoefficientStream):
                 and self._initial_coefficients == other._initial_coefficients
                 and self._constant == other._constant)
 
-    def polynomial_part(self, gen):
+    def polynomial_part(self, R):
         """
-        Return the initial part of ``self`` as a polynomial in ``gen``.
+        Return the initial part of ``self`` as a Laurent polynomial in ``R``.
 
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
             sage: s = CoefficientStream_exact([2], False, valuation=-1, degree=2, constant=1)
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: s.polynomial_part(z)
+            sage: s.polynomial_part(L._laurent_poly_ring)
             2*z^-1
         """
-        R = gen.parent()
         v = self._approximate_valuation
-        return R(sum(val * gen**(v+i) for i, val in enumerate(self._initial_coefficients)))
+        return R(self._initial_coefficients).shift(v)
 
 
 class CoefficientStream_coefficient_function(CoefficientStream_inexact):

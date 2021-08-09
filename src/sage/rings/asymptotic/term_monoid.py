@@ -3159,8 +3159,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 
             sage: from sage.rings.asymptotic.growth_group import (GenericGrowthGroup, GrowthGroup)
             sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: TermWithCoefficientMonoid(TermMonoid, GenericGrowthGroup(ZZ), QQ)._repr_()
             'TermWithCoefficient Monoid Generic(ZZ) with coefficients in Rational Field'

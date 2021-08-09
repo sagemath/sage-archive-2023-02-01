@@ -3592,7 +3592,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: L.<b> = K.extension(x^2 - 3, x^2 + 1)
             sage: M.<c> = L.extension(x^2 + 1)
             sage: L.ideal(K.ideal(2, a))
-            Fractional ideal (a)
+            Fractional ideal (-a)
             sage: M.ideal(K.ideal(2, a)) == M.ideal(a*(b - c)/2)
             True
 
@@ -4760,7 +4760,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
              1/13*a^2 + 7/13*a - 332/13,
              -1/13*a^2 + 6/13*a + 345/13,
              -1,
-             2/13*a^2 + 1/13*a - 755/13]
+             -2/13*a^2 - 1/13*a + 755/13]
             sage: units[5] in (1/13*a^2 - 19/13*a - 7/13, 1/13*a^2 + 20/13*a - 7/13)
             True
             sage: len(units) == 6
@@ -4802,8 +4802,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.<a> = QuadraticField(-105)
             sage: K._S_class_group_quotient_matrix((K.ideal(11, a + 4),))
             [0 0]
-            [1 0]
             [0 1]
+            [1 0]
 
         TESTS:
 
@@ -4948,7 +4948,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
              1/13*a^2 + 7/13*a - 332/13,
              -1/13*a^2 + 6/13*a + 345/13,
              -1,
-             2/13*a^2 + 1/13*a - 755/13]
+             -2/13*a^2 - 1/13*a + 755/13]
             sage: gens[5] in (1/13*a^2 - 19/13*a - 7/13, 1/13*a^2 + 20/13*a - 7/13)
             True
             sage: gens[6] in (-1/13*a^2 + 45/13*a - 97/13, 1/13*a^2 - 45/13*a + 97/13)
@@ -6234,28 +6234,37 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         try:
             return self._integral_basis_dict[v]
         except (AttributeError, KeyError):
-            f = self.pari_polynomial("y")
-            if v:
-                B = f.nfbasis(fa=v)
-            elif self._assume_disc_small:
-                B = f.nfbasis(1)
-            elif not important:
-                # Trial divide the discriminant with primes up to 10^6
-                m = self.pari_polynomial().poldisc().abs().factor(limit=10**6)
-                # Since we only need a *squarefree* factorization for
-                # primes with exponent 1, we need trial division up to D^(1/3)
-                # instead of D^(1/2).
-                trialdivlimit2 = pari(10**12)
-                trialdivlimit3 = pari(10**18)
-                if all(p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p, e in zip(m[0], m[1])):
-                    B = f.nfbasis(fa = m)
-                else:
-                    raise RuntimeError("Unable to factor discriminant with trial division")
-            else:
-                B = f.nfbasis()
+            pass
 
-            self._integral_basis_dict[v] = B
-            return B
+        f = self.pari_polynomial("y")
+        if v:
+            # NOTE: here we make pari know about potentially big primes factors of
+            # the discriminant, see
+            # https://pari.math.u-bordeaux.fr/cgi-bin/bugreport.cgi?bug=2257
+            primelimit = pari.default("primelimit")
+            primes = [p for p in v if p > primelimit]
+            if primes:
+                pari.addprimes(primes)
+            B = f.nfbasis(fa=v)
+        elif self._assume_disc_small:
+            B = f.nfbasis(1)
+        elif not important:
+            # Trial divide the discriminant with primes up to 10^6
+            m = self.pari_polynomial().poldisc().abs().factor(limit=10**6)
+            # Since we only need a *squarefree* factorization for
+            # primes with exponent 1, we need trial division up to D^(1/3)
+            # instead of D^(1/2).
+            trialdivlimit2 = pari(10**12)
+            trialdivlimit3 = pari(10**18)
+            if all(p < trialdivlimit2 or (e == 1 and p < trialdivlimit3) or p.isprime() for p, e in zip(m[0], m[1])):
+                B = f.nfbasis(fa = m)
+            else:
+                raise RuntimeError("Unable to factor discriminant with trial division")
+        else:
+            B = f.nfbasis()
+
+        self._integral_basis_dict[v] = B
+        return B
 
     def reduced_basis(self, prec=None):
         r"""
@@ -6882,7 +6891,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: A = x^4 - 10*x^3 + 20*5*x^2 - 15*5^2*x + 11*5^3
             sage: K = NumberField(A, 'a')
             sage: K.units()
-            (8/275*a^3 - 12/55*a^2 + 15/11*a - 3,)
+            (-1/275*a^3 - 4/55*a^2 + 5/11*a - 3,)
 
         For big number fields, provably computing the unit group can
         take a very long time.  In this case, one can ask for the
@@ -6893,14 +6902,14 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: K.units(proof=True)  # takes forever, not tested
             ...
             sage: K.units(proof=False)  # result not independently verified
-            (a^9 + a - 1,
-             a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2,
-             a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1,
+            (-a^9 - a + 1,
+             -a^16 + a^15 - a^14 + a^12 - a^11 + a^10 + a^8 - a^7 + 2*a^6 - a^4 + 3*a^3 - 2*a^2 + 2*a - 1,
              2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4,
-             2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4,
-             a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7,
              a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1,
-             5*a^16 - 6*a^14 + a^13 + 7*a^12 - 2*a^11 - 7*a^10 + 4*a^9 + 7*a^8 - 6*a^7 - 7*a^6 + 8*a^5 + 6*a^4 - 11*a^3 - 5*a^2 + 13*a + 4)
+             -a^16 - a^15 - a^14 - a^13 - a^12 - a^11 - a^10 - a^9 - a^8 - a^7 - a^6 - a^5 - a^4 - a^3 - a^2 + 2,
+             -2*a^16 + 3*a^15 - 3*a^14 + 3*a^13 - 3*a^12 + a^11 - a^9 + 3*a^8 - 4*a^7 + 5*a^6 - 6*a^5 + 4*a^4 - 3*a^3 + 2*a^2 + 2*a - 4,
+             a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2,
+             -a^14 - a^13 + a^12 + 2*a^10 + a^8 - 2*a^7 - 2*a^6 + 2*a^3 - a^2 + 2*a - 2)
 
         TESTS:
 
@@ -6909,7 +6918,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: K.<a> = NumberField(1/2*x^2 - 1/6)
             sage: K.units()
-            (3*a - 2,)
+            (-3*a + 2,)
         """
         proof = proof_flag(proof)
 
@@ -6988,7 +6997,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             sage: U.gens()
             (u0, u1, u2, u3, u4, u5, u6, u7, u8)
             sage: U.gens_values()  # result not independently verified
-            [-1, a^9 + a - 1, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, a^16 - a^15 + a^14 - a^12 + a^11 - a^10 - a^8 + a^7 - 2*a^6 + a^4 - 3*a^3 + 2*a^2 - 2*a + 1, 2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4, 2*a^16 - 3*a^15 + 3*a^14 - 3*a^13 + 3*a^12 - a^11 + a^9 - 3*a^8 + 4*a^7 - 5*a^6 + 6*a^5 - 4*a^4 + 3*a^3 - 2*a^2 - 2*a + 4, a^16 - a^15 - 3*a^14 - 4*a^13 - 4*a^12 - 3*a^11 - a^10 + 2*a^9 + 4*a^8 + 5*a^7 + 4*a^6 + 2*a^5 - 2*a^4 - 6*a^3 - 9*a^2 - 9*a - 7, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, 5*a^16 - 6*a^14 + a^13 + 7*a^12 - 2*a^11 - 7*a^10 + 4*a^9 + 7*a^8 - 6*a^7 - 7*a^6 + 8*a^5 + 6*a^4 - 11*a^3 - 5*a^2 + 13*a + 4]
+            [-1, -a^9 - a + 1, -a^16 + a^15 - a^14 + a^12 - a^11 + a^10 + a^8 - a^7 + 2*a^6 - a^4 + 3*a^3 - 2*a^2 + 2*a - 1, 2*a^16 - a^14 - a^13 + 3*a^12 - 2*a^10 + a^9 + 3*a^8 - 3*a^6 + 3*a^5 + 3*a^4 - 2*a^3 - 2*a^2 + 3*a + 4, a^15 + a^14 + 2*a^11 + a^10 - a^9 + a^8 + 2*a^7 - a^5 + 2*a^3 - a^2 - 3*a + 1, -a^16 - a^15 - a^14 - a^13 - a^12 - a^11 - a^10 - a^9 - a^8 - a^7 - a^6 - a^5 - a^4 - a^3 - a^2 + 2, -2*a^16 + 3*a^15 - 3*a^14 + 3*a^13 - 3*a^12 + a^11 - a^9 + 3*a^8 - 4*a^7 + 5*a^6 - 6*a^5 + 4*a^4 - 3*a^3 + 2*a^2 + 2*a - 4, a^15 - a^12 + a^10 - a^9 - 2*a^8 + 3*a^7 + a^6 - 3*a^5 + a^4 + 4*a^3 - 3*a^2 - 2*a + 2, -a^14 - a^13 + a^12 + 2*a^10 + a^8 - 2*a^7 - 2*a^6 + 2*a^3 - a^2 + 2*a - 2]
         """
         proof = proof_flag(proof)
 
@@ -7177,7 +7186,7 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: solutions, bound = K.S_unit_solutions(S, prec=100, include_bound=True)
             sage: bound
-            6
+            7
         """
         from .S_unit_solver import solve_S_unit_equation
         return solve_S_unit_equation(self, S, prec, include_exponents, include_bound, proof)
@@ -10297,7 +10306,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         ::
 
             sage: type(CyclotomicField(4).zero())
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
             sage: type(CyclotomicField(6).one())
             <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
             sage: type(CyclotomicField(6).an_element())
@@ -10318,8 +10327,8 @@ class NumberField_cyclotomic(NumberField_absolute):
                                       embedding = embedding,
                                       assume_disc_small=assume_disc_small,
                                       maximize_at_primes=maximize_at_primes)
-        if n%2:
-            self.__zeta_order = 2*n
+        if n % 2:
+            self.__zeta_order = 2 * n
         else:
             self.__zeta_order = n
         ## quadratic number fields require this:
@@ -10335,12 +10344,13 @@ class NumberField_cyclotomic(NumberField_absolute):
             self._standard_embedding = not CDF.has_coerce_map_from(self) or CDF(self.gen()).imag() > 0
             self._cache_an_element = None
 
-            self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
             if n == 4:
+                self._element_class = number_field_element_quadratic.NumberFieldElement_gaussian
                 self._D = ZZ(-1)
                 self._NumberField_generic__gen = self._element_class(self, (QQ(0), QQ(1)))
             else:
                 ## n is 3 or 6
+                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
                 self._D = ZZ(-3)
                 one_half = ZZ(1)/ZZ(2)
                 if n == 3:
@@ -10997,9 +11007,9 @@ class NumberField_cyclotomic(NumberField_absolute):
         EXAMPLES::
 
             sage: k5.<z> = CyclotomicField(5)
-            sage: gap('E(5)^7 + 3')
+            sage: w = libgap.eval('E(5)^7 + 3')
+            sage: w
             -3*E(5)-2*E(5)^2-3*E(5)^3-3*E(5)^4
-            sage: w = gap('E(5)^7 + 3')
             sage: z^7 + 3
             z^2 + 3
             sage: k5(w) # indirect doctest
@@ -11010,7 +11020,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
             sage: F = CyclotomicField(8)
             sage: z = F.gen()
-            sage: a = gap(z+1/z); a
+            sage: a = libgap(z+1/z); a
             E(8)-E(8)^3
             sage: F(a)
             -zeta8^3 + zeta8
@@ -11024,6 +11034,7 @@ class NumberField_cyclotomic(NumberField_absolute):
 
         It also works with the old pexpect interface to GAP::
 
+            sage: a = gap(z + 1/z)
             sage: b = gap(Matrix(F,[[z^2,1],[0,a+1]])); b
             [ [ E(4), 1 ], [ 0, 1+E(8)-E(8)^3 ] ]
             sage: b[1,2]
@@ -11610,9 +11621,9 @@ class NumberField_quadratic(NumberField_absolute):
 
             sage: k.<a> = QuadraticField(7)
             sage: type(k.zero())
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
             sage: type(k.one())
-            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic'>
+            <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_quadratic_sqrt'>
 
             sage: TestSuite(k).run()
 
@@ -11627,16 +11638,22 @@ class NumberField_quadratic(NumberField_absolute):
                                       embedding=embedding, latex_name=latex_name,
                                       assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
         self._standard_embedding = True
+
+        # set the generator and element class
         c, b, a = [QQ(t) for t in self.defining_polynomial().list()]
-        if a.is_one() and b.is_zero() and c.is_one():
-            self._element_class = number_field_element_quadratic.NumberFieldElement_gaussian
-        else:
-            self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
-        # set the generator
         Dpoly = b*b - 4*a*c
         D = (Dpoly.numer() * Dpoly.denom()).squarefree_part(bound=10000)
         self._D = D
         parts = -b/(2*a), (Dpoly/D).sqrt()/(2*a)
+
+        if a.is_one() and b.is_zero() and c.is_one():
+            self._element_class = number_field_element_quadratic.NumberFieldElement_gaussian
+        else:
+            if number_field_element_quadratic.is_sqrt_disc(parts[0], parts[1]):
+                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic_sqrt
+            else:
+                self._element_class = number_field_element_quadratic.NumberFieldElement_quadratic
+
         self._NumberField_generic__gen = self._element_class(self, parts)
 
         # we must set the flag _standard_embedding *before* any element creation

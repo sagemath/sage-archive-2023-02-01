@@ -3221,6 +3221,59 @@ class TermWithCoefficient(GenericTerm):
         return 'Term with coefficient %s and growth %s' % \
                (self.coefficient, self.growth)
 
+    def _repr_product_(self, latex=False):
+        r"""
+        A representation string for this term with coefficient as a product.
+
+        INPUT:
+
+        - ``latex`` -- (default: ``False``) a boolean. If set, then
+          LaTeX-output is returned.
+
+        OUTPUT:
+
+        A string
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
+            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
+            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = TermWithCoefficientMonoid(TermMonoid, G, ZZ)
+            sage: T(x^2, 5)._repr_product_()
+            '5*x^2'
+        """
+        if latex:
+            from sage.misc.latex import latex as latex_repr
+            f = latex_repr
+        else:
+            f = repr
+
+        g = f(self.growth)
+        c = f(self.coefficient)
+
+        if g == '1':
+            return c
+        elif c == '1':
+            return '{g}'.format(g=g)
+        elif c == '-1':
+            return '-{g}'.format(g=g)
+        elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
+            # note that -pi/2 is not atomic, but -5 is. As subtractions are handled
+            # in the asymptotic ring, we ignore such non-atomicity.
+            s = '{c} {g}' if latex else '{c}*{g}'
+        else:
+            s = r'\left({c}\right) {g}' if latex else '({c})*{g}'
+        s = s.format(c=c, g=g)
+
+        if latex:
+            import re
+            s = re.sub(r'([0-9])\s+([0-9])', r'\1 \\cdot \2', s)
+        return s
+
     def _mul_(self, other):
         r"""
         Multiplication method for asymptotic terms with coefficients.
@@ -3770,34 +3823,7 @@ class ExactTerm(TermWithCoefficient):
             sage: (1+a)/n
             (a + 1)*n^(-1)
         """
-        if latex:
-            from sage.misc.latex import latex as latex_repr
-            f = latex_repr
-        else:
-            f = repr
-
-        g = f(self.growth)
-        c = f(self.coefficient)
-
-        if g == '1':
-            return c
-        elif c == '1':
-            return '{g}'.format(g=g)
-        elif c == '-1':
-            return '-{g}'.format(g=g)
-        elif self.coefficient._is_atomic() or (-self.coefficient)._is_atomic():
-            # note that -pi/2 is not atomic, but -5 is. As subtractions are handled
-            # in the asymptotic ring, we ignore such non-atomicity.
-            s = '{c} {g}' if latex else '{c}*{g}'
-        else:
-            s = r'\left({c}\right) {g}' if latex else '({c})*{g}'
-        s = s.format(c=c, g=g)
-
-        if latex:
-            import re
-            s = re.sub(r'([0-9])\s+([0-9])', r'\1 \\cdot \2', s)
-
-        return s
+        return self._repr_product_(latex=latex)
 
     def _latex_(self):
         r"""

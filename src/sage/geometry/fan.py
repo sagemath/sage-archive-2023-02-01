@@ -3087,8 +3087,8 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
 
             sage: f = Fan([Cone([(1,0,1,0), (0,1,1,0)])])
             sage: f.virtual_rays()
-            N(0, 0, 0, 1),
-            N(0, 0, 1, 0)
+            N(1, 0, 0, 0),
+            N(0, 0, 0, 1)
             in 4-d lattice N
 
             sage: f.rays()
@@ -3097,14 +3097,14 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             in 4-d lattice N
 
             sage: f.virtual_rays([0])
-            N(0, 0, 0, 1)
+            N(1, 0, 0, 0)
             in 4-d lattice N
 
         You can also give virtual ray indices directly, without
         packing them into a list::
 
             sage: f.virtual_rays(0)
-            N(0, 0, 0, 1)
+            N(1, 0, 0, 0)
             in 4-d lattice N
 
         Make sure that :trac:`16344` is fixed and one can compute

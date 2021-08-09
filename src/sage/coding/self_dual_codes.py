@@ -112,7 +112,9 @@ def _MS(n):
         sage: self_dual_codes._MS(8)
         Full MatrixSpace of 4 by 8 dense matrices over Finite Field of size 2
     """
-    n2 = ZZ(n)/2; return MatrixSpace(_F, n2, n)
+    n2 = ZZ(n)/2
+    return MatrixSpace(_F, n2, n)
+
 
 def _matA(n):
     r"""

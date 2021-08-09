@@ -500,18 +500,6 @@ class Fields(CategoryWithAxiom):
 
             return Factorization(factors, unit=unit, sort=False)
 
-        def _pow_int(self, n):
-            r"""
-            Returns the vector space of dimension `n` over ``self``.
-
-            EXAMPLES::
-
-                sage: QQ^4
-                Vector space of dimension 4 over Rational Field
-            """
-            from sage.modules.all import FreeModule
-            return FreeModule(self, n)
-
         def vector_space(self, *args, **kwds):
             r"""
             Gives an isomorphism of this field with a vector space over a subfield.

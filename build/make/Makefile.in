@@ -283,6 +283,11 @@ all-toolchain: base-toolchain
 # given as a prerequisite to any pip-installed packages
 PYTHON_TOOLCHAIN = setuptools pip setuptools_scm wheel setuptools_wheel
 
+# Trac #32056: Avoid installed setuptools leaking into the build of python3 by uninstalling it.
+# It will have to be reinstalled anyway because of its dependency on $(PYTHON).
+python3-SAGE_LOCAL-no-deps: setuptools-clean
+python3-SAGE_VENV-no-deps: setuptools-clean
+
 # Everything needed to start up Sage using "./sage".  Of course, not
 # every part of Sage will work.  It does not include Maxima for example.
 SAGERUNTIME = sagelib $(inst_ipython) $(inst_pexpect) \
@@ -338,23 +343,23 @@ DOC_DEPENDENCIES = sagelib sage_docbuild $(inst_sphinx) \
 doc: doc-html
 
 doc-html: $(DOC_DEPENDENCIES)
-	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+	$(AM_V_at)cd "$(SAGE_SRC)/doc" && sage-logger -p "$(MAKE) doc-html" $(SAGE_ROOT)/logs/dochtml.log
 
 # 'doc-html-no-plot': build docs without building the graphics coming
 # from the '.. plot' directive, in case you want to save a few
 # megabytes of disk space. 'doc-clean' is a prerequisite because the
 # presence of graphics is cached in src/doc/output.
-doc-html-no-plot: doc-clean $(DOC_DEPENDENCIES)
-	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links --no-plot all html $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+doc-html-no-plot: doc-clean
+	$(AM_V_at)sage-logger -p "$(MAKE) SAGE_DOCBUILD_OPTS=\"$(SAGE_DOCBUILD_OPTS) --no-plot\" doc-html" $(SAGE_ROOT)/logs/dochtml.log
 
-doc-html-mathjax: $(DOC_DEPENDENCIES)
-	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild --no-pdf-links all html -j $(SAGE_DOCBUILD_OPTS)' logs/dochtml.log
+doc-html-mathjax:
+	$(AM_V_at)sage-logger -p "$(MAKE) SAGE_DOCBUILD_OPTS=\"$(SAGE_DOCBUILD_OPTS) -j\" doc-html" $(SAGE_ROOT)/logs/dochtml.log
 
 # Keep target 'doc-html-jsmath' for backwards compatibility.
 doc-html-jsmath: doc-html-mathjax
 
 doc-pdf: $(DOC_DEPENDENCIES)
-	$(AM_V_at)cd ../.. && sage-logger -p './sage --docbuild all pdf $(SAGE_DOCBUILD_OPTS)' logs/docpdf.log
+	$(AM_V_at)cd "$(SAGE_SRC)/doc" && sage-logger -p "$(MAKE) doc-pdf" $(SAGE_ROOT)/logs/docpdf.log
 
 doc-clean: doc-src-clean doc-output-clean
 

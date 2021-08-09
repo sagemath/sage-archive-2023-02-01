@@ -25,9 +25,6 @@ from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
 from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
-from .laurent_series_ring_element import LaurentSeries
-from .ring import CommutativeRing
-
 from sage.misc.cachefunc import cached_method
 
 from sage.rings.integer_ring import ZZ
@@ -117,7 +114,25 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         TESTS::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 't')
-            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+            sage: elts = L.some_elements()[:-2]  # skip the non-exact elements
+            sage: TestSuite(L).run(elements=elts, skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+            sage: L.category()
+            Category of infinite commutative no zero divisors algebras over
+             (euclidean domains and infinite enumerated sets and metric spaces)
+
+            sage: L = LazyLaurentSeriesRing(QQ, 't')
+            sage: L.category()
+            Join of Category of complete discrete valuation fields
+             and Category of commutative algebras over (number fields and quotient fields and metric spaces)
+             and Category of infinite sets
+            sage: L = LazyLaurentSeriesRing(ZZ['x,y'], 't')
+            sage: L.category()
+            Category of infinite commutative no zero divisors algebras over
+             (unique factorization domains and commutative algebras over
+              (euclidean domains and infinite enumerated sets and metric spaces)
+              and infinite sets)
+            sage: E.<x,y> = ExteriorAlgebra(QQ)
+            sage: L = LazyLaurentSeriesRing(E, 't')  # not tested
         """
         self._sparse = sparse
         self._coeff_ring = base_ring
@@ -126,18 +141,18 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         category = Algebras(base_ring.category())
         if base_ring in Fields():
             category &= CompleteDiscreteValuationFields()
-        elif base_ring in IntegralDomains():
-            category &= IntegralDomains()
-        elif base_ring in Rings().Commutative():
-            category = category.Commutative()
+        else:
+            if "Commutative" in base_ring.category().axioms():
+                category = category.Commutative()
+            if base_ring in IntegralDomains():
+                category &= IntegralDomains()
 
         if base_ring.is_zero():
             category = category.Finite()
         else:
             category = category.Infinite()
 
-        Parent.__init__(self, base=base_ring, names=names,
-                        category=category)
+        Parent.__init__(self, base=base_ring, names=names, category=category)
 
     def _repr_(self):
         """
@@ -197,7 +212,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if n != 0:
             raise IndexError("there is only one generator")
         R = self.base_ring()
-        coeff_stream = CoefficientStream_exact([R.one()], self._sparse, constant=ZZ.zero(), valuation=1)
+        coeff_stream = CoefficientStream_exact([R.one()], self._sparse,
+                                               constant=ZZ.zero(), valuation=1)
         return self.element_class(self, coeff_stream)
 
     def ngens(self):
@@ -251,6 +267,16 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         Return a coercion map from the base ring of ``self``.
 
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(QQ, 'z')
+            sage: phi = L._coerce_map_from_base_ring()
+            sage: phi(2)
+            2
+            sage: phi(2, valuation=-2)
+            2*z^-2
+            sage: phi(2, valuation=-2, constant=3, degree=1)
+            2*z^-2 + 3*z + 3*z^2 + 3*z^3 + O(z^4)
         """
         # Return a DefaultConvertMap_unique; this can pass additional
         # arguments to _element_constructor_, unlike the map returned
@@ -393,6 +419,41 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                                                self._sparse, valuation=-2, constant=1)
         return self.element_class(self, coeff_stream)
 
+    def some_elements(self):
+        """
+        Return a list of elements of ``self``.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.some_elements()
+            [0, 1, z,
+             -3*z^-4 + z^-3 - 12*z^-2 - 2*z^-1 - 10 - 8*z + z^2 + z^3,
+             z^-2 + 3*z^-1 + 2*z + z^2 + z^3 + z^4 + z^5 + O(z^6),
+             -2*z^-3 - 2*z^-2 + 4*z^-1 + 11 - z - 34*z^2 - 31*z^3 + O(z^4),
+             4*z^-2 + z^-1 + z + 4*z^2 + 9*z^3 + 16*z^4 + O(z^5)]
+
+            sage: L = LazyLaurentSeriesRing(GF(2), 'z')
+            sage: L.some_elements()
+            [0, 1, z,
+             z^-4 + z^-3 + z^2 + z^3,
+             z^-1 + z^2 + z^3 + z^4 + z^5 + O(z^6),
+             1 + z + z^3 + z^4 + z^6 + O(z^7),
+             z^-1 + z + z^3 + O(z^5)]
+
+            sage: L = LazyLaurentSeriesRing(GF(3), 'z')
+            sage: L.some_elements()
+            [0, 1, z,
+             z^-3 + z^-1 + 2 + z + z^2 + z^3,
+             z^2 + z^3 + z^4 + z^5 + O(z^6),
+             z^-3 + z^-2 + z^-1 + 2 + 2*z + 2*z^2 + 2*z^3 + O(z^4),
+             z^-2 + z^-1 + z + z^2 + z^4 + O(z^5)]
+        """
+        z = self.gen()
+        elts = [self.zero(), self.one(), z, (z-3)*(z**-2+2+z)**2, self.an_element(),
+                (1 - 2*z**-3)/(1 - z + 3*z**2), self(lambda n: n**2, valuation=-2)]
+        return elts
+
     @cached_method
     def one(self):
         r"""
@@ -405,7 +466,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             1
         """
         R = self.base_ring()
-        coeff_stream = CoefficientStream_exact([R.one()], self._sparse, constant=ZZ.zero(), degree=1)
+        coeff_stream = CoefficientStream_exact([R.one()], self._sparse, constant=R.zero(), degree=1)
         return self.element_class(self, coeff_stream)
 
     @cached_method
@@ -429,8 +490,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         If no parameters are set, then the function returns a copy of
         the options dictionary.
 
-        The ``options`` to Lazy Laurent series can be accessed as the method
-        :meth:`LazyLaurentSeriesRing.options` of :class:`LazyLaurentSeriesRing`.
+        The ``options`` to Lazy Laurent series can be accessed as using
+        :class:`LazyLaurentSeriesRing.options` of :class:`LazyLaurentSeriesRing`.
 
         @OPTIONS@
 
@@ -526,6 +587,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         if isinstance(constant, (list, tuple)):
             constant, degree = constant
+
+        if constant is not None:
+            constant = self.base_ring()(constant)
 
         if isinstance(coefficient, (tuple, list)):
             if constant is None:

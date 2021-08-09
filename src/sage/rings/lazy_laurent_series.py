@@ -220,6 +220,7 @@ class LazySequenceElement(ModuleElement):
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
+        BR = P.base_ring()
         if isinstance(coeff_stream, CoefficientStream_exact):
             initial_coefficients = [func(i) if i else 0
                                     for i in coeff_stream._initial_coefficients]
@@ -230,7 +231,7 @@ class LazySequenceElement(ModuleElement):
                                                    self._coeff_stream._is_sparse,
                                                    valuation=coeff_stream._approximate_valuation,
                                                    degree=coeff_stream._degree,
-                                                   constant=c)
+                                                   constant=BR(c))
             return P.element_class(P, coeff_stream)
         coeff_stream = CoefficientStream_map_coefficients(self._coeff_stream, func, P._coeff_ring)
         return P.element_class(P, coeff_stream)
@@ -636,10 +637,19 @@ class LazySequencesModuleElement(LazySequenceElement):
             sage: O[0:10]
             [1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
+        Adding zero gives the same series::
+
+            sage: M = L(lambda n: 1 + n, valuation=0)
+            sage: M + 0 is 0 + M is M
+            True
         """
         P = self.parent()
         left = self._coeff_stream
         right = other._coeff_stream
+        if isinstance(left, CoefficientStream_zero):
+            return other
+        if isinstance(right, CoefficientStream_zero):
+            return self
         if (isinstance(left, CoefficientStream_exact)
             and isinstance(right, CoefficientStream_exact)):
             approximate_valuation = min(left.valuation(), right.valuation())
@@ -696,10 +706,22 @@ class LazySequencesModuleElement(LazySequenceElement):
             sage: O = M - L.one() - N
             sage: O
             0
+
+        Subtraction with 0::
+
+            sage: M = L(lambda n: 1 + n, valuation=0)
+            sage: M - 0 is M
+            True
+            sage: 0 - M == -M
+            True
         """
         P = self.parent()
         left = self._coeff_stream
         right = other._coeff_stream
+        if isinstance(left, CoefficientStream_zero):
+            return P.element_class(P, CoefficientStream_neg(right))
+        if isinstance(right, CoefficientStream_zero):
+            return self
         if (isinstance(left, CoefficientStream_exact) and isinstance(right, CoefficientStream_exact)):
             approximate_valuation = min(left.valuation(), right.valuation())
             degree = max(left._degree, right._degree)
@@ -1277,7 +1299,7 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
 
             sage: g = 1 - y
             sage: f(g)
-            3 - y + 2*y^2 + y^3 + y^4 + y^5 + y^6 + O(y^7)
+            3 - y + 2*y^2 + y^3 + y^4 + y^5 + O(y^6)
             sage: g^2 + 1 + g^-1
             3 - y + 2*y^2 + y^3 + y^4 + y^5 + O(y^6)
 
@@ -1432,7 +1454,10 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
                     val = ret.valuation()
                     deg = ret.degree() + 1
                     initial_coefficients = [ret[i] for i in range(val, deg)]
-                    return P.element_class(P, CoefficientStream_exact(initial_coefficients, self._coeff_stream._is_sparse, 0, deg, val))
+                    coeff_stream = CoefficientStream_exact(initial_coefficients,
+                             self._coeff_stream._is_sparse, constant=P.base_ring().zero(),
+                             degree=deg, valuation=val)
+                    return P.element_class(P, coeff_stream)
 
             # Return the sum since g is not known to be finite or we do not get a Laurent polynomial
             # TODO: Optimize when f has positive valuation
@@ -1481,7 +1506,6 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
 
             sage: (z-z^2).revert()
             z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
-
         """
         P = self.parent()
         z = P.gen()
@@ -1562,7 +1586,8 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
                     ret = pl / pr
                     ret = P._laurent_poly_ring(ret)
                     initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
-                    return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, valuation=ret.valuation(), constant=left._constant))
+                    return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
+                             valuation=ret.valuation(), constant=left._constant))
                 except (TypeError, ValueError, NotImplementedError):
                     # We cannot divide the polynomials, so the result must be a series
                     pass
@@ -1634,7 +1659,8 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             val = ret.valuation()
             deg = ret.degree() + 1
             initial_coefficients = [ret[i] for i in range(val, deg)]
-            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse, self._coeff_stream._constant, deg, val))
+            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
+                            constant=cs._constant, degree=deg, valuation=val))
 
         return generic_power(self, n)
 

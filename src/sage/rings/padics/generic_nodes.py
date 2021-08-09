@@ -1436,12 +1436,12 @@ class pAdicRingBaseGeneric(pAdicBaseGeneric, pAdicRingGeneric):
 
         EXAMPLES::
 
-            sage: Zp(5,6).random_element()
-            3 + 3*5 + 2*5^2 + 3*5^3 + 2*5^4 + 5^5 + O(5^6)
-            sage: ZpCA(5,6).random_element()
-            4*5^2 + 5^3 + O(5^6)
-            sage: ZpFM(5,6).random_element()
-            2 + 4*5^2 + 2*5^4 + 5^5
+            sage: Zp(5,6).random_element().parent() is Zp(5,6)
+            True
+            sage: ZpCA(5,6).random_element().parent() is ZpCA(5,6)
+            True
+            sage: ZpFM(5,6).random_element().parent() is ZpFM(5,6)
+            True
         """
         if (algorithm == 'default'):
             if self.is_capped_relative():

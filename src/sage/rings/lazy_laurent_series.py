@@ -1262,6 +1262,12 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             sage: g^-3 + g^-2 + 1 / (1 + g^2)
             z^-9 + 3*z^-8 + 3*z^-7 - z^-6 - 4*z^-5 - 2*z^-4 + z^-3 + O(z^-2)
 
+            sage: f = z^-3; g = z^-2 + z^-1;
+            sage: g^(-3)
+            z^6 - 3*z^7 + 6*z^8 - 10*z^9 + 15*z^10 - 21*z^11 + 28*z^12 + O(z^13)
+            sage: f(g)
+            z^6 - 3*z^7 + 6*z^8 - 10*z^9 + 15*z^10 - 21*z^11 + 28*z^12 + O(z^13)
+
             sage: f = L(lambda n: n); f
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
             sage: f(z^2)
@@ -1466,15 +1472,17 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             # We build this iteratively so each power can benefit from the caching
             # Equivalent to P.sum(poly[i] * g**i for i in range(poly.valuation(), poly.degree()+1))
             # We could just do "return poly(g)" if we don't care about speed
-            deg = poly.degree()
-            for i in range(deg):
-                ret += poly[i] * gp
-                gp *= g
-            ret += poly[deg] * gp
-            if poly.valuation() < 0:
+            d = poly.degree()
+            if d >= 0:
+                for i in range(d):
+                    ret += poly[i] * gp
+                    gp *= g
+                ret += poly[d] * gp
+            v = poly.valuation()
+            if v < 0:
                 gi = ~g
                 gp = P.one()
-                for i in range(-1, poly.valuation()-1, -1):
+                for i in range(-1, v-1, -1):
                     gp *= gi
                     ret += poly[i] * gp
             return ret

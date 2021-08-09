@@ -2067,6 +2067,121 @@ class LazySpecialFunctions():
         """
         P = self.parent()
         return P(lambda n: 1/n if n % 2 else ZZ.zero(), 0)(self)
+    
+    def acosh(self):
+        r"""
+        Return the inverse of the hyperbolic tangent of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: LazySpecialFunctions.acosh(z)
+            1 + 1/2*z^2 + 1/24*z^4 + 1/720*z^6 + O(z^7)
+            sage: LazySpecialFunctions.acosh(z^2)
+            1 + 1/2*z^4 + O(z^7)
+            sage: LazySpecialFunctions.acosh(z + z^2)
+            1 + 1/2*z^2 + z^3 + 13/24*z^4 + 1/6*z^5 + 181/720*z^6 + O(z^7)
+            sage: LazySpecialFunctions.acosh(L(0))
+            1
+            sage: LazySpecialFunctions.acosh(1 + z)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
+
+        """
+        from sage.functions.other import factorial
+
+        P = self.parent()
+        return P(lambda n: 1/factorial(n) if n % 2 == 0 else ZZ.zero(), 0)(self)
+    
+    def asech(self):
+        r"""
+        Return the inverse of the hyperbolic secant of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: LazySpecialFunctions.asech(z)
+            1 - 1/2*z^2 + 5/24*z^4 - 61/720*z^6 + O(z^7)
+            sage: LazySpecialFunctions.asech(z^2)
+            1 - 1/2*z^4 + O(z^7)
+            sage: LazySpecialFunctions.asech(z + z^2)
+            1 - 1/2*z^2 - z^3 - 7/24*z^4 + 5/6*z^5 + 839/720*z^6 + O(z^7)
+            sage: LazySpecialFunctions.asech(L(0))
+            1
+            sage: LazySpecialFunctions.asech(1 + z)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
+
+        """
+        from sage.functions.other import factorial
+        from sage.combinat.combinat import euler_number
+
+        P = self.parent()
+        return P(lambda n: euler_number(n)/factorial(n) if n % 2 == 0 else ZZ.zero(), 0)(self)
+    
+    def acosech(self):
+        r"""
+        Return the inverse of the hyperbolic cosecant of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: LazySpecialFunctions.acosech(z)
+            z^-1 - 1/6*z + 7/360*z^3 - 31/15120*z^5 + O(z^6)
+            sage: LazySpecialFunctions.acosech(z^2)
+            z^-2 - 1/6*z^2 + O(z^5)
+            sage: LazySpecialFunctions.acosech(z + z^2)
+            z^-1 - 1 + 5/6*z - 7/6*z^2 + 367/360*z^3 - 113/120*z^4 + 15971/15120*z^5 + O(z^6)
+            sage: LazySpecialFunctions.acosech(L(0))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: the valuation of the series must be nonnegative
+            sage: LazySpecialFunctions.acosech(1 + z)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
+
+        """
+        from sage.functions.other import factorial
+        from sage.arith.misc import bernoulli
+
+        P = self.parent()
+        return P(lambda n: (2 * (1 - 2 ** n) * bernoulli(n + 1))/factorial(n + 1) if n % 2 else ZZ.zero(), -1)(self)
+    
+    def acoth(self):
+        r"""
+        Return the inverse of the hyperbolic cotangent of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: LazySpecialFunctions.acoth(z)
+            z^-1 + 1/3*z - 1/45*z^3 + 2/945*z^5 + O(z^6)
+            sage: LazySpecialFunctions.acoth(z^2)
+            z^-2 + 1/3*z^2 + O(z^5)
+            sage: LazySpecialFunctions.acoth(z + z^2)
+            z^-1 - 1 + 4/3*z - 2/3*z^2 + 44/45*z^3 - 16/15*z^4 + 884/945*z^5 + O(z^6)
+            sage: LazySpecialFunctions.acoth(L(0))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: the valuation of the series must be nonnegative
+            sage: LazySpecialFunctions.acoth(1 + z)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
+
+        """
+        from sage.functions.other import factorial
+        from sage.arith.misc import bernoulli
+
+        P = self.parent()
+        return P(lambda n: (2 ** (n + 1) * bernoulli(n + 1))/factorial(n + 1) if n % 2 else ZZ.zero(), -1)(self)
 
     def arccot(self):
         r"""
@@ -2096,36 +2211,49 @@ class LazySpecialFunctions():
         P = self.parent()
         return P(pi/2) - LazySpecialFunctions.arctan(self)
 
-    def hypergeometric(self, a, b, c):
+    def hypergeometric(self, a, b):
         r"""
         Return the `{}_{p}F_{q}`-hypergeometric function
         `\,_pF_{q}` where `(p,q)` is the parameterization of ``self``.
+
+        INPUT::
+
+        - ``a`` -- the first parameter of the hypergeometric function
+        - ``b`` -- the second parameter of the hypergeometric function
 
         EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: from sage.rings.lazy_laurent_series import LazySpecialFunctions
-            sage: LazySpecialFunctions.hypergeometric(z, 1, 2, 2)                                         
+            sage: LazySpecialFunctions.hypergeometric(z, [1, 1], [1])                                     
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-            sage: LazySpecialFunctions.hypergeometric(z, 2, 2, 2)                                         
+            sage: LazySpecialFunctions.hypergeometric(z, [1, 2], [1])                                     
             1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
-            sage: LazySpecialFunctions.hypergeometric(z, 2, 3, 2)                                         
-            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + O(z^7)
-            sage: LazySpecialFunctions.hypergeometric(z, 2, 3, 4)                                         
+            sage: LazySpecialFunctions.hypergeometric(z, 1, 1)                                            
+            1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
+            sage: LazySpecialFunctions.hypergeometric(z, [2, 3], [4])                                     
             1 + 3/2*z + 9/5*z^2 + 2*z^3 + 15/7*z^4 + 9/4*z^5 + 7/3*z^6 + O(z^7)
+            sage: LazySpecialFunctions.hypergeometric(z, [2, 3], [2])                                     
+            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + O(z^7)
+            sage: LazySpecialFunctions.hypergeometric(z, [2, 3], [2])                                     
+            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + O(z^7)
+            sage: LazySpecialFunctions.hypergeometric(z, (1, 1), [1, 1])
+            1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
             
         """
         from sage.functions.other import factorial
-
-        def pochhammer(q, n):
-            if n:
-                c = 1
-                for i in range(n):
-                    c *= (q + i)
-                return c
-            return 1
+        from sage.arith.misc import rising_factorial
+        if not isinstance(a, (list, tuple)):
+            a = [a]
+        if not isinstance(b, (list, tuple)):
+            b = [b]
+        def coeff(n, c):
+            num = 1
+            for term in range(len(c)):
+                num *= rising_factorial(c[term], n)
+            return num
         P = self.parent()
-        return P(lambda n: (pochhammer(a, n) * pochhammer(b, n))/(pochhammer(c, n) * factorial(n)), 0)(self)
+        return P(lambda n: coeff(n, a)/(coeff(n, b) * factorial(n)), 0)(self)
 
 
 class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries, LazySpecialFunctions):

@@ -2965,8 +2965,6 @@ cdef class Matroid(SageObject):
                     break
         return frozenset(ret)
 
-    @cython.boundscheck(False)  # deactivate bound checks
-    @cython.wraparound(False)   # deactivate negative indexing
     cpdef no_broken_circuits_sets(self, ordering=None):
         r"""
         Return the no broken circuits (NBC) sets of ``self``.

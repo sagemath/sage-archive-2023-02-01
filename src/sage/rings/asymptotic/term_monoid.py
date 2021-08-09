@@ -3243,7 +3243,7 @@ class TermWithCoefficient(GenericTerm):
 
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: T = TermWithCoefficientMonoid(TermMonoid, G, ZZ)
-            sage: T(x^2, 5)._repr_product_()
+            sage: T(x^2, coefficient=5)._repr_product_()
             '5*x^2'
         """
         if latex:

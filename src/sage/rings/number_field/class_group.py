@@ -213,7 +213,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
     def reduce(self):
         r"""
         Return representative for this ideal class that has been
-        reduced using PARI's idealred.
+        reduced using PARI's :pari:`idealred`.
 
         EXAMPLES::
 

@@ -79,8 +79,10 @@ from sage.matrix.constructor import Matrix
 from sage.matrix.special import block_matrix
 from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
+from sage.misc.functional import numerical_approx
 from sage.misc.misc_c import prod
 from sage.modules.free_module import VectorSpace
+from sage.modules.free_module_integer import IntegerLattice
 from sage.numerical.gauss_legendre import integrate_vector, integrate_vector_N
 from sage.rings.complex_mpfr import ComplexField, CDF
 from sage.rings.integer_ring import ZZ
@@ -89,7 +91,6 @@ from sage.rings.qqbar import number_field_elements_from_algebraics
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
 import sage.libs.mpmath.all as mpall
-
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
     r"""
@@ -322,6 +323,103 @@ def differential_basis_baker(f):
             if P.interior_contains(a)]
 
 
+def find_closest_element(item, List):
+    r"""
+    Return the index of the closest element of a list.
+    
+    Given ``List`` and ``item``, return the index of the element ``l`` of ``List``
+    which minimises ``(item-l).abs()``. If there are multiple such elements, the 
+    first is returned. 
+
+    INPUT:
+
+    - ``item`` -- value to minimise the distance to over the list.
+
+    - ``List`` -- list. List to look for closest element in.
+
+    EXAMPLES::
+
+        sage: i = 5
+        sage: l = list(range(10))
+        sage: i == find_closest_element(i, l)
+
+    Note that this method does no checks on the input, but will fail for inputs
+    where the absolute value or subtraction do not make sense.
+    """
+    dists = [(item-l).abs() for l in List]
+    return dists.index(min(dists))
+
+
+def reparameterise_differential_minpoly(minpoly, z0):
+    r"""
+    Rewrites a minimal polynomial to write is around `z_0`. 
+        
+    Given a minimal polynomial `m(z,g)`, where `g` corresponds to a differential
+    on the surface (that is, it is represented as a rational function, and 
+    implicitly carries a factor `dz`), we rewrite the minpoly in terms of 
+    variables `\bar{z}, \bar{g}` s.t now `\bar{z}=0 \Leftrightarrow z=z_0`. 
+        
+    INPUT:
+        
+    - ``minpoly`` -- a polynomial in two variables, where the first variables 
+       corresponds to the base coordinate on the Riemann surface.
+       
+    - ``z0`` -- complex number of infinity. The point about which to 
+      reparameterise.
+         
+    OUTPUT:
+        
+    A polynomial in two variables giving the reparameterise minimal polynomial. 
+        
+    EXAMPLES:
+        
+    On the curve given by `w^2-z^3+1=0`, we have differential 
+    `\frac{dz}{2w} = \frac{dz}{2\sqrt{z^3-1}}`
+    with minimal polynomial `g^2(z^3-1)-1/4=0`. We can make the substitution 
+    `\bar{z}=z^{-1}` to parameterise the differential about `z=\Infty` as 
+    `\frac{-\bar{z}^{-2} d\bar{z}}{2\sqrt{\bar{z}^{-3}-1}} = \frac{-d\bar{z}}{2\sqrt{\bar{z}(1-\bar{z}^3)}}`.
+    Hence the transformed differential should have minimal polynomial 
+    `\bar{g}^2\bar{z}(1-\bar{z}^3)-1/4=0`, and we can check this::
+        
+        sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+        sage: R.<z,w> = QQ[]
+        sage: S = RiemannSurface(w^2-z^3+1)
+        sage: minpoly = S._cohomology_basis_bounding_data[1][0][2]
+        sage: z0 = Infinity
+        sage: S.reparameterise_differential_minpoly(minpoly, z0)
+        -zbar^4*gbar^2 + zbar*gbar^2 - 1/4
+
+    We can further check that reparameterising about `0` is the identity 
+    operation::
+
+        sage: S.reparameterise_differential_minpoly(minpoly, 0)(*minpoly.parent().gens())==minpoly
+        True
+
+    .. NOTE::
+
+        As part of the routine, when reparameterising about infinity, a 
+        rational function is reduced and then the numerator is taken. Over
+        an inexact ring this is numerically unstable, and so it is advisable
+        to only reparameterise about infinty over an exact ring. 
+        """
+    P = minpoly.parent()
+    F = PolynomialRing(P.base_ring(), [str(v)+"bar" for v in P.gens()])
+        
+    try:
+        Inf = bool(z0==z0.parent()(Infinity))
+    except TypeError:
+        Inf = False
+        
+    if Inf:
+        F = F.fraction_field()
+        mt = F(minpoly(F.gen(0)**(-1),-F.gen(0)**(+2)*F.gen(1)))
+        mt.reduce()
+        mt = mt.numerator()
+    else:
+        mt = minpoly(F.gen(0)+z0,F.gen(1))
+    return mt
+
+
 class RiemannSurface(object):
     r"""
     Construct a Riemann Surface. This is specified by the zeroes of a bivariate
@@ -379,11 +477,11 @@ class RiemannSurface(object):
         sage: K.<a> = NumberField(t^2-t+3,embedding=CC(0.5+1.6*I))
         sage: R.<x,y> = K[]
         sage: f = y^2+y-(x^3+(1-a)*x^2-(2+a)*x-2)
-        sage: S = RiemannSurface(f,prec=100,differentials=[1])
+        sage: S = RiemannSurface(f, prec=100, differentials=[1])
         sage: A = S.endomorphism_basis()
         sage: len(A)
         2
-        sage: all( len(T.minpoly().roots(K)) > 0 for T in A)
+        sage: all(len(T.minpoly().roots(K)) > 0 for T in A)
         True
 
     TESTS:
@@ -418,6 +516,8 @@ class RiemannSurface(object):
         # Initializations.
         self._prec = prec
         self._certification = certification
+        if not (integration_method=="heuristic" or integration_method=="rigorous"):
+            raise ValueError("Invalid integration method")
         self._integration_method = integration_method
         self._R = f.parent()
         if len(self._R.gens()) != 2:
@@ -456,16 +556,55 @@ class RiemannSurface(object):
         # Compute the branch locus. Takes the square-free part of the discriminant
         # because of numerical issues.
         self.branch_locus = []
-        for x in self._discriminant.factor():
-            self.branch_locus += self._CCz(x[0](self._CCz.gen(), 0)).roots(multiplicities=False)
+        existing_factors = [x[0] for x in self._discriminant.factor()]
+        for fac in existing_factors:
+            self.branch_locus += self._CCz(fac(self._CCz.gen(), 0)).roots(multiplicities=False)
+        self._f_branch_locus = self.branch_locus
+        self._cohomology_basis_bounding_data = self._bounding_data(self.cohomology_basis(),
+                                                                   exact=True)
+        RBzg, bounding_data_list = self._cohomology_basis_bounding_data
+        minpoly_list = [bd[2] for bd in bounding_data_list]
+        # We now want to calculate the additional branchpoints associated to 
+        # the differentials.
+        discriminants = [RBzg(self._discriminant(*RBzg.gens()))]
+        for minpoly in minpoly_list:
+            F = RBzg(minpoly)
+            dF = F.derivative(RBzg.gen(1))
+            discriminants += [F.resultant(dF, RBzg.gen(1))]
+        combined_discriminant =  lcm(discriminants)(*self._R.gens())
+        self._differentials_branch_locus = []
+        for x in combined_discriminant.factor():
+            if not x[0] in existing_factors:
+                self._differentials_branch_locus += self._CCz(x[0](self._CCz.gen(),
+                                                                   0)).roots(multiplicities=False)
+        # We add these branchpoints to the existing.
+        self.branch_locus = self.branch_locus+self._differentials_branch_locus
+        # We now want to also check whether Infinity is a branch point of any 
+        # of the differentials.
+        # This will be useful when calculating the Abel-Jacobi map. 
+        minpoly_list = [reparameterise_differential_minpoly(mp, Infinity)
+                        for mp in minpoly_list]
+        discriminants = []
+        for minpoly in minpoly_list:
+            F = RBzg(minpoly)
+            dF = F.derivative(RBzg.gen(1))
+            discriminants += [F.resultant(dF, RBzg.gen(1))]
+        discriminant_about_infinity = RBzg(lcm(discriminants))
+        if discriminant_about_infinity(0,0)==0:
+            self._differentials_branch_locus.append(self._CC(Infinity))
+
         # Voronoi diagram and the important points associated with it
         self.voronoi_diagram = Voronoi(voronoi_ghost(self.branch_locus,
                                                      CC=self._CC))
         self._vertices = [self._CC(x0, y0)
                           for x0, y0 in self.voronoi_diagram.vertices]
         self._wvalues = [self.w_values(z0) for z0 in self._vertices]
+        # We arbitrarily, but sensibly, set the basepoint to be the rightmost vertex
+        self._basepoint = (self._vertices.index(sorted(self._vertices, 
+                                                       key=lambda z:z.real())[-1]), 0)
         self._Sn = SymmetricGroup(range(self.degree))
         self._L = {}
+        self._integral_dict = {}
         self._fastcall_f = fast_callable(f, domain=self._CC)
         self._fastcall_dfdw = fast_callable(self._dfdw, domain=self._CC)
         self._fastcall_dfdz = fast_callable(self._dfdz, domain=self._CC)
@@ -508,6 +647,12 @@ class RiemannSurface(object):
 
             sage: S.w_values(0) # abs tol 1e-14
             [-1.00000000000000*I, 1.00000000000000*I]
+
+        Note that typically the method returns a list of length ``self.degree``,
+        but that at ramification points, this may no longer be true::
+
+            sage: S.w_values(1) # abs tol 1e-14
+            [0.000000000000000]
         """
         return self.f(z0,self._CCw.gen(0)).roots(multiplicities=False)
 
@@ -568,7 +713,7 @@ class RiemannSurface(object):
         Return the Voronoi decomposition as a planar graph.
 
         The result of this routine can be useful to interpret the labelling of
-        the vertices.
+        the vertices. See also :meth:`upstairs_graph`. 
 
         OUTPUT:
 
@@ -582,22 +727,38 @@ class RiemannSurface(object):
             sage: S = RiemannSurface(f)
             sage: S.downstairs_graph()
             Graph on 11 vertices
+        """
+        G = Graph(self.downstairs_edges())
+        G.set_pos(dict(enumerate(list(v) for v in self._vertices)))
+        return G
 
-        Similarly one can form the graph of the upstairs edges, which is
-        visually rather less attractive but can be instructive to verify that a
-        homology basis is likely correctly computed.::
+    def upstairs_graph(self):
+        r"""
+        Return the graph of the upstairs edges.
+        
+        This method can be useful for generating paths in the surface between points labelled
+        by upstairs vertices, and verifying that a homology basis is likely computed correctly. 
+        See also :meth:`downstairs_graph`.
 
-            sage: G = Graph(S.upstairs_edges()); G
+        OUTPUT:
+
+        The homotopy-continued Voronoi decomposition as a graph, with appropriate 3D embedding. 
+        
+        EXAMPLES::
+        
+            sage: R.<z,w> = QQ[]
+            sage: S = Curve(w^2-z^4+1).riemann_surface()
+            sage: G = S.upstairs_graph(); G
             Graph on 22 vertices
-            sage: G.is_planar()
-            False
             sage: G.genus()
             1
             sage: G.is_connected()
             True
         """
-        G = Graph(self.downstairs_edges())
-        G.set_pos(dict(enumerate(list(v) for v in self._vertices)))
+        G = Graph(self.upstairs_edges())
+        G.set_pos({(i,j): [self._vertices[i].real(), self._vertices[i].imag(), 
+                           self.w_values(self._vertices[i])[j].imag()] 
+                   for i in range(len(self._vertices)) for j in range(self.degree)}, dim=3)
         return G
 
     def _compute_delta(self, z1, epsilon, wvalues=None):
@@ -653,7 +814,7 @@ class RiemannSurface(object):
             if wvalues is None:
                 wvalues = self.w_values(z1)
             # For computation of rho. Need the branch locus + roots of a0.
-            badpoints = self.branch_locus + self._a0roots
+            badpoints = self._f_branch_locus + self._a0roots
             rho = min(abs(z1 - z) for z in badpoints) / 2
             Y = max(abs(self._fastcall_dfdz(z1, wi)/self._fastcall_dfdw(z1, wi))
                     for wi in wvalues)
@@ -674,7 +835,7 @@ class RiemannSurface(object):
         else:
             # Instead, we just compute the minimum distance between branch
             # points and the point in question.
-            return min(abs(b - z1) for b in self.branch_locus) / 2
+            return min(abs(b - z1) for b in self._f_branch_locus) / 2
 
     def homotopy_continuation(self, edge):
         r"""
@@ -683,15 +844,18 @@ class RiemannSurface(object):
 
         INPUT:
 
-        - ``edge`` -- a tuple of integers indicating an edge of the Voronoi
-          diagram
+        - ``edge`` -- a tuple ``(z_start, z_end)`` indicating the straight line
+          over which to perform the homotopy continutation. 
 
         OUTPUT:
 
-        A list of complex numbers corresponding to the points which are reached
-        when traversing along the direction of the edge. The ordering of these
-        points indicates how they have been permuted due to the weaving of the
-        curve.
+        A list containing the initialised continuation data. Each entry in the 
+        list contains: the `t` values that entry corresponds to, a list of 
+        complex numbers corresponding to the points which are reached when 
+        continued along the edge when traversing along the direction of the 
+        edge, and a value ``epsilon`` giving the minimumdistance between the
+        fibre values divided by 3. The ordering of these points indicates how 
+        they have been permuted due to the weaving of the curve.
 
         EXAMPLES:
 
@@ -707,15 +871,15 @@ class RiemannSurface(object):
             sage: sigma = S.edge_permutations()[edge1]
             sage: continued_values = S.homotopy_continuation(edge1)
             sage: stored_values = S.w_values(S._vertices[edge1[1]])
-            sage: all( abs(continued_values[i]-stored_values[sigma(i)]) < 1e-8 for i in range(3))
+            sage: all(abs(continued_values[i]-stored_values[sigma(i)]) < 1e-8 for i in range(3))
             True
         """
-        i0, i1 = edge
+        z_start, z_end = edge
+        z_start = self._CC(z_start)
+        z_end = self._CC(z_end)
         ZERO = self._RR.zero()
         ONE = self._RR.one()
         datastorage = []
-        z_start = self._CC(self._vertices[i0])
-        z_end = self._CC(self._vertices[i1])
         path_length = abs(z_end - z_start)
 
         def path(t):
@@ -744,9 +908,8 @@ class RiemannSurface(object):
                     break
             currw = neww
             epsilon = min([abs(currw[i] - currw[j]) for i in range(1,n) for j in range(i)])/3
-            datastorage += [(T,currw,epsilon)]
-        self._L[edge] = datastorage
-        return currw
+            datastorage += [(T, currw, epsilon)]
+        return datastorage
 
     def _determine_new_w(self, z0, oldw, epsilon):
         r"""
@@ -808,6 +971,11 @@ class RiemannSurface(object):
             [-0.562337685361648 + 0.151166007149998*I,
              0.640201585779414 - 1.48567225836436*I,
              -0.0778639004177661 + 1.33450625121437*I]
+
+        .. NOTE::
+
+            Algorithmically, this method is nearly identical to :meth:`_newton_iteration`,
+            but this method takes a list of `w` values. 
         """
         # Tools of Newton iteration.
         F = self._fastcall_f
@@ -948,10 +1116,13 @@ class RiemannSurface(object):
         # Lifts each edge individually.
         for e in self.downstairs_edges():
             i0, i1 = e
+            d_edge = (self._vertices[i0], self._vertices[i1])
             # Epsilon for checking w-value later.
-            epsilon = min([abs(self._wvalues[i1][i] - self._wvalues[i1][n-j-1]) for i in range(n) for j in range(n-i-1)])/3
+            epsilon = min([abs(self._wvalues[i1][i] - self._wvalues[i1][n-j-1]) 
+                           for i in range(n) for j in range(n-i-1)])/3
             # Homotopy continuation along e.
-            homotopycont = self.homotopy_continuation(e)
+            self._L[e] = self.homotopy_continuation(d_edge)
+            homotopycont = self._L[e][-1][1]
             for i in range(len(homotopycont)):
                 # Checks over the w-values of the next point to check which it is.
                 for j in range(len(self._wvalues[i1])):
@@ -1030,17 +1201,17 @@ class RiemannSurface(object):
              (1, 2): (),
              (1, 3): (0,1),
              (1, 6): (),
-             (2, 0): (),
-             (2, 1): (),
              (2, 5): (0,1),
-             (3, 1): (0,1),
              (3, 4): (),
-             (4, 0): (),
-             (4, 3): (),
-             (5, 2): (0,1),
              (5, 7): (),
-             (6, 1): (),
              (6, 7): (),
+             (2, 0): (),
+             (4, 0): (),
+             (2, 1): (),
+             (3, 1): (0,1),
+             (6, 1): (),
+             (5, 2): (0,1),
+             (4, 3): (),
              (7, 5): (),
              (7, 6): ()}
         """
@@ -1073,21 +1244,28 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
             sage: G = S.monodromy_group(); G
-            [(0,1,2), (0,1), (0,2), (1,2), (1,2), (1,2), (0,1), (0,2), (0,2)]
+            [(0,2,1), (0,1), (1,2), (0,2), (0,2), (1,2), (0,2), (0,1), (), (), (), (), (), (), (), (1,2)]
 
         The permutations give the local monodromy generators for the branch
         points::
 
             sage: list(zip(S.branch_locus + [unsigned_infinity], G)) #abs tol 0.0000001
-            [(0.000000000000000, (0,1,2)),
+            [(0.000000000000000, (0,2,1)),
              (-1.31362670141929, (0,1)),
-             (-0.819032851784253 - 1.02703471138023*I, (0,2)),
-             (-0.819032851784253 + 1.02703471138023*I, (1,2)),
-             (0.292309440469772 - 1.28069133740100*I, (1,2)),
+             (-0.819032851784253 - 1.02703471138023*I, (1,2)),
+             (-0.819032851784253 + 1.02703471138023*I, (0,2)),
+             (0.292309440469772 - 1.28069133740100*I, (0,2)),
              (0.292309440469772 + 1.28069133740100*I, (1,2)),
-             (1.18353676202412 - 0.569961265016465*I, (0,1)),
-             (1.18353676202412 + 0.569961265016465*I, (0,2)),
-             (Infinity, (0,2))]
+             (1.18353676202412 - 0.569961265016465*I, (0,2)),
+             (1.18353676202412 + 0.569961265016465*I, (0,1)),
+             (-1.45036146591896, ()),
+             (-0.904285583009352 - 1.13393825501392*I, ()),
+             (-0.904285583009352 + 1.13393825501392*I, ()),
+             (0.322735787970535 - 1.41399787587734*I, ()),
+             (0.322735787970535 + 1.41399787587734*I, ()),
+             (1.30673052799829 - 0.629288255904939*I, ()),
+             (1.30673052799829 + 0.629288255904939*I, ()),
+             (Infinity, (1,2))]
 
         We can check the ramification by looking at the cycle lengths and verify
         it agrees with the Riemann-Hurwitz formula::
@@ -1308,21 +1486,25 @@ class RiemannSurface(object):
                     bcycles[i] += [(P[self.genus + i][j], [x for x in cycles[j]] + [cycles[j][0]])]
         return acycles + bcycles
 
-    def make_zw_interpolator(self, upstairs_edge):
+    def make_zw_interpolator(self, upstairs_edge, initial_continuation=None):
         r"""
-        Given an upstairs edge for which continuation data has been stored,
-        return a function that computes `z(t),w(t)` , where `t` in `[0,1]` is a
+        Given a downstairs edge for which continuation data has been initialised,
+        return a function that computes `z(t), w(t)` , where `t` in `[0,1]` is a
         parametrization of the edge.
 
         INPUT:
 
-        - ``upstairs_edge`` -- a pair of integer tuples indicating an edge on
-          the upstairs graph of the surface
+        - ``upstairs_edge`` -- tuple. ``((z_start, sb), (z_end,))`` giving the
+          start and end values of the base coordinate along the straight-line 
+          path and the starting branch. 
+
+        - ``initial_continuation`` -- list (default: None).  Output of 
+          ``homotopy_continuation`` initialising the continuation data.
 
         OUTPUT:
 
-        A tuple (g, d), where g is the function that computes the interpolation
-        along the edge and d is the difference of the z-values of the end and
+        A tuple ``(g, d)``, where ``g`` is the function that computes the interpolation
+        along the edge and ``d`` is the difference of the z-values of the end and
         start point.
 
         EXAMPLES::
@@ -1332,17 +1514,30 @@ class RiemannSurface(object):
             sage: f = w^2 - z^4 + 1
             sage: S = RiemannSurface(f)
             sage: _ = S.homology_basis()
-            sage: g,d = S.make_zw_interpolator([(0,0),(1,0)]);
-            sage: all(f(*g(i*0.1)).abs() < 1e-13for i in range(10))
+            sage: u_edge = [(0, 0), (1, 0)]
+            sage: d_edge = tuple(u[0] for u in u_edge)
+            sage: u_edge = [(S._vertices[i], j) for i, j in u_edge]
+            sage: initial_continuation = S._L[d_edge] 
+            sage: g, d = S.make_zw_interpolator(u_edge, initial_continuation);
+            sage: all(f(*g(i*0.1)).abs() < 1e-13 for i in range(10))
             True
             sage: abs((g(1)[0]-g(0)[0]) - d) < 1e-13
             True
+
+        .. NOTE::
+
+            The interpolator returned by this method can effectively hang if 
+            either ``z_start`` or ``z_end`` are branchpoints. In these situations
+            it is better to take a different approach rather than continue to use
+            the interpolator. 
         """
-        eindex = tuple(u[0] for u in upstairs_edge)
-        i0, i1 = eindex
-        z_start = self._vertices[i0]
-        z_end = self._vertices[i1]
-        currL = self._L[eindex]
+        downstairs_edge = tuple(u[0] for u in upstairs_edge)
+        z_start, z_end = downstairs_edge
+        z_start = self._CC(z_start)
+        z_end = self._CC(z_end)
+        if initial_continuation==None:
+            initial_continuation = self.homotopy_continuation(downstairs_edge)
+        currL = initial_continuation
         windex = upstairs_edge[0][1]
 
         def w_interpolate(t):
@@ -1370,7 +1565,7 @@ class RiemannSurface(object):
                 tnew = t
                 while True:
                     tnew = (t1 + tnew) / 2
-                    znew = (1-tnew)*self._vertices[i0]+tnew*self._vertices[i1]
+                    znew = (1-tnew)*z_start+tnew*z_end
                     try:
                         neww1 = self._determine_new_w(znew, currL[i][1], epsilon)
                     except ConvergenceError:
@@ -1380,7 +1575,7 @@ class RiemannSurface(object):
                         break
                 # once the loop has succeeded we insert our new value
                 t1 = tnew
-                self._L[eindex].insert(i + 1, (t1, neww1, epsilon))
+                currL.insert(i + 1, (t1, neww1, epsilon))
         return w_interpolate, (z_end - z_start)
 
     def simple_vector_line_integral(self, upstairs_edge, differentials):
@@ -1389,8 +1584,10 @@ class RiemannSurface(object):
 
         INPUT:
 
-        - ``upstairs_edge`` -- a pair of integer tuples corresponding to an edge
-          of the upstairs graph.
+        - ``upstairs_edge`` -- tuple. Either a pair of integer tuples
+          corresponding to an edge of the upstairs graph, or a tuple
+          ``((z_start, sb), (z_end, ))`` as in the input of 
+          ``make_zw_interpolator``.
 
         - ``differentials`` -- a list of polynomials; a polynomial `g`
           represents the differential `g(z,w)/(df/dw) dz` where `f(z,w)=0` is
@@ -1418,9 +1615,21 @@ class RiemannSurface(object):
 
         .. NOTE::
 
-            Uses data that ``homology_basis`` initializes.
+            Uses data that :meth:`homology_basis` initializes, and may give incorrect
+            values if :meth:`homology_basis` has not initialized them. In practice
+            it is more efficient to set ``differentials`` to a fast-callable version 
+            of differentials to speed up execution. 
         """
-        w_of_t, Delta_z = self.make_zw_interpolator(upstairs_edge)
+        d_edge = tuple(u[0] for u in upstairs_edge)
+        # Using a try-catch here allows us to retain a certain amount of back compatibility
+        # for users. 
+        try:
+            initial_continuation = self._L[d_edge]
+            upstairs_edge = ((self._vertices[d_edge[0]], upstairs_edge[0][1]),
+                             (self._vertices[d_edge[1]], ))
+        except KeyError:
+            initial_continuation = self.homotopy_continuation(d_edge)
+        w_of_t, Delta_z = self.make_zw_interpolator(upstairs_edge, initial_continuation)
         V = VectorSpace(self._CC, len(differentials))
 
         def integrand(t):
@@ -1459,7 +1668,7 @@ class RiemannSurface(object):
         """
         if self.genus == 0:
             self._differentials = []
-            return self._differentials[0]
+            return self._differentials #[0]
         if self._differentials is None:
             # Computes differentials from the adjointIdeal using Singular
             # First we homogenize
@@ -1495,7 +1704,7 @@ class RiemannSurface(object):
             self._differentials = generators
         return self._differentials
 
-    def _bounding_data(self, differentials):
+    def _bounding_data(self, differentials, exact=False):
         r"""
         Compute the data required to bound a differential on a circle.
 
@@ -1504,7 +1713,12 @@ class RiemannSurface(object):
 
         INPUT:
 
-        - ``differentials`` -- The differentials for which to compute the bounding data.
+        - ``differentials`` -- list. The differentials for which to compute the 
+          bounding data.
+
+        - ``exact`` -- logical (default: False). Whether to return the minimal
+          polynomials over the exact base ring, or whether to return them over 
+          ``self._CC``. 
 
         OUTPUT:
 
@@ -1512,7 +1726,7 @@ class RiemannSurface(object):
         as well as a list containing the differential, its derivative, the
         minimal polynomial, and ``a0_info`` for each differential. Here
         ``a0_info`` is the leading coefficient and roots of the leading order
-        term of the minimal polynomial.
+        term of the minimal polynomial, calculated in ``self._CC``.
 
         EXAMPLES::
 
@@ -1530,8 +1744,21 @@ class RiemannSurface(object):
                  -0.500000000000000 - 0.866025403784439*I,
                  -0.500000000000000 + 0.866025403784439*I]))])
 
+        Note that ``self._bounding_data(self._cohomology_basis(), exact=True)``
+        is stored in ``self._cohomology_basis_bounding_data``::
+
+            sage: S._cohomology_basis_bounding_data
+            (Multivariate Polynomial Ring in z, g over Rational Field,
+             [(1/(2*y),
+               (-3*z^2*g)/(2*z^3 - 2),
+               z^3*g^2 - g^2 - 1/4,
+               (1.00000000000000,
+                [1.00000000000000,
+                 -0.500000000000000 - 0.866025403784439*I,
+                 -0.500000000000000 + 0.866025403784439*I]))])
         """
-        # This copies previous work by NB, outputting the zipped list required for a certified line integral. 
+        # This copies previous work by NB, outputting the zipped list required 
+        # for a certified line integral. 
         RB = self._R.base_ring()
         P = PolynomialRing(RB, 'Z')
         k = P.fraction_field()
@@ -1540,13 +1767,14 @@ class RiemannSurface(object):
         L = k.extension(fZW, 'Wb')
         dfdw_L = self._dfdw(P.gen(0), L.gen(0))
         integrand_list = [h/self._dfdw for h in differentials]
-        # minpoly_univ gives the minimal polynomial for h, in variable x, with coefficients given by polynomials 
-        # with coefficients in P (i.e. rational polynomials in Z).
+        # minpoly_univ gives the minimal polynomial for h, in variable x, with 
+        # coefficients given by polynomials with coefficients in P (i.e. 
+        # rational polynomials in Z).
         minpoly_univ = [(h(P.gen(0), L.gen(0))/dfdw_L).minpoly().numerator()
                         for h in differentials]
         RBzg = PolynomialRing(RB, ['z', 'g'])
-        # The following line changes the variables in these minimal polynomials as Z -> z, x -> G, then evaluates
-        # at G = QQzg.gens(1) ( = g )
+        # The following line changes the variables in these minimal polynomials
+        # as Z -> z, x -> G, then evaluates at G = QQzg.gens(1) ( = g )
         RBzgG = PolynomialRing(RBzg, 'G')
         minpoly_list = [RBzgG([c(RBzg.gen(0)) for c in list(h)])(RBzg.gen(1))
                         for h in minpoly_univ]
@@ -1558,7 +1786,6 @@ class RiemannSurface(object):
         CCminpoly_list = [CCzg(h) for h in minpoly_list]
         
         a0_list = [P(h.leading_coefficient()) for h in minpoly_univ]
-        #CCa0_list = [self._CCz(a0) for a0 in a0_list]
         # Note that because the field over which the Riemann surface is defined
         # is embedded into CC, it has characteristic 0, and so we know the 
         # irreducible factors are all separable, i.e. the roots have multiplicity
@@ -1567,12 +1794,10 @@ class RiemannSurface(object):
                     flatten([self._CCz(F).roots(multiplicities=False)*m 
                              for F, m in a0.factor()]))
                    for a0 in a0_list]
-
-        #a0_list = [self._CCz(h.leading_coefficient()) for h in minpoly_univ]
-        #a0_info = [(a0.leading_coefficient(), flatten([[r]*n for r, n in a0.roots()])) for a0 in a0_list]
-        # Note that we are assuming here that the root finder is working correctly, which will need
-        # some thought.
-        return CCzg, list(zip(integrand_list, dgdz_list, CCminpoly_list, a0_info))
+        if exact:
+            return RBzg, list(zip(integrand_list, dgdz_list, minpoly_list, a0_info))
+        else:
+            return CCzg, list(zip(integrand_list, dgdz_list, CCminpoly_list, a0_info))
 
     def rigorous_line_integral(self, upstairs_edge, differentials, bounding_data):
         r"""
@@ -1585,8 +1810,10 @@ class RiemannSurface(object):
 
         INPUT:
 
-        - ``upstairs_edge`` -- a pair of integer tuples corresponding to an edge
-          of the upstairs graph.
+        - ``upstairs_edge`` -- tuple. Either a pair of integer tuples
+          corresponding to an edge of the upstairs graph, or a tuple
+          ``((z_start, sb), (z_end, ))`` as in the input of 
+          ``make_zw_interpolator``.
 
         - ``differentials`` -- a list of polynomials; a polynomial `g`
           represents the differential `g(z,w)/(df/dw) dz` where `f(z,w)=0` is
@@ -1594,7 +1821,7 @@ class RiemannSurface(object):
 
         - ``bounding_data`` -- tuple containing the data required for bounding
           the integrands. This should be in the form of the output from 
-          ``_bounding_data``.
+          :meth:`_bounding_data`.
 
         OUTPUT:
 
@@ -1620,8 +1847,9 @@ class RiemannSurface(object):
 
         .. NOTE::
 
-            Uses data that ``homology_basis`` initializes. In practice is it is 
-            more efficient to set ``differentials`` to a fast-callable version 
+            Uses data that :meth:`homology_basis` initializes, and may give incorrect
+            values if :meth:`homology_basis` has not initialized them. In practice
+            it is more efficient to set ``differentials`` to a fast-callable version 
             of differentials to speed up execution. 
 
         .. TODO::
@@ -1643,17 +1871,28 @@ class RiemannSurface(object):
             entire line with one ellipse, then bounds along that ellipse with 
             multiple circles. 
         """
-        # Note that this, in it's current formalism, makes no check that bounding data at all corresponds to 
-        # the differentials given. The onus is then on the design of other funcions which use it.
+        # Note that this, in it's current formalism, makes no check that bounding 
+        # data at all corresponds to the differentials given. The onus is then on
+        # the design of other funcions which use it.
     
-        # CCzg is required to be known as we need to know the ring which the minpolys lie in. 
+        # CCzg is required to be known as we need to know the ring which the minpolys
+        # lie in. 
         CCzg, bounding_data_list = bounding_data
+
+        d_edge = tuple(u[0] for u in upstairs_edge)
+        # Using a try-catch here allows us to retain a certain amount of back 
+        # compatibility for users. 
+        try:
+            initial_continuation = self._L[d_edge]
+            upstairs_edge = ((self._vertices[d_edge[0]], upstairs_edge[0][1]),
+                             (self._vertices[d_edge[1]], ))
+        except KeyError:
+            initial_continuation = self.homotopy_continuation(d_edge)
         
-        i0, _ = upstairs_edge[0]
-        i1, _ = upstairs_edge[1]
-        z0 = self._vertices[i0]
-        z1 = self._vertices[i1]
-        zwt, z1_minus_z0 = self.make_zw_interpolator(upstairs_edge)
+        zwt, z1_minus_z0 = self.make_zw_interpolator(upstairs_edge, 
+                                                     initial_continuation)
+        z0 = zwt(0)[0]
+        z1 = zwt(1)[0]
         
         # list of (centre, radius) pairs that still need to be processed
         ball_stack = [(self._RR(0.5), self._RR(0.5))]
@@ -1672,30 +1911,34 @@ class RiemannSurface(object):
         while ball_stack:
             ct, rt = ball_stack.pop()
             cz = (1-ct)*z0+ct*z1 # This is the central z-value of our ball.
-            distances = [(cz-b).abs() for b in self.branch_locus] # Distance to the discriminant points
+            # Distance to the discriminant points
+            distances = [(cz-b).abs() for b in self.branch_locus] 
             rho_z = min(distances)
             rho_t = rho_z/(z1-z0).abs()
             if rho_t > rt:
                 rho_t = alpha*rho_t+(1-alpha)*rt # sqrt(rho_t*rt) could also work
                 rho_z = rho_t*(z1-z0).abs()
                 delta_z = (alpha*rho_t+(1-alpha)*rt)*(z1-z0).abs()
-                expr = rho_t/rt+((rho_t/rt)**2-1).sqrt() # Note this is really exp(arcosh(rho_t/rt))
+                # Note this is really exp(arcosh(rho_t/rt))
+                expr = rho_t/rt+((rho_t/rt)**2-1).sqrt() 
                 N = 3
                 cw = zwt(ct)[1]
                 for g, dgdz, minpoly,(a0lc,a0roots) in bounding_data_list:
                     z_1 = a0lc.abs()*prod((cz-r).abs()-rho_z for r in a0roots)
                     n = minpoly.degree(CCzg.gen(1))
-                    # Note the structure of the code is currently s.t 'z' has to be the variable in
-                    # the minpolys.
-                    ai_new = [(minpoly.coefficient({CCzg.gen(1):i}))(z=cz+self._CCz.gen(0)) for i
-                                in range(n)]
-                    ai_pos = [ self._RRz([c.abs() for c in h.list()]) for h in ai_new]
+                    # Note the structure of the code is currently s.t 'z' has to
+                    # be the variable in the minpolys.
+                    ai_new = [(minpoly.coefficient({CCzg.gen(1):i}))(z=cz+self._CCz.gen(0))
+                              for i in range(n)]
+                    ai_pos = [self._RRz([c.abs() for c in h.list()]) 
+                              for h in ai_new]
                     m = [a(rho_z)/z_1 for a in ai_pos]
                     l = len(m)
-                    M_tilde = 2*max((m[i].abs())**(1/self._RR(l-i)) for i in range(l))
+                    M_tilde = 2*max((m[i].abs())**(1/self._RR(l-i)) 
+                                    for i in range(l))
                     cg = g(cz,cw)
                     cdgdz = dgdz(cz,cg)
-                    Delta = delta_z*cdgdz.abs()+ (delta_z**2)*M_tilde/(rho_z*(rho_z-delta_z))
+                    Delta = delta_z*cdgdz.abs() + (delta_z**2)*M_tilde/(rho_z*(rho_z-delta_z))
                     M = Delta #+ abs(cg)
                     N_required = ((64*M/(15*(1-1/expr)*E_global)).log()/(2*expr.log())).ceil()
                     N = max(N,N_required)
@@ -1703,9 +1946,8 @@ class RiemannSurface(object):
                 N = (K*(self._RR(N).sqrt()/K).ceil())**2
                 # Rounding is sensible as it allows the cache of nodes in 
                 # sage.numerical.gauss_legendre to be used.
-                # Quadratic rounding can be shown to be a sensible choice through the 
-                # basic argument that nodes is quadratic in N 
-                
+                # Quadratic rounding can be shown to be a sensible choice through
+                # the basic argument that nodes is quadratic in N 
                 ct_minus_rt = ct-rt
                 two_rt = 2*rt
                 def integrand(t):
@@ -1755,6 +1997,13 @@ class RiemannSurface(object):
             sage: (m[0,0]/m[0,1]).algdep(3).degree() #curve is CM, so the period is quadratic
             2
 
+        .. NOTE::
+
+            If ``differentials is self.cohomology_basis()``, the calculations 
+            of the integrals along the edges are written to `self._integral_dict``.
+            This is as this data will be required when computing the Abel-Jacobi
+            map, and so it is helpful to have is stored rather than recomputing.
+
         """
         cycles = self.homology_basis()
 
@@ -1778,20 +2027,21 @@ class RiemannSurface(object):
         fcd = [fast_callable(omega, domain=self._CC) for omega in differentials]
 
         if integration_method=="heuristic":
-            line_int = lambda edge: self.simple_vector_line_integral(edge,fcd)
+            line_int = lambda edge: self.simple_vector_line_integral(edge, fcd)
         elif integration_method=="rigorous":
             bd = self._bounding_data(differentials)
-            line_int = lambda edge: self.rigorous_line_integral(edge,fcd,bd)
+            line_int = lambda edge: self.rigorous_line_integral(edge, fcd, bd)
         else:
             raise ValueError("Invalid integration method")
 
-        #integral_dict = {upstairs_edge:
-        #                 self.simple_vector_line_integral(upstairs_edge,
-        #                                                  differentials)
-        #                 for upstairs_edge in occurring_edges}
-        integral_dict = dict()
-        for upstairs_edge in occurring_edges:
-            integral_dict[upstairs_edge] = line_int(upstairs_edge)
+        if differentials is self.cohomology_basis():
+            integral_dict = self._integral_dict
+            for upstairs_edge in occurring_edges:
+                if not upstairs_edge in integral_dict.keys():
+                    integral_dict[upstairs_edge] = line_int(upstairs_edge)
+        else:
+            integral_dict = {upstairs_edge: lint_int(upstairs_edge)
+                             for upstairs_edge in occurring_edges}
         
         rows = []
         for cycle in cycles:
@@ -2338,6 +2588,795 @@ class RiemannSurface(object):
         """
         return RiemannSurfaceSum([self, other])
 
+    def _integrate_differentials_iteratively(self, upstairs_edge, cutoff_individually=False, raise_errors=True, prec=None):
+        r"""
+        Integrate the cohomology basis along a straight line edge. 
+        
+        The cohomology basis is integrated along a straight line using a version
+        of the double exponential quadrature. This method of integrating the 
+        cohomology basis is especially useful when integrating out to infinity, 
+        or near roots of `self._dfdw`. In order to aid with convergence of the 
+        method, two main modification to a standard integrator are made, most 
+        importantly of which is the truncation of the integral near branch points, 
+        where the first term in the Puiseux series of the integrands are used to 
+        approximately bound the integral. The ``cutoff_individually`` parameter 
+        allows the user to set whether that truncation is uniform over all the 
+        integrands, which improves the complexity of the algorithm, but loses 
+        the ability to gain benefits where integrands vanish to a high order at
+        the branchpoint. 
+        
+        INPUT:
+        
+        - ``upstairs_edge`` -- tuple. A tuple of complex numbers of the form
+          ``((z_start, w_start), z_end)`` specifying the path to integrate 
+          along, where ``z_start`` may be infinite, in which case ``w_start``
+          must be an integer specifying the branch.  
+          
+        - ``cutoff_individually`` -- boolean (default: False). Whether to truncate
+          the integrand uniformly or not. If ``None``, then no truncation is 
+          applied. 
+
+        - ``raise_errors`` -- boolean (default: True). By default the code uses
+          convergence errors to ensure any answers returned are accurate. This 
+          can be turned off to return answers faster that are not necessarily
+          correct. 
+
+        - ``prec`` -- integer (default: ``self._prec``). The precision to try 
+          and achieve, defined as `2^{-\text{prec}+3}`. 
+          
+        OUTPUT:
+        
+        Tuple ``(I, gs)`` where ``I`` is the vector of integrals, and ``gs`` are 
+        the values of the differentials at ``z_end``. 
+        
+        EXAMPLES:
+        
+        We know that for the surface given by `w^2-z^4-1` a cohomology basis is
+        given by `\frac{dz}{2w}`. One can verify analytically that 
+        `\int_0^1 frac{dt}{\sqrt{1-t^4}}=\frac{\sqrt{\pi}\Gamma(5/4)}{\Gamma(3/4)}`,
+        and we check this with the integrator, being careful with signs::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<z,w> = QQ[]
+            sage: S = RiemannSurface(w^2+z^4-1, prec=100)
+            sage: branch = 0
+            sage: eps = S._RR(2)**(-S._prec)
+            sage: z_start = 1-eps
+            sage: z_end = 0
+            sage: w_start = S.w_values(z_start)[0]
+            sage: s = sign(w_start)
+            sage: u_edge = ((z_start, w_start), z_end)
+            sage: J, _ = S._integrate_differentials_iteratively(u_edge)
+            sage: bool(J[0]+s*S._RR(sqrt(pi)*gamma(5/4)/gamma(3/4)/2)<1e-10)
+            True
+
+        .. NOTE::
+
+            The cutoff methodology is calculating the first term in the Puiseux
+            series of the differentials about z_start. In future it may be 
+            desirable to extend this further and use the truncated Puiseux series
+            entirely to integrate the differentials.  
+        """
+        (z_start, w_start), z_end = upstairs_edge
+        z_start = self._CC(z_start)
+        z_end = self._CC(z_end)
+        
+        if z_end==self._CC(Infinity):
+            raise NotImplementedError
+        
+        _, bounding_data_list = self._cohomology_basis_bounding_data
+        mp_list = [bd[2] for bd in bounding_data_list]
+        
+        # Parameterise so zbar=0 corresponds to z=z_start
+        mp_list = [reparameterise_differential_minpoly(mp, z_start)
+                   for mp in mp_list]
+        
+        if z_start==self._CC(Infinity):
+            CCzg = PolynomialRing(self._CC, ['zbar','gbar'])
+            mp_list = [CCzg(mp) for mp in mp_list]
+            J = 1/z_end
+            endscale = -z_end**(-2)
+            def initialise(z, i):
+                DF = ComplexField(2*self._prec)
+                DFw = PolynomialRing(DF,'wbar')
+                z = DF(z)
+                R = DF(z**(-1))
+                wR = DFw(self.f(R, DFw.gen(0))).roots(multiplicities=False)[w_start]
+                newg = -R**2*self.cohomology_basis()[i](R, wR)/self._dfdw(R, wR)
+                err = mp_list[i](z,newg).abs()
+                if err>tau:
+                    rs = mp_list[i](z, DFw.gen(0)).roots(multiplicities=False)
+                    sb = find_closest_element(newg, rs)
+                    newg = rs[sb]
+                return newg  
+        else:
+            CCzg = mp_list[0].parent()
+            J = z_end-z_start
+            endscale = 1
+            def initialise(z, i):
+                newg = self.cohomology_basis()[i](z_start, w_start)/self._dfdw(z_start, w_start)
+                err = mp_list[i](z, newg).abs()
+                if err>tau:
+                    rs = mp_list[i](z, self._CCw.gen(0)).roots(multiplicities=False)
+                    sb = find_closest_element(newg, rs)
+                    newg = rs[sb]
+                return newg
+
+        fc_mp_list = [fast_callable(mp, domain=self._CC) for mp in mp_list]
+        fc_dmp_list = [fast_callable(mp.derivative(CCzg.gen(1)), domain=self._CC) 
+                       for mp in mp_list]
+
+        if prec==None:
+            prec = self._prec
+        # tau here is playing the role of the desired error. 
+        tau = self._RR(2)**(-prec+3)
+        ONE = self._RR(1)
+        LAMBDA = self._RR.pi()/2
+
+        if cutoff_individually==None:
+            cutoffs = [0]
+            cutoff_individually = False
+        else:
+            cutoffs = []
+            A = PolynomialRing(self._CC,'xyz')
+            aes = []
+            for mp in mp_list:
+                d = mp.dict()
+                mp = sum([d[k]*CCzg.gen(0)**k[0]*CCzg.gen(1)**k[1] 
+                          for k in d.keys() if d[k].abs()>tau])
+                cst = min([iz for (iz, ig) in d.keys() if ig==0])
+                a = QQ(max([(cst-iz)/ig for (iz,ig) in d.keys() if ig>0]))
+                sum_coeffs =  sum([d[k]*A.gen(0)**k[1] for k in d.keys()
+                                   if ((k[1]==0 and k[0]==cst) or k[1]*a+k[0]-cst==0)])
+                G = max([r.abs() for r in sum_coeffs.roots(multiplicities=False)])
+                cutoffs.append(((a+1)*tau/G)**(1/self._CC(a+1))/J.abs())
+                aes.append(a)
+            cutoff_individually = bool(not all(ai<=0 for ai in aes) and cutoff_individually)
+        
+        if raise_errors:
+            n_steps = self._prec-1 
+            def error_handle(out):
+                raise ConvergenceError("Newton iteration fails to converge")
+        else:
+            n_steps = 15
+            def error_handle(out):
+                return out
+
+        V = VectorSpace(self._CC, self.genus)
+        h = ONE
+        Nh = (-lambert_w(-1,-tau/2)/LAMBDA).log().ceil()
+        h0 = Nh*h
+
+        if cutoff_individually:
+            z_fc_list = list(zip(fc_mp_list, fc_dmp_list))
+            
+            def fv(hj, previous_estimate_and_validity):
+                u2 = LAMBDA*hj.sinh()
+                t = 1/(2*u2.exp()*u2.cosh())
+                z0 = J*t
+                outg = []
+                valid = self.genus*[True]
+                previous_estimate, validity = previous_estimate_and_validity
+                for i in range(self.genus):
+                    co = cutoffs[i]
+                    pv = validity[i]
+                    if t<co:
+                        outg.append(0)
+                        valid[i] = False
+                    elif not pv:
+                        outg.append(initialise(z0, i))
+                    else:
+                        F, dF = z_fc_list[i]
+                        oldg = previous_estimate[i]
+                        delta = F(z0, oldg) / dF(z0, oldg)
+                        Ndelta = delta.norm()
+                        newg = oldg - delta
+                        for j in range(100):
+                            new_delta = F(z0, newg) / dF(z0, newg)
+                            Nnew_delta = new_delta.norm()
+                            if (new_delta == 0) or (Nnew_delta>=Ndelta and
+                                    (Ndelta.sign_mantissa_exponent()[2]
+                                     +self._prec) < newg.norm().sign_mantissa_exponent()[2]):
+                                outg.append(newg)
+                                break
+                            delta = new_delta
+                            Ndelta = Nnew_delta
+                            newg-=delta
+                            if j==99:
+                                outg.append(error_handle(newg))
+                fj = V(outg)
+                u1 = LAMBDA*hj.cosh()
+                w = u1/(2*u2.cosh()**2)
+                return (fj, valid), w*fj
+            
+            f0, v0 = fv(h0, (self.genus*[0], self.genus*[False]))
+        else:
+            cutoffs.append(1)
+            cutoff = min(cutoffs)
+            cutoff_z = J*cutoff
+            J -= cutoff_z
+            
+            def fv(hj, previous_estimate):
+                u2 = LAMBDA*hj.sinh()
+                t = 1/(2*u2.exp()*u2.cosh())
+                z0 = cutoff_z+J*t
+                outg = []
+                for F, dF, oldg in zip(fc_mp_list, fc_dmp_list, previous_estimate):
+                    delta = F(z0, oldg) / dF(z0, oldg)
+                    Ndelta = delta.norm()
+                    newg = oldg - delta
+                    for j in range(100):
+                        new_delta = F(z0, newg) / dF(z0, newg)
+                        Nnew_delta = new_delta.norm()
+                        if (new_delta == 0) or (Nnew_delta>=Ndelta and
+                                (Ndelta.sign_mantissa_exponent()[2]
+                                 +self._prec) < newg.norm().sign_mantissa_exponent()[2]):
+                            outg.append(newg)
+                            break
+                        delta = new_delta
+                        Ndelta = Nnew_delta
+                        newg-=delta
+                        if j==99:
+                            outg.append(error_handle(newg))
+                fj = V(outg)
+                u1 = LAMBDA*hj.cosh()
+                w = u1/(2*u2.cosh()**2)      
+                return fj, w*fj
+            
+            u1, u2 = (LAMBDA*h0.cosh(),LAMBDA*h0.sinh())
+            y, w = (1/(2*u2.exp()*u2.cosh()), u1/(2*u2.cosh()**2))
+            z0 = cutoff_z+J*y
+            f0 = [initialise(z0, i) for i in range(self.genus)]
+            f0 = V(f0)
+            v0 = w*f0
+
+        D3_over_tau = v0.norm(Infinity)
+        D4 = D3_over_tau
+        results = []
+        
+        for k in range(n_steps):
+            hj = h0
+            val = v0
+            fj = f0
+            for j in range(2*Nh):
+                hj -= h     
+                try:
+                    fj, v = fv(hj, fj)
+                except ConvergenceError:
+                    break
+                D3_over_tau = max(v.norm(Infinity), D3_over_tau)
+                val += v
+            if j==2*Nh-1:
+                results.append(h*val)
+                D4 = max(D4, v.norm(Infinity))
+            if len(results)>2:
+                if results[-1] == results[-2] or results[2] == results[-3]:
+                    D = tau
+                else:
+                    D1 = (results[-1]-results[-2]).norm(Infinity)
+                    D2 = (results[-1]-results[-3]).norm(Infinity)
+                    D = min(ONE,max(D1**(D1.log()/D2.log()),D2**2,tau*D3_over_tau,D4,tau))
+            
+                if D <= tau:
+                    if cutoff_individually:
+                        fj = fj[0]
+                    return J*results[-1], endscale*fj
+            h /= 2
+            Nh *= 2
+        return error_handle((J*results[-1], endscale*fj))
+    
+    def _aj_based(self, P):
+        r"""
+        Return the Abel-Jacobi map to ``P`` from ``self._basepoint``.
+        
+        Computes a representative of the Abel-Jacobi map from ``self._basepoint``
+        to ``P`` via a well-chosen vertex ``V``. The representative given will be
+        dependent on the path chosen.
+        
+        INPUT:
+        
+        - ``P`` -- tuple. A pair giving the endpoint of the integral, either in
+          the form ``(z, w)`` or ``(Infinity, branch)``, where in the latter case
+          we are using the conventing that the `w` value over `\infty` is given by
+          the limit as ``z`` tends to `\infty` of ``self.w_values(z)[branch]``. 
+          
+        OUTPUT:
+        
+        A vector of length ``self.genus``.
+        
+        EXAMPLES:
+        
+        As the output of ``_aj_based`` is difficult to intepret due to its path
+        dependency, we look at the output of :meth:`abel_jacobi`. We check for 
+        two hyperelliptic curves that the Abel-Jacobi map between two branch 
+        points is a 2-torsion point over the lattice::
+        
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<x,y> = QQ[]
+            sage: S = RiemannSurface(y^2-x^3+1)
+            sage: divisor = [(-1, (Infinity, 0)), (1, (1, 0))]
+            sage: AJ = S.abel_jacobi(divisor)
+            sage: AJx2 = [2*z for z in AJ]
+            sage: bool(S.reduce_over_period_lattice(AJx2).norm()<1e-10)
+            True
+            sage: S = RiemannSurface(y^2-x^4+1)
+            sage: divisor = [(-1, (-1, 0)), (1, (1, 0))]
+            sage: AJ = S.abel_jacobi(divisor)
+            sage: AJx2 = [2*z for z in AJ]
+            sage: bool(S.reduce_over_period_lattice(AJx2).norm()<1e-10)
+            True
+        
+        """
+        #####
+        fcd = [fast_callable(h, domain = self._CC) for h in self.cohomology_basis()]
+        
+        if self._integration_method=="heuristic":
+            line_int = lambda edge: self.simple_vector_line_integral(edge, fcd)
+        else:
+            bd = self._cohomology_basis_bounding_data
+            line_int = lambda edge: self.rigorous_line_integral(edge, fcd, bd)
+        #####
+        B = self._basepoint
+        zP, wP = P
+        
+        try:
+            Inf = bool(zP==zP.parent()(Infinity))
+        except TypeError:
+            Inf = False
+        
+        if Inf:
+            zV = self._vertices[B[0]]
+            if zV==0:
+                zV += 1
+            upstairs_edge = (P, zV)
+            ci = bool(self._CC(Infinity) in self._differentials_branch_locus)
+            AJ, endgs = self._integrate_differentials_iteratively(upstairs_edge, 
+                                                                  cutoff_individually=ci)
+            AJ = -AJ
+            g0e = endgs[0]
+            ws = self.w_values(zV)
+            g0s = [self.cohomology_basis()[0](zV, wi)/self._dfdw(zV, wi) for wi in ws]
+            W_index = find_closest_element(g0e, g0s)
+            if (g0e - self.cohomology_basis()[0](zV, ws[W_index])/self._dfdw(zV, ws[W_index])).abs()>1e-10:
+                raise ConvergenceError("Integrand continuation failed to get representative values, higher precision requried.")                        
+            V_index = B[0]
+        else:
+            zP = self._CC(zP)
+            wP = self._CC(wP)
+            V_index = find_closest_element(zP, self._vertices)
+            b_index = find_closest_element(zP, self.branch_locus)
+            b = self.branch_locus[b_index]
+        
+            d1 = self._CC(1e-2)*max(b.abs() for b in self.branch_locus)
+
+            # We choose the first vertex we want to go to.
+            # If the closest vertex is closer than the nearest branch point, just take that vertex
+            # otherwise we need something smarter.
+            delta = self._RR(2)**(-self._prec+1)
+            if not ((zP-self._vertices[V_index]).abs() < (zP-b).abs() or (zP-b).abs()<=delta):
+                region = self.voronoi_diagram.regions[self.voronoi_diagram.point_region[b_index]]
+                args = [(self._vertices[i]-zP).argument() - (b-zP).argument() for i in region]
+                suitable_vertex_indices = [region[i] 
+                                           for i in range(len(region)) if args[i].abs()>self._RR.pi()/2]
+                suitable_vertices = [self._vertices[i] for i in suitable_vertex_indices]
+                if suitable_vertices==[]:
+                    raise ValueError("There is no satisfactory choice of V for zP={}".format(zP))
+                V_index = suitable_vertex_indices[find_closest_element(zP, suitable_vertices)]
+            #####
+            zV = self._vertices[V_index]
+            d_edge = (zP, zV)
+
+            if (zP-b).abs() >= d1 or b in self._differentials_branch_locus:
+                wP_index = find_closest_element(wP, self.w_values(zP))
+                u_edge = ((zP, wP_index), (zV, ))
+                initial_continuation = self.homotopy_continuation(d_edge)
+                AJ = -line_int(u_edge)
+            
+                w_end = initial_continuation[-1][1][wP_index]
+                W_index = find_closest_element(w_end, self._wvalues[V_index])
+            else:
+                zs = zP
+                ws = wP
+
+                while self._dfdw(zs, ws).abs()==0:
+                    zs = zs+delta*(zV-zs)/(zV-zs).abs()/2
+                    ws_list = self.w_values(zs)
+                    wP_index = find_closest_element(ws, ws_list)
+                    ws = ws_list[wP_index]
+                upstairs_edge = ((zs, ws), zV)
+                AJ, endgs = self._integrate_differentials_iteratively(upstairs_edge, 
+                                                                      cutoff_individually=False)
+                AJ = -AJ
+                g0e = endgs[0]
+             
+                ws = self.w_values(zV)
+                g0s = [self.cohomology_basis()[0](zV, wi)/self._dfdw(zV, wi) for wi in ws]
+                W_index = find_closest_element(g0e, g0s)
+                if (g0e - self.cohomology_basis()[0](zV, ws[W_index])/self._dfdw(zV, ws[W_index])).abs()>1e-10:
+                    raise ConvergenceError("Integrand continuation failed to get representative values, higher precision requried.")
+
+        uV_index = (V_index, W_index)
+        #####
+        G = self.upstairs_graph()
+        path = G.shortest_path(B, uV_index)
+        edges = [(path[i],path[i+1]) for i in range(len(path)-1)]
+        #####
+        for e in edges:
+            if e[1][0]>e[0][0]:
+                s = 1
+            else:
+                s = -1
+                e = tuple(reversed(e))
+            try:
+                AJ += s*self._integral_dict[e]
+            except KeyError:
+                Ie = line_int(e)
+                self._integral_dict[e] = Ie
+                AJ += s*Ie      
+        return AJ
+
+    def abel_jacobi(self, divisor, verbose=False):
+        r"""
+        Return the Abel-Jacobi map of ``divisor``. 
+        
+        Returns a representative of the Abel-Jacobi map of a divisor with basepoint
+        ``self._basepoint``.
+        
+        INPUT:
+        
+        - ``divisor`` -- list. A list with each entry a tuple of the form ``(v, P)``,
+          where ``v`` is the valuation of the divisor at point ``P``, ``P`` as per 
+          the input to :meth:`_aj_based`.
+
+        - `` verbose`` -- logical (default: False). Whether to report the progress
+          of the computation, in terms of how many elements of the list ``divisor``
+          have been completed. 
+          
+        OUTPUT:
+        
+        A vector of length ``self.genus``.
+
+        EXAMPLES:
+
+        We can test that the Abel-Jacobi map between two branchpoints of a 
+        superelliptic curve of degree `p` is a `p`-torsion point in the Jacobian::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<x,y> = QQ[]
+            sage: p = 4
+            sage: S = RiemannSurface(y^p-x^4+1, prec=100)
+            sage: divisor = [(-1, (-1, 0)), (1, (1, 0))]
+            sage: AJ = S.abel_jacobi(divisor) # long time (15 seconds)
+            sage: AJxp = [p*z for z in AJ] # long time 
+            sage: bool(S.reduce_over_period_lattice(AJx2).norm()<1e-7) # long time
+            True
+        """
+        ans = 0
+        n = len(divisor)
+        for i in range(n):
+            v, p = divisor[i]
+            if verbose:
+                print("starting computation for p = {}".format(p))
+            ans += v*self._aj_based(p)
+            if verbose:
+                print("Done, {}% complete".format(numerical_approx(100*(i+1)/n, 11)))
+        return ans
+
+    def reduce_over_period_lattice(self, vector, method="ip", b=None, r=None):
+        r"""
+        Reduce a vector over the period lattice. 
+        
+        Given a vector of length ``self.genus``, this method returns a vector 
+        in the same orbit of the period lattice that is short. There are two 
+        possible methods, ``'svp'`` which returns a certified shortest vector, 
+        but can be much slower for higher genus curves, and ``'ip'``, which is
+        faster but not guaranteed to return the shortest vector. In general the
+        latter will perform well when the lattice basis vectors are of similar 
+        size. 
+        
+        INPUT:
+        
+        - ``vector`` -- vector. A vector of length ``self.genus`` to reduce over 
+          the lattice.
+        
+        - ``method`` -- string (default: ``'ip'``). String specifying the method
+          to use to reduce the vector. THe options are ``'ip'`` and ``'svp'``.
+          
+        - ``b`` -- integer (default provided): as for
+          :meth:`homomorphism_basis`, and used in its invocation if
+          (re)calculating said basis.
+
+        - ``r`` -- integer (default: ``b/4``).  as for
+          :meth:`homomorphism_basis`, and used in its invocation if
+          (re)calculating said basis.
+          
+        OUTPUT:
+        
+        Complex vector of length ``self.genus`` in the same orbit as ``vector`` 
+        in the lattice.
+        
+        EXAMPLES:
+        
+        We can check that the lattice basis vectors themselves are reduced to
+        zero::
+        
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<x,y> = QQ[]
+            sage: S = RiemannSurface(y^2-x^5+1)
+            sage: epsilon = S._RR(2)^(-S._prec+1)
+            sage: for vector in S.period_matrix().columns():
+            ....:     print(bool(S.reduce_over_period_lattice(vector).norm()<epsilon))
+            True
+            True
+            True
+            True
+
+        We can also check that the method ``'svp'`` always gives a smaller norm 
+        than ``'ip'``::
+
+            sage: for vector in S.period_matrix().columns():
+            ....:     n1 = S.reduce_over_period_lattice(vector).norm()
+            ....:     n2 = S.reduce_over_period_lattice(vector, method="svp").norm()
+            ....:     print(bool(n2<=n1))
+            True
+            True
+            True
+            True
+        """
+        if not len(vector)==self.genus:
+            raise ValueError("Input vector needs to be of length {}".format(self.genus))
+            
+        VR = VectorSpace(self._RR, 2*self.genus)
+        VC = VectorSpace(self._CC, self.genus)
+            
+        if method=="svp":
+            H = max(max(z.real_part().abs() for z in vector), 
+                    max(z.imag_part().abs() for z in vector))
+            if b is None:
+                b = self._prec-5-H.log2().floor()
+            if r is None:
+                r = b//4
+            S = 2**b
+            if H*S > 2**(self._prec-4):
+                raise ValueError("insufficient precision for b=%s" % b)
+                
+            def C2Z(v):
+                vR = [(S*z.real_part()).round() for z in v]
+                vR += [(S*z.imag_part()).round() for z in v]
+                return vR
+         
+            M = Matrix(ZZ, 2*self.genus, 2*self.genus,
+                       [C2Z(c) for c in self.period_matrix().columns()])
+            u = C2Z(vector)
+            L = IntegerLattice(M)
+            u = VR(u)-VR(L.closest_vector(u))
+            reduced = VC([self._CC(u[i]+I*u[i+self.genus])/S for i in range(self.genus)])
+            
+        elif method=="ip":
+            
+            def C2R(v):
+                return VR([z.real_part() for z in v]+[z.imag_part() for z in v])
+            
+            u = C2R(vector)
+            basis_vecs = [C2R(c) for c in self.period_matrix().columns()]
+            M = Matrix([[ei.dot_product(ej) for ei in basis_vecs] for ej in basis_vecs])
+            v_dot_e = VR([u.dot_product(e) for e in basis_vecs])
+            coeffs = M.solve_right(v_dot_e)
+            u -= sum([t.round()*e for t, e in zip(coeffs, basis_vecs)])
+            reduced = VC([self._CC(u[i]+I*u[i+self.genus]) for i in range(self.genus)])
+        else:
+            raise ValueError("Must give a valid method.")
+        
+        return reduced
+
+    def places_at_branch_locus(self):
+        r"""
+        Return the places above the branch locus. 
+
+        Returns a list of the of places above the branch locus. This must be 
+        done over the base ring, and so the places are given in terms of the 
+        factors of the discriminant. Currently, this method only works when 
+        ``self._R.base_ring()==QQ`` as for other rings, the function field 
+        for ``Curve(self.f)`` is not implemented. To go from these divisors to 
+        a divisor list, see :meth:`divisor_to_divisor_list`. 
+
+        OUTPUT:
+
+        List of places of the functions field ``Curve(self.f).function_field()``. 
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<x,y> = QQ[]
+            sage: S = RiemannSurface(25*(x^4+y^4+1) - 34*(x^2*y^2+x^2+y^2))
+            sage: S.places_at_branch_locus()
+            [Place (x - 2, (x - 2)*y, y^2 - 17/5, y^3 - 17/5*y),
+             Place (x + 2, (x + 2)*y, y^2 - 17/5, y^3 - 17/5*y),
+             Place (x - 1/2, (x - 1/2)*y, y^2 - 17/20, y^3 - 17/20*y),
+             Place (x + 1/2, (x + 1/2)*y, y^2 - 17/20, y^3 - 17/20*y),
+             Place (x^4 - 34/25*x^2 + 1, y, y^2, y^3),
+             Place (x^4 - 34/25*x^2 + 1, (x^4 - 34/25*x^2 + 1)*y, y^2 - 34/25*x^2 - 34/25, y^3 + (-34/25*x^2 - 34/25)*y)]
+        """
+        BP = []
+        K = self._R.base_ring()
+        if not K==QQ:
+            raise NotImplementedError
+        C = Curve(self.f)
+        KC = C.function_field()
+        g0, g1 = self._R.gens()
+        Kb = FunctionField(K, str(g0))
+        MO = Kb.maximal_order()
+        BP = []
+        for x in self._discriminant.factor():
+            fac = x[0](g0, 0)
+            p0 = MO.ideal(fac).place()
+            BP += KC.places_above(p0)
+        return BP
+
+    def strong_approximation(self, divisor, S):
+        r"""
+        Apply the method of strong approximation to a divisor. 
+
+        As described in [Neu2018]_, apply the method of strong approximation to
+        ``divisor`` with list of places to avoid ``S``. Currently, this method 
+        only works when ``self._R.base_ring()==QQ`` as for other rings, the function
+        field for ``Curve(self.f)`` is not implemented.
+
+        INPUT:
+
+        - ``divisor`` -- an element of ``Curve(self.f).function_field().divisor_group()``
+
+        - ``S`` -- list. A list of places to avoid. 
+
+        OUTPUT:
+
+        A tuple ``(S, B)``, where ``D`` is a new divisor, linearly equivalent 
+        to ``divisor``, but not intersecting ``S``, and ``B`` is a list of tuples
+        ``(v, b)`` where ``b`` are the functions giving the linear equivalence,
+        added with multiplicity ``v``.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<x,y> = QQ[]
+            sage: S = RiemannSurface(y^2-x^3+1)
+            sage: avoid = Curve(S.f).places_at_infinity()
+            sage: D = 1*avoid[0]
+            sage: S.strong_approximation(D, avoid)
+            (- Place (x - 2, (x - 2)*y)
+              + Place (x - 1, y)
+              + Place (x^2 + x + 1, y),
+             [(1, (1/(x - 2))*y)])
+        """
+        # One would standardly expect to run this with 
+        #     S = Curve(self.f).places_at_infinity()
+        # or
+        #     S = Curve(self.f).places_at_infinity()+self.places_at_branch_locus()
+        #
+        # To avoid current implementation issues with going between divisors
+        # and divisor lists, we implement a method that handles only divisors 
+        K = self._R.base_ring()
+        if not K==QQ:
+            raise NotImplementedError
+        C = Curve(self.f)
+        KC = C.function_field()
+        g0, g1 = self._R.gens()
+        Kb = FunctionField(K, str(g0))
+        Pz = PolynomialRing(K, g0)
+        Pw = PolynomialRing(K, g1)
+        MO = Kb.maximal_order()
+
+        D_base = -sum(S)
+
+        rr = self._vertices[self._basepoint[0]].real()
+        rr = rr.ceil()
+        Fac = g0-K(rr)
+        p0 = MO.ideal(Fac).place()
+        q0 = KC.places_above(p0)[0]
+        
+        new_divisor = divisor
+        B = []
+        for p in divisor.support():
+            if p in S:
+                v = divisor.valuation(p)
+                i = S.index(p)
+                Q = S[i]
+                D = D_base+Q
+                if D==0:
+                    ios = self.genus
+                else:
+                    ios = len(D.basis_differential_space())
+                while ios>0:
+                    D += q0
+                    ios = len(D.basis_differential_space())
+                LD = D.function_space()
+                V = LD[0]
+                a = LD[1]
+                b = 0
+                for s in S:
+                    LDps = (D+s).function_space()
+                    Vps = LDps[0]
+                    ebd = [LDps[2](a(g)) for g in V.gens()]
+                    U = Vps.span(ebd)
+                    Quot = Vps.quotient(U)
+                    bs = LDps[1](Quot.lift(Quot.basis()[0]))
+                    b += bs
+                B.append((v,b))
+                new_divisor += v*b.divisor()
+        return new_divisor, B
+
+    def divisor_to_divisor_list(self, divisor):
+        r"""
+        Turn a divisor into a list for :meth:`abel_jacobi`.
+
+        Given ``divisor`` in ``Curve(self.f).function_field().divisor_group()``,
+        consisting of places above finite points in the base, return an equivalent
+        divisor list suitable for input into :meth:`abel_jacboi`.
+
+        INPUT:
+
+        - ``divisor`` -- an element of ``Curve(self.f).function_field().divisor_group()``
+
+        OUTPUT:
+
+        A list with elements of the form ``(v, (z, w))`` representing the finite places. 
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<x,y> = QQ[]
+            sage: S = RiemannSurface(y^2-x^3+1)
+            sage: D = sum(S.places_at_branch_locus())
+            sage: S.divisor_to_divisor_list(D)
+            [(1, (-1.00000000000000, 0.000000000000000)),
+             (1, (0.500000000000000 - 0.866025403784439*I, 0.000000000000000)),
+             (1, (0.500000000000000 + 0.866025403784439*I, 0.000000000000000))]
+
+        .. TODO::
+
+            Currently this method can only handle places above finite points in
+            the base. It would be useful to extend this to allow for places at 
+            infinity.  
+        """
+        eps = self._RR(2)**(-self._prec+3)
+        dl = []
+        for d in divisor.support():
+            v = divisor.valuation(d)
+            gs = d._prime.gens()
+            gs = [self._R(gi) for gi in gs]
+            g0 = gs[0]
+            gis = gs[1:]
+        
+            rs = S._CCz(g0).roots()
+            rys = []
+
+            for r, m in rs:
+                ys = []
+                for gi in gis:
+                    ers =  [gi(r,y).abs() for y in ys]
+                    try:
+                        ers = min(ers)
+                    except:
+                        ers = 1
+                    if not ers<eps:
+                        poly = self._CCw(gi(r, self._CCw.gen(0)))
+                        if poly==0:
+                            nys = []
+                        else:
+                            nys = poly.roots()
+                        ys += [ny[0] for ny in nys]
+                        rys += [(v*m*n, (r, y)) for y, n in nys]
+            
+            if rys:
+                dl.extend(rys)
+            else:
+                for r, m in rs:
+                    ys = self._CCw(self.f(r, self._CCw.gen(0))).roots()
+                    dl.extend([(v*m*n, (r, y)) for y, n in ys])
+        if not sum([v[0] for v in dl])==divisor.degree():
+            print(dl)
+            raise ValueError("Numerical instability, list of wrong degree")
+        return dl
 
 def integer_matrix_relations(M1, M2, b=None, r=None):
     r"""

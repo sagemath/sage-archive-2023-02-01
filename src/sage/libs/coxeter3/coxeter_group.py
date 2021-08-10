@@ -431,7 +431,8 @@ class CoxeterGroup(UniqueRepresentation, Parent):
     def kazhdan_lusztig_cell(self, w, side='left'):
         r"""
         Compute the left, right, or two-sided Kazhdan-Lusztig cell containing
-        the element ``w``.
+        the element ``w``. Computes left cells by default; use the optional
+        argument ``side`` to specify right or two-sided cells.
 
         This method products in the `C^{\prime}` basis by using the
         :class:`IwahoriHeckeAlgebra.CpC` basis.

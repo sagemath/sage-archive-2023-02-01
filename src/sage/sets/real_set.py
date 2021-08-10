@@ -468,6 +468,39 @@ class InternalRealInterval(UniqueRepresentation, Parent):
                         left_open=not self._lower_closed,
                         right_open=not self._upper_closed)
 
+    def _giac_condition_(self, variable):
+        """
+        Convert to a Giac conditional expression.
+
+        INPUT:
+
+        - ``variable`` -- a symbolic variable
+
+        EXAMPLES::
+
+            sage: RealSet(0, 4)._giac_condition_(x)
+            '((0 < sageVARx) and (sageVARx < 4))'
+        """
+        x = variable
+        if self.is_point():
+            return (x == self.lower())._giac_init_()
+        true = 'true'
+        if self.lower() is not minus_infinity:
+            if self._lower_closed:
+                lower_condition = (self.lower() <= x)._giac_init_()
+            else:
+                lower_condition = (self.lower() < x)._giac_init_()
+        else:
+            lower_condition = true
+        if self.upper() is not infinity:
+            if self._upper_closed:
+                upper_condition = (x <= self.upper())._giac_init_()
+            else:
+                upper_condition = (x < self.upper())._giac_init_()
+        else:
+            upper_condition = true
+        return "((" + lower_condition + ") and (" + upper_condition + "))"
+
     def closure(self):
         """
         Return the closure
@@ -1527,6 +1560,39 @@ class RealSet(UniqueRepresentation, Parent, Set_base,
             for it in self._intervals:
                 cond = cond | it._sympy_condition_(x)
             return cond
+
+    def _giac_condition_(self, variable):
+        r"""
+        Convert to a Giac conditional expression.
+
+        INPUT:
+
+        - ``variable`` -- a symbolic variable
+
+        EXAMPLES::
+
+            sage: RealSet(0, 1)._giac_condition_(x)
+            '((0 < sageVARx) and (sageVARx < 1))'
+            sage: RealSet((0,1), [2,3])._giac_condition_(x)
+            '((0 < sageVARx) and (sageVARx < 1)) or ((2 <= sageVARx) and (sageVARx <= 3))'
+            sage: RealSet.unbounded_below_open(0)._giac_condition_(x)
+            '((true) and (sageVARx < 0))'
+            sage: RealSet.unbounded_above_closed(2)._giac_condition_(x)
+            '((2 <= sageVARx) and (true))'
+
+        TESTS::
+
+            sage: RealSet(6,6)._giac_condition_(x)
+            'false'
+            sage: RealSet([6,6])._giac_condition_(x)
+            'sageVARx == 6'
+        """
+        x = variable
+        false = 'false'
+        if self.n_components() == 0:
+            return false
+        return ' or '.join(it._giac_condition_(x)
+                           for it in self._intervals)
 
     @staticmethod
     def _prep(lower, upper=None):

@@ -715,7 +715,7 @@ class PiecewiseFunction(BuiltinFunction):
                     funcs.append(ex)
             return piecewise(zip(domain, funcs))
 
-        def integral(self, parameters, variable, x=None, a=None, b=None, definite=False):
+        def integral(self, parameters, variable, x=None, a=None, b=None, definite=False, **kwds):
             r"""
             By default, return the indefinite integral of the function.
 
@@ -797,7 +797,6 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: f.integral()
                 piecewise(x|-->sin(x) on (0, 5); x)
 
-
             TESTS:
 
             Verify that piecewise integrals of zero work (:trac:`10841`)::
@@ -813,9 +812,16 @@ class PiecewiseFunction(BuiltinFunction):
                 sage: f.integral(x,0,1)
                 0
 
+            Check that the algorithm keyword can be used::
+
+                sage: ex = piecewise([([0, 1], 1), ((1, oo), 1/x**2)])
+                sage: integral(ex,x,0,100,algorithm='giac')
+                199/100
+                sage: integral(ex,x,algorithm='giac')
+                piecewise(x|-->x on [0, 1], x|-->-1/x + 2 on (1, +oo); x)
             """
             if a is not None and b is not None:
-                F = self.integral(x)
+                F = self.integral(x, **kwds)
                 return F(b) - F(a)
 
             if a is not None or b is not None:
@@ -847,16 +853,16 @@ class PiecewiseFunction(BuiltinFunction):
                     start = interval.lower()
                     end = interval.upper()
                     if start == -infinity and not definite:
-                        fun_integrated = fun.integral(x, end, x)
+                        fun_integrated = fun.integral(x, end, x, **kwds)
                     else:
                         try:
                             assume(start < x)
                         except ValueError: # Assumption is redundant
                             pass
-                        fun_integrated = fun.integral(x, start, x) + area
+                        fun_integrated = fun.integral(x, start, x, **kwds) + area
                         forget(start < x)
                         if definite or end != infinity:
-                            area += fun.integral(x, start, end)
+                            area += fun.integral(x, start, end, **kwds)
                     new_pieces.append([interval, SR(fun_integrated).function(x)])
 
             if definite:
@@ -1371,6 +1377,33 @@ class PiecewiseFunction(BuiltinFunction):
                      domain._sympy_condition_(variable))
                     for domain, func in parameters]
             return pw(*args)
+
+        def _giac_init_(self, parameters, variable):
+            """
+            Convert this piecewise expression to its Giac equivalent.
+
+            Backward conversion is not yet implemented.
+
+            EXAMPLES::
+
+                sage: ex = piecewise([((0, 1), pi), ([1, 2], x)])
+                sage: f = ex._giac_(); f
+                piecewise([((sageVARx>0) and (1>sageVARx)),pi,((sageVARx>=1) and (2>=sageVARx)),sageVARx])
+                sage: f.diff(x)
+                piecewise([((sageVARx>0) and (1>sageVARx)),0,((sageVARx>=1) and (2>=sageVARx)),1])
+
+                sage: ex = piecewise([((-100, -2), 1/x), ((1, +oo), cos(x))])
+                sage: g = ex._giac_(); g
+                piecewise([((sageVARx>-100) and ((-2)>sageVARx)),1/sageVARx,sageVARx>1,cos(sageVARx)])
+                sage: g.diff(x)
+                piecewise([((sageVARx>-100) and ((-2)>sageVARx)),-1/sageVARx^2,sageVARx>1,-sin(sageVARx)])
+            """
+            from sage.misc.flatten import flatten
+            args = [(domain._giac_condition_(variable),
+                     func._giac_init_())
+                    for domain, func in parameters]
+            args = flatten(args)
+            return f"piecewise({args})"
 
 
 piecewise = PiecewiseFunction()

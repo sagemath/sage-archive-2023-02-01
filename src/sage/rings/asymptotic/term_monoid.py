@@ -4060,22 +4060,21 @@ class BTerm(TermWithCoefficient):
         sage: G = GrowthGroup('x^ZZ * y^ZZ')
         sage: T = TermMonoid('B', growth_group=G, coefficient_ring=ZZ)
         sage: x, y = G('x'), G('y')
+
+    This is a term bounded by `5|x|^2` for `|x| \ge 3`::
+
         sage: T(x^2, coefficient=5, valid_from={'x': 3})
         B(5*x^2, x >= 3)
 
-    This is a term bounded by `5|x|^2` for `|x| \ge 3`.
-    ::
+    This is a term bounded by `42|x|^3` for `|x| \ge 15` and `|y| \ge 15`::
 
         sage: T(x^3, coefficient=42, valid_from={'x': 15, 'y': 15})
         B(42*x^3, x >= 15, y >= 15)
 
-    This is a term bounded by `42|x|^3` for `|x| \ge 15` and `|y| \ge 15`.
-    ::
+    This is a term bounded by `42 |x|^3 |y|^2` for `|x| \ge 10` and `|y| \ge 20`::
 
         sage: T(x^3*y^2, coefficient=42, valid_from={'x': 10, 'y': 20})
         B(42*x^3*y^2, x >= 10, y >= 20)
-
-    This is a term bounded by `42 |x|^3 |y|^2` for `|x| \ge 10` and `|y| \ge 20`.
 
     """
     def __init__(self, parent, growth, coefficient, valid_from):
@@ -4171,7 +4170,7 @@ class BTerm(TermWithCoefficient):
 
     def _latex_(self):
         r"""
-        A LaTeX-representation string for this `B`-term.
+        A LaTeX-representation string for this B-term.
 
         OUTPUT:
 
@@ -4303,7 +4302,7 @@ class BTerm(TermWithCoefficient):
 
 class BTermMonoid(TermWithCoefficientMonoid):
     r"""
-    Parent for asymptotic big `B`-terms.
+    Parent for asymptotic B-terms.
 
     INPUT:
 

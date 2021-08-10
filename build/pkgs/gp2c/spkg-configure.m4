@@ -55,7 +55,8 @@ SAGE_SPKG_CONFIGURE([gp2c], [
       # Gentoo:     $gp_prefix/share/pari/pari.cfg
       # Arch/Conda: $gp_prefix/lib/pari/pari.cfg
       # Fedora:     $gp_prefix/share/doc/pari/pari.cfg
-      m4_foreach([pari_cfg_path], [share/pari,lib/pari,share/doc/pari], [
+      # Fedora from 2.13.2-2: $gp_prefix/lib64/pari/pari.cfg
+      m4_foreach([pari_cfg_path], [share/pari,lib64/pari,lib/pari,share/doc/pari], [
         AS_IF([test -f "${gp_prefix}/pari_cfg_path/pari.cfg"], [
           libpari_pari_cfg="${gp_prefix}/pari_cfg_path/pari.cfg"
           AC_MSG_NOTICE([found a pari.cfg at $libpari_pari_cfg])

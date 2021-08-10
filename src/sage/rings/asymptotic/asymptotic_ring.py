@@ -3405,10 +3405,6 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if not self.summands:
             from .misc import NotImplementedOZero
             raise NotImplementedOZero(self.parent(), exact_part=self.parent().zero())
-        if not isinstance(valid_from, dict):
-            valid_from = {self.variable_names()[0]: valid_from}
-        for variable in valid_from.keys():
-            valid_from = {f'{variable}': valid_from[variable]}
         return sum(self.parent().create_summand('B', growth=element, valid_from=valid_from)
                    for element in self.summands.elements())
 

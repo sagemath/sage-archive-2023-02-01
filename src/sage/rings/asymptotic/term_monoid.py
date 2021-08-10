@@ -4598,6 +4598,14 @@ class BTerm(TermWithCoefficient):
         """
         super().__init__(parent=parent, growth=growth, coefficient=coefficient)
         self.coefficient = coefficient
+        if not isinstance(valid_from, dict):
+            for var in self.variable_names():
+                valid_from = {var: valid_from}
+
+        for variable in valid_from.keys():
+            if not isinstance(variable, str):
+                valid_from = {f'{variable}': valid_from[variable]}
+
         for variable_name in valid_from.keys():
             if variable_name not in parent.growth_group.variable_names():
                 raise ValueError('B-Term has valid_from variables defined which do not occur in the term.')
@@ -4968,9 +4976,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: BT(x^3, coefficient=4, valid_from={'x': 10})
             B(4*x^3, x >= 10)
             sage: BT(x^3, coefficient=4, valid_from=10)
-            Traceback (most recent call last):
-            ...
-            AttributeError: 'sage.rings.integer.Integer' object has no attribute 'keys'
+            B(4*x^3, x >= 10)
             sage: BT(x^3, coefficient=4, 10)
             Traceback (most recent call last):
             ...

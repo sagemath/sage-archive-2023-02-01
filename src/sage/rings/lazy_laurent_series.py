@@ -1158,25 +1158,69 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
     EXAMPLES::
 
         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-        sage: L(lambda i: i, valuation=-3, constant=(-1,3))
-        -3*z^-3 - 2*z^-2 - z^-1 + z + 2*z^2 - z^3 - z^4 - z^5 + O(z^6)
-        sage: L(lambda i: i, valuation=-3, constant=-1, degree=3)
-        -3*z^-3 - 2*z^-2 - z^-1 + z + 2*z^2 - z^3 - z^4 - z^5 + O(z^6)
 
-    ::
+    We can build a series from a function and specify if the series
+    eventually takes a constant value::
 
-        sage: f = 1 / (1 - z - z^2); f
+        sage: f = L(lambda i: i, valuation=-3, constant=-1, degree=3)
+        sage: f
+        -3*z^-3 - 2*z^-2 - z^-1 + z + 2*z^2 - z^3 - z^4 - z^5 + O(z^6)
+        sage: f[-2]
+        -2
+        sage: f[10]
+        -1
+        sage: f[-5]
+        0
+
+        sage: f = L(lambda i: i, valuation=-3)
+        sage: f
+        -3*z^-3 - 2*z^-2 - z^-1 + z + 2*z^2 + 3*z^3 + O(z^4)
+        sage: f[20]
+        20
+
+    Anything that converts into a polynomial can be input, where
+    we can also specify the valuation or if the series eventually
+    takes a constant value::
+
+        sage: L([-5,2,0,5])
+        -5 + 2*z + 5*z^3
+        sage: L([-5,2,0,5], constant=6)
+        -5 + 2*z + 5*z^3 + 6*z^4 + 6*z^5 + 6*z^6 + O(z^7)
+        sage: L([-5,2,0,5], degree=6, constant=6)
+        -5 + 2*z + 5*z^3 + 6*z^6 + 6*z^7 + 6*z^8 + O(z^9)
+        sage: L([-5,2,0,5], valuation=-2, degree=3, constant=6)
+        -5*z^-2 + 2*z^-1 + 5*z + 6*z^3 + 6*z^4 + 6*z^5 + O(z^6)
+        sage: L([-5,2,0,5], valuation=5)
+        -5*z^5 + 2*z^6 + 5*z^8
+        sage: L({-2:9, 3:4}, constant=2, degree=5)                                                
+        9*z^-2 + 4*z^3 + 2*z^5 + 2*z^6 + 2*z^7 + O(z^8)
+
+    We can also perform arithmetic::
+
+        sage: f = 1 / (1 - z - z^2)
+        sage: f
         1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + O(z^7)
         sage: f.coefficient(100)
         573147844013817084101
+        sage: f = (z^-2 - 1 + 2*z) / (z^-1 - z + 3*z^2)
+        sage: f
+        z^-1 - z^2 - z^4 + 3*z^5 + O(z^6)
 
-    Lazy Laurent series is picklable::
+    However, we may not always be able to know when a result is
+    exactly a polynomial::
 
-        sage: g = loads(dumps(f))
-        sage: g
-        1 + z + 2*z^2 + 3*z^3 + 5*z^4 + 8*z^5 + 13*z^6 + O(z^7)
-        sage: g == f
-        True
+        sage: f * (z^-1 - z + 3*z^2)
+        z^-2 - 1 + 2*z + O(z^5)
+
+    TESTS::
+
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+        sage: f = 1 / (1 - z - z^2)
+        sage: TestSuite(f).run()
+
+        sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+        sage: f = 1 / (1 - z - z^2)
+        sage: TestSuite(f).run()
     """
 
     def change_ring(self, ring):

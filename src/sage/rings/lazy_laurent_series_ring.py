@@ -58,9 +58,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
     EXAMPLES::
 
         sage: L.<z> = LazyLaurentSeriesRing(QQ)
-        sage: 1/(1 - z)
+        sage: 1 / (1 - z)
         1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-        sage: 1/(1 - z) == 1/(1 - z)
+        sage: 1 / (1 - z) == 1 / (1 - z)
         True
         sage: L in Fields
         True
@@ -75,17 +75,57 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         sage: e.coefficient(100).parent()
         Finite Field of size 3
 
-    Generating functions of integer sequences are Laurent series over the
-    integer ring::
+    Series can be defined by specifying a coefficient function
+    along with a valuation or a degree where after the series
+    is evenutally constant::
+
+        sage: R.<x,y> = QQ[]
+        sage: L.<z> = LazyLaurentSeriesRing(R)
+        sage: def coeff(n):
+        ....:     if n < 0:
+        ....:         return -2 + n
+        ....:     if n == 0:
+        ....:         return 6
+        ....:     return x + y^n
+        sage: f = L(coeff, valuation=-5)
+        sage: f
+        -7*z^-5 - 6*z^-4 - 5*z^-3 - 4*z^-2 - 3*z^-1 + 6 + (x + y)*z + O(z^2)
+        sage: 1 / (1 - f)
+        1/7*z^5 - 6/49*z^6 + 1/343*z^7 + 8/2401*z^8 + 64/16807*z^9
+         + 17319/117649*z^10 + (1/49*x + 1/49*y - 180781/823543)*z^11 + O(z^12)
+        sage: L(coeff, valuation=-3, degree=3, constant=x)
+        -5*z^-3 - 4*z^-2 - 3*z^-1 + 6 + (x + y)*z + (y^2 + x)*z^2
+         + x*z^3 + x*z^4 + x*z^5 + O(z^6)
+
+    Similarly, we can specify a polynomial or the initial
+    coefficients with anything that converts into the
+    corresponding Laurent polynomial ring::
+
+        sage: L([1, x, y, 0, x+y])
+        1 + x*z + y*z^2 + (x + y)*z^4
+        sage: L([1, x, y, 0, x+y], constant=2)
+        1 + x*z + y*z^2 + (x + y)*z^4 + 2*z^5 + 2*z^6 + 2*z^7 + O(z^8)
+        sage: L([1, x, y, 0, x+y], degree=7, constant=2)
+        1 + x*z + y*z^2 + (x + y)*z^4 + 2*z^7 + 2*z^8 + 2*z^9 + O(z^10)
+        sage: L([1, x, y, 0, x+y], valuation=-2)
+        z^-2 + x*z^-1 + y + (x + y)*z^2
+        sage: L([1, x, y, 0, x+y], valuation=-2, constant=3)
+        z^-2 + x*z^-1 + y + (x + y)*z^2 + 3*z^3 + 3*z^4 + 3*z^5 + O(z^6)
+        sage: L([1, x, y, 0, x+y], valuation=-2, degree=4, constant=3)
+        z^-2 + x*z^-1 + y + (x + y)*z^2 + 3*z^4 + 3*z^5 + 3*z^6 + O(z^7)
+
+    Generating functions of integer sequences are Laurent series
+    over the integer ring::
 
         sage: L.<z> = LazyLaurentSeriesRing(ZZ); L
         Lazy Laurent Series Ring in z over Integer Ring
         sage: L in Fields
         False
-        sage: 1/(1 - 2*z)^3
+        sage: 1 / (1 - 2*z)^3
         1 + 6*z + 24*z^2 + 80*z^3 + 240*z^4 + 672*z^5 + 1792*z^6 + O(z^7)
 
-    Power series can be defined recursively::
+    Power series can be defined recursively (see :meth:`define()` for
+    more examples)::
 
         sage: L.<z> = LazyLaurentSeriesRing(ZZ)
         sage: s = L(None)
@@ -369,6 +409,13 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: constant may only be specified if the degree is specified
+
+        We support the old input format for ``constant``::
+
+            sage: f = L(lambda i: i, valuation=-3, constant=-1, degree=3)
+            sage: g = L(lambda i: i, valuation=-3, constant=(-1,3))
+            sage: f == g
+            True
 
         .. TODO::
 

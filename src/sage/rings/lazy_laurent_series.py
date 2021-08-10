@@ -1272,11 +1272,23 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             sage: g^-3 + g^-2 + 1 / (1 + g^2)
             z^-9 + 3*z^-8 + 3*z^-7 - z^-6 - 4*z^-5 - 2*z^-4 + z^-3 + O(z^-2)
 
-            sage: f = z^-3; g = z^-2 + z^-1;
+            sage: f = z^-3
+            sage: g = z^-2 + z^-1
             sage: g^(-3)
             z^6 - 3*z^7 + 6*z^8 - 10*z^9 + 15*z^10 - 21*z^11 + 28*z^12 + O(z^13)
             sage: f(g)
             z^6 - 3*z^7 + 6*z^8 - 10*z^9 + 15*z^10 - 21*z^11 + 28*z^12 + O(z^13)
+
+            sage: f = z^2 + z^3
+            sage: g = z^-3 + z^-2
+            sage: f^-3 + f^-2
+            z^-6 - 3*z^-5 + 7*z^-4 - 12*z^-3 + 18*z^-2 - 25*z^-1 + 33 + O(z)
+            sage: g(f)
+            z^-6 - 3*z^-5 + 7*z^-4 - 12*z^-3 + 18*z^-2 - 25*z^-1 + 33 + O(z)
+            sage: g^2 + g^3
+            z^-9 + 3*z^-8 + 3*z^-7 + 2*z^-6 + 2*z^-5 + z^-4
+            sage: f(g)
+            z^-9 + 3*z^-8 + 3*z^-7 + 2*z^-6 + 2*z^-5 + z^-4
 
             sage: f = L(lambda n: n); f
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
@@ -1478,23 +1490,28 @@ class LazyLaurentSeries(LazySequencesModuleElement, LazyCauchyProductSeries):
             # Return the sum since g is not known to be finite or we do not get a Laurent polynomial
             # TODO: Optimize when f has positive valuation
             ret = P.zero()
-            gp = P.one()
             # We build this iteratively so each power can benefit from the caching
             # Equivalent to P.sum(poly[i] * g**i for i in range(poly.valuation(), poly.degree()+1))
             # We could just do "return poly(g)" if we don't care about speed
             d = poly.degree()
+            v = poly.valuation()
             if d >= 0:
-                for i in range(d):
-                    ret += poly[i] * gp
+                ind = max(0, v)
+                gp = P.one() if ind == 0 else g ** ind
+                for i in range(ind, d):
+                    if poly[i]:
+                        ret += poly[i] * gp
                     gp *= g
                 ret += poly[d] * gp
-            v = poly.valuation()
             if v < 0:
                 gi = ~g
-                gp = P.one()
-                for i in range(-1, v-1, -1):
+                ind = min(d, -1)
+                gp = gi if ind == -1 else gi ** -ind
+                for i in range(ind, v, -1):
+                    if poly[i]:
+                        ret += poly[i] * gp
                     gp *= gi
-                    ret += poly[i] * gp
+                ret += poly[v] * gp
             return ret
 
         # g != 0 and val(g) > 0

@@ -350,7 +350,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
 
-        TESTS::
+        TESTS:
 
         This gives zero::
 
@@ -407,11 +407,13 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 coeff_stream = CoefficientStream_exact(initial_coefficients, self._sparse,
                                                        valuation=x.valuation(), constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
+
         if isinstance(x, LazyLaurentSeries):
             if x._coeff_stream._is_sparse is self._sparse:
                 return self.element_class(self, x._coeff_stream)
             # TODO: Implement a way to make a self._sparse copy
             raise NotImplementedError("cannot convert between sparse and dense")
+
         if callable(x):
             if valuation is None:
                 valuation = 0
@@ -420,16 +422,17 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                     raise ValueError("constant may only be specified if the degree is specified")
                 coeff_stream = CoefficientStream_coefficient_function(x, self.base_ring(), self._sparse, valuation)
                 return self.element_class(self, coeff_stream)
-            if degree is not None:
-                if constant is None:
-                    constant = ZZ.zero()
-                p = [BR(x(i)) for i in range(valuation, degree)]
-                if not any(p) and not constant:
-                    coeff_stream = CoefficientStream_zero(self._sparse)
-                else:
-                    coeff_stream = CoefficientStream_exact(p, self._sparse, valuation=valuation,
-                                                           constant=constant, degree=degree)
-                return self.element_class(self, coeff_stream)
+
+            # degree is not None
+            if constant is None:
+                constant = ZZ.zero()
+            p = [BR(x(i)) for i in range(valuation, degree)]
+            if not any(p) and not constant:
+                coeff_stream = CoefficientStream_zero(self._sparse)
+            else:
+                coeff_stream = CoefficientStream_exact(p, self._sparse, valuation=valuation,
+                                                       constant=constant, degree=degree)
+            return self.element_class(self, coeff_stream)
 
         raise ValueError(f"unable to convert {x} into a lazy Laurent series")
 

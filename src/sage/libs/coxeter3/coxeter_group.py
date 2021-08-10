@@ -440,8 +440,8 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         - ``w`` -- an element of self.
 
-        - ``side`` -- string; one of 'left', 'right', or 'both', corresponding
-          to the kind of cell to compute.
+        - ``side`` -- string (default: ``'left'``); one of 'left', 'right', or
+          'two-sided', corresponding to the kind of cell to compute.
 
         EXAMPLES:
 
@@ -459,7 +459,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             {[1, 2, 3], [2, 3], [3], [3, 2, 3]}
             sage: W.kazhdan_lusztig_cell(s3, side='right')              # optional - coxeter3
             {[3], [3, 2], [3, 2, 1], [3, 2, 3]}
-            sage: W.kazhdan_lusztig_cell(s3, side='both')               # optional - coxeter3
+            sage: W.kazhdan_lusztig_cell(s3, side='two-sided')          # optional - coxeter3
             {[1], [1, 2], [1, 2, 3], [1, 2, 3, 2], [1, 2, 3, 2, 1], [2], [2, 1],
              [2, 3], [2, 3, 2], [2, 3, 2, 1], [3], [3, 2], [3, 2, 1], [3, 2, 3]}
 
@@ -506,9 +506,9 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                 cp_s = CpC(s)
                 terms = []
                 # Determine the Cp basis elements appearing in the product of Cp_s and Cp_w
-                if side == 'left' or side == 'both':
+                if side == 'left' or side == 'two-sided':
                     terms.extend(list(cp_s * cp_x))
-                if side == 'right' or side == 'both':
+                if side == 'right' or side == 'two-sided':
                     terms.extend(list(cp_x * cp_s))
                 for (y, coeff) in terms:
                     # the result of multiplication will always have coeff != 0

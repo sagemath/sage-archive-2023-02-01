@@ -2074,8 +2074,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: CpC(Cp[1,2,1])    # optional - coxeter3
             CpC[1,2,1]
 
-        Some computations in the ``CpC`` basis; these agree with computations
-        in the existing ``Cp`` basis::
+        Some computations in the ``CpC`` basis; these agree with computations in
+        the existing ``Cp`` basis::
 
             sage: s1, s2, s3 = W.simple_reflections()       # optional - coxeter3
             sage: Cp(s1)**2                                 # optional - coxeter3
@@ -2109,6 +2109,18 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             + (v^-1+v)*CpC[3,4,1,2,3,4]
             + (v^-3+3*v^-1+3*v+v^3)*CpC[4,3,4,3,4,1]
             + (v^-1+v)*CpC[3,4,1,2]
+
+        A computation in type `A_9` that seems prohibitively slow for the ``Cp``
+        basis::
+
+            sage: W = CoxeterGroup('A9', implementation='coxeter3')     # optional - coxeter3
+            sage: H = IwahoriHeckeAlgebra(W, v**2)                      # optional - coxeter3
+            sage: CpC = H.Cp_Coxeter3()                                 # optional - coxeter3
+            sage: CpC[1,2,1,8,9,8]*CpC[1,2,3,7,8,9]                     # optional - coxeter3
+            (v^-2+2+v^2)*CpC[1,2,1,3,7,8,7,9,8,7]
+            + (v^-2+2+v^2)*CpC[1,2,1,3,8,9,8,7]
+            + (v^-3+3*v^-1+3*v+v^3)*CpC[1,2,1,3,8,9,8]
+        
 
         Below is another example, with the Hecke algebra of type `B_9` in the
         normalized presentation. The (optional) relabeling command ensures that

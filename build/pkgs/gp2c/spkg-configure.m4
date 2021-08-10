@@ -77,7 +77,7 @@ SAGE_SPKG_CONFIGURE([gp2c], [
 
       # If we can't find pari.cfg, gp2c isn't going to work.
       AS_IF([test -z "$libpari_pari_cfg"], [
-        AC_MSG_ERROR([using system pari and unable to locate pari.cfg])
+        AC_MSG_WARN([using system pari and unable to locate pari.cfg; building the optional pacakge gp2c will not work])
       ])
     ], [
       # Not using the system pari

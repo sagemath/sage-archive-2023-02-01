@@ -1105,6 +1105,14 @@ class LazyCauchyProductSeries(RingElement):
             sage: ~z
             z^-1
 
+        TESTS::
+
+            sage: L.<x> = LazyLaurentSeriesRing(QQ)
+            sage: g = L([2], valuation=-1, constant=1); g
+            2*x^-1 + 1 + x + x^2 + O(x^3)
+            sage: g*g^-1
+            1 + O(x^7)
+
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
@@ -1121,14 +1129,16 @@ class LazyCauchyProductSeries(RingElement):
                 coeff_stream = CoefficientStream_exact((i, -i), P._sparse,
                                                        valuation=v, constant=c)
                 return P.element_class(P, coeff_stream)
-            if len(initial_coefficients) == 1:
+            if len(initial_coefficients) == 1 and not coeff_stream._constant:
                 i = ~initial_coefficients[0]
                 v = -coeff_stream.valuation()
                 c = P._coeff_ring.zero()
                 coeff_stream = CoefficientStream_exact((i,), P._sparse,
                                                        valuation=v, constant=c)
                 return P.element_class(P, coeff_stream)
-            if len(initial_coefficients) == 2 and not (initial_coefficients[0] + initial_coefficients[1]):
+            if (len(initial_coefficients) == 2
+                and not (initial_coefficients[0] + initial_coefficients[1])
+                and  not coeff_stream._constant):
                 v = -coeff_stream.valuation()
                 c = ~initial_coefficients[0]
                 coeff_stream = CoefficientStream_exact((), P._sparse,

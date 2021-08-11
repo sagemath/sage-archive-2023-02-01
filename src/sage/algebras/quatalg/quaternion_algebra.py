@@ -1431,9 +1431,9 @@ class QuaternionOrder(Algebra):
             ...
             TypeError: 1/2 does not lie in Order of Quaternion Algebra (-1, -19) with base ring Rational Field with basis (1, i, j, k)
 
-        TESTS::
+        TESTS:
 
-        Test for :trac:`32364`:
+        Test for :trac:`32364`::
 
             sage: 1/5 in O
             False

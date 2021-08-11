@@ -624,7 +624,7 @@ class OrlikTeraoInvariantAlgebra(FiniteDimensionalInvariantModule):
 
         self._groundset_action = action_on_groundset
 
-        self._side = side = kwargs.pop('side', 'left')
+        self._side = kwargs.pop('side', 'left')
 
         # the action on the Orlik-Terao is not neccesarily by ring automorphim,
         # so the best we can assume is a finite dimensional module with basis.

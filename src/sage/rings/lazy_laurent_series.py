@@ -2034,30 +2034,96 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         r"""
         Return the compositional inverse of ``self``.
 
+        Given a Laurent Series `f`. the compositional inverse is a
+        Laurent Series `g` over the same base ring, such that
+        `(f \circ g)(z) = f(g(z)) = z`.
+
+        The compositional inverse exists if and only if:
+
+        - `val(f) = 1', or
+
+        - `f = a + b z` with `a b \neq 0`, or
+
+        - `f = a/z' with `a \neq 0`
+
         EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: z.revert()
             z + O(z^8)
             sage: (1/z).revert()
-            z^-1 + O(z^6)
+            z^-1
 
             sage: (z-z^2).revert()
             z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
 
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: s = L(lambda n: 1 if n == 1 else 0, valuation=1); s
+            z + O(z^8)
+            sage: s.revert()
+            z + O(z^8)
+
+            sage: (2+3*z).revert()
+            -2/3 + 1/3*z
+
+            sage: s = L(lambda n: 2 if n == 0 else 3 if n == 1 else 0, valuation=0); s
+            2 + 3*z + O(z^7)
+            sage: s.revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot determine whether the compositional inverse exists
+
+        We look at some cases where the compositional inverse does not exist.:
+
+        `f = 0`::
+
+            sage: L(0).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+            sage: (z - z).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
+        `val(f) ! = 1 and f(0) * f(1) = 0`::
+
+            sage: (z^2).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
+            sage: L(1).revert()
+            Traceback (most recent call last):
+            ...
+            ValueError: compositional inverse does not exist
+
         """
         P = self.parent()
-        z = P.gen()
-        if self._coeff_stream._approximate_order == 1:
-            g = self
-        else:
-            g = self * z**(1 - self._coeff_stream._approximate_order)
-        f = P(None, valuation=1)
-        f.define(z/((g/z)(f)))
-        if self._coeff_stream._approximate_order == 1:
-            return f
-        else:
-            return f / z**(1 - self._coeff_stream._approximate_order)
+        if self.valuation() == 1:
+            z = P.gen()
+            g = P(None, valuation=1)
+            g.define(z/((self/z)(g)))
+            return g
+        if self.valuation() not in [-1, 0]:
+            raise ValueError("compositional inverse does not exist")
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, CoefficientStream_exact):
+            if (coeff_stream.order() == 0
+                and coeff_stream._degree == 2):
+                a = coeff_stream[0]
+                b = coeff_stream[1]
+                coeff_stream = CoefficientStream_exact((-a/b, 1/b),
+                                                       coeff_stream._is_sparse,
+                                                       order=0)
+                return P.element_class(P, coeff_stream)
+            if (coeff_stream.order() == -1
+                and coeff_stream._degree == 0):
+                return self
+            raise ValueError("compositional inverse does not exist")
+        raise ValueError("cannot determine whether the compositional inverse exists")
 
     def approximate_series(self, prec, name=None):
         """

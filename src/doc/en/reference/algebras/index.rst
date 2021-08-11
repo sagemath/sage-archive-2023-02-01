@@ -85,7 +85,7 @@ Graded algebras
 .. toctree::
    :maxdepth: 2
 
-   sage/algebras/commutative_graded_algebra
+   sage/algebras/finite_gca
    sage/algebras/commutative_dga
 
 Various associative algebras

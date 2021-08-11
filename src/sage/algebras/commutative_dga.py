@@ -3432,9 +3432,9 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
         ValueError: You must specify names or degrees
     """
     if max_degree:
-        from .commutative_graded_algebra import GCAlgebraWithMaxDegree
-        return GCAlgebraWithMaxDegree(ring, names=names, degrees=degrees,
-                                      max_degree=max_degree, **kwargs)
+        from .finite_gca import FiniteGCAlgebra
+        return FiniteGCAlgebra(ring, names=names, degrees=degrees,
+                               max_degree=max_degree, **kwargs)
     multi = False
     if degrees:
         try:

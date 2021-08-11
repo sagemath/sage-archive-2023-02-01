@@ -526,12 +526,12 @@ class OrlikTeraoInvariantAlgebra(FiniteDimensionalInvariantModule):
     - ``M`` -- a matroid
     - ``G`` -- a semigroup
     - ``action_on_groundset`` -- a function defining the action of
-    ``G`` on the elements of the groundset of ``M`` default
+      ``G`` on the elements of the groundset of ``M`` default
 
     OUTPUT:
 
     - The invariant algebra of the Orlik-Terao algebra induced by
-    the action of ``action_on_groundset``
+      the action of ``action_on_groundset``
 
     EXAMPLES:
 
@@ -573,8 +573,8 @@ class OrlikTeraoInvariantAlgebra(FiniteDimensionalInvariantModule):
         sage: g*x == x
         True
 
-    The underlying ambient module is a ``Representation`` and so the
-    Orlik-Terao algebra itself is the ``.ambient()._module``::
+    The underlying ambient module is the Orlik-Terao algebra,
+    which is accessible via :meth:`ambient()`::
 
         sage: M.orlik_terao_algebra(QQ) is OTG.ambient()
         True
@@ -603,7 +603,7 @@ class OrlikTeraoInvariantAlgebra(FiniteDimensionalInvariantModule):
         r"""
         Initialize ``self``.
 
-        Examples::
+        EXAMPLES::
 
             sage: A = matrix([[1,1,1,0,0,0],[-1,0,0,1,1,0],[0,-1,0,-1,0,1],
             ....:             [0,0,-1,0,-1,-1]])
@@ -671,7 +671,7 @@ class OrlikTeraoInvariantAlgebra(FiniteDimensionalInvariantModule):
         OUTPUT:
 
         - ``x`` -- the result of the action of ``g`` on ``f`` inside
-        of the Orlik-Terao algebra
+          of the Orlik-Terao algebra
 
         EXAMPLES::
 
@@ -729,7 +729,7 @@ class OrlikTeraoInvariantAlgebra(FiniteDimensionalInvariantModule):
         """
 
         OT = self._ambient
-        if f == frozenset():
+        if not f:
             return OT(f)
 
         fset = frozenset(self._groundset_action(g, e) for e in f)

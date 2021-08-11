@@ -77,7 +77,8 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .series import LazyPowerSeriesRing, LazyPowerSeries
+from sage.rings.lazy_laurent_series import LazyTaylorSeries
+from sage.rings.lazy_laurent_series_ring import LazyTaylorSeriesRing
 from .stream import Stream, _integers_from
 from sage.rings.all import Integer, RationalField
 from sage.arith.all import moebius, gcd, lcm, divisors
@@ -88,23 +89,22 @@ from sage.misc.cachefunc import cached_function
 from sage.functions.other import factorial
 
 
-@cached_function
-def OrdinaryGeneratingSeriesRing(R):
-    """
+class OrdinaryGeneratingSeriesRing(LazyTaylorSeriesRing):
+    r"""
     Return the ring of ordinary generating series over ``R``.
 
     Note that it is just a
-    :class:`LazyPowerSeriesRing` whose elements have
+    :class:`LazyTaylorSeriesRing` whose elements have
     some extra methods.
 
     EXAMPLES::
 
         sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-        sage: R = OrdinaryGeneratingSeriesRing(QQ); R
-        Lazy Power Series Ring over Rational Field
-        sage: R([1]).coefficients(4)
+        sage: R = OrdinaryGeneratingSeriesRing(QQ, 'z'); R
+        Lazy Taylor Series Ring in z over Rational Field
+        sage: [R(lambda n: 1).coefficient(i) for i in range(4)]
         [1, 1, 1, 1]
-        sage: R([1]).counts(4)
+        sage: R(lambda n: 1).counts(4)
         [1, 1, 1, 1]
 
     TESTS:
@@ -113,26 +113,24 @@ def OrdinaryGeneratingSeriesRing(R):
 
     ::
 
-        sage: R is OrdinaryGeneratingSeriesRing(QQ)
+        sage: R is OrdinaryGeneratingSeriesRing(QQ, 'z')
         True
+
     """
-    return OrdinaryGeneratingSeriesRing_class(R)
-
-
-class OrdinaryGeneratingSeriesRing_class(LazyPowerSeriesRing):
-    def __init__(self, R):
+    def __init__(self, R, names):
         """
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-            sage: R = OrdinaryGeneratingSeriesRing(QQ)
+            sage: R = OrdinaryGeneratingSeriesRing(QQ, 'z')
             sage: R == loads(dumps(R))
             True
         """
-        LazyPowerSeriesRing.__init__(self, R, element_class=OrdinaryGeneratingSeries)
+        LazyTaylorSeriesRing.Element = OrdinaryGeneratingSeries
+        LazyTaylorSeriesRing.__init__(self, R, names=names)
 
 
-class OrdinaryGeneratingSeries(LazyPowerSeries):
+class OrdinaryGeneratingSeries(LazyTaylorSeries):
     def count(self, n):
         """
         Return the number of structures on a set of size ``n``.
@@ -140,7 +138,7 @@ class OrdinaryGeneratingSeries(LazyPowerSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-            sage: R = OrdinaryGeneratingSeriesRing(QQ)
+            sage: R = OrdinaryGeneratingSeriesRing(QQ, 'z')
             sage: f = R(range(20))
             sage: f.count(10)
             10
@@ -155,7 +153,7 @@ class OrdinaryGeneratingSeries(LazyPowerSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
-            sage: R = OrdinaryGeneratingSeriesRing(QQ)
+            sage: R = OrdinaryGeneratingSeriesRing(QQ, 'z')
             sage: f = R(range(20))
             sage: f.counts(10)
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -163,23 +161,22 @@ class OrdinaryGeneratingSeries(LazyPowerSeries):
         return [self.count(i) for i in range(n)]
 
 
-@cached_function
-def ExponentialGeneratingSeriesRing(R):
-    """
+class ExponentialGeneratingSeriesRing(LazyTaylorSeriesRing):
+    r"""
     Return the ring of exponential generating series over ``R``.
 
     Note that it is just a
-    :class:`LazyPowerSeriesRing` whose elements have
+    :class:`LazyTaylorSeriesRing` whose elements have
     some extra methods.
 
     EXAMPLES::
 
         sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
-        sage: R = ExponentialGeneratingSeriesRing(QQ); R
-        Lazy Power Series Ring over Rational Field
-        sage: R([1]).coefficients(4)
+        sage: R = ExponentialGeneratingSeriesRing(QQ, 'z'); R
+        Lazy Taylor Series Ring in z over Rational Field
+        sage: [R(lambda n: 1).coefficient(i) for i in range(4)]
         [1, 1, 1, 1]
-        sage: R([1]).counts(4)
+        sage: R(lambda n: 1).counts(4)
         [1, 1, 2, 6]
 
     TESTS:
@@ -188,25 +185,23 @@ def ExponentialGeneratingSeriesRing(R):
 
     ::
 
-        sage: R is ExponentialGeneratingSeriesRing(QQ)
+        sage: R is ExponentialGeneratingSeriesRing(QQ, 'z')
         True
+
     """
-    return ExponentialGeneratingSeriesRing_class(R)
-
-
-class ExponentialGeneratingSeriesRing_class(LazyPowerSeriesRing):
-    def __init__(self, R):
+    def __init__(self, R, names):
         """
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
-            sage: R = ExponentialGeneratingSeriesRing(QQ)
+            sage: R = ExponentialGeneratingSeriesRing(QQ, 'z')
             sage: R == loads(dumps(R))
             True
         """
-        LazyPowerSeriesRing.__init__(self, R, element_class=ExponentialGeneratingSeries)
+        LazyTaylorSeriesRing.Element = ExponentialGeneratingSeries
+        LazyTaylorSeriesRing.__init__(self, R, names=names)
 
-class ExponentialGeneratingSeries(LazyPowerSeries):
+class ExponentialGeneratingSeries(LazyTaylorSeries):
     def count(self, n):
         """
         Return the number of structures of size ``n``.
@@ -214,8 +209,8 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
-            sage: R = ExponentialGeneratingSeriesRing(QQ)
-            sage: f = R([1])
+            sage: R = ExponentialGeneratingSeriesRing(QQ, 'z')
+            sage: f = R(lambda n: 1)
             sage: [f.count(i) for i in range(7)]
             [1, 1, 2, 6, 24, 120, 720]
         """
@@ -229,7 +224,7 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.generating_series import ExponentialGeneratingSeriesRing
-            sage: R = ExponentialGeneratingSeriesRing(QQ)
+            sage: R = ExponentialGeneratingSeriesRing(QQ, 'z')
             sage: f = R(range(20))
             sage: f.counts(5)
             [0, 1, 4, 18, 96]
@@ -336,7 +331,7 @@ def CycleIndexSeriesRing(R):
     difficult to implement in Sage, as it would be an element
     of a power series ring in infinitely many variables.
 
-    Note that it is just a :class:`LazyPowerSeriesRing` (whose base
+    Note that it is just a :class:`LazyTaylorSeriesRing` (whose base
     ring is `\Lambda`) whose elements have some extra methods.
 
     EXAMPLES::
@@ -357,10 +352,10 @@ def CycleIndexSeriesRing(R):
         sage: R is CycleIndexSeriesRing(QQ)
         True
     """
-    return CycleIndexSeriesRing_class(R)
+    return CycleIndexSeriesRing(R)
 
 
-class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
+class CycleIndexSeriesRing(LazyTaylorSeriesRing):
     def __init__(self, R):
         """
         EXAMPLES::
@@ -372,7 +367,7 @@ class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
             True
         """
         R = SymmetricFunctions(R).power()
-        LazyPowerSeriesRing.__init__(self, R, element_class=CycleIndexSeries)
+        LazyTaylorSeriesRing.__init__(self, R, element_class=CycleIndexSeries)
 
     def __repr__(self):
         """
@@ -385,7 +380,7 @@ class CycleIndexSeriesRing_class(LazyPowerSeriesRing):
         return "Cycle Index Series Ring over %s"%self.base_ring()
 
 
-class CycleIndexSeries(LazyPowerSeries):
+class CycleIndexSeries(LazyTaylorSeries):
     def count(self, t):
         """
         Return the number of structures corresponding to a certain cycle
@@ -504,7 +499,7 @@ class CycleIndexSeries(LazyPowerSeries):
         Returns the expansion of a cycle index series as a symmetric function in
         ``n`` variables.
 
-        Specifically, this returns a :class:`~sage.combinat.species.series.LazyPowerSeries` whose
+        Specifically, this returns a :class:`~sage.combinat.species.series.LazyTaylorSeries` whose
         ith term is obtained by calling :meth:`~sage.combinat.sf.sfa.SymmetricFunctionAlgebra_generic_Element.expand`
         on the ith term of ``self``.
 
@@ -527,7 +522,7 @@ class CycleIndexSeries(LazyPowerSeries):
 
         """
         expanded_poly_ring = self.coefficient(0).expand(n, alphabet).parent()
-        LPSR = LazyPowerSeriesRing(expanded_poly_ring)
+        LPSR = LazyTaylorSeriesRing(expanded_poly_ring)
 
         expander_gen = (LPSR.term(self.coefficient(i).expand(n, alphabet), i) for i in _integers_from(0))
 
@@ -804,7 +799,7 @@ class CycleIndexSeries(LazyPowerSeries):
             return self.parent(res_in_seq)
 
         # Finally, we use the sum_generator method to assemble these results into a single
-        # LazyPowerSeries object.
+        # LazyTaylorSeries object.
         return self.parent().sum_generator(arith_prod_coeff(n) for n in _integers_from(0))
 
     def _cycle_type(self, s):
@@ -877,7 +872,7 @@ class CycleIndexSeries(LazyPowerSeries):
         """
         Return a generator for the coefficients of the composition of this
         cycle index series and the cycle index series ``y``. This overrides
-        the method defined in ``LazyPowerSeries``.
+        the method defined in ``LazyTaylorSeries``.
 
         The notion "composition" means plethystic substitution here, as
         defined in Section 2.2 of [BLL-Intro]_.

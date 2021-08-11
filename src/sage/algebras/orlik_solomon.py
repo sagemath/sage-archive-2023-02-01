@@ -13,8 +13,6 @@ Orlik-Solomon Algebras
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-import operator
-
 from sage.misc.cachefunc import cached_method
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.categories.algebras import Algebras
@@ -606,7 +604,7 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
 
         self._groundset_action = action_on_groundset
 
-        self._side = side = kwargs.pop('side', 'left')
+        self._side = kwargs.pop('side', 'left')
         category = kwargs.pop('category', OS.category().Subobjects())
 
         def action(g, m):

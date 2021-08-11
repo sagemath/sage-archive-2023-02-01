@@ -1584,8 +1584,14 @@ class CoefficientStream_map_coefficients(CoefficientStream_unary):
             sage: g = CoefficientStream_map_coefficients(f, lambda n: n.degree() + 1, R)
             sage: [g.get_coefficient(i) for i in range(-1, 3)]
             [1, 0, 1, 1]
+
+            sage: f = CoefficientStream_coefficient_function(lambda n: n, ZZ, True, 0)
+            sage: g = CoefficientStream_map_coefficients(f, lambda n: 5, GF(3))
+            sage: [g.get_coefficient(i) for i in range(10)]
+            [0, 5, 5, 0, 5, 5, 0, 5, 5, 0]
         """
-        c = self._series[n]
+        c = self._ring(self._series[n])
         if c:
-            return self._function(self._ring(c))
+            return self._function(c)
         return c
+

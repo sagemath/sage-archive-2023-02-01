@@ -374,18 +374,31 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
         self._feature   = DatabaseKnotInfo()
         self._sobj_path = os.path.join(DOT_SAGE, 'knotinfo')
 
-    def reset_filecache(self):
+    def create_filecache(self, force=False):
         r"""
-        Reset the internal files containing the database.
+        Create the internal files containing the database.
+
+        INPUT:
+
+        - ``force`` -- optional boolean. If set to ``True`` the existing
+          file-cache is overwritten
 
         EXAMPLES::
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.reset_filecache()    # optional - database_knotinfo
+            sage: ki_db.create_filecache()    # optional - database_knotinfo
         """
         if not self._feature.is_present():
             return
+
+        if os.path.isdir(self._sobj_path):
+            # if it exists then remove it if it belongs to an older version of
+            # the database or should be reset by the user because it is damaged.
+            test_version = os.path.join(self._sobj_path, self.filename.knots.num_knots(self.version()))
+            if force or not os.path.isfile(test_version):
+                import shutil
+                shutil.rmtree(self._sobj_path)
 
         from sage.misc.temporary_file import atomic_dir
         with atomic_dir(self._sobj_path) as d:
@@ -452,7 +465,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
                 try:
                     self._num_knots =  load(num_knots_file)
                 except FileNotFoundError:
-                    self.reset_filecache()
+                    self.create_filecache()
                 self._demo = False
             else:
                 self._demo = True

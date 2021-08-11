@@ -3378,7 +3378,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         EXAMPLES::
 
-            sage: AR.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
+            sage: AR.<x, z> = AsymptoticRing(growth_group='x^ZZ * z^ZZ', coefficient_ring=ZZ)
             sage: AR.B(2*x^2, {x: 10})
             doctest:warning
             ...
@@ -3387,24 +3387,28 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             See https://trac.sagemath.org/31922 for details.
             B(2*x^2, x >= 10)
             sage: expr = 42*x^42 + x^10 + AR.B(x^2, 20); expr
-            42*x^42 + x^10 + B(x^2, x >= 20)
+            42*x^42 + x^10 + B(x^2, x >= 20, z >= 20)
+            sage: type(AR.B(x, 10))
+            <class 'sage.rings.asymptotic.asymptotic_ring.AsymptoticRing_with_category.element_class'>
+            sage: 2*z^3 + AR.B(5*z^2, {z: 20})
+            2*z^3 + B(5*z^2, z >= 20)
+            sage: (2*x).B({x: 20})
+            B(2*x, x >= 20)
+            sage: AR.B(4*x^2*z^3, valid_from=10)
+            B(4*x^2*z^3, x >= 10, z >= 10)
+            sage: AR.B(42*x^2)
+            B(42*x^2, x >= 0, z >= 0)
+
+        TESTS::
+            sage: AR(0).B(20)
+            Traceback (most recent call last):
+            ...
+            NotImplementedBZero: got B(0)
+            The error term B(0) means 0 for sufficiently large x, z.
         """
-        # examples which do not work yet
-        #     sage: type(B(x))
-        #     <class 'sage.rings.asymptotic.asymptotic_ring.AsymptoticRing_with_category.element_class'>
-        #     sage: 2*z^3 + AR.B(5*z^2, {z: 20})
-        #     sage: (2*x).B({z: 20})
-        # TESTS::
-        # tests do not work yet
-        #     sage: AR(0).B()
-        #     Traceback (most recent call last):
-        #     ...
-        #     NotImplementedOZero: got B(0)
-        #     The error term B(0) means B for sufficiently large x.
-        # """
         if not self.summands:
-            from .misc import NotImplementedOZero
-            raise NotImplementedOZero(self.parent(), exact_part=self.parent().zero())
+            from .misc import NotImplementedBZero
+            raise NotImplementedBZero(self.parent(), exact_part=self.parent().zero())
         return sum(self.parent().create_summand('B', growth=element, valid_from=valid_from)
                    for element in self.summands.elements())
 
@@ -4681,7 +4685,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
                 self.coefficient_ring)
 
     @staticmethod
-    def B(self, valid_from):
+    def B(self, valid_from=0):
         r""""
         Create a B-term.
 

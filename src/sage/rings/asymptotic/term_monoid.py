@@ -4599,12 +4599,11 @@ class BTerm(TermWithCoefficient):
         super().__init__(parent=parent, growth=growth, coefficient=coefficient)
         self.coefficient = coefficient
         if not isinstance(valid_from, dict):
-            for var in self.variable_names():
-                valid_from = {var: valid_from}
+            valid_from = dict.fromkeys(parent.growth_group.variable_names(), valid_from)
 
-        for variable in valid_from.keys():
-            if not isinstance(variable, str):
-                valid_from = {f'{variable}': valid_from[variable]}
+        for variable_name in valid_from.keys():
+            if not isinstance(variable_name, str):
+                valid_from = {f'{variable_name}': valid_from[variable_name]}
 
         for variable_name in valid_from.keys():
             if variable_name not in parent.growth_group.variable_names():

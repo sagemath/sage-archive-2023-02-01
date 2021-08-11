@@ -1490,7 +1490,9 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
             return self._ainv
         c = self._zero
         for k in range(v, n):
-            c += self[k] * self._series[n - v - k]
+            l = self[k]
+            if l:
+                c += l * self._series[n - v - k]
         return -c * self._ainv
 
     def iterate_coefficients(self):
@@ -1515,9 +1517,13 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
             c = self._zero
             m = min(len(self._cache), n)
             for k in range(m):
-                c += self._cache[k] * self._series[n - v - k]
+                l = self._cache[k]
+                if l:
+                    c += l * self._series[n - v - k]
             for k in range(v+m, v+n):
-                c += self[k] * self._series[n - k]
+                l = self[k]
+                if l:
+                    c += l * self._series[n - k]
             yield -c * self._ainv
 
 
@@ -1579,6 +1585,7 @@ class CoefficientStream_map_coefficients(CoefficientStream_unary):
             sage: [g.get_coefficient(i) for i in range(-1, 3)]
             [1, 0, 1, 1]
         """
-        return self._function(self._ring(self._series[n])) if self._series[n] else self._series[n]
-
-
+        c = self._series[n]
+        if c:
+            return self._function(self._ring(c))
+        return c

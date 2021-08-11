@@ -715,14 +715,14 @@ class LazyModuleElement(Element):
             return P.zero()
         return P.element_class(P, CoefficientStream_sub(self._coeff_stream, other._coeff_stream))
 
-    def _lmul_(self, scalar):
+    def _acted_upon_(self, scalar, self_on_left):
         r"""
-        Scalar multiplication for module elements with the module
-        element on the left and the scalar on the right.
+        Scalar multiplication for ``self`` by ``scalar``.
 
         INPUT:
 
         - ``scalar`` -- an element of the base ring
+        - ``self_on_left`` -- boolean; if ``True``, compute ``self * scalar``
 
         EXAMPLES:
 
@@ -733,10 +733,21 @@ class LazyModuleElement(Element):
             sage: O = M * 2
             sage: O[0:10]
             [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-            sage: M * 1== M
+            sage: type(O._coeff_stream)
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_rmul'>
+            sage: M * 1 is M
             True
-            sage: M * 0
-            0
+            sage: M * 0 == 0
+            True
+            sage: O = 2 * M
+            sage: type(O._coeff_stream)
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_rmul'>
+            sage: O[0:10]
+            [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+            sage: 1 * M is M
+            True
+            sage: 0 * M == 0
+            True
 
         Sparse series can be multiplied with a scalar::
 
@@ -745,101 +756,76 @@ class LazyModuleElement(Element):
             sage: O = M * 2
             sage: O[0:10]
             [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-            sage: M * 1== M
+            sage: type(O._coeff_stream)
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_rmul'>
+            sage: M * 1 is M
             True
-            sage: M * 0
-            0
+            sage: M * 0 == 0
+            True
+            sage: O = 2 * M
+            sage: type(O._coeff_stream)
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_rmul'>
+            sage: O[0:10]
+            [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+            sage: 1 * M is M
+            True
+            sage: 0 * M == 0
+            True
 
-        Series which are known to be exact can be multiplied with a scalar::
+        Series which are known to be exact can be multiplied with a scalar
+        and remain exact::
 
-            sage: N = L([0, 1])
+            sage: N = L([0, 1], degree=5, constant=3)
             sage: O = N * -1
             sage: O[0:10]
-            [0, -1, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: N * 1 == N
+            [0, -1, 0, 0, 0, -3, -3, -3, -3, -3]
+            sage: N * 1 is N
             True
-            sage: N * 0
-            0
-        """
-        P = self.parent()
-        if not scalar:
-            return P.zero()
-        if scalar == 1:
-            return self
-
-        if isinstance(self._coeff_stream, CoefficientStream_exact):
-            c = self._coeff_stream._constant * scalar
-            v = self._coeff_stream.order()
-            init_coeffs = self._coeff_stream._initial_coefficients
-            initial_coefficients = [val * scalar for val in init_coeffs]
-            return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
-                                                              order=v, constant=c,
-                                                              degree=self._coeff_stream._degree))
-        return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
-
-    def _rmul_(self, scalar):
-        r"""
-        Scalar multiplication for module elements with the module
-        element on the right and the scalar on the left.
-
-        INPUT:
-
-        - ``scalar`` -- an element of the base ring
-
-        EXAMPLES:
-
-        Dense series can be multiplied with a scalar::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
-            sage: M = L(lambda n: 1 + n, valuation=0)
-            sage: O = 2 * M
-            sage: O[0:10]
-            [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-            sage: 1 * M == M
+            sage: N * 0 == 0
             True
-            sage: 0 * M
-            0
-
-        Sparse series can be multiplied with a scalar::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: 1 + n, valuation=0)
-            sage: O = 2 * M
-            sage: O[0:10]
-            [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
-            sage: 1 * M == M
-            True
-            sage: 0 * M
-            0
-
-        Series which are known to be exact can be multiplied with a scalar::
-
-            sage: N = L([0, 1])
             sage: O = -1 * N
             sage: O[0:10]
-            [0, -1, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: 1 * N == N
+            [0, -1, 0, 0, 0, -3, -3, -3, -3, -3]
+            sage: 1 * N is N
             True
-            sage: 0 * N
-            0
+            sage: 0 * N == 0
+            True
         """
+        # With the current design, the coercion model does not have
+        # enough information to detect a priori that this method only
+        # accepts scalars; so it tries on some elements(), and we need
+        # to make sure to report an error.
         P = self.parent()
+        R = P.base_ring()
+        if isinstance(scalar, Element) and scalar.parent() is not R:
+            # Temporary needed by coercion (see Polynomial/FractionField tests).
+            if R.has_coerce_map_from(scalar.parent()):
+                scalar = R(scalar)
+            else:
+                return None
+
         if not scalar:
             return P.zero()
-        if scalar == 1:
+        if scalar == R.one():
             return self
+        if scalar == -R.one():
+            return -self
 
         if isinstance(self._coeff_stream, CoefficientStream_exact):
-            c = scalar * self._coeff_stream._constant
             v = self._coeff_stream.order()
             init_coeffs = self._coeff_stream._initial_coefficients
-            initial_coefficients = [scalar * val for val in init_coeffs]
+            if self_on_left:
+                c = self._coeff_stream._constant * scalar
+                initial_coefficients = [val * scalar for val in init_coeffs]
+            else:
+                c = scalar * self._coeff_stream._constant
+                initial_coefficients = [scalar * val for val in init_coeffs]
             return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
                                                               order=v, constant=c,
                                                               degree=self._coeff_stream._degree))
-        if P.base_ring().is_commutative():
-            return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
-        return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
+        if self_on_left or R.is_commutative():
+            return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
+        return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
 
     def _neg_(self):
         """
@@ -896,6 +882,10 @@ class LazyModuleElement(Element):
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             sage: O == M
             True
+
+            sage: N = L([0, 1], degree=5, constant=2)
+            sage: -N
+            -z - 2*z^5 - 2*z^6 - 2*z^7 + O(z^8)
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
@@ -904,6 +894,7 @@ class LazyModuleElement(Element):
             constant = -coeff_stream._constant
             coeff_stream = CoefficientStream_exact(initial_coefficients, P._sparse,
                                                    constant=constant,
+                                                   degree=coeff_stream._degree,
                                                    order=coeff_stream.order())
             return P.element_class(P, coeff_stream)
         # -(-f) = f

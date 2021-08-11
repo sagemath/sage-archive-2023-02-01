@@ -394,7 +394,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
 
-        Checking the valuation is consistant::
+        Checking the valuation is consistent::
 
             sage: L([0,0,2,3], valuation=-4)
             2*z^-4 + 3*z^-3

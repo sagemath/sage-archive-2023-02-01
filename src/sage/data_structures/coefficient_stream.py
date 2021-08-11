@@ -118,10 +118,10 @@ class CoefficientStream():
     INPUT:
 
     - ``sparse`` -- boolean; whether the implementation of the stream is sparse
-    - ``approximate_valuation`` -- integer; a lower bound for the valuation
+    - ``approximate_order`` -- integer; a lower bound for the order
       of the stream
     """
-    def __init__(self, sparse, approximate_valuation):
+    def __init__(self, sparse, approximate_order):
         """
         Initialize ``self``.
 
@@ -131,7 +131,7 @@ class CoefficientStream():
             sage: CS = CoefficientStream(True, 1)
         """
         self._is_sparse = sparse
-        self._approximate_valuation = approximate_valuation
+        self._approximate_order = approximate_order
 
 
 class CoefficientStream_inexact(CoefficientStream):
@@ -142,10 +142,10 @@ class CoefficientStream_inexact(CoefficientStream):
     INPUT:
 
     - ``sparse`` -- boolean; whether the implementation of the stream is sparse
-    - ``approximate_valuation`` -- integer; a lower bound for the valuation
+    - ``approximate_order`` -- integer; a lower bound for the order
       of the stream
     """
-    def __init__(self, is_sparse, approximate_valuation):
+    def __init__(self, is_sparse, approximate_order):
         """
         Initialize the stream class for a CoefficientStream when it is not
         or it cannot be determined if it is eventually geometric.
@@ -158,13 +158,13 @@ class CoefficientStream_inexact(CoefficientStream):
             sage: isinstance(g, CoefficientStream_inexact)
             True
         """
-        super().__init__(is_sparse, approximate_valuation)
+        super().__init__(is_sparse, approximate_order)
 
         if self._is_sparse:
             self._cache = dict()  # cache of known coefficients
         else:
             self._cache = list()
-            self._offset = approximate_valuation
+            self._offset = approximate_order
             self._iter = self.iterate_coefficients()
 
     def __getstate__(self):
@@ -268,7 +268,7 @@ class CoefficientStream_inexact(CoefficientStream):
             sage: f._cache
             [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
         """
-        if n < self._approximate_valuation:
+        if n < self._approximate_order:
             return ZZ.zero()
 
         if self._is_sparse:
@@ -303,48 +303,49 @@ class CoefficientStream_inexact(CoefficientStream):
             sage: [next(n) for i in range(10)]
             [1, 9, 44, 207, 991, 4752, 22769, 109089, 522676, 2504295]
         """
-        n = self._approximate_valuation
+        n = self._approximate_order
         while True:
             yield self.get_coefficient(n)
             n += 1
 
-    def valuation(self):
-        """
-        Return the valuation of ``self``.
+    def order(self):
+        r"""
+        Return the order of ``self``, which is the minimum index ``n`` such
+        that ``self[n]`` is nonzero.
 
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function
             sage: f = CoefficientStream_coefficient_function(lambda n: n, QQ, True, 0)
-            sage: f.valuation()
+            sage: f.order()
             1
         """
         if self._is_sparse:
-            n = self._approximate_valuation
+            n = self._approximate_order
             cache = self._cache
             while True:
                 if n in cache:
                     if cache[n]:
-                        self._approximate_valuation = n
+                        self._approximate_order = n
                         return n
                     n += 1
                 else:
                     if self[n] != 0:
-                        self._approximate_valuation = n
+                        self._approximate_order = n
                         return n
                     n += 1
         else:
-            n = self._approximate_valuation
+            n = self._approximate_order
             cache = self._cache
             while True:
                 if n - self._offset < len(cache):
                     if cache[n - self._offset]:
-                        self._approximate_valuation = n
+                        self._approximate_order = n
                         return n
                     n += 1
                 else:
                     if self[n] != 0:
-                        self._approximate_valuation = n
+                        self._approximate_order = n
                         return n
                     n += 1
 
@@ -357,14 +358,14 @@ class CoefficientStream_exact(CoefficientStream):
 
     - ``initial_values`` -- a list of initial values
     - ``is_sparse`` -- boolean; specifies whether the stream is sparse
-    - ``valuation`` -- integer (default: 0); determining the degree
+    - ``order`` -- integer (default: 0); determining the degree
       of the first element of ``initial_values``
     - ``degree`` -- integer (optional); determining the degree
       of the first element which is known to be equal to ``constant``
     - ``constant`` -- integer (default: 0); the coefficient
       of every index larger than or equal to ``degree``
     """
-    def __init__(self, initial_coefficients, is_sparse, constant=None, degree=None, valuation=None):
+    def __init__(self, initial_coefficients, is_sparse, constant=None, degree=None, order=None):
         """
         Initialize a series that is known to be eventually geometric.
 
@@ -380,21 +381,21 @@ class CoefficientStream_exact(CoefficientStream):
             self._constant = ZZ.zero()
         else:
             self._constant = constant
-        if valuation is None:
-            valuation = 0
+        if order is None:
+            order = 0
         if degree is None:
-            self._degree = valuation + len(initial_coefficients)
+            self._degree = order + len(initial_coefficients)
         else:
             self._degree = degree
 
-        assert valuation + len(initial_coefficients) <= self._degree
+        assert order + len(initial_coefficients) <= self._degree
 
         # We do not insist that the last entry of initial_coefficients
         #   is different from constant in case comparisons can be
         #   expensive such as in the symbolic ring
         for i, v in enumerate(initial_coefficients):
             if v:
-                valuation += i
+                order += i
                 initial_coefficients = initial_coefficients[i:]
                 for j, w in enumerate(reversed(initial_coefficients)):
                     if w:
@@ -403,12 +404,12 @@ class CoefficientStream_exact(CoefficientStream):
                 self._initial_coefficients = tuple(initial_coefficients)
                 break
         else:
-            valuation = self._degree
+            order = self._degree
             self._initial_coefficients = tuple()
 
         assert self._initial_coefficients or self._constant, "CoefficientStream_exact should only be used for non-zero streams"
 
-        super().__init__(is_sparse, valuation)
+        super().__init__(is_sparse, order)
 
     def __getitem__(self, n):
         """
@@ -433,37 +434,38 @@ class CoefficientStream_exact(CoefficientStream):
             sage: [s[i] for i in range(-2, 5)]
             [0, 0, 2, 1, 1, 1, 1]
 
-            sage: s = CoefficientStream_exact([2], False, valuation=-1, constant=1)
+            sage: s = CoefficientStream_exact([2], False, order=-1, constant=1)
             sage: [s[i] for i in range(-2, 5)]
             [0, 2, 1, 1, 1, 1, 1]
 
-            sage: s = CoefficientStream_exact([2], False, valuation=-1, degree=2, constant=1)
+            sage: s = CoefficientStream_exact([2], False, order=-1, degree=2, constant=1)
             sage: [s[i] for i in range(-2, 5)]
             [0, 2, 0, 0, 1, 1, 1]
 
-            sage: t = CoefficientStream_exact([0, 2, 0], False, valuation=-2, degree=2, constant=1)
+            sage: t = CoefficientStream_exact([0, 2, 0], False, order=-2, degree=2, constant=1)
             sage: t == s
             True
         """
         if n >= self._degree:
             return self._constant
-        i = n - self._approximate_valuation
+        i = n - self._approximate_order
         if i < 0 or i >= len(self._initial_coefficients):
             return ZZ.zero()
         return self._initial_coefficients[i]
 
-    def valuation(self):
-        """
-        Return the valuation of ``self``.
+    def order(self):
+        r"""
+        Return the order of ``self``, which is the minimum index ``n`` such
+        that ``self[n]`` is nonzero.
 
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
             sage: s = CoefficientStream_exact([1], False)
-            sage: s.valuation()
+            sage: s.order()
             0
         """
-        return self._approximate_valuation
+        return self._approximate_order
 
     def __hash__(self):
         """
@@ -489,7 +491,7 @@ class CoefficientStream_exact(CoefficientStream):
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: s = CoefficientStream_exact([2], False, valuation=-1, degree=2, constant=1)
+            sage: s = CoefficientStream_exact([2], False, order=-1, degree=2, constant=1)
             sage: t = CoefficientStream_exact([0, 2, 0], False, 1, 2, -2)
             sage: [s[i] for i in range(10)]
             [0, 0, 1, 1, 1, 1, 1, 1, 1, 1]
@@ -498,7 +500,7 @@ class CoefficientStream_exact(CoefficientStream):
             sage: s == t
             True
             sage: s = CoefficientStream_exact([2], False, constant=1)
-            sage: t = CoefficientStream_exact([2], False, valuation=-1, constant=1)
+            sage: t = CoefficientStream_exact([2], False, order=-1, constant=1)
             sage: [s[i] for i in range(10)]
             [2, 1, 1, 1, 1, 1, 1, 1, 1, 1]
             sage: [t[i] for i in range(10)]
@@ -520,12 +522,12 @@ class CoefficientStream_exact(CoefficientStream):
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: s = CoefficientStream_exact([2], False, valuation=-1, degree=2, constant=1)
+            sage: s = CoefficientStream_exact([2], False, order=-1, degree=2, constant=1)
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: s.polynomial_part(L._laurent_poly_ring)
             2*z^-1
         """
-        v = self._approximate_valuation
+        v = self._approximate_order
         return R(self._initial_coefficients).shift(v)
 
 
@@ -539,7 +541,7 @@ class CoefficientStream_coefficient_function(CoefficientStream_inexact):
       coefficients of the stream
     - ``ring`` -- the base ring
     - ``is_sparse`` -- boolean; specifies whether the stream is sparse
-    - ``approximate_valuation`` -- integer; a lower bound for the valuation
+    - ``approximate_order`` -- integer; a lower bound for the order
       of the stream
 
     EXAMPLES::
@@ -552,7 +554,7 @@ class CoefficientStream_coefficient_function(CoefficientStream_inexact):
         [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
     """
 
-    def __init__(self, coefficient_function, ring, is_sparse, approximate_valuation):
+    def __init__(self, coefficient_function, ring, is_sparse, approximate_order):
         """
         Initialize.
 
@@ -564,7 +566,7 @@ class CoefficientStream_coefficient_function(CoefficientStream_inexact):
         """
         self._coefficient_function = coefficient_function
         self._ring = ring
-        super().__init__(is_sparse, approximate_valuation)
+        super().__init__(is_sparse, approximate_order)
 
     def get_coefficient(self, n):
         """
@@ -609,7 +611,7 @@ class CoefficientStream_uninitialized(CoefficientStream_inexact):
     INPUT:
 
     - ``is_sparse`` -- boolean; which specifies whether the stream is sparse
-    - ``approximate_valuation`` -- integer; a lower bound for the valuation
+    - ``approximate_order`` -- integer; a lower bound for the order
       of the stream
 
     EXAMPLES::
@@ -623,7 +625,7 @@ class CoefficientStream_uninitialized(CoefficientStream_inexact):
         sage: C.get_coefficient(4)
         0
     """
-    def __init__(self, is_sparse, approximate_valuation):
+    def __init__(self, is_sparse, approximate_order):
         """
         Initialize ``self``.
 
@@ -634,7 +636,7 @@ class CoefficientStream_uninitialized(CoefficientStream_inexact):
             sage: TestSuite(C).run(skip="_test_pickling")
         """
         self._target = None
-        super().__init__(is_sparse, approximate_valuation)
+        super().__init__(is_sparse, approximate_order)
 
     def get_coefficient(self, n):
         """
@@ -665,7 +667,7 @@ class CoefficientStream_uninitialized(CoefficientStream_inexact):
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_uninitialized
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
-            sage: z = CoefficientStream_exact([1], True, valuation=1)
+            sage: z = CoefficientStream_exact([1], True, order=1)
             sage: C = CoefficientStream_uninitialized(True, 0)
             sage: C._target
             sage: C._target = z
@@ -673,7 +675,7 @@ class CoefficientStream_uninitialized(CoefficientStream_inexact):
             sage: [next(n) for _ in range(10)]
             [0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
         """
-        n = self._approximate_valuation
+        n = self._approximate_order
         while True:
             yield self._target[n]
             n += 1
@@ -955,15 +957,15 @@ class CoefficientStream_zero(CoefficientStream):
         """
         return ZZ.zero()
 
-    def valuation(self):
-        """
-        Return the valuation of ``self``.
+    def order(self):
+        r"""
+        Return the order of ``self``, which is ``infinity``.
 
         EXAMPLES::
 
             sage: from sage.data_structures.coefficient_stream import CoefficientStream_zero
             sage: s = CoefficientStream_zero(True)
-            sage: s.valuation()
+            sage: s.order()
             +Infinity
         """
         return infinity
@@ -1037,7 +1039,7 @@ class CoefficientStream_add(CoefficientStream_binary_commutative):
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
 
-        a = min(left._approximate_valuation, right._approximate_valuation)
+        a = min(left._approximate_order, right._approximate_order)
         super().__init__(left, right, left._is_sparse, a)
 
     def get_coefficient(self, n):
@@ -1098,7 +1100,7 @@ class CoefficientStream_sub(CoefficientStream_binary):
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
 
-        a = min(left._approximate_valuation, right._approximate_valuation)
+        a = min(left._approximate_order, right._approximate_order)
         super().__init__(left, right, left._is_sparse, a)
 
     def get_coefficient(self, n):
@@ -1162,7 +1164,7 @@ class CoefficientStream_cauchy_product(CoefficientStream_binary):
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
 
-        a = left._approximate_valuation + right._approximate_valuation
+        a = left._approximate_order + right._approximate_order
         super().__init__(left, right, left._is_sparse, a)
 
     def get_coefficient(self, n):
@@ -1185,8 +1187,8 @@ class CoefficientStream_cauchy_product(CoefficientStream_binary):
             [0, 0, 1, 6, 20, 50, 105, 196, 336, 540]
         """
         c = ZZ.zero()
-        for k in range(self._left._approximate_valuation,
-                       n - self._right._approximate_valuation + 1):
+        for k in range(self._left._approximate_order,
+                       n - self._right._approximate_order + 1):
             val = self._left[k]
             if val:
                 c += val * self._right[n-k]
@@ -1194,10 +1196,8 @@ class CoefficientStream_cauchy_product(CoefficientStream_binary):
 
 
 class CoefficientStream_dirichlet_convolution(CoefficientStream_binary_commutative):
-    """Operator for the convolution of two coefficient streams.
-
-    We are assuming commutativity of the coefficient ring here.
-    Moreover, the valuation must be non-negative.
+    """
+    Operator for the convolution of two coefficient streams.
 
     INPUT:
 
@@ -1205,8 +1205,7 @@ class CoefficientStream_dirichlet_convolution(CoefficientStream_binary_commutati
     - ``right`` -- stream of coefficients on the right side of the operator
 
     The coefficient of `n^{-s}` in the convolution of `l` and `r`
-    equals `\sum_{k | n} l_k r_{n/k}`.  Note that `l[n]` yields the
-    coefficient of `(n+1)^{-s}`!
+    equals `\sum_{k | n} l_k r_{n/k}`.
 
     EXAMPLES::
 
@@ -1231,10 +1230,10 @@ class CoefficientStream_dirichlet_convolution(CoefficientStream_binary_commutati
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
 
-        assert left._approximate_valuation > 0 and right._approximate_valuation > 0, "Dirichlet convolution is only defined for coefficient streams with valuation at least 1"
+        assert left._approximate_order > 0 and right._approximate_order > 0, "Dirichlet convolution is only defined for coefficient streams with minimal index of nonzero coefficient at least 1"
 
-        vl = left._approximate_valuation
-        vr = right._approximate_valuation
+        vl = left._approximate_order
+        vr = right._approximate_order
         a = vl * vr
         super().__init__(left, right, left._is_sparse, a)
 
@@ -1320,7 +1319,7 @@ class CoefficientStream_composition(CoefficientStream_binary):
     INPUT:
 
     - ``f`` -- a :class:`CoefficientStream`
-    - ``g`` -- a :class:`CoefficientStream` with positive valuation
+    - ``g`` -- a :class:`CoefficientStream` with positive order
 
     EXAMPLES::
 
@@ -1345,9 +1344,9 @@ class CoefficientStream_composition(CoefficientStream_binary):
             sage: g = CoefficientStream_coefficient_function(lambda n: n^2, ZZ, True, 1)
             sage: h = CoefficientStream_composition(f, g)
         """
-        assert g._approximate_valuation > 0
-        self._fv = f._approximate_valuation
-        self._gv = g._approximate_valuation
+        assert g._approximate_order > 0
+        self._fv = f._approximate_order
+        self._gv = g._approximate_order
         if self._fv < 0:
             ginv = CoefficientStream_cauchy_inverse(g)
             # the constant part makes no contribution to the negative
@@ -1424,7 +1423,7 @@ class CoefficientStream_rmul(CoefficientStream_unary):
             sage: g = CoefficientStream_rmul(f, 3)
         """
         self._scalar = scalar
-        super().__init__(series, series._is_sparse, series._approximate_valuation)
+        super().__init__(series, series._is_sparse, series._approximate_order)
 
     def get_coefficient(self, n):
         """
@@ -1478,7 +1477,7 @@ class CoefficientStream_lmul(CoefficientStream_unary):
             sage: g = CoefficientStream_lmul(f, 3)
         """
         self._scalar = scalar
-        super().__init__(series, series._is_sparse, series._approximate_valuation)
+        super().__init__(series, series._is_sparse, series._approximate_order)
 
     def get_coefficient(self, n):
         """
@@ -1528,7 +1527,7 @@ class CoefficientStream_neg(CoefficientStream_unary):
             sage: f = CoefficientStream_coefficient_function(lambda n: -1, ZZ, True, 0)
             sage: g = CoefficientStream_neg(f)
         """
-        super().__init__(series, series._is_sparse, series._approximate_valuation)
+        super().__init__(series, series._is_sparse, series._approximate_order)
 
     def get_coefficient(self, n):
         """
@@ -1577,7 +1576,7 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
             sage: f = CoefficientStream_exact([1, -1], False)
             sage: g = CoefficientStream_cauchy_inverse(f)
         """
-        v = series.valuation()
+        v = series.order()
         super().__init__(series, series._is_sparse, -v)
 
         self._ainv = ~series[v]
@@ -1601,7 +1600,7 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
             sage: [g.get_coefficient(i) for i in range(10)]
             [-2, 1, 0, 0, 0, 0, 0, 0, 0, 0]
         """
-        v = self._approximate_valuation
+        v = self._approximate_order
         if n == v:
             return self._ainv
         c = self._zero
@@ -1624,8 +1623,8 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
             sage: [next(n) for i in range(10)]
             [1, -4, 7, -8, 8, -8, 8, -8, 8, -8]
         """
-        v = self._approximate_valuation  # shorthand name
-        n = 0  # Counts the number of places from the valuation
+        v = self._approximate_order  # shorthand name
+        n = 0  # Counts the number of places from the order
         yield self._ainv
         # Note that first entry of the cache will correspond to z^v
         while True:
@@ -1675,7 +1674,7 @@ class CoefficientStream_map_coefficients(CoefficientStream_unary):
         """
         self._function = function
         self._ring = ring
-        super().__init__(series, series._is_sparse, series._approximate_valuation)
+        super().__init__(series, series._is_sparse, series._approximate_order)
 
     def get_coefficient(self, n):
         """

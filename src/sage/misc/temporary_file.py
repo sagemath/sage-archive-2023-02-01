@@ -437,35 +437,45 @@ class atomic_write(object):
 #################################################################
 class atomic_dir(object):
     """
-    Write to a given directory using a temporary directory and then
-    rename it to the target directory.
+    Write to a given directory using a temporary directory and then rename it
+    to the target directory. This is for creating a directory whose contents
+    are determined uniquely by the directory name. If multiple threads or
+    processes attempt to create it in parallel, then it does not matter which
+    thread created it. Despite this assumption the contents of the directories
+    differ in the examples for demonstration purpose.
 
     See also :class:`atomic_write`.
 
     INPUT:
 
     - ``target_directory`` -- the name of the directory to be written.
-      Normally, the contents of this directory will be overwritten.
+      If it exists then the previous contents will be kept.
 
     EXAMPLES::
 
         sage: from sage.misc.temporary_file import atomic_dir
         sage: target_dir = tmp_dir()
-        sage: os.mkdir('target_dir')
-        sage: target_file = os.path.join(target_dir, 'test')
-        sage: with open(target_file, 'w') as f:
-        ....:     _ = f.write("Old contents")
         sage: with atomic_dir(target_dir) as d:
-        ....:     target_file2 = os.path.join(d.name, 'test')
-        ....:     with open(target_file2, 'w') as f2:
-        ....:        _ = f2.write("New contents")
-        ....:        f2.flush()
+        ....:     target_file = os.path.join(d.name, 'test')
+        ....:     with open(target_file, 'w') as f:
+        ....:        _ = f.write("First")
+        ....:        f.flush()
+        ....:     with atomic_dir(target_dir) as e:
+        ....:         target_file2 = os.path.join(e.name, 'test')
+        ....:         with open(target_file2, 'w') as g:
+        ....:            _ = g.write("Second")
+        ....:            g.flush()
         ....:     with open(target_file, 'r') as f:
         ....:         f.read()
-        'Old contents'
-        sage: with open(target_file, 'r') as f:
-        ....:     f.read()
-        'New contents'
+        'First'
+        sage: with atomic_dir(target_dir) as d:
+        ....:     target_file = os.path.join(d.name, 'test')
+        ....:     with open(target_file, 'w') as f:
+        ....:        _ = f.write("Third")
+        sage: target = os.path.join(target_dir, 'test')
+        sage: with open(target, 'r') as h:
+        ....:     h.read()
+        'Second'
     """
     def __init__(self, target_directory):
         r"""
@@ -528,8 +538,8 @@ class atomic_dir(object):
             try:
                 os.rename(self.tempname, self.target)
             except OSError:
-                shutil.rmtree(self.target)
-                os.rename(self.tempname, self.target)
+                # Race: Another thread or process must have created the directory
+                pass
         else:
             # Failure: delete temporary file
             shutil.rmtree(self.tempname)

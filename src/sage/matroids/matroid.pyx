@@ -345,8 +345,6 @@ from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.matroids.lean_matrix cimport BinaryMatrix, TernaryMatrix
 from sage.misc.prandom import shuffle
 
-cimport cython
-
 # On some systems, macros "minor()" and "major()" are defined in system header
 # files. This will undefine those:
 cdef extern from "minorfix.h":

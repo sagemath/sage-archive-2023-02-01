@@ -434,8 +434,13 @@ class CoxeterGroup(UniqueRepresentation, Parent):
         the element ``w``. Computes left cells by default; use the optional
         argument ``side`` to specify right or two-sided cells.
 
-        This method products in the `C^{\prime}` basis by using the
-        :class:`IwahoriHeckeAlgebra.CpC` basis.
+        Two elements `x,y` of a Coxeter group `W` are said lie in the same left Kazhdan-Lusztig cell if there exist
+        sequences `x=w_1, w_2, ..., w_k=y` and `y=u_1, u_2, ..., u_l=x` such that for all `1 \leq i < k` and all `1
+        \leq j < l`, there exist some Coxeter generators `s,t` for which `C'_{w_{i+1}}` appears in `C'_sC'_{w_i}`
+        and `C'_{u_{j+1}}` appears in `C'_sC'_{u_j}` in the Hecke algebra of the Coxeter group, where `C'` denotes
+        the Kazhdan-Lusztig `C^{\prime}`-basis. Right and two-sided Kazhdan-Lusztig cells of `W` are defined
+        similarly. In this function, we compute products of the form `C_sC_w` using the function
+        :func:`product_on_basis` of the class :class:`IwahoriHeckeAlgebra.Cp_Coxeter3`. 
 
         INPUT:
 
@@ -454,8 +459,6 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             {[2, 1, 2], [2, 3, 2, 1, 2], [3, 2, 1, 2]}
             sage: W.kazhdan_lusztig_cell(s2*s3*s2)                      # optional - coxeter3
             {[1, 2], [1, 2, 3, 2], [2], [2, 3, 2], [3, 2]}
-            sage: W.kazhdan_lusztig_cell(s1*s2*s3)                      # optional - coxeter3
-            {[1, 2, 3], [2, 3], [3], [3, 2, 3]}
             sage: W.kazhdan_lusztig_cell(s3)                            # optional - coxeter3
             {[1, 2, 3], [2, 3], [3], [3, 2, 3]}
             sage: W.kazhdan_lusztig_cell(s3, side='right')              # optional - coxeter3

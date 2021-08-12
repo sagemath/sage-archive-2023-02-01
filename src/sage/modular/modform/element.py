@@ -3607,7 +3607,15 @@ class GradedModularFormElement(ModuleElement):
             Traceback (most recent call last):
             ...
             ValueError: the given graded form is not homogeneous (not a modular form)
+            sage: E4 = ModularForms(1, 4, GF(7)).0
+            sage: M = ModularFormsRing(1, GF(7))
+            sage: M(E4).to_polynomial()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion to polynomial are not implemented if the base ring is not Q
         """
+        if not self.base_ring() == QQ:
+            raise NotImplementedError("conversion to polynomial are not implemented if the base ring is not Q")
         M = self.parent()
         k = self.weight() #only if self is homogeneous
         poly_parent = M.polynomial_ring(names, gens)

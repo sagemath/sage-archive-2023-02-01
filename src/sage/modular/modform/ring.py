@@ -407,10 +407,20 @@ class ModularFormsRing(Parent):
             sage: M.from_polynomial(P(1/2))
             1/2
 
+        TESTS::
+
+            sage: x,y = polygens(GF(7), 'x, y')
+            sage: ModularFormsRing(1, GF(7))(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion from polynomial is not implemented if the base ring is not Q
+
         ..TODO::
 
             * add conversion for symbolic expressions?
         """
+        if not self.base_ring() == QQ: # this comes from the method gens_form
+            raise NotImplementedError("conversion from polynomial is not implemented if the base ring is not Q")
         if not isinstance(pol, (MPolynomial, Polynomial)):
             raise TypeError('`pol` must be a polynomial')
         if pol.is_constant():

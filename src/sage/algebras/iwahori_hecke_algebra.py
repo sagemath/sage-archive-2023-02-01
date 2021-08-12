@@ -10,8 +10,8 @@ AUTHORS:
   Kazhdan-Lusztig `C` and `C^{\prime}` bases
 
 - Chase Meadors, Tianyuan Xu (2021):
-  Implemented direct computation of products in the 
-  `C^{\prime}` basis using du Cloux's Coxeter3 package 
+  Implemented direct computation of products in the
+  `C^{\prime}` basis using du Cloux's Coxeter3 package
 
 """
 # ****************************************************************************
@@ -2026,7 +2026,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         generator of the Coxeter group and `w` an arbitrary element, are key to
         this class. The formulas are valid for both the standard and normalized
         presentation of the Hecke algebra, and they control the products of the
-        `C^{\prime}_x \cdot C^{\prime}_y` for arbitrary `x,y`.  
+        `C^{\prime}_x \cdot C^{\prime}_y` for arbitrary `x,y`.
 
         .. MATH:: C^{\prime}_s \cdot C^{\prime}_w = \begin{cases}
             (q+q^-1)C^{\prime}_{w},         & \text{if } \ell(sw) = \ell(w)-1,\\
@@ -2034,11 +2034,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                                                 & \text{if } \ell(sw) =
                                                 \ell(w)+1. \end{cases}
 
-            C^{\prime}_w \cdot C^{\prime}_s = 
+            C^{\prime}_w \cdot C^{\prime}_s =
             \begin{cases}
                 (q+q^-1)C^{\prime}_{w},         & \text{if } \ell(ws) = \ell(w)-1,\\
-                C^{\prime}_{ws}+\sum_{v\leq w, vs \leq v} \mu(v,w)C^{\prime}_v, 
-                                                & \text{if } \ell(ws) = \ell(w)+1. 
+                C^{\prime}_{ws}+\sum_{v\leq w, vs \leq v} \mu(v,w)C^{\prime}_v,
+                                                & \text{if } \ell(ws) = \ell(w)+1.
             \end{cases}
 
         In the above, `\leq` is the Bruhat order on the Coxeter group and
@@ -2119,7 +2119,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             (v^-2+2+v^2)*CpC[1,2,1,3,7,8,7,9,8,7]
             + (v^-2+2+v^2)*CpC[1,2,1,3,8,9,8,7]
             + (v^-3+3*v^-1+3*v+v^3)*CpC[1,2,1,3,8,9,8]
-        
+
 
         Below is another example, with the Hecke algebra of type `B_9` in the
         normalized presentation. The (optional) relabeling command ensures that
@@ -2162,7 +2162,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         be created first with ``implementation='coxeter3'``. Directly creating a
         Hecke algebra from its Coxeter type does not work::
 
-            sage: H = IwahoriHeckeAlgebra('A3', v**2)   # optional - coxeter3  
+            sage: H = IwahoriHeckeAlgebra('A3', v**2)   # optional - coxeter3
             sage: H.Cp_Coxeter3()                       # optional - coxeter3
             Traceback (most recent call last):
             ...
@@ -2172,7 +2172,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         with the standard or normalized presentation mentioned before::
 
             sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
-            sage: H = IwahoriHeckeAlgebra(W, QQ(1))                     # optional - coxeter3        
+            sage: H = IwahoriHeckeAlgebra(W, QQ(1))                     # optional - coxeter3
             sage: H.Cp_Coxeter3()                                       # optional - coxeter3
             Traceback (most recent call last):
             ...
@@ -2220,7 +2220,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Invalid construction (bad presentation for Hecke algebra)::
 
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
-                sage: H = IwahoriHeckeAlgebra(W, QQ(1))                     # optional - coxeter3       
+                sage: H = IwahoriHeckeAlgebra(W, QQ(1))                     # optional - coxeter3
                 sage: H.Cp_Coxeter3()                                       # optional - coxeter3
                 Traceback (most recent call last):
                 ...
@@ -2317,10 +2317,10 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
                         element += x.mu_coefficient(w) * self.monomial(x_elt)
                 longer_word = self._W([s]) * w if side == 'left' else w * self._W([s])
                 return self.monomial(longer_word) + element
-        
-        def _product_with_generator(self, s, x, side='left'): 
-            r""" 
-            Compute the product of `C^{\prime}_s` with any linear combination of `C^{\prime}`-basis elements. 
+
+        def _product_with_generator(self, s, x, side='left'):
+            r"""
+            Compute the product of `C^{\prime}_s` with any linear combination of `C^{\prime}`-basis elements.
 
             INPUT:
 
@@ -2342,7 +2342,7 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
             """
             return self.linear_combination((self._product_with_generator_on_basis(s, w, side), coeff) for (w, coeff) in x)
 
-        def _decompose_into_generators(self, u): 
+        def _decompose_into_generators(self, u):
             r"""
             Decompose `C^{\prime}_u` into a polynomial in the KL generators
             `C^{\prime}_s`; see the ALGORITHM section of
@@ -2373,13 +2373,13 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
             (e.g., CpC_{21}  = CpC_2 * CpC_1)::
 
                 sage: CpC._decompose_into_generators(W([2,1]))  # optional - coxeter3
-                {(2, 1): 1}          
+                {(2, 1): 1}
 
             In more general situations the sum is a polynomial (e.g.,
             CpC_{121}=CpC_1*CpC_2*CpC_1-CpC_1)::
 
                 sage: CpC._decompose_into_generators(W([1,2,1]))        # optional - coxeter3
-                {(1,): -1, (1, 2, 1): 1}                         
+                {(1,): -1, (1, 2, 1): 1}
                 sage: CpC._decompose_into_generators(W([1,2,3,1,2]))    # optional - coxeter3
                 {(1,): 1, (1, 2, 1): -1, (1, 2, 1, 3, 2): 1, (1, 3, 2): -1}
             """
@@ -2401,7 +2401,7 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
                 v_elt = self._W(v)
                 if v_elt.has_left_descent(s):
                     # Compute mu-coefficient via coxeter3
-                    sum_term += self.base_ring()(v.mu_coefficient(w)) * self.monomial(v_elt)        
+                    sum_term += self.base_ring()(v.mu_coefficient(w)) * self.monomial(v_elt)
 
             # recursion: decompose C'_s * C'_w and the lower order terms
             result = {(s,) + gens: coeff for (gens, coeff) in self._decompose_into_generators(w).items()}
@@ -2409,9 +2409,9 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
                 # Subtract off each term from sum_term.
                 for (gens, c2) in self._decompose_into_generators(z).items():
                     result[gens] = result.get(gens, 0) - c1*c2
-                
+
             return result
-        
+
         def product_on_basis(self, w1, w2):
             r"""
             Return the expansion of `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` in
@@ -2420,7 +2420,7 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
             ALGORITHM:
 
             This class computes each product `C^{\prime}_x \cdot C^{\prime}_y`
-            in two steps as follows. 
+            in two steps as follows.
 
             If `\ell(x) \leq \ell(y)`, we first decompose `C^{\prime}_x` into a
             polynomial in the generators `C^{\prime}_s (s\in S)` and then
@@ -2464,7 +2464,7 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
                 (v^-1+v)*CpC[1,2,1,3,2] + (v^-1+v)*CpC[1,2,1]
             """
             # Decomposition: write one of C'_{w1} and C'_{w2} as a polynomial in the
-            # generators C'_{s}. 
+            # generators C'_{s}.
             if len(w1) <= len(w2):
                 side = 'left'
                 gen_expression = self._decompose_into_generators(w1)
@@ -2483,7 +2483,6 @@ presentations (i.e., need {q_1,q_2} = {v^2,1} or {q_1,q_2} = {v,-v^-1} as sets)'
                     summand = self._product_with_generator(s, summand, side)
                 result += summand
             return result
-        
 
     class C(_KLHeckeBasis):
         r"""

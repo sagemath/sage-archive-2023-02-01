@@ -440,7 +440,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
         and `C'_{u_{j+1}}` appears in `C'_sC'_{u_j}` in the Hecke algebra of the Coxeter group, where `C'` denotes
         the Kazhdan-Lusztig `C^{\prime}`-basis. Right and two-sided Kazhdan-Lusztig cells of `W` are defined
         similarly. In this function, we compute products of the form `C_sC_w` using the function
-        :func:`product_on_basis` of the class :class:`IwahoriHeckeAlgebra.Cp_Coxeter3`. 
+        :func:`product_on_basis` of the class :class:`IwahoriHeckeAlgebra.Cp_Coxeter3`.
 
         INPUT:
 
@@ -521,10 +521,9 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                     if y not in vertices:
                         vertices.add(y)
                         queue.appendleft(y)
-        
+
         g = DiGraph([list(vertices), list(edges)])
         return set(g.strongly_connected_component_containing_vertex(w))
-
 
     class Element(ElementWrapper):
         wrapped_class = CoxGroupElement

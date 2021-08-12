@@ -217,7 +217,8 @@ from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.geometry.relative_interior import RelativeInterior
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import column_matrix, matrix, MatrixSpace
-from sage.misc.all import cached_method, flatten, latex
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import flatten, latex
 from sage.modules.all import span, vector, VectorSpace
 from sage.rings.all import QQ, ZZ
 from sage.structure.all import SageObject, parent
@@ -3529,6 +3530,33 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         """
         return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
 
+    def an_affine_basis(self):
+        r"""
+        Return points in ``self`` that form a basis for the affine hull.
+
+        EXAMPLES::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+            sage: ray = Cone([(1, 1)]
+            Traceback (most recent call last):
+            ...
+            SyntaxError: unexpected EOF while parsing
+            sage: ray.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NameError: name 'ray' is not defined
+            sage: line = Cone([(1,0), (-1,0)])
+            sage: line.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+        """
+        return self.polyhedron().an_affine_basis()
+
     @cached_method
     def strict_quotient(self):
         r"""
@@ -4506,7 +4534,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         else:
             return PointCollection(irreducible, self.lattice())
 
-    def Hilbert_coefficients(self, point, solver=None, verbose=0):
+    def Hilbert_coefficients(self, point, solver=None, verbose=0,
+                             *, integrality_tolerance=1e-3):
         r"""
         Return the expansion coefficients of ``point`` with respect to
         :meth:`Hilbert_basis`.
@@ -4517,14 +4546,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
           in the cone, or something that can be converted to a
           point. For example, a list or tuple of integers.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
-          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+          (MILP) solver to be used. If set to ``None``, the default one is used. For
+          more information on MILP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
           of the LP solver. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+          inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -4587,7 +4621,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             p.add_constraint(p.sum(b[i]*x[j] for j,b in enumerate(basis)) == point[i])
         p.solve(log=verbose)
 
-        return vector(ZZ, p.get_values(x))
+        return vector(ZZ, p.get_values(x, convert=ZZ, tolerance=integrality_tolerance))
 
     def is_solid(self):
         r"""

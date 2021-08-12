@@ -19,6 +19,9 @@ from sage.modules.free_module import is_FreeModule, FreeModule
 from sage.rings.infinity import infinity, minus_infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+from sage.rings.complex_double import CDF
+from sage.rings.real_double import RDF
+from sage.rings.real_lazy import CLF, RLF
 from sage.symbolic.ring import SR
 from sage.modules.free_module_element import vector
 from sage.manifolds.subset import ManifoldSubset
@@ -532,6 +535,11 @@ class ManifoldSubsetPullback(ManifoldSubset):
         if isinstance(map, Chart):
 
             chart = map
+
+            if isinstance(codomain_subset, RealSet):
+                return {chart: ManifoldSubsetPullback._realset_restriction(chart[0],
+                                                                           codomain_subset)}
+
             if isinstance(codomain_subset, RelativeInterior) and is_Polyhedron(codomain_subset.closure()):
                 return {chart: ManifoldSubsetPullback._polyhedron_restriction(
                                    chart, codomain_subset.closure(), relint=True)}
@@ -556,11 +564,23 @@ class ManifoldSubsetPullback(ManifoldSubset):
             sage: TestSuite(cl_O).run(skip='_test_elements')
 
         """
-        self._map = map
         if inverse is None and isinstance(map, Chart):
-            def _inverse(coords):
-                return self.point(coords, chart=map)
-            inverse = _inverse
+            chart = map
+            scalar_codomain = (isinstance(codomain_subset, RealSet)
+                               or any(field.has_coerce_map_from(codomain_subset)
+                                      for field in (CDF, RDF, CLF, RLF)))
+            if scalar_codomain:
+                if chart.domain().dimension() != 1:
+                    raise ValueError('to pull back a set of scalars by a chart, the manifold must be 1-dimensional')
+                map = chart.domain().scalar_field({chart: chart[0]})
+                def _inverse(coord):
+                    return self.point((coord,), chart=chart)
+            else:
+                def _inverse(coords):
+                    return self.point(coords, chart=map)
+                inverse = _inverse
+
+        self._map = map
         self._inverse = inverse
 
         self._codomain_subset = codomain_subset

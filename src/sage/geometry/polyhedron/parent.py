@@ -221,9 +221,9 @@ class Polyhedra_base(UniqueRepresentation, Parent):
 
             sage: from sage.geometry.polyhedron.parent import Polyhedra
             sage: P = Polyhedra(QQ, 3)
-            sage: TestSuite(P).run(skip='_test_pickling')
+            sage: TestSuite(P).run()
             sage: P = Polyhedra(QQ, 0)
-            sage: TestSuite(P).run(skip='_test_pickling')
+            sage: TestSuite(P).run()
         """
         self._backend = backend
         self._ambient_dim = ambient_dim

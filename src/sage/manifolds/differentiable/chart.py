@@ -628,7 +628,7 @@ class DiffChart(Chart):
              identifier.
             sage: D = cart.symbolic_velocities(left='', right="_dot"); D
             [X_dot, Y_dot, Z_dot]
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: canon_chart = R.default_chart()
             sage: D = canon_chart.symbolic_velocities() ; D
             [Dt]

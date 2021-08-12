@@ -81,6 +81,7 @@ dist: build/make/Makefile
 
 pypi-sdists: sage_setup
 	./sage --sh build/pkgs/sage_conf/spkg-src
+	./sage --sh build/pkgs/sage_setup/spkg-src
 	./sage --sh build/pkgs/sage_sws2rst/spkg-src
 	./sage --sh build/pkgs/sage_docbuild/spkg-src
 	./sage --sh build/pkgs/sagelib/spkg-src

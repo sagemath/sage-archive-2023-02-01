@@ -1249,7 +1249,7 @@ class CoefficientStream_dirichlet_convolution(CoefficientStream_binary_commutati
         return c
 
 
-class CoefficientStream_dirichlet_inv(CoefficientStream_unary):
+class CoefficientStream_dirichlet_inverse(CoefficientStream_unary):
     """
     Operator for multiplicative inverse of the stream.
 
@@ -1259,9 +1259,9 @@ class CoefficientStream_dirichlet_inv(CoefficientStream_unary):
 
     EXAMPLES::
 
-        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_dirichlet_inv, CoefficientStream_coefficient_function)
+        sage: from sage.data_structures.coefficient_stream import (CoefficientStream_dirichlet_inverse, CoefficientStream_coefficient_function)
         sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, True, 1)
-        sage: g = CoefficientStream_dirichlet_inv(f)
+        sage: g = CoefficientStream_dirichlet_inverse(f)
         sage: [g[i] for i in range(10)]
         [0, 1, -1, -1, 0, -1, 1, -1, 0, 0]
         sage: [moebius(i) for i in range(10)]
@@ -1273,9 +1273,9 @@ class CoefficientStream_dirichlet_inv(CoefficientStream_unary):
 
         TESTS::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_exact, CoefficientStream_dirichlet_inv)
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_exact, CoefficientStream_dirichlet_inverse)
             sage: f = CoefficientStream_exact([0, 0], True, constant=1)
-            sage: g = CoefficientStream_dirichlet_inv(f)
+            sage: g = CoefficientStream_dirichlet_inverse(f)
             Traceback (most recent call last):
             ...
             AssertionError: the Dirichlet inverse only exists if the coefficient with index 1 is non-zero

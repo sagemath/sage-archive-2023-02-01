@@ -1358,7 +1358,7 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
             sage: X = L(constant=5, degree=3); X
             5/3^z + 5/4^z + 5/5^z + O(1/(6^z))
             sage: X.valuation()
-            3
+            log(3)
             sage: e = L(moebius); e
             1 - 1/(2^z) - 1/(3^z) - 1/(5^z) + 1/(6^z) - 1/(7^z) + O(1/(8^z))
 

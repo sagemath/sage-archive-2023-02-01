@@ -108,7 +108,7 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_uninitialized,
     CoefficientStream_coefficient_function,
     CoefficientStream_dirichlet_convolution,
-    CoefficientStream_dirichlet_inv
+    CoefficientStream_dirichlet_inverse
 )
 
 class LazyModuleElement(Element):
@@ -212,7 +212,7 @@ class LazyModuleElement(Element):
         else:
             m = degree + 1
 
-        v = self.valuation()
+        v = coeff_stream.order()
         return L.sum(self[i]*P.monomial(1, i) for i in range(v, m))
 
     def __getitem__(self, n):
@@ -397,45 +397,6 @@ class LazyModuleElement(Element):
             +Infinity
         """
         return infinity
-
-    def valuation(self):
-        r"""
-        Return the valuation of ``self``.
-
-        This method determines the valuation of the series by looking for a
-        nonzero coefficient. Hence if the series happens to be zero, then it
-        may run forever.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: s = 1/(1 - z) - 1/(1 - 2*z)
-            sage: s.valuation()
-            1
-            sage: t = z - z
-            sage: t.valuation()
-            +Infinity
-            sage: M = L(lambda n: n^2, 0)
-            sage: M.valuation()
-            1
-            sage: (M - M).valuation()
-            +Infinity
-
-        Similarly for Dirichlet series::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "z")
-            sage: mu = L(moebius); mu.valuation()
-            1
-            sage: (mu - mu).valuation()
-            +Infinity
-            sage: g = L(constant=1, valuation=2)
-            sage: g.valuation()
-            2
-            sage: (g*g).valuation()
-            4
-
-        """
-        return self._coeff_stream.order()
 
     def _richcmp_(self, other, op):
         r"""
@@ -1222,6 +1183,32 @@ class LazyCauchyProductSeries(LazyModuleElement):
         sage: f
         1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
     """
+    def valuation(self):
+        r"""
+        Return the valuation of ``self``.
+
+        This method determines the valuation of the series by looking for a
+        nonzero coefficient. Hence if the series happens to be zero, then it
+        may run forever.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: s = 1/(1 - z) - 1/(1 - 2*z)
+            sage: s.valuation()
+            1
+            sage: t = z - z
+            sage: t.valuation()
+            +Infinity
+            sage: M = L(lambda n: n^2, 0)
+            sage: M.valuation()
+            1
+            sage: (M - M).valuation()
+            +Infinity
+
+        """
+        return self._coeff_stream.order()
+
     def _mul_(self, other):
         """
         Return the product of this series with ``other``.
@@ -1580,6 +1567,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             1 - 2*z + z^2
             sage: (1 + z)^2
             1 + 2*z + z^2
+
         """
         if n == 0:
             return self.parent().one()
@@ -2023,6 +2011,9 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         if isinstance(g, LazyCauchyProductSeries):
             CS_prod = CoefficientStream_cauchy_product
             CS_inv = CoefficientStream_cauchy_inverse
+        elif isinstance(g, LazyDirichletSeries):
+            CS_prod = CoefficientStream_dirichlet_convolution
+            CS_inv = CoefficientStream_dirichlet_inverse
         else:
             raise NotImplementedError("undefined product coefficient stream")
         return P.element_class(P, CoefficientStream_composition(self._coeff_stream,
@@ -2514,6 +2505,31 @@ class LazyDirichletSeries(LazyModuleElement):
         sage: g == f
         True
     """
+    def valuation(self):
+        r"""
+        Return the valuation of ``self``.
+
+        This method determines the valuation of the series by looking for a
+        nonzero coefficient. Hence if the series happens to be zero, then it
+        may run forever.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "z")
+            sage: mu = L(moebius); mu.valuation()
+            0
+            sage: (mu - mu).valuation()
+            +Infinity
+            sage: g = L(constant=1, valuation=2)
+            sage: g.valuation()
+            log(2)
+            sage: (g*g).valuation()
+            2*log(2)
+
+        """
+        from sage.functions.log import log
+        return log(self._coeff_stream.order())
+
     def _mul_(self, other):
         """
         Return the product of this series with ``other``.
@@ -2571,7 +2587,7 @@ class LazyDirichletSeries(LazyModuleElement):
 
         """
         P = self.parent()
-        return P.element_class(P, CoefficientStream_dirichlet_inv(self._coeff_stream))
+        return P.element_class(P, CoefficientStream_dirichlet_inverse(self._coeff_stream))
 
     def change_ring(self, ring):
         """

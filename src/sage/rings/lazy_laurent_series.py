@@ -1290,7 +1290,7 @@ class LazyModuleElement(Element):
             z + 1/2*z^2 + 1/3*z^3 + 1/4*z^4 + 1/5*z^5 + 1/6*z^6 + 1/7*z^7 + O(z^8)
             sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
             sage: log((1 + x/(1-y)))[4]
-            y^3*x - 3/2*y^2*x^2 + y*x^3 - 1/4*x^4
+            -1/4*x^4 + x^3*y - 3/2*x^2*y^2 + x*y^3
 
         TESTS::
 

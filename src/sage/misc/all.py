@@ -12,6 +12,8 @@ from .misc import (BackslashOperator,
                   SAGE_DB, SAGE_TMP,
                    newton_method_sizes, compose,
                   nest)
+lazy_import('sage.misc.misc', 'union',
+            deprecation=32096)
 
 from .banner import version, banner
 

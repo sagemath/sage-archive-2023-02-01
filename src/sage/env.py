@@ -173,8 +173,6 @@ SAGE_VENV_SPKG_INST = var("SAGE_VENV_SPKG_INST", join(SAGE_VENV, "var", "lib", "
 
 # prefix hierarchy where non-Python packages are installed
 SAGE_LOCAL = var("SAGE_LOCAL", SAGE_VENV)
-SAGE_ETC = var("SAGE_ETC", join(SAGE_LOCAL, "etc"))
-SAGE_INC = var("SAGE_INC", join(SAGE_LOCAL, "include"))
 SAGE_SHARE = var("SAGE_SHARE", join(SAGE_LOCAL, "share"))
 SAGE_DOC = var("SAGE_DOC", join(SAGE_SHARE, "doc", "sage"))
 SAGE_SPKG_INST = var("SAGE_SPKG_INST", join(SAGE_LOCAL, "var", "lib", "sage", "installed"))
@@ -207,8 +205,7 @@ CREMONA_LARGE_DATA_DIR = var("CREMONA_LARGE_DATA_DIR", join(SAGE_SHARE, "cremona
 JMOL_DIR = var("JMOL_DIR", join(SAGE_SHARE, "jmol"))
 MATHJAX_DIR = var("MATHJAX_DIR", join(SAGE_SHARE, "mathjax"))
 MTXLIB = var("MTXLIB", join(SAGE_SHARE, "meataxe"))
-THREEJS_DIR = var("THREEJS_DIR", join(SAGE_SHARE, "threejs"))
-SINGULARPATH = var("SINGULARPATH", join(SAGE_SHARE, "singular"))
+THREEJS_DIR = var("THREEJS_DIR", join(SAGE_SHARE, "threejs-sage"))
 PPLPY_DOCS = var("PPLPY_DOCS", join(SAGE_SHARE, "doc", "pplpy"))
 MAXIMA = var("MAXIMA", "maxima")
 MAXIMA_FAS = var("MAXIMA_FAS")
@@ -219,6 +216,7 @@ CBLAS_PC_MODULES = var("CBLAS_PC_MODULES", "cblas:openblas:blas")
 ECL_CONFIG = var("ECL_CONFIG", "ecl-config")
 NTL_INCDIR = var("NTL_INCDIR")
 NTL_LIBDIR = var("NTL_LIBDIR")
+LIE_INFO_DIR = var("LIE_INFO_DIR", join(SAGE_LOCAL, "lib", "LiE"))
 
 # OpenMP
 OPENMP_CFLAGS = var("OPENMP_CFLAGS", "")
@@ -273,10 +271,9 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
         if sys.platform == 'cygwin':
             # Later down we take the first matching DLL found, so search
             # SAGE_LOCAL first so that it takes precedence
-            search_directories = [
-                Path(SAGE_LOCAL) / 'bin',
-                Path(sysconfig.get_config_var('BINDIR')),
-            ]
+            if SAGE_LOCAL:
+                search_directories.append(Path(SAGE_LOCAL) / 'bin')
+            search_directories.append(Path(sysconfig.get_config_var('BINDIR')))
             # Note: The following is not very robust, since if there are multible
             # versions for the same library this just selects one more or less
             # at arbitrary. However, practically speaking, on Cygwin, there
@@ -288,7 +285,8 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
             else:
                 ext = 'so'
 
-            search_directories = [Path(SAGE_LOCAL) / 'lib']
+            if SAGE_LOCAL:
+                search_directories.append(Path(SAGE_LOCAL) / 'lib')
             libdir = sysconfig.get_config_var('LIBDIR')
             if libdir is not None:
                 libdir = Path(libdir)

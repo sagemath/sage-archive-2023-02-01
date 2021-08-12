@@ -252,7 +252,8 @@ from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter
 from sage.graphs.digraph import DiGraph
 from sage.matrix.all import matrix
-from sage.misc.all import cached_method, walltime, prod
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import walltime, prod
 from sage.modules.all import vector, span
 from sage.rings.all import QQ, ZZ
 

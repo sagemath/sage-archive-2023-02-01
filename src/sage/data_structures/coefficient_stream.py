@@ -17,11 +17,10 @@ The coefficient stream can be used to build up a Lazy laurent series::
     sage: type(f._coeff_stream)
     <class 'sage.data_structures.coefficient_stream.CoefficientStream_coefficient_function'>
 
-    There are basic unary and binary operators available for the coefficient streams.
-    For example, we can add two streams together::
+There are basic unary and binary operators available for the coefficient
+streams. For example, we can add two streams together::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_add
+    sage: from sage.data_structures.coefficient_stream import *
     sage: f = CoefficientStream_coefficient_function(lambda n: n, QQ, True, 0)
     sage: [f[i] for i in range(10)]
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -34,21 +33,18 @@ The coefficient stream can be used to build up a Lazy laurent series::
 
 Coefficient streams can be subtracted::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_sub
     sage: h = CoefficientStream_sub(f, g)
     sage: [h[i] for i in range(10)]
     [-1, 0, 1, 2, 3, 4, 5, 6, 7, 8]
 
 Coefficient streams can be multiplied::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_cauchy_product
     sage: h = CoefficientStream_cauchy_product(f, g)
     sage: [h[i] for i in range(10)]
     [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
 
 Coefficient streams can be divided::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_cauchy_inverse
     sage: ginv = CoefficientStream_cauchy_inverse(g)
     sage: h = CoefficientStream_cauchy_product(f, ginv)
     sage: [h[i] for i in range(10)]
@@ -56,36 +52,33 @@ Coefficient streams can be divided::
 
 Two coefficient streams can be composed (depending on whether it exists)::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_composition
+    sage: CS_prod = CoefficientStream_cauchy_product
+    sage: CS_inv = CoefficientStream_cauchy_inverse
     sage: g = CoefficientStream_coefficient_function(lambda n: n, QQ, True, 1)
-    sage: h = CoefficientStream_composition(f, g)
+    sage: h = CoefficientStream_composition(f, g, CS_prod, CS_inv)
     sage: [h[i] for i in range(10)]
     [0, 1, 4, 14, 46, 145, 444, 1331, 3926, 11434]
 
 We can also use the unary negation operator on a coefficient stream::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_neg
     sage: h = CoefficientStream_neg(f)
     sage: [h[i] for i in range(10)]
     [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
 
 Coefficient streams can be multiplied by a scalar::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_lmul
     sage: h = CoefficientStream_lmul(f, 2)
     sage: [h[i] for i in range(10)]
     [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
 
 The multiplicative inverse of a series can also be obtained::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_cauchy_inverse
     sage: h = CoefficientStream_cauchy_inverse(g)
     sage: [h[i] for i in range(10)]
     [-2, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
 Functions can also be applied to a coefficient stream::
 
-    sage: from sage.data_structures.coefficient_stream import CoefficientStream_map_coefficients
     sage: h = CoefficientStream_map_coefficients(f, lambda n: n^2, QQ)
     sage: [h[i] for i in range(10)]
     [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
@@ -295,10 +288,12 @@ class CoefficientStream_inexact(CoefficientStream):
 
         EXAMPLES::
 
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_coefficient_function, CoefficientStream_composition)
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function, CoefficientStream_composition
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_cauchy_product as CS_prod
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_cauchy_inverse as CS_inv
             sage: f = CoefficientStream_coefficient_function(lambda n: 1, ZZ, False, 1)
             sage: g = CoefficientStream_coefficient_function(lambda n: n^3, ZZ, False, 1)
-            sage: h = CoefficientStream_composition(f, g)
+            sage: h = CoefficientStream_composition(f, g, CS_prod, CS_inv)
             sage: n = h.iterate_coefficients()
             sage: [next(n) for i in range(10)]
             [1, 9, 44, 207, 991, 4752, 22769, 109089, 522676, 2504295]

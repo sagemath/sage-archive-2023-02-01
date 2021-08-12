@@ -1540,8 +1540,13 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
                 raise ValueError("can only compose with a positive valuation series")
             g._coeff_stream._approximate_order = 1
 
+        if isinstance(g, LazyCauchyProductSeries):
+            CS_prod = CoefficientStream_cauchy_product
+            CS_inv = CoefficientStream_cauchy_inverse
+        else:
+            raise NotImplementedError("undefined product coefficient stream")
         return P.element_class(P, CoefficientStream_composition(self._coeff_stream,
-                g._coeff_stream, P._product_stream_class, P._product_inv_stream_class))
+                g._coeff_stream, CS_prod, CS_inv))
 
     compose = __call__
 

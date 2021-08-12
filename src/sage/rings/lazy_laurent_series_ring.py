@@ -37,9 +37,7 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_zero,
     CoefficientStream_coefficient_function,
     CoefficientStream_exact,
-    CoefficientStream_uninitialized,
-    CoefficientStream_cauchy_product,
-    CoefficientStream_cauchy_inverse
+    CoefficientStream_uninitialized
 )
 
 
@@ -146,8 +144,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         False
     """
     Element = LazyLaurentSeries
-    _product_stream_class = CoefficientStream_cauchy_product
-    _product_inv_stream_class = CoefficientStream_cauchy_inverse
 
     def __init__(self, base_ring, names, sparse=True, category=None):
         """

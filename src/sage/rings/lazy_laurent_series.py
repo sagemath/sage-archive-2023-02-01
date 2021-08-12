@@ -1125,8 +1125,8 @@ class LazyModuleElement(Element):
                                                               order=v, constant=c,
                                                               degree=self._coeff_stream._degree))
         if self_on_left or R.is_commutative():
-            return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
-        return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
+            return P.element_class(P, CoefficientStream_lmul(self._coeff_stream, scalar))
+        return P.element_class(P, CoefficientStream_rmul(self._coeff_stream, scalar))
 
     def _neg_(self):
         """

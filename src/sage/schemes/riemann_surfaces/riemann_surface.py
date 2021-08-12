@@ -3042,7 +3042,7 @@ class RiemannSurface(object):
           where ``v`` is the valuation of the divisor at point ``P``, ``P`` as per 
           the input to :meth:`_aj_based`.
 
-        - `` verbose`` -- logical (default: False). Whether to report the progress
+        - ``verbose`` -- logical (default: False). Whether to report the progress
           of the computation, in terms of how many elements of the list ``divisor``
           have been completed. 
           

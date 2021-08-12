@@ -857,6 +857,14 @@ def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
         1/factorial(n + 1)
         sage: symbolic_product(f(i), i, 1, n).log().log_expand()
         sum(log(f(i)), i, 1, n)
+
+    TESTS:
+
+    Verify that :trac:`30520` is fixed::
+
+        sage: symbolic_product(-x^2,x,1,n)
+        (-1)^n*factorial(n)^2
+
     """
     if not is_SymbolicVariable(v):
         if isinstance(v, str):
@@ -1606,6 +1614,22 @@ def laplace(ex, t, s, algorithm='maxima'):
         sage: inverse_laplace(L, s, t)
         t*e^(a + 2*t)*sin(t)
 
+    The Laplace transform of the exponential function::
+
+        sage: laplace(exp(x), x, s)
+        1/(s - 1)
+
+    Dirac's delta distribution is handled (the output of SymPy is
+    related to a choice that has to be made when defining Laplace
+    transforms of distributions)::
+
+        sage: laplace(dirac_delta(t), t, s)
+        1
+        sage: laplace(dirac_delta(t), t, s, algorithm='sympy')
+        (-heaviside(0) + 1, -oo, True)
+        sage: laplace(dirac_delta(t), t, s, algorithm='giac')
+        1
+
     Heaviside step function can be handled with different interfaces.
     Try with Maxima::
 
@@ -1782,8 +1806,16 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         -1/3*(sqrt(3)*e^(1/2*t - 1/2)*sin(1/2*sqrt(3)*(t - 1)) - cos(1/2*sqrt(3)*(t - 1))*e^(1/2*t - 1/2) +
         e^(-t + 1))*heaviside(t - 1) + 2/3*(2*cos(1/2*sqrt(3)*(t - 2))*e^(1/2*t - 1) + e^(-t + 2))*heaviside(t - 2)
 
-    Dirac delta function can also be handled::
+        sage: inverse_laplace(1/(s - 1), s, x)
+        e^x
 
+    The inverse Laplace transform of a constant is a delta
+    distribution::
+
+        sage: inverse_laplace(1, s, t)
+        dirac_delta(t)
+        sage: inverse_laplace(1, s, t, algorithm='sympy')
+        dirac_delta(t)
         sage: inverse_laplace(1, s, t, algorithm='giac')
         dirac_delta(t)
 
@@ -2072,7 +2104,7 @@ def _inverse_laplace_latex_(self, *args):
     return "\\mathcal{L}^{-1}\\left(%s\\right)" % (', '.join(latex(x) for x in args))
 
 
-# Return un-evaluated expression as instances of SFunction class
+# Return un-evaluated expression as instances of NewSymbolicFunction
 _laplace = function_factory('laplace', print_latex_func=_laplace_latex_)
 _inverse_laplace = function_factory('ilt',
         print_latex_func=_inverse_laplace_latex_)
@@ -2242,7 +2274,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     delayed_functions = maxima_qp.findall(s)
     if len(delayed_functions):
         for X in delayed_functions:
-            if X == '?%at':  # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
+            if X == '?%at':  # we will replace Maxima's "at" with symbolic evaluation, not a SymbolicFunction
                 pass
             else:
                 function_syms[X[2:]] = function_factory(X[2:])

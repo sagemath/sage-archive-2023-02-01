@@ -149,6 +149,56 @@ class Representation_abstract(CombinatorialFreeModule):
 
         return super().invariant_module(S, side=side, **kwargs)
 
+    def twisted_invariant_module(self, chi, G=None, **kwargs):
+        r"""
+        Create the isotypic component of the action of ``G`` on
+        ``self`` with irreducible character given by ``chi``.
+
+        .. SEEALSO:
+
+            - :class:`~sage.modules.with_basis.invariant.FiniteDimensionalTwistedInvariantModule`
+
+        INPUT:
+
+        - ``chi`` -- a list/tuple of character values or an instance
+          of :class:`~sage.groups.class_function.ClassFunction_gap`
+        - ``G`` -- a finitely-generated semigroup (default: the semigroup
+          this is a representation of)
+
+        This also accepts the group to be the first argument to be the group.
+
+        OUTPUT:
+
+        - :class:`~sage.modules.with_basis.invariant.FiniteDimensionalTwistedInvariantModule`
+
+        EXAMPLES::
+
+            sage: G = SymmetricGroup(3)
+            sage: R = G.regular_representation(QQ)
+            sage: T = R.twisted_invariant_module([2,0,-1])
+            sage: T.basis()
+            Finite family {0: B[0], 1: B[1], 2: B[2], 3: B[3]}
+            sage: [T.lift(b) for b in T.basis()]
+            [() - (1,2,3), -(1,2,3) + (1,3,2), (2,3) - (1,2), -(1,2) + (1,3)]
+
+        We check the different inputs work
+
+            sage: R.twisted_invariant_module([2,0,-1], G) is T
+            True
+            sage: R.twisted_invariant_module(G, [2,0,-1]) is T
+            True
+        """
+        from sage.categories.groups import Groups
+        if G is None:
+            G = self.semigroup()
+        elif chi in Groups():
+            G, chi = chi, G
+        side = kwargs.pop('side', self.side())
+        if side == "twosided":
+            side = "left"
+
+        return super().twisted_invariant_module(G, chi, side=side, **kwargs)
+
 class Representation(Representation_abstract):
     """
     Representation of a semigroup.

@@ -441,7 +441,7 @@ class Polyhedron_QQ_ppl(Polyhedron_ppl, Polyhedron_QQ):
 
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[],
         ....:                backend='ppl', base_ring=QQ)
-        sage: TestSuite(p).run(skip='_test_pickling')
+        sage: TestSuite(p).run()
     """
     pass
 
@@ -461,6 +461,6 @@ class Polyhedron_ZZ_ppl(Polyhedron_ppl, Polyhedron_ZZ):
 
         sage: p = Polyhedron(vertices=[(0,0),(1,0),(0,1)], rays=[(1,1)], lines=[],
         ....:                backend='ppl', base_ring=ZZ)
-        sage: TestSuite(p).run(skip='_test_pickling')
+        sage: TestSuite(p).run()
     """
     pass

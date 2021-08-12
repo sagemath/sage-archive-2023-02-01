@@ -1203,34 +1203,6 @@ class LazyModuleElement(Element):
             return P.element_class(P, coeff_stream._series)
         return P.element_class(P, CoefficientStream_neg(coeff_stream))
 
-    def is_constant(self):
-        """
-        Return ``True`` if ``self`` is a constant.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: z.is_constant()
-            False
-            sage: L(1).is_constant()
-            True
-            sage: L(0).is_constant()
-            True
-
-            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
-            sage: x.is_constant()
-            False
-            sage: L(pi).is_constant()
-            True
-
-        """
-        coeff_stream = self._coeff_stream
-        return (isinstance(coeff_stream, CoefficientStream_zero)
-                or (isinstance(coeff_stream, CoefficientStream_exact)
-                    and not coeff_stream._constant
-                    and len(coeff_stream._initial_coefficients) == 1
-                    and coeff_stream.order() == 0))
-
     # === special functions ===
 
     def exp(self):
@@ -1259,10 +1231,6 @@ class LazyModuleElement(Element):
             sage: exp(x/(1-y)).finite_part(3)
             1/6*x^3 + x^2*y + x*y^2 + 1/2*x^2 + x*y + x + 1
 
-            sage: L.<z> = LazyLaurentSeriesRing(SR); a = var("a")
-            sage: exp(L(a))
-            e^a
-
         TESTS::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
@@ -1270,10 +1238,6 @@ class LazyModuleElement(Element):
             True
 
         """
-        # if exp(self) happens to be in the base ring we are fine, too
-        from sage.functions.log import exp
-        if self.is_constant():
-            return self.parent()(exp(self[0]))
         from .lazy_laurent_series_ring import LazyLaurentSeriesRing
         from sage.functions.other import factorial
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
@@ -1293,10 +1257,6 @@ class LazyModuleElement(Element):
             sage: log((1 + x/(1-y))).finite_part(3)
             1/3*x^3 - x^2*y + x*y^2 + (-1/2)*x^2 + x*y + x
 
-            sage: L.<z> = LazyLaurentSeriesRing(SR); a = var("a")
-            sage: log(L(a))
-            log(a)
-
         TESTS::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
@@ -1309,10 +1269,6 @@ class LazyModuleElement(Element):
             ValueError: can only compose with a positive valuation series
 
         """
-        # if log(self) happens to be in the base ring we are fine, too
-        from sage.functions.log import log
-        if self.is_constant():
-            return self.parent()(log(self[0]))
         from .lazy_laurent_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         f = P(lambda n: ((-1) ** (n + 1))/ZZ(n), valuation=1)
@@ -1774,7 +1730,7 @@ class LazyModuleElement(Element):
 
     # inverse hyperbolic functions
 
-    def asinh(self):
+    def arcsinh(self):
         r"""
         Return the inverse of the hyperbolic sine of ``self``.
 
@@ -1806,7 +1762,7 @@ class LazyModuleElement(Element):
             return ZZ.zero()
         return P(f, valuation=1)(self)
 
-    def atanh(self):
+    def arctanh(self):
         r"""
         Return the inverse of the hyperbolic tangent of ``self``.
 
@@ -1814,10 +1770,11 @@ class LazyModuleElement(Element):
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: atanh(z)
-            z + 1/3*z^3 + 1/5*z^5 + O(z^7)
+            z + 1/3*z^3 + 1/5*z^5 + 1/7*z^7 + O(z^8)
 
             sage: L.<x, y> = LazyTaylorSeriesRing(SR)
             sage: atanh(x/(1-y))
+            x + x*y + (1/3*x^3+x*y^2) + (x^3*y+x*y^3) + (1/5*x^5+2*x^3*y^2+x*y^4) + (x^5*y+10/3*x^3*y^3+x*y^5) + (1/7*x^7+3*x^5*y^2+5*x^3*y^4+x*y^6) + O(x,y)^8
 
         TESTS::
 
@@ -1829,32 +1786,6 @@ class LazyModuleElement(Element):
         from .lazy_laurent_series_ring import LazyLaurentSeriesRing
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         f = P(lambda n: 1/ZZ(n) if n % 2 else ZZ.zero(), valuation=1)
-        return f(self)
-
-    def acosh(self):
-        r"""
-        Return the inverse of the hyperbolic tangent of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: acosh(z)
-            1 + 1/2*z^2 + 1/24*z^4 + 1/720*z^6 + O(z^7)
-
-            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
-            sage: acosh(x/(1-y))
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
-            sage: acosh(z)[0:6] == acosh(x).series(x, 6).coefficients(sparse=False)
-            True
-
-        """
-        from sage.functions.other import factorial
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        f = P(lambda n: 1/factorial(ZZ(n)) if n % 2 == 0 else ZZ.zero(), valuation=0)
         return f(self)
 
     def hypergeometric(self, a, b):
@@ -1870,20 +1801,16 @@ class LazyModuleElement(Element):
         EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: hypergeometric(z, [1, 1], [1])
+            sage: z.hypergeometric([1, 1], [1])
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-            sage: hypergeometric(z, [1, 2], [1])
-            1 + 2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
-            sage: hypergeometric(z, 1, 1)
-            1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
-            sage: hypergeometric(z, [2, 3], [4])
-            1 + 3/2*z + 9/5*z^2 + 2*z^3 + 15/7*z^4 + 9/4*z^5 + 7/3*z^6 + O(z^7)
-            sage: hypergeometric(z, [2, 3], [2])
-            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + O(z^7)
-            sage: hypergeometric(z, [2, 3], [2])
-            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + O(z^7)
-            sage: hypergeometric(z, (1, 1), [1, 1])
-            1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
+            sage: z.hypergeometric([], []) - exp(z)
+            O(z^7)
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: z.hypergeometric([1,1],[1])[0:6] == hypergeometric([1,1],[1], x).series(x, 6).coefficients(sparse=False)
+            True
 
         """
         from .lazy_laurent_series_ring import LazyLaurentSeriesRing
@@ -2279,10 +2206,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
 
         We also support the general case::
 
-            sage: L.<z> = LazyLaurentSeriesRing(SR); a = var("a")
-            sage: a^z
-            1 + log(a)*z + 1/2*log(a)^2*z^2 + 1/6*log(a)^3*z^3 + 1/24*log(a)^4*z^4 + 1/120*log(a)^5*z^5 + 1/720*log(a)^6*z^6 + O(z^7)
-
+            sage: L.<z> = LazyLaurentSeriesRing(SR)
             sage: (1 + z)^(1 + z)
             1 + z + z^2 + 1/2*z^3 + 1/3*z^4 + 1/12*z^5 + 3/40*z^6 + O(z^7)
 
@@ -2311,6 +2235,23 @@ class LazyCauchyProductSeries(LazyModuleElement):
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         exp = P(lambda k: 1/factorial(ZZ(k)), valuation=0)
         return exp(self.log() * n)
+
+    def sqrt(self):
+        """
+        Return ``self^(1/2)``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR)
+            sage: sqrt(1+z)
+            1 + 1/2*z - 1/8*z^2 + 1/16*z^3 - 5/128*z^4 + 7/256*z^5 - 21/1024*z^6 + O(z^7)
+
+            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
+            sage: sqrt(1+x/(1-y))
+            1 + 1/2*x + ((-1/8)*x^2+1/2*x*y) + (1/16*x^3+(-1/4)*x^2*y+1/2*x*y^2) + ((-5/128)*x^4+3/16*x^3*y+(-3/8)*x^2*y^2+1/2*x*y^3) + (7/256*x^5+(-5/32)*x^4*y+3/8*x^3*y^2+(-1/2)*x^2*y^3+1/2*x*y^4) + ((-21/1024)*x^6+35/256*x^5*y+(-25/64)*x^4*y^2+5/8*x^3*y^3+(-5/8)*x^2*y^4+1/2*x*y^5) + O(x,y)^7
+
+        """
+        return self ** (1/ZZ(2))
 
 
 class LazyLaurentSeries(LazyCauchyProductSeries):

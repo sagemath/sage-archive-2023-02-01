@@ -200,7 +200,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
                         multiple installation records for $SPKG_NAME:
                         m4_newline($(ls -l "$SAGE_SPKG_INST/$SPKG_NAME"-*))
                         m4_newline([only one should exist, so please delete some or all
-                        of these files and re-run \"$srcdir/configure\"])
+                        of these files and re-run "$srcdir/configure"])
                     ]))
                 ])
                 stampfile=yes

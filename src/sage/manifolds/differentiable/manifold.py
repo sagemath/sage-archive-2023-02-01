@@ -3065,7 +3065,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Another example, involving a pair vector fields along a curve::
 
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
             sage: I = c.domain(); I
             Real interval (0, 2*pi)
@@ -3432,7 +3432,7 @@ class DifferentiableManifold(TopologicalManifold):
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
 

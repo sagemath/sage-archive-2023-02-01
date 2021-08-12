@@ -3409,7 +3409,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         else:
             return True
 
-    def dimension(self, certificate=False):
+    def dimension(self, certificate=False, *, solver=None, integrality_tolerance=1e-3):
         r"""
         Return the dimension of the Poset.
 
@@ -3431,6 +3431,17 @@ class FinitePoset(UniqueRepresentation, Parent):
         - ``certificate`` (boolean; default:``False``) -- whether to return an
           integer (the dimension) or a certificate, i.e. a smallest set of
           linear extensions.
+
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+          (MILP) solver to be used. If set to ``None``, the default one is used. For
+          more information on MILP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+          inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
         .. NOTE::
 
@@ -3543,7 +3554,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
                 sage: init_LP(1,2,3) # not tested
             """
-            p = MixedIntegerLinearProgram(constraint_generation=True)
+            p = MixedIntegerLinearProgram(constraint_generation=True, solver=solver)
             b = p.new_variable(binary=True)
             for (u, v) in inc_P:  # Each point has a color
                 p.add_constraint(p.sum(b[(u, v), i] for i in range(k)) == 1)
@@ -3569,8 +3580,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             # We create the digraphs of all color classes
             linear_extensions = [hasse_diagram.copy() for i in range(k)]
-            for ((u, v), i), x in p.get_values(b).items():
-                if x == 1:
+            for ((u, v), i), x in p.get_values(b, convert=bool, tolerance=integrality_tolerance).items():
+                if x:
                     linear_extensions[i].add_edge(u, v)
 
             # We check that all color classes induce an acyclic graph, and add a

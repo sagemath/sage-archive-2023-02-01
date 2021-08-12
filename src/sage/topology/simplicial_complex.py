@@ -4607,7 +4607,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         else:
             return Skel.chromatic_number() == d
 
-    def is_partitionable(self, certificate=False):
+    def is_partitionable(self, certificate=False,
+                         *, solver=None, integrality_tolerance=1e-3):
         r"""
         Determine whether ``self`` is partitionable.
 
@@ -4631,6 +4632,17 @@ class SimplicialComplex(Parent, GenericCellComplex):
         - ``certificate`` -- (default: ``False``)  If ``True``,
           and ``self`` is partitionable, then return a list of pairs `(R,F)`
           that form a partitioning.
+
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+          (MILP) solver to be used. If set to ``None``, the default one is used. For
+          more information on MILP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+          inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -4668,7 +4680,7 @@ class SimplicialComplex(Parent, GenericCellComplex):
         RFPairs = [(Simplex(r), f, f.dimension() - len(r) + 1)
                    for f in self.facets() for r in Set(f).subsets()]
         n = len(RFPairs)
-        IP = MixedIntegerLinearProgram()
+        IP = MixedIntegerLinearProgram(solver=solver)
         y = IP.new_variable(binary=True)
         for i0, pair0 in enumerate(RFPairs):
             for i1, pair1 in enumerate(RFPairs):
@@ -4682,8 +4694,8 @@ class SimplicialComplex(Parent, GenericCellComplex):
         elif not certificate:
             return True
         else:
-            x = IP.get_values(y)
-            return [RFPairs[i] for i in range(n) if x[i] == 1]
+            x = IP.get_values(y, convert=bool, tolerance=integrality_tolerance)
+            return [RFPairs[i] for i in range(n) if x[i]]
 
     def intersection(self, other):
         r"""

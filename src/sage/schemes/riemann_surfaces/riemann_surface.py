@@ -30,7 +30,7 @@ We compute the Riemann matrix of a genus 3 curve::
     sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
     sage: R.<x,y> = QQ[]
     sage: f = x^4-x^3*y+2*x^3+2*x^2*y+2*x^2-2*x*y^2+4*x*y-y^3+3*y^2+2*y+1
-    sage: S = RiemannSurface(f,prec=100)
+    sage: S = RiemannSurface(f, prec=100)
     sage: M = S.riemann_matrix()
 
 We test the usual properties, i.e., that the period matrix is symmetric and that
@@ -70,8 +70,10 @@ The initial version of this code was developed alongside [BSZ2019]_.
 # ****************************************************************************
 
 from scipy.spatial import Voronoi
+from sage.arith.functions import lcm
 from sage.arith.misc import GCD, algdep
 from sage.ext.fast_callable import fast_callable
+from sage.functions.log import lambert_w
 from sage.graphs.graph import Graph
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.groups.perm_gps.permgroup_named import SymmetricGroup
@@ -85,11 +87,14 @@ from sage.modules.free_module import VectorSpace
 from sage.modules.free_module_integer import IntegerLattice
 from sage.numerical.gauss_legendre import integrate_vector, integrate_vector_N
 from sage.rings.complex_mpfr import ComplexField, CDF
+from sage.rings.function_field.constructor import FunctionField
+from sage.rings.infinity import Infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.qqbar import number_field_elements_from_algebraics
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
+from sage.schemes.curves.constructor import Curve
 import sage.libs.mpmath.all as mpall
 
 def voronoi_ghost(cpoints, n=6, CC=CDF):
@@ -339,9 +344,11 @@ def find_closest_element(item, List):
 
     EXAMPLES::
 
+        sage: from sage.schemes.riemann_surfaces.riemann_surface import find_closest_element
         sage: i = 5
         sage: l = list(range(10))
         sage: i == find_closest_element(i, l)
+        True
 
     Note that this method does no checks on the input, but will fail for inputs
     where the absolute value or subtraction do not make sense.
@@ -381,18 +388,18 @@ def reparameterise_differential_minpoly(minpoly, z0):
     Hence the transformed differential should have minimal polynomial 
     `\bar{g}^2\bar{z}(1-\bar{z}^3)-1/4=0`, and we can check this::
         
-        sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+        sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface, reparameterise_differential_minpoly
         sage: R.<z,w> = QQ[]
         sage: S = RiemannSurface(w^2-z^3+1)
         sage: minpoly = S._cohomology_basis_bounding_data[1][0][2]
         sage: z0 = Infinity
-        sage: S.reparameterise_differential_minpoly(minpoly, z0)
+        sage: reparameterise_differential_minpoly(minpoly, z0)
         -zbar^4*gbar^2 + zbar*gbar^2 - 1/4
 
     We can further check that reparameterising about `0` is the identity 
     operation::
 
-        sage: S.reparameterise_differential_minpoly(minpoly, 0)(*minpoly.parent().gens())==minpoly
+        sage: reparameterise_differential_minpoly(minpoly, 0)(*minpoly.parent().gens())==minpoly
         True
 
     .. NOTE::
@@ -869,7 +876,8 @@ class RiemannSurface(object):
             sage: S = RiemannSurface(f)
             sage: edge1 = sorted(S.edge_permutations())[0]
             sage: sigma = S.edge_permutations()[edge1]
-            sage: continued_values = S.homotopy_continuation(edge1)
+            sage: edge = [S._vertices[i] for i in edge1]
+            sage: continued_values = S.homotopy_continuation(edge)[-1][1]
             sage: stored_values = S.w_values(S._vertices[edge1[1]])
             sage: all(abs(continued_values[i]-stored_values[sigma(i)]) < 1e-8 for i in range(3))
             True
@@ -947,7 +955,7 @@ class RiemannSurface(object):
             sage: z0 = S._vertices[0]
             sage: epsilon = 0.1
             sage: oldw = S.w_values(z0)
-            sage: neww = S._determine_new_w(z0,oldw,epsilon); neww #abs tol 0.00000001
+            sage: neww = S._determine_new_w(z0, oldw, epsilon); neww #abs tol 0.00000001
                 [-0.934613146929672 + 2.01088055918363*I,
                  0.934613146929672 - 2.01088055918363*I]
 
@@ -964,13 +972,13 @@ class RiemannSurface(object):
 
             sage: g = z^3*w + w^3 + z
             sage: T = RiemannSurface(g)
-            sage: z0 = T._vertices[2]*(0.9) - T._vertices[15]*(0.1)
+            sage: z0 = T._vertices[2]*(0.9) - T._vertices[5]*(0.1)
             sage: epsilon = 0.5
             sage: oldw = T.w_values(T._vertices[2])
-            sage: T._determine_new_w(z0,oldw,epsilon)
-            [-0.562337685361648 + 0.151166007149998*I,
-             0.640201585779414 - 1.48567225836436*I,
-             -0.0778639004177661 + 1.33450625121437*I]
+            sage: T._determine_new_w(z0, oldw, epsilon)
+            Traceback (most recent call last):
+            ...
+            ConvergenceError: Newton iteration escaped neighbourhood
 
         .. NOTE::
 
@@ -1056,11 +1064,13 @@ class RiemannSurface(object):
 
             sage: g = z^3*w + w^3 + z
             sage: T = RiemannSurface(g)
-            sage: z0 = T._vertices[2]*(0.9) - T._vertices[15]*(0.1)
+            sage: z0 = T._vertices[2]*(0.9) - T._vertices[5]*(0.1)
             sage: epsilon = 0.5
-            sage: oldw = T.w_values(T._vertices[2])[0]
+            sage: oldw = T.w_values(T._vertices[2])[1]
             sage: T._newton_iteration(z0, oldw, epsilon)
-            -0.562337685361648 + 0.151166007149998*I
+            Traceback (most recent call last):
+            ...
+            ConvergenceError: Newton iteration escaped neighbourhood
         """
         F = self._fastcall_f
         dF = self._fastcall_dfdw
@@ -1153,12 +1163,12 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
 
-        Compute the edge permutation of (1,2) on the Voronoi diagram::
+        Compute the edge permutation of (2, 9) on the Voronoi diagram::
 
-            sage: S._edge_permutation((1,2))
-            (0,2,1)
+            sage: S._edge_permutation((2, 9))
+            (1,2)
 
-        This indicates that while traversing along the direction of `(5,16)`,
+        This indicates that while traversing along the direction of `(2, 9)`,
         the 2nd and 3rd layers of the Riemann surface are interchanging.
         """
         if edge in self.downstairs_edges():
@@ -1201,17 +1211,17 @@ class RiemannSurface(object):
              (1, 2): (),
              (1, 3): (0,1),
              (1, 6): (),
-             (2, 5): (0,1),
-             (3, 4): (),
-             (5, 7): (),
-             (6, 7): (),
              (2, 0): (),
-             (4, 0): (),
              (2, 1): (),
+             (2, 5): (0,1),
              (3, 1): (0,1),
-             (6, 1): (),
-             (5, 2): (0,1),
+             (3, 4): (),
+             (4, 0): (),
              (4, 3): (),
+             (5, 2): (0,1),
+             (5, 7): (),
+             (6, 1): (),
+             (6, 7): (),
              (7, 5): (),
              (7, 6): ()}
         """
@@ -1749,7 +1759,7 @@ class RiemannSurface(object):
 
             sage: S._cohomology_basis_bounding_data
             (Multivariate Polynomial Ring in z, g over Rational Field,
-             [(1/(2*y),
+             [(1/(2*w),
                (-3*z^2*g)/(2*z^3 - 2),
                z^3*g^2 - g^2 - 1/4,
                (1.00000000000000,
@@ -1841,8 +1851,7 @@ class RiemannSurface(object):
             sage: _ = S.homology_basis()
             sage: differentials = S.cohomology_basis()
             sage: bounding_data = S._bounding_data(differentials)
-            sage: S.rigorous_line_integral([(0,0), (1,0)], differentials, 
-                                                bounding_data)
+            sage: S.rigorous_line_integral([(0,0), (1,0)], differentials, bounding_data) # abs tol 1e-10
             (1.80277751848459e-16 - 0.352971844594760*I)
 
         .. NOTE::
@@ -2211,7 +2220,8 @@ class RiemannSurface(object):
                 P += line3d([path(t[0])+(t[1][i].imag_part(),) for t in T],color=color,thickness=thickness)
             for z,ws in zip(self._vertices,self._wvalues):
                 for w in ws:
-                    P += point3d([z.real_part(),z.imag_part(),w.imag_part()],color="purple", size=20)
+                    P += point3d([z.real_part(), z.imag_part(), w.imag_part()], 
+                                 color="purple", size=20)
         return P
 
     def endomorphism_basis(self, b=None, r=None):
@@ -2889,7 +2899,8 @@ class RiemannSurface(object):
         As the output of ``_aj_based`` is difficult to intepret due to its path
         dependency, we look at the output of :meth:`abel_jacobi`. We check for 
         two hyperelliptic curves that the Abel-Jacobi map between two branch 
-        points is a 2-torsion point over the lattice::
+        points is a 2-torsion point over the lattice. Note we must remember to
+        reduce over the period lattice, as results are path dependent::
         
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
             sage: R.<x,y> = QQ[]
@@ -2897,6 +2908,8 @@ class RiemannSurface(object):
             sage: divisor = [(-1, (Infinity, 0)), (1, (1, 0))]
             sage: AJ = S.abel_jacobi(divisor)
             sage: AJx2 = [2*z for z in AJ]
+            sage: vector(AJx2).norm() # abs tol 1e-10
+            2.4286506478875809114000865640
             sage: bool(S.reduce_over_period_lattice(AJx2).norm()<1e-10)
             True
             sage: S = RiemannSurface(y^2-x^4+1)
@@ -3128,6 +3141,7 @@ class RiemannSurface(object):
             
         VR = VectorSpace(self._RR, 2*self.genus)
         VC = VectorSpace(self._CC, self.genus)
+        I = self._CC(0,-1)
             
         if method=="svp":
             H = max(max(z.real_part().abs() for z in vector), 

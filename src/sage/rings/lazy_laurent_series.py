@@ -1,4 +1,4 @@
-r"""
+"""
 Lazy Laurent Series
 
 A lazy Laurent series is a Laurent series whose coefficients are
@@ -1203,6 +1203,34 @@ class LazyModuleElement(Element):
             return P.element_class(P, coeff_stream._series)
         return P.element_class(P, CoefficientStream_neg(coeff_stream))
 
+    def is_constant(self):
+        """
+        Return ``True`` if ``self`` is a constant.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: z.is_constant()
+            False
+            sage: L(1).is_constant()
+            True
+            sage: L(0).is_constant()
+            True
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: x.is_constant()
+            False
+            sage: L(pi).is_constant()
+            True
+
+        """
+        coeff_stream = self._coeff_stream
+        return (isinstance(coeff_stream, CoefficientStream_zero)
+                or (isinstance(coeff_stream, CoefficientStream_exact)
+                    and not coeff_stream._constant
+                    and len(coeff_stream._initial_coefficients) == 1
+                    and coeff_stream.order() == 0))
+
     # === special functions ===
 
     def exp(self):
@@ -1227,17 +1255,607 @@ class LazyModuleElement(Element):
             sage: exp(x+y)[4].factor()
             (1/24) * (x + y)^4
 
+            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
+            sage: exp(x/(1-y)).finite_part(3)
+            1/6*x^3 + x^2*y + x*y^2 + 1/2*x^2 + x*y + x + 1
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); a = var("a")
+            sage: exp(L(a))
+            e^a
+
         TESTS::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
-            sage: exp(z)[5] - exp(x).series(x).coefficient(x, 5)
-            0
+            sage: exp(z)[0:6] == exp(x).series(x, 6).coefficients(sparse=False)
+            True
 
         """
+        # if exp(self) happens to be in the base ring we are fine, too
+        from sage.functions.log import exp
+        if self.is_constant():
+            return self.parent()(exp(self[0]))
         from .lazy_laurent_series_ring import LazyLaurentSeriesRing
         from sage.functions.other import factorial
         P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: 1/factorial(n), valuation=0)(self)
+        f = P(lambda n: 1/factorial(ZZ(n)), valuation=0)
+        return f(self)
+
+    def log(self):
+        r"""
+        Return the series for the natural logarithm of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: log(1/(1-z))
+            z + 1/2*z^2 + 1/3*z^3 + 1/4*z^4 + 1/5*z^5 + 1/6*z^6 + 1/7*z^7 + O(z^8)
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: log((1 + x/(1-y))).finite_part(3)
+            1/3*x^3 - x^2*y + x*y^2 + (-1/2)*x^2 + x*y + x
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); a = var("a")
+            sage: log(L(a))
+            log(a)
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: log(1+z)[0:6] == log(1+x).series(x, 6).coefficients(sparse=False)
+            True
+
+            sage: log(z)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
+
+        """
+        # if log(self) happens to be in the base ring we are fine, too
+        from sage.functions.log import log
+        if self.is_constant():
+            return self.parent()(log(self[0]))
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        f = P(lambda n: ((-1) ** (n + 1))/ZZ(n), valuation=1)
+        return f(self-1)
+
+    # trigonometric functions
+
+    def sin(self):
+        r"""
+        Return the sine of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: sin(z)
+            z - 1/6*z^3 + 1/120*z^5 - 1/5040*z^7 + O(z^8)
+
+            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
+            sage: sin(x/(1-y)).finite_part(3)
+            (-1/6)*x^3 + x*y^2 + x*y + x
+
+            sage: sin(1 + z)
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: sin(z)[0:6] == sin(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        f = P(lambda n: (n % 2)/factorial(ZZ(n)) if n % 4 == 1 else -(n % 2)/factorial(ZZ(n)),
+              valuation=1)
+        return f(self)
+
+    def cos(self):
+        r"""
+        Return the cosine of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: cos(z)
+            1 - 1/2*z^2 + 1/24*z^4 - 1/720*z^6 + O(z^7)
+
+            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
+            sage: cos(x/(1-y)).finite_part(4)
+            1/24*x^4 + (-3/2)*x^2*y^2 - x^2*y + (-1/2)*x^2 + 1
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: cos(z)[0:6] == cos(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        f = P(lambda n: 1/factorial(ZZ(n)) if n % 4 == 0 else (n % 2 - 1)/factorial(ZZ(n)),
+              valuation=0)
+        return f(self)
+
+    def tan(self):
+        r"""
+        Return the tangent of ``self``.
+
+        EXAMPLES:
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: tan(z)
+            z + 1/3*z^3 + 2/15*z^5 + 17/315*z^7 + O(z^8)
+
+            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
+            sage: tan(x/(1-y)).finite_part(5)
+            2/15*x^5 + 2*x^3*y^2 + x*y^4 + x^3*y + x*y^3 + 1/3*x^3 + x*y^2 + x*y + x
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: tan(z)[0:6] == tan(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        return self.sin()/self.cos()
+
+    def cot(self):
+        r"""
+        Return the cotangent of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: cot(z)
+            z^-1 - 1/3*z - 1/45*z^3 - 2/945*z^5 + O(z^6)
+
+            sage: L.<x> = LazyLaurentSeriesRing(SR)
+            sage: cot(x/(1-x)).finite_part(4)
+            x^-1 - 1 - 1/3*x - 1/3*x^2 - 16/45*x^3 - 2/5*x^4
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: cot(z)[0:6] == cot(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        return ~ self.tan()
+
+    def csc(self):
+        r"""
+        Return the cosecant of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: csc(z)
+            z^-1 + 1/6*z + 7/360*z^3 + 31/15120*z^5 + O(z^6)
+
+            sage: L.<x> = LazyLaurentSeriesRing(SR)
+            sage: csc(x/(1-x)).finite_part(4)
+            x^-1 - 1 + 1/6*x + 1/6*x^2 + 67/360*x^3 + 9/40*x^4
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: (z*csc(z))[0:6] == (x*csc(x)).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        return ~ self.sin()
+
+    def sec(self):
+        r"""
+        Return the secant of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: sec(z)
+            1 + 1/2*z^2 + 5/24*z^4 + 61/720*z^6 + O(z^7)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: sec(x/(1-y)).finite_part(4)
+            5/24*x^4 + 3/2*x^2*y^2 + x^2*y + 1/2*x^2 + 1
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: sec(z)[0:6] == sec(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        return ~ self.cos()
+
+    # inverse trigonometric functions
+
+    def arcsin(self):
+        r"""
+        Return the arcsin of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: arcsin(z)
+            z + 1/6*z^3 + 3/40*z^5 + 5/112*z^7 + O(z^8)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: asin(x/(1-y))
+            x + x*y + (1/6*x^3+x*y^2) + (1/2*x^3*y+x*y^3) + (3/40*x^5+x^3*y^2+x*y^4) + (3/8*x^5*y+5/3*x^3*y^3+x*y^5) + (5/112*x^7+9/8*x^5*y^2+5/2*x^3*y^4+x*y^6) + O(x,y)^8
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: asin(z)[0:6] == asin(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        def f(n):
+            n = ZZ(n)
+            if n % 2:
+                return factorial(n-1)/((4**((n-1)/2))*(factorial((n-1)/2)**2)*n)
+            return ZZ.zero()
+        return P(f, valuation=1)(self)
+
+    def arccos(self):
+        r"""
+        Return the arccos of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(RR)
+            sage: arccos(z)
+            1.57079632679490 - 1.00000000000000*z + 0.000000000000000*z^2 - 0.166666666666667*z^3 + 0.000000000000000*z^4 - 0.0750000000000000*z^5 + O(1.00000000000000*z^7)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: arccos(x/(1-y))
+            1/2*pi + (-x) + (-x*y) + ((-1/6)*x^3-x*y^2) + ((-1/2)*x^3*y-x*y^3) + ((-3/40)*x^5-x^3*y^2-x*y^4) + ((-3/8)*x^5*y+(-5/3)*x^3*y^3-x*y^5) + O(x,y)^7
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: acos(z)[0:6] == acos(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.symbolic.constants import pi
+        return self.parent()(pi/2) - self.arcsin()
+
+    def arctan(self):
+        r"""
+        Return the arctangent of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: arctan(z)
+            z - 1/3*z^3 + 1/5*z^5 - 1/7*z^7 + O(z^8)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: atan(x/(1-y))
+            x + x*y + ((-1/3)*x^3+x*y^2) + (-x^3*y+x*y^3) + (1/5*x^5+(-2)*x^3*y^2+x*y^4) + (x^5*y+(-10/3)*x^3*y^3+x*y^5) + ((-1/7)*x^7+3*x^5*y^2+(-5)*x^3*y^4+x*y^6) + O(x,y)^8
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: atan(z)[0:6] == atan(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        def f(n):
+            n = ZZ(n)
+            if n % 4 == 1:
+                return 1/n
+            if n % 2 == 0:
+                return ZZ.zero()
+            return -1/n
+        return P(f, valuation=1)(self)
+
+    def arccot(self):
+        r"""
+        Return the arctangent of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(RR)
+            sage: arccot(z)
+            1.57079632679490 - 1.00000000000000*z + 0.000000000000000*z^2 + 0.333333333333333*z^3 + 0.000000000000000*z^4 - 0.200000000000000*z^5 + O(1.00000000000000*z^7)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: acot(x/(1-y))
+            1/2*pi + (-x) + (-x*y) + (1/3*x^3-x*y^2) + (x^3*y-x*y^3) + ((-1/5)*x^5+2*x^3*y^2-x*y^4) + (-x^5*y+10/3*x^3*y^3-x*y^5) + O(x,y)^7
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: acot(z)[0:6] == acot(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.symbolic.constants import pi
+        return self.parent()(pi/2) - self.arctan()
+
+    # hyperbolic functions
+
+    def sinh(self):
+        r"""
+        Return the sinh of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: sinh(z)
+            z + 1/6*z^3 + 1/120*z^5 + 1/5040*z^7 + O(z^8)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: sinh(x/(1-y))
+            x + x*y + (1/6*x^3+x*y^2) + (1/2*x^3*y+x*y^3) + (1/120*x^5+x^3*y^2+x*y^4) + (1/24*x^5*y+5/3*x^3*y^3+x*y^5) + (1/5040*x^7+1/8*x^5*y^2+5/2*x^3*y^4+x*y^6) + O(x,y)^8
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: sinh(z)[0:6] == sinh(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        f = P(lambda n: 1/factorial(ZZ(n)) if n % 2 else ZZ.zero(),
+              valuation=1)
+        return f(self)
+
+    def cosh(self):
+        r"""
+        Return the cosh of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: cosh(z)
+            1 + 1/2*z^2 + 1/24*z^4 + 1/720*z^6 + O(z^7)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: cosh(x/(1-y))
+            1 + 1/2*x^2 + x^2*y + (1/24*x^4+3/2*x^2*y^2) + (1/6*x^4*y+2*x^2*y^3) + (1/720*x^6+5/12*x^4*y^2+5/2*x^2*y^4) + O(x,y)^7
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: cosh(z)[0:6] == cosh(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        f = P(lambda n: ZZ.zero() if n % 2 else 1/factorial(ZZ(n)),
+              valuation=0)
+        return f(self)
+
+    def tanh(self):
+        r"""
+        Return the tanh of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: tanh(z)
+            z - 1/3*z^3 + 2/15*z^5 - 17/315*z^7 + O(z^8)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: tanh(x/(1-y))
+            x + x*y + ((-1/3)*x^3+x*y^2) + (-x^3*y+x*y^3) + (2/15*x^5+(-2)*x^3*y^2+x*y^4) + (2/3*x^5*y+(-10/3)*x^3*y^3+x*y^5) + ((-17/315)*x^7+2*x^5*y^2+(-5)*x^3*y^4+x*y^6) + O(x,y)^8
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: tanh(z)[0:6] == tanh(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from sage.arith.misc import bernoulli
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        def f(n):
+            n = ZZ(n)
+            if n % 2:
+                h = 4 ** ((n + 1) // 2)
+                return bernoulli(n + 1) * h * (h -1) / factorial(n + 1)
+            return ZZ.zero()
+        return P(f, valuation=1)(self)
+
+    def coth(self):
+        r"""
+        Return the hyperbolic cotangent of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: coth(z)
+            z^-1 + 1/3*z - 1/45*z^3 + 2/945*z^5 + O(z^6)
+
+            sage: coth(z + z^2)
+            z^-1 - 1 + 4/3*z - 2/3*z^2 + 44/45*z^3 - 16/15*z^4 + 884/945*z^5 + O(z^6)
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: coth(z)[0:6] == coth(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from sage.arith.misc import bernoulli
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        def f(n):
+            n = ZZ(n)
+            if n % 2:
+                return ((2 ** (n + 1)) * bernoulli(n + 1))/factorial(n + 1)
+            return ZZ.zero()
+        return P(f, valuation=-1)(self)
+
+    def sech(self):
+        r"""
+        Return the hyperbolic secant of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: sech(z)
+            1 - 1/2*z^2 + 5/24*z^4 - 61/720*z^6 + O(z^7)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: sech(x/(1-y))
+            1 + ((-1/2)*x^2) + (-x^2*y) + (5/24*x^4+(-3/2)*x^2*y^2) + (5/6*x^4*y+(-2)*x^2*y^3) + ((-61/720)*x^6+25/12*x^4*y^2+(-5/2)*x^2*y^4) + O(x,y)^7
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: sech(z)[0:6] == sech(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from sage.combinat.combinat import euler_number
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        def f(n):
+            n = ZZ(n)
+            if n % 2:
+                return ZZ.zero()
+            return euler_number(n)/factorial(n)
+        return P(f, valuation=0)(self)
+
+    def csch(self):
+        r"""
+        Return the hyperbolic cosecant of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: csch(z)
+            z^-1 - 1/6*z + 7/360*z^3 - 31/15120*z^5 + O(z^6)
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR)
+            sage: csch(z/(1-z))
+            z^-1 - 1 - 1/6*z - 1/6*z^2 - 53/360*z^3 - 13/120*z^4 - 787/15120*z^5 + O(z^6)
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: csch(z)[0:6] == csch(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from sage.arith.misc import bernoulli
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        def f(n):
+            n = ZZ(n)
+            if n % 2:
+                return 2 * (1 - ZZ(2) ** n) * bernoulli(n + 1)/factorial(n + 1)
+            return ZZ.zero()
+        return P(f, valuation=-1)(self)
+
+    # inverse hyperbolic functions
+
+    def asinh(self):
+        r"""
+        Return the inverse of the hyperbolic sine of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: asinh(z)
+            z - 1/6*z^3 + 3/40*z^5 - 5/112*z^7 + O(z^8)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: asinh(x/(1-y))
+            x + x*y + ((-1/6)*x^3+x*y^2) + ((-1/2)*x^3*y+x*y^3) + (3/40*x^5-x^3*y^2+x*y^4) + (3/8*x^5*y+(-5/3)*x^3*y^3+x*y^5) + ((-5/112)*x^7+9/8*x^5*y^2+(-5/2)*x^3*y^4+x*y^6) + O(x,y)^8
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: asinh(z)[0:6] == asinh(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        def f(n):
+            n = ZZ(n)
+            if n % 2:
+                h = (n - 1) // 2
+                return ZZ(-1) ** h * factorial(n - 1)/(ZZ(4) ** h * factorial(h) ** 2 * n)
+            return ZZ.zero()
+        return P(f, valuation=1)(self)
+
+    def atanh(self):
+        r"""
+        Return the inverse of the hyperbolic tangent of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: atanh(z)
+            z + 1/3*z^3 + 1/5*z^5 + O(z^7)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: atanh(x/(1-y))
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: atanh(z)[0:6] == atanh(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        f = P(lambda n: 1/ZZ(n) if n % 2 else ZZ.zero(), valuation=1)
+        return f(self)
+
+    def acosh(self):
+        r"""
+        Return the inverse of the hyperbolic tangent of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: acosh(z)
+            1 + 1/2*z^2 + 1/24*z^4 + 1/720*z^6 + O(z^7)
+
+            sage: L.<x, y> = LazyTaylorSeriesRing(SR)
+            sage: acosh(x/(1-y))
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); x = var("x")
+            sage: acosh(z)[0:6] == acosh(x).series(x, 6).coefficients(sparse=False)
+            True
+
+        """
+        from sage.functions.other import factorial
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        f = P(lambda n: 1/factorial(ZZ(n)) if n % 2 == 0 else ZZ.zero(), valuation=0)
+        return f(self)
 
     def hypergeometric(self, a, b):
         r"""
@@ -1277,576 +1895,9 @@ class LazyModuleElement(Element):
             for term in range(len(c)):
                 num *= rising_factorial(c[term], n)
             return num
-        return P(lambda n: coeff(n, a)/(coeff(n, b) * factorial(n)), 0)(self)
-
-    def log(self):
-        r"""
-        Return the series for the natural logarithm of ``1 + self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: log(1/(1-z))
-            z + 1/2*z^2 + 1/3*z^3 + 1/4*z^4 + 1/5*z^5 + 1/6*z^6 + 1/7*z^7 + O(z^8)
-            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
-            sage: log((1 + x/(1-y)))[4]
-            -1/4*x^4 + x^3*y - 3/2*x^2*y^2 + x*y^3
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
-            sage: log(1+z)[5] - log(1+x).series(x).coefficient(x, 5)
-            0
-
-            sage: log(z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: ((-1) ** (n + 1))/n, 1)(self-1)
-
-    def a_pow_z(self, a):
-        r"""
-        Return the series expansion for `a^{self}`.
-
-        INPUT:
-
-        - ``a`` - The base of the series
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(SR)
-            sage: var('a b c')
-            (a, b, c)
-            sage: from sage.symbolic.constants import e
-            sage: a_pow_z(z, a)
-            1 + log(a)*z + 1/2*log(a)^2*z^2 + 1/6*log(a)^3*z^3 + 1/24*log(a)^4*z^4 + 1/120*log(a)^5*z^5 + 1/720*log(a)^6*z^6 + O(z^7)
-            sage: a_pow_z(z^2, b)
-            1 + log(b)*z^2 + 1/2*log(b)^2*z^4 + 1/6*log(b)^3*z^6 + O(z^7)
-            sage: a_pow_z(z + z^2, c)
-            1 + log(c)*z + (1/2*log(c)^2 + log(c))*z^2 + (1/6*log(c)^3 + log(c)^2)*z^3 + (1/24*log(c)^4 + 1/2*log(c)^3 + 1/2*log(c)^2)*z^4 + (1/120*log(c)^5 + 1/6*log(c)^4 + 1/2*log(c)^3)*z^5 + (1/720*log(c)^6 + 1/24*log(c)^5 + 1/4*log(c)^4 + 1/6*log(c)^3)*z^6 + O(z^7)
-            sage: a_pow_z(z, e)
-            1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
-            sage: a_pow_z(z, 2)
-            1 + log(2)*z + 1/2*log(2)^2*z^2 + 1/6*log(2)^3*z^3 + 1/24*log(2)^4*z^4 + 1/120*log(2)^5*z^5 + 1/720*log(2)^6*z^6 + O(z^7)
-            sage: a_pow_z(1 + z, c)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.log import log
-        from sage.functions.other import factorial
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: log(a) ** (n)/factorial(n) if n else 1, 0)(self)
-
-## Trigonometric functions
-
-    def sin(self):
-        r"""
-        Return the sine of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: sin(z)
-            z - 1/6*z^3 + 1/120*z^5 + O(z^7)
-            sage: sin(z^2)
-            z^2 - 1/6*z^6 + O(z^7)
-            sage: sin(z + z^2)
-            z + z^2 - 1/6*z^3 - 1/2*z^4 - 59/120*z^5 - 1/8*z^6 + O(z^7)
-            sage: sin(0)
-            0
-            sage: sin(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.other import factorial
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: (n % 2)/factorial(n) if n % 4 == 1 else -(n % 2)/factorial(n), 0)(self)
-
-    def cos(self):
-        r"""
-        Return the cosine of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: cos(z)
-            1 - 1/2*z^2 + 1/24*z^4 - 1/720*z^6 + O(z^7)
-            sage: cos(z^2)
-            1 - 1/2*z^4 + O(z^7)
-            sage: cos(z + z^2)
-            1 - 1/2*z^2 - z^3 - 11/24*z^4 + 1/6*z^5 + 179/720*z^6 + O(z^7)
-            sage: cos(0)
-            1
-            sage: cos(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.other import factorial
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: 1/factorial(n) if n % 4 == 0 else (n % 2 - 1)/factorial(n), 0)(self)
-
-    def tan(self):
-        r"""
-        Return the tangent of ``self``.
-
-        EXAMPLES:
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: tan(z)
-            z + 1/3*z^3 + 2/15*z^5 + O(z^7)
-            sage: tan(z^2)
-            z^2 + 1/3*z^6 + O(z^7)
-            sage: tan(z + z^2)
-            z + z^2 + 1/3*z^3 + z^4 + 17/15*z^5 + z^6 + O(z^7)
-            sage: tan(0)
-            0
-            sage: tan(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        return self.sin()/self.cos()
-
-    def cot(self):
-        r"""
-        Return the cotangent of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: cot(z)
-            z^-1 - 1/3*z - 1/45*z^3 - 2/945*z^5 + O(z^6)
-            sage: cot(z^2)
-            z^-2 - 1/3*z^2 + O(z^5)
-            sage: cot(z + z^2)
-            z^-1 - 1 + 2/3*z - 4/3*z^2 + 44/45*z^3 - 16/15*z^4 + 176/189*z^5 + O(z^6)
-            sage: cot(0)
-            Infinity
-            sage: cot(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        return ~ self.tan()
-
-    def csc(self):
-        r"""
-        Return the cosecant of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: csc(z)
-            z^-1 + 1/6*z + 7/360*z^3 + 31/15120*z^5 + O(z^6)
-            sage: csc(0)
-            Infinity
-            sage: csc(z^2)
-            z^-2 + 1/6*z^2 + O(z^5)
-            sage: csc(z + z^2)
-            z^-1 - 1 + 7/6*z - 5/6*z^2 + 367/360*z^3 - 113/120*z^4 + 16033/15120*z^5 + O(z^6)
-            sage: csc(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        return ~ self.sin()
-
-    def sec(self):
-        r"""
-        Return the secant of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: sec(z)
-            1 + 1/2*z^2 + 5/24*z^4 + 61/720*z^6 + O(z^7)
-            sage: sec(z^2)
-            1 + 1/2*z^4 + O(z^7)
-            sage: sec(z + z^2)
-            1 + 1/2*z^2 + z^3 + 17/24*z^4 + 5/6*z^5 + 961/720*z^6 + O(z^7)
-            sage: sec(0)
-            1
-            sage: sec(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        return ~ self.cos()
-
-## Inverse trigonometric functions
-
-    def arcsin(self):
-        r"""
-        Return the arcsin of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: arcsin(z)
-            z + 1/6*z^3 + 3/40*z^5 + O(z^7)
-            sage: arcsin(z)[7]
-            5/112
-            sage: arcsin(z)
-            z + 1/6*z^3 + 3/40*z^5 + O(z^7)
-            sage: arcsin(z^2)
-            z^2 + 1/6*z^6 + O(z^7)
-            sage: arcsin(z + z^2)
-            z + z^2 + 1/6*z^3 + 1/2*z^4 + 23/40*z^5 + 13/24*z^6 + O(z^7)
-            sage: arcsin(0)
-            0
-            sage: arcsin(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.other import factorial
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: factorial(n-1)/((4**((n-1)/2))*(factorial((n-1)/2)**2)*n) if n % 2 else ZZ.zero(), 0)(self)
-
-    def arccos(self):
-        r"""
-        Return the arccos of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(RR)
-            sage: arccos(z)
-            1.57079632679490 - 1.00000000000000*z + 0.000000000000000*z^2 - 0.166666666666667*z^3 + 0.000000000000000*z^4 - 0.0750000000000000*z^5 + O(1.00000000000000*z^7)
-            sage: arccos(z^2)
-            1.57079632679490 + 0.000000000000000*z - 1.00000000000000*z^2 + 0.000000000000000*z^3 + 0.000000000000000*z^4 + 0.000000000000000*z^5 - 0.166666666666667*z^6 + O(1.00000000000000*z^7)
-            sage: arccos(z + z^2)
-            1.57079632679490 - 1.00000000000000*z - 1.00000000000000*z^2 - 0.166666666666667*z^3 - 0.500000000000000*z^4 - 0.575000000000000*z^5 - 0.541666666666667*z^6 + O(1.00000000000000*z^7)
-            sage: arccos(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.symbolic.constants import pi
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(pi/2) - self.arcsin()
-
-    def arctan(self):
-        r"""
-        Return the arctangent of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: arctan(z)
-            z - 1/3*z^3 + 1/5*z^5 + O(z^7)
-            sage: arctan(z^2)
-            z^2 - 1/3*z^6 + O(z^7)
-            sage: arctan(z + z^2)
-            z + z^2 - 1/3*z^3 - z^4 - 4/5*z^5 + 2/3*z^6 + O(z^7)
-            sage: arctan(0)
-            0
-            sage: arctan(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: 1/n if n % 4 == 1 else ZZ.zero() if n % 2 == 0 else -1/n, 0)(self)
-
-    def arccot(self):
-        r"""
-        Return the arctangent of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(RR)
-            sage: arccot(z)
-            1.57079632679490 - 1.00000000000000*z + 0.000000000000000*z^2 + 0.333333333333333*z^3 + 0.000000000000000*z^4 - 0.200000000000000*z^5 + O(1.00000000000000*z^7)
-            sage: arccot(z^2)
-            1.57079632679490 + 0.000000000000000*z - 1.00000000000000*z^2 + 0.000000000000000*z^3 + 0.000000000000000*z^4 + 0.000000000000000*z^5 + 0.333333333333333*z^6 + O(1.00000000000000*z^7)
-            sage: arccot(z + z^2)
-            1.57079632679490 - 1.00000000000000*z - 1.00000000000000*z^2 + 0.333333333333333*z^3 + 1.00000000000000*z^4 + 0.800000000000000*z^5 - 0.666666666666667*z^6 + O(1.00000000000000*z^7)
-            sage: arccot(L(0))
-            1.57079632679490
-            sage: arccot(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.symbolic.constants import pi
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(pi/2) - self.arctan()
-
-## Hyerbolic functions
-
-    def sinh(self):
-        r"""
-        Return the sinh of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: sinh(z)
-            z + 1/6*z^3 + 1/120*z^5 + O(z^7)
-            sage: sinh(z^2)
-            z^2 + 1/6*z^6 + O(z^7)
-            sage: sinh(z + z^2)
-            z + z^2 + 1/6*z^3 + 1/2*z^4 + 61/120*z^5 + 5/24*z^6 + O(z^7)
-            sage: sinh(0)
-            0
-            sage: sinh(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-
-        from sage.functions.other import factorial
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: 1/factorial(n) if n % 2 else ZZ.zero(), 0)(self)
-
-    def cosh(self):
-        r"""
-        Return the cosh of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: cosh(z)
-            1 + 1/2*z^2 + 1/24*z^4 + 1/720*z^6 + O(z^7)
-            sage: cosh(z^2)
-            1 + 1/2*z^4 + O(z^7)
-            sage: cosh(z + z^2)
-            1 + 1/2*z^2 + z^3 + 13/24*z^4 + 1/6*z^5 + 181/720*z^6 + O(z^7)
-            sage: cosh(0)
-            1
-            sage: cosh(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.other import factorial
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: ZZ.zero() if n % 2 else 1/factorial(n), 0)(self)
-
-    def tanh(self):
-        r"""
-        Return the tanh of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: tanh(z)
-            z - 1/3*z^3 + 2/15*z^5 + O(z^7)
-            sage: tanh(z)[7]
-            -17/315
-            sage: tanh(z)
-            z - 1/3*z^3 + 2/15*z^5 + O(z^7)
-            sage: tanh(z^2)
-            z^2 - 1/3*z^6 + O(z^7)
-            sage: tanh(z + z^2)
-            z + z^2 - 1/3*z^3 - z^4 - 13/15*z^5 + 1/3*z^6 + O(z^7)
-            sage: tanh(0)
-            0
-            sage: tanh(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.other import factorial
-        from sage.arith.misc import bernoulli
-        from sage.rings.rational_field import QQ
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: (QQ((bernoulli(n + 1)) * ((4) ** ((n + 1)/2))) * (-1 + (4 ** ((n + 1)/2))))/factorial(n + 1) if n % 2 else ZZ.zero(), 0)(self)
-
-    def coth(self):
-        r"""
-        Return the hyperbolic cotangent of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: coth(z)
-            z^-1 + 1/3*z - 1/45*z^3 + 2/945*z^5 + O(z^6)
-            sage: coth(z^2)
-            z^-2 + 1/3*z^2 + O(z^5)
-            sage: coth(z + z^2)
-            z^-1 - 1 + 4/3*z - 2/3*z^2 + 44/45*z^3 - 16/15*z^4 + 884/945*z^5 + O(z^6)
-            sage: coth(L(0))
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: the valuation of the series must be nonnegative
-            sage: coth(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.other import factorial
-        from sage.arith.misc import bernoulli
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: ((2 ** (n + 1)) * bernoulli(n + 1))/factorial(n + 1) if n % 2 else ZZ.zero(), -1)(self)
-
-    def sech(self):
-        r"""
-        Return the hyperbolic secant of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: sech(z)
-            1 - 1/2*z^2 + 5/24*z^4 - 61/720*z^6 + O(z^7)
-            sage: sech(z^2)
-            1 - 1/2*z^4 + O(z^7)
-            sage: sech(z + z^2)
-            1 - 1/2*z^2 - z^3 - 7/24*z^4 + 5/6*z^5 + 839/720*z^6 + O(z^7)
-            sage: sech(L(0))
-            1
-            sage: sech(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.other import factorial
-        from sage.combinat.combinat import euler_number
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: euler_number(n)/factorial(n) if n % 2 == 0 else ZZ.zero(), 0)(self)
-
-    def csch(self):
-        r"""
-        Return the hyperbolic cosecant of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: csch(z)
-            z^-1 - 1/6*z + 7/360*z^3 - 31/15120*z^5 + O(z^6)
-            sage: csch(z^2)
-            z^-2 - 1/6*z^2 + O(z^5)
-            sage: csch(z + z^2)
-            z^-1 - 1 + 5/6*z - 7/6*z^2 + 367/360*z^3 - 113/120*z^4 + 15971/15120*z^5 + O(z^6)
-            sage: csch(L(0))
-            Traceback (most recent call last):
-            ...
-            ZeroDivisionError: the valuation of the series must be nonnegative
-            sage: csch(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.other import factorial
-        from sage.arith.misc import bernoulli
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: (2 * (1 - 2 ** n) * bernoulli(n + 1))/factorial(n + 1) if n % 2 else ZZ.zero(), -1)(self)
-
-## Inverse hyperbolic functions
-
-    def asinh(self):
-        r"""
-        Return the inverse of the hyperbolic sine of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: asinh(z)
-            z - 1/6*z^3 + 3/40*z^5 + O(z^7)
-            sage: asinh(z^2)
-            z^2 - 1/6*z^6 + O(z^7)
-            sage: asinh(z + z^2)
-            z + z^2 - 1/6*z^3 - 1/2*z^4 - 17/40*z^5 + 5/24*z^6 + O(z^7)
-            sage: asinh(L(0))
-            0
-            sage: asinh(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.other import factorial
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: ZZ.zero() if n % 2 == 0 else (((-1) ** ((n - 1)/2)) * factorial(n - 1))/(4 ** ((n - 1)/2) * (factorial((n - 1)/2) ** 2) * n), 0)(self)
-
-    def atanh(self):
-        r"""
-        Return the inverse of the hyperbolic tangent of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: atanh(z)
-            z + 1/3*z^3 + 1/5*z^5 + O(z^7)
-            sage: atanh(z^2)
-            z^2 + 1/3*z^6 + O(z^7)
-            sage: atanh(L(0))
-            0
-            sage: atanh(z + z^2)
-            z + z^2 + 1/3*z^3 + z^4 + 6/5*z^5 + 4/3*z^6 + O(z^7)
-            sage: atanh(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: 1/n if n % 2 else ZZ.zero(), 0)(self)
-
-    def acosh(self):
-        r"""
-        Return the inverse of the hyperbolic tangent of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: acosh(z)
-            1 + 1/2*z^2 + 1/24*z^4 + 1/720*z^6 + O(z^7)
-            sage: acosh(z^2)
-            1 + 1/2*z^4 + O(z^7)
-            sage: acosh(z + z^2)
-            1 + 1/2*z^2 + z^3 + 13/24*z^4 + 1/6*z^5 + 181/720*z^6 + O(z^7)
-            sage: acosh(L(0))
-            1
-            sage: acosh(1 + z)
-            Traceback (most recent call last):
-            ...
-            ValueError: can only compose with a positive valuation series
-
-        """
-        from sage.functions.other import factorial
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        return P(lambda n: 1/factorial(n) if n % 2 == 0 else ZZ.zero(), 0)(self)
+        f = P(lambda n: coeff(n, a)/(coeff(n, b) * factorial(ZZ(n))),
+              valuation=0)
+        return f(self)
 
 
 class LazyCauchyProductSeries(LazyModuleElement):
@@ -2225,6 +2276,16 @@ class LazyCauchyProductSeries(LazyModuleElement):
             1 - 2*z + z^2
             sage: (1 + z)^2
             1 + 2*z + z^2
+
+        We also support the general case::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR); a = var("a")
+            sage: a^z
+            1 + log(a)*z + 1/2*log(a)^2*z^2 + 1/6*log(a)^3*z^3 + 1/24*log(a)^4*z^4 + 1/120*log(a)^5*z^5 + 1/720*log(a)^6*z^6 + O(z^7)
+
+            sage: (1 + z)^(1 + z)
+            1 + z + z^2 + 1/2*z^3 + 1/3*z^4 + 1/12*z^5 + 3/40*z^6 + O(z^7)
+
         """
         if n == 0:
             return self.parent().one()
@@ -2242,7 +2303,14 @@ class LazyCauchyProductSeries(LazyModuleElement):
             # return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
             #                 constant=cs._constant, degree=deg, valuation=val))
 
-        return generic_power(self, n)
+        if n in ZZ:
+            return generic_power(self, n)
+
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        from sage.functions.other import factorial
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        exp = P(lambda k: 1/factorial(ZZ(k)), valuation=0)
+        return exp(self.log() * n)
 
 
 class LazyLaurentSeries(LazyCauchyProductSeries):

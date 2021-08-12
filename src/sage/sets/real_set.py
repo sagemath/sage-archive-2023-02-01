@@ -75,21 +75,21 @@ AUTHORS:
 - Volker Braun (2013-06-22): Rewrite
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013 Volker Braun <vbraun.name@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.structure.richcmp import richcmp, richcmp_method
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.topological_spaces import TopologicalSpaces
-from sage.categories.sets_cat import Sets, EmptySetError
+from sage.categories.sets_cat import EmptySetError
 from sage.sets.set import Set_base, Set_boolean_operators, Set_add_sub_operators
 from sage.rings.all import ZZ
 from sage.rings.real_lazy import LazyFieldElement, RLF

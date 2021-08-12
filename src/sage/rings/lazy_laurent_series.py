@@ -1921,6 +1921,21 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
+
+        We compose the exponential with a Dirichlet series::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: e = L(lambda n: 1/factorial(n), 0)
+            sage: D = LazyDirichletSeriesRing(QQ, "s")
+            sage: f = D(constant=1)-1; f
+            1/(2^s) + 1/(3^s) + 1/(4^s) + O(1/(5^s))
+
+            sage: e(f)[0:10]
+            [0, 1, 1, 1, 3/2, 1, 2, 1, 13/6, 3/2]
+
+            sage: sum(f^k/factorial(k) for k in range(10))[0:10]
+            [0, 1, 1, 1, 3/2, 1, 2, 1, 13/6, 3/2]
+
         """
         # f = self and compute f(g)
         P = g.parent()

@@ -778,7 +778,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
     """
     Element = LazyTaylorSeries
 
-    def __init__(self, base_ring, names, sparse=False, category=None):
+    def __init__(self, base_ring, names, sparse=True, category=None):
         """
         Initialize ``self``.
 
@@ -1032,7 +1032,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             sage: L(lambda n: n)[3];
             Traceback (most recent call last):
             ...
-            ValueError: coefficient 1 at degree 1 is not a homogeneous polynomial
+            ValueError: coefficient 3 at degree 3 is not a homogeneous polynomial
 
             sage: L([1, 2, 3]);
             Traceback (most recent call last):
@@ -1207,7 +1207,7 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
     """
     Element = LazyDirichletSeries
 
-    def __init__(self, base_ring, names, sparse=False, category=None):
+    def __init__(self, base_ring, names, sparse=True, category=None):
         """
         Initialize the ring.
 

@@ -734,14 +734,14 @@ class LazyModuleElement(Element):
             sage: O[0:10]
             [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
             sage: type(O._coeff_stream)
-            <class 'sage.data_structures.coefficient_stream.CoefficientStream_rmul'>
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_lmul'>
             sage: M * 1 is M
             True
             sage: M * 0 == 0
             True
             sage: O = 2 * M
             sage: type(O._coeff_stream)
-            <class 'sage.data_structures.coefficient_stream.CoefficientStream_rmul'>
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_lmul'>
             sage: O[0:10]
             [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
             sage: 1 * M is M
@@ -757,14 +757,14 @@ class LazyModuleElement(Element):
             sage: O[0:10]
             [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
             sage: type(O._coeff_stream)
-            <class 'sage.data_structures.coefficient_stream.CoefficientStream_rmul'>
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_lmul'>
             sage: M * 1 is M
             True
             sage: M * 0 == 0
             True
             sage: O = 2 * M
             sage: type(O._coeff_stream)
-            <class 'sage.data_structures.coefficient_stream.CoefficientStream_rmul'>
+            <class 'sage.data_structures.coefficient_stream.CoefficientStream_lmul'>
             sage: O[0:10]
             [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
             sage: 1 * M is M

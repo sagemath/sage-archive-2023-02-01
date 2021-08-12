@@ -1448,17 +1448,18 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             ...
             ValueError: can only compose with a positive valuation series
 
-        We cannot compose if `g` has a negative valuation::
-
             sage: f = L(lambda n: n, 1)
-            sage: g = 1 + z
-            sage: f(g)
+            sage: f(1 + z)
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
         """
         # f = self and compute f(g)
         P = g.parent()
+
+        # f = 0
+        if isinstance(self._coeff_stream, CoefficientStream_zero):
+            return self
 
         # g = 0 case
         if ((not isinstance(g, LazyLaurentSeries) and not g)
@@ -1472,16 +1473,14 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             self._coeff_stream._approximate_order = 0
             return P(self[0])
 
-        # f has finite length
-        if isinstance(self._coeff_stream, CoefficientStream_zero):  # constant 0
-            return self
+        # f has finite length and f != 0
         if isinstance(self._coeff_stream, CoefficientStream_exact) and not self._coeff_stream._constant:
             # constant polynomial
             R = self.parent()._laurent_poly_ring
             poly = self._coeff_stream.polynomial_part(R)
             if poly.is_constant():
                 return self
-            if not isinstance(g, LazyLaurentSeries):
+            if not isinstance(g, LazyModuleElement):
                 return poly(g)
             # g also has finite length, compose the polynomials
             if isinstance(g._coeff_stream, CoefficientStream_exact) and not g._coeff_stream._constant:
@@ -1528,18 +1527,23 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             return ret
 
         # g != 0 and val(g) > 0
-        if not isinstance(g, LazyLaurentSeries):
+        if not isinstance(g, LazyModuleElement):
+            # TODO: Implement case for a regular (Laurent)PowerSeries element
+            #   as we can use the (default?) order given
             try:
                 g = self.parent()(g)
             except (TypeError, ValueError):
-                raise NotImplementedError("can only compose with a lazy Laurent series")
+                raise NotImplementedError("can only compose with a lazy series")
         # Perhaps we just don't yet know if the valuation is positive
         if g._coeff_stream._approximate_order <= 0:
             if any(g._coeff_stream[i] for i in range(g._coeff_stream._approximate_order, 1)):
                 raise ValueError("can only compose with a positive valuation series")
             g._coeff_stream._approximate_order = 1
 
-        return P.element_class(P, CoefficientStream_composition(self._coeff_stream, g._coeff_stream))
+        return P.element_class(P, CoefficientStream_composition(self._coeff_stream,
+                g._coeff_stream, P._product_stream_class, P._product_inv_stream_class))
+
+    compose = __call__
 
     def _div_(self, other):
         r"""

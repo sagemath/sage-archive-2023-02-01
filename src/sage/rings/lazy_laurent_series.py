@@ -1227,11 +1227,16 @@ class LazyModuleElement(Element):
             sage: exp(x+y)[4].factor()
             (1/24) * (x + y)^4
 
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: exp(z)[5] - exp(x).series(x).coefficient(x, 5)
+            0
+
         """
         from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        from sage.rings.rational_field import QQ        
         from sage.functions.other import factorial
-        P = LazyLaurentSeriesRing(QQ, "z", sparse=self.parent()._sparse)
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: 1/factorial(n), valuation=0)(self)
 
     def hypergeometric(self, a, b):
@@ -1263,18 +1268,15 @@ class LazyModuleElement(Element):
             1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
 
         """
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
         from sage.functions.other import factorial
         from sage.arith.misc import rising_factorial
-        if not isinstance(a, (list, tuple)):
-            a = [a]
-        if not isinstance(b, (list, tuple)):
-            b = [b]
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         def coeff(n, c):
             num = 1
             for term in range(len(c)):
                 num *= rising_factorial(c[term], n)
             return num
-        P = self.parent()
         return P(lambda n: coeff(n, a)/(coeff(n, b) * factorial(n)), 0)(self)
 
     def log(self):
@@ -1284,22 +1286,27 @@ class LazyModuleElement(Element):
         EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: log(1/(1-z))
+            z + 1/2*z^2 + 1/3*z^3 + 1/4*z^4 + 1/5*z^5 + 1/6*z^6 + 1/7*z^7 + O(z^8)
+            sage: L.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: log((1 + x/(1-y)))[4]
+            y^3*x - 3/2*y^2*x^2 + y*x^3 - 1/4*x^4
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ); x = var("x")
+            sage: log(1+z)[5] - log(1+x).series(x).coefficient(x, 5)
+            0
+
             sage: log(z)
-            z - 1/2*z^2 + 1/3*z^3 - 1/4*z^4 + 1/5*z^5 - 1/6*z^6 + 1/7*z^7 + O(z^8)
-            sage: log(z^2)
-            z^2 - 1/2*z^4 + 1/3*z^6 - 1/4*z^8 + O(z^9)
-            sage: log(z + z^2)
-            z + 1/2*z^2 - 2/3*z^3 + 1/4*z^4 + 1/5*z^5 - 1/3*z^6 + 1/7*z^7 + O(z^8)
-            sage: log(-z)
-            -z - 1/2*z^2 - 1/3*z^3 - 1/4*z^4 - 1/5*z^5 - 1/6*z^6 - 1/7*z^7 + O(z^8)
-            sage: log(1 + z)
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
 
         """
-        P = self.parent()
-        return P(lambda n: ((-1) ** (n + 1))/n, 1)(self)
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        return P(lambda n: ((-1) ** (n + 1))/n, 1)(self-1)
 
     def a_pow_z(self, a):
         r"""
@@ -1333,8 +1340,8 @@ class LazyModuleElement(Element):
         """
         from sage.functions.log import log
         from sage.functions.other import factorial
-
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: log(a) ** (n)/factorial(n) if n else 1, 0)(self)
 
 ## Trigonometric functions
@@ -1361,7 +1368,8 @@ class LazyModuleElement(Element):
 
         """
         from sage.functions.other import factorial
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: (n % 2)/factorial(n) if n % 4 == 1 else -(n % 2)/factorial(n), 0)(self)
 
     def cos(self):
@@ -1386,7 +1394,8 @@ class LazyModuleElement(Element):
 
         """
         from sage.functions.other import factorial
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: 1/factorial(n) if n % 4 == 0 else (n % 2 - 1)/factorial(n), 0)(self)
 
     def tan(self):
@@ -1509,8 +1518,8 @@ class LazyModuleElement(Element):
 
         """
         from sage.functions.other import factorial
-
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: factorial(n-1)/((4**((n-1)/2))*(factorial((n-1)/2)**2)*n) if n % 2 else ZZ.zero(), 0)(self)
 
     def arccos(self):
@@ -1533,7 +1542,8 @@ class LazyModuleElement(Element):
 
         """
         from sage.symbolic.constants import pi
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(pi/2) - self.arcsin()
 
     def arctan(self):
@@ -1557,7 +1567,8 @@ class LazyModuleElement(Element):
             ValueError: can only compose with a positive valuation series
 
         """
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: 1/n if n % 4 == 1 else ZZ.zero() if n % 2 == 0 else -1/n, 0)(self)
 
     def arccot(self):
@@ -1581,9 +1592,9 @@ class LazyModuleElement(Element):
             ValueError: can only compose with a positive valuation series
 
         """
-
         from sage.symbolic.constants import pi
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(pi/2) - self.arctan()
 
 ## Hyerbolic functions
@@ -1611,8 +1622,8 @@ class LazyModuleElement(Element):
         """
 
         from sage.functions.other import factorial
-
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: 1/factorial(n) if n % 2 else ZZ.zero(), 0)(self)
 
     def cosh(self):
@@ -1636,10 +1647,9 @@ class LazyModuleElement(Element):
             ValueError: can only compose with a positive valuation series
 
         """
-
         from sage.functions.other import factorial
-
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: ZZ.zero() if n % 2 else 1/factorial(n), 0)(self)
 
     def tanh(self):
@@ -1670,8 +1680,8 @@ class LazyModuleElement(Element):
         from sage.functions.other import factorial
         from sage.arith.misc import bernoulli
         from sage.rings.rational_field import QQ
-
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: (QQ((bernoulli(n + 1)) * ((4) ** ((n + 1)/2))) * (-1 + (4 ** ((n + 1)/2))))/factorial(n + 1) if n % 2 else ZZ.zero(), 0)(self)
 
     def coth(self):
@@ -1699,8 +1709,8 @@ class LazyModuleElement(Element):
         """
         from sage.functions.other import factorial
         from sage.arith.misc import bernoulli
-
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: ((2 ** (n + 1)) * bernoulli(n + 1))/factorial(n + 1) if n % 2 else ZZ.zero(), -1)(self)
 
     def sech(self):
@@ -1726,8 +1736,8 @@ class LazyModuleElement(Element):
         """
         from sage.functions.other import factorial
         from sage.combinat.combinat import euler_number
-
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: euler_number(n)/factorial(n) if n % 2 == 0 else ZZ.zero(), 0)(self)
 
     def csch(self):
@@ -1755,8 +1765,8 @@ class LazyModuleElement(Element):
         """
         from sage.functions.other import factorial
         from sage.arith.misc import bernoulli
-
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: (2 * (1 - 2 ** n) * bernoulli(n + 1))/factorial(n + 1) if n % 2 else ZZ.zero(), -1)(self)
 
 ## Inverse hyperbolic functions
@@ -1783,8 +1793,8 @@ class LazyModuleElement(Element):
 
         """
         from sage.functions.other import factorial
-
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: ZZ.zero() if n % 2 == 0 else (((-1) ** ((n - 1)/2)) * factorial(n - 1))/(4 ** ((n - 1)/2) * (factorial((n - 1)/2) ** 2) * n), 0)(self)
 
     def atanh(self):
@@ -1808,7 +1818,8 @@ class LazyModuleElement(Element):
             ValueError: can only compose with a positive valuation series
 
         """
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: 1/n if n % 2 else ZZ.zero(), 0)(self)
 
     def acosh(self):
@@ -1833,8 +1844,8 @@ class LazyModuleElement(Element):
 
         """
         from sage.functions.other import factorial
-
-        P = self.parent()
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
         return P(lambda n: 1/factorial(n) if n % 2 == 0 else ZZ.zero(), 0)(self)
 
 

@@ -521,6 +521,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                                                        order=x.valuation(), constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
 
+        # we must not convert, say, a Dirichlet series into a Laurent series
+        # if isinstance(x, LazyLaurentSeries):
         if isinstance(x, LazyModuleElement):
             if x._coeff_stream._is_sparse is not self._sparse:
                 # TODO: Implement a way to make a self._sparse copy

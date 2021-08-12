@@ -1462,8 +1462,8 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             return self
 
         # g = 0 case
-        if ((not isinstance(g, LazyLaurentSeries) and not g)
-            or (isinstance(g, LazyLaurentSeries)
+        if ((not isinstance(g, LazyModuleElement) and not g)
+            or (isinstance(g, LazyModuleElement)
                 and isinstance(g._coeff_stream, CoefficientStream_zero))):
             if self._coeff_stream._approximate_order >= 0:
                 return P(self[0])

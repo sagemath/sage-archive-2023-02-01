@@ -325,7 +325,7 @@ class CoefficientStream_inexact(CoefficientStream):
                         return n
                     n += 1
                 else:
-                    if self[n] != 0:
+                    if self[n]:
                         self._approximate_order = n
                         return n
                     n += 1
@@ -339,7 +339,7 @@ class CoefficientStream_inexact(CoefficientStream):
                         return n
                     n += 1
                 else:
-                    if self[n] != 0:
+                    if self[n]:
                         self._approximate_order = n
                         return n
                     n += 1

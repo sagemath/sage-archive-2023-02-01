@@ -1,3 +1,4 @@
+# -*- conf-unix -*-
 [metadata]
 name = sagemath-objects
 description = Sage: Open Source Mathematics Software: Sage objects, elements, parents, categories, coercion, metaclasses
@@ -16,7 +17,6 @@ classifiers =
     Operating System :: POSIX
     Operating System :: MacOS :: MacOS X
     Programming Language :: Python :: 3 :: Only
-    Programming Language :: Python :: 3.6
     Programming Language :: Python :: 3.7
     Programming Language :: Python :: 3.8
     Programming Language :: Python :: 3.9
@@ -24,8 +24,11 @@ classifiers =
     Topic :: Scientific/Engineering :: Mathematics
 
 [options]
+python_requires = >=3.7, <3.10
 install_requires =
-    Cython
-    pkgconfig
-    cysignals
-    gmpy2 ==2.1.0b5
+    esyscmd(`sage-get-system-packages install-requires \
+        cython         \
+        pkgconfig      \
+        gmpy2          \
+        cysignals      \
+        | sed "2,\$s/^/    /;"')dnl

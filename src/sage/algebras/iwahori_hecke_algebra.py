@@ -1937,6 +1937,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             """
             super().__init__(IHAlgebra, prefix)
 
+            self.delta = None
+            self._W_Coxeter3 = None
+
             v = IHAlgebra.base_ring().gen(0)
             parameters = {IHAlgebra.q1(), IHAlgebra.q2()}
             if v != IHAlgebra.base_ring().one() and (parameters == {v**2, -1} or parameters == {v, -1/v}):
@@ -2161,10 +2164,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 (v^-1+v)*CpC[1,2,1,3,2] + (v^-1+v)*CpC[1,2,1]
             """
             if self.delta is None or self._W_Coxeter3 is None:
+                # We do not meet the conditions to use the direct product 
+                # algorithm; fall back to conversion to/from the T-basis.
                 return super().product_on_basis(w1, w2)
 
-            w1 = self._W_Coxeter3.from_reduced_word(w1.reduced_word())
-            w2 = self._W_Coxeter3.from_reduced_word(w2.reduced_word())
+            # If self._W_Coxeter3 is not the underlying Coxeter group, we need
+            # to convert elements first for this algorithm.
+            if (self._W_Coxeter3 != self.realization_of()._W):
+                w1 = self._W_Coxeter3.from_reduced_word(w1.reduced_word())
+                w2 = self._W_Coxeter3.from_reduced_word(w2.reduced_word())
 
             # Decomposition: write one of C'_{w1} and C'_{w2} as a polynomial in the
             # generators C'_{s}.
@@ -2185,6 +2193,15 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 for s in p_list:
                     summand = self._product_with_generator(s, summand, side)
                 result += summand
+            
+            # Again, if self._W_Coxeter3 is not the underlying Coxeter group,
+            # we need to convert result. Specifically, make sure basis elements
+            # appearing therein are actually indexed by elements of the original
+            # underlying Coxeter group.
+            if (self._W_Coxeter3 != self.realization_of()._W):
+                _W = self.realization_of()._W
+                result = self.linear_combination((self(_W.from_reduced_word(w.reduced_word())), c) for (w, c) in result)
+
             return result
 
     C_prime = Cp

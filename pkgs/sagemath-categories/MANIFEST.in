@@ -1,11 +1,10 @@
 prune sage
 graft sage/cpython
-graft sage_setup
-prune sage_setup/docbuild
 
 include sage/__init__.py   # FIXME: Needs to become a namespace package
 include sage/env.py        # FIXME: sage_setup must be changed so it does not depend on it
 include sage/version.py    # FIXME: likewise
+include VERSION.txt
 
 global-include all__sage_objects.py
 global-include all__sage_categories.py

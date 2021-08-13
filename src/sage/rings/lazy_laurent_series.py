@@ -105,7 +105,8 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_map_coefficients,
     CoefficientStream_zero,
     CoefficientStream_exact,
-    CoefficientStream_uninitialized
+    CoefficientStream_uninitialized,
+    CoefficientStream_shift
 )
 
 class LazyModuleElement(Element):
@@ -1822,6 +1823,70 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             from sage.rings.all import PolynomialRing
             R = PolynomialRing(S.base_ring(), name=name)
             return R([self[i] for i in range(m)])
+
+    def shift(self, n):
+        r"""
+        Return ``self`` multiplied by the power `z^n`, where `z` is the
+        variable of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1 / (1 + 2*z)
+            sage: f
+            1 - 2*z + 4*z^2 - 8*z^3 + 16*z^4 - 32*z^5 + 64*z^6 + O(z^7)
+            sage: f.shift(3)
+            z^3 - 2*z^4 + 4*z^5 - 8*z^6 + 16*z^7 - 32*z^8 + 64*z^9 + O(z^10)
+            sage: f << -3  # shorthand
+            z^-3 - 2*z^-2 + 4*z^-1 - 8 + 16*z - 32*z^2 + 64*z^3 + O(z^4)
+            sage: g = z^-3 + 3 + z^2
+            sage: g.shift(5)
+            z^2 + 3*z^5 + z^7
+            sage: L([2,0,3], valuation=2, degree=7, constant=1) << -2
+            2 + 3*z^2 + z^5 + z^6 + z^7 + O(z^8)
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: zero = L.zero()
+            sage: zero.shift(10) is zero
+            True
+        """
+        if isinstance(self._coeff_stream, CoefficientStream_zero):
+            return self
+        elif isinstance(self._coeff_stream, CoefficientStream_shift):
+            shift += self._coeff_stream._shift
+            coeff_stream = CoefficientStream_shift(self._coeff_stream._series, n)
+        elif isinstance(self._coeff_stream, CoefficientStream_exact):
+            init_coeff = self._coeff_stream._initial_coefficients
+            degree = self._coeff_stream._degree + n
+            valuation = self._coeff_stream._approximate_order + n
+            coeff_stream = CoefficientStream_exact(init_coeff, self._coeff_stream._is_sparse,
+                                                   constant=self._coeff_stream._constant,
+                                                   order=valuation, degree=degree)
+        else:
+            coeff_stream = CoefficientStream_shift(self._coeff_stream, n)
+        P = self.parent()
+        return P.element_class(P, coeff_stream)
+
+    __lshift__ = shift
+
+    def __rshift__(self, n):
+        r"""
+        Return ``self`` multiplied by the power `z^-n`, where `z` is the
+        variable of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 + 2*z); f
+            1 - 2*z + 4*z^2 - 8*z^3 + 16*z^4 - 32*z^5 + 64*z^6 + O(z^7)
+            sage: f >> 3
+            z^-3 - 2*z^-2 + 4*z^-1 - 8 + 16*z - 32*z^2 + 64*z^3 + O(z^4)
+            sage: f >> -3
+            z^3 - 2*z^4 + 4*z^5 - 8*z^6 + 16*z^7 - 32*z^8 + 64*z^9 + O(z^10)
+        """
+        return self.shift(-n)
 
     def _format_series(self, formatter, format_strings=False):
         """

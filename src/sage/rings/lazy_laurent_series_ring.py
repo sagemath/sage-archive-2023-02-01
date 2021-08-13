@@ -38,7 +38,8 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_zero,
     CoefficientStream_coefficient_function,
     CoefficientStream_exact,
-    CoefficientStream_uninitialized
+    CoefficientStream_uninitialized,
+    CoefficientStream_shift
 )
 
 
@@ -530,7 +531,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 # TODO: Implement a way to make a self._sparse copy
                 raise NotImplementedError("cannot convert between sparse and dense")
 
-            # Special case when x is known to be 0
+            # If x is known to be 0
             if isinstance(x._coeff_stream, CoefficientStream_zero):
                 if not constant:
                     return x
@@ -560,11 +561,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 return self.element_class(self, coeff_stream)
 
             # We are just possibly shifting the result
-            # TODO: Implement the shift operator
             ret = self.element_class(self, x._coeff_stream)
             if valuation is None:
                 return ret
-            return self.gen() ** (valuation-ret.valuation()) * ret
+            return x.shift(valuation - ret.valuation())
 
         if callable(x):
             if valuation is None:

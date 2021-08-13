@@ -1403,7 +1403,6 @@ class CoefficientStream_neg(CoefficientStream_unary):
         sage: [g[i] for i in range(10)]
         [0, -1, -1, -1, -1, -1, -1, -1, -1, -1]
     """
-
     def __init__(self, series):
         """
         Initialize ``self``.
@@ -1531,7 +1530,7 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
 
 class CoefficientStream_map_coefficients(CoefficientStream_unary):
     r"""
-    Return the stream with ``function`` applied to each nonzero
+    The stream with ``function`` applied to each nonzero
     coefficient of ``series``.
 
     INPUT:
@@ -1596,4 +1595,84 @@ class CoefficientStream_map_coefficients(CoefficientStream_unary):
         if c:
             return self._function(c)
         return c
+
+class CoefficientStream_shift(CoefficientStream):
+    """
+    Operator for shifting the stream.
+
+    INPUT:
+
+    - ``series`` -- a :class:`CoefficientStream`
+    - ``shift`` -- an integer
+    """
+    def __init__(self, series, shift):
+        """
+        Initialize ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_shift
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_exact
+            sage: h = CoefficientStream_exact([1], False, constant=3)
+            sage: M = CoefficientStream_shift(h, 2)
+            sage: TestSuite(M).run()
+        """
+        self._series = series
+        self._shift = shift
+        super().__init__(series._is_sparse, series._approximate_order + shift)
+
+    def __getitem__(self, n):
+        """
+        Return the ``n``-th coefficient of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_shift
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function
+            sage: F = CoefficientStream_coefficient_function(lambda n: n, ZZ, False, 1)
+            sage: M = CoefficientStream_shift(F, 2)
+            sage: [F[i] for i in range(6)]
+            [0, 1, 2, 3, 4, 5]
+            sage: [M[i] for i in range(6)]
+            [0, 0, 0, 1, 2, 3]
+        """
+        return self._series[n-self._shift]
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_shift
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function
+            sage: F = CoefficientStream_coefficient_function(lambda n: n, ZZ, False, 1)
+            sage: M = CoefficientStream_shift(F, 2)
+            sage: hash(M) == hash(M)
+            True
+        """
+        return hash((type(self), self._series))
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        INPUT:
+
+        - ``other`` -- a stream of coefficients
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_shift
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function
+            sage: F = CoefficientStream_coefficient_function(lambda n: 1, ZZ, False, 1)
+            sage: M2 = CoefficientStream_shift(F, 2)
+            sage: M3 = CoefficientStream_shift(F, 3)
+            sage: M2 == M3
+            False
+            sage: M2 == CoefficientStream_shift(F, 2)
+            True
+        """
+        return (isinstance(other, type(self)) and self._shift == other._shift
+                and self._series == other._series)
 

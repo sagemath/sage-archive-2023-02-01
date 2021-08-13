@@ -3662,7 +3662,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         We define a dynamical Belyi map to be a map conjugate to a
         dynamical system `f: \mathbb{P}^1  \to \mathbb{P}^1`
         where the branch points are contained in `\{0, 1, \infty \}`
-        and the post critical set is contained in `\{0, 1, \infty \}`.
+        and the postcritical set is contained in `\{0, 1, \infty \}`.
 
         Output: Boolean
 
@@ -3708,6 +3708,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: N.<c> = NumberField(t^3 - 2)
             sage: P.<x,y> = ProjectiveSpace(N, 1)
             sage: f=DynamicalSystem_projective([x^2 + c*y^2, x*y])
+            sage: f.is_dynamical_belyi_map()
+            False
+
+        ::
+
+            sage: P.<x,y> = ProjectiveSpace(GF(7), 1)
+            sage: f = DynamicalSystem_projective([x^3  + 6*y^3, y^3])
             sage: f.is_dynamical_belyi_map()
             False
         """

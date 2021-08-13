@@ -52,7 +52,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.arith.misc import is_prime, moebius
+from sage.arith.misc import is_prime
 from sage.calculus.functions import jacobian
 from sage.categories.fields import Fields
 from sage.categories.function_fields import FunctionFields

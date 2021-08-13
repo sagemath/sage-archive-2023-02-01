@@ -1882,6 +1882,16 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         See [KL1979]_ for more details.
 
+        If the optional ``coxeter3`` package is available, and the
+        Iwahori--Hecke algebra was initialized in the "standard" presentation
+        (where `\{q_1,q_2\} = \{v^2,1\}` as sets) or the "normalized"
+        presentation (where `\{q_1,q_2\} = \{v,-v^{-1}\}`), a performant direct
+        algorithm is available to compute products in the `C^{\prime}` basis,
+        documented in :func:`product_on_basis`. If these conditions are not met,
+        the class will fall back to the default implementation which computes
+        products by converting elements to the `T`-basis and back. This default
+        implementation may be prohibitively slow for complex calculations.
+
         EXAMPLES::
 
             sage: R = LaurentPolynomialRing(QQ, 'v')
@@ -1916,6 +1926,21 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: Cp(s1)*Cp(s2)*Cp(s3)*Cp(s1)*Cp(s2) # long time
             Cp[1,2,3,1,2] + Cp[1,2,1] + Cp[3,1,2]
 
+        The most efficient way to use this class is to create the algebra from a
+        Coxeter group implemented with ``coxeter3``. This will ensure the direct
+        algorithm can work as efficiently as possible with no unnecessary
+        conversions::
+
+            sage: R = LaurentPolynomialRing(QQ, 'v')                    # optional - coxeter3
+            sage: v = R.gen(0)                                          # optional - coxeter3
+            sage: W = CoxeterGroup('A9', implementation='coxeter3')     # optional - coxeter3
+            sage: H = IwahoriHeckeAlgebra(W, v**2)                      # optional - coxeter3
+            sage: Cp = H.Cp()                                           # optional - coxeter3
+            sage: Cp[1,2,1,8,9,8]*Cp[1,2,3,7,8,9]                       # optional - coxeter3
+            (v^-2+2+v^2)*Cp[1,2,1,3,7,8,7,9,8,7]
+            + (v^-2+2+v^2)*Cp[1,2,1,3,8,9,8,7]
+            + (v^-3+3*v^-1+3*v+v^3)*Cp[1,2,1,3,8,9,8]
+
         TESTS::
 
             sage: R.<v> = LaurentPolynomialRing(QQ, 'v')
@@ -1933,12 +1958,29 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def __init__(self, IHAlgebra, prefix=None):
             r"""
-            TODO: docstring
+            TESTS::
+
+                sage: R = LaurentPolynomialRing(QQ, 'v')                    # optional - coxeter3
+                sage: v = R.gen(0)                                          # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
+                sage: H = IwahoriHeckeAlgebra(W, v**2)                      # optional - coxeter3
+                sage: Cp = H.Cp()                                           # optional - coxeter3
+                sage: Cp.delta == v + ~v                                    # optional - coxeter3
+                True
+                sage: Cp._W_Coxeter3 == H._W                                # optional - coxeter3
+                True
+                sage: H = IwahoriHeckeAlgebra(W, QQ(1))                     # optional - coxeter3
+                sage: Cp = H.Cp()                                           # optional - coxeter3
+                sage: Cp.delta == None                                      # optional - coxeter3
+                True
             """
             super().__init__(IHAlgebra, prefix)
 
             self.delta = None
             self._W_Coxeter3 = None
+
+            # See if we meet the conditions to use the direct product_on_basis algorithm.
+            # If we do, both of these will be non-None
 
             v = IHAlgebra.base_ring().gen(0)
             parameters = {IHAlgebra.q1(), IHAlgebra.q2()}
@@ -2113,9 +2155,12 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def product_on_basis(self, w1, w2):
             r"""
-            TODO: Mention fallback and conditions to use this algorithm.
-            Return the expansion of `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` in
-            the `C^{\prime}`-basis.
+            If possible, uses a direct algorithm to compute the product
+            `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` (in particular, if
+            ``coxeter3`` is installed and the Iwahori--Hecke algebra is in the
+            standard or normalized presentation), detailed below. If not, this
+            method uses the default implementation of converting to the
+            `T`-basis, computing the product there, and converting back.
 
             ALGORITHM:
 

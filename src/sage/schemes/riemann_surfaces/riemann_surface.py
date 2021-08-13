@@ -403,7 +403,7 @@ class RiemannSurface(object):
     the ``'rigorous'`` method much faster. However, the ``'rigorous'`` method 
     has a higher overhead due to the need to calculate the bounds, and it does
     not benefit as much from the caching of the ``nodes`` method over multiple
-    integrals. The result of this is that, for calls of :meth:`matrx_over_integral_values`
+    integrals. The result of this is that, for calls of :meth:`matrix_of_integral_values`
     if the computation is 'fast', the heuristic method may outperform the
     rigorous method, but for slower computations the rigorous method can be much
     faster::
@@ -1664,7 +1664,7 @@ class RiemannSurface(object):
 
         - ``bounding_data`` -- tuple containing the data required for bounding
           the integrands. This should be in the form of the output from 
-          ``_bounding_data``.
+          :meth:`_bounding_data`.
 
         OUTPUT:
 
@@ -1690,14 +1690,16 @@ class RiemannSurface(object):
 
         .. NOTE::
 
-            Uses data that ``homology_basis`` initializes. Note also that the 
-            data of the differentials is contained withing ``bounding_data``. 
-            It is, howver, still advantageous to have this be a separate
-            argument, as it lets the user supply a fast-callable version of
-            the differentials, to significantly speed up execution of the integrand
-            calls, and not have to re-calculate these fast-callables for every
-            run of the function. This is also the benefit of representing the 
-            differentials as a polynomial over a known common denominator. 
+            Uses data that ``homology_basis`` initializes. 
+
+            Note also that the  data of the differentials is contained within
+            ``bounding_data``. It is, howver, still advantageous to have this 
+            be a separate argument, as it lets the user supply a fast-callable
+            version of the differentials, to significantly speed up execution 
+            of the integrand calls, and not have to re-calculate these 
+            fast-callables for every run of the function. This is also the benefit
+            of representing the  differentials as a polynomial over a known 
+            common denominator. 
 
         .. TODO::
 

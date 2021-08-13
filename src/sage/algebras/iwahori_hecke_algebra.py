@@ -1580,30 +1580,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             generic_T = H._generic_iwahori_hecke_algebra.T()
             return generic_T.to_Cp_basis(w).specialize_to(H)
 
-        def to_Cp_Coxeter3_basis(self, w):
-            r"""
-            Return `T_w` as a linear combination of `C^{\prime}`-basis elements,
-            using the ``Cp_Coxeter3`` basis.
-
-            EXAMPLES::
-
-                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                            # optional - coxeter3
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')                # optional - coxeter3
-                sage: H = IwahoriHeckeAlgebra(A3, v**2); T=H.T(); CpC=H.Cp_Coxeter3()   # optional - coxeter3
-                sage: s1,s2,s3 = A3.simple_reflections()                                # optional - coxeter3
-                sage: T.to_Cp_Coxeter3_basis(s1)                                        # optional - coxeter3
-                v*CpC[1] - 1
-                sage: CpC(T(s1))                                                        # optional - coxeter3
-                v*CpC[1] - 1
-                sage: CpC(T[1] + 1)                                                     # optional - coxeter3
-                v*CpC[1]
-                sage: CpC(T[1,2] + T[1] + T[2] + 1)                                     # optional - coxeter3
-                v^2*CpC[1,2]
-            """
-            H = self.realization_of()
-            generic_T = H._generic_iwahori_hecke_algebra.T()
-            return generic_T.to_Cp_Coxeter3_basis(w).specialize_to(H)
-
         def bar_on_basis(self, w):
             """
             Return the bar involution of `T_w`, which is `T^{-1}_{w^-1}`.
@@ -1954,26 +1930,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             True
         """
         _basis_name = 'Cp'   # this is used, for example, by specialize_to and is the default prefix
-
-        def to_Cp_Coxeter3_basis(self, w):
-            r"""
-            Return ``self[w]`` as an element of the ``Cp_Coxeter3`` basis. This
-            transformation is trivial since both bases are implementations of
-            the `C^{\prime}` basis.
-
-            EXAMPLES::
-
-                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')
-                sage: H = IwahoriHeckeAlgebra(A3, v**2); Cp = H.Cp(); CpC=H.Cp_Coxeter3()
-                sage: Cp.to_Cp_Coxeter3_basis(A3([1,2]))
-                CpC[1,2]
-                sage: CpC(Cp[1,2])
-                CpC[1,2]
-            """
-            A = self.realization_of()
-            CpC = A.Cp_Coxeter3()
-            return CpC.monomial(w)
 
         def hash_involution_on_basis(self, w):
             r"""
@@ -3053,62 +3009,11 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
         r"""
         The `T`-basis for the generic Iwahori-Hecke algebra.
         """
-        def _to_Cp_basis(self, w, Cp):
-            r"""
-            Return `T_w` as a linear combination of `C^{\prime}`-basis elements,
-            using either the ``Cp`` basis or the ``Cp_Coxeter3`` implementation.
-
-            INPUT:
-
-            - ``w`` -- a word in self.coxeter_group()
-
-            - ``Cp`` -- the target `C^{\prime}` basis to use; either ``Cp`` or
-              ``Cp_Coxeter3``
-
-            EXAMPLES:
-
-            ::
-
-                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')                            # optional - coxeter3
-                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(A3)   # optional - coxeter3
-                sage: s1,s2,s3 = A3.simple_reflections()                                            # optional - coxeter3
-                sage: T = H.T(); CpC = H.Cp_Coxeter3()                                              # optional - coxeter3
-                sage: T._to_Cp_basis(s1, CpC)                                                       # optional - coxeter3
-                v*CpC[1] + (-u^-1*v^2)
-                sage: CpC(T(s1))                                                                    # optional - coxeter3
-                v*CpC[1] + (-u^-1*v^2)
-
-            ::
-
-                sage: A3 = CoxeterGroup('A3')
-                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(A3)
-                sage: s1,s2,s3 = A3.simple_reflections()
-                sage: T = H.T(); Cp = H.Cp()
-                sage: T._to_Cp_basis(s1, Cp)
-                v*Cp[1] + (-u^-1*v^2)
-                sage: Cp(T(s1))
-                v*Cp[1] + (-u^-1*v^2)
-            """
-            A = self.realization_of()
-            # Cp = A.Cp() if not use_Cp_Coxeter3 else A.Cp_Coxeter3()
-
-            if w == A._W.one():  # the identity element of the Coxeter group
-                return Cp.one()
-
-            T0 = self.zero()
-            inp = self.monomial(w)
-            result = Cp.zero()
-            while inp != T0:
-                (x, c) = inp.trailing_item(key=sorting_key)
-                inp = inp - c * A._root**x.length() * Cp.to_T_basis(x)
-                result = result + c * A._root**x.length() * Cp.monomial(x)
-
-            return result
-
         @cached_method
         def to_Cp_basis(self, w):
             r"""
-            Return `T_w` as a linear combination of `C^{\prime}`-basis elements
+            Return `T_w` as a linear combination of `C^{\prime}`-basis
+            elements.
 
             EXAMPLES::
 
@@ -3130,36 +3035,20 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
                  + (u^-2*v^5)*Cp[1] + (u^-2*v^5)*Cp[2] + (-u^-3*v^6)
             """
             A = self.realization_of()
-            return self._to_Cp_basis(w, A.Cp())
+            Cp = A.Cp()
 
-        @cached_method
-        def to_Cp_Coxeter3_basis(self, w):
-            r"""
-            Return `T_w` as a linear combination of `C^{\prime}`-basis elements,
-            using the ``Cp_Coxeter3`` implementation.
+            if w == A._W.one():  # the identity element of the Coxeter group
+                return Cp.one()
 
-            EXAMPLES::
+            T0 = self.zero()
+            inp = self.monomial(w)
+            result = Cp.zero()
+            while inp != T0:
+                (x, c) = inp.trailing_item(key=sorting_key)
+                inp = inp - c * A._root**x.length() * Cp.to_T_basis(x)
+                result = result + c * A._root**x.length() * Cp.monomial(x)
 
-                sage: A2 = CoxeterGroup('A2', implementation='coxeter3')                            # optional - coxeter3
-                sage: H = sage.algebras.iwahori_hecke_algebra.IwahoriHeckeAlgebra_nonstandard(A2)   # optional - coxeter3
-                sage: s1,s2 = H.coxeter_group().simple_reflections()                                # optional - coxeter3
-                sage: T = H.T()                                                                     # optional - coxeter3
-                sage: CpC = H.Cp_Coxeter3()                                                         # optional - coxeter3
-                sage: T.to_Cp_Coxeter3_basis(s1)                                                    # optional - coxeter3
-                v*CpC[1] + (-u^-1*v^2)
-                sage: CpC(T(s1))                                                                    # optional - coxeter3
-                v*CpC[1] + (-u^-1*v^2)
-                sage: CpC(T(s1)+1)                                                                  # optional - coxeter3
-                v*CpC[1] + (-u^-1*v^2+1)
-                sage: CpC(T(s1*s2)+T(s1)+T(s2)+1)                                                   # optional - coxeter3
-                v^2*CpC[1,2] + (-u^-1*v^3+v)*CpC[1] + (-u^-1*v^3+v)*CpC[2]
-                 + (u^-2*v^4-2*u^-1*v^2+1)
-                sage: CpC(T(s1*s2*s1))                                                              # optional - coxeter3
-                v^3*CpC[1,2,1] + (-u^-1*v^4)*CpC[1,2] + (-u^-1*v^4)*CpC[2,1]
-                 + (u^-2*v^5)*CpC[1] + (u^-2*v^5)*CpC[2] + (-u^-3*v^6)
-            """
-            A = self.realization_of()
-            return self._to_Cp_basis(w, A.Cp_Coxeter3())
+            return result
 
         @cached_method
         def to_C_basis(self, w):
@@ -3271,14 +3160,6 @@ class IwahoriHeckeAlgebra_nonstandard(IwahoriHeckeAlgebra):
             return cpw_s
 
     C_prime = Cp
-
-    class Cp_Coxeter3(IwahoriHeckeAlgebra.Cp_Coxeter3):
-        @cached_method
-        def to_T_basis(self, w):
-            A = self.realization_of()
-            Cp = A.Cp()
-            T = A.T()
-            return T(Cp.monomial(w))
 
     class C(IwahoriHeckeAlgebra.C):
         r"""

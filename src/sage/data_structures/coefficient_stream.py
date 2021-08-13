@@ -1279,7 +1279,69 @@ class CoefficientStream_composition(CoefficientStream_binary):
 #####################################################################
 # Unary operations
 
-class CoefficientStream_rmul(CoefficientStream_unary):
+class CoefficientStream_scalar(CoefficientStream_inexact):
+    """
+    Base class for operators multiplying a coeffeicient stream
+    by a scalar.
+    """
+    def __init__(self, series, scalar):
+        """
+        Initialize ``self``.
+
+        TESTS::
+
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_rmul, CoefficientStream_coefficient_function)
+            sage: f = CoefficientStream_coefficient_function(lambda n: -1, ZZ, True, 0)
+            sage: g = CoefficientStream_rmul(f, 3)
+        """
+        self._series = series
+        self._scalar = scalar
+        super().__init__(series._is_sparse, series._approximate_order)
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_rmul
+            sage: a = CoefficientStream_coefficient_function(lambda n: 2*n, ZZ, False, 1)
+            sage: f = CoefficientStream_rmul(a, 2)
+            sage: hash(f) == hash(f)
+            True
+        """
+        return hash((type(self), self._series, self._scalar))
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        INPUT:
+
+        - ``other`` -- a stream of coefficients
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_coefficient_function
+            sage: from sage.data_structures.coefficient_stream import CoefficientStream_rmul, CoefficientStream_lmul
+            sage: a = CoefficientStream_coefficient_function(lambda n: 2*n, ZZ, False, 1)
+            sage: b = CoefficientStream_coefficient_function(lambda n: n, ZZ, False, 1)
+            sage: f = CoefficientStream_rmul(a, 2)
+            sage: f == CoefficientStream_rmul(b, 2)
+            False
+            sage: f == CoefficientStream_rmul(a, 2)
+            True
+            sage: f == CoefficientStream_rmul(a, 3)
+            False
+            sage: f == CoefficientStream_lmul(a, 3)
+            False
+        """
+        return (isinstance(other, type(self)) and self._series == other._series
+                and self._scalar == other._scalar)
+
+
+class CoefficientStream_rmul(CoefficientStream_scalar):
     """
     Operator for multiplying a coefficient stream with a scalar
     as ``scalar * self``.
@@ -1299,19 +1361,6 @@ class CoefficientStream_rmul(CoefficientStream_unary):
         sage: [g[i] for i in range(5)]
         [0, x*dx + 1, x^2*dx + 2*x, x^3*dx + 3*x^2, x^4*dx + 4*x^3]
     """
-    def __init__(self, series, scalar):
-        """
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_rmul, CoefficientStream_coefficient_function)
-            sage: f = CoefficientStream_coefficient_function(lambda n: -1, ZZ, True, 0)
-            sage: g = CoefficientStream_rmul(f, 3)
-        """
-        self._scalar = scalar
-        super().__init__(series, series._is_sparse, series._approximate_order)
-
     def get_coefficient(self, n):
         """
         Return the ``n``-th coefficient of ``self``.
@@ -1333,7 +1382,7 @@ class CoefficientStream_rmul(CoefficientStream_unary):
         return self._scalar * self._series[n]
 
 
-class CoefficientStream_lmul(CoefficientStream_unary):
+class CoefficientStream_lmul(CoefficientStream_scalar):
     """
     Operator for multiplying a coefficient stream with a scalar
     as ``self * scalar``.
@@ -1353,19 +1402,6 @@ class CoefficientStream_lmul(CoefficientStream_unary):
         sage: [g[i] for i in range(5)]
         [0, x*dx, x^2*dx, x^3*dx, x^4*dx]
     """
-    def __init__(self, series, scalar):
-        """
-        Initialize ``self``.
-
-        TESTS::
-
-            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_lmul, CoefficientStream_coefficient_function)
-            sage: f = CoefficientStream_coefficient_function(lambda n: -1, ZZ, True, 0)
-            sage: g = CoefficientStream_lmul(f, 3)
-        """
-        self._scalar = scalar
-        super().__init__(series, series._is_sparse, series._approximate_order)
-
     def get_coefficient(self, n):
         """
         Return the ``n``-th coefficient of ``self``.
@@ -1528,7 +1564,7 @@ class CoefficientStream_cauchy_inverse(CoefficientStream_unary):
             yield -c * self._ainv
 
 
-class CoefficientStream_map_coefficients(CoefficientStream_unary):
+class CoefficientStream_map_coefficients(CoefficientStream_inexact):
     r"""
     The stream with ``function`` applied to each nonzero
     coefficient of ``series``.
@@ -1560,7 +1596,8 @@ class CoefficientStream_map_coefficients(CoefficientStream_unary):
         """
         self._function = function
         self._ring = ring
-        super().__init__(series, series._is_sparse, series._approximate_order)
+        self._series = series
+        super().__init__(series._is_sparse, series._approximate_order)
 
     def get_coefficient(self, n):
         """
@@ -1595,6 +1632,45 @@ class CoefficientStream_map_coefficients(CoefficientStream_unary):
         if c:
             return self._function(c)
         return c
+
+    def __hash__(self):
+        """
+        Return the hash of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_map_coefficients, CoefficientStream_coefficient_function)
+            sage: f = CoefficientStream_coefficient_function(lambda n: -1, ZZ, True, 0)
+            sage: g = CoefficientStream_map_coefficients(f, lambda n: n + 1, ZZ)
+            sage: hash(g) == hash(g)
+            True
+        """
+        # We don't hash the function in case that happens to not be hashable
+        return hash((type(self), self._series, self._ring))
+
+    def __eq__(self, other):
+        """
+        Test equality.
+
+        INPUT:
+
+        - ``other`` -- a stream of coefficients
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.coefficient_stream import (CoefficientStream_map_coefficients, CoefficientStream_coefficient_function)
+            sage: f = CoefficientStream_coefficient_function(lambda n: -1, ZZ, True, 0)
+            sage: def plus_one(n): return n + 1
+            sage: g = CoefficientStream_map_coefficients(f, plus_one, ZZ)
+            sage: g == f
+            False
+            sage: g == CoefficientStream_map_coefficients(f, plus_one, QQ)
+            False
+            sage: g == CoefficientStream_map_coefficients(f, plus_one, ZZ)
+            True
+        """
+        return (isinstance(other, type(self)) and self._series == other._series
+                and self._ring == other._ring and self._function == other._function)
 
 class CoefficientStream_shift(CoefficientStream):
     """

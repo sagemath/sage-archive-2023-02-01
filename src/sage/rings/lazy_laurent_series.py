@@ -750,6 +750,13 @@ class LazyModuleElement(Element):
             sage: 0 * M == 0
             True
 
+        Different scalars potentially give different series::
+
+            sage: 2 * M == 3 * M
+            Traceback (most recent call last):
+            ...
+            ValueError: undecidable
+
         Sparse series can be multiplied with a scalar::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)

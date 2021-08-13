@@ -117,15 +117,16 @@ def deprecation_cython(trac_number, message, stacklevel=3):
         ....: ''')
         sage: def foo3():
         ....:     deprecation(100,"boo")
-        sage: with warnings.catch_warnings(record=True) as w1:
-        ....:    warnings.simplefilter("always")
-        ....:    foo1()
-        sage: with warnings.catch_warnings(record=True) as w2:
-        ....:    warnings.simplefilter("always")
-        ....:    foo2()
-        sage: with warnings.catch_warnings(record=True) as w3:
-        ....:    warnings.simplefilter("always")
-        ....:    foo3()
+        sage: if True:  # Execute the three "with" blocks as one doctest
+        ....:     with warnings.catch_warnings(record=True) as w1:
+        ....:        warnings.simplefilter("always")
+        ....:        foo1()
+        ....:     with warnings.catch_warnings(record=True) as w2:
+        ....:        warnings.simplefilter("always")
+        ....:        foo2()
+        ....:     with warnings.catch_warnings(record=True) as w3:
+        ....:        warnings.simplefilter("always")
+        ....:        foo3()
         sage: w1[0].filename == w3[0].filename
         True
         sage: w2[0].filename == w3[0].filename

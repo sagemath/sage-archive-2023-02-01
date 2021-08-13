@@ -55,6 +55,45 @@ In fact it is an order in a number field::
     sage: all(len(a.minpoly().roots(K)) == a.minpoly().degree() for a in A)
     True
 
+We can look at an extended example of the Abel-Jacobi functionality. We will 
+show that the sum of the intersections of a bitangent to a quadratic is a 
+half-canonical divisor. We will use the Edge quartic as the example, which has
+bitangent `x=1/2`. 
+
+    sage: f = 25*(x^4+y^4+1) - 34*(x^2*y^2+x^2+y^2)
+    sage: S = RiemannSurface(f)
+    sage: BL = S.places_at_branch_locus(); BL
+    [Place (x - 2, (x - 2)*y, y^2 - 17/5, y^3 - 17/5*y),
+     Place (x + 2, (x + 2)*y, y^2 - 17/5, y^3 - 17/5*y),
+     Place (x - 1/2, (x - 1/2)*y, y^2 - 17/20, y^3 - 17/20*y),
+     Place (x + 1/2, (x + 1/2)*y, y^2 - 17/20, y^3 - 17/20*y),
+     Place (x^4 - 34/25*x^2 + 1, y, y^2, y^3),
+     Place (x^4 - 34/25*x^2 + 1, (x^4 - 34/25*x^2 + 1)*y, y^2 - 34/25*x^2 - 34/25, y^3 + (-34/25*x^2 - 34/25)*y)]
+
+We can read off out the output of ``places_at_branch_locus`` to choose our
+divisor, and we can calculate the canonical divisor using curve functionality::
+
+    sage: D = 1*BL[2]
+    sage: from sage.schemes.curves.constructor import Curve
+    sage: C = Curve(f)
+    sage: F = C.function_field()
+    sage: K = (F(x).differential()).divisor()
+
+Note we could check using exact techniques that `2D=K`::
+
+    sage: Z = K-2*D
+    sage: (Z.degree()==0, len(Z.basis_differential_space())==S.genus, len(Z.basis_function_space())==1)
+    (True, True, True)
+
+We can also check this using our Abel-Jacobi functions::
+
+    sage: avoid = C.places_at_infinity()
+    sage: Zeq, _ = S.strong_approximation(Z, avoid) 
+    sage: Zlist = S.divisor_to_divisor_list(Zeq)
+    sage: AJ = S.abel_jacobi(Zlist) # long time (50 seconds)
+    sage: S.reduce_over_period_lattice(AJ).norm()<1e-10 # long time
+    True
+
 REFERENCES:
 
 The initial version of this code was developed alongside [BSZ2019]_.
@@ -3353,6 +3392,8 @@ class RiemannSurface(object):
             the base. It would be useful to extend this to allow for places at 
             infinity.  
         """
+        # If this error bound is too restrictive, this method might fail and 
+        # not return. One might want to change the way this error is handled. 
         eps = self._RR(2)**(-self._prec+3)
         dl = []
         for d in divisor.support():
@@ -3373,7 +3414,7 @@ class RiemannSurface(object):
                         ers = min(ers)
                     except:
                         ers = 1
-                    if not ers<eps:
+                    if not ers<=eps:
                         poly = self._CCw(gi(r, self._CCw.gen(0)))
                         if poly==0:
                             nys = []

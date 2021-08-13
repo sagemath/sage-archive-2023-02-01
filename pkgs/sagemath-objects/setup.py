@@ -10,6 +10,10 @@ if os.uname().sysname == 'Darwin':
     import multiprocessing
     multiprocessing.set_start_method('fork', force=True)
 
+# PEP 517 builds do not have . in sys.path
+import sys
+sys.path.insert(0, os.path.dirname(__file__))
+
 from sage_setup.command.sage_build_cython import sage_build_cython
 from sage_setup.command.sage_build_ext import sage_build_ext
 

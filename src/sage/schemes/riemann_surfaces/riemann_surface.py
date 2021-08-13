@@ -386,6 +386,57 @@ class RiemannSurface(object):
         sage: all( len(T.minpoly().roots(K)) > 0 for T in A)
         True
 
+    The ``'heuristic'`` integration method uses the method ``integrate_vector`` 
+    defined in ``sage.numerical.gauss_legendre`` to compute integrals of differentials. 
+    As mentioned there, this works by iteratively doubling the number of nodes 
+    used in the quadrature, and uses a heuristic based on the rate at which the
+    result is seemingly converging to estimate the error. The ``'rigorous'``
+    method uses results from [Neu2018]_, and bounds the algebraic integrands on 
+    circular domains using Cauchy's form of the remainder in Taylor approximation
+    coupled to Fujiwara's bound on polynomial roots (see Bruin-DisneyHogg-Gao,
+    in preparation). Note this method of bounding on circular domains is also 
+    implemented in :meth:`_compute_delta`. The net result of this bounding is 
+    that one can know (an upper bound on) the number of nodes required to achieve
+    a certain error. This means that for any given integral, approximately half
+    the number of integrand evaluations are required. When the required number
+    of nodes is high, e.g. when the precision required is high, this can make
+    the ``'rigorous'`` method much faster. However, the ``'rigorous'`` method 
+    has a higher overhead due to the need to calculate the bounds, and it does
+    not benefit as much from the caching of the ``nodes`` method over multiple
+    integrals. The result of this is that, for calls of :meth:`matrx_over_integral_values`
+    if the computation is 'fast', the heuristic method may outperform the
+    rigorous method, but for slower computations the rigorous method can be much
+    faster::
+        
+        sage: f = z*w^4+z^3+w
+        sage: p = 53
+        sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
+        sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
+        sage: from sage.numerical.gauss_legendre import nodes
+        sage: nodes.cache.clear()
+        sage: %time Rh = Sh.riemann_matrix() # random | long time (2 seconds)
+        CPU times: user 2.38 s, sys: 36 µs, total: 2.38 s
+        Wall time: 2.38 s
+        sage: nodes.cache.clear()
+        sage: %time Rr = Sr.riemann_matrix() # random | long time (3 seconds)
+        CPU times: user 2.67 s, sys: 66 µs, total: 2.67 s
+        Wall time: 2.67 s
+        sage: p = 200
+        sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
+        sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
+        sage: nodes.cache.clear()
+        sage: %time Rh = Sh.riemann_matrix() # random | long time (7 seconds)
+        CPU times: user 7.12 s, sys: 4.01 ms, total: 7.13 s
+        Wall time: 7.13 s
+        sage: nodes.cache.clear()
+        sage: %time Rr = Sr.riemann_matrix() # random | long time (5 seconds)
+        CPU times: user 4.91 s, sys: 9 µs, total: 4.91 s
+        Wall time: 4.91 s
+
+    This disparity in timings can get increasingly worse, and testing has shown
+    that even for random quadrics the heuristic method can be as bad as 30 times
+    slower. 
+
     TESTS:
 
     This elliptic curve has a relatively poorly conditioned set of branch
@@ -1504,25 +1555,41 @@ class RiemannSurface(object):
 
         INPUT:
 
-        - ``differentials`` -- The differentials for which to compute the bounding data.
+        - ``differentials`` -- list. A list of polynomials in ``self._R`` giving
+          the numerators of the differentials, as per the output of 
+          :meth:`cohomology_basis`. 
 
         OUTPUT:
 
-        A tuple containing the polynomial ring the minimal polynomial lies in,
-        as well as a list containing the differential, its derivative, the
-        minimal polynomial, and ``a0_info`` for each differential. Here
-        ``a0_info`` is the leading coefficient and roots of the leading order
-        term of the minimal polynomial.
+        A tuple ``(CCzg, [(g, dgdz, F, a0_info), ...])`` where each element of 
+        the list corresponds to an element of ``differentials``. Introducing the
+        notation ``RBzg = PolynomialRing(self._R, ['z','g'])`` and 
+        ``CCzg = PolynomialRing(self._CC, ['z','g'])``, we have that:
+         - ``g`` is the full rational function in ``self._R.fraction_field()`` 
+           giving the differential,
+         - ``dgdz`` is the derivative of ``g`` with respect to ``self._R.gen(0)``,
+           written in terms of ``self._R.gen(0)`` and ``g``, hence laying in 
+           ``RBzg``,
+         - ``F`` is the minimal polynomial of ``g`` over ``self._R.gen(0)``, 
+           laying in the polynomial ring ``CCzg``,
+         - ``a0_info`` is a tuple ``(lc, roots)`` where ``lc`` and ``roots`` are 
+           the leading coefficient and roots of the polynomial in ``CCzg.gen(0)``
+           that is the coefficient of the term of ``F`` of highest degree in 
+           ``CCzg.gen(1)``. 
 
         EXAMPLES::
 
             sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
-            sage: R.<z,w> = QQ[]
-            sage: f = w^2 - (z^3-1)
+            sage: R.<x,y> = QQ[]
+            sage: f = y^2-x^3+1
             sage: S = RiemannSurface(f)
-            sage: S._bounding_data(S.cohomology_basis())
+            sage: differentials = S.cohomology_basis(); differentials
+            [1]
+            sage: S._dfdw
+            2*y
+            sage: S._bounding_data(differentials)
             (Multivariate Polynomial Ring in z, g over Complex Field with 53 bits of precision,
-             [(1/(2*w),
+             [(1/(2*y),
                (-3*z^2*g)/(2*z^3 - 2),
                z^3*g^2 - g^2 - 0.250000000000000,
                (1.00000000000000,
@@ -1531,7 +1598,8 @@ class RiemannSurface(object):
                  -0.500000000000000 + 0.866025403784439*I]))])
 
         """
-        # This copies previous work by NB, outputting the zipped list required for a certified line integral. 
+        # This copies previous work by NB, outputting the zipped list required 
+        # for a certified line integral. 
         RB = self._R.base_ring()
         P = PolynomialRing(RB, 'Z')
         k = P.fraction_field()
@@ -1540,13 +1608,13 @@ class RiemannSurface(object):
         L = k.extension(fZW, 'Wb')
         dfdw_L = self._dfdw(P.gen(0), L.gen(0))
         integrand_list = [h/self._dfdw for h in differentials]
-        # minpoly_univ gives the minimal polynomial for h, in variable x, with coefficients given by polynomials 
-        # with coefficients in P (i.e. rational polynomials in Z).
+        # minpoly_univ gives the minimal polynomial for h, in variable x, with 
+        #coefficients given by polynomials in P (i.e. rational polynomials in Z).
         minpoly_univ = [(h(P.gen(0), L.gen(0))/dfdw_L).minpoly().numerator()
                         for h in differentials]
         RBzg = PolynomialRing(RB, ['z', 'g'])
-        # The following line changes the variables in these minimal polynomials as Z -> z, x -> G, then evaluates
-        # at G = QQzg.gens(1) ( = g )
+        # The following line changes the variables in these minimal polynomials 
+        # as Z -> z, x -> G, then evaluates at G = QQzg.gens(1) ( = g )
         RBzgG = PolynomialRing(RBzg, 'G')
         minpoly_list = [RBzgG([c(RBzg.gen(0)) for c in list(h)])(RBzg.gen(1))
                         for h in minpoly_univ]
@@ -1579,9 +1647,11 @@ class RiemannSurface(object):
         Perform vectorized integration along a straight path.
 
         Using the error bounds for Gauss-Legendre integration found in [Neu2018]_
-        and the method for bounding an algebraic integrand on a circular domain
-        developed by Gao, calculates (semi-)rigorously the integral of a list of 
-        differentials along an edge of the upstairs graph
+        and a method for bounding an algebraic integrand on a circular domains 
+        using Cauchy's form of the remainder in Taylor approximation coupled to 
+        Fujiwara's bound on polynomial roots (see Bruin-DisneyHogg-Gao, in 
+        preparation), this method calculates (semi-)rigorously the integral of a 
+        list of differentials along an edge of the upstairs graph.
 
         INPUT:
 
@@ -1615,21 +1685,26 @@ class RiemannSurface(object):
             sage: differentials = S.cohomology_basis()
             sage: bounding_data = S._bounding_data(differentials)
             sage: S.rigorous_line_integral([(0,0), (1,0)], differentials, 
-                                                bounding_data)
+            ....:                          bounding_data) # abs tol 1e-10
             (1.80277751848459e-16 - 0.352971844594760*I)
 
         .. NOTE::
 
-            Uses data that ``homology_basis`` initializes. In practice is it is 
-            more efficient to set ``differentials`` to a fast-callable version 
-            of differentials to speed up execution. 
+            Uses data that ``homology_basis`` initializes. Note also that the 
+            data of the differentials is contained withing ``bounding_data``. 
+            It is, howver, still advantageous to have this be a separate
+            argument, as it lets the user supply a fast-callable version of
+            the differentials, to significantly speed up execution of the integrand
+            calls, and not have to re-calculate these fast-callables for every
+            run of the function. This is also the benefit of representing the 
+            differentials as a polynomial over a known common denominator. 
 
         .. TODO::
 
             Note that bounding_data contains the information of the integrands,
-            so we are being inefficient by also asking for differentials as an 
-            input. It would be simpler and ensure consistency if the 
-            differentials were read from the bounding data.
+            so one may want to check for consistency between ``bounding_data``
+            and ``differentials``. If so one would not want to do so at the 
+            expense of speed. 
 
             Moreover, the current implementation bounds along a line by 
             splitting it up into segments, each of which can be covered entirely
@@ -1643,8 +1718,9 @@ class RiemannSurface(object):
             entire line with one ellipse, then bounds along that ellipse with 
             multiple circles. 
         """
-        # Note that this, in it's current formalism, makes no check that bounding data at all corresponds to 
-        # the differentials given. The onus is then on the design of other funcions which use it.
+        # Note that this, in its current formalism, makes no check that bounding 
+        # data at all corresponds to  the differentials given. The onus is then 
+        # on the design of other funcions which use it.
     
         # CCzg is required to be known as we need to know the ring which the minpolys lie in. 
         CCzg, bounding_data_list = bounding_data
@@ -1656,8 +1732,8 @@ class RiemannSurface(object):
         zwt, z1_minus_z0 = self.make_zw_interpolator(upstairs_edge)
         
         # list of (centre, radius) pairs that still need to be processed
-        ball_stack = [(self._RR(0.5), self._RR(0.5))]
-        alpha = self._RR(0.912) 
+        ball_stack = [(self._RR(1/2), self._RR(1/2))]
+        alpha = self._RR(912/1000) 
         # alpha set manually for scaling purposes. Basic benchmarking shows 
         # that ~0.9 is a sensible value. 
         E_global = self._RR(2)**(-self._prec+3)
@@ -1669,10 +1745,27 @@ class RiemannSurface(object):
         V = VectorSpace(self._CC, len(differentials))
         output = V(0)
 
+        # The purpose of this loop is as follows: We know we will be using 
+        # Gauss-Legendre quadrature to do the integral, and results from Neu2018
+        # tell us an upper bound on the number of nodes required to achieve a 
+        # given error bound for this quadrature, provided we have a bound for 
+        # the integrand on a certain ellipse in the complex plane. The method 
+        # developed by Bruin and Gao that uses Cauchy and Fujiwara can bound an
+        # algebraic integrand on a circular region. Hence we need a way to change
+        # from bounding with an ellipse to bounding with a circle. The size of 
+        # these circles will be constrained by the distance to the nearest point 
+        # where the integrand blows up, i.e. the nearest branchpoint. Basic 
+        # benchmarking showed that it was a more reliably faster method to split 
+        # the original line segment into multiple smaller line segments, and 
+        # compute the contribution from each of the line segments bounding with
+        # a single circle. The following loop does exactly this, repeatedly 
+        # bisecting a segment if it is not possible to cover it entirely in a 
+        # ball which encompasses an appropriate ellipse.  
         while ball_stack:
             ct, rt = ball_stack.pop()
             cz = (1-ct)*z0+ct*z1 # This is the central z-value of our ball.
-            distances = [(cz-b).abs() for b in self.branch_locus] # Distance to the discriminant points
+            # Distance to the discriminant points
+            distances = [(cz-b).abs() for b in self.branch_locus] 
             rho_z = min(distances)
             rho_t = rho_z/(z1-z0).abs()
             if rho_t > rt:

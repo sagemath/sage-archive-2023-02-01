@@ -1,6 +1,7 @@
 # -*- conf-unix -*-
 [metadata]
 name = sagemath-objects
+version = file: VERSION.txt
 description = Sage: Open Source Mathematics Software: Sage objects, elements, parents, categories, coercion, metaclasses
 long_description = file: README.rst
 long_description_content_type = text/x-rst

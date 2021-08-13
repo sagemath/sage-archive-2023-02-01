@@ -1,6 +1,7 @@
 # -*- conf-unix -*-
 [metadata]
 name = sagemath-categories
+version = file: VERSION.txt
 description = Sage: Open Source Mathematics Software: Sage categories and basic rings
 long_description = file: README.rst
 long_description_content_type = text/x-rst

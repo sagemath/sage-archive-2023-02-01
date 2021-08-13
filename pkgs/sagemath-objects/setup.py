@@ -21,10 +21,7 @@ log.warn('python_packages = {0}'.format(python_packages))
 log.warn('python_modules = {0}'.format(python_modules))
 log.warn('cython_modules = {0}'.format(cython_modules))
 
-from sage.env import SAGE_VERSION
-
 setup(
-    version     =  SAGE_VERSION,
     cmdclass = dict(build_cython=sage_build_cython,
                     build_ext=sage_build_ext),
     packages = python_packages,

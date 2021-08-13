@@ -2187,15 +2187,9 @@ class Components(SageObject):
         # Special case of a scalar result
         #
         if res_nid == 0:
-            # To generate the indices tuples (of size ncontr) involved in the
-            # the contraction, we create an empty instance of Components with
-            # ncontr indices and call the method index_generator() on it:
-            comp_for_contr = Components(self._ring, self._frame, ncontr,
-                                        start_index=self._sindex)
-
             # Pairs of indices tuples for the contraction:
             ind_pairs = []
-            for ind_s in comp_for_contr.index_generator():
+            for ind_s in self.index_generator():
                 ind_o = [None for i in range(ncontr)]
                 for pos_s, pos_o in contractions:
                     ind_o[pos_o] = ind_s[pos_s]

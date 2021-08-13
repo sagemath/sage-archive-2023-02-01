@@ -22,7 +22,10 @@ from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.generalized_coxeter_groups import GeneralizedCoxeterGroups
 from sage.structure.element import have_same_parent, parent
 from sage.misc.flatten import flatten
+from sage.graphs.digraph import DiGraph
+from sage.rings.integer_ring import ZZ
 from copy import copy
+from collections import deque
 
 
 class CoxeterGroups(Category_singleton):
@@ -2683,3 +2686,109 @@ class CoxeterGroups(Category_singleton):
             """
             return self.weak_covers(side=side, index_set=index_set,
                                     positive=True)
+
+        def kazhdan_lusztig_cell(self, side='left'):
+            r"""
+            Compute the left, right, or two-sided Kazhdan-Lusztig cell
+            containing the element ``self``. Computes left cells by default; use
+            the optional argument ``side`` to specify right or two-sided cells.
+
+            Two elements `x,y` of a Coxeter group `W` are said lie in the same
+            left Kazhdan-Lusztig cell if there exist sequences `x=w_1, w_2, ...,
+            w_k=y` and `y=u_1, u_2, ..., u_l=x` such that for all `1 \leq i < k`
+            and all `1 \leq j < l`, there exist some Coxeter generators `s,t`
+            for which `C'_{w_{i+1}}` appears in `C'_sC'_{w_i}` and
+            `C'_{u_{j+1}}` appears in `C'_sC'_{u_j}` in the Hecke algebra of the
+            Coxeter group, where `C'` denotes the Kazhdan-Lusztig
+            `C^{\prime}`-basis. Right and two-sided Kazhdan-Lusztig cells of `W`
+            are defined similarly.
+
+            In this function, we compute products in the `C^{\prime}` basis by
+            using :class:`IwahoriHeckeAlgebra.Cp`. To use the direct algorithm
+            for computing such products detailed therein, the package
+            ``coxeter3`` must be installed; otherwise, this method will most
+            likely be computationally infeasible.
+
+            INPUT:
+
+            - ``w`` -- an element of self.
+
+            - ``side`` -- string (default: ``'left'``); one of 'left', 'right',
+              or 'two-sided', corresponding to the kind of cell to compute.
+
+            EXAMPLES:
+
+            Compute some cells in type `B_3`::
+
+                sage: W = CoxeterGroup('B3', implementation='coxeter3')     # optional - coxeter3
+                sage: s1,s2,s3 = W.simple_reflections()                     # optional - coxeter3
+                sage: (s1*s2*s1).kazhdan_lusztig_cell()                     # optional - coxeter3
+                {[2, 1, 2], [2, 3, 2, 1, 2], [3, 2, 1, 2]}
+                sage: (s2*s3*s2).kazhdan_lusztig_cell()                     # optional - coxeter3
+                {[1, 2], [1, 2, 3, 2], [2], [2, 3, 2], [3, 2]}
+                sage: s3.kazhdan_lusztig_cell()                             # optional - coxeter3
+                {[1, 2, 3], [2, 3], [3], [3, 2, 3]}
+                sage: s3.kazhdan_lusztig_cell('right')                      # optional - coxeter3
+                {[3], [3, 2], [3, 2, 1], [3, 2, 3]}
+                sage: s3.kazhdan_lusztig_cell('two-sided')                  # optional - coxeter3
+                {[1], [1, 2], [1, 2, 3], [1, 2, 3, 2], [1, 2, 3, 2, 1], [2], [2, 1],
+                [2, 3], [2, 3, 2], [2, 3, 2, 1], [3], [3, 2], [3, 2, 1], [3, 2, 3]}
+
+            Some slightly longer computations in type `B_4`::
+
+                sage: W = CoxeterGroup('B4', implementation='coxeter3')     # optional - coxeter3
+                sage: s1,s2,s3,s4 = W.simple_reflections()                  # optional - coxeter3
+                sage: s1.kazhdan_lusztig_cell()                             # long time (4 seconds) # optional - coxeter3
+                {[1],
+                [1, 2, 3, 4, 3, 2, 1],
+                [2, 1],
+                [2, 3, 4, 3, 2, 1],
+                [3, 2, 1],
+                [3, 4, 3, 2, 1],
+                [4, 3, 2, 1]}
+                sage: (s4*s2*s3*s4).kazhdan_lusztig_cell()                  # long time (2 seconds) # optional - coxeter3
+                {[2, 3, 4, 1, 2, 3, 4],
+                [3, 4, 1, 2, 3, 4],
+                [3, 4, 2, 3, 4],
+                [3, 4, 2, 3, 4, 1, 2, 3, 4],
+                [4, 1, 2, 3, 4],
+                [4, 2, 3, 4],
+                [4, 2, 3, 4, 1, 2, 3, 4],
+                [4, 3, 4, 1, 2, 3, 4],
+                [4, 3, 4, 2, 3, 4],
+                [4, 3, 4, 2, 3, 4, 1, 2, 3, 4]}
+            """
+            from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
+            from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+
+            R = LaurentPolynomialRing(ZZ, 'v')
+            v = R.gen(0)
+            H = IwahoriHeckeAlgebra(self.parent(), v**2)
+            Cp = H.Cp()
+
+            w = self.parent()(self)
+
+            vertices, edges = {w}, set()
+            queue = deque([w])
+
+            while queue:
+                x = queue.pop()
+                cp_x = Cp(x)
+                for s in self.parent().simple_reflections():
+                    cp_s = Cp(s)
+                    terms = []
+                    # Determine the Cp basis elements appearing in the product of Cp_s and Cp_w
+                    if side == 'left' or side == 'two-sided':
+                        terms.extend(list(cp_s * cp_x))
+                    if side == 'right' or side == 'two-sided':
+                        terms.extend(list(cp_x * cp_s))
+                    for (y, coeff) in terms:
+                        # the result of multiplication will always have coeff != 0
+                        if y != x:
+                            edges.add((x, y))
+                        if y not in vertices:
+                            vertices.add(y)
+                            queue.appendleft(y)
+
+            g = DiGraph([list(vertices), list(edges)])
+            return set(g.strongly_connected_component_containing_vertex(w))

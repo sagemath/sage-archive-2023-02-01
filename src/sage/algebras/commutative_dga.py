@@ -3272,7 +3272,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
     - ``max_degree`` -- the maximal degree of the graded algebra. If omitted,
       no maximal degree is assumed and an instance of :class:`GCAlgebra` is
       returned. Otherwise, an instance of
-      :class:`sage.algebras.finite_dimensional_graded_algebra.FiniteGCAlgebra`
+      :class:`sage.algebras.commutative_graded_algebra.GradedCommutativeAlgebraWithMaxDeg`
       is created.
 
     Once such an algebra has been defined, one can use its associated
@@ -3418,7 +3418,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
         sage: A.<p,e> = GradedCommutativeAlgebra(QQ, degrees=(4,2), max_degree=6)
         sage: A
         Graded commutative algebra with generators ('p', 'e') in degrees (4, 2)
-         with maximal finite degree 6
+         with maximal degree 6
         sage: p^2
         0
 
@@ -3432,7 +3432,7 @@ def GradedCommutativeAlgebra(ring, names=None, degrees=None, max_degree=None,
         ValueError: You must specify names or degrees
     """
     if max_degree:
-        from .finite_dimensional_graded_algebra import FiniteGCAlgebra
+        from .finite_gca import FiniteGCAlgebra
         return FiniteGCAlgebra(ring, names=names, degrees=degrees,
                                max_degree=max_degree, **kwargs)
     multi = False

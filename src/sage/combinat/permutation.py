@@ -233,6 +233,8 @@ Classes and methods
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from __future__ import annotations
+from typing import Iterator
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -583,7 +585,7 @@ class Permutation(CombinatorialElement):
         except Exception:
             return hash(str(self._list))
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         TESTS::
 
@@ -601,7 +603,7 @@ class Permutation(CombinatorialElement):
         """
         return repr(self)
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         TESTS::
 
@@ -628,6 +630,7 @@ class Permutation(CombinatorialElement):
             return self.cycle_string(singletons=True)
         elif display == 'reduced_word':
             return repr(self.reduced_word())
+        raise ValueError('unknown display option')
 
     def _latex_(self):
         r"""
@@ -691,7 +694,7 @@ class Permutation(CombinatorialElement):
         """
         return self.to_permutation_group_element()._gap_(gap)
 
-    def size(self):
+    def size(self) -> Integer:
         """
         Return the size of ``self``.
 
@@ -704,7 +707,7 @@ class Permutation(CombinatorialElement):
 
     grade = size  # for the category SetsWithGrading()
     
-    def cycle_string(self, singletons=False):
+    def cycle_string(self, singletons=False) -> str:
         """
         Return a string of the permutation in cycle notation.
 
@@ -839,7 +842,6 @@ class Permutation(CombinatorialElement):
         p = first_half + last_half
 
         return Permutations()(p)
-
 
     def to_tableau_by_shape(self, shape):
         """
@@ -1120,7 +1122,7 @@ class Permutation(CombinatorialElement):
 
     def to_permutation_group_element(self):
         """
-        Return a PermutationGroupElement equal to self.
+        Return a PermutationGroupElement equal to ``self``.
 
         EXAMPLES::
 
@@ -1132,7 +1134,7 @@ class Permutation(CombinatorialElement):
         grp = SymmetricGroup(len(self))
         return grp.element_class(self.to_cycles(singletons=False), grp, check=False)
 
-    def signature(self):
+    def signature(self) -> Integer:
         r"""
         Return the signature of the permutation ``self``. This is
         `(-1)^l`, where `l` is the number of inversions of ``self``.
@@ -1155,7 +1157,7 @@ class Permutation(CombinatorialElement):
     #one can also use sign as an alias for signature
     sign = signature
 
-    def is_even(self):
+    def is_even(self) -> bool:
         r"""
         Return ``True`` if the permutation ``self`` is even and
         ``False`` otherwise.
@@ -1235,7 +1237,7 @@ class Permutation(CombinatorialElement):
         from sage.combinat.alternating_sign_matrix import AlternatingSignMatrix
         return AlternatingSignMatrix(self.to_matrix().rows())
 
-    def __mul__(self, rp):
+    def __mul__(self, rp) -> Permutation:
         """
         TESTS::
 
@@ -1256,7 +1258,7 @@ class Permutation(CombinatorialElement):
 
     _mul_ = __mul__ # For ``prod()``
 
-    def __rmul__(self, lp):
+    def __rmul__(self, lp) -> Permutation:
         """
         TESTS::
 
@@ -1378,7 +1380,7 @@ class Permutation(CombinatorialElement):
     # Rank #
     ########
 
-    def rank(self):
+    def rank(self) -> Integer:
         r"""
         Return the rank of ``self`` in the lexicographic ordering on the
         symmetric group to which ``self`` belongs.
@@ -1581,7 +1583,7 @@ class Permutation(CombinatorialElement):
 
         return sort_and_countv(self._list)[0]
 
-    def inversions(self):
+    def inversions(self) -> list:
         r"""
         Return a list of the inversions of ``self``.
 
@@ -1598,7 +1600,7 @@ class Permutation(CombinatorialElement):
         return [tuple([i+1,j+1]) for i in range(n-1) for j in range(i+1,n)
                 if p[i]>p[j]]
 
-    def stack_sort(self) -> "Permutation":
+    def stack_sort(self) -> Permutation:
         """
         Return the stack sort of a permutation.
 
@@ -1641,7 +1643,7 @@ class Permutation(CombinatorialElement):
         sorted_p.extend(reversed(stack))
         return Permutation(sorted_p)
 
-    def to_digraph(self):
+    def to_digraph(self) -> DiGraph:
         r"""
         Return a digraph representation of ``self``.
 
@@ -1735,7 +1737,7 @@ class Permutation(CombinatorialElement):
                              "'cycles', 'chord-diagram' or 'braid'")
 
 
-    def number_of_inversions(self):
+    def number_of_inversions(self) -> Integer:
         r"""
         Return the number of inversions in ``self``.
 
@@ -1755,7 +1757,7 @@ class Permutation(CombinatorialElement):
         """
         return sum(self.to_inversion_vector())
 
-    def noninversions(self, k):
+    def noninversions(self, k) -> list:
         r"""
         Return the list of all ``k``-noninversions in ``self``.
 
@@ -1792,7 +1794,7 @@ class Permutation(CombinatorialElement):
             return []
         return [list(pos) for pos in itertools.combinations(self, k) if all( pos[i] < pos[i+1] for i in range(k-1) )]
 
-    def number_of_noninversions(self, k):
+    def number_of_noninversions(self, k) -> Integer:
         r"""
         Return the number of ``k``-noninversions in ``self``.
 
@@ -1849,7 +1851,7 @@ class Permutation(CombinatorialElement):
         return sum(1 for pos in itertools.combinations(self, k)
                    if all(pos[i] < pos[i + 1] for i in range(k - 1)))
 
-    def length(self):
+    def length(self) -> Integer:
         r"""
         Return the Coxeter length of ``self``.
 
@@ -1863,7 +1865,7 @@ class Permutation(CombinatorialElement):
         """
         return self.number_of_inversions()
 
-    def absolute_length(self):
+    def absolute_length(self) -> Integer:
         """
         Return the absolute length of ``self``
 
@@ -1882,7 +1884,7 @@ class Permutation(CombinatorialElement):
         return self.size() - len(self.cycle_type())
 
     @combinatorial_map(order=2,name='inverse')
-    def inverse(self):
+    def inverse(self) -> Permutation:
         r"""
         Return the inverse of ``self``.
 
@@ -2177,7 +2179,7 @@ class Permutation(CombinatorialElement):
             return tuple(tuple(n + 1 - i for i in r) for r in s_bar.runs())
         return [[n + 1 - i for i in r] for r in s_bar.runs()]
 
-    def longest_increasing_subsequence_length(self):
+    def longest_increasing_subsequence_length(self) -> Integer:
         r"""
         Return the length of the longest increasing subsequences of ``self``.
 
@@ -2190,7 +2192,7 @@ class Permutation(CombinatorialElement):
             sage: Permutation([]).longest_increasing_subsequence_length()
             0
         """
-        r=[]
+        r = []
         for x in self:
             if max(r+[0]) > x:
                 y = min(z for z in r if z > x)
@@ -2221,6 +2223,7 @@ class Permutation(CombinatorialElement):
         r"""
         Return a partition of ``len(self)`` corresponding to the cycle
         type of ``self``.
+
         This is a non-increasing sequence of the cycle lengths of ``self``.
 
         EXAMPLES::
@@ -2307,7 +2310,7 @@ class Permutation(CombinatorialElement):
         return Permutations()(ret)
 
     @combinatorial_map(name='foata_bijection')
-    def foata_bijection(self):
+    def foata_bijection(self) -> Permutation:
         r"""
         Return the image of the permutation ``self`` under the Foata
         bijection `\phi`.
@@ -2403,7 +2406,7 @@ class Permutation(CombinatorialElement):
         return Permutations()(M)
 
     @combinatorial_map(name='foata_bijection_inverse')
-    def foata_bijection_inverse(self):
+    def foata_bijection_inverse(self) -> Permutation:
         r"""
         Return the image of the permutation ``self`` under the inverse
         of the Foata bijection `\phi`.
@@ -2456,7 +2459,7 @@ class Permutation(CombinatorialElement):
         return Permutations()(reversed(Mrev))
 
     @combinatorial_map(name='fundamental_transformation')
-    def fundamental_transformation(self):
+    def fundamental_transformation(self) -> Permutation:
         r"""
         Return the image of the permutation ``self`` under the
         Renyi-Foata-Schuetzenberger fundamental transformation.
@@ -2596,7 +2599,7 @@ class Permutation(CombinatorialElement):
             res[previous_entry] = previous_record
         return Permutations()(res[1:])
 
-    def destandardize(self, weight, ordered_alphabet = None):
+    def destandardize(self, weight, ordered_alphabet=None):
         r"""
         Return destandardization of ``self`` with respect to ``weight`` and ``ordered_alphabet``.
 
@@ -2657,7 +2660,7 @@ class Permutation(CombinatorialElement):
         from sage.combinat.words.word import Word
         return Word(s)
 
-    def to_lehmer_code(self):
+    def to_lehmer_code(self) -> list:
         r"""
         Return the Lehmer code of the permutation ``self``.
 
@@ -2700,7 +2703,7 @@ class Permutation(CombinatorialElement):
         else:
             return self.inverse().to_inversion_vector()
 
-    def _to_lehmer_code_small(self):
+    def _to_lehmer_code_small(self) -> list:
         r"""
         Return the Lehmer code of the permutation ``self``.
 
@@ -2725,7 +2728,7 @@ class Permutation(CombinatorialElement):
             lehmer.append(sum(checked[:pi]))
         return lehmer
 
-    def to_lehmer_cocode(self):
+    def to_lehmer_cocode(self) -> list:
         r"""
         Return the Lehmer cocode of the permutation ``self``.
 
@@ -2750,8 +2753,6 @@ class Permutation(CombinatorialElement):
                 if p[j] > p[i]:
                     cocode[i] += 1
         return cocode
-
-
 
     #################
     # Reduced Words #
@@ -2894,7 +2895,7 @@ class Permutation(CombinatorialElement):
     # Fixed Points #
     ################
 
-    def fixed_points(self):
+    def fixed_points(self) -> list:
         r"""
         Return a list of the fixed points of ``self``.
 
@@ -2905,14 +2906,9 @@ class Permutation(CombinatorialElement):
             sage: Permutation([1,2,3,4]).fixed_points()
             [1, 2, 3, 4]
         """
-        fixed_points = []
-        for i in range(len(self)):
-            if i+1 == self[i]:
-                fixed_points.append(i+1)
+        return [i for i, v in enumerate(self, start=1) if i == v]
 
-        return fixed_points
-
-    def number_of_fixed_points(self):
+    def number_of_fixed_points(self) -> Integer:
         r"""
         Return the number of fixed points of ``self``.
 
@@ -2926,7 +2922,7 @@ class Permutation(CombinatorialElement):
 
         return len(self.fixed_points())
 
-    def is_derangement(self):
+    def is_derangement(self) -> bool:
         r"""
         Return if ``self`` is a derangement.
 
@@ -2944,11 +2940,11 @@ class Permutation(CombinatorialElement):
         """
         return not self.fixed_points()
 
-
     ############
     # Recoils  #
     ############
-    def recoils(self):
+
+    def recoils(self) -> list:
         r"""
         Return the list of the positions of the recoils of ``self``.
 
@@ -2973,7 +2969,7 @@ class Permutation(CombinatorialElement):
 
         return recoils
 
-    def number_of_recoils(self):
+    def number_of_recoils(self) -> Integer:
         r"""
         Return the number of recoils of the permutation ``self``.
 
@@ -2984,7 +2980,7 @@ class Permutation(CombinatorialElement):
         """
         return len(self.recoils())
 
-    def recoils_composition(self):
+    def recoils_composition(self) -> Composition:
         r"""
         Return the recoils composition of ``self``.
 
@@ -3001,7 +2997,6 @@ class Permutation(CombinatorialElement):
             []
         """
         return self.inverse().descents_composition()
-
 
     ############
     # Descents #
@@ -3142,7 +3137,7 @@ class Permutation(CombinatorialElement):
         d = {True: -1, False: 1}
         return [d[(i + 1) in idescents] for i in range(len(self))]
 
-    def number_of_descents(self, final_descent=False):
+    def number_of_descents(self, final_descent=False) -> Integer:
         r"""
         Return the number of descents of ``self``.
 
@@ -3158,7 +3153,7 @@ class Permutation(CombinatorialElement):
         """
         return len(self.descents(final_descent))
 
-    def number_of_idescents(self, final_descent=False):
+    def number_of_idescents(self, final_descent=False) -> Integer:
         r"""
         Return the number of idescents of ``self``.
 
@@ -3177,7 +3172,7 @@ class Permutation(CombinatorialElement):
         return len(self.idescents(final_descent))
 
     @combinatorial_map(name='descent composition')
-    def descents_composition(self):
+    def descents_composition(self) -> Composition:
         r"""
         Return the descent composition of ``self``.
 
@@ -3246,12 +3241,11 @@ class Permutation(CombinatorialElement):
 
         return result
 
-
     ##############
     # Major Code #
     ##############
 
-    def major_index(self, final_descent=False):
+    def major_index(self, final_descent=False) -> Integer:
         r"""
         Return the major index of ``self``.
 
@@ -3274,7 +3268,7 @@ class Permutation(CombinatorialElement):
         descents = self.descents(final_descent)
         return sum(descents)
 
-    def imajor_index(self, final_descent=False):
+    def imajor_index(self, final_descent=False) -> Integer:
         """
         Return the inverse major index of the permutation ``self``, which is
         the major index of the inverse of ``self``.
@@ -3317,7 +3311,7 @@ class Permutation(CombinatorialElement):
           http://www.ams.org/journals/tran/1954-076-02/S0002-9947-1954-0060538-2/
 
         - Skandera, M. *An Eulerian Partner for Inversions*.
-          Sem. Lothar. Combin. 46 (2001) B46d.
+          Sém. Lothar. Combin. 46 (2001) B46d.
           http://www.lehigh.edu/~mas906/papers/partner.ps
 
         EXAMPLES::
@@ -3346,7 +3340,7 @@ class Permutation(CombinatorialElement):
     # Peaks #
     #########
 
-    def peaks(self):
+    def peaks(self) -> list:
         r"""
         Return a list of the peaks of the permutation ``self``.
 
@@ -3370,8 +3364,7 @@ class Permutation(CombinatorialElement):
 
         return peaks
 
-
-    def number_of_peaks(self):
+    def number_of_peaks(self) -> Integer:
         r"""
         Return the number of peaks of the permutation ``self``.
 
@@ -3391,7 +3384,7 @@ class Permutation(CombinatorialElement):
     # Saliances #
     #############
 
-    def saliances(self):
+    def saliances(self) -> list:
         r"""
         Return a list of the saliances of the permutation ``self``.
 
@@ -3417,8 +3410,7 @@ class Permutation(CombinatorialElement):
 
         return saliances
 
-
-    def number_of_saliances(self):
+    def number_of_saliances(self) -> Integer:
         r"""
         Return the number of saliances of ``self``.
 
@@ -3437,7 +3429,8 @@ class Permutation(CombinatorialElement):
     ################
     # Bruhat Order #
     ################
-    def bruhat_lequal(self, p2):
+
+    def bruhat_lequal(self, p2) -> bool:
         r"""
         Return ``True`` if ``self`` is less or equal to ``p2`` in
         the Bruhat order.
@@ -3510,7 +3503,7 @@ class Permutation(CombinatorialElement):
 
         return True
 
-    def weak_excedences(self):
+    def weak_excedences(self) -> list:
         """
         Return all the numbers ``self[i]`` such that ``self[i] >= i+1``.
 
@@ -3525,8 +3518,7 @@ class Permutation(CombinatorialElement):
                 res.append(self[i])
         return res
 
-
-    def bruhat_inversions(self):
+    def bruhat_inversions(self) -> list:
         r"""
         Return the list of inversions of ``self`` such that the application of
         this inversion to ``self`` decreases its number of inversions by
@@ -3572,8 +3564,7 @@ class Permutation(CombinatorialElement):
                     if ok:
                         yield [i,j]
 
-
-    def bruhat_succ(self):
+    def bruhat_succ(self) -> list:
         r"""
         Return a list of the permutations strictly greater than ``self`` in
         the Bruhat order (on the symmetric group containing ``self``) such
@@ -3618,9 +3609,7 @@ class Permutation(CombinatorialElement):
             pp[z[1]] = p[z[0]]
             yield P(pp)
 
-
-
-    def bruhat_pred(self):
+    def bruhat_pred(self) -> list:
         r"""
         Return a list of the permutations strictly smaller than ``self``
         in the Bruhat order (on the symmetric group containing ``self``) such
@@ -3668,7 +3657,6 @@ class Permutation(CombinatorialElement):
             pp[z[1]] = p[z[0]]
             yield P(pp)
 
-
     def bruhat_smaller(self):
         r"""
         Return the combinatorial class of permutations smaller than or
@@ -3690,7 +3678,6 @@ class Permutation(CombinatorialElement):
              [4, 1, 2, 3]]
         """
         return StandardPermutations_bruhat_smaller(self)
-
 
     def bruhat_greater(self):
         r"""
@@ -3716,7 +3703,7 @@ class Permutation(CombinatorialElement):
     # Permutohedron  Order #
     ########################
 
-    def permutohedron_lequal(self, p2, side="right"):
+    def permutohedron_lequal(self, p2, side="right") -> bool:
         r"""
         Return ``True`` if ``self`` is less or equal to ``p2`` in the
         permutohedron order.
@@ -3856,8 +3843,7 @@ class Permutation(CombinatorialElement):
                 succ.append(P(pp))
         return succ
 
-
-    def permutohedron_pred(self, side="right"):
+    def permutohedron_pred(self, side="right") -> list:
         r"""
         Return a list of the permutations strictly smaller than ``self``
         in the permutohedron order such that there is no permutation
@@ -3897,8 +3883,7 @@ class Permutation(CombinatorialElement):
                 pred.append(P(pp))
         return pred
 
-
-    def permutohedron_smaller(self, side="right"):
+    def permutohedron_smaller(self, side="right") -> list:
         r"""
         Return a list of permutations smaller than or equal to ``self``
         in the permutohedron order.
@@ -3936,8 +3921,7 @@ class Permutation(CombinatorialElement):
         """
         return transitive_ideal(lambda x: x.permutohedron_pred(side), self)
 
-
-    def permutohedron_greater(self, side="right"):
+    def permutohedron_greater(self, side="right") -> list:
         r"""
         Return a list of permutations greater than or equal to ``self``
         in the permutohedron order.
@@ -4019,7 +4003,7 @@ class Permutation(CombinatorialElement):
         P = Permutations()
         return [P(p) for p in self.right_permutohedron_interval_iterator(other)]
 
-    def permutohedron_join(self, other, side="right"):
+    def permutohedron_join(self, other, side="right") -> Permutation:
         r"""
         Return the join of the permutations ``self`` and ``other``
         in the right permutohedron order (or, if ``side`` is set to
@@ -4139,7 +4123,7 @@ class Permutation(CombinatorialElement):
                 xs.append(i)
         return Permutations(n)(xs)
 
-    def permutohedron_meet(self, other, side="right"):
+    def permutohedron_meet(self, other, side="right") -> Permutation:
         r"""
         Return the meet of the permutations ``self`` and ``other``
         in the right permutohedron order (or, if ``side`` is set to
@@ -4243,7 +4227,7 @@ class Permutation(CombinatorialElement):
     # Patterns #
     ############
 
-    def has_pattern(self, patt):
+    def has_pattern(self, patt) -> bool:
         r"""
         Test whether the permutation ``self`` contains the pattern
         ``patt``.
@@ -4263,7 +4247,7 @@ class Permutation(CombinatorialElement):
                 return True
         return False
 
-    def avoids(self, patt):
+    def avoids(self, patt) -> bool:
         """
         Test whether the permutation ``self`` avoids the pattern
         ``patt``.
@@ -4279,7 +4263,7 @@ class Permutation(CombinatorialElement):
         """
         return not self.has_pattern(patt)
 
-    def pattern_positions(self, patt):
+    def pattern_positions(self, patt) -> list:
         r"""
         Return the list of positions where the pattern ``patt`` appears
         in the permutation ``self``.
@@ -4434,10 +4418,7 @@ class Permutation(CombinatorialElement):
             sage: d[3]
             3
         """
-        d = {}
-        for i in range(len(self)):
-            d[i+1] = self[i]
-        return d
+        return dict(enumerate(self, start=1))
 
     def action(self, a):
         r"""
@@ -5502,7 +5483,7 @@ class Permutations_nk(Permutations):
             if self not in self.parent():
                 raise ValueError("Invalid permutation")
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         EXAMPLES::
 
@@ -5527,7 +5508,7 @@ class Permutations_nk(Permutations):
 
         return True
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         TESTS::
 
@@ -5536,7 +5517,7 @@ class Permutations_nk(Permutations):
         """
         return "Permutations of {1,...,%s} of length %s" % (self.n, self._k)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Permutation]:
         """
         EXAMPLES::
 
@@ -5550,7 +5531,7 @@ class Permutations_nk(Permutations):
         for x in itertools.permutations(range(1,self.n+1), int(self._k)):
             yield self.element_class(self, x)
 
-    def cardinality(self):
+    def cardinality(self) -> Integer:
         """
         EXAMPLES::
 
@@ -5644,7 +5625,7 @@ class Permutations_mset(Permutations):
         self.mset = mset
         Permutations.__init__(self, category=FiniteEnumeratedSets())
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         EXAMPLES::
 
@@ -5690,7 +5671,7 @@ class Permutations_mset(Permutations):
             if self not in self.parent():
                 raise ValueError("Invalid permutation")
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         TESTS::
 
@@ -6004,7 +5985,7 @@ class Permutations_set(Permutations):
         Permutations.__init__(self, category=FiniteEnumeratedSets())
         self._set = s
 
-    def __contains__(self, x):
+    def __contains__(self, x) -> bool:
         """
         EXAMPLES::
 
@@ -6030,7 +6011,7 @@ class Permutations_set(Permutations):
                 return False
         return True
 
-    def _repr_(self):
+    def _repr_(self) -> str:
         """
         TESTS::
 
@@ -6057,7 +6038,7 @@ class Permutations_set(Permutations):
             if self not in self.parent():
                 raise ValueError("Invalid permutation")
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         """
         Iterate over ``self``.
 
@@ -6075,7 +6056,7 @@ class Permutations_set(Permutations):
         for p in itertools.permutations(self._set, len(self._set)):
             yield self.element_class(self, p)
 
-    def cardinality(self):
+    def cardinality(self) -> Integer:
         """
         Return the cardinality of the set.
 
@@ -6349,6 +6330,7 @@ class Arrangements(Permutations):
         one = ZZ.one()
         return sum(one for p in self)
 
+
 class Arrangements_msetk(Arrangements, Permutations_msetk):
     r"""
     Arrangements of length `k` of a multiset `M`.
@@ -6361,6 +6343,7 @@ class Arrangements_msetk(Arrangements, Permutations_msetk):
             Arrangements of the multi-set [1, 2, 2] of length 2
         """
         return "Arrangements of the multi-set %s of length %s"%(list(self.mset),self._k)
+
 
 class Arrangements_setk(Arrangements, Permutations_setk):
     r"""
@@ -9011,7 +8994,7 @@ class StandardPermutations_avoiding_123(StandardPermutations_avoiding_generic):
         """
         super(StandardPermutations_avoiding_123, self).__init__(n, (Permutations()([1, 2, 3]),))
 
-    def cardinality(self):
+    def cardinality(self) -> Integer:
         """
         EXAMPLES::
 

@@ -1076,7 +1076,7 @@ cdef class dancing_linksWrapper:
 
         return p,x
 
-    def one_solution_using_milp_solver(self, solver=None):
+    def one_solution_using_milp_solver(self, solver=None, integrality_tolerance=1e-3):
         r"""
         Return a solution found using a MILP solver.
 
@@ -1129,7 +1129,7 @@ cdef class dancing_linksWrapper:
         except MIPSolverException:
             return None
         else:
-            soln = p.get_values(x)
+            soln = p.get_values(x, convert=bool, tolerance=integrality_tolerance)
             support = sorted(key for key in soln if soln[key])
             return support
 

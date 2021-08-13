@@ -1926,10 +1926,24 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: Cp(s1)*Cp(s2)*Cp(s3)*Cp(s1)*Cp(s2) # long time
             Cp[1,2,3,1,2] + Cp[1,2,1] + Cp[3,1,2]
 
+        This computation in type `H_4` takes about 5 seconds without
+        ``coxeter3`` installed, but is instant in the case that it is installed
+        and the direct algorithm can be used.
+
+            sage: H = IwahoriHeckeAlgebra('H4', v**2)   # optional - coxeter3
+            sage: Cp = H.Cp()                           # optional - coxeter3
+            sage: Cp[3,4,3]*Cp[3,4,3,4]*Cp[1,2,3,4]     # optional - coxeter3
+            (v^-2+2+v^2)*Cp[3,4,3,4,1,2,3,4,2]
+            + (v^-2+2+v^2)*Cp[3,4,3,4,3,1,2]
+            + (v^-3+3*v^-1+3*v+v^3)*Cp[3,4,3,4,3,1]
+            + (v^-1+v)*Cp[3,4,1,2,3,4]
+            + (v^-1+v)*Cp[3,4,1,2]
+
         The most efficient way to use this class is to create the algebra from a
         Coxeter group implemented with ``coxeter3``. This will ensure the direct
         algorithm can work as efficiently as possible with no unnecessary
-        conversions::
+        conversions. This computuation seems to be infeasible without using the
+        direct algorithm::
 
             sage: R = LaurentPolynomialRing(QQ, 'v')                    # optional - coxeter3
             sage: v = R.gen(0)                                          # optional - coxeter3

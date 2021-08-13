@@ -370,11 +370,26 @@ class LazyModuleElement(Element):
             False
             sage: z + z^2 < z^2 + z
             False
+
+            sage: fz = L(lambda n: 0, valuation=0)
+            sage: L.zero() == fz
+            Traceback (most recent call last):
+            ...
+            ValueError: undecidable
+            sage: fz == L.zero()
+            Traceback (most recent call last):
+            ...
+            ValueError: undecidable
         """
         if op is op_EQ:
             if isinstance(self._coeff_stream, CoefficientStream_zero):  # self == 0
-                return isinstance(other._coeff_stream, CoefficientStream_zero)
-            if isinstance(other._coeff_stream, CoefficientStream_zero):  # self != 0 but other == 0
+                if isinstance(other._coeff_stream, CoefficientStream_zero):
+                    return True
+                if other._coeff_stream.is_nonzero():
+                    return False
+            # other == 0 but self likely != 0
+            elif (isinstance(other._coeff_stream, CoefficientStream_zero)
+                  and self._coeff_stream.is_nonzero()):
                 return False
 
             if (not isinstance(self._coeff_stream, CoefficientStream_exact)
@@ -388,6 +403,8 @@ class LazyModuleElement(Element):
                         return False
                 if self._coeff_stream == other._coeff_stream:
                     return True
+                if self._coeff_stream != other._coeff_stream:
+                    return False
                 raise ValueError("undecidable")
 
             # Both are CoefficientStream_exact, which implements a full check

@@ -171,10 +171,10 @@ class CoxeterGroup(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: W = CoxeterGroup(['A', 3], implementation='coxeter3')
-            sage: W.from_reduced_word([1, 3])
+            sage: W = CoxeterGroup(['A', 3], implementation='coxeter3')  # optional - coxeter3
+            sage: W.from_reduced_word([1, 3])                            # optional - coxeter3
             [1, 3]
-            sage: W.from_reduced_word([3, 1])
+            sage: W.from_reduced_word([3, 1])                            # optional - coxeter3
             [1, 3]
         """
         return self.element_class(self, w)
@@ -433,6 +433,17 @@ class CoxeterGroup(UniqueRepresentation, Parent):
                 sage: W = CoxeterGroup(['A', 3], implementation='coxeter3')    # optional - coxeter3
                 sage: W([2,1,2])                                               # optional - coxeter3
                 [1, 2, 1]
+
+            Check that :trac:`32266` is fixed::
+
+                sage: A3 = CoxeterGroup('A3', implementation='coxeter3')       # optional - coxeter3
+                sage: s1,s2,s3 = A3.simple_reflections()                       # optional - coxeter3
+                sage: s1*s3                                                    # optional - coxeter3
+                [1, 3]
+                sage: s3*s1                                                    # optional - coxeter3
+                [1, 3]
+                sage: s3*s1 == s1*s3                                           # optional - coxeter3
+                True
             """
             if not isinstance(x, CoxGroupElement):
                 x = CoxGroupElement(parent._coxgroup, x).reduced()

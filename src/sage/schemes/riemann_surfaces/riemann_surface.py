@@ -17,6 +17,9 @@ The class also provides facilities for computing the endomorphism ring of the
 period lattice numerically, by determining integer (near) solutions to the
 relevant approximate linear equations.
 
+One can also calculate the Abel-Jacobi map on the Riemann surface, and there 
+is basic functionality to interface with divisors of curves to facilitate this. 
+
 AUTHORS:
 
 - Alexandre Zotine, Nils Bruin (2017-06-10): initial version
@@ -58,7 +61,7 @@ In fact it is an order in a number field::
 We can look at an extended example of the Abel-Jacobi functionality. We will 
 show that the sum of the intersections of a bitangent to a quadratic is a 
 half-canonical divisor. We will use the Edge quartic as the example, which has
-bitangent `x=1/2`. 
+bitangent `x=1/2`:: 
 
     sage: f = 25*(x^4+y^4+1) - 34*(x^2*y^2+x^2+y^2)
     sage: S = RiemannSurface(f)
@@ -705,6 +708,8 @@ class RiemannSurface(object):
         self._fastcall_f = fast_callable(f, domain=self._CC)
         self._fastcall_dfdw = fast_callable(self._dfdw, domain=self._CC)
         self._fastcall_dfdz = fast_callable(self._dfdz, domain=self._CC)
+        self._fastcall_cohomology_basis = [fast_callable(h, domain = self._CC) 
+                                           for h in self.cohomology_basis()]
 
     def __repr__(self):
         r"""
@@ -1866,7 +1871,7 @@ class RiemannSurface(object):
 
             sage: S._cohomology_basis_bounding_data
             (Multivariate Polynomial Ring in z, g over Rational Field,
-             [(1/(2*w),
+             [(1/(2*y),
                (-3*z^2*g)/(2*z^3 - 2),
                z^3*g^2 - g^2 - 1/4,
                (1.00000000000000,
@@ -2165,7 +2170,12 @@ class RiemannSurface(object):
         occurring_edges.update(*[normalize_pairs(p[1]) for h in cycles
                                  for p in h])
 
-        fcd = [fast_callable(omega, domain=self._CC) for omega in differentials]
+        if differentials is self.cohomology_basis():
+            fcd = self._fastcall_cohomology_basis
+            integral_dict = self._integral_dict
+        else:
+            fcd = [fast_callable(omega, domain=self._CC) for omega in differentials]
+            integral_dict = dict()
 
         if integration_method=="heuristic":
             line_int = lambda edge: self.simple_vector_line_integral(edge, fcd)
@@ -2175,14 +2185,9 @@ class RiemannSurface(object):
         else:
             raise ValueError("Invalid integration method")
 
-        if differentials is self.cohomology_basis():
-            integral_dict = self._integral_dict
-            for upstairs_edge in occurring_edges:
-                if not upstairs_edge in integral_dict.keys():
-                    integral_dict[upstairs_edge] = line_int(upstairs_edge)
-        else:
-            integral_dict = {upstairs_edge: lint_int(upstairs_edge)
-                             for upstairs_edge in occurring_edges}
+        for upstairs_edge in occurring_edges:
+            if not upstairs_edge in integral_dict.keys():
+                integral_dict[upstairs_edge] = line_int(upstairs_edge)
         
         rows = []
         for cycle in cycles:
@@ -3054,7 +3059,7 @@ class RiemannSurface(object):
         
         """
         #####
-        fcd = [fast_callable(h, domain = self._CC) for h in self.cohomology_basis()]
+        fcd = self._fastcall_cohomology_basis
         
         if self._integration_method=="heuristic":
             line_int = lambda edge: self.simple_vector_line_integral(edge, fcd)

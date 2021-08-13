@@ -172,6 +172,20 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
 
         sage: integrate(1, x, algorithm="fricas")                               # optional - fricas
         x
+
+    Check that :trac:`28630` is fixed::
+
+        sage: f = polylog(3, x)
+        sage: f.integral(x, algorithm='fricas')                                 # optional - fricas
+        -x*dilog(x) - (x - 1)*log(-x + 1) + x*polylog(3, x) + x
+
+    Check that :trac:`29043` is fixed::
+
+        sage: var("a c d"); f = (I*a*tan(d*x + c) + a)*sec(d*x + c)^10
+        (a, c, d)
+        sage: ii = integrate(f, x, algorithm="fricas")                               # optional - fricas
+        sage: 1/315*(64512*I*a*e^(10*I*d*x + 10*I*c) + 53760*I*a*e^(8*I*d*x + 8*I*c) + 30720*I*a*e^(6*I*d*x + 6*I*c) + 11520*I*a*e^(4*I*d*x + 4*I*c) + 2560*I*a*e^(2*I*d*x + 2*I*c) + 256*I*a)/(d*e^(20*I*d*x + 20*I*c) + 10*d*e^(18*I*d*x + 18*I*c) + 45*d*e^(16*I*d*x + 16*I*c) + 120*d*e^(14*I*d*x + 14*I*c) + 210*d*e^(12*I*d*x + 12*I*c) + 252*d*e^(10*I*d*x + 10*I*c) + 210*d*e^(8*I*d*x + 8*I*c) + 120*d*e^(6*I*d*x + 6*I*c) + 45*d*e^(4*I*d*x + 4*I*c) + 10*d*e^(2*I*d*x + 2*I*c) + d) - ii                        # optional - fricas
+        0
     """
     if not isinstance(expression, Expression):
         expression = SR(expression)

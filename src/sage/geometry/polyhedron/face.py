@@ -74,7 +74,7 @@ polyhedron with the :meth:`PolyhedronFace.as_polyhedron` method::
 ########################################################################
 
 from sage.structure.richcmp import richcmp_method, richcmp
-from sage.misc.all import cached_method
+from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from sage.geometry.convex_set import ConvexSet_closed
@@ -123,8 +123,7 @@ class PolyhedronFace(ConvexSet_closed):
 
     TESTS::
 
-        sage: TestSuite(face).run(skip='_test_pickling')
-
+        sage: TestSuite(face).run()
     """
 
     def __init__(self, polyhedron, V_indices, H_indices):
@@ -158,6 +157,8 @@ class PolyhedronFace(ConvexSet_closed):
         self._ambient_Hrepresentation_indices = tuple(H_indices)
         self._ambient_Vrepresentation = tuple( polyhedron.Vrepresentation(i) for i in V_indices )
         self._ambient_Hrepresentation = tuple( polyhedron.Hrepresentation(i) for i in H_indices )
+        if polyhedron.is_mutable():
+            polyhedron._add_dependent_object(self)
 
     def __hash__(self):
         r"""
@@ -375,7 +376,9 @@ class PolyhedronFace(ConvexSet_closed):
         if not isinstance(other, PolyhedronFace):
             return NotImplemented
         if self._polyhedron is not other._polyhedron:
-            return NotImplemented
+            if (self._polyhedron.Vrepresentation() != other._polyhedron.Vrepresentation()
+                    or self._polyhedron.Hrepresentation() != other._polyhedron.Hrepresentation()):
+                return NotImplemented
         return richcmp(self._ambient_Vrepresentation_indices,
                        other._ambient_Vrepresentation_indices, op)
 

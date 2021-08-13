@@ -18,6 +18,7 @@ overridden by subclasses.
 import operator as _operator
 from sage.rings.rational_field import QQ
 from sage.symbolic.ring import SR
+from sage.symbolic.callable import is_CallableSymbolicExpression
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
 from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_gaussian
@@ -692,6 +693,23 @@ class SympyConverter(Converter):
     def __init__(self):
         from sage.interfaces.sympy import sympy_init
         sympy_init()
+
+    def __call__(self, ex=None):
+        """
+        EXAMPLES::
+
+            sage: from sage.symbolic.expression_conversions import SympyConverter
+            sage: s = SympyConverter()
+            sage: f(x, y) = x^2 + y^2; f
+            (x, y) |--> x^2 + y^2
+            sage: s(f)
+            Lambda((x, y), x**2 + y**2)
+        """
+        if is_CallableSymbolicExpression(ex):
+            from sympy import Symbol, Lambda
+            return Lambda(tuple(Symbol(str(arg)) for arg in ex.arguments()),
+                          super().__call__(ex))
+        return super().__call__(ex)
 
     def pyobject(self, ex, obj):
         """

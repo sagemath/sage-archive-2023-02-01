@@ -1017,8 +1017,8 @@ class DifferentiableManifold(TopologicalManifold):
 
             sage: M = Manifold(2, 'M')  # the open unit disk
             sage: forget()  # for doctests only
-            sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)')  # Cartesian coord on M
-            sage: c_xy.add_restrictions(x^2+y^2<1)
+            sage: c_xy.<x,y> = M.chart('x:(-1,1) y:(-1,1)', coord_restrictions=lambda x,y: x^2+y^2<1)
+            ....:    # Cartesian coord on M
             sage: N = Manifold(2, 'N')  # R^2
             sage: c_XY.<X,Y> = N.chart()  # canonical coordinates on R^2
             sage: Phi = M.diffeomorphism(N, [x/sqrt(1-x^2-y^2), y/sqrt(1-x^2-y^2)],
@@ -3065,7 +3065,7 @@ class DifferentiableManifold(TopologicalManifold):
 
         Another example, involving a pair vector fields along a curve::
 
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c')
             sage: I = c.domain(); I
             Real interval (0, 2*pi)
@@ -3432,7 +3432,7 @@ class DifferentiableManifold(TopologicalManifold):
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: c = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='c') ; c
             Curve c in the 2-dimensional differentiable manifold M
 

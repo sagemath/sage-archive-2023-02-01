@@ -2019,6 +2019,102 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             """
             return (-1)**w.length() * self(self.realization_of().C().monomial(w))
 
+        def product_on_basis(self, w1, w2):
+            r"""
+            If possible, uses a direct algorithm to compute the product
+            `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` (in particular, if
+            ``coxeter3`` is installed and the Iwahori--Hecke algebra is in the
+            standard or normalized presentation), detailed below. If not, this
+            method uses the default implementation of converting to the
+            `T`-basis, computing the product there, and converting back.
+
+            ALGORITHM:
+
+            This class computes each product `C^{\prime}_x \cdot C^{\prime}_y`
+            in two steps as follows.
+
+            If `\ell(x) \leq \ell(y)`, we first decompose `C^{\prime}_x` into a
+            polynomial in the generators `C^{\prime}_s (s\in S)` and then
+            multiply that polynomial with `C^{\prime}_y`. If `\ell(x) >
+            \ell(y)`, we decompose `C^{\prime}_y` into a polynomial in
+            `C^{\prime}_s (s\in S)` and multiply that polynomial with
+            `C^{\prime}_x`. The second step (multiplication) is done by
+            repeatedly applying the key formulas displayed earlier directly. The
+            first step (decomposition) is done by induction on the Bruhat order
+            as follows: for every element `u\in W` with length `\ell(u)>1`, pick
+            a left descent `s` of `u` and write `u=sw` (so `w=su`), then note
+            that
+
+            .. MATH:: C^{\prime}_u = C^{\prime}_s \cdot C^{\prime}_{w} - \sum_{v\le u; sv< v} \mu(v,w) C^{\prime}_v
+
+            by the key formulas mentioned earlier, where the element `w` and all
+            elements `v`'s on the right side are lower than `u` in the Bruhat
+            order; this allows us to finish the computation by decomposing the
+            lower order terms `C^{\prime}_w` and each `C^{\prime}_v`. For
+            example, for `u=121, s=1, w=21` in type `A_3` we have
+            `C^{\prime}_{121} = C^{\prime}_1  C^{\prime}_{21} - C^{\prime}_1`,
+            where the lower order term `C^{\prime}_{21}` further decomposes into
+            `C^{\prime}_2 C^{\prime}_1`, therefore
+
+            .. MATH:: C^{\prime}_{121}=C^{\prime}_1 C^{\prime}_2 C^{\prime}_1 - C^{\prime}_1.
+
+            We note that the base cases `\ell(x)=1` or `\ell(x)=0` of the above
+            induction occur when `x` is itself a Coxeter generator `s` or the
+            group identity, respectively. The decomposition is trivial in these
+            cases (we have `C^{\prime}_x=C^{\prime}_s` or `C^{\prime}_x=1`, the
+            unit of the Hecke algebra).
+
+            EXAMPLES::
+
+                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                    # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')         # optional - coxeter3
+                sage: H = IwahoriHeckeAlgebra(W, v**2); Cp=H.Cp()               # optional - coxeter3
+                sage: Cp.product_on_basis(W([1,2,1]), W([3,1]))                 # optional - coxeter3
+                (v^-1+v)*Cp[1,2,1,3]
+                sage: Cp.product_on_basis(W([1,2,1]), W([3,1,2]))               # optional - coxeter3
+                (v^-1+v)*Cp[1,2,1,3,2] + (v^-1+v)*Cp[1,2,1]
+            """
+            if self.delta is None or self._W_Coxeter3 is None:
+                # We do not meet the conditions to use the direct product 
+                # algorithm; fall back to conversion to/from the T-basis.
+                return super().product_on_basis(w1, w2)
+
+            # If self._W_Coxeter3 is not the underlying Coxeter group, we need
+            # to convert elements first for this algorithm.
+            if (self._W_Coxeter3 != self.realization_of()._W):
+                w1 = self._W_Coxeter3.from_reduced_word(w1.reduced_word())
+                w2 = self._W_Coxeter3.from_reduced_word(w2.reduced_word())
+
+            # Decomposition: write one of C'_{w1} and C'_{w2} as a polynomial in the
+            # generators C'_{s}.
+            if len(w1) <= len(w2):
+                side = 'left'
+                gen_expression = self._decompose_into_generators(w1)
+                other_element = self.monomial(w2)
+            else:
+                side = 'right'
+                gen_expression = self._decompose_into_generators(w2)
+                other_element = self.monomial(w1)
+            result = self(0)
+            # Multiplication: multiply the generators in each term of the above
+            # polynomial onto other_element and add that summand onto result.
+            for (p, coeff) in gen_expression.items():
+                summand = coeff * other_element
+                p_list = list(p) if side == 'right' else list(p)[::-1]
+                for s in p_list:
+                    summand = self._product_with_generator(s, summand, side)
+                result += summand
+            
+            # Again, if self._W_Coxeter3 is not the underlying Coxeter group,
+            # we need to convert result. Specifically, make sure basis elements
+            # appearing therein are actually indexed by elements of the original
+            # underlying Coxeter group.
+            if (self._W_Coxeter3 != self.realization_of()._W):
+                _W = self.realization_of()._W
+                result = self.linear_combination((self(_W.from_reduced_word(w.reduced_word())), c) for (w, c) in result)
+
+            return result
+
         def _product_with_generator_on_basis(self, s, w, side='left'):
             r"""
             Compute the product of `C^{\prime}_s` and `C^{\prime}_w`, putting
@@ -2150,102 +2246,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 # Subtract off each term from sum_term.
                 for (gens, c2) in self._decompose_into_generators(z).items():
                     result[gens] = result.get(gens, 0) - c1*c2
-
-            return result
-
-        def product_on_basis(self, w1, w2):
-            r"""
-            If possible, uses a direct algorithm to compute the product
-            `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` (in particular, if
-            ``coxeter3`` is installed and the Iwahori--Hecke algebra is in the
-            standard or normalized presentation), detailed below. If not, this
-            method uses the default implementation of converting to the
-            `T`-basis, computing the product there, and converting back.
-
-            ALGORITHM:
-
-            This class computes each product `C^{\prime}_x \cdot C^{\prime}_y`
-            in two steps as follows.
-
-            If `\ell(x) \leq \ell(y)`, we first decompose `C^{\prime}_x` into a
-            polynomial in the generators `C^{\prime}_s (s\in S)` and then
-            multiply that polynomial with `C^{\prime}_y`. If `\ell(x) >
-            \ell(y)`, we decompose `C^{\prime}_y` into a polynomial in
-            `C^{\prime}_s (s\in S)` and multiply that polynomial with
-            `C^{\prime}_x`. The second step (multiplication) is done by
-            repeatedly applying the key formulas displayed earlier directly. The
-            first step (decomposition) is done by induction on the Bruhat order
-            as follows: for every element `u\in W` with length `\ell(u)>1`, pick
-            a left descent `s` of `u` and write `u=sw` (so `w=su`), then note
-            that
-
-            .. MATH:: C^{\prime}_u = C^{\prime}_s \cdot C^{\prime}_{w} - \sum_{v\le u; sv< v} \mu(v,w) C^{\prime}_v
-
-            by the key formulas mentioned earlier, where the element `w` and all
-            elements `v`'s on the right side are lower than `u` in the Bruhat
-            order; this allows us to finish the computation by decomposing the
-            lower order terms `C^{\prime}_w` and each `C^{\prime}_v`. For
-            example, for `u=121, s=1, w=21` in type `A_3` we have
-            `C^{\prime}_{121} = C^{\prime}_1  C^{\prime}_{21} - C^{\prime}_1`,
-            where the lower order term `C^{\prime}_{21}` further decomposes into
-            `C^{\prime}_2 C^{\prime}_1`, therefore
-
-            .. MATH:: C^{\prime}_{121}=C^{\prime}_1 C^{\prime}_2 C^{\prime}_1 - C^{\prime}_1.
-
-            We note that the base cases `\ell(x)=1` or `\ell(x)=0` of the above
-            induction occur when `x` is itself a Coxeter generator `s` or the
-            group identity, respectively. The decomposition is trivial in these
-            cases (we have `C^{\prime}_x=C^{\prime}_s` or `C^{\prime}_x=1`, the
-            unit of the Hecke algebra).
-
-            EXAMPLES::
-
-                sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                    # optional - coxeter3
-                sage: W = CoxeterGroup('A3', implementation='coxeter3')         # optional - coxeter3
-                sage: H = IwahoriHeckeAlgebra(W, v**2); Cp=H.Cp()               # optional - coxeter3
-                sage: Cp.product_on_basis(W([1,2,1]), W([3,1]))                 # optional - coxeter3
-                (v^-1+v)*Cp[1,2,1,3]
-                sage: Cp.product_on_basis(W([1,2,1]), W([3,1,2]))               # optional - coxeter3
-                (v^-1+v)*Cp[1,2,1,3,2] + (v^-1+v)*Cp[1,2,1]
-            """
-            if self.delta is None or self._W_Coxeter3 is None:
-                # We do not meet the conditions to use the direct product 
-                # algorithm; fall back to conversion to/from the T-basis.
-                return super().product_on_basis(w1, w2)
-
-            # If self._W_Coxeter3 is not the underlying Coxeter group, we need
-            # to convert elements first for this algorithm.
-            if (self._W_Coxeter3 != self.realization_of()._W):
-                w1 = self._W_Coxeter3.from_reduced_word(w1.reduced_word())
-                w2 = self._W_Coxeter3.from_reduced_word(w2.reduced_word())
-
-            # Decomposition: write one of C'_{w1} and C'_{w2} as a polynomial in the
-            # generators C'_{s}.
-            if len(w1) <= len(w2):
-                side = 'left'
-                gen_expression = self._decompose_into_generators(w1)
-                other_element = self.monomial(w2)
-            else:
-                side = 'right'
-                gen_expression = self._decompose_into_generators(w2)
-                other_element = self.monomial(w1)
-            result = self(0)
-            # Multiplication: multiply the generators in each term of the above
-            # polynomial onto other_element and add that summand onto result.
-            for (p, coeff) in gen_expression.items():
-                summand = coeff * other_element
-                p_list = list(p) if side == 'right' else list(p)[::-1]
-                for s in p_list:
-                    summand = self._product_with_generator(s, summand, side)
-                result += summand
-            
-            # Again, if self._W_Coxeter3 is not the underlying Coxeter group,
-            # we need to convert result. Specifically, make sure basis elements
-            # appearing therein are actually indexed by elements of the original
-            # underlying Coxeter group.
-            if (self._W_Coxeter3 != self.realization_of()._W):
-                _W = self.realization_of()._W
-                result = self.linear_combination((self(_W.from_reduced_word(w.reduced_word())), c) for (w, c) in result)
 
             return result
 

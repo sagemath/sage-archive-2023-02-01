@@ -158,6 +158,27 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         sage: s
         1 + z + 2*z^2 + 5*z^3 + 14*z^4 + 42*z^5 + 132*z^6 + O(z^7)
 
+    If we do not explcitly know the exact value of every coefficient,
+    then equality checking will depend on the computed coefficients.
+    If at a certain point we cannot prove two series are different
+    (which involves the coefficients we have computed), then we will
+    raise an error::
+
+        sage: f = 1 / (z + z^2); f
+        z^-1 - 1 + z - z^2 + z^3 - z^4 + z^5 + O(z^6)
+        sage: f2 = f * 2  # currently no coefficients computed
+        sage: f3 = f * 3  # currently no coefficients computed
+        sage: f2 == f3
+        Traceback (most recent call last):
+        ...
+        ValueError: undecidable
+        sage: f2  # computes some of the coefficients of f2
+        2*z^-1 - 2 + 2*z - 2*z^2 + 2*z^3 - 2*z^4 + 2*z^5 + O(z^6)
+        sage: f3  # computes some of the coefficients of f3
+        3*z^-1 - 3 + 3*z - 3*z^2 + 3*z^3 - 3*z^4 + 3*z^5 + O(z^6)
+        sage: f2 == f3
+        False
+
     The implementation of the ring can be either be a sparse or a dense one.
     The default is a sparse implementation::
 

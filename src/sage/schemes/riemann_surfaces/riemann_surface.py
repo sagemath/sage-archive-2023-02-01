@@ -1749,7 +1749,7 @@ class RiemannSurface(object):
         output = V(0)
 
         # The purpose of this loop is as follows: We know we will be using 
-        # Gauss-Legendre quadrature to do the integral, and results from Neu2018
+        # Gauss-Legendre quadrature to do the integral, and results from [Neu2018]_
         # tell us an upper bound on the number of nodes required to achieve a 
         # given error bound for this quadrature, provided we have a bound for 
         # the integrand on a certain ellipse in the complex plane. The method 

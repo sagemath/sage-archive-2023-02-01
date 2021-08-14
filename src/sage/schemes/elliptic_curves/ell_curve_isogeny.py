@@ -65,9 +65,7 @@ AUTHORS:
 
 from copy import copy
 
-from sage.categories import homset
-
-from sage.categories.morphism import Morphism
+from sage.schemes.elliptic_curves.hom import EllipticCurveHom
 
 from sage.rings.all import PolynomialRing, Integer, LaurentSeriesRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -513,7 +511,7 @@ def two_torsion_part(E, psi):
     psi_2 = E.two_division_polynomial(x)
     return psi.gcd(psi_2)
 
-class EllipticCurveIsogeny(Morphism):
+class EllipticCurveIsogeny(EllipticCurveHom):
     r"""
     Class Implementing Isogenies of Elliptic Curves
 
@@ -1450,7 +1448,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: E2 = phi.codomain()
             sage: post_isom = WeierstrassIsomorphism(E2, (41, 37, 31, 29))
             sage: phi.set_post_isomorphism(post_isom)
-            sage: E1pr = WeierstrassIsomorphism(E, (-1, 2, -3, 4)).codomain().codomain()
+            sage: E1pr = WeierstrassIsomorphism(E, (-1, 2, -3, 4)).codomain()
             sage: pre_isom = E1pr.isomorphism_to(E)
             sage: phi.set_pre_isomorphism(pre_isom)
 
@@ -1460,8 +1458,7 @@ class EllipticCurveIsogeny(Morphism):
         self._codomain = self.__E2
 
         # sets up the parent
-        parent = homset.Hom(self.__E1, self.__E2)
-        Morphism.__init__(self, parent)
+        EllipticCurveHom.__init__(self, self._domain, self._codomain)
 
     def __init_algebraic_structs(self, E):
         r"""
@@ -1673,7 +1670,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi = EllipticCurveIsogeny(E, f)
             sage: phi._EllipticCurveIsogeny__perform_inheritance_housekeeping()
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
-            sage: E1pr = WeierstrassIsomorphism(E, (-1, 2, -3, 4)).codomain().codomain()
+            sage: E1pr = WeierstrassIsomorphism(E, (-1, 2, -3, 4)).codomain()
             sage: pre_isom = E1pr.isomorphism_to(E)
             sage: phi.set_pre_isomorphism(pre_isom)
             sage: phi._EllipticCurveIsogeny__set_pre_isomorphism(E, WeierstrassIsomorphism(E, (-1, 3, -3, 4)))
@@ -2912,7 +2909,7 @@ class EllipticCurveIsogeny(Morphism):
             Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 29 to Elliptic Curve defined by y^2 = x^3 + 20*x over Finite Field of size 29
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
             sage: inv_isom = WeierstrassIsomorphism(E, (1,-2,5,10))
-            sage: Epr = inv_isom.codomain().codomain()
+            sage: Epr = inv_isom.codomain()
             sage: isom = Epr.isomorphism_to(E)
             sage: phi.set_pre_isomorphism(isom); phi
             Isogeny of degree 5 from Elliptic Curve defined by y^2 + 10*x*y + 20*y = x^3 + 27*x^2 + 6 over Finite Field of size 29 to Elliptic Curve defined by y^2 = x^3 + 20*x over Finite Field of size 29
@@ -2939,8 +2936,8 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi(Epr((168,1188)))
             (0 : 1 : 0)
         """
-        WIdom = preWI.domain().codomain()
-        WIcod = preWI.codomain().codomain()
+        WIdom = preWI.domain()
+        WIcod = preWI.codomain()
 
         if not isinstance(preWI, WeierstrassIsomorphism):
             raise ValueError("Invalid parameter: isomorphism must be of type Weierstrass isomorphism.")
@@ -3001,8 +2998,8 @@ class EllipticCurveIsogeny(Morphism):
             Isogeny of degree 4 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in a with defining polynomial x^2 + 2 to Elliptic Curve defined by y^2 = x^3 + (-44)*x + 112 over Number Field in a with defining polynomial x^2 + 2
 
         """
-        WIdom = postWI.domain().codomain()
-        WIcod = postWI.codomain().codomain()
+        WIdom = postWI.domain()
+        WIcod = postWI.codomain()
 
         if not isinstance(postWI, WeierstrassIsomorphism):
             raise ValueError("Invalid parameter: isomorphism must be of type Weierstrass isomorphism.")
@@ -3047,9 +3044,9 @@ class EllipticCurveIsogeny(Morphism):
             sage: E2 = phi.codomain()
             sage: phi2 = EllipticCurveIsogeny(E, None, E2, 2)
             sage: phi2.get_pre_isomorphism()
-            Generic morphism:
-              From: Abelian group of points on Elliptic Curve defined by y^2 + x*y + y = x^3 + x over Finite Field of size 83
-              To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 62*x + 74 over Finite Field of size 83
+            Elliptic-curve morphism:
+              From: Elliptic Curve defined by y^2 + x*y + y = x^3 + x over Finite Field of size 83
+              To:   Elliptic Curve defined by y^2 = x^3 + 62*x + 74 over Finite Field of size 83
               Via:  (u,r,s,t) = (1, 76, 41, 3)
         """
         return self.__pre_isomorphism
@@ -3076,9 +3073,9 @@ class EllipticCurveIsogeny(Morphism):
             sage: E2 = phi.codomain()
             sage: phi2 = EllipticCurveIsogeny(E, None, E2, 2)
             sage: phi2.get_post_isomorphism()
-            Generic morphism:
-            From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 65*x + 69 over Finite Field of size 83
-            To:   Abelian group of points on Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + 16 over Finite Field of size 83
+            Elliptic-curve morphism:
+            From: Elliptic Curve defined by y^2 = x^3 + 65*x + 69 over Finite Field of size 83
+            To:   Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + 16 over Finite Field of size 83
             Via:  (u,r,s,t) = (1, 7, 42, 42)
         """
         return self.__post_isomorphism
@@ -3424,7 +3421,7 @@ class EllipticCurveIsogeny(Morphism):
         u = self.formal()[1]
         isom = WeierstrassIsomorphism(E2pr, (u/F(d), 0, 0, 0))
 
-        E2 = isom.codomain().codomain()
+        E2 = isom.codomain()
 
         pre_isom = self.__E2.isomorphism_to(E1)
         post_isom = E2.isomorphism_to(self.__E1)
@@ -3881,13 +3878,13 @@ def compute_intermediate_curves(E1, E2):
         sage: compute_intermediate_curves(E, E2)
         (Elliptic Curve defined by y^2 = x^3 + 62*x + 74 over Finite Field of size 83,
          Elliptic Curve defined by y^2 = x^3 + 65*x + 69 over Finite Field of size 83,
-         Generic morphism:
-          From: Abelian group of points on Elliptic Curve defined by y^2 + x*y + y = x^3 + x over Finite Field of size 83
-          To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 62*x + 74 over Finite Field of size 83
+         Elliptic-curve morphism:
+          From: Elliptic Curve defined by y^2 + x*y + y = x^3 + x over Finite Field of size 83
+          To:   Elliptic Curve defined by y^2 = x^3 + 62*x + 74 over Finite Field of size 83
           Via:  (u,r,s,t) = (1, 76, 41, 3),
-         Generic morphism:
-          From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 65*x + 69 over Finite Field of size 83
-          To:   Abelian group of points on Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + 16 over Finite Field of size 83
+         Elliptic-curve morphism:
+          From: Elliptic Curve defined by y^2 = x^3 + 65*x + 69 over Finite Field of size 83
+          To:   Elliptic Curve defined by y^2 + x*y + y = x^3 + 4*x + 16 over Finite Field of size 83
           Via:  (u,r,s,t) = (1, 7, 42, 42))
 
         sage: R.<x> = QQ[]
@@ -3897,9 +3894,9 @@ def compute_intermediate_curves(E1, E2):
         sage: compute_intermediate_curves(E, E2)
         (Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1,
          Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1,
-         Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1
+         Elliptic-curve endomorphism of Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1
           Via:  (u,r,s,t) = (1, 0, 0, 0),
-         Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
+         Elliptic-curve endomorphism of Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
           Via:  (u,r,s,t) = (1, 0, 0, 0))
 
     """
@@ -3963,13 +3960,13 @@ def compute_sequence_of_maps(E1, E2, ell):
         sage: phi = EllipticCurveIsogeny(E, f)
         sage: E2 = phi.codomain()
         sage: compute_sequence_of_maps(E, E2, 5)
-        (Generic morphism:
-          From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
-          To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 - 31/3*x - 2501/108 over Rational Field
+        (Elliptic-curve morphism:
+          From: Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
+          To:   Elliptic Curve defined by y^2 = x^3 - 31/3*x - 2501/108 over Rational Field
           Via:  (u,r,s,t) = (1, 1/3, 0, -1/2),
-         Generic morphism:
-          From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 - 23461/3*x - 28748141/108 over Rational Field
-          To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field
+         Elliptic-curve morphism:
+          From: Elliptic Curve defined by y^2 = x^3 - 23461/3*x - 28748141/108 over Rational Field
+          To:   Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field
           Via:  (u,r,s,t) = (1, -1/3, 0, 1/2),
          Elliptic Curve defined by y^2 = x^3 - 31/3*x - 2501/108 over Rational Field,
          Elliptic Curve defined by y^2 = x^3 - 23461/3*x - 28748141/108 over Rational Field,
@@ -3979,9 +3976,9 @@ def compute_sequence_of_maps(E1, E2, ell):
         sage: E = EllipticCurve(K, [0,0,0,1,0])
         sage: E2 = EllipticCurve(K, [0,0,0,16,0])
         sage: compute_sequence_of_maps(E, E2, 4)
-        (Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1
+        (Elliptic-curve endomorphism of Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1
           Via:  (u,r,s,t) = (1, 0, 0, 0),
-         Generic endomorphism of Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
+         Elliptic-curve endomorphism of Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1
           Via:  (u,r,s,t) = (1, 0, 0, 0),
          Elliptic Curve defined by y^2 = x^3 + x over Number Field in i with defining polynomial x^2 + 1,
          Elliptic Curve defined by y^2 = x^3 + 16*x over Number Field in i with defining polynomial x^2 + 1,
@@ -3992,13 +3989,13 @@ def compute_sequence_of_maps(E1, E2, ell):
         sage: phi = EllipticCurveIsogeny(E, f)
         sage: E2 = phi.codomain()
         sage: compute_sequence_of_maps(E, E2, 11)
-        (Generic morphism:
-          From: Abelian group of points on Elliptic Curve defined by y^2 + x*y + y = x^3 + x over Finite Field of size 97
-          To:   Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 52*x + 31 over Finite Field of size 97
+        (Elliptic-curve morphism:
+          From: Elliptic Curve defined by y^2 + x*y + y = x^3 + x over Finite Field of size 97
+          To:   Elliptic Curve defined by y^2 = x^3 + 52*x + 31 over Finite Field of size 97
           Via:  (u,r,s,t) = (1, 8, 48, 44),
-         Generic morphism:
-          From: Abelian group of points on Elliptic Curve defined by y^2 = x^3 + 41*x + 66 over Finite Field of size 97
-          To:   Abelian group of points on Elliptic Curve defined by y^2 + x*y + y = x^3 + 87*x + 26 over Finite Field of size 97
+         Elliptic-curve morphism:
+          From: Elliptic Curve defined by y^2 = x^3 + 41*x + 66 over Finite Field of size 97
+          To:   Elliptic Curve defined by y^2 + x*y + y = x^3 + 87*x + 26 over Finite Field of size 97
           Via:  (u,r,s,t) = (1, 89, 49, 49),
          Elliptic Curve defined by y^2 = x^3 + 52*x + 31 over Finite Field of size 97,
          Elliptic Curve defined by y^2 = x^3 + 41*x + 66 over Finite Field of size 97,

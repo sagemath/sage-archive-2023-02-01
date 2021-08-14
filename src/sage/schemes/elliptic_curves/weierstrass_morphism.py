@@ -22,9 +22,9 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.categories.morphism import Morphism
 from .constructor import EllipticCurve
 from sage.categories.homset import Hom
+from sage.schemes.elliptic_curves.hom import EllipticCurveHom
 from sage.structure.richcmp import (richcmp_method, richcmp, richcmp_not_equal,
                                     op_NE)
 
@@ -394,7 +394,7 @@ def isomorphisms(E, F, JustOne=False):
     return ans
 
 
-class WeierstrassIsomorphism(baseWI, Morphism):
+class WeierstrassIsomorphism(baseWI, EllipticCurveHom):
     r"""
     Class representing a Weierstrass isomorphism between two elliptic curves.
     """
@@ -429,19 +429,19 @@ class WeierstrassIsomorphism(baseWI, Morphism):
 
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import *
             sage: WeierstrassIsomorphism(EllipticCurve([0,1,2,3,4]),(-1,2,3,4))
-            Generic morphism:
-            From: Abelian group of points on Elliptic Curve defined by y^2 + 2*y = x^3 + x^2 + 3*x + 4 over Rational Field
-            To:   Abelian group of points on Elliptic Curve defined by y^2 - 6*x*y - 10*y = x^3 - 2*x^2 - 11*x - 2 over Rational Field
+            Elliptic-curve morphism:
+            From: Elliptic Curve defined by y^2 + 2*y = x^3 + x^2 + 3*x + 4 over Rational Field
+            To:   Elliptic Curve defined by y^2 - 6*x*y - 10*y = x^3 - 2*x^2 - 11*x - 2 over Rational Field
             Via:  (u,r,s,t) = (-1, 2, 3, 4)
             sage: E = EllipticCurve([0,1,2,3,4])
             sage: F = EllipticCurve(E.cremona_label())
             sage: WeierstrassIsomorphism(E,None,F)
-            Generic morphism:
-            From: Abelian group of points on Elliptic Curve defined by y^2 + 2*y = x^3 + x^2 + 3*x + 4 over Rational Field
-            To:   Abelian group of points on Elliptic Curve defined by y^2  = x^3 + x^2 + 3*x + 5 over Rational Field
+            Elliptic-curve morphism:
+            From: Elliptic Curve defined by y^2 + 2*y = x^3 + x^2 + 3*x + 4 over Rational Field
+            To:   Elliptic Curve defined by y^2  = x^3 + x^2 + 3*x + 5 over Rational Field
             Via:  (u,r,s,t) = (1, 0, 0, -1)
             sage: w = WeierstrassIsomorphism(None,(1,0,0,-1),F)
-            sage: w._domain_curve==E
+            sage: w._domain==E
             True
         """
         from .ell_generic import is_EllipticCurve
@@ -461,18 +461,18 @@ class WeierstrassIsomorphism(baseWI, Morphism):
         if F is None:  # easy case
             baseWI.__init__(self, *urst)
             F = EllipticCurve(baseWI.__call__(self, list(E.a_invariants())))
-            Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))
-            self._domain_curve = E
-            self._codomain_curve = F
+            self._domain = E
+            self._codomain = F
+            EllipticCurveHom.__init__(self, self._domain, self._codomain)
             return
 
         if E is None:  # easy case in reverse
             baseWI.__init__(self, *urst)
             inv_urst = baseWI.__invert__(self)
             E = EllipticCurve(baseWI.__call__(inv_urst, list(F.a_invariants())))
-            Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))
-            self._domain_curve = E
-            self._codomain_curve = F
+            self._domain = E
+            self._codomain = F
+            EllipticCurveHom.__init__(self, self._domain, self._codomain)
             return
 
         if urst is None:  # try to construct the morphism
@@ -480,9 +480,9 @@ class WeierstrassIsomorphism(baseWI, Morphism):
             if urst is None:
                 raise ValueError("Elliptic curves not isomorphic.")
             baseWI.__init__(self, *urst)
-            Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))
-            self._domain_curve = E
-            self._codomain_curve = F
+            self._domain = E
+            self._codomain = F
+            EllipticCurveHom.__init__(self, self._domain, self._codomain)
             return
 
         # none of the parameters is None:
@@ -490,9 +490,9 @@ class WeierstrassIsomorphism(baseWI, Morphism):
         if F != EllipticCurve(baseWI.__call__(self, list(E.a_invariants()))):
             raise ValueError("second argument is not an isomorphism from first argument to third argument")
         else:
-            Morphism.__init__(self, Hom(E(0).parent(), F(0).parent()))
-            self._domain_curve = E
-            self._codomain_curve = F
+            self._domain = E
+            self._codomain = F
+            EllipticCurveHom.__init__(self, self._domain, self._codomain)
         return
 
     def _richcmp_(self, other, op):
@@ -523,13 +523,13 @@ class WeierstrassIsomorphism(baseWI, Morphism):
             sage: a == c
             True
         """
-        lx = self._domain_curve
-        rx = other._domain_curve
+        lx = self._domain
+        rx = other._domain
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
 
-        lx = self._codomain_curve
-        rx = other._codomain_curve
+        lx = self._codomain
+        rx = other._codomain
         if lx != rx:
             return richcmp_not_equal(lx, rx, op)
 
@@ -559,8 +559,8 @@ class WeierstrassIsomorphism(baseWI, Morphism):
             True
         """
         if P[2] == 0:
-            return self._codomain_curve(0)
-        return self._codomain_curve.point(baseWI.__call__(self,
+            return self._codomain(0)
+        return self._codomain.point(baseWI.__call__(self,
                                                           tuple(P._coords)),
                                           check=False)
 
@@ -578,9 +578,9 @@ class WeierstrassIsomorphism(baseWI, Morphism):
             sage: w(P)
             (-5/4 : 9/4 : 1)
             sage: ~w
-            Generic morphism:
-                    From: Abelian group of points on Elliptic Curve defined by y^2 + 4*x*y + 11/8*y = x^3 - 7/4*x^2 - 3/2*x - 9/32 over Rational Field
-              To:   Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
+            Elliptic-curve morphism:
+              From: Elliptic Curve defined by y^2 + 4*x*y + 11/8*y = x^3 - 7/4*x^2 - 3/2*x - 9/32 over Rational Field
+              To:   Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
               Via:  (u,r,s,t) = (1/2, -3/4, -2, 7/8)
             sage: Q = w(P); Q
             (-5/4 : 9/4 : 1)
@@ -588,8 +588,7 @@ class WeierstrassIsomorphism(baseWI, Morphism):
             (-2 : 3 : 1)
         """
         winv = baseWI.__invert__(self).tuple()
-        return WeierstrassIsomorphism(self._codomain_curve, winv,
-                                      self._domain_curve)
+        return WeierstrassIsomorphism(self._codomain, winv, self._domain)
 
     def __mul__(self, other):
         r"""
@@ -610,10 +609,9 @@ class WeierstrassIsomorphism(baseWI, Morphism):
             sage: (w2*w1)(P) == w2(w1(P))
             True
         """
-        if self._domain_curve == other._codomain_curve:
+        if self._domain == other._codomain:
             w = baseWI.__mul__(self, other)
-            return WeierstrassIsomorphism(other._domain_curve, w.tuple(),
-                                          self._codomain_curve)
+            return WeierstrassIsomorphism(other._domain, w.tuple(), self._codomain)
         else:
             raise ValueError("Domain of first argument must equal codomain of second")
 
@@ -631,9 +629,9 @@ class WeierstrassIsomorphism(baseWI, Morphism):
             sage: E1 = EllipticCurve('5077')
             sage: E2 = E1.change_weierstrass_model([2,3,4,5])
             sage: E1.isomorphism_to(E2)
-            Generic morphism:
-            From: Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
-            To:   Abelian group of points on Elliptic Curve defined by y^2 + 4*x*y + 11/8*y = x^3 - 7/4*x^2 - 3/2*x - 9/32 over Rational Field
+            Elliptic-curve morphism:
+            From: Elliptic Curve defined by y^2 + y = x^3 - 7*x + 6 over Rational Field
+            To:   Elliptic Curve defined by y^2 + 4*x*y + 11/8*y = x^3 - 7/4*x^2 - 3/2*x - 9/32 over Rational Field
             Via:  (u,r,s,t) = (2, 3, 4, 5)
         """
-        return Morphism.__repr__(self) + "\n  Via:  (u,r,s,t) = " + baseWI.__repr__(self)
+        return EllipticCurveHom.__repr__(self) + "\n  Via:  (u,r,s,t) = " + baseWI.__repr__(self)

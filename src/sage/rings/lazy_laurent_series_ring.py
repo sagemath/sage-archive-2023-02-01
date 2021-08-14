@@ -34,7 +34,7 @@ from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.lazy_laurent_series import LazyModuleElement, LazyLaurentSeries, LazyTaylorSeries, LazyDirichletSeries
+from sage.rings.lazy_laurent_series import LazyCauchyProductSeries, LazyLaurentSeries, LazyTaylorSeries, LazyDirichletSeries
 from sage.structure.global_options import GlobalOptions
 from sage.symbolic.ring import SR
 
@@ -512,8 +512,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ...
             ValueError: the valuation must be specified
 
-        TESTS:
-
         This gives zero::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
@@ -550,6 +548,24 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g = L(lambda i: i, valuation=-3, constant=(-1,3))
             sage: f == g
             True
+
+        We can convert a Taylor series to a Laurent series::
+
+            sage: P.<x, y> = QQ[]
+            sage: L.<z> = LazyLaurentSeriesRing(P)
+            sage: T.<x, y> = LazyTaylorSeriesRing(QQ)
+            sage: s = 1/(1-x-y); L(s)
+            1 + (x + y)*z + (x^2 + 2*x*y + y^2)*z^2 + (x^3 + 3*x^2*y + 3*x*y^2 + y^3)*z^3 + (x^4 + 4*x^3*y + 6*x^2*y^2 + 4*x*y^3 + y^4)*z^4 + (x^5 + 5*x^4*y + 10*x^3*y^2 + 10*x^2*y^3 + 5*x*y^4 + y^5)*z^5 + (x^6 + 6*x^5*y + 15*x^4*y^2 + 20*x^3*y^3 + 15*x^2*y^4 + 6*x*y^5 + y^6)*z^6 + O(z^7)
+
+        However, not a Dirichlet series::
+
+            sage: D = LazyDirichletSeriesRing(ZZ, 't')
+            sage: m = D(moebius)
+            sage: L(m)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert 1 - 1/(2^t) - 1/(3^t) - 1/(5^t) + 1/(6^t) - 1/(7^t) + O(1/(8^t)) into a lazy Laurent series
+
 
         .. TODO::
 
@@ -590,7 +606,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                                                    order=x.valuation(), constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
 
-        if isinstance(x, LazyModuleElement):
+        if isinstance(x, LazyCauchyProductSeries):
             if x._coeff_stream._is_sparse is not self._sparse:
                 # TODO: Implement a way to make a self._sparse copy
                 raise NotImplementedError("cannot convert between sparse and dense")

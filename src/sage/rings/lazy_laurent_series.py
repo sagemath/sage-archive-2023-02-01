@@ -2316,12 +2316,20 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: zero = L.zero()
             sage: zero.shift(10) is zero
             True
+
+            sage: f = 1 / (1 + 2*z + z^2)
+            sage: f.shift(5).shift(-5) - f
+            0
+
         """
         if isinstance(self._coeff_stream, CoefficientStream_zero):
             return self
         elif isinstance(self._coeff_stream, CoefficientStream_shift):
-            shift += self._coeff_stream._shift
-            coeff_stream = CoefficientStream_shift(self._coeff_stream._series, n)
+            n += self._coeff_stream._shift
+            if n:
+                coeff_stream = CoefficientStream_shift(self._coeff_stream._series, n)
+            else:
+                coeff_stream = self._coeff_stream._series
         elif isinstance(self._coeff_stream, CoefficientStream_exact):
             init_coeff = self._coeff_stream._initial_coefficients
             degree = self._coeff_stream._degree + n

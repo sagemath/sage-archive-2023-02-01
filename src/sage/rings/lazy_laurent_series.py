@@ -1952,13 +1952,13 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: e = L(lambda n: 1/factorial(n), 0)
             sage: D = LazyDirichletSeriesRing(QQ, "s")
-            sage: f = D(constant=1)-1; f
+            sage: g = D(constant=1)-1; g
             1/(2^s) + 1/(3^s) + 1/(4^s) + O(1/(5^s))
 
-            sage: e(f)[0:10]
+            sage: e(g)[0:10]
             [0, 1, 1, 1, 3/2, 1, 2, 1, 13/6, 3/2]
 
-            sage: sum(f^k/factorial(k) for k in range(10))[0:10]
+            sage: sum(g^k/factorial(k) for k in range(10))[0:10]
             [0, 1, 1, 1, 3/2, 1, 2, 1, 13/6, 3/2]
 
         """
@@ -1991,6 +1991,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             if not isinstance(g, LazyModuleElement):
                 return poly(g)
             # g also has finite length, compose the polynomials
+            # TODO: likely wrong if g is a Dirichlet series
             if isinstance(g._coeff_stream, CoefficientStream_exact) and not g._coeff_stream._constant:
                 R = P._laurent_poly_ring
                 g_poly = g._coeff_stream.polynomial_part(R)
@@ -2039,6 +2040,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             # TODO: Implement case for a regular (Laurent)PowerSeries element
             #   as we can use the (default?) order given
             try:
+                # TODO: wrong if g is not a CauchyProductSeries
                 g = self.parent()(g)
             except (TypeError, ValueError):
                 raise NotImplementedError("can only compose with a lazy series")

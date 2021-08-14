@@ -341,6 +341,7 @@ class ClassicalMatrixLieAlgebra(MatrixLieAlgebraFromAssociative):
             for k, v in val.dict().items():
                 a, b = k
                 mat[row, a*m+b] = v
+
         def build_assoc(row):
             ret = {}
             for i, v in row.dict().items():

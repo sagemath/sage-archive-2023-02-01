@@ -31,7 +31,7 @@ from sage.misc.cachefunc import cached_method
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.rings.lazy_laurent_series import LazyLaurentSeries, LazyModuleElement
+from sage.rings.lazy_laurent_series import LazyCauchyProductSeries, LazyLaurentSeries
 from sage.structure.global_options import GlobalOptions
 
 from sage.data_structures.coefficient_stream import (
@@ -446,8 +446,25 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
 
+        Finally, ``x`` can be a Laurent polynomial::
+
+            sage: P.<x> = LaurentPolynomialRing(QQ)
+            sage: p = x^-2 + 3*x^3
+            sage: L.<x> = LazyLaurentSeriesRing(ZZ)
+            sage: L(p)
+            x^-2 + 3*x^3
+
+            sage: L(p, valuation=0)
+            1 + 3*x^5
+
+            sage: L(p, valuation=1)
+            x + 3*x^6
+
+        TESTS:
+
         Checking the valuation is consistent::
 
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
             sage: L([0,0,2,3], valuation=-4)
             2*z^-4 + 3*z^-3
             sage: L(range(5), valuation=-4)
@@ -469,7 +486,11 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L(z^3/(1-z), valuation=0)
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
 
-        TESTS:
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L(lambda n: 1/(n+1), degree=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: the valuation must be specified
 
         This gives zero::
 
@@ -533,7 +554,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if parent(x) is R:
             if not x and not constant:
                 return self.zero()
-            if x and valuation:
+            if x and valuation is not None:
                 x = x.shift(valuation - x.valuation())
             if degree is None and not x:
                 if valuation is None:
@@ -547,7 +568,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                                                    order=x.valuation(), constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
 
-        if isinstance(x, LazyModuleElement):
+        if isinstance(x, LazyCauchyProductSeries):
             if x._coeff_stream._is_sparse is not self._sparse:
                 # TODO: Implement a way to make a self._sparse copy
                 raise NotImplementedError("cannot convert between sparse and dense")

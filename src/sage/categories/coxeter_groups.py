@@ -692,17 +692,15 @@ class CoxeterGroups(Category_singleton):
         def kazhdan_lusztig_cells(self, side='left'):
             r"""
             Compute the left, right, or two-sided Kazhdan-Lusztig cells of
-            ``self`` by using :func:`ElementMethods.kazhdan_lusztig_cell()`. As
-            detailed there, this function will be much more efficient if the
+            ``self`` by using
+            :func:`kazhdan_lusztig_cell()<CoxeterGroups.ElementMethods.kazhdan_lusztig_cell()>`.
+            As detailed there, this function will be much more efficient if the
             package ``coxeter3`` is installed, due to the method of computing
             products in the `C^{\prime}` basis of the Iwahori--Hecke algebra.
 
             EXAMPLES::
 
                 sage: from sage.doctest.fixtures import reproducible_repr   # optional - coxeter3
-                sage: W = CoxeterGroup('A3')                                # optional - coxeter3
-                sage: [len(c) for c in W.kazhdan_lusztig_cells()]           # optional - coxeter3
-                [3, 3, 2, 1, 3, 3, 3, 1, 3, 2]
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
                 sage: print(reproducible_repr(W.kazhdan_lusztig_cells()))   # optional - coxeter3
                 set([frozenset([[1, 2, 1, 3, 2, 1]]),
@@ -715,9 +713,16 @@ class CoxeterGroups(Category_singleton):
                 frozenset([[1, 3], [2, 1, 3]]),
                 frozenset([[1], [2, 1], [3, 2, 1]]),
                 frozenset([[]])])
-                sage: W = CoxeterGroup('A4', implementation='coxeter3')     # optional - coxeter3
-                sage: [len(c) for c in W.kazhdan_lusztig_cells()]           # long time (3 seconds) # optional - coxeter3
-                [5, 4, 4, 5, 5, 6, 4, 6, 4, 5, 5, 4, 1, 5, 6, 4, 5, 6, 4, 5, 4, 6, 6, 5, 5, 1]
+                sage: W = CoxeterGroup('B4', implementation='coxeter3')     # optional - coxeter3
+                sage: b4_cells = W.kazhdan_lusztig_cells()                  # long time (45 seconds) # optional - coxeter3
+                sage: len(b4_cells)                                         # optional - coxeter3
+                50
+                sage: print(reproducible_repr(b4_cells))                    # optional - coxeter3
+                set([frozenset([[1, 2, 3, 4, 3, 2, 1], [1], [2, 1], [2, 3, 4, 3, 2, 1], [3, 2, 1], [3, 4, 3, 2, 1], [4, 3, 2, 1]]),
+                frozenset([[1, 2, 3, 4, 3, 2], [1, 2], [2, 3, 4, 3, 2], [2], [3, 2], [3, 4, 3, 2], [4, 3, 2]]),
+                frozenset([[1, 2, 3, 4, 3], [1, 2, 3], [2, 3, 4, 3], [2, 3], [3, 4, 3], [3], [4, 3]]),
+                frozenset([[1, 2, 3, 4], [2, 3, 4], [3, 4], [4, 3, 4], [4]]),
+                ...
 
             TESTS::
 
@@ -2770,45 +2775,55 @@ class CoxeterGroups(Category_singleton):
 
             EXAMPLES:
 
-            Compute some cells in type `B_3`::
+            Some simple computations in type `A_3`; we use two different Coxeter
+            group implementations::
 
-                sage: W = CoxeterGroup('B3', implementation='coxeter3')     # optional - coxeter3
+                sage: W = CoxeterGroup('A3')                                # optional - coxeter3
                 sage: s1,s2,s3 = W.simple_reflections()                     # optional - coxeter3
-                sage: (s1*s2*s1).kazhdan_lusztig_cell()                     # optional - coxeter3
-                {[2, 1, 2], [2, 3, 2, 1, 2], [3, 2, 1, 2]}
-                sage: (s2*s3*s2).kazhdan_lusztig_cell()                     # optional - coxeter3
-                {[1, 2], [1, 2, 3, 2], [2], [2, 3, 2], [3, 2]}
-                sage: s3.kazhdan_lusztig_cell()                             # optional - coxeter3
-                {[1, 2, 3], [2, 3], [3], [3, 2, 3]}
-                sage: s3.kazhdan_lusztig_cell('right')                      # optional - coxeter3
-                {[3], [3, 2], [3, 2, 1], [3, 2, 3]}
-                sage: s3.kazhdan_lusztig_cell('two-sided')                  # optional - coxeter3
-                {[1], [1, 2], [1, 2, 3], [1, 2, 3, 2], [1, 2, 3, 2, 1], [2], [2, 1],
-                [2, 3], [2, 3, 2], [2, 3, 2, 1], [3], [3, 2], [3, 2, 1], [3, 2, 3]}
+                sage: s1.kazhdan_lusztig_cell()                             # optional - coxeter3
+                {[-1  1  0]
+                 [-1  0  1]
+                 [-1  0  0],
+                 [-1  1  0]
+                 [-1  0  1]
+                 [ 0  0  1],
+                 [-1  1  0]
+                 [ 0  1  0]
+                 [ 0  0  1]}
+                sage: W = CoxeterGroup('A3', implementation='permutation')  # optional - coxeter3
+                sage: s1,s2,s3 = W.simple_reflections()                     # optional - coxeter3
+                sage: s1.kazhdan_lusztig_cell()                             # optional - coxeter3
+                {(1,2,3,12)(4,5,10,11)(6,7,8,9),
+                 (1,2,10)(3,6,5)(4,7,8)(9,12,11),
+                 (1,7)(2,4)(5,6)(8,10)(11,12)}
+                sage: s1.kazhdan_lusztig_cell(side='right')                 # optional - coxeter3
+                {(1,7)(2,4)(5,6)(8,10)(11,12),
+                 (1,10,2)(3,5,6)(4,8,7)(9,11,12),
+                 (1,12,3,2)(4,11,10,5)(6,9,8,7)}
 
-            Some slightly longer computations in type `B_4`::
+            Some slightly longer computations in type `B_4`, working directly
+            with reduced words using the ``coxeter3`` implementation::
 
                 sage: W = CoxeterGroup('B4', implementation='coxeter3')     # optional - coxeter3
                 sage: s1,s2,s3,s4 = W.simple_reflections()                  # optional - coxeter3
-                sage: s1.kazhdan_lusztig_cell()                             # long time (4 seconds) # optional - coxeter3
+                sage: s1.kazhdan_lusztig_cell(side='right')                 # long time (4 seconds) # optional - coxeter3
                 {[1],
-                [1, 2, 3, 4, 3, 2, 1],
-                [2, 1],
-                [2, 3, 4, 3, 2, 1],
-                [3, 2, 1],
-                [3, 4, 3, 2, 1],
-                [4, 3, 2, 1]}
-                sage: (s4*s2*s3*s4).kazhdan_lusztig_cell()                  # long time (2 seconds) # optional - coxeter3
-                {[2, 3, 4, 1, 2, 3, 4],
-                [3, 4, 1, 2, 3, 4],
-                [3, 4, 2, 3, 4],
-                [3, 4, 2, 3, 4, 1, 2, 3, 4],
-                [4, 1, 2, 3, 4],
-                [4, 2, 3, 4],
-                [4, 2, 3, 4, 1, 2, 3, 4],
-                [4, 3, 4, 1, 2, 3, 4],
-                [4, 3, 4, 2, 3, 4],
-                [4, 3, 4, 2, 3, 4, 1, 2, 3, 4]}
+                 [1, 2],
+                 [1, 2, 3],
+                 [1, 2, 3, 4],
+                 [1, 2, 3, 4, 3],
+                 [1, 2, 3, 4, 3, 2],
+                 [1, 2, 3, 4, 3, 2, 1]}
+                sage: (s4*s2*s3*s4).kazhdan_lusztig_cell(side='two-sided')  # long time (8 seconds) # optional - coxeter3
+                {[2, 3, 1],
+                 [2, 3, 1, 2],
+                 [2, 3, 4, 1],
+                 [2, 3, 4, 1, 2],
+                 [2, 3, 4, 1, 2, 3],
+                 [2, 3, 4, 1, 2, 3, 4],
+                 [2, 3, 4, 3, 1],
+                 [2, 3, 4, 3, 1, 2],
+                ...
             """
             from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
             from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing

@@ -1812,6 +1812,118 @@ class LazyModuleElement(Element):
               valuation=0)
         return f(self)
 
+    # === powers ===
+
+    def __pow__(self, n):
+        """
+        Return the ``n``-th power of the series.
+
+        INPUT:
+
+        - ``n`` -- integer; the power to which to raise the series
+
+        EXAMPLES:
+
+        Lazy Laurent series that have a dense implementation can be
+        raised to the power ``n``::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+            sage: (1 - z)^-1
+            1 + z + z^2 + O(z^3)
+            sage: (1 - z)^0
+            1
+            sage: (1 - z)^3
+            1 - 3*z + 3*z^2 - z^3
+            sage: (1 - z)^-3
+            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + O(z^7)
+            sage: M = L(lambda n: n, valuation=0); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: M^2
+            z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + O(z^7)
+
+        We can create a really large power of a monomial, even with
+        the dense implementation::
+
+            sage: z^1000000
+            z^1000000
+
+        Lazy Laurent series that have a sparse implementation can be
+        raised to the power ``n``::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n, valuation=0); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: M^2
+            z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + O(z^7)
+
+        Lazy Laurent series that are known to be exact can be raised
+        to the power ``n``::
+
+            sage: z^2
+            z^2
+            sage: (1 - z)^2
+            1 - 2*z + z^2
+            sage: (1 + z)^2
+            1 + 2*z + z^2
+
+        We also support the general case::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR)
+            sage: (1 + z)^(1 + z)
+            1 + z + z^2 + 1/2*z^3 + 1/3*z^4 + 1/12*z^5 + 3/40*z^6 + O(z^7)
+
+        """
+        if n == 0:
+            return self.parent().one()
+
+        cs = self._coeff_stream
+        if (isinstance(cs, CoefficientStream_exact)
+            and not cs._constant and n in ZZ
+            and (n > 0 or len(cs._initial_coefficients) == 1)):
+            P = self.parent()
+            return P(self.finite_part() ** ZZ(n))
+            # ret = cs.polynomial_part(P._laurent_poly_ring) ** ZZ(n)
+            # val = ret.valuation()
+            # deg = ret.degree() + 1
+            # initial_coefficients = [ret[i] for i in range(val, deg)]
+            # return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
+            #                 constant=cs._constant, degree=deg, valuation=val))
+
+        if n in ZZ:
+            return generic_power(self, n)
+
+        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        from sage.functions.other import factorial
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        exp = P(lambda k: 1/factorial(ZZ(k)), valuation=0)
+        return exp(self.log() * n)
+
+    def sqrt(self):
+        """
+        Return ``self^(1/2)``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(SR)
+            sage: sqrt(1+z)
+            1 + 1/2*z - 1/8*z^2 + 1/16*z^3 - 5/128*z^4 + 7/256*z^5 - 21/1024*z^6 + O(z^7)
+
+            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
+            sage: sqrt(1+x/(1-y))
+            1 + 1/2*x + ((-1/8)*x^2+1/2*x*y) + (1/16*x^3+(-1/4)*x^2*y+1/2*x*y^2) + ((-5/128)*x^4+3/16*x^3*y+(-3/8)*x^2*y^2+1/2*x*y^3) + (7/256*x^5+(-5/32)*x^4*y+3/8*x^3*y^2+(-1/2)*x^2*y^3+1/2*x*y^4) + ((-21/1024)*x^6+35/256*x^5*y+(-25/64)*x^4*y^2+5/8*x^3*y^3+(-5/8)*x^2*y^4+1/2*x*y^5) + O(x,y)^7
+
+        This also works for Dirichlet series::
+
+            sage: D = LazyDirichletSeriesRing(SR, "s")
+            sage: zeta = D(constant=1)
+            sage: f = sqrt(zeta)
+            1 + 1/2/2^s + 1/2/3^s + 3/8/4^s + 1/2/5^s + 1/4/6^s + 1/2/7^s + O(1/(8^s))
+            sage: f*f - zeta
+            O(1/(8^s))
+
+        """
+        return self ** (1/ZZ(2))
+
 
 class LazyCauchyProductSeries(LazyModuleElement):
     r"""
@@ -2163,107 +2275,6 @@ class LazyCauchyProductSeries(LazyModuleElement):
                     pass
 
         return P.element_class(P, CoefficientStream_cauchy_product(left, CoefficientStream_cauchy_inverse(right)))
-
-    def __pow__(self, n):
-        """
-        Return the ``n``-th power of the series.
-
-        INPUT:
-
-        - ``n`` -- integer; the power to which to raise the series
-
-        EXAMPLES:
-
-        Lazy Laurent series that have a dense implementation can be
-        raised to the power ``n``::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
-            sage: (1 - z)^-1
-            1 + z + z^2 + O(z^3)
-            sage: (1 - z)^0
-            1
-            sage: (1 - z)^3
-            1 - 3*z + 3*z^2 - z^3
-            sage: (1 - z)^-3
-            1 + 3*z + 6*z^2 + 10*z^3 + 15*z^4 + 21*z^5 + 28*z^6 + O(z^7)
-            sage: M = L(lambda n: n, valuation=0); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: M^2
-            z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + O(z^7)
-
-        We can create a really large power of a monomial, even with
-        the dense implementation::
-
-            sage: z^1000000
-            z^1000000
-
-        Lazy Laurent series that have a sparse implementation can be
-        raised to the power ``n``::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n, valuation=0); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: M^2
-            z^2 + 4*z^3 + 10*z^4 + 20*z^5 + 35*z^6 + O(z^7)
-
-        Lazy Laurent series that are known to be exact can be raised
-        to the power ``n``::
-
-            sage: z^2
-            z^2
-            sage: (1 - z)^2
-            1 - 2*z + z^2
-            sage: (1 + z)^2
-            1 + 2*z + z^2
-
-        We also support the general case::
-
-            sage: L.<z> = LazyLaurentSeriesRing(SR)
-            sage: (1 + z)^(1 + z)
-            1 + z + z^2 + 1/2*z^3 + 1/3*z^4 + 1/12*z^5 + 3/40*z^6 + O(z^7)
-
-        """
-        if n == 0:
-            return self.parent().one()
-
-        cs = self._coeff_stream
-        if (isinstance(cs, CoefficientStream_exact)
-            and not cs._constant and n in ZZ
-            and (n > 0 or len(cs._initial_coefficients) == 1)):
-            P = self.parent()
-            return P(self.finite_part() ** ZZ(n))
-            # ret = cs.polynomial_part(P._laurent_poly_ring) ** ZZ(n)
-            # val = ret.valuation()
-            # deg = ret.degree() + 1
-            # initial_coefficients = [ret[i] for i in range(val, deg)]
-            # return P.element_class(P, CoefficientStream_exact(initial_coefficients, P._sparse,
-            #                 constant=cs._constant, degree=deg, valuation=val))
-
-        if n in ZZ:
-            return generic_power(self, n)
-
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
-        from sage.functions.other import factorial
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        exp = P(lambda k: 1/factorial(ZZ(k)), valuation=0)
-        return exp(self.log() * n)
-
-    def sqrt(self):
-        """
-        Return ``self^(1/2)``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(SR)
-            sage: sqrt(1+z)
-            1 + 1/2*z - 1/8*z^2 + 1/16*z^3 - 5/128*z^4 + 7/256*z^5 - 21/1024*z^6 + O(z^7)
-
-            sage: L.<x,y> = LazyTaylorSeriesRing(SR)
-            sage: sqrt(1+x/(1-y))
-            1 + 1/2*x + ((-1/8)*x^2+1/2*x*y) + (1/16*x^3+(-1/4)*x^2*y+1/2*x*y^2) + ((-5/128)*x^4+3/16*x^3*y+(-3/8)*x^2*y^2+1/2*x*y^3) + (7/256*x^5+(-5/32)*x^4*y+3/8*x^3*y^2+(-1/2)*x^2*y^3+1/2*x*y^4) + ((-21/1024)*x^6+35/256*x^5*y+(-25/64)*x^4*y^2+5/8*x^3*y^3+(-5/8)*x^2*y^4+1/2*x*y^5) + O(x,y)^7
-
-        """
-        return self ** (1/ZZ(2))
 
 
 class LazyLaurentSeries(LazyCauchyProductSeries):
@@ -3371,23 +3382,6 @@ class LazyDirichletSeries(LazyModuleElement):
         from .lazy_laurent_series_ring import LazyDirichletSeriesRing
         Q = LazyDirichletSeriesRing(ring, names=self.parent().variable_names())
         return Q.element_class(Q, self._coeff_stream)
-
-    def __pow__(self, n):
-        """
-        Return the ``n``-th power of the series.
-
-        INPUT:
-
-        - ``n`` -- integer, the power to which to raise the series
-
-        TESTS::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "z")
-        """
-        if n == 0:
-            return self.parent().one()
-
-        return generic_power(self, n)
 
     def _format_series(self, formatter, format_strings=False):
         """

@@ -1946,9 +1946,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             sage: H = IwahoriHeckeAlgebra('A9', v**2)   # optional - coxeter3
             sage: Cp = H.Cp()                           # optional - coxeter3
             sage: Cp[1,2,1,8,9,8]*Cp[1,2,3,7,8,9]       # optional - coxeter3
-            (v^-2+2+v^2)*Cp[1,2,1,3,7,8,7,9,8,7]
-            + (v^-2+2+v^2)*Cp[1,2,1,3,8,9,8,7]
-            + (v^-3+3*v^-1+3*v+v^3)*Cp[1,2,1,3,8,9,8]
+            (v^-2+2+v^2)*Cp[7,8,9,7,8,7,1,2,3,1]
+            + (v^-2+2+v^2)*Cp[8,9,8,7,1,2,3,1]
+            + (v^-3+3*v^-1+3*v+v^3)*Cp[8,9,8,1,2,3,1]
 
         To use ``coxeter3`` for product computations most efficiently, we
         recommend creating the Iwahori-Hecke algebra from a Coxeter group

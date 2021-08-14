@@ -2149,11 +2149,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             # generators C'_{s}.
             if len(w1) <= len(w2):
                 side = 'left'
-                gen_expression = self._decompose_into_generators(w1)
+                gen_expression = self.decompose_into_generators(w1)
                 other_element = self.monomial(w2)
             else:
                 side = 'right'
-                gen_expression = self._decompose_into_generators(w2)
+                gen_expression = self.decompose_into_generators(w2)
                 other_element = self.monomial(w1)
             result = self(0)
             # Multiplication: multiply the generators in each term of the above
@@ -2162,7 +2162,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 summand = coeff * other_element
                 p_list = list(p) if side == 'right' else list(p)[::-1]
                 for s in p_list:
-                    summand = self._product_with_generator(s, summand, side)
+                    summand = self.product_with_generator(s, summand, side)
                 result += summand
 
             # Again, if self._W_Coxeter3 is not the underlying Coxeter group,
@@ -2176,7 +2176,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             return result
 
-        def _product_with_generator_on_basis(self, s, w, side='left'):
+        def product_with_generator_on_basis(self, s, w, side='left'):
             r"""
             Compute the product of `C^{\prime}_s` and `C^{\prime}_w`, putting
             `C^{\prime}_s` on the given ``side``.
@@ -2194,11 +2194,11 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                            # optional - coxeter3
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')                 # optional - coxeter3
                 sage: H = IwahoriHeckeAlgebra(W, v**2); Cp=H.Cp()                       # optional - coxeter3
-                sage: Cp._product_with_generator_on_basis(1, W([2,1]), 'left')          # optional - coxeter3
+                sage: Cp.product_with_generator_on_basis(1, W([2,1]), 'left')          # optional - coxeter3
                 Cp[1,2,1] + Cp[1]
-                sage: Cp._product_with_generator_on_basis(1, W([2,1]), 'right')         # optional - coxeter3
+                sage: Cp.product_with_generator_on_basis(1, W([2,1]), 'right')         # optional - coxeter3
                 (v^-1+v)*Cp[2,1]
-                sage: Cp._product_with_generator_on_basis(2, W([1,3,2,1,3]), 'right')   # optional - coxeter3
+                sage: Cp.product_with_generator_on_basis(2, W([1,3,2,1,3]), 'right')   # optional - coxeter3
                 Cp[1,2,1,3,2,1] + Cp[1,2,3,2] + Cp[1,3,2,1]
             """
             # use the product formula described in the class' documentation
@@ -2216,7 +2216,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 longer_word = self._W_Coxeter3([s]) * w if side == 'left' else w * self._W_Coxeter3([s])
                 return self.monomial(longer_word) + element
 
-        def _product_with_generator(self, s, x, side='left'):
+        def product_with_generator(self, s, x, side='left'):
             r"""
             Compute the product of `C^{\prime}_s` with any linear combination of
             `C^{\prime}`-basis elements.
@@ -2234,14 +2234,14 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 sage: R.<v> = LaurentPolynomialRing(ZZ, 'v')                    # optional - coxeter3
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')         # optional - coxeter3
                 sage: H = IwahoriHeckeAlgebra(W, v**2); Cp=H.Cp()               # optional - coxeter3
-                sage: Cp._product_with_generator(1, Cp[1]+Cp[2], 'left')        # optional - coxeter3
+                sage: Cp.product_with_generator(1, Cp[1]+Cp[2], 'left')        # optional - coxeter3
                 Cp[1,2] + (v^-1+v)*Cp[1]
-                sage: Cp._product_with_generator(1, Cp[1]+Cp[2], 'right')       # optional - coxeter3
+                sage: Cp.product_with_generator(1, Cp[1]+Cp[2], 'right')       # optional - coxeter3
                 Cp[2,1] + (v^-1+v)*Cp[1]
             """
-            return self.linear_combination((self._product_with_generator_on_basis(s, w, side), coeff) for (w, coeff) in x)
+            return self.linear_combination((self.product_with_generator_on_basis(s, w, side), coeff) for (w, coeff) in x)
 
-        def _decompose_into_generators(self, u):
+        def decompose_into_generators(self, u):
             r"""
             Decompose `C^{\prime}_u` into a polynomial in the KL generators
             `C^{\prime}_s`; see the ALGORITHM section of
@@ -2265,21 +2265,21 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             When `u` is itself a generator `s`, the decomposition is trivial::
 
-                sage: Cp._decompose_into_generators(W([1]))    # optional - coxeter3
+                sage: Cp.decompose_into_generators(W([1]))    # optional - coxeter3
                 {(1,): 1}
 
             Another example, where `C^{\prime}_u` happens to be a monomial
             (e.g., `C'_{21}  = C'_2 C'_1`)::
 
-                sage: Cp._decompose_into_generators(W([2,1]))  # optional - coxeter3
+                sage: Cp.decompose_into_generators(W([2,1]))  # optional - coxeter3
                 {(2, 1): 1}
 
             In more general situations the sum is a polynomial (e.g.,
             `C'_{121}=C'_1 C'_2 C'_1 - C'_1)`::
 
-                sage: Cp._decompose_into_generators(W([1,2,1]))        # optional - coxeter3
+                sage: Cp.decompose_into_generators(W([1,2,1]))        # optional - coxeter3
                 {(1,): -1, (1, 2, 1): 1}
-                sage: Cp._decompose_into_generators(W([1,2,3,1,2]))    # optional - coxeter3
+                sage: Cp.decompose_into_generators(W([1,2,3,1,2]))    # optional - coxeter3
                 {(1,): 1, (1, 2, 1): -1, (1, 2, 1, 3, 2): 1, (1, 3, 2): -1}
             """
             # l(y) = 0 or 1
@@ -2303,10 +2303,10 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                     sum_term += self.base_ring()(v.mu_coefficient(w)) * self.monomial(v_elt)
 
             # recursion: decompose C'_s * C'_w and the lower order terms
-            result = {(s,) + gens: coeff for (gens, coeff) in self._decompose_into_generators(w).items()}
+            result = {(s,) + gens: coeff for (gens, coeff) in self.decompose_into_generators(w).items()}
             for (z, c1) in sum_term:
                 # Subtract off each term from sum_term.
-                for (gens, c2) in self._decompose_into_generators(z).items():
+                for (gens, c2) in self.decompose_into_generators(z).items():
                     result[gens] = result.get(gens, 0) - c1*c2
 
             return result

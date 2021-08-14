@@ -293,7 +293,8 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
         # create NAME-IMPL, without the leading $).  This causes
         # name-impl to show up in $APROPOS.  We remove it.
         # https://sourceforge.net/p/maxima/bugs/3643/
-        cmd_list = self._eval_line('apropos("%s")'%s, error_check=False).replace('\\ - ','-').replace('\\-','-')
+        cmd_list = self._eval_line('apropos("%s")'%s, error_check=False)
+        cmd_list = cmd_list.replace(' ', '').replace('\n', '').replace('\\ - ','-').replace('\\-','-')
         cmd_list = [x for x in cmd_list[1:-1].split(',') if x[0] != '?' and not x.endswith('-impl')]
         return [x for x in cmd_list if x.find(s) == 0]
 

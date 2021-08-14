@@ -1953,7 +1953,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
         To use ``coxeter3`` for product computations most efficiently, we
         recommend creating the Iwahori-Hecke algebra from a Coxeter group
         implemented with ``coxeter3`` to avoid unnecessary conversions, as in
-        the following example with the same product computed in the last one:: 
+        the following example with the same product computed in the last one::
 
             sage: R = LaurentPolynomialRing(QQ, 'v')                    # optional - coxeter3
             sage: v = R.gen(0)                                          # optional - coxeter3
@@ -2012,7 +2012,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 # The following quantity delta is used in product computations.
                 # To use v+~v as its value we need the standard or normalized presentations of the Hecke algebra.
                 self.delta = v + ~v
-            
+
             # check if products can be computed directly using ``coxeter3``:
             try:
                 from sage.libs.coxeter3.coxeter_group import CoxeterGroup as Coxeter3Group
@@ -2053,27 +2053,28 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             the standard or normalized presentation, the product is computed
             directly using the method described in ALGORITHM. If not, the
             product is computed indirectly by converting the factors to the
-            `T`-basis, computing the product there, and converting back. 
-           
+            `T`-basis, computing the product there, and converting back.
+
             The following formulas for products of the forms `C^{\prime}_s
             \cdot C^{\prime}_w`  and `C^{\prime}_w \cdot C^{\prime}_s`, where
             `s` is a generator of the Coxeter group and `w` an arbitrary
             element, are key to the direct computation method. The formulas are
             valid for both the standard and normalized presentation of the
-            Hecke algebra.  
+            Hecke algebra.
 
-            .. MATH:: 
-            C^{\prime}_s \cdot C^{\prime}_w = \begin{cases}
-            (q+q^-1)C^{\prime}_{w},        & \text{if } \ell(sw) = \ell(w)-1,\\
-            C^{\prime}_{sw}+\sum_{v\leq w, sv \leq v} \mu(v,w)C^{\prime}_v,
-                                           & \text{if } \ell(sw) = \ell(w)+1. 
-                                           \end{cases}
+            .. MATH::
 
-            C^{\prime}_w \cdot C^{\prime}_s = \begin{cases}
-            (q+q^-1)C^{\prime}_{w},        & \text{if } \ell(ws) = \ell(w)-1,\\
-            C^{\prime}_{ws}+\sum_{v\leq w, vs \leq v} \mu(v,w)C^{\prime}_v, 
-                                           & \text{if } \ell(ws) = \ell(w)+1. 
-            \end{cases}
+                C^{\prime}_s \cdot C^{\prime}_w = \begin{cases}
+                (q+q^{-1})C^{\prime}_{w},        & \text{if } \ell(sw) = \ell(w)-1,\\
+                C^{\prime}_{sw}+\sum_{v\leq w, sv \leq v} \mu(v,w)C^{\prime}_v,
+                                            & \text{if } \ell(sw) = \ell(w)+1.
+                                            \end{cases}
+
+                C^{\prime}_w \cdot C^{\prime}_s = \begin{cases}
+                (q+q^{-1})C^{\prime}_{w},        & \text{if } \ell(ws) = \ell(w)-1,\\
+                C^{\prime}_{ws}+\sum_{v\leq w, vs \leq v} \mu(v,w)C^{\prime}_v,
+                                            & \text{if } \ell(ws) = \ell(w)+1.
+                \end{cases}
 
             In the above, `\leq` is the Bruhat order on the Coxeter group and
             `\mu(v,w)` is the "leading coefficient of Kazhdan-Lusztig
@@ -2082,7 +2083,6 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             Sage's interface to Fokko du Cloux's ``coxeter3`` package, which is
             why the method requires the creation of the Coxeter group using the
             'coxeter3' implementation.
-
 
             ALGORITHM:
 
@@ -2101,9 +2101,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             pick a left descent `s` of `u` and write `u=sw` (so `w=su`), then
             note that
 
-            .. MATH:: 
-            C^{\prime}_u = C^{\prime}_s \cdot C^{\prime}_{w} 
-                           - \sum_{v\le u; sv< v} \mu(v,w) C^{\prime}_v
+            .. MATH::
+
+                C^{\prime}_u = C^{\prime}_s \cdot C^{\prime}_{w} - \sum_{v\le u; sv< v} \mu(v,w) C^{\prime}_v
 
             by the earlier formulas, where the element `w` and all elements
             `v`'s on the right side are lower than `u` in the Bruhat order;
@@ -2114,9 +2114,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             order term `C^{\prime}_{21}` further decomposes into `C^{\prime}_2
             C^{\prime}_1`, therefore
 
-            .. MATH:: 
-            C^{\prime}_{121} = C^{\prime}_1 C^{\prime}_2 C^{\prime}_1 
-                               - C^{\prime}_1.
+            .. MATH::
+
+                C^{\prime}_{121} = C^{\prime}_1 C^{\prime}_2 C^{\prime}_1 - C^{\prime}_1.
 
             We note that the base cases `\ell(x)=1` or `\ell(x)=0` of the above
             induction occur when `x` is itself a Coxeter generator `s` or the
@@ -2135,7 +2135,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 (v^-1+v)*Cp[1,2,1,3,2] + (v^-1+v)*Cp[1,2,1]
             """
             if self.delta is None or self._W_Coxeter3 is None:
-                # We do not meet the conditions to use the direct product 
+                # We do not meet the conditions to use the direct product
                 # algorithm; fall back to conversion to/from the T-basis.
                 return super().product_on_basis(w1, w2)
 
@@ -2164,10 +2164,10 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 for s in p_list:
                     summand = self._product_with_generator(s, summand, side)
                 result += summand
-            
+
             # Again, if self._W_Coxeter3 is not the underlying Coxeter group,
-            # we need to convert the result. Specifically, make sure basis 
-            # elements appearing therein are actually indexed by elements of 
+            # we need to convert the result. Specifically, make sure basis
+            # elements appearing therein are actually indexed by elements of
             # the original underlying Coxeter group.
 
             if (self._W_Coxeter3 != self.realization_of()._W):
@@ -2187,7 +2187,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             - ``w`` -- a word in self.coxeter_group()
 
-            - ``side`` -- string; 'left' or 'right'
+            - ``side`` -- string; ``'left'`` or ``'right'``
 
             EXAMPLES::
 
@@ -2218,7 +2218,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def _product_with_generator(self, s, x, side='left'):
             r"""
-            Compute the product of `C^{\prime}_s` with any linear combination of `C^{\prime}`-basis elements.
+            Compute the product of `C^{\prime}_s` with any linear combination of
+            `C^{\prime}`-basis elements.
 
             INPUT:
 
@@ -2226,7 +2227,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
             - ``x`` -- any element of self
 
-            - ``side`` -- string; 'left' or 'right'
+            - ``side`` -- string; ``'left'`` or ``'right'``
 
             EXAMPLES::
 
@@ -2249,9 +2250,9 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             OUTPUT:
 
             A dictionary keyed by tuples with integer values. Each entry
-            represents a term, where the tuple represents a monomial term in
-            the KL generators and the value represents the coefficient of that
-            term. For example, an item `(1,2): 3` stands for `3 *
+            represents a term, where the tuple represents a monomial term in the
+            KL generators and the value represents the coefficient of that term.
+            For example, an item `(1,2): 3` stands for `3 \cdot
             C^{\prime}_1C^{\prime}_2`.
 
             EXAMPLES:
@@ -2268,13 +2269,13 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 {(1,): 1}
 
             Another example, where `C^{\prime}_u` happens to be a monomial
-            (e.g., CpC_{21}  = CpC_2 * CpC_1)::
+            (e.g., `C'_{21}  = C'_2 C'_1`)::
 
                 sage: Cp._decompose_into_generators(W([2,1]))  # optional - coxeter3
                 {(2, 1): 1}
 
             In more general situations the sum is a polynomial (e.g.,
-            CpC_{121}=CpC_1*CpC_2*CpC_1-CpC_1)::
+            `C'_{121}=C'_1 C'_2 C'_1 - C'_1)`::
 
                 sage: Cp._decompose_into_generators(W([1,2,1]))        # optional - coxeter3
                 {(1,): -1, (1, 2, 1): 1}

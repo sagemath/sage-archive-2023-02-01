@@ -85,7 +85,7 @@ from sage.arith.all import moebius, gcd, lcm, divisors
 from sage.combinat.partition import Partition, Partitions
 from functools import partial
 from sage.combinat.sf.sf import SymmetricFunctions
-from sage.misc.cachefunc import cached_function
+from sage.misc.cachefunc import cached_function, cached_method
 from sage.functions.other import factorial
 
 
@@ -248,12 +248,19 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
 
         """
-        return self._new(partial(self._functorial_compose_gen, y), lambda a,b: 0, self, y)
+        # return self._new(partial(self._functorial_compose_gen, y), lambda a,b: 0, self, y)
+        P = self.parent()
+        return P(partial(self._functorial_compose_gen, y), 0)
 
-    def _functorial_compose_gen(self, y, ao):
+    def _functorial_compose_gen(self, y, n):
         """
-        Returns a generator for the coefficients of the functorial
+        Returns the ``n``th coefficient of the functorial
         composition of self with y.
+
+        INPUT:
+
+        - ``y`` -- the other series
+        - ``n`` -- the nth term of the functorial composition
 
         EXAMPLES::
 
@@ -268,10 +275,11 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
 
         """
-        n = 0
-        while True:
-            yield self.count(y.count(n)) / factorial(n)
-            n += 1
+        return self.count(y.count(n)) / factorial(n)
+        # n = 0
+        # while True:
+        #     yield self.count(y.count(n)) / factorial(n)
+        #     n += 1
 
 
 class ExponentialGeneratingSeriesRing(LazyTaylorSeriesRing):
@@ -395,7 +403,10 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: f.stretch(3).coefficients(10)
             [p[], 0, 0, p[3], 0, 0, p[6], 0, 0, 0]
         """
-        return self._new(partial(self._stretch_gen, k), lambda ao: k*ao, self)
+        # return self._new(partial(self._stretch_gen, k), lambda ao: k*ao, self)
+        P = self.parent()
+        stream = partial(self._stretch_gen, k)
+        return P(next(stream), lambda ao: k*ao)
 
     def _stretch_gen(self, k, ao):
         """
@@ -1216,7 +1227,7 @@ class CycleIndexSeriesRing(LazyTaylorSeriesRing):
         sage: from sage.combinat.species.generating_series import CycleIndexSeriesRing
         sage: R = CycleIndexSeriesRing(QQ, 'z'); R
         Cycle Index Series Ring over Rational Field
-        sage: R([1]).coefficients(4) # This is not combinatorially
+        sage: [R(lambda n: 1).coefficient(i) for i in range(4)] # This is not combinatorially
         ....:                        # meaningful.
         [1, 1, 1, 1]
 

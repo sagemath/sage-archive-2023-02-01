@@ -778,7 +778,7 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
     """
     Element = LazyTaylorSeries
 
-    def __init__(self, base_ring, names, sparse=False, category=None):
+    def __init__(self, base_ring, names='z', sparse=False, category=None):
         """
         Initialize ``self``.
 

@@ -707,7 +707,15 @@ class CoxeterGroups(Category_singleton):
 
             EXAMPLES:
 
-            Compute the left cells in `A_3`::
+            We compute the left cells in the Coxeter group of type `A_3` below.
+            Note that each Coxeter group may be created with multiple
+            implementations, namely, 'reflection' (default), 'permutation',
+            'matrix', or 'coxeter3'. The choice of implementation affects the
+            representation of elements in the output cells but not the method
+            used for the cell computation. In particular, the cell computation
+            uses the optional package ``coxeter3`` in the background as long as
+            the package is installed, even if the group is not created with the
+            'coxeter3' implementation.
 
                 sage: from sage.doctest.fixtures import reproducible_repr   # optional - coxeter3
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
@@ -722,13 +730,7 @@ class CoxeterGroups(Category_singleton):
                 frozenset([[1, 3], [2, 1, 3]]),
                 frozenset([[1], [2, 1], [3, 2, 1]]),
                 frozenset([[]])])
-
-            Note that the choice of implementation affects the representation of
-            elements in the output cell but not the method used for the cell
-            computation. In particular, the cell computation uses the optional
-            package ``coxeter3`` in the background as long as it is installed,
-            even in the default (matrix) and 'permutation' implementations::
-
+            
                 sage: W = CoxeterGroup('A3', implementation='permutation')  # optional - coxeter3
                 sage: print(reproducible_repr(W.kazhdan_lusztig_cells()))   # optional - coxeter3
                 set([frozenset([()]),
@@ -2809,8 +2811,8 @@ class CoxeterGroups(Category_singleton):
             choice of implementation affects the representation of elements in
             the output cell but not the method used for the cell computation. In
             particular, the cell computation uses the optional package
-            ``coxeter3`` in the background as long as it is installed, even in
-            the default (matrix) and 'permutation' implementations::
+            ``coxeter3`` in the background as long as the package is installed, even in
+            the default ('reflection') and 'permutation' implementations::
 
                 sage: W = CoxeterGroup('A3')                                # optional - coxeter3
                 sage: s1,s2,s3 = W.simple_reflections()                     # optional - coxeter3

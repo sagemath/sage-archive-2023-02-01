@@ -1882,15 +1882,17 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         See [KL1979]_ for more details.
 
-        If the optional ``coxeter3`` package is available, and the
+        If the optional ``coxeter3`` package is available and the
         Iwahori--Hecke algebra was initialized in the "standard" presentation
-        (where `\{q_1,q_2\} = \{v^2,1\}` as sets) or the "normalized"
-        presentation (where `\{q_1,q_2\} = \{v,-v^{-1}\}`), a performant direct
-        algorithm is available to compute products in the `C^{\prime}` basis,
-        documented in :func:`product_on_basis`. If these conditions are not met,
-        the class will fall back to the default implementation which computes
-        products by converting elements to the `T`-basis and back. This default
-        implementation may be prohibitively slow for complex calculations.
+        where `\{q_1,q_2\} = \{v^2,1\}` as sets or the "normalized"
+        presentation where `\{q_1,q_2\} = \{v,-v^{-1}\}` as sets, the function
+        :func::`product_on_basis` in this class computes products in the
+        `C^{\prime}`-basis directly in the basis itself, using ``coxeter3`` to
+        calculate certain `\mu`-coefficients quickly. If the above conditions
+        are not all met, the function computes such products indirectly, by
+        converting elements to the `T`-basis, computing products there, and
+        converting back. The indirect method can be prohibitively slow for more
+        complex calculations; the direct method is faster.
 
         EXAMPLES::
 
@@ -1923,12 +1925,14 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             (v^-1+v)*Cp[1]
             sage: Cp(s1)*Cp(s2)*Cp(s1)
             Cp[1,2,1] + Cp[1]
-            sage: Cp(s1)*Cp(s2)*Cp(s3)*Cp(s1)*Cp(s2) # long time
+            sage: Cp(s1)*Cp(s2)*Cp(s3)*Cp(s1)*Cp(s2)    # long time
             Cp[1,2,3,1,2] + Cp[1,2,1] + Cp[3,1,2]
 
-        This computation in type `H_4` takes about 5 seconds without
-        ``coxeter3`` installed, but is instant in the case that it is installed
-        and the direct algorithm can be used.
+        In the following product computations, whether ``coxeter3`` is
+        installed makes a big difference: without ``coxeter3`` the product in
+        type `H_4` takes about 5 seconds to compute and the product in type
+        `A_9` seems infeasible, while with ``coxeter3`` both the computations
+        are instant::
 
             sage: H = IwahoriHeckeAlgebra('H4', v**2)   # optional - coxeter3
             sage: Cp = H.Cp()                           # optional - coxeter3
@@ -1939,11 +1943,17 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             + (v^-1+v)*Cp[3,4,1,2,3,4]
             + (v^-1+v)*Cp[3,4,1,2]
 
-        The most efficient way to use this class is to create the algebra from a
-        Coxeter group implemented with ``coxeter3``. This will ensure the direct
-        algorithm can work as efficiently as possible with no unnecessary
-        conversions. This computuation seems to be infeasible without using the
-        direct algorithm::
+            sage: H = IwahoriHeckeAlgebra('A9', v**2)   # optional - coxeter3
+            sage: Cp = H.Cp()                           # optional - coxeter3
+            sage: Cp[1,2,1,8,9,8]*Cp[1,2,3,7,8,9]       # optional - coxeter3
+            (v^-2+2+v^2)*Cp[1,2,1,3,7,8,7,9,8,7]
+            + (v^-2+2+v^2)*Cp[1,2,1,3,8,9,8,7]
+            + (v^-3+3*v^-1+3*v+v^3)*Cp[1,2,1,3,8,9,8]
+
+        To use ``coxeter3`` for product computations most efficiently, we
+        recommend creating the Iwahori-Hecke algebra from a Coxeter group
+        implemented with ``coxeter3`` to avoid unnecessary conversions, as in
+        the following example with the same product computed in the last one:: 
 
             sage: R = LaurentPolynomialRing(QQ, 'v')                    # optional - coxeter3
             sage: v = R.gen(0)                                          # optional - coxeter3
@@ -1994,7 +2004,7 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             self._W_Coxeter3 = None
 
             # See if we meet the conditions to use the direct product_on_basis algorithm.
-            # If we do, both of these will be non-None
+            # If we do, both of these will be non-None.
 
             v = IHAlgebra.base_ring().gen(0)
             parameters = {IHAlgebra.q1(), IHAlgebra.q2()}
@@ -2002,7 +2012,8 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 # The following quantity delta is used in product computations.
                 # To use v+~v as its value we need the standard or normalized presentations of the Hecke algebra.
                 self.delta = v + ~v
-
+            
+            # check if products can be computed directly using ``coxeter3``:
             try:
                 from sage.libs.coxeter3.coxeter_group import CoxeterGroup as Coxeter3Group
                 if isinstance(IHAlgebra._W, Coxeter3Group):
@@ -2035,17 +2046,48 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
 
         def product_on_basis(self, w1, w2):
             r"""
-            If possible, uses a direct algorithm to compute the product
-            `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` (in particular, if
-            ``coxeter3`` is installed and the Iwahori--Hecke algebra is in the
-            standard or normalized presentation), detailed below. If not, this
-            method uses the default implementation of converting to the
-            `T`-basis, computing the product there, and converting back.
+            Return the expansion of `C^{\prime}_{w_1} \cdot C^{\prime}_{w_2}` in
+            the `C^{\prime}`-basis.
+
+            If ``coxeter3`` is installed and the Iwahori--Hecke algebra is in
+            the standard or normalized presentation, the product is computed
+            directly using the method described in ALGORITHM. If not, the
+            product is computed indirectly by converting the factors to the
+            `T`-basis, computing the product there, and converting back. 
+           
+            The following formulas for products of the forms `C^{\prime}_s
+            \cdot C^{\prime}_w`  and `C^{\prime}_w \cdot C^{\prime}_s`, where
+            `s` is a generator of the Coxeter group and `w` an arbitrary
+            element, are key to the direct computation method. The formulas are
+            valid for both the standard and normalized presentation of the
+            Hecke algebra.  
+
+            .. MATH:: 
+            C^{\prime}_s \cdot C^{\prime}_w = \begin{cases}
+            (q+q^-1)C^{\prime}_{w},        & \text{if } \ell(sw) = \ell(w)-1,\\
+            C^{\prime}_{sw}+\sum_{v\leq w, sv \leq v} \mu(v,w)C^{\prime}_v,
+                                           & \text{if } \ell(sw) = \ell(w)+1. 
+                                           \end{cases}
+
+            C^{\prime}_w \cdot C^{\prime}_s = \begin{cases}
+            (q+q^-1)C^{\prime}_{w},        & \text{if } \ell(ws) = \ell(w)-1,\\
+            C^{\prime}_{ws}+\sum_{v\leq w, vs \leq v} \mu(v,w)C^{\prime}_v, 
+                                           & \text{if } \ell(ws) = \ell(w)+1. 
+            \end{cases}
+
+            In the above, `\leq` is the Bruhat order on the Coxeter group and
+            `\mu(v,w)` is the "leading coefficient of Kazhdan-Lusztig
+            polynomials"; see [KL1979]_ and [Lus2013]_ for more details. The
+            method designates the computation of the `\mu`-coefficients to
+            Sage's interface to Fokko du Cloux's ``coxeter3`` package, which is
+            why the method requires the creation of the Coxeter group using the
+            'coxeter3' implementation.
+
 
             ALGORITHM:
 
-            This class computes each product `C^{\prime}_x \cdot C^{\prime}_y`
-            in two steps as follows.
+            The direct algorithm for computing `C^{\prime}_x \cdot
+            C^{\prime}_y` runs in two steps as follows.
 
             If `\ell(x) \leq \ell(y)`, we first decompose `C^{\prime}_x` into a
             polynomial in the generators `C^{\prime}_s (s\in S)` and then
@@ -2053,24 +2095,28 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
             \ell(y)`, we decompose `C^{\prime}_y` into a polynomial in
             `C^{\prime}_s (s\in S)` and multiply that polynomial with
             `C^{\prime}_x`. The second step (multiplication) is done by
-            repeatedly applying the key formulas displayed earlier directly. The
+            repeatedly applying the formulas displayed earlier directly. The
             first step (decomposition) is done by induction on the Bruhat order
-            as follows: for every element `u\in W` with length `\ell(u)>1`, pick
-            a left descent `s` of `u` and write `u=sw` (so `w=su`), then note
-            that
+            as follows: for every element `u\in W` with length `\ell(u)>1`,
+            pick a left descent `s` of `u` and write `u=sw` (so `w=su`), then
+            note that
 
-            .. MATH:: C^{\prime}_u = C^{\prime}_s \cdot C^{\prime}_{w} - \sum_{v\le u; sv< v} \mu(v,w) C^{\prime}_v
+            .. MATH:: 
+            C^{\prime}_u = C^{\prime}_s \cdot C^{\prime}_{w} 
+                           - \sum_{v\le u; sv< v} \mu(v,w) C^{\prime}_v
 
-            by the key formulas mentioned earlier, where the element `w` and all
-            elements `v`'s on the right side are lower than `u` in the Bruhat
-            order; this allows us to finish the computation by decomposing the
-            lower order terms `C^{\prime}_w` and each `C^{\prime}_v`. For
-            example, for `u=121, s=1, w=21` in type `A_3` we have
-            `C^{\prime}_{121} = C^{\prime}_1  C^{\prime}_{21} - C^{\prime}_1`,
-            where the lower order term `C^{\prime}_{21}` further decomposes into
-            `C^{\prime}_2 C^{\prime}_1`, therefore
+            by the earlier formulas, where the element `w` and all elements
+            `v`'s on the right side are lower than `u` in the Bruhat order;
+            this allows us to finish the computation by decomposing the lower
+            order terms `C^{\prime}_w` and each `C^{\prime}_v`. For example,
+            for `u=121, s=1, w=21` in type `A_3` we have `C^{\prime}_{121} =
+            C^{\prime}_1  C^{\prime}_{21} - C^{\prime}_1`, where the lower
+            order term `C^{\prime}_{21}` further decomposes into `C^{\prime}_2
+            C^{\prime}_1`, therefore
 
-            .. MATH:: C^{\prime}_{121}=C^{\prime}_1 C^{\prime}_2 C^{\prime}_1 - C^{\prime}_1.
+            .. MATH:: 
+            C^{\prime}_{121} = C^{\prime}_1 C^{\prime}_2 C^{\prime}_1 
+                               - C^{\prime}_1.
 
             We note that the base cases `\ell(x)=1` or `\ell(x)=0` of the above
             induction occur when `x` is itself a Coxeter generator `s` or the
@@ -2120,9 +2166,10 @@ class IwahoriHeckeAlgebra(Parent, UniqueRepresentation):
                 result += summand
             
             # Again, if self._W_Coxeter3 is not the underlying Coxeter group,
-            # we need to convert result. Specifically, make sure basis elements
-            # appearing therein are actually indexed by elements of the original
-            # underlying Coxeter group.
+            # we need to convert the result. Specifically, make sure basis 
+            # elements appearing therein are actually indexed by elements of 
+            # the original underlying Coxeter group.
+
             if (self._W_Coxeter3 != self.realization_of()._W):
                 _W = self.realization_of()._W
                 result = self.linear_combination((self(_W.from_reduced_word(w.reduced_word())), c) for (w, c) in result)

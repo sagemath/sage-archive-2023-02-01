@@ -689,6 +689,58 @@ class CoxeterGroups(Category_singleton):
             return lambda x: x.apply_simple_projection(i, side=side,
                                                        length_increasing=length_increasing)
 
+        def kazhdan_lusztig_cells(self, side='left'):
+            r"""
+            Compute the left, right, or two-sided Kazhdan-Lusztig cells of
+            ``self`` by using :func:`ElementMethods.kazhdan_lusztig_cell()`. As
+            detailed there, this function will be much more efficient if the
+            package ``coxeter3`` is installed, due to the method of computing
+            products in the `C^{\prime}` basis of the Iwahori--Hecke algebra.
+
+            EXAMPLES::
+
+                sage: from sage.doctest.fixtures import reproducible_repr   # optional - coxeter3
+                sage: W = CoxeterGroup('A3')                                # optional - coxeter3
+                sage: [len(c) for c in W.kazhdan_lusztig_cells()]           # optional - coxeter3
+                [3, 3, 2, 1, 3, 3, 3, 1, 3, 2]
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
+                sage: print(reproducible_repr(W.kazhdan_lusztig_cells()))   # optional - coxeter3
+                set([frozenset([[1, 2, 1, 3, 2, 1]]),
+                frozenset([[1, 2, 1, 3, 2], [1, 2, 3, 2], [2, 3, 2]]),
+                frozenset([[1, 2, 1, 3], [1, 2, 3, 2, 1], [2, 3, 2, 1]]),
+                frozenset([[1, 2, 1], [1, 3, 2, 1], [2, 1, 3, 2, 1]]),
+                frozenset([[1, 2, 3], [2, 3], [3]]),
+                frozenset([[1, 2], [2], [3, 2]]),
+                frozenset([[1, 3, 2], [2, 1, 3, 2]]),
+                frozenset([[1, 3], [2, 1, 3]]),
+                frozenset([[1], [2, 1], [3, 2, 1]]),
+                frozenset([[]])])
+                sage: W = CoxeterGroup('A4', implementation='coxeter3')     # optional - coxeter3
+                sage: [len(c) for c in W.kazhdan_lusztig_cells()]           # long time (3 seconds) # optional - coxeter3
+                [5, 4, 4, 5, 5, 6, 4, 6, 4, 5, 5, 4, 1, 5, 6, 4, 5, 6, 4, 5, 4, 6, 6, 5, 5, 1]
+
+            TESTS::
+
+                sage: W = CoxeterGroup(['A', 2, 1])
+                sage: W.kazhdan_lusztig_cells()
+                Traceback (most recent call last):
+                ...
+                ValueError: the Coxeter group must be finite to compute Kazhdan--Lusztig cells
+            """
+            if not self.coxeter_type().is_finite():
+                raise ValueError('the Coxeter group must be finite to compute Kazhdan--Lusztig cells')
+            
+            # The identity is its own left-, right-, and two-sided- cell.
+            identity = frozenset([self.one()])
+            cells = {identity}
+
+            for w in self:
+                if not any(w in c for c in cells):
+                    cell = w.kazhdan_lusztig_cell(side=side)
+                    cells.add(frozenset(cell))
+            
+            return cells
+
         @cached_method
         def simple_projections(self, side='right', length_increasing=True):
             r"""

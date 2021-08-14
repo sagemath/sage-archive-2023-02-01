@@ -38,8 +38,7 @@ from sage.data_structures.coefficient_stream import (
     CoefficientStream_zero,
     CoefficientStream_coefficient_function,
     CoefficientStream_exact,
-    CoefficientStream_uninitialized,
-    CoefficientStream_shift
+    CoefficientStream_uninitialized
 )
 
 

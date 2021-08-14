@@ -25,7 +25,6 @@ from sage.rings.ring import Algebra
 from sage.misc.functional import is_odd, is_even
 from sage.sets.disjoint_union_enumerated_sets import DisjointUnionEnumeratedSets
 from sage.sets.condition_set import ConditionSet
-from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
 class FiniteGCAlgebra(CombinatorialFreeModule, Algebra):

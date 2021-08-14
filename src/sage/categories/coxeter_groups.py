@@ -700,6 +700,11 @@ class CoxeterGroups(Category_singleton):
             is strongly recommended (though not required) before using this
             function.
 
+            INPUT:
+
+            - ``side`` -- ``'left'``, ``'right'``, or ``'two-sided'`` (default:
+              ``'left'``)
+
             EXAMPLES:
 
             Compute the left cells in `A_3`::
@@ -2794,8 +2799,8 @@ class CoxeterGroups(Category_singleton):
 
             - ``w`` -- an element of self.
 
-            - ``side`` -- string (default: ``'left'``); one of 'left', 'right',
-              or 'two-sided', corresponding to the kind of cell to compute.
+            - ``side`` -- ``'left'``, ``'right'``, or ``'two-sided'`` (default:
+              ``'left'``), corresponding to the kind of cell to compute.
 
             EXAMPLES:
 

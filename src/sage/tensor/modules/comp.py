@@ -2190,7 +2190,7 @@ class Components(SageObject):
             # Pairs of indices tuples for the contraction:
             ind_pairs = []
             for ind_s in self.index_generator():
-                ind_o = [None for i in range(ncontr)]
+                ind_o = [None] * ncontr
                 for pos_s, pos_o in contractions:
                     ind_o[pos_o] = ind_s[pos_s]
                 ind_pairs.append((ind_s, ind_o))

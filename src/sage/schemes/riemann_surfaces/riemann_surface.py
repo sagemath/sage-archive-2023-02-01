@@ -397,11 +397,12 @@ class RiemannSurface(object):
     in preparation). Note this method of bounding on circular domains is also 
     implemented in :meth:`_compute_delta`. The net result of this bounding is 
     that one can know (an upper bound on) the number of nodes required to achieve
-    a certain error. This means that for any given integral, approximately half
+    a certain error. This means that for any given integral, assuming that the 
+    same number of nodes is required by both methods in order to achieve the 
+    desired error (not necessarily true in practuce), approximately half
     the number of integrand evaluations are required. When the required number
     of nodes is high, e.g. when the precision required is high, this can make
-    the ``'rigorous'`` method much faster. However, the ``'rigorous'`` method 
-    has a higher overhead due to the need to calculate the bounds, and it does
+    the ``'rigorous'`` method much faster. However, the ``'rigorous'`` method does
     not benefit as much from the caching of the ``nodes`` method over multiple
     integrals. The result of this is that, for calls of :meth:`matrix_of_integral_values`
     if the computation is 'fast', the heuristic method may outperform the
@@ -1693,7 +1694,7 @@ class RiemannSurface(object):
             Uses data that ``homology_basis`` initializes. 
 
             Note also that the  data of the differentials is contained within
-            ``bounding_data``. It is, howver, still advantageous to have this 
+            ``bounding_data``. It is, however, still advantageous to have this 
             be a separate argument, as it lets the user supply a fast-callable
             version of the differentials, to significantly speed up execution 
             of the integrand calls, and not have to re-calculate these 
@@ -1757,12 +1758,14 @@ class RiemannSurface(object):
         # from bounding with an ellipse to bounding with a circle. The size of 
         # these circles will be constrained by the distance to the nearest point 
         # where the integrand blows up, i.e. the nearest branchpoint. Basic 
-        # benchmarking showed that it was a more reliably faster method to split 
+        # benchmarking showed that it was in general a faster method to split 
         # the original line segment into multiple smaller line segments, and 
         # compute the contribution from each of the line segments bounding with
-        # a single circle. The following loop does exactly this, repeatedly 
-        # bisecting a segment if it is not possible to cover it entirely in a 
-        # ball which encompasses an appropriate ellipse.  
+        # a single circle, the benefits mainly coming when the curve is poorly
+        # conditioned s.t. the branch points are close together. The following 
+        # loop does exactly this, repeatedly bisecting a segment if it is not 
+        # possible to cover it entirely in a ball which encompasses an appropriate
+        # ellipse.  
         while ball_stack:
             ct, rt = ball_stack.pop()
             cz = (1-ct)*z0+ct*z1 # This is the central z-value of our ball.

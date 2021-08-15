@@ -35,8 +35,6 @@ from sage.structure.richcmp import rich_to_bool, richcmp
 import sage.rings.infinity
 from sage.structure.sequence import Sequence
 
-import warnings
-
 def Ideal(*args, **kwds):
     r"""
     Create the ideal in ring with given generators.
@@ -197,6 +195,7 @@ def Ideal(*args, **kwds):
     I = R.ideal(*gens, **kwds)
 
     if inferred_field and not isinstance(I, Ideal_fractional):  # trac 32327
+        import warnings
         warnings.warn(f'Constructing an ideal in {R}, which is a field.'
                       ' Did you intend to take numerators first?'
                       ' This warning can be muted by passing the base ring to Ideal() explicitly.')

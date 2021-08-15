@@ -700,7 +700,7 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             UEA = self.parent()._construct_UEA()
             LRT = UEA.basis().keys()
             data = {LRT([x], ROOT): cf
-                    for x, cf in self.monomial_coefficients().items()}
+                    for x, cf in self.monomial_coefficients(copy=False).items()}
             return UEA.element_class(UEA, data)
 
 

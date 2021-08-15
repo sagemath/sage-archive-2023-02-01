@@ -227,7 +227,6 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
                                          latex_prefix="",
                                          sorting_key=key,
                                          category=cat)
-        self.element_class.lift = lambda elt: self._lift_element(elt)
 
     def variable_names(self):
         r"""
@@ -663,25 +662,6 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
         """
         return GrossmanLarsonAlgebra(self.base_ring(), self.variable_names())
 
-    def _lift_element(self, elt):
-        """
-        Auxiliary method to lift elements to the Grossman-Larson algebra.
-
-        EXAMPLES::
-
-            sage: F = algebras.FreePreLie(QQ,'abc')
-            sage: elt = F._lift_element(F.an_element()); elt
-            B[#[a[a[a[a[]]]]]] + B[#[a[a[], a[a[]]]]]
-            sage: parent(elt)
-            Grossman-Larson Hopf algebra on 3 generators ['a', 'b', 'c']
-            over Rational Field
-        """
-        UEA = self._construct_UEA()
-        LRT = UEA.basis().keys()
-        data = {LRT([x], ROOT): cf
-                for x, cf in elt.monomial_coefficients().items()}
-        return UEA.element_class(UEA, data)
-
     def construction(self):
         """
         Return a pair ``(F, R)``, where ``F`` is a :class:`PreLieFunctor`
@@ -702,6 +682,26 @@ class FreePreLieAlgebra(CombinatorialFreeModule):
             Free PreLie algebra on 2 generators ['x', 'y'] over Rational Field
         """
         return PreLieFunctor(self.variable_names()), self.base_ring()
+
+    class Element(CombinatorialFreeModule.Element):
+        def lift(self):
+            """
+            Lift element to the Grossman-Larson algebra.
+
+            EXAMPLES::
+
+                sage: F = algebras.FreePreLie(QQ,'abc')
+                sage: elt = F.an_element().lift(); elt
+                B[#[a[a[a[a[]]]]]] + B[#[a[a[], a[a[]]]]]
+                sage: parent(elt)
+                Grossman-Larson Hopf algebra on 3 generators ['a', 'b', 'c']
+                over Rational Field
+            """
+            UEA = self.parent()._construct_UEA()
+            LRT = UEA.basis().keys()
+            data = {LRT([x], ROOT): cf
+                    for x, cf in self.monomial_coefficients().items()}
+            return UEA.element_class(UEA, data)
 
 
 class PreLieFunctor(ConstructionFunctor):

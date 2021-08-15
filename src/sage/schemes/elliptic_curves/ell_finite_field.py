@@ -877,10 +877,7 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         OUTPUT:
 
-        - an abelian group
-
-        - tuple of images of each of the generators of the abelian
-          group as points on this curve
+        - the abelian group of rational points on this elliptic curve
 
         AUTHORS:
 

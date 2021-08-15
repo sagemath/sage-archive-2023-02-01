@@ -1747,6 +1747,14 @@ class NumberFieldFractionalIdeal(MultiplicativeGroupElement, NumberFieldIdeal, I
         sage: Jinv = I^(-2)
         sage: J*Jinv
         Fractional ideal (1)
+
+    TESTS:
+
+    Number-field fractional ideals are fractional ideals (:trac:`32380`)::
+
+        sage: from sage.rings.ideal import Ideal_fractional
+        sage: isinstance(I, Ideal_fractional)
+        True
     """
     def __init__(self, field, gens, coerce=True):
         """

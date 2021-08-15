@@ -861,8 +861,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         The complexity of the algorithm is the cost of factoring the group
         order, plus `\Theta(\sqrt{\ell})` for each prime `\ell` such that
         the rational `\ell^\infty`-torsion of ``self`` is isomorphic to
-        `\mathbb Z/\ell^r\times\mathbb Z/\ell^s` with `r>s>0`, times a
-        polynomial in the logarithm of the base-field size.
+        `\ZZ/\ell^r\times\ZZ/\ell^s` with `r>s>0`, times a polynomial in
+        the logarithm of the base-field size.
 
         .. SEEALSO::
 
@@ -884,8 +884,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
 
         AUTHORS:
 
-        - John Cremona (original implementation)
-        - Lorenz Panny (current implementation)
+        - John Cremona: original implementation
+        - Lorenz Panny (2021): current implementation
 
         EXAMPLES::
 
@@ -963,7 +963,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             Q *= k                      # don't need; kill that part
             nQ = n2 * generic.order_from_multiple(n2*Q, n1//k//n2)
 
-            S, T = n//nQ * P, n2 * Q
+            S = n//nQ * P
+            T = n2 * Q
             S.set_order(nQ//n2)         # for .discrete_log()
             x = S.discrete_log(T)
             Q -= x * n1//nQ * P

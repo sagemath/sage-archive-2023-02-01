@@ -399,7 +399,7 @@ class RiemannSurface(object):
     that one can know (an upper bound on) the number of nodes required to achieve
     a certain error. This means that for any given integral, assuming that the 
     same number of nodes is required by both methods in order to achieve the 
-    desired error (not necessarily true in practuce), approximately half
+    desired error (not necessarily true in practice), approximately half
     the number of integrand evaluations are required. When the required number
     of nodes is high, e.g. when the precision required is high, this can make
     the ``'rigorous'`` method much faster. However, the ``'rigorous'`` method does

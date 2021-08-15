@@ -2593,6 +2593,93 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         return poly
 
 
+class LazySymmetricFunction(LazyCauchyProductSeries):
+    r"""
+    A symmetric function where each degree is computed lazily.
+
+    EXAMPLES::
+
+        sage: L = LazySymmetricFunctions(ZZ, "x, y")
+    """
+    def change_ring(self, ring):
+        """
+        Return this series with coefficients converted to elements of ``ring``.
+
+        INPUT:
+
+        - ``ring`` -- a ring
+
+        EXAMPLES::
+
+            sage: L = LazySymmetricFunctions(ZZ, "z")
+        """
+        from .lazy_laurent_series_ring import LazySymmetricFunctions
+        Q = LazySymmetricFunctions(ring, names=self.parent().variable_names())
+        return Q.element_class(Q, self._coeff_stream)
+
+    def _format_series(self, formatter, format_strings=False):
+        """
+        Return nonzero ``self`` formatted by ``formatter``.
+
+        TESTS::
+
+            sage: L = LazySymmetricFunctions(QQ, "x, y")
+        """
+        P = self.parent()
+        cs = self._coeff_stream
+        v = cs._approximate_order
+        if isinstance(cs, CoefficientStream_exact):
+            if not cs._constant:
+                m = cs._degree
+            else:
+                m = cs._degree + P.options.constant_length
+        else:
+            m = v + P.options.display_length
+
+        atomic_repr = P._coeff_ring._repr_option('element_is_atomic')
+        mons = [P.monomial(self[i], i) for i in range(v, m) if self[i]]
+        if not isinstance(cs, CoefficientStream_exact) or cs._constant:
+            if P._coeff_ring is P.base_ring():
+                bigO = ["O(%s)" % P.monomial(1, m)]
+            else:
+                bigO = ["O(%s)^%s" % (', '.join(str(g) for g in P._names), m)]
+        else:
+            bigO = []
+
+        from sage.misc.latex import latex
+        from sage.typeset.unicode_art import unicode_art
+        from sage.typeset.ascii_art import ascii_art
+        from sage.misc.repr import repr_lincomb
+        from sage.typeset.symbols import ascii_left_parenthesis, ascii_right_parenthesis
+        from sage.typeset.symbols import unicode_left_parenthesis, unicode_right_parenthesis
+        if formatter == repr:
+            poly = repr_lincomb([(1, m) for m in mons + bigO], strip_one=True)
+        elif formatter == latex:
+            poly = repr_lincomb([(1, m) for m in mons + bigO], is_latex=True, strip_one=True)
+        elif formatter == ascii_art:
+            if atomic_repr:
+                poly = ascii_art(*(mons + bigO), sep = " + ")
+            else:
+                def parenthesize(m):
+                    a = ascii_art(m)
+                    h = a.height()
+                    return ascii_art(ascii_left_parenthesis.character_art(h),
+                                     a, ascii_right_parenthesis.character_art(h))
+                poly = ascii_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
+        elif formatter == unicode_art:
+            if atomic_repr:
+                poly = unicode_art(*(mons + bigO), sep = " + ")
+            else:
+                def parenthesize(m):
+                    a = unicode_art(m)
+                    h = a.height()
+                    return unicode_art(unicode_left_parenthesis.character_art(h),
+                                       a, unicode_right_parenthesis.character_art(h))
+                poly = unicode_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
+
+        return poly
+
+
 class LazyDirichletSeries(LazyModuleElement):
     r"""
     A Dirichlet series where the coefficients are computed lazily.

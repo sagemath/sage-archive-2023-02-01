@@ -194,7 +194,7 @@ def Ideal(*args, **kwds):
 
     I = R.ideal(*gens, **kwds)
 
-    if inferred_field and not isinstance(I, Ideal_fractional):  # trac 32327
+    if inferred_field and not isinstance(I, Ideal_fractional):  # trac 32320
         import warnings
         warnings.warn(f'Constructing an ideal in {R}, which is a field.'
                       ' Did you intend to take numerators first?'

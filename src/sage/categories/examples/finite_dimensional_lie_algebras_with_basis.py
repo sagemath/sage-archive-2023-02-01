@@ -369,7 +369,7 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
             gens = UEA.gens()
             return UEA.sum(c * gens[i] for i, c in self.value.items())
 
-        def to_vector(self, order=None):
+        def to_vector(self, order=None, sparse=False):
             """
             Return ``self`` as a vector in
             ``self.parent().module()``.
@@ -385,6 +385,8 @@ class AbelianLieAlgebra(Parent, UniqueRepresentation):
                 sage: elt.to_vector()
                 (2, 2, 3)
             """
+            if sparse:
+                return self.value.sparse_vector()
             return self.value
 
         def monomial_coefficients(self, copy=True):

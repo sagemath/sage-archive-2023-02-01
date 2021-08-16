@@ -783,8 +783,8 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
             sage: E.gens()
             ()
 
-        This works over larger finite fields where :meth:abelian_group may be
-        too expensive::
+        This works over larger finite fields where :meth:`abelian_group`
+        may be too expensive::
 
             sage: k.<a> = GF(5^60)
             sage: E = EllipticCurve([a, a])
@@ -858,26 +858,35 @@ class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_
         Return the abelian group structure of the group of points on this
         elliptic curve.
 
-        The complexity of the algorithm is the cost of factoring the group
-        order, plus `\Theta(\sqrt{\ell})` for each prime `\ell` such that
-        the rational `\ell^\infty`-torsion of ``self`` is isomorphic to
-        `\ZZ/\ell^r\times\ZZ/\ell^s` with `r>s>0`, times a polynomial in
-        the logarithm of the base-field size.
-
         .. SEEALSO::
 
             If you do not need the complete abelian group structure but
             only generators of the group, use :meth:`gens` which can
             be much faster in some cases.
 
-        Just like :meth:`gens`, the algorithm uses random points on the curve
-        and hence the generators are likely to differ from one run to another,
-        but the group is cached so the generators will not change in any one
-        run of Sage.
+        This method relies on :meth:`gens`, which uses random points on the
+        curve and hence the generators are likely to differ from one run to
+        another. However, the group is cached, so the generators will not
+        change in any one run of Sage.
 
         OUTPUT:
 
-        - the abelian group of rational points on this elliptic curve
+        - an :class:`AdditiveAbelianGroupWrapper` object encapsulating the
+          abelian group of rational points on this elliptic curve
+
+        ALGORITHM:
+
+        We first call :meth:`gens` to obtain a generating set `(P,Q)`.
+        Letting `P` denote the point of larger order `n_1`, we extend `P`
+        to a basis `(P,Q')` by computing a scalar `x` such that `Q'=Q-[x]P`
+        has order `n_2=\#E/n_1`. Finding `x` involves a (typically easy)
+        discrete-logarithm computation.
+
+        The complexity of the algorithm is the cost of factoring the group
+        order, plus `\Theta(\sqrt{\ell})` for each prime `\ell` such that
+        the rational `\ell^\infty`-torsion of ``self`` is isomorphic to
+        `\ZZ/\ell^r\times\ZZ/\ell^s` with `r>s>0`, times a polynomial in
+        the logarithm of the base-field size.
 
         AUTHORS:
 

@@ -1,0 +1,20 @@
+#ifndef _PYNAC_CONFIG_H
+#define _PYNAC_CONFIG_H 1
+
+/* GiNaC archive file version age */
+#define PYNAC_ARCHIVE_AGE 0
+
+/* Current GiNaC archive file version number */
+#define PYNAC_ARCHIVE_VERSION 3
+
+/* Define if you have libgiac */
+/* #undef PYNAC_HAVE_LIBGIAC */
+
+/* The size of `long', as computed by sizeof. */
+#define PYNAC_SIZEOF_LONG sizeof(long)
+
+/* The size of `long long', as computed by sizeof. */
+#define PYNAC_SIZEOF_LONG_LONG sizeof(long long)
+
+/* once: _PYNAC_CONFIG_H */
+#endif

@@ -926,12 +926,12 @@ class RiemannSurface(object):
             sage: z0 = S._vertices[0]
             sage: epsilon = 0.1
             sage: oldw = S.w_values(z0)[0]
-            sage: neww = S._newton_iteration(z0,oldw,epsilon); neww #abs tol 0.00000001
+            sage: neww = S._newton_iteration(z0,oldw,epsilon); neww # abs tol 0.00000001
             -0.934613146929672 + 2.01088055918363*I
 
         Which should be exactly the same as the w-value we started with::
 
-            sage: oldw - neww #abs tol 0.00000001
+            sage: oldw - neww # abs tol 0.00000001
             0.000000000000000
 
         Here is an example where we exit the epsilon bound. This approach is
@@ -1213,7 +1213,7 @@ class RiemannSurface(object):
             sage: R.<z,w> = QQ[]
             sage: g = w^2 - z^4 + 1
             sage: S = RiemannSurface(g)
-            sage: S.homology_basis() #random
+            sage: S.homology_basis() # random
             [[(1, [(3, 1), (5, 0), (9, 0), (10, 0), (2, 0), (4, 0),
                 (7, 1), (10, 1), (3, 1)])],
              [(1, [(8, 0), (6, 0), (7, 0), (10, 0), (2, 0), (4, 0),
@@ -1465,7 +1465,7 @@ class RiemannSurface(object):
 
             sage: M = S.riemann_matrix()
             sage: differentials = S.cohomology_basis()
-            sage: S.simple_vector_line_integral([(0,0),(1,0)], differentials) #abs tol 0.00000001
+            sage: S.simple_vector_line_integral([(0,0),(1,0)], differentials) # abs tol 0.00000001
             (1.14590610929717e-16 - 0.352971844594760*I)
 
         .. NOTE::
@@ -1604,13 +1604,13 @@ class RiemannSurface(object):
         RB = self._R.base_ring()
         P = PolynomialRing(RB, 'Z')
         k = P.fraction_field()
-        KP = PolynomialRing(k, 'W') #W->fraction field
+        KP = PolynomialRing(k, 'W') # W->fraction field
         fZW = self.f(P.gen(0), KP.gen(0))
         L = k.extension(fZW, 'Wb')
         dfdw_L = self._dfdw(P.gen(0), L.gen(0))
         integrand_list = [h/self._dfdw for h in differentials]
         # minpoly_univ gives the minimal polynomial for h, in variable x, with 
-        #coefficients given by polynomials in P (i.e. rational polynomials in Z).
+        # coefficients given by polynomials in P (i.e. rational polynomials in Z).
         minpoly_univ = [(h(P.gen(0), L.gen(0))/dfdw_L).minpoly().numerator()
                         for h in differentials]
         RBzg = PolynomialRing(RB, ['z', 'g'])
@@ -1627,7 +1627,6 @@ class RiemannSurface(object):
         CCminpoly_list = [CCzg(h) for h in minpoly_list]
         
         a0_list = [P(h.leading_coefficient()) for h in minpoly_univ]
-        #CCa0_list = [self._CCz(a0) for a0 in a0_list]
         # Note that because the field over which the Riemann surface is defined
         # is embedded into CC, it has characteristic 0, and so we know the 
         # irreducible factors are all separable, i.e. the roots have multiplicity
@@ -1636,11 +1635,6 @@ class RiemannSurface(object):
                     flatten([self._CCz(F).roots(multiplicities=False)*m 
                              for F, m in a0.factor()]))
                    for a0 in a0_list]
-
-        #a0_list = [self._CCz(h.leading_coefficient()) for h in minpoly_univ]
-        #a0_info = [(a0.leading_coefficient(), flatten([[r]*n for r, n in a0.roots()])) for a0 in a0_list]
-        # Note that we are assuming here that the root finder is working correctly, which will need
-        # some thought.
         return CCzg, list(zip(integrand_list, dgdz_list, CCminpoly_list, a0_info))
 
     def rigorous_line_integral(self, upstairs_edge, differentials, bounding_data):
@@ -1850,7 +1844,7 @@ class RiemannSurface(object):
             sage: m = S.matrix_of_integral_values(B)
             sage: parent(m)
             Full MatrixSpace of 1 by 2 dense matrices over Complex Field with 53 bits of precision
-            sage: (m[0,0]/m[0,1]).algdep(3).degree() #curve is CM, so the period is quadratic
+            sage: (m[0,0]/m[0,1]).algdep(3).degree() # curve is CM, so the period is quadratic
             2
 
         """
@@ -1883,10 +1877,6 @@ class RiemannSurface(object):
         else:
             raise ValueError("Invalid integration method")
 
-        #integral_dict = {upstairs_edge:
-        #                 self.simple_vector_line_integral(upstairs_edge,
-        #                                                  differentials)
-        #                 for upstairs_edge in occurring_edges}
         integral_dict = dict()
         for upstairs_edge in occurring_edges:
             integral_dict[upstairs_edge] = line_int(upstairs_edge)
@@ -1951,8 +1941,6 @@ class RiemannSurface(object):
             True
 
         """
-        #differentials = [fast_callable(omega, domain=self._CC)
-        #                 for omega in self.cohomology_basis()]
         differentials = self.cohomology_basis()
         return self.matrix_of_integral_values(differentials, self._integration_method)
 

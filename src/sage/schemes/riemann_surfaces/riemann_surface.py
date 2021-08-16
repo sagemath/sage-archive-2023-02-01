@@ -678,7 +678,7 @@ class RiemannSurface(object):
                 self._differentials_branch_locus += self._CCz(x[0](self._CCz.gen(),
                                                                    0)).roots(multiplicities=False)
         # We add these branchpoints to the existing.
-        self.branch_locus = self.branch_locus+self._differentials_branch_locus
+        #self.branch_locus = self.branch_locus+self._differentials_branch_locus
         # We now want to also check whether Infinity is a branch point of any 
         # of the differentials.
         # This will be useful when calculating the Abel-Jacobi map. 
@@ -3097,8 +3097,12 @@ class RiemannSurface(object):
             V_index = find_closest_element(zP, self._vertices)
             b_index = find_closest_element(zP, self.branch_locus)
             b = self.branch_locus[b_index]
-        
-            d1 = self._CC(1e-2)*max(b.abs() for b in self.branch_locus)
+            #bl = self.branch_locus+self._differentials_branch_locus
+            #b_index = find_closest_element(zP, bl)
+            #b = bl[b_index]
+         
+            scale = max(b.abs() for b in self.branch_locus)
+            d1 = self._CC(1e-2)*scale
 
             # We choose the first vertex we want to go to.
             # If the closest vertex is closer than the nearest branch point, just take that vertex
@@ -3108,17 +3112,17 @@ class RiemannSurface(object):
                 region = self.voronoi_diagram.regions[self.voronoi_diagram.point_region[b_index]]
                 args = [(self._vertices[i]-zP).argument() - (b-zP).argument() for i in region]
                 suitable_vertex_indices = [region[i] 
-                                           for i in range(len(region)) if args[i].abs()>self._RR.pi()/2]
+                                           for i in range(len(region)) if args[i].abs()-self._RR.pi()/2>=-self._RR(1e-15)]
                 suitable_vertices = [self._vertices[i] for i in suitable_vertex_indices]
                 if suitable_vertices==[]:
                     raise ValueError("There is no satisfactory choice of V for zP={}".format(zP))
                 V_index = suitable_vertex_indices[find_closest_element(zP, suitable_vertices)]
             #####
             zV = self._vertices[V_index]
-            d_edge = (zP, zV)
 
             if (zP-b).abs() >= d1 or b in self._differentials_branch_locus:
                 wP_index = find_closest_element(wP, self.w_values(zP))
+                d_edge = (zP, zV)
                 u_edge = ((zP, wP_index), (zV, ))
                 initial_continuation = self.homotopy_continuation(d_edge)
                 AJ = -line_int(u_edge)
@@ -3128,6 +3132,23 @@ class RiemannSurface(object):
             else:
                 zs = zP
                 ws = wP
+
+                #####
+                # Here we need a block of code to change the vertex if the path
+                # from zP to zV would go through a ramification point of the integrands
+                fl = [c for c in self._differentials_branch_locus if not c==self._CC(Infinity)]
+                ts = [((c-zP)*(zV-zP).conjugate()).real()/(zP-zV).norm()**2 
+                      for c in fl]
+                ds = [(fl[i]-zP-ts[i]*(zV-zP)).abs()
+                      for i in range(len(ts)) if (ts[i]>=0 and ts[i]<=1)]
+                while (len(ds)>=1 and min(ds)<delta):
+                    V_index = suitable_vertex_indices.pop()
+                    zV = self._vertices[V_index]
+                    ts = [((c-zP)*(zV-zP).conjugate()).real()/(zP-zV).norm()**2 
+                          for c in fl]
+                    ds = [(fl[i]-zP-ts[i]*(zV-zP)).abs()
+                          for i in range(len(ts)) if (ts[i]>=0 and ts[i]<=1)]
+                #####
 
                 while self._dfdw(zs, ws).abs()==0:
                     zs = zs+delta*(zV-zs)/(zV-zs).abs()/2

@@ -16,7 +16,7 @@ The symbolic ring
 
 from sage.ext.cplusplus cimport ccrepr
 
-from sage.libs.pynac.pynac cimport *
+from sage.symbolic.pynac cimport *
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber

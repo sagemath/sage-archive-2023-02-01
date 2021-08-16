@@ -162,7 +162,7 @@ from sage.structure.element cimport Matrix
 from sage.plot.line import line
 from sage.plot.scatter_plot import scatter_plot
 
-from sage.libs.pynac.pynac import symbol_table
+from sage.symbolic.pynac import symbol_table
 from sage.calculus.calculus import symbolic_expression_from_string, SR_parser_giac
 from sage.symbolic.ring import SR
 from sage.symbolic.expression import Expression
@@ -1580,7 +1580,7 @@ cdef class Pygen(GiacMethods_base):
          Converting a custom name by adding a new entry to the ``symbols_table``::
 
             sage: ex = libgiac('myFun(x)')
-            sage: sage.libs.pynac.pynac.register_symbol(sin, {'giac':'myFun'})
+            sage: sage.symbolic.pynac.register_symbol(sin, {'giac':'myFun'})
             sage: ex.sage()
             sin(x)
 

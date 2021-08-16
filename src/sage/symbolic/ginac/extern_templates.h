@@ -17,7 +17,7 @@
 #define PYNAC_EXTERN_TEMPLATES__H
 
 #ifndef __GINAC_H__
-#error You must #include <pynac/ginac.h> first!
+#error You must #include "ginac.h" first!
 #endif
 
 #define TEMPLATE(cls) extern template cls

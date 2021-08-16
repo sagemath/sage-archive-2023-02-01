@@ -21,7 +21,7 @@ There is also a mixed version:
 
 from cpython cimport *
 
-from sage.libs.pynac.pynac cimport *
+from sage.symbolic.pynac cimport *
 from sage.symbolic.ring import SR
 from sage.symbolic.expression cimport is_Expression
 

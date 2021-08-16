@@ -10,8 +10,8 @@
 #ifndef _SAGE_PYNAC_WRAP_H
 #define _SAGE_PYNAC_WRAP_H
 
-#include <pynac/ginac.h>
-#include <pynac/extern_templates.h>
+#include <ginac/ginac.h>
+#include <ginac/extern_templates.h>
 #include <sstream>
 #include <string>
 

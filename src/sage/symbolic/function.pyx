@@ -125,7 +125,7 @@ is attempted, and after that ``sin()`` which succeeds::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.pynac.pynac cimport *
+from sage.symbolic.pynac cimport *
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent
@@ -228,7 +228,7 @@ cdef class Function(SageObject):
             global sfunction_serial_dict
             sfunction_serial_dict[self._serial] = self
 
-            from sage.libs.pynac.pynac import symbol_table, register_symbol
+            from sage.symbolic.pynac import symbol_table, register_symbol
             symbol_table['functions'][self._name] = self
 
             register_symbol(self, self._conversions)

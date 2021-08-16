@@ -21,7 +21,7 @@ from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 
-from sage.libs.pynac.pynac import register_symbol
+from sage.symbolic.pynac import register_symbol
 
 
 class Function_exp(GinacFunction):

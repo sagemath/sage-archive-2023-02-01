@@ -125,7 +125,7 @@ Check that :trac:`22733` is fixed::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.libs.pynac.pynac cimport *
+from sage.symbolic.pynac cimport *
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 
 cdef class SymbolicSeries(Expression):

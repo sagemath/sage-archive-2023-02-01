@@ -52,7 +52,7 @@ EXAMPLES::
 
 AUTHORS:
 
-- DAVID AYOTTE (2021-03-18): initial version
+- David Ayotte (2021-03-18): initial version
 
 """
 
@@ -98,7 +98,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
     It is possible to access the weight 2 Eisenstein series::
 
-        sage: QM.weigt_2_eisenstein_series()
+        sage: QM.weight_2_eisenstein_series()
         1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
 
     The current implementation of quasimodular forms is only for the full modular group and for the ring of rationnal numbers::
@@ -332,14 +332,14 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             datum = self.__polynomial_subring.coerce(datum)
         return self.element_class(self, datum)
 
-    def weigt_2_eisenstein_series(self):
+    def weight_2_eisenstein_series(self):
         r"""
         Return the weight 2 Eisenstein series.
 
         EXAMPLES::
 
             sage: QM = QuasiModularForms(1)
-            sage: E2 = QM.weigt_2_eisenstein_series(); E2
+            sage: E2 = QM.weight_2_eisenstein_series(); E2
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
             sage: E2.parent()
             Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field
@@ -364,7 +364,7 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             [1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
             1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)]
         """
-        gen_list = [self.weigt_2_eisenstein_series()]
+        gen_list = [self.weight_2_eisenstein_series()]
         for f in self.__modular_forms_subring.gen_forms():
             gen_list.append(self(f))
         return gen_list

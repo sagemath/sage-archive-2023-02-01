@@ -27,7 +27,7 @@ cdef class PynacConstant:
 
         EXAMPLES::
 
-            sage: from sage.libs.pynac.constant import PynacConstant
+            sage: from sage.symbolic.pynac_constant import PynacConstant
             sage: f = PynacConstant('foo', 'foo', 'real')
             sage: f
             foo
@@ -77,7 +77,7 @@ cdef class PynacConstant:
 
         EXAMPLES::
 
-            sage: from sage.libs.pynac.constant import PynacConstant
+            sage: from sage.symbolic.pynac_constant import PynacConstant
             sage: f = PynacConstant('foo', 'foo', 'real')
             sage: f.serial()  #random
             15
@@ -90,7 +90,7 @@ cdef class PynacConstant:
 
         EXAMPLES::
 
-            sage: from sage.libs.pynac.constant import PynacConstant
+            sage: from sage.symbolic.pynac_constant import PynacConstant
             sage: f = PynacConstant('foo', 'foo', 'real')
             sage: f.name()
             'foo'
@@ -101,7 +101,7 @@ cdef class PynacConstant:
         """
         EXAMPLES::
 
-            sage: from sage.libs.pynac.constant import PynacConstant
+            sage: from sage.symbolic.pynac_constant import PynacConstant
             sage: f = PynacConstant('foo', 'foo', 'real'); f
             foo
         """
@@ -113,12 +113,12 @@ cdef class PynacConstant:
 
         EXAMPLES::
 
-            sage: from sage.libs.pynac.constant import PynacConstant
+            sage: from sage.symbolic.pynac_constant import PynacConstant
             sage: f = PynacConstant('foo', 'foo', 'real')
             sage: f + 2
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for +: '<type 'sage.libs.pynac.constant.PynacConstant'>' and 'Integer Ring'
+            TypeError: unsupported operand parent(s) for +: '<type 'sage.symbolic.pynac_constant.PynacConstant'>' and 'Integer Ring'
 
             sage: foo = f.expression(); foo
             foo

@@ -906,7 +906,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     # Kernel Data
     #
 
-    __kernel_list = None  # list of elements in the kernel
+    __kernel_list = None  # list of elements in the kernel; stored as a tuple for immutability
 
     __kernel_polynomial_list = None # polynomial stored as a little endian list of coefficients
 
@@ -1015,7 +1015,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         self.__setup_post_isomorphism(codomain, model)
 
         if (pre_isom is not None):
-            self.set_pre_isomorphism(pre_isom)
+            self._set_pre_isomorphism(pre_isom)
 
         if (post_isom is not None):
             self.__set_post_isomorphism(old_codomain, post_isom)   #(trac #7096)
@@ -1311,17 +1311,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             True
 
         """
-        # save off the kernel lists
-        kernel_list = self.__kernel_list
-        self.__kernel_list = None
-
         output = copy(self)
-
-        # reset the kernel lists
-        output.__kernel_list = copy(kernel_list)
-        self.__kernel_list = kernel_list
-
-        output.switch_sign()
+        output._switch_sign()
         return output
 
     #
@@ -1874,7 +1865,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         for P in kernel_gens:
             kernel_set += Set(flatten([all_multiples(P,Q)
                                        for Q in kernel_set]))
-        self.__kernel_list = kernel_set.list()
+        self.__kernel_list = tuple(kernel_set)
         self.__kernel_2tor = {}
         self.__kernel_non2tor = {}
         self.__degree = Integer(len(kernel_set))
@@ -2885,6 +2876,12 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         r"""
         Modify this isogeny by precomposing with a Weierstrass isomorphism.
 
+        .. WARNING::
+
+            Isogenies will be immutable in a future release of Sage.
+            This method is deprecated in favor of using the ``*`` operator
+            to compose elliptic-curve morphisms.
+
         EXAMPLES::
 
             sage: E = EllipticCurve(GF(31), [1,1,0,1,-1])
@@ -2936,6 +2933,15 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi(Epr((168,1188)))
             (0 : 1 : 0)
         """
+        from sage.misc.superseded import deprecation
+        deprecation(32388, 'Elliptic-curve isogenies will be immutable in a future release of Sage.'
+                          ' Use phi*psi instead of phi.set_pre_isomorphism(psi) to obtain the composite isogeny.')
+        return self._set_pre_isomorphism(preWI)
+
+    def _set_pre_isomorphism(self, preWI):
+        """
+        Implementation of :meth:`set_pre_isomorphism`.
+        """
         WIdom = preWI.domain()
         WIcod = preWI.codomain()
 
@@ -2962,6 +2968,12 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     def set_post_isomorphism(self, postWI):
         r"""
         Modify this isogeny by postcomposing with a Weierstrass isomorphism.
+
+        .. WARNING::
+
+            Isogenies will be immutable in a future release of Sage.
+            This method is deprecated in favor of using the ``*`` operator
+            to compose elliptic-curve morphisms.
 
         EXAMPLES::
 
@@ -2997,6 +3009,15 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi
             Isogeny of degree 4 from Elliptic Curve defined by y^2 = x^3 + x over Number Field in a with defining polynomial x^2 + 2 to Elliptic Curve defined by y^2 = x^3 + (-44)*x + 112 over Number Field in a with defining polynomial x^2 + 2
 
+        """
+        from sage.misc.superseded import deprecation
+        deprecation(32388, 'Elliptic-curve isogenies will be immutable in a future release of Sage.'
+                          ' Use psi*phi instead of phi.set_post_isomorphism(psi) to obtain the composite isogeny.')
+        return self._set_post_isomorphism(postWI)
+
+    def _set_post_isomorphism(self, postWI):
+        """
+        Implementation of :meth:`set_post_isomorphism`.
         """
         WIdom = postWI.domain()
         WIcod = postWI.codomain()
@@ -3085,6 +3106,12 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         r"""
         Compose this isogeny with `[-1]` (negation).
 
+        .. WARNING::
+
+            Isogenies will be immutable in a future version of Sage.
+            This method is deprecated in favor of using the unary ``-``
+            operator to negate elliptic-curve morphisms.
+
         EXAMPLES::
 
             sage: E = EllipticCurve(GF(23), [0,0,0,1,0])
@@ -3134,7 +3161,16 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             ((x^2 + (-a)*x - 2)/(x + (-a)), (-x^2*y + (2*a)*x*y - y)/(x^2 + (-2*a)*x - 1))
 
         """
-        self.set_post_isomorphism(WeierstrassIsomorphism(self.__E2, (-1,0,-self.__E2.a1(),-self.__E2.a3())))
+        from sage.misc.superseded import deprecation
+        deprecation(32388, 'Elliptic-curve isogenies will be immutable in a future release of Sage.'
+                          ' Use -phi instead of phi.switch_sign() to obtain the negated isogeny.')
+        self._switch_sign()
+
+    def _switch_sign(self):
+        """
+        Implementation of :meth:`switch_sign`.
+        """
+        self._set_post_isomorphism(WeierstrassIsomorphism(self.__E2, (-1,0,-self.__E2.a1(),-self.__E2.a3())))
 
     def is_normalized(self, via_formal=True, check_by_pullback=True):
         r"""
@@ -3428,8 +3464,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         phi_hat = EllipticCurveIsogeny(E1, None, E2, d)
 
-        phi_hat.set_pre_isomorphism(pre_isom)
-        phi_hat.set_post_isomorphism(post_isom)
+        phi_hat._set_pre_isomorphism(pre_isom)
+        phi_hat._set_post_isomorphism(post_isom)
         phi_hat.__perform_inheritance_housekeeping()
 
         assert phi_hat.codomain() == self.domain()
@@ -3454,7 +3490,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             aut = [a for a in auts if a.u == sc]
             if len(aut) != 1:
                 raise ValueError("There is a bug in dual().")
-            phi_hat.set_post_isomorphism(aut[0])
+            phi_hat._set_post_isomorphism(aut[0])
 
         self.__dual = phi_hat
 

@@ -177,7 +177,7 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         if len(labels) != 0:
             yield structure_class(self, labels, range(1, len(labels)+1))
 
-    def _gs_iterator(self, base_ring):
+    def _gs_iterator(self, base_ring, n):
         r"""
         The generating series for cyclic permutations is
         `-\log(1-x) = \sum_{n=1}^\infty x^n/n`.
@@ -186,20 +186,24 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
             sage: P = species.CycleSpecies()
             sage: g = P.generating_series()
-            sage: g.coefficients(10)
+            sage: [g.coefficient(i) for i in range(10)]
             [0, 1, 1/2, 1/3, 1/4, 1/5, 1/6, 1/7, 1/8, 1/9]
 
         TESTS::
 
             sage: P = species.CycleSpecies()
             sage: g = P.generating_series(RR)
-            sage: g.coefficients(3)
+            sage: [g.coefficient(i) for i in range(3)]
             [0.000000000000000, 1.00000000000000, 0.500000000000000]
         """
         one = base_ring(1)
-        yield base_ring(0)
-        for n in _integers_from(ZZ(1)):
-            yield self._weight*one/n
+        # yield base_ring(0)
+        # for n in _integers_from(ZZ(1)):
+        #     yield self._weight*one/n
+        if n == 0:
+            return base_ring(0)
+        else:
+            return self._weight*one/n
 
     def _order(self):
         """

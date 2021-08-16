@@ -187,7 +187,7 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         for i in range(len(labels)+1):
             yield structure_class(self, labels, range(1, i+1))
 
-    def _gs_iterator(self, base_ring):
+    def _gs_iterator(self, base_ring, n):
         """
         The generating series for the species of subsets is
         `e^{2x}`.
@@ -195,13 +195,14 @@ class SubsetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         EXAMPLES::
 
             sage: S = species.SubsetSpecies()
-            sage: S.generating_series().coefficients(5)
+            sage: [S.generating_series().coefficient(i) for i in range(5)]
             [1, 2, 2, 4/3, 2/3]
         """
-        for n in _integers_from(0):
-            yield base_ring(2)**n / base_ring(factorial(n))
+        return base_ring(2)**n / base_ring(factorial(n))
+        # for n in _integers_from(0):
+        #     yield base_ring(2)**n / base_ring(factorial(n))
 
-    def _itgs_iterator(self, base_ring):
+    def _itgs_iterator(self, base_ring, n):
         r"""
         The generating series for the species of subsets is
         `e^{2x}`.

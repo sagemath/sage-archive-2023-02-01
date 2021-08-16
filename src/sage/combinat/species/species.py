@@ -484,11 +484,16 @@ class GenericCombinatorialSpecies(SageObject):
         """
         series = self._series_helper(series_ring_class, prefix, base_ring=base_ring)
 
+        if self._min is not None:
+            series = series.parent()(lambda n: series[n], self._min)
+        if self._max is not None:
+            series = series.truncate(self._max)
         # We need to restrict the series based on the min
         # and max of this species.  Note that if min and max
         # are both None (as in the default case), then the restrict
         # method will just return series.
-        return series.restricted(min=self._min, max=self._max)
+        # return series.restricted(min=self._min, max=self._max)
+        return series
 
     def _series_helper(self, series_ring_class, prefix, base_ring=None):
         """
@@ -555,11 +560,11 @@ class GenericCombinatorialSpecies(SageObject):
         # for the coefficients of the generating series.  Optionally,
         # the subclass can specify the order of the series.
         try:
-            iterator = getattr(self, prefix + "_iterator")(base_ring)
+            iterator = getattr(self, prefix + "_iterator")
             try:
-                return series_ring(iterator, order=self._order())
+                return series_ring(lambda n: iterator(base_ring, n), valuation=self._order())
             except AttributeError:
-                return series_ring(iterator)
+                return series_ring(lambda n: iterator(base_ring, n))
         except AttributeError:
             pass
 

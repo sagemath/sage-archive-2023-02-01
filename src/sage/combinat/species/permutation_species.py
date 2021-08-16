@@ -201,7 +201,7 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         return [base_ring(1)]
 
 
-    def _itgs_iterator(self, base_ring):
+    def _itgs_iterator(self, base_ring, n):
         r"""
         The isomorphism type generating series is given by
         `\frac{1}{1-x}`.
@@ -210,12 +210,14 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
             sage: P = species.PermutationSpecies()
             sage: g = P.isotype_generating_series()
-            sage: g.coefficients(10)
+            sage: [g.coefficient(i) for i in range(10)]
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
+        # from sage.combinat.partition import number_of_partitions
+        # for n in _integers_from(0):
+        #     yield base_ring(number_of_partitions(n))
         from sage.combinat.partition import number_of_partitions
-        for n in _integers_from(0):
-            yield base_ring(number_of_partitions(n))
+        return base_ring(number_of_partitions(n))
 
 
     def _cis(self, series_ring, base_ring):

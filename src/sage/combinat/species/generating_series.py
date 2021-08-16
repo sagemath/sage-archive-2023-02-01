@@ -244,13 +244,13 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
 
             sage: G = species.SimpleGraphSpecies()
             sage: g = G.generating_series()
-            sage: g.coefficients(10)
+            sage: [g.coefficient(i) for i in range(10)]
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
 
         """
         # return self._new(partial(self._functorial_compose_gen, y), lambda a,b: 0, self, y)
         P = self.parent()
-        return P(partial(self._functorial_compose_gen, y), 0)
+        return P(lambda n: self._functorial_compose_gen(y, n), 0)
 
     def _functorial_compose_gen(self, y, n):
         """
@@ -270,8 +270,7 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
             sage: P2 = E2*E
             sage: g1 = WP.generating_series()
             sage: g2 = P2.generating_series()
-            sage: g = g1._functorial_compose_gen(g2, 0)
-            sage: [next(g) for i in range(10)]
+            sage: [g1._functorial_compose_gen(g2, i) for i in range(10)]
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
 
         """

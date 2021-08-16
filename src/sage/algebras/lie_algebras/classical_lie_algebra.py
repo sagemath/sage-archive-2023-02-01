@@ -936,15 +936,15 @@ class e8(ExceptionalMatrixLieAlgebra):
         """
         Initialize ``self``.
 
-        EXAMPLES::
+        TESTS::
 
             sage: g = LieAlgebra(QQ, cartan_type=['E', 8], representation='matrix')
             sage: g
             Simple matrix Lie algebra of type ['E', 8] over Rational Field
 
-            sage: TestSuite(g).run(skip="_test_not_implemented_methods")  # long time
+        We skipped the not implemented methods test as it takes too much time::
 
-        We skipped this tests as it takes too much time.
+            sage: TestSuite(g).run(skip="_test_not_implemented_methods")  # long time
         """
         ct = CartanType(['E', 8])
         g = LieAlgebraChevalleyBasis(R, ct)

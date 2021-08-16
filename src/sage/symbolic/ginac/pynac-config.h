@@ -10,11 +10,5 @@
 /* Define if you have libgiac */
 /* #undef PYNAC_HAVE_LIBGIAC */
 
-/* The size of `long', as computed by sizeof. */
-#define PYNAC_SIZEOF_LONG sizeof(long)
-
-/* The size of `long long', as computed by sizeof. */
-#define PYNAC_SIZEOF_LONG_LONG sizeof(long long)
-
 /* once: _PYNAC_CONFIG_H */
 #endif

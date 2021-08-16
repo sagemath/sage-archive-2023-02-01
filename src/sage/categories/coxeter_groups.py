@@ -694,16 +694,16 @@ class CoxeterGroups(Category_singleton):
             Compute the left, right, or two-sided Kazhdan-Lusztig cells of
             ``self`` if ``self`` is finite.
 
-            The cells are computed  by using
-            :func:`kazhdan_lusztig_cell()<CoxeterGroups.ElementMethods.kazhdan_lusztig_cell()>`.
+            The cells are computed  by using :func:`kazhdan_lusztig_cell()
+            <CoxeterGroups.ElementMethods.kazhdan_lusztig_cell()>`.
+
             As detailed there, installation of the optional package ``coxeter3``
-            is strongly recommended (though not required) before using this
-            function.
+            is recommended (though not required) before using this function.
 
             INPUT:
 
-            - ``side`` -- ``'left'``, ``'right'``, or ``'two-sided'`` (default:
-              ``'left'``)
+            - ``side`` -- (default: ``'left'``) either ``'left'``,
+              ``'right'``, or ``'two-sided'``
 
             EXAMPLES:
 
@@ -717,41 +717,60 @@ class CoxeterGroups(Category_singleton):
             the package is installed, even if the group is not created with the
             'coxeter3' implementation.
 
-                sage: from sage.doctest.fixtures import reproducible_repr   # optional - coxeter3
-                sage: W = CoxeterGroup('A3', implementation='coxeter3')     # optional - coxeter3
-                sage: print(reproducible_repr(W.kazhdan_lusztig_cells()))   # optional - coxeter3
-                set([frozenset([[1, 2, 1, 3, 2, 1]]),
-                frozenset([[1, 2, 1, 3, 2], [1, 2, 3, 2], [2, 3, 2]]),
-                frozenset([[1, 2, 1, 3], [1, 2, 3, 2, 1], [2, 3, 2, 1]]),
-                frozenset([[1, 2, 1], [1, 3, 2, 1], [2, 1, 3, 2, 1]]),
-                frozenset([[1, 2, 3], [2, 3], [3]]),
-                frozenset([[1, 2], [2], [3, 2]]),
-                frozenset([[1, 3, 2], [2, 1, 3, 2]]),
-                frozenset([[1, 3], [2, 1, 3]]),
-                frozenset([[1], [2, 1], [3, 2, 1]]),
-                frozenset([[]])])
+            ::
+
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')  # optional - coxeter3
+                sage: KL_cells = W.kazhdan_lusztig_cells()               # optional - coxeter3
+                sage: set([tuple(sorted(C)) for C in KL_cells])          # optional - coxeter3
+                {([],),
+                 ([1], [2, 1], [3, 2, 1]),
+                 ([1, 2], [2], [3, 2]),
+                 ([1, 2, 1], [1, 3, 2, 1], [2, 1, 3, 2, 1]),
+                 ([1, 2, 1, 3], [1, 2, 3, 2, 1], [2, 3, 2, 1]),
+                 ([1, 2, 1, 3, 2], [1, 2, 3, 2], [2, 3, 2]),
+                 ([1, 2, 1, 3, 2, 1],),
+                 ([1, 2, 3], [2, 3], [3]),
+                 ([1, 3], [2, 1, 3]),
+                 ([1, 3, 2], [2, 1, 3, 2])}
+                sage: len(KL_cells)
+                10
+
                 sage: W = CoxeterGroup('A3', implementation='permutation')  # optional - coxeter3
-                sage: print(reproducible_repr(W.kazhdan_lusztig_cells()))   # optional - coxeter3
-                set([frozenset([()]),
-                frozenset([(1,10,2)(3,5,6)(4,8,7)(9,11,12), (1,4)(2,8)(3,5)(7,10)(9,11), (1,4,6)(2,3,11)(5,8,9)(7,10,12)]),
-                frozenset([(1,10,9,5)(2,6,8,12)(3,11,7,4), (1,3)(2,12)(4,10)(5,11)(6,8)(7,9)]),
-                frozenset([(1,11)(3,10)(4,9)(5,7)(6,12), (1,11,8)(2,7,5)(3,4,12)(6,9,10), (1,5,12)(2,9,4)(3,10,8)(6,7,11)]),
-                ...
-                frozenset([(1,9)(2,8)(3,7)(4,11)(5,10)(6,12)])])
+                sage: len(W.kazhdan_lusztig_cells())                        # optional - coxeter3
+                10
 
-            Computing the left cells in `B_4` takes about 45 seconds::
+            Computing the two sided cells in `B_3`::
 
-                sage: W = CoxeterGroup('B4', implementation='coxeter3')     # optional - coxeter3
-                sage: b4_cells = W.kazhdan_lusztig_cells()                  # long time (45 seconds) # optional - coxeter3
-                sage: len(b4_cells)                                         # optional - coxeter3
-                50
-                sage: print(reproducible_repr(b4_cells))                    # optional - coxeter3
-                set([frozenset([[1, 2, 3, 4, 3, 2, 1], [1], [2, 1], [2, 3, 4, 3, 2, 1], [3, 2, 1], [3, 4, 3, 2, 1], [4, 3, 2, 1]]),
-                frozenset([[1, 2, 3, 4, 3, 2], [1, 2], [2, 3, 4, 3, 2], [2], [3, 2], [3, 4, 3, 2], [4, 3, 2]]),
-                frozenset([[1, 2, 3, 4, 3], [1, 2, 3], [2, 3, 4, 3], [2, 3], [3, 4, 3], [3], [4, 3]]),
-                frozenset([[1, 2, 3, 4], [2, 3, 4], [3, 4], [4, 3, 4], [4]]),
-                ...
-                frozenset([[]])])
+                sage: W = CoxeterGroup('B3', implementation='coxeter3')           # optional - coxeter3
+                sage: b3_cells = W.kazhdan_lusztig_cells('two-sided')             # optional - coxeter3
+                sage: len(b3_cells)                                               # optional - coxeter3
+                6
+                sage: set([tuple(sorted(C)) for C in W.kazhdan_lusztig_cells()])  # optional - coxeter3
+                {([],),
+                 ([1], [1, 2, 3, 2, 1], [2, 1], [2, 3, 2, 1], [3, 2, 1]),
+                 ([1, 2], [1, 2, 3, 2], [2], [2, 3, 2], [3, 2]),
+                 ([1, 2, 3], [2, 3], [3], [3, 2, 3]),
+                 ([2, 1, 2], [2, 3, 2, 1, 2], [3, 2, 1, 2]),
+                 ([2, 1, 2, 3], [2, 3, 2, 1, 2, 3], [3, 2, 1, 2, 3]),
+                 ([2, 1, 2, 3, 2], [2, 3, 2, 1, 2, 3, 2], [3, 2, 1, 2, 3, 2]),
+                 ([2, 1, 2, 3, 2, 1],
+                  [2, 3, 2, 1, 2, 3, 2, 1],
+                  [3, 2, 1, 2, 3, 2, 1],
+                  [3, 2, 3, 2, 1, 2]),
+                 ([2, 3, 1], [3, 1], [3, 2, 3, 1]),
+                 ([2, 3, 1, 2], [3, 1, 2], [3, 2, 3, 1, 2]),
+                 ([2, 3, 1, 2, 3], [3, 1, 2, 3], [3, 2, 3, 1, 2, 3]),
+                 ([2, 3, 1, 2, 3, 2],
+                  [3, 1, 2, 3, 2],
+                  [3, 2, 3, 1, 2, 3, 2],
+                  [3, 2, 3, 2],
+                  [3, 2, 3, 2, 1, 2, 3, 2]),
+                 ([2, 3, 1, 2, 3, 2, 1],
+                  [3, 1, 2, 3, 2, 1],
+                  [3, 2, 3, 1, 2, 3, 2, 1],
+                  [3, 2, 3, 2, 1],
+                  [3, 2, 3, 2, 1, 2, 3]),
+                 ([3, 2, 3, 2, 1, 2, 3, 2, 1],)}
 
             TESTS::
 
@@ -2781,13 +2800,13 @@ class CoxeterGroups(Category_singleton):
             Let `C'` denote the Kazhdan-Lusztig `C^{\prime}`-basis of the
             Iwahori-Hecke algebra `H` of a Coxeter system `(W,S)`. Two elements
             `x,y` of the Coxeter group `W` are said to lie in the same left
-            Kazhdan-Lusztig cell if there exist sequences `x=w_1, w_2, ...,
-            w_k=y` and `y=u_1, u_2, ..., u_l=x` such that for all `1 \leq i < k`
-            and all `1 \leq j < l`, there exist some Coxeter generators `s,t \in
-            S` for which `C'_{w_{i+1}}` appears in `C'_sC'_{w_i}` and
-            `C'_{u_{j+1}}` appears in `C'_sC'_{u_j}` in `H`.  Right and
-            two-sided Kazhdan-Lusztig cells of `W` are defined similarly; see
-            [Lus2013]_.
+            Kazhdan-Lusztig cell if there exist sequences `x = w_1, w_2, \ldots,
+            w_k = y` and `y = u_1, u_2, \ldots, u_l = x` such that for all
+            `1 \leq i < k` and all `1 \leq j < l`, there exist some Coxeter
+            generators `s,t \in S` for which `C'_{w_{i+1}}` appears in
+            `C'_s C'_{w_i}` and `C'_{u_{j+1}}` appears in `C'_s C'_{u_j}`
+            in `H`.  Right and two-sided Kazhdan-Lusztig cells of `W` are
+            defined similarly; see [Lus2013]_.
 
             In this function, we compute products in the `C^{\prime}` basis by
             using :class:`IwahoriHeckeAlgebra.Cp`. As mentioned in that class,
@@ -2798,10 +2817,10 @@ class CoxeterGroups(Category_singleton):
 
             INPUT:
 
-            - ``w`` -- an element of self.
+            - ``w`` -- an element of ``self``
 
-            - ``side`` -- ``'left'``, ``'right'``, or ``'two-sided'`` (default:
-              ``'left'``), corresponding to the kind of cell to compute.
+            - ``side`` -- (default: ``'left'``) the kind of cell to compute;
+              must be either ``'left'``, ``'right'``, or ``'two-sided'``
 
             EXAMPLES:
 
@@ -2811,40 +2830,31 @@ class CoxeterGroups(Category_singleton):
             the output cell but not the method used for the cell computation. In
             particular, the cell computation uses the optional package
             ``coxeter3`` in the background as long as the package is installed,
-            even in the default ('reflection') and 'permutation'
-            implementations::
+            even in the different implementations implementations::
 
-                sage: W = CoxeterGroup('A3')                                # optional - coxeter3
+                sage: W = WeylGroup('A3', prefix='s')                       # optional - coxeter3
                 sage: s1,s2,s3 = W.simple_reflections()                     # optional - coxeter3
                 sage: s1.kazhdan_lusztig_cell()                             # optional - coxeter3
-                {[-1  1  0]
-                 [-1  0  1]
-                 [-1  0  0],
-                 [-1  1  0]
-                 [-1  0  1]
-                 [ 0  0  1],
-                 [-1  1  0]
-                 [ 0  1  0]
-                 [ 0  0  1]}
+                {s3*s2*s1, s2*s1, s1}
                 sage: W = CoxeterGroup('A3', implementation='permutation')  # optional - coxeter3
                 sage: s1,s2,s3 = W.simple_reflections()                     # optional - coxeter3
                 sage: s1.kazhdan_lusztig_cell()                             # optional - coxeter3
                 {(1,2,3,12)(4,5,10,11)(6,7,8,9),
                  (1,2,10)(3,6,5)(4,7,8)(9,12,11),
                  (1,7)(2,4)(5,6)(8,10)(11,12)}
-                sage: W = CoxeterGroup('A3', implementation='coxeter3') # optional - coxeter3
-                sage: s1,s2,s3 = W.simple_reflections()                 # optional - coxeter3
-                sage: s1.kazhdan_lusztig_cell()                         # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')  # optional - coxeter3
+                sage: s1,s2,s3 = W.simple_reflections()                  # optional - coxeter3
+                sage: s1.kazhdan_lusztig_cell()                          # optional - coxeter3
                 {[1], [2, 1], [3, 2, 1]}
 
            Next, we compute a right cell and a two-sided cell in `A_3`::
 
-                sage: W = CoxeterGroup('A3', implementation='coxeter3') # optional - coxeter3
-                sage: s1,s2,s3 = W.simple_reflections()                 # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')  # optional - coxeter3
+                sage: s1,s2,s3 = W.simple_reflections()                  # optional - coxeter3
                 sage: w = s1*s3
-                sage: w.kazhdan_lusztig_cell(side='right')              # optional - coxeter3
+                sage: w.kazhdan_lusztig_cell(side='right')               # optional - coxeter3
                 {[1, 3], [1, 3, 2]}
-                sage: w.kazhdan_lusztig_cell(side='two-sided')          # optional - coxeter3
+                sage: w.kazhdan_lusztig_cell(side='two-sided')           # optional - coxeter3
                 {[1, 3], [1, 3, 2], [2, 1, 3], [2, 1, 3, 2]}
 
             Some slightly longer computations in `B_4`::
@@ -2868,7 +2878,7 @@ class CoxeterGroups(Category_singleton):
                  [2, 3, 4, 1, 2, 3, 4],
                  [2, 3, 4, 3, 1],
                  [2, 3, 4, 3, 1, 2],
-                ...
+                 ...
                  [4, 3, 4, 2, 3, 4, 1, 2, 3, 4]}
             """
             from sage.algebras.iwahori_hecke_algebra import IwahoriHeckeAlgebra
@@ -2905,3 +2915,4 @@ class CoxeterGroups(Category_singleton):
 
             g = DiGraph([list(vertices), list(edges)])
             return set(g.strongly_connected_component_containing_vertex(w))
+

@@ -779,7 +779,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         sage: f = X^2 - 2/5*i + 1/5
         sage: phi= E.isogeny(f)
         sage: isom = phi.codomain().isomorphism_to(E)
-        sage: phi.set_post_isomorphism(isom)
+        sage: phi = isom * phi
         sage: phi.codomain() == phi.domain()
         True
         sage: phi.rational_maps()
@@ -1385,6 +1385,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: old_hash = hash(phi)
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
             sage: phi.set_post_isomorphism(WeierstrassIsomorphism(phi.codomain(), (-1,2,-3,4)))
+            ...
             sage: hash(phi) == old_hash
             False
 
@@ -1394,6 +1395,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: old_ratl_maps = phi.rational_maps()
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
             sage: phi.set_post_isomorphism(WeierstrassIsomorphism(phi.codomain(), (-1,0,0,0)))
+            ...
             sage: old_ratl_maps == phi.rational_maps()
             False
             sage: old_ratl_maps[1] == -phi.rational_maps()[1]
@@ -1407,6 +1409,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: old_ratl_maps = phi.rational_maps()
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
             sage: phi.set_post_isomorphism(WeierstrassIsomorphism(phi.codomain(), (-13,13,-13,13)))
+            ...
             sage: old_hash == hash(phi)
             False
             sage: old_ratl_maps == phi.rational_maps()
@@ -1439,9 +1442,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E2 = phi.codomain()
             sage: post_isom = WeierstrassIsomorphism(E2, (41, 37, 31, 29))
             sage: phi.set_post_isomorphism(post_isom)
+            ...
             sage: E1pr = WeierstrassIsomorphism(E, (-1, 2, -3, 4)).codomain()
             sage: pre_isom = E1pr.isomorphism_to(E)
             sage: phi.set_pre_isomorphism(pre_isom)
+            ...
 
         """
         # one of the superclasses uses these fields
@@ -1664,6 +1669,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E1pr = WeierstrassIsomorphism(E, (-1, 2, -3, 4)).codomain()
             sage: pre_isom = E1pr.isomorphism_to(E)
             sage: phi.set_pre_isomorphism(pre_isom)
+            ...
             sage: phi._EllipticCurveIsogeny__set_pre_isomorphism(E, WeierstrassIsomorphism(E, (-1, 3, -3, 4)))
             sage: E == phi.domain()
             True
@@ -1712,6 +1718,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E2 = phi.codomain()
             sage: isom = WeierstrassIsomorphism(E2, (-1,2,-3,4))
             sage: phi.set_post_isomorphism(isom)
+            ...
             sage: phi._EllipticCurveIsogeny__set_post_isomorphism(E2, WeierstrassIsomorphism(phi.codomain(), (1,-2,3,-4)))
             sage: E2 == phi.codomain()
             True
@@ -2891,6 +2898,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: Epr = E.short_weierstrass_model()
             sage: isom = Epr.isomorphism_to(E)
             sage: phi.set_pre_isomorphism(isom)
+            ...
             sage: phi.rational_maps()
             ((-6*x^4 - 3*x^3 + 12*x^2 + 10*x - 1)/(x^3 + x - 12), (3*x^7 + x^6*y - 14*x^6 - 3*x^5 + 5*x^4*y + 7*x^4 + 8*x^3*y - 8*x^3 - 5*x^2*y + 5*x^2 - 14*x*y + 14*x - 6*y - 6)/(x^6 + 2*x^4 + 7*x^3 + x^2 + 7*x - 11))
             sage: phi(Epr((0,22)))
@@ -2908,7 +2916,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: inv_isom = WeierstrassIsomorphism(E, (1,-2,5,10))
             sage: Epr = inv_isom.codomain()
             sage: isom = Epr.isomorphism_to(E)
-            sage: phi.set_pre_isomorphism(isom); phi
+            sage: phi.set_pre_isomorphism(isom)
+            ...
+            sage: phi
             Isogeny of degree 5 from Elliptic Curve defined by y^2 + 10*x*y + 20*y = x^3 + 27*x^2 + 6 over Finite Field of size 29 to Elliptic Curve defined by y^2 = x^3 + 20*x over Finite Field of size 29
             sage: phi(Epr((12,1)))
             (26 : 0 : 1)
@@ -2928,6 +2938,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: Epr = E.short_weierstrass_model()
             sage: isom = Epr.isomorphism_to(E)
             sage: phi.set_pre_isomorphism(isom)
+            ...
             sage: phi
             Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 - 13392*x - 1080432 over Rational Field to Elliptic Curve defined by y^2 + y = x^3 - x^2 - 7820*x - 263580 over Rational Field
             sage: phi(Epr((168,1188)))
@@ -2982,6 +2993,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi = EllipticCurveIsogeny(E, x+18)
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
             sage: phi.set_post_isomorphism(WeierstrassIsomorphism(phi.codomain(), (6,8,10,12)))
+            ...
             sage: phi
             Isogeny of degree 3 from Elliptic Curve defined by y^2 = x^3 + 1 over Finite Field of size 31 to Elliptic Curve defined by y^2 + 24*x*y + 7*y = x^3 + 22*x^2 + 16*x + 20 over Finite Field of size 31
 
@@ -2991,9 +3003,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: E2 = phi.codomain()
             sage: post_isom = E2.isomorphism_to(E)
             sage: phi.set_post_isomorphism(post_isom)
+            ...
             sage: phi.rational_maps() == E.multiplication_by_m(3)
             False
             sage: phi.switch_sign()
+            ...
             sage: phi.rational_maps() == E.multiplication_by_m(3)
             True
 
@@ -3056,6 +3070,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: Epr = E.short_weierstrass_model()
             sage: isom = Epr.isomorphism_to(E)
             sage: phi.set_pre_isomorphism(isom)
+            ...
             sage: isom == phi.get_pre_isomorphism()
             True
 
@@ -3085,6 +3100,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
             sage: isom = WeierstrassIsomorphism(phi.codomain(), (6,8,10,12))
             sage: phi.set_post_isomorphism(isom)
+            ...
             sage: isom == phi.get_post_isomorphism()
             True
 
@@ -3120,6 +3136,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi.rational_maps() == E.multiplication_by_m(3)
             False
             sage: phi.switch_sign()
+            ...
             sage: phi.rational_maps() == E.multiplication_by_m(3)
             True
 
@@ -3132,6 +3149,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi.rational_maps()
             ((x^2 + 6*x + 4)/(x + 6), (x^2*y - 5*x*y + 8*x - 2*y)/(x^2 - 5*x + 2))
             sage: phi.switch_sign()
+            ...
             sage: phi
             Isogeny of degree 2 from Elliptic Curve defined by y^2 + 15*x*y + 12*y = x^3 + 3*x^2 + 7*x + 6 over Finite Field of size 17 to Elliptic Curve defined by y^2 + 15*x*y + 12*y = x^3 + 3*x^2 + 4*x + 8 over Finite Field of size 17
             sage: phi.rational_maps()
@@ -3144,6 +3162,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi = EllipticCurveIsogeny(E, f)
             sage: (xmap1, ymap1) = phi.rational_maps()
             sage: phi.switch_sign()
+            ...
             sage: (xmap2, ymap2) = phi.rational_maps()
             sage: xmap1 == xmap2
             True
@@ -3157,6 +3176,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi.rational_maps()
             ((x^2 + (-a)*x - 2)/(x + (-a)), (x^2*y + (-2*a)*x*y + y)/(x^2 + (-2*a)*x - 1))
             sage: phi.switch_sign()
+            ...
             sage: phi.rational_maps()
             ((x^2 + (-a)*x - 2)/(x + (-a)), (-x^2*y + (2*a)*x*y - y)/(x^2 + (-2*a)*x - 1))
 
@@ -3203,15 +3223,15 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi.is_normalized()
             True
             sage: isom = WeierstrassIsomorphism(phi.codomain(), (3, 0, 0, 0))
-            sage: phi.set_post_isomorphism(isom)
+            sage: phi = isom * phi
             sage: phi.is_normalized()
             False
             sage: isom = WeierstrassIsomorphism(phi.codomain(), (5, 0, 0, 0))
-            sage: phi.set_post_isomorphism(isom)
+            sage: phi = isom * phi
             sage: phi.is_normalized()
             True
             sage: isom = WeierstrassIsomorphism(phi.codomain(), (1, 1, 1, 1))
-            sage: phi.set_post_isomorphism(isom)
+            sage: phi = isom * phi
             sage: phi.is_normalized()
             True
 
@@ -3222,15 +3242,15 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: isom = WeierstrassIsomorphism(phi.codomain(), (alpha, 0, 0, 0))
             sage: phi.is_normalized()
             True
-            sage: phi.set_post_isomorphism(isom)
+            sage: phi = isom * phi
             sage: phi.is_normalized()
             False
             sage: isom = WeierstrassIsomorphism(phi.codomain(), (1/alpha, 0, 0, 0))
-            sage: phi.set_post_isomorphism(isom)
+            sage: phi = isom * phi
             sage: phi.is_normalized()
             True
             sage: isom = WeierstrassIsomorphism(phi.codomain(), (1, 1, 1, 1))
-            sage: phi.set_post_isomorphism(isom)
+            sage: phi = isom * phi
             sage: phi.is_normalized()
             True
 
@@ -3241,15 +3261,15 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: isom = WeierstrassIsomorphism(phi.codomain(), (2, 0, 0, 0))
             sage: phi.is_normalized()
             True
-            sage: phi.set_post_isomorphism(isom)
+            sage: phi = isom * phi
             sage: phi.is_normalized()
             False
             sage: isom = WeierstrassIsomorphism(phi.codomain(), (1/2, 0, 0, 0))
-            sage: phi.set_post_isomorphism(isom)
+            sage: phi = isom * phi
             sage: phi.is_normalized()
             True
             sage: isom = WeierstrassIsomorphism(phi.codomain(), (1, 1, 1, 1))
-            sage: phi.set_post_isomorphism(isom)
+            sage: phi = isom * phi
             sage: phi.is_normalized()
             True
         """
@@ -3415,7 +3435,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi
             Isogeny of degree 5 from Elliptic Curve defined by y^2 = x^3 + 11*x + 11 over Finite Field of size 103 to Elliptic Curve defined by y^2 = x^3 + 25*x + 80 over Finite Field of size 103
             sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
-            sage: phi.set_post_isomorphism(WeierstrassIsomorphism(phi.codomain(),(5,0,1,2)))
+            sage: phi = WeierstrassIsomorphism(phi.codomain(),(5,0,1,2)) * phi
             sage: phi.dual().dual() == phi
             True
 

@@ -73,6 +73,7 @@ from sage.modular.modform.ring import ModularFormsRing
 
 from sage.rings.all import Integer, QQ, ZZ
 from sage.rings.polynomial.polynomial_element import Polynomial
+from sage.rings.power_series_poly import PowerSeries_poly
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -306,6 +307,16 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from <class 'str'> to Univariate Polynomial Ring in E2 over Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+            sage: q = polygen(QQ, 'q')
+            sage: QM(1 - 24 * q - 72 * q^2 - 96 * q^3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion from q-expansion not yet implemented
+            sage: P.<q> = PowerSeriesRing(QQ)
+            sage: QM(1 - 24 * q - 72 * q^2 - 96 * q^3 + O(q^4))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion from q-expansion not yet implemented
         """
         if isinstance(datum, list):
             if len(datum) == 0:
@@ -319,7 +330,11 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             datum = self.__modular_forms_subring(datum) # GradedModularFormElement
             datum = self.__polynomial_subring(datum)
         elif isinstance(datum, Polynomial):
+            if datum.parent()._names[0] == 'q':
+                raise NotImplementedError("conversion from q-expansion not yet implemented")
             datum = self.__polynomial_subring(datum.coefficients(sparse=False))
+        elif isinstance(datum, PowerSeries_poly):
+            raise NotImplementedError("conversion from q-expansion not yet implemented")
         else:
             datum = self.__polynomial_subring.coerce(datum)
         return self.element_class(self, datum)

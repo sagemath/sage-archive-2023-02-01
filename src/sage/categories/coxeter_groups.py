@@ -698,7 +698,8 @@ class CoxeterGroups(Category_singleton):
             <CoxeterGroups.ElementMethods.kazhdan_lusztig_cell()>`.
 
             As detailed there, installation of the optional package ``coxeter3``
-            is recommended (though not required) before using this function.
+            is recommended (though not required) before using this function
+            as it speeds up the computation.
 
             INPUT:
 
@@ -707,21 +708,48 @@ class CoxeterGroups(Category_singleton):
 
             EXAMPLES:
 
-            We compute the left cells in the Coxeter group of type `A_3` below.
-            Note that each Coxeter group may be created with multiple
+            We compute the right cells in the Coxeter group of type `A_2`
+            below. Note that each Coxeter group may be created with multiple
             implementations, namely, 'reflection' (default), 'permutation',
             'matrix', or 'coxeter3'. The choice of implementation affects the
             representation of elements in the output cells but not the method
-            used for the cell computation. In particular, the cell computation
-            uses the optional package ``coxeter3`` in the background as long as
-            the package is installed, even if the group is not created with the
-            'coxeter3' implementation.
+            used for the cell computation.
 
-            ::
+                sage: W = CoxeterGroup('A2')
+                sage: KL_cells = W.kazhdan_lusztig_cells(side='right')
+                sage: set([tuple(sorted(C, key=lambda w: w.reduced_word()))
+                ....:      for C in KL_cells])
+                {(
+                [-1  1]  [ 0 -1]
+                [ 0  1], [ 1 -1]
+                ),
+                 (
+                [ 0 -1]
+                [-1  0]
+                ),
+                 (
+                [1 0]
+                [0 1]
+                ),
+                 (
+                [ 1  0]  [-1  1]
+                [ 1 -1], [-1  0]
+                )}
+                sage: len(KL_cells)
+                4
 
-                sage: W = CoxeterGroup('A3', implementation='coxeter3')  # optional - coxeter3
-                sage: KL_cells = W.kazhdan_lusztig_cells()               # optional - coxeter3
-                sage: set([tuple(sorted(C)) for C in KL_cells])          # optional - coxeter3
+                sage: W = CoxeterGroup('A2', implementation='permutation')
+                sage: len(W.kazhdan_lusztig_cells(side='right'))
+                4
+
+            We compute the left cells in the Coxeter group of type `A_3`
+            below. If the optional package ``coxeter3`` is installed, it
+            runs in the background even if the group is not created with
+            the ``'coxeter3'`` implementation. ::
+
+                sage: W = CoxeterGroup('A3', implementation='coxeter3')    # optional - coxeter3
+                sage: KL_cells = W.kazhdan_lusztig_cells()                 # optional - coxeter3
+                sage: set([tuple(sorted(C)) for C in KL_cells])            # optional - coxeter3
                 {([],),
                  ([1], [2, 1], [3, 2, 1]),
                  ([1, 2], [2], [3, 2]),
@@ -732,7 +760,7 @@ class CoxeterGroups(Category_singleton):
                  ([1, 2, 3], [2, 3], [3]),
                  ([1, 3], [2, 1, 3]),
                  ([1, 3, 2], [2, 1, 3, 2])}
-                sage: len(KL_cells)
+                sage: len(KL_cells)                                         # optional - coxeter3
                 10
 
                 sage: W = CoxeterGroup('A3', implementation='permutation')  # optional - coxeter3
@@ -2810,8 +2838,8 @@ class CoxeterGroups(Category_singleton):
 
             In this function, we compute products in the `C^{\prime}` basis by
             using :class:`IwahoriHeckeAlgebra.Cp`. As mentioned in that class,
-            installing the optional package ``coxeter3`` is strongly recommended
-            (though not required) before using this function, because the
+            installing the optional package ``coxeter3`` is recommended
+            (though not required) before using this function because the
             package speeds up product computations that are sometimes
             computationally infeasible without it.
 
@@ -2827,21 +2855,23 @@ class CoxeterGroups(Category_singleton):
             We compute the left cell of the generator `s_1` in type `A_3` in
             three different implementations of the Coxeter group. Note that the
             choice of implementation affects the representation of elements in
-            the output cell but not the method used for the cell computation. In
-            particular, the cell computation uses the optional package
-            ``coxeter3`` in the background as long as the package is installed,
-            even in the different implementations implementations::
+            the output cell but not the method used for the cell computation.
 
-                sage: W = WeylGroup('A3', prefix='s')                       # optional - coxeter3
-                sage: s1,s2,s3 = W.simple_reflections()                     # optional - coxeter3
-                sage: s1.kazhdan_lusztig_cell()                             # optional - coxeter3
-                {s3*s2*s1, s2*s1, s1}
-                sage: W = CoxeterGroup('A3', implementation='permutation')  # optional - coxeter3
-                sage: s1,s2,s3 = W.simple_reflections()                     # optional - coxeter3
-                sage: s1.kazhdan_lusztig_cell()                             # optional - coxeter3
+                sage: W = CoxeterGroup('A3', implementation='permutation')
+                sage: s1,s2,s3 = W.simple_reflections()
+                sage: s1.kazhdan_lusztig_cell()
                 {(1,2,3,12)(4,5,10,11)(6,7,8,9),
                  (1,2,10)(3,6,5)(4,7,8)(9,12,11),
                  (1,7)(2,4)(5,6)(8,10)(11,12)}
+
+            The cell computation uses the optional package ``coxeter3`` in
+            the background if available to speed up the computation,
+            even in the different implementations implementations::
+
+                sage: W = WeylGroup('A3', prefix='s')                    # optional - coxeter3
+                sage: s1,s2,s3 = W.simple_reflections()                  # optional - coxeter3
+                sage: s1.kazhdan_lusztig_cell()                          # optional - coxeter3
+                {s3*s2*s1, s2*s1, s1}
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')  # optional - coxeter3
                 sage: s1,s2,s3 = W.simple_reflections()                  # optional - coxeter3
                 sage: s1.kazhdan_lusztig_cell()                          # optional - coxeter3
@@ -2851,7 +2881,7 @@ class CoxeterGroups(Category_singleton):
 
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')  # optional - coxeter3
                 sage: s1,s2,s3 = W.simple_reflections()                  # optional - coxeter3
-                sage: w = s1*s3
+                sage: w = s1 * s3                                        # optional - coxeter3
                 sage: w.kazhdan_lusztig_cell(side='right')               # optional - coxeter3
                 {[1, 3], [1, 3, 2]}
                 sage: w.kazhdan_lusztig_cell(side='two-sided')           # optional - coxeter3

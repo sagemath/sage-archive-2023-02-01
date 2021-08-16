@@ -37,7 +37,6 @@ from sage.arith.all import is_square
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
 from sage.combinat.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
-from sage.libs.coxeter3.coxeter_group import CoxeterGroup as Coxeter3Group
 
 
 def normalized_laurent_polynomial(R, p):

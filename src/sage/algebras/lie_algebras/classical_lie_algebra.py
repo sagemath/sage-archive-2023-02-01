@@ -942,7 +942,7 @@ class e8(ExceptionalMatrixLieAlgebra):
             sage: g
             Simple matrix Lie algebra of type ['E', 8] over Rational Field
 
-        We skipped the not implemented methods test as it takes too much time::
+        We skip the not implemented methods test as it takes too much time::
 
             sage: TestSuite(g).run(skip="_test_not_implemented_methods")  # long time
         """

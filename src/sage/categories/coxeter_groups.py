@@ -713,7 +713,7 @@ class CoxeterGroups(Category_singleton):
             implementations, namely, 'reflection' (default), 'permutation',
             'matrix', or 'coxeter3'. The choice of implementation affects the
             representation of elements in the output cells but not the method
-            used for the cell computation.
+            used for the cell computation::
 
                 sage: W = CoxeterGroup('A2')
                 sage: KL_cells = W.kazhdan_lusztig_cells(side='right')
@@ -745,7 +745,7 @@ class CoxeterGroups(Category_singleton):
             We compute the left cells in the Coxeter group of type `A_3`
             below. If the optional package ``coxeter3`` is installed, it
             runs in the background even if the group is not created with
-            the ``'coxeter3'`` implementation. ::
+            the ``'coxeter3'`` implementation::
 
                 sage: W = CoxeterGroup('A3', implementation='coxeter3')    # optional - coxeter3
                 sage: KL_cells = W.kazhdan_lusztig_cells()                 # optional - coxeter3
@@ -2855,7 +2855,7 @@ class CoxeterGroups(Category_singleton):
             We compute the left cell of the generator `s_1` in type `A_3` in
             three different implementations of the Coxeter group. Note that the
             choice of implementation affects the representation of elements in
-            the output cell but not the method used for the cell computation.
+            the output cell but not the method used for the cell computation::
 
                 sage: W = CoxeterGroup('A3', implementation='permutation')
                 sage: s1,s2,s3 = W.simple_reflections()

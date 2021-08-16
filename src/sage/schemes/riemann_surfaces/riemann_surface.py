@@ -561,24 +561,44 @@ class RiemannSurface(object):
         sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
         sage: from sage.numerical.gauss_legendre import nodes
         sage: nodes.cache.clear()
-        sage: %time Rh = Sh.riemann_matrix() # random | long time (2 seconds)
-        CPU times: user 2.38 s, sys: 36 µs, total: 2.38 s
-        Wall time: 2.38 s
+        sage: %time Rh = Sh.riemann_matrix() # random | long time (1 second)
+        CPU times: user 795 ms, sys: 0 ns, total: 795 ms
+        Wall time: 799 ms
         sage: nodes.cache.clear()
-        sage: %time Rr = Sr.riemann_matrix() # random | long time (3 seconds)
-        CPU times: user 2.67 s, sys: 66 µs, total: 2.67 s
-        Wall time: 2.67 s
-        sage: p = 200
+        sage: %time Rr = Sr.riemann_matrix() # random | long time (2 seconds)
+        CPU times: user 1.75 s, sys: 0 ns, total: 1.75 s
+        Wall time: 1.75 s
+        sage: p = 500
         sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
         sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
         sage: nodes.cache.clear()
-        sage: %time Rh = Sh.riemann_matrix() # random | long time (7 seconds)
-        CPU times: user 7.12 s, sys: 4.01 ms, total: 7.13 s
-        Wall time: 7.13 s
+        sage: %time Rh = Sh.riemann_matrix() # random | long time (8 seconds)
+        CPU times: user 8.43 s, sys: 0 ns, total: 8.43 s
+        Wall time: 8.43 ss
         sage: nodes.cache.clear()
-        sage: %time Rr = Sr.riemann_matrix() # random | long time (5 seconds)
-        CPU times: user 4.91 s, sys: 9 µs, total: 4.91 s
-        Wall time: 4.91 s
+        sage: %time Rr = Sr.riemann_matrix() # random | long time (10 seconds)
+        CPU times: user 9.69 s, sys: 0 ns, total: 9.69 s
+        Wall time: 9.69 s
+
+    Note that for the above curve, the branch points are evenly distributed, and
+    hence the implicit assumptions in the heuristic method are more sensible, 
+    meaning that a higher precision is required to see the heuristic method 
+    being significantly slower than the rigorous method. For a worse conditioned
+    curve, this effect is more pronounced::
+
+        sage: q = 1/10
+        sage: f = y^2-(x^2-2*x+1+q^2)*(x^2+2*x+1+q^2)
+        sage: p = 500
+        sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
+        sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
+        sage: nodes.cache.clear()
+        sage: %time Rh = Sh.riemann_matrix() # random | long time (7 second)
+        CPU times: user 7.45 s, sys: 0 ns, total: 7.45 s
+        Wall time: 7.44 s
+        sage: nodes.cache.clear()
+        sage: %time Rr = Sr.riemann_matrix() # random | long time (2 second)
+        CPU times: user 1.5 s, sys: 0 ns, total: 1.5 s
+        Wall time: 1.5 s
 
     This disparity in timings can get increasingly worse, and testing has shown
     that even for random quadrics the heuristic method can be as bad as 30 times
@@ -1068,7 +1088,7 @@ class RiemannSurface(object):
 
             sage: g = z^3*w + w^3 + z
             sage: T = RiemannSurface(g)
-            sage: z0 = T._vertices[2]*(0.9) - T._vertices[5]*(0.1)
+            sage: z0 = T._vertices[2]*(0.9) + 0.3*I
             sage: epsilon = 0.5
             sage: oldw = T.w_values(T._vertices[2])
             sage: T._determine_new_w(z0, oldw, epsilon)
@@ -1160,7 +1180,7 @@ class RiemannSurface(object):
 
             sage: g = z^3*w + w^3 + z
             sage: T = RiemannSurface(g)
-            sage: z0 = T._vertices[2]*(0.9) - T._vertices[5]*(0.1)
+            sage: z0 = T._vertices[2]*(0.9) + 0.3*I
             sage: epsilon = 0.5
             sage: oldw = T.w_values(T._vertices[2])[1]
             sage: T._newton_iteration(z0, oldw, epsilon)
@@ -1259,10 +1279,10 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
 
-        Compute the edge permutation of (2, 9) on the Voronoi diagram::
+        Compute the edge permutation of (1, 2) on the Voronoi diagram::
 
-            sage: S._edge_permutation((2, 9))
-            (1,2)
+            sage: S._edge_permutation((1, 2))
+            (0,2,1)
 
         This indicates that while traversing along the direction of `(2, 9)`,
         the 2nd and 3rd layers of the Riemann surface are interchanging.
@@ -1350,28 +1370,21 @@ class RiemannSurface(object):
             sage: f = z^3*w + w^3 + z
             sage: S = RiemannSurface(f)
             sage: G = S.monodromy_group(); G
-            [(0,2,1), (0,1), (1,2), (0,2), (0,2), (1,2), (0,2), (0,1), (), (), (), (), (), (), (), (1,2)]
+            [(0,1,2), (0,1), (0,2), (1,2), (1,2), (1,2), (0,1), (0,2), (0,2)]
 
         The permutations give the local monodromy generators for the branch
         points::
 
             sage: list(zip(S.branch_locus + [unsigned_infinity], G)) #abs tol 0.0000001
-            [(0.000000000000000, (0,2,1)),
+            [(0.000000000000000, (0,1,2)),
              (-1.31362670141929, (0,1)),
-             (-0.819032851784253 - 1.02703471138023*I, (1,2)),
-             (-0.819032851784253 + 1.02703471138023*I, (0,2)),
-             (0.292309440469772 - 1.28069133740100*I, (0,2)),
+             (-0.819032851784253 - 1.02703471138023*I, (0,2)),
+             (-0.819032851784253 + 1.02703471138023*I, (1,2)),
+             (0.292309440469772 - 1.28069133740100*I, (1,2)),
              (0.292309440469772 + 1.28069133740100*I, (1,2)),
-             (1.18353676202412 - 0.569961265016465*I, (0,2)),
-             (1.18353676202412 + 0.569961265016465*I, (0,1)),
-             (-1.45036146591896, ()),
-             (-0.904285583009352 - 1.13393825501392*I, ()),
-             (-0.904285583009352 + 1.13393825501392*I, ()),
-             (0.322735787970535 - 1.41399787587734*I, ()),
-             (0.322735787970535 + 1.41399787587734*I, ()),
-             (1.30673052799829 - 0.629288255904939*I, ()),
-             (1.30673052799829 + 0.629288255904939*I, ()),
-             (Infinity, (1,2))]
+             (1.18353676202412 - 0.569961265016465*I, (0,1)),
+             (1.18353676202412 + 0.569961265016465*I, (0,2)),
+             (Infinity, (0,2))]
 
         We can check the ramification by looking at the cycle lengths and verify
         it agrees with the Riemann-Hurwitz formula::
@@ -1715,7 +1728,7 @@ class RiemannSurface(object):
 
             sage: M = S.riemann_matrix()
             sage: differentials = S.cohomology_basis()
-            sage: S.simple_vector_line_integral([(0,0),(1,0)], differentials) #abs tol 0.00000001
+            sage: S.simple_vector_line_integral([(0, 0), (1, 0)], differentials) #abs tol 0.00000001
             (1.14590610929717e-16 - 0.352971844594760*I)
 
         .. NOTE::

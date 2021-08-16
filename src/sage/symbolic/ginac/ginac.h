@@ -23,8 +23,6 @@
 #ifndef __GINAC_H__
 #define __GINAC_H__
 
-#include "version.h"
-
 #include "basic.h"
 
 #include "ex.h"

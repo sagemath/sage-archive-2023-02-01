@@ -24,14 +24,8 @@
 #include "ex.h"
 #include "numeric.h"
 #include "utils.h"
-#include "version.h"
 
 namespace GiNaC {
-
-/* Version information buried into the library */
-const int version_major = GINACLIB_MAJOR_VERSION;
-const int version_minor = GINACLIB_MINOR_VERSION;
-const int version_micro = GINACLIB_MICRO_VERSION;
 
 
 /** ctor for pole_error exception class. */

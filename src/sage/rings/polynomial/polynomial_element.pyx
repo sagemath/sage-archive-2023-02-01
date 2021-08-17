@@ -2530,7 +2530,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Truncated ``n``-th power of this polynomial up to precision ``prec``
 
-        This method is overriden for certain subclasses when a library function
+        This method is overridden for certain subclasses when a library function
         is available.
 
         INPUT:

@@ -2403,7 +2403,7 @@ class Exponentialize(ExpressionTreeWalker):
         coth: (-(exp(-x) + exp(x))/(exp(-x) - exp(x))).function(x)
     }
     Circs = list(CircDict.keys())
-    def _init__(self, ex):
+    def __init__(self, ex):
         """
         A class that walks a symbolic expression tree and replace circular
         and hyperbolic functions by their respective exponential

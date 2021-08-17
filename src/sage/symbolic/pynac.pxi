@@ -579,8 +579,3 @@ cdef extern from "ginac/order.h":
             (GEx left, GEx right) except +
     bint print_order_compare_mul "GiNaC::print_order_mul().compare" \
             (GEx left, GEx right) except +
-
-include "expression.pxi"
-include "comparison.pxi"
-include "getitem.pxi"
-include "substitution_map.pxi"

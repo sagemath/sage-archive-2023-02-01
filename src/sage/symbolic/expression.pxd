@@ -1,5 +1,12 @@
 from sage.structure.element cimport CommutativeRingElement
 
+
+include "pynac.pxi"
+include "comparison.pxi"
+include "getitem.pxi"
+include "substitution_map.pxi"
+
+
 cdef class Expression(CommutativeRingElement):
     cdef GEx _gobj
     cpdef _add_(self, other)

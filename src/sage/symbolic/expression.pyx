@@ -13350,3 +13350,13 @@ cdef class hold_class:
         self.__exit__()
 
 hold = hold_class()
+
+
+include "pynac_impl.pxi"
+include "comparison_impl.pxi"
+include "constants_c_impl.pxi"
+include "function_impl.pxi"
+include "getitem_impl.pxi"
+include "pynac_constant_impl.pxi"
+include "series_impl.pxi"
+include "substitution_map_impl.pxi"

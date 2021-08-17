@@ -187,7 +187,7 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         raise NotImplementedError
 
 
-    def _gs(self, series_ring, base_ring, n):
+    def _gs(self, series_ring, base_ring):
         """
         EXAMPLES::
 

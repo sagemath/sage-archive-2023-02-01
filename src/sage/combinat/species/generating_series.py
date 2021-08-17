@@ -248,6 +248,7 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
 
         """
+        raise NotImplementedError()
         P = self.parent()
         return P(lambda n: self._functorial_compose_gen(y, n), 0)
 
@@ -273,11 +274,8 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
 
         """
+        raise NotImplementedError()
         return self.count(y.count(n)) / factorial(n)
-        # n = 0
-        # while True:
-        #     yield self.count(y.count(n)) / factorial(n)
-        #     n += 1
 
 
 class ExponentialGeneratingSeriesRing(LazyTaylorSeriesRing):
@@ -351,6 +349,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: f.count([2,1])
             6
         """
+        raise NotImplementedError()
         t = Partition(t)
         return t.aut() * self.coefficient_cycle_type(t)
 
@@ -371,6 +370,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: f.coefficient_cycle_type([2,1])
             3
         """
+        raise NotImplementedError()
         t = Partition(t)
         p = self.coefficient(t.size())
         return p.coefficient(t)
@@ -402,6 +402,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             [p[], 0, 0, p[3], 0, 0, p[6], 0, 0, 0]
         """
         # return self._new(partial(self._stretch_gen, k), lambda ao: k*ao, self)
+        raise NotImplementedError()
         P = self.parent()
         stream = partial(self._stretch_gen, k)
         return P(next(stream), lambda ao: k*ao)
@@ -419,6 +420,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: [next(g) for i in range(10)]
             [p[2], 0, p[2], 0, p[2], 0, p[2], 0, p[2], 0]
         """
+        raise NotImplementedError()
         from sage.combinat.partition import Partition
         BR = self.base_ring()
         zero = BR.zero()
@@ -444,6 +446,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: f.coefficients(10]
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
+        raise NotImplementedError()
         R = self.base_ring().base_ring()
         OGS = OrdinaryGeneratingSeriesRing(R)()
         return OGS._new(self._ogs_gen, lambda ao: ao, self)
@@ -475,6 +478,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             [1, x0 + x1, x0^2 + x0*x1 + x1^2, x0^3 + x0^2*x1 + x0*x1^2 + x1^3]
 
         """
+        raise NotImplementedError()
         expanded_poly_ring = self.coefficient(0).expand(n, alphabet).parent()
         LPSR = LazyTaylorSeriesRing(expanded_poly_ring)
 
@@ -495,6 +499,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: [next(g) for i in range(10)]
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
+        raise NotImplementedError()
         for i in range(ao):
             yield 0
         for i in _integers_from(ao):
@@ -510,6 +515,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: f.coefficients(5)
             [1, 1, 1, 5/6, 5/8]
         """
+        raise NotImplementedError()
         R = self.base_ring().base_ring()
         EGS = ExponentialGeneratingSeriesRing(R)()
         return EGS._new(self._egs_gen, lambda ao: ao, self)
@@ -527,6 +533,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: [next(g) for i in range(10)]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
+        raise NotImplementedError()
         for i in range(ao):
             yield 0
         for i in _integers_from(ao):
@@ -562,6 +569,7 @@ class CycleIndexSeries(LazyTaylorSeries):
 
         - Andrew Gainer-Dewar
         """
+        raise NotImplementedError()
         if self.coefficient(0) == 0:
             raise ValueError("constant term must be non-zero")
 
@@ -578,6 +586,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: (E / E).coefficients(6)
             [p[], 0, 0, 0, 0, 0]
         """
+        raise NotImplementedError()
         return self*(~y)
 
     def functorial_composition(self, g):
@@ -617,6 +626,7 @@ class CycleIndexSeries(LazyTaylorSeries):
              4/3*p[1, 1, 1] + 2*p[2, 1] + 2/3*p[3],
              8/3*p[1, 1, 1, 1] + 4*p[2, 1, 1] + 2*p[2, 2] + 4/3*p[3, 1] + p[4]]
         """
+        raise NotImplementedError()
         return self._new(partial(self._functorial_compose_gen, g), lambda a,b: 0, self, g)
 
     def _functorial_compose_gen(self, g, ao):
@@ -640,6 +650,7 @@ class CycleIndexSeries(LazyTaylorSeries):
              4/3*p[1, 1, 1] + 2*p[2, 1] + 2/3*p[3],
              8/3*p[1, 1, 1, 1] + 4*p[2, 1, 1] + 2*p[2, 2] + 4/3*p[3, 1] + p[4]]
         """
+        raise NotImplementedError()
         p = self.parent().base_ring()
         n = 0
         while True:
@@ -709,6 +720,7 @@ class CycleIndexSeries(LazyTaylorSeries):
            :arxiv:`math/0503436v2`.
 
         """
+        raise NotImplementedError()
         from itertools import product, repeat, chain
 
         p = self.base_ring()
@@ -770,6 +782,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: [cis._cycle_type(p) for p in Partitions(3)]
             [[1], [1], [1]]
         """
+        raise NotImplementedError()
         if s == []:
             return self._card(0)
         res = []
@@ -801,6 +814,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: cis._upper_bound_for_longest_cycle([1,1,1,1])
             1
         """
+        raise NotImplementedError()
         if s == []:
             return 1
         return min(self._card(sum(s)), lcm(list(s)))
@@ -818,6 +832,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: cis._card(4)
             15
         """
+        raise NotImplementedError()
         p = self.coefficient(n)
         return factorial(n) * p.coefficient([1] * n)
 
@@ -838,6 +853,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: [next(g) for i in range(4)]
             [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
         """
+        raise NotImplementedError()
         assert y.coefficient(0) == 0
         y_powers = Stream(y._power_gen())
 
@@ -870,6 +886,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: E_cis._compose_term(p2, c_powers).coefficients(4)
             [0, 0, 1/2*p[1, 1] + 1/2*p[2], 1/2*p[1, 1, 1] + 1/2*p[2, 1]]
         """
+        raise NotImplementedError()
         parent = self.parent()
         if p == 0:
             return parent(0)
@@ -905,6 +922,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: E(C).cycle_index_series().coefficients(4)
             [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
         """
+        raise NotImplementedError()
         base_ring = self.base_ring()
         y = y_species.cycle_index_series(base_ring)
         assert y.coefficient(0) == 0
@@ -923,6 +941,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: [next(g) for i in range(4)]
             [p[], p[1], p[1, 1] + p[2], p[1, 1, 1] + p[2, 1] + p[3]]
         """
+        raise NotImplementedError()
         parent = self.parent()
         res =  parent.sum_generator(self._weighted_compose_term(self.coefficient(i), y_species)
                                     for i in _integers_from(0))
@@ -948,6 +967,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: E_cis._weighted_compose_term(p2, C).coefficients(4)
             [0, 0, 1/2*p[1, 1] + 1/2*p[2], 1/2*p[1, 1, 1] + 1/2*p[2, 1]]
         """
+        raise NotImplementedError()
         parent = self.parent()
         if p == 0:
             return parent(0)
@@ -1020,6 +1040,7 @@ class CycleIndexSeries(LazyTaylorSeries):
 
         - Andrew Gainer-Dewar
         """
+        raise NotImplementedError()
         cisr = self.parent()
         sfa = cisr._base
 
@@ -1063,6 +1084,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             True
         """
         # Make sure that order is integral
+        raise NotImplementedError()
         order = Integer(order)
 
         if order < 0:
@@ -1101,6 +1123,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             True
 
         """
+        raise NotImplementedError()
         p1 = self.base_ring()([1])
         X = self.parent()([0, p1, 0])
 
@@ -1155,6 +1178,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: BT.exponential().isotype_generating_series().coefficients(8) == BF.isotype_generating_series().coefficients(8)
             True
         """
+        raise NotImplementedError()
         base_ring = self.parent().base_ring().base_ring()
         E = ExponentialCycleIndexSeries(base_ring)
         return E.compose(self)
@@ -1183,6 +1207,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: CG.isotype_generating_series().coefficients(8)
             [0, 1, 1, 2, 6, 21, 112, 853]
         """
+        raise NotImplementedError()
         base_ring = self.parent().base_ring().base_ring()
         Omega = LogarithmCycleIndexSeries(base_ring)
         return Omega.compose(self)
@@ -1263,6 +1288,7 @@ def _exp_term(n, R = RationalField()):
         sage: [_exp_term(i) for i in range(4)]
         [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
     """
+    raise NotImplementedError()
     p = SymmetricFunctions(R).power()
     return sum(p(part) / part.aut() for part in Partitions(n))
 
@@ -1279,6 +1305,7 @@ def _exp_gen(R = RationalField()):
         sage: [next(g) for i in range(4)]
         [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
     """
+    raise NotImplementedError()
     return (_exp_term(i, R) for i in _integers_from(0))
 
 @cached_function
@@ -1301,6 +1328,7 @@ def ExponentialCycleIndexSeries(R = RationalField()):
          + 1/3*p[3], 1/24*p[1, 1, 1, 1] + 1/4*p[2, 1, 1] + 1/8*p[2, 2]
          + 1/3*p[3, 1] + 1/4*p[4]]
     """
+    raise NotImplementedError()
     CIS = CycleIndexSeriesRing(R, 'z')
     return CIS(_exp_gen(R))
 
@@ -1317,6 +1345,7 @@ def _cl_term(n, R = RationalField()):
         sage: [_cl_term(i) for i in range(4)]
         [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
     """
+    raise NotImplementedError()
     n = Integer(n)  # check that n is an integer
 
     p = SymmetricFunctions(R).power()
@@ -1343,6 +1372,7 @@ def _cl_gen (R = RationalField()):
         sage: [next(g) for i in range(4)]
         [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
     """
+    raise NotImplementedError()
     return (_cl_term(i, R) for i in _integers_from(0))
 
 
@@ -1373,6 +1403,7 @@ def LogarithmCycleIndexSeries(R = RationalField()):
         sage: LogarithmCycleIndexSeries().compose(Eplus).coefficients(4)
         [0, p[1], 0, 0]
     """
+    raise NotImplementedError()
     CIS = CycleIndexSeriesRing(R, 'z')
     return CIS(_cl_gen(R))
 

@@ -2422,7 +2422,8 @@ class LazyTaylorSeries(LazyCauchyProductSeries):
         True
     """
     def __call__(self, *g):
-        r"""Return the composition of ``self`` with ``g``.
+        r"""
+        Return the composition of ``self`` with ``g``.
 
         The arity of ``self`` must be equal to the number of
         arguments provided.
@@ -2599,8 +2600,87 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
 
     EXAMPLES::
 
-        sage: L = LazySymmetricFunctions(ZZ, "x, y")
+        sage: L = LazySymmetricFunctions(ZZ, "x")
     """
+    def __call__(self, *args):
+        r"""
+        Return the composition of ``self`` with ``args``.
+
+        The arity of ``self`` must be equal to the number of
+        arguments provided.
+
+        Given two lazy symmetric functions `f` and `g` over the same
+        base ring, the composition (or plethysm) `(f \circ g)` is
+        defined if and only if:
+
+        - `g = 0`,
+        - `g` is non-zero and `f` has only finitely many non-zero coefficients,
+        - `g` is non-zero and `val(g) > 0`.
+
+        INPUT:
+
+        - ``args`` -- other (lazy) symmetric functions.
+
+        EXAMPLES::
+
+            sage: P.<q> = QQ[]
+            sage: s = SymmetricFunctions(P).s()
+            sage: L = LazySymmetricFunctions(P, "x")
+            sage: f = s[2]; g = s[3]
+            sage: L(f)(L(g)) - L(f(g))
+            O(x)^7
+
+            sage: f = s[2] + s[2,1]; g = s[1] + s[2,2]
+            sage: L(f)(L(g)) - L(f(g))
+            O(x)^7
+        """
+        if len(args) != len(self.parent().variable_names()):
+            raise ValueError("arity must be equal to the number of arguments provided")
+        from sage.combinat.sf.sfa import is_SymmetricFunction
+        if not all(isinstance(g, LazySymmetricFunction) or is_SymmetricFunction(g) for g in args):
+            raise ValueError("all arguments must be (possibly lazy) symmetric functions")
+        from sage.misc.lazy_list import lazy_list
+        if len(args) == 1:
+            g = args[0]
+            P = g.parent()
+            R = P._coeff_ring
+            BR = P.base_ring()
+            p = R.realization_of().power()
+            g_p = CoefficientStream_map_coefficients(g._coeff_stream, lambda c: c, p)
+            degree_one = [R(x) for x in BR.variable_names_recursive()]
+            def raise_c(n):
+                return lambda c: c.subs(**{str(g): x ** n for x in degree_one})
+            def scale_part(n):
+                return lambda m: m.__class__(m.parent(), [i * n for i in m])
+            def pn_pleth(f, n):
+                return f.map_support(scale_part(n))
+            def stretched_coefficient(k, n):
+                q, r = ZZ(n).quo_rem(k)
+                if r:
+                    return 0
+                c = g_p[q]
+                if c:
+                    return pn_pleth(c.map_coefficients(raise_c(k)), k)
+                return c
+            def g_coeff_stream(k):
+                return CoefficientStream_coefficient_function(lambda n: stretched_coefficient(k, n),
+                                                              R, P._sparse, 0)
+            stretched = lazy_list(lambda k: g_coeff_stream(k))
+            f_p = CoefficientStream_map_coefficients(self._coeff_stream, lambda c: c, p)
+            def coefficient(n):
+                r = R(0)
+                for i in range(n+1):
+                    r += p._apply_module_morphism(f_p[i],
+                                                  lambda part: p.prod(sum(stretched[j][h] for h in range(n+1))
+                                                                      for j in part),
+                                                  codomain=p).homogeneous_component(n)
+                return r
+        else:
+            raise NotImplementedError
+
+        coeff_stream = CoefficientStream_coefficient_function(coefficient, P._coeff_ring, P._sparse, 0)
+        return P.element_class(P, coeff_stream)
+
     def change_ring(self, ring):
         """
         Return this series with coefficients converted to elements of ``ring``.

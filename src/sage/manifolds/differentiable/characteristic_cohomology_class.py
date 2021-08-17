@@ -1,24 +1,6 @@
 from sage.manifolds.differentiable.de_rham_cohomology import DeRhamCohomologyClass
-
-def CharacteristicCohomologyClass():
-    pass
-
-class CharacteristicCohomologyClass_base(DeRhamCohomologyClass):
-    pass
-
-class CharacteristicCohomologyClass_complex(CharacteristicCohomologyClass_base):
-    pass
-
-class CharacteristicCohomologyClass_real_even(CharacteristicCohomologyClass_base):
-    pass
-
-class CharacteristicCohomologyClass_real_odd(CharacteristicCohomologyClass_base):
-    pass
-
-#*****************************************************************************
-# ALGORITHMS
-#*****************************************************************************
-
+from sage.algebras.finite_gca import FiniteGCAlgebra
+from sage.combinat.free_module import IndexedFreeModuleElement
 from sage.misc.fast_methods import Singleton
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
@@ -26,29 +8,137 @@ from sage.misc.abstract_method import abstract_method
 from sage.manifolds.differentiable.affine_connection import AffineConnection
 from sage.manifolds.differentiable.bundle_connection import BundleConnection
 
+class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
+    r"""
+
+    """
+    def __init__(self, parent, x, name=None, latex_name=None):
+        r"""
+
+        """
+        self._name = name
+        if latex_name is None:
+            self._latex_name = self._name
+        else:
+            self._latex_name = latex_name
+        self._mixed_forms = {}  # dict. of mixed forms w.r.t. this class
+                                # (key: bundle connection)
+        super().__init__(parent, x)
+
+    def _repr_(self):
+        r"""
+
+        """
+        if self._name is None:
+            name = super()._repr_()
+        else:
+            name = self._name
+        vbundle = self.parent()._vbundle
+        return  f'Characteristic cohomology class {name} over the {vbundle}'
+
+    def get_form(self, nab):
+        r"""
+
+        """
+        if nab not in self._mixed_forms:
+            dom = nab._domain
+            A = dom.mixed_form_algebra()
+
+            # trivial cases
+            if self == 1:
+                self._mixed_forms[nab] = A(dom._one_scalar_field)
+            elif self == 0:
+                self._mixed_forms[nab] = A(dom._zero_scalar_field)
+            else:  # non-trivial case
+                from functools import reduce
+
+                c = ChernAlgorithm().get(nab)
+                parent = self.parent()
+                degrees = parent._degrees
+                grading = parent.print_options()['sorting_key']
+                res = [dom.diff_form_module(i).zero() for i in range(dom._dim + 1)]
+                for ind, coeff in self:
+                    deg = grading(ind)
+                    gen_pow = [fast_wedge_power(c[d], i) for i, d in zip(ind, degrees)]
+                    res[deg] += coeff * reduce(lambda x, y: x.wedge(y), gen_pow)
+                self._mixed_forms[nab] = A(res)  # add result to dict
+
+        return self._mixed_forms[nab]
+
+    representative = get_form
+
+class CharacteristicCohomologyClassRing_Chern(FiniteGCAlgebra):
+    r"""
+
+    """
+    Element = CharacteristicCohomologyClass_Chern
+
+    def __init__(self, base, vbundle):
+        r"""
+
+        """
+        self._vbundle = vbundle
+        self._domain = vbundle._base_space
+        dim = self._domain._dim
+        ran = min(vbundle._rank, dim // 2)
+        names = tuple(f'c_{i}({vbundle._name})' for i in range(1, ran + 1))
+        degrees = tuple(2*i for i in range(1, ran + 1))
+        super().__init__(base=base, names=names, degrees=degrees,
+                         max_degree=dim)
+
+#*****************************************************************************
+# ALGORITHMS
+#*****************************************************************************
+
+def fast_wedge_power(form, n):
+    r"""
+    Return the wedge product power of `form` using a square-and-wedge algorithm.
+    """
+    if n == 0:
+        return form._domain._one_scalar_field
+    elif n < 0:
+        raise ValueError("'n' must be non-negative")
+    val = form
+    while not (n & 1):
+        print(n)
+        val = val.wedge(val)
+        n >>= 1
+
+    # Now multiply together the correct factors form^(2^i)
+    res = val
+    n >>= 1
+    while n:
+        val = val.wedge(val)
+        if n & 1:
+            res = val.wedge(res)
+        n >>= 1
+
+    return res
+
 class Algorithm_generic(SageObject):
     r"""
     Algorithm class to generate characteristic forms.
     """
     @cached_method
-    def get(self, nabla):
+    def get(self, nab):
         r"""
         Return the global characteristic form w.r.t. a given connection.
         """
-        if isinstance(nabla, AffineConnection):
-            vbundle = nabla._domain.tangent_bundle()
-        elif isinstance(nabla, BundleConnection):
-            vbundle = nabla._vbundle
+        if isinstance(nab, AffineConnection):
+            vbundle = nab._domain.tangent_bundle()
+        elif isinstance(nab, BundleConnection):
+            vbundle = nab._vbundle
         else:
-            raise TypeError(f'{nabla} must be a connection')
-        dom = nabla._domain
-        res = dom.mixed_form()
-        for frame in dom._get_min_covering(nabla._coefficients):
-            cmatrix = [[nabla.curvature_form(i, j, frame)
+            raise TypeError(f'{nab} must be a connection')
+        dom = nab._domain
+        res = [dom.diff_form(i) for i in range(dom._dim + 1)]
+        for frame in dom._get_min_covering(nab._coefficients):
+            cmatrix = [[nab.curvature_form(i, j, frame)
                         for j in vbundle.irange()]
                        for i in vbundle.irange()]
             res_loc = self.get_local(cmatrix)
-            res.set_restriction(res_loc)
+            for form, loc_form in zip(res, res_loc):
+                form.set_restriction(loc_form)
         return res
 
     @abstract_method
@@ -71,19 +161,19 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
         dim = dom._dim
         ran = min(rk, dim//2)
         fac = I / (2*pi)
-        res = dom.mixed_form_algebra().one()
+        res = [dom._one_scalar_field]
+        res += [dom.diff_form_module(i).zero() for i in range(1, dom._dim + 1)]
         m = cmat
         for k in range(1, ran):
             c = -sum(m[i][i] for i in range(rk)) / k
-            res += fac * c
+            res[2*k] = fac * c
             for i in range(rk):
                 m[i][i] += c
             fac *= I / (2*pi)
             m = [[sum(cmat[i][l].wedge(m[l][j]) for l in range(rk))
                   for j in range(rk)] for i in range(rk)]
-        res -= fac * sum(m[i][i] for i in range(rk)) / ran
+        res[2*ran] = -fac * sum(m[i][i] for i in range(rk)) / ran
         return res
-
 
 class PontryaginAlgorithm(Singleton, Algorithm_generic):
     r"""
@@ -100,19 +190,20 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
         dim = dom._dim
         ran = min(rk//2, dim//4)
         fac = -1 / (2*pi)**2
-        res = dom.mixed_form_algebra().one()
+        res = [dom._one_scalar_field]
+        res += [dom.diff_form_module(i).zero() for i in range(1, dom._dim + 1)]
         m = cmat2 = [[sum(cmat[i][l].wedge(cmat[l][j])
                           for l in range(rk))
                       for j in range(rk)] for i in range(rk)]
         for k in range(1, ran):
             c = -sum(m[i][i] for i in range(rk)) / (2*k)
-            res += fac * c
+            res[4*k] = fac * c
             for i in range(rk):
                 m[i][i] += c
             fac *= -1 / (2*pi)**2
             m = [[sum(cmat2[i][l].wedge(m[l][j]) for l in range(rk))
                   for j in range(rk)] for i in range(rk)]
-        res -= fac * sum(m[i][i] for i in range(rk)) / (2*ran)
+        res[4*ran] = -fac * sum(m[i][i] for i in range(rk)) / (2*ran)
         return res
 
 class EulerAlgorithm(Singleton, Algorithm_generic):
@@ -125,8 +216,6 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
         """
         from sage.symbolic.constants import pi
 
-        dom = cmat[0][0]._domain
-        A = dom.mixed_form_algebra()
         rk = len(cmat)
         ran = rk // 2
         m = a = [cmat[i].copy() for i in range(rk)]
@@ -142,4 +231,4 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
                   for j in range(rk)] for i in range(rk)]
         c = -sum(m[i][i] for i in range(rk)) / (2*rk)
         c *= (-1/(2*pi))**rk  # normalize
-        return A(c)
+        return [c]

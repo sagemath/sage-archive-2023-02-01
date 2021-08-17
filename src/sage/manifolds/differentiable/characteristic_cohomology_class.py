@@ -15,10 +15,11 @@ class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
         r"""
 
         """
-        self._name = name
-        if latex_name is None:
-            self._latex_name = self._name
-        else:
+        if name is not None:
+            self._name = name
+            if latex_name is None:
+                self._latex_name = self._name
+        if latex_name is not None:
             self._latex_name = latex_name
         self._mixed_forms = {}  # dict. of mixed forms w.r.t. this class
                                 # (key: bundle connection)
@@ -33,7 +34,21 @@ class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
         else:
             name = self._name
         vbundle = self.parent()._vbundle
+        name = f'({name})({vbundle._name})'
         return  f'Characteristic cohomology class {name} over the {vbundle}'
+
+    def _latex_(self):
+        r"""
+
+        """
+        if self._latex_name is None:
+            latex = super()._latex_()
+        else:
+            latex = self._name
+        vbundle = self.parent()._vbundle
+        latex = r'\left(' + latex + r'\right)\right('
+        latex += vbundle._latex_name + r'\right)'
+        return latex
 
     def get_form(self, nab):
         r"""
@@ -91,7 +106,7 @@ class CharacteristicCohomologyClassRing_Chern(FiniteGCAlgebra):
         self._domain = vbundle._base_space
         dim = self._domain._dim
         ran = min(vbundle._rank, dim // 2)
-        names = tuple(f'c_{i}({vbundle._name})' for i in range(1, ran + 1))
+        names = tuple(f'c_{i}' for i in range(1, ran + 1))
         degrees = tuple(2*i for i in range(1, ran + 1))
         super().__init__(base=base, names=names, degrees=degrees,
                          max_degree=dim)

@@ -1961,6 +1961,18 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: sum(g^k/factorial(k) for k in range(10))[0:10]
             [0, 1, 1, 1, 3/2, 1, 2, 1, 13/6, 3/2]
 
+        The Frobenius character of the trivial representation can be
+        expressed as an exponential::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: e = L(lambda n: 1/factorial(n), valuation=0)
+            sage: p = SymmetricFunctions(QQ).p()
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: S = LazySymmetricFunctions(QQ, "x")
+            sage: f = S(lambda n: p[n]/n, valuation=1)
+            sage: [s(x) for x in e(f)[:5]]
+            [s[], s[1], s[2], s[3], s[4]]
+
         """
         # f = self and compute f(g)
         P = g.parent()
@@ -2637,6 +2649,18 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             sage: f = s[2] + s[2,1]; g = s[1] + s[2,2]
             sage: L(f)(L(q*g)) - L(f(q*g))
             O(x)^7
+
+        The Frobenius character of the permutation action on set
+        partitions is a plethysm::
+
+            sage: s = SymmetricFunctions(QQ).s()
+            sage: S = LazySymmetricFunctions(QQ, "x")
+            sage: E1 = S(lambda n: s[n], valuation=1)
+            sage: E = 1 + E1
+            sage: P = E(E1)
+            sage: [s(x) for x in P[:5]]
+            [s[], s[1], 2*s[2], s[2, 1] + 3*s[3], 2*s[2, 2] + 2*s[3, 1] + 5*s[4]]
+
         """
         if len(args) != len(self.parent().variable_names()):
             raise ValueError("arity must be equal to the number of arguments provided")
@@ -2651,9 +2675,15 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             BR = P.base_ring()
             p = R.realization_of().power()
             g_p = CoefficientStream_map_coefficients(g._coeff_stream, lambda c: c, p)
-            degree_one = BR.variable_names_recursive()
+            try:
+                degree_one = [BR(x) for x in BR.variable_names_recursive()]
+            except AttributeError:
+                try:
+                    degree_one = BR.gens()
+                except NotImplementedError:
+                    degree_one = []
             def raise_c(n):
-                return lambda c: c.subs(**{x: BR(x) ** n for x in degree_one})
+                return lambda c: c.subs(**{str(x): x ** n for x in degree_one})
             def scale_part(n):
                 return lambda m: m.__class__(m.parent(), [i * n for i in m])
             def pn_pleth(f, n):

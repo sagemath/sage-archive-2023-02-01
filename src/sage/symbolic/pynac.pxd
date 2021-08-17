@@ -1,5 +1,5 @@
 # distutils: language = c++
-# distutils: libraries = gmp
+# distutils: libraries = gmp SINGULAR_LIBRARIES
 # distutils: extra_compile_args = -std=c++11 SINGULAR_CFLAGS
 # distutils: depends = ginac/add.h ginac/archive.h ginac/assertion.h ginac/assume.h ginac/basic.h ginac/class_info.h ginac/cmatcher.h ginac/compiler.h ginac/constant.h ginac/container.h ginac/context.h ginac/ex.h ginac/ex_utils.h ginac/expair.h ginac/expairseq.h ginac/exprseq.h ginac/extern_templates.h ginac/fderivative.h ginac/flags.h ginac/function.h ginac/ginac.h ginac/infinity.h ginac/infoflagbase.h ginac/inifcns.h ginac/lst.h ginac/matrix.h ginac/mpoly.h ginac/mul.h ginac/normal.h ginac/numeric.h ginac/operators.h ginac/order.h ginac/optional.hpp ginac/power.h ginac/print.h ginac/pseries.h ginac/ptr.h ginac/py_funcs.h ginac/pynac-config.h ginac/registrar.h ginac/relational.h ginac/remember.h ginac/sum.h ginac/symbol.h ginac/templates.h ginac/tostring.h ginac/upoly.h ginac/useries-flint.h ginac/useries.h ginac/utils.h ginac/wildcard.h
 # distutils: include_dirs = SINGULAR_INCDIR

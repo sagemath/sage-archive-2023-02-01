@@ -2651,9 +2651,9 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             BR = P.base_ring()
             p = R.realization_of().power()
             g_p = CoefficientStream_map_coefficients(g._coeff_stream, lambda c: c, p)
-            degree_one = [R(x) for x in BR.variable_names_recursive()]
+            degree_one = BR.variable_names_recursive()
             def raise_c(n):
-                return lambda c: c.subs(**{str(g): x ** n for x in degree_one})
+                return lambda c: c.subs(**{x: BR(x) ** n for x in degree_one})
             def scale_part(n):
                 return lambda m: m.__class__(m.parent(), [i * n for i in m])
             def pn_pleth(f, n):

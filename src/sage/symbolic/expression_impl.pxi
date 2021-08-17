@@ -335,7 +335,6 @@ from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
 from sage.arith.numerical_approx cimport digits_to_bits
-from sage.symbolic.pynac cimport *
 
 
 cpdef bint is_Expression(x):

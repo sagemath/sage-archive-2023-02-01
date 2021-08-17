@@ -1,6 +1,3 @@
-from sage.symbolic.expression cimport Expression
-
-
 cpdef int print_order(lhs, rhs) except -2
 cdef int print_order_c(Expression lhs, Expression rhs)
 

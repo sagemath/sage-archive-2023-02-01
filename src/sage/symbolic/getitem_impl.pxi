@@ -10,9 +10,6 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.pynac cimport GEx
-from sage.symbolic.expression cimport new_Expression_from_GEx
-
 cdef inline int normalize_index(object arg, int nops, object err_msg) except -1:
     """
     Given an index ``arg`` and the number of operands ``nops`` return

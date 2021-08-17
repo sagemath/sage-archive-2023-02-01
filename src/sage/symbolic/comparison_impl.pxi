@@ -21,11 +21,7 @@ There is also a mixed version:
 
 from cpython cimport *
 
-from sage.symbolic.pynac cimport (
-    print_order_compare, decide_relational, relational_undecidable,
-    relational_true, has_symbol_or_function)
 from sage.symbolic.ring import SR
-from sage.symbolic.expression cimport is_Expression
 
 
 cdef int print_order_c(Expression lhs, Expression rhs):

@@ -125,17 +125,10 @@ is attempted, and after that ``sin()`` which succeeds::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.pynac cimport (
-    GEx, GExVector, GFunctionOpt,
-    is_a_numeric, find_function,
-    g_function_options_args, g_register_new, g_foptions_assign,
-    g_registered_functions, g_function_evalv, g_function_eval1, g_function_eval2,
-    g_function_eval3, py_object_from_numeric)
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent
 from sage.misc.lazy_attribute import lazy_attribute
-from .expression cimport new_Expression_from_GEx, Expression
 from .ring import SR
 
 from sage.structure.coerce cimport (coercion_model,

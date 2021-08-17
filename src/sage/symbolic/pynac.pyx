@@ -2536,3 +2536,13 @@ init_function_table()
 init_pynac_I()
 
 set_ginac_fn_serial()
+
+
+include "expression_impl.pxi"
+include "comparison_impl.pxi"
+include "constants_c_impl.pxi"
+include "function_impl.pxi"
+include "getitem_impl.pxi"
+include "pynac_constant_impl.pxi"
+include "series_impl.pxi"
+include "substitution_map_impl.pxi"

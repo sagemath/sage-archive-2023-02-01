@@ -111,6 +111,10 @@ from sage.misc.persist import register_unpickle_override
 
 from sage.structure.parent cimport Parent
 
+from sage.arith.all import crt, lcm
+from sage.groups.generic import discrete_log
+
+
 cdef Integer one_Z = Integer(1)
 
 def Mod(n, m, parent=None):
@@ -723,14 +727,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: Mod(1111, 1234567).log(1111**3)
             Traceback (most recent call last):
             ...
-            ValueError: No discrete log of 1111 found to base 961261 modulo 9721
+            ValueError: No discrete log of 1111 found to base 961261 modulo 1234567 (no solution modulo 9721)
 
         Incompatible local solutions::
 
             sage: Mod(230, 323).log(173)
             Traceback (most recent call last):
             ...
-            ValueError: No discrete log of 230 found to base 173 modulo 323
+            ValueError: No discrete log of 230 found to base 173 modulo 323 (incompatible local solutions)
 
         AUTHORS:
 
@@ -761,9 +765,9 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             if not b.is_unit():
                 raise ValueError("logarithm with base %s is not defined since it is not a unit modulo %s"%(b, b.modulus()))
 
-        exc = lambda mod: ValueError("No discrete log of %s found to base %s modulo %s"%(self, b, mod))
-
-        n, m = 0, 1
+        cdef Integer n = Integer()
+        cdef Integer m = one_Z
+        cdef Integer q, na, nb
 
         for p,e in self.modulus().factor():
 
@@ -771,17 +775,19 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             a_red = Mod(self.lift(), q)
             b_red = Mod(b.lift(), q)
 
-            na, nb = a_red.multiplicative_order(), b_red.multiplicative_order()
+            na = a_red.multiplicative_order()
+            nb = b_red.multiplicative_order()
             if not na.divides(nb):  # cannot be a power
-                raise exc(q)
+                raise ValueError("No discrete log of %s found to base %s modulo %s"%(self, b, self.modulus()) \
+                              + (" (no solution modulo %s)"%q if q != self.modulus() else ""))
 
             if p == 2 and e >= 3:   # (ZZ/2^e)* is not cyclic; must not give unsolvable DLPs to Pari
 
-                from sage.groups.generic import discrete_log
                 try:
                     v = discrete_log(a_red, b_red, nb)
                 except ValueError:
-                    raise exc(q)
+                    raise ValueError("No discrete log of %s found to base %s modulo %s"%(self, b, self.modulus()) \
+                                  + (" (no solution modulo %s)"%q if q != self.modulus() else ""))
 
             else:
 
@@ -789,18 +795,15 @@ cdef class IntegerMod_abstract(FiniteRingElement):
                     v = pari(a_red).znlog(pari(b_red)).sage()
                 except PariError as msg:
                     raise RuntimeError("%s\nPARI failed to compute discrete log modulo %s (perhaps base is not a generator or is too large)" % (msg, q))
-                if v == []:
-                    raise exc(q)
+                assert v != []  # if this happens, we've made a mistake above (or there is a Pari bug)
 
-            from sage.arith.all import crt, lcm
             try:
                 n = crt(n, v, m, nb)
-                m = lcm(m, nb)
-            except ValueError:  # contradictory partial solutions
-                raise exc(self.modulus())
+            except ValueError:
+                raise ValueError("No discrete log of %s found to base %s modulo %s (incompatible local solutions)"%(self, b, self.modulus()))
+            m = lcm(m, nb)
 
-        assert b**n == self
-
+#        assert b**n == self
         return n
 
     def generalised_log(self):

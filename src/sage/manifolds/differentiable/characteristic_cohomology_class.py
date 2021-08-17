@@ -15,11 +15,10 @@ class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
         r"""
 
         """
-        if name is not None:
-            self._name = name
-            if latex_name is None:
-                self._latex_name = self._name
-        if latex_name is not None:
+        self._name = name
+        if latex_name is None:
+            self._latex_name = self._name
+        else:
             self._latex_name = latex_name
         self._mixed_forms = {}  # dict. of mixed forms w.r.t. this class
                                 # (key: bundle connection)
@@ -120,7 +119,7 @@ class CharacteristicCohomologyClassRing_Chern(FiniteGCAlgebra):
         if x in R:
             one_basis = self.one_basis()
             d = {one_basis: R(x)}
-        elif x in self:
+        elif isinstance(x, CharacteristicCohomologyClass_Chern):
             d = x._monomial_coefficients
         # x is an element of the basis enumerated set;
         # This is a very ugly way of testing this

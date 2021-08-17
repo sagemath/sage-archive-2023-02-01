@@ -1,4 +1,3 @@
-from sage.manifolds.differentiable.de_rham_cohomology import DeRhamCohomologyClass
 from sage.algebras.finite_gca import FiniteGCAlgebra
 from sage.combinat.free_module import IndexedFreeModuleElement
 from sage.misc.fast_methods import Singleton
@@ -67,6 +66,17 @@ class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
 
     representative = get_form
 
+    def set_name(self, name=None, latex_name=None):
+        r"""
+        Set the name and latex name of ``self``.
+        """
+        if name is not None:
+            self._name = name
+            if latex_name is None:
+                self._latex_name = self._name
+        if latex_name is not None:
+            self._latex_name = latex_name
+
 class CharacteristicCohomologyClassRing_Chern(FiniteGCAlgebra):
     r"""
 
@@ -85,6 +95,31 @@ class CharacteristicCohomologyClassRing_Chern(FiniteGCAlgebra):
         degrees = tuple(2*i for i in range(1, ran + 1))
         super().__init__(base=base, names=names, degrees=degrees,
                          max_degree=dim)
+
+    def _element_constructor_(self, x, name=None, latex_name=None):
+        r"""
+
+        """
+        R = self.base_ring()
+
+        if x in R:
+            one_basis = self.one_basis()
+            d = {one_basis: R(x)}
+        elif x in self:
+            d = x._monomial_coefficients
+        # x is an element of the basis enumerated set;
+        # This is a very ugly way of testing this
+        elif ((hasattr(self._indices, 'element_class') and
+               isinstance(self._indices.element_class, type) and
+               isinstance(x, self._indices.element_class)) or
+              self.parent()(x) == self._indices):
+            d = {x: R.one()}
+        elif x in self._indices:
+            d = {self._indices(x): R.one()}
+        else:
+            raise TypeError(f"do not know how to make x (= {x}) an element of self (={self})")
+
+        return self.element_class(self, d, name=name, latex_name=latex_name)
 
 #*****************************************************************************
 # ALGORITHMS
@@ -152,6 +187,11 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
     def get_local(self, cmat):
         r"""
         Return the local Chern forms for a given curvature matrix.
+
+        .. ALGORITHM::
+
+            The algorithm is based on the Faddeev-LeVerrier algorithm for the
+            characteristic polynomial.
         """
         from sage.symbolic.constants import pi
         from sage.libs.pynac.pynac import I
@@ -182,6 +222,11 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
     def get_local(self, cmat):
         r"""
         Return the local Pontryagin forms for a given curvature matrix.
+
+        .. ALGORITHM::
+
+            The algorithm is based on the Faddeev-LeVerrier algorithm for the
+            characteristic polynomial.
         """
         from sage.symbolic.constants import pi
 
@@ -213,6 +258,11 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
     def get_local(self, cmat):
         r"""
         Return the local Euler form for a given curvature matrix.
+
+        .. ALGORITHM::
+
+            The algorithm is based on the Bär-Faddeev-LeVerrier algorithm for
+            the Pfaffian.
         """
         from sage.symbolic.constants import pi
 

@@ -521,13 +521,13 @@ class GenericCombinatorialSpecies(SageObject):
             sage: from sage.combinat.species.generating_series import OrdinaryGeneratingSeriesRing
             sage: S = species.SetSpecies()
             sage: itgs = S._series_helper(OrdinaryGeneratingSeriesRing, "itgs")
-            sage: itgs.coefficients(3)
+            sage: itgs[:3]
             [1, 1, 1]
 
         ::
 
             sage: itgs = S._series_helper(OrdinaryGeneratingSeriesRing, "itgs", base_ring=RDF)
-            sage: itgs.coefficients(3)
+            sage: itgs[:3]
             [1.0, 1.0, 1.0]
         """
         prefix = "_" + prefix
@@ -572,7 +572,7 @@ class GenericCombinatorialSpecies(SageObject):
         # This is used when the generating series is just a single
         # term.
         try:
-            return series_ring.term(getattr(self, prefix + "_term")(base_ring),
+            return series_ring(getattr(self, prefix + "_term")(base_ring),
                                     self._order())
         except AttributeError:
             pass
@@ -583,7 +583,7 @@ class GenericCombinatorialSpecies(SageObject):
         # The generating series with all ones coefficients is generated this
         # way.
         try:
-            return series_ring(getattr(self, prefix + "_list")(base_ring))
+            return series_ring(lambda n: getattr(self, prefix + "_list")(base_ring, n))
         except AttributeError:
             pass
 
@@ -602,7 +602,7 @@ class GenericCombinatorialSpecies(SageObject):
 
             sage: P = species.PermutationSpecies()
             sage: g = P.generating_series()
-            sage: g.coefficients(4)
+            sage: g[:4]
             [1, 1, 1, 1]
             sage: g.counts(4)
             [1, 1, 2, 6]

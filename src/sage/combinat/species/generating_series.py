@@ -399,7 +399,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: p = SymmetricFunctions(QQ).power()
             sage: CIS = CycleIndexSeriesRing(QQ, 'z')
             sage: f = CIS([p([]), p([1]), p([2]), p.zero()])
-            sage: f.stretch(3).coefficients(10)
+            sage: f.stretch(3)[0:10]
             [p[], 0, 0, p[3], 0, 0, p[6], 0, 0, 0]
         """
         # return self._new(partial(self._stretch_gen, k), lambda ao: k*ao, self)
@@ -442,7 +442,7 @@ class CycleIndexSeries(LazyTaylorSeries):
             sage: P = species.PermutationSpecies()
             sage: cis = P.cycle_index_series()
             sage: f = cis.isotype_generating_series()
-            sage: f.coefficients(10)
+            sage: f.coefficients(10]
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
         R = self.base_ring().base_ring()
@@ -472,7 +472,7 @@ class CycleIndexSeries(LazyTaylorSeries):
         EXAMPLES::
 
             sage: from sage.combinat.species.set_species import SetSpecies
-            sage: SetSpecies().cycle_index_series().expand_as_sf(2).coefficients(4)
+            sage: SetSpecies().cycle_index_series().expand_as_sf(2).coefficients(4]
             [1, x0 + x1, x0^2 + x0*x1 + x1^2, x0^3 + x0^2*x1 + x0*x1^2 + x1^3]
 
         """

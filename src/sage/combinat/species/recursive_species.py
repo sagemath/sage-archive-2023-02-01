@@ -39,10 +39,10 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             sage: E = species.EmptySetSpecies()
             sage: L = CombinatorialSpecies()
             sage: L.define(E+X*L)
-            sage: L.generating_series().coefficients(4)
+            sage: L.generating_series()[0:4]
             [1, 1, 1, 1]
             sage: LL = loads(dumps(L))
-            sage: LL.generating_series().coefficients(4)
+            sage: LL.generating_series()[0:4]
             [1, 1, 1, 1]
         """
         self._generating_series = {}
@@ -325,7 +325,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             sage: E = species.EmptySetSpecies()
             sage: L = CombinatorialSpecies()
             sage: L.define(E+X*L)
-            sage: L.generating_series().coefficients(4)
+            sage: L.generating_series()[0:4]
             [1, 1, 1, 1]
             sage: L.structures([1,2,3]).cardinality()
             6
@@ -340,7 +340,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
         ::
 
             sage: L = species.LinearOrderSpecies()
-            sage: L.generating_series().coefficients(4)
+            sage: L.generating_series()[0:4]
             [1, 1, 1, 1]
             sage: L.structures([1,2,3]).cardinality()
             6
@@ -351,13 +351,13 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
 
             sage: A = CombinatorialSpecies()
             sage: A.define(E+X*A*A)
-            sage: A.generating_series().coefficients(6)
+            sage: A.generating_series()[0:6]
             [1, 1, 2, 5, 14, 42]
             sage: A.generating_series().counts(6)
             [1, 1, 4, 30, 336, 5040]
             sage: len(A.structures([1,2,3,4]).list())
             336
-            sage: A.isotype_generating_series().coefficients(6)
+            sage: A.isotype_generating_series()[0:6]
             [1, 1, 2, 5, 14, 42]
             sage: len(A.isotypes([1,2,3,4]).list())
             14
@@ -366,13 +366,13 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
 
             sage: A = CombinatorialSpecies()
             sage: A.define(X+A*A)
-            sage: A.generating_series().coefficients(6)
+            sage: A.generating_series()[0:6]
             [0, 1, 1, 2, 5, 14]
             sage: A.generating_series().counts(6)
             [0, 1, 2, 12, 120, 1680]
             sage: len(A.structures([1,2,3]).list())
             12
-            sage: A.isotype_generating_series().coefficients(6)
+            sage: A.isotype_generating_series()[0:6]
             [0, 1, 1, 2, 5, 14]
             sage: len(A.isotypes([1,2,3,4]).list())
             5
@@ -387,13 +387,13 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             sage: A.define(X5+B*B)
             sage: B.define(X5+C*C)
             sage: C.define(X2+C*C+A*A)
-            sage: A.generating_series().coefficients(Integer(10))
+            sage: A.generating_series()[Integer(0):Integer(10)
             [0, 0, 0, 0, 0, 1, 0, 0, 1, 2]
-            sage: A.generating_series().coefficients(15)
+            sage: A.generating_series()[0:15]
             [0, 0, 0, 0, 0, 1, 0, 0, 1, 2, 5, 4, 14, 10, 48]
-            sage: B.generating_series().coefficients(15)
+            sage: B.generating_series()[0:15]
             [0, 0, 0, 0, 1, 1, 2, 0, 5, 0, 14, 0, 44, 0, 138]
-            sage: C.generating_series().coefficients(15)
+            sage: C.generating_series()[0:15]
             [0, 0, 1, 0, 1, 0, 2, 0, 5, 0, 15, 0, 44, 2, 142]
 
         ::
@@ -402,9 +402,9 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             sage: F.define(E+X+(X*F+X*X*F))
             sage: F.generating_series().counts(10)
             [1, 2, 6, 30, 192, 1560, 15120, 171360, 2217600, 32296320]
-            sage: F.generating_series().coefficients(10)
+            sage: F.generating_series()[0:10]
             [1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
-            sage: F.isotype_generating_series().coefficients(10)
+            sage: F.isotype_generating_series()[0:10]
             [1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
         """
         if not isinstance(x, GenericCombinatorialSpecies):

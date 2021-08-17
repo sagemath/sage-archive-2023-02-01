@@ -142,7 +142,7 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             True
 
             sage: P = species.CycleSpecies()
-            sage: c = P.generating_series().coefficients(3)
+            sage: c = P.generating_series()[:3]
             sage: P._check()
             True
             sage: P == loads(dumps(P))
@@ -186,20 +186,17 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
             sage: P = species.CycleSpecies()
             sage: g = P.generating_series()
-            sage: [g.coefficient(i) for i in range(10)]
+            sage: g[0:10]
             [0, 1, 1/2, 1/3, 1/4, 1/5, 1/6, 1/7, 1/8, 1/9]
 
         TESTS::
 
             sage: P = species.CycleSpecies()
             sage: g = P.generating_series(RR)
-            sage: [g.coefficient(i) for i in range(3)]
+            sage: g[0:3]
             [0.000000000000000, 1.00000000000000, 0.500000000000000]
         """
         one = base_ring(1)
-        # yield base_ring(0)
-        # for n in _integers_from(ZZ(1)):
-        #     yield self._weight*one/n
         if n == 0:
             return base_ring(0)
         else:
@@ -217,7 +214,7 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         return 1
 
-    def _itgs_list(self, base_ring):
+    def _itgs_list(self, base_ring, n):
         """
         The isomorphism type generating series for cyclic permutations is
         given by `x/(1-x)`.
@@ -226,17 +223,17 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
             sage: P = species.CycleSpecies()
             sage: g = P.isotype_generating_series()
-            sage: g.coefficients(5)
+            sage: g[0:5]
             [0, 1, 1, 1, 1]
 
         TESTS::
 
             sage: P = species.CycleSpecies()
             sage: g = P.isotype_generating_series(RR)
-            sage: g.coefficients(3)
+            sage: g[0:3]
             [0.000000000000000, 1.00000000000000, 1.00000000000000]
         """
-        return [base_ring(0), self._weight*base_ring(1)]
+        return base_ring(0) if n == 0 else self._weight*base_ring(1)
 
     def _cis_iterator(self, base_ring):
         r"""
@@ -260,7 +257,7 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
             sage: P = species.CycleSpecies()
             sage: cis = P.cycle_index_series()
-            sage: cis.coefficients(7)
+            sage: cis[0:7]
             [0,
              p[1],
              1/2*p[1, 1] + 1/2*p[2],

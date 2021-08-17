@@ -123,13 +123,13 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         EXAMPLES::
 
             sage: P = species.PermutationSpecies()
-            sage: P.generating_series().coefficients(5)
+            sage: P.generating_series()[0:5]
             [1, 1, 1, 1, 1]
-            sage: P.isotype_generating_series().coefficients(5)
+            sage: P.isotype_generating_series()[0:5]
             [1, 1, 2, 3, 5]
 
             sage: P = species.PermutationSpecies()
-            sage: c = P.generating_series().coefficients(3)
+            sage: c = P.generating_series()[0:3]
             sage: P._check()
             True
             sage: P == loads(dumps(P))
@@ -186,7 +186,7 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         return structure_class(self, labels, perm)
 
 
-    def _gs_list(self, base_ring):
+    def _gs_list(self, base_ring, n):
         r"""
         The generating series for the species of linear orders is
         `\frac{1}{1-x}`.
@@ -195,10 +195,10 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
             sage: P = species.PermutationSpecies()
             sage: g = P.generating_series()
-            sage: g.coefficients(10)
+            sage: g[0:10]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
-        return [base_ring(1)]
+        return base_ring(1)
 
 
     def _itgs_iterator(self, base_ring, n):
@@ -234,7 +234,7 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
             sage: P = species.PermutationSpecies()
             sage: g = P.cycle_index_series()
-            sage: g.coefficients(5)
+            sage: g[0:5]
             [p[],
              p[1],
              p[1, 1] + p[2],

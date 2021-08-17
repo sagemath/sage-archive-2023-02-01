@@ -248,7 +248,6 @@ class ExponentialGeneratingSeries(LazyTaylorSeries):
             [1, 1, 1, 4/3, 8/3, 128/15, 2048/45, 131072/315, 2097152/315, 536870912/2835]
 
         """
-        # return self._new(partial(self._functorial_compose_gen, y), lambda a,b: 0, self, y)
         P = self.parent()
         return P(lambda n: self._functorial_compose_gen(y, n), 0)
 

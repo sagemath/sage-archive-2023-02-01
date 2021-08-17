@@ -152,7 +152,7 @@ class LinearOrderSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         return base_ring(1)
 
 
-    def _cis_iterator(self, base_ring):
+    def _cis_callable(self, base_ring, n):
         """
         EXAMPLES::
 

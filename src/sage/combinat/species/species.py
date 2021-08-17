@@ -555,16 +555,16 @@ class GenericCombinatorialSpecies(SageObject):
         except AttributeError:
             pass
 
-        # Try to return things like self._gs_iterator(base_ring).
-        # This is used when the subclass just provides an iterator
+        # Try to return things like self._gs_callable(base_ring).
+        # This is used when the subclass just provides an callable
         # for the coefficients of the generating series.  Optionally,
         # the subclass can specify the order of the series.
         try:
-            iterator = getattr(self, prefix + "_iterator")
+            callable = getattr(self, prefix + "_callable")
             try:
-                return series_ring(lambda n: iterator(base_ring, n), valuation=self._order())
+                return series_ring(lambda n: callable(base_ring, n), valuation=self._order())
             except AttributeError:
-                return series_ring(lambda n: iterator(base_ring, n))
+                return series_ring(lambda n: callable(base_ring, n))
         except AttributeError:
             pass
 

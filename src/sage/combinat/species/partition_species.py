@@ -233,7 +233,7 @@ class PartitionSpecies(GenericCombinatorialSpecies):
         breaks = [sum(p[:i]) for i in range(len(p) + 1)]
         return structure_class(self, labels, [list(range(breaks[i]+1, breaks[i+1]+1)) for i in range(len(p))])
 
-    def _gs_iterator(self, base_ring, n):
+    def _gs_callable(self, base_ring, n):
         r"""
         EXAMPLES::
 
@@ -245,7 +245,7 @@ class PartitionSpecies(GenericCombinatorialSpecies):
         from sage.combinat.combinat import bell_number
         return self._weight * base_ring(bell_number(n) / factorial(n))
 
-    def _itgs_iterator(self, base_ring, n):
+    def _itgs_callable(self, base_ring, n):
         r"""
         The isomorphism type generating series is given by
         `\frac{1}{1-x}`.

@@ -177,7 +177,7 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         if len(labels) != 0:
             yield structure_class(self, labels, range(1, len(labels)+1))
 
-    def _gs_iterator(self, base_ring, n):
+    def _gs_callable(self, base_ring, n):
         r"""
         The generating series for cyclic permutations is
         `-\log(1-x) = \sum_{n=1}^\infty x^n/n`.
@@ -235,7 +235,7 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         return base_ring(0) if n == 0 else self._weight*base_ring(1)
 
-    def _cis_iterator(self, base_ring):
+    def _cis_callable(self, base_ring):
         r"""
         The cycle index series of the species of cyclic permutations is
         given by

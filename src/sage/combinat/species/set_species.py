@@ -130,7 +130,7 @@ class SetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
     _isotypes = _structures
 
-    def _gs_iterator(self, base_ring, n):
+    def _gs_callable(self, base_ring, n):
         r"""
         The generating series for the species of sets is given by
         `e^x`.
@@ -144,8 +144,6 @@ class SetSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: [g.count(i) for i in range(10)]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
-        # for n in _integers_from(0):
-        #     yield base_ring(self._weight / factorial(n))
         return base_ring(self._weight / factorial(n))
 
     def _itgs_list(self, base_ring, n):

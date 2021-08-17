@@ -2633,6 +2633,10 @@ class LazySymmetricFunction(LazyCauchyProductSeries):
             sage: f = s[2] + s[2,1]; g = s[1] + s[2,2]
             sage: L(f)(L(g)) - L(f(g))
             O(x)^7
+
+            sage: f = s[2] + s[2,1]; g = s[1] + s[2,2]
+            sage: L(f)(L(q*g)) - L(f(q*g))
+            O(x)^7
         """
         if len(args) != len(self.parent().variable_names()):
             raise ValueError("arity must be equal to the number of arguments provided")

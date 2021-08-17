@@ -16,7 +16,11 @@ The symbolic ring
 
 from sage.ext.cplusplus cimport ccrepr
 
-from sage.symbolic.pynac cimport *
+from sage.symbolic.pynac cimport (GEx, GExprSeq, GExVector, GSymbol,
+                                  g_Infinity, g_mInfinity, g_UnsignedInfinity, g_wild,
+                                  ex_to_symbol, ginac_new_symbol, ginac_symbol, is_a_symbol,
+                                  domain_complex, domain_real, domain_positive, domain_integer,
+                                  GEx_to_str_latex)
 
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber

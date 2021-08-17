@@ -14,7 +14,10 @@ Wrapper around Pynac's constants
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from .pynac cimport *
+from .pynac cimport (
+    domain_complex, domain_real, domain_positive,
+    g_Pi, g_Catalan, g_Euler, g_NaN,
+    GEx, ConstantEvalf)
 from sage.symbolic.expression cimport new_Expression_from_GEx
 from sage.symbolic.ring import SR
 from sage.cpython.string cimport str_to_bytes

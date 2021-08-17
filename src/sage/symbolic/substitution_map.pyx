@@ -18,7 +18,7 @@ back to Python.
 #*****************************************************************************
 
 
-from sage.symbolic.pynac cimport *
+from sage.symbolic.pynac cimport make_pair, GEx, GExPair
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx
 
 

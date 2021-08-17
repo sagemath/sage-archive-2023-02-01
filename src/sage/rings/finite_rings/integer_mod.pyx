@@ -711,10 +711,26 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: (x^e).log(x)==e
             True
 
-        Examples like this took extremey long before :trac:`32375`::
+        Examples like this took extremely long before :trac:`32375`::
 
             sage: pow(5, 10^50-1, 123337052926643**4).log(5)
             99999999999999999999999999999999999999999999999999
+
+        We check that non-existence of solutions is detected:
+
+        No local solutions::
+
+            sage: Mod(1111, 1234567).log(1111**3)
+            Traceback (most recent call last):
+            ...
+            ValueError: No discrete log of 1111 found to base 961261 modulo 9721
+
+        Incompatible local solutions::
+
+            sage: Mod(230, 323).log(173)
+            Traceback (most recent call last):
+            ...
+            ValueError: No discrete log of 230 found to base 173 modulo 323
 
         AUTHORS:
 
@@ -725,13 +741,13 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
         - Simon King (2010-07-07): fix a side effect on PARI
 
-        - Lorenz Panny (2021-08-14): speedups for composite moduli
+        - Lorenz Panny (2021): speedups for composite moduli
         """
 
         for kw in kwargs.keys():
             if kw == 'logarithm_exists':
                 from sage.misc.superseded import deprecation
-                deprecation(32375, 'The "logarithm_exists" keyword to .log() is no longer necessary and will be removed at some point.')
+                deprecation(32375, 'The "logarithm_exists" argument to .log() is no longer necessary and will be removed at some point.')
             else:
                 raise TypeError(f'log() got an unexpected keyword argument: {kw!r}')
 
@@ -756,7 +772,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             b_red = Mod(b.lift(), q)
 
             na, nb = a_red.multiplicative_order(), b_red.multiplicative_order()
-            if na > nb:     # cannot be a power of b
+            if not na.divides(nb):  # cannot be a power
                 raise exc(q)
 
             if p == 2 and e >= 3:   # (ZZ/2^e)* is not cyclic; must not give unsolvable DLPs to Pari

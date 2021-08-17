@@ -1805,7 +1805,7 @@ class RiemannSurface(object):
                     dfdwt = self._fastcall_dfdw(zt, wt)
                     return V([h(zt,wt)/dfdwt for h in differentials])
 
-                output += two_rt*integrate_vector_N(integrand,self._prec,N)
+                output += two_rt*integrate_vector_N(integrand, self._prec,N)
             else:
                 ball_stack.append((ct-rt/2, rt/2))
                 ball_stack.append((ct+rt/2, rt/2))
@@ -1870,10 +1870,10 @@ class RiemannSurface(object):
         fcd = [fast_callable(omega, domain=self._CC) for omega in differentials]
 
         if integration_method == "heuristic":
-            line_int = lambda edge: self.simple_vector_line_integral(edge,fcd)
+            line_int = lambda edge: self.simple_vector_line_integral(edge, fcd)
         elif integration_method == "rigorous":
             bd = self._bounding_data(differentials)
-            line_int = lambda edge: self.rigorous_line_integral(edge,fcd,bd)
+            line_int = lambda edge: self.rigorous_line_integral(edge, fcd, bd)
         else:
             raise ValueError("Invalid integration method")
 

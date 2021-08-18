@@ -626,7 +626,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         else:
             return sib(self.parent())(v)
 
-    def log(self, b=None, **kwargs):
+    def log(self, b=None, logarithm_exists=None):
         r"""
         Return an integer `x` such that `b^x = a`, where
         `a` is ``self``.
@@ -684,7 +684,7 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: Mod(3, 7).log(Mod(2, 7))
             Traceback (most recent call last):
             ...
-            ValueError: No discrete log of 3 found to base 2 modulo 7
+            ValueError: no logarithm of 3 found to base 2 modulo 7
             sage: a = Mod(16, 100); b = Mod(4,100)
             sage: a.log(b)
             Traceback (most recent call last):
@@ -727,14 +727,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: Mod(1111, 1234567).log(1111**3)
             Traceback (most recent call last):
             ...
-            ValueError: No discrete log of 1111 found to base 961261 modulo 1234567 (no solution modulo 9721)
+            ValueError: no logarithm of 1111 found to base 961261 modulo 1234567 (no solution modulo 9721)
 
         Incompatible local solutions::
 
             sage: Mod(230, 323).log(173)
             Traceback (most recent call last):
             ...
-            ValueError: No discrete log of 230 found to base 173 modulo 323 (incompatible local solutions)
+            ValueError: no logarithm of 230 found to base 173 modulo 323 (incompatible local solutions)
 
         AUTHORS:
 
@@ -748,29 +748,25 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         - Lorenz Panny (2021): speedups for composite moduli
         """
 
-        for kw in kwargs.keys():
-            if kw == 'logarithm_exists':
-                from sage.misc.superseded import deprecation
-                deprecation(32375, 'The "logarithm_exists" argument to .log() is no longer necessary and will be removed at some point.')
-            else:
-                raise TypeError(f'log() got an unexpected keyword argument: {kw!r}')
+        if logarithm_exists is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(32375, 'The "logarithm_exists" argument to .log() is no longer necessary and will be removed at some point.')
 
         if not self.is_unit():
-            raise ValueError("logarithm of %s is not defined since it is not a unit modulo %s"%(self, self.modulus()))
+            raise ValueError(f"logarithm of {self} is not defined since it is not a unit modulo {self.modulus()}")
 
         if b is None:
             b = self._parent.multiplicative_generator()
         else:
             b = self._parent(b)
             if not b.is_unit():
-                raise ValueError("logarithm with base %s is not defined since it is not a unit modulo %s"%(b, b.modulus()))
+                raise ValueError(f"logarithm with base {b} is not defined since it is not a unit modulo {b.modulus()}")
 
         cdef Integer n = Integer()
         cdef Integer m = one_Z
         cdef Integer q, na, nb
 
-        for p,e in self.modulus().factor():
-
+        for p, e in self.modulus().factor():
             q = p**e
             a_red = Mod(self.lift(), q)
             b_red = Mod(b.lift(), q)
@@ -778,29 +774,26 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             na = a_red.multiplicative_order()
             nb = b_red.multiplicative_order()
             if not na.divides(nb):  # cannot be a power
-                raise ValueError("No discrete log of %s found to base %s modulo %s"%(self, b, self.modulus()) \
-                              + (" (no solution modulo %s)"%q if q != self.modulus() else ""))
+                raise ValueError(f"no logarithm of {self} found to base {b} modulo {self.modulus()}" \
+                              + (f" (no solution modulo {q})" if q != self.modulus() else ""))
 
             if p == 2 and e >= 3:   # (ZZ/2^e)* is not cyclic; must not give unsolvable DLPs to Pari
-
                 try:
                     v = discrete_log(a_red, b_red, nb)
                 except ValueError:
-                    raise ValueError("No discrete log of %s found to base %s modulo %s"%(self, b, self.modulus()) \
-                                  + (" (no solution modulo %s)"%q if q != self.modulus() else ""))
-
+                    raise ValueError(f"no logarithm of {self} found to base {b} modulo {self.modulus()}" \
+                                  + (f" (no solution modulo {q})" if q != self.modulus() else ""))
             else:
-
                 try:
                     v = pari(a_red).znlog(pari(b_red)).sage()
                 except PariError as msg:
-                    raise RuntimeError("%s\nPARI failed to compute discrete log modulo %s (perhaps base is not a generator or is too large)" % (msg, q))
+                    raise RuntimeError(f"{msg}\nPARI failed to compute discrete log modulo {q} (perhaps base is not a generator or is too large)")
                 assert v != []  # if this happens, we've made a mistake above (or there is a Pari bug)
 
             try:
                 n = crt(n, v, m, nb)
             except ValueError:
-                raise ValueError("No discrete log of %s found to base %s modulo %s (incompatible local solutions)"%(self, b, self.modulus()))
+                raise ValueError(f"no logarithm of {self} found to base {b} modulo {self.modulus()} (incompatible local solutions)")
             m = lcm(m, nb)
 
 #        assert b**n == self

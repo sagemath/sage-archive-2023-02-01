@@ -196,7 +196,7 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: L.generating_series()[:5]
             [1, 1, 1, 1, 1]
         """
-        return self._F.generating_series(base_ring).functorial_composition(self._G.generating_series(base_ring))
+        return self._F.generating_series(base_ring)(self._G.generating_series(base_ring))
 
     def _itgs(self, series_ring, base_ring):
         """

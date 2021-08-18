@@ -487,13 +487,10 @@ class GenericCombinatorialSpecies(SageObject):
         # and max of this species.  Note that if min and max
         # are both None (as in the default case), then the restrict
         # method will just return series.
-        # return series.restricted(min=self._min, max=self._max)
-        if self._min is not None:
-            series = series.parent()(lambda n: series[n], valuation=self._min)
-        from sage.rings.infinity import Infinity
-        if self._max is not None and self._max is not Infinity:
-            series = series.parent()(lambda n: series[n], degree=self._max + 1)
-        return series
+        if self._min is None and self._max is None:
+            return series
+        return series.parent()(lambda n: series[n],
+                               valuation=self._min, degree=self._max)
 
     def _series_helper(self, series_ring_class, prefix, base_ring=None):
         """

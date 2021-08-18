@@ -343,7 +343,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         return self._generic_coerce_map(self.base_ring())
 
     def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
-        """
+        r"""
         Construct a Laurent series from ``x``.
 
         INPUT:
@@ -357,6 +357,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         If ``valuation`` is specified and ``x`` is convertable into a Laurent
         polynomial or is a lazy Laurent series, then the data is shifted so
         that the result has the specified valuation.
+
+        However, if ``x`` is a callable, passing ``valuation`` and ``degree``
+        truncates the series appropriately.
 
         EXAMPLES::
 
@@ -486,6 +489,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         .. TODO::
 
             Add a method to change the sparse/dense implementation.
+
         """
         if x is None:
             if valuation is None:
@@ -1045,6 +1049,10 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
             ValueError: coefficients must be homogeneous polynomials of the correct degree
 
         """
+        if valuation is infinity:
+            return self.zero()
+        if degree is infinity:
+            degree = None
         if valuation is not None:
             if valuation < 0:
                 raise ValueError("the valuation of a Taylor series must be positive")
@@ -1055,6 +1063,8 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         BR = self.base_ring()
         if x is None:
             assert degree is None
+            if valuation is None:
+                valuation = 0
             coeff_stream = CoefficientStream_uninitialized(self._sparse, valuation)
             return self.element_class(self, coeff_stream)
         try:

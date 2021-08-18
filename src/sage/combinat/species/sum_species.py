@@ -147,7 +147,6 @@ class SumSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         return (self.left_summand().generating_series(base_ring) +
                 self.right_summand().generating_series(base_ring))
 
-
     def _itgs(self, series_ring, base_ring):
         """
         Returns the isomorphism type generating series of this species.

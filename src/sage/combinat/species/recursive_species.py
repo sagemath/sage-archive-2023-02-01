@@ -236,7 +236,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             Uninitialized lazy power series
         """
         if base_ring not in self._generating_series:
-            self._generating_series[base_ring] = series_ring()
+            self._generating_series[base_ring] = series_ring(None)
 
         res = self._generating_series[base_ring]
         if hasattr(self, "_reference") and not hasattr(res, "_reference"):
@@ -253,7 +253,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             Uninitialized lazy power series
         """
         if base_ring not in self._isotype_generating_series:
-            self._isotype_generating_series[base_ring] = series_ring()
+            self._isotype_generating_series[base_ring] = series_ring(None)
 
         res = self._isotype_generating_series[base_ring]
         if hasattr(self, "_reference") and not hasattr(res, "_reference"):
@@ -270,7 +270,7 @@ class CombinatorialSpecies(GenericCombinatorialSpecies):
             Uninitialized lazy power series
         """
         if base_ring not in self._cycle_index_series:
-            self._cycle_index_series[base_ring] = series_ring()
+            self._cycle_index_series[base_ring] = series_ring(None)
 
         res = self._cycle_index_series[base_ring]
         if hasattr(self, "_reference") and not hasattr(res, "_reference"):

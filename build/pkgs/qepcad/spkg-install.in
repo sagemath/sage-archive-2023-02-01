@@ -14,7 +14,7 @@ LIBS=-lreadline
 if [ "$UNAME" = "Linux" ]; then
    LIBS="$LIBS -lrt"
 fi
-$MAKE -j1 opt SHELL=/bin/sh FLAGSo="-O3 -g -Wl,-rpath,$SAGE_LOCAL/lib" ARFLAGS="crv" LIBS="$LIBS"
+$MAKE -j1 opt SHELL=/bin/sh FLAGSo="${CXXFLAGS} -Wl,-rpath,$SAGE_LOCAL/lib" ARFLAGS="crv" LIBS="$LIBS"
 if [ $? -ne 0 ]; then
    echo >&2 "Error building qepcad."
    exit 1

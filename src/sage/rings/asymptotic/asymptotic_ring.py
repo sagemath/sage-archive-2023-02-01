@@ -3362,15 +3362,17 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         else:
             raise ValueError("Cannot determine limit of {}".format(self))
 
-    def B(self, valid_from):
+    def B(self, valid_from=0):
         r"""
         Convert all terms in this asymptotic expansion to `B`-terms.
 
         INPUT:
 
-        - ``valid_from``-- dictionary mapping variable names to lower bounds
+        - ``valid_from`` -- dictionary mapping variable names to lower bounds
           for the corresponding variable. The bound implied by this term is valid when
-          all variables are at least their corresponding lower bound
+          all variables are at least their corresponding lower bound. If you pass only
+          a number as ``valid_from``, then the lower bound for all variables of
+          the asymptotic expansion are set to this number
 
         OUTPUT:
 
@@ -4691,9 +4693,11 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
 
         INPUT:
 
-        - ``valid_from``-- dictionary mapping variable names to lower bounds
+        - ``valid_from`` -- dictionary mapping variable names to lower bounds
           for the corresponding variable. The bound implied by this term is valid when
-          all variables are at least their corresponding lower bound
+          all variables are at least their corresponding lower bound. If you pass only
+          a number as ``valid_from``, then the lower bound for all variables of
+          the asymptotic expansion are set to this number
 
         OUTPUT:
 

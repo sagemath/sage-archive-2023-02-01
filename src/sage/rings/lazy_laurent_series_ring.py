@@ -1369,9 +1369,9 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
         self._sparse = sparse
         n = len(self.variable_names())
         if n == 1:
-            self._coeff_ring = SymmetricFunctions(base_ring).m()
+            self._coeff_ring = SymmetricFunctions(base_ring).p()
         else:
-            self._coeff_ring = tensor([SymmetricFunctions(base_ring).m()]*len(self.variable_names()))
+            self._coeff_ring = tensor([SymmetricFunctions(base_ring).p()]*len(self.variable_names()))
         self._laurent_poly_ring = self._coeff_ring
 
     def _repr_(self):

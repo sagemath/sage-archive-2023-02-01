@@ -320,7 +320,8 @@ import sage.rings.rational
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 
-from sage.cpython.string cimport str_to_bytes
+from sage.cpython.string cimport str_to_bytes, char_to_str
+
 from sage.symbolic.comparison import mixed_order
 from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.series cimport SymbolicSeries
@@ -13008,6 +13009,21 @@ cdef class Expression(CommutativeRingElement):
                         di[f.diff(x, i, yy, j).subs({x: x, yy: y})] = self.diff(X, i, Y, j)
                         S = S.subs(di)
                 return S
+
+
+cdef _latex_Expression(Expression x):
+    r"""
+    Returns the standard LaTeX version of the expression `x`.
+
+    EXAMPLES::
+
+        sage: latex(sin(x+2))
+        \sin\left(x + 2\right)
+        sage: latex(var('theta') + 2)
+        \theta + 2
+    """
+    return char_to_str(GEx_to_str_latex(&x._gobj))
+
 
 def solve_diophantine(f,  *args, **kwds):
     """

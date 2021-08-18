@@ -21,7 +21,7 @@ from sage.libs.pynac.pynac cimport *
 from sage.rings.integer cimport Integer
 from sage.rings.real_mpfr cimport RealNumber
 
-from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
+from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression, _latex_Expression
 
 from sage.misc.latex import latex_variable_name
 from sage.cpython.string cimport str_to_bytes, bytes_to_str, char_to_str
@@ -1063,7 +1063,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: latex(var('theta') + 2)
             \theta + 2
         """
-        return char_to_str(GEx_to_str_latex(&x._gobj))
+        return _latex_Expression(x)
 
     def _call_element_(self, _the_element, *args, **kwds):
         """

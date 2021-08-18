@@ -5733,18 +5733,24 @@ cdef class Expression(CommutativeRingElement):
             sage: tanh(x).exponentialize()
             -(e^(-x) - e^x)/(e^(-x) + e^x)
 
-        TESTS:
+        TESTS::
 
-        Check that ``u(x).exponentialize().demoivre(force=True)`` is identity.
+            Check that ``u(x).exponentialize().demoivre(force=True)``
+            is identity.
 
             sage: x = SR.var("x")
-            sage: all([bool(u(x).exponentialize().demoivre(force=True)==u(x)) for u in (sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, csch, sech, coth)])
+            sage: all([bool(u(x).exponentialize().demoivre(force=True) == u(x))
+            ....:      for u in (sin, cos, tan, csc, sec, cot,
+            ....:                sinh, cosh, tanh, csch, sech, coth)])
             True
 
-        Check that differentiation and exponentialization commute:
+            Check that differentiation and exponentialization commute:
 
             sage: x = SR.var("x")
-            sage: all([bool(u(x).diff(x).exponentialize()==u(x).exponentialize().diff(x)) for u in (sin, cos, tan, csc, sec, cot, sinh, cosh, tanh, csch, sech, coth)])
+            sage: all([bool(u(x).diff(x).exponentialize() ==
+            ....:           u(x).exponentialize().diff(x))
+            ....:      for u in (sin, cos, tan, csc, sec, cot,
+            ....:                sinh, cosh, tanh, csch, sech, coth)])
             True
         """
         from sage.symbolic.expression_conversions import Exponentialize
@@ -5769,17 +5775,16 @@ cdef class Expression(CommutativeRingElement):
             sage: exp(x).demoivre(force=True)
             cosh(x) + sinh(x)
 
-        TESTS:
+        TESTS::
 
-        Check that de Moivre transformation correctly commutes with differentiation:
+            Check that de Moivre transformation correctly commutes
+            with differentiation:
 
             sage: x = SR.var("x")
             sage: f = function("f")
-            sage: bool(f(exp(I*x)).diff(x).demoivre()==f(exp(I*x)).demoivre().diff(x))
+            sage:  bool(f(exp(I*x)).diff(x).demoivre() ==
+            ....:       f(exp(I*x)).demoivre().diff(x))
             True
-            sage: bool(f(exp(I*x)).diff(x).demoivre()==f(exp(I*x).demoivre()).diff(x))
-            True
-
         """
         return DeMoivre(self, force)()
 

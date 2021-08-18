@@ -349,7 +349,7 @@ class RiemannSurface(object):
       For a nonsingular plane curve of degree `d`, an appropriate set is given
       by the monomials of degree up to `d-3`.
 
-    - ``integration_method`` -- (default: ``'heuristic'``). String specifing the 
+    - ``integration_method`` -- (default: ``'heuristic'``). String specifying the 
       integration method to use when calculating the integrals of differentials. 
       The options are ``'heuristic'`` and ``'rigorous'``, the latter of
       which is often the most efficient. 
@@ -1706,7 +1706,7 @@ class RiemannSurface(object):
             Moreover, the current implementation bounds along a line by 
             splitting it up into segments, each of which can be covered entirely
             by a single circle, and then placing inside that the ellipse 
-            requierd to bound as per [Neu2018]_. This is reliably more efficient
+            required to bound as per [Neu2018]_. This is reliably more efficient
             than the heuristic method, especially in poorly-conditioned cases 
             where discriminant points are close together around the edges, but
             in the case where the branch locus is well separated, it can require
@@ -1717,7 +1717,7 @@ class RiemannSurface(object):
         """
         # Note that this, in its current formalism, makes no check that bounding 
         # data at all corresponds to  the differentials given. The onus is then 
-        # on the design of other funcions which use it.
+        # on the design of other functions which use it.
     
         # CCzg is required to be known as we need to know the ring which the minpolys lie in. 
         CCzg, bounding_data_list = bounding_data

@@ -9,6 +9,10 @@ VERSION = "@PACKAGE_VERSION@"
 SAGE_LOCAL = "@prefix@"
 SAGE_ROOT = "@SAGE_ROOT@"
 
+# The extension (without the period) for shared libraries on this
+# system. For example, this is usually "so" on Linux.
+SHLIBEXT = "@SHLIBEXT@"
+
 MAXIMA = "@prefix@/bin/maxima"
 
 # Delete this line if your ECL can load maxima without further prodding.

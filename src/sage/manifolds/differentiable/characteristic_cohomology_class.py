@@ -17,8 +17,9 @@ from sage.misc.fast_methods import Singleton
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
-from sage.manifolds.differentiable.affine_connection import AffineConnection
-from sage.manifolds.differentiable.bundle_connection import BundleConnection
+from .affine_connection import AffineConnection
+from .bundle_connection import BundleConnection
+from .levi_civita_connection import LeviCivitaConnection
 
 
 class CharacteristicCohomologyClass(IndexedFreeModuleElement):
@@ -83,7 +84,9 @@ class CharacteristicCohomologyClass(IndexedFreeModuleElement):
                 parent = self.parent()
 
                 gen_algorithm = parent._algorithm  # this is a list
-                # give list of representatives of generators
+                # concatenate generators
+                print(gen_algorithm[0].get(nab))
+                print(gen_algorithm[1].get(nab))
                 gen_forms = sum(a.get(nab) for a in gen_algorithm)
                 grading = parent.print_options()['sorting_key']
                 res = [dom.diff_form_module(i).zero()
@@ -127,7 +130,7 @@ class CharacteristicCohomologyClass(IndexedFreeModuleElement):
                 res._name = name + append_name
                 res._latex_name = latex_name + append_latex_name
 
-                res.set_immutable()  # set result immutable
+                res.set_immutable()
 
                 self._mixed_forms[nab] = res  # cache result in dict
 
@@ -150,22 +153,26 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
         self._domain = vbundle._base_space
         dim = self._domain._dim
         rk = vbundle._rank
-        # if vbundle is complex:
-        ran = min(rk, dim // 2)
-        names = [f'c_{i}' for i in range(1, ran + 1)]
-        degrees = [2 * i for i in range(1, ran + 1)]
-        self._algorithm = [ChernAlgorithm()]
-        # if vbundle is real:
-        # ran = min(rk // 2, dim // 4)
-        # names = [f'p_{i}' for i in range(1, ran + 1)]
-        # degrees = [4 * i for i in range(1, ran + 1)]
-        # self._algorithm = [PontryaginAlgorithm()]
-        # if vbundle is orientable:
-        # names += ['e']
-        # degrees += [rk]
-        # # TODO: add relation e^2=p_k for dim=2*k
-        # # add algorithm for additional generator
-        # self._algorithm += [EulerAlgorithm()]
+        if vbundle._field_type == 'complex':
+            ran = min(rk, dim // 2)
+            names = [f'c_{i}' for i in range(1, ran + 1)]
+            degrees = [2 * i for i in range(1, ran + 1)]
+            self._algorithm = [ChernAlgorithm()]
+        elif vbundle._field_type == 'real':
+            ran = min(rk // 2, dim // 4)
+            names = [f'p_{i}' for i in range(1, ran + 1)]
+            degrees = [4 * i for i in range(1, ran + 1)]
+            self._algorithm = [PontryaginAlgorithm()]
+            if vbundle.has_orientation():
+                # add Euler class generator
+                names += ['e']
+                degrees += [rk]
+                self._algorithm += [EulerAlgorithm()]
+                # TODO: add relation e^2=p_k for dim=2*k
+        else:
+            raise TypeError(f'Characteristic cohomology classes not supported '
+                            f'for vector bundles with '
+                            f'field type {vbundle._field_type}')
 
         names = tuple(names)  # hashable
         degrees = tuple(degrees)  # hashable
@@ -248,8 +255,14 @@ class Algorithm_generic(SageObject):
         else:
             raise TypeError(f'{nab} must be a connection')
         dom = nab._domain
+        # if the bundle is orientable, we always opt for positively
+        # oriented frames due to unification between Pontryagin and Euler class
+        if vbundle.has_orientation():
+            frames = vbundle.orientation()
+        else:
+            frames = nab._coefficients
         res = []  # will be specified within first iteration
-        for frame in dom._get_min_covering(nab._coefficients):
+        for frame in dom._get_min_covering(frames):
             cmatrix = [[nab.curvature_form(i, j, frame)
                         for j in vbundle.irange()]
                        for i in vbundle.irange()]
@@ -260,7 +273,7 @@ class Algorithm_generic(SageObject):
                        for loc_form in res_loc]
             for form, loc_form in zip(res, res_loc):
                 form.set_restriction(loc_form)
-            # TODO: make res immutable?
+            # TODO: make `res` immutable?
         return res
 
     @abstract_method
@@ -350,9 +363,26 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
     Algorithm class to generate Euler forms.
     """
 
+    @cached_method
+    def get(self, nab):
+        r"""
+        Return the global characteristic forms of the generators w.r.t. a given
+        connection.
+        """
+        if not isinstance(nab, LeviCivitaConnection):
+            raise TypeError('Euler forms are currently only supported for '
+                            'Levi-Civita connections')
+        [e] = super().get(nab)  # apply algorithm; not the Euler form yet
+        g = nab._metric
+        det = g.det()
+        if det.is_trivial_zero():
+            raise ValueError(f'metric {g} must be non-degenerate')
+        res = e / abs(det.sqrt())  # this is the Euler form
+        return [res]
+
     def get_local(self, cmat):
         r"""
-        Return the local Euler form w.r.t. a given curvature matrix.
+        Return the normalized Pfaffian w.r.t. a given curvature matrix.
 
         .. ALGORITHM::
 
@@ -369,14 +399,11 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
             for k in range(rk):
                 m[k][i + 1] = -m[k][i + 1]
         for k in range(1, ran):
-            c = -sum(m[i][i] for i in range(rk)) / (2 * k)
+            e = -sum(m[i][i] for i in range(rk)) / (2 * k)
             for i in range(rk):
-                m[i][i] += c
+                m[i][i] += e
             m = [[sum(a[i][l].wedge(m[l][j]) for l in range(rk))
                   for j in range(rk)] for i in range(rk)]
-        c = -sum(m[i][i] for i in range(rk)) / (2 * rk)  # Pfaffian mod sign
-        c *= (-1 / (2 * pi)) ** rk  # normalize
-
-        # TODO: incorporate orientation (overwrite `get`?) and metric
-
-        return [c]
+        e = -sum(m[i][i] for i in range(rk)) / (2 * rk)  # Pfaffian mod sign
+        e *= (-1 / (2 * pi)) ** rk  # normalize
+        return [e]

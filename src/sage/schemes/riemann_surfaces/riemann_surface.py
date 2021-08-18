@@ -1313,24 +1313,24 @@ class RiemannSurface(object):
                     # problems occur with that.
 
                     if (b_in != a_in) and (b_in != a_out):
-                        if ((a_in_arg < b_in_arg < a_out_arg) or
-                                (b_in_arg < a_out_arg < a_in_arg) or
-                                (a_out_arg < a_in_arg < b_in_arg)):
+                        if ((a_in_arg < b_in_arg < a_out_arg)
+                            or (b_in_arg < a_out_arg < a_in_arg)
+                            or (a_out_arg < a_in_arg < b_in_arg)):
                             intsum += 1
-                        elif ((a_out_arg < b_in_arg < a_in_arg) or
-                                (b_in_arg < a_in_arg < a_out_arg) or
-                                (a_in_arg < a_out_arg < b_in_arg)):
+                        elif ((a_out_arg < b_in_arg < a_in_arg)
+                              or (b_in_arg < a_in_arg < a_out_arg)
+                              or (a_in_arg < a_out_arg < b_in_arg)):
                             intsum -= 1
                         else:
                             raise RuntimeError("impossible edge orientation")
                     if (b_out != a_in) and (b_out != a_out):
-                        if ((a_in_arg < b_out_arg < a_out_arg) or
-                                (b_out_arg < a_out_arg < a_in_arg) or
-                                (a_out_arg < a_in_arg < b_out_arg)):
+                        if ((a_in_arg < b_out_arg < a_out_arg)
+                            or (b_out_arg < a_out_arg < a_in_arg)
+                            or (a_out_arg < a_in_arg < b_out_arg)):
                             intsum -= 1
-                        elif ((a_out_arg < b_out_arg < a_in_arg) or
-                                (b_out_arg < a_in_arg < a_out_arg) or
-                                (a_in_arg < a_out_arg < b_out_arg)):
+                        elif ((a_out_arg < b_out_arg < a_in_arg)
+                              or (b_out_arg < a_in_arg < a_out_arg)
+                              or (a_in_arg < a_out_arg < b_out_arg)):
                             intsum += 1
                         else:
                             raise RuntimeError("impossible edge orientation")
@@ -1877,7 +1877,6 @@ class RiemannSurface(object):
         else:
             raise ValueError("Invalid integration method")
 
-        integral_dict = dict()
         integral_dict = {edge: line_int(edge) for edge in occurring_edges}
         
         rows = []

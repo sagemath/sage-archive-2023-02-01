@@ -386,6 +386,7 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
                         for j in vbundle.irange()]
                        for i in vbundle.irange()]
             res_loc = self.get_local(cmatrix)  # not the local Euler form
+            # TODO: multiply cmatrix with metric tensor
             det = g.det(frame)
             if det.is_trivial_zero():
                 raise ValueError(f'metric {g} must be non-degenerate')

@@ -121,6 +121,7 @@ AUTHORS:
 ########################################################################
 # I. Define the generic Sloane sequence class.
 ########################################################################
+from __future__ import annotations
 
 # just used for handy .load, .save, etc.
 import sys
@@ -555,6 +556,7 @@ class A000005(SloaneSequence):
         """
         return arith.number_of_divisors(n)
 
+
 class A000008(SloaneSequence):
     def __init__(self):
         r"""
@@ -712,6 +714,7 @@ class A000009(SloaneSequence):
         """
         self._eval(n)   # force computation
         return self._b[:n]
+
 
 class A000796(SloaneSequence):
     def __init__(self):
@@ -885,7 +888,6 @@ class A003418(SloaneSequence):
         return arith.lcm([i for i in range(1,n+1)])
 
 
-
 class A007318(SloaneSequence):
     def __init__(self):
         r"""
@@ -951,6 +953,7 @@ class A007318(SloaneSequence):
         m -= 1
         k = n - m*(m+1)//2
         return arith.binomial(m,k)
+
 
 class A008275(SloaneSequence):
     def __init__(self):
@@ -1038,7 +1041,6 @@ class A008275(SloaneSequence):
         return self.s(m, k)  # (-1)**(m-k) * combinat.stirling_number1(m,k)
 
 
-
 class A008277(SloaneSequence):
     def __init__(self):
         r"""
@@ -1121,9 +1123,6 @@ class A008277(SloaneSequence):
         return self.s2(m, k)  # combinat.stirling_number2(m,k)
 
 
-
-
-
 class A049310(SloaneSequence):
     def __init__(self):
         r"""
@@ -1197,9 +1196,6 @@ class A049310(SloaneSequence):
         return sign * arith.binomial((m+k)//2,k)
 
 
-
-
-
 class A000010(SloaneSequence):
     def __init__(self):
         r"""
@@ -1269,6 +1265,7 @@ class A000010(SloaneSequence):
 
 # Theme: simple functions
 
+
 class A000007(SloaneSequence):
     def __init__(self):
         r"""
@@ -1322,6 +1319,7 @@ class A000007(SloaneSequence):
             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         """
         return Integer(0**n)
+
 
 class A005843(SloaneSequence):
     def __init__(self):
@@ -1382,7 +1380,6 @@ class A005843(SloaneSequence):
         return Integer(2*n)
 
 
-
 class A000035(SloaneSequence):
     def __init__(self):
         r"""
@@ -1439,8 +1436,7 @@ class A000035(SloaneSequence):
             sage: [sloane.A000035._eval(n) for n in range(10)]
             [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
         """
-        return Integer(n%2)
-
+        return Integer(n % 2)
 
 
 class A000169(SloaneSequence):
@@ -1502,6 +1498,7 @@ class A000169(SloaneSequence):
         """
         return Integer(n**(n-1))
 
+
 class A000272(SloaneSequence):
     def __init__(self):
         r"""
@@ -1560,9 +1557,6 @@ class A000272(SloaneSequence):
         if n == 0:
             return 1
         return Integer(ZZ(n)**(ZZ(n)-2))
-
-
-
 
 
 class A000312(SloaneSequence):
@@ -1628,8 +1622,6 @@ class A000312(SloaneSequence):
             return Integer(n**n)
 
 
-
-
 class A001477(SloaneSequence):
     def __init__(self):
         r"""
@@ -1687,6 +1679,7 @@ class A001477(SloaneSequence):
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
         return Integer(n)
+
 
 class A004526(SloaneSequence):
     def __init__(self):
@@ -1806,9 +1799,6 @@ class A000326(SloaneSequence):
         return Integer(n*(3*n-1)//2)
 
 
-
-
-
 class A002378(SloaneSequence):
     def __init__(self):
         r"""
@@ -1867,6 +1857,7 @@ class A002378(SloaneSequence):
         """
         return Integer(n*(n+1))
 
+
 class A002620(SloaneSequence):
     def __init__(self):
         r"""
@@ -1923,9 +1914,6 @@ class A002620(SloaneSequence):
             [0, 0, 1, 2, 4, 6, 9, 12, 16, 20]
         """
         return Integer(n**2 // 4)
-
-
-
 
 
 class A005408(SloaneSequence):
@@ -1987,7 +1975,6 @@ class A005408(SloaneSequence):
         return Integer(2*n+1)
 
 
-
 class A000012(SloaneSequence):
     def __init__(self):
         r"""
@@ -2039,6 +2026,7 @@ class A000012(SloaneSequence):
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
         return Integer(1)
+
 
 class A000120(SloaneSequence):
     def __init__(self):
@@ -2106,6 +2094,7 @@ class A000120(SloaneSequence):
         """
         return self.f(n)
 
+
 class A010060(SloaneSequence):
     def __init__(self):
         r"""
@@ -2167,6 +2156,7 @@ class A010060(SloaneSequence):
         """
         return sloane.A000120(n) % 2
 
+
 class A000069(SloaneSequence):
     def __init__(self):
         r"""
@@ -2218,6 +2208,7 @@ class A000069(SloaneSequence):
             [1, 2, 4, 7, 8, 11, 13, 14, 16, 19]
         """
         return Integer(2*n + 1) - sloane.A010060(n)
+
 
 class A001969(SloaneSequence):
     def __init__(self):
@@ -2276,7 +2267,6 @@ class A001969(SloaneSequence):
         return Integer(2*n) + sloane.A010060(n)
 
 
-
 class A000290(SloaneSequence):
     def __init__(self):
         r"""
@@ -2332,8 +2322,6 @@ class A000290(SloaneSequence):
             [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
         """
         return Integer(n**2)
-
-
 
 
 class A000225(SloaneSequence):
@@ -2459,6 +2447,7 @@ class A000015(SloaneSequence):
         else:
             return arith.next_prime_power(n)
 
+
 class A000016(SloaneSequence):
     def __init__(self):
         r"""
@@ -2520,6 +2509,7 @@ class A000016(SloaneSequence):
         if n == 0:
             return 1
         return sum( (i%2)*arith.euler_phi(i)*2**(Integer(n/i))/(2*n) for i in arith.divisors(n) )
+
 
 class A000032(SloaneSequence):
     def __init__(self):
@@ -2589,6 +2579,7 @@ class A000032(SloaneSequence):
 
 # Theme numbers as strings of digits
 
+
 class A004086(SloaneSequence):
     def __init__(self):
         r"""
@@ -2646,10 +2637,9 @@ class A004086(SloaneSequence):
             sage: [sloane.A004086._eval(n) for n in range(10)]
             [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
         """
-        a = list(str(n))
-        a.reverse()
-        a = ''.join(a)
-        return ZZ(int(a))
+        a = ''.join(reversed(str(n)))
+        return ZZ(a)
+
 
 class A002113(SloaneSequence):
     def __init__(self):
@@ -2749,7 +2739,6 @@ class A002113(SloaneSequence):
             return self.list(n)
 
 
-
 class A000030(SloaneSequence):
     def __init__(self):
         r"""
@@ -2812,7 +2801,6 @@ class A000030(SloaneSequence):
             return n
         else:
             return self(n//10)
-
 
 
 # Theme: primes and factoring
@@ -2968,6 +2956,7 @@ class A002808(SloaneSequence):
             # try again
             return self.list(n)
 
+
 class A018252(SloaneSequence):
     def __init__(self):
         r"""
@@ -3027,8 +3016,6 @@ class A018252(SloaneSequence):
         if n == 1:
              return Integer(1)
         return sloane.A002808(n-1)
-
-
 
 
 class A000043(SloaneSequence):
@@ -3093,6 +3080,7 @@ class A000043(SloaneSequence):
         except (AttributeError, IndexError):
             self._b = [2,3,5,7,13,17,19,31,61,89,107,127,521,607,1279,2203,2281,3217,4253,4423,9689,9941,11213,19937,21701,23209,44497,86243,110503,132049,216091,756839,859433,1257787,1398269,2976221,3021377,6972593,13466917]
             return Integer(self._b[n-1])
+
 
 class A000668(SloaneSequence):
     def __init__(self):
@@ -3171,6 +3159,7 @@ class A000668(SloaneSequence):
         """
         return Integer(2**sloane.A000043(n) - 1)
 
+
 class A000396(SloaneSequence):
     def __init__(self):
         r"""
@@ -3229,6 +3218,7 @@ class A000396(SloaneSequence):
         """
         p = sloane.A000043(n)
         return Integer(2**(p-1) * (2**p - 1))
+
 
 class A005100(SloaneSequence):
     def __init__(self):
@@ -3323,6 +3313,7 @@ class A005100(SloaneSequence):
             self._precompute()
             # try again
             return self.list(n)
+
 
 class A005101(SloaneSequence):
     def __init__(self):
@@ -3420,7 +3411,6 @@ class A005101(SloaneSequence):
             return self.list(n)
 
 
-
 class A002110(SloaneSequence):
     def __init__(self):
         r"""
@@ -3477,6 +3467,7 @@ class A002110(SloaneSequence):
             [1, 2, 6, 30, 210, 2310, 30030, 510510, 9699690, 223092870]
         """
         return prod([sloane.A000040(i) for i in range(1,n+1)]) #n-th prime = A000040(n)
+
 
 class A000720(SloaneSequence):
     def __init__(self):
@@ -3537,6 +3528,7 @@ class A000720(SloaneSequence):
         """
         return prime_pi(n)
 
+
 class A064553(SloaneSequence):
     def __init__(self):
         r"""
@@ -3596,7 +3588,6 @@ class A064553(SloaneSequence):
             [1, 2, 3, 4, 4, 6, 5, 8, 9, 8]
         """
         return prod([(prime_pi(p)+1)**e for p,e in arith.factor(n)])
-
 
 
 class A001055(SloaneSequence):
@@ -3686,7 +3677,6 @@ class A001055(SloaneSequence):
         return self.nwf(n, n)
 
 
-
 class A006530(SloaneSequence):
     def __init__(self):
         r"""
@@ -3748,6 +3738,7 @@ class A006530(SloaneSequence):
         if n == 1:
             return Integer(1)
         return max(p for p,_ in arith.factor(n))
+
 
 class A000961(SloaneSequence):
     def __init__(self):
@@ -3840,7 +3831,6 @@ class A000961(SloaneSequence):
             self._precompute()
             # try again
             return self.list(n)
-
 
 
 class A005117(SloaneSequence):
@@ -4029,8 +4019,6 @@ class A020639(SloaneSequence):
             return self.list(n)
 
 
-
-
 class A000041(SloaneSequence):
     def __init__(self):
         r"""
@@ -4087,8 +4075,6 @@ class A000041(SloaneSequence):
             [1, 2, 3, 5, 7, 11, 15, 22, 30, 42]
         """
         return partition.Partitions(n).cardinality()
-
-
 
 
 class A000045(SloaneSequence):
@@ -4201,6 +4187,7 @@ class A000045(SloaneSequence):
         """
         self._eval(n)   # force computation
         return self._b[:n]
+
 
 class A000108(SloaneSequence):
     def __init__(self):
@@ -4316,7 +4303,6 @@ class A001006(SloaneSequence):
         return sum((-1)**(n-k)*arith.binomial(n, k)*sloane.A000108(k+1) for k in range(n+1))
 
 
-
 class A000079(SloaneSequence):
     def __init__(self):
         r"""
@@ -4372,6 +4358,7 @@ class A000079(SloaneSequence):
             [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
         """
         return Integer(2**n)
+
 
 class A000578(SloaneSequence):
     def __init__(self):
@@ -4432,7 +4419,6 @@ class A000578(SloaneSequence):
         return Integer(n**3)
 
 
-
 class A000244(SloaneSequence):
     def __init__(self):
         r"""
@@ -4491,6 +4477,7 @@ class A000244(SloaneSequence):
         """
         return Integer(3**n)
 
+
 class A000302(SloaneSequence):
     def __init__(self):
         r"""
@@ -4546,6 +4533,7 @@ class A000302(SloaneSequence):
             [1, 4, 16, 64, 256, 1024, 4096, 16384, 65536, 262144]
         """
         return Integer(4**n)
+
 
 class A000583(SloaneSequence):
     def __init__(self):
@@ -4606,7 +4594,6 @@ class A000583(SloaneSequence):
         return Integer(n**4)
 
 
-
 class A000142(SloaneSequence):
     def __init__(self):
         r"""
@@ -4663,6 +4650,7 @@ class A000142(SloaneSequence):
             [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880]
         """
         return arith.factorial(n)
+
 
 class A000085(SloaneSequence):
     def __init__(self):
@@ -4722,6 +4710,7 @@ class A000085(SloaneSequence):
         """
         return sum([arith.factorial(n)//(arith.factorial(n-2*k)*(2**k)*arith.factorial(k)) for k in range(n//2+1)])
 
+
 class A001189(SloaneSequence):
     def __init__(self):
         r"""
@@ -4779,6 +4768,7 @@ class A001189(SloaneSequence):
             [0, 1, 3, 9, 25, 75, 231, 763, 2619, 9495]
         """
         return sloane.A000085(n) - 1
+
 
 class A000670(SloaneSequence):
     def __init__(self):
@@ -4840,7 +4830,6 @@ class A000670(SloaneSequence):
         if n == 0:
             return Integer(1)
         return sum([arith.factorial(k)*combinat.stirling_number2(n,k) for k in range(1,n+1)])
-
 
 
 class A006318(SloaneSequence):
@@ -4958,7 +4947,6 @@ class A000165(SloaneSequence):
             [1, 2, 8, 48, 384, 3840, 46080, 645120, 10321920, 185794560]
         """
         return (2**n)*arith.factorial(n)
-
 
 
 class A001147(SloaneSequence):
@@ -5124,6 +5112,7 @@ class A006882(SloaneSequence):
         self._eval(n)   # force computation
         return self._b[:n]
 
+
 class A000984(SloaneSequence):
     def __init__(self):
         r"""
@@ -5178,6 +5167,7 @@ class A000984(SloaneSequence):
             [1, 2, 6, 20, 70, 252, 924, 3432, 12870, 48620]
         """
         return arith.binomial(2*n,n)
+
 
 class A001405(SloaneSequence):
     def __init__(self):
@@ -5235,6 +5225,7 @@ class A001405(SloaneSequence):
         from sage.functions.all import floor
         return arith.binomial(n, int(floor(n//2)))
 
+
 class A000292(SloaneSequence):
     def __init__(self):
         r"""
@@ -5289,6 +5280,7 @@ class A000292(SloaneSequence):
             [0, 1, 4, 10, 20, 35, 56, 84, 120, 165]
         """
         return Integer(n*(n+1)*(n+2)//6)  # or arith.binomial(n+2,3))
+
 
 class A000330(SloaneSequence):
     def __init__(self):
@@ -5469,6 +5461,7 @@ class A000153(ExtremesOfPermanentsSequence):
         """
         return "a(n) = n*a(n-1) + (n-2)*a(n-2), with a(0) = 0, a(1) = 1."
 
+
 class A000255(ExtremesOfPermanentsSequence):
     def __init__(self):
         r"""
@@ -5526,8 +5519,6 @@ class A000255(ExtremesOfPermanentsSequence):
             'a(n) = n*a(n-1) + (n-1)*a(n-2), a(0) = 1, a(1) = 1.'
         """
         return "a(n) = n*a(n-1) + (n-1)*a(n-2), a(0) = 1, a(1) = 1."
-
-
 
 
 class A000261(ExtremesOfPermanentsSequence):
@@ -5592,6 +5583,7 @@ class A000261(ExtremesOfPermanentsSequence):
             'a(n) = n*a(n-1) + (n-3)*a(n-2), a(1) = 0, a(2) = 1.'
         """
         return "a(n) = n*a(n-1) + (n-3)*a(n-2), a(1) = 0, a(2) = 1."
+
 
 class A001909(ExtremesOfPermanentsSequence):
     def __init__(self):
@@ -5948,6 +5940,7 @@ class A090012(SloaneSequence):
         else:
             return  sloane.A000153(n+1) + sloane.A000153(n)
 
+
 class A090013(SloaneSequence):
     def __init__(self):
         r"""
@@ -6024,6 +6017,7 @@ class A090013(SloaneSequence):
             return ZZ(4)
         else:
             return  sloane.A000261(n+2) + sloane.A000261(n+1)
+
 
 class A090014(SloaneSequence):
     def __init__(self):
@@ -6180,6 +6174,7 @@ class A090015(SloaneSequence):
         else:
             return  sloane.A001910(n+4) + sloane.A001910(n+3)
 
+
 class A090016(SloaneSequence):
     def __init__(self):
         r"""
@@ -6259,6 +6254,7 @@ class A090016(SloaneSequence):
             return ZZ(7)
         else:
             return  sloane.A090010(n-1) + sloane.A090010(n)
+
 
 class A000166(SloaneSequence):
     def __init__(self):
@@ -6390,6 +6386,7 @@ class A000203(SloaneSequence):
         """
         return sum(arith.divisors(n)) #alternative: return arith.sigma(n)
 
+
 class A001157(SloaneSequence):
     def __init__(self):
         r"""
@@ -6449,6 +6446,7 @@ class A001157(SloaneSequence):
         """
         return  arith.sigma(n,2)
 
+
 class A008683(SloaneSequence):
     def __init__(self):
         r"""
@@ -6504,7 +6502,6 @@ class A008683(SloaneSequence):
             [1, -1, -1, 0, -1, 1, -1, 0, 0, 1]
         """
         return  arith.moebius(n)
-
 
 
 class A000204(SloaneSequence):
@@ -6575,6 +6572,7 @@ class A000204(SloaneSequence):
         else:
             return sloane.A000045(n+1) + sloane.A000045(n-1)
 
+
 class A000217(SloaneSequence):
     def __init__(self):
         r"""
@@ -6626,6 +6624,7 @@ class A000217(SloaneSequence):
             [0, 1, 3, 6, 10, 15, 21, 28, 36, 45]
         """
         return Integer(n*(n+1)//2)
+
 
 class A000124(SloaneSequence):
     def __init__(self):
@@ -6686,8 +6685,6 @@ class A000124(SloaneSequence):
             [1, 2, 4, 7, 11, 16, 22, 29, 37, 46]
         """
         return Integer(n*(n+1)//2 + 1)
-
-
 
 
 class A002275(SloaneSequence):
@@ -6812,7 +6809,6 @@ class RecurrenceSequence(SloaneSequence):
         """
         self._eval(n)   # force computation
         return self._b[:n]
-
 
 
 class A001110(RecurrenceSequence):
@@ -6949,7 +6945,6 @@ class A051959(RecurrenceSequence):
             return 0
 
 
-
 class A001221(SloaneSequence):
     def __init__(self):
         r"""
@@ -7013,7 +7008,6 @@ class A001221(SloaneSequence):
             [0, 1, 1, 1, 1, 2, 1, 1, 1]
         """
         return len(arith.prime_divisors(n)) # there is a PARI function omega
-
 
 
 class A001222(SloaneSequence):
@@ -7081,6 +7075,7 @@ class A001222(SloaneSequence):
         """
         return sum([e for i,e in arith.factor(n)])
 
+
 # A046660() = A001222(n) - A001221(n)
 class A046660(SloaneSequence):
     r"""
@@ -7142,7 +7137,6 @@ class A046660(SloaneSequence):
             [0, 0, 0, 1, 0, 0, 0, 2, 1]
         """
         return sloane.A001222(n) - sloane.A001221(n)
-
 
 
 class A001227(SloaneSequence):
@@ -7209,7 +7203,8 @@ class A001227(SloaneSequence):
             sage: [sloane.A001227._eval(n) for n in range(1,10)]
             [1, 1, 2, 1, 2, 2, 2, 1, 3]
         """
-        return sum(i%2 for i in arith.divisors(n))
+        return sum(i % 2 for i in arith.divisors(n))
+
 
 class A001358(SloaneSequence):
     def __init__(self):
@@ -7312,7 +7307,6 @@ class A001358(SloaneSequence):
             self._precompute()
             # try again
             return self.list(n)
-
 
 
 class A001694(SloaneSequence):
@@ -7446,27 +7440,22 @@ class A001694(SloaneSequence):
             self._precompute(10000)
         return self._b[:n]
 
-    def is_powerful(self,n):
+    def is_powerful(self, n) -> bool:
         r"""
-        This function returns True if and only if `n` is a Powerful
-        Number:
+        Return ``True`` if and only if `n` is a powerful number.
 
-        A positive integer `n` is powerful if for every prime
-        `p` dividing `n`, `p^2` also divides
-        `n`. See Sloane's OEIS A001694.
+        A positive integer `n` is powerful if for every prime `p`
+        dividing `n`, `p^2` also divides `n`.
+
+        See :oeis:`A001694`.
 
         INPUT:
 
-
-        -  ``n`` - integer
-
+        - `n` -- integer
 
         OUTPUT:
 
-
-        -  ``True`` - if `n` is a Powerful number, else
-           False
-
+        ``True`` if `n` is a powerful number, else ``False``
 
         EXAMPLES::
 
@@ -7482,11 +7471,7 @@ class A001694(SloaneSequence):
         """
         if n <= 1:
             return True
-        ex = [e for _,e in arith.factor(n)]
-        for e in ex:
-            if e < 2:
-                return False
-        return True
+        return all(e >= 2 for _, e in arith.factor(n))
 
 
 class A001836(SloaneSequence):
@@ -7668,8 +7653,6 @@ class RecurrenceSequence2(SloaneSequence):
         return self._b[:n]
 
 
-
-
 class A001906(RecurrenceSequence2):
     def __init__(self):
         r"""
@@ -7720,7 +7703,6 @@ class A001906(RecurrenceSequence2):
             'F(2n) = bisection of Fibonacci sequence: a(n)=3a(n-1)-a(n-2).'
         """
         return "F(2n) = bisection of Fibonacci sequence: a(n)=3a(n-1)-a(n-2)."
-
 
 
 class A001333(RecurrenceSequence2):
@@ -7776,7 +7758,6 @@ class A001333(RecurrenceSequence2):
             'Numerators of continued fraction convergents to sqrt(2).'
         """
         return "Numerators of continued fraction convergents to sqrt(2)."
-
 
 
 class A001045(RecurrenceSequence2):
@@ -7943,8 +7924,6 @@ class A001109(RecurrenceSequence2):
         return "a(n)^2 is a triangular number: a(n) = 6*a(n-1) - a(n-2) with a(0)=0, a(1)=1"
 
 
-
-
 class A015521(RecurrenceSequence2):
     def __init__(self):
         r"""
@@ -7996,6 +7975,7 @@ class A015521(RecurrenceSequence2):
         """
         return "Linear 2nd order recurrence, a(n) = 3 a(n-1) + 4 a(n-2)."
 
+
 class A015523(RecurrenceSequence2):
     def __init__(self):
         r"""
@@ -8046,7 +8026,6 @@ class A015523(RecurrenceSequence2):
             'Linear 2nd order recurrence, a(n) = 3 a(n-1) + 5 a(n-2).'
         """
         return "Linear 2nd order recurrence, a(n) = 3 a(n-1) + 5 a(n-2)."
-
 
 
 class A015530(RecurrenceSequence2):
@@ -8157,6 +8136,7 @@ class A015531(RecurrenceSequence2):
             'Linear 2nd order recurrence, a(n) = 4 a(n-1) + 5 a(n-2).'
         """
         return "Linear 2nd order recurrence, a(n) = 4 a(n-1) + 5 a(n-2)."
+
 
 class A015551(RecurrenceSequence2):
     def __init__(self):
@@ -8299,7 +8279,6 @@ class A082411(RecurrenceSequence2):
         return "Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2)."
 
 
-
 class A083103(RecurrenceSequence2):
     def __init__(self):
         r"""
@@ -8361,6 +8340,7 @@ class A083103(RecurrenceSequence2):
             'Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2).'
         """
         return "Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2)."
+
 
 class A083104(RecurrenceSequence2):
     def __init__(self):
@@ -8478,8 +8458,6 @@ class A083105(RecurrenceSequence2):
         return "Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2)."
 
 
-
-
 class A083216(RecurrenceSequence2):
     def __init__(self):
         r"""
@@ -8536,7 +8514,6 @@ class A083216(RecurrenceSequence2):
             'Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2).'
         """
         return "Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2)."
-
 
 
 class A061084(SloaneSequence):
@@ -8623,12 +8600,11 @@ def recur_gen3(a0,a1,a2,a3,a4,a5):
         [1, 1, 1, 3, 5, 9, 17, 31, 57, 105]
     """
     x, y ,z = Integer(a0), Integer(a1), Integer(a2)
-    n = 0
     yield x
     while True:
-        n = n+1
         x, y, z = y, z, a5*x+a4*y+a3*z
         yield x
+
 
 class A000213(SloaneSequence):
     def __init__(self):
@@ -8716,6 +8692,7 @@ class A000213(SloaneSequence):
         """
         self._eval(n)   # force computation
         return self._b[:n]
+
 
 class A000073(SloaneSequence):
     def __init__(self):
@@ -8844,7 +8821,6 @@ def perm_mh(m, h):
     return A.permanent()
 
 
-
 class A079922(SloaneSequence):
     r"""
     function returns solutions to the Dancing School problem with
@@ -8919,7 +8895,6 @@ class A079922(SloaneSequence):
         return perm_mh(n, 3)
 
 
-
 class A079923(SloaneSequence):
     r"""
     function returns solutions to the Dancing School problem with
@@ -8992,6 +8967,7 @@ class A079923(SloaneSequence):
             [5, 21, 76, 246, 738, 2108, 5794, 15458, 40296, 103129]
         """
         return perm_mh(n, 4)
+
 
 class A109814(SloaneSequence):
     r"""
@@ -9083,6 +9059,7 @@ class A109814(SloaneSequence):
             if k > m:
                 m = k
         return ZZ(m)
+
 
 class A111774(SloaneSequence):
     def __init__(self):
@@ -9197,10 +9174,9 @@ class A111774(SloaneSequence):
             # try again
             return self.list(n)
 
-    def is_number_of_the_third_kind(self, n):
+    def is_number_of_the_third_kind(self, n) -> bool:
         r"""
-        This function returns True if and only if `n` is a number
-        of the third kind.
+        Return ``True`` if and only if `n` is a number of the third kind.
 
         A number is of the third kind if it can be written as a sum of at
         least three consecutive positive integers. Odd primes can only be
@@ -9212,16 +9188,11 @@ class A111774(SloaneSequence):
 
         INPUT:
 
-
-        -  ``n`` - positive integer
-
+        - `n` -- positive integer
 
         OUTPUT:
 
-
-        -  ``True`` - if n is not prime and not a power of 2
-           False -
-
+        ``True`` if `n` is not prime and not a power of 2
 
         EXAMPLES::
 
@@ -9239,10 +9210,7 @@ class A111774(SloaneSequence):
 
         - Jaap Spies (2006-12-09)
         """
-        if (not arith.is_prime(n)) and (not arith.is_power_of_two(n)):
-            return True
-        else:
-            return False
+        return not arith.is_prime(n) and not arith.is_power_of_two(n)
 
 
 class A111775(SloaneSequence):
@@ -9338,6 +9306,7 @@ class A111775(SloaneSequence):
             return k-1
         else:
             return k-2
+
 
 class A111787(SloaneSequence):
     def __init__(self):
@@ -9460,6 +9429,7 @@ class ExponentialNumbers(SloaneSequence):
         self.__n = n+1
         return self.__data[n]
 
+
 class A000110(ExponentialNumbers):
     def __init__(self):
         r"""
@@ -9572,6 +9542,7 @@ class A000587(ExponentialNumbers):
 # A000100  a(n) = number of compositions of n in which the maximum part size is 3. Milestone!
 #  a(n+3) = Sum[k=0..n, F(k)*T(n-k) ], F(i)=A000045(i+1), T(i)=A000073(i+2).
 #  0, 0, 0, 1, 2, 5, 11, 23, 47, 94, 185, 360, 694, 1328, 2526, 4781, 9012, 16929, 31709, 59247
+
 
 class A000100(SloaneSequence):
     def __init__(self):

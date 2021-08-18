@@ -3379,28 +3379,28 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         EXAMPLES::
 
             sage: AR.<x, z> = AsymptoticRing(growth_group='x^ZZ * z^ZZ', coefficient_ring=ZZ)
-            sage: AR.B(2*x^2, {x: 10})
+            sage: AR.B(2*x^2, {x: 10}) # indirect doctest
             doctest:warning
             ...
             FutureWarning: This class/method/function is marked as experimental.
             It, its functionality or its interface might change without a formal deprecation.
             See https://trac.sagemath.org/31922 for details.
             B(2*x^2, x >= 10)
-            sage: expr = 42*x^42 + x^10 + AR.B(x^2, 20); expr
+            sage: expr = 42*x^42 + x^10 + AR.B(x^2, 20); expr # indirect doctest
             42*x^42 + x^10 + B(x^2, x >= 20, z >= 20)
-            sage: type(AR.B(x, 10))
+            sage: type(AR.B(x, 10)) # indirect doctest
             <class 'sage.rings.asymptotic.asymptotic_ring.AsymptoticRing_with_category.element_class'>
-            sage: 2*z^3 + AR.B(5*z^2, {z: 20})
+            sage: 2*z^3 + AR.B(5*z^2, {z: 20}) # indirect doctest
             2*z^3 + B(5*z^2, z >= 20)
-            sage: (2*x).B({x: 20})
+            sage: (2*x).B({x: 20}) # indirect doctest
             B(2*x, x >= 20)
-            sage: AR.B(4*x^2*z^3, valid_from=10)
+            sage: AR.B(4*x^2*z^3, valid_from=10) # indirect doctest
             B(4*x^2*z^3, x >= 10, z >= 10)
-            sage: AR.B(42*x^2)
+            sage: AR.B(42*x^2) # indirect doctest
             B(42*x^2, x >= 0, z >= 0)
 
         TESTS::
-            sage: AR(0).B(20)
+            sage: AR(0).B(20) # indirect doctest
             Traceback (most recent call last):
             ...
             NotImplementedBZero: got B(0)

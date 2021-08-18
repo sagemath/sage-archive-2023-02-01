@@ -352,7 +352,7 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
 
     def get_local(self, cmat):
         r"""
-        Return the local Euler form for w.r.t. a given curvature matrix.
+        Return the local Euler form w.r.t. a given curvature matrix.
 
         .. ALGORITHM::
 
@@ -376,4 +376,7 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
                   for j in range(rk)] for i in range(rk)]
         c = -sum(m[i][i] for i in range(rk)) / (2 * rk)  # Pfaffian mod sign
         c *= (-1 / (2 * pi)) ** rk  # normalize
+
+        # TODO: incorporate orientation (overwrite `get`?) and metric
+
         return [c]

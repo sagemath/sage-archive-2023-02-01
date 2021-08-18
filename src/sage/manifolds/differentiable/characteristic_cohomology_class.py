@@ -276,7 +276,7 @@ class Algorithm_generic(SageObject):
     @cached_method
     def get_gen_pow(self, nab, i, n):
         r"""
-        Return the `n`-th power of the `i`-th generator.
+        Return the `n`-th power of the `i`-th generator's characteristic form.
         """
         if n == 0:
             return nab._domain._one_scalar_field  # no computation necessary
@@ -430,13 +430,34 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
 
 class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
     r"""
-
+    Algorithm class to generate Euler and Pontryagin forms.
     """
-    def get_local(self, cmat):
+    @cached_method
+    def get(self, nab):
         r"""
+        Return the global characteristic forms of the generators w.r.t. a given
+        connection.
+
+        OUTPUT:
+
+        - a list containing the global Euler form in the first entry, and the
+          global Pontryagin forms in the remaining entries.
 
         """
-        res = [EulerAlgorithm().get_local(cmat)]  # first entry is Euler class
+        return EulerAlgorithm().get(nab) + PontryaginAlgorithm().get(nab)
+
+    def get_local(self, cmat):
+        r"""
+        Return the local Euler and Pontryagin forms w.r.t. a given curvature
+        matrix.
+
+        OUTPUT:
+
+        - a list containing the local Euler form in the first entry, and the
+          local Pontryagin forms in the remaining entries.
+
+        """
+        res = EulerAlgorithm().get_local(cmat)  # first entry is Euler class
         res += PontryaginAlgorithm().get_local(cmat)  # rest Pontryagin
         return res
 

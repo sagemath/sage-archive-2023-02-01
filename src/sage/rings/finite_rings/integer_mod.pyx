@@ -628,7 +628,9 @@ cdef class IntegerMod_abstract(FiniteRingElement):
 
     def log(self, b=None, logarithm_exists=None):
         r"""
-        Return an integer `x` such that `b^x = a`, where
+        Compute the discrete logarithm of this element to base `b`,
+        that is,
+        return an integer `x` such that `b^x = a`, where
         `a` is ``self``.
 
         INPUT:
@@ -676,10 +678,8 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: pow(5, 5735816763073854953388147237921, m).log(5)
             5735816763073854953388147237921
 
-        Things that can go wrong. E.g., if the base is not a generator for
-        the multiplicative group, or not even a unit.
-
-        ::
+        Errors are generated if the logarithm doesn't exist
+        or the inputs are not units::
 
             sage: Mod(3, 7).log(Mod(2, 7))
             Traceback (most recent call last):

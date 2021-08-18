@@ -409,30 +409,35 @@ class RiemannSurface(object):
     rigorous method, but for slower computations the rigorous method can be much
     faster::
         
-        sage: f = z*w^4+z^3+w
+        sage: f = z*w^3+z^3+w
         sage: p = 53
         sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
         sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
         sage: from sage.numerical.gauss_legendre import nodes
+        sage: import time
         sage: nodes.cache.clear()
-        sage: %time Rh = Sh.riemann_matrix()  # random | long time (2 seconds)
-        CPU times: user 2.38 s, sys: 36 µs, total: 2.38 s
-        Wall time: 2.38 s
+        sage: ct = time.time()
+        sage: Rh = Sh.riemann_matrix()  
+        sage: ct1 = time.time()-ct
         sage: nodes.cache.clear()
-        sage: %time Rr = Sr.riemann_matrix()  # random | long time (3 seconds)
-        CPU times: user 2.67 s, sys: 66 µs, total: 2.67 s
-        Wall time: 2.67 s
-        sage: p = 200
+        sage: ct = time.time()
+        sage: Rr = Sr.riemann_matrix()  
+        sage: ct2 = time.time()-ct
+        sage: ct2/ct1  # random
+        1.2429363969691192
+        sage: p = 500
         sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
         sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
         sage: nodes.cache.clear()
-        sage: %time Rh = Sh.riemann_matrix()  # random | long time (7 seconds)
-        CPU times: user 7.12 s, sys: 4.01 ms, total: 7.13 s
-        Wall time: 7.13 s
+        sage: ct = time.time()
+        sage: Rh = Sh.riemann_matrix()  # long time (6 seconds)
+        sage: ct1 = time.time()-ct
         sage: nodes.cache.clear()
-        sage: %time Rr = Sr.riemann_matrix()  # random | long time (5 seconds)
-        CPU times: user 4.91 s, sys: 9 µs, total: 4.91 s
-        Wall time: 4.91 s
+        sage: ct = time.time()
+        sage: Rr = Sr.riemann_matrix()  # long time (4 seconds)
+        sage: ct2 = time.time()-ct
+        sage: ct2/ct1  # random
+        0.6627716056083879
 
     This disparity in timings can get increasingly worse, and testing has shown
     that even for random quadrics the heuristic method can be as bad as 30 times

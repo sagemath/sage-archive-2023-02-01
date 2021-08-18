@@ -151,6 +151,7 @@ from . import maps
 from . import structure
 from . import number_field_morphisms
 from itertools import count
+from collections import Counter
 from builtins import zip
 
 
@@ -5867,6 +5868,97 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
             [Fractional ideal (2, 1/2*w - 1/2), Fractional ideal (2, 1/2*w + 1/2), Fractional ideal (3, 1/2*w + 1/2)]
         """
         return self.ideal(x).prime_factors()
+
+    def decomposition_type(self, p):
+        """
+        Return how the given prime of the base field splits in this number field.
+
+        INPUT:
+
+        - ``p`` -- a prime element or ideal of the base field.
+
+        OUTPUT:
+
+        A list of triples `(e, f, g)` where
+
+        - `e` is the ramification index,
+
+        - `f` is the residue class degree,
+
+        - `g` is the number of primes above `p` with given `e` and `f`
+
+        EXAMPLES::
+
+            sage: R.<x> = ZZ[]
+            sage: K.<a> = NumberField(x^20 + 3*x^18 + 15*x^16 + 28*x^14 + 237*x^12 + 579*x^10 + 1114*x^8 + 1470*x^6 + 2304*x^4 + 1296*x^2 + 729)
+            sage: K.is_galois()
+            True
+            sage: K.discriminant().factor()
+            2^20 * 3^10 * 53^10
+            sage: K.decomposition_type(2)
+            [(2, 5, 2)]
+            sage: K.decomposition_type(3)
+            [(2, 1, 10)]
+            sage: K.decomposition_type(53)
+            [(2, 2, 5)]
+
+        This example is only ramified at 11::
+
+            sage: K.<a> = NumberField(x^24 + 11^2*(90*x^12 - 640*x^8 + 2280*x^6 - 512*x^4 +2432/11*x^2 - 11))
+            sage: K.discriminant().factor()
+            -1 * 11^43
+            sage: K.decomposition_type(11)
+            [(1, 1, 2), (22, 1, 1)]
+
+        Computing the decomposition type is feasible even in large degree::
+
+            sage: K.<a> = NumberField(x^144 + 123*x^72 + 321*x^36 + 13*x^18 + 11)
+            sage: K.discriminant().factor(limit=100000)
+            2^144 * 3^288 * 7^18 * 11^17 * 31^18 * 157^18 * 2153^18 * 13907^18 * ...
+            sage: K.decomposition_type(2)
+            [(2, 4, 3), (2, 12, 2), (2, 36, 1)]
+            sage: K.decomposition_type(3)
+            [(9, 3, 2), (9, 10, 1)]
+            sage: K.decomposition_type(7)
+            [(1, 18, 1), (1, 90, 1), (2, 1, 6), (2, 3, 4)]
+
+        It also works for relative extensions::
+
+            sage: K.<a> = QuadraticField(-143)
+            sage: M.<c> = K.extension(x^10 - 6*x^8 + (a + 12)*x^6 + (-7/2*a - 89/2)*x^4 + (13/2*a - 77/2)*x^2 + 25)
+
+        There is a unique prime above `11` and above `13` in `K`, each of which is unramified in `M`::
+
+            sage: M.decomposition_type(11)
+            [(1, 2, 5)]
+            sage: P11 = K.primes_above(11)[0]
+            sage: len(M.primes_above(P11))
+            5
+            sage: M.decomposition_type(13)
+            [(1, 1, 10)]
+            sage: P13 = K.primes_above(13)[0]
+            sage: len(M.primes_above(P13))
+            10
+
+        There are two primes above `2`, each of which ramifies in `M`::
+
+            sage: Q0, Q1 = K.primes_above(2)
+            sage: M.decomposition_type(Q0)
+            [(2, 5, 1)]
+            sage: q0, = M.primes_above(Q0)
+            sage: q0.residue_class_degree()
+            5
+            sage: q0.relative_ramification_index()
+            2
+            sage: M.decomposition_type(Q1)
+            [(2, 5, 1)]
+        """
+        v0 = self.base_ring().valuation(p)
+        e0 = v0.value_group().gen().denominator()
+        f0 = v0.residue_field().degree()
+        valuations = v0.extensions(self)
+        ef = [(v.value_group().gen().denominator() // e0, v.residue_field().degree() // f0) for v in valuations]
+        return sorted([(e, f, g) for ((e, f), g) in Counter(ef).items()])
 
     def gen(self, n=0):
         """

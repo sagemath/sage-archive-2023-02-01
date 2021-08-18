@@ -1572,6 +1572,13 @@ cdef class Expression(CommutativeRingElement):
 
         (In spite of its name, this method also works in the complex case.)
 
+        .. WARNING::
+
+            The generic conversion mechanism is fragile. When rigorous results
+            are essential, it is recommended to call suitable methods of real
+            or complex balls instead. For example, `RBF(real(i + 1))` is better
+            expressed as `(CBF(i) + 1).real()`.
+
         EXAMPLES::
 
             sage: RBF(pi, 1/1000)
@@ -1589,6 +1596,18 @@ cdef class Expression(CommutativeRingElement):
 
             sage: CBF(gamma(15/2, 1)).identical(CBF(15/2).gamma(1))
             True
+            sage: a = RBF(abs(e+i)); (a, a.parent())
+            ([2.89638673159001 +/- 3.07e-15], Real ball field with 53 bits of precision)
+            sage: a = CBF(abs(e+i)); (a, a.parent())
+            ([2.89638673159001 +/- 3.07e-15], Complex ball field with 53 bits of precision)
+            sage: RBF(sin(7/12)^2 + real(exp(i*7/12))^2)
+            [1.0000000000000 +/- 1.12e-15]
+            sage: RBF(arg(sin(i+1)))
+            [0.454820233309950 +/- 7.08e-16]
+            sage: RBF(abs(i) + i)
+            Traceback (most recent call last):
+            ...
+            ValueError: nonzero imaginary part
         """
         # Note that we deliberately don't use _eval_self and don't try going
         # through RIF/CIF in order to avoid unsafe conversions.
@@ -1600,25 +1619,34 @@ cdef class Expression(CommutativeRingElement):
             except (TypeError, ValueError):
                 pass
         else:
+            C = R.complex_field()
             # Intended for BuiltinFunctions with a well-defined main argument
             args = [a.pyobject() if a.is_numeric() else a
                     for a in self.operands()]
             try:
                 args = operator._method_arguments(*args)
-                method = getattr(R(args[0]), operator.name())
-            except (AttributeError, TypeError):
+            except AttributeError:
                 pass
             else:
-                if callable(method):
-                    return method(*args[1:])
-            # Generic case: walk through the expression
+                # If R is a real field, prefer the method of real balls if it
+                # exists (sometimes leads to tighter bounds, and avoids
+                # confusing inconsistencies).
+                for T in ([R] if C is R else [R, C]):
+                    try:
+                        method = getattr(T(args[0]), operator.name())
+                    except (AttributeError, TypeError, ValueError):
+                        pass
+                    else:
+                        if callable(method):
+                            return method(*args[1:])
+            # Generic case: walk through the expression. In this case, we do
+            # not bother trying to stay in the real field.
             try:
-                res = self.operator()(*[R(a) for a in args])
+                res = self.operator()(*[C(a) for a in args])
             except (TypeError, ValueError):
                 pass
             else:
-                if res.parent() is R:
-                    return res
+                return R(res)
         # Typically more informative and consistent than the exceptions that
         # would propagate
         raise TypeError("unable to convert {!r} to a {!s}".format(
@@ -4599,6 +4627,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: (x^(-1) + 1).series(x,1)
             1*x^(-1) + 1 + Order(x)
+
+        Check that :trac:`32115` is fixed::
+
+            sage: exp(log(1+x)*(1/x)).series(x)
+            (e) + (-1/2*e)*x + (11/24*e)*x^2 + (-7/16*e)*x^3 + (2447/5760*e)*x^4 + ...
         """
         cdef Expression symbol0 = self.coerce_in(symbol)
         cdef GEx x
@@ -5863,7 +5896,7 @@ cdef class Expression(CommutativeRingElement):
 
     def number_of_operands(self):
         """
-        Return the number of arguments of this expression.
+        Return the number of operands of this expression.
 
         EXAMPLES::
 
@@ -5884,13 +5917,18 @@ cdef class Expression(CommutativeRingElement):
 
     def __len__(self):
         """
-        Return the number of arguments of this expression.
+        Return the number of operands of this expression.
+
+        This is deprecated; use :meth:`number_of_operands` instead.
 
         EXAMPLES::
 
             sage: var('a,b,c,x,y')
             (a, b, c, x, y)
             sage: len(a)
+            doctest:warning...
+            DeprecationWarning: using len on a symbolic expression is deprecated; use method number_of_operands instead
+            See https://trac.sagemath.org/29738 for details.
             0
             sage: len((a^2 + b^2 + (x+y)^2))
             3
@@ -5899,6 +5937,8 @@ cdef class Expression(CommutativeRingElement):
             sage: len(a*b^2*c)
             3
         """
+        from sage.misc.superseded import deprecation
+        deprecation(29738, "using len on a symbolic expression is deprecated; use method number_of_operands instead")
         return self.number_of_operands()
 
     def _unpack_operands(self):
@@ -6037,7 +6077,7 @@ cdef class Expression(CommutativeRingElement):
             # find the python equivalent and return it
             res = get_sfunction_from_serial(serial)
             if res is None:
-                raise RuntimeError("cannot find SFunction in table")
+                raise RuntimeError("cannot find SymbolicFunction in table")
 
             if is_a_fderivative(self._gobj):
                 from sage.libs.pynac.pynac import paramset_from_Expression

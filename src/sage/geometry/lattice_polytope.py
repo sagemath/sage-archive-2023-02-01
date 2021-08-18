@@ -124,7 +124,8 @@ lazy_import('ppl', 'point', as_='PPL_point',
 
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
-from sage.misc.all import cached_method, flatten, tmp_filename
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import flatten, tmp_filename
 from sage.modules.all import vector
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.plot.plot3d.index_face_set import IndexFaceSet

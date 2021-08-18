@@ -80,21 +80,17 @@ class CharacteristicCohomologyClass(IndexedFreeModuleElement):
                 self._mixed_forms[nab] = A(dom._zero_scalar_field)
             else:  # non-trivial case
                 from functools import reduce
-                from itertools import chain
 
                 parent = self.parent()
+                algorithm = parent._algorithm
 
-                gen_algorithm = parent._algorithm  # this is a list
-                # concatenate generators
-                gen_forms = list(chain.from_iterable(a.get(nab)
-                                                     for a in gen_algorithm))
                 grading = parent.print_options()['sorting_key']
                 res = [dom.diff_form_module(i).zero()
                        for i in range(dom._dim + 1)]
                 for ind, c in self:
                     deg = grading(ind)
-                    gen_pow = [fast_wedge_power(f, i)
-                               for f, i in zip(gen_forms, ind)]
+                    gen_pow = [algorithm.get_gen_pow(nab, i, ind[i])
+                               for i in range(len(ind))]
                     res[deg] += c * reduce(lambda x, y: x.wedge(y), gen_pow)
 
                 res = A(res)  # convert result into mixed form
@@ -157,17 +153,17 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
             ran = min(rk, dim // 2)
             names = [f'c_{i}' for i in range(1, ran + 1)]
             degrees = [2 * i for i in range(1, ran + 1)]
-            self._algorithm = [ChernAlgorithm()]
+            self._algorithm = ChernAlgorithm()
         elif vbundle._field_type == 'real':
             ran = min(rk // 2, dim // 4)
             names = [f'p_{i}' for i in range(1, ran + 1)]
             degrees = [4 * i for i in range(1, ran + 1)]
-            self._algorithm = [PontryaginAlgorithm()]
+            self._algorithm = PontryaginAlgorithm()
             if vbundle.has_orientation():
                 # add Euler class generator
-                names += ['e']
-                degrees += [rk]
-                self._algorithm += [EulerAlgorithm()]
+                names = ['e'] + names
+                degrees = [rk] + degrees
+                self._algorithm = PontryaginEulerAlgorithm()
                 # TODO: add relation e^2=p_k for dim=2*k
         else:
             raise TypeError(f'Characteristic cohomology classes not supported '
@@ -277,6 +273,14 @@ class Algorithm_generic(SageObject):
         """
         pass
 
+    @cached_method
+    def get_gen_pow(self, nab, i, n):
+        r"""
+        Return the `n`-th power of the `i`-th generator.
+        """
+        if n == 0:
+            return nab._domain._one_scalar_field  # no computation necessary
+        return fast_wedge_power(self.get(nab)[i], n)
 
 class ChernAlgorithm(Singleton, Algorithm_generic):
     r"""
@@ -385,7 +389,7 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
             gcmat = [[sum(g[[frame, i, j]] * nab.curvature_form(j, k, frame)
                           for j in vbundle.irange())
                       for k in vbundle.irange()] for i in vbundle.irange()]
-            res_loc = self.get_local(gcmat)  # Pf(G_s * Ω_s) mod const.
+            [res_loc] = self.get_local(gcmat)  # Pf(G_s * Ω_s) mod const.
             # e = 1 / sqrt(|det(G_s)|) * Pf(G_s * Ω_s) mod const.
             det = g.det(frame)
             if det.is_trivial_zero():
@@ -421,4 +425,28 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
                   for j in range(rk)] for i in range(rk)]
         e = -sum(m[i][i] for i in range(rk)) / (2 * ran)  # Pfaffian mod sign
         e *= (-1 / (2 * pi)) ** ran  # normalize
-        return e
+        return [e]
+
+
+class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
+    r"""
+
+    """
+    def get_local(self, cmat):
+        r"""
+
+        """
+        res = [EulerAlgorithm().get_local(cmat)]  # first entry is Euler class
+        res += PontryaginAlgorithm().get_local(cmat)  # rest Pontryagin
+        return res
+
+    @cached_method
+    def get_gen_pow(self, nab, i, n):
+        r"""
+        Return the `n`-th power of the `i`-th generator.
+        """
+        if n == 0:
+            return nab._domain._one_scalar_field  # no computation necessary
+        if i == 0:
+            return fast_wedge_power(EulerAlgorithm().get(nab)[0], n)
+        return fast_wedge_power(PontryaginAlgorithm().get(nab)[i-1], n)

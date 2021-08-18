@@ -1,3 +1,16 @@
+r"""
+Characteristic cohomology classes
+"""
+
+#******************************************************************************
+#       Copyright (C) 2021 Michael Jung <m.jung at vu.nl>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  as published by the Free Software Foundation; either version 2 of
+#  the License, or (at your option) any later version.
+#                  https://www.gnu.org/licenses/
+#******************************************************************************
+
 from sage.algebras.finite_gca import FiniteGCAlgebra
 from sage.combinat.free_module import IndexedFreeModuleElement
 from sage.misc.fast_methods import Singleton
@@ -7,10 +20,12 @@ from sage.misc.abstract_method import abstract_method
 from sage.manifolds.differentiable.affine_connection import AffineConnection
 from sage.manifolds.differentiable.bundle_connection import BundleConnection
 
-class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
+
+class CharacteristicCohomologyClass(IndexedFreeModuleElement):
     r"""
 
     """
+
     def __init__(self, parent, x, name=None, latex_name=None):
         r"""
 
@@ -20,7 +35,7 @@ class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
             self._latex_name = self._name
         else:
             self._latex_name = latex_name
-        self._mixed_forms = {}  # dict. of mixed forms w.r.t. this class
+        self._mixed_forms = {}  # dict. of characteristic forms of `self`
                                 # (key: bundle connection)
         super().__init__(parent, x)
 
@@ -34,7 +49,7 @@ class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
             name = self._name
         vbundle = self.parent()._vbundle
         name = f'({name})({vbundle._name})'
-        return f'Characteristic cohomology class {name} over the {vbundle}'
+        return f'Characteristic cohomology class {name} of the {vbundle}'
 
     def _latex_(self):
         r"""
@@ -65,20 +80,24 @@ class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
             else:  # non-trivial case
                 from functools import reduce
 
-                c = ChernAlgorithm().get(nab)
                 parent = self.parent()
+
+                gen_algorithm = parent._algorithm  # this is a list
+                # give list of representatives of generators
+                gen_forms = sum(a.get(nab) for a in gen_algorithm)
                 grading = parent.print_options()['sorting_key']
-                res = [dom.diff_form_module(i).zero() for i in range(dom._dim + 1)]
-                for ind, coeff in self:
+                res = [dom.diff_form_module(i).zero()
+                       for i in range(dom._dim + 1)]
+                for ind, c in self:
                     deg = grading(ind)
-                    gen_pow = [fast_wedge_power(f, i) for f, i in zip(c, ind)]
-                    res[deg] += coeff * reduce(lambda x, y: x.wedge(y), gen_pow)
+                    gen_pow = [fast_wedge_power(f, i)
+                               for f, i in zip(gen_forms, ind)]
+                    res[deg] += c * reduce(lambda x, y: x.wedge(y), gen_pow)
 
-                # prepare result:
-                res = A(res)
+                res = A(res)  # convert result into mixed form
 
-                # preparse names (put brackets around)
-                vbundle = self.parent()._vbundle
+                # preparse names
+                vbundle = parent._vbundle
                 if self._name is None:
                     name = f'({super()._repr_()})'
                 else:
@@ -93,12 +112,16 @@ class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
                 append_latex_name += ', ' + nab._latex_name + r'\right)'
 
                 # set names of components
-                for i in range(dom._dim // 2 + 1):
+                from sage.arith.misc import gcd
+
+                step = gcd(parent._degrees)  # step size of (possibly) non-zero
+                for i in range(dom._dim // step + 1):
+                    # enumerate (possibly) non-zero components
                     comp_name = name + f'_{i}' + append_name
                     comp_latex_name = latex_name + r'_{' + str(i) + '}'
                     comp_latex_name += append_latex_name
-                    res[2*i].set_name(name=comp_name,
-                                      latex_name=comp_latex_name)
+                    res[step * i].set_name(name=comp_name,
+                                           latex_name=comp_latex_name)
 
                 # set global names
                 res._name = name + append_name
@@ -106,18 +129,18 @@ class CharacteristicCohomologyClass_Chern(IndexedFreeModuleElement):
 
                 res.set_immutable()  # set result immutable
 
-                # add result to dict
-                self._mixed_forms[nab] = res
+                self._mixed_forms[nab] = res  # cache result in dict
 
         return self._mixed_forms[nab]
 
     representative = get_form
 
-class CharacteristicCohomologyClassRing_Chern(FiniteGCAlgebra):
+
+class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
     r"""
 
     """
-    Element = CharacteristicCohomologyClass_Chern
+    Element = CharacteristicCohomologyClass
 
     def __init__(self, base, vbundle):
         r"""
@@ -126,22 +149,39 @@ class CharacteristicCohomologyClassRing_Chern(FiniteGCAlgebra):
         self._vbundle = vbundle
         self._domain = vbundle._base_space
         dim = self._domain._dim
-        ran = min(vbundle._rank, dim // 2)
-        names = tuple(f'c_{i}' for i in range(1, ran + 1))
-        degrees = tuple(2*i for i in range(1, ran + 1))
+        rk = vbundle._rank
+        # if vbundle is complex:
+        ran = min(rk, dim // 2)
+        names = [f'c_{i}' for i in range(1, ran + 1)]
+        degrees = [2 * i for i in range(1, ran + 1)]
+        self._algorithm = [ChernAlgorithm()]
+        # if vbundle is real:
+        # ran = min(rk // 2, dim // 4)
+        # names = [f'p_{i}' for i in range(1, ran + 1)]
+        # degrees = [4 * i for i in range(1, ran + 1)]
+        # self._algorithm = [PontryaginAlgorithm()]
+        # if vbundle is orientable:
+        # names += ['e']
+        # degrees += [rk]
+        # # TODO: add relation e^2=p_k for dim=2*k
+        # # add algorithm for additional generator
+        # self._algorithm += [EulerAlgorithm()]
+
+        names = tuple(names)  # hashable
+        degrees = tuple(degrees)  # hashable
         super().__init__(base=base, names=names, degrees=degrees,
                          max_degree=dim)
 
     def _element_constructor_(self, x, name=None, latex_name=None):
         r"""
-
+        Convert ``x`` into ``self``.
         """
         R = self.base_ring()
 
         if x in R:
             one_basis = self.one_basis()
             d = {one_basis: R(x)}
-        elif isinstance(x, CharacteristicCohomologyClass_Chern):
+        elif isinstance(x, CharacteristicCohomologyClass):
             d = x._monomial_coefficients
         # x is an element of the basis enumerated set;
         # This is a very ugly way of testing this
@@ -153,17 +193,20 @@ class CharacteristicCohomologyClassRing_Chern(FiniteGCAlgebra):
         elif x in self._indices:
             d = {self._indices(x): R.one()}
         else:
-            raise TypeError(f"do not know how to make x (= {x}) an element of self (={self})")
+            raise TypeError(f"do not know how to make x (= {x}) "
+                            f"an element of self (={self})")
 
         return self.element_class(self, d, name=name, latex_name=latex_name)
 
-#*****************************************************************************
+
+# *****************************************************************************
 # ALGORITHMS
-#*****************************************************************************
+# *****************************************************************************
 
 def fast_wedge_power(form, n):
     r"""
-    Return the wedge product power of `form` using a square-and-wedge algorithm.
+    Return the wedge product power of `form` using a square-and-wedge
+    algorithm.
     """
     if n == 0:
         return form._domain._one_scalar_field
@@ -186,10 +229,12 @@ def fast_wedge_power(form, n):
 
     return res
 
+
 class Algorithm_generic(SageObject):
     r"""
-    Algorithm class to generate characteristic forms.
+    Algorithm class to compute the characteristic forms of the generators.
     """
+
     @cached_method
     def get(self, nab):
         r"""
@@ -211,7 +256,8 @@ class Algorithm_generic(SageObject):
             res_loc = self.get_local(cmatrix)
             if not res:
                 # until now, degrees of generators were unknown
-                res = [dom.diff_form(loc_form.degree()) for loc_form in res_loc]
+                res = [dom.diff_form(loc_form.degree())
+                       for loc_form in res_loc]
             for form, loc_form in zip(res, res_loc):
                 form.set_restriction(loc_form)
             # TODO: make res immutable?
@@ -219,15 +265,21 @@ class Algorithm_generic(SageObject):
 
     @abstract_method
     def get_local(self, cmat):
+        r"""
+        Abstract method to get the local forms of the generators w.r.t. a given
+        curvature matrix `cmat`.
+        """
         pass
+
 
 class ChernAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Chern forms.
     """
+
     def get_local(self, cmat):
         r"""
-        Return the local Chern forms for a given curvature matrix.
+        Return the local Chern forms w.r.t. a given curvature matrix.
 
         .. ALGORITHM::
 
@@ -240,8 +292,8 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
         dom = cmat[0][0]._domain
         rk = len(cmat)
         dim = dom._dim
-        ran = min(rk, dim//2)
-        fac = I / (2*pi)
+        ran = min(rk, dim // 2)
+        fac = I / (2 * pi)
         res = []
         m = cmat
         for k in range(1, ran):
@@ -249,19 +301,21 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
             res.append(fac * c)
             for i in range(rk):
                 m[i][i] += c
-            fac *= I / (2*pi)
+            fac *= I / (2 * pi)
             m = [[sum(cmat[i][l].wedge(m[l][j]) for l in range(rk))
                   for j in range(rk)] for i in range(rk)]
         res.append(-fac * sum(m[i][i] for i in range(rk)) / ran)
         return res
 
+
 class PontryaginAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Pontryagin forms.
     """
+
     def get_local(self, cmat):
         r"""
-        Return the local Pontryagin forms for a given curvature matrix.
+        Return the local Pontryagin forms w.r.t. a given curvature matrix.
 
         .. ALGORITHM::
 
@@ -273,30 +327,32 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
         dom = cmat[0][0]._domain
         rk = len(cmat)
         dim = dom._dim
-        ran = min(rk//2, dim//4)
-        fac = -1 / (2*pi)**2
+        ran = min(rk // 2, dim // 4)
+        fac = -1 / (2 * pi) ** 2
         res = []
         m = cmat2 = [[sum(cmat[i][l].wedge(cmat[l][j])
                           for l in range(rk))
                       for j in range(rk)] for i in range(rk)]
         for k in range(1, ran):
-            c = -sum(m[i][i] for i in range(rk)) / (2*k)
+            c = -sum(m[i][i] for i in range(rk)) / (2 * k)
             res.append(fac * c)
             for i in range(rk):
                 m[i][i] += c
-            fac *= -1 / (2*pi)**2
+            fac *= -1 / (2 * pi) ** 2
             m = [[sum(cmat2[i][l].wedge(m[l][j]) for l in range(rk))
                   for j in range(rk)] for i in range(rk)]
-        res.append(-fac * sum(m[i][i] for i in range(rk)) / (2*ran))
+        res.append(-fac * sum(m[i][i] for i in range(rk)) / (2 * ran))
         return res
+
 
 class EulerAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Euler forms.
     """
+
     def get_local(self, cmat):
         r"""
-        Return the local Euler form for a given curvature matrix.
+        Return the local Euler form for w.r.t. a given curvature matrix.
 
         .. ALGORITHM::
 
@@ -309,15 +365,15 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
         ran = rk // 2
         m = a = [cmat[i].copy() for i in range(rk)]
         for i in range(0, rk, 2):
-            m[i], m[i+1] = m[i+1], m[i]  # swap entries
+            m[i], m[i + 1] = m[i + 1], m[i]  # swap entries
             for k in range(rk):
-                m[k][i+1] = -m[k][i+1]
+                m[k][i + 1] = -m[k][i + 1]
         for k in range(1, ran):
-            c = -sum(m[i][i] for i in range(rk)) / (2*k)
+            c = -sum(m[i][i] for i in range(rk)) / (2 * k)
             for i in range(rk):
                 m[i][i] += c
             m = [[sum(a[i][l].wedge(m[l][j]) for l in range(rk))
                   for j in range(rk)] for i in range(rk)]
-        c = -sum(m[i][i] for i in range(rk)) / (2*rk)  # Pfaffian mod sign
-        c *= (-1/(2*pi))**rk  # normalize
+        c = -sum(m[i][i] for i in range(rk)) / (2 * rk)  # Pfaffian mod sign
+        c *= (-1 / (2 * pi)) ** rk  # normalize
         return [c]

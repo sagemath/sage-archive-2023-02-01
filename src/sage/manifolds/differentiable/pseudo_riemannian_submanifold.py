@@ -537,13 +537,25 @@ class PseudoRiemannianSubmanifold(PseudoRiemannianManifold,
 
         """
         if self._first_fundamental_form is None:
-            self._first_fundamental_form = self.metric()
+            self._first_fundamental_form = super().metric()
             self._first_fundamental_form.set(
                                self._immersion.pullback(self.ambient_metric()))
             self._first_fundamental_form.set_name("gamma", r"\gamma")
         return self._first_fundamental_form
 
     induced_metric = first_fundamental_form
+
+    def metric(self, name=None, signature=None, latex_name=None,
+               dest_map=None):
+        r"""
+        Return the induced metric on ``self`` or define a new metric tensor on
+        the manifold.
+
+        """
+        if name is None and self._metric is None:
+            return self.first_fundamental_form()
+        return super().metric(name=name, signature=signature,
+                              latex_name=latex_name, dest_map=dest_map)
 
     @cached_method
     def difft(self):

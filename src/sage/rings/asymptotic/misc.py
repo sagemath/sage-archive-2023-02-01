@@ -875,6 +875,13 @@ class NotImplementedBZero(NotImplementedError):
             NotImplementedBZero: got B(0)
             The error term B(0) means 0 for sufficiently large m.
 
+            sage: AR.<n> = AsymptoticRing('n^QQ', QQ)
+            sage: AR(0).B(42)
+            Traceback (most recent call last):
+            ...
+            NotImplementedBZero: got B(0)
+            The error term B(0) means 0 for sufficiently large n.
+
         TESTS::
 
             sage: raise NotImplementedBZero(A, var='m')

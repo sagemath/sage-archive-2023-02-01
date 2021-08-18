@@ -257,10 +257,9 @@ class Algorithm_generic(SageObject):
         dom = nab._domain
         res = []  # will be specified within first iteration
         for frame in dom._get_min_covering(nab._coefficients):
-            cmatrix = [[nab.curvature_form(i, j, frame)
-                        for j in vbundle.irange()]
-                       for i in vbundle.irange()]
-            res_loc = self.get_local(cmatrix)
+            cmat = [[nab.curvature_form(i, j, frame) for j in vbundle.irange()]
+                    for i in vbundle.irange()]
+            res_loc = self.get_local(cmat)
             if not res:
                 # until now, degrees of generators were unknown
                 res = [dom.diff_form(loc_form.degree())
@@ -382,11 +381,12 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
         res = dom.diff_form(rk)
         g = nab._metric
         for frame in dom._get_min_covering(vbundle.orientation()):
-            cmatrix = [[nab.curvature_form(i, j, frame)
-                        for j in vbundle.irange()]
-                       for i in vbundle.irange()]
-            res_loc = self.get_local(cmatrix)  # not the local Euler form
-            # TODO: multiply cmatrix with metric tensor
+            # (G_s * Ω_s)_ij = g(R(.,.)s_i, s_j)
+            gcmat = [[sum(g[[frame, i, j]] * nab.curvature_form(j, k, frame)
+                          for j in vbundle.irange())
+                      for k in vbundle.irange()] for i in vbundle.irange()]
+            res_loc = self.get_local(gcmat)  # Pf(G_s * Ω_s) mod const.
+            # e = 1 / sqrt(|det(G_s)|) * Pf(G_s * Ω_s) mod const.
             det = g.det(frame)
             if det.is_trivial_zero():
                 raise ValueError(f'metric {g} must be non-degenerate')
@@ -419,6 +419,6 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
                 m[i][i] += e
             m = [[sum(a[i][l].wedge(m[l][j]) for l in range(rk))
                   for j in range(rk)] for i in range(rk)]
-        e = -sum(m[i][i] for i in range(rk)) / (2 * rk)  # Pfaffian mod sign
+        e = -sum(m[i][i] for i in range(rk)) / (2 * ran)  # Pfaffian mod sign
         e *= (-1 / (2 * pi)) ** ran  # normalize
         return e

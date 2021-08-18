@@ -38,5 +38,5 @@ cat > "$SAGE_LOCAL/default.qepcadrc" <<EOF
 # so that it gets used for some computer algebra
 # computations is the only feature.
 #####################################################
-SINGULAR $SAGE_LOCAL/bin
+SINGULAR yes
 EOF

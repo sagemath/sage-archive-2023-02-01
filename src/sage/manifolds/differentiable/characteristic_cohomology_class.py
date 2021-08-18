@@ -80,14 +80,14 @@ class CharacteristicCohomologyClass(IndexedFreeModuleElement):
                 self._mixed_forms[nab] = A(dom._zero_scalar_field)
             else:  # non-trivial case
                 from functools import reduce
+                from itertools import chain
 
                 parent = self.parent()
 
                 gen_algorithm = parent._algorithm  # this is a list
                 # concatenate generators
-                print(gen_algorithm[0].get(nab))
-                print(gen_algorithm[1].get(nab))
-                gen_forms = sum(a.get(nab) for a in gen_algorithm)
+                gen_forms = list(chain.from_iterable(a.get(nab)
+                                                     for a in gen_algorithm))
                 grading = parent.print_options()['sorting_key']
                 res = [dom.diff_form_module(i).zero()
                        for i in range(dom._dim + 1)]
@@ -255,14 +255,8 @@ class Algorithm_generic(SageObject):
         else:
             raise TypeError(f'{nab} must be a connection')
         dom = nab._domain
-        # if the bundle is orientable, we always opt for positively
-        # oriented frames due to unification between Pontryagin and Euler class
-        if vbundle.has_orientation():
-            frames = vbundle.orientation()
-        else:
-            frames = nab._coefficients
         res = []  # will be specified within first iteration
-        for frame in dom._get_min_covering(frames):
+        for frame in dom._get_min_covering(nab._coefficients):
             cmatrix = [[nab.curvature_form(i, j, frame)
                         for j in vbundle.irange()]
                        for i in vbundle.irange()]
@@ -306,6 +300,8 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
         rk = len(cmat)
         dim = dom._dim
         ran = min(rk, dim // 2)
+        if ran < 1:
+            return []  # nothing to compute
         fac = I / (2 * pi)
         res = []
         m = cmat
@@ -341,6 +337,8 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
         rk = len(cmat)
         dim = dom._dim
         ran = min(rk // 2, dim // 4)
+        if ran < 2:
+            return []  # nothing to compute
         fac = -1 / (2 * pi) ** 2
         res = []
         m = cmat2 = [[sum(cmat[i][l].wedge(cmat[l][j])
@@ -372,12 +370,28 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
         if not isinstance(nab, LeviCivitaConnection):
             raise TypeError('Euler forms are currently only supported for '
                             'Levi-Civita connections')
-        [e] = super().get(nab)  # apply algorithm; not the Euler form yet
+        dom = nab._domain
+        vbundle = dom.tangent_bundle()
+        rk = vbundle._rank
+        if not vbundle.has_orientation():
+            raise ValueError('Euler forms can only be defined for orientable '
+                             'vector bundles')
+        if rk % 2 != 0:
+            raise ValueError('Euler forms are currently only supported for '
+                             'vector bundles with odd rank')
+        res = dom.diff_form(rk)
         g = nab._metric
-        det = g.det()
-        if det.is_trivial_zero():
-            raise ValueError(f'metric {g} must be non-degenerate')
-        res = e / abs(det.sqrt())  # this is the Euler form
+        for frame in dom._get_min_covering(vbundle.orientation()):
+            cmatrix = [[nab.curvature_form(i, j, frame)
+                        for j in vbundle.irange()]
+                       for i in vbundle.irange()]
+            res_loc = self.get_local(cmatrix)  # not the local Euler form
+            det = g.det(frame)
+            if det.is_trivial_zero():
+                raise ValueError(f'metric {g} must be non-degenerate')
+            sqrt_det = det.abs().sqrt()
+            res.set_restriction(res_loc / sqrt_det)  # local Euler form
+            # TODO: make `res` immutable?
         return [res]
 
     def get_local(self, cmat):
@@ -405,5 +419,5 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
             m = [[sum(a[i][l].wedge(m[l][j]) for l in range(rk))
                   for j in range(rk)] for i in range(rk)]
         e = -sum(m[i][i] for i in range(rk)) / (2 * rk)  # Pfaffian mod sign
-        e *= (-1 / (2 * pi)) ** rk  # normalize
-        return [e]
+        e *= (-1 / (2 * pi)) ** ran  # normalize
+        return e

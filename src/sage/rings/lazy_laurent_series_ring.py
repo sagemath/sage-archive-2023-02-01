@@ -1343,7 +1343,7 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
     """
     Element = LazySymmetricFunction
 
-    def __init__(self, base_ring, names, sparse=True, category=None):
+    def __init__(self, base_ring, names='z', sparse=True, category=None):
         """
         Initialize ``self``.
 

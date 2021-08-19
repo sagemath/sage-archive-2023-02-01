@@ -35,6 +35,8 @@ from sage.rings.all import CC
 from sage.rings.real_mpfr import RR
 from sage.manifolds.vector_bundle import TopologicalVectorBundle
 from sage.rings.infinity import infinity
+from sage.misc.superseded import deprecated_function_alias
+from sage.rings.rational_field import QQ
 
 class DifferentiableVectorBundle(TopologicalVectorBundle):
     r"""
@@ -163,7 +165,37 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
         from .bundle_connection import BundleConnection
         return BundleConnection(self, name, latex_name)
 
-    def characteristic_class(self, func, **kwargs):
+    def characteristic_cohomology_class_ring(self, base=QQ):
+        r"""
+        Return the characteristic cohomology class ring of ``self`` over
+        a given base.
+
+        INPUT:
+
+        - ``base`` -- (default: ``QQ``) base over which the ring should be
+          constructed; typically that would be `\ZZ`, `\QQ`, `\RR` or the
+          symbolic ring
+
+        EXAMPLES::
+
+            sage: M = Manifold(4, 'M', start_index=1)
+            sage: R = M.tangent_bundle().characteristic_cohomology_class_ring()
+            sage: R
+            Algebra of characteristic cohomology classes of the Tangent bundle
+             TM over the 4-dimensional differentiable manifold M
+            sage: p1 = R.gen(0); p1
+            Characteristic cohomology class (p_1)(TM) of the Tangent bundle TM
+             over the 4-dimensional differentiable manifold M
+            sage: 1 + p1
+            Characteristic cohomology class (1 + p_1)(TM) of the Tangent bundle
+             TM over the 4-dimensional differentiable manifold M
+
+        """
+        from .characteristic_cohomology_class import CharacteristicCohomologyClassRing
+
+        return CharacteristicCohomologyClassRing(base, self)
+
+    def characteristic_cohomology_class(self, func, **kwargs):
         r"""
         Return a characteristic class of the given type with respect to the
         given function.
@@ -233,7 +265,7 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
 
             sage: TM = M.tangent_bundle(); TM
             Tangent bundle TM over the 4-dimensional Lorentzian manifold M
-            sage: p = TM.characteristic_class('Pontryagin'); p
+            sage: p = TM.characteristic_cohomology_class('Pontryagin'); p
             Characteristic class p of multiplicative type associated to x + 1
              on the Tangent bundle TM over the 4-dimensional Lorentzian
              manifold M
@@ -269,6 +301,8 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
 
         return CharacteristicClass(self, func, class_type=class_type,
                                    name=name, latex_name=latex_name)
+
+    characteristic_class = deprecated_function_alias(29581, characteristic_cohomology_class)
 
     def diff_degree(self):
         r"""

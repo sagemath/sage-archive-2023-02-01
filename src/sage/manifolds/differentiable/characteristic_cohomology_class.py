@@ -132,7 +132,22 @@ class CharacteristicCohomologyClass(IndexedFreeModuleElement):
 
         return self._mixed_forms[nab]
 
-    representative = get_form
+    def representative(self, nab=None):
+        r"""
+        Return any representative of ``self``.
+
+        INPUT:
+
+        - ``nab`` -- (default: ``None``) if stated, return the representative
+          w.r.t. to the connection ``nab``; otherwise an arbitrary already
+          computed representative will be chosen
+
+        """
+        if nab is None:
+            if not self._mixed_forms:
+                raise AttributeError('cannot pick a representative')
+            return next(iter(self._mixed_forms.values()))
+        return self.get_form(nab)
 
 
 class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
@@ -209,7 +224,7 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
         r"""
 
         """
-        vbundle = self.parent()._vbundle
+        vbundle = self._vbundle
         repr = f'Algebra of characteristic cohomology classes of the {vbundle}'
         return repr
 

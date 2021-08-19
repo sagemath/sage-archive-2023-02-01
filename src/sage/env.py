@@ -316,10 +316,6 @@ def _get_shared_lib_path(*libnames: str) -> Optional[str]:
     # Just return None if no files were found
     return None
 
-# locate singular shared object
-# On Debian it's libsingular-Singular so try that as well
-SINGULAR_SO = var("SINGULAR_SO", _get_shared_lib_path("Singular", "singular-Singular"))
-
 # locate libgap shared object
 GAP_SO = var("GAP_SO", _get_shared_lib_path("gap", ""))
 

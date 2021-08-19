@@ -3655,15 +3655,15 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             sage: X.<x,y> = M.chart()
             sage: f = M.scalar_field({X: x*y}, name='f', latex_name=r"\Phi")
             sage: g = abs(f) ; g
-            Scalar field Abs(f) on the 2-dimensional topological manifold M
+            Scalar field abs(f) on the 2-dimensional topological manifold M
             sage: latex(g)
-            \,\mathrm{Abs}\left(\Phi\right)
+            \,\mathrm{abs}\left(\Phi\right)
             sage: g.display()
-            Abs(f): M → ℝ
+            abs(f): M → ℝ
                (x, y) ↦ abs(x)*abs(y)
 
         """
-        name, latex_name = self._function_name("Abs", r"\,\mathrm{Abs}")
+        name, latex_name = self._function_name("abs", r"\,\mathrm{abs}")
         resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.abs()

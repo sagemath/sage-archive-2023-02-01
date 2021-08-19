@@ -394,7 +394,7 @@ def isomorphisms(E, F, JustOne=False):
     return ans
 
 
-class WeierstrassIsomorphism(baseWI, EllipticCurveHom):
+class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
     r"""
     Class representing a Weierstrass isomorphism between two elliptic curves.
     """
@@ -590,13 +590,13 @@ class WeierstrassIsomorphism(baseWI, EllipticCurveHom):
         winv = baseWI.__invert__(self).tuple()
         return WeierstrassIsomorphism(self._codomain, winv, self._domain)
 
-    def __mul__(self, other):
+    @staticmethod
+    def _composition_impl(left, right):
         r"""
-        Return the composition of this WeierstrassIsomorphism and the other,
+        Return the composition of a ``WeierstrassIsomorphism``
+        with another elliptic-curve morphism.
 
-        WeierstrassMorphisms can be composed using ``*`` if the
-        codomain & domain match: `(w1*w2)(X)=w1(w2(X))`, so we require
-        ``w1.domain()==w2.codomain()``.
+        Called by :meth:`EllipticCurveHom._composition_`.
 
         EXAMPLES::
 
@@ -609,11 +609,13 @@ class WeierstrassIsomorphism(baseWI, EllipticCurveHom):
             sage: (w2*w1)(P) == w2(w1(P))
             True
         """
-        if self._domain == other._codomain:
-            w = baseWI.__mul__(self, other)
-            return WeierstrassIsomorphism(other._domain, w.tuple(), self._codomain)
-        else:
-            raise ValueError("Domain of first argument must equal codomain of second")
+        if isinstance(left, WeierstrassIsomorphism) and isinstance(right, WeierstrassIsomorphism):
+            if left._domain != right._codomain:
+                raise ValueError("Domain of first argument must equal codomain of second")
+            w = baseWI.__mul__(left, right)
+            return WeierstrassIsomorphism(right._domain, w.tuple(), left._codomain)
+
+        raise NotImplementedError
 
     def __repr__(self):
         r"""

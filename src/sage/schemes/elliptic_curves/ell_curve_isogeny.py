@@ -3567,6 +3567,27 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     # Overload Morphism methods that we want to
     #
 
+    @staticmethod
+    def _composition_impl(left, right):
+        r"""
+        Return the composition of an ``EllipticCurveIsogeny``
+        with another elliptic-curve morphism.
+
+        Called by :meth:`EllipticCurveHom._composition_`.
+        """
+        if isinstance(left, WeierstrassIsomorphism) and isinstance(right, EllipticCurveIsogeny):
+            result = copy(right)
+            result._set_post_isomorphism(left)
+            return result
+
+        if isinstance(left, EllipticCurveIsogeny) and isinstance(right, WeierstrassIsomorphism):
+            assert isinstance(left, EllipticCurveIsogeny)
+            result = copy(left)
+            result._set_pre_isomorphism(right)
+            return result
+
+        raise NotImplementedError
+
     def is_injective(self):
         r"""
         Return ``True`` if and only if this isogeny has trivial
@@ -3645,36 +3666,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             False
         """
         return self.degree().is_zero()
-
-    def post_compose(self, left):
-        r"""
-        Return the post-composition of this isogeny with ``left``.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve(j=GF(7)(0))
-            sage: phi = EllipticCurveIsogeny(E, [ E((0,1)), E((0,-1))])
-            sage: phi.post_compose(phi)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: post-composition of isogenies not yet implemented
-        """
-        raise NotImplementedError("post-composition of isogenies not yet implemented")
-
-    def pre_compose(self, right):
-        r"""
-        Return the pre-composition of this isogeny with ``right``.
-
-        EXAMPLES::
-
-            sage: E = EllipticCurve(j=GF(7)(0))
-            sage: phi = EllipticCurveIsogeny(E, [ E((0,1)), E((0,-1))])
-            sage: phi.pre_compose(phi)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: pre-composition of isogenies not yet implemented
-        """
-        raise NotImplementedError("pre-composition of isogenies not yet implemented")
 
     def n(self):
         r"""

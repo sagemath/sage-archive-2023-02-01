@@ -161,6 +161,7 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
             self._algorithm = PontryaginAlgorithm()
             if vbundle.has_orientation():
                 # add Euler class generator
+                # Euler should be first entry; see `PontryaginEulerAlgorithm`
                 names = ['e'] + names
                 degrees = [rk] + degrees
                 self._algorithm = PontryaginEulerAlgorithm()
@@ -169,6 +170,9 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
             raise TypeError(f'Characteristic cohomology classes not supported '
                             f'for vector bundles with '
                             f'field type {vbundle._field_type}')
+
+        if not names or not degrees:
+            raise ValueError(f'cannot find any generators')
 
         names = tuple(names)  # hashable
         degrees = tuple(degrees)  # hashable
@@ -200,6 +204,14 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
                             f"an element of self (={self})")
 
         return self.element_class(self, d, name=name, latex_name=latex_name)
+
+    def _repr_(self):
+        r"""
+
+        """
+        vbundle = self.parent()._vbundle
+        repr = f'Algebra of characteristic cohomology classes of the {vbundle}'
+        return repr
 
 
 # *****************************************************************************
@@ -243,6 +255,11 @@ class Algorithm_generic(SageObject):
         r"""
         Return the global characteristic forms of the generators w.r.t. a given
         connection.
+
+        OUTPUT:
+
+        - a list containing the generator's global characteristic forms
+
         """
         if isinstance(nab, AffineConnection):
             vbundle = nab._domain.tangent_bundle()
@@ -269,7 +286,12 @@ class Algorithm_generic(SageObject):
     def get_local(self, cmat):
         r"""
         Abstract method to get the local forms of the generators w.r.t. a given
-        curvature matrix `cmat`.
+        curvature matrix ``cmat``.
+
+        OUTPUT:
+
+        - a list containing the generator's local characteristic forms
+
         """
         pass
 
@@ -282,6 +304,7 @@ class Algorithm_generic(SageObject):
             return nab._domain._one_scalar_field  # no computation necessary
         return fast_wedge_power(self.get(nab)[i], n)
 
+
 class ChernAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Chern forms.
@@ -290,6 +313,10 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
     def get_local(self, cmat):
         r"""
         Return the local Chern forms w.r.t. a given curvature matrix.
+
+        OUTPUT:
+
+        - a list containing the local characteristic Chern forms
 
         .. ALGORITHM::
 
@@ -328,6 +355,10 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
     def get_local(self, cmat):
         r"""
         Return the local Pontryagin forms w.r.t. a given curvature matrix.
+
+        OUTPUT:
+
+        - a list containing the local characteristic Pontryagin forms
 
         .. ALGORITHM::
 
@@ -369,6 +400,11 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
         r"""
         Return the global characteristic forms of the generators w.r.t. a given
         connection.
+
+        OUTPUT:
+
+        - a list containing the global characteristic Euler form
+
         """
         if not isinstance(nab, LeviCivitaConnection):
             raise TypeError('Euler forms are currently only supported for '
@@ -403,6 +439,19 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
         r"""
         Return the normalized Pfaffian w.r.t. a given curvature matrix.
 
+        The normalization is given by the factor
+        `\left(\frac{1}{2 \pi}\right)^{\frac{k}{2}}`, where `k` is the
+        dimension of the curvature matrix.
+
+        OUTPUT:
+
+        - a list containing the normalized Pfaffian of a given curvature form
+
+        .. NOTE::
+
+            The result is the local Euler form if ``cmat`` is given w.r.t. an
+            orthonormal oriented frame.
+
         .. ALGORITHM::
 
             The algorithm is based on the Bär-Faddeev-LeVerrier algorithm for
@@ -432,6 +481,7 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Euler and Pontryagin forms.
     """
+
     @cached_method
     def get(self, nab):
         r"""

@@ -3394,7 +3394,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             <class 'sage.rings.asymptotic.asymptotic_ring.AsymptoticRing_with_category.element_class'>
             sage: 2*z^3 + AR.B(5*z^2, {z: 20}) # indirect doctest
             2*z^3 + B(5*z^2, z >= 20)
-            sage: (2*x).B({x: 20}) # indirect doctest
+            sage: (2*x).B({x: 20})
             B(2*x, x >= 20)
             sage: AR.B(4*x^2*z^3, valid_from=10) # indirect doctest
             B(4*x^2*z^3, x >= 10, z >= 10)

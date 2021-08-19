@@ -3370,8 +3370,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
         - ``valid_from`` -- dictionary mapping variable names to lower bounds
           for the corresponding variable. The bound implied by this term is valid when
-          all variables are at least their corresponding lower bound. If you pass only
-          a number as ``valid_from``, then the lower bound for all variables of
+          all variables are at least their corresponding lower bound. If a number
+          is passed to ``valid_from``, then the lower bound for all variables of
           the asymptotic expansion are set to this number
 
         OUTPUT:
@@ -4695,8 +4695,8 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
 
         - ``valid_from`` -- dictionary mapping variable names to lower bounds
           for the corresponding variable. The bound implied by this term is valid when
-          all variables are at least their corresponding lower bound. If you pass only
-          a number as ``valid_from``, then the lower bound for all variables of
+          all variables are at least their corresponding lower bound. If a number
+          is passed to ``valid_from``, then the lower bound for all variables of
           the asymptotic expansion are set to this number
 
         OUTPUT:

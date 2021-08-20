@@ -4619,6 +4619,9 @@ class BTerm(TermWithCoefficient):
             ...
             ValueError: B-Term has valid_from variables defined which do not occur in the term.
         """
+        # BTerms must have positive cofficients
+        coefficient = abs(coefficient)
+
         super().__init__(parent=parent, growth=growth, coefficient=coefficient)
         self.coefficient = coefficient
         for variable_name in valid_from.keys():
@@ -4983,7 +4986,7 @@ class BTermMonoid(TermWithCoefficientMonoid):
         ::
 
             sage: T(TermMonoid('exact', G, QQ)(x, coefficient=-42))
-            B(-42*x, x >= 0)
+            B(42*x, x >= 0)
 
         ::
 
@@ -5114,14 +5117,14 @@ class BTermMonoid(TermWithCoefficientMonoid):
             sage: tuple(islice(T.some_elements(), int(10)))
             (B(z^(1/2), z >= 0),
              B(z^(-1/2), z >= 1),
-             B(-z^(1/2), z >= 3),
+             B(z^(1/2), z >= 3),
              B(z^2, z >= 42),
-             B(-z^(-1/2), z >= 0),
+             B(z^(-1/2), z >= 0),
              B(2*z^(1/2), z >= 1),
              B(z^(-2), z >= 3),
-             B(-z^2, z >= 42),
+             B(z^2, z >= 42),
              B(2*z^(-1/2), z >= 0),
-             B(-2*z^(1/2), z >= 1))
+             B(2*z^(1/2), z >= 1))
         """
         from itertools import cycle
         from sage.misc.mrange import cantor_product

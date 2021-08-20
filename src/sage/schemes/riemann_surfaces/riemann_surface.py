@@ -1936,13 +1936,6 @@ class RiemannSurface(object):
             sage: RM_T = T.riemann_matrix()
             sage: (RM_S-RM_T).norm() < 1e-10
             True
-
-        and that in this example the rigorous method is more accurate::
-
-            sage: rm = (-1+sqrt(3)*I)/2
-            sage: (RM_S - rm).norm() < (RM_T - rm).norm()
-            True
-
         """
         differentials = self.cohomology_basis()
         return self.matrix_of_integral_values(differentials, self._integration_method)

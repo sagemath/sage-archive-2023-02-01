@@ -394,7 +394,7 @@ def isomorphisms(E, F, JustOne=False):
     return ans
 
 
-class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
+class WeierstrassIsomorphism(baseWI, EllipticCurveHom):
     r"""
     Class representing a Weierstrass isomorphism between two elliptic curves.
     """
@@ -590,10 +590,9 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
         winv = baseWI.__invert__(self).tuple()
         return WeierstrassIsomorphism(self._codomain, winv, self._domain)
 
-    def _composition_(self, other, homset):
+    def __mul__(self, other):
         r"""
-        Return the composition of this WeierstrassIsomorphism and another
-        elliptic-curve morphism.
+        Return the composition of this WeierstrassIsomorphism and the other,
 
         WeierstrassMorphisms can be composed using ``*`` if the
         codomain & domain match: `(w1*w2)(X)=w1(w2(X))`, so we require
@@ -610,22 +609,11 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: (w2*w1)(P) == w2(w1(P))
             True
         """
-        if not isinstance(other, EllipticCurveHom):
-            raise TypeError(f'cannot compose {type(self)!r} with {type(other)!r}')
-
-        if isinstance(other, WeierstrassIsomorphism):
-            if self._domain != other._codomain:
-                raise ValueError("Domain of first argument must equal codomain of second")
+        if self._domain == other._codomain:
             w = baseWI.__mul__(self, other)
             return WeierstrassIsomorphism(other._domain, w.tuple(), self._codomain)
-
-        # This is a temporary hack until a new class for composite isogenies has been
-        # implemented and various combinations of EllipticCurveHom instantiations can
-        # be composed in a more uniform and principled way. See #32388.
-        import copy
-        output = copy.copy(other)
-        output._set_post_isomorphism(self)
-        return output
+        else:
+            raise ValueError("Domain of first argument must equal codomain of second")
 
     def __repr__(self):
         r"""

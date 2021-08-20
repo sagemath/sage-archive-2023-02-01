@@ -25,7 +25,7 @@ def prime_finite_field():
 
         sage: import sage.rings.tests
         sage: sage.rings.tests.prime_finite_field()
-        Finite Field of size 64748301524082521489
+        Finite Field of size ...
     """
     from sage.all import ZZ, GF
     return GF(ZZ.random_element(x=2, y=10**20 - 12).next_prime())
@@ -41,7 +41,7 @@ def finite_field():
 
         sage: import sage.rings.tests
         sage: sage.rings.tests.finite_field()
-        Finite Field in a of size 161123^4
+        Finite Field in a of size ...
     """
     from sage.all import ZZ, GF
     p = ZZ.random_element(x=2, y=10**6 - 18).next_prime()
@@ -59,7 +59,7 @@ def small_finite_field():
 
         sage: import sage.rings.tests
         sage: sage.rings.tests.small_finite_field()
-        Finite Field of size 30029
+        Finite Field of size ...
     """
     from sage.all import ZZ, GF
     while True:
@@ -76,7 +76,7 @@ def integer_mod_ring():
 
         sage: import sage.rings.tests
         sage: sage.rings.tests.integer_mod_ring()
-        Ring of integers modulo 30029
+        Ring of integers modulo ...
     """
     from sage.all import ZZ, IntegerModRing
     n = ZZ.random_element(x=2, y=50000)
@@ -91,8 +91,8 @@ def padic_field():
     EXAMPLES::
 
         sage: import sage.rings.tests
-        sage: sage.rings.tests.integer_mod_ring()
-        Ring of integers modulo 30029
+        sage: sage.rings.tests.padic_field()
+        ...-adic Field with capped relative precision ...
     """
     from sage.all import ZZ, Qp
     prec = ZZ.random_element(x=10, y=100)
@@ -108,7 +108,7 @@ def quadratic_number_field():
 
         sage: import sage.rings.tests
         sage: sage.rings.tests.quadratic_number_field()
-        Number Field in a with defining polynomial x^2 - 61099 with a = 247.1821190944038?
+        Number Field in a with defining polynomial ... with a = ...
     """
     from sage.all import ZZ, QuadraticField
     while True:
@@ -125,7 +125,7 @@ def absolute_number_field(maxdeg=10):
 
         sage: import sage.rings.tests
         sage: sage.rings.tests.absolute_number_field()
-        Number Field in a with defining polynomial x^5 - 15*x^4 + 17*x^3 + 82*x^2 - 46*x + 39
+        Number Field in a with defining polynomial ...
     """
     from sage.all import ZZ, NumberField
     R = ZZ['x']
@@ -147,7 +147,7 @@ def relative_number_field(n=2, maxdeg=2):
 
         sage: import sage.rings.tests
         sage: sage.rings.tests.relative_number_field(3)
-        Number Field in aaa with defining polynomial x^2 - 79*x - 53 over its base field
+        Number Field in aaa with defining polynomial ... over its base field
 
     TESTS:
 

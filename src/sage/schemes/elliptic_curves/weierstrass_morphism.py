@@ -23,7 +23,6 @@ AUTHORS:
 # ****************************************************************************
 
 from .constructor import EllipticCurve
-from sage.categories.homset import Hom
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom
 from sage.structure.richcmp import (richcmp_method, richcmp, richcmp_not_equal,
                                     op_NE)
@@ -608,6 +607,18 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             sage: P = E1(-2,3,1)
             sage: (w2*w1)(P) == w2(w1(P))
             True
+
+        TESTS:
+
+        We should raise a ``NotImplementedError`` when passed a combination
+        of elliptic-curve morphism types that we don't handle here::
+
+            sage: E = EllipticCurve([1,0])
+            sage: phi = E.isogeny(E(0,0))
+            sage: w1._composition_impl(phi.dual(), phi)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         if isinstance(left, WeierstrassIsomorphism) and isinstance(right, WeierstrassIsomorphism):
             if left._domain != right._codomain:

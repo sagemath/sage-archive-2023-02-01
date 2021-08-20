@@ -3574,6 +3574,29 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         with another elliptic-curve morphism.
 
         Called by :meth:`EllipticCurveHom._composition_`.
+
+        EXAMPLES::
+
+            sage: E = EllipticCurve(GF(127), [5,2])
+            sage: phi = E.isogeny(E.lift_x(47)); E2 = phi.codomain()
+            sage: iso1 = E.change_weierstrass_model(1,1,1,1).isomorphism_to(E)
+            sage: iso2 = E2.isomorphism_to(E2.change_weierstrass_model(39,0,0,0))
+            sage: phi * iso1            # indirect doctest
+            Isogeny of degree 11 from Elliptic Curve defined by y^2 + 2*x*y + 2*y = x^3 + 2*x^2 + 6*x + 7 over Finite Field of size 127 to Elliptic Curve defined by y^2 = x^3 + 37*x + 85 over Finite Field of size 127
+            sage: iso2 * phi            # indirect doctest
+            Isogeny of degree 11 from Elliptic Curve defined by y^2 = x^3 + 5*x + 2 over Finite Field of size 127 to Elliptic Curve defined by y^2 = x^3 + 117*x + 58 over Finite Field of size 127
+            sage: iso2 * phi * iso1     # indirect doctest
+            Isogeny of degree 11 from Elliptic Curve defined by y^2 + 2*x*y + 2*y = x^3 + 2*x^2 + 6*x + 7 over Finite Field of size 127 to Elliptic Curve defined by y^2 = x^3 + 117*x + 58 over Finite Field of size 127
+
+        TESTS:
+
+        We should raise a ``NotImplementedError`` when passed a combination
+        of elliptic-curve morphism types that we don't handle here::
+
+            sage: phi._composition_impl(iso1, iso1**-1)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError
         """
         if isinstance(left, WeierstrassIsomorphism) and isinstance(right, EllipticCurveIsogeny):
             result = copy(right)

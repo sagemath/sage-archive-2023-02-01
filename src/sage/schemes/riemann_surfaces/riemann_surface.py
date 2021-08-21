@@ -449,7 +449,7 @@ def reparameterise_differential_minpoly(minpoly, z0):
         As part of the routine, when reparameterising about infinity, a 
         rational function is reduced and then the numerator is taken. Over
         an inexact ring this is numerically unstable, and so it is advisable
-        to only reparameterise about infinty over an exact ring. 
+        to only reparameterise about infinity over an exact ring. 
         """
     P = minpoly.parent()
     F = PolynomialRing(P.base_ring(), [str(v)+"bar" for v in P.gens()])
@@ -1853,7 +1853,7 @@ class RiemannSurface(object):
         the list corresponds to an element of ``differentials``. Introducing the
         notation ``RBzg = PolynomialRing(self._R, ['z','g'])`` and 
         ``CCzg = PolynomialRing(self._CC, ['z','g'])``, we have that:
-         - ``Rzg`` is either ``RBzg`` or ``CCzg`` depending on the vlaue of 
+         - ``Rzg`` is either ``RBzg`` or ``CCzg`` depending on the value of 
            ``exact``,
          - ``g`` is the full rational function in ``self._R.fraction_field()`` 
            giving the differential,
@@ -3044,7 +3044,7 @@ class RiemannSurface(object):
         
         EXAMPLES:
         
-        As the output of ``_aj_based`` is difficult to intepret due to its path
+        As the output of ``_aj_based`` is difficult to interpret due to its path
         dependency, we look at the output of :meth:`abel_jacobi`. We check for 
         two hyperelliptic curves that the Abel-Jacobi map between two branch 
         points is a 2-torsion point over the lattice. Note we must remember to
@@ -3100,7 +3100,7 @@ class RiemannSurface(object):
             g0s = [self.cohomology_basis()[0](zV, wi)/self._dfdw(zV, wi) for wi in ws]
             W_index = find_closest_element(g0e, g0s)
             if (g0e - self.cohomology_basis()[0](zV, ws[W_index])/self._dfdw(zV, ws[W_index])).abs()>1e-10:
-                raise ConvergenceError("Integrand continuation failed to get representative values, higher precision requried.")                        
+                raise ConvergenceError("Integrand continuation failed to get representative values, higher precision required.")                        
             V_index = B[0]
         else:
             zP = self._CC(zP)
@@ -3176,7 +3176,7 @@ class RiemannSurface(object):
                 g0s = [self.cohomology_basis()[0](zV, wi)/self._dfdw(zV, wi) for wi in ws]
                 W_index = find_closest_element(g0e, g0s)
                 if (g0e - self.cohomology_basis()[0](zV, ws[W_index])/self._dfdw(zV, ws[W_index])).abs()>1e-10:
-                    raise ConvergenceError("Integrand continuation failed to get representative values, higher precision requried.")
+                    raise ConvergenceError("Integrand continuation failed to get representative values, higher precision required.")
 
         uV_index = (V_index, W_index)
         #####

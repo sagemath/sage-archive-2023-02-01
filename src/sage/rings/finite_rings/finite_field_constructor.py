@@ -75,6 +75,11 @@ EXAMPLES::
     sage: k = GF(5^2,'c'); type(k)
     <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro_with_category'>
 
+One can also give the cardinality `q=p^n` as the tuple `(p,n)`::
+
+    sage: k = GF((5, 2),'c'); k
+    Finite Field in c of size 5^2
+
 ::
 
     sage: k = GF(2^16,'c'); type(k)
@@ -82,7 +87,7 @@ EXAMPLES::
 
 ::
 
-    sage: k = GF(3^16,'c'); type(k)
+    sage: k = GF((3, 16),'c'); type(k)
     <class 'sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt_with_category'>
 
 Finite Fields support iteration, starting with 0.
@@ -126,7 +131,7 @@ We output the base rings of several finite fields.
 
 ::
 
-    sage: k = GF(3^40,'b'); type(k)
+    sage: k = GF((3, 40),'b'); type(k)
     <class 'sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt_with_category'>
     sage: k.base_ring()
     Finite Field of size 3
@@ -542,6 +547,16 @@ class FiniteFieldFactory(UniqueFactory):
             ...
             ValueError: the order of a finite field must be a prime power
 
+            sage: GF.create_key_and_extra_args((9, 1), 'a')
+            Traceback (most recent call last):
+            ...
+            ValueError: the order of a finite field must be a prime power
+
+            sage: GF.create_key_and_extra_args((5, 0), 'a')
+            Traceback (most recent call last):
+            ...
+            ValueError: the order of a finite field must be a prime power
+
             sage: GF.create_key_and_extra_args((3, 2, 1), 'a')
             Traceback (most recent call last):
             ...
@@ -562,7 +577,7 @@ class FiniteFieldFactory(UniqueFactory):
                     raise ValueError('wrong input for finite field constructor')
                 p, n = order
                 p = Integer(p)
-                if not p.is_prime():
+                if not p.is_prime() or n < 1:
                     raise ValueError("the order of a finite field must be a prime power")
                 n = Integer(n)
                 order = p**n

@@ -2932,7 +2932,7 @@ class RiemannSurface(object):
                         for j in range(100):
                             new_delta = F(z0, newg) / dF(z0, newg)
                             Nnew_delta = new_delta.norm()
-                            if (new_delta == 0) or (Nnew_delta>=Ndelta and
+                            if (new_delta == 0) or (Nnew_delta >= Ndelta and
                                     (Ndelta.sign_mantissa_exponent()[2]
                                      +self._prec) < newg.norm().sign_mantissa_exponent()[2]):
                                 outg.append(newg)
@@ -2966,7 +2966,7 @@ class RiemannSurface(object):
                     for j in range(100):
                         new_delta = F(z0, newg) / dF(z0, newg)
                         Nnew_delta = new_delta.norm()
-                        if (new_delta == 0) or (Nnew_delta>=Ndelta and
+                        if (new_delta == 0) or (Nnew_delta >= Ndelta and
                                 (Ndelta.sign_mantissa_exponent()[2]
                                  +self._prec) < newg.norm().sign_mantissa_exponent()[2]):
                             outg.append(newg)

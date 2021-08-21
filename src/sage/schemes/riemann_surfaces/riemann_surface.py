@@ -163,7 +163,7 @@ def voronoi_ghost(cpoints, n=6, CC=CDF):
 
         sage: from sage.schemes.riemann_surfaces.riemann_surface import voronoi_ghost
         sage: L = [1 + 1*I, 1 - 1*I, -1 + 1*I, -1 - 1*I]
-        sage: voronoi_ghost(L) # abs tol 1e-6
+        sage: voronoi_ghost(L)  # abs tol 1e-6
         [(1.0, 1.0),
          (1.0, -1.0),
          (-1.0, 1.0),
@@ -496,7 +496,7 @@ class RiemannSurface(object):
       For a nonsingular plane curve of degree `d`, an appropriate set is given
       by the monomials of degree up to `d-3`.
 
-    - ``integration_method`` -- (default: ``'heuristic'``). String specifing the 
+    - ``integration_method`` -- (default: ``'heuristic'``). String specifying the 
       integration method to use when calculating the integrals of differentials. 
       The options are ``'heuristic'`` and ``'rigorous'``, the latter of
       which is often the most efficient. 
@@ -556,30 +556,35 @@ class RiemannSurface(object):
     rigorous method, but for slower computations the rigorous method can be much
     faster::
         
-        sage: f = z*w^4+z^3+w
+        sage: f = z*w^3+z^3+w
         sage: p = 53
         sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
         sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
         sage: from sage.numerical.gauss_legendre import nodes
+        sage: import time
         sage: nodes.cache.clear()
-        sage: %time Rh = Sh.riemann_matrix() # random | long time (1 second)
-        CPU times: user 795 ms, sys: 0 ns, total: 795 ms
-        Wall time: 799 ms
+        sage: ct = time.time()
+        sage: Rh = Sh.riemann_matrix()  
+        sage: ct1 = time.time()-ct
         sage: nodes.cache.clear()
-        sage: %time Rr = Sr.riemann_matrix() # random | long time (2 seconds)
-        CPU times: user 1.75 s, sys: 0 ns, total: 1.75 s
-        Wall time: 1.75 s
+        sage: ct = time.time()
+        sage: Rr = Sr.riemann_matrix()  
+        sage: ct2 = time.time()-ct
+        sage: ct2/ct1  # random
+        1.2429363969691192
         sage: p = 500
         sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
         sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
         sage: nodes.cache.clear()
-        sage: %time Rh = Sh.riemann_matrix() # random | long time (8 seconds)
-        CPU times: user 8.43 s, sys: 0 ns, total: 8.43 s
-        Wall time: 8.43 ss
+        sage: ct = time.time()
+        sage: Rh = Sh.riemann_matrix()  # long time (6 seconds)
+        sage: ct1 = time.time()-ct
         sage: nodes.cache.clear()
-        sage: %time Rr = Sr.riemann_matrix() # random | long time (10 seconds)
-        CPU times: user 9.69 s, sys: 0 ns, total: 9.69 s
-        Wall time: 9.69 s
+        sage: ct = time.time()
+        sage: Rr = Sr.riemann_matrix()  # long time (4 seconds)
+        sage: ct2 = time.time()-ct
+        sage: ct2/ct1  # random
+        0.6627716056083879
 
     Note that for the above curve, the branch points are evenly distributed, and
     hence the implicit assumptions in the heuristic method are more sensible, 
@@ -593,13 +598,15 @@ class RiemannSurface(object):
         sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
         sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
         sage: nodes.cache.clear()
-        sage: %time Rh = Sh.riemann_matrix() # random | long time (7 second)
-        CPU times: user 7.45 s, sys: 0 ns, total: 7.45 s
-        Wall time: 7.44 s
+        sage: ct = time.time()
+        sage: Rh = Sh.riemann_matrix()  # long time (8 seconds)
+        sage: ct1 = time.time()-ct
         sage: nodes.cache.clear()
-        sage: %time Rr = Sr.riemann_matrix() # random | long time (2 second)
-        CPU times: user 1.5 s, sys: 0 ns, total: 1.5 s
-        Wall time: 1.5 s
+        sage: ct = time.time()
+        sage: Rr = Sr.riemann_matrix()  # long time (1 seconds)
+        sage: ct2 = time.time()-ct
+        sage: ct2/ct1  # random
+        0.19453288941244148
 
     This disparity in timings can get increasingly worse, and testing has shown
     that even for random quadrics the heuristic method can be as bad as 30 times
@@ -768,7 +775,7 @@ class RiemannSurface(object):
 
         Find the w-values above the origin, i.e. the solutions of `w^2 + 1 = 0`::
 
-            sage: S.w_values(0) # abs tol 1e-14
+            sage: S.w_values(0)  # abs tol 1e-14
             [-1.00000000000000*I, 1.00000000000000*I]
 
         Note that typically the method returns a list of length ``self.degree``,
@@ -919,7 +926,7 @@ class RiemannSurface(object):
             sage: currw = S.w_values(z1)
             sage: n = len(currw)
             sage: epsilon = min([abs(currw[i] - currw[n-j-1]) for i in range(n) for j in range(n-i-1)])/3
-            sage: S._compute_delta(z1, epsilon) # abs tol 1e-8
+            sage: S._compute_delta(z1, epsilon)  # abs tol 1e-8
             0.152628501142363
 
         If the Riemann surface does not have certified homotopy continuation,
@@ -931,7 +938,7 @@ class RiemannSurface(object):
             sage: currw = T.w_values(z1)
             sage: n = len(currw)
             sage: epsilon = min([abs(currw[i] - currw[n-j-1]) for i in range(n) for j in range(n-i-1)])/3
-            sage: T._compute_delta(z1, epsilon) # abs tol 1e-8
+            sage: T._compute_delta(z1, epsilon)  # abs tol 1e-8
             0.381881307912987
         """
         if self._certification:
@@ -1167,12 +1174,12 @@ class RiemannSurface(object):
             sage: z0 = S._vertices[0]
             sage: epsilon = 0.1
             sage: oldw = S.w_values(z0)[0]
-            sage: neww = S._newton_iteration(z0,oldw,epsilon); neww # abs tol 0.00000001
+            sage: neww = S._newton_iteration(z0,oldw,epsilon); neww  # abs tol 0.00000001
             -0.934613146929672 + 2.01088055918363*I
 
         Which should be exactly the same as the w-value we started with::
 
-            sage: oldw - neww # abs tol 0.00000001
+            sage: oldw - neww  # abs tol 0.00000001
             0.000000000000000
 
         Here is an example where we exit the epsilon bound. This approach is
@@ -1459,7 +1466,7 @@ class RiemannSurface(object):
             sage: R.<z,w> = QQ[]
             sage: g = w^2 - z^4 + 1
             sage: S = RiemannSurface(g)
-            sage: S.homology_basis() # random
+            sage: S.homology_basis()  # random
             [[(1, [(3, 1), (5, 0), (9, 0), (10, 0), (2, 0), (4, 0),
                 (7, 1), (10, 1), (3, 1)])],
              [(1, [(8, 0), (6, 0), (7, 0), (10, 0), (2, 0), (4, 0),
@@ -1558,24 +1565,24 @@ class RiemannSurface(object):
                     # problems occur with that.
 
                     if (b_in != a_in) and (b_in != a_out):
-                        if ((a_in_arg<b_in_arg<a_out_arg) or
-                                (b_in_arg<a_out_arg<a_in_arg) or
-                                (a_out_arg<a_in_arg<b_in_arg)):
+                        if ((a_in_arg < b_in_arg < a_out_arg)
+                            or (b_in_arg < a_out_arg < a_in_arg)
+                            or (a_out_arg < a_in_arg < b_in_arg)):
                             intsum += 1
-                        elif ((a_out_arg<b_in_arg<a_in_arg) or
-                                (b_in_arg<a_in_arg<a_out_arg) or
-                                (a_in_arg<a_out_arg<b_in_arg)):
+                        elif ((a_out_arg < b_in_arg < a_in_arg)
+                              or (b_in_arg < a_in_arg < a_out_arg)
+                              or (a_in_arg < a_out_arg < b_in_arg)):
                             intsum -= 1
                         else:
                             raise RuntimeError("impossible edge orientation")
                     if (b_out != a_in) and (b_out != a_out):
-                        if ((a_in_arg<b_out_arg<a_out_arg) or
-                                (b_out_arg<a_out_arg<a_in_arg) or
-                                (a_out_arg<a_in_arg<b_out_arg)):
+                        if ((a_in_arg < b_out_arg < a_out_arg)
+                            or (b_out_arg < a_out_arg < a_in_arg)
+                            or (a_out_arg < a_in_arg < b_out_arg)):
                             intsum -= 1
-                        elif ((a_out_arg<b_out_arg<a_in_arg) or
-                                (b_out_arg<a_in_arg<a_out_arg) or
-                                (a_in_arg<a_out_arg<b_out_arg)):
+                        elif ((a_out_arg < b_out_arg < a_in_arg)
+                              or (b_out_arg < a_in_arg < a_out_arg)
+                              or (a_in_arg < a_out_arg < b_out_arg)):
                             intsum += 1
                         else:
                             raise RuntimeError("impossible edge orientation")
@@ -1898,7 +1905,7 @@ class RiemannSurface(object):
         RB = self._R.base_ring()
         P = PolynomialRing(RB, 'Z')
         k = P.fraction_field()
-        KP = PolynomialRing(k, 'W') # W->fraction field
+        KP = PolynomialRing(k, 'W')  # W->fraction field
         fZW = self.f(P.gen(0), KP.gen(0))
         L = k.extension(fZW, 'Wb')
         dfdw_L = self._dfdw(P.gen(0), L.gen(0))
@@ -2006,7 +2013,7 @@ class RiemannSurface(object):
             Moreover, the current implementation bounds along a line by 
             splitting it up into segments, each of which can be covered entirely
             by a single circle, and then placing inside that the ellipse 
-            requierd to bound as per [Neu2018]_. This is reliably more efficient
+            required to bound as per [Neu2018]_. This is reliably more efficient
             than the heuristic method, especially in poorly-conditioned cases 
             where discriminant points are close together around the edges, but
             in the case where the branch locus is well separated, it can require
@@ -2017,7 +2024,7 @@ class RiemannSurface(object):
         """
         # Note that this, in its current formalism, makes no check that bounding 
         # data at all corresponds to  the differentials given. The onus is then 
-        # on the design of other funcions which use it.
+        # on the design of other functions which use it.
     
         # CCzg is required to be known as we need to know the ring which the minpolys
         # lie in. 
@@ -2072,17 +2079,16 @@ class RiemannSurface(object):
         # ellipse.  
         while ball_stack:
             ct, rt = ball_stack.pop()
-            cz = (1-ct)*z0+ct*z1 # This is the central z-value of our ball.
+            cz = (1-ct)*z0+ct*z1  # This is the central z-value of our ball.
             # Distance to the discriminant points
             distances = [(cz-b).abs() for b in self.branch_locus] 
             rho_z = min(distances)
             rho_t = rho_z/(z1-z0).abs()
             if rho_t > rt:
-                rho_t = alpha*rho_t+(1-alpha)*rt # sqrt(rho_t*rt) could also work
+                rho_t = alpha*rho_t+(1-alpha)*rt  # sqrt(rho_t*rt) could also work
                 rho_z = rho_t*(z1-z0).abs()
                 delta_z = (alpha*rho_t+(1-alpha)*rt)*(z1-z0).abs()
-                # Note this is really exp(arcosh(rho_t/rt))
-                expr = rho_t/rt+((rho_t/rt)**2-1).sqrt() 
+                expr = rho_t/rt+((rho_t/rt)**2-1).sqrt()  # Note this is really exp(arcosh(rho_t/rt))
                 N = 3
                 cw = zwt(ct)[1]
                 for g, dgdz, minpoly,(a0lc,a0roots) in bounding_data_list:
@@ -2101,7 +2107,7 @@ class RiemannSurface(object):
                     cg = g(cz,cw)
                     cdgdz = dgdz(cz,cg)
                     Delta = delta_z*cdgdz.abs() + (delta_z**2)*M_tilde/(rho_z*(rho_z-delta_z))
-                    M = Delta #+ abs(cg)
+                    M = Delta
                     N_required = ((64*M/(15*(1-1/expr)*E_global)).log()/(2*expr.log())).ceil()
                     N = max(N,N_required)
 
@@ -2117,7 +2123,7 @@ class RiemannSurface(object):
                     dfdwt = self._fastcall_dfdw(zt, wt)
                     return V([h(zt,wt)/dfdwt for h in differentials])
 
-                output += two_rt*integrate_vector_N(integrand,self._prec,N)
+                output += two_rt*integrate_vector_N(integrand, self._prec,N)
             else:
                 ball_stack.append((ct-rt/2, rt/2))
                 ball_stack.append((ct+rt/2, rt/2))
@@ -2193,17 +2199,15 @@ class RiemannSurface(object):
             fcd = [fast_callable(omega, domain=self._CC) for omega in differentials]
             integral_dict = dict()
 
-        if integration_method=="heuristic":
+        if integration_method == "heuristic":
             line_int = lambda edge: self.simple_vector_line_integral(edge, fcd)
-        elif integration_method=="rigorous":
+        elif integration_method == "rigorous":
             bd = self._bounding_data(differentials)
             line_int = lambda edge: self.rigorous_line_integral(edge, fcd, bd)
         else:
             raise ValueError("Invalid integration method")
 
-        for upstairs_edge in occurring_edges:
-            if not upstairs_edge in integral_dict.keys():
-                integral_dict[upstairs_edge] = line_int(upstairs_edge)
+        integral_dict = {edge: line_int(edge) for edge in occurring_edges}
         
         rows = []
         for cycle in cycles:
@@ -2257,13 +2261,6 @@ class RiemannSurface(object):
             sage: RM_T = T.riemann_matrix()
             sage: (RM_S-RM_T).norm() < 1e-10
             True
-
-        and that in this example the rigorous method is more accurate::
-
-            sage: rm = (-1+sqrt(3)*I)/2
-            sage: (RM_S - rm).norm() < (RM_T - rm).norm()
-            True
-
         """
         differentials = self.cohomology_basis()
         return self.matrix_of_integral_values(differentials, self._integration_method)
@@ -3635,7 +3632,7 @@ def integer_matrix_relations(M1, M2, b=None, r=None):
     D = Matrix(R, g1, g2, vars[3*g1*g2:4*g1*g2])
     W = ((M1*A+B) - (M1*C+D)*M2).list()
     vars = R.gens()
-    mt = Matrix(ZZ,[[1 if i==j else 0 for j in range(4*g1*g2)] +
+    mt = Matrix(ZZ,[[1 if i == j else 0 for j in range(4*g1*g2)] +
       [(S*w.monomial_coefficient(vars[i]).real_part()).round() for w in W] +
       [(S*w.monomial_coefficient(vars[i]).imag_part()).round() for w in W] for i in range(len(vars))])
     # we compute an LLL-reduced basis of this lattice:

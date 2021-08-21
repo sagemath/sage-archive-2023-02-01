@@ -16,21 +16,24 @@ The symbolic ring
 
 from sage.ext.cplusplus cimport ccrepr
 
-from sage.libs.pynac.pynac cimport *
-
 from sage.rings.integer cimport Integer
 
-from sage.symbolic.expression cimport Expression, new_Expression_from_pyobject, is_Expression
-from sage.symbolic.expression import _latex_Expression, new_Expression, new_Expression_force_pyobject, new_Expression_wild
+from sage.symbolic.expression import (
+    is_Expression,
+    _latex_Expression,
+    new_Expression,
+    new_Expression_from_pyobject,
+    new_Expression_force_pyobject,
+    new_Expression_wild,
+    new_Expression_symbol,
+)
 
-
-from sage.misc.latex import latex_variable_name
 from sage.cpython.string cimport str_to_bytes, bytes_to_str, char_to_str
 from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.rings.all import RR, CC, ZZ
+from sage.rings.all import ZZ
 
 # is_SymbolicVariable used to be defined here; re-export it
 from sage.symbolic.expression import _is_SymbolicVariable as is_SymbolicVariable
@@ -640,56 +643,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: MySR.an_element().parent()
             My Symbolic Ring
         """
-        cdef GSymbol symb
-        cdef Expression e
-
-        # check if there is already a symbol with same name
-        e = self.symbols.get(name)
-
-        # fast path to get an already existing variable
-        if e is not None:
-            if domain is None:
-                if latex_name is None:
-                    return e
-
-            # get symbol
-            symb = ex_to_symbol(e._gobj)
-            if latex_name is not None:
-                symb.set_texname(str_to_bytes(latex_name))
-            if domain is not None:
-                symb.set_domain(sage_domain_to_ginac_domain(domain))
-            e._gobj = GEx(symb)
-            if domain is not None:
-                send_sage_domain_to_maxima(e, domain)
-
-            return e
-
-        else: # initialize a new symbol
-            # Construct expression
-            e = <Expression>Expression.__new__(Expression)
-            e._parent = self
-
-            if name is None: # Check if we need a temporary anonymous new symbol
-                symb = ginac_new_symbol()
-                name = symb.get_name().decode('ascii')
-                if domain is not None:
-                    symb.set_domain(sage_domain_to_ginac_domain(domain))
-            else:
-                if latex_name is None:
-                    latex_name = latex_variable_name(name)
-                if domain is not None:
-                    ginac_domain = sage_domain_to_ginac_domain(domain)
-                else:
-                    ginac_domain = domain_complex
-                symb = ginac_symbol(str_to_bytes(name),
-                                    str_to_bytes(latex_name), ginac_domain)
-
-            e._gobj = GEx(symb)
-            self.symbols[name] = e
-            if domain is not None:
-                send_sage_domain_to_maxima(e, domain)
-
-        return e
+        return new_Expression_symbol(self, name, latex_name, domain)
 
     def temp_var(self, n=None, domain=None):
         """
@@ -1174,41 +1128,6 @@ cdef class SymbolicRing(CommutativeRing):
 
 SR = SymbolicRing()
 
-
-cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
-    """
-    TESTS::
-
-        sage: var('x', domain='foo')
-        Traceback (most recent call last):
-        ...
-        ValueError: 'foo': domain must be one of 'complex', 'real', 'positive' or 'integer'
-    """
-    # convert the domain argument to something easy to parse
-    if domain is RR or domain == 'real':
-        return domain_real
-    elif domain == 'positive':
-        return domain_positive
-    elif domain is CC or domain == 'complex':
-        return domain_complex
-    elif domain is ZZ or domain == 'integer':
-        return domain_integer
-    else:
-        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
-
-cdef void send_sage_domain_to_maxima(Expression v, object domain) except +:
-    from sage.symbolic.assumptions import assume
-    # convert the domain argument to something easy to parse
-    if domain is RR or domain == 'real':
-        assume(v, 'real')
-    elif domain == 'positive':
-        assume(v>0)
-    elif domain is CC or domain == 'complex':
-        assume(v, 'complex')
-    elif domain is ZZ or domain == 'integer':
-        assume(v, 'integer')
-    else:
-        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
 
 cdef class NumpyToSRMorphism(Morphism):
     r"""

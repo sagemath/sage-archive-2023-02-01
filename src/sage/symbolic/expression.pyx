@@ -333,7 +333,11 @@ from sage.rings.rational import Rational
 from sage.rings.real_mpfr cimport RealNumber
 from sage.misc.derivative import multi_derivative
 from sage.misc.decorators import sage_wraps
+from sage.misc.latex import latex_variable_name
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
+from sage.rings.complex_mpfr import is_ComplexField
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
@@ -13222,7 +13226,7 @@ cdef Expression new_Expression_from_GEx(parent, GEx juice):
     return nex
 
 
-cdef Expression new_Expression_from_pyobject(parent, x):
+cpdef Expression new_Expression_from_pyobject(parent, x):
     cdef GEx exp = x
     return new_Expression_from_GEx(parent, exp)
 
@@ -13393,6 +13397,122 @@ cpdef Expression new_Expression_wild(parent, unsigned int n=0):
         arctan(x^2)
     """
     return new_Expression_from_GEx(parent, g_wild(n))
+
+
+cpdef Expression new_Expression_symbol(parent, name=None, latex_name=None, domain=None):
+    r"""
+    Look up or create a symbol.
+
+    EXAMPLES::
+
+        sage: t0 = SR.symbol("t0")
+        sage: t0.conjugate()
+        conjugate(t0)
+
+        sage: t1 = SR.symbol("t1", domain='real')
+        sage: t1.conjugate()
+        t1
+
+        sage: t0.abs()
+        abs(t0)
+
+        sage: t0_2 = SR.symbol("t0", domain='positive')
+        sage: t0_2.abs()
+        t0
+        sage: bool(t0_2 == t0)
+        True
+        sage: t0.conjugate()
+        t0
+
+        sage: SR.symbol() # temporary variable
+        symbol...
+    """
+    cdef GSymbol symb
+    cdef Expression e
+
+    # check if there is already a symbol with same name
+    e = parent.symbols.get(name)
+
+    # fast path to get an already existing variable
+    if e is not None:
+        if domain is None:
+            if latex_name is None:
+                return e
+
+        # get symbol
+        symb = ex_to_symbol(e._gobj)
+        if latex_name is not None:
+            symb.set_texname(str_to_bytes(latex_name))
+        if domain is not None:
+            symb.set_domain(sage_domain_to_ginac_domain(domain))
+        e._gobj = GEx(symb)
+        if domain is not None:
+            send_sage_domain_to_maxima(e, domain)
+
+        return e
+
+    else: # initialize a new symbol
+        # Construct expression
+        e = <Expression>Expression.__new__(Expression)
+        e._parent = parent
+
+        if name is None: # Check if we need a temporary anonymous new symbol
+            symb = ginac_new_symbol()
+            name = symb.get_name().decode('ascii')
+            if domain is not None:
+                symb.set_domain(sage_domain_to_ginac_domain(domain))
+        else:
+            if latex_name is None:
+                latex_name = latex_variable_name(name)
+            if domain is not None:
+                ginac_domain = sage_domain_to_ginac_domain(domain)
+            else:
+                ginac_domain = domain_complex
+            symb = ginac_symbol(str_to_bytes(name),
+                                str_to_bytes(latex_name), ginac_domain)
+
+        e._gobj = GEx(symb)
+        parent.symbols[name] = e
+        if domain is not None:
+            send_sage_domain_to_maxima(e, domain)
+
+    return e
+
+
+cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
+    """
+    TESTS::
+
+        sage: var('x', domain='foo')
+        Traceback (most recent call last):
+        ...
+        ValueError: 'foo': domain must be one of 'complex', 'real', 'positive' or 'integer'
+    """
+    # convert the domain argument to something easy to parse
+    if domain is RR or domain == 'real':
+        return domain_real
+    elif domain == 'positive':
+        return domain_positive
+    elif is_ComplexField(domain) or domain == 'complex':
+        return domain_complex
+    elif domain is ZZ or domain == 'integer':
+        return domain_integer
+    else:
+        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
+
+cdef void send_sage_domain_to_maxima(Expression v, object domain) except +:
+    from sage.symbolic.assumptions import assume
+    # convert the domain argument to something easy to parse
+    if domain is RR or domain == 'real':
+        assume(v, 'real')
+    elif domain == 'positive':
+        assume(v>0)
+    elif is_ComplexField(domain) or domain == 'complex':
+        assume(v, 'complex')
+    elif domain is ZZ or domain == 'integer':
+        assume(v, 'integer')
+    else:
+        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
 
 
 cdef class ExpressionIterator:

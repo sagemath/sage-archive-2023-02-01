@@ -15,7 +15,7 @@ SAGE_SPKG_CONFIGURE([brial], [
         USING_NAMESPACE_PBORI
         USING_NAMESPACE_PBORIGB
 
-	class MyConstant : public BooleConstant{
+        class MyConstant : public BooleConstant{
           public: void negate() { this->m_value = !this->m_value; }
         };
       ],[
@@ -42,10 +42,10 @@ SAGE_SPKG_CONFIGURE([brial], [
              if (VERSION=="1.2.5") return 0;
              else return 1;
           ]])
-	  ], [
+          ], [
           AC_MSG_RESULT([found a possibly buggy 1.2.5. Rejecting])
-	  sage_spkg_install_brial=yes
-	  ], [
+          sage_spkg_install_brial=yes
+          ], [
           AC_MSG_RESULT([yes])
           sage_spkg_install_brial=no
       ], [AC_MSG_RESULT([cross compiling. Assume yes])

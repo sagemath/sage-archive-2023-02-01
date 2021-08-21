@@ -90,14 +90,14 @@ SAGE_SPKG_CONFIGURE([pari], [
               AC_LANG_PUSH(C)
               AC_RUN_IFELSE([AC_LANG_PROGRAM([
                   [#include <pari/pari.h>]],
-	         [[long vers;]
+                 [[long vers;]
                   [pari_init(5000000, 2);]
                   [vers=paricfg_version_code;]
                   [pari_close()];
                   [return vers!=$gp_version;]])],
                 [AC_MSG_RESULT([libpari's and GP's versions match. Good])],
-	        [AC_MSG_RESULT([libpari's version does not match GP's version. Not good])
-		         sage_spkg_install_pari=yes],
+                [AC_MSG_RESULT([libpari's version does not match GP's version. Not good])
+                         sage_spkg_install_pari=yes],
                  [AC_MSG_RESULT([cross compiling. Assume they match])])
               AC_MSG_CHECKING([is GP's version good enough? ])
               AX_COMPARE_VERSION([$gp_version], [ge], [$SAGE_PARI_MINVER], [
@@ -108,7 +108,7 @@ SAGE_SPKG_CONFIGURE([pari], [
                   AC_MSG_CHECKING([comparing GP's and libpari's datadirs])
                   AC_RUN_IFELSE([AC_LANG_PROGRAM([
                       [#include <pari/pari.h>]],
-	             [[int t;]
+                     [[int t;]
                       [pari_init(5000000, 2);]
                       [t=strcmp(paricfg_datadir,$gp_datadir);]
                       [pari_close()];

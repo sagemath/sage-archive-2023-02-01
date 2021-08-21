@@ -9030,7 +9030,7 @@ cdef class Expression(CommutativeRingElement):
 
     def arccosh(self, hold=False):
         """
-        Return the inverse hyperbolic cosine of self.
+        Return the inverse hyperbolic cosine of ``self``.
 
         EXAMPLES::
 
@@ -9042,8 +9042,9 @@ cdef class Expression(CommutativeRingElement):
             arccosh(1/2)
             sage: SR(CDF(1/2)).arccosh() #  rel tol 1e-15
             1.0471975511965976*I
-            sage: maxima('acosh(0.5)')
-            1.04719755119659...*%i
+            sage: z = maxima('acosh(0.5)')
+            sage: z.real(), z.imag()  # abs tol 1e-15
+            (0.0, 1.047197551196598)
 
         To prevent automatic evaluation use the ``hold`` argument::
 

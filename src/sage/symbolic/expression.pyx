@@ -388,6 +388,27 @@ cpdef bint is_SymbolicEquation(x):
     return isinstance(x, Expression) and is_a_relational((<Expression>x)._gobj)
 
 
+# Defined here but exported by sage.symbolic.ring
+cpdef bint _is_SymbolicVariable(x):
+    """
+    Return ``True`` if ``x`` is a variable.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.ring import is_SymbolicVariable
+        sage: is_SymbolicVariable(x)
+        True
+        sage: is_SymbolicVariable(x+2)
+        False
+
+    TESTS::
+
+        sage: ZZ['x']
+        Univariate Polynomial Ring in x over Integer Ring
+    """
+    return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
+
+
 def _dict_update_check_duplicate(dict d1, dict d2):
     r"""
     Merge the dictionary ``d2`` into ``d1`` and check for duplicates.

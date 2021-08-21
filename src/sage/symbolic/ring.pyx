@@ -32,6 +32,9 @@ from sage.structure.coerce cimport is_numpy_type
 
 from sage.rings.all import RR, CC, ZZ
 
+# is_SymbolicVariable used to be defined here; re-export it
+from sage.symbolic.expression import _is_SymbolicVariable as is_SymbolicVariable
+
 import keyword
 import operator
 
@@ -1478,26 +1481,6 @@ def var(name, **kwds):
         ValueError: The name "3" is not a valid Python identifier.
     """
     return SR.var(name, **kwds)
-
-
-def is_SymbolicVariable(x):
-    """
-    Return ``True`` if ``x`` is a variable.
-
-    EXAMPLES::
-
-        sage: from sage.symbolic.ring import is_SymbolicVariable
-        sage: is_SymbolicVariable(x)
-        True
-        sage: is_SymbolicVariable(x+2)
-        False
-
-    TESTS::
-
-        sage: ZZ['x']
-        Univariate Polynomial Ring in x over Integer Ring
-    """
-    return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
 
 
 def isidentifier(x):

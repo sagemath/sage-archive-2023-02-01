@@ -20,8 +20,8 @@ from sage.libs.pynac.pynac cimport *
 
 from sage.rings.integer cimport Integer
 
-from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
-from sage.symbolic.expression import _latex_Expression, new_Expression, new_Expression_force_pyobject
+from sage.symbolic.expression cimport Expression, new_Expression_from_pyobject, is_Expression
+from sage.symbolic.expression import _latex_Expression, new_Expression, new_Expression_force_pyobject, new_Expression_wild
 
 
 from sage.misc.latex import latex_variable_name
@@ -425,7 +425,7 @@ cdef class SymbolicRing(CommutativeRing):
         return new_Expression_force_pyobject(self, x, force, recursive)
 
     def wild(self, unsigned int n=0):
-        """
+        r"""
         Return the n-th wild-card for pattern matching and substitution.
 
         INPUT:
@@ -434,7 +434,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         OUTPUT:
 
-        - `n^{th}` wildcard expression
+        - ``n``-th wildcard expression
 
         EXAMPLES::
 
@@ -461,7 +461,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: coth(SR.wild(0))
             coth($0)
         """
-        return new_Expression_from_GEx(self, g_wild(n))
+        return new_Expression_wild(self, n)
 
     def __contains__(self, x):
         r"""

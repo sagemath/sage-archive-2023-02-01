@@ -13365,6 +13365,36 @@ cpdef Expression new_Expression_force_pyobject(parent, x, bint force=False, bint
     return new_Expression_from_GEx(parent, exp)
 
 
+cpdef Expression new_Expression_wild(parent, unsigned int n=0):
+    r"""
+    Return the n-th wild-card for pattern matching and substitution.
+
+    INPUT:
+
+    - ``parent`` - a symbolic ring.
+
+    - ``n`` - a nonnegative integer.
+
+    OUTPUT:
+
+    - ``n``-th wildcard expression.
+
+    EXAMPLES::
+
+        sage: x,y = var('x,y')
+        sage: w0 = SR.wild(0); w1 = SR.wild(1)
+        sage: pattern = sin(x)*w0*w1^2; pattern
+        $1^2*$0*sin(x)
+        sage: f = atan(sin(x)*3*x^2); f
+        arctan(3*x^2*sin(x))
+        sage: f.has(pattern)
+        True
+        sage: f.subs(pattern == x^2)
+        arctan(x^2)
+    """
+    return new_Expression_from_GEx(parent, g_wild(n))
+
+
 cdef class ExpressionIterator:
     cdef Expression _ex
     cdef int _ind

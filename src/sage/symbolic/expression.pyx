@@ -322,6 +322,7 @@ from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 
 from sage.cpython.string cimport str_to_bytes, char_to_str
 
+from sage.structure.element cimport RingElement, Element, Matrix
 from sage.symbolic.comparison import mixed_order
 from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.series cimport SymbolicSeries
@@ -329,6 +330,7 @@ from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 cimport sage.symbolic.comparison
 from sage.rings.rational import Rational
+from sage.rings.real_mpfr cimport RealNumber
 from sage.misc.derivative import multi_derivative
 from sage.misc.decorators import sage_wraps
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
@@ -13219,9 +13221,149 @@ cdef Expression new_Expression_from_GEx(parent, GEx juice):
     nex._parent = parent
     return nex
 
+
 cdef Expression new_Expression_from_pyobject(parent, x):
     cdef GEx exp = x
     return new_Expression_from_GEx(parent, exp)
+
+
+cpdef Expression new_Expression(parent, x):
+    r"""
+    Convert ``x`` into the symbolic expression ring ``parent``.
+
+    This is the element constructor.
+
+    EXAMPLES::
+
+        sage: a = SR(-3/4); a
+        -3/4
+        sage: type(a)
+        <type 'sage.symbolic.expression.Expression'>
+        sage: a.parent()
+        Symbolic Ring
+        sage: K.<a> = QuadraticField(-3)
+        sage: a + sin(x)
+        I*sqrt(3) + sin(x)
+        sage: x=var('x'); y0,y1=PolynomialRing(ZZ,2,'y').gens()
+        sage: x+y0/y1
+        x + y0/y1
+        sage: x.subs(x=y0/y1)
+        y0/y1
+        sage: x + int(1)
+        x + 1
+    """
+    cdef GEx exp
+    if is_Expression(x):
+        return new_Expression_from_GEx(parent, (<Expression>x)._gobj)
+    if hasattr(x, '_symbolic_'):
+        return x._symbolic_(parent)
+    elif isinstance(x, str):
+        try:
+            from sage.calculus.calculus import symbolic_expression_from_string
+            return parent(symbolic_expression_from_string(x))
+        except SyntaxError as err:
+            msg, s, pos = err.args
+            raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
+
+    from sage.rings.infinity import (infinity, minus_infinity,
+                                     unsigned_infinity)
+    from sage.structure.factorization import Factorization
+    from sage.categories.sets_cat import Sets
+
+    if isinstance(x, RealNumber):
+        if x.is_NaN():
+            from sage.symbolic.constants import NaN
+            return NaN
+        exp = x
+    elif isinstance(x, (float, complex)):
+        if not (x == x):
+            from sage.symbolic.constants import NaN
+            return NaN
+        exp = x
+    elif isinstance(x, long):
+        exp = x
+    elif isinstance(x, int):
+        exp = GEx(<long>x)
+    elif x is infinity:
+        return new_Expression_from_GEx(parent, g_Infinity)
+    elif x is minus_infinity:
+        return new_Expression_from_GEx(parent, g_mInfinity)
+    elif x is unsigned_infinity:
+        return new_Expression_from_GEx(parent, g_UnsignedInfinity)
+    elif isinstance(x, (RingElement, Matrix)):
+        if x.parent().characteristic():
+            raise TypeError('positive characteristic not allowed in symbolic computations')
+        exp = x
+    elif isinstance(x, Factorization):
+        from sage.misc.all import prod
+        return prod([SR(p)**e for p,e in x], SR(x.unit()))
+    elif x in Sets():
+        from sage.rings.all import NN, ZZ, QQ, AA
+        from sage.sets.real_set import RealSet
+        if (x.is_finite() or x in (NN, ZZ, QQ, AA)
+                or isinstance(x, RealSet)):
+            exp = x
+        else:
+            raise TypeError(f"unable to convert {x!r} to a symbolic expression")
+    else:
+        raise TypeError(f"unable to convert {x!r} to a symbolic expression")
+
+    return new_Expression_from_GEx(parent, exp)
+
+
+cpdef Expression new_Expression_force_pyobject(parent, x, bint force=False, bint recursive=True):
+    r"""
+    Wrap the given Python object in a symbolic expression even if it
+    cannot be coerced to the Symbolic Ring.
+
+    INPUT:
+
+    - ``parent`` - a symbolic ring.
+
+    - ``x`` - a Python object.
+
+    - ``force`` - bool, default ``False``, if True, the Python object
+      is taken as is without attempting coercion or list traversal.
+
+    - ``recursive`` - bool, default ``True``, disables recursive
+      traversal of lists.
+
+    EXAMPLES::
+
+        sage: t = SR._force_pyobject(QQ); t   # indirect doctest
+        Rational Field
+        sage: type(t)
+        <type 'sage.symbolic.expression.Expression'>
+    """
+    cdef GEx exp
+    cdef GExprSeq ex_seq
+    cdef GExVector ex_v
+    if force:
+        exp = x
+
+    else:
+        # first check if we can do it the nice way
+        if isinstance(x, Expression):
+            return x
+        try:
+            return parent._coerce_(x)
+        except TypeError:
+            pass
+
+        # tuples can be packed into exprseq
+        if isinstance(x, (tuple, list)):
+            for e in x:
+                obj = SR._force_pyobject(e, force=(not recursive))
+                ex_v.push_back( (<Expression>obj)._gobj )
+
+            ex_seq = GExprSeq(ex_v)
+
+            exp = GEx(ex_seq)
+        else:
+            exp = x
+
+    return new_Expression_from_GEx(parent, exp)
+
 
 cdef class ExpressionIterator:
     cdef Expression _ex

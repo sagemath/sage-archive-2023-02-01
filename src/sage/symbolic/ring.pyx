@@ -19,14 +19,14 @@ from sage.ext.cplusplus cimport ccrepr
 from sage.libs.pynac.pynac cimport *
 
 from sage.rings.integer cimport Integer
-from sage.rings.real_mpfr cimport RealNumber
 
 from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
-from sage.symbolic.expression import _latex_Expression
+from sage.symbolic.expression import _latex_Expression, new_Expression, new_Expression_force_pyobject
+
 
 from sage.misc.latex import latex_variable_name
 from sage.cpython.string cimport str_to_bytes, bytes_to_str, char_to_str
-from sage.structure.element cimport RingElement, Element, Matrix
+from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
@@ -224,7 +224,7 @@ cdef class SymbolicRing(CommutativeRing):
 
     def _element_constructor_(self, x):
         r"""
-        Coerce `x` into the symbolic expression ring SR.
+        Convert `x` into the symbolic expression ring SR.
 
         EXAMPLES::
 
@@ -363,66 +363,10 @@ cdef class SymbolicRing(CommutativeRing):
             ...
             TypeError: Malformed expression: λ + * !!!  1
         """
-        cdef GEx exp
-        if is_Expression(x):
-            return new_Expression_from_GEx(self, (<Expression>x)._gobj)
-        if hasattr(x, '_symbolic_'):
-            return x._symbolic_(self)
-        elif isinstance(x, str):
-            try:
-                from sage.calculus.calculus import symbolic_expression_from_string
-                return self(symbolic_expression_from_string(x))
-            except SyntaxError as err:
-                msg, s, pos = err.args
-                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
-
-        from sage.rings.infinity import (infinity, minus_infinity,
-                                         unsigned_infinity)
-        from sage.structure.factorization import Factorization
-        from sage.categories.sets_cat import Sets
-
-        if isinstance(x, RealNumber):
-            if x.is_NaN():
-                from sage.symbolic.constants import NaN
-                return NaN
-            exp = x
-        elif isinstance(x, (float, complex)):
-            if not (x == x):
-                from sage.symbolic.constants import NaN
-                return NaN
-            exp = x
-        elif isinstance(x, long):
-            exp = x
-        elif isinstance(x, int):
-            exp = GEx(<long>x)
-        elif x is infinity:
-            return new_Expression_from_GEx(self, g_Infinity)
-        elif x is minus_infinity:
-            return new_Expression_from_GEx(self, g_mInfinity)
-        elif x is unsigned_infinity:
-            return new_Expression_from_GEx(self, g_UnsignedInfinity)
-        elif isinstance(x, (RingElement, Matrix)):
-            if x.parent().characteristic():
-                raise TypeError('positive characteristic not allowed in symbolic computations')
-            exp = x
-        elif isinstance(x, Factorization):
-            from sage.misc.all import prod
-            return prod([SR(p)**e for p,e in x], SR(x.unit()))
-        elif x in Sets():
-            from sage.rings.all import NN, ZZ, QQ, AA
-            from sage.sets.real_set import RealSet
-            if (x.is_finite() or x in (NN, ZZ, QQ, AA)
-                    or isinstance(x, RealSet)):
-                exp = x
-            else:
-                raise TypeError(f"unable to convert {x!r} to a symbolic expression")
-        else:
-            raise TypeError(f"unable to convert {x!r} to a symbolic expression")
-
-        return new_Expression_from_GEx(self, exp)
+        return new_Expression(self, x)
 
     def _force_pyobject(self, x, bint force=False, bint recursive=True):
-        """
+        r"""
         Wrap the given Python object in a symbolic expression even if it
         cannot be coerced to the Symbolic Ring.
 
@@ -478,34 +422,7 @@ cdef class SymbolicRing(CommutativeRing):
             (Rational Field, (x, x + 1, x + 2), Complex Field with 53 bits
             of precision)
         """
-        cdef GEx exp
-        cdef GExprSeq ex_seq
-        cdef GExVector ex_v
-        if force:
-            exp = x
-
-        else:
-            # first check if we can do it the nice way
-            if isinstance(x, Expression):
-                return x
-            try:
-                return self._coerce_(x)
-            except TypeError:
-                pass
-
-            # tuples can be packed into exprseq
-            if isinstance(x, (tuple, list)):
-                for e in x:
-                    obj = SR._force_pyobject(e, force=(not recursive))
-                    ex_v.push_back( (<Expression>obj)._gobj )
-
-                ex_seq = GExprSeq(ex_v)
-
-                exp = GEx(ex_seq)
-            else:
-                exp = x
-
-        return new_Expression_from_GEx(self, exp)
+        return new_Expression_force_pyobject(self, x, force, recursive)
 
     def wild(self, unsigned int n=0):
         """

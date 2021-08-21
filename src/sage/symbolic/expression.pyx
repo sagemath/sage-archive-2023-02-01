@@ -13011,7 +13011,7 @@ cdef class Expression(CommutativeRingElement):
                 return S
 
 
-cdef _latex_Expression(Expression x):
+cpdef _latex_Expression(x):
     r"""
     Returns the standard LaTeX version of the expression `x`.
 
@@ -13022,7 +13022,7 @@ cdef _latex_Expression(Expression x):
         sage: latex(var('theta') + 2)
         \theta + 2
     """
-    return char_to_str(GEx_to_str_latex(&x._gobj))
+    return char_to_str(GEx_to_str_latex(&(<Expression>x)._gobj))
 
 
 def solve_diophantine(f,  *args, **kwds):

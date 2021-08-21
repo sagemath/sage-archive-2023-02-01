@@ -2083,11 +2083,11 @@ class RiemannSurface(object):
             # Distance to the discriminant points
             distances = [(cz-b).abs() for b in self.branch_locus] 
             rho_z = min(distances)
-            rho_t = rho_z/(z1-z0).abs()
+            rho_t = rho_z/(z1_minus_z0).abs()
             if rho_t > rt:
                 rho_t = alpha*rho_t+(1-alpha)*rt  # sqrt(rho_t*rt) could also work
                 rho_z = rho_t*(z1-z0).abs()
-                delta_z = (alpha*rho_t+(1-alpha)*rt)*(z1-z0).abs()
+                delta_z = (alpha*rho_t+(1-alpha)*rt)*(z1_minus_z0).abs()
                 expr = rho_t/rt+((rho_t/rt)**2-1).sqrt()  # Note this is really exp(arcosh(rho_t/rt))
                 N = 3
                 cw = zwt(ct)[1]

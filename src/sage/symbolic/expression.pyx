@@ -321,7 +321,9 @@ import sage.rings.rational
 
 from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 
-from sage.cpython.string cimport str_to_bytes
+from sage.cpython.string cimport str_to_bytes, char_to_str
+
+from sage.structure.element cimport RingElement, Element, Matrix
 from sage.symbolic.comparison import mixed_order
 from sage.symbolic.getitem cimport OperandsWrapper
 from sage.symbolic.series cimport SymbolicSeries
@@ -329,9 +331,14 @@ from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
 cimport sage.symbolic.comparison
 from sage.rings.rational import Rational
+from sage.rings.real_mpfr cimport RealNumber
 from sage.misc.derivative import multi_derivative
 from sage.misc.decorators import sage_wraps
+from sage.misc.latex import latex_variable_name
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_mpfr import RR
+from sage.rings.complex_mpfr import is_ComplexField
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
@@ -385,6 +392,27 @@ cpdef bint is_SymbolicEquation(x):
 
     """
     return isinstance(x, Expression) and is_a_relational((<Expression>x)._gobj)
+
+
+# Defined here but exported by sage.symbolic.ring
+cpdef bint _is_SymbolicVariable(x):
+    """
+    Return ``True`` if ``x`` is a variable.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.ring import is_SymbolicVariable
+        sage: is_SymbolicVariable(x)
+        True
+        sage: is_SymbolicVariable(x+2)
+        False
+
+    TESTS::
+
+        sage: ZZ['x']
+        Univariate Polynomial Ring in x over Integer Ring
+    """
+    return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
 
 
 def _dict_update_check_duplicate(dict d1, dict d2):
@@ -13009,6 +13037,33 @@ cdef class Expression(CommutativeRingElement):
                         S = S.subs(di)
                 return S
 
+
+cpdef _repr_Expression(x):
+    r"""
+    Return the string representation of the eexpression ``x``.
+
+    EXAMPLES::
+
+        sage: SR._repr_element_(x+2)
+        'x + 2'
+    """
+    return ccrepr((<Expression>x)._gobj)
+
+
+cpdef _latex_Expression(x):
+    r"""
+    Return the standard LaTeX version of the expression `x`.
+
+    EXAMPLES::
+
+        sage: latex(sin(x+2))
+        \sin\left(x + 2\right)
+        sage: latex(var('theta') + 2)
+        \theta + 2
+    """
+    return char_to_str(GEx_to_str_latex(&(<Expression>x)._gobj))
+
+
 def solve_diophantine(f,  *args, **kwds):
     """
     Solve a Diophantine equation.
@@ -13182,9 +13237,295 @@ cdef Expression new_Expression_from_GEx(parent, GEx juice):
     nex._parent = parent
     return nex
 
-cdef Expression new_Expression_from_pyobject(parent, x):
+
+cpdef Expression new_Expression_from_pyobject(parent, x):
     cdef GEx exp = x
     return new_Expression_from_GEx(parent, exp)
+
+
+cpdef Expression new_Expression(parent, x):
+    r"""
+    Convert ``x`` into the symbolic expression ring ``parent``.
+
+    This is the element constructor.
+
+    EXAMPLES::
+
+        sage: a = SR(-3/4); a
+        -3/4
+        sage: type(a)
+        <type 'sage.symbolic.expression.Expression'>
+        sage: a.parent()
+        Symbolic Ring
+        sage: K.<a> = QuadraticField(-3)
+        sage: a + sin(x)
+        I*sqrt(3) + sin(x)
+        sage: x=var('x'); y0,y1=PolynomialRing(ZZ,2,'y').gens()
+        sage: x+y0/y1
+        x + y0/y1
+        sage: x.subs(x=y0/y1)
+        y0/y1
+        sage: x + int(1)
+        x + 1
+    """
+    cdef GEx exp
+    if is_Expression(x):
+        return new_Expression_from_GEx(parent, (<Expression>x)._gobj)
+    if hasattr(x, '_symbolic_'):
+        return x._symbolic_(parent)
+    elif isinstance(x, str):
+        try:
+            from sage.calculus.calculus import symbolic_expression_from_string
+            return parent(symbolic_expression_from_string(x))
+        except SyntaxError as err:
+            msg, s, pos = err.args
+            raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
+
+    from sage.rings.infinity import (infinity, minus_infinity,
+                                     unsigned_infinity)
+    from sage.structure.factorization import Factorization
+    from sage.categories.sets_cat import Sets
+
+    if isinstance(x, RealNumber):
+        if x.is_NaN():
+            from sage.symbolic.constants import NaN
+            return NaN
+        exp = x
+    elif isinstance(x, (float, complex)):
+        if not (x == x):
+            from sage.symbolic.constants import NaN
+            return NaN
+        exp = x
+    elif isinstance(x, long):
+        exp = x
+    elif isinstance(x, int):
+        exp = GEx(<long>x)
+    elif x is infinity:
+        return new_Expression_from_GEx(parent, g_Infinity)
+    elif x is minus_infinity:
+        return new_Expression_from_GEx(parent, g_mInfinity)
+    elif x is unsigned_infinity:
+        return new_Expression_from_GEx(parent, g_UnsignedInfinity)
+    elif isinstance(x, (RingElement, Matrix)):
+        if x.parent().characteristic():
+            raise TypeError('positive characteristic not allowed in symbolic computations')
+        exp = x
+    elif isinstance(x, Factorization):
+        from sage.misc.all import prod
+        return prod([SR(p)**e for p,e in x], SR(x.unit()))
+    elif x in Sets():
+        from sage.rings.all import NN, ZZ, QQ, AA
+        from sage.sets.real_set import RealSet
+        if (x.is_finite() or x in (NN, ZZ, QQ, AA)
+                or isinstance(x, RealSet)):
+            exp = x
+        else:
+            raise TypeError(f"unable to convert {x!r} to a symbolic expression")
+    else:
+        raise TypeError(f"unable to convert {x!r} to a symbolic expression")
+
+    return new_Expression_from_GEx(parent, exp)
+
+
+cpdef Expression new_Expression_force_pyobject(parent, x, bint force=False, bint recursive=True):
+    r"""
+    Wrap the given Python object in a symbolic expression even if it
+    cannot be coerced to the Symbolic Ring.
+
+    INPUT:
+
+    - ``parent`` - a symbolic ring.
+
+    - ``x`` - a Python object.
+
+    - ``force`` - bool, default ``False``, if True, the Python object
+      is taken as is without attempting coercion or list traversal.
+
+    - ``recursive`` - bool, default ``True``, disables recursive
+      traversal of lists.
+
+    EXAMPLES::
+
+        sage: t = SR._force_pyobject(QQ); t   # indirect doctest
+        Rational Field
+        sage: type(t)
+        <type 'sage.symbolic.expression.Expression'>
+    """
+    cdef GEx exp
+    cdef GExprSeq ex_seq
+    cdef GExVector ex_v
+    if force:
+        exp = x
+
+    else:
+        # first check if we can do it the nice way
+        if isinstance(x, Expression):
+            return x
+        try:
+            return parent._coerce_(x)
+        except TypeError:
+            pass
+
+        # tuples can be packed into exprseq
+        if isinstance(x, (tuple, list)):
+            for e in x:
+                obj = SR._force_pyobject(e, force=(not recursive))
+                ex_v.push_back( (<Expression>obj)._gobj )
+
+            ex_seq = GExprSeq(ex_v)
+
+            exp = GEx(ex_seq)
+        else:
+            exp = x
+
+    return new_Expression_from_GEx(parent, exp)
+
+
+cpdef Expression new_Expression_wild(parent, unsigned int n=0):
+    r"""
+    Return the n-th wild-card for pattern matching and substitution.
+
+    INPUT:
+
+    - ``parent`` - a symbolic ring.
+
+    - ``n`` - a nonnegative integer.
+
+    OUTPUT:
+
+    - ``n``-th wildcard expression.
+
+    EXAMPLES::
+
+        sage: x,y = var('x,y')
+        sage: w0 = SR.wild(0); w1 = SR.wild(1)
+        sage: pattern = sin(x)*w0*w1^2; pattern
+        $1^2*$0*sin(x)
+        sage: f = atan(sin(x)*3*x^2); f
+        arctan(3*x^2*sin(x))
+        sage: f.has(pattern)
+        True
+        sage: f.subs(pattern == x^2)
+        arctan(x^2)
+    """
+    return new_Expression_from_GEx(parent, g_wild(n))
+
+
+cpdef Expression new_Expression_symbol(parent, name=None, latex_name=None, domain=None):
+    r"""
+    Look up or create a symbol.
+
+    EXAMPLES::
+
+        sage: t0 = SR.symbol("t0")
+        sage: t0.conjugate()
+        conjugate(t0)
+
+        sage: t1 = SR.symbol("t1", domain='real')
+        sage: t1.conjugate()
+        t1
+
+        sage: t0.abs()
+        abs(t0)
+
+        sage: t0_2 = SR.symbol("t0", domain='positive')
+        sage: t0_2.abs()
+        t0
+        sage: bool(t0_2 == t0)
+        True
+        sage: t0.conjugate()
+        t0
+
+        sage: SR.symbol() # temporary variable
+        symbol...
+    """
+    cdef GSymbol symb
+    cdef Expression e
+
+    # check if there is already a symbol with same name
+    e = parent.symbols.get(name)
+
+    # fast path to get an already existing variable
+    if e is not None:
+        if domain is None:
+            if latex_name is None:
+                return e
+
+        # get symbol
+        symb = ex_to_symbol(e._gobj)
+        if latex_name is not None:
+            symb.set_texname(str_to_bytes(latex_name))
+        if domain is not None:
+            symb.set_domain(sage_domain_to_ginac_domain(domain))
+        e._gobj = GEx(symb)
+        if domain is not None:
+            send_sage_domain_to_maxima(e, domain)
+
+        return e
+
+    else: # initialize a new symbol
+        # Construct expression
+        e = <Expression>Expression.__new__(Expression)
+        e._parent = parent
+
+        if name is None: # Check if we need a temporary anonymous new symbol
+            symb = ginac_new_symbol()
+            name = symb.get_name().decode('ascii')
+            if domain is not None:
+                symb.set_domain(sage_domain_to_ginac_domain(domain))
+        else:
+            if latex_name is None:
+                latex_name = latex_variable_name(name)
+            if domain is not None:
+                ginac_domain = sage_domain_to_ginac_domain(domain)
+            else:
+                ginac_domain = domain_complex
+            symb = ginac_symbol(str_to_bytes(name),
+                                str_to_bytes(latex_name), ginac_domain)
+
+        e._gobj = GEx(symb)
+        parent.symbols[name] = e
+        if domain is not None:
+            send_sage_domain_to_maxima(e, domain)
+
+    return e
+
+
+cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
+    """
+    TESTS::
+
+        sage: var('x', domain='foo')
+        Traceback (most recent call last):
+        ...
+        ValueError: 'foo': domain must be one of 'complex', 'real', 'positive' or 'integer'
+    """
+    # convert the domain argument to something easy to parse
+    if domain is RR or domain == 'real':
+        return domain_real
+    elif domain == 'positive':
+        return domain_positive
+    elif is_ComplexField(domain) or domain == 'complex':
+        return domain_complex
+    elif domain is ZZ or domain == 'integer':
+        return domain_integer
+    else:
+        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
+
+cdef void send_sage_domain_to_maxima(Expression v, object domain) except +:
+    from sage.symbolic.assumptions import assume
+    # convert the domain argument to something easy to parse
+    if domain is RR or domain == 'real':
+        assume(v, 'real')
+    elif domain == 'positive':
+        assume(v>0)
+    elif is_ComplexField(domain) or domain == 'complex':
+        assume(v, 'complex')
+    elif domain is ZZ or domain == 'integer':
+        assume(v, 'integer')
+    else:
+        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
+
 
 cdef class ExpressionIterator:
     cdef Expression _ex

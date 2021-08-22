@@ -29,4 +29,4 @@ cdef class Expression(CommutativeRingElement):
 
 cpdef bint is_Expression(x)
 cdef Expression new_Expression_from_GEx(parent, GEx juice)
-cdef Expression new_Expression_from_pyobject(parent, x)
+cpdef Expression new_Expression_from_pyobject(parent, x)

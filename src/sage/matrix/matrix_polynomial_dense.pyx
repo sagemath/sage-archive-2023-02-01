@@ -24,6 +24,9 @@ AUTHORS:
 
 - Vincent Neiger (2021-07-29): added popov_form(). Added more options to
   weak_popov_form() (column-wise, ordered, zero rows).
+
+- Vincent Neiger (2021-08-07): added inverse_series_trunc(),
+  solve_{left/right}_series_trunc(), {left/right}_quo_rem(), reduce().
 """
 # ****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>
@@ -46,7 +49,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     For a field $\Bold{K}$, we consider matrices over the univariate
     polynomial ring $\Bold{K}[x]$.
-    
+
     They are often used to represent bases of some $\Bold{K}[x]$-modules. In
     this context, there are two possible representations which are both
     commonly used in the literature.
@@ -280,7 +283,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. SEEALSO::
 
-            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.is_constant` .
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.is_constant`
         """
         return all([self[i,j].is_constant()
             for j in range(self.ncols()) for i in range(self.nrows())])
@@ -707,6 +710,360 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         return matrix(self.base_ring(), m, n, [[self[i,j].reverse(degree[i])
             if row_wise else self[i,j].reverse(degree[j])
             for j in range(n)] for i in range(m)])
+
+    def inverse_series_trunc(self, d):
+        r"""
+        Return a matrix polynomial approximation of precision ``d`` of the
+        inverse series of this matrix polynomial.
+
+        Here matrix polynomial means that ``self`` is seen as a univariate
+        polynomial with matrix coefficients, meaning that this method has the
+        same output as if one: 1) converts this matrix to a univariate
+        polynomial with matrix coefficients, 2) calls
+
+        :meth:`sage.rings.polynomial.polynomial_element.Polynomial.inverse_series_trunc`
+
+        on that univariate polynomial, and 3) converts back to a matrix of
+        polynomials.
+
+        Raises a ``ZeroDivisionError`` if the constant matrix of ``self`` is
+        not invertible (i.e. has zero determinant); raises an
+        ``ArithmeticError`` if ``self`` is nonsquare; and raises a
+        ``ValueError`` if the precision ``d`` is not positive.
+
+        INPUT: a positive integer `d` .
+
+        OUTPUT: the unique polynomial matrix $B$ of degree less than `d` such
+        that `AB` and `BA` are the identity matrix modulo `x^d`, where `A` is
+        ``self``.
+
+        ALGORITHM: This uses Newton iteration, performing about `\log(d)`
+        polynomial matrix multiplications in size `m \times m` and in degree
+        less than `2d`, where `m` is the row dimension of ``self``.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 3, 3,                            \
+                [[4*x+5,           5*x^2 + x + 1, 4*x^2 + 4],     \
+                 [6*x^2 + 6*x + 6, 4*x^2 + 5*x,   4*x^2 + x + 3], \
+                 [3*x^2 + 2,       4*x + 1,       x^2 + 3*x]])
+            sage: B = A.inverse_series_trunc(4); B
+            [    x^3 + 5*x^2 + x + 4   x^3 + 5*x^2 + 6*x + 4         6*x^2 + 5*x + 3]
+            [        4*x^2 + 5*x + 6     6*x^3 + x^2 + x + 6       3*x^3 + 2*x^2 + 2]
+            [5*x^3 + 5*x^2 + 6*x + 6 4*x^3 + 2*x^2 + 6*x + 4   6*x^3 + x^2 + 6*x + 1]
+            sage: (B*A).truncate(4) == 1
+            True
+
+            sage: A.inverse_series_trunc(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the precision must be positive
+
+            sage: A[:2,:].inverse_series_trunc(4)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: the input matrix must be square
+
+            sage: A[0,:] = A[0,:] - A[0,:](0) + A[1,:](0) + A[2,:](0)
+            sage: A.inverse_series_trunc(4)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: the constant matrix term self(0) must be invertible
+
+        .. SEEALSO::
+
+            :meth:`sage.rings.polynomial.polynomial_element.Polynomial.inverse_series_trunc` .
+
+        .. TODO::
+
+            in the current state of polynomial matrix multiplication (July
+            2021), it would be highly beneficial to use conversions and rely on
+            polynomials with matrix coefficients when the matrix size is
+            "large" and the degree "small", see
+            [https://trac.sagemath.org/ticket/31472#comment:5].
+        """
+        if d <= 0:
+            raise ValueError("the precision must be positive")
+        try:
+            inv_trunc = self.constant_matrix().inverse()
+        except ZeroDivisionError:
+            raise ZeroDivisionError("the constant matrix term self(0)" \
+                                                    " must be invertible")
+        except ArithmeticError:
+            raise ArithmeticError("the input matrix must be square")
+
+        # in comments below, A=self, B=inv_trunc
+        # at this point, B = A^{-1} mod x
+        from sage.misc.misc import newton_method_sizes
+        for next_prec in newton_method_sizes(d)[1:]:
+            # Newton iteration: B = (2I - B*A)*B mod x^next_prec
+            mul_trunc = - (inv_trunc*self).truncate(next_prec)
+            for i in range(self.nrows()):
+                mul_trunc[i,i] += 2
+            inv_trunc = (mul_trunc * inv_trunc).truncate(next_prec)
+        return inv_trunc
+
+    def solve_left_series_trunc(self, B, d):
+        r"""
+        Try to find a solution `X` to the equation `X A = B`, at precision
+        ``d``.
+
+        If ``self`` is a matrix `A`, then this function returns a vector or
+        matrix `X` such that `X A = B \bmod x^d`. If `B` is a vector then `X`
+        is a vector, and if `B` is a matrix then `X` is a matrix.
+
+        Raises ``ValueError`` if ``d`` is not strictly positive, or if there is
+        a dimension mismatch between `A` and `B`, or if there is no solution to
+        the given matrix equation at the specified precision.
+
+        INPUT:
+
+        - ``B`` -- a polynomial matrix or polynomial vector.
+
+        - ``d`` -- a positive integer.
+
+        OUTPUT:
+
+        A solution to the matrix equation, returned as polynomial matrix of
+        degree less than ``d`` if ``B`` is a polynomial matrix; a polynomial
+        vector of degree less than ``d`` if `B` is a polynomial vector.
+
+        ALGORITHM:
+
+        If `A` is square with invertible constant term, then the unique
+        solution is found by calling :meth:`inverse_series_trunc` and using the
+        Dixon & Moenck-Carter iteration. Otherwise, a left minimal approximant
+        basis of a matrix formed by `A` and `B` is computed, for an appropriate
+        shift which ensures that this basis reveals either a solution `X` or
+        the fact that no such solution exists.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 3, 3,                            \
+                [[4*x+5,           5*x^2 + x + 1, 4*x^2 + 4],     \
+                 [6*x^2 + 6*x + 6, 4*x^2 + 5*x,   4*x^2 + x + 3], \
+                 [3*x^2 + 2,       4*x + 1,       x^2 + 3*x]])
+            sage: A.is_square() and A.constant_matrix().is_invertible()
+            True
+            sage: B = vector([2*x^2 + 6*x + 6, 0, x + 6])
+            sage: X = A.solve_left_series_trunc(B,4); X
+            (3*x^3 + 3*x^2 + 2*x + 4, 4*x^3 + x^2 + 2*x + 6, 6*x^3 + x + 3)
+            sage: B == X*A % x**4
+            True
+
+            sage: B = Matrix(pR, 2, 3,                  \
+                    [[3*x, x^2 + x + 2, x^2 + 2*x + 3], \
+                    [  0,   6*x^2 + 1,             1]])
+            sage: A.solve_left_series_trunc(B,3)
+            [6*x^2 + 2*x + 2         4*x + 3     2*x^2 + 3*x]
+            [3*x^2 + 4*x + 5       4*x^2 + 3   x^2 + 6*x + 3]
+            sage: X = A.solve_left_series_trunc(B,37); B == X*A % x**37
+            True
+
+        Dimensions of input are checked::
+
+            sage: A.solve_left_series_trunc(B[:,:2],3)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of columns of self must equal number of columns of right-hand side
+
+        Raises an exception when no solution::
+
+            sage: A[2:,:].solve_left_series_trunc(B,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+            sage: Ax = x*A; C = vector(pR, [1,1,1])
+            sage: Ax.solve_left_series_trunc(C,5)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+        Supports rectangular and rank-deficient cases::
+
+            sage: A[:,:2].solve_left_series_trunc(B[:,:2],4)
+            [5*x^2 + 2*x + 5         5*x + 5         2*x + 4]
+            [5*x^3 + 2*x + 1 2*x^2 + 2*x + 5           4*x^2]
+
+            sage: V = Matrix([[3*x^2 + 4*x + 1, 4*x]])
+            sage: A[:2,:].solve_left_series_trunc(V*A[:2,:], 4) == V
+            True
+
+            sage: A[1,:] = (x+1) * A[0,:]; A[2,:] = (x+5) * A[0,:]
+            sage: B = (3*x^3+x^2+2)*A[0,:]
+            sage: A.solve_left_series_trunc(B, 6)
+            [4*x^2 + 6*x + 2       3*x^2 + x               0]
+
+        .. SEEALSO::
+
+            :meth:`solve_right_series_trunc` .
+        """
+        from sage.structure.element import is_Vector
+        if is_Vector(B):
+            if self.ncols() != B.degree():
+                raise ValueError("number of columns of self must equal "
+                                 "degree of right-hand side")
+        else:
+            if self.ncols() != B.ncols():
+                raise ValueError("number of columns of self must equal "
+                                 "number of columns of right-hand side")
+
+        if d <= 0:
+            raise ValueError("the precision must be positive")
+        try:
+            # case where self is square, with invertible constant term
+            precA = 1+self.degree()
+            if is_Vector(B):
+                BB = B.row()
+                X = B.row().parent().zero().__copy__()
+            else:
+                BB = B.__copy__()
+                X = B.parent().zero().__copy__()
+            inv_self = self.inverse_series_trunc(precA)
+            for k in range(0,(d/precA).ceil()):
+                # compute XX = BB * invA mod x^precA
+                XX = (BB * inv_self).truncate(precA)
+                # compute BB = (BB - XX*A) x^(-precA)
+                BB = (BB - XX*self).shift(-precA)
+                # update X = X + x^(k*precA) * XX
+                X = X + XX.shift(k*precA)
+            return X.truncate(d)[0] if is_Vector(B) else X.truncate(d)
+        except (ZeroDivisionError,ArithmeticError):
+            # general case (possibly no solution)
+            m = self.nrows()
+            from sage.matrix.constructor import matrix
+            if is_Vector(B):
+                F = matrix.block([[self],[-B.row()]])
+                s = [0]*m + [d]
+            else:
+                F = matrix.block([[self],[-B]])
+                s = [0]*m + [d]*(B.nrows())
+            # Warning: the next call works, with the current implementation
+            # (Beckermann-Labahn style) of minimal approximant basis, but this
+            # implementation is modified then one might have to require Popov
+            # basis with the option "normal_form=True"
+            P = F.minimal_approximant_basis(d,s)
+            if P[m:,m:] != 1:
+                raise ValueError("matrix equation has no solutions")
+            else:
+                return P[m][:m] if is_Vector(B) else P[m:,:m]
+
+    def solve_right_series_trunc(self, B, d):
+        r"""
+        Try to find a solution `X` to the equation `A X = B`, at precision
+        ``d``.
+
+        If ``self`` is a matrix `A`, then this function returns a vector or
+        matrix `X` such that `A X = B \bmod x^d`. If `B` is a vector then `X`
+        is a vector, and if `B` is a matrix then `X` is a matrix.
+
+        Raises ``ValueError`` if ``d`` is not strictly positive, or if there is
+        a dimension mismatch between `A` and `B`, or if there is no solution to
+        the given matrix equation at the specified precision.
+
+        INPUT:
+
+        - ``B`` -- a polynomial matrix or polynomial vector.
+
+        - ``d`` -- a positive integer.
+
+        OUTPUT:
+
+        A solution to the matrix equation, returned as polynomial matrix of
+        degree less than ``d`` if ``B`` is a polynomial matrix; a polynomial
+        vector of degree less than ``d`` if `B` is a polynomial vector.
+
+        ALGORITHM:
+
+        If `A` is square with invertible constant term, then the unique
+        solution is found by calling :meth:`inverse_series_trunc` and using the
+        Dixon & Moenck-Carter iteration. Otherwise, a right minimal approximant
+        basis of a matrix formed by `A` and `B` is computed, for an appropriate
+        shift which ensures that this basis reveals either a solution `X` or
+        the fact that no such solution exists.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 3, 3,                            \
+                [[4*x+5,           5*x^2 + x + 1, 4*x^2 + 4],     \
+                 [6*x^2 + 6*x + 6, 4*x^2 + 5*x,   4*x^2 + x + 3], \
+                 [3*x^2 + 2,       4*x + 1,       x^2 + 3*x]])
+            sage: A.is_square() and A.constant_matrix().is_invertible()
+            True
+            sage: B = vector([2*x^2 + 6*x + 6, 0, x + 6])
+            sage: X = A.solve_right_series_trunc(B,4); X
+            (2*x^3 + x^2, 5*x^3 + x^2 + 5*x + 6, 4*x^3 + 6*x^2 + 4*x)
+            sage: B == A*X % x**4
+            True
+
+            sage: B = Matrix(pR, 3, 2,                       \
+                        [[5*x^2 + 6*x + 3, 4*x^2 + 6*x + 4], \
+                         [  x^2 + 4*x + 2,         5*x + 2], \
+                         [        5*x + 3,               0]])
+            sage: A.solve_right_series_trunc(B,3)
+            [  3*x^2 + x + 1 5*x^2 + 4*x + 3]
+            [6*x^2 + 3*x + 1         4*x + 1]
+            [      6*x^2 + 1   2*x^2 + x + 4]
+            sage: X = A.solve_right_series_trunc(B,37); B == A*X % x**37
+            True
+
+        Dimensions of input are checked::
+
+            sage: A.solve_right_series_trunc(B[:2,:],3)
+            Traceback (most recent call last):
+            ...
+            ValueError: number of rows of self must equal number of rows of right-hand side
+
+        Raises an exception when no solution::
+
+            sage: A[:,2:].solve_right_series_trunc(B,4)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+            sage: Ax = x*A; C = vector(pR, [1,1,1])
+            sage: Ax.solve_right_series_trunc(C,5)
+            Traceback (most recent call last):
+            ...
+            ValueError: matrix equation has no solutions
+
+        Supports rectangular and rank-deficient cases::
+
+            sage: A[:2,:].solve_right_series_trunc(B[:2,:],4)
+            [    5*x^2 + 4*x           x + 4]
+            [  x^2 + 3*x + 5 3*x^2 + 4*x + 4]
+            [        5*x + 3         3*x + 2]
+
+            sage: V = Matrix([[2*x^2 + 5*x + 1], [3*x^2+4]])
+            sage: A[:,:2].solve_right_series_trunc(A[:,:2]*V, 4) == V
+            True
+
+            sage: A[:,1] = (x+1) * A[:,0]; A[:,2] = (x+5) * A[:,0]
+            sage: B = (3*x^3+x^2+2)*A[:,0]
+            sage: A.solve_right_series_trunc(B, 6)
+            [4*x^2 + 6*x + 2]
+            [      3*x^2 + x]
+            [              0]
+
+        .. SEEALSO::
+
+            :meth:`solve_left_series_trunc` .
+        """
+        from sage.structure.element import is_Vector
+        if is_Vector(B):
+            try:
+                return self.transpose().solve_left_series_trunc(B, d)
+            except ValueError as e:
+                raise ValueError(str(e).replace('column', 'row'))
+        else:
+            try:
+                return self.transpose().solve_left_series_trunc(B.transpose(), d).transpose()
+            except ValueError as e:
+                raise ValueError(str(e).replace('column', 'row'))
 
     def row_degrees(self, shifts=None):
         r"""
@@ -1659,7 +2016,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: P==M.weak_popov_form(shifts=[-10,-8,-6])
             True
 
-        Column-wise form is the row-wise form of the transpose:
+        Column-wise form is the row-wise form of the transpose::
 
             sage: M.weak_popov_form() == M.T.weak_popov_form(row_wise=False).T
             True
@@ -1938,7 +2295,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: M.popov_form(shifts=[2*dd,dd,0]) == M.hermite_form()
             True
 
-        Column-wise form is the row-wise form of the transpose:
+        Column-wise form is the row-wise form of the transpose::
 
             sage: M.popov_form() == M.T.popov_form(row_wise=False).T
             True
@@ -1968,7 +2325,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             :meth:`reduced_form` ,
             :meth:`weak_popov_form` ,
             :meth:`hermite_form` .
-
         """
         # if column-wise, call the algorithm on transpose
         if not row_wise:
@@ -2239,8 +2595,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         .. SEEALSO::
         
-            :meth:`is_hermite` .
-            :meth:`popov_form` ,
+            :meth:`is_hermite` ,
+            :meth:`popov_form` .
         """
         A = self.__copy__()
         U = A._hermite_form_euclidean(transformation=transformation,
@@ -2258,6 +2614,627 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             U.set_immutable()
 
         return (A, U) if transformation else A
+
+    def left_quo_rem(self, B):
+        r"""
+        Return, if it exists, the quotient and remainder `(Q,R)` such that
+        ``self`` is `BQ+R`, where `R` has row degrees less than those of `B`
+        entrywise.
+
+        This method directly calls :meth:`right_quo_rem` on transposed
+        matrices, and transposes the result. See :meth:`right_quo_rem` for a
+        complete documentation and more examples.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 3, 2,                           \
+                        [[      3*x^3 + 3*x,         2*x^3 + 4], \
+                         [  3*x^3 + 6*x + 5, 6*x^3 + 5*x^2 + 1], \
+                         [  2*x^3 + 2*x + 6,   3*x^2 + 2*x + 2]])
+            sage: B = Matrix(pR, 3, 3,                                    \
+                        [[              3,       x + 3,               6], \
+                         [3*x^3 + 3*x + 1, 4*x^2 + 3*x,   6*x^3 + x + 4], \
+                         [  4*x^2 + x + 4, 3*x^2 + 4*x, 3*x^2 + 3*x + 2]])
+            sage: Q,R = A.left_quo_rem(B); (Q,R)
+            (
+            [2*x^2 + 4*x + 6 6*x^2 + 4*x + 1]  [              3               1]
+            [    3*x^2 + 5*x   2*x^2 + x + 5]  [              6 5*x^2 + 2*x + 3]
+            [    6*x^2 + 3*x 4*x^2 + 6*x + 1], [        2*x + 3         6*x + 3]
+            )
+            sage: rdegR = R.row_degrees(); rdegB = B.row_degrees()
+            sage: A == B*Q+R and all([rdegR[i] < rdegB[i] for i in range(3)])
+            True
+
+            sage: A[:2,:].left_quo_rem(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: row dimension of self should be the row dimension of
+            the input matrix
+
+        Rectangular or rank-deficient matrices are supported but there may be
+        no quotient and remainder (unless the matrix has full row rank, see
+        :meth:`right_quo_rem`)::
+
+            sage: Q,R = A[:2,:].left_quo_rem(B[:2,:]); (Q,R)
+            (
+            [      3*x + 3       2*x + 1]
+            [  3*x^2 + 5*x 2*x^2 + x + 5]  [            5             0]
+            [            0             0], [4*x^2 + x + 2     4*x^2 + x]
+            )
+            sage: rdegR = R.row_degrees(); rdegB = B[:2,:].row_degrees()
+            sage: A[:2,:] == B[:2,:]*Q+R
+            True
+            sage: all([rdegR[i] < rdegB[i] for i in range(len(rdegR))])
+            True
+
+            sage: A.left_quo_rem(B[:,:2])
+            Traceback (most recent call last):
+            ...
+            ValueError: division of these matrices does not admit a remainder
+            with the required degree property
+
+        .. SEEALSO::
+
+            :meth:`right_quo_rem` ,
+            :meth:`reduce` .
+        """
+        if self.nrows() != B.nrows():
+            raise ValueError("row dimension of self should be the" \
+                                + " row dimension of the input matrix")
+        (Q,R) = self.T.right_quo_rem(B.T)
+        return (Q.T,R.T)
+
+    def right_quo_rem(self, B):
+        r"""
+        Return, if it exists, the quotient and remainder `(Q,R)` such that
+        ``self`` is `QB+R`, where `R` has column degrees less than those of `B`
+        entrywise.
+
+        If ``self`` is a `k \times m` polynomial matrix (written `A` below),
+        and the input `B` is an `m \times m` polynomial matrix in column
+        reduced form, then `(Q,R)` is unique. Both `Q` and `R` have dimensions
+        `k \times m`. In this case, this method implements Newton iteration of
+        a reversed polynomial matrix `B`, generalizing to matrices the fast
+        division of univariate polynomials.
+
+        If `A` is a `k \times n` polynomial matrix, and the input `B` is an `m
+        \times n` polynomial matrix such that `B` has full column rank, or more
+        generally such that the matrix equation `A = XB` has a rational
+        solution, then there exists such a `(Q,R)` but it may not be unique;
+        the algorithm returns one such quotient and remainder. Here `Q` is `k
+        \times m` and `R` is `k \times n`. In this case, this method follows
+        the folklore approach based on solving the matrix equation `A = XB` and
+        splitting `X` into its polynomial part and proper fraction part.
+
+        Finally, if the matrix equation `A = XB` has no rational solution, this
+        method computes the normal form `R` and quotient `Q` of the rows of `A`
+        with respect to the row space of `B` (see :meth:`reduce`). Doing this
+        for a well-chosen shift ensures that either `R` does not have column
+        degrees less than those of `B`, and then there is no valid quotient and
+        remainder, or it does satisfy this degree constraint, and then this `R`
+        can be returned as a remainder along with the quotient `Q`.
+
+        A ``ValueError`` is raised if the dimensions of ``self`` and `B` are
+        not conformal, or if there exists no quotient and remainder.
+
+        EXAMPLES:
+
+        Case where `B` is a square, column reduced matrix::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 2, 3,                              \
+                [[3*x^3 + 3*x, 3*x^3 + 6*x + 5,   2*x^3 + 2*x + 6], \
+                 [2*x^3 + 4,   6*x^3 + 5*x^2 + 1, 3*x^2 + 2*x + 2]])
+
+            sage: B = Matrix(pR, 3, 3,                                \
+                [[4*x^2 + 3*x + 3, 3*x^2 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x^2 + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [5*x^2 + 3*x + 6,   6*x^2 + x + 4, 3*x^2 + 3*x + 2]])
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: Q,R = A.right_quo_rem(B); (Q,R)
+            (
+            [    4*x   x + 2 6*x + 1]  [  x + 2 6*x + 1 5*x + 4]
+            [4*x + 3   x + 6 3*x + 4], [4*x + 2 2*x + 3 4*x + 3]
+            )
+            sage: A == Q*B+R and R.degree() < 2
+            True
+            sage: A[:,:2].right_quo_rem(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: column dimension of self should be the column dimension
+            of the input matrix
+
+            sage: B = Matrix(pR, 3, 3,                    \
+                [[3,     3*x^3 + 3*x + 1, 4*x^2 + x + 4], \
+                 [x + 3, 4*x^2 + 3*x,     3*x^2 + 4*x],   \
+                 [6,     6*x^3 + x + 4,   3*x^2 + 3*x + 2]])
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: Q,R = A.right_quo_rem(B); (Q,R)
+            (
+            [2*x^2 + 4*x + 6     3*x^2 + 5*x     6*x^2 + 3*x]
+            [6*x^2 + 4*x + 1   2*x^2 + x + 5 4*x^2 + 6*x + 1],
+            <BLANKLINE>
+            [              3               6         2*x + 3]
+            [              1 5*x^2 + 2*x + 3         6*x + 3]
+            )
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+
+        With a nonsingular but also non-reduced matrix, there exists a
+        solution, but it might not be unique::
+
+            sage: B = Matrix(pR, 3, 3,                            \
+                    [[              5,               0, 2*x + 6], \
+                     [            4*x, 3*x^2 + 4*x + 5,   x + 1], \
+                     [3*x^2 + 5*x + 2, 6*x^3 + 4*x + 6,       3]])
+            sage: B.det() != 0 and (not B.is_reduced(row_wise=False))
+            True
+            sage: Q,R = A.right_quo_rem(B); (Q,R)
+            (
+            [    6*x^2 + 3*x 4*x^2 + 3*x + 1         5*x + 1]
+            [  x^2 + 5*x + 5 5*x^2 + 3*x + 5           x + 2],
+            <BLANKLINE>
+            [      4*x + 5 x^2 + 2*x + 1             2]
+            [      6*x + 3     5*x^2 + 6             3]
+            )
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+
+            sage: Q2 = Matrix(pR, 2, 3,                           \
+                    [[6*x^2 + 3*x + 1, 4*x^2 + 3*x + 6, 5*x + 1], \
+                     [  x^2 + 5*x + 3, 5*x^2 + 3*x + 2,   x + 2]])
+            sage: R2 = Matrix(pR, 2, 3,     \
+                    [[    5*x, 3*x + 4, 5], \
+                     [4*x + 6,     5*x, 4]])
+            sage: A == Q2*B + R2
+            True
+
+        The same remark holds more generally for full column rank matrices:
+        there exists a solution, but it might not be unique. However, for all
+        other cases (rank-deficient matrix `B` or matrix `B` having strictly
+        fewer rows than columns) there may be no solution::
+
+            sage: C = B.stack(B[1,:] + B[2,:]) # matrix 4 x 3, full column rank
+            sage: Q,R = A.right_quo_rem(C); (Q,R)
+            (
+            [    6*x^2 + 3*x 4*x^2 + 3*x + 1         5*x + 1               0]
+            [  x^2 + 5*x + 5 5*x^2 + 3*x + 5           x + 2               0],
+            <BLANKLINE>
+            [      4*x + 5 x^2 + 2*x + 1             2]
+            [      6*x + 3     5*x^2 + 6             3]
+            )
+
+            sage: A.right_quo_rem(B[:2,:]) # matrix 2 x 3, full row rank
+            Traceback (most recent call last):
+            ...
+            ValueError: division of these matrices does not admit a remainder
+            with the required degree property
+            sage: D = copy(B); D[2,:] = B[0,:]+B[1,:] # square, singular
+            sage: A.right_quo_rem(D)
+            Traceback (most recent call last):
+            ...
+            ValueError: division of these matrices does not admit a remainder
+            with the required degree property
+
+        In the latter case (rank-deficient or strictly fewer rows than columns,
+        with no solution to `A = XB`), there might stil be a quotient and
+        remainder, in which case this method will find it via normal form
+        computation::
+
+            sage: B = Matrix(pR, 1, 2, [[x, x]])
+            sage: A = Matrix(pR, 1, 2, [[x, x+2]])
+            sage: A.right_quo_rem(B)
+            ([1], [0 2])
+            sage: A == 1*B + Matrix([[0,2]])
+            True
+
+        .. SEEALSO::
+
+            :meth:`left_quo_rem` ,
+            :meth:`reduce` .
+        """
+        if self.ncols() != B.ncols():
+            raise ValueError("column dimension of self should be the" \
+                                + " column dimension of the input matrix")
+        if B.is_square() and \
+           B.is_reduced(row_wise=False,include_zero_vectors=False):
+            # case of B column reduced (without zero columns):
+            # direct matrix version of univariate polynomial quo_rem
+            return self._right_quo_rem_reduced(B)
+        try:
+            # more generally, method via solving A = XB over rationals
+            # (always possible if B has full column rank, otherwise might still
+            # work if this matrix equation has a solution "by luck")
+            return self._right_quo_rem_solve(B)
+        except ValueError:
+            # more generally, any B
+            # (compute normal form w.r.t a well-chosen shift and check degrees
+            # are as expected)
+            s = [-d for d in B.column_degrees()]
+            (Q,R) = self.reduce(B,shifts=s,return_quotient=True)
+            cdeg = R.column_degrees()
+            if all([cdeg[i] + s[i] < 0 for i in range(B.ncols())]):
+                return (Q,R)
+            else:
+                raise ValueError("division of these matrices does not admit" \
+                        + " a remainder with the required degree property")
+
+    def _right_quo_rem_reduced(self, B):
+        r"""
+        If ``self`` is a `k x m` polynomial matrix (written `A` below), and the
+        input `B` is an `m x m` polynomial matrix in column reduced form, this
+        computes the unique couple `(Q,R)` of `k x m` polynomial matrices such
+        that `A = QB + R`, with the column degrees of `R` entrywise less than
+        those of `B`.
+
+        The fact that `B` is in column reduced form is required, and not
+        checked. Reference: we follow the folklore algorithm which generalizes
+        the fast division of univariate polynomials; precisely we implement
+        [Neiger-Vu, ISSAC 2017, Algorithm 1] .
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 2, 3,                              \
+                [[3*x^3 + 3*x, 3*x^3 + 6*x + 5,   2*x^3 + 2*x + 6], \
+                 [2*x^3 + 4,   6*x^3 + 5*x^2 + 1, 3*x^2 + 2*x + 2]])
+
+            sage: B = Matrix(pR, 3, 3,                                \
+                [[4*x^2 + 3*x + 3, 3*x^2 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x^2 + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [5*x^2 + 3*x + 6,   6*x^2 + x + 4, 3*x^2 + 3*x + 2]])
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: Q,R = A._right_quo_rem_reduced(B); (Q,R)
+            (
+            [    4*x   x + 2 6*x + 1]  [  x + 2 6*x + 1 5*x + 4]
+            [4*x + 3   x + 6 3*x + 4], [4*x + 2 2*x + 3 4*x + 3]
+            )
+            sage: A == Q*B+R and R.degree() < 2
+            True
+
+            sage: B = Matrix(pR, 3, 3,                              \
+                [[4*x + 3*x + 3, 3*x^3 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [6,             6*x^3 + x + 4,   3*x^2 + 3*x + 2]])
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: Q,R = A._right_quo_rem_reduced(B); (Q,R)
+            (
+            [2*x^2 + 4*x + 6     3*x^2 + 5*x     6*x^2 + 3*x]
+            [6*x^2 + 4*x + 1   2*x^2 + x + 5 4*x^2 + 6*x + 1],
+            <BLANKLINE>
+            [              3               6         2*x + 3]
+            [              1 5*x^2 + 2*x + 3         6*x + 3]
+            )
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+        """
+        # Step 0: find parameter d  (delta in above reference)
+        cdegA = self.column_degrees() # zero columns of A --> entries -1 in cdegA
+        cdeg = B.column_degrees()  # all non-negative since column reduced
+        d = max([cdegA[i]-cdeg[i]+1 for i in range(B.nrows())])
+        if d<=0: # A already reduced modulo B, quotient is zero
+            return (self.parent().zero().__copy__(), self)
+        # Step 1: reverse input matrices
+        # Brev = B(1/x) diag(x^(cdeg[i]))
+        # Arev = A(1/x) diag(x^(d+cdeg[i]-1)) 
+        Brev = B.reverse(degree=cdeg, row_wise=False)
+        Arev = self.reverse(degree=[d+c-1 for c in cdeg], row_wise=False)
+        # Step 2: compute quotient
+        # compute Qrev = Arev Brev^{-1} mod x^d
+        # then quotient is the reverse Q = x^(d-1) Qrev(1/x)
+        Q = Brev.solve_left_series_trunc(Arev, d).reverse(degree=d-1)
+        # Step 3: deduce remainder and return
+        R = self - Q*B
+        return Q,R
+
+    def _right_quo_rem_solve(self, B):
+        r"""
+        If ``self`` is a `k x n` polynomial matrix (written `A` below), and the
+        input `B` is an `m x n` polynomial matrix with full column rank, this
+        computes a couple `(Q,R)` polynomial matrices, of sizes `k x m` and `k
+        x n` respectively, such that `A = QB + R`, with the column degrees of
+        `R` entrywise less than those of `B`.
+
+        Algorithm: this method follows the folklore approach based on solving
+        the matrix equation `A = XB` and separating `X` into its polynomial
+        part and proper fraction part.
+
+        The fact that `B` is in column reduced form is not required, and not
+        checked. If `B` does not have full column rank, two situations can
+        arise. Either the above matrix equation has a solution `X`, which
+        implies the existence of a quotient and remainder as described above,
+        and such a quotient and remainder is returned by the method. Or this
+        matrix equation has no solution and this method fails: this raises
+        ``ValueError``; however this is not a proof that there is no valid
+        division with remainder (see the last example below). 
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: A = Matrix(pR, 2, 3,                              \
+                [[3*x^3 + 3*x, 3*x^3 + 6*x + 5,   2*x^3 + 2*x + 6], \
+                 [2*x^3 + 4,   6*x^3 + 5*x^2 + 1, 3*x^2 + 2*x + 2]])
+
+            sage: B = Matrix(pR, 3, 3,                              \
+                [[4*x + 3*x + 3, 3*x^3 + 3*x + 1,   4*x^2 + x + 4], \
+                 [6*x + 2*x + 3,     4*x^2 + 3*x,     3*x^2 + 4*x], \
+                 [6,             6*x^3 + x + 4,   3*x^2 + 3*x + 2]])
+            sage: Q,R = A._right_quo_rem_solve(B); (Q,R)
+            (
+            [2*x^2 + 4*x + 6     3*x^2 + 5*x     6*x^2 + 3*x]
+            [6*x^2 + 4*x + 1   2*x^2 + x + 5 4*x^2 + 6*x + 1],
+            <BLANKLINE>
+            [              3               6         2*x + 3]
+            [              1 5*x^2 + 2*x + 3         6*x + 3]
+            )
+            sage: B.is_reduced(row_wise=False)
+            True
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+
+        With a nonsingular but also non-reduced matrix, there exists a solution
+        and one is found by this method, but it might not be unique::
+
+            sage: B = Matrix(pR, 3, 3,                            \
+                    [[              5,               0, 2*x + 6], \
+                     [            4*x, 3*x^2 + 4*x + 5,   x + 1], \
+                     [3*x^2 + 5*x + 2, 6*x^3 + 4*x + 6,       3]])
+            sage: B.det() != 0 and (not B.is_reduced(row_wise=False))
+            True
+            sage: Q,R = A._right_quo_rem_solve(B); (Q,R)
+            (
+            [    6*x^2 + 3*x 4*x^2 + 3*x + 1         5*x + 1]
+            [  x^2 + 5*x + 5 5*x^2 + 3*x + 5           x + 2],
+            <BLANKLINE>
+            [      4*x + 5 x^2 + 2*x + 1             2]
+            [      6*x + 3     5*x^2 + 6             3]
+            )
+            sage: cdegR = R.column_degrees(); cdegB = B.column_degrees()
+            sage: A == Q*B+R and all([cdegR[i] < cdegB[i] for i in range(3)])
+            True
+
+            sage: Q2 = Matrix(pR, 2, 3,                           \
+                    [[6*x^2 + 3*x + 1, 4*x^2 + 3*x + 6, 5*x + 1], \
+                     [  x^2 + 5*x + 3, 5*x^2 + 3*x + 2,   x + 2]])
+            sage: R2 = Matrix(pR, 2, 3,     \
+                    [[    5*x, 3*x + 4, 5], \
+                     [4*x + 6,     5*x, 4]])
+            sage: A == Q2*B + R2
+            True
+
+        The same remark holds more generally for full column rank matrices:
+        there exists a solution and this method will find one. However for all
+        other cases (rank-deficient or strictly fewer rows than columns) there
+        might be no solution::
+
+            sage: C = B.stack(B[1,:] + B[2,:]) # matrix 4 x 3, full column rank
+            sage: Q,R = A._right_quo_rem_solve(C); (Q,R)
+            (
+            [    6*x^2 + 3*x 4*x^2 + 3*x + 1         5*x + 1               0]
+            [  x^2 + 5*x + 5 5*x^2 + 3*x + 5           x + 2               0],
+            <BLANKLINE>
+            [      4*x + 5 x^2 + 2*x + 1             2]
+            [      6*x + 3     5*x^2 + 6             3]
+            )
+
+            sage: A._right_quo_rem_solve(B[:2,:]) # matrix 2 x 3, full row rank
+            Traceback (most recent call last):
+            ...
+            ValueError: dividing via system solving yields no solution
+            sage: D = copy(B); D[2,:] = B[0,:]+B[1,:] # square, singular
+            sage: A._right_quo_rem_solve(D)
+            Traceback (most recent call last):
+            ...
+            ValueError: dividing via system solving yields no solution
+
+        In the latter case (rank-deficient or strictly fewer rows than
+        columns), even when there is a solution, this method might not find
+        it::
+
+            sage: B = Matrix(pR, 1, 2, [[x, x]])
+            sage: A = Matrix(pR, 1, 2, [[x, x+2]])
+            sage: A == 1*B + Matrix([[0,2]])    # a valid quo_rem
+            True
+            sage: A._right_quo_rem_solve(B)
+            Traceback (most recent call last):
+            ...
+            ValueError: dividing via system solving yields no solution
+        """
+        k = self.nrows()
+        m = B.nrows()
+        # find rational Q such that QB = A
+        try:
+            X = B.solve_left(self)
+        except ValueError:
+            raise ValueError("dividing via system solving yields no solution")
+        from sage.arith.functions import lcm
+        f = lcm([X[i,j].denom() for j in range(m) for i in range(k)])
+        # Write X = Q + R/r with Q and R having polynomial entries;
+        # keep only the Q part
+        for i in range(k):
+            for j in range(m):
+                X[i,j] = ((X[i,j].numer() * f) // X[i,j].denom()) // f
+        Q = X.change_ring(self.base_ring())
+        R = self - Q*B
+        return (Q,R)
+
+    def reduce(self, B, shifts=None, row_wise=True, return_quotient=False):
+        r"""
+        Reduce ``self``, i.e. compute its normal form, modulo the row space of
+        `B` with respect to ``shifts``.
+
+        If ``self`` is a `k \times n` polynomial matrix (written `A` below),
+        and the input `B` is an `m \times n` polynomial matrix, this computes
+        the normal form `R` of `A` with respect the row space of `B` and the
+        monomial order defined by ``shifts`` (written `s` below). This means
+        that the `i` th row of `R` is equal to the `i` th row of `A` up to
+        addition of an element in the row space of `B`, and if `J =
+        (j_1,\ldots,j_r)` are the `s`-leading positions of the `s`-Popov form
+        `P` of `A`, then the submatrix `R_{*,J}` (submatrix of `R` formed by
+        its columns in `J`) has column degrees smaller entrywise than the
+        column degrees of `P_{*,J}`.
+
+        If the option ``row_wise`` is set to ``False``, the same operation is
+        performed, but with everything considered column-wise: column space of
+        `B`, `i` th column of `R` and `A`, column-wise `s`-leading positions
+        and `s`-Popov form, and submatrices `R_{J,*}` and `P_{J,*}`.
+
+        The operation above can be seen as a matrix generalization of division
+        with remainder for univariate polynomials. If the option
+        ``return_quotient`` is set to ``True``, this method returns both the
+        normal form `R` and a quotient matrix `Q` such that `A = QB + R` (or `A
+        = BQ + R` if ``row_wise`` is ``False``). Whereas the remainder is
+        unique, this quotient is not unique unless `B` has a trivial left
+        kernel i.e. has full row rank (or right kernel, full column rank if
+        ``row_wise`` is ``False``).
+
+        This method checks whether `B` is in `s`-Popov form, and if not,
+        computes the `s`-Popov form `P` of `B`, which can take some time.
+        Therefore, if `P` is already known or is to be re-used, this method
+        should be called directly with `P`, yielding the same normal form `R`
+        since `P` and `B` have the same row space (or column space, if
+        ``row_wise`` is ``False``).
+
+        A ``ValueError`` is raised if the dimensions of the shifts and/or of
+        the matrices are not conformal.
+
+        INPUT:
+
+        - ``B`` -- polynomial matrix.
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
+
+        - ``return_quotient`` -- (optional, default: ``False``). If this
+          is ``True``, the quotient will be returned as well.
+
+        OUTPUT: a polynomial matrix if ``return_quotient=False``, two
+        polynomial matrices otherwise.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: B = Matrix(pR, [                                 \
+                [      6*x+4,       5*x^3+5*x,       6*x^2+2*x+2], \
+                [4*x^2+5*x+2, x^4+5*x^2+2*x+4, 4*x^3+6*x^2+6*x+5]])
+            sage: A = Matrix(pR, 1, 3, [ \
+                [3*x^4+3*x^3+4*x^2+5*x+1, x^4+x^3+5*x^2+4*x+4, 4*x^4+2*x^3+x]])
+
+            sage: (Q,R) = A.reduce(B,return_quotient=True); R
+            [3*x^4 + 3*x^3 + 4*x + 3                 2*x + 2                 2*x + 6]
+            sage: A == Q*B + R
+            True
+            sage: P = B.popov_form(); P.leading_positions(return_degree=True)
+            ([1, 2], [2, 2])
+            sage: R.degree_matrix()
+            [4 1 1]
+            sage: A.reduce(P) == R
+            True
+            sage: A.reduce(P[:,:2])
+            Traceback (most recent call last):
+            ...
+            ValueError: column dimension of self should be the column
+            dimension of the input matrix
+
+        Demonstrating shifts::
+
+            sage: (Qs,Rs) = A.reduce(B,shifts=[0,2,4],return_quotient=True); Rs
+            [3*x^4 + 3*x^3 + 6*x + 2             4*x^3 + 5*x                       0]
+            sage: A == Qs*B + Rs
+            True
+            sage: Ps = B.popov_form(shifts=[0,2,4])
+            sage: Ps.leading_positions(shifts=[0,2,4],return_degree=True)
+            ([1, 2], [4, 0])
+            sage: Rs.degree_matrix()
+            [ 4  3 -1]
+            sage: A.reduce(Ps, shifts=[0,2,4]) == Rs
+            True
+
+        If ``return_quotient`` is ``False``, only the normal form is returned::
+
+            sage: R == A.reduce(B) and Rs == A.reduce(B,shifts=[0,2,4])
+            True
+
+        Demonstrating column-wise normal forms, with a matrix `A` which has
+        several columns, and a matrix `B` which does not have full column rank
+        (its column-wise Popov form has a zero column)::
+
+            sage: A = Matrix(pR, 2, 2,                               \
+                [[5*x^3 + 2*x^2 + 4*x + 1,           x^3 + 4*x + 4], \
+                 [2*x^3 + 5*x^2 + 2*x + 4,         2*x^3 + 3*x + 2]])
+            sage: (Q,R) = A.reduce(B,row_wise=False,return_quotient=True); R
+            [0 3]
+            [0 0]
+            sage: A == B*Q + R
+            True
+            sage: P = B.popov_form(row_wise=False); P
+            [x + 2     6     0]
+            [    0     1     0]
+            sage: P.leading_positions(row_wise=False, return_degree=True)
+            ([0, 1, -1], [1, 0, -1])
+            sage: R.degree_matrix()
+            [-1  0]
+            [-1 -1]
+
+        .. SEEALSO::
+
+            :meth:`left_quo_rem` ,
+            :meth:`right_quo_rem` .
+        """
+        if row_wise and self.ncols() != B.ncols():
+            raise ValueError("column dimension of self should be the" \
+                                + " column dimension of the input matrix")
+        if not row_wise and (self.nrows() != B.nrows()):
+            raise ValueError("row dimension of self should be the" \
+                                + " row dimension of the input matrix")
+        # note: is_popov calls B._check_shift_dimension(shifts,row_wise)
+        # --> no need to check here again
+        if B.is_popov(shifts,row_wise,False,False):
+            lpos = B.leading_positions(shifts=shifts,row_wise=row_wise)
+            set_lpos = set(lpos) # to make things faster for huge matrices..
+            if row_wise:
+                non_lpos = [j for j in range(B.ncols()) if j not in set_lpos]
+                # A_{*,J} = Q B_{*,J} + R0
+                Q,R0 = self[:,lpos]._right_quo_rem_reduced(B[:,lpos])
+                # other columns are given by A_{*,not J} - Q B_{*, not J}
+                R = self.parent().zero().__copy__()
+                R[:,lpos] = R0
+                R[:,non_lpos] = self[:,non_lpos] - Q * B[:,non_lpos]
+                return (Q,R) if return_quotient else R
+            else:
+                non_lpos = [i for i in range(B.nrows()) if i not in set_lpos]
+                # A_{I,*} = B_{I,*} Q + R0
+                Q,R0 = self[lpos,:].T._right_quo_rem_reduced(B[lpos,:].T)
+                Q = Q.T
+                R0 = R0.T
+                # other columns are given by A_{not I,*} - B_{not I,*} Q
+                R = self.parent().zero().__copy__()
+                R[lpos,:] = R0
+                R[non_lpos,:] = self[non_lpos,:] - B[non_lpos,:] * Q
+                return (Q,R) if return_quotient else R
+        elif return_quotient:
+            P,U = B.popov_form(True,shifts,row_wise,False)
+            Q,R = self.reduce(P,shifts,row_wise,True)
+            # row-wise: UB = P and A = QP + R ==> A = QUB + R
+            # --> careful: the last rows of U may correspond to zero rows of P,
+            # which have been discarded... so not exactly UB = P
+            return (Q*U[:P.nrows(),:], R) if row_wise \
+                    else (U[:,:P.ncols()] * Q, R)
+        else:
+            P = B.popov_form(False,shifts,row_wise,False)
+            return self.reduce(P,shifts,row_wise,False)
 
     def is_minimal_approximant_basis(self,
             pmat,
@@ -2887,10 +3864,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # column Popov and column Hermite forms of self are the identity
         if row_wise:
             hnf = self.transpose().hermite_form(include_zero_rows=False)
-            # TODO replace by popov_form (likely more efficient) once it is written
+            # TODO benchmark to see if should be replaced by popov_form
         else:
             hnf = self.hermite_form(include_zero_rows=False)
-            # TODO replace by popov_form (likely more efficient) once it is written
+            # TODO benchmark to see if should be replaced by popov_form
         if hnf != 1:
             return False
 

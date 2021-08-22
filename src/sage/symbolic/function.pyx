@@ -125,18 +125,12 @@ is attempted, and after that ``sin()`` which succeeds::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.pynac.pynac cimport (
-    GFunctionOpt,
-    find_function,
-    g_function_options_args, g_register_new, g_foptions_assign,
-    g_registered_functions)
+from sage.libs.pynac.pynac cimport find_function
 
-from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent
 from sage.misc.lazy_attribute import lazy_attribute
-from .expression cimport new_Expression_from_GEx, Expression
-from .expression import call_by_ginac_serial, register_or_update_function
+from .expression import call_by_ginac_serial, register_or_update_function, is_Expression
 from .ring import SR
 
 from sage.structure.coerce cimport (coercion_model,
@@ -332,7 +326,7 @@ cdef class Function(SageObject):
         try:
             evalf = self._evalf_  # catch AttributeError early
             if any(self._is_numerical(x) for x in args):
-                if not any(isinstance(x, Expression) for x in args):
+                if not any(is_Expression(x) for x in args):
                     p = coercion_model.common_parent(*args)
                     return evalf(*args, parent=p)
         except Exception:
@@ -550,7 +544,7 @@ cdef class Function(SageObject):
 
         else: # coerce == False
             for a in args:
-                if not isinstance(a, Expression):
+                if not is_Expression(a):
                     raise TypeError("arguments must be symbolic expressions")
 
         return call_by_ginac_serial(self._serial, self._nargs, args, hold,

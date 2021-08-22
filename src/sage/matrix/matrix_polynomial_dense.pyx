@@ -21,6 +21,9 @@ AUTHORS:
 
 - Vincent Neiger (2021-03-11): added matrix-wise basic functions for univariate
   polynomials (shifts, reverse, truncate, get coefficient of specified degree)
+
+- Vincent Neiger (2021-07-29): added popov_form(). Added more options to
+  weak_popov_form() (column-wise, ordered, zero rows).
 """
 # ****************************************************************************
 #       Copyright (C) 2016 Kwankyu Lee <ekwankyu@gmail.com>
@@ -62,30 +65,31 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
     For the rest of this class description, we assume that one is working
     row-wise. For a given such module, all its bases are equivalent under
-    left-multiplication by a unimodular matrix, that is, a matrix which has
-    determinant in $\Bold{K}\setminus\{0\}$.
+    left-multiplication by a unimodular matrix, that is, a square matrix which
+    has determinant in $\Bold{K}\setminus\{0\}$.
 
     There are bases which are called reduced or minimal: their rows have the
-    minimal degree possible among all bases of this module. The degree of a row
-    is the maximum of the degrees of the entries of the row. An equivalent
-    condition is that the leading matrix of this basis has full rank (see the
-    description of :meth:`leading_matrix`). There is a unique minimal basis,
-    called the Popov basis of the module, which satisfies some additional
-    normalization condition (see the description of :meth:`row_degrees`).
+    minimal degree possible among all bases of this module; here the degree of
+    a row is the maximum of the degrees of the entries of the row. An
+    equivalent condition is that the leading matrix of this basis has full rank
+    (see :meth:`leading_matrix`, :meth:`reduced_form`, :meth:`is_reduced`).
+    There is a unique minimal basis, called the Popov basis of the module,
+    which satisfies some additional normalization condition (see
+    :meth:`popov_form`, :meth:`is_popov`).
 
     These notions can be extended via a more general degree measure, involving
     a tuple of integers which is called shift and acts as column degree shifts
     in the definition of row degree. Precisely, for given $s_1,\ldots,s_n \in
     \ZZ$ and a row vector $[p_1 \; \cdots \; p_n] \in \Bold{K}[x]^{1 \times
     n}$, its shifted row degree is the maximum of $\deg(p_j) + s_j$ for $1 \leq
-    j \leq n$. Then, minimal bases and Popov bases are defined similarly, with
-    respect to this notion of degree.
+    j \leq n$ (see :meth:`row_degrees`). Then, reduced bases and Popov bases
+    are defined similarly, with respect to this notion of degree.
 
-    Another important canonical basis is the Hermite basis, which is a lower
+    Another important canonical basis is the Hermite basis, which is an upper
     triangular matrix satisfying a normalization condition similar to that for
     the Popov basis. In fact, if $d$ is the largest degree appearing in the
     Hermite basis, then the Hermite basis coincide with the shifted Popov basis
-    with the shifts $(0,d,2d,\ldots,(n-1)d)$.
+    with the shifts $((n-1)d,\ldots,2d,d,0)$.
     """
 
     def _check_shift_dimension(self, shifts, row_wise=True):
@@ -215,14 +219,14 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         self._check_shift_dimension(shifts,row_wise)
         if shifts is None:
             return self.apply_map(lambda x: x.degree())
-        from sage.matrix.constructor import Matrix
+        from sage.matrix.constructor import matrix
         zero_degree = min(shifts) - 1
         if row_wise: 
-            return Matrix( ZZ, [[ self[i,j].degree() + shifts[j]
+            return matrix( ZZ, [[ self[i,j].degree() + shifts[j]
                 if self[i,j] != 0 else zero_degree
                 for j in range(self.ncols()) ] for i in range(self.nrows())] )
         else:
-            return Matrix( ZZ, [[ self[i,j].degree() + shifts[i]
+            return matrix( ZZ, [[ self[i,j].degree() + shifts[i]
                 if self[i,j] != 0 else zero_degree
                 for j in range(self.ncols()) ] for i in range(self.nrows())] )
 
@@ -247,8 +251,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [1 1 2 0]
             [4 1 5 6]
         """
-        from sage.matrix.constructor import Matrix
-        return Matrix([[self[i,j].constant_coefficient()
+        from sage.matrix.constructor import matrix
+        return matrix([[self[i,j].constant_coefficient()
             for j in range(self.ncols())] for i in range(self.nrows())])
 
     def is_constant(self):
@@ -369,8 +373,8 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError("length of input degree list should be the " \
                                       + "column dimension of the input matrix")
 
-        from sage.matrix.constructor import Matrix
-        return Matrix(self.base_ring().base_ring(), m, n,
+        from sage.matrix.constructor import matrix
+        return matrix(self.base_ring().base_ring(), m, n,
                 [[self[i,j][d[i]] if row_wise else self[i,j][d[j]]
             for j in range(n)] for i in range(m)])
 
@@ -449,7 +453,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         m = self.nrows()
         n = self.ncols()
-        from sage.matrix.constructor import Matrix
+        from sage.matrix.constructor import matrix
 
         # if d is an integer, make it a uniform list
         if not isinstance(d,list):
@@ -463,7 +467,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError("length of input precision list should be the " \
                                       + "column dimension of the input matrix")
 
-        return Matrix(self.base_ring(), m, n, [[self[i,j].truncate(d[i])
+        return matrix(self.base_ring(), m, n, [[self[i,j].truncate(d[i])
             if row_wise else self[i,j].truncate(d[j])
             for j in range(n)] for i in range(m)])
 
@@ -541,7 +545,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         m = self.nrows()
         n = self.ncols()
-        from sage.matrix.constructor import Matrix
+        from sage.matrix.constructor import matrix
 
         # if d is an integer, make it a uniform list
         if not isinstance(d,list):
@@ -555,7 +559,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError("length of input shift list should be the " \
                                       + "column dimension of the input matrix")
 
-        return Matrix(self.base_ring(), m, n, [[self[i,j].shift(d[i])
+        return matrix(self.base_ring(), m, n, [[self[i,j].shift(d[i])
             if row_wise else self[i,j].shift(d[j])
             for j in range(n)] for i in range(m)])
 
@@ -678,11 +682,11 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         """
         m = self.nrows()
         n = self.ncols()
-        from sage.matrix.constructor import Matrix
+        from sage.matrix.constructor import matrix
 
         # if entry_wise, just return the matrix with all entries reversed
         if entry_wise:
-            return Matrix(self.base_ring(), m, n, [[self[i,j].reverse()
+            return matrix(self.base_ring(), m, n, [[self[i,j].reverse()
                 for j in range(n)] for i in range(m)])
 
         # if degree is None, make it the matrix degree
@@ -700,7 +704,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             raise ValueError("length of input degree list should be the " \
                                       + "column dimension of the input matrix")
 
-        return Matrix(self.base_ring(), m, n, [[self[i,j].reverse(degree[i])
+        return matrix(self.base_ring(), m, n, [[self[i,j].reverse(degree[i])
             if row_wise else self[i,j].reverse(degree[j])
             for j in range(n)] for i in range(m)])
 
@@ -909,26 +913,26 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             [1 0 0]
         """
         self._check_shift_dimension(shifts,row_wise)
-        from sage.matrix.constructor import Matrix
+        from sage.matrix.constructor import matrix
         if row_wise:
             row_degrees = self.row_degrees(shifts)
             if shifts is None:
-                return Matrix([ [ self[i,j].leading_coefficient()
+                return matrix([ [ self[i,j].leading_coefficient()
                     if self[i,j].degree() == row_degrees[i] else 0
                     for j in range(self.ncols()) ]
                     for i in range(self.nrows()) ])
-            return Matrix([ [ self[i,j].leading_coefficient()
+            return matrix([ [ self[i,j].leading_coefficient()
                 if self[i,j].degree() + shifts[j] == row_degrees[i] else 0
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
         else:
             column_degrees = self.column_degrees(shifts)
             if shifts is None:
-                return Matrix([ [ self[i,j].leading_coefficient()
+                return matrix([ [ self[i,j].leading_coefficient()
                     if self[i,j].degree() == column_degrees[j] else 0
                     for j in range(self.ncols()) ]
                     for i in range(self.nrows()) ])
-            return Matrix([ [ self[i,j].leading_coefficient()
+            return matrix([ [ self[i,j].leading_coefficient()
                 if self[i,j].degree() + shifts[i] == column_degrees[j] else 0
                 for j in range(self.ncols()) ]
                 for i in range(self.nrows()) ])
@@ -1211,13 +1215,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         If working row-wise (resp. column-wise), a polynomial matrix is said to
         be in weak Popov form if the leading positions of its nonzero rows
-        (resp. columns) are pairwise distinct (for the ordered weak Popov form,
+        (resp. columns) are pairwise distinct. For the ordered weak Popov form,
         these positions must be strictly increasing, except for the possibly
-        repeated -1 entries which are at the end).
-
-        Sometimes, one forbids $M$ to have zero rows (resp. columns) in the
-        above definitions; an optional parameter allows one to adopt this more
-        restrictive setting.
+        repeated -1 entries which are at the end. For the shifted variants, see
+        the class description for an introduction to shifts.
 
         INPUT:
 
@@ -1478,7 +1479,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         Note that, for any integer $d$ strictly greater than all degrees
         appearing in the Hermite form, then the Hermite form coincides with the
-        shifted Popov form with the shifts $(0,d,2d,\ldots,(n-1)d)$, where $n$
+        shifted Popov form with the shifts $((n-1)d,\ldots,2d,d,0)$, where $n$
         is the column dimension.
 
         If working column-wise, a polynomial matrix is said to be in Hermite
@@ -1564,79 +1565,185 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
                 row_wise=row_wise,
                 include_zero_vectors=include_zero_vectors)
 
-    def weak_popov_form(self, transformation=False, shifts=None):
+    def weak_popov_form(self,
+            transformation=False,
+            shifts=None,
+            row_wise=True,
+            ordered=False,
+            include_zero_vectors=True):
         r"""
-        Return a (row-wise) weak Popov form of this matrix.
+        Return a (shifted) (ordered) weak Popov form of this matrix.
 
-        A polynomial matrix is said to be in (row-wise) weak Popov form if the
-        (shifted) leading positions of its nonzero rows are pairwise distinct.
-        The leading position of a row is the right-most position whose entry has
-        the maximal degree in the row, see :meth:`leading_positions`. See the
-        class description for an introduction to shifts.
+        See :meth:`is_weak_popov` for a definition of weak Popov forms. If the
+        input matrix is $A$, a weak Popov form of $A$ is any matrix $P$ in weak
+        Popov form and such that $UA = P$ for some unimodular matrix $U$. The
+        latter matrix is called the transformation, and the first optional
+        argument allows one to specify whether to return this transformation.
 
-        The weak Popov form is non-canonical, so an input matrix have many weak
-        Popov forms (for any given shifts).
+        Sometimes, one forbids weak Popov forms to have zero rows (resp.
+        columns) in the above definitions; an optional parameter allows one to
+        adopt this more restrictive setting. If zero rows (resp. columns) are
+        allowed, the convention here is to place them as the bottommost rows
+        (resp. the rightmost columns) of the output weak Popov form.
+
+        Note that, if asking for the transformation and discarding zero vectors
+        (i.e. ``transformation=True`` and ``include_zero_vectors=False``), then
+        the returned transformation is still the complete unimodular matrix,
+        including its bottommost rows (resp. rightmost columns) which
+        correspond to zero rows (resp. columns) of the complete weak Popov
+        form. In fact, this bottom part of the transformation yields a basis of
+        the left (resp. right) kernel of the input matrix.
 
         INPUT:
 
         - ``transformation`` -- (optional, default: ``False``). If this
-          is ``True``, the transformation matrix `U` will be returned as well:
-          this is a unimodular matrix over `\Bold{K}[x]` such that ``self``
-          equals `UW`, where `W` is the output matrix.
+          is ``True``, the transformation matrix `U` will be returned as well.
 
         - ``shifts`` -- (optional, default: ``None``) list of integers;
           ``None`` is interpreted as ``shifts=[0,...,0]``.
 
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
+
+        - ``ordered`` -- (optional, default: ``False``) boolean, ``True`` if
+          seeking an ordered weak Popov form.
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if zero rows (resp. zero columns) should be discarded from
+          the (ordered) weak Popov forms.
+
         OUTPUT:
 
-        - A polynomial matrix `W` which is a weak Popov form of ``self`` if
-          ``transformation=False``; otherwise two polynomial matrices `W, U`
-          such that `UA = W` and `W` is in weak Popov form and `U` is unimodular
-          where `A` is ``self``.
+        - A polynomial matrix which is a weak Popov form of ``self`` if
+          ``transformation`` is ``False``; otherwise two polynomial matrices
+          which are a weak Popov form of ``self`` and the corresponding
+          unimodular transformation.
 
         ALGORITHM:
 
-        This method implements the Mulders-Storjohann algorithm of [MS2003]_.
+        This method implements the Mulders-Storjohann algorithm of [MS2003]_,
+        straightforwardly extended to the case of shifted forms.
 
         EXAMPLES::
 
-            sage: PF.<x> = GF(11)[]
-            sage: A = matrix(PF,[[1,  3*x^9 + x^2 + 1 ],
-            ....:                [0,         x^11 + x ]])
-            sage: W, U = A.weak_popov_form(transformation=True); W
-            [              8*x^7 + 3*x^5 + 1    9*x^6 + 3*x^5 + 2*x^4 + x^2 + 1]
-            [                          7*x^2                  7*x^4 + 7*x^2 + x]
-            sage: U * A == W
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, [                                 \
+                [      6*x+4,       5*x^3+5*x,       6*x^2+2*x+2], \
+                [4*x^2+5*x+2, x^4+5*x^2+2*x+4, 4*x^3+6*x^2+6*x+5]])
+
+            sage: P,U = M.weak_popov_form(transformation=True)
+            sage: P
+            [              4             x^2   6*x^2 + x + 2]
+            [              2 4*x^2 + 2*x + 4               5]
+            sage: U
+            [2*x^2 + 1       4*x]
+            [      4*x         1]
+            sage: P.is_weak_popov() and U.is_invertible() and U*M==P
             True
-            sage: W.is_weak_popov()
-            True
-            sage: U.is_invertible()
-            True
+
+        Demonstrating the ``ordered`` option::
+
+            sage: P.leading_positions()
+            [2, 1]
+            sage: PP = M.weak_popov_form(ordered=True); PP
+            [              2 4*x^2 + 2*x + 4               5]
+            [              4             x^2   6*x^2 + x + 2]
+            sage: PP.leading_positions()
+            [1, 2]
 
         Demonstrating shifts::
 
-            sage: A.weak_popov_form(shifts=[2, 0])
-            [              8*x^7 + 1 8*x^7 + 9*x^6 + x^2 + 1]
-            [                  7*x^2       7*x^4 + 7*x^2 + x]
-            sage: A.weak_popov_form(shifts=[10, 0]) == A
+            sage: P = M.weak_popov_form(shifts=[0,2,4]); P
+            [            6*x^2 + 6*x + 4 5*x^4 + 4*x^3 + 5*x^2 + 5*x                     2*x + 2]
+            [                          2             4*x^2 + 2*x + 4                           5]
+            sage: P==M.weak_popov_form(shifts=[-10,-8,-6])
             True
 
-        A zero matrix will return itself::
+        Column-wise form is the row-wise form of the transpose:
 
-            sage: Z = matrix(PF,2,2)
-            sage: Z.weak_popov_form()
-            [0 0]
-            [0 0]
+            sage: M.weak_popov_form() == M.T.weak_popov_form(row_wise=False).T
+            True
+
+        Zero vectors can be discarded::
+
+            sage: M.weak_popov_form(row_wise=False)
+            [x + 4     6     0]
+            [    5     1     0]
+
+            sage: P,U = M.weak_popov_form(transformation=True,      \
+                                          row_wise=False,           \
+                                          include_zero_vectors=False)
+            sage: P
+            [x + 4     6]
+            [    5     1]
+            sage: U
+            [                5*x + 2         5*x^2 + 4*x + 4 3*x^3 + 3*x^2 + 2*x + 4]
+            [                      1                       1                 2*x + 1]
+            [                5*x + 5                       2                       6]
+            sage: M*U[:,:2] == P and (M*U[:,2]).is_zero()
+            True
 
         .. SEEALSO::
 
             :meth:`is_weak_popov` ,
             :meth:`reduced_form` ,
+            :meth:`popov_form` ,
             :meth:`hermite_form` .
         """
+        # if column-wise, call the algorithm on transpose
+        if not row_wise:
+            W = self.T.weak_popov_form(transformation,
+                        shifts,
+                        True,
+                        ordered,
+                        include_zero_vectors)
+            return (W[0].T,W[1].T) if transformation else W.T
+        # --> now, below, we are working row-wise
+        # row dimension:
+        m = self.nrows()
+        # make shift nonnegative, required by main call _weak_popov_form
         self._check_shift_dimension(shifts,row_wise=True)
+        if shifts==None:
+            nonnegative_shifts = None
+        else:
+            min_shifts = min(shifts)
+            nonnegative_shifts = [s-min_shifts for s in shifts]
+        # call main procedure to compute weak Popov and transformation
         M = self.__copy__()
-        U = M._weak_popov_form(transformation=transformation, shifts=shifts)
+        U = M._weak_popov_form(transformation=transformation,
+                shifts=nonnegative_shifts)
+        # move zero rows to the bottom of the matrix
+        from sage.combinat.permutation import Permutation
+        zero_rows = []
+        nonzero_rows = []
+        for i in range(m):
+            # note the "i+1" due to the format of permutation used below
+            if M[i].is_zero():
+                zero_rows.append(i+1)
+            else:
+                nonzero_rows.append(i+1)
+        M.permute_rows(Permutation(nonzero_rows + zero_rows))
+        if transformation:
+            U.permute_rows(Permutation(nonzero_rows + zero_rows))
+        # order other rows by increasing leading positions
+        if ordered:
+            lpos = M.leading_positions(nonnegative_shifts,row_wise=True)
+            # find permutation that sorts leading_positions in increasing order
+            # --> force max value to zero rows so that they remain bottom rows
+            if include_zero_vectors: # otherwise, zero rows already removed
+                for i in range(m):
+                    if lpos[i] == -1:
+                        lpos[i] = m
+            sorted_lpos = sorted([(lpos[i],i+1) for i in range(m)])
+            row_permutation = Permutation([elt[1] for elt in sorted_lpos])
+            # apply permutation to weak Popov form and the transformation
+            M.permute_rows(row_permutation)
+            if transformation:
+                U.permute_rows(row_permutation)
+        # remove zero rows if asked to
+        if not include_zero_vectors:
+            M = M.delete_rows(range(m-len(zero_rows),m))
+        # set immutable and return
         M.set_immutable()
         if transformation:
             U.set_immutable()
@@ -1695,9 +1802,6 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if transformation:
             from sage.matrix.constructor import identity_matrix
             U = identity_matrix(R, m)
-
-        if shifts and len(shifts) != M.ncols():
-            raise ValueError("the number of shifts must equal the number of columns")
 
         # initialise to_row and conflicts list
         to_row = [[] for i in range(n)]
@@ -1760,18 +1864,217 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         if transformation:
             return U
 
-    def reduced_form(self, transformation=None, shifts=None, row_wise=True):
+    def popov_form(self,
+            transformation=False,
+            shifts=None,
+            row_wise=True,
+            include_zero_vectors=True):
+        r"""
+        Return the (shifted) Popov form of this matrix.
+
+        See :meth:`is_popov` for a definition of Popov forms. If the input
+        matrix is $A$, the (shifted) Popov form of $A$ is the unique matrix $P$
+        in (shifted) Popov form and such that $UA = P$ for some unimodular
+        matrix $U$. The latter matrix is called the transformation, and the
+        first optional argument allows one to specify whether to return this
+        transformation. We refer to the description of :meth:`weak_popov_form`
+        for an explanation of the option ``include_zero_vectors`` .
+
+        INPUT:
+
+        - ``transformation`` -- (optional, default: ``False``). If this
+          is ``True``, the transformation matrix `U` will be returned as well.
+
+        - ``shifts`` -- (optional, default: ``None``) list of integers;
+          ``None`` is interpreted as ``shifts=[0,...,0]``.
+
+        - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
+          working row-wise (see the class description).
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if zero rows (resp. zero columns) should be discarded from
+          the Popov forms.
+
+        OUTPUT:
+
+        - A polynomial matrix which is the Popov form of ``self`` if
+          ``transformation`` is ``False``; otherwise two polynomial matrices
+          which are the Popov form of ``self`` and the corresponding unimodular
+          transformation.
+
+        ALGORITHM:
+
+        This method implements the Mulders-Storjohann algorithm of [MS2003]_
+        for transforming a weak Popov form into Popov form, straightforwardly
+        extended to the case of shifted forms.
+
+        EXAMPLES::
+
+            sage: pR.<x> = GF(7)[]
+            sage: M = Matrix(pR, [                                 \
+                [      6*x+4,       5*x^3+5*x,       6*x^2+2*x+2], \
+                [4*x^2+5*x+2, x^4+5*x^2+2*x+4, 4*x^3+6*x^2+6*x+5]])
+
+            sage: P,U = M.popov_form(transformation=True)
+            sage: P
+            [            4 x^2 + 4*x + 1             3]
+            [            0       4*x + 1 x^2 + 6*x + 1]
+            sage: U
+            [            x             2]
+            [5*x^2 + x + 6       3*x + 2]
+            sage: P.is_popov() and U.is_invertible() and U*M==P
+            True
+
+        Demonstrating shifts and specific case of Hermite form::
+
+            sage: P = M.popov_form(shifts=[0,2,4]); P
+            [              4*x^2 + 3*x + 4 x^4 + 3*x^3 + 5*x^2 + 5*x + 5                             0]
+            [                            6               5*x^2 + 6*x + 5                             1]
+            sage: P.is_popov(shifts=[0,2,4])
+            True
+            sage: P==M.popov_form(shifts=[-6,-4,-2])
+            True
+            sage: dd=sum(M.row_degrees())+1
+            sage: M.popov_form(shifts=[2*dd,dd,0]) == M.hermite_form()
+            True
+
+        Column-wise form is the row-wise form of the transpose:
+
+            sage: M.popov_form() == M.T.popov_form(row_wise=False).T
+            True
+
+        Zero vectors can be discarded::
+
+            sage: M.popov_form(row_wise=False)
+            [x + 2     6     0]
+            [    0     1     0]
+
+            sage: P,U = M.popov_form(transformation=True,      \
+                                     row_wise=False,           \
+                                     include_zero_vectors=False)
+            sage: P
+            [x + 2     6]
+            [    0     1]
+            sage: U
+            [        3*x^2 + 6*x + 3         5*x^2 + 4*x + 4 3*x^3 + 3*x^2 + 2*x + 4]
+            [                      3                       1                 2*x + 1]
+            [                5*x + 2                       2                       6]
+            sage: M*U[:,:2] == P and (M*U[:,2]).is_zero()
+            True
+
+        .. SEEALSO::
+
+            :meth:`is_popov` ,
+            :meth:`reduced_form` ,
+            :meth:`weak_popov_form` ,
+            :meth:`hermite_form` .
+
+        """
+        # if column-wise, call the algorithm on transpose
+        if not row_wise:
+            P = self.T.popov_form(transformation,
+                        shifts,
+                        True,
+                        include_zero_vectors)
+            return (P[0].T,P[1].T) if transformation else P.T
+        # --> now, below, we are working row-wise
+        # row dimension:
+        nrows_zero = self.nrows()
+
+        # compute row-wise weak Popov form:
+        # -> non-ordered since we will soon order rows otherwise anyway
+        # -> without zero rows, we will re-insert them later if asked to
+        WP = self.weak_popov_form(transformation,shifts,True,False,False)
+        if transformation:
+            P,UU = WP[0].__copy__(),WP[1]
+        else:
+            P = WP.__copy__()
+        m = P.nrows()
+        # for now, only consider rows of transformation corresponding to
+        # nonzero rows, other rows will be reinserted later
+        if transformation:
+            U = UU[:m].__copy__()
+
+        # compute leading positions and shifted row degrees
+        lpos,rdeg = P.leading_positions(shifts,True,True)
+        if shifts != None:
+            rdeg = [rdeg[i] + shifts[lpos[i]] for i in range(m)]
+
+        # 1/ transform P into ascending order (as defined in
+        # [Mulders&Storjohann, 2003, p394], recall here P has no zero rows)
+        # -> sort the (degree,pivot) couples by lex order,
+        #        keeping track of the performed permutation
+        # -> and permute P,U,lpos,rdeg accordingly
+        from sage.combinat.permutation import Permutation
+        sorted_rdeg_lpos = sorted([(rdeg[i],lpos[i],i+1) for i in range(m)])
+        rdeg = [elt[0] for elt in sorted_rdeg_lpos]
+        lpos = [elt[1] for elt in sorted_rdeg_lpos]
+        row_permutation = Permutation([elt[2] for elt in sorted_rdeg_lpos])
+        P.permute_rows(row_permutation)
+        if transformation:
+            U.permute_rows(row_permutation)
+
+        # 2/ ensure all pivots are monic
+        for i in range(m):
+            inv_lc = 1/P[i,lpos[i]].leading_coefficient()
+            P.rescale_row(i,inv_lc)
+            if transformation:
+                U.rescale_row(i,inv_lc)
+
+        # 3/ reduce degrees as much as possible, row by row
+        # (this works because of the above ascending order)
+        for i in range(1,m):
+            # use rows k=0...i-1 to reduce degrees of row i in column lpos[k]
+            delta = 0
+            while delta >= 0:
+                # see [Mulders&Storjohann, 2003, Algo. PopovForm, p396]
+                delta = -1
+                j = -1
+                for k in range(i):
+                    if P[i,lpos[k]].degree() - P[k,lpos[k]].degree() > delta:
+                        delta = P[i,lpos[k]].degree() - P[k,lpos[k]].degree()
+                        j = k
+                if delta>=0:
+                    # recall the leading coefficient of P[j,lpos[j]] is 1
+                    c = - P[i,lpos[j]].leading_coefficient()
+                    shifted_row_Pj = c * P[j,:].shift(delta)
+                    P[i,:] = P[i,:] + shifted_row_Pj
+                    if transformation:
+                        shifted_row_Uj = c * U[j,:].shift(delta)
+                        U[i,:] = U[i,:] + shifted_row_Uj
+
+        # 4/ transform so as to have increasing leading positions
+        sorted_lpos = sorted([(lpos[i],i+1) for i in range(m)])
+        row_permutation = Permutation([elt[1] for elt in sorted_lpos])
+        P.permute_rows(row_permutation)
+        if transformation:
+            U.permute_rows(row_permutation)
+
+        # reinsert zero rows: in U in all cases, in P if asked to
+        if transformation:
+            U = U.stack(UU[m:,:])
+        if include_zero_vectors:
+            from sage.matrix.constructor import matrix
+            P = P.stack(matrix(self.base_ring(),nrows_zero-m,self.ncols()))
+        # return
+        return (P,U) if transformation else P
+
+    def reduced_form(self,
+            transformation=None,
+            shifts=None,
+            row_wise=True,
+            include_zero_vectors=True):
         r"""
         Return a row reduced form of this matrix (resp. a column reduced form
-        if the optional parameter `row_wise` is set to `False`).
+        if the optional parameter ``row_wise`` is set to ``False``).
 
         An $m \times n$ univariate polynomial matrix $M$ is said to be in
         (shifted) row reduced form if it has $k$ nonzero rows with $k \leq n$
         and its (shifted) leading matrix has rank $k$. See :meth:`is_reduced`
         for more information.
 
-        A row reduced form is non-canonical and a given matrix has many row
-        reduced forms; this method returns just one.
+        Currently, the implementation of this method is a direct call to
+        :meth:`weak_popov_form`.
 
         INPUT:
 
@@ -1785,6 +2088,10 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         - ``row_wise`` -- (optional, default: ``True``) boolean, ``True`` if
           working row-wise (see the class description).
+
+        - ``include_zero_vectors`` -- (optional, default: ``True``) boolean,
+          ``False`` if one does not allow zero rows in row reduced forms (resp.
+          zero columns in column reduced forms).
 
         OUTPUT:
 
@@ -1821,9 +2128,9 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
             sage: A = matrix([[x*(x-1)*(x+1)],[x*(x-2)*(x+2)],[x]])
             sage: R = A.reduced_form()
             sage: R
-            [0]
-            [0]
             [x]
+            [0]
+            [0]
 
         A zero matrix is already reduced::
 
@@ -1870,33 +2177,37 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         .. SEEALSO::
 
             :meth:`is_reduced` ,
-            :meth:`weak_popov_form` .
+            :meth:`weak_popov_form` ,
+            :meth:`popov_form` ,
+            :meth:`hermite_form` .
         """
-        self._check_shift_dimension(shifts,row_wise)
-        if not row_wise:
-            return self.T.reduced_form(transformation, shifts, row_wise=True).T
-        return self.weak_popov_form(transformation, shifts)
+        return self.weak_popov_form(transformation,
+                shifts,
+                row_wise,
+                False,
+                include_zero_vectors)
 
     def hermite_form(self, include_zero_rows=True, transformation=False):
         """
         Return the Hermite form of this matrix.
 
-        The Hermite form is also normalized, i.e., the pivot polynomials
-        are monic.
+        See :meth:`is_hermite` for a definition of Hermite forms. If the input
+        is a matrix $A$, then its Hermite form is the unique matrix $H$ in Hermite
+        form such that $UA = H$ for some unimodular matrix $U$.
 
         INPUT:
 
         - ``include_zero_rows`` -- boolean (default: ``True``); if ``False``,
-          the zero rows in the output matrix are deleted
+          the zero rows in the output matrix are deleted.
 
         - ``transformation`` -- boolean (default: ``False``); if ``True``,
-          return the transformation matrix
+          return the transformation matrix.
 
         OUTPUT:
 
-        - the Hermite normal form `H` of this matrix `A`
+        - the Hermite normal form `H` of this matrix `A` .
 
-        - (optional) transformation matrix `U` such that `UA = H`
+        - (optional) transformation matrix `U` such that `UA = H` .
  
         EXAMPLES::
 
@@ -1929,6 +2240,7 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         .. SEEALSO::
         
             :meth:`is_hermite` .
+            :meth:`popov_form` ,
         """
         A = self.__copy__()
         U = A._hermite_form_euclidean(transformation=transformation,
@@ -2666,13 +2978,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
         # compute kernel basis
         if row_wise:
             if d is -1: # matrix is zero
-                from sage.matrix.constructor import Matrix
-                return Matrix.identity(self.base_ring(), m, m)
+                from sage.matrix.constructor import matrix
+                return matrix.identity(self.base_ring(), m, m)
 
             if m <= n and self.constant_matrix().rank() == m:
                 # early exit: kernel is empty
-                from sage.matrix.constructor import Matrix
-                return Matrix(self.base_ring(), 0, m)
+                from sage.matrix.constructor import matrix
+                return matrix(self.base_ring(), 0, m)
 
             # degree bounds on the kernel basis
             degree_bound = min(m,n)*d+max(shifts)
@@ -2692,13 +3004,13 @@ cdef class Matrix_polynomial_dense(Matrix_generic_dense):
 
         else:
             if d is -1: # matrix is zero
-                from sage.matrix.constructor import Matrix
-                return Matrix.identity(self.base_ring(), n, n)
+                from sage.matrix.constructor import matrix
+                return matrix.identity(self.base_ring(), n, n)
 
             if n <= m and self.constant_matrix().rank() == n:
                 # early exit: kernel is empty
-                from sage.matrix.constructor import Matrix
-                return Matrix(self.base_ring(), n, 0)
+                from sage.matrix.constructor import matrix
+                return matrix(self.base_ring(), n, 0)
 
             # degree bounds on the kernel basis
             degree_bound = min(m,n)*d+max(shifts)

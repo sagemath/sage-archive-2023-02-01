@@ -11,7 +11,9 @@ document.
 Sage example in ./integration.tex, line 73::
 
   sage: x = var('x'); f(x) = exp(-x^2) * log(x)
-  sage: N(integrate(f, x, 1, 3))  # abs tol 1e-14
+  sage: result = integrate(f, x, 1, 3)
+  ...
+  sage: N(result)  # abs tol 1e-14
   0.03586029499126769
 
 Sage example in ./integration.tex, line 78::

@@ -897,7 +897,9 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: i = var('i')
-            sage: integral(exp(x + x^2)/(x+1), x)._sympy_character_art(False)
+            sage: f = integral(exp(x + x^2)/(x+1), x)
+            ...
+            sage: f._sympy_character_art(False)
             '  /          \n |           \n |   2       \n |  x  + x   \n | e...'
         """
         from sympy import pretty, sympify
@@ -11355,9 +11357,13 @@ cdef class Expression(CommutativeRingElement):
             integrate(f(x) + g(x), x)
             sage: integrate(f(x)+g(x),x).distribute()
             integrate(f(x), x) + integrate(g(x), x)
-            sage: integrate(f(x)+g(x),x,a,b)
+            sage: result = integrate(f(x)+g(x),x,a,b)
+            ...
+            sage: result
             integrate(f(x) + g(x), x, a, b)
-            sage: integrate(f(x)+g(x),x,a,b).distribute()
+            sage: result = integrate(f(x)+g(x),x,a,b).distribute()
+            ...
+            sage: result
             integrate(f(x), x, a, b) + integrate(g(x), x, a, b)
             sage: sum(X(j)+sum(Y(k)+Z(k),k,1,q),j,1,p)
             sum(X(j) + sum(Y(k) + Z(k), k, 1, q), j, 1, p)

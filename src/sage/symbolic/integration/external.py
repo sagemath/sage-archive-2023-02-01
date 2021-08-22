@@ -251,3 +251,48 @@ def giac_integrator(expression, v, a=None, b=None):
         return expression.integrate(v, a, b, hold=True)
     else:
         return result._sage_()
+
+def libgiac_integrator(expression, v, a=None, b=None):
+    r"""
+    Integration using libgiac
+
+    EXAMPLES::
+
+        sage: import sage.libs.giac
+        ...
+        sage: from sage.symbolic.integration.external import libgiac_integrator
+        sage: libgiac_integrator(sin(x), x)
+        -cos(x)
+        sage: libgiac_integrator(1/(x^2+6), x, -oo, oo)
+        No checks were made for singular points of antiderivative...
+        1/6*sqrt(6)*pi
+
+    TESTS::
+
+        sage: libgiac_integrator(e^(-x^2)*log(x), x)
+        integrate(e^(-x^2)*log(x), x)
+
+    The following integral fails with the Giac Pexpect interface, but works
+    with libgiac (:trac:`31873`)::
+
+        sage: a, x = var('a,x')
+        sage: f = sec(2*a*x)
+        sage: F = libgiac_integrator(f, x)
+        ...
+        sage: (F.derivative(x) - f).simplify_trig()
+        0
+    """
+    from sage.libs.giac import libgiac
+    from sage.libs.giac.giac import Pygen
+    # We call Pygen on first argument because otherwise some expressions
+    # involving derivatives result in doctest failures in interfaces/sympy.py
+    # -- related to the fixme note in sage.libs.giac.giac.GiacFunction.__call__
+    # regarding conversion of lists.
+    if a is None:
+        result = libgiac.integrate(Pygen(expression), v)
+    else:
+        result = libgiac.integrate(Pygen(expression), v, a, b)
+    if 'integrate' in format(result) or 'integration' in format(result):
+        return expression.integrate(v, a, b, hold=True)
+    else:
+        return result.sage()

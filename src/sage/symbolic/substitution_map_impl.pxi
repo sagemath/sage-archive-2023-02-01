@@ -17,8 +17,12 @@ back to Python.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object cimport SageObject
+
 
 cdef class SubstitutionMap(SageObject):
+
+    cdef GExMap _gmapobj
 
     cpdef Expression apply_to(self, Expression expr, unsigned options):
         """

@@ -10,6 +10,9 @@
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.sage_object cimport SageObject
+
+
 cdef inline int normalize_index(object arg, int nops, object err_msg) except -1:
     """
     Given an index ``arg`` and the number of operands ``nops`` return
@@ -102,6 +105,9 @@ cdef class OperandsWrapper(SageObject):
         ...
         ValueError: step value must be an integer
     """
+
+    cdef Expression _expr
+
     def __getitem__(self, arg):
         """
         TESTS::

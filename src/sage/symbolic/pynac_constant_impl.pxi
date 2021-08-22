@@ -19,6 +19,11 @@ from sage.cpython.string cimport str_to_bytes
 
 
 cdef class PynacConstant:
+
+    cdef GConstant* pointer
+    cdef GConstant* _object
+    cdef _name
+
     def __cinit__(self, name, texname, domain_string):
         """
         Creates a constant in Pynac.

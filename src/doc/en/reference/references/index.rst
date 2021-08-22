@@ -3884,6 +3884,10 @@ REFERENCES:
              modular functions*, Int. Math. Res. Not 2007 (050).
              :arxiv:`math/0701168`.
 
+.. [Lom2019] Davide Lombardo, *Computing the geometric endomorphism ring
+             of a genus 2 Jacobian*, Mathematics of Computation 88 (2019),
+             889-929. :doi:`10.1090/mcom/3358`.
+
 .. [LOS2012] \C. Lecouvey, M. Okado, M. Shimozono.
              "Affine crystals, one-dimensional sums and parabolic Lusztig
              `q`-analogues". Mathematische Zeitschrift. **271** (2012). Issue 3-4.

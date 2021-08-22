@@ -13399,7 +13399,24 @@ cpdef call_by_ginac_serial(unsigned int serial,
     return new_Expression_from_GEx(result_parent, res)
 
 
-cpdef unsigned int register_or_update_function(self, name, latex_name, nargs, evalf_params_first, bint update):
+cpdef unsigned int find_registered_function(name, int nargs) except -1:
+    r"""
+    Look up a function registered with ginac.
+
+    Raise a ``ValueError`` if the function is not registered.
+
+    OUTPUT:
+
+    - serial number of the function
+    """
+    try:
+        return find_function(str_to_bytes(name), nargs)
+    except RuntimeError as err:
+        raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (name, nargs))
+
+
+cpdef unsigned int register_or_update_function(self, name, latex_name, int nargs,
+                                               evalf_params_first, bint update) except -1:
     r"""
     Register the function ``self`` with ginac.
 
@@ -13411,10 +13428,7 @@ cpdef unsigned int register_or_update_function(self, name, latex_name, nargs, ev
     cdef unsigned int serial
 
     if update:
-        try:
-            serial = find_function(str_to_bytes(name), nargs)
-        except RuntimeError as err:
-            raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (name, nargs))
+        serial = find_registered_function(name, nargs)
         opt = g_registered_functions().index(serial)
     else:
         opt = g_function_options_args(str_to_bytes(name), nargs)

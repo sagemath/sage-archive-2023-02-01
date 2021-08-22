@@ -125,12 +125,13 @@ is attempted, and after that ``sin()`` which succeeds::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.pynac.pynac cimport find_function
-
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent
 from sage.misc.lazy_attribute import lazy_attribute
-from .expression import call_by_ginac_serial, register_or_update_function, is_Expression
+from .expression import (
+    call_by_ginac_serial, find_registered_function, register_or_update_function,
+    is_Expression
+)
 from .ring import SR
 
 from sage.structure.coerce cimport (coercion_model,
@@ -884,12 +885,7 @@ cdef class GinacFunction(BuiltinFunction):
         # Since this is function is defined in C++, it is already in
         # ginac's function registry
         fname = self._ginac_name if self._ginac_name is not None else self._name
-        # get serial
-        try:
-            self._serial = find_function(str_to_bytes(fname), self._nargs)
-        except RuntimeError as err:
-            raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (fname, self._nargs))
-
+        self._serial = find_registered_function(fname, self._nargs)
         global sfunction_serial_dict
         return self._serial in sfunction_serial_dict
 
@@ -1141,17 +1137,17 @@ cdef class BuiltinFunction(Function):
             True
         """
         # check if already defined
-        cdef int serial = -1
+        cdef unsigned int serial
 
         # search ginac registry for name and nargs
         try:
-            serial = find_function(str_to_bytes(self._name), self._nargs)
-        except RuntimeError as err:
-            pass
+            serial = find_registered_function(self._name, self._nargs)
+        except ValueError:
+            return False
 
         # if match, get operator from function table
         global sfunction_serial_dict
-        if serial != -1 and serial in sfunction_serial_dict and \
+        if serial in sfunction_serial_dict and \
                 sfunction_serial_dict[serial].__class__ == self.__class__:
                     # if the returned function is of the same type
                     self._serial = serial

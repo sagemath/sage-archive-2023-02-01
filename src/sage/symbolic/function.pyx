@@ -126,17 +126,17 @@ is attempted, and after that ``sin()`` which succeeds::
 #*****************************************************************************
 
 from sage.libs.pynac.pynac cimport (
-    GEx, GExVector, GFunctionOpt,
-    is_a_numeric, find_function,
+    GFunctionOpt,
+    find_function,
     g_function_options_args, g_register_new, g_foptions_assign,
-    g_registered_functions, g_function_evalv, g_function_eval1, g_function_eval2,
-    g_function_eval3, py_object_from_numeric)
+    g_registered_functions)
 
 from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent
 from sage.misc.lazy_attribute import lazy_attribute
 from .expression cimport new_Expression_from_GEx, Expression
+from .expression import call_by_ginac_serial
 from .ring import SR
 
 from sage.structure.coerce cimport (coercion_model,
@@ -573,7 +573,6 @@ cdef class Function(SageObject):
         else:
             symbolic_input = False
 
-        cdef Py_ssize_t i
         if coerce:
             try:
                 args = [SR.coerce(a) for a in args]
@@ -596,27 +595,8 @@ cdef class Function(SageObject):
                 if not isinstance(a, Expression):
                     raise TypeError("arguments must be symbolic expressions")
 
-        cdef GEx res
-        cdef GExVector vec
-        if self._nargs == 0 or self._nargs > 3:
-            for i from 0 <= i < len(args):
-                vec.push_back((<Expression>args[i])._gobj)
-            res = g_function_evalv(self._serial, vec, hold)
-        elif self._nargs == 1:
-            res = g_function_eval1(self._serial,
-                    (<Expression>args[0])._gobj, hold)
-        elif self._nargs == 2:
-            res = g_function_eval2(self._serial, (<Expression>args[0])._gobj,
-                    (<Expression>args[1])._gobj, hold)
-        elif self._nargs == 3:
-            res = g_function_eval3(self._serial,
-                    (<Expression>args[0])._gobj, (<Expression>args[1])._gobj,
-                    (<Expression>args[2])._gobj, hold)
-
-        if not symbolic_input and is_a_numeric(res):
-            return py_object_from_numeric(res)
-
-        return new_Expression_from_GEx(SR, res)
+        return call_by_ginac_serial(self._serial, self._nargs, args, hold,
+                                    not symbolic_input, SR)
 
     def name(self):
         """

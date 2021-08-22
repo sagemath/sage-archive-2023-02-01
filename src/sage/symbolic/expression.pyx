@@ -13351,3 +13351,49 @@ cdef class hold_class:
         self.__exit__()
 
 hold = hold_class()
+
+
+cpdef call_by_ginac_serial(unsigned int serial,
+                           int nargs,
+                           list args,
+                           bint hold,
+                           bint allow_numeric_result,
+                           result_parent):
+    r"""
+    Call a ginac function.
+
+    INPUT:
+
+    - ``serial`` - serial number of the function
+
+    - ``nargs`` - declared number of args (0 is variadic)
+
+    - ``args`` - a list of :class:`Expression`s
+
+    - ``allow_numeric_result`` - if ``True``, keep numeric results numeric;
+      if ``False``, make all results symbolic expressions
+
+    - ``result_parent`` - an instance of :class:`SymbolicRing`
+    """
+    cdef Py_ssize_t i
+    cdef GEx res
+    cdef GExVector vec
+    if nargs == 0 or nargs > 3:
+        for i from 0 <= i < len(args):
+            vec.push_back((<Expression>args[i])._gobj)
+        res = g_function_evalv(serial, vec, hold)
+    elif nargs == 1:
+        res = g_function_eval1(serial,
+                (<Expression>args[0])._gobj, hold)
+    elif nargs == 2:
+        res = g_function_eval2(serial, (<Expression>args[0])._gobj,
+                (<Expression>args[1])._gobj, hold)
+    elif nargs == 3:
+        res = g_function_eval3(serial,
+                (<Expression>args[0])._gobj, (<Expression>args[1])._gobj,
+                (<Expression>args[2])._gobj, hold)
+
+    if allow_numeric_result and is_a_numeric(res):
+        return py_object_from_numeric(res)
+
+    return new_Expression_from_GEx(result_parent, res)

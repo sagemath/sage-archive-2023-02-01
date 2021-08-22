@@ -13397,3 +13397,60 @@ cpdef call_by_ginac_serial(unsigned int serial,
         return py_object_from_numeric(res)
 
     return new_Expression_from_GEx(result_parent, res)
+
+
+cpdef unsigned int register_or_update_function(self, name, latex_name, nargs, evalf_params_first, bint update):
+    r"""
+    Register the function ``self`` with ginac.
+
+    OUTPUT:
+
+    - serial number of the function
+    """
+    cdef GFunctionOpt opt
+    opt = g_function_options_args(str_to_bytes(name), nargs)
+
+    if hasattr(self, '_eval_'):
+        opt.eval_func(self)
+
+    if not evalf_params_first:
+        opt.do_not_evalf_params()
+
+    if hasattr(self, '_subs_'):
+        opt.subs_func(self)
+
+    if hasattr(self, '_evalf_'):
+        opt.evalf_func(self)
+
+    if hasattr(self, '_conjugate_'):
+        opt.conjugate_func(self)
+
+    if hasattr(self, '_real_part_'):
+        opt.real_part_func(self)
+
+    if hasattr(self, '_imag_part_'):
+        opt.imag_part_func(self)
+
+    if hasattr(self, '_derivative_'):
+        opt.derivative_func(self)
+
+    if hasattr(self, '_tderivative_'):
+        opt.do_not_apply_chain_rule()
+        opt.derivative_func(self)
+
+    if hasattr(self, '_power_'):
+        opt.power_func(self)
+
+    if hasattr(self, '_series_'):
+        opt.series_func(self)
+
+    # custom print functions are called from python
+    # so we don't register them with the ginac function_options object
+
+    if latex_name:
+        opt.latex_name(str_to_bytes(latex_name))
+
+    serial = g_register_new(opt)
+    g_foptions_assign(g_registered_functions().index(serial), opt)
+
+    return serial

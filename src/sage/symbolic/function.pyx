@@ -136,7 +136,7 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent
 from sage.misc.lazy_attribute import lazy_attribute
 from .expression cimport new_Expression_from_GEx, Expression
-from .expression import call_by_ginac_serial
+from .expression import call_by_ginac_serial, register_or_update_function
 from .ring import SR
 
 from sage.structure.coerce cimport (coercion_model,
@@ -263,51 +263,9 @@ cdef class Function(SageObject):
             f(x)
 
         """
-        cdef GFunctionOpt opt
-        opt = g_function_options_args(str_to_bytes(self._name), self._nargs)
-
-        if hasattr(self, '_eval_'):
-            opt.eval_func(self)
-
-        if not self._evalf_params_first:
-            opt.do_not_evalf_params()
-
-        if hasattr(self, '_subs_'):
-            opt.subs_func(self)
-
-        if hasattr(self, '_evalf_'):
-            opt.evalf_func(self)
-
-        if hasattr(self, '_conjugate_'):
-            opt.conjugate_func(self)
-
-        if hasattr(self, '_real_part_'):
-            opt.real_part_func(self)
-
-        if hasattr(self, '_imag_part_'):
-            opt.imag_part_func(self)
-
-        if hasattr(self, '_derivative_'):
-            opt.derivative_func(self)
-
-        if hasattr(self, '_tderivative_'):
-            opt.do_not_apply_chain_rule()
-            opt.derivative_func(self)
-
-        if hasattr(self, '_power_'):
-            opt.power_func(self)
-
-        if hasattr(self, '_series_'):
-            opt.series_func(self)
-
-        # custom print functions are called from python
-        # so we don't register them with the ginac function_options object
-
-        if self._latex_name:
-            opt.latex_name(str_to_bytes(self._latex_name))
-
-        self._serial = g_register_new(opt)
-        g_foptions_assign(g_registered_functions().index(self._serial), opt)
+        self._serial = register_or_update_function(self, self._name, self._latex_name,
+                                                   self._nargs, self._evalf_params_first,
+                                                   False)
 
     def _evalf_try_(self, *args):
         """

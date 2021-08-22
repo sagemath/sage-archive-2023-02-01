@@ -127,6 +127,7 @@ def __create__NumberFieldElement_version0(parent, poly):
         See https://trac.sagemath.org/25848 for details.
         a^2 + a + 1
     """
+    from sage.misc.superseded import deprecation_cython as deprecation
     deprecation(25848, '__create__NumberFieldElement_version0() is deprecated')
     return NumberFieldElement(parent, poly)
 
@@ -144,7 +145,7 @@ def __create__NumberFieldElement_version1(parent, cls, poly):
         See https://trac.sagemath.org/25848 for details.
         a^2 + a + 1
     """
-    from sage.misc.superseded import deprecation
+    from sage.misc.superseded import deprecation_cython as deprecation
     deprecation(25848, '__create__NumberFieldElement_version1() is deprecated')
     return cls(parent, poly)
 

@@ -21,7 +21,7 @@ TESTS::
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 deprecation(24096, "the module sage.matrix.matrix is deprecated")
 
 def is_Matrix(x):

@@ -4113,7 +4113,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: m
             [1]
         """
-        from sage.misc.superseded import deprecation
+        from sage.misc.superseded import deprecation_cython as deprecation
         deprecation(25084, "_invert_unit() is deprecated, use inverse_of_unit() instead")
         return self.inverse_of_unit()
 

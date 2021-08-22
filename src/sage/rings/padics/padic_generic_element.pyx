@@ -445,7 +445,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
             :meth:`sage.rings.padics.local_generic_element.LocalGenericElement.slice`
         """
-        from sage.misc.superseded import deprecation
+        from sage.misc.superseded import deprecation_cython as deprecation
         deprecation(14825, "__getitem__ is changing to match the behavior of number fields. Please use expansion instead.")
         return self.expansion(n)
 

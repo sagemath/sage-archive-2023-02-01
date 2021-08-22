@@ -14,13 +14,12 @@ The symbolic ring
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.ext.cplusplus cimport ccrepr
-
 from sage.rings.integer cimport Integer
 
 from sage.symbolic.expression import (
     is_Expression,
     _latex_Expression,
+    _repr_Expression,
     new_Expression,
     new_Expression_from_pyobject,
     new_Expression_force_pyobject,
@@ -28,7 +27,6 @@ from sage.symbolic.expression import (
     new_Expression_symbol,
 )
 
-from sage.cpython.string cimport str_to_bytes, bytes_to_str, char_to_str
 from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
@@ -593,7 +591,7 @@ cdef class SymbolicRing(CommutativeRing):
         from sage.symbolic.constants import I
         return I
 
-    cpdef Expression symbol(self, name=None, latex_name=None, domain=None):
+    def symbol(self, name=None, latex_name=None, domain=None):
         """
         EXAMPLES::
 
@@ -913,23 +911,24 @@ cdef class SymbolicRing(CommutativeRing):
             else:
                 return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
 
-    def _repr_element_(self, Expression x):
+    def _repr_element_(self, x):
         """
-        Returns the string representation of the element x.  This is
-        used so that subclasses of the SymbolicRing (such the a
-        CallableSymbolicExpressionRing) can provide their own
-        implementations of how to print Expressions.
+        Return the string representation of the expression ``x``.
+
+        This is used so that subclasses of :class:`SymbolicRing` (such as a
+        :class:`~sage.symbolic.callable.CallableSymbolicExpressionRing`)
+        can provide their own implementations of how to print expressions.
 
         EXAMPLES::
 
             sage: SR._repr_element_(x+2)
             'x + 2'
         """
-        return ccrepr(x._gobj)
+        return _repr_Expression(x)
 
-    def _latex_element_(self, Expression x):
+    def _latex_element_(self, x):
         r"""
-        Returns the standard LaTeX version of the expression `x`.
+        Return the standard LaTeX version of the expression ``x``.
 
         EXAMPLES::
 

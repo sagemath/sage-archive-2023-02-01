@@ -13038,9 +13038,21 @@ cdef class Expression(CommutativeRingElement):
                 return S
 
 
+cpdef _repr_Expression(x):
+    r"""
+    Return the string representation of the eexpression ``x``.
+
+    EXAMPLES::
+
+        sage: SR._repr_element_(x+2)
+        'x + 2'
+    """
+    return ccrepr((<Expression>x)._gobj)
+
+
 cpdef _latex_Expression(x):
     r"""
-    Returns the standard LaTeX version of the expression `x`.
+    Return the standard LaTeX version of the expression `x`.
 
     EXAMPLES::
 

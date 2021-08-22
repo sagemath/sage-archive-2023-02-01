@@ -143,7 +143,6 @@ from sage.structure.richcmp cimport richcmp
 cdef dict sfunction_serial_dict = {}
 
 from sage.misc.fpickle import pickle_function, unpickle_function
-from sage.cpython.string cimport str_to_bytes
 from sage.ext.fast_eval import FastDoubleFunc
 
 # List of functions which ginac allows us to define custom behavior for.

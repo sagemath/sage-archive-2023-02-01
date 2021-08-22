@@ -370,6 +370,8 @@ class FiniteFieldFactory(UniqueFactory):
 
         sage: k.<a> = GF(5**10, modulus='random')
         sage: n.<a> = GF(5**10, modulus='random')
+        sage: while k.modulus() == n.modulus():
+        ....:     n.<a> = GF(5**10, modulus='random')
         sage: n is k
         False
         sage: GF(5**10, 'a') is GF(5**10, 'a')

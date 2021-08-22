@@ -1129,33 +1129,30 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField(100).random_element(-5, 10)
-            -1.7093633198207765227646362966
-            sage: RealField(10).random_element()
-            -0.11
+            sage: r = RealField(100).random_element(-5, 10)
+            sage: r.parent() is RealField(100)
+            True
+            sage: -5 <= r <= 10
+            True
 
         TESTS::
 
-            sage: RealField(31).random_element()
-            -0.676162510
-            sage: RealField(32).random_element()
-            0.689774422
-            sage: RealField(33).random_element()
-            0.396496861
-            sage: RealField(63).random_element()
-            -0.339980711116375371
-            sage: RealField(64).random_element()
-            -0.0453049884016705260
-            sage: RealField(65).random_element()
-            -0.5926714709589708137
-            sage: RealField(10).random_element()
-            0.23
-            sage: RealField(10).random_element()
-            -0.41
-            sage: RR.random_element()
-            -0.0420335212948924
-            sage: RR.random_element()
-            -0.616678906367394
+            sage: RealField(31).random_element().parent()
+            Real Field with 31 bits of precision
+            sage: RealField(32).random_element().parent()
+            Real Field with 32 bits of precision
+            sage: RealField(33).random_element().parent()
+            Real Field with 33 bits of precision
+            sage: RealField(63).random_element().parent()
+            Real Field with 63 bits of precision
+            sage: RealField(64).random_element().parent()
+            Real Field with 64 bits of precision
+            sage: RealField(65).random_element().parent()
+            Real Field with 65 bits of precision
+            sage: RealField(10).random_element().parent()
+            Real Field with 10 bits of precision
+            sage: RR.random_element().parent()
+            Real Field with 53 bits of precision
         """
         cdef RealNumber x = self._new()
         cdef randstate rstate = current_randstate()

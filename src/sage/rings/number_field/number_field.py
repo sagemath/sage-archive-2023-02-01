@@ -1854,8 +1854,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: K.<a> = NumberField(x^3 + 17)
             sage: b = K.polynomial_quotient_ring().random_element()
-            sage: K(b)
-            1/2*a^2 - 1/95*a - 1/2
+            sage: b == K(b)
+            True
 
         We can convert symbolic expressions::
 
@@ -2141,16 +2141,33 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         EXAMPLES::
 
             sage: K.<j> = NumberField(x^8+1)
-            sage: K.random_element()
-            1/2*j^7 - j^6 - 12*j^5 + 1/2*j^4 - 1/95*j^3 - 1/2*j^2 - 4
+            sage: K.random_element().parent() is K
+            True
+
+            sage: while K.random_element().list()[0] != 0:
+            ....:     pass
+            sage: while K.random_element().list()[0] == 0:
+            ....:     pass
+            sage: while K.random_element().is_prime():
+            ....:     pass
+            sage: while not K.random_element().is_prime():
+            ....:     pass
 
             sage: K.<a,b,c> = NumberField([x^2-2,x^2-3,x^2-5])
-            sage: K.random_element()
-            ((6136*c - 7489/3)*b + 5825/3*c - 71422/3)*a + (-4849/3*c + 58918/3)*b - 45718/3*c + 75409/12
+            sage: K.random_element().parent() is K
+            True
+
+            sage: while K.random_element().is_prime():
+            ....:     pass
+            sage: while not K.random_element().is_prime():  # long time
+            ....:     pass
 
             sage: K.<a> = NumberField(x^5-2)
-            sage: K.random_element(integral_coefficients=True)
-            a^3 + a^2 - 3*a - 1
+            sage: p = K.random_element(integral_coefficients=True)
+            sage: p.is_integral()
+            True
+            sage: while K.random_element().is_integral():
+            ....:     pass
 
         TESTS::
 

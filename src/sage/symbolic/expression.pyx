@@ -13408,7 +13408,16 @@ cpdef unsigned int register_or_update_function(self, name, latex_name, nargs, ev
     - serial number of the function
     """
     cdef GFunctionOpt opt
-    opt = g_function_options_args(str_to_bytes(name), nargs)
+    cdef unsigned int serial
+
+    if update:
+        try:
+            serial = find_function(str_to_bytes(name), nargs)
+        except RuntimeError as err:
+            raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (name, nargs))
+        opt = g_registered_functions().index(serial)
+    else:
+        opt = g_function_options_args(str_to_bytes(name), nargs)
 
     if hasattr(self, '_eval_'):
         opt.eval_func(self)
@@ -13450,7 +13459,9 @@ cpdef unsigned int register_or_update_function(self, name, latex_name, nargs, ev
     if latex_name:
         opt.latex_name(str_to_bytes(latex_name))
 
-    serial = g_register_new(opt)
+    if not update:
+        serial = g_register_new(opt)
+
     g_foptions_assign(g_registered_functions().index(serial), opt)
 
     return serial

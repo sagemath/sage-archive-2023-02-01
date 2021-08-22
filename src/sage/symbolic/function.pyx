@@ -904,45 +904,10 @@ cdef class GinacFunction(BuiltinFunction):
         # However, if any custom methods were provided in the python class,
         # we should set the properties of the function_options object
         # corresponding to this function
-        cdef GFunctionOpt opt = g_registered_functions().index(self._serial)
-
-        if hasattr(self, '_eval_'):
-            opt.eval_func(self)
-
-        if not self._evalf_params_first:
-            opt.do_not_evalf_params()
-
-        if hasattr(self, '_evalf_'):
-            opt.evalf_func(self)
-
-        if hasattr(self, '_conjugate_'):
-            opt.conjugate_func(self)
-
-        if hasattr(self, '_real_part_'):
-            opt.real_part_func(self)
-
-        if hasattr(self, '_imag_part_'):
-            opt.imag_part_func(self)
-
-        if hasattr(self, '_derivative_'):
-            opt.derivative_func(self)
-
-        if hasattr(self, '_tderivative_'):
-            opt.do_not_apply_chain_rule()
-            opt.derivative_func(self)
-
-        if hasattr(self, '_power_'):
-            opt.power_func(self)
-
-        if hasattr(self, '_series_'):
-            opt.series_func(self)
-
-        # overriding print functions is not supported
-
-        if self._latex_name:
-            opt.latex_name(str_to_bytes(self._latex_name))
-
-        g_foptions_assign(g_registered_functions().index(self._serial), opt)
+        fname = self._ginac_name if self._ginac_name is not None else self._name
+        register_or_update_function(self, fname, self._latex_name,
+                                    self._nargs, self._evalf_params_first,
+                                    True)
 
 
 cdef class BuiltinFunction(Function):

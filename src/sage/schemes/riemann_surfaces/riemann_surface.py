@@ -93,8 +93,8 @@ We can also check this using our Abel-Jacobi functions::
     sage: avoid = C.places_at_infinity()
     sage: Zeq, _ = S.strong_approximation(Z, avoid) 
     sage: Zlist = S.divisor_to_divisor_list(Zeq)
-    sage: AJ = S.abel_jacobi(Zlist) # long time (50 seconds)
-    sage: S.reduce_over_period_lattice(AJ).norm()<1e-10 # long time
+    sage: AJ = S.abel_jacobi(Zlist)  # long time (50 seconds)
+    sage: S.reduce_over_period_lattice(AJ).norm() < 1e-10  # long time
     True
 
 REFERENCES:
@@ -781,7 +781,7 @@ class RiemannSurface(object):
         Note that typically the method returns a list of length ``self.degree``,
         but that at ramification points, this may no longer be true::
 
-            sage: S.w_values(1) # abs tol 1e-14
+            sage: S.w_values(1)  # abs tol 1e-14
             [0.000000000000000]
         """
         return self.f(z0,self._CCw.gen(0)).roots(multiplicities=False)
@@ -1986,7 +1986,7 @@ class RiemannSurface(object):
             sage: _ = S.homology_basis()
             sage: differentials = S.cohomology_basis()
             sage: bounding_data = S._bounding_data(differentials)
-            sage: S.rigorous_line_integral([(0,0), (1,0)], differentials, bounding_data) # abs tol 1e-10
+            sage: S.rigorous_line_integral([(0,0), (1,0)], differentials, bounding_data)  # abs tol 1e-10
             (1.80277751848459e-16 - 0.352971844594760*I)
 
         .. NOTE::
@@ -3057,15 +3057,15 @@ class RiemannSurface(object):
             sage: divisor = [(-1, (Infinity, 0)), (1, (1, 0))]
             sage: AJ = S.abel_jacobi(divisor)
             sage: AJx2 = [2*z for z in AJ]
-            sage: vector(AJx2).norm() # abs tol 1e-10
+            sage: vector(AJx2).norm()  # abs tol 1e-10
             2.4286506478875809114000865640
-            sage: bool(S.reduce_over_period_lattice(AJx2).norm()<1e-10)
+            sage: bool(S.reduce_over_period_lattice(AJx2).norm() < 1e-10)
             True
             sage: S = RiemannSurface(y^2-x^4+1, prec=p)
             sage: divisor = [(-1, (-1, 0)), (1, (1, 0))]
             sage: AJ = S.abel_jacobi(divisor)
             sage: AJx2 = [2*z for z in AJ]
-            sage: bool(S.reduce_over_period_lattice(AJx2).norm()<1e-10)
+            sage: bool(S.reduce_over_period_lattice(AJx2).norm() < 1e-10)
             True
         
         """
@@ -3229,9 +3229,9 @@ class RiemannSurface(object):
             sage: p = 4
             sage: S = RiemannSurface(y^p-x^4+1, prec=100)
             sage: divisor = [(-1, (-1, 0)), (1, (1, 0))]
-            sage: AJ = S.abel_jacobi(divisor) # long time (15 seconds)
-            sage: AJxp = [p*z for z in AJ] # long time 
-            sage: bool(S.reduce_over_period_lattice(AJx2).norm()<1e-7) # long time
+            sage: AJ = S.abel_jacobi(divisor)  # long time (15 seconds)
+            sage: AJxp = [p*z for z in AJ]  # long time 
+            sage: bool(S.reduce_over_period_lattice(AJx2).norm()<1e-7)  # long time
             True
         """
         ans = 0

@@ -5884,13 +5884,6 @@ cdef class Expression(CommutativeRingElement):
             3
             sage: (sin(x+y)).number_of_arguments()
             2
-
-        ::
-
-            sage: ( 2^(8/9) - 2^(1/9) )(x-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: the number of arguments must be less than or equal to 0
         """
         return len(self.arguments())
 
@@ -6407,7 +6400,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             R = CallableSymbolicExpressionRing(args, check=False)
             return R(self)
-        raise TypeError("Must construct a function with a tuple (or list) of symbolic variables.")
+        raise TypeError(f"must construct a function with symbolic variables as arguments, got {args}.")
 
     ############################################################################
     # Basic arithmetic wrappers

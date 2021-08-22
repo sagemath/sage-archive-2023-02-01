@@ -276,7 +276,7 @@ def integral(f, *args, **kwds):
 
     ::
 
-        sage: [float(h(i)) for i in range(5)] #random
+        sage: [float(h(x=i)) for i in range(5)] #random
 
         [0.0,
          -1.1102230246251565e-16,

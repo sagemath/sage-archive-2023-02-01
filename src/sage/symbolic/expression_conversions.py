@@ -2023,7 +2023,7 @@ class FastCallableConverter(Converter):
             sage: z._fast_callable_(etb)
             Traceback (most recent call last):
             ...
-            ValueError: Variable 'z' not found
+            ValueError: Variable 'z' not found...
         """
         return self.etb.var(SR(ex))
 

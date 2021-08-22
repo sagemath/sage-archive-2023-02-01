@@ -160,30 +160,26 @@ dict::
 Also we can substitute with keywords::
 
     sage: f = sin(x*y - z)
-    sage: f(x = t, y = z)
+    sage: f(x=t, y=z)
     sin(t*z - z)
 
-It was formerly the case that if there was no ambiguity of variable
-names, we didn't have to specify them; that still works for the moment,
-but the behavior is deprecated::
-
-    sage: f = sin(x)
-    sage: f(y)
-    doctest:...: DeprecationWarning: Substitution using function-call
-    syntax and unnamed arguments is deprecated and will be removed
-    from a future release of Sage; you can use named arguments instead,
-    like EXPR(x=..., y=...)
-    See http://trac.sagemath.org/5930 for details.
-    sin(y)
-    sage: f(pi)
-    0
-
-However if there is ambiguity, we should explicitly state what
-variables we're substituting for::
+Another example::
 
     sage: f = sin(2*pi*x/y)
     sage: f(x=4)
     sin(8*pi/y)
+
+It is no longer allowed to call expressions with positional arguments::
+
+    sage: f = sin(x)
+    sage: f(y)
+    Traceback (most recent call last):
+    ...
+    TypeError: Substitution using function-call syntax and unnamed
+    arguments has been removed. You can use named arguments instead, like
+    EXPR(x=..., y=...)
+    sage: f(x=pi)
+    0
 
 We can also make a ``CallableSymbolicExpression``,
 which is a ``SymbolicExpression`` that is a function of

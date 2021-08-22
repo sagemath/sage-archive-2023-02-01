@@ -146,10 +146,11 @@ Sage example in ./integration.tex, line 824::
 
 Sage example in ./integration.tex, line 846::
 
-  sage: mpmath.quad(sin(sin(x)), [0, 1])
+  sage: f(x) = sin(sin(x))
+  sage: mpmath.quad(f, [0, 1])
   Traceback (most recent call last):
   ...
-  TypeError: no canonical coercion from <type 'sage.libs.mpmath.ext_main.mpf'> to Symbolic Ring
+  TypeError: no canonical coercion from <type 'sage.libs.mpmath.ext_main.mpf'> to ...
 
 Sage example in ./integration.tex, line 866::
 

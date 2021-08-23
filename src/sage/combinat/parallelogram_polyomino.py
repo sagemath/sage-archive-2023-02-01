@@ -426,20 +426,17 @@ class LocalOptions:
         The _dispatch method will then call:
 
             obj.``<option name> + '_' + <current value of option>``(
-                *get_values,**set_values)
+                *get_values, **set_values)
 
         Note that the argument ``self`` is necessary here because the
         dispatcher is a method of the options class and not of ``self``.
 
         EXAMPLES::
 
-            sage: from sage.combinat.parallelogram_polyomino import (
-            ....:     LocalOptions)
-            sage: o = LocalOptions(
-            ....:     'Name Example',
-            ....:     delim=dict(
-            ....:         default='b',
-            ....:         values={'b':'the option b', 'p':'the option p'}))
+            sage: from sage.combinat.parallelogram_polyomino import LocalOptions
+            sage: delim = {'default': 'b',
+            ....:          'values': {'b': 'option b', 'p': 'option p'}}
+            sage: o = LocalOptions('Name example', delim=delim)
             sage: class Ex:
             ....:     options=o
             ....:     def _repr_b(self): return "b"

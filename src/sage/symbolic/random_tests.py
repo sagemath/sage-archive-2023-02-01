@@ -16,7 +16,7 @@ from sage.misc.prandom import randint, random
 import operator
 from sage.rings.all import QQ
 from sage.symbolic.ring import SR
-from sage.symbolic.pynac import symbol_table
+from sage.symbolic.expression import symbol_table
 from sage.symbolic.constants import (pi, e, golden_ratio, log2, euler_gamma,
                                      catalan, khinchin, twinprime, mertens)
 from sage.functions.hypergeometric import hypergeometric

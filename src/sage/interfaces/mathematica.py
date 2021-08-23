@@ -801,7 +801,7 @@ class MathematicaElement(ExpectElement):
             sage: mathematica(RealField(100)(1/3)).sage()  # optional - mathematica
             0.3333333333333333333333333333335
         """
-        from sage.symbolic.pynac import symbol_table
+        from sage.symbolic.expression import symbol_table
         from sage.symbolic.constants import constants_name_table as constants
         from sage.calculus.calculus import symbolic_expression_from_string
         from sage.calculus.calculus import _find_func as find_func
@@ -1275,7 +1275,7 @@ def symbolic_expression_from_mathematica_string(mexpr):
         sage: symbolic_expression_from_mathematica_string(u'-Cos[x]')
         -cos(x)
     """
-    from sage.symbolic.pynac import symbol_table
+    from sage.symbolic.expression import symbol_table
     from sage.symbolic.constants import constants_name_table as constants
     from sage.calculus.calculus import symbolic_expression_from_string
     from sage.calculus.calculus import _find_func as find_func

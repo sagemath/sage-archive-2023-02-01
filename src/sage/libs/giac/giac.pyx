@@ -162,7 +162,7 @@ from sage.structure.element cimport Matrix
 from sage.plot.line import line
 from sage.plot.scatter_plot import scatter_plot
 
-from sage.symbolic.pynac import symbol_table
+from sage.symbolic.expression import symbol_table
 from sage.calculus.calculus import symbolic_expression_from_string, SR_parser_giac
 from sage.symbolic.ring import SR
 from sage.symbolic.expression import Expression

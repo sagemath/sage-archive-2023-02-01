@@ -6002,7 +6002,7 @@ cdef class Expression(CommutativeRingElement):
             sage: type(u._unpack_operands()[0])
             <... 'tuple'>
         """
-        from sage.symbolic.pynac import unpack_operands
+        from sage.symbolic.expression import unpack_operands
         return unpack_operands(self)
 
     def operands(self):
@@ -6117,7 +6117,7 @@ cdef class Expression(CommutativeRingElement):
                 raise RuntimeError("cannot find SymbolicFunction in table")
 
             if is_a_fderivative(self._gobj):
-                from sage.symbolic.pynac import paramset_from_Expression
+                from sage.symbolic.expression import paramset_from_Expression
                 parameter_set = paramset_from_Expression(self)
                 res = FDerivativeOperator(res, parameter_set)
 

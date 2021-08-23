@@ -1127,7 +1127,7 @@ class GiacElement(ExpectElement):
             sage: giac(e * i * pi).sage().variables()
             ()
         """
-        from sage.symbolic.pynac import symbol_table
+        from sage.symbolic.expression import symbol_table
         from sage.calculus.calculus import symbolic_expression_from_string, SR_parser_giac
 
         result = repr(self) # string representation

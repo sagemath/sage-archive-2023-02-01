@@ -593,6 +593,8 @@ def simplify_chain_real(expr):
         sage: forget()  # for doctests below
 
     """
+    if expr.number_of_operands() == 0:
+        return expr
     expr = expr.simplify_factorial()
     expr = expr.simplify_trig()
     expr = expr.simplify_rational()
@@ -666,6 +668,8 @@ def simplify_chain_generic(expr):
         sage: forget()  # for doctests below
 
     """
+    if expr.number_of_operands() == 0:
+        return expr
     expr = expr.simplify_factorial()
     expr = expr.simplify_rectform()
     expr = expr.simplify_trig()

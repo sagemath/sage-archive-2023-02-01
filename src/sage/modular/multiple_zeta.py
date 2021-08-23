@@ -376,7 +376,8 @@ def minimize_term(w, cf):
         if x < y:
             return (w, cf)
         if x > y:
-            return (Words10(reverse_w, check=False), (-1)**len(w) * cf)
+            return (Words10(reverse_w, check=False),
+                    -cf if len(w) % 2 else cf)
     return (w, cf)
 
 
@@ -913,7 +914,8 @@ class Multizetas(CombinatorialFreeModule):
             -I(1010010)
         """
         codomain = Multizetas_iterated(self.base_ring())
-        return (-1)**len(w) * codomain(composition_to_iterated(w))
+        image = codomain(composition_to_iterated(w))
+        return -image if len(w) % 2 else image
 
     def degree_on_basis(self, w):
         """
@@ -1542,7 +1544,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
             sage: M.product_on_basis(y,x)
             I(10110) + 3*I(11010) + 6*I(11100)
         """
-        return sum(self.basis()[u] for u in shuffle(w1, w2, False))
+        B = self.basis()
+        return sum(B[u] for u in shuffle(w1, w2, False))
 
     def half_product_on_basis(self, w1, w2):
         r"""
@@ -1568,7 +1571,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
         W = self.basis().keys()
         u1 = W([w1[0]], check=False)
         r1 = w1[1:]
-        return sum(self.basis()[u1 + u] for u in shuffle(r1, w2, False))
+        B = self.basis()
+        return sum(B[u1 + u] for u in shuffle(r1, w2, False))
 
     @lazy_attribute
     def half_product(self):
@@ -1717,7 +1721,8 @@ class Multizetas_iterated(CombinatorialFreeModule):
             -I(11010)
         """
         rev = [1 - x for x in reversed(w)]
-        return (-1)**len(w) * self(self.basis().keys()(rev, check=False))
+        image = self(self.basis().keys()(rev, check=False))
+        return -image if len(w) % 2 else image
 
     def degree_on_basis(self, w):
         """
@@ -2207,7 +2212,8 @@ class All_iterated(CombinatorialFreeModule):
         if w[-2] == 0:
             return self(w)
         rev = [1 - x for x in reversed(w)]
-        return (-1)**len(w) * self(self.basis().keys()(rev, check=False))
+        image = self(self.basis().keys()(rev, check=False))
+        return -image if len(w) % 2 else image
 
     @lazy_attribute
     def dual(self):
@@ -2251,7 +2257,8 @@ class All_iterated(CombinatorialFreeModule):
         if w[0] == 0 and w[-1] == 1:
             return self(w)
         W = self.basis().keys()
-        return (-1)**len(w) * self.monomial(W(list(reversed(w)), check=False))
+        image = self.monomial(W(list(reversed(w)), check=False))
+        return -image if len(w) % 2 else image
 
     @lazy_attribute
     def reversal(self):

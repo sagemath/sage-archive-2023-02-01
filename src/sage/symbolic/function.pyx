@@ -130,17 +130,16 @@ from sage.structure.element cimport Element, parent
 from sage.misc.lazy_attribute import lazy_attribute
 from .expression import (
     call_by_ginac_serial, find_registered_function, register_or_update_function,
+    get_sfunction_from_hash,
+    symbol_table, register_symbol,
     is_Expression
 )
+from .expression import get_sfunction_from_serial as get_sfunction_from_serial
 from .ring import SR
 
 from sage.structure.coerce cimport (coercion_model,
         py_scalar_to_element, is_numpy_type, is_mpmath_type)
 from sage.structure.richcmp cimport richcmp
-
-# we keep a database of symbolic functions initialized in a session
-# this also makes the .operator() method of symbolic expressions work
-cdef dict sfunction_serial_dict = {}
 
 from sage.misc.fpickle import pickle_function, unpickle_function
 from sage.ext.fast_eval import FastDoubleFunc
@@ -225,10 +224,6 @@ cdef class Function(SageObject):
         if not self._is_registered():
             self._register_function()
 
-            global sfunction_serial_dict
-            sfunction_serial_dict[self._serial] = self
-
-            from sage.symbolic.pynac import symbol_table, register_symbol
             symbol_table['functions'][self._name] = self
 
             register_symbol(self, self._conversions)
@@ -885,8 +880,7 @@ cdef class GinacFunction(BuiltinFunction):
         # ginac's function registry
         fname = self._ginac_name if self._ginac_name is not None else self._name
         self._serial = find_registered_function(fname, self._nargs)
-        global sfunction_serial_dict
-        return self._serial in sfunction_serial_dict
+        return bool(get_sfunction_from_serial(self._serial))
 
     cdef _register_function(self):
         # We don't need to add anything to GiNaC's function registry
@@ -1145,12 +1139,11 @@ cdef class BuiltinFunction(Function):
             return False
 
         # if match, get operator from function table
-        global sfunction_serial_dict
-        if serial in sfunction_serial_dict and \
-                sfunction_serial_dict[serial].__class__ == self.__class__:
-                    # if the returned function is of the same type
-                    self._serial = serial
-                    return True
+        sfunc = get_sfunction_from_serial(serial)
+        if serial.__class__ == self.__class__:
+            # if the returned function is of the same type
+            self._serial = serial
+            return True
 
         return False
 
@@ -1235,15 +1228,12 @@ cdef class SymbolicFunction(Function):
 
     cdef _is_registered(SymbolicFunction self):
         # see if there is already a SymbolicFunction with the same state
-        cdef Function sfunc
         cdef long myhash = self._hash_()
-        for sfunc in sfunction_serial_dict.itervalues():
-            if isinstance(sfunc, SymbolicFunction) and \
-                    myhash == (<SymbolicFunction>sfunc)._hash_():
-                # found one, set self._serial to be a copy
-                self._serial = sfunc._serial
-                return True
-
+        sfunc = get_sfunction_from_hash(myhash)
+        if sfunc is not None:
+            # found one, set self._serial to be a copy
+            self._serial = sfunc._serial
+            return True
         return False
 
     # cache the hash value of this function
@@ -1428,21 +1418,6 @@ cdef class SymbolicFunction(Function):
         SymbolicFunction.__init__(self, name, nargs, latex_name,
                 conversions, evalf_params_first)
 
-
-def get_sfunction_from_serial(serial):
-    """
-    Return an already created :class:`SymbolicFunction` given the serial.
-
-    These are stored in the dictionary ``sage.symbolic.function.sfunction_serial_dict``.
-
-    EXAMPLES::
-
-        sage: from sage.symbolic.function import get_sfunction_from_serial
-        sage: get_sfunction_from_serial(65) #random
-        f
-    """
-    global sfunction_serial_dict
-    return sfunction_serial_dict.get(serial)
 
 def pickle_wrapper(f):
     """

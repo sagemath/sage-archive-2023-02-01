@@ -332,7 +332,7 @@ from sage.cpython.string cimport str_to_bytes, char_to_str
 
 from sage.structure.element cimport RingElement, Element, Matrix
 from sage.symbolic.complexity_measures import string_length
-from sage.symbolic.function import get_sfunction_from_serial, SymbolicFunction
+from sage.symbolic.function cimport SymbolicFunction
 from sage.rings.rational import Rational
 from sage.rings.real_mpfr cimport RealNumber
 from sage.misc.derivative import multi_derivative
@@ -349,6 +349,7 @@ from sage.structure.element cimport CommutativeRingElement
 from sage.arith.numerical_approx cimport digits_to_bits
 
 include "pynac.pxi"
+include "pynac_impl.pxi"
 
 
 cpdef bint is_Expression(x):
@@ -2300,6 +2301,7 @@ cdef class Expression(CommutativeRingElement):
                     op = self.operator()
                     # check if op is a user defined function, for builtin
                     # functions like abs() we still need to pass 'abs(x) > 0'
+                    from sage.symbolic.function import SymbolicFunction
                     if isinstance(op, SymbolicFunction):
                         return self.operator().name()
         return self._maxima_init_()
@@ -13022,7 +13024,7 @@ cdef class Expression(CommutativeRingElement):
             True
         """
         from sage.symbolic.ring import SR
-        from sage.symbolic.function_factory import SymbolicFunction
+        from sage.symbolic.function import SymbolicFunction
 
         if not self.has(Y):
             raise ValueError("Expression {} contains no {} terms".format(self, Y))
@@ -13828,10 +13830,44 @@ cpdef unsigned int register_or_update_function(self, name, latex_name, int nargs
 
     g_foptions_assign(g_registered_functions().index(serial), opt)
 
+    sfunction_serial_dict[serial] = self
+
     return serial
 
 
-include "pynac_impl.pxi"
+# we keep a database of symbolic functions initialized in a session
+# this also makes the .operator() method of symbolic expressions work
+cdef dict sfunction_serial_dict = {}
+
+
+cpdef get_sfunction_from_serial(unsigned int serial):
+    """
+    Return an already created :class:`SymbolicFunction` given the serial.
+
+    These are stored in the dictionary ``sfunction_serial_dict``.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.function import get_sfunction_from_serial
+        sage: get_sfunction_from_serial(65) #random
+        f
+    """
+    global sfunction_serial_dict
+    return sfunction_serial_dict.get(serial)
+
+
+cpdef get_sfunction_from_hash(long myhash):
+    """
+    Return an already created :class:`SymbolicFunction` given the hash.
+    """
+    for sfunc in sfunction_serial_dict.itervalues():
+        if isinstance(sfunc, SymbolicFunction) and \
+                myhash == (<SymbolicFunction>sfunc)._hash_():
+            # found one
+            return sfunc
+    return None
+
+
 include "comparison_impl.pxi"
 include "constants_c_impl.pxi"
 include "getitem_impl.pxi"

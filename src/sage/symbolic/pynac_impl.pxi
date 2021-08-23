@@ -41,7 +41,6 @@ from sage.rings.rational cimport rational_power_parts
 from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.all import CC
 
-from sage.symbolic.function import get_sfunction_from_serial
 from sage.symbolic.function cimport Function
 from sage.symbolic import ring
 

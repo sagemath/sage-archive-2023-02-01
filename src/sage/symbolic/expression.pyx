@@ -307,8 +307,64 @@ More sanity tests::
     False
 """
 # ****************************************************************************
-#       Copyright (C) 2008 William Stein <wstein@gmail.com>
-#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2008-2011 William Stein <wstein@gmail.com>
+#       Copyright (C) 2008-2014 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2009      Alexandru Ghitza
+#       Copyright (C) 2009      Bill Cauchois
+#       Copyright (C) 2009-2010 Minh Van Nguyen
+#       Copyright (C) 2009-2012 Robert Bradshaw
+#       Copyright (C) 2009-2013 Mike Hansen
+#       Copyright (C) 2009-2015 Karl-Dieter Crisman
+#       Copyright (C) 2009-2019 John H. Palmieri
+#       Copyright (C) 2010      Jason Grout
+#       Copyright (C) 2010      Johan Sebastian Rosenkilde Nielsen
+#       Copyright (C) 2010      Mitesh Patel
+#       Copyright (C) 2010      Robert Marik
+#       Copyright (C) 2010-2011 Dan Drake
+#       Copyright (C) 2010-2019 Jeroen Demeyer
+#       Copyright (C) 2011      Florent Hivert
+#       Copyright (C) 2011      Jean-Pierre Flori
+#       Copyright (C) 2011      Martin Albrecht
+#       Copyright (C) 2011-2012 Keshav Kini
+#       Copyright (C) 2011-2014 Paul Zimmermann
+#       Copyright (C) 2011-2015 Volker Braun
+#       Copyright (C) 2012      Andrey Novoseltsev
+#       Copyright (C) 2012      Benjamin Jones
+#       Copyright (C) 2012      D. S. McNeil
+#       Copyright (C) 2012      David Roe
+#       Copyright (C) 2012      Titus Nicolae
+#       Copyright (C) 2012-2015 Karen T. Kohl
+#       Copyright (C) 2012-2021 Dima Pasechnik
+#       Copyright (C) 2012-2021 Michael Orlitzky
+#       Copyright (C) 2013      Jean-Baptiste Priez
+#       Copyright (C) 2013-2014 Eviatar Bach
+#       Copyright (C) 2014      Fredrik Johansson
+#       Copyright (C) 2014      Miguel Marco
+#       Copyright (C) 2014      Peter Bruin
+#       Copyright (C) 2014-2016 Daniel Krenn
+#       Copyright (C) 2014-2018 Clemens Heuberger
+#       Copyright (C) 2014-2018 Ralf Stephan
+#       Copyright (C) 2014-2020 Frédéric Chapoton
+#       Copyright (C) 2014-2021 Marc Mezzarobba
+#       Copyright (C) 2015      Nils Bruin
+#       Copyright (C) 2015-2017 Vincent Delecroix
+#       Copyright (C) 2015-2019 Benjamin Hackl
+#       Copyright (C) 2016      Jori Mäntysalo
+#       Copyright (C) 2016      Julian Rüth
+#       Copyright (C) 2017      Emmanuel Charpentier
+#       Copyright (C) 2017      Marcelo Forets
+#       Copyright (C) 2017      Thierry Monteil
+#       Copyright (C) 2018      Eran Assaf
+#       Copyright (C) 2018      Eric Gourgoulhon
+#       Copyright (C) 2018      Erik M. Bray
+#       Copyright (C) 2018      Martin Rubey
+#       Copyright (C) 2018      Vincent Klein
+#       Copyright (C) 2019      Bruno Grenet
+#       Copyright (C) 2019      Markus Wageringel
+#       Copyright (C) 2020-2021 Dave Witte Morris
+#       Copyright (C) 2020-2021 Matthias Koeppe
+#       Copyright (C) 2021      Jonathan Kliem
+#       Copyright (C) 2021      Marius Gerbershagen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

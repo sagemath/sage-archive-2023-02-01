@@ -3,9 +3,27 @@ Pynac interface
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008 William Stein <wstein@gmail.com>
-#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
-#       Copyright (C) 2017 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2008      William Stein <wstein@gmail.com>
+#       Copyright (C) 2008-2014 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2009      Carl Witty
+#       Copyright (C) 2009      Minh Van Nguyen
+#       Copyright (C) 2009-2011 Mike Hansen
+#       Copyright (C) 2010      Flavia Stan
+#       Copyright (C) 2010      Tom Coates
+#       Copyright (C) 2014      Eviatar Bach
+#       Copyright (C) 2014      Jean-Pierre Flori
+#       Copyright (C) 2014      R. Andrew Ohana
+#       Copyright (C) 2015-2017 Ralf Stephan
+#       Copyright (C) 2015-2018 Jeroen Demeyer <jdemeyer@cage.ugent.be>
+#       Copyright (C) 2015-2020 Marc Mezzarobba
+#       Copyright (C) 2016      Frédéric Chapoton
+#       Copyright (C) 2016      Jori Mäntysalo
+#       Copyright (C) 2016      Nils Bruin
+#       Copyright (C) 2016-2018 Frédéric Chapoton
+#       Copyright (C) 2017-2018 Erik M. Bray
+#       Copyright (C) 2019      Volker Braun
+#       Copyright (C) 2021      Jonathan Kliem
+#       Copyright (C) 2021      Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

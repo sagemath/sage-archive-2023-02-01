@@ -3,9 +3,11 @@ The constant `e`
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008 William Stein <wstein@gmail.com>
-#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
-#       Copyright (C) 2009 Mike Hansen <mhansen@gmail.com>
+#       Copyright (C) 2008      William Stein <wstein@gmail.com>
+#       Copyright (C) 2008-2009 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2009-2012 Mike Hansen <mhansen@gmail.com>
+#       Copyright (C) 2010      David Kirkby
+#       Copyright (C) 2012      Karl-Dieter Crisman
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

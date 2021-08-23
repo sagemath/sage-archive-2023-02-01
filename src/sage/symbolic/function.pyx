@@ -114,9 +114,22 @@ is attempted, and after that ``sin()`` which succeeds::
 """
 
 #*****************************************************************************
-#       Copyright (C) 2008 - 2010 Burcin Erocal <burcin@erocal.org>
-#       Copyright (C) 2008 William Stein <wstein@gmail.com>
-#       Copyright (C) 2016 Vincent Delecroix <vincent.delecroix@u-bordeaux.fr>
+#       Copyright (C) 2008      William Stein <wstein@gmail.com>
+#       Copyright (C) 2008-2012 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2009      Mike Hansen
+#       Copyright (C) 2010      Wilfried Huss
+#       Copyright (C) 2012      Michael Orlitzky
+#       Copyright (C) 2013      Eviatar Bach
+#       Copyright (C) 2013      Robert Bradshaw
+#       Copyright (C) 2014      Jeroen Demeyer
+#       Copyright (C) 2014      Martin von Gagern
+#       Copyright (C) 2015-2020 Frédéric Chapoton
+#       Copyright (C) 2016      Vincent Delecroix <vincent.delecroix@u-bordeaux.fr>
+#       Copyright (C) 2016-2018 Ralf Stephan
+#       Copyright (C) 2018      Erik M. Bray
+#       Copyright (C) 2019      Eric Gourgoulhon
+#       Copyright (C) 2019      Marc Mezzarobba
+#       Copyright (C) 2021      Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

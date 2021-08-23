@@ -1143,7 +1143,7 @@ cdef class BuiltinFunction(Function):
 
         # if match, get operator from function table
         sfunc = get_sfunction_from_serial(serial)
-        if serial.__class__ == self.__class__:
+        if sfunc.__class__ == self.__class__:
             # if the returned function is of the same type
             self._serial = serial
             return True

@@ -14,7 +14,6 @@ Wrapper around Pynac's constants
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.symbolic.ring import SR
 from sage.cpython.string cimport str_to_bytes
 
 
@@ -128,4 +127,5 @@ cdef class PynacConstant:
             sage: foo + 2
             foo + 2
         """
+        from sage.symbolic.ring import SR
         return new_Expression_from_GEx(SR, <GEx>(self.pointer[0]))

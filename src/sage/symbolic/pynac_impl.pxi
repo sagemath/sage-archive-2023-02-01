@@ -42,7 +42,6 @@ from sage.rings.real_double cimport RealDoubleElement
 from sage.rings.all import CC
 
 from sage.symbolic.function cimport Function
-from sage.symbolic import ring
 
 
 #################################################################
@@ -58,7 +57,8 @@ cdef ex_to_pyExpression(GEx juice):
     cdef Expression nex
     nex = <Expression>Expression.__new__(Expression)
     nex._gobj = GEx(juice)
-    nex._parent = ring.SR
+    from .ring import SR
+    nex._parent = SR
     return nex
 
 cdef exprseq_to_PyTuple(GEx seq):
@@ -174,8 +174,9 @@ cdef GEx pyExpression_to_ex(res) except *:
     """
     if res is None:
         raise TypeError("function returned None, expected return value of type sage.symbolic.expression.Expression")
+    from .ring import SR
     try:
-        t = ring.SR.coerce(res)
+        t = SR.coerce(res)
     except TypeError as err:
         raise TypeError("function did not return a symbolic expression or an element that can be coerced into a symbolic expression")
     return (<Expression>t)._gobj
@@ -1119,7 +1120,8 @@ cdef bint py_is_integer(x):
     if not isinstance(x, Element):
         return False
     P = (<Element>x)._parent
-    return (P is ring.SR or P.is_exact()) and x in ZZ
+    from .ring import SR
+    return (P is SR or P.is_exact()) and x in ZZ
 
 
 def py_is_integer_for_doctests(x):
@@ -1207,7 +1209,8 @@ cdef bint py_is_exact(x):
     if not isinstance(x, Element):
         return False
     P = (<Element>x)._parent
-    return P is ring.SR or P.is_exact()
+    from .ring import SR
+    return P is SR or P.is_exact()
 
 
 cdef py_numer(n):
@@ -1510,11 +1513,12 @@ cdef py_step(n):
     """
     Return step function of n.
     """
+    from .ring import SR
     if n < 0:
-        return ZERO
+        return SR(0)
     elif n > 0:
-        return ONE
-    return ONE_HALF
+        return SR(1)
+    return SR(Rational((1,2)))
 
 cdef py_bernoulli(x):
     return bernoulli(x)
@@ -2289,10 +2293,6 @@ cdef mpz_ptr py_mpz_from_integer(x):
 cdef mpq_ptr py_mpq_from_rational(x):
     return <mpq_ptr>((<Rational>x).value)
 
-ZERO = ring.SR(0)
-ONE = ring.SR(1)
-ONE_HALF = ring.SR(Rational((1,2)))
-
 symbol_table = {'functions':{}}
 def register_symbol(obj, conversions):
     """
@@ -2432,7 +2432,8 @@ def init_pynac_I():
     from sage.rings.number_field.number_field import GaussianField
     pynac_I = GaussianField().gen()
     ginac_pyinit_I(pynac_I)
-    I = new_Expression_from_GEx(ring.SR, g_I)
+    from .ring import SR
+    I = new_Expression_from_GEx(SR, g_I)
 
 
 def init_function_table():

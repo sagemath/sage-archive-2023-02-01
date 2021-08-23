@@ -322,7 +322,6 @@ from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
 from inspect import isfunction
 import operator
-from .ring import SR
 import sage.rings.integer
 import sage.rings.rational
 
@@ -344,7 +343,6 @@ from sage.rings.real_mpfr import RR
 from sage.rings.complex_mpfr import is_ComplexField
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
-from sage.symbolic.operators import FDerivativeOperator, add_vararg, mul_vararg
 from sage.structure.element cimport CommutativeRingElement
 from sage.arith.numerical_approx cimport digits_to_bits
 
@@ -782,6 +780,7 @@ cdef class Expression(CommutativeRingElement):
         if state[0] != 0 or len(state) != 3:
             raise ValueError("unknown state information")
         # set parent
+        from .ring import SR
         self._parent = SR
         # get variables
         cdef GExList sym_lst
@@ -825,6 +824,7 @@ cdef class Expression(CommutativeRingElement):
             True
 
         """
+        from .ring import SR
         SR.cleanup_var(self)
         return False
 
@@ -6085,6 +6085,7 @@ cdef class Expression(CommutativeRingElement):
         """
         cdef operators o
         cdef unsigned serial
+        from sage.symbolic.operators import add_vararg, mul_vararg
         if is_a_add(self._gobj):
             return add_vararg
         elif is_a_mul(self._gobj):
@@ -6119,14 +6120,15 @@ cdef class Expression(CommutativeRingElement):
                 raise RuntimeError("cannot find SymbolicFunction in table")
 
             if is_a_fderivative(self._gobj):
-                from sage.symbolic.expression import paramset_from_Expression
                 parameter_set = paramset_from_Expression(self)
+                from sage.symbolic.operators import FDerivativeOperator
                 res = FDerivativeOperator(res, parameter_set)
 
             return res
         elif is_exactly_a_exprseq(self._gobj):
             return tuple
         elif is_a_series(self._gobj):
+            from sage.symbolic.expression import add_vararg
             return add_vararg
 
         # self._gobj is either a symbol, constant or numeric
@@ -11633,6 +11635,7 @@ cdef class Expression(CommutativeRingElement):
             <... 'list'>
         """
         op = self.operator()
+        from sage.symbolic.operators import mul_vararg
         if op is mul_vararg:
             return sum([f._factor_list() for f in self.operands()], [])
         elif op is operator.pow:

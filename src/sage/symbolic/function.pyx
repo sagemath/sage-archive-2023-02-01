@@ -131,11 +131,9 @@ from sage.misc.lazy_attribute import lazy_attribute
 from .expression import (
     call_by_ginac_serial, find_registered_function, register_or_update_function,
     get_sfunction_from_hash,
-    symbol_table, register_symbol,
     is_Expression
 )
 from .expression import get_sfunction_from_serial as get_sfunction_from_serial
-from .ring import SR
 
 from sage.structure.coerce cimport (coercion_model,
         py_scalar_to_element, is_numpy_type, is_mpmath_type)
@@ -223,6 +221,8 @@ cdef class Function(SageObject):
 
         if not self._is_registered():
             self._register_function()
+
+            from .expression import symbol_table, register_symbol
 
             symbol_table['functions'][self._name] = self
 
@@ -515,6 +515,7 @@ cdef class Function(SageObject):
 
         # if the given input is a symbolic expression, we don't convert it back
         # to a numeric type at the end
+        from .ring import SR
         if any(parent(arg) is SR for arg in args):
             symbolic_input = True
         else:
@@ -596,6 +597,7 @@ cdef class Function(SageObject):
             sage: sin.default_variable()
             x
         """
+        from .ring import SR
         return SR.var('x')
 
     def _is_numerical(self, x):
@@ -1077,6 +1079,7 @@ cdef class BuiltinFunction(Function):
             if (self._preserved_arg
                     and isinstance(args[self._preserved_arg-1], Element)):
                 arg_parent = parent(args[self._preserved_arg-1])
+                from .ring import SR
                 if arg_parent is SR:
                     return res
                 from sage.rings.polynomial.polynomial_ring import PolynomialRing_commutative

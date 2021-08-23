@@ -13249,12 +13249,12 @@ cdef Expression new_Expression_from_GEx(parent, GEx juice):
     return nex
 
 
-cpdef Expression new_Expression_from_pyobject(parent, x):
+cpdef new_Expression_from_pyobject(parent, x):
     cdef GEx exp = x
     return new_Expression_from_GEx(parent, exp)
 
 
-cpdef Expression new_Expression(parent, x):
+cpdef new_Expression(parent, x):
     r"""
     Convert ``x`` into the symbolic expression ring ``parent``.
 
@@ -13338,7 +13338,7 @@ cpdef Expression new_Expression(parent, x):
     return new_Expression_from_GEx(parent, exp)
 
 
-cpdef Expression new_Expression_force_pyobject(parent, x, bint force=False, bint recursive=True):
+cpdef new_Expression_force_pyobject(parent, x, bint force=False, bint recursive=True):
     r"""
     Wrap the given Python object in a symbolic expression even if it
     cannot be coerced to the Symbolic Ring.
@@ -13392,7 +13392,7 @@ cpdef Expression new_Expression_force_pyobject(parent, x, bint force=False, bint
     return new_Expression_from_GEx(parent, exp)
 
 
-cpdef Expression new_Expression_wild(parent, unsigned int n=0):
+cpdef new_Expression_wild(parent, unsigned int n=0):
     r"""
     Return the n-th wild-card for pattern matching and substitution.
 
@@ -13422,7 +13422,7 @@ cpdef Expression new_Expression_wild(parent, unsigned int n=0):
     return new_Expression_from_GEx(parent, g_wild(n))
 
 
-cpdef Expression new_Expression_symbol(parent, name=None, latex_name=None, domain=None):
+cpdef new_Expression_symbol(parent, name=None, latex_name=None, domain=None):
     r"""
     Look up or create a symbol.
 

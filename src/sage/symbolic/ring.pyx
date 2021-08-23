@@ -16,7 +16,7 @@ The symbolic ring
 
 from sage.rings.integer cimport Integer
 
-from sage.symbolic.expression import (
+from sage.symbolic.expression cimport (
     is_Expression,
     _latex_Expression,
     _repr_Expression,

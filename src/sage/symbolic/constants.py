@@ -680,8 +680,8 @@ TESTS::
 
 # The base of the natural logarithm, e, is not a constant in GiNaC/Sage. It is
 # represented by exp(1). A dummy class to make this work with arithmetic and
-# coercion is implemented in the module sage.symbolic.constants_c for speed.
-from sage.symbolic.constants_c import E
+# coercion is implemented in the module sage.symbolic.expression for speed.
+from sage.symbolic.expression import E
 e = E()
 
 # Allow for backtranslation to this symbol from Mathematica (#29833).

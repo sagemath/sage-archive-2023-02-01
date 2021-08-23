@@ -909,7 +909,7 @@ def test_binomial(n, k):
 
     EXAMPLES::
 
-        sage: import sage.symbolic.pynac
+        sage: import sage.symbolic.expression
         sage: sage.symbolic.expression.test_binomial(5,2)
         10
         sage: sage.symbolic.expression.test_binomial(-5,3)

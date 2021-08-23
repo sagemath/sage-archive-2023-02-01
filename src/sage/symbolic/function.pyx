@@ -1232,7 +1232,7 @@ cdef class SymbolicFunction(Function):
     cdef _is_registered(SymbolicFunction self):
         # see if there is already a SymbolicFunction with the same state
         cdef long myhash = self._hash_()
-        sfunc = get_sfunction_from_hash(myhash)
+        cdef SymbolicFunction sfunc = get_sfunction_from_hash(myhash)
         if sfunc is not None:
             # found one, set self._serial to be a copy
             self._serial = sfunc._serial

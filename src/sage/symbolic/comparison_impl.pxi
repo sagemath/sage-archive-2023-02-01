@@ -50,7 +50,7 @@ cpdef int print_order(lhs, rhs) except -2:
 
     EXAMPLES::
 
-        sage: from sage.symbolic.comparison import print_order
+        sage: from sage.symbolic.expression import print_order
         sage: print_order(1, oo)
         1
         sage: print_order(e, oo)
@@ -85,9 +85,9 @@ class _print_key(object):
 
         EXAMPLES::
 
-            sage: from sage.symbolic.comparison import _print_key
+            sage: from sage.symbolic.expression import _print_key
             sage: _print_key(1)
-            <sage.symbolic.comparison._print_key object at 0x...>
+            <sage.symbolic.expression._print_key object at 0x...>
         """
         self.ex = ex if is_Expression(ex) else SR(ex)
 
@@ -105,7 +105,7 @@ class _print_key(object):
 
         EXAMPLES::
 
-            sage: from sage.symbolic.comparison import print_order, _print_key
+            sage: from sage.symbolic.expression import print_order, _print_key
             sage: print_order(1, 2)
             -1
             sage: _print_key(1) < _print_key(2)
@@ -133,7 +133,7 @@ cpdef print_sorted(expressions):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.comparison import print_sorted
+        sage: from sage.symbolic.expression import print_sorted
         sage: print_sorted([SR(1), SR(e), SR(pi), sqrt(2)])
         [e, sqrt(2), pi, 1]
     """
@@ -153,9 +153,9 @@ class _math_key(object):
 
         EXAMPLES::
 
-            sage: from sage.symbolic.comparison import _math_key
+            sage: from sage.symbolic.expression import _math_key
             sage: _math_key(1)
-            <sage.symbolic.comparison._math_key object at 0x...>
+            <sage.symbolic.expression._math_key object at 0x...>
         """
         self.ex = ex if is_Expression(ex) else SR(ex)
 
@@ -174,7 +174,7 @@ class _math_key(object):
 
         EXAMPLES::
 
-            sage: from sage.symbolic.comparison import _math_key
+            sage: from sage.symbolic.expression import _math_key
             sage: _math_key(1) < _math_key(2)
             True
             sage: _math_key(1) < _math_key(sqrt(2))
@@ -216,7 +216,7 @@ cpdef math_sorted(expressions):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.comparison import math_sorted
+        sage: from sage.symbolic.expression import math_sorted
         sage: math_sorted([SR(1), SR(e), SR(pi), sqrt(2)])
         [1, sqrt(2), e, pi]
     """
@@ -240,7 +240,7 @@ cpdef int mixed_order(lhs, rhs) except -2:
 
     EXAMPLES::
 
-        sage: from sage.symbolic.comparison import mixed_order
+        sage: from sage.symbolic.expression import mixed_order
         sage: mixed_order(1, oo)
         -1
         sage: mixed_order(e, oo)
@@ -300,9 +300,9 @@ class _mixed_key(object):
 
         EXAMPLES::
 
-            sage: from sage.symbolic.comparison import _mixed_key
+            sage: from sage.symbolic.expression import _mixed_key
             sage: _mixed_key(1)
-            <sage.symbolic.comparison._mixed_key object at 0x...>
+            <sage.symbolic.expression._mixed_key object at 0x...>
         """
         self.ex = ex if is_Expression(ex) else SR(ex)
 
@@ -321,7 +321,7 @@ class _mixed_key(object):
 
         EXAMPLES::
 
-            sage: from sage.symbolic.comparison import _mixed_key
+            sage: from sage.symbolic.expression import _mixed_key
             sage: _mixed_key(1) < _mixed_key(2)
             True
             sage: _mixed_key(1) < _mixed_key(sqrt(2))
@@ -404,7 +404,7 @@ cpdef mixed_sorted(expressions):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.comparison import mixed_sorted
+        sage: from sage.symbolic.expression import mixed_sorted
         sage: mixed_sorted([SR(1), SR(e), SR(pi), sqrt(2), x, sqrt(x), sin(1/x)])
         [1, sqrt(2), e, pi, sin(1/x), sqrt(x), x]
     """

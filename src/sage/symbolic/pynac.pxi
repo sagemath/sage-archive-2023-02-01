@@ -3,11 +3,8 @@ Declarations for pynac, a Python frontend for ginac
 
 Check that we can externally cimport this (:trac:`18825`)::
 
-    sage: cython(  # long time; random compiler warnings
-    ....: '''
-    ....: # distutils: language = c++
-    ....: # distutils: extra_compile_args = --std=c++11
-    ....: cimport sage.symbolic.pynac
+    sage: cython('''  # long time; random compiler warnings
+    ....: from sage.symbolic cimport expression
     ....: ''')
 """
 

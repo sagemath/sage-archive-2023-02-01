@@ -660,12 +660,12 @@ class RealBallField(UniqueRepresentation, Field):
             [-4.733045976388941e+363922934236666733021124 +/- ...e+363922934236666733021108],
             [+/- inf], [+/- inf], [+/- inf], nan]
         """
-        import sage.symbolic.constants
+        import sage.symbolic.expression
         inf = self(sage.rings.infinity.Infinity)
         return [self(0), self(1), self(1)/3,
                 -self(2)**(Integer(2)**80),
                 inf, -inf, self.zero().add_error(inf),
-                self.element_class(self, sage.symbolic.constants.NotANumber())]
+                self.element_class(self, sage.symbolic.expression.NotANumber())]
 
     def _sum_of_products(self, terms):
         r"""
@@ -1381,6 +1381,7 @@ cdef class RealBall(RingElement):
         else:
             # the initializers that trigger imports
             import sage.symbolic.constants
+            import sage.symbolic.expression
             if isinstance(mid, sage.rings.infinity.AnInfinity):
                 if isinstance(mid, sage.rings.infinity.PlusInfinity):
                     arb_pos_inf(self.value)
@@ -1409,7 +1410,7 @@ cdef class RealBall(RingElement):
                         raise TypeError("unsupported constant")
                 finally:
                     if _do_sig(prec(self)): sig_off()
-            elif isinstance(mid, sage.symbolic.constants_c.E):
+            elif isinstance(mid, sage.symbolic.expression.E):
                 if _do_sig(prec(self)): sig_on()
                 arb_const_e(self.value, prec(self))
                 if _do_sig(prec(self)): sig_off()

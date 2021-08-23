@@ -7,7 +7,7 @@ constructed via the
 method.
 They usually have an ``Order()`` term unless the series representation
 is exact, see
-:meth:`~sage.symbolic.series.SymbolicSeries.is_terminating_series`.
+:meth:`~sage.symbolic.expression.SymbolicSeries.is_terminating_series`.
 
 For series over general rings see
 :class:`power series <sage.rings.power_series_poly.PowerSeries_poly>`

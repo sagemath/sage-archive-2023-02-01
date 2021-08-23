@@ -157,11 +157,11 @@ Test that :trac:`20784` is fixed (equations should stay unevaluated)::
 
 Many tests about comparison.
 
-Use :func:`sage.symbolic.comparison.mixed_order`` instead of
+Use :func:`sage.symbolic.expression.mixed_order`` instead of
 the operators <=, <, etc. to compare symbolic expressions when
 you do not want to get a formal inequality::
 
-    sage: from sage.symbolic.comparison import mixed_order
+    sage: from sage.symbolic.expression import mixed_order
 
     sage: a = sqrt(3)
     sage: b = x^2+1
@@ -5280,7 +5280,6 @@ cdef class Expression(CommutativeRingElement):
             sage: ((x^y)^z).find(w0^w1)
             [(x^y)^z]
         """
-        from sage.symbolic.comparison import print_sorted
         cdef Expression p = self.coerce_in(pattern)
         cdef GExList found
         sig_on()
@@ -5831,7 +5830,6 @@ cdef class Expression(CommutativeRingElement):
 
         """
         from sage.symbolic.ring import SR
-        from sage.symbolic.comparison import print_sorted
         cdef GExSet sym_set
         g_list_symbols(self._gobj, sym_set)
         res = []
@@ -5865,7 +5863,6 @@ cdef class Expression(CommutativeRingElement):
             (y,)
         """
         from sage.symbolic.ring import SR
-        from sage.symbolic.comparison import print_sorted
         cdef GSymbolSet sym_set
         sym_set = self._gobj.free_symbols()
         res = []
@@ -6128,7 +6125,7 @@ cdef class Expression(CommutativeRingElement):
         elif is_exactly_a_exprseq(self._gobj):
             return tuple
         elif is_a_series(self._gobj):
-            from sage.symbolic.expression import add_vararg
+            from sage.symbolic.operators import add_vararg
             return add_vararg
 
         # self._gobj is either a symbol, constant or numeric

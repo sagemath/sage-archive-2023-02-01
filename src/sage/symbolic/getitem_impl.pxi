@@ -21,7 +21,7 @@ cdef inline int normalize_index(object arg, int nops, object err_msg) except -1:
 
     TESTS::
 
-        sage: from sage.symbolic.getitem import normalize_index_for_doctests as normalize_index
+        sage: from sage.symbolic.expression import normalize_index_for_doctests as normalize_index
         sage: normalize_index(-1, 4)
         3
         sage: normalize_index(1, 4)
@@ -55,7 +55,7 @@ def normalize_index_for_doctests(arg, nops):
 
     TESTS::
 
-        sage: from sage.symbolic.getitem import normalize_index_for_doctests
+        sage: from sage.symbolic.expression import normalize_index_for_doctests
         sage: normalize_index_for_doctests(-1, 4)
         3
     """
@@ -192,7 +192,7 @@ def restore_op_wrapper(expr):
     """
     TESTS::
 
-        sage: from sage.symbolic.getitem import restore_op_wrapper
+        sage: from sage.symbolic.expression import restore_op_wrapper
         sage: restore_op_wrapper(x^2)
         Operands of x^2
     """

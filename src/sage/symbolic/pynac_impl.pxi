@@ -239,7 +239,7 @@ def get_ginac_serial():
 
     EXAMPLES::
 
-        sage: sage.symbolic.pynac.get_ginac_serial() >= 35
+        sage: sage.symbolic.expression.get_ginac_serial() >= 35
         True
     """
     return py_get_ginac_serial()
@@ -284,12 +284,12 @@ cdef subs_args_to_PyTuple(const GExMap& map, unsigned options, const GExVector& 
         ....:         return args[-1]
         sage: tfunc = TFunc()
         sage: tfunc(x).subs(x=1)   # py3
-        len(args): 3, types: [<class 'sage.symbolic.substitution_map.SubstitutionMap'>,
+        len(args): 3, types: [<class 'sage.symbolic.expression.SubstitutionMap'>,
           <class 'int'>,
           <class 'sage.symbolic.expression.Expression'>]
         x
         sage: tfunc(x).subs(x=1)   # py2
-        len(args): 3, types: [<type 'sage.symbolic.substitution_map.SubstitutionMap'>,
+        len(args): 3, types: [<type 'sage.symbolic.expression.SubstitutionMap'>,
           <type 'int'>,        # 64-bit
           <type 'long'>,       # 32-bit
           <type 'sage.symbolic.expression.Expression'>]
@@ -415,9 +415,9 @@ def py_latex_variable_for_doctests(x):
 
     EXAMPLES::
 
-        sage: sage.symbolic.pynac.py_latex_variable_for_doctests('x')
+        sage: sage.symbolic.expression.py_latex_variable_for_doctests('x')
         x
-        sage: sage.symbolic.pynac.py_latex_variable_for_doctests('sigma')
+        sage: sage.symbolic.expression.py_latex_variable_for_doctests('sigma')
         \sigma
     """
     cdef stdstring* ostr = py_latex_variable(x)
@@ -910,11 +910,11 @@ def test_binomial(n, k):
     EXAMPLES::
 
         sage: import sage.symbolic.pynac
-        sage: sage.symbolic.pynac.test_binomial(5,2)
+        sage: sage.symbolic.expression.test_binomial(5,2)
         10
-        sage: sage.symbolic.pynac.test_binomial(-5,3)
+        sage: sage.symbolic.expression.test_binomial(-5,3)
         -35
-        sage: -sage.symbolic.pynac.test_binomial(3-(-5)-1, 3)
+        sage: -sage.symbolic.expression.test_binomial(3-(-5)-1, 3)
         -35
     """
     return py_binomial(n, k)
@@ -1130,11 +1130,11 @@ def py_is_integer_for_doctests(x):
 
     TESTS::
 
-        sage: sage.symbolic.pynac.py_is_integer_for_doctests(1r)
+        sage: sage.symbolic.expression.py_is_integer_for_doctests(1r)
         True
-        sage: sage.symbolic.pynac.py_is_integer_for_doctests(1/3)
+        sage: sage.symbolic.expression.py_is_integer_for_doctests(1/3)
         False
-        sage: sage.symbolic.pynac.py_is_integer_for_doctests(2)
+        sage: sage.symbolic.expression.py_is_integer_for_doctests(2)
         True
     """
     return py_is_integer(x)
@@ -2313,7 +2313,7 @@ def register_symbol(obj, conversions):
 
     EXAMPLES::
 
-        sage: sage.symbolic.pynac.register_symbol(SR(5),{'maxima':'five'})
+        sage: sage.symbolic.expression.register_symbol(SR(5),{'maxima':'five'})
         sage: SR(maxima_calculus('five'))
         5
     """
@@ -2406,10 +2406,10 @@ def init_pynac_I():
         sage: latex(symbolic_I)
         i
 
-        sage: sage.symbolic.pynac.init_pynac_I()
-        sage: type(sage.symbolic.pynac.I)
+        sage: sage.symbolic.expression.init_pynac_I()
+        sage: type(sage.symbolic.expression.I)
         <type 'sage.symbolic.expression.Expression'>
-        sage: type(sage.symbolic.pynac.I.pyobject())
+        sage: type(sage.symbolic.expression.I.pyobject())
         <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
 
     Check that :trac:`10064` is fixed::

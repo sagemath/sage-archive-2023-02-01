@@ -4,8 +4,25 @@ The symbolic ring
 """
 
 # ****************************************************************************
-#       Copyright (C) 2008 William Stein <wstein@gmail.com>
-#       Copyright (C) 2008 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2008      William Stein <wstein@gmail.com>
+#       Copyright (C) 2008-2013 Burcin Erocal <burcin@erocal.org>
+#       Copyright (C) 2009      Mike Hansen
+#       Copyright (C) 2011      Karl-Dieter Crisman
+#       Copyright (C) 2011-2012 Volker Braun
+#       Copyright (C) 2013-2019 Frédéric Chapoton
+#       Copyright (C) 2014-2020 Marc Mezzarobba
+#       Copyright (C) 2015      Bruno Grenet
+#       Copyright (C) 2015-2016 Daniel Krenn
+#       Copyright (C) 2015-2016 Jeroen Demeyer
+#       Copyright (C) 2015-2017 Vincent Delecroix
+#       Copyright (C) 2015-2018 Ralf Stephan
+#       Copyright (C) 2016      Julian Rüth
+#       Copyright (C) 2017      Marcelo Forets
+#       Copyright (C) 2018      Martin Rubey
+#       Copyright (C) 2019      E. Madison Bray
+#       Copyright (C) 2019      Markus Wageringel
+#       Copyright (C) 2021      Marius Gerbershagen
+#       Copyright (C) 2021      Matthias Koeppe
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

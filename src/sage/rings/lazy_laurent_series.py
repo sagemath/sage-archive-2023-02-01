@@ -171,7 +171,7 @@ class LazyLaurentSeries(ModuleElement):
 
     def _richcmp_(self, other, op):
         """
-        Compare ``self` with ``other`` with respect to the comparison operator ``op``.
+        Compare ``self`` with ``other`` with respect to the comparison operator ``op``.
 
         Equality is verified if the corresponding coefficients of both series
         can be checked for equality without computing coefficients

@@ -5713,7 +5713,8 @@ cdef class Expression(CommutativeRingElement):
         return SubstituteFunction(self, original, new)()
 
     def exponentialize(self):
-        """Returns this sumbolic expression with all circular and hyperbolic
+        """
+        Returns this symbolic expression with all circular and hyperbolic
         functions replaced by their respective exponential
         expressions.
 
@@ -5757,7 +5758,6 @@ cdef class Expression(CommutativeRingElement):
         return Exponentialize(self)()
 
     def demoivre(self, force=False):
-        from sage.symbolic.expression_conversions import DeMoivre
         """
         Returns this symbolic expression with complex exponentials
         (optionally all exponentials) replaced by (at least partially)
@@ -5782,10 +5782,11 @@ cdef class Expression(CommutativeRingElement):
 
             sage: x = SR.var("x")
             sage: f = function("f")
-            sage:  bool(f(exp(I*x)).diff(x).demoivre() ==
-            ....:       f(exp(I*x)).demoivre().diff(x))
+            sage: bool(f(exp(I*x)).diff(x).demoivre() == 
+            ....:      f(exp(I*x)).demoivre().diff(x))
             True
         """
+        from sage.symbolic.expression_conversions import DeMoivre
         return DeMoivre(self, force)()
 
     def substitution_delayed(self, pattern, replacement):

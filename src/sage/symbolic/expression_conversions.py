@@ -2387,18 +2387,20 @@ class Exponentialize(ExpressionTreeWalker):
     from sage.rings.integer import Integer
     from sage.symbolic.ring import SR
     from sage.calculus.var import function
+    half = Integer(1)/Integer(2)
+    two = Integer(2)
     x = SR.var("x")
     CircDict = {
-        sin: (-Integer(1)/Integer(2)*I*exp(I*x) + Integer(1)/Integer(2)*I*exp(-I*x)).function(x),
-        cos: (Integer(1)/Integer(2)*exp(I*x) + Integer(1)/Integer(2)*exp(-I*x)).function(x),
-        sec: (Integer(2)/(exp(I*x) + exp(-I*x))).function(x),
-        csc: (Integer(2)*I/(exp(I*x) - exp(-I*x))).function(x),
+        sin: (-half*I*exp(I*x) + half*I*exp(-I*x)).function(x),
+        cos: (half*exp(I*x) + half*exp(-I*x)).function(x),
+        sec: (two/(exp(I*x) + exp(-I*x))).function(x),
+        csc: (two*I/(exp(I*x) - exp(-I*x))).function(x),
         tan: (-I*(exp(I*x) - exp(-I*x))/(exp(I*x) + exp(-I*x))).function(x),
         cot: (I*(exp(I*x) + exp(-I*x))/(exp(I*x) - exp(-I*x))).function(x),
-        sinh: (-Integer(1)/Integer(2)*exp(-x) + Integer(1)/Integer(2)*exp(x)).function(x),
-        cosh: (Integer(1)/Integer(2)*exp(-x) + Integer(1)/Integer(2)*exp(x)).function(x),
-        sech: (Integer(2)/(exp(-x) + exp(x))).function(x),
-        csch: (-Integer(2)/(exp(-x) - exp(x))).function(x),
+        sinh: (-half*exp(-x) + half*exp(x)).function(x),
+        cosh: (half*exp(-x) + half*exp(x)).function(x),
+        sech: (two/(exp(-x) + exp(x))).function(x),
+        csch: (-two/(exp(-x) - exp(x))).function(x),
         tanh: (-(exp(-x) - exp(x))/(exp(x) + exp(-x))).function(x),
         coth: (-(exp(-x) + exp(x))/(exp(-x) - exp(x))).function(x)
     }
@@ -2408,6 +2410,16 @@ class Exponentialize(ExpressionTreeWalker):
         A class that walks a symbolic expression tree and replace circular
         and hyperbolic functions by their respective exponential
         expressions.
+
+        EXAMPLES ::
+        
+            sage: from sage.symbolic.expression_conversions import Exponentialize
+            sage: d=Exponentialize(sin(x))
+            sage: d(sin(x))
+            -1/2*I*e^(I*x) + 1/2*I*e^(-I*x)
+            sage: d(cosh(x))
+            1/2*e^(-x) + 1/2*e^x
+
         """
         self.ex = ex
     def composition(self, ex, op):
@@ -2423,7 +2435,8 @@ class Exponentialize(ExpressionTreeWalker):
             -1/2*I*e^(I*x) + 1/2*I*e^(-I*x)
         """
         if op in self.Circs:
-            return self.CircDict.get(op)(*[self(_) for _ in ex.operands()])
+            return self.CircDict.get(op)(*[self(oper)
+                                           for oper in ex.operands()])
         return super(Exponentialize, self).composition(ex, op)
 
 class DeMoivre(ExpressionTreeWalker):

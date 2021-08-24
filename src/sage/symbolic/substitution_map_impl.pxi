@@ -30,7 +30,7 @@ cdef class SubstitutionMap(SageObject):
 
         EXAMPLES::
         
-            sage: from sage.symbolic.substitution_map import make_map
+            sage: from sage.symbolic.expression import make_map
             sage: subs = make_map({x:x+1})
             sage: subs.apply_to(x^2, 0)
             (x + 1)^2
@@ -44,7 +44,7 @@ cdef class SubstitutionMap(SageObject):
 
         EXAMPLES::
         
-            sage: from sage.symbolic.substitution_map import make_map
+            sage: from sage.symbolic.expression import make_map
             sage: make_map({x:x+1})
             SubsMap
         """
@@ -65,7 +65,7 @@ cdef SubstitutionMap new_SubstitutionMap_from_GExMap(const GExMap& smap):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.substitution_map import make_map
+        sage: from sage.symbolic.expression import make_map
         sage: make_map({x:x+1})
         SubsMap
     """
@@ -85,7 +85,7 @@ cpdef SubstitutionMap make_map(subs_dict):
 
     EXAMPLES::
 
-        sage: from sage.symbolic.substitution_map import make_map
+        sage: from sage.symbolic.expression import make_map
         sage: make_map({x:x+1})
         SubsMap
     """

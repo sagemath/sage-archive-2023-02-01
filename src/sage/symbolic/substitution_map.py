@@ -17,6 +17,5 @@ back to Python.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# Re-export
-from .expression import SubstitutionMap as SubstitutionMap
-from .expression import make_map as make_map
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.symbolic.expression', ('SubstitutionMap', 'make_map'), deprecation=32386)

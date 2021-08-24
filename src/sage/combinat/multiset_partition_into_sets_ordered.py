@@ -80,8 +80,8 @@ from sage.misc.latex import latex
 from sage.sets.set import Set_object
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
+from sage.rings.power_series_ring import PowerSeriesRing
 from sage.arith.all import binomial
-from sage.symbolic.ring import SR
 
 from sage.combinat.subset import Subsets_sk
 from sage.combinat.composition import Composition, Compositions, composition_iterator_fast
@@ -2060,18 +2060,18 @@ class OrderedMultisetPartitionsIntoSets_n(OrderedMultisetPartitionsIntoSets):
         """
         # Dispense with the complex computation for small orders.
         if self._n <= 5:
-            orders = {0:1, 1:1, 2:2, 3:5, 4:11, 5:25}
+            orders = {0: 1, 1: 1, 2: 2, 3: 5, 4: 11, 5: 25}
             return ZZ(orders[self._n])
 
         # We view an ordered multiset partition into sets as a list of 2-regular integer partitions.
         #
         # The 2-regular partitions have a nice generating function (see OEIS:A000009).
         # Below, we take (products of) coefficients of polynomials to compute cardinality.
-        t = SR.var('t')
-        partspoly = prod(1+t**k for k in range(1,self._n+1)).coefficients()
+        t = PowerSeriesRing(ZZ, 't').gen().O(self._n + 1)
+        partspoly = prod(1 + t**k for k in range(1, self._n + 1)).dict()
         deg = 0
         for alpha in composition_iterator_fast(self._n):
-            deg += prod(partspoly[d][0] for d in alpha)
+            deg += prod(partspoly[d] for d in alpha)
         return ZZ(deg)
 
     def _an_element_(self):

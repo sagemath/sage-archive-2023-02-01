@@ -192,6 +192,11 @@ cpdef get_sfunction_from_serial(unsigned int serial):
 cpdef get_sfunction_from_hash(long myhash):
     """
     Return an already created :class:`SymbolicFunction` given the hash.
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.expression import get_sfunction_from_hash
+        sage: get_sfunction_from_hash(1)  # random
     """
     for sfunc in sfunction_serial_dict.itervalues():
         if isinstance(sfunc, SymbolicFunction) and \

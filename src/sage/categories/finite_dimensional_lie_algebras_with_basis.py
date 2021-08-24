@@ -1120,7 +1120,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                                           " (the trivial module)")
 
             from itertools import combinations
-            from sage.functions.other import binomial
+            from sage.arith.misc import binomial
             from sage.matrix.matrix_space import MatrixSpace
             R = self.base_ring()
             zero = R.zero()

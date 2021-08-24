@@ -47,6 +47,7 @@ Here is a list of all content related to GRS codes:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
+from copy import copy
 
 from sage.categories.cartesian_product import cartesian_product
 
@@ -63,13 +64,13 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.functional import symbolic_sum
 from sage.misc.misc_c import prod
 
-from copy import copy
-from sage.functions.other import binomial, floor
+from sage.arith.misc import binomial
 from sage.symbolic.ring import SR
 
 from .linear_code import AbstractLinearCode
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
+
 
 class GeneralizedReedSolomonCode(AbstractLinearCode):
     r"""
@@ -1563,7 +1564,7 @@ class GRSGaoDecoder(Decoder):
             sage: D._partial_xgcd(a, b, P)
             (10*x^2 + 3*x + 5, 1)
         """
-        stop = floor(self.code().dimension() + self.code().length()) // 2
+        stop = (self.code().dimension() + self.code().length()) // 2
         s = PolRing.one()
         prev_s = PolRing.zero()
 

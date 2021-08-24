@@ -2373,10 +2373,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         tbl = G_perm_gap.CharacterTable()
         perm = tbl.IdentificationOfConjugacyClasses()
         ident_perm = [i for i in range(1, 1 + n_classes)]
-        if perm == ident_perm:
-            pass
-        else:
-            raise ValueError("The conjugacy classes don't match with the character table")
+        assert perm == ident_perm, "The conjugacy classes don't match with the character table"
 
         # Create fixed subpolytopes and their Ehrhart series
         group_dict = self.permutations_to_matrices(conj_reps, acting_group)
@@ -2393,20 +2390,12 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
         # create a flag to fix the determinant if polytope isn't full dimensional
         flag = False
-        polytope_dim = self.dim()
-        polytope_ambient = self.ambient_dim()
-        if not polytope_dim == polytope_ambient:
-            flag = True
-            codim = polytope_ambient - polytope_dim
-
+        codim = self.ambient_dim() - self.dim()
         for perm in conj_reps:
             mat = group_dict[perm]
             mat = mat.change_ring(Ring)
             new_matrix = identity - mat*ts_matrix
-            if flag:
-                det = (1-t)**-codim*(new_matrix.determinant())
-            else:
-                det = new_matrix.determinant()
+            det = (1-t)**-codim*(new_matrix.determinant())
             det_vector.append(det)
 
         FF = Ring.fraction_field()

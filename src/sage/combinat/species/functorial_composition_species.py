@@ -113,7 +113,7 @@ class FunctorialCompositionSpecies(GenericCombinatorialSpecies):
         EXAMPLES::
 
             sage: G = species.SimpleGraphSpecies()
-            sage: G.cycle_index_series()[0:5)
+            sage: G.cycle_index_series()[0:5]
             [p[],
              p[1],
              p[1, 1] + p[2],

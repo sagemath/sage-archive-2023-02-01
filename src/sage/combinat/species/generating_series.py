@@ -397,12 +397,10 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: f.stretch(3)[0:10]
             [p[], 0, 0, p[3], 0, 0, p[6], 0, 0, 0]
         """
-        # return self._new(partial(self._stretch_gen, k), lambda ao: k*ao, self)
         P = self.parent()
-        stream = partial(self._stretch_gen, k)
-        return P(next(stream), lambda ao: k*ao)
+        return P(lambda n: self._stretch_gen(k, n), k * self._coeff_stream._approximate_order)
 
-    def _stretch_gen(self, k, ao):
+    def _stretch_gen(self, k, n):
         """
         EXAMPLES::
 
@@ -411,8 +409,7 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: CIS = CycleIndexSeriesRing(QQ, 'z')
             sage: f = CIS([p([1])]) # This is the power series whose all coefficients
             ....:                   # are p[1]. Not combinatorially meaningful!
-            sage: g = f._stretch_gen(2,0)
-            sage: [next(g) for i in range(10)]
+            sage: [f._stretch_gen(2, i) for i in range(10)]
             [p[2], 0, p[2], 0, p[2], 0, p[2], 0, p[2], 0]
         """
         from sage.combinat.partition import Partition
@@ -421,14 +418,11 @@ class CycleIndexSeries(LazySymmetricFunction):
 
         stretch_k = lambda p: Partition([k*i for i in p])
 
-        yield self.coefficient(0).map_support(stretch_k)
-
-        n = 1
-        while True:
-            for i in range(k-1):
-                yield zero
-            yield self.coefficient(n).map_support(stretch_k)
-            n += 1
+        if n == 0:
+            return self.coefficient(0).map_support(stretch_k)
+        elif n % k:
+            return zero
+        return self.coefficient(n//k).map_support(stretch_k)
 
     def isotype_generating_series(self):
         """
@@ -441,8 +435,8 @@ class CycleIndexSeries(LazySymmetricFunction):
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
         R = self.base_ring().base_ring()
-        OGS = OrdinaryGeneratingSeriesRing(R)()
-        return OGS._new(self._ogs_gen, lambda ao: ao, self)
+        OGS = OrdinaryGeneratingSeriesRing(R, 'z')
+        return OGS(lambda n: self._ogs_gen(n, self._coeff_stream._approximate_order), self._coeff_stream._approximate_order)
 
     def expand_as_sf(self, n, alphabet='x'):
         """
@@ -478,7 +472,7 @@ class CycleIndexSeries(LazySymmetricFunction):
 
         return LPSR.sum_generator(expander_gen)
 
-    def _ogs_gen(self, ao):
+    def _ogs_gen(self, n, ao):
         """
         Returns a generator for the coefficients of the ordinary generating
         series obtained from a cycle index series.
@@ -487,14 +481,16 @@ class CycleIndexSeries(LazySymmetricFunction):
 
             sage: P = species.PermutationSpecies()
             sage: cis = P.cycle_index_series()
-            sage: g = cis._ogs_gen(0)
-            sage: [next(g) for i in range(10)]
+            sage: [cis._ogs_gen(i, 0) for i in range(10)]
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
-        for i in range(ao):
-            yield 0
-        for i in _integers_from(ao):
-            yield sum( self.coefficient(i).coefficients() )
+        if n < ao:
+            return 0
+        return sum(self.coefficient(n).coefficients())
+        # for i in range(ao):
+        #     yield 0
+        # for i in _integers_from(ao):
+        #     yield sum( self.coefficient(i).coefficients() )
 
     def generating_series(self):
         """
@@ -1263,19 +1259,20 @@ def _exp_term(n, R = RationalField()):
     return sum(p(part) / part.aut() for part in Partitions(n))
 
 
-def _exp_gen(R = RationalField()):
-    r"""
-    Produce a generator which yields the terms of the cycle index
-    series of the species `E` of sets.
+# def _exp_gen(n, R = RationalField()):
+#     r"""
+#     Produce a generator which yields the terms of the cycle index
+#     series of the species `E` of sets.
 
-    EXAMPLES::
+#     EXAMPLES::
 
-        sage: from sage.combinat.species.generating_series import _exp_gen
-        sage: g = _exp_gen()
-        sage: [next(g) for i in range(4)]
-        [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
-    """
-    return (_exp_term(i, R) for i in _integers_from(0))
+#         sage: from sage.combinat.species.generating_series import _exp_gen
+#         sage: g = _exp_gen()
+#         sage: [next(g) for i in range(4)]
+#         [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
+#     """
+#     return (_exp_term(i) for i in range(n))
+    # return (_exp_term(i, R) for i in _integers_from(0))
 
 @cached_function
 def ExponentialCycleIndexSeries(R = RationalField()):
@@ -1298,7 +1295,8 @@ def ExponentialCycleIndexSeries(R = RationalField()):
          + 1/3*p[3, 1] + 1/4*p[4]]
     """
     CIS = CycleIndexSeriesRing(R, 'z')
-    return CIS(_exp_gen(R))
+    return CIS(lambda n: _exp_term(n))
+    # return CIS(_exp_gen(R))
 
 
 @cached_function

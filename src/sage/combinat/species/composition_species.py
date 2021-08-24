@@ -207,6 +207,7 @@ class CompositionSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
             sage: L.isotype_generating_series()[:10]
             [1, 1, 2, 3, 5, 7, 11, 15, 22, 30]
         """
+        raise NotImplementedError()
         cis = self.cycle_index_series(base_ring)
         return cis.isotype_generating_series()
 

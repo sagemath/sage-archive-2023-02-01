@@ -163,8 +163,7 @@ class LinearOrderSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         from sage.combinat.sf.sf import SymmetricFunctions
         p = SymmetricFunctions(base_ring).power()
-        for n in _integers_from(0):
-            yield p([1]*n)
+        return p([1]*n)
 
 #Backward compatibility
 LinearOrderSpecies_class = LinearOrderSpecies

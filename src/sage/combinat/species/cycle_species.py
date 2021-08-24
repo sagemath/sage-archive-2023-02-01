@@ -235,7 +235,7 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         """
         return base_ring(0) if n == 0 else self._weight*base_ring(1)
 
-    def _cis_callable(self, base_ring):
+    def _cis_callable(self, base_ring, n):
         r"""
         The cycle index series of the species of cyclic permutations is
         given by
@@ -271,13 +271,13 @@ class CycleSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
 
         zero = base_ring(0)
 
-        yield zero
-        for n in _integers_from(1):
-            res = zero
-            for k in divisors(n):
-                res += euler_phi(k)*p([k])**(n//k)
-            res /= n
-            yield self._weight*res
+        if n == 0:
+            return zero
+        res = zero
+        for k in divisors(n):
+            res += euler_phi(k)*p([k])**(n//k)
+        res /= n
+        return self._weight * res
 
 #Backward compatibility
 CycleSpecies_class = CycleSpecies

@@ -241,27 +241,29 @@ class PermutationSpecies(GenericCombinatorialSpecies, UniqueRepresentation):
         CIS = series_ring
         return CIS.product_generator( CIS(self._cis_gen(base_ring, i)) for i in _integers_from(ZZ(1)) )
 
-    def _cis_gen(self, base_ring, n):
+    def _cis_gen(self, base_ring, m, n):
         """
         EXAMPLES::
 
             sage: P = species.PermutationSpecies()
-            sage: g = P._cis_gen(QQ, 2)
-            sage: [next(g) for i in range(10)]
+            sage: [P._cis_gen(QQ, 2, i) for i in range(10)]
             [p[], 0, p[2], 0, p[2, 2], 0, p[2, 2, 2], 0, p[2, 2, 2, 2], 0]
         """
         from sage.combinat.sf.sf import SymmetricFunctions
         p = SymmetricFunctions(base_ring).power()
 
-        pn = p([n])
+        pn = p([m])
 
-        n = n - 1
-        yield p(1)
-
-        for k in _integers_from(1):
-            for i in range(n):
-                yield base_ring(0)
-            yield pn**k
+        if n == 0:
+            return p(1)
+        if m == 1:
+            if n % 2:
+                return base_ring(0)
+            else:
+                return pn**(n//2)   
+        elif n % m:
+            return base_ring(0)
+        return pn**(n//m)
 
 #Backward compatibility
 PermutationSpecies_class = PermutationSpecies

@@ -1,11 +1,11 @@
-cpdef call_registered_function(unsigned int serial,
+cpdef call_registered_function(unsigned serial,
                            int nargs,
                            list args,
                            bint hold,
                            bint allow_numeric_result,
                            result_parent):
     r"""
-    Call a ginac function.
+    Call a function registered with Pynac (GiNaC).
 
     INPUT:
 
@@ -15,10 +15,27 @@ cpdef call_registered_function(unsigned int serial,
 
     - ``args`` - a list of :class:`Expression`s
 
+    - ``hold`` - whether to leave the call unevaluated
+
     - ``allow_numeric_result`` - if ``True``, keep numeric results numeric;
       if ``False``, make all results symbolic expressions
 
     - ``result_parent`` - an instance of :class:`SymbolicRing`
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.expression import find_registered_function, call_registered_function
+        sage: s_arctan = find_registered_function('arctan', 1)
+        sage: call_registered_function(s_arctan, 1, [SR(1)], False, True, SR)
+        1/4*pi
+        sage: call_registered_function(s_arctan, 1, [SR(1)], True, True, SR)
+        arctan(1)
+        sage: call_registered_function(s_arctan, 1, [SR(0)], False, True, SR)
+        0
+        sage: call_registered_function(s_arctan, 1, [SR(0)], False, True, SR).parent()
+        Integer Ring
+        sage: call_registered_function(s_arctan, 1, [SR(0)], False, False, SR).parent()
+        Symbolic Ring
     """
     cdef Py_ssize_t i
     cdef GEx res
@@ -44,15 +61,25 @@ cpdef call_registered_function(unsigned int serial,
     return new_Expression_from_GEx(result_parent, res)
 
 
-cpdef unsigned int find_registered_function(name, int nargs) except -1:
+cpdef unsigned find_registered_function(name, int nargs) except -1:
     r"""
-    Look up a function registered with ginac.
+    Look up a function registered with Pynac (GiNaC).
 
     Raise a ``ValueError`` if the function is not registered.
 
     OUTPUT:
 
-    - serial number of the function
+    - serial number of the function, for use in :func:`call_registered_function`
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.expression import find_registered_function
+        sage: find_registered_function('arctan', 1)  # random
+        19
+        sage: find_registered_function('archenemy', 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: cannot find GiNaC function with name archenemy and 1 arguments
     """
     try:
         return find_function(str_to_bytes(name), nargs)
@@ -60,17 +87,30 @@ cpdef unsigned int find_registered_function(name, int nargs) except -1:
         raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (name, nargs))
 
 
-cpdef unsigned int register_or_update_function(self, name, latex_name, int nargs,
-                                               evalf_params_first, bint update) except -1:
+cpdef unsigned register_or_update_function(self, name, latex_name, int nargs,
+                                           evalf_params_first, bint update) except -1:
     r"""
-    Register the function ``self`` with ginac.
+    Register the function ``self`` with Pynac (GiNaC).
 
     OUTPUT:
 
-    - serial number of the function
+    - serial number of the function, for use in :func:`call_registered_function`
+
+    EXAMPLES::
+
+        sage: from sage.symbolic.function import BuiltinFunction
+        sage: from sage.symbolic.expression import register_or_update_function, call_registered_function
+        sage: class Archosaurian(BuiltinFunction):
+        ....:     def __init__(self):
+        ....:         BuiltinFunction.__init__(self, 'archsaur', nargs=1)
+        ....:     def _eval_(self, x):
+        ....:         return x * exp(x)
+        sage: archsaur = Archosaurian()  # indirect doctest
+        sage: archsaur(2)
+        2*e^2
     """
     cdef GFunctionOpt opt
-    cdef unsigned int serial
+    cdef unsigned serial
 
     if update:
         serial = find_registered_function(name, nargs)

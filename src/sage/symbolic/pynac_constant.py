@@ -14,5 +14,5 @@ Wrapper around Pynac's constants
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-# Re-export
-from .expression import PynacConstant as PynacConstant
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.symbolic.expression', 'PynacConstant', deprecation=32386)

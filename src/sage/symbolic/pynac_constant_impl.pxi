@@ -29,7 +29,7 @@ cdef class PynacConstant:
 
         EXAMPLES::
 
-            sage: from sage.symbolic.pynac_constant import PynacConstant
+            sage: from sage.symbolic.expression import PynacConstant
             sage: f = PynacConstant('foo', 'foo', 'real')
             sage: f
             foo
@@ -79,7 +79,7 @@ cdef class PynacConstant:
 
         EXAMPLES::
 
-            sage: from sage.symbolic.pynac_constant import PynacConstant
+            sage: from sage.symbolic.expression import PynacConstant
             sage: f = PynacConstant('foo', 'foo', 'real')
             sage: f.serial()  #random
             15
@@ -92,7 +92,7 @@ cdef class PynacConstant:
 
         EXAMPLES::
 
-            sage: from sage.symbolic.pynac_constant import PynacConstant
+            sage: from sage.symbolic.expression import PynacConstant
             sage: f = PynacConstant('foo', 'foo', 'real')
             sage: f.name()
             'foo'
@@ -103,7 +103,7 @@ cdef class PynacConstant:
         """
         EXAMPLES::
 
-            sage: from sage.symbolic.pynac_constant import PynacConstant
+            sage: from sage.symbolic.expression import PynacConstant
             sage: f = PynacConstant('foo', 'foo', 'real'); f
             foo
         """
@@ -115,7 +115,7 @@ cdef class PynacConstant:
 
         EXAMPLES::
 
-            sage: from sage.symbolic.pynac_constant import PynacConstant
+            sage: from sage.symbolic.expression import PynacConstant
             sage: f = PynacConstant('foo', 'foo', 'real')
             sage: f + 2
             Traceback (most recent call last):

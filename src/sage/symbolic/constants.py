@@ -287,7 +287,7 @@ class Constant(object):
             setattr(self, "_%s_"%system, partial(self._generic_interface, value))
             setattr(self, "_%s_init_"%system, partial(self._generic_interface_init, value))
 
-        from .pynac_constant import PynacConstant
+        from .expression import PynacConstant
         self._pynac = PynacConstant(self._name, self._latex, self._domain)
         self._serial = self._pynac.serial()
         constants_table[self._serial] = self

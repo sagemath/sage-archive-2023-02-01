@@ -2495,12 +2495,14 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             for old_g_vect in path_dict:
                 # compute new g-vector
                 J = copy(I)
-                eps = old_g_vect[k].sign()
+                old_g = vector(ZZ, old_g_vect)
+                minus_eps = -old_g[k].sign()
                 for j in range(n):
-                    # here we have -eps*B0 rather than eps*B0 because we want the k-th column of the old B0
-                    J[j, k] += max(0, -eps * B0[j, k])
+                    # here we have -eps*B0 rather than eps*B0
+                    # because we want the k-th column of the old B0
+                    J[j, k] += max(0, minus_eps * B0[j, k])
                 J[k, k] = -1
-                new_g_vect = tuple(J * vector(old_g_vect))
+                new_g_vect = tuple(J * old_g)
 
                 # compute new path
                 if new_g_vect in initial_g_vectors:

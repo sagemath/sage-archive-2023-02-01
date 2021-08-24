@@ -39,7 +39,6 @@ from sage.cpython.string import bytes_to_str
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import prod
 from sage.misc.randstate import current_randstate
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.rings.all import QQ, ZZ, AA
 from sage.rings.real_double import RDF

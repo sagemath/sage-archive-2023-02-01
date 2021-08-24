@@ -2430,7 +2430,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             results_dictionary['Hstar'] = new_new_result
             results_dictionary['Hstar_as_lin_comb'] = new_result
             results_dictionary['conjugacy_class_reps'] = conj_reps
-            results_dictionary['character_table'] = Char
+            results_dictionary['character_table'] = char_initial
             results_dictionary['is_effective'] = self._is_effective_normaliz(new_new_result, new_result)
             return(results_dictionary)
 

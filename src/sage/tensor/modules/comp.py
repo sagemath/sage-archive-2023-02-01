@@ -5388,7 +5388,7 @@ class CompFullyAntiSym(CompWithSym):
             True
 
         """
-        from sage.functions.other import factorial
+        from sage.arith.all import factorial
         # Sanity checks:
         if not isinstance(other, CompFullyAntiSym):
             raise TypeError("{} is not a fully antisymmetric ".format(other) +

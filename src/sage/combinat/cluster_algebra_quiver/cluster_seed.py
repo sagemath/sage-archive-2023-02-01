@@ -4648,11 +4648,10 @@ def PathSubset(n, m):
         sage: PathSubset(4,4)
         {0, 1, 2, 3, 4, 5, 6, 7}
     """
-    from sage.functions.other import floor
     S = set(2 * i + 1 for i in range(n))
     if m > 0:
         for j in range(n):
-            if floor((j+1)*m/n) - floor(j*m/n) == 1:
+            if ((j+1)*m) // n - (j*m) // n == 1:
                 S.add(2 * j)
     return set(S)
 

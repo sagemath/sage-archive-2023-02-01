@@ -80,7 +80,7 @@ from sage.misc.latex import latex
 from sage.sets.set import Set_object
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 from sage.symbolic.ring import SR
 
 from sage.combinat.subset import Subsets_sk

@@ -354,13 +354,12 @@ mutating at the initial seed::
 
 from copy import copy
 
+from sage.arith.all import binomial
 from sage.categories.homset import Hom
 from sage.categories.morphism import SetMorphism
 from sage.categories.rings import Rings
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
 from sage.combinat.permutation import Permutation
-from sage.functions.generalized import sign
-from sage.functions.other import binomial
 from sage.geometry.cone import Cone
 from sage.geometry.fan import Fan
 from sage.graphs.digraph import DiGraph
@@ -2496,7 +2495,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
             for old_g_vect in path_dict:
                 # compute new g-vector
                 J = copy(I)
-                eps = sign(old_g_vect[k])
+                eps = old_g_vect[k].sign()
                 for j in range(n):
                     # here we have -eps*B0 rather than eps*B0 because we want the k-th column of the old B0
                     J[j, k] += max(0, -eps * B0[j, k])
@@ -2665,7 +2664,7 @@ class ClusterAlgebra(Parent, UniqueRepresentation):
         g = self.d_vector_to_g_vector(d)
 
         shifts = ((d[0]+g[0])/self._B0[0, 1], (d[1]+g[1])/self._B0[1, 0] )
-        signs = ( sign(self._B0[0, 1]), sign(self._B0[1, 0]) )
+        signs = (self._B0[0, 1].sign(), self._B0[1, 0].sign())
 
         u = list(self._U.gens())
         output = self._U.zero()

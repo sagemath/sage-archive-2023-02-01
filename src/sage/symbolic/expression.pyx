@@ -13353,7 +13353,7 @@ cdef class hold_class:
 hold = hold_class()
 
 
-cpdef call_by_ginac_serial(unsigned int serial,
+cpdef call_registered_function(unsigned int serial,
                            int nargs,
                            list args,
                            bint hold,

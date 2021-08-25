@@ -13,7 +13,7 @@ cpdef call_registered_function(unsigned serial,
 
     - ``nargs`` - declared number of args (0 is variadic)
 
-    - ``args`` - a list of :class:`Expression`s
+    - ``args`` - a list of :class:`Expression` (Expression's)
 
     - ``hold`` - whether to leave the call unevaluated
 

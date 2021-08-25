@@ -412,7 +412,7 @@ cpdef mixed_sorted(expressions):
 
     In the list the numeric values are sorted by ascending (real) value,
     and the expressions with variables according to print order.
- If an entry does not
+    If an entry does not
     define a real value (or plus/minus infinity), or if the comparison
     is not known, a ``ValueError`` is raised.
 

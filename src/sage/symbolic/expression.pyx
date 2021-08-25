@@ -13305,11 +13305,6 @@ cdef Expression new_Expression_from_GEx(parent, GEx juice):
     return nex
 
 
-cpdef new_Expression_from_pyobject(parent, x):
-    cdef GEx exp = x
-    return new_Expression_from_GEx(parent, exp)
-
-
 cpdef new_Expression(parent, x):
     r"""
     Convert ``x`` into the symbolic expression ring ``parent``.
@@ -13394,7 +13389,7 @@ cpdef new_Expression(parent, x):
     return new_Expression_from_GEx(parent, exp)
 
 
-cpdef new_Expression_force_pyobject(parent, x, bint force=False, bint recursive=True):
+cpdef new_Expression_from_pyobject(parent, x, bint force=True, bint recursive=True):
     r"""
     Wrap the given Python object in a symbolic expression even if it
     cannot be coerced to the Symbolic Ring.
@@ -13405,7 +13400,7 @@ cpdef new_Expression_force_pyobject(parent, x, bint force=False, bint recursive=
 
     - ``x`` - a Python object.
 
-    - ``force`` - bool, default ``False``, if True, the Python object
+    - ``force`` - bool, default ``True``, if True, the Python object
       is taken as is without attempting coercion or list traversal.
 
     - ``recursive`` - bool, default ``True``, disables recursive
@@ -13417,6 +13412,16 @@ cpdef new_Expression_force_pyobject(parent, x, bint force=False, bint recursive=
         Rational Field
         sage: type(t)
         <type 'sage.symbolic.expression.Expression'>
+
+        sage: from sage.symbolic.expression import new_Expression_from_pyobject
+        sage: t = new_Expression_from_pyobject(SR, 17); t
+        sage: type(t)
+
+        sage: t2 = new_Expression_from_pyobject(SR, t, False); t2
+        sage: t2 is t
+
+        sage: tt = new_Expression_from_pyobject(SR, t, True); tt
+        sage: tt is t
     """
     cdef GEx exp
     cdef GExprSeq ex_seq

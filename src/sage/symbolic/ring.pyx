@@ -39,7 +39,6 @@ from sage.symbolic.expression cimport (
     _repr_Expression,
     new_Expression,
     new_Expression_from_pyobject,
-    new_Expression_force_pyobject,
     new_Expression_wild,
     new_Expression_symbol,
 )
@@ -440,7 +439,7 @@ cdef class SymbolicRing(CommutativeRing):
             (Rational Field, (x, x + 1, x + 2), Complex Field with 53 bits
             of precision)
         """
-        return new_Expression_force_pyobject(self, x, force, recursive)
+        return new_Expression_from_pyobject(self, x, force, recursive)
 
     def wild(self, unsigned int n=0):
         r"""
@@ -1235,7 +1234,8 @@ cdef class NumpyToSRMorphism(Morphism):
             sage: SR(numpy.complex64(1jr)).pyobject().parent()
             Complex Double Field
         """
-        return new_Expression_from_pyobject(self.codomain(), self._intermediate_ring(a))
+        return new_Expression_from_pyobject(self.codomain(), self._intermediate_ring(a), True)
+
 
 cdef class UnderscoreSageMorphism(Morphism):
     def __init__(self, t, R):

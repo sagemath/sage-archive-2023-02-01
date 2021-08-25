@@ -88,7 +88,6 @@ additional functionality (e.g. linear extensions).
     - :meth:`has_minor() <sage.matroids.matroid.Matroid.has_minor>`
     - :meth:`has_line_minor() <sage.matroids.matroid.Matroid.has_line_minor>`
 
-
 - Extension
     - :meth:`extension() <sage.matroids.matroid.Matroid.extension>`
     - :meth:`coextension() <sage.matroids.matroid.Matroid.coextension>`
@@ -141,6 +140,8 @@ additional functionality (e.g. linear extensions).
     - :meth:`matroid_polytope() <sage.matroids.matroid.Matroid.matroid_polytope>`
     - :meth:`independence_matroid_polytope() <sage.matroids.matroid.Matroid.independence_matroid_polytope>`
     - :meth:`orlik_solomon_algebra() <sage.matroids.matroid.Matroid.orlik_solomon_algebra>`
+    - :meth:`bergman_complex() <sage.matroids.matroid.Matroid.bergman_complex>`
+    - :meth:`augmented_bergman_complex() <sage.matroids.matroid.Matroid.augmented_bergman_complex>`
 
 
 In addition to these, all methods provided by
@@ -7870,6 +7871,115 @@ cdef class Matroid(SageObject):
         from sage.topology.simplicial_complex import SimplicialComplex
         return SimplicialComplex(self.no_broken_circuits_sets(ordering))
 
+    cpdef bergman_complex(self):
+        r"""
+        Returns the Bergman complex of ``self``.
+
+        Let `L` be the lattice of flats of a matroid `M` with the minimum and 
+        maximum elements removed. The *Bergman complex* of a matroid `M` is the
+        order complex of `L`.
+
+        OUTPUT:
+
+        A simplicial complex as just described.
+
+        EXAMPLES::
+
+            sage: M=matroids.named_matroids.Fano()
+            sage: B=M.bergman_complex(); B
+            Simplicial complex with 14 vertices and 21 facets
+
+        .. SEEALSO::
+
+            :meth:`M.augmented_bergman_complex() <sage.matroids.matroid.Matroid.augmented_bergman_complex>`
+        """
+        L = self.lattice_of_flats()
+        return L.subposet(L.list()[1:-1]).order_complex()
+
+    cpdef augmented_bergman_complex(self):
+        r"""
+        Returns the augmented Bergman complex of ``self``.
+        
+        Given a matroid `M` with ground set `E=\{1,2,\ldots,n\}`, 
+        the *augmented Bergman complex* can be seen as a hybrid of the copmlex
+        of independent sets of `M` and the Bergman complex of `M`. It is defined
+        as the simplicial complex on vertex set
+        
+        .. MATH::
+        
+            \{y_1,\ldots,y_n\}\cup\{x_F:\text{ proper flats } F\subsetneq E\},
+        
+        with simplicies given by
+        
+        .. MATH::
+        
+            \{y_i\}_{i\in I}\cup\{x_{F_1},\ldots,x_{F_\ell}\},
+        
+        for which `I` is an independent set and `I\subseteq F_1\subsetneq F_2
+        \subsetneq\cdots\subsetneq F_\ell`. 
+        
+        OUTPUT:
+        
+        A simplicial complex as just described.
+        
+        EXAMPLES::
+        
+            sage: M=matroids.named_matroids.Fano()
+            sage: A=M.augmented_bergman_complex(); A
+            Simplicial complex with 22 vertices and 91 facets
+        
+        ..SEEALSO::
+        
+            :meth:`M.bergman_complex() <sage.matroids.matroid.Matroid.bergman_complex>`
+        
+        ..TODO::
+        
+            It is possible that this method could be optimized by building up
+            the maximal chains using a sort of dynamic programming approach.
+            Also, checking for equality of sets using ``cache`` could be
+            sped up.
+            
+        REFERENCES:
+        
+        - [BMHPW10]_
+        - [BMHPW20]_
+        """
+        # Construct independent set complex
+        from sage.topology.simplicial_complex import SimplicialComplex
+        I = self.independent_sets()
+        delta_I = SimplicialComplex(I)
+        
+        # Construct coned Bergman complex
+        L = self.lattice_of_flats()
+        cache = L.subposet(L.list()[:-1])
+        coned_bergman = cache.order_complex()
+                
+        # Take disjoint union of independent set and coned Bergman
+        DM = delta_I.disjoint_union(coned_bergman)
+        
+        # iterate through all nontrivial flats and find all maximal chains containing them
+        flats = L.subposet(L.list()[1:-1])
+        dictionary = {}
+        for flat in flats:
+            dictionary[flat] = flats.subposet(flats.principal_order_filter(flat)).maximal_chains()
+            
+        # For each independent set, find its closure and 
+        # make faces using the maximal chains containing its closure
+        for independent in self.independent_sets():
+            flat = self.closure(independent)
+            if independent and self.rank(flat) < self.rank():
+                for chain in dictionary[flat]:
+                    face = []
+                    for elt in independent:
+                        face.append(f'L{elt}')
+                    for elt in chain:
+                        for c in cache:
+                            if elt == c:
+                                face.append(f'R{c}')
+                                break
+                    DM.add_face(face)
+        return DM
+    
     def union(self, matroids):
         r"""
         Return the matroid union with another matroid or a list of matroids.

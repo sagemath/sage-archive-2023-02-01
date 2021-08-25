@@ -20656,6 +20656,7 @@ class GenericGraph(GenericGraph_pyx):
         - ``"label_style"`` (``"string"`` or ``"latex"``)
         - ``"edge_string"`` (``"--"`` or ``"->"``)
         - ``"dir"`` (``"forward"``, ``"back"``, ``"both"`` or ``"none"``)
+        - ``"backward"`` (boolean)
 
         Here we state that the graph should be laid out so that edges
         starting from ``1`` are going backward (e.g. going up instead of
@@ -20744,6 +20745,29 @@ class GenericGraph(GenericGraph_pyx):
               node_1 -> node_2 [dir=back];
               node_2 -> node_3 [dir=none];
               node_3 -> node_4 [dir=both];
+            }
+
+        We test the same graph and ``'dir'`` edge options but with
+        ``backward=True``::
+
+            sage: def edge_options(data):
+            ....:     u,v,label = data
+            ....:     if label == 'a': return {'dir':'forward', 'backward':True}
+            ....:     if label == 'b': return {'dir':'back', 'backward':True}
+            ....:     if label == 'c': return {'dir':'none', 'backward':True}
+            ....:     if label == 'd': return {'dir':'both', 'backward':True}
+            sage: print(G.graphviz_string(edge_options=edge_options))
+            digraph {
+              node_0  [label="0"];
+              node_1  [label="1"];
+              node_2  [label="2"];
+              node_3  [label="3"];
+              node_4  [label="4"];
+            <BLANKLINE>
+              node_1 -> node_0 [dir=back];
+              node_2 -> node_1;
+              node_3 -> node_2 [dir=none];
+              node_4 -> node_3 [dir=both];
             }
 
         TESTS:
@@ -20873,20 +20897,6 @@ class GenericGraph(GenericGraph_pyx):
             ...
             ValueError: edge_string(='<-') in edge_options dict for the edge
             (0, 1) should be '--' or '->'
-
-        The ``'backward'`` parameter of an edge option is deprecated since
-        :trac:`31381`::
-
-            sage: edges = [(0,1,'a'), (1,2,'b'), (2,3,'c'), (3,4,'d')]
-            sage: G = DiGraph(edges)
-            sage: def edge_options(data):
-            ....:     u,v,label = data
-            ....:     return {'backward':True} if label == 'a' else {}
-            sage: _ = G.graphviz_string(edge_options=edge_options)
-            doctest:...: DeprecationWarning: parameter {'backward':True} (in edge_options)
-            is deprecated. Use {'dir':'back'} instead.
-            See https://trac.sagemath.org/31381 for details.
-
         """
         from sage.graphs.dot2tex_utils import quoted_latex, quoted_str
 
@@ -20978,6 +20988,7 @@ class GenericGraph(GenericGraph_pyx):
         for u, v, label in self.edge_iterator():
             edge_options = {
                 'dir': default_edge_dir,
+                'backward': False,
                 'dot': None,
                 'edge_string': default_edge_string,
                 'color'   : default_color,
@@ -20991,12 +21002,6 @@ class GenericGraph(GenericGraph_pyx):
                 raise ValueError("edge_string(='{}') in edge_options dict for the "
                         "edge ({}, {}) should be '--' "
                         "or '->'".format(edge_options['edge_string'], u, v))
-
-            if 'backward' in edge_options and edge_options['backward']:
-                deprecation(31381, "parameter {'backward':True} (in edge_options) is"
-                        " deprecated. Use {'dir':'back'} instead.")
-                del edge_options['backward']
-                edge_options['dir'] = 'back'
 
             dot_options = []
 
@@ -21018,6 +21023,13 @@ class GenericGraph(GenericGraph_pyx):
                     col = str(to_hex(col, keep_alpha=False))
 
                 dot_options.append('color = "%s"' % col)
+
+            if edge_options['backward']:
+                u, v = v, u
+                if edge_options['dir'] == 'forward':
+                    edge_options['dir'] = 'back'
+                elif edge_options['dir'] == 'back':
+                    edge_options['dir'] = 'forward'
 
             if edge_options['dir'] == default_edge_dir:
                 pass

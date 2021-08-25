@@ -503,10 +503,10 @@ class CycleIndexSeries(LazySymmetricFunction):
             [1, 1, 1, 5/6, 5/8]
         """
         R = self.base_ring().base_ring()
-        EGS = ExponentialGeneratingSeriesRing(R)()
-        return EGS._new(self._egs_gen, lambda ao: ao, self)
+        EGS = ExponentialGeneratingSeriesRing(R, 'z')
+        return EGS(lambda n: self._egs_gen(n, self._coeff_stream._approximate_order), self._coeff_stream._approximate_order)
 
-    def _egs_gen(self, ao):
+    def _egs_gen(self, n, ao):
         """
         Returns a generator for the coefficients of the exponential
         generating series obtained from a cycle index series.
@@ -515,14 +515,12 @@ class CycleIndexSeries(LazySymmetricFunction):
 
             sage: P = species.PermutationSpecies()
             sage: cis = P.cycle_index_series()
-            sage: g = cis._egs_gen(0)
-            sage: [next(g) for i in range(10)]
+            sage: [cis._egs_gen(i, 0) for i in range(10)]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
         """
-        for i in range(ao):
-            yield 0
-        for i in _integers_from(ao):
-            yield self.coefficient(i).coefficient([1]*i)
+        if n < ao:
+            return 0
+        return self.coefficient(n).coefficient([1]*n)
 
     def __invert__(self):
         r"""
@@ -609,9 +607,11 @@ class CycleIndexSeries(LazySymmetricFunction):
              4/3*p[1, 1, 1] + 2*p[2, 1] + 2/3*p[3],
              8/3*p[1, 1, 1, 1] + 4*p[2, 1, 1] + 2*p[2, 2] + 4/3*p[3, 1] + p[4]]
         """
-        return self._new(partial(self._functorial_compose_gen, g), lambda a,b: 0, self, g)
+        # return self._new(partial(self._functorial_compose_gen, g), lambda a,b: 0, self, g)
+        P = self.parent()
+        return P(lambda n: self._functorial_compose_gen(g, n, self._coeff_stream._approximate_order), 0) 
 
-    def _functorial_compose_gen(self, g, ao):
+    def _functorial_compose_gen(self, g, n, ao):
         """
         Return a generator for the coefficients of the functorial
         composition of ``self`` with ``g``.
@@ -624,8 +624,7 @@ class CycleIndexSeries(LazySymmetricFunction):
             sage: P2 = E2*E
             sage: P2_cis = P2.cycle_index_series()
             sage: WP_cis = WP.cycle_index_series()
-            sage: g = WP_cis._functorial_compose_gen(P2_cis,0)
-            sage: [next(g) for i in range(5)]
+            sage: [WP_cis._functorial_compose_gen(P2_cis, i, 0) for i in range(5)]
             [p[],
              p[1],
              p[1, 1] + p[2],
@@ -633,15 +632,35 @@ class CycleIndexSeries(LazySymmetricFunction):
              8/3*p[1, 1, 1, 1] + 4*p[2, 1, 1] + 2*p[2, 2] + 4/3*p[3, 1] + p[4]]
         """
         p = self.parent().base_ring()
-        n = 0
-        while True:
-            res = p(0)
-            for s in Partitions(n):
-                t = g._cycle_type(s)
-                q = self.count(t) / s.aut()
-                res += q*p(s)
-            yield res
-            n += 1
+        res = p(0)
+        print(n)
+        print(res)
+        for s in Partitions(n):
+            print(s)
+            t = g._cycle_type(s)
+            print(t)
+            q = self.count(t) / s.aut()
+            print(q)
+            res += q * p(s)
+            print(res)
+        return res
+        # p = self.parent().base_ring()
+        # m = 0
+        # print(p)
+        # print(m)
+        # while True:
+        #     res = p(0)
+        #     print(res)
+        #     for s in Partitions(m):
+        #         print(s)
+        #         t = g._cycle_type(s)
+        #         print(t)
+        #         q = self.count(t) / s.aut()
+        #         print(q)
+        #         res += q*p(s)
+        #         print(res)
+        #     yield res
+        #     m += 1
 
     def arithmetic_product(self, g, check_input = True):
         r"""
@@ -949,7 +968,7 @@ class CycleIndexSeries(LazySymmetricFunction):
         res = []
         #Go through all the partition, coefficient pairs in the term p
         for m, c in p:
-            res_t = parent.term(c, 0)
+            res_t = parent(c, 0)
 
             for e,v in enumerate(m.to_exp()):
                 if v == 0:
@@ -1021,7 +1040,8 @@ class CycleIndexSeries(LazySymmetricFunction):
             raise ValueError('not an invertible series')
 
         res = cisr()
-        res.define(X - (self - X).compose(res))
+        # res.define(X - (self - X).compose(res))
+        res.define(X - (self - X)(res))
 
         return res
 
@@ -1149,7 +1169,7 @@ class CycleIndexSeries(LazySymmetricFunction):
         """
         base_ring = self.parent().base_ring().base_ring()
         E = ExponentialCycleIndexSeries(base_ring)
-        return E.compose(self)
+        return E(self)
 
     def logarithm(self):
         r"""
@@ -1177,7 +1197,7 @@ class CycleIndexSeries(LazySymmetricFunction):
         """
         base_ring = self.parent().base_ring().base_ring()
         Omega = LogarithmCycleIndexSeries(base_ring)
-        return Omega.compose(self)
+        return Omega(self)
 
 
 class CycleIndexSeriesRing(LazySymmetricFunctions):
@@ -1259,21 +1279,6 @@ def _exp_term(n, R = RationalField()):
     return sum(p(part) / part.aut() for part in Partitions(n))
 
 
-# def _exp_gen(n, R = RationalField()):
-#     r"""
-#     Produce a generator which yields the terms of the cycle index
-#     series of the species `E` of sets.
-
-#     EXAMPLES::
-
-#         sage: from sage.combinat.species.generating_series import _exp_gen
-#         sage: g = _exp_gen()
-#         sage: [next(g) for i in range(4)]
-#         [p[], p[1], 1/2*p[1, 1] + 1/2*p[2], 1/6*p[1, 1, 1] + 1/2*p[2, 1] + 1/3*p[3]]
-#     """
-#     return (_exp_term(i) for i in range(n))
-    # return (_exp_term(i, R) for i in _integers_from(0))
-
 @cached_function
 def ExponentialCycleIndexSeries(R = RationalField()):
     r"""
@@ -1296,7 +1301,6 @@ def ExponentialCycleIndexSeries(R = RationalField()):
     """
     CIS = CycleIndexSeriesRing(R, 'z')
     return CIS(lambda n: _exp_term(n))
-    # return CIS(_exp_gen(R))
 
 
 @cached_function
@@ -1323,23 +1327,6 @@ def _cl_term(n, R = RationalField()):
 
     return res
 
-
-def _cl_gen (R = RationalField()):
-    r"""
-    Produce a generator which yields the terms of the cycle index series
-    of the virtual species `\Omega`, the compositional inverse of the
-    species `E^{+}` of nonempty sets.
-
-    EXAMPLES::
-
-        sage: from sage.combinat.species.generating_series import _cl_gen
-        sage: g = _cl_gen()
-        sage: [next(g) for i in range(4)]
-        [0, p[1], -1/2*p[1, 1] - 1/2*p[2], 1/3*p[1, 1, 1] - 1/3*p[3]]
-    """
-    return (_cl_term(i, R) for i in _integers_from(0))
-
-
 @cached_function
 def LogarithmCycleIndexSeries(R = RationalField()):
     r"""
@@ -1364,9 +1351,9 @@ def LogarithmCycleIndexSeries(R = RationalField()):
     multiplicative identity `X`)::
 
         sage: Eplus = sage.combinat.species.set_species.SetSpecies(min=1).cycle_index_series()
-        sage: LogarithmCycleIndexSeries().compose(Eplus)[:4]
+        sage: LogarithmCycleIndexSeries()(Eplus)[:4]
         [0, p[1], 0, 0]
     """
     CIS = CycleIndexSeriesRing(R, 'z')
-    return CIS(_cl_gen(R))
+    return CIS(lambda n: _cl_term(n))
 

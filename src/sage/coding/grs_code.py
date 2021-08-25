@@ -64,7 +64,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.functional import symbolic_sum
 from sage.misc.misc_c import prod
 
-from sage.arith.misc import binomial
+from sage.functions.other import binomial
 from sage.symbolic.ring import SR
 
 from .linear_code import AbstractLinearCode

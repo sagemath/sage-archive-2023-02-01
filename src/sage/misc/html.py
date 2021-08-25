@@ -299,7 +299,8 @@ class MathJax:
         # Get a regular LaTeX representation of x
         x = latex(x, combine_all=combine_all)
 
-        # The following block, hopefully, can be removed in some future MathJax.
+        # The "\text{\texttt{...}}" blocks are reformed to be renderable by MathJax.
+        # These blocks are produced by str_function() defined in sage.misc.latex.
         prefix = r"\text{\texttt{"
         parts = x.split(prefix)
         for i, part in enumerate(parts):
@@ -324,7 +325,6 @@ class MathJax:
                 delimiter = "|"
                 y = "(complicated string)"
             wrapper = r"\verb" + delimiter + "%s" + delimiter
-            spacer = r"\phantom{\verb!%s!}"
             y = y.replace("{ }", " ").replace("{-}", "-")
             for c in r"#$%&\^_{}~":
                 char_wrapper = r"{\char`\%s}" % c
@@ -336,14 +336,12 @@ class MathJax:
                     nspaces += 1
                     continue
                 if nspaces > 0:
-                    subparts.append(spacer % ("x" * nspaces))
+                    subparts.append(wrapper % (" " * nspaces))
                 nspaces = 1
                 subparts.append(wrapper % subpart)
-            # There is a bug with omitting empty lines in arrays
-            if not y:
-                subparts.append(spacer % "x")
             subparts.append(part[closing + 1:])
             parts[i] = "".join(subparts)
+
         from sage.misc.latex_macros import sage_configurable_latex_macros
         from sage.misc.latex import _Latex_prefs
         latex_string = ''.join(
@@ -351,6 +349,7 @@ class MathJax:
             [_Latex_prefs._option['macros']] +
             parts
         )
+
         if mode == 'display':
             html = r'<html>\[{0}\]</html>'
         elif mode == 'inline':

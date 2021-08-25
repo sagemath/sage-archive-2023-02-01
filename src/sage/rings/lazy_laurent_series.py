@@ -1047,7 +1047,7 @@ class LazyModuleElement(Element):
         Similarly for Dirichlet series::
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
-            sage: g = L.gen(2)
+            sage: g = L([0,1])
             sage: 2 * g
             2/2^z
             sage: -1 * g

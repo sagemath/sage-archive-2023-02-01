@@ -930,57 +930,6 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
         L = self._laurent_poly_ring
         return L(c) * L(n) ** -L(self.variable_name())
 
-    @cached_method
-    def gen(self, n=1):
-        """
-        Return the `n`-th generator of this Dirichlet series ring.
-
-        EXAMPLES::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
-            sage: L.gen()
-            1
-            sage: L.gen(4)
-            1/(4^z)
-
-        """
-        assert n >= 1
-        coeff_stream = Stream_exact([1], self._sparse, order=n, constant=ZZ.zero())
-        return self.element_class(self, coeff_stream)
-
-    def ngens(self):
-        """
-        Return the number of generators of this Dirichlet series ring.
-
-        This is always `\infty`.
-
-        EXAMPLES::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "s")
-            sage: L.ngens()
-            +Infinity
-        """
-        return infinity
-
-    @cached_method
-    def gens(self):
-        """
-        Return the tuple of the generator.
-
-        EXAMPLES::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "z")
-            sage: L.gens()
-            Lazy family (<lambda>(i))_{i in Positive integers}
-            sage: L.gens()[2]
-            1/(2^z)
-
-        """
-        from sage.sets.family import Family
-        from sage.sets.positive_integers import PositiveIntegers
-
-        return Family(PositiveIntegers(), lambda n: self.gen(n))
-
     def _coerce_map_from_(self, S):
         """
         Return ``True`` if a coercion from ``S`` exists.

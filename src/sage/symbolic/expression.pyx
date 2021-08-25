@@ -5713,8 +5713,8 @@ cdef class Expression(CommutativeRingElement):
         return SubstituteFunction(self, original, new)()
 
     def exponentialize(self):
-        """
-        Returns this symbolic expression with all circular and hyperbolic
+        r"""
+        Return this symbolic expression with all circular and hyperbolic
         functions replaced by their respective exponential
         expressions.
 
@@ -5734,10 +5734,10 @@ cdef class Expression(CommutativeRingElement):
             sage: tanh(x).exponentialize()
             -(e^(-x) - e^x)/(e^(-x) + e^x)
 
-        TESTS::
+        TESTS:
 
-            Check that ``u(x).exponentialize().demoivre(force=True)``
-            is identity.
+        Check that ``u(x).exponentialize().demoivre(force=True)``
+        is identity::
 
             sage: x = SR.var("x")
             sage: all([bool(u(x).exponentialize().demoivre(force=True) == u(x))
@@ -5745,7 +5745,7 @@ cdef class Expression(CommutativeRingElement):
             ....:                sinh, cosh, tanh, csch, sech, coth)])
             True
 
-            Check that differentiation and exponentialization commute:
+        Check that differentiation and exponentialization commute::
 
             sage: x = SR.var("x")
             sage: all([bool(u(x).diff(x).exponentialize() ==
@@ -5758,8 +5758,8 @@ cdef class Expression(CommutativeRingElement):
         return Exponentialize(self)()
 
     def demoivre(self, force=False):
-        """
-        Returns this symbolic expression with complex exponentials
+        r"""
+        Return this symbolic expression with complex exponentials
         (optionally all exponentials) replaced by (at least partially)
         trigonometric/hyperbolic expressions.
 
@@ -5775,10 +5775,10 @@ cdef class Expression(CommutativeRingElement):
             sage: exp(x).demoivre(force=True)
             cosh(x) + sinh(x)
 
-        TESTS::
+        TESTS:
 
-            Check that de Moivre transformation correctly commutes
-            with differentiation:
+        Check that de Moivre transformation correctly commutes
+        with differentiation::
 
             sage: x = SR.var("x")
             sage: f = function("f")

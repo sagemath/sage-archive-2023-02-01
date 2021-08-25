@@ -99,7 +99,6 @@ cpdef unsigned register_or_update_function(self, name, latex_name, int nargs,
     EXAMPLES::
 
         sage: from sage.symbolic.function import BuiltinFunction
-        sage: from sage.symbolic.expression import register_or_update_function, call_registered_function
         sage: class Archosaurian(BuiltinFunction):
         ....:     def __init__(self):
         ....:         BuiltinFunction.__init__(self, 'archsaur', nargs=1)

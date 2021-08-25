@@ -35,6 +35,7 @@ from sage.rings.polynomial.multi_polynomial import MPolynomial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
+from sage.rings.power_series_poly import PowerSeries_poly
 
 from sage.structure.parent import Parent
 
@@ -468,6 +469,18 @@ class ModularFormsRing(Parent):
             Traceback (most recent call last):
             ...
             TypeError: the defining data structure should be a single modular form, a ring element, a list of modular forms, a polynomial or a dictionary
+            sage: P.<q> = QQ[]
+            sage: f = 1 + 240*q + 2160*q^2
+            sage: ModularFormsRing(1)(f)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion from q-expansion not yet implemented
+            sage: P.<t> = PowerSeriesRing(QQ)
+            sage: e = 1 + 240*t + 2160*t^2 + 6720*t^3 + 17520*t^4 + 30240*t^5 + O(t^6)
+            sage: ModularFormsRing(1)(e)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion from q-expansion not yet implemented
         """
         if isinstance(forms_datum, (dict, list)):
             forms_dictionary = forms_datum
@@ -481,7 +494,11 @@ class ModularFormsRing(Parent):
         elif forms_datum in self.base_ring():
             forms_dictionary = {0:forms_datum}
         elif isinstance(forms_datum, (Polynomial, MPolynomial)):
+            if forms_datum.parent()._names[0] == 'q':
+                raise NotImplementedError("conversion from q-expansion not yet implemented")
             return self.from_polynomial(forms_datum)
+        elif isinstance(forms_datum, PowerSeries_poly):
+            raise NotImplementedError("conversion from q-expansion not yet implemented")
         else:
             raise TypeError('the defining data structure should be a single modular form, a ring element, a list of modular forms, a polynomial or a dictionary')
         return self.element_class(self, forms_dictionary)

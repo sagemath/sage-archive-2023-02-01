@@ -1577,7 +1577,7 @@ class Stream_cauchy_compose(Stream_binary):
             sage: g = Stream_function(lambda n: n^2, ZZ, True, 1)
             sage: h = Stream_cauchy_compose(f, g)
         """
-        assert g._approximate_order > 0 # TODO: wrong if g is a Dirichlet series, need > 1
+        assert g._approximate_order > 0
         self._fv = f._approximate_order
         self._gv = g._approximate_order
         if self._fv < 0:
@@ -1589,7 +1589,7 @@ class Stream_cauchy_compose(Stream_binary):
                 self._neg_powers.append(Stream_cauchy_mul(self._neg_powers[-1], ginv))
         # Placeholder None to make this 1-based.
         self._pos_powers = [None, g]
-        val = self._fv * self._gv # TODO: wrong if g is a Dirichlet series, self._gv ^ self._fv there
+        val = self._fv * self._gv
         super().__init__(f, g, f._is_sparse, val)
 
     def get_coefficient(self, n):
@@ -1611,7 +1611,7 @@ class Stream_cauchy_compose(Stream_binary):
             sage: [h.get_coefficient(i) for i in range(10)]
             [0, 1, 6, 28, 124, 527, 2172, 8755, 34704, 135772]
         """
-        if n < 0: # TODO: wrong if g is a Dirichlet series, for n <= 0 we get 0
+        if n < 0:
             return sum(self._left[i] * self._neg_powers[-i][n] for i in range(self._fv, n // self._gv + 1))
         # n > 0
         while len(self._pos_powers) <= n // self._gv:

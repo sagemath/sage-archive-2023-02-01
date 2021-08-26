@@ -23,22 +23,27 @@ from sage.structure.parent import Parent
 from sage.structure.element import parent
 
 from sage.categories.algebras import Algebras
+from sage.categories.rings import Rings
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
-from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields, CompleteDiscreteValuationRings
 
 from sage.misc.cachefunc import cached_method
 
+from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.rings.lazy_laurent_series import LazyCauchyProductSeries, LazyLaurentSeries
+from sage.rings.lazy_laurent_series import (LazyCauchyProductSeries,
+                                            LazyLaurentSeries,
+                                            LazyDirichletSeries)
 from sage.structure.global_options import GlobalOptions
+from sage.symbolic.ring import SR
 
 from sage.data_structures.stream import (
-    StreamZero,
-    StreamFunction,
-    StreamExact,
-    StreamUninitialized
+    Stream_zero,
+    Stream_function,
+    Stream_exact,
+    Stream_uninitialized
 )
 
 
@@ -279,6 +284,22 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         return self._sparse
 
     @cached_method
+    def monomial(self, c, n):
+        r"""
+        Return the interpretation of the coefficient ``c`` at index ``n``.
+
+        EXAMPLES::
+
+            sage: L = LazyLaurentSeriesRing(ZZ, 'z')
+            sage: L.monomial(1, 3)
+            z^3
+            sage: L.monomial(2, -4)
+            2*z^-4
+        """
+        L = self._laurent_poly_ring
+        return L(c) * L.gen() ** n
+
+    @cached_method
     def gen(self, n=0):
         r"""
         Return the ``n``-th generator of ``self``.
@@ -296,7 +317,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if n != 0:
             raise IndexError("there is only one generator")
         R = self.base_ring()
-        coeff_stream = StreamExact([R.one()], self._sparse,
+        coeff_stream = Stream_exact([R.one()], self._sparse,
                                                constant=R.zero(), order=1)
         return self.element_class(self, coeff_stream)
 
@@ -528,6 +549,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: f == g
             True
 
+            sage: D = LazyDirichletSeriesRing(ZZ, 't')
+            sage: m = D(moebius)
+            sage: L(m)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert 1 - 1/(2^t) - 1/(3^t) - 1/(5^t) + 1/(6^t) - 1/(7^t) + O(1/(8^t)) into a lazy Laurent series
+
+
         .. TODO::
 
             Add a method to change the sparse/dense implementation.
@@ -535,7 +564,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if x is None:
             if valuation is None:
                 raise ValueError("the valuation must be specified")
-            return self.element_class(self, StreamUninitialized(self._sparse, valuation))
+            return self.element_class(self, Stream_uninitialized(self._sparse, valuation))
 
         R = self._laurent_poly_ring
         BR = self.base_ring()
@@ -560,10 +589,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                     raise ValueError("you must specify the degree for the polynomial 0")
                 degree = valuation
             if x == R.zero():
-                coeff_stream = StreamExact([], self._sparse, order=degree, constant=constant)
+                coeff_stream = Stream_exact([], self._sparse, order=degree, constant=constant)
                 return self.element_class(self, coeff_stream)
             initial_coefficients = [x[i] for i in range(x.valuation(), x.degree() + 1)]
-            coeff_stream = StreamExact(initial_coefficients, self._sparse,
+            coeff_stream = Stream_exact(initial_coefficients, self._sparse,
                                                    order=x.valuation(), constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
 
@@ -573,14 +602,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 raise NotImplementedError("cannot convert between sparse and dense")
 
             # If x is known to be 0
-            if isinstance(x._coeff_stream, StreamZero):
+            if isinstance(x._coeff_stream, Stream_zero):
                 if not constant:
                     return x
                 if degree is None:
                     if valuation is None:
                         raise ValueError("you must specify the degree for the polynomial 0")
                     degree = valuation
-                coeff_stream = StreamExact([], self._sparse, order=degree,
+                coeff_stream = Stream_exact([], self._sparse, order=degree,
                                                        constant=constant)
                 return self.element_class(self, coeff_stream)
 
@@ -597,7 +626,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                     # We learned some stuff about x; pass it along
                     x._coeff_stream._approximate_order += len(initial_coefficients)
                     initial_coefficients = []
-                coeff_stream = StreamExact(initial_coefficients, self._sparse,
+                coeff_stream = Stream_exact(initial_coefficients, self._sparse,
                                                        order=valuation, constant=constant, degree=degree)
                 return self.element_class(self, coeff_stream)
 
@@ -613,7 +642,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             if degree is None:
                 if constant is not None:
                     raise ValueError("constant may only be specified if the degree is specified")
-                coeff_stream = StreamFunction(x, self.base_ring(), self._sparse, valuation)
+                coeff_stream = Stream_function(x, self.base_ring(), self._sparse, valuation)
                 return self.element_class(self, coeff_stream)
 
             # degree is not None
@@ -622,7 +651,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             p = [BR(x(i)) for i in range(valuation, degree)]
             if not any(p) and not constant:
                 return self.zero()
-            coeff_stream = StreamExact(p, self._sparse, order=valuation,
+            coeff_stream = Stream_exact(p, self._sparse, order=valuation,
                                                    constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
 
@@ -639,7 +668,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             z^-2 + 3*z^-1 + 2*z + z^2 + z^3 + z^4 + z^5 + O(z^6)
         """
         R = self.base_ring()
-        coeff_stream = StreamExact([R.an_element(), 3, 0, 2*R.an_element(), 1],
+        coeff_stream = Stream_exact([R.an_element(), 3, 0, 2*R.an_element(), 1],
                                                self._sparse, order=-2, constant=R.one())
         return self.element_class(self, coeff_stream)
 
@@ -690,7 +719,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             1
         """
         R = self.base_ring()
-        coeff_stream = StreamExact([R.one()], self._sparse, constant=R.zero(), degree=1)
+        coeff_stream = Stream_exact([R.one()], self._sparse, constant=R.zero(), degree=1)
         return self.element_class(self, coeff_stream)
 
     @cached_method
@@ -704,7 +733,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L.zero()
             0
         """
-        return self.element_class(self, StreamZero(self._sparse))
+        return self.element_class(self, Stream_zero(self._sparse))
 
     # add options to class
     class options(GlobalOptions):
@@ -820,7 +849,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 constant = self.base_ring().zero()
             if degree is None:
                 degree = valuation + len(coefficient)
-            coeff_stream = StreamExact(coefficient, self._sparse, order=valuation,
+            coeff_stream = Stream_exact(coefficient, self._sparse, order=valuation,
                                                    constant=constant, degree=degree)
             return self.element_class(self, coeff_stream)
 
@@ -832,3 +861,251 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                  constant=constant, degree=degree)
         return t
 
+
+class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
+    """
+    Lazy Dirichlet series ring.
+
+    INPUT:
+
+    - ``base_ring`` -- base ring of this Dirichlet series ring
+    - ``names`` -- name of the generator of this Dirichlet series ring
+    - ``sparse`` -- (default: ``True``) whether this series is sparse or not
+
+    EXAMPLES::
+
+        sage: LazyDirichletSeriesRing(ZZ, 't')
+        Lazy Dirichlet Series Ring in t over Integer Ring
+    """
+    Element = LazyDirichletSeries
+
+    def __init__(self, base_ring, names, sparse=True, category=None):
+        """
+        Initialize the ring.
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 't')
+            sage: TestSuite(L).run(skip=['_test_elements', '_test_associativity', '_test_distributivity', '_test_zero'])
+        """
+        if base_ring.characteristic() > 0:
+            raise ValueError("positive characteristic not allowed for Dirichlet series")
+
+        self._sparse = sparse
+        self._coeff_ring = base_ring
+        # TODO: it would be good to have something better than the symbolic ring
+        self._laurent_poly_ring = SR
+
+        category = Algebras(base_ring.category())
+        if base_ring in IntegralDomains():
+            category &= IntegralDomains()
+        elif base_ring in Rings().Commutative():
+            category = category.Commutative()
+        category = category.Infinite()
+        Parent.__init__(self, base=base_ring, names=names,
+                        category=category)
+
+    def _repr_(self):
+        """
+        String representation of this Dirichlet series ring.
+
+        EXAMPLES::
+
+            sage: LazyDirichletSeriesRing(QQbar, 'z')
+            Lazy Dirichlet Series Ring in z over Algebraic Field
+        """
+        return "Lazy Dirichlet Series Ring in {} over {}".format(self.variable_name(), self.base_ring())
+
+    @cached_method
+    def monomial(self, c, n):
+        r"""
+        Return the interpretation of the coefficient ``c`` at index ``n``.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.monomial(5, 3)
+            5/3^z
+        """
+        L = self._laurent_poly_ring
+        return L(c) * L(n) ** -L(self.variable_name())
+
+    def _coerce_map_from_(self, S):
+        """
+        Return ``True`` if a coercion from ``S`` exists.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.has_coerce_map_from(ZZ)
+            True
+            sage: L.has_coerce_map_from(QQ)
+            False
+        """
+        if self.base_ring().has_coerce_map_from(S):
+            return True
+
+        return False
+
+    def _coerce_map_from_base_ring(self):
+        """
+        Return a coercion map from the base ring of ``self``.
+
+        """
+        # Return a DefaultConvertMap_unique; this can pass additional
+        # arguments to _element_constructor_, unlike the map returned
+        # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
+        return self._generic_coerce_map(self.base_ring())
+
+    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
+        """
+        Construct a Dirichlet series from ``x``.
+
+        INPUT:
+
+        - ``x`` -- a Dirichlet series, a Dirichlet polynomial, a Python function, or a list of elements in the base ring
+
+        - ``constant`` -- either ``None`` (default: ``None``) or pair of an element of the base ring and an integer
+
+        EXAMPLES::
+
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L(3)
+            3
+            sage: L(lambda i: i, constant=1, degree=6)
+            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 1/(6^z) + 1/(7^z) + 1/(8^z) + O(1/(9^z))
+
+            sage: X = L(constant=5, degree=3); X
+            5/3^z + 5/4^z + 5/5^z + O(1/(6^z))
+            sage: X.valuation()
+            log(3)
+            sage: e = L(moebius); e
+            1 - 1/(2^z) - 1/(3^z) - 1/(5^z) + 1/(6^z) - 1/(7^z) + O(1/(8^z))
+
+            sage: L([0], constant=1)
+            1/(2^z) + 1/(3^z) + 1/(4^z) + O(1/(5^z))
+
+            sage: L(constant=1)
+            1 + 1/(2^z) + 1/(3^z) + O(1/(4^z))
+
+        Alternatively, ``x`` can be a list of elements of the base ring.
+        Then these elements are read as coefficients of the terms of
+        degrees starting from the ``valuation``. In this case, ``constant``
+        may be just an element of the base ring instead of a tuple or can be
+        simply omitted if it is zero::
+
+            sage: f = L([1,2,3,4], 4); f
+            1/(4^z) + 2/5^z + 3/6^z + 4/7^z
+            sage: g = L([1,3,5,7,9], 6, -1); g
+            1/(6^z) + 3/7^z + 5/8^z + 7/9^z + 9/10^z - 1/(11^z) - 1/(12^z) - 1/(13^z) + O(1/(14^z))
+
+        TESTS::
+
+            sage: L = LazyDirichletSeriesRing(GF(2), 'z')
+            Traceback (most recent call last):
+            ...
+            ValueError: positive characteristic not allowed for Dirichlet series
+
+        TODO::
+
+            Add a method to make a copy of self._sparse.
+        """
+        if valuation is None:
+            valuation = 1
+        assert valuation > 0, "the valuation of a Dirichlet series must be positive"
+
+        if x is None:
+            return self.element_class(self, Stream_uninitialized(self._sparse, valuation))
+
+        BR = self.base_ring()
+        if constant is None:
+            constant = ZZ.zero()
+        elif isinstance(constant, (tuple, list)):
+            constant, degree = constant
+        constant = BR(constant)
+
+        if x in BR:
+            x = BR(x)
+            if not x and not constant:
+                coeff_stream = Stream_zero(self._sparse)
+                return self.element_class(self, coeff_stream)
+            elif not x:
+                x = []
+            else:
+                x = [x]
+        if isinstance(x, (tuple, list)):
+            coeff_stream = Stream_exact(x, self._sparse,
+                                                   order=valuation,
+                                                   constant=constant,
+                                                   degree=degree)
+            return self.element_class(self, coeff_stream)
+
+        if isinstance(x, LazyDirichletSeries):
+            if x._coeff_stream._is_sparse is self._sparse:
+                return self.element_class(self, x._coeff_stream)
+            # TODO: Implement a way to make a self._sparse copy
+            raise NotImplementedError("cannot convert between sparse and dense")
+        if callable(x):
+            if degree is not None:
+                if constant is None:
+                    constant = ZZ.zero()
+                x = [BR(x(i)) for i in range(1, degree)]
+                coeff_stream = Stream_exact(x, self._sparse,
+                                                       order=valuation,
+                                                       constant=constant,
+                                                       degree=degree)
+                return self.element_class(self, coeff_stream)
+            coeff_stream = Stream_function(x, BR, self._sparse, valuation)
+            return self.element_class(self, coeff_stream)
+        raise ValueError(f"unable to convert {x} into a lazy Dirichlet series")
+
+    def _an_element_(self):
+        """
+        Return a Dirichlet series in this ring.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.an_element()
+            1/(4^z) + 1/(5^z) + 1/(6^z) + ...
+        """
+        c = self.base_ring().an_element()
+        return self.element_class(self, Stream_exact([], self._sparse, constant=c, order=4))
+
+    @cached_method
+    def one(self):
+        """
+        Return the constant series `1`.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.one()
+            1
+        """
+        return self.element_class(self, Stream_exact([1], self._sparse, order=1))
+
+    @cached_method
+    def zero(self):
+        """
+        Return the zero series.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: L.zero()
+            0
+        """
+        return self.element_class(self, Stream_zero(self._sparse))
+
+    # add options to class
+    class options(GlobalOptions):
+        NAME = 'LazyDirichletSeriesRing'
+        module = 'sage.rings.lazy_laurent_series_ring'
+        display_length = dict(default=7,
+                              description='the number of coefficients to display from the valuation',
+                              checker=lambda x: x in ZZ and x > 0)
+        constant_length = dict(default=3,
+                               description='the number of coefficients to display for nonzero constant series',
+                               checker=lambda x: x in ZZ and x > 0)

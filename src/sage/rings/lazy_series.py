@@ -107,6 +107,7 @@ from sage.data_structures.stream import (
     Stream_exact,
     Stream_uninitialized,
     Stream_shift,
+    Stream_function,
     Stream_dirichlet_convolve,
     Stream_dirichlet_invert
 )
@@ -1917,13 +1918,38 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: sum(g^k/factorial(k) for k in range(10))[0:10]
             [0, 1, 1, 1, 3/2, 1, 2, 1, 13/6, 3/2]
 
+            sage: g = D([1,0,1,1,2]); g
+            sage: e(g)[0:10]
+            sage: sum(g^k/factorial(k) for k in range(10))[0:10]
+
+        The output parent is always the common parent between the base ring
+        of `f` and the parent of `g` or extended to the corresponding
+        lazy series::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: R.<x> = ZZ[]
+            sage: parent(z(x))
+            Univariate Polynomial Ring in x over Rational Field
+            sage: parent(z(R.zero()))
+            Univariate Polynomial Ring in x over Rational Field
+            sage: parent(z(0))
+            Rational Field
+            sage: f = 1 / (1 - z)
+            sage: f(x)
+            1 + x + x^2 + x^3 + x^4 + x^5 + x^6 + O(x^7)
+            sage: three = L(3)(x^2); three
+            3
+            sage: parent(three)
+            Univariate Polynomial Ring in x over Rational Field
         """
         # f = self and compute f(g)
-        P = g.parent()
+        from sage.structure.element import get_coercion_model
+        cm = get_coercion_model()
+        P = cm.common_parent(self.base_ring(), g.parent())
 
         # f = 0
         if isinstance(self._coeff_stream, Stream_zero):
-            return self
+            return P.zero()
 
         # g = 0 case
         if ((not isinstance(g, LazyModuleElement) and not g)
@@ -1943,12 +1969,15 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             R = self.parent()._laurent_poly_ring
             poly = self._coeff_stream._polynomial_part(R)
             if poly.is_constant():
-                return self
+                return P(poly[0])
             if not isinstance(g, LazyModuleElement):
                 return poly(g)
             # g also has finite length, compose the polynomials
-            # TODO: likely wrong if g is a Dirichlet series
-            if isinstance(g._coeff_stream, Stream_exact) and not g._coeff_stream._constant:
+            # We optimize composition when g is not a Dirichlet series
+            #    by composing the polynomial parts explicitly
+            if (not isinstance(g, LazyDirichletSeries)
+                and isinstance(g._coeff_stream, Stream_exact)
+                and not g._coeff_stream._constant):
                 R = P._laurent_poly_ring
                 g_poly = g._coeff_stream._polynomial_part(R)
                 try:
@@ -1991,22 +2020,35 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
                 ret += poly[v] * gp
             return ret
 
-        # g != 0 and val(g) > 0
+        # f is not known to have finite length and g != 0 with val(g) > 0
         if not isinstance(g, LazyModuleElement):
+            # Check to see if it belongs to a polynomial ring
+            #   that we can extend to a lazy series ring
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing_general
+            if isinstance(P, PolynomialRing_general):
+                from sage.rings.lazy_series_ring import LazyLaurentSeriesRing
+                R = LazyLaurentSeriesRing(P.base_ring(), P.variable_names(), P.is_sparse())
+                g = R(P(g))
+                return self(g)
+
             # TODO: Implement case for a regular (Laurent)PowerSeries element
             #   as we can use the (default?) order given
-            try:
-                # TODO: wrong if g is not a CauchyProductSeries
-                g = self.parent()(g)
-            except (TypeError, ValueError):
-                raise NotImplementedError("can only compose with a lazy series")
+            raise NotImplementedError("can only compose with a lazy series")
+
         # Perhaps we just don't yet know if the valuation is positive
         if g._coeff_stream._approximate_order <= 0:
             if any(g._coeff_stream[i] for i in range(g._coeff_stream._approximate_order, 1)):
                 raise ValueError("can only compose with a positive valuation series")
             g._coeff_stream._approximate_order = 1
 
-        coeff_stream = Stream_cauchy_compose(self._coeff_stream, g._coeff_stream)
+        if isinstance(g, LazyCauchyProductSeries):
+            coeff_stream = Stream_cauchy_compose(self._coeff_stream, g._coeff_stream)
+            return P.element_class(P, coeff_stream)
+
+        # we assume that the valuation of self[i](g) is at least i
+        def coefficient(n):
+            return sum(self[i] * (g**i)[n] for i in range(n+1))
+        coeff_stream = Stream_function(coefficient, P._coeff_ring, P._sparse, 0)
         return P.element_class(P, coeff_stream)
 
     compose = __call__

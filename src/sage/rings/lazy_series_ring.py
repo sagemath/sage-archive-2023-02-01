@@ -963,12 +963,13 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``x`` -- a Dirichlet series, a Dirichlet polynomial, a Python function, or a list of elements in the base ring
+        - ``x`` -- a Dirichlet series, a Dirichlet polynomial, a Python
+          function, or a list of elements in the base ring
 
-        - ``constant`` -- either ``None`` (default: ``None``) or pair of an element of the base ring and an integer
+        - ``constant`` -- integer (optional); pair of
+          an element of the base ring and an integer
 
         EXAMPLES::
-
 
             sage: L = LazyDirichletSeriesRing(ZZ, 'z')
             sage: L(3)
@@ -1007,13 +1008,14 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
             ...
             ValueError: positive characteristic not allowed for Dirichlet series
 
-        TODO::
+        .. TODO::
 
-            Add a method to make a copy of self._sparse.
+            Add a method to make a copy of ``self._sparse``.
         """
         if valuation is None:
             valuation = 1
-        assert valuation > 0, "the valuation of a Dirichlet series must be positive"
+        if valuation <= 0:
+            raise ValueError("the valuation of a Dirichlet series must be positive")
 
         if x is None:
             return self.element_class(self, Stream_uninitialized(self._sparse, valuation))
@@ -1036,9 +1038,9 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
                 x = [x]
         if isinstance(x, (tuple, list)):
             coeff_stream = Stream_exact(x, self._sparse,
-                                                   order=valuation,
-                                                   constant=constant,
-                                                   degree=degree)
+                                        order=valuation,
+                                        constant=constant,
+                                        degree=degree)
             return self.element_class(self, coeff_stream)
 
         if isinstance(x, LazyDirichletSeries):

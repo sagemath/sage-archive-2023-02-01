@@ -1423,11 +1423,22 @@ class Stream_dirichlet_convolve(Stream_binary):
         sage: u = Stream_dirichlet_convolve(g, f)
         sage: [u[i] for i in range(1, 10)]
         [1, 3, 4, 7, 6, 12, 8, 15, 13]
-
     """
     def __init__(self, left, right):
         """
         Initalize ``self``.
+
+            sage: from sage.data_structures.stream import (Stream_dirichlet_convolve, Stream_function, Stream_exact)
+            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: g = Stream_exact([1], True, constant=0)
+            sage: Stream_dirichlet_convolve(f, g)
+            Traceback (most recent call last):
+            ...
+            AssertionError: Dirichlet convolution is only defined for coefficient streams with minimal index of nonzero coefficient at least 1
+            sage: Stream_dirichlet_convolve(g, f)
+            Traceback (most recent call last):
+            ...
+            AssertionError: Dirichlet convolution is only defined for coefficient streams with minimal index of nonzero coefficient at least 1
         """
         if left._is_sparse != right._is_sparse:
             raise NotImplementedError
@@ -1447,6 +1458,16 @@ class Stream_dirichlet_convolve(Stream_binary):
 
         - ``n`` -- integer; the degree for the coefficient
 
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import (Stream_dirichlet_convolve, Stream_function, Stream_exact)
+            sage: f = Stream_function(lambda n: n, ZZ, True, 1)
+            sage: g = Stream_exact([0], True, constant=1)
+            sage: h = Stream_dirichlet_convolve(f, g)
+            sage: h.get_coefficient(7)
+            8
+            sage: [h[i] for i in range(1, 10)]
+            [1, 3, 4, 7, 6, 12, 8, 15, 13]
         """
         c = ZZ.zero()
         for k in divisors(n):
@@ -1500,6 +1521,16 @@ class Stream_dirichlet_invert(Stream_unary):
         INPUT:
 
         - ``n`` -- integer; the degree for the coefficient
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import (Stream_exact, Stream_dirichlet_invert)
+            sage: f = Stream_exact([0, 3], True, constant=2)
+            sage: g = Stream_dirichlet_invert(f)
+            sage: g.get_coefficient(6)
+            2/27
+            sage: [g[i] for i in range(8)]
+            [0, 1/3, -2/9, -2/9, -2/27, -2/9, 2/27, -2/9]
         """
         if n == 1:
             return self._ainv

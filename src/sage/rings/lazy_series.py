@@ -1918,9 +1918,24 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: sum(g^k/factorial(k) for k in range(10))[0:10]
             [0, 1, 1, 1, 3/2, 1, 2, 1, 13/6, 3/2]
 
-            sage: g = D([1,0,1,1,2]); g
+            sage: g = D([0,1,0,1,1,2]); g
+            1/(2^s) + 1/(4^s) + 1/(5^s) + 2/6^s
             sage: e(g)[0:10]
+            [0, 1, 1, 0, 3/2, 1, 2, 0, 7/6, 0]
             sage: sum(g^k/factorial(k) for k in range(10))[0:10]
+            [0, 1, 1, 0, 3/2, 1, 2, 0, 7/6, 0]
+
+            sage: e(D([1,0,1]))
+            Traceback (most recent call last):
+            ...
+            ValueError: can only compose with a positive valuation series
+
+            sage: e5 = L(e, degree=5); e5
+            1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4
+            sage: e5(g)
+            1 + 1/(2^s) + 3/2/4^s + 1/(5^s) + 2/6^s + O(1/(8^s))
+            sage: sum(e5[k] * g^k for k in range(5))
+            1 + 1/(2^s) + 3/2/4^s + 1/(5^s) + 2/6^s + O(1/(8^s))
 
         The output parent is always the common parent between the base ring
         of `f` and the parent of `g` or extended to the corresponding
@@ -2041,14 +2056,16 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
                 raise ValueError("can only compose with a positive valuation series")
             g._coeff_stream._approximate_order = 1
 
-        if isinstance(g, LazyCauchyProductSeries):
-            coeff_stream = Stream_cauchy_compose(self._coeff_stream, g._coeff_stream)
+        if isinstance(g, LazyDirichletSeries):
+            if g._coeff_stream._approximate_order == 1 and g._coeff_stream[1] != 0:
+                raise ValueError("can only compose with a positive valuation series")
+            # we assume that the valuation of self[i](g) is at least i
+            def coefficient(n):
+                return sum(self[i] * (g**i)[n] for i in range(n+1))
+            coeff_stream = Stream_function(coefficient, P._coeff_ring, P._sparse, 0)
             return P.element_class(P, coeff_stream)
 
-        # we assume that the valuation of self[i](g) is at least i
-        def coefficient(n):
-            return sum(self[i] * (g**i)[n] for i in range(n+1))
-        coeff_stream = Stream_function(coefficient, P._coeff_ring, P._sparse, 0)
+        coeff_stream = Stream_cauchy_compose(self._coeff_stream, g._coeff_stream)
         return P.element_class(P, coeff_stream)
 
     compose = __call__
@@ -2376,7 +2393,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             if not cs._constant:
                 return formatter(poly)
             m = cs._degree + P.options.constant_length
-            poly += sum([cs._constant * z**k for k in range(cs._degree, m)])
+            poly += sum(cs._constant * z**k for k in range(cs._degree, m))
             return formatter(poly) + strformat(" + O({})".format(formatter(z**m)))
 
         # This is an inexact series
@@ -2392,12 +2409,6 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 class LazyDirichletSeries(LazyModuleElement):
     r"""
     A Dirichlet series where the coefficients are computed lazily.
-
-    INPUT:
-
-    - ``parent`` -- The base ring for the series
-
-    - ``coeff_stream`` -- The auxiliary class that handles the coefficient stream
 
     EXAMPLES::
 
@@ -2435,7 +2446,6 @@ class LazyDirichletSeries(LazyModuleElement):
             log(2)
             sage: (g*g).valuation()
             2*log(2)
-
         """
         from sage.functions.log import log
         return log(self._coeff_stream.order())
@@ -2466,6 +2476,14 @@ class LazyDirichletSeries(LazyModuleElement):
             True
             sage: mu * L.one() is mu
             True
+
+            sage: d1 = L([0,0,1,2,3])
+            sage: d2 = L([0,1,2,3])
+            sage: d1 * d2
+            1/(6^z) + 2/8^z + 2/9^z + 3/10^z + 7/12^z + O(1/(13^z))
+
+            sage: d1 * d2  # not tested - exact result
+            1/(6^z) + 2/8^z + 2/9^z + 3/10^z + 7/12^z + 6/15^z + 6/16^z + 9/20^z
         """
         P = self.parent()
         left = self._coeff_stream
@@ -2479,6 +2497,17 @@ class LazyDirichletSeries(LazyModuleElement):
             and right.order() == 1):
             return self
         coeff = Stream_dirichlet_convolve(left, right)
+        # Performing exact arithmetic is slow because the series grow large
+        #   very quickly as we are multiplying the degree
+        #if (isinstance(left, Stream_exact) and not left._constant
+        #    and isinstance(right, Stream_exact) and not right._constant):
+        #    # Product of finite length Dirichlet series,
+        #    #   so the result has finite length
+        #    deg = (left._degree - 1) * (right._degree - 1) + 1
+        #    order = left._approximate_order * right._approximate_order
+        #    coeff_vals = [coeff[i] for i in range(order, deg)]
+        #    return P.element_class(P, Stream_exact(coeff_vals, coeff._is_sparse,
+        #                                           constant=left._constant, order=order, degree=deg))
         return P.element_class(P, coeff)
 
     def __invert__(self):
@@ -2524,6 +2553,9 @@ class LazyDirichletSeries(LazyModuleElement):
             sage: f = L(constant=1)
             sage: f._format_series(repr)
             '1 + 1/(2^s) + 1/(3^s) + O(1/(4^s))'
+            sage: f._format_series(unicode_art)
+                 -s    -s
+            1 + 2   + 3   + O(1/(4^s))
 
             sage: L([1,-1,1])._format_series(repr)
             '1 - 1/(2^s) + 1/(3^s)'
@@ -2532,6 +2564,13 @@ class LazyDirichletSeries(LazyModuleElement):
                   -s    -s
             1 + -2   + 3
 
+            sage: R.<x> = QQ[]
+            sage: L = LazyDirichletSeriesRing(R, "s")
+            sage: L([1,-1 + x,1/3])._format_series(ascii_art)
+                                  ( -s)
+                                  (3  )
+                  ( -s        )   (---)
+            (1) + (2  *(x - 1)) + ( 3 )
         """
         P = self.parent()
         cs = self._coeff_stream
@@ -2586,3 +2625,4 @@ class LazyDirichletSeries(LazyModuleElement):
                 poly = unicode_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
 
         return poly
+

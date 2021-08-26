@@ -14,6 +14,23 @@ fi
 
 if [ "x$SAGE_FAT_BINARY" = "xyes" ]; then
     OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE DYNAMIC_ARCH=1"
+    machine=$(uname -m)
+    os=$(uname)
+    if [[ $os-$machine =~ darwin-x86_64 ]]; then
+        OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=CORE2"
+    elif [[ $os-$machine =~ darwin-arm64 ]]; then
+        OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=VORTEX"
+    elif [[ $machine =~ x86_64|amd64 ]]; then
+        OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=PRESCOTT"
+    elif [[ $machine =~ i386|i486|i586|i686 ]]; then
+        OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=KATMAI"
+    elif [[ $machine =~ ppc64le ]]; then
+        OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=POWER8"
+    elif [[ $machine =~ ppc64 ]]; then
+        OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=POWER6"
+    elif [[ $machine =~ aarch64 ]]; then
+        OPENBLAS_CONFIGURE="$OPENBLAS_CONFIGURE TARGET=ARMV8"
+    fi
 fi
 
 echo "Building OpenBLAS: $MAKE $OPENBLAS_CONFIGURE"

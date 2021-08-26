@@ -2062,7 +2062,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             # we assume that the valuation of self[i](g) is at least i
             def coefficient(n):
                 return sum(self[i] * (g**i)[n] for i in range(n+1))
-            coeff_stream = Stream_function(coefficient, P._coeff_ring, P._sparse, 0)
+            coeff_stream = Stream_function(coefficient, P._coeff_ring, P._sparse, 1)
             return P.element_class(P, coeff_stream)
 
         coeff_stream = Stream_cauchy_compose(self._coeff_stream, g._coeff_stream)

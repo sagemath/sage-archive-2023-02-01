@@ -1,9 +1,9 @@
 cpdef call_registered_function(unsigned serial,
-                           int nargs,
-                           list args,
-                           bint hold,
-                           bint allow_numeric_result,
-                           result_parent):
+                               int nargs,
+                               list args,
+                               bint hold,
+                               bint allow_numeric_result,
+                               result_parent):
     r"""
     Call a function registered with Pynac (GiNaC).
 
@@ -13,7 +13,8 @@ cpdef call_registered_function(unsigned serial,
 
     - ``nargs`` - declared number of args (0 is variadic)
 
-    - ``args`` - a list of :class:`Expression` (Expression's)
+    - ``args`` - a list of arguments to pass to the function;
+      each must be an :class:`Expression`
 
     - ``hold`` - whether to leave the call unevaluated
 
@@ -99,7 +100,6 @@ cpdef unsigned register_or_update_function(self, name, latex_name, int nargs,
     EXAMPLES::
 
         sage: from sage.symbolic.function import BuiltinFunction
-        sage: from sage.symbolic.expression import register_or_update_function, call_registered_function
         sage: class Archosaurian(BuiltinFunction):
         ....:     def __init__(self):
         ....:         BuiltinFunction.__init__(self, 'archsaur', nargs=1)

@@ -71,6 +71,8 @@ def stationary_gaussian_simulation(s, N, n=1):
 
         sage: set_random_seed(0)
         sage: sim = finance.stationary_gaussian_simulation(s, N)[0]
+        doctest:warning...
+        DeprecationWarning: the package sage.finance is deprecated...
 
     Note that indeed the autocovariance sequence approximates ``s`` well::
 

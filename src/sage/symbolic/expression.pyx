@@ -13415,13 +13415,19 @@ cpdef new_Expression_from_pyobject(parent, x, bint force=True, bint recursive=Tr
 
         sage: from sage.symbolic.expression import new_Expression_from_pyobject
         sage: t = new_Expression_from_pyobject(SR, 17); t
+        17
         sage: type(t)
+        <class 'sage.symbolic.expression.Expression'>
 
         sage: t2 = new_Expression_from_pyobject(SR, t, False); t2
+        17
         sage: t2 is t
+        True
 
         sage: tt = new_Expression_from_pyobject(SR, t, True); tt
+        17
         sage: tt is t
+        False
     """
     cdef GEx exp
     cdef GExprSeq ex_seq

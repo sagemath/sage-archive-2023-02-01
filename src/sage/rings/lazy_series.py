@@ -1,9 +1,9 @@
 r"""
-Lazy Laurent Series
+Lazy Series
 
-A lazy Laurent series is a Laurent series whose coefficients are
-computed on demand.  Therefore, unlike the usual Laurent series in
-Sage, lazy Laurent series have infinite precision.
+A lazy series is a series whose coefficients are computed on demand.
+Therefore, unlike the usual Laurent/power/etc. series in Sage,
+lazy series have infinite precision.
 
 EXAMPLES:
 
@@ -1679,7 +1679,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: M ^-1
             z^-1 - 2 + z + O(z^6)
         """
-        from .lazy_laurent_series_ring import LazyLaurentSeriesRing
+        from .lazy_series_ring import LazyLaurentSeriesRing
         Q = LazyLaurentSeriesRing(ring, names=self.parent().variable_names())
         return Q.element_class(Q, self._coeff_stream)
 
@@ -2468,7 +2468,7 @@ class LazyDirichletSeries(LazyModuleElement):
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=False)
         """
-        from .lazy_laurent_series_ring import LazyDirichletSeriesRing
+        from .lazy_series_ring import LazyDirichletSeriesRing
         Q = LazyDirichletSeriesRing(ring, names=self.parent().variable_names())
         return Q.element_class(Q, self._coeff_stream)
 

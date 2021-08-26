@@ -1,5 +1,5 @@
 r"""
-Lazy Laurent Series Rings
+Lazy Series Rings
 
 AUTHORS:
 
@@ -33,7 +33,7 @@ from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
-from sage.rings.lazy_laurent_series import (LazyCauchyProductSeries,
+from sage.rings.lazy_series import (LazyCauchyProductSeries,
                                             LazyLaurentSeries,
                                             LazyDirichletSeries)
 from sage.structure.global_options import GlobalOptions
@@ -770,7 +770,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             7
         """
         NAME = 'LazyLaurentSeriesRing'
-        module = 'sage.rings.lazy_laurent_series_ring'
+        module = 'sage.rings.lazy_series_ring'
         display_length = dict(default=7,
                               description='the number of coefficients to display from the valuation',
                               checker=lambda x: x in ZZ and x > 0)
@@ -1102,10 +1102,11 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
     # add options to class
     class options(GlobalOptions):
         NAME = 'LazyDirichletSeriesRing'
-        module = 'sage.rings.lazy_laurent_series_ring'
+        module = 'sage.rings.lazy_series_ring'
         display_length = dict(default=7,
                               description='the number of coefficients to display from the valuation',
                               checker=lambda x: x in ZZ and x > 0)
         constant_length = dict(default=3,
                                description='the number of coefficients to display for nonzero constant series',
                                checker=lambda x: x in ZZ and x > 0)
+

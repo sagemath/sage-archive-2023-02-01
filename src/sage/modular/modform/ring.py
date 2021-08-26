@@ -29,6 +29,7 @@ from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
 from .constructor                 import ModularForms
 from .element import is_ModularFormElement, GradedModularFormElement
 from .space import is_ModularFormsSpace
+from .defaults import DEFAULT_VARIABLE
 from random import shuffle
 
 from sage.rings.polynomial.multi_polynomial import MPolynomial
@@ -385,8 +386,10 @@ class ModularFormsRing(Parent):
 
         INPUT:
 
-        - ``pol`` -- A multivariate polynomial
-        - ``gens`` -- list (default: ``None``) of generators of the modular forms ring
+        - ``pol`` -- A multivariate polynomial. The variables names of the
+          polynomial should be different from ``'q'``.
+        - ``gens`` -- list (default: ``None``) of generators of the modular
+          forms ring
 
         OUTPUT: A GradedModularFormElement given by the polynomial relation ``pol``.
 
@@ -408,6 +411,16 @@ class ModularFormsRing(Parent):
             sage: M.from_polynomial(P(1/2))
             1/2
 
+        The variable names should be different from ``'q'``::
+
+            sage: M = ModularFormsRing(1)
+            sage: q, t = polygens(QQ, 'q, t')
+            sage: M.from_polynomial(q + t)
+            Traceback (most recent call last):
+            ...
+            ValueError: the variable name `q` is reserved for q-expansion, please use a different variable name
+
+
         TESTS::
 
             sage: x,y = polygens(GF(7), 'x, y')
@@ -415,6 +428,12 @@ class ModularFormsRing(Parent):
             Traceback (most recent call last):
             ...
             NotImplementedError: conversion from polynomial is not implemented if the base ring is not Q
+            sage: M = ModularFormsRing(1)
+            sage: q = polygen(QQ, 'q')
+            sage: M(q^2 + q + 1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the variable name `q` is reserved for q-expansion, please use a different variable name
 
         ..TODO::
 
@@ -424,6 +443,8 @@ class ModularFormsRing(Parent):
             raise NotImplementedError("conversion from polynomial is not implemented if the base ring is not Q")
         if not isinstance(pol, (MPolynomial, Polynomial)):
             raise TypeError('`pol` must be a polynomial')
+        if DEFAULT_VARIABLE in pol.parent()._names:
+            raise ValueError('the variable name `q` is reserved for q-expansion, please use a different variable name')
         if pol.is_constant():
             return self(pol.constant_coefficient())
         if gens is None:
@@ -469,12 +490,6 @@ class ModularFormsRing(Parent):
             Traceback (most recent call last):
             ...
             TypeError: the defining data structure should be a single modular form, a ring element, a list of modular forms, a polynomial or a dictionary
-            sage: P.<q> = QQ[]
-            sage: f = 1 + 240*q + 2160*q^2
-            sage: ModularFormsRing(1)(f)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: conversion from q-expansion not yet implemented
             sage: P.<t> = PowerSeriesRing(QQ)
             sage: e = 1 + 240*t + 2160*t^2 + 6720*t^3 + 17520*t^4 + 30240*t^5 + O(t^6)
             sage: ModularFormsRing(1)(e)
@@ -494,8 +509,6 @@ class ModularFormsRing(Parent):
         elif forms_datum in self.base_ring():
             forms_dictionary = {0:forms_datum}
         elif isinstance(forms_datum, (Polynomial, MPolynomial)):
-            if forms_datum.parent()._names[0] == 'q':
-                raise NotImplementedError("conversion from q-expansion not yet implemented")
             return self.from_polynomial(forms_datum)
         elif isinstance(forms_datum, PowerSeries_poly):
             raise NotImplementedError("conversion from q-expansion not yet implemented")

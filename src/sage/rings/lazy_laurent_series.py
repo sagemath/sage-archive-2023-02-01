@@ -728,7 +728,7 @@ class LazyModuleElement(Element):
             return self
         left = self._coeff_stream
         if isinstance(left, Stream_zero):
-            return - other
+            return -other
         P = self.parent()
         if (isinstance(left, Stream_exact) and isinstance(right, Stream_exact)):
             approximate_order = min(left.order(), right.order())
@@ -1701,6 +1701,13 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             1 - 2*z + z^2
             sage: (1 + z)^2
             1 + 2*z + z^2
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L(0)^10
+            0
+
         """
         if n == 0:
             return self.parent().one()

@@ -628,124 +628,105 @@ class ReferenceTopBuilder(DocBuilder):
         self.name = 'reference'
         self.lang = 'en'
 
-    def _output_dir(self, type, lang=None):
-        """
-        Return the directory where the output of type ``type`` is stored.
-
-        If the directory does not exist, then it will automatically be
-        created.
-
-        EXAMPLES::
-
-            sage: from sage_docbuild import ReferenceTopBuilder
-            sage: b = ReferenceTopBuilder('reference')
-            sage: b._output_dir('html')
-            '.../html/en/reference'
-        """
-        if lang is None:
-            lang = self.lang
-        d = os.path.join(SAGE_DOC, type, lang, self.name)
-        sage_makedirs(d)
-        return d
-
-    def _wrapper(self, format, *args, **kwds):
+    def pdf(self):
         """
         Build top-level document.
         """
-        getattr(DocBuilder(self.name, self.lang), format)(*args, **kwds)
-        # PDF: we need to build master index file which lists all
+        super().pdf()
+
+        # we need to build master index file which lists all
         # of the PDF file.  So we create an html file, based on
         # the file index.html from the "website" target.
-        if format == 'pdf':
-            # First build the website page. This only takes a few seconds.
-            getattr(get_builder('website'), 'html')()
 
-            website_dir = os.path.join(SAGE_DOC, 'html', 'en', 'website')
-            output_dir = self._output_dir(format)
+        # First build the website page. This only takes a few seconds.
+        getattr(get_builder('website'), 'html')()
 
-            # Install in output_dir a symlink to the directory containing static files.
-            try:
-                os.symlink(os.path.join(website_dir, '_static'), os.path.join(output_dir, '_static'))
-            except FileExistsError:
-                pass
+        website_dir = os.path.join(SAGE_DOC, 'html', 'en', 'website')
+        output_dir = self._output_dir('pdf')
 
-            # Now modify website's index.html page and write it to
-            # output_dir.
-            with open(os.path.join(website_dir, 'index.html')) as f:
-                html = f.read().replace('Documentation', 'Reference')
-            html_output_dir = os.path.dirname(website_dir)
-            html = html.replace('http://www.sagemath.org',
-                                os.path.join(html_output_dir, 'index.html'))
-            # From index.html, we want the preamble and the tail.
-            html_end_preamble = html.find('<h1>Sage Reference')
-            html_bottom = html.rfind('</table>') + len('</table>')
+        # Install in output_dir a symlink to the directory containing static files.
+        try:
+            os.symlink(os.path.join(website_dir, '_static'), os.path.join(output_dir, '_static'))
+        except FileExistsError:
+            pass
 
-            # For the content, we modify doc/en/reference/index.rst, which
-            # has two parts: the body and the table of contents.
-            with open(os.path.join(SAGE_DOC_SRC, self.lang, 'reference', 'index.rst')) as f:
-                rst = f.read()
-            # Get rid of todolist and miscellaneous rst markup.
-            rst = rst.replace('.. _reference-manual:\n\n', '')
-            rst = re.sub(r'\\\\', r'\\', rst)
-            # Replace rst links with html links. There are three forms:
-            #
-            #   `blah`__    followed by __ LINK
-            #
-            #   `blah <LINK>`_
-            #
-            #   :doc:`blah <module/index>`
-            #
-            # Change the first and the second forms to
-            #
-            #   <a href="LINK">blah</a>
-            #
-            # Change the third form to
-            #
-            #   <a href="module/module.pdf">blah <img src="_static/pdf.png" /></a>
-            #
-            rst = re.sub(r'`([^`\n]*)`__.*\n\n__ (.*)',
-                         r'<a href="\2">\1</a>.', rst)
-            rst = re.sub(r'`([^<\n]*)\s+<(.*)>`_',
-                         r'<a href="\2">\1</a>',  rst)
-            rst = re.sub(r':doc:`([^<]*?)\s+<(.*)/index>`',
-                         r'<a href="\2/\2.pdf">\1 <img src="_static/pdf.png"/></a>', rst)
-            # Body: add paragraph <p> markup.
-            start = rst.rfind('*\n') + 1
-            end = rst.find('\nUser Interfaces')
-            rst_body = rst[start:end]
-            rst_body = rst_body.replace('\n\n', '</p>\n<p>')
-            # TOC: don't include the indices
-            start = rst.find('\nUser Interfaces')
-            end = rst.find('Indices and Tables')
-            rst_toc = rst[start:end]
-            # change * to <li>; change rst headers to html headers
-            rst_toc = re.sub(r'\*(.*)\n',
-                             r'<li>\1</li>\n', rst_toc)
-            rst_toc = re.sub(r'\n([A-Z][a-zA-Z, ]*)\n[=]*\n',
-                             r'</ul>\n\n\n<h2>\1</h2>\n\n<ul>\n', rst_toc)
-            rst_toc = re.sub(r'\n([A-Z][a-zA-Z, ]*)\n[-]*\n',
-                             r'</ul>\n\n\n<h3>\1</h3>\n\n<ul>\n', rst_toc)
-            # now write the file.
-            with open(os.path.join(output_dir, 'index.html'), 'w') as new_index:
-                new_index.write(html[:html_end_preamble])
-                new_index.write('<h1> Sage Reference Manual (PDF version)'+ '</h1>')
-                new_index.write(rst_body)
-                new_index.write('<ul>')
-                new_index.write(rst_toc)
-                new_index.write('</ul>\n\n')
-                new_index.write(html[html_bottom:])
-            logger.warning('''
+        # Now modify website's index.html page and write it to
+        # output_dir.
+        with open(os.path.join(website_dir, 'index.html')) as f:
+            html = f.read().replace('Documentation', 'Reference')
+        html_output_dir = os.path.dirname(website_dir)
+        html = html.replace('http://www.sagemath.org',
+                            os.path.join(html_output_dir, 'index.html'))
+        # From index.html, we want the preamble and the tail.
+        html_end_preamble = html.find('<h1>Sage Reference')
+        html_bottom = html.rfind('</table>') + len('</table>')
+
+        # For the content, we modify doc/en/reference/index.rst, which
+        # has two parts: the body and the table of contents.
+        with open(os.path.join(SAGE_DOC_SRC, self.lang, 'reference', 'index.rst')) as f:
+            rst = f.read()
+        # Get rid of todolist and miscellaneous rst markup.
+        rst = rst.replace('.. _reference-manual:\n\n', '')
+        rst = re.sub(r'\\\\', r'\\', rst)
+        # Replace rst links with html links. There are three forms:
+        #
+        #   `blah`__    followed by __ LINK
+        #
+        #   `blah <LINK>`_
+        #
+        #   :doc:`blah <module/index>`
+        #
+        # Change the first and the second forms to
+        #
+        #   <a href="LINK">blah</a>
+        #
+        # Change the third form to
+        #
+        #   <a href="module/module.pdf">blah <img src="_static/pdf.png" /></a>
+        #
+        rst = re.sub(r'`([^`\n]*)`__.*\n\n__ (.*)',
+                     r'<a href="\2">\1</a>.', rst)
+        rst = re.sub(r'`([^<\n]*)\s+<(.*)>`_',
+                     r'<a href="\2">\1</a>',  rst)
+        rst = re.sub(r':doc:`([^<]*?)\s+<(.*)/index>`',
+                     r'<a href="\2/\2.pdf">\1 <img src="_static/pdf.png"/></a>', rst)
+        # Body: add paragraph <p> markup.
+        start = rst.rfind('*\n') + 1
+        end = rst.find('\nUser Interfaces')
+        rst_body = rst[start:end]
+        rst_body = rst_body.replace('\n\n', '</p>\n<p>')
+        # TOC: don't include the indices
+        start = rst.find('\nUser Interfaces')
+        end = rst.find('Indices and Tables')
+        rst_toc = rst[start:end]
+        # change * to <li>; change rst headers to html headers
+        rst_toc = re.sub(r'\*(.*)\n',
+                         r'<li>\1</li>\n', rst_toc)
+        rst_toc = re.sub(r'\n([A-Z][a-zA-Z, ]*)\n[=]*\n',
+                         r'</ul>\n\n\n<h2>\1</h2>\n\n<ul>\n', rst_toc)
+        rst_toc = re.sub(r'\n([A-Z][a-zA-Z, ]*)\n[-]*\n',
+                         r'</ul>\n\n\n<h3>\1</h3>\n\n<ul>\n', rst_toc)
+        # now write the file.
+        with open(os.path.join(output_dir, 'index.html'), 'w') as new_index:
+            new_index.write(html[:html_end_preamble])
+            new_index.write('<h1> Sage Reference Manual (PDF version)'+ '</h1>')
+            new_index.write(rst_body)
+            new_index.write('<ul>')
+            new_index.write(rst_toc)
+            new_index.write('</ul>\n\n')
+            new_index.write(html[html_bottom:])
+        logger.warning('''
 PDF documents have been created in subdirectories of
 
-  %s
+%s
 
 Alternatively, you can open
 
-  %s
+%s
 
 for a webpage listing all of the documents.''' % (output_dir,
-                                                 os.path.join(output_dir,
-                                                              'index.html')))
+                                             os.path.join(output_dir,
+                                                          'index.html')))
 
 
 class ReferenceSubBuilder(DocBuilder):

@@ -289,24 +289,23 @@ class LazyModuleElement(Element):
             z + 2*z^3 + 4*z^5 + 8*z^7 + O(z^8)
             sage: t
             2*z + 3*z^3 + 5*z^5 + 9*z^7 + O(z^8)
-            sage: M = L(lambda n: n, valuation=0); M
+            sage: m = L(lambda n: n, valuation=0); m
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: N = M.map_coefficients(lambda c: c + 1); N
+            sage: m.map_coefficients(lambda c: c + 1)
             2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
 
         Sparse Implementation::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n, valuation=0); M
+            sage: m = L(lambda n: n, valuation=0); m
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: N = M.map_coefficients(lambda c: c + 1); N
+            sage: m.map_coefficients(lambda c: c + 1)
             2*z + 3*z^2 + 4*z^3 + 5*z^4 + 6*z^5 + 7*z^6 + O(z^7)
 
         An example where the series is known to be exact::
 
             sage: f = z + z^2 + z^3
-            sage: m = f.map_coefficients(lambda c: c + 1)
-            sage: m
+            sage: f.map_coefficients(lambda c: c + 1)
             2*z + 2*z^2 + 2*z^3
 
         Similarly for Dirichlet series::
@@ -317,9 +316,17 @@ class LazyModuleElement(Element):
             sage: s = s.map_coefficients(lambda c: c + 1); s
             2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
 
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: L(0).map_coefficients(lambda c: c + 1)
+            0
+
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            return self
         BR = P.base_ring()
         if isinstance(coeff_stream, Stream_exact):
             initial_coefficients = [func(i) if i else 0
@@ -447,7 +454,7 @@ class LazyModuleElement(Element):
                 return False
 
             if (not isinstance(self._coeff_stream, Stream_exact)
-                    or not isinstance(other._coeff_stream, Stream_exact)):
+                or not isinstance(other._coeff_stream, Stream_exact)):
                 # One of the lazy laurent series is not known to eventually be constant
                 # Implement the checking of the caches here.
                 n = min(self._coeff_stream._approximate_order, other._coeff_stream._approximate_order)
@@ -824,33 +831,33 @@ class LazyModuleElement(Element):
         Dense series can be added::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: M = L(lambda n: 1 + n, valuation=0)
-            sage: N = L(lambda n: -n, valuation=0)
-            sage: O = M + N
-            sage: O[0:10]
+            sage: m = L(lambda n: 1 + n, valuation=0)
+            sage: n = L(lambda n: -n, valuation=0)
+            sage: s = m + n
+            sage: s[0:10]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
         Sparse series can be added::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: 1 + n, valuation=0)
-            sage: N = L(lambda n: -n, valuation=0)
-            sage: O = M + N
-            sage: O[0:10]
+            sage: m = L(lambda n: 1 + n, valuation=0)
+            sage: n = L(lambda n: -n, valuation=0)
+            sage: s = m + n
+            sage: s[0:10]
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 
         Series which are known to be exact can be added::
 
-            sage: M = L(1)
-            sage: N = L([0, 1])
-            sage: O = M + N
-            sage: O[0:10]
+            sage: m = L(1)
+            sage: n = L([0, 1])
+            sage: s = m + n
+            sage: s[0:10]
             [1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
         Adding zero gives the same series::
 
-            sage: M = L(lambda n: 1 + n, valuation=0)
-            sage: M + 0 is 0 + M is M
+            sage: m = L(lambda n: 1 + n, valuation=0)
+            sage: m + 0 is 0 + m is m
             True
 
         Similarly for Dirichlet series::
@@ -911,50 +918,55 @@ class LazyModuleElement(Element):
         Dense series can be subtracted::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
-            sage: M = L(lambda n: 1 + n, valuation=0)
-            sage: N = L(lambda n: -n, valuation=0)
-            sage: O = M - N
-            sage: O[0:10]
+            sage: m = L(lambda n: 1 + n, valuation=0)
+            sage: n = L(lambda n: -n, valuation=0)
+            sage: d = m - n
+            sage: d[0:10]
             [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
 
         Sparse series can be subtracted::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: 1 + n, valuation=0)
-            sage: N = L(lambda n: -n, valuation=0)
-            sage: O = M - N
-            sage: O[0:10]
+            sage: m = L(lambda n: 1 + n, valuation=0)
+            sage: n = L(lambda n: -n, valuation=0)
+            sage: d = m - n
+            sage: d[0:10]
             [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
 
         Series which are known to be exact can be subtracted::
 
-            sage: M = L.one()
-            sage: N = L([0, 1])
-            sage: O = M - N
-            sage: O[0:10]
+            sage: m = L.one()
+            sage: n = L([0, 1])
+            sage: d = m - n
+            sage: d[0:10]
             [1, -1, 0, 0, 0, 0, 0, 0, 0, 0]
 
-            sage: M = L([1, 0, 1])
-            sage: N = L([0, 0, 1])
-            sage: O = M - L.one() - N
-            sage: O
+            sage: m = L([1, 0, 1])
+            sage: n = L([0, 0, 1])
+            sage: d = m - L.one() - n
+            sage: d
             0
 
-        Subtraction with 0::
+        Subtraction involving 0::
 
-            sage: M = L(lambda n: 1 + n, valuation=0)
-            sage: M - 0 is M
+            sage: m = L(lambda n: 1 + n, valuation=0)
+            sage: m - 0 is m
             True
-            sage: 0 - M == -M
+            sage: 0 - m == -m
             True
+
+            sage: A.<t> = LazyLaurentSeriesRing(QQ)
+            sage: B.<z> = LazyLaurentSeriesRing(A)
+            sage: 1 - z
+            1 - z
         """
-        P = self.parent()
-        left = self._coeff_stream
         right = other._coeff_stream
-        if isinstance(left, Stream_zero):
-            return P.element_class(P, Stream_neg(right))
         if isinstance(right, Stream_zero):
             return self
+        left = self._coeff_stream
+        if isinstance(left, Stream_zero):
+            return - other
+        P = self.parent()
         if (isinstance(left, Stream_exact) and isinstance(right, Stream_exact)):
             approximate_order = min(left.order(), right.order())
             degree = max(left._degree, right._degree)
@@ -1086,6 +1098,10 @@ class LazyModuleElement(Element):
             else:
                 return None
 
+        coeff_stream = self._coeff_stream
+        if isinstance(coeff_stream, Stream_zero):
+            return self
+
         if not scalar:
             return P.zero()
         if scalar == R.one():
@@ -1093,21 +1109,21 @@ class LazyModuleElement(Element):
         if scalar == -R.one():
             return -self
 
-        if isinstance(self._coeff_stream, Stream_exact):
-            v = self._coeff_stream.order()
-            init_coeffs = self._coeff_stream._initial_coefficients
+        if isinstance(coeff_stream, Stream_exact):
+            v = coeff_stream.order()
+            init_coeffs = coeff_stream._initial_coefficients
             if self_on_left:
-                c = self._coeff_stream._constant * scalar
+                c = coeff_stream._constant * scalar
                 initial_coefficients = [val * scalar for val in init_coeffs]
             else:
-                c = scalar * self._coeff_stream._constant
+                c = scalar * coeff_stream._constant
                 initial_coefficients = [scalar * val for val in init_coeffs]
             return P.element_class(P, Stream_exact(initial_coefficients, P._sparse,
-                                                              order=v, constant=c,
-                                                              degree=self._coeff_stream._degree))
+                                                   order=v, constant=c,
+                                                   degree=coeff_stream._degree))
         if self_on_left or R.is_commutative():
-            return P.element_class(P, Stream_lmul(self._coeff_stream, scalar))
-        return P.element_class(P, Stream_rmul(self._coeff_stream, scalar))
+            return P.element_class(P, Stream_lmul(coeff_stream, scalar))
+        return P.element_class(P, Stream_rmul(coeff_stream, scalar))
 
     def _neg_(self):
         """
@@ -1118,66 +1134,54 @@ class LazyModuleElement(Element):
         Dense series can be negated::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
-            sage: M = L(lambda n: n, valuation=0)
-            sage: N = L(lambda n: -n, valuation=0)
-            sage: O = -N
-            sage: O[0:10]
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            sage: O = -M
-            sage: O[0:10]
-            [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
-            sage: O = -(-M)
-            sage: O[0:10]
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            sage: O == M
+            sage: m = L(lambda n: n, valuation=0)
+            sage: n = L(lambda n: -n, valuation=0)
+            sage: -n
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: -m
+            -z - 2*z^2 - 3*z^3 - 4*z^4 - 5*z^5 - 6*z^6 + O(z^7)
+            sage: -(-m) == m
             True
 
         Sparse series can be negated::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n, valuation=0)
-            sage: N = L(lambda n: -n, valuation=0)
-            sage: O = -N
-            sage: O[0:10]
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            sage: O = -M
-            sage: O[0:10]
-            [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
-            sage: O = -(-M)
-            sage: O[0:10]
-            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-            sage: O == M
+            sage: m = L(lambda n: n, valuation=0)
+            sage: n = L(lambda n: -n, valuation=0)
+            sage: -n
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: -m
+            -z - 2*z^2 - 3*z^3 - 4*z^4 - 5*z^5 - 6*z^6 + O(z^7)
+            sage: -(-m) == m
             True
 
-        Series which are known to be exact can be negated::
+        The negation of an exact series is exact::
 
-            sage: M = L.one()
-            sage: N = L([0, 1])
-            sage: O = -N
-            sage: O[0:10]
-            [0, -1, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: O = -M
-            sage: O[0:10]
-            [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: O = -(-M)
-            sage: O[0:10]
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            sage: O == M
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: -z
+            -z
+            sage: -L.one()
+            -1
+            sage: -(-L.one()) == L.one()
             True
 
-            sage: N = L([0, 1], degree=5, constant=2)
-            sage: -N
-            -z - 2*z^5 - 2*z^6 - 2*z^7 + O(z^8)
+            sage: L([1, 2, 3], constant=2) - L([0, 1], degree=5, constant=2)
+            1 + z + 3*z^2 + 2*z^3 + 2*z^4
+
+            sage: -L(0)
+            0
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
-        if isinstance(self._coeff_stream, Stream_exact):
+        if isinstance(coeff_stream, Stream_zero):
+            return self
+        if isinstance(coeff_stream, Stream_exact):
             initial_coefficients = [-v for v in coeff_stream._initial_coefficients]
             constant = -coeff_stream._constant
             coeff_stream = Stream_exact(initial_coefficients, P._sparse,
-                                                   constant=constant,
-                                                   degree=coeff_stream._degree,
-                                                   order=coeff_stream.order())
+                                        constant=constant,
+                                        degree=coeff_stream._degree,
+                                        order=coeff_stream.order())
             return P.element_class(P, coeff_stream)
         # -(-f) = f
         if isinstance(coeff_stream, Stream_neg):
@@ -2636,4 +2640,3 @@ class LazyDirichletSeries(LazyModuleElement):
                 poly = unicode_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
 
         return poly
-

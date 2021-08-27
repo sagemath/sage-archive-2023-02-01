@@ -313,7 +313,7 @@ class LazyModuleElement(Element):
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: s = L(lambda n: n-1); s
             1/(2^z) + 2/3^z + 3/4^z + 4/5^z + 5/6^z + 6/7^z + ...
-            sage: s = s.map_coefficients(lambda c: c + 1); s
+            sage: s.map_coefficients(lambda c: c + 1)
             2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
 
         TESTS::
@@ -2499,10 +2499,21 @@ class LazyDirichletSeries(LazyModuleElement):
 
             sage: d1 * d2  # not tested - exact result
             1/(6^z) + 2/8^z + 2/9^z + 3/10^z + 7/12^z + 6/15^z + 6/16^z + 9/20^z
+
+            sage: D = LazyDirichletSeriesRing(QQ, "s")
+            sage: L.<t> = LazyLaurentSeriesRing(D)
+            sage: zeta = D(constant=1)
+            sage: 1/(1-t*zeta)
+            (1 + O(1/(8^s))) + (1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + O(1/(8^s)))*t + (1 + 2/2^s + 2/3^s + 3/4^s + 2/5^s + 4/6^s + 2/7^s + O(1/(8^s)))*t^2 + (1 + 3/2^s + 3/3^s + 6/4^s + 3/5^s + 9/6^s + 3/7^s + O(1/(8^s)))*t^3 + (1 + 4/2^s + 4/3^s + 10/4^s + 4/5^s + 16/6^s + 4/7^s + O(1/(8^s)))*t^4 + (1 + 5/2^s + 5/3^s + 15/4^s + 5/5^s + 25/6^s + 5/7^s + O(1/(8^s)))*t^5 + (1 + 6/2^s + 6/3^s + 21/4^s + 6/5^s + 36/6^s + 6/7^s + O(1/(8^s)))*t^6 + O(t^7)
+
         """
         P = self.parent()
         left = self._coeff_stream
         right = other._coeff_stream
+        if isinstance(left, Stream_zero):
+            return self
+        if isinstance(right, Stream_zero):
+            return other
         if (isinstance(left, Stream_exact)
             and left._initial_coefficients == (P._coeff_ring.one(),)
             and left.order() == 1):

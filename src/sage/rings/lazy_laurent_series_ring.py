@@ -598,7 +598,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                     x._coeff_stream._approximate_order += len(initial_coefficients)
                     initial_coefficients = []
                 coeff_stream = Stream_exact(initial_coefficients, self._sparse,
-                                                       order=valuation, constant=constant, degree=degree)
+                                            order=valuation, constant=constant, degree=degree)
                 return self.element_class(self, coeff_stream)
 
             # We are just possibly shifting the result
@@ -618,7 +618,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             # degree is not None
             if constant is None:
-                constant = ZZ.zero()
+                constant = BR.zero()
             p = [BR(x(i)) for i in range(valuation, degree)]
             if not any(p) and not constant:
                 return self.zero()

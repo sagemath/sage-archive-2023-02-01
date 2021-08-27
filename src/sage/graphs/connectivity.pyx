@@ -1138,6 +1138,7 @@ def edge_connectivity(G,
 
     in_set = p.new_variable(binary=True)
     in_cut = p.new_variable(binary=True)
+    objective = p.new_variable(integer=use_edge_labels is False)
 
     # A vertex has to be in some set
     for v in g:
@@ -1152,7 +1153,7 @@ def edge_connectivity(G,
         for u,v in g.edge_iterator(labels=None):
             p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[u,v], max=1)
 
-        p.set_objective(p.sum(weight(l) * in_cut[u,v] for u,v,l in g.edge_iterator()))
+        p.add_constraint(p.sum(weight(l) * in_cut[u,v] for u,v,l in g.edge_iterator()) == objective[0])
 
     else:
 
@@ -1162,12 +1163,15 @@ def edge_connectivity(G,
             p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[frozenset((u,v))], max=1)
             p.add_constraint(in_set[1,u] + in_set[0,v] - in_cut[frozenset((u,v))], max=1)
 
-        p.set_objective(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edge_iterator()))
+        p.add_constraint(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edge_iterator()) == objective[0])
 
-    obj = p.solve(objective_only=value_only, log=verbose)
+    p.set_objective(objective[0])
+    p.solve(objective_only=value_only, log=verbose)
 
     if use_edge_labels is False:
-        obj = Integer(round(obj))
+        obj = p.get_values(objective[0], convert=True, tolerance=integrality_tolerance)
+    else:
+        obj = p.get_values(objective[0])
 
     if value_only:
         return obj
@@ -1461,13 +1465,17 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
         except MIPSolverException:
             return True
 
-    else:
-        p.set_objective(p.sum(in_set[1, v] for v in g))
+    # Set the objective and solve
+    obj = p.new_variable(integer=True, nonnegative=True)
+    p.add_constraint(p.sum(in_set[1, v] for v in g) == obj[0])
+    p.set_objective(obj[0])
+
+    p.solve(objective_only=value_only, log=verbose)
+
+    val = p.get_values(obj[0], convert=True, tolerance=integrality_tolerance)
 
     if value_only:
-        return Integer(round(p.solve(objective_only=True, log=verbose)))
-
-    val = Integer(round(p.solve(log=verbose)))
+        return val
 
     in_set = p.get_values(in_set, convert=bool, tolerance=integrality_tolerance)
 

@@ -24,7 +24,8 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.structure.element import Element
-from sage.misc.all import cached_method, prod
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import prod
 from sage.features import PythonModule
 from sage.misc.lazy_import import lazy_import
 lazy_import('PyNormaliz', ['NmzResult', 'NmzCompute', 'NmzCone', 'NmzConeCopy'],

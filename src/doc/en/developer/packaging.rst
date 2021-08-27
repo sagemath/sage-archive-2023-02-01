@@ -411,6 +411,9 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    creating a wheel file in ``dist/``, followed by
    ``sdh_store_and_pip_install_wheel`` (see below).
 
+- ``sdh_pip_uninstall [...]``: Runs ``pip uninstall`` with the given arguments.
+   If unsuccessful, it displays a warning.
+
 - ``sdh_store_and_pip_install_wheel .``: The current directory,
    indicated by the required argument ``.``, must have a subdirectory
    ``dist`` containing a unique wheel file (``*.whl``).

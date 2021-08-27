@@ -352,7 +352,6 @@ from sage.structure.element import RingElement
 
 import sage.rings.integer
 
-from sage.env import SINGULARPATH
 from sage.misc.verbose import get_verbose
 from sage.docs.instancedoc import instancedoc
 
@@ -2366,15 +2365,16 @@ def generate_docstring_dictionary():
     nodes.clear()
     node_names.clear()
 
-    singular_docdir = SINGULARPATH + "/../info/"
-
-    new_node = re.compile(r"File: singular\.hlp,  Node: ([^,]*),.*")
+    new_node = re.compile(r"File: singular\.[a-z]*,  Node: ([^,]*),.*")
     new_lookup = re.compile(r"\* ([^:]*):*([^.]*)\..*")
 
     L, in_node, curr_node = [], False, None
 
-    # singular.hlp contains a few iso-5559-1 encoded special characters
-    with io.open(os.path.join(singular_docdir, 'singular.hlp'),
+    from sage.libs.singular.singular import get_resource
+    singular_info_file = get_resource('i')
+
+    # singular.hlp contains a few iso-8859-1 encoded special characters
+    with io.open(singular_info_file,
                  encoding='latin-1') as f:
         for line in f:
             m = re.match(new_node,line)

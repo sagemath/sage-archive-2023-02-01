@@ -90,7 +90,9 @@ from .ell_generic import is_EllipticCurve
 from .ell_point import EllipticCurvePoint_number_field
 from .constructor import EllipticCurve
 from sage.rings.all import PolynomialRing, ZZ, QQ, RealField, Integer
-from sage.misc.all import cached_method, prod, union
+from sage.misc.cachefunc import cached_method
+from sage.misc.misc_c import prod
+
 
 class EllipticCurve_number_field(EllipticCurve_field):
     r"""
@@ -840,9 +842,9 @@ class EllipticCurve_number_field(EllipticCurve_field):
         """
         K = self.base_field()
         ai = self.a_invariants()
-        Ps = union(ff[0]
-                   for a in ai if not a.is_integral()
-                   for ff in a.denominator_ideal().factor())
+        Ps = set(ff[0]
+                 for a in ai if not a.is_integral()
+                 for ff in a.denominator_ideal().factor())
         for P in Ps:
             pi = K.uniformizer(P, 'positive')
             e = min((ai[i].valuation(P)/[1,2,3,4,6][i])

@@ -8,13 +8,14 @@ shopt -s extglob
 SAGE_PACKAGE_LIST_ARGS="${2:- --has-file=spkg-configure.m4 :standard:}"
 WITH_SYSTEM_SPKG="${3:-yes}"
 IGNORE_MISSING_SYSTEM_PACKAGES="${4:-no}"
+EXTRA_SAGE_PACKAGES="${5:-_bootstrap}"
 #
 STRIP_COMMENTS="sed s/#.*//;"
 SAGE_ROOT=.
 export PATH="$SAGE_ROOT"/build/bin:$PATH
 SYSTEM_PACKAGES=
 CONFIGURE_ARGS="--enable-option-checking "
-for PKG_BASE in $($SAGE_ROOT/sage -package list --has-file=distros/$SYSTEM.txt $SAGE_PACKAGE_LIST_ARGS) _bootstrap; do
+for PKG_BASE in $($SAGE_ROOT/sage -package list --has-file=distros/$SYSTEM.txt $SAGE_PACKAGE_LIST_ARGS) $EXTRA_SAGE_PACKAGES; do
     PKG_SCRIPTS="$SAGE_ROOT"/build/pkgs/$PKG_BASE
     if [ -d $PKG_SCRIPTS ]; then
        SYSTEM_PACKAGES_FILE=$PKG_SCRIPTS/distros/$SYSTEM.txt

@@ -72,10 +72,6 @@ class DiffChart(Chart):
       If no period and no LaTeX spelling are to be set for any coordinate, the
       argument ``coordinates`` can be omitted when the shortcut operator
       ``<,>`` is used to declare the chart (see examples below).
-    - ``names`` -- (default: ``None``) unused argument, except if
-      ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranteed if the shortcut operator
-      ``<,>`` is used).
     - ``calc_method`` -- (default: ``None``) string defining the calculus
       method for computations involving coordinates of the chart; must be
       one of
@@ -85,6 +81,27 @@ class DiffChart(Chart):
       - ``None``: the default of
         :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
         used
+    - ``names`` -- (default: ``None``) unused argument, except if
+      ``coordinates`` is not provided; it must then be a tuple containing
+      the coordinate symbols (this is guaranteed if the shortcut operator
+      ``<,>`` is used).
+    - ``coord_restrictions``: Additional restrictions on the coordinates.
+      A restriction can be any symbolic equality or inequality involving
+      the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+      of the list (or set or frozenset) ``coord_restrictions`` are combined
+      with the ``and`` operator; if some restrictions are to be combined with
+      the ``or`` operator instead, they have to be passed as a tuple in some
+      single item of the list (or set or frozenset) ``coord_restrictions``.
+      For example::
+
+        coord_restrictions=[x > y, (x != 0, y != 0), z^2 < x]
+
+      means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+      If the list ``coord_restrictions`` contains only one item, this
+      item can be passed as such, i.e. writing ``x > y`` instead
+      of the single element list ``[x > y]``.  If the chart variables have
+      not been declared as variables yet, ``coord_restrictions`` must
+      be ``lambda``-quoted.
 
     EXAMPLES:
 
@@ -259,7 +276,7 @@ class DiffChart(Chart):
         on differentiable manifolds over `\RR`.
 
     """
-    def __init__(self, domain, coordinates='', names=None, calc_method=None):
+    def __init__(self, domain, coordinates, calc_method=None, periods=None, coord_restrictions=None):
         r"""
         Construct a chart.
 
@@ -276,8 +293,8 @@ class DiffChart(Chart):
             sage: TestSuite(X).run()
 
         """
-        Chart.__init__(self, domain, coordinates=coordinates, names=names,
-                       calc_method=calc_method)
+        super().__init__(domain, coordinates, calc_method=calc_method,
+                         periods=periods, coord_restrictions=coord_restrictions)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
@@ -391,8 +408,8 @@ class DiffChart(Chart):
             [Chart (R^2, (x, y)), Chart (U, (r, phi)), Chart (U, (x, y))]
 
         """
-        dom1 = self._domain
-        dom2 = other._domain
+        dom1 = self.domain()
+        dom2 = other.domain()
         dom = dom1.intersection(dom2, name=intersection_name)
         if dom is dom1:
             chart1 = self
@@ -548,7 +565,7 @@ class DiffChart(Chart):
             Chart (B, (z1, z2))
 
         """
-        if subset == self._domain:
+        if subset == self.domain():
             return self
         if subset not in self._dom_restrict:
             resu = Chart.restrict(self, subset, restrictions=restrictions)
@@ -558,8 +575,8 @@ class DiffChart(Chart):
                 sframe._subframes.add(resu._frame)
                 sframe._restrictions[subset] = resu._frame
             # The subchart frame is not a "top frame" in the supersets
-            # (including self._domain):
-            for dom in self._domain.open_supersets():
+            # (including self.domain()):
+            for dom in self.domain().open_supersets():
                 if resu._frame in dom._top_frames:
                     # it was added by the Chart constructor invoked in
                     # Chart.restrict above
@@ -611,7 +628,7 @@ class DiffChart(Chart):
              identifier.
             sage: D = cart.symbolic_velocities(left='', right="_dot"); D
             [X_dot, Y_dot, Z_dot]
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: canon_chart = R.default_chart()
             sage: D = canon_chart.symbolic_velocities() ; D
             [Dt]
@@ -709,10 +726,6 @@ class RealDiffChart(DiffChart, RealChart):
       If interval range, no period and no LaTeX spelling are to be set for any
       coordinate, the argument ``coordinates`` can be omitted when the shortcut
       operator ``<,>`` is used to declare the chart (see examples below).
-    - ``names`` -- (default: ``None``) unused argument, except if
-      ``coordinates`` is not provided; it must then be a tuple containing
-      the coordinate symbols (this is guaranteed if the shortcut operator
-      ``<,>`` is used).
     - ``calc_method`` -- (default: ``None``) string defining the calculus
       method for computations involving coordinates of the chart; must be
       one of
@@ -722,6 +735,27 @@ class RealDiffChart(DiffChart, RealChart):
       - ``None``: the default of
         :class:`~sage.manifolds.calculus_method.CalculusMethod` will be
         used
+    - ``names`` -- (default: ``None``) unused argument, except if
+      ``coordinates`` is not provided; it must then be a tuple containing
+      the coordinate symbols (this is guaranteed if the shortcut operator
+      ``<,>`` is used).
+    - ``coord_restrictions``: Additional restrictions on the coordinates.
+      A restriction can be any symbolic equality or inequality involving
+      the coordinates, such as ``x > y`` or ``x^2 + y^2 != 0``. The items
+      of the list (or set or frozenset) ``coord_restrictions`` are combined
+      with the ``and`` operator; if some restrictions are to be combined with
+      the ``or`` operator instead, they have to be passed as a tuple in some
+      single item of the list (or set or frozenset) ``coord_restrictions``.
+      For example::
+
+        coord_restrictions=[x > y, (x != 0, y != 0), z^2 < x]
+
+      means ``(x > y) and ((x != 0) or (y != 0)) and (z^2 < x)``.
+      If the list ``coord_restrictions`` contains only one item, this
+      item can be passed as such, i.e. writing ``x > y`` instead
+      of the single element list ``[x > y]``.  If the chart variables have
+      not been declared as variables yet, ``coord_restrictions`` must
+      be ``lambda``-quoted.
 
     EXAMPLES:
 
@@ -908,9 +942,9 @@ class RealDiffChart(DiffChart, RealChart):
     `\{y=0, x\geq 0\}`, we must have `y\not=0` or `x<0` on U. Accordingly,
     we set::
 
-        sage: c_cartU.<x,y,z> = U.chart()
-        sage: c_cartU.add_restrictions((y!=0, x<0)) # the tuple (y!=0, x<0) means y!=0 or x<0
-        sage: # c_cartU.add_restrictions([y!=0, x<0]) would have meant y!=0 AND x<0
+        sage: c_cartU.<x,y,z> = U.chart(coord_restrictions=lambda x,y,z: (y!=0, x<0))
+        ....:    # the tuple (y!=0, x<0) means y!=0 or x<0
+        ....:    #           [y!=0, x<0] would have meant y!=0 AND x<0
         sage: U.atlas()
         [Chart (U, (r, th, ph)), Chart (U, (x, y, z))]
         sage: M.atlas()
@@ -942,7 +976,8 @@ class RealDiffChart(DiffChart, RealChart):
     :meth:`~sage.manifolds.chart.RealChart.plot`.
 
     """
-    def __init__(self, domain, coordinates='', names=None, calc_method=None):
+    def __init__(self, domain, coordinates, calc_method=None,
+                 bounds=None, periods=None, coord_restrictions=None):
         r"""
         Construct a chart on a real differentiable manifold.
 
@@ -960,8 +995,8 @@ class RealDiffChart(DiffChart, RealChart):
             sage: TestSuite(X).run()
 
         """
-        RealChart.__init__(self, domain, coordinates=coordinates, names=names,
-                           calc_method = calc_method)
+        RealChart.__init__(self, domain, coordinates, calc_method=calc_method,
+                           bounds=bounds, periods=periods, coord_restrictions=coord_restrictions)
         # Construction of the coordinate frame associated to the chart:
         self._frame = CoordFrame(self)
         self._coframe = self._frame._coframe
@@ -1031,7 +1066,7 @@ class RealDiffChart(DiffChart, RealChart):
             True
 
         """
-        if subset == self._domain:
+        if subset == self.domain():
             return self
         if subset not in self._dom_restrict:
             resu = RealChart.restrict(self, subset, restrictions=restrictions)
@@ -1041,8 +1076,8 @@ class RealDiffChart(DiffChart, RealChart):
                 sframe._subframes.add(resu._frame)
                 sframe._restrictions[subset] = resu._frame
             # The subchart frame is not a "top frame" in the supersets
-            # (including self._domain):
-            for dom in self._domain.open_supersets():
+            # (including self.domain()):
+            for dom in self.domain().open_supersets():
                 if resu._frame in dom._top_frames:
                     # it was added by the Chart constructor invoked in
                     # Chart.restrict above
@@ -1125,8 +1160,8 @@ class DiffCoordChange(CoordChange):
         self._jacobian  = self._transf.jacobian()
         # If the two charts are on the same open subset, the Jacobian matrix is
         # added to the dictionary of changes of frame:
-        if chart1._domain == chart2._domain:
-            domain = chart1._domain
+        if chart1.domain() == chart2.domain():
+            domain = chart1.domain()
             frame1 = chart1._frame
             frame2 = chart2._frame
             vf_module = domain.vector_field_module()

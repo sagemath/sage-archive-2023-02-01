@@ -3165,10 +3165,9 @@ class Link(SageObject):
         MLP.set_objective(MLP.sum(v.values()))
         MLP.solve()
         # we store the result in a vector s packing right bends as negative left ones
-        s = list(range(len(edges)))
-        values = MLP.get_values(v)
-        for i in range(len(edges)):
-            s[i] = int(values[2*i] - values[2*i + 1])
+        values = MLP.get_values(v, convert=ZZ, tolerance=1e-3)
+        s = [values[2*i] - values[2*i + 1]
+             for i in range(len(edges))]
         # segments represents the different parts of the previous edges after bending
         segments = {e: [(e,i) for i in range(abs(s[edges.index(e)])+1)] for e in edges}
         pieces = {tuple(i): [i] for j in segments.values() for i in j}

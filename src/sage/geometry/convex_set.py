@@ -12,11 +12,31 @@ Convex Sets
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+from dataclasses import dataclass
+from typing import Any
+from copy import copy
+
 from sage.structure.sage_object import SageObject
+from sage.sets.set import Set_base
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.abstract_method import abstract_method
+from sage.misc.cachefunc import cached_method
+from sage.rings.infinity import infinity
+from sage.rings.integer_ring import ZZ
+from sage.modules.free_module_element import vector
+from sage.matrix.constructor import matrix
 
-class ConvexSet_base(SageObject):
+
+@dataclass
+class AffineHullProjectionData:
+    image: Any = None
+    projection_linear_map: Any = None
+    projection_translation: Any = None
+    section_linear_map: Any = None
+    section_translation: Any = None
+
+
+class ConvexSet_base(SageObject, Set_base):
     """
     Abstract base class for convex sets.
     """
@@ -38,6 +58,60 @@ class ConvexSet_base(SageObject):
         """
         return self.dim() < 0
 
+    def is_finite(self):
+        r"""
+        Test whether ``self`` is a finite set.
+
+        OUTPUT:
+
+        Boolean.
+
+        EXAMPLES::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: p.is_finite()
+            True
+            sage: q = Polyhedron(ambient_dim=2); q
+            The empty polyhedron in ZZ^2
+            sage: q.is_finite()
+            True
+            sage: r = Polyhedron(rays=[(1, 0)]); r
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: r.is_finite()
+            False
+        """
+        return self.dim() < 1
+
+    def cardinality(self):
+        """
+        Return the cardinality of this set.
+
+        OUTPUT:
+
+        Either an integer or ``Infinity``.
+
+        EXAMPLES::
+
+            sage: p = LatticePolytope([], lattice=ToricLattice(3).dual()); p
+            -1-d lattice polytope in 3-d lattice M
+            sage: p.cardinality()
+            0
+            sage: q = Polyhedron(ambient_dim=2); q
+            The empty polyhedron in ZZ^2
+            sage: q.cardinality()
+            0
+            sage: r = Polyhedron(rays=[(1, 0)]); r
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex and 1 ray
+            sage: r.cardinality()
+            +Infinity
+        """
+        if self.dim() < 0:
+            return ZZ(0)
+        if self.dim() == 0:
+            return ZZ(1)
+        return infinity
+
     def is_universe(self):
         r"""
         Test whether ``self`` is the whole ambient space.
@@ -53,18 +127,18 @@ class ConvexSet_base(SageObject):
             sage: C.is_universe()
             Traceback (most recent call last):
             ...
-            NotImplementedError: <abstract method dim at ...>
+            NotImplementedError
         """
         if not self.is_full_dimensional():
             return False
         raise NotImplementedError
 
-    @abstract_method
     def dim(self):
         r"""
         Return the dimension of ``self``.
 
-        Subclasses must provide an implementation of this method.
+        Subclasses must provide an implementation of this method or of the
+        method :meth:`an_affine_basis`.
 
         TESTS::
 
@@ -73,8 +147,11 @@ class ConvexSet_base(SageObject):
             sage: C.dim()
             Traceback (most recent call last):
             ...
-            NotImplementedError: <abstract method dim at ...>
+            NotImplementedError
         """
+        if self.an_affine_basis != NotImplemented:
+            return len(self.an_affine_basis()) - 1
+        raise NotImplementedError
 
     def dimension(self):
         r"""
@@ -163,6 +240,199 @@ class ConvexSet_base(SageObject):
             91
         """
         return self.ambient_dim()
+
+    @abstract_method(optional=True)
+    def an_affine_basis(self):
+        r"""
+        Return points that form an affine basis for the affine hull.
+
+        The points are guaranteed to lie in the topological closure of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: C.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
+        """
+
+    def _test_an_affine_basis(self, tester=None, **options):
+        r"""
+        Run tests on the method :meth:`.an_affine_basis`
+
+        TESTS::
+
+            sage: c = Cone([(1,0)])
+            sage: c._test_an_affine_basis()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+        try:
+            if self.an_affine_basis == NotImplemented:
+                raise NotImplementedError
+            b = self.an_affine_basis()
+        except NotImplementedError:
+            pass
+        else:
+            m = matrix([1] + list(v) for v in b)
+            tester.assertEqual(m.rank(), self.dim() + 1)
+            closure = self.closure()
+            for v in b:
+                tester.assertIn(v, closure)
+
+    def affine_hull(self, *args, **kwds):
+        r"""
+        Return the affine hull of ``self`` as a polyhedron.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_compact
+            sage: class EmbeddedDisk(ConvexSet_compact):
+            ....:     def an_affine_basis(self):
+            ....:         return [vector([1, 0, 0]), vector([1, 1, 0]), vector([1, 0, 1])]
+            sage: O = EmbeddedDisk()
+            sage: O.dim()
+            2
+            sage: O.affine_hull()
+            A 2-dimensional polyhedron in QQ^3 defined as the convex hull of 1 vertex and 2 lines
+        """
+        from .polyhedron.constructor import Polyhedron
+        i_affine_basis = iter(self.an_affine_basis())
+        try:
+            v = next(i_affine_basis)
+        except StopIteration:
+            return Polyhedron(ambient_dim=self.ambient_dim())
+        v = vector(v)
+        return Polyhedron(vertices=[v], lines=[vector(p) - v for p in i_affine_basis])
+
+    @cached_method
+    def _affine_hull_projection(self, *,
+                                as_convex_set=True, as_affine_map=True, as_section_map=True,
+                                orthogonal=False, orthonormal=False,
+                                extend=False, minimal=False):
+        r"""
+        Return ``self`` projected into its affine hull.
+
+        Each convex set is contained in some smallest affine subspace
+        (possibly the entire ambient space) -- its affine hull.  We
+        provide an affine linear map that projects the ambient space of
+        the convex set to the standard Euclidean space of dimension of
+        the convex set, which restricts to a bijection from the affine
+        hull.
+
+        The projection map is not unique; some parameters control the
+        choice of the map.  Other parameters control the output of the
+        function.
+
+        This default implementation delegates to
+        :meth:`~sage.geometry.polyhedron.base.Polyhedron_base._affine_hull_projection`,
+        applied to the :meth:`affine_hull` of ``self``.
+
+        Subclasses should override this method if they can provide a
+        more direct implementation or additional options.
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_compact
+            sage: class EmbeddedEllipse(ConvexSet_compact):
+            ....:     def __init__(self, p, *rr):
+            ....:         self._p = vector(p)
+            ....:         self._rr = tuple(vector(r) for r in rr)
+            ....:     def an_affine_basis(self):
+            ....:         return [self._p] + [self._p + r for r in self._rr]
+            ....:     def linear_transformation(self, linear_transf):
+            ....:         return EmbeddedEllipse(linear_transf * self._p,
+            ....:                                *[linear_transf * r for r in self._rr])
+            ....:     def translation(self, displacement):
+            ....:         return EmbeddedEllipse(self._p + displacement, *self._rr)
+            sage: EmbeddedEllipse([2, 2, 2], [0, 1, 0], [0, 0, 1])._affine_hull_projection()
+            AffineHullProjectionData(image=<__main__.EmbeddedEllipse object at 0x...>,
+            projection_linear_map=Vector space morphism represented by the matrix:
+            [0 0]
+            [1 0]
+            [0 1]
+            Domain: Vector space of dimension 3 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field,
+            projection_translation=(0, 0),
+            section_linear_map=Vector space morphism represented by the matrix:
+            [0 1 0]
+            [0 0 1]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Vector space of dimension 3 over Rational Field,
+            section_translation=(2, 0, 0))
+        """
+        affine_hull = self.affine_hull()
+        data = affine_hull._affine_hull_projection(
+            as_convex_set=False, as_affine_map=True, as_section_map=True,
+            orthogonal=orthogonal, orthonormal=orthonormal,
+            extend=extend, minimal=minimal)
+        if as_convex_set:
+            data = copy(data)
+            matrix = data.projection_linear_map.matrix().transpose()
+            projected = self.linear_transformation(matrix)
+            data.image = projected.translation(data.projection_translation)
+        return data
+
+    def affine_hull_projection(self, as_convex_set=None, as_affine_map=False,
+                               orthogonal=False, orthonormal=False,
+                               extend=False, minimal=False,
+                               return_all_data=False, **kwds):
+        r"""
+        Return ``self`` projected into its affine hull.
+
+        Each convex set is contained in some smallest affine subspace
+        (possibly the entire ambient space) -- its affine hull.  We
+        provide an affine linear map that projects the ambient space of
+        the convex set to the standard Euclidean space of dimension of
+        the convex set, which restricts to a bijection from the affine
+        hull.
+
+        The projection map is not unique; some parameters control the
+        choice of the map.  Other parameters control the output of the
+        function.
+
+        EXAMPLES::
+
+            sage: P = Polyhedron(vertices=[[1, 0], [0, 1]])
+            sage: ri_P = P.relative_interior(); ri_P
+            Relative interior of a 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+            sage: ri_P.affine_hull_projection(as_affine_map=True)
+            (Vector space morphism represented by the matrix:
+            [1]
+            [0]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Vector space of dimension 1 over Rational Field,
+            (0))
+            sage: P_aff = P.affine_hull_projection(); P_aff
+            A 1-dimensional polyhedron in ZZ^1 defined as the convex hull of 2 vertices
+            sage: ri_P_aff = ri_P.affine_hull_projection(); ri_P_aff
+            Relative interior of a 1-dimensional polyhedron in QQ^1 defined as the convex hull of 2 vertices
+            sage: ri_P_aff.closure() == P_aff
+            True
+         """
+        if as_convex_set is None:
+            as_convex_set = not as_affine_map
+        if not as_affine_map and not as_convex_set:
+            raise ValueError('combining "as_affine_map=False" and '
+                             '"as_convex_set=False" not allowed')
+        if return_all_data:
+            as_convex_set = True
+            as_affine_map = True
+
+        result = self._affine_hull_projection(
+            as_convex_set=as_convex_set, as_affine_map=as_affine_map, as_section_map=return_all_data,
+            orthogonal=orthogonal, orthonormal=orthonormal,
+            extend=extend, minimal=minimal, **kwds)
+
+        # assemble result
+        if return_all_data or (as_convex_set and as_affine_map):
+            return result
+        elif as_affine_map:
+            return (result.projection_linear_map, result.projection_translation)
+        else:
+            return result.image
 
     def codimension(self):
         r"""
@@ -370,7 +640,7 @@ class ConvexSet_base(SageObject):
             ....:         return 42
             ....:     def ambient_dim(self):
             ....:         return 91
-            sage: TestSuite(FaultyConvexSet()).run(skip=('_test_pickling', '_test_contains'))
+            sage: TestSuite(FaultyConvexSet()).run(skip=('_test_pickling', '_test_contains', '_test_as_set_object'))
             Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
@@ -384,7 +654,7 @@ class ConvexSet_base(SageObject):
             ....:         return QQ^3
             ....:     def ambient_dim(self):
             ....:         return 3
-            sage: TestSuite(BiggerOnTheInside()).run(skip=('_test_pickling', '_test_contains'))
+            sage: TestSuite(BiggerOnTheInside()).run(skip=('_test_pickling', '_test_contains', '_test_as_set_object'))
             Failure in _test_convex_set:
             ...
             The following tests failed: _test_convex_set
@@ -428,21 +698,6 @@ class ConvexSet_base(SageObject):
             tester.info(tester._prefix + " ", newline=False)
 
     # Optional methods
-
-    @abstract_method(optional=True)
-    def affine_hull(self):
-        r"""
-        Return the affine hull of ``self``.
-
-        TESTS::
-
-            sage: from sage.geometry.convex_set import ConvexSet_base
-            sage: C = ConvexSet_base()
-            sage: C.affine_hull()
-            Traceback (most recent call last):
-            ...
-            TypeError: 'NotImplementedType' object is not callable
-        """
 
     def an_element(self):
         r"""
@@ -637,6 +892,72 @@ class ConvexSet_base(SageObject):
             sage: from sage.geometry.convex_set import ConvexSet_base
             sage: C = ConvexSet_base()
             sage: C.intersection(C)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
+        """
+
+    def dilation(self, scalar):
+        """
+        Return the dilated (uniformly stretched) set.
+
+        INPUT:
+
+        - ``scalar`` -- A scalar, not necessarily in :meth:`base_ring`
+
+        EXAMPLES::
+
+            sage: from sage.geometry.convex_set import ConvexSet_compact
+            sage: class GlorifiedPoint(ConvexSet_compact):
+            ....:     def __init__(self, p):
+            ....:         self._p = p
+            ....:     def ambient_vector_space(self):
+            ....:         return self._p.parent().vector_space()
+            ....:     def linear_transformation(self, linear_transf):
+            ....:         return GlorifiedPoint(linear_transf * self._p)
+            sage: P = GlorifiedPoint(vector([2, 3]))
+            sage: P.dilation(10)._p
+            (20, 30)
+        """
+        linear_transf = scalar * matrix.identity(self.ambient_dim())
+        return self.linear_transformation(linear_transf)
+
+    @abstract_method(optional=True)
+    def linear_transformation(self, linear_transf):
+        """
+        Return the linear transformation of ``self``.
+
+        INPUT:
+
+        - ``linear_transf`` -- a matrix
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: T = matrix.identity(3)
+            sage: C.linear_transformation(T)
+            Traceback (most recent call last):
+            ...
+            TypeError: 'NotImplementedType' object is not callable
+        """
+
+    @abstract_method(optional=True)
+    def translation(self, displacement):
+        """
+        Return the translation of ``self`` by a ``displacement`` vector.
+
+        INPUT:
+
+        - ``displacement`` -- a displacement vector or a list/tuple of
+          coordinates that determines a displacement vector
+
+        TESTS::
+
+            sage: from sage.geometry.convex_set import ConvexSet_base
+            sage: C = ConvexSet_base()
+            sage: t = vector([1, 2, 3])
+            sage: C.translation(t)
             Traceback (most recent call last):
             ...
             TypeError: 'NotImplementedType' object is not callable

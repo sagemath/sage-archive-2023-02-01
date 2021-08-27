@@ -659,6 +659,15 @@ class LazyModuleElement(Element):
             Traceback (most recent call last):
             ...
             ValueError: series already defined
+
+            sage: D = LazyDirichletSeriesRing(QQ, "s")
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: e = L(lambda n: 1/factorial(n), 0)
+            sage: g = D(None, valuation=2)
+            sage: o = D(constant=1, valuation=2)
+            sage: g.define(o * e(g))
+            sage: g
+            1/(2^s) + 1/(3^s) + 2/4^s + 1/(5^s) + 3/6^s + 1/(7^s) + 9/2/8^s + O(1/(9^s))
         """
         if not isinstance(self._coeff_stream, Stream_uninitialized) or self._coeff_stream._target is not None:
             raise ValueError("series already defined")

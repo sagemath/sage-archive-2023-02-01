@@ -1471,6 +1471,8 @@ class Stream_dirichlet_convolve(Stream_binary):
         """
         c = ZZ.zero()
         for k in divisors(n):
+            if k < self._left._approximate_order or n // k < self._right._approximate_order:
+                continue
             val = self._left[k]
             if val:
                 c += val * self._right[n//k]

@@ -1138,7 +1138,6 @@ def edge_connectivity(G,
 
     in_set = p.new_variable(binary=True)
     in_cut = p.new_variable(binary=True)
-    objective = p.new_variable(integer=use_edge_labels is False)
 
     # A vertex has to be in some set
     for v in g:
@@ -1153,7 +1152,7 @@ def edge_connectivity(G,
         for u,v in g.edge_iterator(labels=None):
             p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[u,v], max=1)
 
-        p.add_constraint(p.sum(weight(l) * in_cut[u,v] for u,v,l in g.edge_iterator()) == objective[0])
+        p.set_objective(p.sum(weight(l) * in_cut[u,v] for u,v,l in g.edge_iterator()))
 
     else:
 
@@ -1163,15 +1162,18 @@ def edge_connectivity(G,
             p.add_constraint(in_set[0,u] + in_set[1,v] - in_cut[frozenset((u,v))], max=1)
             p.add_constraint(in_set[1,u] + in_set[0,v] - in_cut[frozenset((u,v))], max=1)
 
-        p.add_constraint(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edge_iterator()) == objective[0])
+        p.set_objective(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edge_iterator()))
 
-    p.set_objective(objective[0])
-    p.solve(objective_only=value_only, log=verbose)
+    obj = p.solve(objective_only=value_only, log=verbose)
+
+    in_cut = p.get_values(in_cut, convert=bool, tolerance=integrality_tolerance)
 
     if use_edge_labels is False:
-        obj = p.get_values(objective[0], convert=True, tolerance=integrality_tolerance)
-    else:
-        obj = p.get_values(objective[0])
+        if g.is_directed():
+            obj = sum(in_cut[u, v] for u, v in g.edge_iterator(labels=False) if in_cut[u, v])
+        else:
+            obj = sum(in_cut[frozenset((u, v))]
+                          for u, v in g.edge_iterator(labels=False) if in_cut[frozenset((u, v))])
 
     if value_only:
         return obj
@@ -1179,7 +1181,6 @@ def edge_connectivity(G,
     else:
         val = [obj]
 
-        in_cut = p.get_values(in_cut, convert=bool, tolerance=integrality_tolerance)
         in_set = p.get_values(in_set, convert=bool, tolerance=integrality_tolerance)
 
         if g.is_directed():
@@ -1465,19 +1466,14 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
         except MIPSolverException:
             return True
 
-    # Set the objective and solve
-    obj = p.new_variable(integer=True, nonnegative=True)
-    p.add_constraint(p.sum(in_set[1, v] for v in g) == obj[0])
-    p.set_objective(obj[0])
+    p.set_objective(p.sum(in_set[1, v] for v in g))
 
-    p.solve(objective_only=value_only, log=verbose)
-
-    val = p.get_values(obj[0], convert=True, tolerance=integrality_tolerance)
-
-    if value_only:
-        return val
+    val = p.solve(objective_only=value_only, log=verbose)
 
     in_set = p.get_values(in_set, convert=bool, tolerance=integrality_tolerance)
+
+    if value_only:
+        return sum(in_set[1, v] for v in g if in_set[1, v])
 
     cut = []
     a = []

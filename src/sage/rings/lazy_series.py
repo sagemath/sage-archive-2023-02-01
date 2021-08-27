@@ -1999,7 +1999,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             # g also has finite length, compose the polynomials
             # We optimize composition when g is not a Dirichlet series
             #    by composing the polynomial parts explicitly
-            if (not isinstance(g, LazyDirichletSeries)
+            if (isinstance(g, LazyCauchyProductSeries)
                 and isinstance(g._coeff_stream, Stream_exact)
                 and not g._coeff_stream._constant):
                 R = P._laurent_poly_ring
@@ -2066,8 +2066,10 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             g._coeff_stream._approximate_order = 1
 
         if isinstance(g, LazyDirichletSeries):
-            if g._coeff_stream._approximate_order == 1 and g._coeff_stream[1] != 0:
-                raise ValueError("can only compose with a positive valuation series")
+            if g._coeff_stream._approximate_order == 1:
+                if g._coeff_stream[1] != 0:
+                    raise ValueError("can only compose with a positive valuation series")
+                g._coeff_stream._approximate_order = 2
             # we assume that the valuation of self[i](g) is at least i
             def coefficient(n):
                 return sum(self[i] * (g**i)[n] for i in range(n+1))

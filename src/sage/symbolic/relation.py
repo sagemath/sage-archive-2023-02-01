@@ -923,6 +923,19 @@ def solve(f, *args, **kwds):
         sage: solve(x^5 + 3*x^3 + 7, x, algorithm='sympy')[0] # known bug
         complex_root_of(x^5 + 3*x^3 + 7, 0)
 
+    A basic interface to Giac is provided::
+
+        sage: solve([(2/3)^x-2], [x], algorithm='giac')
+        [[-log(2)/(log(3) - log(2))]]
+
+        sage: f = (sin(x) - 8*cos(x)*sin(x))*(sin(x)^2 + cos(x)) - (2*cos(x)*sin(x) - sin(x))*(-2*sin(x)^2 + 2*cos(x)^2 - cos(x))
+        sage: solve(f, x, algorithm='giac')
+        [-2*arctan(sqrt(2)), 0, 2*arctan(sqrt(2)), pi]
+
+        sage: x, y = SR.var('x,y')
+        sage: solve([x+y-4,x*y-3],[x,y],algorithm='giac')
+        [[1, 3], [3, 1]]
+
     TESTS::
 
         sage: solve([sin(x)==x,y^2==x],x,y)
@@ -1111,6 +1124,13 @@ def solve(f, *args, **kwds):
             else:
                 return sympy_set_to_list(ret, sympy_vars)
 
+    if algorithm == 'giac':
+        from sage.libs.giac.giac import libgiac
+        giac_f = libgiac(f)
+        giac_vars = libgiac(x)
+        ret = giac_f.solve(giac_vars)
+        return ret.sage()
+
     from sage.calculus.calculus import maxima
     m = maxima(f)
 
@@ -1255,6 +1275,12 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
                     sympy_vars = tuple([v._sympy_() for v in x])
                 ret = solveset(f._sympy_(), sympy_vars[0], S.Reals)
                 return sympy_set_to_list(ret, sympy_vars)
+            elif algorithm == 'giac':
+                from sage.libs.giac.giac import libgiac
+                giac_f = libgiac(f)
+                giac_vars = libgiac(x)
+                ret = giac_f.solve(giac_vars)
+                return ret.sage()
             else:
                 try:
                     return solve_ineq(f)  # trying solve_ineq_univar
@@ -1296,6 +1322,13 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
         if solution_dict:
             ret = [{sol.left(): sol.right()} for sol in ret]
         return ret
+
+    if algorithm == 'giac':
+        from sage.libs.giac.giac import libgiac
+        giac_f = libgiac(f)
+        giac_vars = libgiac(x)
+        ret = giac_f.solve(giac_vars)
+        return ret.sage()
 
     # from here on, maxima is used for solution
     m = ex._maxima_()

@@ -14,12 +14,17 @@ Convert PARI objects to Sage types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cysignals.signals cimport sig_on
+
 from cypari2.types cimport (GEN, typ, t_INT, t_FRAC, t_REAL, t_COMPLEX,
                             t_INTMOD, t_PADIC, t_INFINITY, t_VEC, t_COL,
                             t_VECSMALL, t_MAT, t_STR,
                             lg, precp)
 from cypari2.pari_instance cimport prec_words_to_bits
-from cypari2.paridecl cimport gel, inf_get_sign
+from cypari2.paridecl cimport *
+from cypari2.gen cimport objtogen
+from cypari2.stack cimport new_gen
+from .convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -315,3 +320,51 @@ cpdef gen_to_sage(Gen z, locals=None):
     from sage.misc.sage_eval import sage_eval
     locals = {} if locals is None else locals
     return sage_eval(str(z), locals=locals)
+
+
+cpdef set_integer_from_gen(Integer self, Gen x):
+    r"""
+    EXAMPLES::
+
+        sage: [Integer(pari(x)) for x in [1, 2^60, 2., GF(3)(1), GF(9,'a')(2)]]
+        [1, 1152921504606846976, 2, 1, 2]
+        sage: Integer(pari(2.1)) # indirect doctest
+        Traceback (most recent call last):
+        ...
+        TypeError: Attempt to coerce non-integral real number to an Integer
+    """
+    # Simplify and lift until we get an integer
+    while typ((<Gen>x).g) != t_INT:
+        x = x.simplify()
+        paritype = typ((<Gen>x).g)
+        if paritype == t_INT:
+            break
+        elif paritype == t_REAL:
+            # Check that the fractional part is zero
+            if not x.frac().gequal0():
+                raise TypeError("Attempt to coerce non-integral real number to an Integer")
+            # floor yields an integer
+            x = x.floor()
+            break
+        elif paritype == t_PADIC:
+            if x._valp() < 0:
+                raise TypeError("Cannot convert p-adic with negative valuation to an integer")
+            # Lifting a PADIC yields an integer
+            x = x.lift()
+            break
+        elif paritype == t_INTMOD:
+            # Lifting an INTMOD yields an integer
+            x = x.lift()
+            break
+        elif paritype == t_POLMOD:
+            x = x.lift()
+        elif paritype == t_FFELT:
+            # x = (f modulo defining polynomial of finite field);
+            # we extract f.
+            sig_on()
+            x = new_gen(FF_to_FpXQ_i((<Gen>x).g))
+        else:
+            raise TypeError("Unable to coerce PARI %s to an Integer"%x)
+
+    # Now we have a true PARI integer, convert it to Sage
+    INT_to_mpz(self.value, (<Gen>x).g)

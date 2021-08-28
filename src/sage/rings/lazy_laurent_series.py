@@ -240,9 +240,12 @@ class LazyModuleElement(Element):
 
         TESTS::
 
+            sage: from sage.data_structures.stream import Stream_zero
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: L(0).map_coefficients(lambda c: c + 1)
+            sage: s = L(0).map_coefficients(lambda c: c + 1); s
             0
+            sage: isinstance(s._coeff_stream, Stream_zero)
+            True
 
         """
         P = self.parent()

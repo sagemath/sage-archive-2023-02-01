@@ -83,7 +83,7 @@ rather than a ``Simplex``. This can make code more readable / clear::
 # ****************************************************************************
 
 from sage.structure.sage_object import SageObject
-from sage.homology.simplicial_complex import Simplex, SimplicialComplex
+from sage.topology.simplicial_complex import Simplex, SimplicialComplex
 from sage.modules.free_module import FreeModule
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.rings.infinity import infinity

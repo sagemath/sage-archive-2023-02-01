@@ -179,8 +179,6 @@ from sage.libs.gmp.pylong cimport *
 from sage.libs.gmp.mpq cimport mpq_neg
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
-from sage.libs.flint.ulong_extras cimport *
-
 import sage.rings.infinity
 
 from sage.structure.coerce cimport is_numpy_type
@@ -3884,7 +3882,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         cdef Integer n, p, unit
         cdef int i
-        cdef n_factor_t f
 
         if mpz_sgn(self.value) == 0:
             raise ArithmeticError("factorization of 0 is not defined")
@@ -3907,15 +3904,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return factor_trial_division(self, limit)
 
         if mpz_fits_slong_p(n.value):
-            if proof is None:
-                from sage.structure.proof.proof import get_flag
-                proof = get_flag(proof, "arithmetic")
-            n_factor_init(&f)
-            n_factor(&f, mpz_get_ui(n.value), proof)
-            F = [(Integer(f.p[i]), int(f.exp[i])) for i from 0 <= i < f.num]
-            F.sort()
-            return IntegerFactorization(F, unit=unit, unsafe=True,
-                                           sort=False, simplify=False)
+            try:
+                from sage.libs.flint.ulong_extras import n_factor_to_list
+                if proof is None:
+                    from sage.structure.proof.proof import get_flag
+                    proof = get_flag(proof, "arithmetic")
+                F = n_factor_to_list(mpz_get_ui(n.value), proof)
+                F = [(smallInteger(a), smallInteger(b)) for a, b in F]
+                F.sort()
+                return IntegerFactorization(F, unit=unit, unsafe=True,
+                                               sort=False, simplify=False)
+            except ImportError:
+                pass
 
         if mpz_sizeinbase(n.value, 2) < 40:
             from sage.rings.factorint import factor_trial_division

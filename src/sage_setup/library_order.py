@@ -10,10 +10,9 @@
 # important in particular for Cygwin. Any libraries which are not
 # listed here will be added at the end of the list (without changing
 # their relative order).
-from sage.env import cython_aliases
+from sage.env import cython_aliases, default_required_modules, default_optional_modules
 
-modules = ('fflas-ffpack', 'gsl', 'linbox', 'Singular',
-           'libpng', 'gdlib', 'm4ri', 'zlib', 'cblas')
+modules = default_required_modules + default_optional_modules
 
 aliases = cython_aliases(required_modules=(), optional_modules=modules)
 

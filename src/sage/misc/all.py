@@ -1,7 +1,7 @@
 from .lazy_attribute import lazy_attribute, lazy_class_attribute
 from .lazy_import import lazy_import
 
-from .all__sage_objects import *
+from .all__sagemath_objects import *
 
 from .misc import (BackslashOperator,
                   cputime,

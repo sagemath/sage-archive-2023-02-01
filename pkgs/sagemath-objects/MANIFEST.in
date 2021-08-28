@@ -6,7 +6,7 @@ include sage/env.py        # FIXME: sage_setup must be changed so it does not de
 include sage/version.py    # FIXME: likewise
 include VERSION.txt
 
-global-include all__sage_objects.py
+global-include all__sagemath_objects.py
 
 graft sage/features
 graft sage/structure

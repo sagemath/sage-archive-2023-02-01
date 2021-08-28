@@ -4,7 +4,7 @@ dnl Include all from sagemath-objects (via m4 include)
 include(`../sagemath_objects/src/MANIFEST.in')
 
 # Extra in sagemath-categories:
-global-include all__sage_categories.py
+global-include all__sagemath_categories.py
 graft sage/categories
 include sage/misc/prandom.*              # dep of sage/rings/ring
 include sage/rings/ideal.*

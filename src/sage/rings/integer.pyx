@@ -173,15 +173,12 @@ from sage.structure.coerce cimport coercion_model
 from sage.structure.element cimport (Element, EuclideanDomainElement,
         parent)
 from sage.structure.parent cimport Parent
-from cypari2.paridecl cimport *
 from sage.rings.rational cimport Rational
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 from sage.libs.gmp.pylong cimport *
 from sage.libs.gmp.mpq cimport mpq_neg
 from sage.libs.gmp.binop cimport mpq_add_z, mpq_mul_z, mpq_div_zz
 
-from cypari2.gen cimport objtogen
-from sage.libs.pari.convert_gmp cimport new_gen_from_mpz_t
 from sage.libs.flint.ulong_extras cimport *
 
 import sage.rings.infinity
@@ -2801,9 +2798,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
             sage: ZZ(8).log(int(2))
             3
-            
+
         TESTS::
-        
+
             sage: (-2).log(3)
             (I*pi + log(2))/log(3)
         """
@@ -2948,50 +2945,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     prime_factors = prime_divisors
 
-    cpdef list _pari_divisors_small(self):
-        r"""
-        Return the list of divisors of this number using PARI ``divisorsu``.
-
-        .. SEEALSO::
-
-        This method is better used through :meth:`divisors`.
-
-        EXAMPLES::
-
-            sage: 4._pari_divisors_small()
-            [1, 2, 4]
-
-        The integer must fit into an unsigned long::
-
-            sage: (-4)._pari_divisors_small()
-            Traceback (most recent call last):
-            ...
-            AssertionError
-            sage: (2**65)._pari_divisors_small()
-            Traceback (most recent call last):
-            ...
-            AssertionError
-        """
-        # we need n to fit into a long and not a unsigned long in order to use
-        # smallInteger
-        assert mpz_fits_slong_p(self.value) and mpz_sgn(self.value) > 0
-
-        cdef unsigned long n = mpz_get_ui(self.value)
-
-        global avma
-        cdef pari_sp ltop = avma
-        cdef GEN d
-        cdef list output
-
-        try:
-            sig_on()
-            d = divisorsu(n)
-            sig_off()
-            output = [smallInteger(d[i]) for i in range(1,lg(d))]
-            return output
-        finally:
-            avma = ltop
-
     @cython.boundscheck(False)
     @cython.wraparound(False)
     def divisors(self, method=None):
@@ -3088,10 +3041,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError("n must be nonzero")
 
         if (method is None or method == 'pari') and mpz_fits_slong_p(self.value):
+            try:
+                from sage.libs.pari.convert_sage import pari_divisors_small
+                method = 'pari'
+            except ImportError:
+                if method == 'pari':
+                    raise ImportError("method `pari` requested, but cypari2 not present")
+
+        if method == 'pari':
             if mpz_sgn(self.value) > 0:
-                return self._pari_divisors_small()
+                return pari_divisors_small(self)
             else:
-                return (-self)._pari_divisors_small()
+                return pari_divisors_small(-self)
         elif method is not None and method != 'sage':
             raise ValueError("method must be 'pari' or 'sage'")
 
@@ -5140,30 +5101,27 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_sgn(self.value) <= 0:
             return (self, zero) if get_data else False
 
-        cdef long p, n
         if mpz_fits_slong_p(self.value):
-            # Note that self.value fits in a long, so there is no
-            # overflow possible because of mixing signed/unsigned longs.
-            # We call the PARI function uisprimepower()
-            n = uisprimepower(mpz_get_ui(self.value), <ulong*>(&p))
-            if n:
-                return (smallInteger(p), smallInteger(n)) if get_data else True
-            else:
-                return (self, zero) if get_data else False
+            try:
+                from sage.libs.pari.convert_sage import pari_is_prime_power
+                return pari_is_prime_power(self, get_data)
+            except ImportError:
+                pass
+
+        cdef long n
+        if proof is None:
+            from sage.structure.proof.proof import get_flag
+            proof = get_flag(proof, "arithmetic")
+
+        if proof:
+            n, pari_p = self.__pari__().isprimepower()
         else:
-            if proof is None:
-                from sage.structure.proof.proof import get_flag
-                proof = get_flag(proof, "arithmetic")
+            n, pari_p = self.__pari__().ispseudoprimepower()
 
-            if proof:
-                n, pari_p = self.__pari__().isprimepower()
-            else:
-                n, pari_p = self.__pari__().ispseudoprimepower()
-
-            if n:
-                return (Integer(pari_p), smallInteger(n)) if get_data else True
-            else:
-                return (self, zero) if get_data else False
+        if n:
+            return (Integer(pari_p), smallInteger(n)) if get_data else True
+        else:
+            return (self, zero) if get_data else False
 
     def is_prime(self, proof=None):
         r"""
@@ -5229,7 +5187,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return False
 
         if mpz_fits_ulong_p(self.value):
-            return bool(uisprime(mpz_get_ui(self.value)))
+            try:
+                from sage.libs.pari.convert_sage import pari_is_prime
+                return pari_is_prime(self)
+            except ImportError:
+                pass
 
         if proof is None:
             from sage.structure.proof.proof import get_flag
@@ -5580,6 +5542,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
         """
+        from cypari2.gen import objtogen
         if self.is_square():
             raise ValueError("class_number not defined for square integers")
         if not self%4 in [0,1]:
@@ -5987,7 +5950,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1041334
 
         """
-        return new_gen_from_mpz_t(self.value)
+        from sage.libs.pari.convert_sage import new_gen_from_integer
+        return new_gen_from_integer(self)
 
     def _interface_init_(self, I=None):
         """

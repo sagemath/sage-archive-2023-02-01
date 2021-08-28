@@ -45,7 +45,6 @@ import pdb
 import warnings
 
 from .lazy_string import lazy_string
-from sage.interfaces.quit import expect_objects
 from sage.env import DOT_SAGE, HOSTNAME
 from sage.misc.lazy_import import lazy_import
 
@@ -341,6 +340,7 @@ def cputime(t=0, subprocesses=False):
         u, s = resource.getrusage(resource.RUSAGE_SELF)[:2]
         return u + s - t
     else:
+        from sage.interfaces.quit import expect_objects
         if t == 0:
             ret = GlobalCputime(cputime())
             for s in expect_objects:

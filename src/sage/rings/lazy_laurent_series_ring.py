@@ -399,9 +399,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
 
-            sage: L(lambda i: i, 5, 1, 10)
+            sage: L(lambda i: i, valuation=5, constant=1, degree=10)
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
-            sage: L(lambda i: i, 5, (1, 10))
+            sage: L(lambda i: i, valuation=5, constant=(1, 10))
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
 
             sage: X = L(constant=5, degree=2); X
@@ -414,7 +414,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ....:         return 1
             ....:     else:
             ....:         return 1 + sum(k for k in range(i+1))
-            sage: e = L(g, -5); e
+            sage: e = L(g, valuation=-5); e
             z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + O(z^2)
             sage: f = e^-1; f
             z^5 - z^6 - z^11 + O(z^12)
@@ -438,10 +438,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         may be just an element of the base ring instead of a tuple or can be
         simply omitted if it is zero::
 
-            sage: f = L([1,2,3,4], -5)
+            sage: f = L([1,2,3,4], valuation=-5)
             sage: f
             z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
-            sage: g = L([1,3,5,7,9], 5, -1)
+            sage: g = L([1,3,5,7,9], valuation=5, constant=-1)
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
 

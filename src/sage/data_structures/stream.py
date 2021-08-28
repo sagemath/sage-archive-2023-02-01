@@ -11,7 +11,7 @@ EXAMPLES:
 Streams can be used as data structure for lazy Laurent series::
 
     sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-    sage: f = L(lambda n: n, True)
+    sage: f = L(lambda n: n, valuation=0)
     sage: f
     z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + 7*z^7 + ...
     sage: type(f._coeff_stream)

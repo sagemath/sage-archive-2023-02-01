@@ -345,7 +345,7 @@ class LazyModuleElement(Element):
             sage: t = z - z
             sage: t.valuation()
             +Infinity
-            sage: M = L(lambda n: n^2, 0)
+            sage: M = L(lambda n: n^2, valuation=0)
             sage: M.valuation()
             1
             sage: (M - M).valuation()
@@ -433,7 +433,7 @@ class LazyModuleElement(Element):
         TESTS::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
-            sage: f = L([1,2,3,4], -5)
+            sage: f = L([1,2,3,4], valuation=-5)
             sage: hash(f) == hash(f)
             True
             sage: g = (1 + f)/(1 - f)^2
@@ -454,11 +454,11 @@ class LazyModuleElement(Element):
             sage: f = 1/(1 - z)
             sage: bool(f)
             True
-            sage: M = L(lambda n: n, 0); M
+            sage: M = L(lambda n: n, valuation=0); M
             z + z^3 + z^5 + O(z^7)
             sage: M.is_zero()
             False
-            sage: M = L(lambda n: 2*n if n < 10 else 1, 0); M
+            sage: M = L(lambda n: 2*n if n < 10 else 1, valuation=0); M
             O(z^7)
             sage: bool(M)
             Traceback (most recent call last):
@@ -470,7 +470,7 @@ class LazyModuleElement(Element):
             True
 
             sage: L.<z> = LazyLaurentSeriesRing(GF(2), sparse=True)
-            sage: M = L(lambda n: 2*n if n < 10 else 1, 0); M
+            sage: M = L(lambda n: 2*n if n < 10 else 1, valuation=0); M
             O(z^7)
             sage: bool(M)
             Traceback (most recent call last):
@@ -516,7 +516,7 @@ class LazyModuleElement(Element):
 
         The Catalan numbers but with a valuation 1::
 
-            sage: B = L(None, 1)
+            sage: B = L(None, valuation=1)
             sage: B.define(z + B^2)
             sage: B
             z + z^2 + 2*z^3 + 5*z^4 + 14*z^5 + 42*z^6 + 132*z^7 + O(z^8)
@@ -577,7 +577,7 @@ class LazyModuleElement(Element):
             sage: leaf = z
             sage: internal_node = q * z
             sage: L = Q(constant=1, degree=1)
-            sage: T = Q(None, 1)
+            sage: T = Q(None, valuation=1)
             sage: T.define(leaf + internal_node * L(T))
             sage: [T[i] for i in range(6)]
             [0, 1, q, q^2 + q, q^3 + 3*q^2 + q, q^4 + 6*q^3 + 6*q^2 + q]
@@ -1338,12 +1338,12 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: f(g)
             z^-9 + 3*z^-8 + 3*z^-7 + 2*z^-6 + 2*z^-5 + z^-4
 
-            sage: f = L(lambda n: n, 0); f
+            sage: f = L(lambda n: n, valuation=0); f
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
             sage: f(z^2)
             z^2 + 2*z^4 + 3*z^6 + O(z^7)
 
-            sage: f = L(lambda n: n, -2); f
+            sage: f = L(lambda n: n, valuation=-2); f
             -2*z^-2 - z^-1 + z + 2*z^2 + 3*z^3 + 4*z^4 + O(z^5)
             sage: f3 = f(z^3); f3
             -2*z^-6 - z^-3 + O(z)
@@ -1380,7 +1380,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: g^2 + 1 + g^-1
             3 - y + 2*y^2 + y^3 + y^4 + y^5 + O(y^6)
 
-            sage: f = L(lambda n: n, 0); f
+            sage: f = L(lambda n: n, valuation=0); f
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
             sage: f(0)
             0
@@ -1400,7 +1400,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ, sparse=True)
             sage: LS.<y> = LazyLaurentSeriesRing(QQ, sparse=True)
-            sage: f = L(lambda n: 1, 0); f
+            sage: f = L(lambda n: 1, valuation=0); f
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
             sage: f(y^2)
             1 + y^2 + y^4 + y^6 + O(y^7)
@@ -1421,7 +1421,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: 1 + g + g^2 + g^3 + g^4 + g^5 + g^6
             1 + y^2 + y^3 + 2*y^4 + 3*y^5 + 5*y^6 + O(y^7)
 
-            sage: h = LS(lambda n: 1 if n % 2 else 0, 2); h
+            sage: h = LS(lambda n: 1 if n % 2 else 0, valuation=2); h
             y^3 + y^5 + y^7 + O(y^9)
             sage: fgh = fg(h); fgh
             1 + y^6 + O(y^7)
@@ -1434,9 +1434,9 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         We look at mixing the sparse and the dense::
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: f = L(lambda n: 1, 0); f
+            sage: f = L(lambda n: 1, valuation=0); f
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
-            sage: g = LS(lambda n: 1, 1); g
+            sage: g = LS(lambda n: 1, valuation=1); g
             y + y^2 + y^3 + y^4 + y^5 + y^6 + y^7 + O(y^8)
             sage: f(g)
             1 + y + 2*y^2 + 4*y^3 + 8*y^4 + 16*y^5 + 32*y^6 + O(y^7)
@@ -1477,13 +1477,13 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: g = z^-1 + z^-2
             sage: g.valuation() <= 0
             True
-            sage: f = L(lambda n: n, 0)
+            sage: f = L(lambda n: n, valuation=0)
             sage: f(g)
             Traceback (most recent call last):
             ...
             ValueError: can only compose with a positive valuation series
 
-            sage: f = L(lambda n: n, 1)
+            sage: f = L(lambda n: n, valuation=1)
             sage: f(1 + z)
             Traceback (most recent call last):
             ...
@@ -1595,9 +1595,9 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: z/(1 - z)
             z + z^2 + z^3 + z^4 + z^5 + z^6 + z^7 + O(z^8)
-            sage: M = L(lambda n: n, 0); M
+            sage: M = L(lambda n: n, valuation=0); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: N = L(lambda n: 1, 0); N
+            sage: N = L(lambda n: 1, valuation=0); N
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
             sage: P = M / N; P
             z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
@@ -1605,9 +1605,9 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         Lazy Laurent series that have a sparse implementation can be divided::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n, 0); M
+            sage: M = L(lambda n: n, valuation=0); M
             z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: N = L(lambda n: 1, 0); N
+            sage: N = L(lambda n: 1, valuation=0); N
             1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
             sage: P = M / N; P
             z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
@@ -1798,14 +1798,14 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         EXAMPLES::
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = L([1,0,0,2,0,0,0,3], 5); f
+            sage: f = L([1,0,0,2,0,0,0,3], valuation=5); f
             z^5 + 2*z^8 + 3*z^12
             sage: f.polynomial()
             3*z^12 + 2*z^8 + z^5
 
         TESTS::
 
-            sage: g = L([1,0,0,2,0,0,0,3], -5); g
+            sage: g = L([1,0,0,2,0,0,0,3], valuation=-5); g
             z^-5 + 2*z^-2 + 3*z^2
             sage: g.polynomial()
             z^-5 + 2*z^-2 + 3*z^2
@@ -1819,10 +1819,10 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             z^-3 + z^-2 + z^-1 + 1
             sage: f.polynomial(-5)
             0
-            sage: M = L(lambda n: n^2, 0)
+            sage: M = L(lambda n: n^2, valuation=0)
             sage: M.polynomial(3)
             9*z^3 + 4*z^2 + z
-            sage: M = L(lambda n: n^2, 0)
+            sage: M = L(lambda n: n^2, valuation=0)
             sage: M.polynomial(5)
             25*z^5 + 16*z^4 + 9*z^3 + 4*z^2 + z
 

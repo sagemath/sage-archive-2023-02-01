@@ -163,6 +163,7 @@ build/bin/sage-build-env-config
 /pkgs/sagemath-categories/pyproject.toml
 /pkgs/sagemath-objects/requirements.txt
 /pkgs/sagemath-categories/requirements.txt
+/pkgs/sagemath-categories/MANIFEST.in
 
 # same for old locations - before Trac #31577
 /build/pkgs/*/src/build

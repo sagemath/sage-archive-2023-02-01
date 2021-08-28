@@ -3041,16 +3041,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if (method is None or method == 'pari') and mpz_fits_slong_p(self.value):
             try:
                 from sage.libs.pari.convert_sage import pari_divisors_small
-                method = 'pari'
             except ImportError:
                 if method == 'pari':
                     raise ImportError("method `pari` requested, but cypari2 not present")
-
-        if method == 'pari':
-            if mpz_sgn(self.value) > 0:
-                return pari_divisors_small(self)
             else:
-                return pari_divisors_small(-self)
+                if mpz_sgn(self.value) > 0:
+                    return pari_divisors_small(self)
+                else:
+                    return pari_divisors_small(-self)
         elif method is not None and method != 'sage':
             raise ValueError("method must be 'pari' or 'sage'")
 
@@ -3906,6 +3904,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_fits_slong_p(n.value):
             try:
                 from sage.libs.flint.ulong_extras import n_factor_to_list
+            except ImportError:
+                pass
+            else:
                 if proof is None:
                     from sage.structure.proof.proof import get_flag
                     proof = get_flag(proof, "arithmetic")
@@ -3914,8 +3915,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 F.sort()
                 return IntegerFactorization(F, unit=unit, unsafe=True,
                                                sort=False, simplify=False)
-            except ImportError:
-                pass
 
         if mpz_sizeinbase(n.value, 2) < 40:
             from sage.rings.factorint import factor_trial_division
@@ -5104,9 +5103,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_fits_slong_p(self.value):
             try:
                 from sage.libs.pari.convert_sage import pari_is_prime_power
-                return pari_is_prime_power(self, get_data)
             except ImportError:
                 pass
+            else:
+                return pari_is_prime_power(self, get_data)
 
         cdef long n
         if proof is None:
@@ -5189,9 +5189,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if mpz_fits_ulong_p(self.value):
             try:
                 from sage.libs.pari.convert_sage import pari_is_prime
-                return pari_is_prime(self)
             except ImportError:
                 pass
+            else:
+                return pari_is_prime(self)
 
         if proof is None:
             from sage.structure.proof.proof import get_flag

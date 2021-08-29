@@ -275,7 +275,7 @@ def additive_sequence(q, rk):
     m = Sym.m()
 
     # Express the additive sequence in the monomial basis, the 0th
-    # order term must be treated separately:
+    # order term must be treated separately; here comes ``rk`` into play:
     m_dict = {Partitions(0)([]): rk * q[0]}
     m_dict.update({Partitions(k)([k]): q[k] for k in range(1, q.degree())})
     mon_pol = m._from_dict(m_dict)
@@ -362,7 +362,8 @@ class Algorithm_generic(SageObject):
     @cached_method
     def get_gen_pow(self, nab, i, n):
         r"""
-        Return the `n`-th power of the `i`-th generator's characteristic form.
+        Return the `n`-th power of the `i`-th generator's characteristic form
+        w.r.t ``nab``.
         """
         if n == 0:
             return nab._domain._one_scalar_field  # no computation necessary
@@ -578,7 +579,7 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
     @cached_method
     def get_gen_pow(self, nab, i, n):
         r"""
-        Return the `n`-th power of the `i`-th generator.
+        Return the `n`-th power of the `i`-th generator w.r.t ``nab``.
         """
         if n == 0:
             return nab._domain._one_scalar_field  # no computation necessary

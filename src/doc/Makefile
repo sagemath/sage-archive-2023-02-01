@@ -47,7 +47,7 @@ doc-html-reference: doc-inventory-reference
 	$(MAKE) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-html--reference_top
 
 # other documentation, html
-doc-html-other:
+doc-html-other: doc-html-reference
 	$(MAKE) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)), doc-html--$(subst /,-,$(doc)))
 
 doc-html: doc-html-reference doc-html-other
@@ -66,7 +66,7 @@ doc-pdf-reference: doc-inventory-reference
 	$(MAKE) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-pdf--reference_top
 
 # other documentation, pdf
-doc-pdf-other:
+doc-pdf-other: doc-html-reference
 	$(MAKE) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)), doc-pdf--$(subst /,-,$(doc)))
 
 doc-pdf: doc-pdf-reference doc-pdf-other

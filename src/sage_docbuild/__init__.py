@@ -628,6 +628,26 @@ class ReferenceTopBuilder(DocBuilder):
         self.name = 'reference'
         self.lang = 'en'
 
+    def _output_dir(self, type, lang=None):
+        """
+        Return the directory where the output of type ``type`` is stored.
+
+        If the directory does not exist, then it will automatically be
+        created.
+
+        EXAMPLES::
+
+            sage: from sage_docbuild import ReferenceTopBuilder
+            sage: b = ReferenceTopBuilder('reference')
+            sage: b._output_dir('html')
+            '.../html/en/reference'
+        """
+        if lang is None:
+            lang = self.lang
+        d = os.path.join(SAGE_DOC, type, lang, self.name)
+        sage_makedirs(d)
+        return d
+
     def pdf(self):
         """
         Build top-level document.

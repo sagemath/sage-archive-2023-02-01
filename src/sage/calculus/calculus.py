@@ -401,6 +401,12 @@ To check that :trac:`14821` is fixed::
     0.6321205588285577
     sage: integral(exp(-300.0/(-0.064*x+14.0)),x,0.0,120.0)
     4.62770039817000e-9
+
+To check that :trac:`27092` is fixed::
+
+    sage: n = var('n')
+    sage: sum(binomial(1, n), n, 0, oo)
+    2
 """
 
 import re
@@ -2317,13 +2323,13 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s[s.find("(") + 1:s.rfind(")")]
         s = "[" + s + "]"  # turn it into a string that looks like a list
 
-    #replace %solve from to_poly_solve with the expressions
+    # replace %solve from to_poly_solve with the expressions
     if s[0:5] == 'solve':
         s = s[5:]
         s = s[s.find("(") + 1:s.find("]") + 1]
 
-    #replace all instances of Maxima's scientific notation
-    #with regular notation
+    # replace all instances of Maxima's scientific notation
+    # with regular notation
     search = sci_not.search(s)
     while search is not None:
         (start, end) = search.span()
@@ -2474,6 +2480,7 @@ def _find_func(name, create_when_missing=True):
             return function_factory(name)
         else:
             return None
+
 
 parser_make_var = LookupNameMaker({}, fallback=_find_var)
 parser_make_function = LookupNameMaker({}, fallback=_find_func)

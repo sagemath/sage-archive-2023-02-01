@@ -2475,34 +2475,35 @@ class LazyDirichletSeries(LazyModuleElement):
 
         TESTS::
 
-            sage: L = LazyDirichletSeriesRing(ZZ, "z")
-            sage: g = L(constant=1); g
-            1 + 1/(2^z) + 1/(3^z) + O(1/(4^z))
-            sage: g*g
-            1 + 2/2^z + 2/3^z + 3/4^z + 2/5^z + 4/6^z + 2/7^z + O(1/(8^z))
+            sage: D = LazyDirichletSeriesRing(QQ, "s")
+            sage: zeta = D(constant=1); zeta
+            1 + 1/(2^s) + 1/(3^s) + O(1/(4^s))
+            sage: zeta * zeta
+            1 + 2/2^s + 2/3^s + 3/4^s + 2/5^s + 4/6^s + 2/7^s + O(1/(8^s))
             sage: [number_of_divisors(n) for n in range(1, 8)]
             [1, 2, 2, 3, 2, 4, 2]
 
-            sage: mu = L(moebius); mu
-            1 - 1/(2^z) - 1/(3^z) - 1/(5^z) + 1/(6^z) - 1/(7^z) + O(1/(8^z))
-            sage: g*mu
-            1 + O(1/(8^z))
-            sage: L.one() * mu is mu
+            sage: mu = D(moebius); mu
+            1 - 1/(2^s) - 1/(3^s) - 1/(5^s) + 1/(6^s) - 1/(7^s) + O(1/(8^s))
+            sage: zeta * mu
+            1 + O(1/(8^s))
+            sage: D.one() * mu is mu
             True
-            sage: mu * L.one() is mu
+            sage: mu * D.one() is mu
             True
 
-            sage: d1 = L([0,0,1,2,3])
-            sage: d2 = L([0,1,2,3])
+            sage: zeta*(2-zeta)
+            1 - 1/(4^s) - 2/6^s + O(1/(8^s))
+
+            sage: d1 = D([0,0,1,2,3])
+            sage: d2 = D([0,1,2,3])
             sage: d1 * d2
-            1/(6^z) + 2/8^z + 2/9^z + 3/10^z + 7/12^z + O(1/(13^z))
+            1/(6^s) + 2/8^s + 2/9^s + 3/10^s + 7/12^s + O(1/(13^s))
 
             sage: d1 * d2  # not tested - exact result
-            1/(6^z) + 2/8^z + 2/9^z + 3/10^z + 7/12^z + 6/15^z + 6/16^z + 9/20^z
+            1/(6^s) + 2/8^s + 2/9^s + 3/10^s + 7/12^s + 6/15^s + 6/16^s + 9/20^s
 
-            sage: D = LazyDirichletSeriesRing(QQ, "s")
             sage: L.<t> = LazyLaurentSeriesRing(D)
-            sage: zeta = D(constant=1)
             sage: 1/(1-t*zeta)
             (1 + O(1/(8^s))) + (1 + 1/(2^s) + 1/(3^s) + 1/(4^s) + 1/(5^s) + 1/(6^s) + 1/(7^s) + O(1/(8^s)))*t + (1 + 2/2^s + 2/3^s + 3/4^s + 2/5^s + 4/6^s + 2/7^s + O(1/(8^s)))*t^2 + (1 + 3/2^s + 3/3^s + 6/4^s + 3/5^s + 9/6^s + 3/7^s + O(1/(8^s)))*t^3 + (1 + 4/2^s + 4/3^s + 10/4^s + 4/5^s + 16/6^s + 4/7^s + O(1/(8^s)))*t^4 + (1 + 5/2^s + 5/3^s + 15/4^s + 5/5^s + 25/6^s + 5/7^s + O(1/(8^s)))*t^5 + (1 + 6/2^s + 6/3^s + 21/4^s + 6/5^s + 36/6^s + 6/7^s + O(1/(8^s)))*t^6 + O(t^7)
 
@@ -2515,13 +2516,15 @@ class LazyDirichletSeries(LazyModuleElement):
         if isinstance(right, Stream_zero):
             return other
         if (isinstance(left, Stream_exact)
+            and not left._constant
             and left._initial_coefficients == (P._coeff_ring.one(),)
             and left.order() == 1):
-            return other  # self == 1
+            return other # self == 1
         if (isinstance(right, Stream_exact)
+            and not right._constant
             and right._initial_coefficients == (P._coeff_ring.one(),)
             and right.order() == 1):
-            return self
+            return self # other == 1
         coeff = Stream_dirichlet_convolve(left, right)
         # Performing exact arithmetic is slow because the series grow large
         #   very quickly as we are multiplying the degree

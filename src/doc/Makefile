@@ -73,5 +73,5 @@ doc-pdf: doc-pdf-reference doc-pdf-other
 
 .PHONY: all clean \
 	doc-html doc-pdf \
-	doc-inventory-reference doc-html-reference \
-	doc-html-other
+	doc-inventory-reference doc-html-reference doc-pdf-reference \
+	doc-html-other doc-pdf-other

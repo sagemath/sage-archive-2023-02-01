@@ -228,54 +228,59 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
         repr = f'Algebra of characteristic cohomology classes of the {vbundle}'
         return repr
 
-    def multiplicative_sequence(self, q):
-        r"""
-        Turn the polynomial ``q`` into its multiplicative sequence.
-
-        OUTPUT:
-
-        - A symmetric polynomial representing the multiplicative sequence.
-        """
-        from sage.combinat.sf.sf import SymmetricFunctions
-        from sage.combinat.partition import Partitions
-        from sage.misc.misc_c import prod
-
-        R = q.parent().base_ring()
-        Sym = SymmetricFunctions(R)
-        m = Sym.m()
-
-        # Get the multiplicative sequence in the monomial basis:
-        mon_pol = m._from_dict({p: prod(q[i] for i in p)
-                                for k in range(len(q.degree()))
-                                for p in Partitions(k)})
-        return Sym.e()(mon_pol)
-
-    def additive_sequence(self, q):
-        r"""
-        Turn the polynomial ``q`` into its additive sequence.
-
-        OUTPUT:
-
-        - A symmetric polynomial representing the additive sequence.
-        """
-        from sage.combinat.sf.sf import SymmetricFunctions
-        from sage.combinat.partition import Partitions
-
-        R = q.parent().base_ring()
-        Sym = SymmetricFunctions(R)
-        m = Sym.m()
-        rk = self._vbundle._rank
-
-        # Express the additive sequence in the monomial basis, the 0th
-        # order term must be treated separately:
-        m_dict = {Partitions(0)([]): rk * q[0]}
-        m_dict.update({Partitions(k)([k]): q[k] for k in range(1, q.degree())})
-        mon_pol = m._from_dict(m_dict)
-        return Sym.e()(mon_pol)
-
 # *****************************************************************************
 # ALGORITHMS
 # *****************************************************************************
+
+def multiplicative_sequence(q):
+    r"""
+    Turn the polynomial ``q`` into its multiplicative sequence.
+
+    OUTPUT:
+
+    - A symmetric polynomial representing the multiplicative sequence.
+    """
+    from sage.combinat.sf.sf import SymmetricFunctions
+    from sage.combinat.partition import Partitions
+    from sage.misc.misc_c import prod
+
+    R = q.parent().base_ring()
+    Sym = SymmetricFunctions(R)
+    m = Sym.m()
+
+    # Get the multiplicative sequence in the monomial basis:
+    mon_pol = m._from_dict({p: prod(q[i] for i in p)
+                            for k in range(len(q.degree()))
+                            for p in Partitions(k)})
+    return Sym.e()(mon_pol)
+
+def additive_sequence(q, rk):
+    r"""
+    Turn the polynomial ``q`` into its additive sequence.
+
+    INPUT:
+
+    - ``q`` -- polynomial to turn into its additive sequence.
+    - ``rk`` -- rank of the underlying vector bundle
+
+    OUTPUT:
+
+    - A symmetric polynomial representing the additive sequence.
+    """
+    from sage.combinat.sf.sf import SymmetricFunctions
+    from sage.combinat.partition import Partitions
+
+    R = q.parent().base_ring()
+    Sym = SymmetricFunctions(R)
+    m = Sym.m()
+
+    # Express the additive sequence in the monomial basis, the 0th
+    # order term must be treated separately:
+    m_dict = {Partitions(0)([]): rk * q[0]}
+    m_dict.update({Partitions(k)([k]): q[k] for k in range(1, q.degree())})
+    mon_pol = m._from_dict(m_dict)
+    return Sym.e()(mon_pol)
+
 
 def fast_wedge_power(form, n):
     r"""

@@ -93,6 +93,7 @@ from sage.rings.integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.data_structures.stream import (
     Stream_add,
     Stream_cauchy_mul,
@@ -2553,7 +2554,45 @@ class LazyDirichletSeries(LazyModuleElement):
         P = self.parent()
         return P.element_class(P, Stream_dirichlet_invert(self._coeff_stream))
 
+    def __call__(self, p):
+        r"""
+        Return the composition of ``self`` with a linear polynomial ``p``.
+
+        Return the series with the variable `s` replaced by a linear
+        polynomial `a\cdot s + b`, for nonzero `a`.
+
+        EXAMPLES::
+
+            sage: D = LazyDirichletSeriesRing(QQ, "s")
+            sage: P.<s> = QQ[]
+            sage: Z = D(constant=1)
+            sage: from sage.arith.misc import dedekind_psi
+            sage: Psi = D(dedekind_psi)
+            sage: Z(s)*Z(s-1)/Z(2*s) - Psi
+            O(1/(8^s))
+
+            sage: Z(s)*Z(s-1)/Z(2*s-2) - (1/Psi).map_coefficients(abs)
+            O(1/(8^s))
+
+        """
+        P = self.parent()
+        R = PolynomialRing(ZZ, P.variable_name())
+        p = R(p)
+        if p.degree() != 1:
+            raise ValueError("the argument must be a linear polynomial of degree 1 with integer coefficients")
+        coeff_stream = self._coeff_stream
+        b, a = p
+        def coefficient(m):
+            m = ZZ(m)
+            try:
+                n = m.nth_root(a)
+                return coeff_stream[n] * n ** (-b)
+            except ValueError:
+                return 0
+        return P.element_class(P, Stream_function(coefficient, P._coeff_ring, P._sparse, 1))
+
     def change_ring(self, ring):
+
         """
         Return this series with coefficients converted to elements of ``ring``.
 

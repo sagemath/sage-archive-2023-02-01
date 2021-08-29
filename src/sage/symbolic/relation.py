@@ -926,10 +926,12 @@ def solve(f, *args, **kwds):
     A basic interface to Giac is provided::
 
         sage: solve([(2/3)^x-2], [x], algorithm='giac')
+        ...
         [[-log(2)/(log(3) - log(2))]]
 
         sage: f = (sin(x) - 8*cos(x)*sin(x))*(sin(x)^2 + cos(x)) - (2*cos(x)*sin(x) - sin(x))*(-2*sin(x)^2 + 2*cos(x)^2 - cos(x))
         sage: solve(f, x, algorithm='giac')
+        ...
         [-2*arctan(sqrt(2)), 0, 2*arctan(sqrt(2)), pi]
 
         sage: x, y = SR.var('x,y')
@@ -1125,21 +1127,17 @@ def solve(f, *args, **kwds):
                 return sympy_set_to_list(ret, sympy_vars)
 
     if algorithm == 'giac':
-        from sage.libs.giac.giac import libgiac
-        giac_f = libgiac(f)
-        giac_vars = libgiac(x)
-        ret = giac_f.solve(giac_vars)
-        return ret.sage()
+        return _giac_solver(f, x, solution_dict)
 
     from sage.calculus.calculus import maxima
     m = maxima(f)
 
     try:
         s = m.solve(variables)
-    except Exception: # if Maxima gave an error, try its to_poly_solve
+    except Exception:  # if Maxima gave an error, try its to_poly_solve
         try:
             s = m.to_poly_solve(variables)
-        except TypeError as mess: # if that gives an error, raise an error.
+        except TypeError as mess:  # if that gives an error, raise an error.
             if "Error executing code in Maxima" in str(mess):
                 raise ValueError("Sage is unable to determine whether the system %s can be solved for %s" % (f, args))
             else:
@@ -1276,11 +1274,7 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
                 ret = solveset(f._sympy_(), sympy_vars[0], S.Reals)
                 return sympy_set_to_list(ret, sympy_vars)
             elif algorithm == 'giac':
-                from sage.libs.giac.giac import libgiac
-                giac_f = libgiac(f)
-                giac_vars = libgiac(x)
-                ret = giac_f.solve(giac_vars)
-                return ret.sage()
+                return _giac_solver(f, x, solution_dict)
             else:
                 try:
                     return solve_ineq(f)  # trying solve_ineq_univar
@@ -1324,11 +1318,7 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
         return ret
 
     if algorithm == 'giac':
-        from sage.libs.giac.giac import libgiac
-        giac_f = libgiac(f)
-        giac_vars = libgiac(x)
-        ret = giac_f.solve(giac_vars)
-        return ret.sage()
+        return _giac_solver(f, x, solution_dict)
 
     # from here on, maxima is used for solution
     m = ex._maxima_()
@@ -1426,7 +1416,53 @@ def _solve_expression(f, x, explicit_solutions, multiplicities,
     else:
         return X
 
-def solve_mod(eqns, modulus, solution_dict = False):
+
+def _giac_solver(f, x, solution_dict=False):
+    """
+    Solve a system of equations using libgiac.
+
+    INPUT:
+
+    - ``f`` -- equation or list of equations
+    - ``x`` -- variable or list of variables
+    - ``solution_dict`` -- optional boolean (default ``False``)
+
+    EXAMPLES::
+
+        sage: solve([(2/3)^x-2], [x], algorithm='giac')
+        ...
+        [[-log(2)/(log(3) - log(2))]]
+        sage: solve([(2/3)^x-2], [x], algorithm='giac', solution_dict=True)
+        ...
+        [{x: -log(2)/(log(3) - log(2))}]
+
+        sage: f = (sin(x) - 8*cos(x)*sin(x))*(sin(x)^2 + cos(x)) - (2*cos(x)*sin(x) - sin(x))*(-2*sin(x)^2 + 2*cos(x)^2 - cos(x))
+        sage: solve(f, x, algorithm='giac')
+        ...
+        [-2*arctan(sqrt(2)), 0, 2*arctan(sqrt(2)), pi]
+        sage: solve(f, x, algorithm='giac', solution_dict=True)
+        ...
+        [{x: -2*arctan(sqrt(2))}, {x: 0}, {x: 2*arctan(sqrt(2))}, {x: pi}]
+
+        sage: x, y = SR.var('x,y')
+        sage: solve([x+y-7,x*y-10],[x,y],algorithm='giac')
+        [[2, 5], [5, 2]]
+    """
+    from sage.libs.giac.giac import libgiac
+    giac_f = libgiac(f)
+    giac_vars = libgiac(x)
+    ret = giac_f.solve(giac_vars)
+    sols = ret.sage()
+    if solution_dict:
+        if not sols:
+            return []
+        if isinstance(sols[0], list):
+            return [{v: sv for v, sv in zip(x, solution)} for solution in sols]
+        return [{x: sx} for sx in sols]
+    return sols
+
+
+def solve_mod(eqns, modulus, solution_dict=False):
     r"""
     Return all solutions to an equation or list of equations modulo the
     given integer modulus. Each equation must involve only polynomials

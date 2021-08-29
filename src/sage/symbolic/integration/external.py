@@ -241,6 +241,12 @@ def giac_integrator(expression, v, a=None, b=None):
         sage: y = SR.var('π')
         sage: giac_integrator(cos(y), y)
         sin(π)
+
+    Check that :trac:`29966` is fixed::
+
+        sage: giac_integrator(sqrt(x + sqrt(x)), x)
+        1/12*(2*sqrt(x)*(4*sqrt(x) + 1) - 3)*sqrt(x + sqrt(x))
+        - 1/8*log(abs(2*sqrt(x + sqrt(x)) - 2*sqrt(x) - 1))
     """
     ex = expression._giac_()
     if a is None:

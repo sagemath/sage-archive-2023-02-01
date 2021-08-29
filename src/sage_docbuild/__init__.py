@@ -738,15 +738,15 @@ class ReferenceTopBuilder(DocBuilder):
         logger.warning('''
 PDF documents have been created in subdirectories of
 
-%s
+  %s
 
 Alternatively, you can open
 
-%s
+  %s
 
 for a webpage listing all of the documents.''' % (output_dir,
-                                             os.path.join(output_dir,
-                                                          'index.html')))
+                                                 os.path.join(output_dir,
+                                                              'index.html')))
 
 
 class ReferenceSubBuilder(DocBuilder):

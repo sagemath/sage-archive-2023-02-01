@@ -38,7 +38,7 @@ cpdef list[list] contpath_mp(int deg, list values, RealNumber y0r, RealNumber y0
 
     EXAMPLES::
 
-        sage: from sage.libs.sirocco import contpath_mp
+        sage: from sage.libs.sirocco import contpath_mp   # optional - sirocco
         sage: from sage.rings.real_mpfr import RR
         sage: pol = list(map(RR, [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
         sage: contpath_mp(2, pol, RR(0), RR(0), 53)   # optional - sirocco # abs tol 1e-15
@@ -99,7 +99,7 @@ cpdef list[list] contpath_mp_comps(int deg, list values, RealNumber y0r, RealNum
 
     EXAMPLES::
 
-        sage: from sage.libs.sirocco import contpath_mp_comps
+        sage: from sage.libs.sirocco import contpath_mp_comps   # optional - sirocco
         sage: from sage.rings.real_mpfr import RR
         sage: pol = list(map(RR,[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
         sage: fac = list(map(RR,[0, 0, 0.1, 0.2, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
@@ -191,7 +191,7 @@ cpdef list[list] contpath(int deg, list values, double y0r, double y0i):
 
     EXAMPLES::
 
-        sage: from sage.libs.sirocco import contpath
+        sage: from sage.libs.sirocco import contpath   # optional - sirocco
         sage: from sage.rings.real_mpfr import RR
         sage: pol = list(map(RR,[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
         sage: contpath(2, pol, RR(0), RR(0))  # optional - sirocco # abs tol 1e-15
@@ -246,7 +246,7 @@ cpdef list[list] contpath_comps(int deg, list values, double y0r, double y0i, li
 
     EXAMPLES::
 
-        sage: from sage.libs.sirocco import contpath_comps
+        sage: from sage.libs.sirocco import contpath_comps   # optional - sirocco
         sage: from sage.rings.real_mpfr import RR
         sage: pol = list(map(RR,[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
         sage: fac = list(map(RR,[0, 0, 0.1, 0.2, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
@@ -292,3 +292,4 @@ cpdef list[list] contpath_comps(int deg, list values, double y0r, double y0i, li
     free(c_otherdegrees)
     free(c_othercoefs)
     return l
+

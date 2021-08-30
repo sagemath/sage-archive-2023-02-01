@@ -574,14 +574,14 @@ class GenericTerm(MultiplicativeGroupElement):
             sage: t._calculate_pow_(3, new_coefficient=2)
             Traceback (most recent call last):
             ...
-            ValueError: Coefficient 2 is not 1, but Generic Term Monoid z^ZZ with
+            ValueError: Coefficient 2 is not 1, but GenericTerm Monoid z^ZZ with
             (implicit) coefficients in Integer Ring does not support coefficients.
             sage: t._calculate_pow_(-2)
             Generic Term with growth z^(-2)
             sage: t._calculate_pow_(-2, new_coefficient=2)
             Traceback (most recent call last):
             ...
-            ValueError: Coefficient 2 is not 1, but Generic Term Monoid z^ZZ with
+            ValueError: Coefficient 2 is not 1, but GenericTerm Monoid z^ZZ with
             (implicit) coefficients in Integer Ring does not support coefficients.
         """
         try:
@@ -1120,14 +1120,14 @@ class GenericTerm(MultiplicativeGroupElement):
             ...
             NotImplementedError: Cannot check whether Generic Term with growth x is o(1)
             in the abstract base class
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field.
             sage: T = TermWithCoefficientMonoid(TermMonoid, GrowthGroup('x^ZZ'), QQ)
             sage: T.an_element().is_little_o_of_one()
             Traceback (most recent call last):
             ...
             NotImplementedError: Cannot check whether Term with coefficient 1/2 and growth x
             is o(1) in the abstract base class
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
+            TermWithCoefficient Monoid x^ZZ with coefficients in Rational Field.
         """
         raise NotImplementedError('Cannot check whether %s is o(1) in the '
                                   'abstract base class %s.' % (self, self.parent()))
@@ -1156,7 +1156,7 @@ class GenericTerm(MultiplicativeGroupElement):
             ...
             NotImplementedError: Cannot take e to the exponent
             Generic Term with growth x*log(x) in the abstract base class
-            Generic Term Monoid x^ZZ * log(x)^ZZ with (implicit) coefficients in Rational Field.
+            GenericTerm Monoid x^ZZ * log(x)^ZZ with (implicit) coefficients in Rational Field.
         """
         raise NotImplementedError('Cannot take %s to the exponent %s in the '
                                   'abstract base class %s.' % (base, self, self.parent()))
@@ -1236,9 +1236,9 @@ class GenericTerm(MultiplicativeGroupElement):
             Traceback (most recent call last):
             ...
             TypeError: Cannot substitute in Generic Term with growth x in
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Integer Ring.
             > *previous* TypeError: Cannot substitute in the abstract base class
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Integer Ring.
         """
         from .misc import substitute_raise_exception
         substitute_raise_exception(self, TypeError(
@@ -1368,9 +1368,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
         sage: T_x_ZZ = GenericTermMonoid(TermMonoid, G_x, QQ)
         sage: T_y_QQ = GenericTermMonoid(TermMonoid, G_y, QQ)
         sage: T_x_ZZ
-        Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+        GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field
         sage: T_y_QQ
-        Generic Term Monoid y^QQ with (implicit) coefficients in Rational Field
+        GenericTerm Monoid y^QQ with (implicit) coefficients in Rational Field
     """
 
     # enable the category framework for elements
@@ -1449,12 +1449,12 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
             sage: G_x = GrowthGroup('x^ZZ')
             sage: T_x = GenericTermMonoid(TermMonoid, G_x, QQ); T_x
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: T_x.growth_group
             Growth Group x^ZZ
             sage: G_y = GrowthGroup('y^QQ')
             sage: T_y = GenericTermMonoid(TermMonoid, G_y, QQ); T_y
-            Generic Term Monoid y^QQ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid y^QQ with (implicit) coefficients in Rational Field
             sage: T_x is T_y
             False
 
@@ -1469,9 +1469,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
             sage: G = GrowthGroup('x^ZZ')
             sage: T_ZZ = TermWithCoefficientMonoid(TermMonoid, G, ZZ); T_ZZ
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring
+            TermWithCoefficient Monoid x^ZZ with coefficients in Integer Ring
             sage: T_QQ = TermWithCoefficientMonoid(TermMonoid, G, QQ); T_QQ
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+            TermWithCoefficient Monoid x^ZZ with coefficients in Rational Field
             sage: T_QQ.category()
             Join of Category of monoids and Category of posets
         """
@@ -1631,11 +1631,11 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: GenericTermMonoid(TermMonoid, GenericGrowthGroup(ZZ), QQ)._repr_()
-            'Generic Term Monoid Generic(ZZ) with (implicit) coefficients in Rational Field'
+            'GenericTerm Monoid Generic(ZZ) with (implicit) coefficients in Rational Field'
             sage: GenericTermMonoid(TermMonoid, GrowthGroup('x^ZZ'), QQ)._repr_()
-            'Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field'
+            'GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field'
         """
-        return 'Generic Term Monoid %s with (implicit) coefficients in %s' % \
+        return 'GenericTerm Monoid %s with (implicit) coefficients in %s' % \
             (self.growth_group._repr_short_(), self.coefficient_ring)
 
     def _coerce_map_from_(self, S):
@@ -1666,14 +1666,14 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
             sage: G_ZZ = GrowthGroup('x^ZZ')
             sage: T_ZZ = GenericTermMonoid(TermMonoid, G_ZZ, QQ); T_ZZ
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: G_QQ = GrowthGroup('x^QQ')
             sage: T_QQ = GenericTermMonoid(TermMonoid, G_QQ, QQ); T_QQ
-            Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid x^QQ with (implicit) coefficients in Rational Field
             sage: T_QQ.has_coerce_map_from(T_ZZ)  # indirect doctest
             True
             sage: T_QQ_ZZ = GenericTermMonoid(TermMonoid, G_QQ, ZZ); T_QQ_ZZ
-            Generic Term Monoid x^QQ with (implicit) coefficients in Integer Ring
+            GenericTerm Monoid x^QQ with (implicit) coefficients in Integer Ring
             sage: T_QQ.has_coerce_map_from(T_QQ_ZZ)
             True
             sage: T_QQ_ZZ.has_coerce_map_from(T_QQ)
@@ -1683,9 +1683,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
             sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
             sage: TC_ZZ = TermWithCoefficientMonoid(TermMonoid, G_ZZ, ZZ); TC_ZZ
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring
+            TermWithCoefficient Monoid x^ZZ with coefficients in Integer Ring
             sage: TC_QQ = TermWithCoefficientMonoid(TermMonoid, G_QQ, QQ); TC_QQ
-            Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
+            TermWithCoefficient Monoid x^QQ with coefficients in Rational Field
             sage: TC_QQ.has_coerce_map_from(TC_ZZ)  # indirect doctest
             True
             sage: TC_ZZ.has_coerce_map_from(TC_QQ)  # indirect doctest
@@ -1731,9 +1731,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
         a common parent has to be found::
 
             sage: term1.parent()
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: term2.parent()
-            Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid x^QQ with (implicit) coefficients in Rational Field
             sage: term1 <= term2
             True
 
@@ -1757,7 +1757,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             sage: T_ZZ(10 * x^2)
             Traceback (most recent call last):
             ...
-            ValueError: 10*x^2 is not in Generic Term Monoid x^ZZ
+            ValueError: 10*x^2 is not in GenericTerm Monoid x^ZZ
             with (implicit) coefficients in Rational Field.
             > *previous* ValueError: Factor 10*x^2 of 10*x^2 is neither a
             coefficient (in Rational Field) nor growth (in Growth Group x^ZZ).
@@ -2818,7 +2818,7 @@ class TermWithCoefficient(GenericTerm):
             Traceback (most recent call last):
             ...
             ValueError: 1/2 is not a coefficient in
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
+            TermWithCoefficient Monoid x^ZZ with coefficients in Integer Ring.
             sage: t = CT_QQ(x, 1/2); t
             Term with coefficient 1/2 and growth x
 
@@ -2828,7 +2828,7 @@ class TermWithCoefficient(GenericTerm):
             Traceback (most recent call last):
             ...
             ZeroCoefficientError:  Zero coefficient 0 is not allowed in
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
+            TermWithCoefficient Monoid x^ZZ with coefficients in Integer Ring.
 
         The conversion of growth elements also works for the creation
         of terms with coefficient::
@@ -3011,8 +3011,8 @@ class TermWithCoefficient(GenericTerm):
             Traceback (most recent call last):
             ...
             ArithmeticError: Cannot take Term with coefficient 0.? + 0.?*I and
-            growth z to the exponent I in Generic Term Monoid z^ZZ with
-            (implicit) coefficients in Complex Interval Field with
+            growth z to the exponent I in TermWithCoefficient Monoid z^ZZ with
+            coefficients in Complex Interval Field with
             53 bits of precision since its coefficient 0.? + 0.?*I
             cannot be taken to this exponent.
             > *previous* ValueError: Can't take the argument of
@@ -3149,19 +3149,45 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         sage: G_ZZ = GrowthGroup('x^ZZ'); x_ZZ = G_ZZ.gen()
         sage: G_QQ = GrowthGroup('x^QQ'); x_QQ = G_QQ.gen()
         sage: TC_ZZ = TermWithCoefficientMonoid(TermMonoid, G_ZZ, QQ); TC_ZZ
-        Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+        TermWithCoefficient Monoid x^ZZ with coefficients in Rational Field
         sage: TC_QQ = TermWithCoefficientMonoid(TermMonoid, G_QQ, QQ); TC_QQ
-        Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
+        TermWithCoefficient Monoid x^QQ with coefficients in Rational Field
         sage: TC_ZZ == TC_QQ or TC_ZZ is TC_QQ
         False
         sage: TC_QQ.coerce_map_from(TC_ZZ)
         Coercion map:
-          From: Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
-          To:   Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
+          From: TermWithCoefficient Monoid x^ZZ with coefficients in Rational Field
+          To:   TermWithCoefficient Monoid x^QQ with coefficients in Rational Field
     """
 
     # enable the category framework for elements
     Element = TermWithCoefficient
+
+    def _repr_(self):
+        r"""
+        A representation string for this TermWithCoefficient Monoid.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import (GenericGrowthGroup, GrowthGroup)
+            sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+
+            sage: TermWithCoefficientMonoid(TermMonoid, GenericGrowthGroup(ZZ), QQ)._repr_()
+            'TermWithCoefficient Monoid Generic(ZZ) with coefficients in Rational Field'
+            sage: TermWithCoefficientMonoid(TermMonoid, GrowthGroup('x^ZZ'), QQ)._repr_()
+            'TermWithCoefficient Monoid x^ZZ with coefficients in Rational Field'
+        """
+        return 'TermWithCoefficient Monoid %s with coefficients in %s' % \
+            (self.growth_group._repr_short_(), self.coefficient_ring)
 
     def _create_element_(self, growth, coefficient):
         r"""
@@ -4440,7 +4466,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         Exact Term Monoid x^ZZ with coefficients in Rational Field
         sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
         sage: TermMonoid(GenericTermMonoid(TermMonoid, G, ZZ), asymptotic_ring=R)
-        Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+        GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field
 
     ::
 

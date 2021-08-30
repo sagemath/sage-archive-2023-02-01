@@ -421,7 +421,7 @@ cpdef list pari_divisors_small(Integer self):
 
     .. SEEALSO::
 
-    This method is better used through :meth:`sage.rings.integer.Integer.divisors`.
+        This method is better used through :meth:`sage.rings.integer.Integer.divisors`.
 
     EXAMPLES::
 

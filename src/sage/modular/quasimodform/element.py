@@ -1,5 +1,5 @@
 """
-Elements of quasimodular forms rings
+Elements of Quasimodular Forms Rings
 
 AUTHORS:
 

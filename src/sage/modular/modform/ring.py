@@ -31,6 +31,11 @@ from .element import is_ModularFormElement, GradedModularFormElement
 from .space import is_ModularFormsSpace
 from random import shuffle
 
+from sage.rings.polynomial.multi_polynomial import MPolynomial
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.term_order import TermOrder
+from sage.rings.power_series_poly import PowerSeries_poly
+
 from sage.structure.parent import Parent
 
 from sage.categories.graded_algebras import GradedAlgebras
@@ -169,6 +174,20 @@ class ModularFormsRing(Parent):
         q^3 + 66*q^7 + 832*q^9 + O(q^10),
         q^4 + 40*q^6 + 528*q^8 + O(q^10),
         q^5 + 20*q^7 + 190*q^9 + O(q^10)]
+
+    Elements of modular forms ring can be initiated via multivariate polynomials (see :meth:`from_polynomial`)::
+
+        sage: M = ModularFormsRing(1)
+        sage: M.ngens()
+        2
+        sage: E4, E6 = polygens(QQ, 'E4, E6')
+        sage: M(E4)
+        1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+        sage: M(E6)
+        1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)
+        sage: M((E4^3 - E6^2)/1728)
+        q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
+
     """
 
     Element = GradedModularFormElement
@@ -303,13 +322,149 @@ class ModularFormsRing(Parent):
         """
         return len(self.gen_forms())
 
+    def polynomial_ring(self, names, gens=None):
+        r"""
+        Return a polynomial ring of which ``self`` is a quotient.
+
+        INPUT:
+
+        - ``names`` -- a list or tuple of names (strings), or a comma separated string
+        - ``gens`` (default: None) -- (list) a list of generator of ``self``. If ``gens`` is
+          ``None`` then the generators returned by :meth:`~sage.modular.modform.find_generator.ModularFormsRing.gen_forms`
+          is used instead.
+
+        OUTPUT: A multivariate polynomial ring in the variable ``names``. Each variable of the
+        polynomial ring correspond to a generator given in gens (following the ordering of the list).
+
+        EXAMPLES::
+
+            sage: M = ModularFormsRing(1)
+            sage: gens = M.gen_forms()
+            sage: M.polynomial_ring('E4, E6', gens)
+            Multivariate Polynomial Ring in E4, E6 over Rational Field
+            sage: M = ModularFormsRing(Gamma0(8))
+            sage: gens = M.gen_forms()
+            sage: M.polynomial_ring('g', gens)
+            Multivariate Polynomial Ring in g0, g1, g2 over Rational Field
+
+        The degrees of the variables are the weights of the corresponding forms::
+
+            sage: M = ModularFormsRing(1)
+            sage: P.<E4, E6> = M.polynomial_ring()
+            sage: E4.degree()
+            4
+            sage: E6.degree()
+            6
+            sage: (E4*E6).degree()
+            10
+        """
+        if gens is None:
+            gens = self.gen_forms()
+        degs = [f.weight() for f in gens]
+        return PolynomialRing(self.base_ring(), len(gens), names, order=TermOrder('wdeglex', degs)) # Should we remove the deg lexicographic ordering here?
+
+
+    def _generators_variables_dictionnary(self, poly_parent, gens):
+        r"""
+        Utility function that returns a dictionnary giving an association between
+        polynomial ring generators and generators of modular forms ring.
+
+        INPUT:
+
+        - ``poly_parent`` -- A polynomial ring
+        - ``gen`` -- list of generators of the modular forms ring
+
+        TESTS::
+
+            sage: M = ModularFormsRing(Gamma0(6))
+            sage: P = QQ['x, y, z']
+            sage: M._generators_variables_dictionnary(P, M.gen_forms())
+            {z: q^2 - 2*q^3 + 3*q^4 + O(q^6),
+            y: q + 5*q^3 - 2*q^4 + 6*q^5 + O(q^6),
+            x: 1 + 24*q^3 + O(q^6)}
+        """
+        if poly_parent.base_ring() != self.base_ring():
+            raise ValueError('the base ring of `poly_parent` must be the same as the base ring of the modular forms ring')
+        nb_var = poly_parent.ngens()
+        nb_gens = self.ngens()
+        if nb_var != nb_gens:
+            raise ValueError('the number of variables (%s) must be equal to the number of generators of the modular forms ring (%s)'%(nb_var, self.ngens()))
+        return {poly_parent.gen(i) : self(gens[i]) for i in range(0, nb_var)}
+
+    def from_polynomial(self, polynomial, gens=None):
+        r"""
+        Convert the given polynomial to a graded form living in ``self``. If
+        ``gens`` is ``None`` then the list of generators given by the method
+        :meth:`gen_forms` will be used. Otherwise, ``gens`` should be a list of
+        generators.
+
+        INPUT:
+
+        - ``polynomial`` -- A multivariate polynomial. The variables names of
+          the polynomial should be different from ``'q'``. The number of
+          variable of this polynomial should equal the number of generators
+        - ``gens`` -- list (default: ``None``) of generators of the modular
+          forms ring
+
+        OUTPUT: A ``GradedModularFormElement`` given by the polynomial
+        relation ``polynomial``.
+
+        EXAMPLES::
+
+            sage: M = ModularFormsRing(1)
+            sage: x,y = polygens(QQ, 'x,y')
+            sage: M.from_polynomial(x^2+y^3)
+            2 - 1032*q + 774072*q^2 - 77047584*q^3 - 11466304584*q^4 - 498052467504*q^5 + O(q^6)
+            sage: M = ModularFormsRing(Gamma0(6))
+            sage: M.ngens()
+            3
+            sage: x,y,z = polygens(QQ, 'x,y,z')
+            sage: M.from_polynomial(x+y+z)
+            1 + q + q^2 + 27*q^3 + q^4 + 6*q^5 + O(q^6)
+            sage: M.0 + M.1 + M.2
+            1 + q + q^2 + 27*q^3 + q^4 + 6*q^5 + O(q^6)
+            sage: P = x.parent()
+            sage: M.from_polynomial(P(1/2))
+            1/2
+
+        Note that the number of variables must be equal to the number of generators::
+
+            sage: x, y = polygens(QQ, 'x, y')
+            sage: M(x + y)
+            Traceback (most recent call last):
+            ...
+            ValueError: the number of variables (2) must be equal to the number of generators of the modular forms ring (3)
+
+        TESTS::
+
+            sage: x,y = polygens(GF(7), 'x, y')
+            sage: ModularFormsRing(1, GF(7))(x)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion from polynomial is not implemented if the base ring is not Q
+
+        ..TODO::
+
+            * add conversion for symbolic expressions?
+        """
+        if not self.base_ring() == QQ: # this comes from the method gens_form
+            raise NotImplementedError("conversion from polynomial is not implemented if the base ring is not Q")
+        if not isinstance(polynomial, MPolynomial):
+            raise TypeError('`polynomial` must be a multivariate polynomial')
+        if gens is None:
+            gens = self.gen_forms()
+        dict = self._generators_variables_dictionnary(polynomial.parent(), gens)
+        if polynomial.is_constant():
+            return self(polynomial.constant_coefficient())
+        return polynomial.substitute(dict)
+
     def _element_constructor_(self, forms_datum):
         r"""
         The call method of self.
 
         INPUT:
 
-        - ``forms_datum`` (dict, list, ModularFormElement, GradedModularFormElement, RingElement) - Try to coerce
+        - ``forms_datum`` (dict, list, ModularFormElement, GradedModularFormElement, RingElement, Multivariate polynomial) - Try to coerce
           ``forms_datum`` into self.
 
         TESTS::
@@ -324,6 +479,9 @@ class ModularFormsRing(Parent):
             2 - 264*q - 14472*q^2 - 116256*q^3 - 515208*q^4 - 1545264*q^5 + O(q^6)
             sage: M(E4)
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
+            sage: x,y = polygens(QQ, 'x,y')
+            sage: M(x^2+x^3 + x*y + y^6)
+            4 - 2088*q + 3816216*q^2 - 2296935072*q^3 + 720715388184*q^4 - 77528994304752*q^5 + O(q^6)
             sage: f = ModularForms(3, 10).0
             sage: M(f)
             Traceback (most recent call last):
@@ -334,10 +492,16 @@ class ModularFormsRing(Parent):
             Traceback (most recent call last):
             ...
             ValueError: the group (Modular Group SL(2,Z)) and/or the base ring (Rational Field) of the given modular form is not consistant with the base space: Ring of Modular Forms for Modular Group SL(2,Z) over Integer Ring
-            sage: M(x)
+            sage: M('x')
             Traceback (most recent call last):
             ...
-            TypeError: the defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary
+            TypeError: the defining data structure should be a single modular form, a ring element, a list of modular forms, a multivariate polynomial or a dictionary
+            sage: P.<t> = PowerSeriesRing(QQ)
+            sage: e = 1 + 240*t + 2160*t^2 + 6720*t^3 + 17520*t^4 + 30240*t^5 + O(t^6)
+            sage: ModularFormsRing(1)(e)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion from q-expansion not yet implemented
         """
         if isinstance(forms_datum, (dict, list)):
             forms_dictionary = forms_datum
@@ -350,8 +514,12 @@ class ModularFormsRing(Parent):
                 raise ValueError('the group (%s) and/or the base ring (%s) of the given modular form is not consistant with the base space: %s'%(forms_datum.group(), forms_datum.base_ring(), self))
         elif forms_datum in self.base_ring():
             forms_dictionary = {0:forms_datum}
+        elif isinstance(forms_datum, MPolynomial):
+            return self.from_polynomial(forms_datum)
+        elif isinstance(forms_datum, PowerSeries_poly):
+            raise NotImplementedError("conversion from q-expansion not yet implemented")
         else:
-            raise TypeError('the defining data structure should be a single modular form, a ring element, a list of modular forms or a dictionary')
+            raise TypeError('the defining data structure should be a single modular form, a ring element, a list of modular forms, a multivariate polynomial or a dictionary')
         return self.element_class(self, forms_dictionary)
 
     def zero(self):

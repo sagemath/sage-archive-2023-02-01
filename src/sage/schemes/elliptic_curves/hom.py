@@ -25,7 +25,7 @@ class EllipticCurveHom(Morphism):
         """
         Called by :meth:`_composition_`.
         """
-        raise NotImplementedError('subclasses should implement _composition_impl')
+        return NotImplemented
 
     def _composition_(self, other, homset):
         """
@@ -50,15 +50,11 @@ class EllipticCurveHom(Morphism):
         if not isinstance(self, EllipticCurveHom) or not isinstance(other, EllipticCurveHom):
             raise TypeError(f'cannot compose {type(self)} with {type(other)}')
 
-        try:
-            return self._composition_impl(self, other)
-        except NotImplementedError:
-            pass
+        ret = self._composition_impl(self, other)
+        if ret is not NotImplemented: return ret
 
-        try:
-            return other._composition_impl(self, other)
-        except NotImplementedError:
-            pass
+        ret = other._composition_impl(self, other)
+        if ret is not NotImplemented: return ret
 
         # fall back to generic formal composite map
         return Morphism._composition_(self, other, homset)

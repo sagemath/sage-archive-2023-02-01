@@ -3590,13 +3590,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         TESTS:
 
-        We should raise a ``NotImplementedError`` when passed a combination
-        of elliptic-curve morphism types that we don't handle here::
+        We should return ``NotImplemented`` when passed a combination of
+        elliptic-curve morphism types that we don't handle here::
 
             sage: phi._composition_impl(iso1, iso1**-1)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
+            NotImplemented
         """
         if isinstance(left, WeierstrassIsomorphism) and isinstance(right, EllipticCurveIsogeny):
             result = copy(right)
@@ -3609,7 +3607,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             result._set_pre_isomorphism(right)
             return result
 
-        raise NotImplementedError
+        return NotImplemented
 
     def is_injective(self):
         r"""

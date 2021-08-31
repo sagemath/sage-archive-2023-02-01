@@ -2998,7 +2998,7 @@ class HyperplaneArrangementElement(Element):
             base_ring = self.base_ring()
         return self.matroid().orlik_solomon_algebra(base_ring, ordering,**kwds)
 
-    def orlik_terao_algebra(self, base_ring=None, ordering=None):
+    def orlik_terao_algebra(self, base_ring=None, ordering=None, **kwds):
         """
         Return the Orlik-Terao algebra of ``self``.
 
@@ -3022,7 +3022,7 @@ class HyperplaneArrangementElement(Element):
         """
         if base_ring is None:
             base_ring = self.base_ring()
-        return self.matroid().orlik_terao_algebra(base_ring, ordering)
+        return self.matroid().orlik_terao_algebra(base_ring, ordering, **kwds)
 
     @cached_method
     def minimal_generated_number(self):

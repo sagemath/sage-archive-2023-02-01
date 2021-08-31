@@ -971,10 +971,10 @@ class LazyCauchyProductSeries(LazyModuleElement):
             1 - 3*z + 3*z^2 - z^3
             sage: M = L(lambda n: n, valuation=0)
             sage: M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
             sage: N = M * (1 - M)
             sage: N
-            z + z^2 - z^3 - 6*z^4 - 15*z^5 - 29*z^6 + ...
+            z + z^2 - z^3 - 6*z^4 - 15*z^5 - 29*z^6 + O(z^7)
 
             sage: p = (1 - z)*(1 + z^2)^3 * z^-2
             sage: p
@@ -998,11 +998,11 @@ class LazyCauchyProductSeries(LazyModuleElement):
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
             sage: M = L(lambda n: n, valuation=0); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + ...
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
             sage: N = L(lambda n: 1, valuation=0); N
-            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + ...
+            1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
             sage: M * N
-            z + 3*z^2 + 6*z^3 + 10*z^4 + 15*z^5 + 21*z^6 + ...
+            z + 3*z^2 + 6*z^3 + 10*z^4 + 15*z^5 + 21*z^6 + O(z^7)
 
             sage: L.one() * M is M
             True

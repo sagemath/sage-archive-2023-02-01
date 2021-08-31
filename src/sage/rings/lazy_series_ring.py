@@ -1085,8 +1085,11 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
             sage: L = LazyDirichletSeriesRing(ZZ, 'z')
             sage: L.one()
             1
+            sage: ~L.one()
+            1 + O(1/(8^z))
         """
-        return self.element_class(self, Stream_exact([1], self._sparse, order=1))
+        R = self.base_ring()
+        return self.element_class(self, Stream_exact([R.one()], self._sparse, order=1))
 
     @cached_method
     def zero(self):

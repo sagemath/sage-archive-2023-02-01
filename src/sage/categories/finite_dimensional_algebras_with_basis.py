@@ -1436,12 +1436,14 @@ class FiniteDimensionalAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                           + 7/48*[2, 1] # [3, 1, 2] + 49/48*[2, 1] # [3, 2, 1])
                     """
                     if self.cellular_basis() is self:
-                        M = x.monomial_coefficients(copy=False)
-                        return self._from_dict({(i[0], i[2], i[1]): M[i] for i in M},
-                                               remove_zeros=False)
-                    on_basis = lambda i: self._tensor_of_elements([
-                                                    A.basis()[i[j]].cellular_involution()
-                                                    for j,A in enumerate(self._sets)])
+                        def func(x):
+                            M = x.monomial_coefficients(copy=False)
+                            return self._from_dict({(i[0], i[2], i[1]): M[i] for i in M},
+                                                   remove_zeros=False)
+                        return self.module_morphism(function=func, codomain=self)
+                    def on_basis(i):
+                        return self._tensor_of_elements([A.basis()[i[j]].cellular_involution()
+                                                         for j,A in enumerate(self._sets)])
                     return self.module_morphism(on_basis, codomain=self)
 
                 @cached_method

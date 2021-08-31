@@ -1160,17 +1160,18 @@ cdef class PowerSeries(AlgebraElement):
 
     def shift(self, n):
         r"""
-        Return this power series multiplied by the power `t^n`. If
-        `n` is negative, terms below `t^n` will be
-        discarded. Does not change this power series.
+        Return this power series multiplied by the power `t^n`.
+
+        If `n` is negative, terms below `t^{-n}` are discarded.
+
+        This power series is left unchanged.
 
         .. NOTE::
 
            Despite the fact that higher order terms are printed to the
            right in a power series, right shifting decreases the
-           powers of `t`, while left shifting increases
-           them. This is to be consistent with polynomials, integers,
-           etc.
+           powers of `t`, while left shifting increases them.
+           This is to be consistent with polynomials, integers, etc.
 
         EXAMPLES::
 
@@ -1214,6 +1215,7 @@ cdef class PowerSeries(AlgebraElement):
     def __rshift__(self, n):
         """
         Right-shift this power series by `n`, i.e., divide by `t^n`.
+
         Terms below `t^n` are discarded.
 
         EXAMPLES::

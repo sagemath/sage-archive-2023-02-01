@@ -325,7 +325,7 @@ class DynamicalSystem_product_projective_finite_field(DynamicalSystem_product_pr
         V = []
         E = []
         from sage.schemes.product_projective.space import is_ProductProjectiveSpaces
-        if is_ProductProjectiveSpaces(self.domain()) == True:
+        if is_ProductProjectiveSpaces(self.domain()):
             for P in self.domain():
                 V.append(str(P))
                 Q = self(P)
@@ -333,5 +333,4 @@ class DynamicalSystem_product_projective_finite_field(DynamicalSystem_product_pr
         else:
             raise NotImplementedError("Cyclegraph for product projective spaces not implemented for subschemes")
         from sage.graphs.digraph import DiGraph
-        g = DiGraph(dict(zip(V, E)), loops=True)
-        return g
+        return DiGraph(dict(zip(V, E)), loops=True)

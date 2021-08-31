@@ -1684,8 +1684,7 @@ class RiemannSurface(object):
             sage: _ = S.homology_basis()
             sage: differentials = S.cohomology_basis()
             sage: bounding_data = S._bounding_data(differentials)
-            sage: S.rigorous_line_integral([(0,0), (1,0)], differentials, 
-            ....:                          bounding_data)  # abs tol 1e-10
+            sage: S.rigorous_line_integral([(0,0), (1,0)], differentials, bounding_data)  # abs tol 1e-10
             (1.80277751848459e-16 - 0.352971844594760*I)
 
         .. NOTE::

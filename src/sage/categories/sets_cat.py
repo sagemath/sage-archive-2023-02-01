@@ -2169,19 +2169,11 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 r"""
                 Return a lexicographic iterator for the elements of this Cartesian product.
 
-                EXAMPLES::
+                EXAMPLES:
 
-                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # py2
-                    ....:     print((x, y))
-                    (1, 'a')
-                    (1, 'b')
-                    (2, 'a')
-                    (2, 'b')
+                Sets are intrinsically unordered::
 
-                Sets are intrinsically unordered, so a different
-                ordering may occur when using Python 3::
-
-                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # py3 random
+                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # random
                     ....:     print((x, y))
                     (1, 'b')
                     (1, 'a')

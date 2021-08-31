@@ -897,7 +897,9 @@ cdef class Expression(CommutativeRingElement):
         EXAMPLES::
 
             sage: i = var('i')
-            sage: integral(exp(x + x^2)/(x+1), x)._sympy_character_art(False)
+            sage: f = integral(exp(x + x^2)/(x+1), x)
+            ...
+            sage: f._sympy_character_art(False)
             '  /          \n |           \n |   2       \n |  x  + x   \n | e...'
         """
         from sympy import pretty, sympify
@@ -5712,6 +5714,83 @@ cdef class Expression(CommutativeRingElement):
         from sage.symbolic.expression_conversions import SubstituteFunction
         return SubstituteFunction(self, original, new)()
 
+    def exponentialize(self):
+        r"""
+        Return this symbolic expression with all circular and hyperbolic
+        functions replaced by their respective exponential
+        expressions.
+
+        EXAMPLES::
+
+            sage: x = SR.var("x")
+            sage: sin(x).exponentialize()
+            -1/2*I*e^(I*x) + 1/2*I*e^(-I*x)
+            sage: sec(x).exponentialize()
+            2/(e^(I*x) + e^(-I*x))
+            sage: tan(x).exponentialize()
+            (-I*e^(I*x) + I*e^(-I*x))/(e^(I*x) + e^(-I*x))
+            sage: sinh(x).exponentialize()
+            -1/2*e^(-x) + 1/2*e^x
+            sage: sech(x).exponentialize()
+            2/(e^(-x) + e^x)
+            sage: tanh(x).exponentialize()
+            -(e^(-x) - e^x)/(e^(-x) + e^x)
+
+        TESTS:
+
+        Check that ``u(x).exponentialize().demoivre(force=True)``
+        is identity::
+
+            sage: x = SR.var("x")
+            sage: all([bool(u(x).exponentialize().demoivre(force=True) == u(x))
+            ....:      for u in (sin, cos, tan, csc, sec, cot,
+            ....:                sinh, cosh, tanh, csch, sech, coth)])
+            True
+
+        Check that differentiation and exponentialization commute::
+
+            sage: x = SR.var("x")
+            sage: all([bool(u(x).diff(x).exponentialize() ==
+            ....:           u(x).exponentialize().diff(x))
+            ....:      for u in (sin, cos, tan, csc, sec, cot,
+            ....:                sinh, cosh, tanh, csch, sech, coth)])
+            True
+        """
+        from sage.symbolic.expression_conversions import Exponentialize
+        return Exponentialize(self)()
+
+    def demoivre(self, force=False):
+        r"""
+        Return this symbolic expression with complex exponentials
+        (optionally all exponentials) replaced by (at least partially)
+        trigonometric/hyperbolic expressions.
+
+        EXAMPLES::
+
+            sage: x, a, b = SR.var("x, a, b")
+            sage: exp(a + I*b).demoivre()
+            (cos(b) + I*sin(b))*e^a
+            sage: exp(I*x).demoivre()
+            cos(x) + I*sin(x)
+            sage: exp(x).demoivre()
+            e^x
+            sage: exp(x).demoivre(force=True)
+            cosh(x) + sinh(x)
+
+        TESTS:
+
+        Check that de Moivre transformation correctly commutes
+        with differentiation::
+
+            sage: x = SR.var("x")
+            sage: f = function("f")
+            sage: bool(f(exp(I*x)).diff(x).demoivre() == 
+            ....:      f(exp(I*x)).demoivre().diff(x))
+            True
+        """
+        from sage.symbolic.expression_conversions import DeMoivre
+        return DeMoivre(self, force)()
+
     def substitution_delayed(self, pattern, replacement):
         """
         Replace all occurrences of pattern by the result of replacement.
@@ -5884,13 +5963,6 @@ cdef class Expression(CommutativeRingElement):
             3
             sage: (sin(x+y)).number_of_arguments()
             2
-
-        ::
-
-            sage: ( 2^(8/9) - 2^(1/9) )(x-1)
-            Traceback (most recent call last):
-            ...
-            ValueError: the number of arguments must be less than or equal to 0
         """
         return len(self.arguments())
 
@@ -6407,7 +6479,7 @@ cdef class Expression(CommutativeRingElement):
         else:
             R = CallableSymbolicExpressionRing(args, check=False)
             return R(self)
-        raise TypeError("Must construct a function with a tuple (or list) of symbolic variables.")
+        raise TypeError(f"must construct a function with symbolic variables as arguments, got {args}.")
 
     ############################################################################
     # Basic arithmetic wrappers
@@ -11362,9 +11434,13 @@ cdef class Expression(CommutativeRingElement):
             integrate(f(x) + g(x), x)
             sage: integrate(f(x)+g(x),x).distribute()
             integrate(f(x), x) + integrate(g(x), x)
-            sage: integrate(f(x)+g(x),x,a,b)
+            sage: result = integrate(f(x)+g(x),x,a,b)
+            ...
+            sage: result
             integrate(f(x) + g(x), x, a, b)
-            sage: integrate(f(x)+g(x),x,a,b).distribute()
+            sage: result = integrate(f(x)+g(x),x,a,b).distribute()
+            ...
+            sage: result
             integrate(f(x), x, a, b) + integrate(g(x), x, a, b)
             sage: sum(X(j)+sum(Y(k)+Z(k),k,1,q),j,1,p)
             sum(X(j) + sum(Y(k) + Z(k), k, 1, q), j, 1, p)
@@ -12288,19 +12364,41 @@ cdef class Expression(CommutativeRingElement):
 
     def show(self):
         r"""
-        Pretty-Print this symbolic expression
+        Pretty-print this symbolic expression.
 
-        This typeset it nicely and prints it immediately.
+        This typesets it nicely and prints it immediately.
 
         OUTPUT:
 
         This method does not return anything. Like ``print``, output
         is sent directly to the screen.
 
+        Note that the output depends on the display preferences. For details,
+        see :func:`~sage.repl.rich_output.pretty_print.pretty_print`.
+
         EXAMPLES::
 
             sage: (x^2 + 1).show()
             x^2 + 1
+
+        TESTS::
+
+            sage: dm = get_display_manager()
+            sage: dm.preferences.text = 'ascii_art'
+
+        EXAMPLES::
+
+            sage: %display ascii_art  # not tested
+            sage: (x^2 + 1).show()
+             2
+            x  + 1
+
+        TESTS:
+
+        After the previous example, we need to reset the text display
+        preferences::
+
+            sage: dm.preferences.text = None
         """
         from sage.repl.rich_output.pretty_print import pretty_print
         pretty_print(self)

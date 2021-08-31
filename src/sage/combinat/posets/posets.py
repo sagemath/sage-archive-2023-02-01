@@ -559,7 +559,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
         sage: d,c,b,a = list(P)
         sage: type(a)
-        <... 'str'>
+        <class 'str'>
 
     Of course, those strings are not aware of `P`. So to compare two
     such strings, one needs to query `P`::
@@ -592,7 +592,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
             sage: G = DiGraph({0:[2,3], 1:[3,4], 2:[5], 3:[5], 4:[5]})
             sage: type(G.vertices()[0])
-            <... 'int'>
+            <class 'int'>
 
         This is worked around by systematically converting back the
         vertices of a poset to :class:`Integer`'s if they are
@@ -600,11 +600,11 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
             sage: P = Poset((divisors(15), attrcall("divides")), facade = False)
             sage: type(P.an_element().element)
-            <... 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
 
             sage: P = Poset((divisors(15), attrcall("divides")), facade=True)
             sage: type(P.an_element())
-            <... 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
 
         This may be abusive::
 
@@ -646,7 +646,7 @@ def Poset(data=None, element_labels=None, cover_relations=False, linear_extensio
 
         sage: P = Poset([[1,2],[3],[3]])
         sage: type(hash(P))
-        <... 'int'>
+        <class 'int'>
 
     Bad input::
 
@@ -1627,7 +1627,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: L = P.linear_extensions(facade=True)
             sage: l = L.an_element()
             sage: type(l)
-            <... 'list'>
+            <class 'list'>
 
         .. WARNING::
 
@@ -1641,7 +1641,7 @@ class FinitePoset(UniqueRepresentation, Parent):
                  [1, 3, 2, 6, 4, 12],
                  [1, 2, 3, 6, 4, 12]]
                 sage: type(L[0])
-                <... 'list'>
+                <class 'list'>
 
         .. SEEALSO:: :meth:`linear_extension`, :meth:`is_linear_extension`
 
@@ -2207,7 +2207,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: type(P.cover_relations_iterator())
-            <... 'generator'>
+            <class 'generator'>
             sage: [z for z in P.cover_relations_iterator()]
             [[1, 2], [0, 2], [2, 3], [3, 4]]
         """
@@ -2589,7 +2589,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[4], 4:[]})
             sage: it = P.relations_iterator()
             sage: type(it)
-            <... 'generator'>
+            <class 'generator'>
             sage: next(it), next(it)
             ([1, 1], [1, 2])
 
@@ -4013,7 +4013,7 @@ class FinitePoset(UniqueRepresentation, Parent):
 
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[]})
             sage: type(P.upper_covers_iterator(0))
-            <... 'generator'>
+            <class 'generator'>
         """
         for e in self._hasse_diagram.neighbor_out_iterator(self._element_to_vertex(x)):
             yield self._vertex_to_element(e)
@@ -4044,7 +4044,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P = Poset({0:[2], 1:[2], 2:[3], 3:[]})
             sage: l0 = P.lower_covers_iterator(3)
             sage: type(l0)
-            <... 'generator'>
+            <class 'generator'>
             sage: next(l0)
             2
         """

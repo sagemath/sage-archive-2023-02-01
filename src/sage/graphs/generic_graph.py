@@ -14429,8 +14429,8 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             return networkx.average_clustering(self.networkx_graph())
         else:
-            from sage.stats.basic_stats import mean
-            return mean(self.clustering_coeff(implementation=implementation).values())
+            coeffs = self.clustering_coeff(implementation=implementation)
+            return sum(coeffs.values()) / len(coeffs)
 
     def clustering_coeff(self,
                          nodes=None,

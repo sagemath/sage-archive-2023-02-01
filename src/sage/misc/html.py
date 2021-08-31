@@ -294,7 +294,7 @@ class MathJax:
             sage: MathJax().eval(3, mode='inline')
             <html>\(\newcommand{\Bold}[1]{\mathbf{#1}}3\)</html>
             sage: MathJax().eval(type(3), mode='inline')
-            <html>\(\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<class|\phantom{\verb!x!}\verb|'sage.rings.integer.Integer'>|\)</html>
+            <html>\(\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<class|\verb| |\verb|'sage.rings.integer.Integer'>|\)</html>
         """
         # Get a regular LaTeX representation of x
         x = latex(x, combine_all=combine_all)
@@ -411,7 +411,7 @@ class HTMLFragmentFactory(SageObject):
             <a href="http://sagemath.org">sagemath</a>
 
             sage: html('<a href="http://sagemath.org">sagemath</a>', strict=True)
-            <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<a|\phantom{\verb!x!}\verb|href="http://sagemath.org">sagemath</a>|\]</html>
+            <html>\[\newcommand{\Bold}[1]{\mathbf{#1}}\verb|<a|\verb| |\verb|href="http://sagemath.org">sagemath</a>|\]</html>
         """
         # string obj is interpreted as an HTML in not strict mode
         if isinstance(obj, str) and not strict:

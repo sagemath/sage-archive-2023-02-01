@@ -367,7 +367,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
         return self._generic_coerce_map(self.base_ring())
 
-    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
+    def _element_constructor_(self, x=None, valuation=None, degree=None, constant=None):
         """
         Construct a Laurent series from ``x``.
 

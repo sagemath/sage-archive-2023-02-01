@@ -2562,7 +2562,7 @@ class LazyDirichletSeries(LazyModuleElement):
         Return the composition of ``self`` with a linear polynomial ``p``.
 
         Return the series with the variable `s` replaced by a linear
-        polynomial `a\cdot s + b`, for nonzero `a`.
+        polynomial `a\cdot s + b`, for positive `a`.
 
         EXAMPLES::
 
@@ -2585,6 +2585,8 @@ class LazyDirichletSeries(LazyModuleElement):
             raise ValueError("the argument must be a linear polynomial of degree 1 with integer coefficients")
         coeff_stream = self._coeff_stream
         b, a = p
+        if a < 0:
+            raise ValueError("the leading coefficient must be positive")
         def coefficient(m):
             m = ZZ(m)
             try:

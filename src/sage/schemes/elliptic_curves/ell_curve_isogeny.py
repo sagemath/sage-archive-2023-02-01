@@ -3391,7 +3391,7 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.dual()
             Isogeny of degree 7 from Elliptic Curve defined by y^2 + x*y = x^3 + 84*x + 34 over Finite Field of size 103 to Elliptic Curve defined by y^2 + x*y = x^3 + x + 102 over Finite Field of size 103
 
-        Check that :trac:`17293` is fixed:
+        Check that :trac:`17293` is fixed::
 
             sage: k.<s> = QuadraticField(2)
             sage: E = EllipticCurve(k, [-3*s*(4 + 5*s), 2*s*(2 + 14*s + 11*s^2)])

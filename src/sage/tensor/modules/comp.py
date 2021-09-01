@@ -1202,7 +1202,12 @@ class Components(SageObject):
             raise ValueError("the argument 'index_latex_labels' must " +
                              "contain {} items".format(self._dim))
         if only_nonredundant:
-            generator = self.non_redundant_index_generator()
+            # To simplify the implementation of the non-redundant
+            # index generator, it generates indices in a different
+            # order than the redundant index generator. For the
+            # display, we sort the indices again.
+            generator = list(self.non_redundant_index_generator())
+            generator.sort()
         else:
             generator = self.index_generator()
         rtxt = ''
@@ -2384,21 +2389,16 @@ class Components(SageObject):
         si = self._sindex
         imax = self._dim - 1 + si
         ind = [si for k in range(self._nid)]
-        ind_end = [si for k in range(self._nid)]
-        ind_end[0] = imax+1
-        while ind != ind_end:
+        while True:
             yield tuple(ind)
-            ret = 1
             for pos in range(self._nid-1,-1,-1):
                 if ind[pos] != imax:
-                    ind[pos] += ret
-                    ret = 0
-                elif ret == 1:
-                    if pos == 0:
-                        ind[pos] = imax + 1 # end point reached
-                    else:
-                        ind[pos] = si
-                        ret = 1
+                    ind[pos] += 1
+                    break
+                elif pos != 0:
+                    ind[pos] = si
+                else:
+                    return # end point reached
 
     def non_redundant_index_generator(self):
         r"""
@@ -3890,14 +3890,14 @@ class CompWithSym(Components):
             [(0, 1), (0, 2), (1, 2)]
             sage: c = CompWithSym(QQ, V.basis(), 3, sym=(1,2))  # symmetry on the last two indices
             sage: list(c.non_redundant_index_generator())
-            [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 1, 1), (0, 1, 2),
-             (0, 2, 2), (1, 0, 0), (1, 0, 1), (1, 0, 2), (1, 1, 1),
-             (1, 1, 2), (1, 2, 2), (2, 0, 0), (2, 0, 1), (2, 0, 2),
-             (2, 1, 1), (2, 1, 2), (2, 2, 2)]
+            [(0, 0, 0), (1, 0, 0), (2, 0, 0), (0, 0, 1), (1, 0, 1),
+             (2, 0, 1), (0, 0, 2), (1, 0, 2), (2, 0, 2), (0, 1, 1),
+             (1, 1, 1), (2, 1, 1), (0, 1, 2), (1, 1, 2), (2, 1, 2),
+             (0, 2, 2), (1, 2, 2), (2, 2, 2)]
             sage: c = CompWithSym(QQ, V.basis(), 3, antisym=(1,2))  # antisymmetry on the last two indices
             sage: list(c.non_redundant_index_generator())
-            [(0, 0, 1), (0, 0, 2), (0, 1, 2), (1, 0, 1), (1, 0, 2), (1, 1, 2),
-             (2, 0, 1), (2, 0, 2), (2, 1, 2)]
+            [(0, 0, 1), (1, 0, 1), (2, 0, 1), (0, 0, 2), (1, 0, 2),
+             (2, 0, 2), (0, 1, 2), (1, 1, 2), (2, 1, 2)]
             sage: c = CompFullySym(QQ, V.basis(), 3)
             sage: list(c.non_redundant_index_generator())
             [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 1, 1), (0, 1, 2), (0, 2, 2),
@@ -3926,36 +3926,67 @@ class CompWithSym(Components):
             []
 
         """
+        if self._nid == 0 or self._dim == 0:
+            return
         si = self._sindex
         imax = self._dim - 1 + si
         ind = [si for k in range(self._nid)]
-        ind_end = [si for k in range(self._nid)]
-        ind_end[0] = imax+1
-        while ind != ind_end:
-            ordered = True
-            for isym in self._sym:
-                for k in range(len(isym)-1):
-                    if ind[isym[k+1]] < ind[isym[k]]:
-                        ordered = False
-                        break
-            for isym in self._antisym:
-                for k in range(len(isym)-1):
-                    if ind[isym[k+1]] <= ind[isym[k]]:
-                        ordered = False
-                        break
-            if ordered:
-                yield tuple(ind)
-            ret = 1
-            for pos in range(self._nid-1,-1,-1):
-                if ind[pos] != imax:
-                    ind[pos] += ret
-                    ret = 0
-                elif ret == 1:
-                    if pos == 0:
-                        ind[pos] = imax + 1 # end point reached
-                    else:
-                        ind[pos] = si
-                        ret = 1
+        sym = self._sym.copy() # we may modify this in the following
+        antisym = self._antisym
+        for pos in range(self._nid):
+            for isym in antisym:
+                for k in range(1, len(isym)):
+                    if pos == isym[k]:
+                        if ind[isym[k-1]] == imax:
+                            return
+                        ind[pos] = ind[isym[k-1]] + 1
+            if not any([pos in isym for isym in sym]) and not any([pos in isym for isym in antisym]):
+                sym.append([pos]) # treat non-symmetrized indices as being symmetrized with themselves
+        while True:
+            yield tuple(ind)
+            step_finished = False # each step generates a new index
+            for i in range(len(sym)-1,-1,-1):
+                # start with symmetrized indices, loop until we find
+                # an index which we can increase without going over
+                # the maximum
+                isym = sym[i]
+                if not step_finished:
+                    for k in range(len(isym)-1,-1,-1):
+                        if ind[isym[k]] != imax:
+                            # we have found an index which we can
+                            # increase; adjust other indices in the
+                            # `isym` symmetrization
+                            ind[isym[k]] += 1
+                            for l in range(k+1, len(isym)):
+                                ind[isym[l]] = ind[isym[l-1]]
+                            step_finished = True
+                            break
+                        else:
+                            # this index is at the maximum and we have
+                            # to reset it
+                            ind[isym[k]] = si
+                if not step_finished and i == 0 and len(antisym) == 0:
+                    return # we went through all indices and didn't
+                           # find one which we can increase, thus we
+                           # have generated all indices
+            for i in range(len(antisym)-1,-1,-1):
+                # the antisymmetrized indices work similar to the
+                # symmetrized ones
+                isym = antisym[i]
+                if not step_finished:
+                    for k in range(len(isym)-1,-1,-1):
+                        if ind[isym[k]] + len(isym)-1-k != imax:
+                            ind[isym[k]] += 1
+                            for l in range(k+1, len(isym)):
+                                # adjust antisymmetrized index
+                                ind[isym[l]] = ind[isym[l-1]] + 1
+                            step_finished = True
+                            break
+                        else:
+                            # reset the index
+                            ind[isym[k]] = si + k
+                if not step_finished and i == 0:
+                    return # end point reach
 
     def symmetrize(self, *pos):
         r"""

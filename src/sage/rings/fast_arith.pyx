@@ -40,8 +40,6 @@ from sage.libs.gmp.mpz cimport mpz_set_ui
 
 from sage.ext.stdsage cimport PY_NEW
 
-from cypari2.paridecl cimport *
-from cypari2.gen cimport Gen as pari_gen
 from sage.libs.pari.all import pari
 from sage.rings.integer cimport Integer
 

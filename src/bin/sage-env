@@ -335,7 +335,6 @@ fi
 
 if [ -n "$SAGE_LOCAL" ]; then
     SINGULARPATH="$SAGE_LOCAL/share/singular" && export SINGULARPATH
-    SINGULAR_EXECUTABLE="$SAGE_LOCAL/bin/Singular" && export SINGULAR_EXECUTABLE
 fi
 
 if [ -z "$SAGE_REPO_ANONYMOUS" ]; then

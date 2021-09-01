@@ -530,7 +530,7 @@ cpdef pari_is_prime_power(Integer q, bint get_data):
         return (q, smallInteger(0)) if get_data else False
 
 
-cpdef ulong pari_maxprime():
+cpdef unsigned long pari_maxprime():
     """
     Return to which limit PARI has computed the primes.
 

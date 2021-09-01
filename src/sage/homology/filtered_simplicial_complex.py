@@ -40,7 +40,7 @@ set with the ``filtration`` method as follows::
 The filtration value of a simplex can be accessed as well with the
 ``filtration`` method, by not specifying a filtration value in
 the arguments. If the simplex is not in the complex, this returns
-None::
+``None``::
 
     sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([0,1], 1)])
     sage: X.filtration(Simplex([0]))
@@ -68,8 +68,8 @@ rather than a ``Simplex``. This can make code more readable / clear::
     sage: X.insert(['a'], 0)
     sage: X.insert(['b', 'c'], 1)
     sage: X
-    Filtered complex on vertex set ('a', 'b', 'c') and with simplices (('a',) : 0), (('c',) : 1), (('b',) : 1), (('b', 'c') : 1)
-
+    Filtered complex on vertex set ('a', 'b', 'c') and with simplices
+     (('a',) : 0), (('c',) : 1), (('b',) : 1), (('b', 'c') : 1)
 """
 
 # ****************************************************************************
@@ -86,34 +86,39 @@ from sage.structure.sage_object import SageObject
 from sage.topology.simplicial_complex import Simplex, SimplicialComplex
 from sage.modules.free_module import FreeModule
 from sage.rings.finite_rings.finite_field_constructor import GF
+from sage.rings.integer import Integer
 from sage.rings.infinity import infinity
 from sage.misc.cachefunc import cached_method
 
 class FilteredSimplicialComplex(SageObject):
+    r"""
+    Define a filtered complex.
 
-    def __init__(self, simplices=[], warnings=False):
-        r"""
-        Define a filtered complex.
+    INPUT:
 
-        :param simplices: list of simplices and filtration values
-        :param warnings: set to True for more info on each insertion
+    - ``simplices`` -- list of simplices and filtration values
+    - ``verbose`` -- (default: ``False``) if ``True``, any change to
+      the filtration value of a simplex will be printed
 
-        ``simplices`` should be a list of tuples ``(l, v)`` where
-        ``l`` is a list of vertices and ``v`` is the corresponding filtration
-        value.
+    ``simplices`` should be a list of tuples ``(l, v)``, where
+    ``l`` is a list of vertices and ``v`` is the corresponding
+    filtration value.
 
+    EXAMPLES::
 
-        If ``warnings`` is set to True, the user will be warned when they try
-        to change the filtration value of a simplex.
-
+        sage: FilteredSimplicialComplex([([0], 0), ([1], 0), ([2], 1), ([0,1], 2.27)])
+        Filtered complex on vertex set (0, 1, 2) and with simplices
+         ((0,) : 0), ((1,) : 0), ((2,) : 1), ((0, 1) : 2.27000000000000)
+    """
+    def __init__(self, simplices=[], verbose=False):
+        """
+        Initialize ``self``.
 
         EXAMPLES::
 
-            sage: FilteredSimplicialComplex([([0], 0), ([1], 0), ([2], 1), ([0,1], 2.27)])
-            Filtered complex on vertex set (0, 1, 2) and with simplices ((0,) : 0), ((1,) : 0), ((2,) : 1), ((0, 1) : 2.27000000000000)
-
+            sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([2], 1), ([0,1], 2.27)])
+            sage: TestSuite(X).run()
         """
-
         # _vertices is the set of vertices on which the complex
         # is constructed
         self._vertices = set()
@@ -124,22 +129,60 @@ class FilteredSimplicialComplex(SageObject):
         self._dimension = 0
         self._max_value = 0
 
-        # when _warnings is set to True, insertion
+        # when _verbose is set to True, insertion
         # will warn the user when something non-trivial
         # happens.
-        self._warnings = warnings
+        self._verbose = verbose
 
         # Insert all simplices in the initial list
         for l, v in simplices:
             self.insert(l, v)
 
+    def __eq__(self, other):
+        """
+        Check equality.
+
+        EXAMPLES::
+
+            sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([2], 1), ([0,1], 2.27)])
+            sage: Y = FilteredSimplicialComplex()
+            sage: Y.insert([0], 0)
+            sage: Y.insert([1], 0)
+            sage: Y.insert([2], 1)
+            sage: Y.insert([0,1], 2.27)
+            sage: X == Y
+            True
+            sage: Y.filtration([1,2], 2)
+            sage: X == Y
+            False
+
+            sage: Y = FilteredSimplicialComplex([([0], 0), ([1], 0), ([2], 1), ([0,1], 2)])
+            sage: X == Y
+            False
+        """
+        return (isinstance(other, FilteredSimplicialComplex)
+                and self._vertices == other._vertices
+                and self._filtration_dict == other._filtration_dict)
+
+    def __ne__(self, other):
+        """
+        Check inequality.
+
+        EXAMPLES::
+
+            sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([2], 1), ([0,1], 2.27)])
+            sage: Y = FilteredSimplicialComplex([([0], 0), ([1], 0), ([2], 1), ([0,1], 3)])
+            sage: X != Y
+            True
+            sage: Y.filtration([0,1], 2.27)
+            sage: X != Y
+            False
+        """
+        return not (self == other)
+
     def _get_value(self, s):
         r"""
-        Return the filtration value of a simplex in the complex.
-
-        :param s: simplex
-
-
+        Return the filtration value of a simplex ``s`` in the complex.
 
         EXAMPLES::
 
@@ -147,11 +190,20 @@ class FilteredSimplicialComplex(SageObject):
             sage: X._get_value(Simplex([0]))
             1
 
+        This also works for the call and getitem syntax as a shorthand::
+
+            sage: X(Simplex([0]))
+            1
+            sage: X[Simplex([0])]
+            1
         """
         if s in self._filtration_dict:
             return self._filtration_dict[s]
         else:
             return None
+
+    __call__ = _get_value
+    __getitem__ = _get_value
 
     def _insert(self, simplex, filtration_value):
         r"""
@@ -162,37 +214,38 @@ class FilteredSimplicialComplex(SageObject):
         If the simplex is already present, and the new value is lower
         than its current value in the complex, the value gets updated,
         otherwise it does not change. This propagates recursively to faces.
-        If warnings have been enabled, this method will describe what it
+
+        If verbose has been enabled, this method will describe what it
         is doing during an insertion.
 
-        :param simplex: simplex to be inserted
-        :type simplex: Simplex
-        :param filtration_value: value of the simplex
+        INPUT:
+
+        - ``simplex`` -- :class:`Simplex`; simplex to be inserted
+        - ``filtration_value`` -- value of the simplex
 
         EXAMPLES::
 
             sage: X = FilteredSimplicialComplex()
-            sage: X._insert(Simplex([0]),3)
+            sage: X._insert(Simplex([0]), 3)
             sage: X
             Filtered complex on vertex set (0,) and with simplices ((0,) : 3)
-
         """
         # Keep track of whether the simplex is already in the complex
         # and if it should be updated or not
         update = False
         curr_value = self[simplex]
         if curr_value is not None:
-            if self._warnings:
+            if self._verbose:
                 print("Face {} is already in the complex.".format(simplex))
             if curr_value > filtration_value:
-                if self._warnings:
-                    warning_string = "However its value is {}".format(curr_value)
-                    warning_string += ": updating it to {}".format(filtration_value)
-                    print(warning_string)
+                if self._verbose:
+                    verbose_string = "However its value is {}".format(curr_value)
+                    verbose_string += ": updating it to {}".format(filtration_value)
+                    print(verbose_string)
                 update = True
                 self._filtration_dict.pop(simplex)
             else:
-                if self._warnings:
+                if self._verbose:
                     print("Its value is {}: keeping it that way".format(curr_value))
                 return
 
@@ -201,7 +254,7 @@ class FilteredSimplicialComplex(SageObject):
         faces = simplex.faces()
         if simplex.dimension() > 0:
             for f in faces:
-                if self._warnings:
+                if self._verbose:
                     print("Also inserting face {} with value {}".format(f, filtration_value))
                 self._insert(f, filtration_value)
 
@@ -220,15 +273,14 @@ class FilteredSimplicialComplex(SageObject):
         If the simplex is already present, and the new value is lower
         than its current value in the complex, the value gets updated,
         otherwise it does not change. This propagates recursively to faces.
-        If warnings have been enabled, this method will describe what it
+
+        If verbose has been enabled, this method will describe what it
         is doing during an insertion.
 
-        This method calls self._insert, turning the list of vertices
-        into a simplex.
+        INPUT:
 
-        :param vertex_list: list of vertices
-        :param filtration_value: desired value of the simplex to be
-            added.
+        - ``vertex_list`` -- list of vertices
+        - ``filtration_value`` -- desired value of the simplex to be added
 
         EXAMPLES::
 
@@ -237,10 +289,10 @@ class FilteredSimplicialComplex(SageObject):
             sage: X
             Filtered complex on vertex set (0,) and with simplices ((0,) : 3)
 
-        If the warning parameter was set to true, this method will print
+        If the verbose parameter was set to true, this method will print
         some info::
 
-            sage: X = FilteredSimplicialComplex(warnings = True)
+            sage: X = FilteredSimplicialComplex(verbose=True)
             sage: X.insert(Simplex([0, 1]), 2)
             Also inserting face (1,) with value 2
             Also inserting face (0,) with value 2
@@ -250,23 +302,24 @@ class FilteredSimplicialComplex(SageObject):
             sage: X.insert(Simplex([0]), 77)
             Face (0,) is already in the complex.
             Its value is 1: keeping it that way
-
         """
         self._insert(Simplex(vertex_list), filtration_value)
 
     def filtration(self, s, filtration_value=None):
-        """
+        r"""
         Set filtration value of a simplex, or return value
         of existing simplex.
 
-        :param s: Simplex for which to set or return value
-        :param filtration_value: Optional, filtration value
-            for the simplex.
+        INPUT:
 
-        If no filtration value is specified, this function calls
-        ``_get_value`` and hence returns the value of the simplex
-        in the complex. If the simplex is not in the complex, this
-        returns None.
+        - ``s`` -- :class:`Simplex` for which to set or obtain the
+          value of
+        - ``filtration_value`` -- (optional) filtration value
+          for the simplex
+
+        If no filtration value is specified, this returns the value of
+        the simplex in the complex. If the simplex is not in the complex,
+        this returns ``None``.
 
         If ``filtration_value`` is set, this function inserts the
         simplex into the complex with the specified value.
@@ -275,24 +328,26 @@ class FilteredSimplicialComplex(SageObject):
         EXAMPLES::
 
             sage: X = FilteredSimplicialComplex([([0], 0), ([1], 1)])
-            sage: X.filtration(Simplex([0, 1]))
-            <BLANKLINE>
+            sage: X.filtration(Simplex([0, 1])) is None
+            True
             sage: X.filtration(Simplex([0, 1]), 2)
-            sage: X.filtration(Simplex([0, 1]))
+            sage: X.filtration([0, 1])
             2
         """
+        s = Simplex(s)
         if filtration_value is None:
             return self._get_value(s)
         else:
             self._insert(s, filtration_value)
 
     def prune(self,threshold):
-        """
+        r"""
         Return a copy of the filtered complex, where simplices above
         the threshold value have been removed.
 
-        :param threshold: a real value, above which simplices are
-            discarded.
+        INPUT:
+
+        - ``threshold`` -- a real value, above which simplices are discarded
 
         Simplices with filtration value exactly equal to ``threshold``
         are kept in the result.
@@ -306,7 +361,6 @@ class FilteredSimplicialComplex(SageObject):
             sage: b = a.prune(1)
             sage: b
             Filtered complex on vertex set (0, 1) and with simplices ((0,) : 0), ((1,) : 1), ((0, 1) : 1)
-
         """
         result_complex = FilteredSimplicialComplex()
         for s in self._filtration_dict:
@@ -320,14 +374,16 @@ class FilteredSimplicialComplex(SageObject):
         """
         Compute the homology intervals of the complex.
 
-        :param field: prime number modulo which homology is computed
-            Default value: 2
-        :param strict: if set to False, takes into account intervals
-            of persistence 0. Default value: True
-        :param verbose: if set to True, prints progress of computation.
-            Default value: False.
+        INPUT:
 
-        This method is called whenever betti numbers or intervals are
+        - ``field`` -- (default: 2) prime number modulo which the homology
+          is computed
+        - ``strict`` -- (default: ``True``) if ``False``, takes into account
+            intervals of persistence 0
+        - ``verbose`` -- (default: ``False``) if ``True``, prints the
+          progress of computation
+
+        This method is called whenever Betti numbers or intervals are
         computed, and the result is cached. It returns the list of
         intervals.
 
@@ -352,13 +408,15 @@ class FilteredSimplicialComplex(SageObject):
 
         REFERENCES:
 
-        [ZC2005]_
+        - [ZC2005]_
 
         TESTS:
 
-        This complex is used as a running example in [ZC2005]_:
+        This complex is used as a running example in [ZC2005]_::
 
-            sage: l = [([0], 0), ([1], 0), ([2], 1), ([3], 1), ([0, 1], 1), ([1, 2], 1), ([0, 3], 2), ([2, 3], 2), ([0, 2], 3), ([0, 1, 2], 4), ([0, 2, 3], 5)]
+            sage: l = [([0], 0), ([1], 0), ([2], 1), ([3], 1), ([0, 1], 1),
+            ....:      ([1, 2], 1), ([0, 3], 2), ([2, 3], 2), ([0, 2], 3),
+            ....:      ([0, 1, 2], 4), ([0, 2, 3], 5)]
             sage: X = FilteredSimplicialComplex(l)
             sage: X.persistence_intervals(0)
             [(0, 1), (1, 2), (0, +Infinity)]
@@ -366,9 +424,7 @@ class FilteredSimplicialComplex(SageObject):
             [(3, 4), (2, 5)]
             sage: X.persistence_intervals(0, strict=False)
             [(0, 1), (1, 1), (1, 2), (0, +Infinity)]
-
         """
-
         # first, order the simplices in lexico order
         # on dimension, value and then arbitrary order
         # defined by the Simplex class.
@@ -389,8 +445,8 @@ class FilteredSimplicialComplex(SageObject):
         self._chaingroup = FreeModule(self._field, rank_or_basis_keys=simplices)
 
         # Initialize data structures for the algo
-        self._marked = [False for i in range(n)]
-        self._T = [None for i in range(n)]
+        self._marked = [False] * n
+        self._T = [None] * n
         intervals = [[] for i in range(self._dimension+1)]
         self.pairs = []
 
@@ -421,7 +477,7 @@ class FilteredSimplicialComplex(SageObject):
             print("First pass over, beginning second pass")
 
         for j in range(n):
-            if j % 1000 == 0 and self._verbose:
+            if self._verbose and j % 1000 == 0:
                 print('{}/{}'.format(j, n))
 
             s = simplices[j]
@@ -431,21 +487,23 @@ class FilteredSimplicialComplex(SageObject):
         if self._verbose:
             print("Second pass over")
         return intervals
-        
 
     def _add_interval(self, s, t, intervals):
         r"""
         Add a new interval (i.e. homology element).
+
         This method should not be called by users, it is used in
         the ``_compute_persistence`` method. The simplex of
-        death may be None, in which case the interval is infinite.
+        death may be ``None``, in which case the interval is infinite.
 
-        :param s: birth simplex
-        :param t: death simplex
-        :param intervals: list of current intervals
+        INPUT:
 
-        If ``t`` is not None, its dimension should be
-        1 more than the dimension of ``s``.
+        - ``s`` -- birth simplex
+        - ``t`` -- death simplex
+        - ``intervals`` -- list of current intervals
+
+        If ``t`` is not ``None``, its dimension should be
+        one more than the dimension of ``s``.
 
         TESTS::
 
@@ -457,15 +515,13 @@ class FilteredSimplicialComplex(SageObject):
             sage: int_list[0]
             [(0, +Infinity), (10, +Infinity), (0, 10)]
 
-        Infinite interval:
+        Infinite interval::
             
             sage: int_list2 = [[],[]]
             sage: X._add_interval(Simplex([1, 2]), None, int_list2)
             sage: int_list2[1]
             [(10, +Infinity)]
-
         """
-
         # figure out dimension of homology element
         # and indices of the two simplices. If the
         # closing simplex is None, then the interval
@@ -488,14 +544,14 @@ class FilteredSimplicialComplex(SageObject):
         Return the boundary chain of a simplex,
         from which pivot elements have been removed.
 
-        This method implements the subroutine of the
-        same name in [ZC2005]_. This method should not
-        be called by users, it is used in the
-        ``compute_persistence`` method.
+        This method implements the subroutine of the same name
+        in [ZC2005]_. This method should not be called by users,
+        it is used in the ``compute_persistence`` method.
 
         TESTS::
 
-            sage: l = [([0], 0), ([1], 0), ([2], 1), ([3], 1), ([0, 1], 1), ([1, 2], 1), ([0, 3], 2), ([2, 3], 2), ([0, 2], 3), ([0, 1, 2], 4)]
+            sage: l = [([0], 0), ([1], 0), ([2], 1), ([3], 1), ([0, 1], 1), ([1, 2], 1),
+            ....:      ([0, 3], 2), ([2, 3], 2), ([0, 2], 3), ([0, 1, 2], 4)]
             sage: X = FilteredSimplicialComplex(l)
             sage: X._persistent_homology()
             [[(0, 1), (1, 2), (0, +Infinity)], [(3, 4), (2, +Infinity)], []]
@@ -504,9 +560,7 @@ class FilteredSimplicialComplex(SageObject):
             sage: X.insert([0,2,3],5)
             sage: X._remove_pivot_rows(Simplex([0,2,3]), list(X._filtration_dict))
             B[(2, 3)]
-
         """
-
         d = self._chaingroup()
         # Handle the case when the simplex is a vertex
         if s.dimension() == 0:
@@ -520,7 +574,7 @@ class FilteredSimplicialComplex(SageObject):
         for (s, x_s) in d:
             j = self._index_of_simplex[s]
             if not self._marked[j]:
-                d = d - x_s*self._chaingroup(s)
+                d = d - x_s * self._chaingroup(s)
 
         # Reduce d until it is empty or until the simplex
         # with maximum index in the complex among all
@@ -565,40 +619,54 @@ class FilteredSimplicialComplex(SageObject):
                 currmax = j
         return currmax
 
-    def persistence_intervals(self, dimension, field=2, strict=True):
-        """
-        Return the list of d-dimensional homology elements.
+    def persistence_intervals(self, dimension, field=2, strict=True, verbose=None):
+        r"""
+        Return the list of `d`-dimensional homology elements.
 
-        :param dimension: integer, dimension for which to
-            return intervals.
-        :param field: prime number, modulo which persistent
-            homology is computed. Default value 2.
-        :param strict: if set to False, takes into account intervals
-            of persistence 0. Default value: True
+        INPUT:
+
+        - ``dimension`` -- integer; dimension `d` for which to
+          return intervals
+        - ``field`` -- prime number (default: 2); modulo which persistent
+          homology is computed
+        - ``strict`` -- (default: ``True``) if ``False``, takes into account
+          intervals of persistence 0
+        - ``verbose`` -- (optional) if ``True``, print the steps of the
+          persistent homology computation; the default is the verbosity
+          of ``self``
 
         EXAMPLES::
 
             sage: X = FilteredSimplicialComplex([([0], 0), ([1], 1), ([0,1], 2)])
             sage: X.persistence_intervals(0)
             [(1, 2), (0, +Infinity)]
-
         """
-        intervals = self._persistent_homology(field, strict, verbose=False)
+        if verbose is None:
+            verbose = self._verbose
+        intervals = self._persistent_homology(field, strict, verbose=verbose)
         if dimension < len(intervals):
             return intervals[dimension][:]
         else:
             return []
 
-    def betti_number(self, k, a, b, field=2, strict=True):
+    def betti_number(self, k, a, b, field=2, strict=True, verbose=None):
         r"""
-        Return the ``k``-dimensional betti number from ``a`` to ``a+b``
-   
-        :param field: prime number, modulo which persistent
-            homology is computed. Default value 2.
-        :param strict: if set to False, takes into account intervals
-            of persistence 0. Default value: True
+        Return the ``k``-dimensional Betti number from ``a`` to ``a + b``.
 
-        The betti number ``\beta_k^{a,a+b}`` counts the number of
+        INPUT:
+
+        - ``k`` -- the dimension for the Betti number
+        - ``a`` -- the lower filtration value
+        - ``b`` -- the size of the interval
+        - ``field`` -- prime number (default: 2); modulo which persistent
+          homology is computed
+        - ``strict`` -- (default: ``True``) if ``False``, takes into account
+          intervals of persistence 0
+        - ``verbose`` -- (optional) if ``True``, print the steps of the
+          persistent homology computation; the default is the verbosity
+          of ``self``
+
+        The Betti number ``\beta_k^{a,a+b}`` counts the number of
         homology elements which are alive throughout the whole
         duration ``[a, a+b]``.
 
@@ -610,52 +678,24 @@ class FilteredSimplicialComplex(SageObject):
             sage: X.betti_number(0, 1.5, 1)
             1
 
-        If an element vanishes at time ``a+b`` exactly,
-        it does not count towards the betti number::
+        If an element vanishes at time ``a + b`` exactly,
+        it does not count towards the Betti number::
 
             sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([0,1], 2)])
             sage: X.betti_number(0, 1.5, 0.5)
             1
-
         """
-        intervals = self._persistent_homology(field, strict, verbose=False)
-        res = 0
-        for (i, j) in intervals[k]:
-            if (i <= a and a + b < j) and a >= 0:
-                    res += 1
-        return res
-
-    def __call__(self, s):
-        r"""
-        Return the filtration value of a simplex
-
-        EXAMPLES::
-
-            sage: X = FilteredSimplicialComplex([([0], 1)])
-            sage: X(Simplex([0]))
-            1
-
-        """
-        return self._get_value(s)
-
-    def __getitem__(self, s):
-        r"""
-        Return the filtration value of a simplex
-
-        EXAMPLES::
-
-            sage: X = FilteredSimplicialComplex([([0], 1)])
-            sage: X[Simplex([0])]
-            1
-
-        """
-        return self._get_value(s)
+        if verbose is None:
+            verbose = self._verbose
+        intervals = self._persistent_homology(field, strict, verbose=verbose)
+        return Integer(sum(1 for (i, j) in intervals[k]
+                           if (i <= a and a + b < j) and a >= 0))
 
     def _repr_(self):
         """
         Print representation.
 
-        If there are too many simplices or vertices, only prints the
+        If there are more than 10 simplices or vertices, only prints the
         count for each.
 
         EXAMPLES::
@@ -666,9 +706,7 @@ class FilteredSimplicialComplex(SageObject):
             sage: X.insert([0, 1, 2, 3, 4], 8)
             sage: X
             Filtered complex on 5 vertices and with 31 simplices
-
         """
-
         vert_count = len(self._vertices)
         simp_count = len(self._filtration_dict)
         if simp_count > 10 or vert_count > 10:
@@ -691,11 +729,12 @@ class FilteredSimplicialComplex(SageObject):
 
         EXAMPLES::
 
-            sage: l = [([0],0), ([1],0), ([2],1), ([3],1), ([0, 1],1), ([1, 2],1), ([0, 3],2), ([2, 3],2), ([0, 2],3), ([0, 1, 2],4), ([0, 2, 3],5)]
+            sage: l = [([0],0), ([1],0), ([2],1), ([3],1), ([0, 1],1), ([1, 2],1), ([0, 3],2),
+            ....:      ([2, 3],2), ([0, 2],3), ([0, 1, 2],4), ([0, 2, 3],5)]
             sage: a = FilteredSimplicialComplex(l)
             sage: b = SimplicialComplex(a)
             sage: b
             Simplicial complex with vertex set (0, 1, 2, 3) and facets {(0, 1, 2), (0, 2, 3)}
-
         """
         return SimplicialComplex(self._filtration_dict)
+

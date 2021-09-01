@@ -520,6 +520,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ...
             ValueError: the valuation must be specified
 
+            sage: L(5, valuation=3.1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the valuation must be an integer
+
+            sage: L(5, valuation=6/2)
+            5*z^3
+
         This gives zero::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
@@ -564,6 +572,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             Add a method to change the sparse/dense implementation.
         """
+        if valuation is not None and valuation not in ZZ:
+            raise ValueError("the valuation must be an integer")
+
         if x is None and coefficients is None:
             if valuation is None:
                 raise ValueError("the valuation must be specified")
@@ -845,6 +856,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g = L.series([1,3,5,7,9], 5, constant=-1); g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
         """
+        if valuation is not None and valuation not in ZZ:
+            raise ValueError("the valuation must be an integer")
+
         if isinstance(constant, (list, tuple)):
             constant, degree = constant
         if isinstance(degree, (list, tuple)):

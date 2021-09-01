@@ -2281,8 +2281,12 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         an exception::
 
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius()+1)
-            sage: y = Chan(c)
-            sage: D.decode_to_message(y)
+            sage: while True:
+            ....:     try:
+            ....:         y = Chan(c)
+            ....:         D.decode_to_message(y)
+            ....:     except ZeroDivisionError:
+            ....:         pass
             Traceback (most recent call last):
             ...
             DecodingError: Decoding failed because the number of errors exceeded the decoding radius

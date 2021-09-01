@@ -14708,7 +14708,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.RandomGNP(20,.3)
             sage: distances = g.distance_all_pairs()
-            sage: all(g.distance(0,v) == distances[0][v] for v in g)
+            sage: all((g.distance(0,v) == Infinity and v not in distances[0]) or
+            ....:     g.distance(0,v) == distances[0][v] for v in g)
             True
 
         .. SEEALSO::

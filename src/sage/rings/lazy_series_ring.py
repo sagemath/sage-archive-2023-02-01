@@ -509,6 +509,21 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         We note that ``e`` builds correctly because ``R`` additionally
         requires the valuation to be specified.
 
+        In the next example the argument is interpreted as a constant
+        polynomial, which happens to be a Dirichlet series::
+
+            sage: D = LazyDirichletSeriesRing(QQ, "s")
+            sage: L.<z> = LazyLaurentSeriesRing(D)
+            sage: L(lambda n: 1/factorial(n), valuation=0)
+            (1 + 1/2/2^s + 1/6/3^s + 1/24/4^s + 1/120/5^s + 1/720/6^s + 1/5040/7^s + O(1/(8^s)))
+
+        We can also specify that the given function should be
+        interpreted as the coefficients of the Laurent series::
+
+            sage: L(coefficients=lambda n: 1/factorial(n), valuation=0)
+            1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
+
+
         TESTS:
 
         Checking the valuation is consistent::
@@ -600,6 +615,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         .. TODO::
 
             Add a method to change the sparse/dense implementation.
+
         """
         if valuation is not None and valuation not in ZZ:
             raise ValueError("the valuation must be an integer")
@@ -609,13 +625,11 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                 raise ValueError("the valuation must be specified")
             return self.element_class(self, Stream_uninitialized(self._sparse, valuation))
 
+        if coefficients is not None and (not isinstance(x, int) or x):
+            raise ValueError("coefficients must be None if x is provided")
+
         R = self._laurent_poly_ring
         BR = self.base_ring()
-        try:
-            # Try to build stuff using the polynomial ring constructor
-            x = R(x)
-        except (TypeError, ValueError):
-            pass
         if isinstance(constant, (tuple, list)):
             constant, degree = constant
         if isinstance(degree, (tuple, list)):
@@ -623,65 +637,72 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         if constant is not None:
             constant = BR(constant)
 
-        # If x has been converted to the Laurent polynomial ring
-        if parent(x) is R:
-            if not x and not constant:
-                return self.zero()
-            if x and valuation is not None:
-                x = x.shift(valuation - x.valuation())
-            if degree is None and not x:
-                if valuation is None:
-                    raise ValueError("you must specify the degree for the polynomial 0")
-                degree = valuation
-            if x == R.zero():
-                coeff_stream = Stream_exact([], self._sparse, order=degree, constant=constant)
-                return self.element_class(self, coeff_stream)
-            initial_coefficients = [x[i] for i in range(x.valuation(), x.degree() + 1)]
-            coeff_stream = Stream_exact(initial_coefficients, self._sparse,
-                                                   order=x.valuation(), constant=constant, degree=degree)
-            return self.element_class(self, coeff_stream)
+        if coefficients is None:
+            try:
+                # Try to build stuff using the polynomial ring constructor
+                x = R(x)
+            except (TypeError, ValueError):
+                pass
 
-        if isinstance(x, LazyCauchyProductSeries):
-            if x._coeff_stream._is_sparse is not self._sparse:
-                # TODO: Implement a way to make a self._sparse copy
-                raise NotImplementedError("cannot convert between sparse and dense")
-
-            # If x is known to be 0
-            if isinstance(x._coeff_stream, Stream_zero):
-                if not constant:
-                    return x
-                if degree is None:
+            # If x has been converted to the Laurent polynomial ring
+            if parent(x) is R:
+                if not x and not constant:
+                    return self.zero()
+                if x and valuation is not None:
+                    x = x.shift(valuation - x.valuation())
+                if degree is None and not x:
                     if valuation is None:
                         raise ValueError("you must specify the degree for the polynomial 0")
                     degree = valuation
-                coeff_stream = Stream_exact([], self._sparse, order=degree,
-                                                       constant=constant)
-                return self.element_class(self, coeff_stream)
-
-            # Make the result exact
-            if degree is not None:
-                # truncate the series and then possibly make constant
-                x_val = x.valuation()
-                if not valuation:
-                    valuation = x_val
-                initial_coefficients = [x[x_val+i] for i in range(degree-valuation)]
-                if not any(initial_coefficients):
-                    if not constant:
-                        return self.zero()
-                    # We learned some stuff about x; pass it along
-                    x._coeff_stream._approximate_order += len(initial_coefficients)
-                    initial_coefficients = []
+                if x == R.zero():
+                    coeff_stream = Stream_exact([], self._sparse, order=degree, constant=constant)
+                    return self.element_class(self, coeff_stream)
+                initial_coefficients = [x[i] for i in range(x.valuation(), x.degree() + 1)]
                 coeff_stream = Stream_exact(initial_coefficients, self._sparse,
-                                            order=valuation, constant=constant, degree=degree)
+                                                       order=x.valuation(), constant=constant, degree=degree)
                 return self.element_class(self, coeff_stream)
 
-            # We are just possibly shifting the result
-            ret = self.element_class(self, x._coeff_stream)
-            if valuation is None:
-                return ret
-            return x.shift(valuation - ret.valuation())
+            if isinstance(x, LazyCauchyProductSeries):
+                if x._coeff_stream._is_sparse is not self._sparse:
+                    # TODO: Implement a way to make a self._sparse copy
+                    raise NotImplementedError("cannot convert between sparse and dense")
 
-        if x is None and coefficients is not None:
+                # If x is known to be 0
+                if isinstance(x._coeff_stream, Stream_zero):
+                    if not constant:
+                        return x
+                    if degree is None:
+                        if valuation is None:
+                            raise ValueError("you must specify the degree for the polynomial 0")
+                        degree = valuation
+                    coeff_stream = Stream_exact([], self._sparse, order=degree,
+                                                           constant=constant)
+                    return self.element_class(self, coeff_stream)
+
+                # Make the result exact
+                if degree is not None:
+                    # truncate the series and then possibly make constant
+                    x_val = x.valuation()
+                    if not valuation:
+                        valuation = x_val
+                    initial_coefficients = [x[x_val+i] for i in range(degree-valuation)]
+                    if not any(initial_coefficients):
+                        if not constant:
+                            return self.zero()
+                        # We learned some stuff about x; pass it along
+                        x._coeff_stream._approximate_order += len(initial_coefficients)
+                        initial_coefficients = []
+                    coeff_stream = Stream_exact(initial_coefficients, self._sparse,
+                                                order=valuation, constant=constant, degree=degree)
+                    return self.element_class(self, coeff_stream)
+
+                # We are just possibly shifting the result
+                ret = self.element_class(self, x._coeff_stream)
+                if valuation is None:
+                    return ret
+                return x.shift(valuation - ret.valuation())
+
+        else:
             x = coefficients
 
         if callable(x):
@@ -1166,4 +1187,3 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
         constant_length = dict(default=3,
                                description='the number of coefficients to display for nonzero constant series',
                                checker=lambda x: x in ZZ and x > 0)
-

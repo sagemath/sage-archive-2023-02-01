@@ -188,6 +188,25 @@ class Stream_inexact(Stream):
             self._offset = approximate_order
             self._iter = self.iterate_coefficients()
 
+    def is_nonzero(self):
+        r"""
+        Return ``True`` if and only if the cache contains a nonzero element.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function
+            sage: CS = Stream_function(lambda n: 1/n, ZZ, False, 1)
+            sage: CS.is_nonzero()
+            False
+            sage: CS[1]
+            1
+            sage: CS.is_nonzero()
+            True
+        """
+        if self._is_sparse:
+            return any(self._cache.values())
+        return any(self._cache)
+
     def __getstate__(self):
         """
         Build the dictionary for pickling ``self``.

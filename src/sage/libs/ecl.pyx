@@ -109,6 +109,8 @@ cdef cl_object unicode_string_codepoints_clobj
 
 cdef bint ecl_has_booted = 0
 
+cdef char *argv = "sage" #we need a dummy argv for cl_boot (we just don't give any parameters)
+
 # ECL signal handling
 
 def test_sigint_before_ecl_sig_on():
@@ -237,7 +239,7 @@ def init_ecl():
     global read_from_string_clobj
     global conditions_to_handle_clobj
     global ecl_has_booted
-    cdef char *argv[1]
+    global argv
     cdef sigaction_t sage_action[32]
     cdef int i
 
@@ -247,9 +249,6 @@ def init_ecl():
     #we keep our own GMP memory functions. ECL should not claim them
     ecl_set_option(ECL_OPT_SET_GMP_MEMORY_FUNCTIONS,0);
 
-    #we need a dummy argv for cl_boot (we just don't give any parameters)
-    argv[0]="sage"
-
     #get all the signal handlers before initializing Sage so we can
     #put them back afterwards.
     for i in range(1,32):
@@ -257,7 +256,7 @@ def init_ecl():
 
     #initialize ECL
     ecl_set_option(ECL_OPT_SIGNAL_HANDLING_THREAD, 0)
-    safe_cl_boot(1, argv)
+    safe_cl_boot(1, &argv)
 
     #save signal handler from ECL
     sigaction(SIGINT, NULL, &ecl_sigint_handler)

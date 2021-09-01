@@ -388,7 +388,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
         return self._generic_coerce_map(self.base_ring())
 
-    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
+    def _element_constructor_(self, x=None, valuation=None, degree=None, constant=None, coefficients=None):
         """
         Construct a Laurent series from ``x``.
 
@@ -399,6 +399,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
           the valuation of the series
         - ``constant`` -- (optional) the eventual constant of the series
         - ``degree`` -- (optional) the degree when the series is ``constant``
+        - ``coefficients`` -- (optional) a callable that defines the
+          coefficients of the series; ignored if ``x`` is not ``None``;
+          see note below
 
         If ``valuation`` is specified and ``x`` is convertible into a Laurent
         polynomial or is a lazy Laurent series, then the data is shifted so
@@ -410,6 +413,17 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             the valuation will be computed. If the series ``x`` is not
             known to be zero, then this will run forever.
 
+        .. NOTE::
+
+            When working over a base ring that takes callables as valid
+            input, then passing a function as ``x`` might be converted to
+            the base ring. If instead the input is to be treated as the
+            function giving the coefficients of the lazy series being
+            cosntructed, then use the ``coefficients`` argument in this
+            case and leave ``x`` as ``None``.
+
+            If ``x`` is given ``coefficients`` is ignored.
+
         EXAMPLES::
 
             sage: L = LazyLaurentSeriesRing(GF(2), 'z')
@@ -420,9 +434,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             sage: L.<z> = LazyLaurentSeriesRing(ZZ)
 
-            sage: L(lambda i: i, 5, 1, 10)
+            sage: L(lambda i: i, valuation=5, constant=1, degree=10)
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
-            sage: L(lambda i: i, 5, (1, 10))
+            sage: L(lambda i: i, valuation=5, constant=(1, 10))
             5*z^5 + 6*z^6 + 7*z^7 + 8*z^8 + 9*z^9 + z^10 + z^11 + z^12 + O(z^13)
 
             sage: X = L(constant=5, degree=2); X
@@ -435,7 +449,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ....:         return 1
             ....:     else:
             ....:         return 1 + sum(k for k in range(i+1))
-            sage: e = L(g, -5); e
+            sage: e = L(g, valuation=-5); e
             z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + O(z^2)
             sage: f = e^-1; f
             z^5 - z^6 - z^11 + O(z^12)
@@ -459,10 +473,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         may be just an element of the base ring instead of a tuple or can be
         simply omitted if it is zero::
 
-            sage: f = L([1,2,3,4], -5)
+            sage: f = L([1,2,3,4], valuation=-5)
             sage: f
             z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
-            sage: g = L([1,3,5,7,9], 5, -1)
+            sage: g = L([1,3,5,7,9], valuation=5, constant=-1)
             sage: g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
 
@@ -479,6 +493,21 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             sage: L(p, valuation=1)
             x + 3*x^6
+
+        We construct a lazy Laurent series over another lazy Laurent series::
+
+            sage: R.<s> = LazyLaurentSeriesRing(QQ)
+            sage: L.<z> = LazyLaurentSeriesRing(R)
+            sage: e = L(lambda n: 1/factorial(n), 0); e
+            1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
+            sage: L(lambda n: 1/(1 + s^n), 0)
+            1/2 + (1 - s + s^2 - s^3 + s^4 - s^5 + s^6 + O(s^7))*z
+             + (1 - s^2 + s^4 - s^6 + O(s^7))*z^2
+             + (1 - s^3 + s^6 + O(s^7))*z^3 + (1 - s^4 + O(s^7))*z^4
+             + (1 - s^5 + O(s^7))*z^5 + (1 - s^6 + O(s^7))*z^6 + O(z^7)
+
+        We note that ``e`` builds correctly because ``R`` additionally
+        requires the valuation to be specified.
 
         TESTS:
 
@@ -511,6 +540,14 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             Traceback (most recent call last):
             ...
             ValueError: the valuation must be specified
+
+            sage: L(5, valuation=3.1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the valuation must be an integer
+
+            sage: L(5, valuation=6/2)
+            5*z^3
 
         This gives zero::
 
@@ -548,6 +585,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: g = L(lambda i: i, valuation=-3, constant=(-1,3))
             sage: f == g
             True
+            sage: g = L(lambda i: i, -3, (-1,3))
+            sage: f == g
+            True
 
             sage: D = LazyDirichletSeriesRing(ZZ, 't')
             sage: m = D(moebius)
@@ -561,7 +601,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             Add a method to change the sparse/dense implementation.
         """
-        if x is None:
+        if valuation is not None and valuation not in ZZ:
+            raise ValueError("the valuation must be an integer")
+
+        if x is None and coefficients is None:
             if valuation is None:
                 raise ValueError("the valuation must be specified")
             return self.element_class(self, Stream_uninitialized(self._sparse, valuation))
@@ -575,6 +618,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             pass
         if isinstance(constant, (tuple, list)):
             constant, degree = constant
+        if isinstance(degree, (tuple, list)):
+            constant, degree = degree
         if constant is not None:
             constant = BR(constant)
 
@@ -635,6 +680,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             if valuation is None:
                 return ret
             return x.shift(valuation - ret.valuation())
+
+        if x is None and coefficients is not None:
+            x = coefficients
 
         if callable(x):
             if valuation is None:
@@ -778,7 +826,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
                                description='the number of coefficients to display for nonzero constant series',
                                checker=lambda x: x in ZZ and x > 0)
 
-    def series(self, coefficient, valuation, constant=None, degree=None):
+    def series(self, coefficient, valuation, degree=None, constant=None):
         r"""
         Return a lazy Laurent series.
 
@@ -786,9 +834,8 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
         - ``coefficient`` -- Python function that computes coefficients or a list
         - ``valuation`` -- integer; approximate valuation of the series
-        - ``constant`` -- (optional) an element of the base ring or a
-          pair of an element of the base ring and an integer
         - ``degree`` -- (optional) integer
+        - ``constant`` -- (optional) an element of the base ring
 
         Let the coefficient of index `i` mean the coefficient of the term
         of the series with exponent `i`.
@@ -799,10 +846,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         Let ``valuation`` be `n`. All coefficients of index below `n` are zero.
         If ``constant`` is not specified, then the ``coefficient`` function is
         responsible to compute the values of all coefficients of index `\ge n`.
-        If ``constant`` is a pair `(c,m)`, then the ``coefficient`` function
-        is responsible to compute the values of all coefficients of index
-        `\ge n` and `< m` and all the coefficients of index `\ge m` is
-        the constant `c`.
+        If ``degree`` or ``constant`` is a pair `(c,m)`, then the ``coefficient``
+        function is responsible to compute the values of all coefficients of
+        index `\ge n` and `< m` and all the coefficients of index `\ge m`
+        is the constant `c`.
 
         EXAMPLES::
 
@@ -816,9 +863,9 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             ....:     else:
             ....:         return s.coefficient(i - 1) + i
             sage: e = L.series(g, -5); e
-            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + ...
+            z^-5 + z^-4 + z^-3 + z^-2 + z^-1 + 1 + 2*z + O(z^2)
             sage: f = e^-1; f
-            z^5 - z^6 - z^11 + ...
+            z^5 - z^6 - z^11 + O(z^12)
             sage: f.coefficient(10)
             0
             sage: f.coefficient(20)
@@ -835,11 +882,16 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
             sage: f = L.series([1,2,3,4], -5); f
             z^-5 + 2*z^-4 + 3*z^-3 + 4*z^-2
-            sage: g = L.series([1,3,5,7,9], 5, -1); g
+            sage: g = L.series([1,3,5,7,9], 5, constant=-1); g
             z^5 + 3*z^6 + 5*z^7 + 7*z^8 + 9*z^9 - z^10 - z^11 - z^12 + O(z^13)
         """
+        if valuation is not None and valuation not in ZZ:
+            raise ValueError("the valuation must be an integer")
+
         if isinstance(constant, (list, tuple)):
             constant, degree = constant
+        if isinstance(degree, (list, tuple)):
+            constant, degree = degree
 
         if constant is not None:
             constant = self.base_ring()(constant)

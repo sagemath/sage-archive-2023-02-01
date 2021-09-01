@@ -151,11 +151,16 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
             sage: x
             x
 
-        Construct from list::
+        Construct from list and tuple::
 
             sage: R([])
             0
             sage: R([1, -2, 3])
+            3*x^2 - 2*x + 1
+
+            sage: R(())
+            0
+            sage: R((1, -2, 3))
             3*x^2 - 2*x + 1
 
         Coercions from other rings are attempted automatically::
@@ -278,7 +283,7 @@ cdef class Polynomial_integer_dense_flint(Polynomial):
                 sig_off()
                 return
 
-        elif not isinstance(x, list):
+        elif not isinstance(x, (list, tuple)):
             x = [x]   # constant polynomials
 
         sig_on()

@@ -2530,7 +2530,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Truncated ``n``-th power of this polynomial up to precision ``prec``
 
-        This method is overriden for certain subclasses when a library function
+        This method is overridden for certain subclasses when a library function
         is available.
 
         INPUT:
@@ -10936,6 +10936,10 @@ cdef class Polynomial_generic_dense(Polynomial):
         sage: isinstance(f, Polynomial_generic_dense)
         True
 
+        sage: R.<x> = QQ[]
+        sage: S = R['y']
+        sage: S((x^2, 2, 1+x))
+        (x + 1)*y^2 + 2*y + x^2
     """
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         Polynomial.__init__(self, parent, is_gen=is_gen)
@@ -10944,7 +10948,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             return
 
         R = parent.base_ring()
-        if isinstance(x, list):
+        if isinstance(x, (list, tuple)):
             if check:
                 self.__coeffs = [R(t) for t in x]
                 self.__normalize()
@@ -10985,7 +10989,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         elif isinstance(x, pari_gen):
             x = [R(w, **kwds) for w in x.list()]
             check = 0
-        elif not isinstance(x, list):
+        elif not isinstance(x, (list, tuple)):
             # We trust that the element constructors do not send x=0
 #            if x:
             x = [x]   # constant polynomials

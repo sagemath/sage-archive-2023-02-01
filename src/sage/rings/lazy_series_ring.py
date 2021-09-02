@@ -414,10 +414,10 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         - ``x`` -- data used to the define a Laurent series
         - ``valuation`` -- integer (optional); integer; a lower bound for
           the valuation of the series
-        - ``constant`` -- (optional) the eventual constant of the series
         - ``degree`` -- (optional) the degree when the series is ``constant``
+        - ``constant`` -- (optional) the eventual constant of the series
         - ``coefficients`` -- (optional) a callable that defines the
-          coefficients of the series; ignored if ``x`` is not ``None``;
+          coefficients of the series; must be ``None`` if ``x`` is provided;
           see note below
 
         If ``valuation`` is specified and ``x`` is convertible into a Laurent
@@ -437,9 +437,7 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
             the base ring. If instead the input is to be treated as the
             function giving the coefficients of the lazy series being
             cosntructed, then use the ``coefficients`` argument in this
-            case and leave ``x`` as ``None``.
-
-            If ``x`` is given ``coefficients`` is ignored.
+            case and do not provide ``x``.
 
         EXAMPLES::
 
@@ -539,7 +537,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
 
             sage: L(coefficients=lambda n: 1/factorial(n), valuation=0)
             1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
-
 
         TESTS:
 
@@ -1059,17 +1056,17 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
         # by UnitalAlgebras.ParentMethods._coerce_map_from_base_ring.
         return self._generic_coerce_map(self.base_ring())
 
-    def _element_constructor_(self, x=None, valuation=None, constant=None, degree=None):
+    def _element_constructor_(self, x=None, valuation=None, degree=None, constant=None):
         """
         Construct a Dirichlet series from ``x``.
 
         INPUT:
 
-        - ``x`` -- a Dirichlet series, a Dirichlet polynomial, a Python
-          function, or a list of elements in the base ring
-
-        - ``constant`` -- integer (optional); pair of
-          an element of the base ring and an integer
+        - ``x`` -- data used to the define a Dirichlet series
+        - ``valuation`` -- integer (optional); integer; a lower bound for
+          the valuation of the series
+        - ``degree`` -- (optional) the degree when the series is ``constant``
+        - ``constant`` -- (optional) the eventual constant of the series
 
         EXAMPLES::
 
@@ -1100,7 +1097,7 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
 
             sage: f = L([1,2,3,4], 4); f
             1/(4^z) + 2/5^z + 3/6^z + 4/7^z
-            sage: g = L([1,3,5,7,9], 6, -1); g
+            sage: g = L([1,3,5,7,9], 6, constant=-1); g
             1/(6^z) + 3/7^z + 5/8^z + 7/9^z + 9/10^z - 1/(11^z) - 1/(12^z) - 1/(13^z) + O(1/(14^z))
 
         TESTS::
@@ -1116,18 +1113,21 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
         """
         if valuation is None:
             valuation = 1
-        if valuation <= 0:
-            raise ValueError("the valuation of a Dirichlet series must be positive")
+        elif valuation not in ZZ or valuation <= 0:
+            raise ValueError("the valuation must be a positive integer")
 
         if x is None:
             return self.element_class(self, Stream_uninitialized(self._sparse, valuation))
 
         BR = self.base_ring()
-        if constant is None:
-            constant = ZZ.zero()
-        elif isinstance(constant, (tuple, list)):
+        if isinstance(constant, (tuple, list)):
             constant, degree = constant
-        constant = BR(constant)
+        if isinstance(degree, (tuple, list)):
+            constant, degree = degree
+        if constant is None:
+            constant = BR(ZZ.zero())
+        else:
+            constant = BR(constant)
 
         if x in BR:
             x = BR(x)
@@ -1138,6 +1138,7 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
                 x = []
             else:
                 x = [x]
+
         if isinstance(x, (tuple, list)):
             coeff_stream = Stream_exact(x, self._sparse,
                                         order=valuation,

@@ -2629,6 +2629,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             True
             sage: B(1).subs({'_one_': AA(1)}).parent() is AA
             True
+
+        ::
+
+            sage: Asy.<n> = AsymptoticRing('n^QQ', RBF)
+            sage: asy = n^(2/3) + 1/3*n^(1/3)
+            sage: asy.subs(n=RBF(10))
+            [5.359733730290...]
         """
         # check if nothing to do
         if not rules and not kwds:
@@ -2657,11 +2664,12 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                             (rules,))
 
         # fill up missing rules
-        for g in gens:
-            locals.setdefault(str(g), g)
+        gens_str = tuple(str(g)
+                         for g in self.parent().growth_group.gens_monomial())
+        for sg, g in zip(gens_str, gens):
+            locals.setdefault(sg, g)
 
         # check if all keys are generators
-        gens_str = tuple(str(g) for g in gens)
         for k in locals:
             sk = str(k)
             if sk not in gens_str and not sk.startswith('_'):
@@ -2673,8 +2681,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         if domain is None and \
                ('_zero_' not in locals or '_one_' not in locals):
             P = self.parent()
-            for g in gens:
-                G = locals[str(g)].parent()
+            for sg in gens_str:
+                G = locals[sg].parent()
                 if G is not P:
                     domain = G
                     break
@@ -2693,7 +2701,8 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 for k, v in sorted(locals.items(),
                                    key=lambda k: str(k[0]))
                 if not k.startswith('_') and
-                not any(k == str(g) and v is g for g in gens)) + '}'
+                not any(k == sg and v is g for sg, g in zip(gens_str, gens))
+                ) + '}'
             raise combine_exceptions(
                 TypeError('Cannot apply the substitution rules %s on %s '
                           'in %s.' % (rules, self, self.parent())), e)

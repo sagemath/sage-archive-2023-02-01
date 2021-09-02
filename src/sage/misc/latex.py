@@ -417,7 +417,8 @@ class LatexExpr(str):
     Normally, objects of this class are created by a :func:`latex` call. It is
     also possible to generate :class:`LatexExpr` directly from a string, which
     must contain valid LaTeX code for typesetting in math mode (without dollar
-    signs). In the Sage notebook, use :func:`pretty_print` or the "Typeset"
+    signs). In the Sage notebook, use
+    :func:`~sage.repl.rich_output.pretty_print.pretty_print` or the "Typeset"
     checkbox to actually see the typeset LaTeX code; alternatively, from
     either the command-line or the notebook, use the :func:`view` function.
 

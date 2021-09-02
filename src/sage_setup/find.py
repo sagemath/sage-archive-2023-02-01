@@ -37,7 +37,7 @@ def read_distribution(src_file):
         sage: from sage.env import SAGE_SRC
         sage: from sage_setup.find import read_distribution
         sage: read_distribution(os.path.join(SAGE_SRC, 'sage', 'graphs', 'graph_decompositions', 'tdlib.pyx'))
-        'sage-tdlib'
+        'sagemath-tdlib'
         sage: read_distribution(os.path.join(SAGE_SRC, 'sage', 'graphs', 'graph_decompositions', 'modular_decomposition.py'))
         ''
     """
@@ -115,7 +115,7 @@ def find_python_sources(src_dir, modules=['sage'], distributions=None):
 
     Filtering by distribution (distutils package)::
 
-        sage: find_python_sources(SAGE_SRC, distributions=['sage-tdlib'])
+        sage: find_python_sources(SAGE_SRC, distributions=['sagemath-tdlib'])
         ([], [], [<setuptools.extension.Extension('sage.graphs.graph_decompositions.tdlib')...>])
 
     Benchmarking::
@@ -193,7 +193,7 @@ def filter_cython_sources(src_dir, distributions):
 
         sage: from sage.env import SAGE_SRC
         sage: from sage_setup.find import filter_cython_sources
-        sage: cython_modules = filter_cython_sources(SAGE_SRC, ["sage-tdlib"])
+        sage: cython_modules = filter_cython_sources(SAGE_SRC, ["sagemath-tdlib"])
 
     Cython module relying on tdlib::
 
@@ -207,7 +207,7 @@ def filter_cython_sources(src_dir, distributions):
 
     Benchmarking::
 
-        sage: timeit('filter_cython_sources(SAGE_SRC, ["sage-tdlib"])', # random output
+        sage: timeit('filter_cython_sources(SAGE_SRC, ["sagemath-tdlib"])', # random output
         ....:        number=1, repeat=1)
         1 loops, best of 1: 850 ms per loop
     """

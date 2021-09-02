@@ -737,6 +737,10 @@ REFERENCES:
             Manifolds, Curves and Surfaces*, Springer (New York)
             (1988); :doi:`10.1007/978-1-4612-1033-7`
 
+.. [BG2013] \J. A. Baldwin and J. E. Grigsby, *Categorified
+            invariants and the braid group*,
+            :arxiv:`1212.2222`
+
 .. [BGM2012] \G. Brinkmann, J. Goedgebeur and B.D. McKay,
              *Generation of Fullerenes*, Journal of Chemical Information and
              Modeling, 52(11):2910-2918, 2012. :doi:`10.1021/ci3003107`.
@@ -3880,6 +3884,10 @@ REFERENCES:
              modular functions*, Int. Math. Res. Not 2007 (050).
              :arxiv:`math/0701168`.
 
+.. [Lom2019] Davide Lombardo, *Computing the geometric endomorphism ring
+             of a genus 2 Jacobian*, Mathematics of Computation 88 (2019),
+             889-929. :doi:`10.1090/mcom/3358`.
+
 .. [LOS2012] \C. Lecouvey, M. Okado, M. Shimozono.
              "Affine crystals, one-dimensional sums and parabolic Lusztig
              `q`-analogues". Mathematische Zeitschrift. **271** (2012). Issue 3-4.
@@ -5571,6 +5579,9 @@ REFERENCES:
 
 .. [Ter2021] Paul Terwilliger. *The alternating central extension of the*
              `q`*-Onsager algebra*. Preprint, :arxiv:`2103.03028` (2021).
+
+.. [Ter2021b] Paul Terwilliger. *The alternating central extension of the
+              Onsager Lie algebra*. Preprint, :arxiv:`2104.08106` (2021).
 
 .. [TP1994] \J. Thas, S. Payne, *Spreads and ovoids in finite generalized
             quadrangles*. Geometriae Dedicata, Vol. 52, pp. 227-253, 1994.

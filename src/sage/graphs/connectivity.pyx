@@ -1170,7 +1170,7 @@ def edge_connectivity(G,
 
     if use_edge_labels is False:
         if g.is_directed():
-            obj = sum(in_cut[u, v] for u, v in g.edge_iterator(labels=False) if in_cut[u, v])
+            obj = sum(1 for u, v in g.edge_iterator(labels=False) if in_cut[u, v])
         else:
             obj = sum(in_cut[frozenset((u, v))]
                           for u, v in g.edge_iterator(labels=False) if in_cut[frozenset((u, v))])
@@ -1473,7 +1473,7 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
     in_set = p.get_values(in_set, convert=bool, tolerance=integrality_tolerance)
 
     if value_only:
-        return sum(in_set[1, v] for v in g if in_set[1, v])
+        return sum(1 for v in g if in_set[1, v])
 
     cut = []
     a = []

@@ -358,21 +358,26 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             sage: K.<a> = QuadraticField(-3)
             sage: b = a + 3
             sage: c = b.__copy__()
-            sage: b
-            a + 3
-            sage: c
-            a + 3
             sage: b is c
-            False
-            sage: b == c
             True
         """
-        cdef NumberFieldElement_quadratic x = <NumberFieldElement_quadratic>self._new()
-        mpz_set(x.a, self.a)
-        mpz_set(x.b, self.b)
-        mpz_set(x.denom, self.denom)
-        return x
+        # immutable
+        return self
 
+    def __deepcopy__(self, memo):
+        r"""
+        Returns a new copy of self.
+
+        TESTS::
+
+            sage: K.<a> = QuadraticField(-3)
+            sage: b = a + 3
+            sage: c = deepcopy(b)
+            sage: b is c
+            True
+        """
+        # immutable
+        return self
 
     def __cinit__(self):
         r"""

@@ -49,15 +49,15 @@ AUTHORS:
 - Simon King (2013-09): Only allow to prescribe the category of fields
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 
 import sage.misc.prandom as random
@@ -468,7 +468,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             # If the category is given, e.g., as Fields(), then we still
             # know that the result will also live in default_category.
             # Hence, we use the join of the default and the given category.
-            category = category.join([category,default_category])
+            category = category.join([category, default_category])
         # Give the generator a 'name' to make quotients work.  The
         # name 'x' is used because it's also used for the ring of
         # integers: see the __init__ method for IntegerRing_class in
@@ -1506,7 +1506,7 @@ In the latter case, please inform the developers.""".format(self.order()))
             gens = []
             orders = []
             for p, r in self.factored_order():
-                m = n/(p**r)
+                m = n // (p**r)
                 for g, o in _unit_gens_primepowercase(p, r):
                     x = g.crt(integer_mod.Mod(1, m))
                     gens.append(x)

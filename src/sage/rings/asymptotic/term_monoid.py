@@ -3088,7 +3088,7 @@ class OTermMonoid(GenericTermMonoid):
             sage: OT_ZZ.has_coerce_map_from(ET)  # indirect doctest
             True
         """
-        if isinstance(S, (ExactTermMonoid,)):
+        if isinstance(S, (ExactTermMonoid, BTermMonoid,)):
             if self.growth_group.has_coerce_map_from(S.growth_group) and \
                     self.coefficient_ring.has_coerce_map_from(S.coefficient_ring):
                 return True
@@ -4757,11 +4757,14 @@ class BTerm(TermWithCoefficient):
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TM
             sage: BTM = TM('B', 'n^QQ', QQ)
             sage: ETM = TM('exact', 'n^QQ', QQ)
+            sage: OTM = TM('O', 'n^QQ', QQ)
             sage: n = BTM.growth_group.gen()
             sage: BTM(n^2, coefficient=42, valid_from={'n': 3}) * BTM(n^5, valid_from={'n': 5})
             B(42*n^7, n >= 5)
             sage: BTM(n^5, coefficient=21, valid_from={'n': 3}) * ETM(n^2, coefficient=2)
             B(42*n^7, n >= 3)
+            sage: BTM(n^5, coefficient=21, valid_from={'n': 3}) * OTM(n)
+            O(n^6)
         """
         valid_from = {
             var: max(self.valid_from.get(var, 0), other.valid_from.get(var, 0))

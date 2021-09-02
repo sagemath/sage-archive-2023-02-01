@@ -948,7 +948,9 @@ class Function_real_nth_root(BuiltinFunction):
         real_nth_root(x^3, 5)
         sage: f.diff()
         3/5*x^2*real_nth_root(x^(-12), 5)
-        sage: f.integrate(x)
+        sage: result = f.integrate(x)
+        ...
+        sage: result
         integrate((abs(x)^3)^(1/5)*sgn(x^3), x)
         sage: _.diff()
         (abs(x)^3)^(1/5)*sgn(x^3)

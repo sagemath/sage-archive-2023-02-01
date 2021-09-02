@@ -36,9 +36,6 @@ Not sure what to download? Just follow these steps.
 Linux
 -----
 
-Make sure that you have an SSL library installed
-(OpenSSL recommended).
-
 It is highly recommended that you have LaTeX installed. If you want
 to view animations, you should install either ImageMagick or ffmpeg.
 ImageMagick or dvipng is also used for displaying some LaTeX output

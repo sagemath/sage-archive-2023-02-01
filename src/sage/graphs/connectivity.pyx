@@ -1164,7 +1164,7 @@ def edge_connectivity(G,
 
         p.set_objective(p.sum(weight(l) * in_cut[frozenset((u,v))] for u,v,l in g.edge_iterator()))
 
-    obj = p.solve(objective_only=value_only, log=verbose)
+    obj = p.solve(log=verbose)
 
     in_cut = p.get_values(in_cut, convert=bool, tolerance=integrality_tolerance)
 
@@ -1461,14 +1461,14 @@ def vertex_connectivity(G, value_only=True, sets=False, k=None, solver=None, ver
         # the vertex connectivity is >= k.
         p.add_constraint(p.sum(in_set[1, v] for v in g) <= k-1)
         try:
-            p.solve(objective_only=True, log=verbose)
+            p.solve(log=verbose)
             return False
         except MIPSolverException:
             return True
 
     p.set_objective(p.sum(in_set[1, v] for v in g))
 
-    val = p.solve(objective_only=value_only, log=verbose)
+    val = p.solve(log=verbose)
 
     in_set = p.get_values(in_set, convert=bool, tolerance=integrality_tolerance)
 

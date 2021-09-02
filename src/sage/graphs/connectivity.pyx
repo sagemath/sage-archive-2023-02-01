@@ -1172,8 +1172,7 @@ def edge_connectivity(G,
         if g.is_directed():
             obj = sum(1 for u, v in g.edge_iterator(labels=False) if in_cut[u, v])
         else:
-            obj = sum(in_cut[frozenset((u, v))]
-                          for u, v in g.edge_iterator(labels=False) if in_cut[frozenset((u, v))])
+            obj = sum(1 for u, v in g.edge_iterator(labels=False) if in_cut[frozenset((u, v))])
 
     if value_only:
         return obj

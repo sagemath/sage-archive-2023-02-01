@@ -1502,6 +1502,32 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         return self.parent(exact_terms)
 
 
+    def error_part(self):
+        r"""
+        Return the expansion consisting of all error terms of this
+        expansion.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        An asymptotic expansion.
+
+        EXAMPLES::
+
+            sage: R.<x,y> = AsymptoticRing('x^QQ * log(x)^QQ * y^QQ', QQ)
+            sage: (x*log(x) + y^2 + O(x) + O(y)).error_part()
+            O(x) + O(y)
+        """
+        parent = self.parent()
+        return sum((parent(term)
+                    for term in self.summands.elements_topological()
+                    if not term.is_exact()),
+                   parent.zero())
+
+
     def __pow__(self, exponent, precision=None):
         r"""
         Calculate the power of this asymptotic expansion to the given ``exponent``.
@@ -2852,12 +2878,20 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ....
             NotImplementedError: expression x*y has more than one variable
+
+        ::
+
+            sage: A.<n> = AsymptoticRing('n^ZZ', RBF)
+            sage: asy = (1 - 1/n + 1/n^2)/3 + O(1/n^3)
+            sage: asy.compare_with_values('n', lambda k: 1/(3+3/k), srange(5,10))
+            [(5, 0.2777...), (6, 0.28571...), (7, 0.29166...), (8, 0.29629...),
+            (9, 0.30000...)]
         """
         from .term_monoid import OTerm
         from sage.rings.integer_ring import ZZ
 
         main = self.exact_part()
-        error = self - main
+        error = self.error_part()
         error_terms = list(error.summands)
         if len(error_terms) != 1:
             raise NotImplementedError("exactly one error term required")

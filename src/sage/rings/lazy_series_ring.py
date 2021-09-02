@@ -301,7 +301,6 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         return self._sparse
 
-    @cached_method
     def monomial(self, c, n):
         r"""
         Return the interpretation of the coefficient ``c`` at index ``n``.
@@ -1020,7 +1019,6 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
         """
         return self.base_ring().characteristic()
 
-    @cached_method
     def monomial(self, c, n):
         r"""
         Return the interpretation of the coefficient ``c`` at index ``n``.

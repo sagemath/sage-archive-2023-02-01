@@ -34,8 +34,8 @@ from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.lazy_series import (LazyCauchyProductSeries,
-                                            LazyLaurentSeries,
-                                            LazyDirichletSeries)
+                                    LazyLaurentSeries,
+                                    LazyDirichletSeries)
 from sage.structure.global_options import GlobalOptions
 from sage.symbolic.ring import SR
 
@@ -266,6 +266,24 @@ class LazyLaurentSeriesRing(UniqueRepresentation, Parent):
         """
         from sage.misc.latex import latex
         return latex(self.base_ring()) + r"(\!({})\!)".format(self.variable_name())
+
+    def characteristic(self):
+        """
+        Return the characteristic of this lazy power series ring, which
+        is the same as the characteristic of its base ring.
+
+        EXAMPLES::
+
+            sage: L.<t> = LazyLaurentSeriesRing(ZZ)
+            sage: L.characteristic()
+            0
+            sage: R.<w> = LazyLaurentSeriesRing(GF(11)); R
+            Lazy Laurent Series Ring in w over Finite Field of size 11
+            sage: R.characteristic()
+            11
+
+        """
+        return self.base_ring().characteristic()
 
     def is_sparse(self):
         """
@@ -988,6 +1006,19 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
             Lazy Dirichlet Series Ring in z over Algebraic Field
         """
         return "Lazy Dirichlet Series Ring in {} over {}".format(self.variable_name(), self.base_ring())
+
+    def characteristic(self):
+        """
+        Return the characteristic of this lazy power series ring, which
+        is the same as the characteristic of its base ring.
+
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, "s")
+            sage: L.characteristic()
+            0
+        """
+        return self.base_ring().characteristic()
 
     @cached_method
     def monomial(self, c, n):

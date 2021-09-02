@@ -11414,10 +11414,10 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         - ``names`` -- names for the coordinates on the affine hull.
 
-        - optional arguments accepted by :meth:`~sage.geometry.polyhedron.base.affine_hull_projection`.
+        - optional arguments accepted by :meth:`affine_hull_projection`.
 
         The default chart is determined by the optional arguments of
-        :meth:`~sage.geometry.polyhedron.base.affine_hull_projection`.
+        :meth:`affine_hull_projection`.
 
         EXAMPLES::
 

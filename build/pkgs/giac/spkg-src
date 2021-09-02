@@ -13,9 +13,9 @@ fi
 # Exit on failure
 set -e
 
-VERSION="1.6.0"
-VERSIONREV="47"
-PATCHSUFFIX="p3"
+VERSION="1.7.0"
+VERSIONREV="25"
+PATCHSUFFIX="p0"
 
 # The upstream tarball name is: giac"$SOURCEORIG".tar.gz
 SOURCEORIG=_"$VERSION"-"$VERSIONREV"

@@ -4733,6 +4733,44 @@ class BTerm(TermWithCoefficient):
         """
         return self._repr_(latex=True)
 
+    def _mul_(self, other):
+        r"""
+        Multiplication method for asymptotic B-terms.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic B-term
+
+        OUTPUT:
+
+        An asymptotic B-term representing the product of this element
+        and ``other``.
+
+        .. NOTE::
+
+            This method is called by the coercion framework, thus,
+            it can be assumed that this element and ``other`` have
+            the same parent.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TM
+            sage: BTM = TM('B', 'n^QQ', QQ)
+            sage: ETM = TM('exact', 'n^QQ', QQ)
+            sage: n = BTM.growth_group.gen()
+            sage: BTM(n^2, coefficient=42, valid_from={'n': 3}) * BTM(n^5, valid_from={'n': 5})
+            B(42*n^7, n >= 5)
+            sage: BTM(n^5, coefficient=21, valid_from={'n': 3}) * ETM(n^2, coefficient=2)
+            B(42*n^7, n >= 3)
+        """
+        valid_from = {
+            var: max(self.valid_from.get(var, 0), other.valid_from.get(var, 0))
+            for var in set().union(self.valid_from, other.valid_from)
+        }
+        return self.parent()(self.growth * other.growth,
+                             coefficient=self.coefficient * other.coefficient,
+                             valid_from=valid_from)
+
     def can_absorb(self, other):
         r"""
         Check whether this B-term can absorb ``other``.

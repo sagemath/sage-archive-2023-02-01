@@ -312,9 +312,9 @@ class LazyModuleElement(Element):
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: s = L(lambda n: n-1); s
-            1/(2^z) + 2/3^z + 3/4^z + 4/5^z + 5/6^z + 6/7^z + ...
+            1/(2^z) + 2/3^z + 3/4^z + 4/5^z + 5/6^z + 6/7^z + O(1/(8^z))
             sage: s.map_coefficients(lambda c: c + 1)
-            2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
+            2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + O(1/(8^z))
 
         TESTS::
 
@@ -867,11 +867,11 @@ class LazyModuleElement(Element):
 
             sage: L = LazyDirichletSeriesRing(ZZ, "z")
             sage: s = L(lambda n: n); s
-            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + ...
+            1 + 2/2^z + 3/3^z + 4/4^z + 5/5^z + 6/6^z + 7/7^z + O(1/(8^z))
             sage: t = L(constant=1); t
-            1 + 1/(2^z) + 1/(3^z) + ...
+            1 + 1/(2^z) + 1/(3^z) + O(1/(4^z))
             sage: s + t
-            2 + 3/2^z + 4/3^z + 5/4^z + 6/5^z + 7/6^z + 8/7^z + ...
+            2 + 3/2^z + 4/3^z + 5/4^z + 6/5^z + 7/6^z + 8/7^z + O(1/(8^z))
 
             sage: r = L(constant=-1)
             sage: r + t
@@ -879,7 +879,7 @@ class LazyModuleElement(Element):
 
             sage: r = L([1,2,3])
             sage: r + t
-            2 + 3/2^z + 4/3^z + 1/(4^z) + 1/(5^z) + 1/(6^z) + ...
+            2 + 3/2^z + 4/3^z + 1/(4^z) + 1/(5^z) + 1/(6^z) + O(1/(7^z))
 
             sage: r = L([1,2,3], constant=-1)
             sage: r + t
@@ -1468,12 +1468,16 @@ class LazyCauchyProductSeries(LazyModuleElement):
             sage: P = M / N; P
             z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7)
 
-        Lazy Laurent series that are known to be exact can be divided::
+        If the division of exact Lazy Laurent series yields a Laurent
+        polynomial, it is represented as an exact series::
 
-            M = z^2 + 2*z + 1
-            N = z + 1
-            O = M / N; O
-            z + 1
+            sage: 1/z
+            z^-1
+
+            sage: m = z^2 + 2*z + 1
+            sage: n = z + 1
+            sage: m / n
+            1 + z
 
         An example over the ring of symmetric functions::
 
@@ -1482,6 +1486,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
             sage: 1 / (1 - e[1]*z)
             e[] + e[1]*z + e[1, 1]*z^2 + e[1, 1, 1]*z^3 + e[1, 1, 1, 1]*z^4
              + e[1, 1, 1, 1, 1]*z^5 + e[1, 1, 1, 1, 1, 1]*z^6 + O(e[]*z^7)
+
         """
         if isinstance(other._coeff_stream, Stream_zero):
             raise ZeroDivisionError("cannot divide by 0")
@@ -1494,23 +1499,30 @@ class LazyCauchyProductSeries(LazyModuleElement):
         if (isinstance(left, Stream_exact)
             and isinstance(right, Stream_exact)):
             if not left._constant and not right._constant:
+                # # alternatively:
+                # pl = self.finite_part()
+                # pr = other.finite_part()
+                # try:
+                #    ret = pl / pr
+                #    ret = P._laurent_poly_ring(ret)
+                # except (TypeError, ValueError, NotImplementedError):
+                #    # We cannot divide the polynomials, so the result must be a series
+                #    pass
+                # return P(ret)
                 R = P._laurent_poly_ring
-                # pl = left.polynomial_part(R)
-                # pr = right.polynomial_part(R)
-                pl = self.finite_part()
-                pr = other.finite_part()
+                pl = left._polynomial_part(R)
+                pr = right._polynomial_part(R)
                 try:
                     ret = pl / pr
                     ret = P._laurent_poly_ring(ret)
-                    return P(ret)
-                    # ret = pl / pr
-                    # ret = P._laurent_poly_ring(ret)
-                    # initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
-                    # return P.element_class(P, Stream_exact(initial_coefficients, P._sparse,
-                    #          valuation=ret.valuation(), constant=left._constant))
                 except (TypeError, ValueError, NotImplementedError):
                     # We cannot divide the polynomials, so the result must be a series
                     pass
+                else:
+                    initial_coefficients = [ret[i] for i in range(ret.valuation(), ret.degree() + 1)]
+                    return P.element_class(P, Stream_exact(initial_coefficients, P._sparse,
+                                                           order=ret.valuation(),
+                                                           constant=left._constant))
 
         return P.element_class(P, Stream_cauchy_mul(left, Stream_cauchy_invert(right)))
 
@@ -1574,14 +1586,16 @@ class LazyCauchyProductSeries(LazyModuleElement):
         if (isinstance(cs, Stream_exact)
             and not cs._constant and n in ZZ
             and (n > 0 or len(cs._initial_coefficients) == 1)):
+            # # alternatively:
+            # return P(self.finite_part() ** ZZ(n))
             P = self.parent()
-            return P(self.finite_part() ** ZZ(n))
-            # ret = cs.polynomial_part(P._laurent_poly_ring) ** ZZ(n)
-            # val = ret.valuation()
-            # deg = ret.degree() + 1
-            # initial_coefficients = [ret[i] for i in range(val, deg)]
-            # return P.element_class(P, Stream_exact(initial_coefficients, P._sparse,
-            #                 constant=cs._constant, degree=deg, valuation=val))
+            ret = cs._polynomial_part(P._laurent_poly_ring) ** ZZ(n)
+            val = ret.valuation()
+            deg = ret.degree() + 1
+            initial_coefficients = [ret[i] for i in range(val, deg)]
+            return P.element_class(P, Stream_exact(initial_coefficients, P._sparse,
+                                                   constant=cs._constant,
+                                                   degree=deg, order=val))
 
         return generic_power(self, n)
 
@@ -2020,8 +2034,9 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
                     deg = ret.degree() + 1
                     initial_coefficients = [ret[i] for i in range(val, deg)]
                     coeff_stream = Stream_exact(initial_coefficients,
-                             self._coeff_stream._is_sparse, constant=P.base_ring().zero(),
-                             degree=deg, order=val)
+                                                self._coeff_stream._is_sparse,
+                                                constant=P.base_ring().zero(),
+                                                degree=deg, order=val)
                     return P.element_class(P, coeff_stream)
 
             # Return the sum since g is not known to be finite or we do not get a Laurent polynomial
@@ -2359,8 +2374,8 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             degree = self._coeff_stream._degree + n
             valuation = self._coeff_stream._approximate_order + n
             coeff_stream = Stream_exact(init_coeff, self._coeff_stream._is_sparse,
-                                                   constant=self._coeff_stream._constant,
-                                                   order=valuation, degree=degree)
+                                        constant=self._coeff_stream._constant,
+                                        order=valuation, degree=degree)
         else:
             coeff_stream = Stream_shift(self._coeff_stream, n)
         P = self.parent()
@@ -2432,7 +2447,7 @@ class LazyDirichletSeries(LazyModuleElement):
 
         sage: L = LazyDirichletSeriesRing(ZZ, "z")
         sage: f = L(constant=1)^2; f
-        1 + 2/2^z + 2/3^z + 3/4^z + 2/5^z + 4/6^z + 2/7^z + ...
+        1 + 2/2^z + 2/3^z + 3/4^z + 2/5^z + 4/6^z + 2/7^z + O(1/(8^z))
         sage: f.coefficient(100) == number_of_divisors(100)
         True
 
@@ -2440,7 +2455,7 @@ class LazyDirichletSeries(LazyModuleElement):
 
         sage: g = loads(dumps(f))
         sage: g
-        1 + 2/2^z + 2/3^z + 3/4^z + 2/5^z + 4/6^z + 2/7^z + ...
+        1 + 2/2^z + 2/3^z + 3/4^z + 2/5^z + 4/6^z + 2/7^z + O(1/(8^z))
         sage: g == f
         True
     """

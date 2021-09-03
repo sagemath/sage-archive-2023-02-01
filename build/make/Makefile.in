@@ -652,6 +652,8 @@ $(1)-$(4)-uninstall:
 
 $(1)-uninstall: $(1)-$(4)-uninstall
 
+$(1)-clean: $(1)-uninstall
+
 .PHONY: $(1) $(1)-uninstall $(1)-build-deps $(1)-no-deps $(1)-clean
 endef
 

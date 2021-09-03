@@ -1102,8 +1102,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: O(n).monomial_coefficient(n)
             Traceback (most recent call last):
             ...
-            AttributeError: 'OTermMonoid_with_category.element_class'
-            object has no attribute 'coefficient'
+            AttributeError: 'OTermMonoid_with_category.element_class' object has no attribute 'coefficient'
 
         The ``monomial`` must be exact::
 
@@ -2827,7 +2826,11 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
              (7, 0.556880411050?),
              (8, 0.565710587724?),
              (9, 0.572775029098?)]
-            sage: expansion.compare_with_values(n, catalan, [5, 10, 20], rescaled=False)
+            sage: expansion.exact_part().compare_with_values(n, catalan, [5, 10, 20])
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: exactly one error term required
+            sage: expansion.exact_part().compare_with_values(n, catalan, [5, 10, 20], rescaled=False)
             [(5, 0.3886263699387?), (10, 19.1842458318?), (20, 931314.63637?)]
             sage: expansion.compare_with_values(n, catalan, [5, 10, 20], rescaled=False, ring=SR)
             [(5, 168/5*sqrt(5)/sqrt(pi) - 42),
@@ -2886,18 +2889,16 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             sage: asy.compare_with_values('n', lambda k: 1/(3+3/k), srange(5,10))
             [(5, 0.2777...), (6, 0.28571...), (7, 0.29166...), (8, 0.29629...),
             (9, 0.30000...)]
+            sage: B = A.term_monoid('B')
+            doctest:...: FutureWarning: This class/method/function is marked as experimental.
+            ...
+            sage: basy = asy.exact_part() + A(B(asy.error_part().summands.pop().growth, coefficient=1/3))
+            sage: basy.compare_with_values('n', lambda k: 1/(3+3/k), [2^k for k in srange(8)])
+            [(1, 0.500...), (2, 0.666...), (4, 0.800...), (8, 0.888...),
+            (16, 0.941...), (32, 0.969...), (64, 0.984...), (128, 0.992...)]
         """
-        from .term_monoid import OTerm
+        from .term_monoid import OTerm, BTerm
         from sage.rings.integer_ring import ZZ
-
-        main = self.exact_part()
-        error = self.error_part()
-        error_terms = list(error.summands)
-        if len(error_terms) != 1:
-            raise NotImplementedError("exactly one error term required")
-        if not isinstance(error_terms[0], OTerm):
-            raise NotImplementedError("{} is not an O term".format(error))
-        error_growth = error_terms[0].growth
 
         if hasattr(function, 'variables'):
             expr = function
@@ -2913,11 +2914,24 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
                 def function(arg):
                     return expr
 
+        main = self.exact_part()
+
         if rescaled:
+            error = self.error_part()
+            error_terms = list(error.summands)
+            if len(error_terms) != 1:
+                raise NotImplementedError("exactly one error term required")
+            if isinstance(error_terms[0], OTerm):
+                error_coeff = ZZ.one()
+            elif isinstance(error_terms[0], BTerm):
+                error_coeff = error_terms[0].coefficient
+            else:
+                raise NotImplementedError(f"unsupported error term: {error}")
+            error_growth = error_terms[0].growth
             points = list(
                 (k, ring((main.subs({variable: k}) - function(k)) /
-                         error_growth._substitute_({str(variable): k,
-                                                    '_one_': ZZ(1)})))
+                         (error_coeff * error_growth._substitute_(
+                                          {str(variable): k, '_one_': ZZ(1)}))))
                 for k in values)
         else:
             points = list(

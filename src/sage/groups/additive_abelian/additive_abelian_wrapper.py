@@ -366,13 +366,6 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: A = AdditiveAbelianGroupWrapper(G.0.parent(), G.gens(), [g.order() for g in G.gens()])
             sage: A.discrete_log(A.discrete_exp([1,5,23,127,539]))
             (1, 5, 23, 127, 539)
-            sage: V = Zmod(8)**2; G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
-            sage: G.discrete_log(V([6, 2]))
-            (1, 1)
-            sage: G.discrete_log(V([6, 4]))
-            Traceback (most recent call last):
-            ...
-            TypeError: Not in group
 
         ::
 
@@ -380,6 +373,16 @@ class AdditiveAbelianGroupWrapper(addgp.AdditiveAbelianGroup_fixed_gens):
             sage: P, Q = E(900*t + 228, 974*t + 185), E(1007*t + 214, 865*t + 802)
             sage: E.abelian_group().discrete_log(123 * P + 777 * Q, [P, Q])
             (123, 777)
+
+        ::
+
+            sage: V = Zmod(8)**2; G = AdditiveAbelianGroupWrapper(V, [[2,2],[4,0]], [4, 2])
+            sage: G.discrete_log(V([6, 2]))
+            (1, 1)
+            sage: G.discrete_log(V([6, 4]))
+            Traceback (most recent call last):
+            ...
+            TypeError: Not in group
 
         ::
 

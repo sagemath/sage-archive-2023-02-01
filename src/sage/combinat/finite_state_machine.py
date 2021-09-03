@@ -1779,8 +1779,6 @@ class FSMState(SageObject):
             False
             sage: B.initial_probability == A.initial_probability
             True
-            sage: B.initial_probability is A.initial_probability
-            False
         """
         return deepcopy(self, memo)
 

@@ -76,7 +76,7 @@ else:
     distributions = ['']
     optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
                                          'coxeter3', 'fes', 'sirocco', 'meataxe']
-    distributions += ['sage-{}'.format(pkg)
+    distributions += ['sagemath-{}'.format(pkg)
                       for pkg in optional_packages_with_extensions
                       if is_package_installed_and_updated(pkg)]
     log.warn('distributions = {0}'.format(distributions))

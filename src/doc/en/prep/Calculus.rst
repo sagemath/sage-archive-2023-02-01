@@ -319,7 +319,7 @@ help it look nicer in the browser?
 Some integrals are a little tricky, of course. Sage tries hard to integrate using Maxima, Giac and Sympy::
 
     sage: integral(1/(1+x^10),x)
-    1/20*(sqrt(5) + 1)*arctan((4*x + sqrt(-2*sqrt(5) + 10))/(sqrt(5) + 1))
+    ...1/20*(sqrt(5) + 1)*arctan((4*x + sqrt(-2*sqrt(5) + 10))/(sqrt(5) + 1))
     + 1/20*(sqrt(5) + 1)*arctan((4*x - sqrt(-2*sqrt(5) + 10))/(sqrt(5) + 1))
     + 1/20*(sqrt(5) - 1)*arctan((4*x + sqrt(2*sqrt(5) + 10))/(sqrt(5) - 1))
     + 1/20*(sqrt(5) - 1)*arctan((4*x - sqrt(2*sqrt(5) + 10))/(sqrt(5) - 1))
@@ -337,7 +337,9 @@ If you ask for Maxima specifically, the result can be partial::
 
 If no antiderivative is found, the result is just the input::
 
-    sage: integral(sinh(x^2+sqrt(x-1)),x)  # long time (15s on sage.math, 2012)
+    sage: result = integral(sinh(x^2+sqrt(x-1)),x)  # long time (15s on sage.math, 2012)
+    ...
+    sage: result
     integrate(sinh(x^2 + sqrt(x - 1)), x)
 
 This last one stumps other systems too.

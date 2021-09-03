@@ -106,7 +106,8 @@ class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, PolynomialRing_si
         sage: loads(R.dumps()) == R
         True
     """
-    from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict as Element
+    from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict as Element_hidden
+    # should be just Element, once polynomial use new coercion framework
 
     def __init__(self, base_ring, n, names, order):
         from sage.rings.polynomial.polynomial_singular_interface import can_convert_to_singular
@@ -122,7 +123,7 @@ class MPolynomialRing_polydict(MPolynomialRing_macaulay2_repr, PolynomialRing_si
         self._gens = []
         for i in range(n):
             v[i] = 1  # int's!
-            self._gens.append(self.Element(self, {tuple(v): one}))
+            self._gens.append(self.Element_hidden(self, {tuple(v): one}))
             v[i] = 0
         self._gens = tuple(self._gens)
         self._zero_tuple = tuple(v)

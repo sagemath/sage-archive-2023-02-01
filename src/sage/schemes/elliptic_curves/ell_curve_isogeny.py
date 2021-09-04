@@ -3139,7 +3139,7 @@ class EllipticCurveIsogeny(Morphism):
         """
         self.set_post_isomorphism(WeierstrassIsomorphism(self.__E2, (-1,0,-self.__E2.a1(),-self.__E2.a3())))
 
-    def is_normalized(self, via_formal=None, check_by_pullback=None):
+    def is_normalized(self):
         r"""
         Return whether this isogeny is normalized.
 
@@ -3216,9 +3216,6 @@ class EllipticCurveIsogeny(Morphism):
             sage: phi.is_normalized()
             True
         """
-        if via_formal is not None or check_by_pullback is not None:
-            from sage.misc.superseded import deprecation
-            deprecation(32430, 'The "via_formal" and "check_by_pullback" arguments are obsolete, have no effect, and will be removed at some point.')
         phi_formal = self.formal(prec=5)
         return phi_formal[1] == 1
 

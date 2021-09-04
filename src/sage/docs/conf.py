@@ -415,6 +415,7 @@ latex_elements['preamble'] = r"""
     \DeclareUnicodeCharacter{22C1}{\ensuremath{\bigvee}}
     \DeclareUnicodeCharacter{22C2}{\ensuremath{\bigcap}}
     \DeclareUnicodeCharacter{22C3}{\ensuremath{\bigcup}}
+    \DeclareUnicodeCharacter{2323}{\ensuremath{\smile}}  % cup product
     \DeclareUnicodeCharacter{00B1}{\ensuremath{\pm}}
     \DeclareUnicodeCharacter{2A02}{\ensuremath{\bigotimes}}
     \DeclareUnicodeCharacter{2297}{\ensuremath{\otimes}}

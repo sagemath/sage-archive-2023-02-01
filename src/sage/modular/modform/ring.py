@@ -236,7 +236,6 @@ class ModularFormsRing(Parent):
             raise ValueError("Base ring (=%s) should be QQ, ZZ or a finite prime field" % base_ring)
 
         self.__group = group
-        self.__base_ring = base_ring
         self.__cached_maxweight = ZZ(-1)
         self.__cached_gens = []
         self.__cached_cusp_maxweight = ZZ(-1)
@@ -266,19 +265,6 @@ class ModularFormsRing(Parent):
             True
         """
         return self.__group
-
-    def base_ring(self):
-        r"""
-        Return the coefficient ring of this modular forms ring.
-
-        EXAMPLES::
-
-            sage: ModularFormsRing(Gamma1(13)).base_ring()
-            Rational Field
-            sage: ModularFormsRing(Gamma1(13), base_ring = ZZ).base_ring()
-            Integer Ring
-        """
-        return self.__base_ring
 
     def gen(self, i):
         r"""

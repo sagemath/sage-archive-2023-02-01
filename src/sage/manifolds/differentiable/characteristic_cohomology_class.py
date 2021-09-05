@@ -378,7 +378,7 @@ def CharacteristicCohomologyClass(*args, **kwargs):
             if vbundle._field_type != 'complex':
                 raise ValueError(f'Chern character not defined on {vbundle}')
             if name is None:
-                name = f'ch'
+                name = 'ch'
             if latex_name is None:
                 latex_name = r'\mathrm{ch}'
             class_type = 'additive'
@@ -388,7 +388,7 @@ def CharacteristicCohomologyClass(*args, **kwargs):
             if vbundle._field_type != 'complex':
                 raise ValueError(f'Todd class not defined on {vbundle}')
             if name is None:
-                name = f'Td({vbundle._name})'
+                name = 'Td'
             if latex_name is None:
                 latex_name = r'\mathrm{Td}'
             class_type = 'multiplicative'
@@ -399,14 +399,20 @@ def CharacteristicCohomologyClass(*args, **kwargs):
             if vbundle._field_type != 'real':
                 raise ValueError(f'Hirzebruch class not defined on {vbundle}')
             if name is None:
-                name = f'L'
+                name = 'L'
             if latex_name is None:
-                latex_name = r'\mathrm{L}'
+                latex_name = 'L'
             class_type = 'multiplicative'
             coeff = [2**(2*k) * bernoulli(2*k) / factorial(2*k)
                      for k in range(dim // 4 + 1)]
             val = P(coeff)
         elif val == 'AHat':
+            if vbundle._field_type != 'real':
+                raise ValueError(f'AHat class not defined on {vbundle}')
+            if name is None:
+                name = 'A^'
+            if latex_name is None:
+                latex_name = r'\hat{A}'
             class_type = 'multiplicative'
             coeff = [- (2**(2*k) - 2) / 2**(2*k) * bernoulli(2*k) / factorial(2*k)
                      for k in range(dim // 4 + 1)]

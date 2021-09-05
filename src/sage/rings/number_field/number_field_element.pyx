@@ -2636,16 +2636,23 @@ cdef class NumberFieldElement(FieldElement):
 
             sage: K.<a> = NumberField(x^3 + 2)
             sage: b = copy(a)
-            sage: b == a
-            True
             sage: b is a
-            False
+            True
         """
-        cdef NumberFieldElement x
-        x = self._new()
-        x.__numerator = self.__numerator
-        x.__denominator = self.__denominator
-        return x
+        # immutable
+        return self
+
+    def __deepcopy__(self, memo):
+        r"""
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: b = deepcopy(a)
+            sage: b is a
+            True
+        """
+        # immutable
+        return self
 
     def __int__(self):
         """

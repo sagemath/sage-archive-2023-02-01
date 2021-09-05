@@ -195,45 +195,42 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
 
         return CharacteristicCohomologyClassRing(base, self)
 
-    def characteristic_cohomology_class(self, func, **kwargs):
+    def characteristic_cohomology_class(self, *args, **kwargs):
         r"""
-        Return a characteristic class of the given type with respect to the
-        given function.
+        Return a characteristic cohomology class associated with the input
+        data.
 
         INPUT:
 
-        - ``func`` -- the function corresponding to the characteristic class
-          using the Chern-Weil homomorphism; this argument can be either one of
-          the predefined classes, in the following specified by
-          (field type, class type, name, LaTeX name, function):
+        - ``val`` -- the input data associated with the characteristic class
+          using the Chern-Weil homomorphism; this argument can be either a
+          symbolic expression, a polynomial or one of the following predefined
+          classes:
 
-          - ``'Chern'`` -- (complex, multiplicative, ``c``, `c`, `1+x`),
-          - ``'ChernChar'`` -- (complex, additive, ``ch``, `\mathrm{ch}`,
-            `\exp(x)`),
-          - ``'Todd'`` -- (complex, additive, ``Td``, `\mathrm{Td}`,
-            `\frac{x}{1-\exp(-x)}`),
-          - ``'Pontryagin'`` -- (real, multiplicative, ``p``, `p`, `1+x`),
-          - ``'Hirzebruch'`` -- (real, multiplicative, ``L``, `L`,
-            `\frac{\sqrt{x}}{\tanh(\sqrt{x})}`),
-          - ``'AHat'`` -- (real, multiplicative, ``A^``, `\hat{A}`,
-            `\frac{\sqrt{x}/2}{\sinh(\sqrt{x}/2)}`),
-          - ``'Euler'`` -- (real, Pfaffian, ``e``, `e`, `x`),
+          - ``'Chern'`` -- total Chern class,
+          - ``'ChernChar'`` -- Chern character,
+          - ``'Todd'`` -- Todd class,
+          - ``'Pontryagin'`` -- total Pontryagin class,
+          - ``'Hirzebruch'`` -- Hirzebruch class,
+          - ``'AHat'`` -- `\hat{A}` class,
+          - ``'Euler'`` -- Euler class.
 
-        or a symbolic expression. If ``func`` is one of the predefined classes,
-        the following arguments are obsolete.
-
-        - ``class_type`` -- (default: ``'multiplicative'``) the type of the
-          characteristic class; possible values are:
-
-          - ``'multiplicative'`` -- returns a class of multiplicative type,
-            using the determinant
-          - ``'additive'`` -- returns a class of additive type, using the trace
-          - ``'Pfaffian'`` -- returns a class of Pfaffian type, using the
-            Pfaffian
-
-        - ``name`` -- string representation given to the characteristic class
+        - ``base_ring`` -- (default: ``QQ``) base ring over which the
+          characteristic cohomology class ring shall be defined
+        - ``name`` -- (default: ``None``) string representation given to the
+          characteristic cohomology class; if ``None`` the default algebra
+          representation is used
         - ``latex_name`` -- (default: ``None``) LaTeX name given to the
-          characteristic class
+          characteristic class; if ``None`` the value of ``name`` is used
+        - ``class_type`` -- (default: ``None``) class type of the characteristic
+          cohomology class; the following options are possible:
+
+          - ``'multiplicative'`` -- returns a class of multiplicative type
+          - ``'additive'`` -- returns a class of additive type
+          - ``'Pfaffian'`` -- returns a class of Pfaffian type
+
+          This argument must be stated if ``val`` is a polynomial or symbolic
+          expression.
 
         EXAMPLES:
 
@@ -266,11 +263,8 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             sage: TM = M.tangent_bundle(); TM
             Tangent bundle TM over the 4-dimensional Lorentzian manifold M
             sage: p = TM.characteristic_cohomology_class('Pontryagin'); p
-            Characteristic class p of multiplicative type associated to x + 1
-             on the Tangent bundle TM over the 4-dimensional Lorentzian
-             manifold M
-            sage: p.function()
-            x + 1
+            Characteristic cohomology class p(TM) of the Tangent bundle TM over
+             the 4-dimensional Lorentzian manifold M
             sage: p_form = p.get_form(nab); p_form.display_expansion()
             p(TM, nabla_g) = 1
 
@@ -280,27 +274,9 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             :class:`~sage.manifolds.differentiable.characteristic_class.CharacteristicClass`.
 
         """
-        if self._field_type == 'neither_real_nor_complex':
-            raise ValueError("the vector bundle must be real or complex")
-        from .characteristic_class import CharacteristicClass, _get_predefined_class
-        # Is func a predefined class?
-        if isinstance(func, str):
-            func_str = func
-            # Get predefined class:
-            (field_type, class_type, name,
-                         latex_name, func) = _get_predefined_class(func_str)
-            # The fields must be equal:
-            if field_type != self._field_type:
-                raise ValueError("base field must be {} ".format(field_type) +
-                                 "for class '{}'".format(func_str))
-        else:
-            # Get arguments:
-            class_type = kwargs.pop('class_type', 'multiplicative')
-            name = kwargs.pop('name', None)
-            latex_name = kwargs.pop('latex_name', None)
+        from .characteristic_cohomology_class import CharacteristicCohomologyClass
 
-        return CharacteristicClass(self, func, class_type=class_type,
-                                   name=name, latex_name=latex_name)
+        return CharacteristicCohomologyClass(self, *args, **kwargs)
 
     characteristic_class = deprecated_function_alias(29581, characteristic_cohomology_class)
 

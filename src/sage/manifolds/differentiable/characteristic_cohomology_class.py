@@ -46,11 +46,11 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
 
         """
         if self._name is None:
-            name = super()._repr_()
+            name = f'({super()._repr_()})'
         else:
             name = self._name
         vbundle = self.parent()._vbundle
-        name = f'({name})({vbundle._name})'
+        name = f'{name}({vbundle._name})'
         return f'Characteristic cohomology class {name} of the {vbundle}'
 
     def _latex_(self):
@@ -58,12 +58,11 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
 
         """
         if self._latex_name is None:
-            latex = super()._latex_()
+            latex = r'\left(' + super()._latex_() + r'\right)'
         else:
             latex = self._latex_name
         vbundle = self.parent()._vbundle
-        latex = r'\left(' + latex + r'\right)\right('
-        latex += vbundle._latex_name + r'\right)'
+        latex += latex + r'\left(' + vbundle._latex_name + r'\right)'
         return latex
 
     def get_form(self, nab):
@@ -101,11 +100,11 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
                 if self._name is None:
                     name = f'({super()._repr_()})'
                 else:
-                    name = f'({self._name})'
+                    name = self._name
                 if self._latex_name is None:
                     latex_name = r'\left(' + super()._latex_() + r'\right)'
                 else:
-                    latex_name = r'\left(' + self._latex_name + r'\right)'
+                    latex_name = self._latex_name
                 # appendix
                 append_name = f'({vbundle._name}, {nab._name})'
                 append_latex_name = r'\left(' + vbundle._latex_name
@@ -326,8 +325,19 @@ def CharacteristicCohomologyClass(*args, **kwargs):
 
     - ``vbundle`` -- the vector bundle over which the characteristic
       cohomology class shall be defined
-    - ``val`` -- input data; could be a string, polynomial, symbolic
-      expression or characteristic cohomology class
+    - ``val`` -- the input data corresponding to the characteristic class
+      using the Chern-Weil homomorphism; this argument can be either a
+      symbolic expression, a polynomial or one of the following predefined
+      classes:
+
+      - ``'Chern'`` -- total Chern class,
+      - ``'ChernChar'`` -- Chern character,
+      - ``'Todd'`` -- Todd class,
+      - ``'Pontryagin'`` -- total Pontryagin class,
+      - ``'Hirzebruch'`` -- Hirzebruch class,
+      - ``'AHat'`` -- `\hat{A}` class,
+      - ``'Euler'`` -- Euler class.
+
     - ``base_ring`` -- (default: ``QQ``) base ring over which the
       characteristic cohomology class ring shall be defined
     - ``name`` -- (default: ``None``) string representation given to the
@@ -367,11 +377,15 @@ def CharacteristicCohomologyClass(*args, **kwargs):
         if val == 'Chern':
             if vbundle._field_type != 'complex':
                 raise ValueError(f'total Chern class not defined on {vbundle}')
+            if name is None:
+                name = 'c'
             class_type = 'multiplicative'
             val = 1 + x
         if val == 'Pontryagin':
             if vbundle._field_type != 'real':
                 raise ValueError(f'total Pontryagin class not defined on {vbundle}')
+            if name is None:
+                name = 'p'
             class_type = 'multiplicative'
             val = 1 + x
         elif val == 'ChernChar':
@@ -420,6 +434,8 @@ def CharacteristicCohomologyClass(*args, **kwargs):
         elif val == 'Euler':
             if vbundle._field_type != 'real' or not vbundle.has_orientation():
                 raise ValueError(f'Euler class not defined on {vbundle}')
+            if name is None:
+                name = 'e'
             class_type = 'Pfaffian'
             val = x
         else:
@@ -635,7 +651,7 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
         rk = len(cmat)
         dim = dom._dim
         ran = min(rk // 2, dim // 4)
-        if ran < 2:
+        if ran < 1:
             return []  # nothing to compute
         fac = -1 / (2 * pi) ** 2
         res = []

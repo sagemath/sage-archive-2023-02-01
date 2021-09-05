@@ -3486,9 +3486,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: t.norm(F)
             3*z^3 + 4*z^2 + 2
         """
-        if K is None or (K in Fields and K.absolute_degree() == 1):
+        if K is None or (K in Fields() and K.absolute_degree() == 1):
             norm = self.__pari__('x').norm()
-            return QQ(norm) if self._parent in Fields else ZZ(norm)
+            return QQ(norm) if self._parent in Fields() else ZZ(norm)
         return self.matrix(K).determinant()
 
     def absolute_norm(self):

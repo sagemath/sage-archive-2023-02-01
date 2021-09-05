@@ -1183,8 +1183,8 @@ cdef class Ring(ParentWithGens):
 
         EXAMPLES::
 
-            sage: ZZ._random_nonzero_element()
-            -8
+            sage: ZZ._random_nonzero_element() != 0
+            True
         """
         while True:
             x = self.random_element(*args, **kwds)

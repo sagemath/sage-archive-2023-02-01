@@ -1,7 +1,7 @@
 #cython: boundscheck=False, wraparound=False
 # distutils: libraries = sirocco
 # distutils: language = c++
-# sage_setup: distribution = sage-sirocco
+# sage_setup: distribution = sagemath-sirocco
 
 r"""
 Cython wrapper for sirocco library

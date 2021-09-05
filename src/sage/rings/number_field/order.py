@@ -2034,7 +2034,7 @@ def absolute_order_from_module_generators(gens,
 
         sage: F.<alpha> = NumberField(x**4+3)
         sage: F.order([alpha**2], allow_subfield=True)
-        Order in Number Field in beta with defining polynomial x^2 + 2*x + 13 with beta = 2*alpha^2 - 1
+        Order in Number Field in beta with defining polynomial ... with beta = ...
     """
     if not gens:
         raise ValueError("gens must span an order over ZZ")

@@ -1274,7 +1274,10 @@ def RandomLobster(n, p, q, seed=None):
         sage: G.delete_vertices(leaves)                                 # path
         sage: s = G.degree_sequence()
         sage: if G:
-        ....:     assert s[-2:] == [1, 1]
+        ....:     if G.num_verts() == 1:
+        ....:         assert s == [0]
+        ....:     else:
+        ....:         assert s[-2:] == [1, 1]
         ....:     assert all(d == 2 for d in s[:-2])
 
     ::

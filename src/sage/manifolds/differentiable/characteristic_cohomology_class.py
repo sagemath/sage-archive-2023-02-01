@@ -406,9 +406,15 @@ def CharacteristicCohomologyClass(*args, **kwargs):
             coeff = [2**(2*k) * bernoulli(2*k) / factorial(2*k)
                      for k in range(dim // 4 + 1)]
             val = P(coeff)
+        elif val == 'AHat':
+            class_type = 'multiplicative'
+            coeff = [- (2**(2*k) - 2) / 2**(2*k) * bernoulli(2*k) / factorial(2*k)
+                     for k in range(dim // 4 + 1)]
+            val = P(coeff)
         elif val == 'Euler':
-            if not vbundle._field_type != 'real' or not vbundle.has_orientation():
+            if vbundle._field_type != 'real' or not vbundle.has_orientation():
                 raise ValueError(f'Euler class not defined on {vbundle}')
+            class_type = 'Pfaffian'
             val = x
         else:
             ValueError(f'predefined class "{val}" unknown')
@@ -448,7 +454,7 @@ def CharacteristicCohomologyClass(*args, **kwargs):
         elif class_type == 'Pfaffian':
             P = val.parent()
             x = P.gen()
-            val = (val(x) + val(-x)) / 2  # project to odd functions
+            val = (val(x) - val(-x)) / 2  # project to odd functions
             val = P([(-1)**k * val[2*k+1] for k in range(max_order + 1)])
             sym = multiplicative_sequence(val, max_order=max_order)
         else:

@@ -342,7 +342,7 @@ def CharacteristicCohomologyClass(*args, **kwargs):
       characteristic cohomology class ring shall be defined
     - ``name`` -- (default: ``None``) string representation given to the
       characteristic cohomology class; if ``None`` the default algebra
-      representation is used
+      representation or predefined name is used
     - ``latex_name`` -- (default: ``None``) LaTeX name given to the
       characteristic class; if ``None`` the value of ``name`` is used
     - ``class_type`` -- (default: ``None``) class type of the characteristic

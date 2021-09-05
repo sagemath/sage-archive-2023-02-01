@@ -453,6 +453,17 @@ class HyperplaneArrangementElement(Element):
         """
         return self._hyperplanes[i]
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: h = x|y; h
+            Arrangement <y | x>
+            sage: len_dict = {h: len(h)}
+        """
+        return hash(self.hyperplanes())
+
     def n_hyperplanes(self):
         r"""
         Return the number of hyperplanes in the arrangement.

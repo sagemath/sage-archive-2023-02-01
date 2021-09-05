@@ -444,9 +444,6 @@ def CharacteristicCohomologyClass(*args, **kwargs):
             s = 1  # skip Euler class
             max_order -= 1  # ignore Euler class
 
-        d = {}
-        w_vec = R._weighted_vectors
-
         if class_type == 'additive':
             sym = additive_sequence(val, vbundle._rank, max_order=max_order)
         elif class_type == 'multiplicative':
@@ -460,6 +457,8 @@ def CharacteristicCohomologyClass(*args, **kwargs):
         else:
             AttributeError('unkown class type')
 
+        d = {}
+        w_vec = R._weighted_vectors
         for p, c in sym:
             vec = [0] * R.ngens()
             if class_type == 'Pfaffian':
@@ -472,6 +471,7 @@ def CharacteristicCohomologyClass(*args, **kwargs):
         res.set_name(name=name, latex_name=latex_name)
         return res
 
+    # last resort: try coercion
     return R(val, name=name, latex_name=latex_name)
 
 

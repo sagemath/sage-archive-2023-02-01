@@ -509,7 +509,7 @@ class Modules(Category_module):
             FiniteSets = Sets().Finite()
             if (isinstance(base_ring, Category) and
                     base_ring.is_subcategory(FiniteSets)) or \
-                base_ring in FiniteSets:
+                base_ring in FiniteSets():
                 return [FiniteSets]
             else:
                 return []

@@ -7417,7 +7417,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             (False, None)
 
         """
-        if self.domain().base_ring() not in NumberFields:
+        if self.domain().base_ring() not in NumberFields():
             raise ValueError('dynamical system must be defined over number field')
 
         field_of_definition_periodic = self.field_of_definition_periodic(1)

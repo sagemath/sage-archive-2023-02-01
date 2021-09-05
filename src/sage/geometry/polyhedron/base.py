@@ -675,7 +675,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         from sage.categories.all import Rings
 
-        if base_ring not in Rings:
+        if base_ring not in Rings():
             raise ValueError("invalid base ring")
 
         try:

@@ -213,7 +213,8 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
         names = tuple(names)  # hashable
         degrees = tuple(degrees)  # hashable
         super().__init__(base=base, names=names, degrees=degrees,
-                         max_degree=dim)
+                         max_degree=dim, mul_symbol='⌣',
+                         mul_latex_symbol=r'\smile')
 
     def _element_constructor_(self, x, name=None, latex_name=None):
         r"""

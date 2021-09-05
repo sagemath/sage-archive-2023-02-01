@@ -179,7 +179,7 @@ def RandomBarabasiAlbert(n, m, seed=None):
     if seed is None:
         seed = int(current_randstate().long_seed() % sys.maxsize)
     import networkx
-    return Graph(networkx.barabasi_albert_graph(n, m, seed=seed))
+    return Graph(networkx.barabasi_albert_graph(int(n), int(m), seed=seed))
 
 def RandomBipartite(n1, n2, p, set_position=False):
     r"""

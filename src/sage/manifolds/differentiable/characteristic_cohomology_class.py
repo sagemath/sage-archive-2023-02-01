@@ -15,7 +15,7 @@ from sage.algebras.finite_gca import FiniteGCAlgebra
 from sage.combinat.free_module import IndexedFreeModuleElement
 from sage.misc.fast_methods import Singleton
 from sage.structure.sage_object import SageObject
-from sage.misc.cachefunc import cached_method
+from sage.misc.cachefunc import cached_method, cached_function
 from sage.misc.abstract_method import abstract_method
 from .affine_connection import AffineConnection
 from .bundle_connection import BundleConnection
@@ -150,6 +150,27 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
             return next(iter(self._mixed_forms.values()))
         return self.get_form(nab)
 
+    def set_name(self, name=None, latex_name=None):
+        r"""
+        Set (or change) the text name and LaTeX name of the characteristic
+        cohomology class.
+
+        INPUT:
+
+        - ``name`` -- (string; default: ``None``) name given to the
+          characteristic cohomology class
+        - ``latex_name`` -- (string; default: ``None``) LaTeX symbol to denote
+          the characteristic cohomology class; if ``None`` while ``name`` is
+          provided, the LaTeX symbol is set to ``name``
+
+        """
+        if name is not None:
+            self._name = name
+            if latex_name is None:
+                self._latex_name = self._name
+        if latex_name is not None:
+            self._latex_name = latex_name
+
 
 class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
     r"""
@@ -204,7 +225,7 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
         if x in R:
             one_basis = self.one_basis()
             d = {one_basis: R(x)}
-        elif isinstance(x, CharacteristicCohomologyClass):
+        elif isinstance(x, CharacteristicCohomologyClassRingElement):
             d = x._monomial_coefficients
         # x is an element of the basis enumerated set;
         # This is a very ugly way of testing this
@@ -233,9 +254,15 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
 # ALGORITHMS
 # *****************************************************************************
 
-def multiplicative_sequence(q):
+def multiplicative_sequence(q, max_order=None):
     r"""
     Turn the polynomial ``q`` into its multiplicative sequence.
+
+    INPUT:
+
+    - ``q`` -- polynomial to turn into its multiplicative sequence.
+    - ``max_order`` -- (default: ``None``) the highest order of the sequence;
+      if ``None``, the order of ``q`` is assumed.
 
     OUTPUT:
 
@@ -245,17 +272,20 @@ def multiplicative_sequence(q):
     from sage.combinat.partition import Partitions
     from sage.misc.misc_c import prod
 
+    if max_order is None:
+        max_order = q.degree()
+
     R = q.parent().base_ring()
     Sym = SymmetricFunctions(R)
     m = Sym.m()
 
     # Get the multiplicative sequence in the monomial basis:
     mon_pol = m._from_dict({p: prod(q[i] for i in p)
-                            for k in range(q.degree() + 1)
+                            for k in range(max_order + 1)
                             for p in Partitions(k)})
     return Sym.e()(mon_pol)
 
-def additive_sequence(q, rk):
+def additive_sequence(q, rk, max_order=None):
     r"""
     Turn the polynomial ``q`` into its additive sequence.
 
@@ -263,6 +293,8 @@ def additive_sequence(q, rk):
 
     - ``q`` -- polynomial to turn into its additive sequence.
     - ``rk`` -- rank of the underlying vector bundle
+    - ``max_order`` -- (default: ``None``) the highest order of the sequence;
+      if ``None``, the order of ``q`` is assumed.
 
     OUTPUT:
 
@@ -271,50 +303,170 @@ def additive_sequence(q, rk):
     from sage.combinat.sf.sf import SymmetricFunctions
     from sage.combinat.partition import Partitions
 
+    if max_order is None:
+        max_order = q.degree()
+
     R = q.parent().base_ring()
     Sym = SymmetricFunctions(R)
     m = Sym.m()
 
-    # Express the additive sequence in the monomial basis, the 0th
+    # Express the additive sequence in the monomial basis, the 0-th
     # order term must be treated separately; here comes ``rk`` into play:
     m_dict = {Partitions(0)([]): rk * q[0]}
-    m_dict.update({Partitions(k)([k]): q[k] for k in range(1, q.degree() + 1)})
+    m_dict.update({Partitions(k)([k]): q[k] for k in range(1, max_order + 1)})
     mon_pol = m._from_dict(m_dict)
     return Sym.e()(mon_pol)
 
-
+@cached_function
 def CharacteristicCohomologyClass(*args, **kwargs):
     r"""
+    Construct a characteristic cohomology class.
+
+    INPUT:
+
+    - ``vbundle`` -- the vector bundle over which the characteristic
+      cohomology class shall be defined
+    - ``val`` -- input data; could be a string, polynomial, symbolic
+      expression or characteristic cohomology class
+    - ``base_ring`` -- (default: ``QQ``) base ring over which the
+      characteristic cohomology class ring shall be defined
+    - ``name`` -- (default: ``None``) string representation given to the
+      characteristic cohomology class; if ``None`` the default algebra
+      representation is used
+    - ``latex_name`` -- (default: ``None``) LaTeX name given to the
+      characteristic class; if ``None`` the value of ``name`` is used
+    - ``class_type`` -- (default: ``None``) class type of the characteristic
+      cohomology class; the following options are possible:
+
+      - ``'multiplicative'`` -- returns a class of multiplicative type
+      - ``'additive'`` -- returns a class of additive type
+      - ``'Pfaffian'`` -- returns a class of Pfaffian type
+
+      This argument must be stated if ``val`` is a polynomial or symbolic
+      expression.
 
     """
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+    from sage.symbolic.expression import Expression
+
     name, latex_name = kwargs.get('name'), kwargs.get('latex_name')
     base_ring = kwargs.get('base_ring', QQ)
     class_type = kwargs.get('class_type')
     vbundle = args[0]
-    input = args[1]
+    val = args[1]  # input value
     R = CharacteristicCohomologyClassRing(base_ring, vbundle)
-    if is_PolynomialRing(input.parent()):
-        from sage.misc.misc_c import prod
-        if class_type is None:
-            raise AttributeError(f'class_type must be stated since {input} '
-                                 f'is a polynomial')
-        if class_type == 'additive':
-            sym = additive_sequence(input)
-        elif class_type == 'multiplicative':
-            sym = multiplicative_sequence(input)
-            
-        input = {}
-        zero = [0] * R.__ngens
-        w_vec = R._weighted_vectors
-        for p, c in sym:
-            vec = zero.copy()
-            for i in p:
-                vec[i] += 1
-            key = w_vec(vec)
-            input[key] = c
+    dim = vbundle._base_space._dim
 
-    return R(input, name=name, latex_name=latex_name)
+    # predefined classes accessible via class names
+    if isinstance(val, str):
+        from sage.arith.misc import factorial, bernoulli
+
+        P = PolynomialRing(base_ring, 'x')
+        x = P.gen()
+        if val == 'Chern':
+            if vbundle._field_type != 'complex':
+                raise ValueError(f'total Chern class not defined on {vbundle}')
+            class_type = 'multiplicative'
+            val = 1 + x
+        if val == 'Pontryagin':
+            if vbundle._field_type != 'real':
+                raise ValueError(f'total Pontryagin class not defined on {vbundle}')
+            class_type = 'multiplicative'
+            val = 1 + x
+        elif val == 'ChernChar':
+            if vbundle._field_type != 'complex':
+                raise ValueError(f'Chern character not defined on {vbundle}')
+            if name is None:
+                name = f'ch'
+            if latex_name is None:
+                latex_name = r'\mathrm{ch}'
+            class_type = 'additive'
+            coeff = [1 / factorial(k) for k in range(dim // 2 + 1)]  # exp(x)
+            val = P(coeff)
+        elif val == 'Todd':
+            if vbundle._field_type != 'complex':
+                raise ValueError(f'Todd class not defined on {vbundle}')
+            if name is None:
+                name = f'Td({vbundle._name})'
+            if latex_name is None:
+                latex_name = r'\mathrm{Td}'
+            class_type = 'multiplicative'
+            val = 1 + x / 2
+            for k in range(1, dim // 2 + 1):
+                val += (-1)**(k+1) / factorial(2*k) * bernoulli(2*k) * x**(2*k)
+        elif val == 'Hirzebruch':
+            if vbundle._field_type != 'real':
+                raise ValueError(f'Hirzebruch class not defined on {vbundle}')
+            if name is None:
+                name = f'L'
+            if latex_name is None:
+                latex_name = r'\mathrm{L}'
+            class_type = 'multiplicative'
+            coeff = [2**(2*k) * bernoulli(2*k) / factorial(2*k)
+                     for k in range(dim // 4 + 1)]
+            val = P(coeff)
+        elif val == 'Euler':
+            if not vbundle._field_type != 'real' or not vbundle.has_orientation():
+                raise ValueError(f'Euler class not defined on {vbundle}')
+            val = x
+        else:
+            ValueError(f'predefined class "{val}" unknown')
+
+    # turn symbolic expression into a polynomial via Taylor expansion
+    if isinstance(val, Expression):
+        x = val.default_variable()
+        P = PolynomialRing(base_ring, x)
+
+        if vbundle._field_type == 'real':
+            pow_range = dim // 4
+        elif vbundle._field_type == 'complex':
+            pow_range = dim // 2
+        else:
+            ValueError(f'field type of {vbundle} must be real or complex')
+
+        val = P(val.taylor(x, 0, pow_range))
+
+    # turn polynomial into a characteristic cohomology class via sequences
+    if is_PolynomialRing(val.parent()):
+        if class_type is None:
+            raise TypeError(f'class_type must be stated if {val} '
+                            f'is a polynomial')
+        max_order = R.ngens()
+        s = 0  # shift; important in case of Euler class generator
+        if R._algorithm is PontryaginEulerAlgorithm():
+            s = 1  # skip Euler class
+            max_order -= 1  # ignore Euler class
+
+        d = {}
+        w_vec = R._weighted_vectors
+
+        if class_type == 'additive':
+            sym = additive_sequence(val, vbundle._rank, max_order=max_order)
+        elif class_type == 'multiplicative':
+            sym = multiplicative_sequence(val, max_order=max_order)
+        elif class_type == 'Pfaffian':
+            P = val.parent()
+            x = P.gen()
+            val = (val(x) + val(-x)) / 2  # project to odd functions
+            val = P([(-1)**k * val[2*k+1] for k in range(max_order + 1)])
+            sym = multiplicative_sequence(val, max_order=max_order)
+        else:
+            AttributeError('unkown class type')
+
+        for p, c in sym:
+            vec = [0] * R.ngens()
+            if class_type == 'Pfaffian':
+                vec[0] = 1  # always multiply with e
+            for i in p:
+                vec[i - 1 + s] += 1
+            key = w_vec(vec)
+            d[key] = c
+        res = R._from_dict(d)
+        res.set_name(name=name, latex_name=latex_name)
+        return res
+
+    return R(val, name=name, latex_name=latex_name)
 
 
 def fast_wedge_power(form, n):
@@ -418,7 +570,7 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
 
         - a list containing the local characteristic Chern forms
 
-        .. ALGORITHM::
+        ALGORITHM::
 
             The algorithm is based on the Faddeev-LeVerrier algorithm for the
             characteristic polynomial.
@@ -460,7 +612,7 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
 
         - a list containing the local characteristic Pontryagin forms
 
-        .. ALGORITHM::
+        ALGORITHM::
 
             The algorithm is based on the Faddeev-LeVerrier algorithm for the
             characteristic polynomial.
@@ -517,7 +669,7 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
                              'vector bundles')
         if rk % 2 != 0:
             raise ValueError('Euler forms are currently only supported for '
-                             'vector bundles with odd rank')
+                             'vector bundles with even rank')
         res = dom.diff_form(rk)
         g = nab._metric
         for frame in dom._get_min_covering(vbundle.orientation()):
@@ -552,7 +704,7 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
             The result is the local Euler form if ``cmat`` is given w.r.t. an
             orthonormal oriented frame.
 
-        .. ALGORITHM::
+        ALGORITHM::
 
             The algorithm is based on the Bär-Faddeev-LeVerrier algorithm for
             the Pfaffian.

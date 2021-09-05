@@ -20,9 +20,10 @@ from sage.misc.abstract_method import abstract_method
 from .affine_connection import AffineConnection
 from .bundle_connection import BundleConnection
 from .levi_civita_connection import LeviCivitaConnection
+from sage.rings.rational_field import QQ
 
 
-class CharacteristicCohomologyClass(IndexedFreeModuleElement):
+class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
     r"""
 
     """
@@ -154,7 +155,7 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
     r"""
 
     """
-    Element = CharacteristicCohomologyClass
+    Element = CharacteristicCohomologyClassRingElement
 
     def __init__(self, base, vbundle):
         r"""
@@ -250,7 +251,7 @@ def multiplicative_sequence(q):
 
     # Get the multiplicative sequence in the monomial basis:
     mon_pol = m._from_dict({p: prod(q[i] for i in p)
-                            for k in range(len(q.degree()))
+                            for k in range(q.degree() + 1)
                             for p in Partitions(k)})
     return Sym.e()(mon_pol)
 
@@ -277,9 +278,27 @@ def additive_sequence(q, rk):
     # Express the additive sequence in the monomial basis, the 0th
     # order term must be treated separately; here comes ``rk`` into play:
     m_dict = {Partitions(0)([]): rk * q[0]}
-    m_dict.update({Partitions(k)([k]): q[k] for k in range(1, q.degree())})
+    m_dict.update({Partitions(k)([k]): q[k] for k in range(1, q.degree() + 1)})
     mon_pol = m._from_dict(m_dict)
     return Sym.e()(mon_pol)
+
+
+def CharacteristicCohomologyClass(*args, **kwargs):
+    r"""
+
+    """
+    pass
+    # name, latex_name = kwargs.get('name'), kwargs.get('latex_name')
+    # base_ring = kwargs.get('base_ring', QQ)
+    # class_type = kwargs.get('class_type')
+    # vbundle = args[0]
+    # input = args[1]
+    # R = CharacteristicCohomologyClassRing(base_ring, vbundle)
+    # w_vec = R._weighted_vectors
+    # if isinstance(input, Expression):
+    #
+    #
+    # return R(element, name=name, latex_name=latex_name)
 
 
 def fast_wedge_power(form, n):

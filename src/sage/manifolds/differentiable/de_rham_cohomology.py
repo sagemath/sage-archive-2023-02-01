@@ -430,10 +430,21 @@ class DeRhamCohomologyRing(Parent, UniqueRepresentation):
         TESTS::
 
             sage: M = Manifold(2, 'M')
-            sage: X.<x,y> = M.chart()
             sage: C = M.de_rham_complex()
             sage: H = C.cohomology()
             sage: H.has_coerce_map_from(QQ)
+            True
+
+        ::
+
+            sage: M = Manifold(4, 'M')
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: TM = M.tangent_bundle()
+            sage: C = TM.characteristic_cohomology_class_ring(); C
+            Algebra of characteristic cohomology classes of the Tangent bundle
+             TM over the 4-dimensional differentiable manifold M
+            sage: H.has_coerce_map_from(C)
             True
 
         """

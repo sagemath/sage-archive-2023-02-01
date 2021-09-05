@@ -287,18 +287,34 @@ def CharacteristicCohomologyClass(*args, **kwargs):
     r"""
 
     """
-    pass
-    # name, latex_name = kwargs.get('name'), kwargs.get('latex_name')
-    # base_ring = kwargs.get('base_ring', QQ)
-    # class_type = kwargs.get('class_type')
-    # vbundle = args[0]
-    # input = args[1]
-    # R = CharacteristicCohomologyClassRing(base_ring, vbundle)
-    # w_vec = R._weighted_vectors
-    # if isinstance(input, Expression):
-    #
-    #
-    # return R(element, name=name, latex_name=latex_name)
+    from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+    name, latex_name = kwargs.get('name'), kwargs.get('latex_name')
+    base_ring = kwargs.get('base_ring', QQ)
+    class_type = kwargs.get('class_type')
+    vbundle = args[0]
+    input = args[1]
+    R = CharacteristicCohomologyClassRing(base_ring, vbundle)
+    if is_PolynomialRing(input.parent()):
+        from sage.misc.misc_c import prod
+        if class_type is None:
+            raise AttributeError(f'class_type must be stated since {input} '
+                                 f'is a polynomial')
+        if class_type == 'additive':
+            sym = additive_sequence(input)
+        elif class_type == 'multiplicative':
+            sym = multiplicative_sequence(input)
+            
+        input = {}
+        zero = [0] * R.__ngens
+        w_vec = R._weighted_vectors
+        for p, c in sym:
+            vec = zero.copy()
+            for i in p:
+                vec[i] += 1
+            key = w_vec(vec)
+            input[key] = c
+
+    return R(input, name=name, latex_name=latex_name)
 
 
 def fast_wedge_power(form, n):

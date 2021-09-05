@@ -572,7 +572,13 @@ def geodetic_closure(G, S):
         Traceback (most recent call last):
         ...
         ValueError: S is not a subset of vertices of the graph
+        sage: geodetic_closure(digraphs.Path(3), [0, 1])
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: the geodetic closure of digraphs has not been implemented yet
     """
+    if G.is_directed():
+        raise NotImplementedError("the geodetic closure of digraphs has not been implemented yet")
     S = list(S)
     if not S:
         return []

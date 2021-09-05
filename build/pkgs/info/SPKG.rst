@@ -19,5 +19,4 @@ Website: https://www.gnu.org/software/texinfo/manual/info-stnd/info-stnd.html
 License
 -------
 
-GPL-3+ (info/*.c comments in the source repository)
-
+GPL-3+ (``info/*.c`` comments in the source repository)

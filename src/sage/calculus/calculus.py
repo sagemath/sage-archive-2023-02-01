@@ -160,30 +160,26 @@ dict::
 Also we can substitute with keywords::
 
     sage: f = sin(x*y - z)
-    sage: f(x = t, y = z)
+    sage: f(x=t, y=z)
     sin(t*z - z)
 
-It was formerly the case that if there was no ambiguity of variable
-names, we didn't have to specify them; that still works for the moment,
-but the behavior is deprecated::
-
-    sage: f = sin(x)
-    sage: f(y)
-    doctest:...: DeprecationWarning: Substitution using function-call
-    syntax and unnamed arguments is deprecated and will be removed
-    from a future release of Sage; you can use named arguments instead,
-    like EXPR(x=..., y=...)
-    See http://trac.sagemath.org/5930 for details.
-    sin(y)
-    sage: f(pi)
-    0
-
-However if there is ambiguity, we should explicitly state what
-variables we're substituting for::
+Another example::
 
     sage: f = sin(2*pi*x/y)
     sage: f(x=4)
     sin(8*pi/y)
+
+It is no longer allowed to call expressions with positional arguments::
+
+    sage: f = sin(x)
+    sage: f(y)
+    Traceback (most recent call last):
+    ...
+    TypeError: Substitution using function-call syntax and unnamed
+    arguments has been removed. You can use named arguments instead, like
+    EXPR(x=..., y=...)
+    sage: f(x=pi)
+    0
 
 We can also make a ``CallableSymbolicExpression``,
 which is a ``SymbolicExpression`` that is a function of
@@ -399,8 +395,16 @@ To check that :trac:`14821` is fixed::
     sage: H = exp(-1.0 * x)
     sage: H.integral(x, 0, 1)
     0.6321205588285577
-    sage: integral(exp(-300.0/(-0.064*x+14.0)),x,0.0,120.0)
+    sage: result = integral(exp(-300.0/(-0.064*x+14.0)),x,0.0,120.0)
+    ...
+    sage: result
     4.62770039817000e-9
+
+To check that :trac:`27092` is fixed::
+
+    sage: n = var('n')
+    sage: sum(binomial(1, n), n, 0, oo)
+    2
 """
 
 import re
@@ -2317,13 +2321,13 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s[s.find("(") + 1:s.rfind(")")]
         s = "[" + s + "]"  # turn it into a string that looks like a list
 
-    #replace %solve from to_poly_solve with the expressions
+    # replace %solve from to_poly_solve with the expressions
     if s[0:5] == 'solve':
         s = s[5:]
         s = s[s.find("(") + 1:s.find("]") + 1]
 
-    #replace all instances of Maxima's scientific notation
-    #with regular notation
+    # replace all instances of Maxima's scientific notation
+    # with regular notation
     search = sci_not.search(s)
     while search is not None:
         (start, end) = search.span()
@@ -2474,6 +2478,7 @@ def _find_func(name, create_when_missing=True):
             return function_factory(name)
         else:
             return None
+
 
 parser_make_var = LookupNameMaker({}, fallback=_find_var)
 parser_make_function = LookupNameMaker({}, fallback=_find_func)

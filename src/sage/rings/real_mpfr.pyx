@@ -130,7 +130,7 @@ from sage.libs.gmp.mpz cimport *
 from sage.libs.mpfr cimport *
 from sage.misc.randstate cimport randstate, current_randstate
 from sage.cpython.string cimport char_to_str, str_to_bytes
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 
 from sage.structure.element cimport RingElement, Element, ModuleElement
 from sage.structure.element cimport have_same_parent
@@ -1129,33 +1129,30 @@ cdef class RealField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: RealField(100).random_element(-5, 10)
-            -1.7093633198207765227646362966
-            sage: RealField(10).random_element()
-            -0.11
+            sage: r = RealField(100).random_element(-5, 10)
+            sage: r.parent() is RealField(100)
+            True
+            sage: -5 <= r <= 10
+            True
 
         TESTS::
 
-            sage: RealField(31).random_element()
-            -0.676162510
-            sage: RealField(32).random_element()
-            0.689774422
-            sage: RealField(33).random_element()
-            0.396496861
-            sage: RealField(63).random_element()
-            -0.339980711116375371
-            sage: RealField(64).random_element()
-            -0.0453049884016705260
-            sage: RealField(65).random_element()
-            -0.5926714709589708137
-            sage: RealField(10).random_element()
-            0.23
-            sage: RealField(10).random_element()
-            -0.41
-            sage: RR.random_element()
-            -0.0420335212948924
-            sage: RR.random_element()
-            -0.616678906367394
+            sage: RealField(31).random_element().parent()
+            Real Field with 31 bits of precision
+            sage: RealField(32).random_element().parent()
+            Real Field with 32 bits of precision
+            sage: RealField(33).random_element().parent()
+            Real Field with 33 bits of precision
+            sage: RealField(63).random_element().parent()
+            Real Field with 63 bits of precision
+            sage: RealField(64).random_element().parent()
+            Real Field with 64 bits of precision
+            sage: RealField(65).random_element().parent()
+            Real Field with 65 bits of precision
+            sage: RealField(10).random_element().parent()
+            Real Field with 10 bits of precision
+            sage: RR.random_element().parent()
+            Real Field with 53 bits of precision
         """
         cdef RealNumber x = self._new()
         cdef randstate rstate = current_randstate()
@@ -6101,7 +6098,7 @@ def create_RealField(*args, **kwds):
         See http://trac.sagemath.org/24511 for details.
         Real Field with 53 bits of precision
     """
-    from sage.misc.superseded import deprecation
+    #deprecation has already been imported in this file
     deprecation(24511, "Please import create_RealField from sage.rings.real_field")
     from sage.rings.real_field import create_RealField as cr
     return cr(*args, **kwds)

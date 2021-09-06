@@ -52,14 +52,14 @@ following command::
 As a submanifold of a Riemannian manifold, namely the Euclidean space,
 the 2-sphere admits an induced metric::
 
-    sage: h = S2_r.induced_metric()
-    sage: h.display()
-    gamma = r^2 dtheta⊗dtheta + r^2*sin(theta)^2 dphi⊗dphi
+    sage: g = S2_r.induced_metric()
+    sage: g.display()
+    g = r^2 dtheta⊗dtheta + r^2*sin(theta)^2 dphi⊗dphi
 
 The induced metric is also known as the *first fundamental form* (see
 :meth:`~sage.manifolds.differentiable.pseudo_riemannian_submanifold.PseudoRiemannianSubmanifold.first_fundamental_form`)::
 
-    sage: h is S2_r.first_fundamental_form()
+    sage: g is S2_r.first_fundamental_form()
     True
 
 The *second fundamental form* encodes the extrinsic curvature of the
@@ -157,12 +157,12 @@ is oriented in the ambient Euclidean space, i.e. the last entry is the normal
 vector field pointing outwards. Henceforth, the manifold admits
 a volume form::
 
-    sage: h = S1c.induced_metric()
-    sage: h.display()
-    gamma = dchi⊗dchi
-    sage: eps = h.volume_form()
+    sage: g = S1c.induced_metric()
+    sage: g.display()
+    g = dchi⊗dchi
+    sage: eps = g.volume_form()
     sage: eps.display()
-    eps_gamma = -dchi
+    eps_g = -dchi
 
 """
 
@@ -380,7 +380,8 @@ class Sphere(PseudoRiemannianSubmanifold):
         PseudoRiemannianSubmanifold.__init__(self, n, name,
                                              ambient=ambient_space,
                                              signature=n, latex_name=latex_name,
-                                             start_index=1, category=category)
+                                             metric_name='g', start_index=1,
+                                             category=category)
         # set attributes
         self._radius = radius
         self._center = center

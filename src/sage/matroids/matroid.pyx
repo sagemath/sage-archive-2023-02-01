@@ -3005,7 +3005,7 @@ cdef class Matroid(SageObject):
                     ret.append(I)
         return ret
 
-    def orlik_solomon_algebra(self, R, ordering=None):
+    def orlik_solomon_algebra(self, R, ordering=None, **kwargs):
         """
         Return the Orlik-Solomon algebra of ``self``.
 
@@ -3013,6 +3013,12 @@ cdef class Matroid(SageObject):
 
         - ``R`` -- the base ring
         - ``ordering`` -- (optional) an ordering of the ground set
+        - optional parameter ``invariant`` -- (optional, default: None) either
+          a semigroup ``G`` whose ``__call__`` acts on the groundset, or pair
+          ``(G, action)`` where ``G`` is a semigroup and ``action``
+          is a function ``action(g,e)`` which takes a pair of a group
+          element and a grounset element and returns the groundset
+          element which is the result of ``e`` acted upon by ``g``
 
         .. SEEALSO::
 
@@ -3026,7 +3032,36 @@ cdef class Matroid(SageObject):
             Orlik-Solomon algebra of U(3, 4): Matroid of rank 3 on 4 elements
              with circuit-closures
              {3: {{0, 1, 2, 3}}}
+
+            sage: G = SymmetricGroup(3);
+            sage: OSG = M.orlik_solomon_algebra(QQ, invariant=G)
+
+            sage: G = SymmetricGroup(4)
+            sage: action = lambda g,x: g(x+1)-1
+            sage: OSG1 = M.orlik_solomon_algebra(QQ, invariant=(G,action))
+            sage: OSG2 = M.orlik_solomon_algebra(QQ, invariant=(action,G))
+            sage: OSG1 is OSG2
+            True
+
         """
+        if 'invariant' in kwargs:
+            G_action = kwargs.pop('invariant')
+            from sage.categories.semigroups import Semigroups
+
+            if len(G_action) > 1 and G_action not in Semigroups:
+                G, action = G_action
+                if action in Semigroups:
+                    G, action = action, G
+            else:
+                G, action = G_action, None # the None action is g.__call__
+
+            from sage.algebras.orlik_solomon import OrlikSolomonInvariantAlgebra
+
+            return OrlikSolomonInvariantAlgebra(R, self, G,
+                                                action_on_groundset=action,
+                                                ordering=ordering,
+                                                **kwargs)
+
         from sage.algebras.orlik_solomon import OrlikSolomonAlgebra
         return OrlikSolomonAlgebra(R, self, ordering)
 

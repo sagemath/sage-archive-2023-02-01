@@ -112,7 +112,7 @@ class Modules(Category_module):
     """
 
     @staticmethod
-    def __classcall_private__(cls, base_ring, dispatch = True):
+    def __classcall_private__(cls, base_ring, dispatch=True):
         r"""
         Implement the dispatching of ``Modules(field)`` to
         ``VectorSpaces(field)``.
@@ -171,7 +171,7 @@ class Modules(Category_module):
             [Category of modules over Rational Field]
         """
         R = self.base_ring()
-        return [Bimodules(R,R)]
+        return [Bimodules(R, R)]
 
     def additional_structure(self):
         r"""
@@ -509,7 +509,7 @@ class Modules(Category_module):
             FiniteSets = Sets().Finite()
             if (isinstance(base_ring, Category) and
                     base_ring.is_subcategory(FiniteSets)) or \
-                base_ring in FiniteSets():
+                base_ring in FiniteSets:
                 return [FiniteSets]
             else:
                 return []
@@ -805,7 +805,7 @@ class Modules(Category_module):
                     ((5, 10), (15, 20))
                 """
                 return self.parent()._cartesian_product_of_elements(
-                    x*y for y in self.cartesian_factors())
+                    x * y for y in self.cartesian_factors())
 
     class TensorProducts(TensorProductsCategory):
         """
@@ -822,4 +822,3 @@ class Modules(Category_module):
                 [Category of modules over Integer Ring]
             """
             return [self.base_category()]
-

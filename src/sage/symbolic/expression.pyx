@@ -312,7 +312,6 @@ More sanity tests::
 from cysignals.signals cimport sig_on, sig_off
 from sage.ext.cplusplus cimport ccrepr, ccreadstr
 
-from inspect import isfunction
 import operator
 from .ring import SR
 import sage.rings.integer
@@ -13255,7 +13254,7 @@ cdef get_dynamic_class_for_function(unsigned serial):
         # Fix methods from eval_methods, wrapping them to extract
         # the operands and pass them as arguments
         for name, meth in eval_methods.__dict__.items():
-            if not isfunction(meth):
+            if not callable(meth):
                 continue
             meth = _eval_on_operands(meth)
             setattr(cls, name, meth)

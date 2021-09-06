@@ -4045,14 +4045,14 @@ def lucas(k, P, Q=1, n=None):
         sage: from sage.rings.finite_rings.integer_mod import lucas
         sage: p = randint(0,100000)
         sage: q = randint(0,100000)
-        sage: n = randint(0,100)
+        sage: n = randint(1,100)
         sage: all(lucas(k,p,q,n)[0] == Mod(lucas_number2(k,p,q),n)
         ....:     for k in Integers(20))
         True
         sage: from sage.rings.finite_rings.integer_mod import lucas
         sage: p = randint(0,100000)
         sage: q = randint(0,100000)
-        sage: n = randint(0,100)
+        sage: n = randint(1,100)
         sage: k = randint(0,100)
         sage: lucas(k,p,q,n) == [Mod(lucas_number2(k,p,q),n),Mod(q^(int(k/2)),n)]
         True

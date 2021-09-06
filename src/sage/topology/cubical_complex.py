@@ -1182,6 +1182,14 @@ class CubicalComplex(GenericCellComplex):
             Chain complex with at most 1 nonzero terms over Integer Ring
             sage: C1.homology(subcomplex=S0)
             {0: 0, 1: Z}
+
+        Check that :trac:`32203` has been fixed::
+
+            sage: Square = CubicalComplex([([0,1],[0,1])])
+            sage: EdgesLTR = CubicalComplex([([0,0],[0,1]),([0,1],[1,1]),([1,1],[0,1])])
+            sage: EdgesLBR = CubicalComplex([([0,0],[0,1]),([0,1],[0,0]),([1,1],[0,1])])
+            sage: Square.homology(subcomplex=EdgesLTR)[2] == Square.homology(subcomplex=EdgesLBR)[2]
+            True
         """
         # initialize subcomplex
         if subcomplex is None:
@@ -1235,12 +1243,19 @@ class CubicalComplex(GenericCellComplex):
                         faces = cube.faces_as_pairs()
                         sign = 1
                         for (upper, lower) in faces:
+                            # trac 32203: use two "try/except" loops
+                            # in case lower is in old but upper is not.
                             try:
                                 matrix_data[(old[upper], col)] = sign
-                                sign *= -1
-                                matrix_data[(old[lower], col)] = sign
                             except KeyError:
                                 pass
+                            try:
+                                matrix_data[(old[lower], col)] = -1*sign
+                            except KeyError:
+                                pass
+                            # The signs in the boundary alternate as
+                            # we iterate through the faces.
+                            sign *= -1
                         col += 1
                 mat = matrix(ZZ, len(old), len(current), matrix_data)
                 self._complex[(dim, subcomplex)] = mat

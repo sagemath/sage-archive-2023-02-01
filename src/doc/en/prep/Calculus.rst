@@ -339,7 +339,7 @@ If no antiderivative is found, the result is just the input::
 
     sage: result = integral(sinh(x^2+sqrt(x-1)),x)  # long time (15s on sage.math, 2012)
     ...
-    sage: result
+    sage: result  # long time
     integrate(sinh(x^2 + sqrt(x - 1)), x)
 
 This last one stumps other systems too.

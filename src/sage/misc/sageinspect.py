@@ -145,9 +145,6 @@ def is_function_or_cython_function(obj):
         sage: from sage.misc.sageinspect import is_function_or_cython_function
         sage: def f(): pass
         sage: is_function_or_cython_function(f)
-        doctest:warning...
-        DeprecationWarning: sage.isfunction is deprecated; use callable or inspect.isfunction instead
-        See https://trac.sagemath.org/32479 for details.
         True
         sage: is_function_or_cython_function(lambda x:x)
         True

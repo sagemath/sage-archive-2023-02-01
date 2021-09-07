@@ -257,7 +257,7 @@ jobs:
           SAGE_ROOT=. SAGE_SRC=./src src/bin/sage-update-version $(git describe) || echo "(ignoring error)"
       - name: make dist
         run: |
-          ./configure && make dist
+          ./configure --enable-download-from-upstream-url && make dist
       - uses: actions/upload-artifact@v2
         with:
           path: "dist/*.tar.gz"

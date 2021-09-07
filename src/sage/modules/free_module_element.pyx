@@ -4460,7 +4460,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
 
     def function(self, *args):
         """
-        Returns a vector over a callable symbolic expression ring.
+        Return a vector over a callable symbolic expression ring.
 
         EXAMPLES::
 

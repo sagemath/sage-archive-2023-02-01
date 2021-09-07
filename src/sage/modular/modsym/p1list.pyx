@@ -1390,6 +1390,6 @@ def _make_p1list(n):
         See https://trac.sagemath.org/25848 for details.
         The projective line over the integers modulo 3
     """
-    from sage.misc.superseded import deprecation
+    from sage.misc.superseded import deprecation_cython as deprecation
     deprecation(25848, '_make_p1list() is deprecated')
     return P1List(n)

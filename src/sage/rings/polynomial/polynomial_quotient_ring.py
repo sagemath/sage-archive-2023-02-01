@@ -1145,8 +1145,8 @@ class PolynomialQuotientRing_generic(CommutativeRing):
             sage: F1.<a> = GF(2^7)
             sage: P1.<x> = F1[]
             sage: F2 = F1.extension(x^2+x+1, 'u')
-            sage: F2.random_element()
-            (a^6 + a^5 + a^2 + a)*u + a^6 + a^4 + a^3 + a^2 + 1
+            sage: F2.random_element().parent() is F2
+            True
         """
         return self(self.polynomial_ring().random_element( \
             degree=self.degree()-1, *args, **kwds))

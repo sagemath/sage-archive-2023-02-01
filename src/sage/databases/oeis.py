@@ -1503,14 +1503,8 @@ class OEISSequence(SageObject, UniqueRepresentation):
             A007540: Wilson primes: primes p such that (p-1)! == -1 (mod p^2).
 
             sage: w.references()                        # optional -- internet
-            0: A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.
-            1: C. Clawson, Mathematical Mysteries, Plenum Press, 1996, p. 180.
-            2: R. Crandall and C. Pomerance, Prime Numbers: A Computational Perspective, Springer, NY, 2001; see p. 29.
-            3: G. H. Hardy and E. M. Wright, An Introduction to the Theory of Numbers, 5th ed., Oxford Univ. Press, 1979, th. 80.
+            ...A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.
             ...
-
-            sage: _[0]                                  # optional -- internet
-            'A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.'
 
         TESTS::
 

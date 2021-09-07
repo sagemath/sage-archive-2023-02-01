@@ -1069,38 +1069,43 @@ cdef class SymbolicRing(CommutativeRing):
         """
         EXAMPLES::
 
-            sage: x,y=var('x,y')
+            sage: x, y = var('x,y')
             sage: f = x+y
             sage: f.variables()
             (x, y)
             sage: f()
             x + y
             sage: f(3)
-            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
-            See http://trac.sagemath.org/5930 for details.
-            y + 3
-            sage: f(x=3)
-            y + 3
-            sage: f(3,4)
-            7
-            sage: f(x=3,y=4)
-            7
-            sage: f(2,3,4)
             Traceback (most recent call last):
             ...
-            ValueError: the number of arguments must be less than or equal to 2
-            sage: f(x=2,y=3,z=4)
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
+            sage: f(x=3)
+            y + 3
+            sage: f(3, 4)
+            Traceback (most recent call last):
+            ...
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
+            sage: f(x=3, y=4)
+            7
+            sage: f(2, 3, 4)
+            Traceback (most recent call last):
+            ...
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
+            sage: f(x=2, y=3, z=4)
             5
 
         ::
 
-            sage: f({x:3})
+            sage: f({x: 3})
             y + 3
-            sage: f({x:3,y:4})
+            sage: f({x: 3, y: 4})
             7
             sage: f(x=3)
             y + 3
-            sage: f(x=3,y=4)
+            sage: f(x=3, y=4)
             7
 
         ::
@@ -1109,18 +1114,26 @@ cdef class SymbolicRing(CommutativeRing):
             sage: a(4)
             Traceback (most recent call last):
             ...
-            ValueError: the number of arguments must be less than or equal to 0
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
 
-
-        Note that you make get unexpected results when calling
-        symbolic expressions and not explicitly giving the variables::
+        Note that the application of arguments to a function defined using `function`
+        creates an ordinary expression, not a callable symbolic expression.  Hence,
+        calling this expression using function-call syntax and unnamed arguments
+        leads to an error::
 
             sage: f = function('Gamma')(var('z'), var('w')); f
             Gamma(z, w)
             sage: f(2)
-            Gamma(z, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
             sage: f(2,5)
-            Gamma(5, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
 
         Thus, it is better to be explicit::
 
@@ -1132,17 +1145,10 @@ cdef class SymbolicRing(CommutativeRing):
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
         else:
-            from sage.misc.superseded import deprecation
-            deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)", stacklevel=3)
-            d = {}
-
-            vars = _the_element.variables()
-            for i, arg in enumerate(args):
-                try:
-                    d[ vars[i] ] = arg
-                except IndexError:
-                    raise ValueError("the number of arguments must be less than or equal to %s"%len(vars))
-
+            raise TypeError("Substitution using function-call syntax "
+                            "and unnamed arguments has been removed. You "
+                            "can use named arguments instead, like "
+                            "EXPR(x=..., y=...)")
         return _the_element.subs(d, **kwds)
 
     def subring(self, *args, **kwds):

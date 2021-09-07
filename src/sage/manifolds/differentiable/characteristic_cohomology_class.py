@@ -1,5 +1,272 @@
 r"""
 Characteristic cohomology classes
+
+A *characteristic class* `\kappa` is a natural transformation that
+associates to each vector bundle `E \to M` a cohomology class
+`\kappa(E) \in H^*(M;R)` such that for any continuous map `f\colon N \to M`
+from another topological manifold `N`, the *naturality condition* is
+satisfied:
+
+.. MATH::
+
+    f^*\kappa(E) = \kappa(f^* E) \in H^*(N;R)
+
+The cohomology class `\kappa(E)` is called *characteristic cohomology class*.
+Roughly speaking, characteristic cohomology classes measure the non-triviality
+of vector bundles.
+
+One way to obtain and compute characteristic classes in the de Rham cohomology
+with coefficients in the ring `\CC` is via the so-called *Chern-Weil theory*
+using the curvature of a differentiable vector bundle.
+
+For that let `\nabla` be a connection on `E`, `e` a local frame on
+`E` and `\Omega` be the corresponding curvature matrix
+(see: :meth:`~sage.manifolds.differentiable.bundle_connection.BundleConnection.curvature_form`).
+
+Namely, if `P: \mathrm{Mat}_{n \times n}(\CC) \to \CC` is an invariant
+polynomial, the object
+
+.. MATH::
+
+    \left[ P \left( \Omega \right) \right] \in H^{2*}_{\mathrm{dR}}(M, \CC)
+
+is well-defined, independent of the choice of `\nabla` (the proof can be
+found in [Roe1988]_ pp. 31) and fulfills the naturality condition.
+This is the foundation of the Chern-Weil theory and therefore the following
+definitions.
+
+.. NOTE::
+
+    This documentation is rich of examples, but sparse in explanations. Please
+    consult the references for more details.
+
+AUTHORS:
+
+- Michael Jung (2021) : initial version
+
+REFERENCES:
+
+- [Mil1974]_
+- [Roe1988]_
+
+Contents
+--------
+
+We consider the following three types of classes:
+
+- :ref:`additive`
+- :ref:`multiplicative`
+- :ref:`Pfaffian`
+
+.. _additive:
+
+Additive Classes
+----------------
+
+In the **complex** case, let `f` be a holomorphic function around zero. Then
+we call
+
+.. MATH::
+
+    \left[\mathrm{tr}\left( f\left( \frac{\Omega}{2 \pi i} \right)
+        \right)\right] \in H^{2*}_{\mathrm{dR}}(M, \CC)
+
+the *additive characteristic class associated to* `f` of the complex vector
+bundle `E`.
+
+Important and predefined additive classes are:
+
+- *Chern Character* with `f(x) = \exp(x)`
+
+In the **real** case, let `g` be a holomorphic function around zero with
+`g(0)=0`. Then we call
+
+.. MATH::
+
+    \left[\mathrm{tr}\left( \frac{1}{2} g\left( -\frac{\Omega^2}{4 \pi^2}
+        \right) \right)\right] \in H^{4*}_{\mathrm{dR}}(M, \CC)
+
+the *additive characteristic class associated to* `g` of the **real** vector
+bundle `E`.
+
+EXAMPLES:
+
+Consider the **Chern character** on some 2-dimensional spacetime::
+
+    sage: M = Manifold(2, 'M', structure='Lorentzian')
+    sage: X.<t,x> = M.chart()
+    sage: E = M.vector_bundle(1, 'E', field='complex'); E
+    Differentiable complex vector bundle E -> M of rank 1 over the base space
+     2-dimensional Lorentzian manifold M
+    sage: e = E.local_frame('e')
+
+Let us define the connection `\nabla^E` in terms of an electro-magnetic
+potential `A(t)`::
+
+    sage: nab = E.bundle_connection('nabla^E', latex_name=r'\nabla^E')
+    sage: omega = M.one_form(name='omega')
+    sage: A = function('A')
+    sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+    sage: nab[0, 0].display()
+    connection (0,0) of bundle connection nabla^E w.r.t. Local frame
+     (E|_M, (e_0)) = I*A(t) dx
+    sage: nab.set_immutable()
+
+The Chern character is then given by::
+
+    sage: ch = E.characteristic_cohomology_class('ChernChar'); ch
+    Characteristic cohomology class ch(E) of the Differentiable complex vector
+     bundle E -> M of rank 1 over the base space 2-dimensional Lorentzian
+     manifold M
+
+The corresponding characteristic form w.r.t. the bundle connection can be
+obtained via :meth:`get_form`.
+
+    sage: ch_form = ch.get_form(nab); ch_form.display_expansion()
+    ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt∧dx
+
+.. _multiplicative:
+
+Multiplicative Classes
+----------------------
+
+In the **complex** case, let `f` be a holomorphic function around zero.
+Then we call
+
+.. MATH::
+
+    \left[\det\left( f\left( \frac{\Omega}{2 \pi i} \right)
+        \right)\right] \in H^{2*}_{\mathrm{dR}}(M, \CC)
+
+the *multiplicative characteristic class associated to* `f` of the complex
+vector bundle `E`.
+
+Important and predefined multiplicative classes on complex vector bundles are:
+
+- *Chern class* with `f(x) = 1+x`
+- *Todd class* with `f(x) = \frac{x}{1-\exp(-x)}`
+
+In the **real** case, let `g` be a holomorphic function around zero with
+`g(0)=1`. Then we call
+
+.. MATH::
+
+    \left[\det\left( \sqrt{ g \left( -\frac{\Omega^2}{4 \pi^2} \right) } \right)
+        \right] \in H^{4*}_{\mathrm{dR}}(M, \CC)
+
+the *multiplicative characteristic class associated to* `g` on the **real**
+vector bundle `E`.
+
+Important and predefined multiplicative classes on real vector bundles are:
+
+- *Pontryagin class* with `g(x) = 1+x`
+- `\hat{A}` *class* with `g(x) = \frac{\sqrt{x}/2}{\sinh(\sqrt{x}/2)}`
+- *Hirzebruch class* with `g(x) = \frac{\sqrt{x}}{\tanh(\sqrt{x})}`
+
+EXAMPLES:
+
+We consider the **Chern class** of the tautological line bundle `\gamma^1` over
+`\CC\mathbf{P}^1`::
+
+    sage: M = Manifold(2, 'CP^1', start_index=1)
+    sage: U = M.open_subset('U')
+    sage: c_cart.<x,y> = U.chart() # homogeneous coordinates in real terms
+    sage: c_comp.<z, zbar> = U.chart(r'z:z zbar:\bar{z}') # complexification
+    sage: cart_to_comp = c_cart.transition_map(c_comp, (x+I*y, x-I*y))
+    sage: comp_to_cart = cart_to_comp.inverse()
+    sage: E = M.vector_bundle(1, 'gamma^1', field='complex')
+    sage: e = E.local_frame('e', domain=U)
+
+To apply the Chern-Weil approach, we need a bundle connection in terms of a
+connection one form. To achieve this, we take the connection induced from the
+hermitian metric on the trivial bundle
+`\CC^2 \times \CC\mathbf{P}^1 \supset \gamma^1`. In this the frame `e`
+corresponds to the section `[z:1] \mapsto (z,1)` and its magnitude-squared
+is given by `1+|z|^2`::
+
+    sage: nab = E.bundle_connection('nabla')
+    sage: omega = U.one_form(name='omega')
+    sage: omega[c_comp.frame(),1,c_comp] = zbar/(1+z*zbar)
+    sage: nab[e, 1, 1] = omega
+    sage: nab.set_immutable()
+
+Now, the Chern class can be constructed::
+
+    sage: c = E.characteristic_cohomology_class('Chern'); c
+    Characteristic cohomology class c(gamma^1) of the Differentiable complex
+     vector bundle gamma^1 -> CP^1 of rank 1 over the base space 2-dimensional
+     differentiable manifold CP^1
+    sage: c_form = c.get_form(nab)
+    sage: c_form.display_expansion(c_comp.frame(), chart=c_comp)
+    c(gamma^1, nabla) = 1 + 1/2*I/(pi + pi*z^2*zbar^2 + 2*pi*z*zbar) dz∧dzbar
+
+Since `U` and `\CC\mathbf{P}^1` differ only by a point and therefore a null
+set, it is enough to integrate the top form over the domain `U`::
+
+    sage: integrate(integrate(c_form[2][[1,2]].expr(c_cart), x, -infinity, infinity).full_simplify(),
+    ....:           y, -infinity, infinity)
+    1
+
+The result shows that `c_1(\gamma^1)` generates the second integer
+cohomology of `\CC\mathbf{P}^1`.
+
+.. _Pfaffian:
+
+Pfaffian Classes
+----------------
+
+Usually, there is no such thing as "Pfaffian classes" in literature. However,
+using the matrix' Pfaffian and inspired by the aforementioned definitions,
+such classes can be defined as follows.
+
+Let `E` be a real vector bundle of rank `2n` and `f` an odd real function
+being analytic at zero. Furthermore, let `\Omega` be skew-symmetric, which
+certainly will be true if `\nabla` is metric and `e` is orthonormal. Then
+we call
+
+.. MATH::
+
+    \left[\mathrm{Pf}\left( f\left( \frac{\Omega}{2 \pi} \right) \right)\right]
+        \in H^{2n*}(M,\RR)
+
+the *Pfaffian class associated to f*.
+
+The most important Pfaffian class is the *Euler class* which is simply given by
+`f(x)=x`.
+
+EXAMPLES:
+
+We consider the **Euler class** of `S^2`::
+
+    sage: M.<x,y> = manifolds.Sphere(2, coordinates='stereographic')
+    sage: TM = M.tangent_bundle()
+    sage: e_class = TM.characteristic_cohomology_class('Euler'); e_class
+    Characteristic cohomology class e(TS^2) of the Tangent bundle TS^2 over the
+     2-sphere S^2 of radius 1 smoothly embedded in the Euclidean space E^3
+
+To compute a particular representative of the Euler class, we need to determine
+a connection, which is in this case given by the standard metric::
+
+    sage: g = M.metric('g') # standard metric on S2
+    sage: nab = g.connection()
+    sage: nab.set_immutable()
+
+Now the representative of the Euler class with respect to the connection
+`\nabla_g` induced by the standard metric can be computed::
+
+    sage: e_class_form = e_class.get_form(nab)
+    sage: e_class_form.display_expansion()
+    e(TS^2, nabla_g) = 2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 + 2*(pi + pi*x^2)*y^2) dx∧dy
+
+Let us check whether this form represents the Euler class correctly::
+
+    sage: integrate(integrate(e_class_form[2][[1,2]].expr(), x, -infinity, infinity).simplify_full(),
+    ....:           y, -infinity, infinity)
+    2
+
+As we can see, the integral coincides with the Euler characteristic of `S^2` so
+that our form actually represents the Euler class appropriately.
+
 """
 
 #******************************************************************************
@@ -173,7 +440,95 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
 
 class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
     r"""
+    Characteristic cohomology class ring.
 
+    Let `E \to M` be a real or complex vector bundle of rank `k` and `R` be a
+    torsion-free subring of `\CC`.
+
+    Let `BG` be the classifying space of the group `G`. As for vector bundles,
+    we consider
+
+    - `G = O(k)` if `E` is real,
+    - `G = SO(k)` if `E` is real and oriented,
+    - `G = U(k)` if `E` is complex.
+
+    The cohomology ring `H^*(BG; R)` can be explicitly expressed for the
+    aforementioned cases:
+
+    .. MATH::
+
+        H^*(BG; R) \cong \begin{cases}
+            R[c_1, \ldots c_k] & \text{if } G = U(k), \\
+            R[p_1, \ldots p_{\lfloor \frac{k}{2}\rfloor}] & \text{if } G = O(k), \\
+            R[p_1, \ldots p_k, e] \big/ (p_k^2-e) & \text{if } G = SO(2k), \\
+            R[p_1, \ldots p_k, e] & \text{if } G = O(2k+1). \\
+        \end{cases}
+
+    The Chern-Weil homomorphism relates the generators in the de Rham cohomology
+    as follows. For the Chern classes, we have
+
+    .. MATH::
+
+        \left[ \det\left(  1 + \frac{t \Omega}{2 \pi i} \right) = 1 +
+        \sum^k_{n=1} c_n(E) t^n,
+
+    for the Pontryagin classes we have
+
+    .. MATH::
+
+        \left[ \det\left( 1 - \frac{t \Omega}{2 \pi} \right) = 1 + \sum^{
+        \lfloor\frac{k}{2} \rfloor}_{n=1} p_n(E) t^n,
+
+    and for the Euler class we obtain
+
+    .. MATH::
+
+        \left[ \mathrm{Pf}\left(\frac{\Omega}{2 \pi} \right) = e(E).
+
+    Consequently, the cohomology `H^*(BG; R)` can be considered being a
+    subring of `H_\mathrm{dR}(M, \CC)`.
+
+    INPUT:
+
+    - ``base`` -- base ring
+    - ``vbundle`` -- vector bundle
+
+    EXAMPLES:
+
+    Characteristic cohomology class ring over the tangent bundle of an
+    8-dimensional manifold::
+
+        sage: M = Manifold(8, 'M')
+        sage: TM = M.tangent_bundle()
+        sage: CR = TM.characteristic_cohomology_class_ring(); CR
+        Algebra of characteristic cohomology classes of the Tangent bundle TM
+         over the 8-dimensional differentiable manifold M
+        sage: CR.gens()
+        [Characteristic cohomology class (p_1)(TM) of the Tangent bundle TM over
+         the 8-dimensional differentiable manifold M,
+         Characteristic cohomology class (p_2)(TM) of the Tangent bundle TM
+         over the 8-dimensional differentiable manifold M]
+
+    The default base ring is `\QQ`::
+
+        sage: CR.base_ring()
+        Rational Field
+
+    Characteristic cohomology class ring over a complex vector bundle::
+
+        sage: M = Manifold(4, 'M')
+        sage: E = M.vector_bundle(2, 'E', field='complex')
+        sage: CR_E = E.characteristic_cohomology_class_ring(); CR_E
+        Algebra of characteristic cohomology classes of the Differentiable
+         complex vector bundle E -> M of rank 2 over the base space
+         4-dimensional differentiable manifold M
+        sage: CR_E.gens()
+        [Characteristic cohomology class (c_1)(E) of the Differentiable complex
+         vector bundle E -> M of rank 2 over the base space 4-dimensional
+         differentiable manifold M,
+         Characteristic cohomology class (c_2)(E) of the Differentiable
+         complex vector bundle E -> M of rank 2 over the base space
+         4-dimensional differentiable manifold M]
     """
     Element = CharacteristicCohomologyClassRingElement
 

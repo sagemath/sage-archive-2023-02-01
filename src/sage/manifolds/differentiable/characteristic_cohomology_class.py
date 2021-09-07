@@ -120,7 +120,7 @@ The Chern character is then given by::
      manifold M
 
 The corresponding characteristic form w.r.t. the bundle connection can be
-obtained via :meth:`get_form`.
+obtained via :meth:`get_form`::
 
     sage: ch_form = ch.get_form(nab); ch_form.display_expansion()
     ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt∧dx
@@ -461,32 +461,34 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
             R[c_1, \ldots c_k] & \text{if } G = U(k), \\
             R[p_1, \ldots p_{\lfloor \frac{k}{2}\rfloor}] & \text{if } G = O(k), \\
             R[p_1, \ldots p_k, e] \big/ (p_k^2-e) & \text{if } G = SO(2k), \\
-            R[p_1, \ldots p_k, e] & \text{if } G = O(2k+1). \\
+            R[p_1, \ldots p_k, e] & \text{if } G = SO(2k+1). \\
         \end{cases}
 
     The Chern-Weil homomorphism relates the generators in the de Rham cohomology
-    as follows. For the Chern classes, we have
+    as follows. If `\Omega` is a curvature form matrix on `E`, for the Chern
+    classes
+    we get
 
     .. MATH::
 
-        \left[ \det\left(  1 + \frac{t \Omega}{2 \pi i} \right) = 1 +
+        \left[ \det\left( 1 + \frac{t \Omega}{2 \pi i} \right) \right] = 1 +
         \sum^k_{n=1} c_n(E) t^n,
 
     for the Pontryagin classes we have
 
     .. MATH::
 
-        \left[ \det\left( 1 - \frac{t \Omega}{2 \pi} \right) = 1 + \sum^{
-        \lfloor\frac{k}{2} \rfloor}_{n=1} p_n(E) t^n,
+        \left[ \det\left( 1 - \frac{t \Omega}{2 \pi} \right) \right] = 1 +
+        \sum^{\lfloor\frac{k}{2} \rfloor}_{n=1} p_n(E) t^n,
 
     and for the Euler class we obtain
 
     .. MATH::
 
-        \left[ \mathrm{Pf}\left(\frac{\Omega}{2 \pi} \right) = e(E).
+        \left[ \mathrm{Pf}\left(\frac{\Omega}{2 \pi} \right) \right] = e(E).
 
-    Consequently, the cohomology `H^*(BG; R)` can be considered being a
-    subring of `H_\mathrm{dR}(M, \CC)`.
+    Consequently, the cohomology ring `H^*(BG; R)` can be considered being a
+    subring of `H^*_\mathrm{dR}(M, \CC)`.
 
     INPUT:
 

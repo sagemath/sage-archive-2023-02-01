@@ -385,7 +385,7 @@ def log(*args, **kwds):
         sage: log(a,3)
         Traceback (most recent call last):
         ...
-        ValueError: No discrete log of 8 found to base 3 modulo 13
+        ValueError: no logarithm of 8 found to base 3 modulo 13
         sage: log(F(9), 3)
         2
 
@@ -450,7 +450,7 @@ def log(*args, **kwds):
     try:
         return args[0].log(args[1])
     except ValueError as ex:
-        if repr(ex)[12:27] == "No discrete log":
+        if ex.args[0].startswith("no logarithm"):
             raise
         return logb(args[0], args[1])
     except (AttributeError, TypeError):

@@ -1444,15 +1444,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: a.nth_root(2, False, True, 'Johnston', cunningham = True) # optional - cunningham_tables
             [3, 8]
 
-        ALGORITHMS:
+        ALGORITHM:
 
-        - The default for prime modulus is currently an algorithm described in the following paper:
-
-        Johnston, Anna M. A generalized qth root algorithm. Proceedings of the tenth annual ACM-SIAM symposium on Discrete algorithms. Baltimore, 1999: pp 929-930.
+        The default for prime modulus is currently an algorithm
+        described in [Joh1999]_.
 
         AUTHORS:
 
-        - David Roe (2010-2-13)
+        - David Roe (2010-02-13)
         """
         if extend:
             raise NotImplementedError

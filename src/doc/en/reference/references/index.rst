@@ -894,11 +894,6 @@ REFERENCES:
 .. [BL2003] \S. Brlek, A. Ladouceur, A note on differentiable palindromes,
             Theoret. Comput. Sci. 302 (2003) 167--178.
 
-.. [BL2008] Corentin Boissy and Erwan Lanneau, *Dynamics and geometry
-            of the Rauzy-Veech induction for quadratic differentials*
-            (:arxiv:`0710.5614`) to appear in Ergodic Theory and
-            Dynamical Systems.
-
 .. [BraLea2008] \C. Bracken and Gregor Leander: *New families of functions
              with differential uniformity of 4*, Proceedings of the Conference
              BFCA, Copenhagen, 2008.
@@ -1972,11 +1967,6 @@ REFERENCES:
 .. [DLRS2010] De Loera, Rambau and Santos, "Triangulations: Structures
               for Algorithms and Applications", Algorithms and
               Computation in Mathematics, Volume 25, Springer, 2011.
-
-.. [DN1990] Claude Danthony and Arnaldo Nogueira, *Measured foliations
-            on nonorientable surfaces*, Annales scientifiques de
-            l'École Normale Supérieure, Sér. 4, 23, no. 3 (1990) p
-            469-494
 
 .. [DNB1996] Feodor F. Dragan, Falk Nicolai, Andreas Brandstat.
                *LexBFS-orderings and powers of graphs*.
@@ -3203,19 +3193,20 @@ REFERENCES:
              Form for Arbitrary Shifts. In Proceedings ISSAC 2016 (pages
              295-302). https://doi.org/10.1145/2930889.2930928
 
-.. [Joh1980] \D. Johnson, "Spin structures and quadratic forms on surfaces",
-             J. London Math. Soc (2), 22, 1980, 365-373
-
 .. [Joh1990] \D.L. Johnson. *Presentations of Groups*. Cambridge
              University Press. (1990).
+
+.. [Joh1999] Anna M. Johnston. A generalized qth root algorithm.
+             Proceedings of the tenth annual ACM-SIAM symposium
+             on Discrete algorithms. Baltimore, 1999: pp. 929-930.
 
 .. [Jon1987] \V. Jones, Hecke algebra representations of braid groups
              and link polynomials.  Ann. of Math. (2) 126 (1987),
              no. 2, 335--388. :doi:`10.2307/1971403`
              :mathscinet:`MR0908150`
 
-.. [Jon2005] \V. Jones, The Jones
-             Polynomial, 2005. https://math.berkeley.edu/~vfr/jones.pdf
+.. [Jon2005] \V. Jones, The Jones Polynomial, 2005.
+             https://math.berkeley.edu/~vfr/jones.pdf
 
 .. [JRJ94] Jourdan, Guy-Vincent; Rampon, Jean-Xavier; Jard, Claude
            (1994), "Computing on-line the lattice of maximal antichains
@@ -3671,10 +3662,6 @@ REFERENCES:
             *Hook length property of d-complete posets via q-integrals*.
             J. Combin. Theory Ser. A, **162** (2019), pp. 167-221.
 
-.. [KZ2003] \M. Kontsevich, A. Zorich "Connected components of the
-            moduli space of Abelian differentials with prescripebd
-            singularities" Invent. math. 153, 631-678 (2003)
-
 .. _ref-L:
 
 **L**
@@ -3704,10 +3691,6 @@ REFERENCES:
 
 .. [Lan2002] \S. Lang : *Algebra*, 3rd ed., Springer (New York) (2002);
              :doi:`10.1007/978-1-4613-0041-0`
-
-.. [Lan2008] \E. Lanneau, *Connected components of the strata of the
-             moduli spaces of quadratic differentials*, Annales
-             sci. de l'ENS, serie 4, fascicule 1, 41, 1-56 (2008)
 
 .. [Lasc] \A. Lascoux. *Chern and Yang through ice*.
           Preprint.
@@ -4241,12 +4224,6 @@ REFERENCES:
               Discrete and Computational Geometry,
               vol. 47, issue 1, pp. 17-43, 2012.
 
-.. [MMY2003] Jean-Christophe Yoccoz, Stefano Marmi and Pierre Moussa
-             "On the cohomological equation for interval exchange
-             maps", C. R. Acad. Sci. Paris, projet de Note, 2003
-             Systèmes dynamiques/Dynamical
-             Systems. :arxiv:`math/0304469v1`
-
 .. [MM1998] Gunter Malle and Andrew Mathas.
             *Symmetric cyclotomic Hecke algebras* J. Algebra.
             **205** (1998) pp. 275-293.
@@ -4452,10 +4429,6 @@ REFERENCES:
             *Cliquer User's  Guide, Version 1.0*,
             Communications Laboratory, Helsinki University of Technology,
             Espoo, Finland, Tech. Rep. T48, 2003.
-
-.. [Nog1985] Arnaldo Nogueira, "Almost all Interval Exchange
-             Transformations with Flips are Nonergodic" (Ergod. Th. &
-             Dyn. Systems, Vol 5., (1985), 257-271
 
 .. [Normaliz] Winfried Bruns, Bogdan Ichim, and Christof Soeger,
               Normaliz,
@@ -4797,9 +4770,6 @@ REFERENCES:
              and Iwahori-Hecke algebras*. Proc. London Math. Soc. (3)
              **75** (1997). 99-133. :arxiv:`math/9511223v1`.
              http://www.ms.unimelb.edu.au/~ram/Publications/1997PLMSv75p99.pdf
-
-.. [Rau1979] Gerard Rauzy, *Échanges d'intervalles et transformations
-             induites*, Acta Arith. 34, no. 3, 203-212, 1980
 
 .. [RCES1994] Ruskey, R. Cohen, P. Eades, A. Scott.
               *Alley CATs in search of good homes.*
@@ -5682,9 +5652,6 @@ REFERENCES:
 .. [VDKT2016] \E. R. van Dam, J. H. Koolen, H. Tanaka, *Distance Regular graphs*
               The Electronic Journal of Combinatorics. 2016
 
-.. [Vee1978] William Veech, "Interval exchange
-             transformations", J. Analyse Math. 33 (1978), 222-272
-
 .. [Ver] Helena Verrill, "Fundamental domain drawer", Java program,
          http://www.math.lsu.edu/~verrill/
 
@@ -5903,9 +5870,6 @@ REFERENCES:
              Quarterly of Applied Mathematics. 27 (4): 526–530.
              :doi:`10.1090/qam/253822`
 
-.. [Yoc2005] Jean-Christophe Yoccoz "Echange d'Intervalles", Cours au
-             collège de France
-
 .. [Yip2018] Yip, Martha. "Rook placements and Jordan forms of
              upper-triangular nilpotent matrices."
              Electronic J. Comb. 25(1) (2018) #P1.68. :arxiv:`1703.00057`.
@@ -5976,14 +5940,6 @@ REFERENCES:
 .. [ZJRRS2019] \M. R. Z'aba, N. Jamil, M. S. Rohmad, H. A. Rani, S. Shamsuddin
            *The CiliPadi Family of Lightweight Authenticated Encryption*
            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/cilipadi-spec.pdf
-
-.. [Zor2008] \A. Zorich. *Explicit Jenkins-Strebel representatives of
-             all strata of Abelian and quadratic differentials*,
-             Journal of Modern Dynamics, vol. 2, no 1, 139-185 (2008)
-             (http://www.math.psu.edu/jmd) :doi:`10.3934/jmd.2008.2.139`
-
-.. [Zor] Anton Zorich, "Generalized Permutation software"
-         (http://perso.univ-rennes1.fr/anton.zorich)
 
 .. [ZZ2005] Hechun Zhang and R. B. Zhang.
             *Dual canonical bases for the quantum special linear group

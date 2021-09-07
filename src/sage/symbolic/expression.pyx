@@ -13791,3 +13791,6 @@ cdef class hold_class:
         self.__exit__()
 
 hold = hold_class()
+
+
+include "pynac_function_impl.pxi"

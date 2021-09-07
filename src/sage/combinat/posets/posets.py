@@ -286,8 +286,7 @@ from copy import copy, deepcopy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
-from sage.functions.other import floor
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 from sage.categories.category import Category
 from sage.categories.sets_cat import Sets
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -8536,7 +8535,7 @@ class FinitePoset(UniqueRepresentation, Parent):
         poly = -sum(sublat(self.order_ideal([x])).characteristic_polynomial() *
                     sublat(self.order_filter([x])).kazhdan_lusztig_polynomial()
                     for x in self if x != min_elt)
-        tr = floor(self.rank()/2) + 1
+        tr = self.rank() // 2 + 1
         ret = poly.truncate(tr)
         return ret(q=q)
 

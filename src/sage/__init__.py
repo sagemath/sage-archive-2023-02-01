@@ -2,10 +2,6 @@
 # It will be removed soon in order to turn 'sage' into a native namespace package.
 # See https://trac.sagemath.org/ticket/29705
 
-# Set sage.__version__ to the current version number. This is analogous
-# to many other Python packages.
-from sage.version import version as __version__
-
 import sys
 # Make sure that the correct zlib library is loaded. This is needed
 # to prevent the system zlib to be loaded instead of the Sage one.

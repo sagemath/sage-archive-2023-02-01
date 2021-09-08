@@ -7,13 +7,13 @@
 # to prevent the system zlib to be loaded instead of the Sage one.
 # See https://trac.sagemath.org/ticket/23122
 import zlib as _zlib
-
+del _zlib
 
 # Monkey-patch ExtensionFileLoader to allow IPython to find the sources
 # of Cython files. See https://trac.sagemath.org/ticket/24681
 from importlib.machinery import ExtensionFileLoader as _ExtensionFileLoader
 del _ExtensionFileLoader.get_source
-
+del _ExtensionFileLoader
 
 # Work around a Cygwin-specific bug caused by sqlite3; see
 # https://trac.sagemath.org/ticket/30157 and the docstring for
@@ -52,3 +52,4 @@ if _sys.platform == 'cygwin':
 
     _patch_sqlite3()
     del _patch_sqlite3
+    del _sys

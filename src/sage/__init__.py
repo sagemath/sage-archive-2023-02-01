@@ -53,16 +53,6 @@ import inspect
 inspect.isfunction = isfunction
 
 
-# Monkey-patch ExtensionFileLoader to allow IPython to find the sources
-# of Cython files. See https://trac.sagemath.org/ticket/24681
-try:
-    from importlib.machinery import ExtensionFileLoader
-except ImportError:
-    pass  # Python 2
-else:
-    del ExtensionFileLoader.get_source
-
-
 # Work around a Cygwin-specific bug caused by sqlite3; see
 # https://trac.sagemath.org/ticket/30157 and the docstring for
 # fix_for_ticket_30157

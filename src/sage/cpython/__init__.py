@@ -7,3 +7,9 @@
 # to prevent the system zlib to be loaded instead of the Sage one.
 # See https://trac.sagemath.org/ticket/23122
 import zlib as _zlib
+
+
+# Monkey-patch ExtensionFileLoader to allow IPython to find the sources
+# of Cython files. See https://trac.sagemath.org/ticket/24681
+from importlib.machinery import ExtensionFileLoader as _ExtensionFileLoader
+del _ExtensionFileLoader.get_source

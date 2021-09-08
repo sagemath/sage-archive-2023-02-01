@@ -5947,6 +5947,11 @@ REFERENCES:
              constrained optimization. ACM Transactions on
              Mathematical Software, Vol 23, Num. 4, pp.550--560, 1997.
 
+.. [ZC2005] Afra Zomorodian and Gunnar Carlsson
+            "Computing Persistent Homology",
+            Discrete and Computational Geometry (2005)
+            :doi:`10.1007/s00454-004-1146-y`
+
 .. [ZDYBXJZ2019] \W. Zhang, T. Ding, B. Yang, Z. Bao, Z. Xiang, F. Ji, X. Zhao.
                  *KNOT: Algorithm Specifications and Supporting Document*
                  https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/KNOT-spec.pdf
@@ -5977,8 +5982,8 @@ REFERENCES:
            *The CiliPadi Family of Lightweight Authenticated Encryption*
            https://csrc.nist.gov/CSRC/media/Projects/Lightweight-Cryptography/documents/round-1/spec-doc/cilipadi-spec.pdf
 
-.. [Zor2008] \A. Zorich. *Explicit Jenkins-Strebel representatives of
-             all strata of Abelian and quadratic differentials*,
+.. [Zor2008] \A. Zorich "Explicit Jenkins-Strebel representatives of
+             all strata of Abelian and quadratic differentials",
              Journal of Modern Dynamics, vol. 2, no 1, 139-185 (2008)
              (http://www.math.psu.edu/jmd) :doi:`10.3934/jmd.2008.2.139`
 

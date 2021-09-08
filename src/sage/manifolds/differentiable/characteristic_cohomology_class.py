@@ -487,8 +487,10 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
 
         \left[ \mathrm{Pf}\left(\frac{\Omega}{2 \pi} \right) \right] = e(E).
 
-    Consequently, the cohomology ring `H^*(BG; R)` can be considered being a
-    subring of `H^*_\mathrm{dR}(M, \CC)`.
+    Consequently, the cohomology ring `H^*(BG; R)` is mapped (not
+    necessarily injectively) to a subring of `H^*_\mathrm{dR}(M, \CC)` via
+    the Chern-Weil homomorphism. This implementation attempts to represent this
+    subring.
 
     INPUT:
 
@@ -536,7 +538,14 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
 
     def __init__(self, base, vbundle):
         r"""
+        Construct a characteristic cohomology ring.
 
+        TESTS::
+
+            sage: M = Manifold(8, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: CR = TM.characteristic_cohomology_class_ring()
+            sage: TestSuite(CR).run()
         """
         self._vbundle = vbundle
         self._domain = vbundle._base_space
@@ -576,6 +585,10 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
     def _element_constructor_(self, x, name=None, latex_name=None):
         r"""
         Convert ``x`` into ``self``.
+
+        TESTS::
+
+
         """
         R = self.base_ring()
 
@@ -601,7 +614,19 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
 
     def _repr_(self):
         r"""
+        String representation of the object.
 
+        TESTS::
+
+            sage: M = Manifold(8, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: CR = TM.characteristic_cohomology_class_ring()
+            sage: CR._repr_()
+            'Algebra of characteristic cohomology classes of the Tangent bundle
+             TM over the 8-dimensional differentiable manifold M'
+            sage: CR  # indirect doctest
+            Algebra of characteristic cohomology classes of the Tangent bundle
+             TM over the 8-dimensional differentiable manifold M
         """
         vbundle = self._vbundle
         repr = f'Algebra of characteristic cohomology classes of the {vbundle}'
@@ -611,26 +636,51 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
 # ALGORITHMS
 # *****************************************************************************
 
-def multiplicative_sequence(q, max_order=None):
+def multiplicative_sequence(q, n=None):
     r"""
     Turn the polynomial ``q`` into its multiplicative sequence.
+
+    Let `q` be a polynomial and `x_1, \ldots x_n` indeterminates. The
+    *multiplicative sequence of* `q` is then given by the polynomials `K_j`
+
+    .. MATH::
+
+        \sum_{j=0}^n K_j(\sigma_1, \ldots, \sigma_j) z^j =
+        \prod_{i=1}^{n} q(z \,x_i),
+
+    where `\sigma_i` is the `i`-th elementary symmetric polynomial in the
+    indeterminates `x_i`.
 
     INPUT:
 
     - ``q`` -- polynomial to turn into its multiplicative sequence.
-    - ``max_order`` -- (default: ``None``) the highest order of the sequence;
+    - ``n`` -- (default: ``None``) the highest order `n` of the sequence;
       if ``None``, the order of ``q`` is assumed.
 
     OUTPUT:
 
     - A symmetric polynomial representing the multiplicative sequence.
+
+    EXAMPLES::
+
+        sage: P.<x> = PolynomialRing(QQ)
+        sage: from sage.manifolds.differentiable.characteristic_cohomology_class import multiplicative_sequence
+        sage: f = 1 + x - x^2
+        sage: sym = multiplicative_sequence(f); sym
+        e[] + e[1] - e[1, 1] + 3*e[2]
+
+    The maximal order of the result can be stated with ``n``::
+
+        sage: sym_5 = multiplicative_sequence(f, n=5); sym_5
+        e[] + e[1] - e[1, 1] + 3*e[2] - e[2, 1] + e[2, 2] + 4*e[3] - 3*e[3, 1]
+         + e[3, 2] + 7*e[4] - 4*e[4, 1] + 11*e[5]
     """
     from sage.combinat.sf.sf import SymmetricFunctions
     from sage.combinat.partition import Partitions
     from sage.misc.misc_c import prod
 
-    if max_order is None:
-        max_order = q.degree()
+    if n is None:
+        n = q.degree()
 
     R = q.parent().base_ring()
     Sym = SymmetricFunctions(R)
@@ -638,30 +688,54 @@ def multiplicative_sequence(q, max_order=None):
 
     # Get the multiplicative sequence in the monomial basis:
     mon_pol = m._from_dict({p: prod(q[i] for i in p)
-                            for k in range(max_order + 1)
+                            for k in range(n + 1)
                             for p in Partitions(k)})
     return Sym.e()(mon_pol)
 
-def additive_sequence(q, rk, max_order=None):
+def additive_sequence(q, k, n=None):
     r"""
     Turn the polynomial ``q`` into its additive sequence.
+
+    Let `q` be a polynomial and `x_1, \ldots x_n` indeterminates. The
+    *additive sequence of* `q` is then given by the polynomials `Q_j`
+
+    .. MATH::
+
+        \sum_{j=0}^n Q_j(\sigma_1, \ldots, \sigma_j) z^j =
+        \sum_{i=1}^{k} q(z \,x_i),
+
+    where `\sigma_i` is the `i`-th elementary symmetric polynomial in the
+    indeterminates `x_i`.
 
     INPUT:
 
     - ``q`` -- polynomial to turn into its additive sequence.
-    - ``rk`` -- rank of the underlying vector bundle
-    - ``max_order`` -- (default: ``None``) the highest order of the sequence;
+    - ``k`` -- maximal index `k` of the sum
+    - ``n`` -- (default: ``None``) the highest order of the sequence `n`;
       if ``None``, the order of ``q`` is assumed.
 
     OUTPUT:
 
     - A symmetric polynomial representing the additive sequence.
+
+    EXAMPLES::
+
+        sage: P.<x> = PolynomialRing(QQ)
+        sage: from sage.manifolds.differentiable.characteristic_cohomology_class import additive_sequence
+        sage: f = 1 + x - x^2
+        sage: sym = additive_sequence(f, 2); sym
+        2*e[] + e[1] - e[1, 1] + 2*e[2]
+
+    The maximal order of the result can be stated with ``n``::
+
+        sage: sym_1 = additive_sequence(f, 2, 1); sym_1
+        2*e[] + e[1]
     """
     from sage.combinat.sf.sf import SymmetricFunctions
     from sage.combinat.partition import Partitions
 
-    if max_order is None:
-        max_order = q.degree()
+    if n is None:
+        n = q.degree()
 
     R = q.parent().base_ring()
     Sym = SymmetricFunctions(R)
@@ -669,8 +743,8 @@ def additive_sequence(q, rk, max_order=None):
 
     # Express the additive sequence in the monomial basis, the 0-th
     # order term must be treated separately; here comes ``rk`` into play:
-    m_dict = {Partitions(0)([]): rk * q[0]}
-    m_dict.update({Partitions(k)([k]): q[k] for k in range(1, max_order + 1)})
+    m_dict = {Partitions(0)([]): k * q[0]}
+    m_dict.update({Partitions(k)([k]): q[k] for k in range(1, n + 1)})
     mon_pol = m._from_dict(m_dict)
     return Sym.e()(mon_pol)
 
@@ -818,22 +892,22 @@ def CharacteristicCohomologyClass(*args, **kwargs):
         if class_type is None:
             raise TypeError(f'class_type must be stated if {val} '
                             f'is a polynomial')
-        max_order = R.ngens()
+        n = R.ngens()
         s = 0  # shift; important in case of Euler class generator
         if R._algorithm is PontryaginEulerAlgorithm():
             s = 1  # skip Euler class
-            max_order -= 1  # ignore Euler class
+            n -= 1  # ignore Euler class
 
         if class_type == 'additive':
-            sym = additive_sequence(val, vbundle._rank, max_order=max_order)
+            sym = additive_sequence(val, vbundle._rank, n)
         elif class_type == 'multiplicative':
-            sym = multiplicative_sequence(val, max_order=max_order)
+            sym = multiplicative_sequence(val, n)
         elif class_type == 'Pfaffian':
             P = val.parent()
             x = P.gen()
             val = (val(x) - val(-x)) / 2  # project to odd functions
-            val = P([(-1)**k * val[2*k+1] for k in range(max_order + 1)])
-            sym = multiplicative_sequence(val, max_order=max_order)
+            val = P([(-1)**k * val[2*k+1] for k in range(n + 1)])
+            sym = multiplicative_sequence(val, n)
         else:
             AttributeError('unkown class type')
 

@@ -54,6 +54,7 @@ from sage.rings.number_field.number_field_morphisms import NumberFieldEmbedding
 from sage.structure.element import coercion_model, ModuleElement, Element
 from sage.structure.richcmp import richcmp, op_NE, op_EQ
 from sage.matrix.constructor import Matrix
+from sage.combinat.integer_vector_weighted import WeightedIntegerVectors
 
 
 def is_ModularFormElement(x):
@@ -3606,30 +3607,54 @@ class GradedModularFormElement(ModuleElement):
             Traceback (most recent call last):
             ...
             ValueError: the given graded form is not homogeneous (not a modular form)
+            sage: E4 = ModularForms(1, 4, GF(7)).0
+            sage: M = ModularFormsRing(1, GF(7))
+            sage: M(E4).to_polynomial()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion to polynomial are not implemented if the base ring is not Q
         """
+        if not self.base_ring() == QQ:
+            raise NotImplementedError("conversion to polynomial are not implemented if the base ring is not Q")
         M = self.parent()
         k = self.weight() #only if self is homogeneous
         poly_parent = M.polynomial_ring(names, gens)
         if k == 0:
             return poly_parent(self[k])
-        monomials = M._monomials_of_weight(k, gens, poly_parent)
+
+        # create the set of "weighted exponents" and compute sturm bound
+        weights_of_generators = [gens[i].weight() for i in range(0, len(gens))]
+        W = WeightedIntegerVectors(k, weights_of_generators).list()
+        sturm_bound = self.group().sturm_bound(k)
 
         # initialize the matrix of coefficients
-        matrix_data = []
-        for f in monomials.values():
-            matrix_data.append(f[k].coefficients(range(0,f[k].parent().sturm_bound())))
-        mat = Matrix(matrix_data).transpose()
+        matrix_datum = []
+
+        # form the matrix of coefficients and list the monomials of weight k
+        list_of_monomials = []
+        for exponents in W:
+            monomial_form = M.one()
+            monomial_poly = poly_parent.one()
+            iter = 0
+            for e, g in zip(exponents, gens):
+                monomial_form *= M(g) ** e
+                monomial_poly *= poly_parent.gen(iter) ** e
+                iter += 1
+            matrix_datum.append(monomial_form[k].coefficients(range(0, sturm_bound + 1)))
+            list_of_monomials.append(monomial_poly)
+
+        mat = Matrix(matrix_datum).transpose()
 
         # initialize the column vector of the coefficients of self
-        coef_self = vector(self[k].coefficients(range(0, self[k].parent().sturm_bound()))).column()
+        coef_self = vector(self[k].coefficients(range(0, sturm_bound + 1))).column()
 
         # solve the linear system: mat * X = coef_self
         soln = mat.solve_right(coef_self)
 
         # initialize the polynomial associated to self
-        poly = 0 # TODO : this should be the zero polynomial, not the integer 0
-        for iter, p in enumerate(monomials):
-            poly += soln[iter, 0]*p
+        poly = poly_parent.zero()
+        for iter, p in enumerate(list_of_monomials):
+            poly += soln[iter, 0] * p
         return poly
 
     def to_polynomial(self, names='x', gens=None):

@@ -5901,6 +5901,10 @@ REFERENCES:
 
 **Z**
 
+.. [Zag2008]  \D. Zagier, *Elliptic Modular Forms and Their Applications*,
+          In: Ranestad K. (eds) The 1-2-3 of Modular Forms. Universitext.
+          Springer, Berlin, Heidelberg. (2008) :doi:`10.1007/978-3-540-74119-0_1`
+
 .. [ZBLRYV2015] \W. Zhang, Z. Bao, D. Lin, V. Rijmen, B. Yang, and I. Verbauwhede,
                 *RECTANGLE: A bit-slice lightweight block cipher suitable for
                 multiple platforms*; in

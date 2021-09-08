@@ -50,9 +50,13 @@ EXAMPLES::
     implemented.
     - Currently, the only supported base ring is the Rational Field.
 
+REFERENCE:
+
+See section 5.3 (page 58) of [Zag2008]_
+
 AUTHORS:
 
-- DAVID AYOTTE (2021-03-18): initial version
+- David Ayotte (2021-03-18): initial version
 
 """
 
@@ -76,6 +80,7 @@ from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.multi_polynomial import MPolynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.term_order import TermOrder
+from sage.rings.power_series_poly import PowerSeries_poly
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -101,15 +106,11 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
     It is possible to access the weight 2 Eisenstein series::
 
-        sage: QM.weigt_2_eisenstein_series()
+        sage: QM.weight_2_eisenstein_series()
         1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
 
-    The current implementation of quasimodular forms is only for the full modular group and for the ring of rationnal numbers::
+    Currently, the only supported base ring is the rational numbers::
 
-        sage: QuasiModularForms(Gamma0(2))
-        Traceback (most recent call last):
-        ...
-        NotImplementedError: space of quasimodular forms are only implemented for the full modular group
         sage: QuasiModularForms(1, GF(5))
         Traceback (most recent call last):
         ...
@@ -137,10 +138,6 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             Modular Group SL(2,Z)
             sage: M.base_ring()
             Rational Field
-            sage: QuasiModularForms(2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: space of quasimodular forms are only implemented for the full modular group
             sage: QuasiModularForms(Integers(5))
             Traceback (most recent call last):
             ...
@@ -149,25 +146,22 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         ::
 
             sage: TestSuite(QuasiModularForms(1)).run()
+            sage: TestSuite(QuasiModularForms(Gamma0(3))).run()
+            sage: TestSuite(QuasiModularForms(Gamma1(3))).run()
         """
         if not isinstance(name, str):
             raise TypeError("`name` must be a string")
         #check if the group is SL2(Z)
         if isinstance(group, (int, Integer)):
-            if group>1:
-                raise NotImplementedError("space of quasimodular forms are only implemented for the full modular group")
-            group = Gamma0(1)
+            group = Gamma0(group)
         elif not is_CongruenceSubgroup(group):
             raise ValueError("Group (=%s) should be a congruence subgroup" % group)
-        elif group is not Gamma0(1):
-            raise NotImplementedError("space of quasimodular forms are only implemented for the full modular group")
 
         #Check if the base ring is the rationnal field
         if base_ring != QQ:
             raise NotImplementedError("base ring other than Q are not yet supported for quasimodular forms ring")
 
         self.__group = group
-        self.__base_ring = base_ring
         self.__modular_forms_subring = ModularFormsRing(group, base_ring)
         self.__polynomial_subring = self.__modular_forms_subring[name]
         Parent.__init__(self, base=base_ring, category=GradedAlgebras(base_ring))
@@ -180,34 +174,16 @@ class QuasiModularForms(Parent, UniqueRepresentation):
         EXAMPLES::
 
             sage: QM = QuasiModularForms(1)
+            sage: QM.group()
+            Modular Group SL(2,Z)
             sage: QM.group() is SL2Z
             True
-            sage: QM = QuasiModularForms(Gamma0(1)); QM
-            Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field
-
-        Higher level congruence subgroups are not yet implemented::
-
-            sage: QuasiModularForms(2)
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: space of quasimodular forms are only implemented for the full modular group
+            sage: QuasiModularForms(3).group()
+            Congruence Subgroup Gamma0(3)
+            sage: QuasiModularForms(Gamma1(5)).group()
+            Congruence Subgroup Gamma1(5)
         """
         return self.__group
-
-    def base_ring(self):
-        r"""
-        Return the coefficient ring of this quasimodular forms ring.
-
-        EXAMPLES::
-
-            sage: QuasiModularForms(1).base_ring()
-            Rational Field
-            sage: QuasiModularForms(1, GF(5))
-            Traceback (most recent call last):
-            ...
-            NotImplementedError: base ring other than Q are not yet supported for quasimodular forms ring
-        """
-        return self.__base_ring
 
     def modular_forms_subring(self):
         r"""
@@ -217,6 +193,8 @@ class QuasiModularForms(Parent, UniqueRepresentation):
 
             sage: QuasiModularForms(1).modular_forms_subring()
             Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+            sage: QuasiModularForms(5).modular_forms_subring()
+            Ring of Modular Forms for Congruence Subgroup Gamma0(5) over Rational Field
         """
         return self.__modular_forms_subring
 
@@ -229,6 +207,9 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: QM = QuasiModularForms(1)
             sage: QM.modular_forms_of_weight(12)
             Modular Forms space of dimension 2 for Modular Group SL(2,Z) of weight 12 over Rational Field
+            sage: QM = QuasiModularForms(Gamma1(3))
+            sage: QM.modular_forms_of_weight(4)
+            Modular Forms space of dimension 2 for Congruence Subgroup Gamma1(3) of weight 4 over Rational Field
         """
         return self.__modular_forms_subring.modular_forms_of_weight(weight)
 
@@ -333,6 +314,11 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             Traceback (most recent call last):
             ...
             TypeError: no canonical coercion from <class 'str'> to Univariate Polynomial Ring in E2 over Ring of Modular Forms for Modular Group SL(2,Z) over Rational Field
+            sage: P.<q> = PowerSeriesRing(QQ)
+            sage: QM(1 - 24 * q - 72 * q^2 - 96 * q^3 + O(q^4))
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: conversion from q-expansion not yet implemented
         """
         if isinstance(datum, list):
             if len(datum) == 0:
@@ -347,18 +333,20 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             datum = self.__polynomial_subring(datum)
         elif isinstance(datum, Polynomial):
             datum = self.__polynomial_subring(datum.coefficients(sparse=False))
+        elif isinstance(datum, PowerSeries_poly):
+            raise NotImplementedError("conversion from q-expansion not yet implemented")
         else:
             datum = self.__polynomial_subring.coerce(datum)
         return self.element_class(self, datum)
 
-    def weigt_2_eisenstein_series(self):
+    def weight_2_eisenstein_series(self):
         r"""
         Return the weight 2 Eisenstein series.
 
         EXAMPLES::
 
             sage: QM = QuasiModularForms(1)
-            sage: E2 = QM.weigt_2_eisenstein_series(); E2
+            sage: E2 = QM.weight_2_eisenstein_series(); E2
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
             sage: E2.parent()
             Ring of Quasimodular Forms for Modular Group SL(2,Z) over Rational Field
@@ -368,9 +356,8 @@ class QuasiModularForms(Parent, UniqueRepresentation):
     def gens(self):
         r"""
         Return a list of generators of the quasimodular forms ring. Note that
-        the generators of the modular forms subring is given are the one given
-        by the method
-        :meth: `sage.modular.modform.ring.ModularFormsRing.gen_forms`
+        the generators of the modular forms subring are the one given by the
+        method :meth: `sage.modular.modform.ring.ModularFormsRing.gen_forms`
 
         EXAMPLES::
 
@@ -382,8 +369,21 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             sage: QM.modular_forms_subring().gen_forms()
             [1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
             1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)]
+            sage: QM = QuasiModularForms(5)
+            sage: QM.gens()
+            [1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6),
+            1 + 6*q + 18*q^2 + 24*q^3 + 42*q^4 + 6*q^5 + O(q^6),
+            1 + 240*q^5 + O(q^6),
+            q + 10*q^3 + 28*q^4 + 35*q^5 + O(q^6)]
+
+        An alias of this method is ``generators``::
+
+            sage: QuasiModularForms(1).generators()
+            [1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6),
+            1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
+            1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)]
         """
-        gen_list = [self.weigt_2_eisenstein_series()]
+        gen_list = [self.weight_2_eisenstein_series()]
         for f in self.__modular_forms_subring.gen_forms():
             gen_list.append(self(f))
         return gen_list
@@ -415,6 +415,19 @@ class QuasiModularForms(Parent, UniqueRepresentation):
             1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6)
             sage: QM.2
             1 - 504*q - 16632*q^2 - 122976*q^3 - 532728*q^4 - 1575504*q^5 + O(q^6)
+            sage: QM = QuasiModularForms(5)
+            sage: QM.0
+            1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6)
+            sage: QM.1
+            1 + 6*q + 18*q^2 + 24*q^3 + 42*q^4 + 6*q^5 + O(q^6)
+            sage: QM.2
+            1 + 240*q^5 + O(q^6)
+            sage: QM.3
+            q + 10*q^3 + 28*q^4 + 35*q^5 + O(q^6)
+            sage: QM.4
+            Traceback (most recent call last):
+            ...
+            IndexError: list index out of range
         """
         return self.gens()[n]
 

@@ -1,5 +1,5 @@
 r"""
-Graded Quasimodular Forms Ring
+Graded quasimodular forms ring
 
 Let `E_2` be the weight 2 Eisenstein series defined by
 

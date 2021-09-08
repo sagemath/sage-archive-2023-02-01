@@ -75,7 +75,7 @@ from sage.modular.modform.element import GradedModularFormElement, ModularFormEl
 from sage.modular.modform.space import ModularFormsSpace
 from sage.modular.modform.ring import ModularFormsRing
 
-from sage.rings.all import Integer, QQ, ZZ
+from sage.rings.all import Integer, QQ
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.power_series_poly import PowerSeries_poly
 

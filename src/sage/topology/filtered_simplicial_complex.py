@@ -45,8 +45,8 @@ the arguments. If the simplex is not in the complex, this returns
     sage: X = FilteredSimplicialComplex([([0], 0), ([1], 0), ([0,1], 1)])
     sage: X.filtration(Simplex([0]))
     0
-    sage: X.filtration(Simplex([1,2]))
-    <BLANKLINE>
+    sage: X.filtration(Simplex([1,2])) is None
+    True
 
 Filtration values can be accessed with function call and list
 syntax as follows::
@@ -232,7 +232,6 @@ class FilteredSimplicialComplex(SageObject):
         """
         # Keep track of whether the simplex is already in the complex
         # and if it should be updated or not
-        update = False
         curr_value = self[simplex]
         if curr_value is not None:
             if self._verbose:
@@ -242,7 +241,6 @@ class FilteredSimplicialComplex(SageObject):
                     verbose_string = "However its value is {}".format(curr_value)
                     verbose_string += ": updating it to {}".format(filtration_value)
                     print(verbose_string)
-                update = True
                 self._filtration_dict.pop(simplex)
             else:
                 if self._verbose:

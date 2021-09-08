@@ -710,6 +710,12 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: (x^e).log(x)==e
             True
 
+        We test that :trac:`12419` is fixed::
+
+            sage: R.<x,y> = GF(2)[]
+            sage: R(1).factor()
+            1
+
         AUTHORS:
 
         - David Joyner and William Stein (2005-11)

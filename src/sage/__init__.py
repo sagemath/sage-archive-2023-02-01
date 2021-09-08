@@ -1,4 +1,6 @@
-__all__ = ['all']
+# Do not add anything to this file.
+# It will be removed soon in order to turn 'sage' into a native namespace package.
+# See https://trac.sagemath.org/ticket/29705
 
 # Set sage.__version__ to the current version number. This is analogous
 # to many other Python packages.

@@ -756,7 +756,9 @@ def CharacteristicCohomologyClass(*args, **kwargs):
     INPUT:
 
     - ``vbundle`` -- the vector bundle over which the characteristic
-      cohomology class shall be defined
+      cohomology class shall be defined; this argument is skipped when invoked
+      directly from the vector bundle (see
+      :meth:`sage.manifolds.differentiable.vector_bundle.characteristic_cohomology_class`)
     - ``val`` -- the input data corresponding to the characteristic class
       using the Chern-Weil homomorphism; this argument can be either a
       symbolic expression, a polynomial or one of the following predefined
@@ -787,6 +789,33 @@ def CharacteristicCohomologyClass(*args, **kwargs):
       This argument must be stated if ``val`` is a polynomial or symbolic
       expression.
 
+    EXAMPLES:
+
+    Total Pontryagin class of an 8-dimensional manifold::
+
+        sage: M = Manifold(8, 'M')
+        sage: TM = M.tangent_bundle()
+        sage: p = TM.characteristic_cohomology_class('Pontryagin'); p
+        Characteristic cohomology class p(TM) of the Tangent bundle TM over the
+         8-dimensional differentiable manifold M
+
+    Define a multiplicative class (see :func:`multiplicative_sequence`)::
+
+        sage: P.<x> = PolynomialRing(QQ)
+        sage: f = 1 + x - x^2
+        sage: f_class = TM.characteristic_cohomology_class(f, class_type='multiplicative'); f_class
+        Characteristic cohomology class (1 + p_1 - p_1^2 + 3*p_2)(TM) of the
+         Tangent bundle TM over the 8-dimensional differentiable manifold M
+
+    Pass a symbolic expression, whose Taylor expansion at zero will be used::
+
+        sage: M = Manifold(8, 'M')
+        sage: TM = M.tangent_bundle()
+        sage: x = var('x')
+        sage: f = cos(x)
+        sage: f_class = TM.characteristic_cohomology_class(f, class_type='multiplicative'); f_class
+        Characteristic cohomology class (1 - 1/2*p_1^2 + p_2)(TM) of the Tangent
+         bundle TM over the 8-dimensional differentiable manifold M
     """
     from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
     from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -933,6 +962,26 @@ def fast_wedge_power(form, n):
     r"""
     Return the wedge product power of `form` using a square-and-wedge
     algorithm.
+
+    INPUT:
+
+    - ``form`` -- a differential form
+    - ``n`` -- a non-negative integer
+
+    EXAMPLES::
+
+        sage: M = Manifold(4, 'M')
+        sage: X.<x,y,z,t> = M.chart()
+        sage: omega = M.diff_form(2, name='omega')
+        sage: omega[0,1] = t*y^2 + 2*x
+        sage: omega[0,3] = z - 2*y
+        sage: from sage.manifolds.differentiable.characteristic_cohomology_class import fast_wedge_power
+        sage: fast_wedge_power(omega, 0)
+        Scalar field 1 on the 4-dimensional differentiable manifold M
+        sage: fast_wedge_power(omega, 1)
+        4-form omega on the 4-dimensional differentiable manifold M
+        sage: fast_wedge_power(omega, 2)
+        4-form omega∧omega on the 4-dimensional differentiable manifold M
     """
     if n == 0:
         return form._domain._one_scalar_field
@@ -940,7 +989,6 @@ def fast_wedge_power(form, n):
         raise ValueError("'n' must be non-negative")
     val = form
     while not (n & 1):
-        print(n)
         val = val.wedge(val)
         n >>= 1
 
@@ -959,6 +1007,8 @@ def fast_wedge_power(form, n):
 class Algorithm_generic(SageObject):
     r"""
     Algorithm class to compute the characteristic forms of the generators.
+
+    This is an abstract class and only meant for developers.
     """
 
     @cached_method
@@ -970,6 +1020,9 @@ class Algorithm_generic(SageObject):
         OUTPUT:
 
         - a list containing the generator's global characteristic forms
+
+        ALGORITHM:
+
 
         """
         if isinstance(nab, AffineConnection):

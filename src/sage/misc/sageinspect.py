@@ -131,14 +131,15 @@ def is_function_or_cython_function(obj):
     """
     Check whether something is a function.
 
-    This is a variant of ``inspect.isfunction``:
+    This is a variant of :func:`inspect.isfunction`:
     We assume that anything which has a genuine ``__code__``
     attribute (not using ``__getattr__`` overrides) is a function.
     This is meant to support Cython functions.
 
     Think twice before using this function (or any function from the
-    ``inspect`` or ``sage.misc.sageinspect`` modules.  Most uses of
-    ``isfunction`` in ordinary library code can be replaced by ``callable``.
+    :mod:`inspect` or :mod:`sage.misc.sageinspect` modules).  Most uses of
+    :func:`inspect.isfunction` in ordinary library code can be replaced by
+    :func:`callable`.
 
     EXAMPLES::
 
@@ -155,6 +156,8 @@ def is_function_or_cython_function(obj):
         False
         sage: is_function_or_cython_function(Integer(1).digits)  # bound method
         False
+
+    TESTS:
 
     Verify that ipywidgets can correctly determine signatures of Cython
     functions::

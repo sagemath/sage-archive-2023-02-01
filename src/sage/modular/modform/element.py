@@ -525,8 +525,10 @@ class ModularForm_abstract(ModuleElement):
 
     def serre_derivative(self):
         """
-        Return the Serre derivative of the given modular form. If ``self`` is of
-        weight `k`, then the returned modular form will be of weight `k+2`.
+        Return the Serre derivative of the given modular form.
+
+        If ``self`` is of weight `k`, then the returned modular form will be of
+        weight `k+2`.
 
         EXAMPLES::
 

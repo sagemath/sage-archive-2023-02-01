@@ -1262,6 +1262,42 @@ class Algorithm_generic(SageObject):
 class ChernAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Chern forms.
+
+    EXAMPLES:
+
+    Define a complex line bundle over a 2-dimensional manifold::
+
+        sage: M = Manifold(2, 'M', structure='Lorentzian')
+        sage: X.<t,x> = M.chart()
+        sage: E = M.vector_bundle(1, 'E', field='complex'); E
+        Differentiable complex vector bundle E -> M of rank 1 over the base space
+         2-dimensional Lorentzian manifold M
+        sage: e = E.local_frame('e')
+        sage: nab = E.bundle_connection('nabla^E', latex_name=r'\nabla^E')
+        sage: omega = M.one_form(name='omega')
+        sage: A = function('A')
+        sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+        sage: nab[0, 0].display()
+        connection (0,0) of bundle connection nabla^E w.r.t. Local frame
+         (E|_M, (e_0)) = I*A(t) dx
+        sage: nab.set_immutable()
+
+    Import the algorithm and apply ``nab`` to it::
+
+        sage: from sage.manifolds.differentiable.characteristic_cohomology_class import ChernAlgorithm
+        sage: algorithm = ChernAlgorithm()
+        sage: algorithm.get(nab)
+        [2-form on the 2-dimensional Lorentzian manifold M]
+        sage: algorithm.get(nab)[0].display()
+        1/2*d(A)/dt/pi dt∧dx
+
+    Check some equalities::
+
+        sage: cmat = [[nab.curvature_form(0, 0, e)]]
+        sage: algorithm.get(nab)[0] == algorithm.get_local(cmat)[0]  # bundle trivial
+        True
+        sage: algorithm.get_gen_pow(nab, 0, 1) == algorithm.get(nab)[0]
+        True
     """
     def get_local(self, cmat):
         r"""

@@ -1325,7 +1325,7 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
         ran = min(rk // 2, dim // 4)
         if ran < 1:
             return []  # nothing to compute
-        fac = -1 / (2 * pi) ** 2
+        fac = 1 / (2 * pi) ** 2
         res = []
         m = cmat2 = [[sum(cmat[i][l].wedge(cmat[l][j])
                           for l in range(rk))
@@ -1335,7 +1335,7 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
             res.append(fac * c)
             for i in range(rk):
                 m[i][i] += c
-            fac *= -1 / (2 * pi) ** 2
+            fac *= 1 / (2 * pi) ** 2
             m = [[sum(cmat2[i][l].wedge(m[l][j]) for l in range(rk))
                   for j in range(rk)] for i in range(rk)]
         res.append(-fac * sum(m[i][i] for i in range(rk)) / (2 * ran))

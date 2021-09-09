@@ -449,6 +449,7 @@ class DeRhamCohomologyRing(Parent, UniqueRepresentation):
 
         """
         if isinstance(other, CharacteristicCohomologyClassRing):
+            # TODO: we need to be careful if manifolds have boundary!
             return other._vbundle._base_space == self._manifold
         return super()._coerce_map_from_(other)
 

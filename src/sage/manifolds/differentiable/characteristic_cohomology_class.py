@@ -32,8 +32,7 @@ polynomial, the object
 
 is well-defined, independent of the choice of `\nabla` (the proof can be
 found in [Roe1988]_ pp. 31) and fulfills the naturality condition.
-This is the foundation of the Chern-Weil theory and therefore the following
-definitions.
+This is the foundation of the Chern-Weil theory and the following definitions.
 
 .. NOTE::
 
@@ -292,12 +291,19 @@ from sage.rings.rational_field import QQ
 
 class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
     r"""
+    Characteristic cohomology class.
 
     """
-
     def __init__(self, parent, x, name=None, latex_name=None):
         r"""
+        Construct a characteristic cohomology class.
 
+        TESTS::
+
+            sage: M = Manifold(8, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: p = TM.characteristic_cohomology_class('Pontryagin')
+            sage: TestSuite(p).run()
         """
         self._name = name
         if latex_name is None:
@@ -310,7 +316,30 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
 
     def _repr_(self):
         r"""
+        String representation of the object.
 
+        TESTS::
+
+            sage: M = Manifold(8, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: p = TM.characteristic_cohomology_class('Pontryagin')
+            sage: p._repr_()
+            'Characteristic cohomology class p(TM) of the Tangent bundle TM
+             over the 8-dimensional differentiable manifold M'
+            sage: p  # indirect doctest
+            Characteristic cohomology class p(TM) of the Tangent bundle TM over
+             the 8-dimensional differentiable manifold M
+
+        ::
+
+            sage: x = var('x')
+            sage: k = TM.characteristic_cohomology_class(1+x^2, class_type='multiplicative')
+            sage: k._repr_()
+            'Characteristic cohomology class (1 + p_1^2 - 2*p_2)(TM) of the
+             Tangent bundle TM over the 8-dimensional differentiable manifold M'
+            sage: k  # indirect doctest
+            Characteristic cohomology class (1 + p_1^2 - 2*p_2)(TM) of the
+             Tangent bundle TM over the 8-dimensional differentiable manifold M
         """
         if self._name is None:
             name = f'({super()._repr_()})'
@@ -322,19 +351,77 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
 
     def _latex_(self):
         r"""
+        LaTeX representation of the object.
 
+        TESTS::
+
+            sage: M = Manifold(8, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: p = TM.characteristic_cohomology_class('Pontryagin')
+            sage: p._latex_()
+            'p\\left(TM\\right)'
+            sage: latex(p)  # indirect doctest
+            p\left(TM\right)
+
+        ::
+
+            sage: x = var('x')
+            sage: k = TM.characteristic_cohomology_class(1+x^2, class_type='multiplicative')
+            sage: k._latex_()
+            '\\left(1 + p_1^{2} - 2p_2\\right)\\left(TM\\right)'
+            sage: latex(k)
+            \left(1 + p_1^{2} - 2p_2\right)\left(TM\right)
         """
         if self._latex_name is None:
             latex = r'\left(' + super()._latex_() + r'\right)'
         else:
             latex = self._latex_name
         vbundle = self.parent()._vbundle
-        latex += latex + r'\left(' + vbundle._latex_name + r'\right)'
+        latex += r'\left(' + vbundle._latex_name + r'\right)'
         return latex
 
     def get_form(self, nab):
         r"""
+        Return the characteristic form of ``self``.
 
+        INPUT:
+
+        - ``nab`` -- get the characteristic form w.r.t. to the
+          connection ``nab``
+
+        OUTPUT:
+
+        - an instance of `sage.manifolds.differentiable.mixed_form.MixedForm`
+
+        EXAMPLES:
+
+        Trivial characteristic form on Euclidean space::
+
+            sage: M = manifolds.EuclideanSpace(4)
+            sage: TM = M.tangent_bundle()
+            sage: one = TM.characteristic_cohomology_class_ring().one()
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: nab.set_immutable()
+            sage: one.get_form(nab)
+            Mixed differential form one on the 4-dimensional Euclidean space E^4
+
+        Pontryagin form on the 4-sphere::
+
+            sage: M = manifolds.Sphere(4)
+            sage: TM = M.tangent_bundle()
+            sage: p = TM.characteristic_cohomology_class('Pontryagin'); p
+            Characteristic cohomology class p(TS^4) of the Tangent bundle TS^4
+             over the 4-sphere S^4 of radius 1 smoothly embedded in the
+             5-dimensional Euclidean space E^5
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: nab.set_immutable()
+            sage: p_form = p.get_form(nab); p_form
+            Mixed differential form p(TS^4, nabla_g) on the 4-sphere S^4 of
+             radius 1 smoothly embedded in the 5-dimensional Euclidean space E^5
+            sage: p_form.display_expansion()
+            p(TS^4, nabla_g) = 1
         """
         if nab not in self._mixed_forms:
             dom = nab._domain
@@ -407,8 +494,49 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
 
         - ``nab`` -- (default: ``None``) if stated, return the representative
           w.r.t. to the connection ``nab``; otherwise an arbitrary already
-          computed representative will be chosen
+          computed representative will be chosen.
 
+        OUTPUT:
+
+        - an instance of `sage.manifolds.differentiable.mixed_form.MixedForm`
+
+        EXAMPLES:
+
+        Define the 4-dimensional Euclidean space::
+
+            sage: M = manifolds.EuclideanSpace(4)
+            sage: TM = M.tangent_bundle()
+            sage: one = TM.characteristic_cohomology_class_ring().one()
+
+        No characteristic form has been computed so far, thus we get an error::
+
+            sage: one.representative()
+            Traceback (most recent call last):
+            ...
+            AttributeError: cannot pick a representative
+
+        Get a characteristic form::
+
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: nab.set_immutable()
+            sage: one.get_form(nab)
+            Mixed differential form one on the 4-dimensional Euclidean space E^4
+
+        Now, the result is cached and `representative` returns a form::
+
+            sage: one.representative()
+            Mixed differential form one on the 4-dimensional Euclidean space E^4
+
+        Alternatively, the option ``nab`` can be used to return the
+        characteristic form w.r.t. a fixed connection::
+
+            sage: one.representative(nab)
+            Mixed differential form one on the 4-dimensional Euclidean space E^4
+
+        .. SEEALSO::
+
+            :meth:`CharacteristicCohomologyClassRingElement.get_form`
         """
         if nab is None:
             if not self._mixed_forms:
@@ -419,7 +547,7 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
     def set_name(self, name=None, latex_name=None):
         r"""
         Set (or change) the text name and LaTeX name of the characteristic
-        cohomology class.
+        class.
 
         INPUT:
 
@@ -429,6 +557,21 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
           the characteristic cohomology class; if ``None`` while ``name`` is
           provided, the LaTeX symbol is set to ``name``
 
+        EXAMPLES::
+
+            sage: M = Manifold(8, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: x = var('x')
+            sage: k = TM.characteristic_cohomology_class(1+x^2,
+            ....:                               class_type='multiplicative'); k
+            Characteristic cohomology class (1 + p_1^2 - 2*p_2)(TM) of the
+             Tangent bundle TM over the 8-dimensional differentiable manifold M
+            sage: k.set_name(name='k', latex_name=r'\kappa')
+            sage: k
+            Characteristic cohomology class k(TM) of the Tangent bundle TM over
+             the 8-dimensional differentiable manifold M
+            sage: latex(k)
+            \kappa\left(TM\right)
         """
         if name is not None:
             self._name = name
@@ -464,10 +607,9 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
             R[p_1, \ldots p_k, e] & \text{if } G = SO(2k+1). \\
         \end{cases}
 
-    The Chern-Weil homomorphism relates the generators in the de Rham cohomology
-    as follows. If `\Omega` is a curvature form matrix on `E`, for the Chern
-    classes
-    we get
+    The Chern-Weil homomorphism relates the generators in the de Rham
+    cohomology as follows. If `\Omega` is a curvature form matrix on `E`, for
+    the Chern classes we get
 
     .. MATH::
 
@@ -533,6 +675,18 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
          Characteristic cohomology class (c_2)(E) of the Differentiable
          complex vector bundle E -> M of rank 2 over the base space
          4-dimensional differentiable manifold M]
+
+    Characteristic cohomology class ring over an oriented manifold::
+
+        sage: S2 = manifolds.Sphere(2, coordinates='stereographic')
+        sage: TS2 = S2.tangent_bundle()
+        sage: S2.has_orientation()
+        True
+        sage: CR = TS2.characteristic_cohomology_class_ring()
+        sage: CR.gens()
+        [Characteristic cohomology class (e)(TS^2) of the Tangent bundle TS^2
+         over the 2-sphere S^2 of radius 1 smoothly embedded in the Euclidean
+         space E^3]
     """
     Element = CharacteristicCohomologyClassRingElement
 
@@ -588,7 +742,13 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
 
         TESTS::
 
-
+            sage: M = Manifold(8, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: CR = TM.characteristic_cohomology_class_ring()
+            sage: p = TM.characteristic_cohomology_class('Pontryagin')
+            sage: CR(p, name='pontr')
+            Characteristic cohomology class pontr(TM) of the Tangent bundle
+             TM over the 8-dimensional differentiable manifold M
         """
         R = self.base_ring()
 
@@ -753,6 +913,8 @@ def CharacteristicCohomologyClass(*args, **kwargs):
     r"""
     Construct a characteristic cohomology class.
 
+    The result is cached.
+
     INPUT:
 
     - ``vbundle`` -- the vector bundle over which the characteristic
@@ -775,8 +937,8 @@ def CharacteristicCohomologyClass(*args, **kwargs):
     - ``base_ring`` -- (default: ``QQ``) base ring over which the
       characteristic cohomology class ring shall be defined
     - ``name`` -- (default: ``None``) string representation given to the
-      characteristic cohomology class; if ``None`` the default algebra
-      representation or predefined name is used
+      characteristic class; if ``None`` the default algebra representation or
+      predefined name is used
     - ``latex_name`` -- (default: ``None``) LaTeX name given to the
       characteristic class; if ``None`` the value of ``name`` is used
     - ``class_type`` -- (default: ``None``) class type of the characteristic
@@ -979,7 +1141,7 @@ def fast_wedge_power(form, n):
         sage: fast_wedge_power(omega, 0)
         Scalar field 1 on the 4-dimensional differentiable manifold M
         sage: fast_wedge_power(omega, 1)
-        4-form omega on the 4-dimensional differentiable manifold M
+        2-form omega on the 4-dimensional differentiable manifold M
         sage: fast_wedge_power(omega, 2)
         4-form omega∧omega on the 4-dimensional differentiable manifold M
     """
@@ -1006,24 +1168,20 @@ def fast_wedge_power(form, n):
 
 class Algorithm_generic(SageObject):
     r"""
-    Algorithm class to compute the characteristic forms of the generators.
-
-    This is an abstract class and only meant for developers.
+    Abstract algorithm class to compute the characteristic forms of the
+    generators.
     """
-
     @cached_method
     def get(self, nab):
         r"""
         Return the global characteristic forms of the generators w.r.t. a given
         connection.
 
+        The result is cached.
+
         OUTPUT:
 
         - a list containing the generator's global characteristic forms
-
-        ALGORITHM:
-
-
         """
         if isinstance(nab, AffineConnection):
             vbundle = nab._domain.tangent_bundle()
@@ -1055,7 +1213,6 @@ class Algorithm_generic(SageObject):
         OUTPUT:
 
         - a list containing the generator's local characteristic forms
-
         """
         pass
 
@@ -1064,6 +1221,8 @@ class Algorithm_generic(SageObject):
         r"""
         Return the `n`-th power of the `i`-th generator's characteristic form
         w.r.t ``nab``.
+
+        The result is cached.
         """
         if n == 0:
             return nab._domain._one_scalar_field  # no computation necessary
@@ -1074,7 +1233,6 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Chern forms.
     """
-
     def get_local(self, cmat):
         r"""
         Return the local Chern forms w.r.t. a given curvature matrix.
@@ -1116,7 +1274,6 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Pontryagin forms.
     """
-
     def get_local(self, cmat):
         r"""
         Return the local Pontryagin forms w.r.t. a given curvature matrix.
@@ -1159,7 +1316,6 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Euler forms.
     """
-
     @cached_method
     def get(self, nab):
         r"""

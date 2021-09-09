@@ -534,22 +534,30 @@ class ModularForm_abstract(ModuleElement):
             sage: E6 = ModularForms(1, 6).0
             sage: DE4 = E4.serre_derivative(); DE4
             -1/3 + 168*q + 5544*q^2 + 40992*q^3 + 177576*q^4 + 525168*q^5 + O(q^6)
-            sage: DE4.weight()
-            6
-            sage: DE4 == (-1/3) * E6 # Ramanujan identity
-            True
             sage: DE6 = E6.serre_derivative(); DE6
             -1/2 - 240*q - 30960*q^2 - 525120*q^3 - 3963120*q^4 - 18750240*q^5 + O(q^6)
-            sage: DE6.weight()
-            8
-            sage: DE6 == (-1/2) * E4 * E4 # Ramanujan identity
-            True
-            sage: Del = ModularForms(1, 12).0
+            sage: Del = ModularForms(1, 12).0 # Modular discriminant
             sage: Del.serre_derivative()
             0
             sage: f = ModularForms(DirichletGroup(5).0, 1).0
-            sage: f.serre_derivative()
+            sage: Df = f.serre_derivative(); Df
             -1/12 + (-11/12*zeta4 + 19/4)*q + (11/6*zeta4 + 59/3)*q^2 + (-41/3*zeta4 + 239/6)*q^3 + (31/4*zeta4 + 839/12)*q^4 + (-251/12*zeta4 + 459/4)*q^5 + O(q^6)
+
+        The Serre derivative raises the weight of a modular form by `2`::
+
+            sage: DE4.weight()
+            6
+            sage: DE6.weight()
+            8
+            sage: Df.weight()
+            3
+
+        The Ramanujan identities are verified (see :wikipedia:`Eisenstein_series#Ramanujan_identities`)::
+
+            sage: DE4 == (-1/3) * E6
+            True
+            sage: DE6 == (-1/2) * E4 * E4
+            True
         """
         from .eis_series import eisenstein_series_qexp
         from .constructor import ModularForms

@@ -2011,7 +2011,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         r"""
         Generate some points of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = cones.nonnegative_orthant(3)
             sage: K.some_elements()  # indirect doctest

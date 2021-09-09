@@ -349,6 +349,27 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
             mpz_set(denom.value, self.denom)
             return "new QuadraticExtension({}, {}, {})".format(a/denom, b/denom, self.D)
 
+    def _copy_for_parent(self, parent):
+        r"""
+        Return a copy of ``self`` with the parent replaced by ``parent``.
+
+        EXAMPLES::
+
+            sage: K.<a> = QuadraticField(3)
+            sage: L.<b> = K.change_names()
+            sage: La = a._copy_for_parent(L)
+            sage: La.parent() is L
+            True
+            sage: La == b
+            True
+        """
+        cdef NumberFieldElement_quadratic x = <NumberFieldElement_quadratic>self._new()
+        mpz_set(x.a, self.a)
+        mpz_set(x.b, self.b)
+        mpz_set(x.denom, self.denom)
+        x._set_parent(parent)
+        return x
+
     def __copy__(self):
         r"""
         Returns a new copy of self.

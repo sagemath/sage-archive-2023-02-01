@@ -2630,6 +2630,27 @@ cdef class NumberFieldElement(FieldElement):
         x.__denominator = self.__denominator
         return x
 
+    def _copy_for_parent(self, parent):
+        r"""
+        Return a copy of ``self`` with the parent replaced by ``parent``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: L.<b> = K.change_names()
+            sage: La = a._copy_for_parent(L)
+            sage: La.parent() is L
+            True
+            sage: La == b
+            True
+        """
+        cdef NumberFieldElement x
+        x = self._new()
+        x.__numerator = self.__numerator
+        x.__denominator = self.__denominator
+        x._set_parent(parent)
+        return x
+
     def __copy__(self):
         r"""
         EXAMPLES::

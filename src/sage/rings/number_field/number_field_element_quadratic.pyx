@@ -373,8 +373,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     def __copy__(self):
         r"""
-        Returns a new copy of self.
-
         TESTS::
 
             sage: K.<a> = QuadraticField(-3)
@@ -388,8 +386,6 @@ cdef class NumberFieldElement_quadratic(NumberFieldElement_absolute):
 
     def __deepcopy__(self, memo):
         r"""
-        Returns a new copy of self.
-
         TESTS::
 
             sage: K.<a> = QuadraticField(-3)

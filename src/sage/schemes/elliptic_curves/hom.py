@@ -102,6 +102,20 @@ class EllipticCurveHom(Morphism):
             True
             sage: phi.dual() == psi.dual()
             True
+
+        ::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: E = EllipticCurve([9,9])
+            sage: F = E.change_ring(GF(71))
+            sage: wE = WeierstrassIsomorphism(E, (1,0,0,0))
+            sage: wF = WeierstrassIsomorphism(F, (1,0,0,0))
+            sage: mE = E.multiplication_by_m_isogeny(1)
+            sage: mF = F.multiplication_by_m_isogeny(1)
+            sage: [mE == wE, mF == wF]
+            [True, True]
+            sage: [a == b for a in (wE,mE) for b in (wF,mF)]
+            [False, False, False, False]
         """
         # We cannot just compare kernel polynomials, as was done until
         # Trac #11327, as then phi and -phi compare equal, and

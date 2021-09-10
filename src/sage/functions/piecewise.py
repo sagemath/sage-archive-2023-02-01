@@ -786,7 +786,9 @@ class PiecewiseFunction(BuiltinFunction):
 
                 sage: f1(x) = e^(-abs(x))
                 sage: f = piecewise([[(-infinity, infinity), f1]])
-                sage: f.integral(definite=True)
+                sage: result = f.integral(definite=True)
+                ...
+                sage: result
                 2
                 sage: f.integral()
                 piecewise(x|-->-integrate(e^(-abs(x)), x, x, +Infinity) on (-oo, +oo); x)

@@ -2973,7 +2973,7 @@ class HyperplaneArrangementElement(Element):
         from sage.matroids.constructor import Matroid
         return Matroid(matrix=matrix(norms).transpose())
 
-    def orlik_solomon_algebra(self, base_ring=None, ordering=None):
+    def orlik_solomon_algebra(self, base_ring=None, ordering=None, **kwds):
         """
         Return the Orlik-Solomon algebra of ``self``.
 
@@ -2996,7 +2996,7 @@ class HyperplaneArrangementElement(Element):
         """
         if base_ring is None:
             base_ring = self.base_ring()
-        return self.matroid().orlik_solomon_algebra(base_ring, ordering)
+        return self.matroid().orlik_solomon_algebra(base_ring, ordering,**kwds)
 
     def orlik_terao_algebra(self, base_ring=None, ordering=None):
         """

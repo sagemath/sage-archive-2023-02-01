@@ -428,29 +428,44 @@ def fast_callable(x, domain=None, vars=None,
         et = x
         vars = et._etb._vars
     else:
-        if vars is None or len(vars) == 0:
-            from sage.symbolic.ring import SR
-            from sage.symbolic.callable import is_CallableSymbolicExpressionRing
-            from sage.symbolic.expression import is_Expression
+        from sage.symbolic.callable import is_CallableSymbolicExpression
+        from sage.symbolic.expression import is_Expression
 
-            # XXX This is pretty gross... there should be a "callable_variables"
-            # method that does all this.
-            vars = x.variables()
-            if x.parent() is SR and x.number_of_arguments() > len(vars):
-                vars = list(vars) + ['EXTRA_VAR%d' % n for n in range(len(vars), x.number_of_arguments())]
+        if not vars:
+            # fast_float passes empty list/tuple
+            vars = None
 
-            # Failing to specify the variables is an error for any
-            # symbolic expression, except for CallableSymbolicExpression.
-            if is_Expression(x) and not is_CallableSymbolicExpressionRing(x.parent()):
+        if is_CallableSymbolicExpression(x):
+            if vars is None:
+                vars = x.arguments()
+            if expect_one_var and len(vars) != 1:
+                raise ValueError(f"passed expect_one_var=True, but the callable expression takes {len(vars)} arguments")
+        elif is_Expression(x):
+            from sage.symbolic.ring import is_SymbolicVariable
+            if vars is None:
+                vars = x.variables()
                 if expect_one_var and len(vars) <= 1:
-                    if len(vars) == 0:
+                    if not vars:
                         vars = ['EXTRA_VAR0']
                 else:
-                    raise ValueError("List of variables must be specified for symbolic expressions")
+                    raise ValueError("list of variables must be specified for symbolic expressions")
+            def to_var(var):
+                if is_SymbolicVariable(var):
+                    return var
+                from sage.symbolic.ring import SR
+                return SR.var(var)
+            vars = [to_var(var) for var in vars]
+            # Convert to a callable symbolic expression
+            x = x.function(*vars)
+
+        if vars is None:
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
                 vars = x.parent().variable_names()
+            else:
+                # constant
+                vars = ()
 
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)
         et = x._fast_callable_(etb)
@@ -680,13 +695,13 @@ cdef class ExpressionTreeBuilder:
             sage: etb.var('y')
             Traceback (most recent call last):
             ...
-            ValueError: Variable 'y' not found
+            ValueError: Variable 'y' not found...
         """
         var_name = self._clean_var(v)
         try:
             ind = self._vars.index(var_name)
         except ValueError:
-            raise ValueError("Variable '%s' not found" % var_name)
+            raise ValueError(f"Variable '{var_name}' not found in {self._vars}")
         return ExpressionVariable(self, ind)
 
     def _var_number(self, n):

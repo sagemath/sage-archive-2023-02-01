@@ -20748,7 +20748,8 @@ class GenericGraph(GenericGraph_pyx):
             }
 
         We test the same graph and ``'dir'`` edge options but with
-        ``backward=True``::
+        ``backward=True``, which reverses the natural direction
+        each edge wants to be pointing for the layout::
 
             sage: def edge_options(data):
             ....:     u,v,label = data

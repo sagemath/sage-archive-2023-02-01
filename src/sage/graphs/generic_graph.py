@@ -23480,7 +23480,7 @@ class GenericGraph(GenericGraph_pyx):
         Return the edge polytope of ``self``.
 
         The edge polytope (EP) of a Graph on `n` vertices
-        is a polytope in `\RR^{n}` defined as the convex hull of
+        is a polytope in `\ZZ^{n}` defined as the convex hull of
         `e_i + e_j` for each edge `(i, j)`.
         Here `e_1, \dots, e_n` denotes the standard basis.
 
@@ -23529,7 +23529,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P1.is_combinatorially_isomorphic(P2)
             True
 
-        However, there are still many different EPs:
+        However, there are still many different EPs::
 
             sage: len(list(graphs(5)))
             34
@@ -23544,12 +23544,20 @@ class GenericGraph(GenericGraph_pyx):
             ....:
             sage: len(polys)
             19
+
+        TESTS:
+
+        Obtain the EP with unsortable vertices::
+
+            sage: G = Graph([[1, (1, 2)]])
+            sage: G.edge_polytope()
+            A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
         """
         from sage.matrix.special import identity_matrix
         from sage.geometry.polyhedron.parent import Polyhedra
         dim = self.num_verts()
         e = identity_matrix(dim).rows()
-        dic = {v: e[i] for i, v in enumerate(self.vertices())}
+        dic = {v: e[i] for i, v in enumerate(self)}
         vertices = ((dic[i] + dic[j]) for i,j in self.edge_iterator(sort_vertices=False, labels=False))
         parent = Polyhedra(ZZ, dim, backend=backend)
         return parent([vertices, [], []], None)
@@ -23559,7 +23567,7 @@ class GenericGraph(GenericGraph_pyx):
         Return the symmetric edge polytope of ``self``.
 
         The symmetric edge polytope (SEP) of a Graph on `n` vertices
-        is a polytope in `\RR^{n}` defined as the convex hull of
+        is a polytope in `\ZZ^{n}` defined as the convex hull of
         `e_i - e_j` and `e_j - e_i` for each edge `(i, j)`.
         Here `e_1, \dots, e_n` denotes the standard basis.
 
@@ -23623,7 +23631,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P1.is_combinatorially_isomorphic(P2)
             True
 
-        However, there are still many different SEPs:
+        However, there are still many different SEPs::
 
             sage: len(list(graphs(5)))
             34
@@ -23667,13 +23675,21 @@ class GenericGraph(GenericGraph_pyx):
             sage: PH = H.symmetric_edge_polytope()
             sage: PG.is_combinatorially_isomorphic(PH)
             True
+
+        TESTS:
+
+        Obtain the SEP with unsortable vertices::
+
+            sage: G = Graph([[1, (1, 2)]])
+            sage: G.symmetric_edge_polytope()
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
         """
         from itertools import chain
         from sage.matrix.special import identity_matrix
         from sage.geometry.polyhedron.parent import Polyhedra
         dim = self.num_verts()
         e = identity_matrix(dim).rows()
-        dic = {v: e[i] for i, v in enumerate(self.vertices())}
+        dic = {v: e[i] for i, v in enumerate(self)}
         vertices = chain(((dic[i] - dic[j]) for i,j in self.edge_iterator(sort_vertices=False, labels=False)),
                          ((dic[j] - dic[i]) for i,j in self.edge_iterator(sort_vertices=False, labels=False)))
         parent = Polyhedra(ZZ, dim, backend=backend)

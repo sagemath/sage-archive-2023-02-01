@@ -3192,7 +3192,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         """
         self._set_post_isomorphism(WeierstrassIsomorphism(self.__E2, (-1,0,-self.__E2.a1(),-self.__E2.a3())))
 
-    def is_normalized(self, via_formal=True, check_by_pullback=True):
+    def is_normalized(self):
         r"""
         Return whether this isogeny is normalized.
 
@@ -3205,14 +3205,10 @@ class EllipticCurveIsogeny(EllipticCurveHom):
            differentials on `E` and `E_2` corresponding to the given
            equation.
 
-        INPUT:
+        ALGORITHM:
 
-        - ``via_formal`` - (default: ``True``) If ``True`` it simply
-          checks if the leading term of the formal series is
-          1. Otherwise it uses a deprecated algorithm involving the
-          second optional argument.
-
-        - ``check_by_pullback`` -  (default:``True``) Deprecated.
+        The method checks if the leading term of the formal series
+        associated to this isogeny equals 1.
 
         EXAMPLES::
 
@@ -3273,84 +3269,8 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi.is_normalized()
             True
         """
-        # easy algorithm using the formal expansion.
-        if via_formal:
-            phi_formal = self.formal(prec=5)
-            return phi_formal[1] == 1
-
-        # this is the old algorithm. it should be deprecated.
-        check_prepost_isomorphism = False
-
-        f_normalized = True
-
-        if (check_by_pullback):
-
-            (Xmap, Ymap) = self.rational_maps()
-
-            E1 = self.__E1
-            E2 = self.__E2
-
-            a1 = E1.a1()
-            a3 = E1.a3()
-
-            a1pr = E2.a1()
-            a3pr = E2.a3()
-
-            x, y = self.__mpoly_ring.gens()
-
-            Xmap_pr = Xmap.derivative(x)
-
-            domain_inv_diff = 1/(2*y + a1*x + a3)
-            codomain_inv_diff = Xmap_pr/(2*Ymap + a1pr*Xmap + a3pr)
-
-            inv_diff_quo = domain_inv_diff/codomain_inv_diff
-
-            if (1 == inv_diff_quo):
-                f_normalized = True
-            else:
-                # For some reason, in certain cases, when the isogeny
-                # is pre or post composed with a translation the
-                # resulting rational functions are too complicated for
-                # sage to simplify down to a constant in this case, we
-                # do some cheating by checking if the post-composition
-                # by isogeny has a non 1 scaling factor
-                if ( inv_diff_quo.numerator().is_constant() and (inv_diff_quo.denominator().is_constant) ):
-                    f_normalized = False
-                else:
-                    check_prepost_isomorphism = True
-        else:
-            check_prepost_isomorphism = True
-
-        # If we skip checking by the pullback of the invariant
-        # differential OR if that was inconclusive We explicitly check
-        # if there is a post isomorphism and if it has a non 1 scaling
-        # factor or if it is a just a translation.  NOTE: This only
-        # works because we are using algorithms for calculating the
-        # isogenies that calculate a separable normalized isogeny, if
-        # this changes, this check will no longer be correct.
-        #
-        if (check_prepost_isomorphism):
-            post_isom = self.__post_isomorphism
-            if (post_isom is not None):
-                if (1 == self.__base_field(post_isom.u)):
-                    f_post_normalized = True
-                else:
-                    f_post_normalized = False
-            else:
-                f_post_normalized = True
-
-            pre_isom = self.__pre_isomorphism
-            if (pre_isom is not None):
-                if (1 == self.__base_field(pre_isom.u)):
-                    f_pre_normalized = True
-                else:
-                    f_pre_normalized = False
-            else:
-                f_pre_normalized = True
-
-            f_normalized = f_pre_normalized and f_post_normalized
-
-        return f_normalized
+        phi_formal = self.formal(prec=5)
+        return phi_formal[1] == 1
 
     def dual(self):
         r"""

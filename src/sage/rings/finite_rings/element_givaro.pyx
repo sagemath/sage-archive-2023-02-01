@@ -1607,6 +1607,19 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
         """
         return self
 
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: S.<b> = GF(5^2); S
+            Finite Field in b of size 5^2
+            sage: c = deepcopy(b); c
+            b
+            sage: c is b
+            True
+        """
+        return self
+
     def _gap_init_(FiniteField_givaroElement self):
         """
         Return a string that evaluates to the GAP representation of

@@ -77,6 +77,7 @@ from sage.modules.free_module_element import vector
 from sage.structure.element cimport Element, FieldElement
 from sage.structure.element cimport parent
 from sage.structure.element import canonical_coercion, coerce_binop
+from sage.structure.parent cimport Parent
 
 from sage.libs.pari import pari
 
@@ -2630,7 +2631,7 @@ cdef class NumberFieldElement(FieldElement):
         x.__denominator = self.__denominator
         return x
 
-    def _copy_for_parent(self, parent):
+    cpdef _copy_for_parent(self, Parent parent):
         r"""
         Return a copy of ``self`` with the parent replaced by ``parent``.
 

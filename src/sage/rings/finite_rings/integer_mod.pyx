@@ -2086,12 +2086,29 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         except ZeroDivisionError:
             raise ZeroDivisionError("moduli must be coprime")
 
-
     def __copy__(IntegerMod_gmp self):
-        cdef IntegerMod_gmp x
-        x = self._new_c()
-        mpz_set(x.value, self.value)
-        return x
+        """
+        EXAMPLES::
+
+            sage: R = Integers(10^10)
+            sage: R7 = R(7)
+            sage: copy(R7) is R7
+            True
+        """
+        # immutable
+        return self
+
+    def __deepcopy__(IntegerMod_gmp self, memo):
+        """
+        EXAMPLES::
+
+            sage: R = Integers(10^10)
+            sage: R7 = R(7)
+            sage: deepcopy(R7) is R7
+            True
+        """
+        # immutable
+        return self
 
     cpdef _add_(self, right):
         """
@@ -2468,13 +2485,29 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         except ZeroDivisionError:
             raise ZeroDivisionError("moduli must be coprime")
 
-
     def __copy__(IntegerMod_int self):
-        cdef IntegerMod_int x = IntegerMod_int.__new__(IntegerMod_int)
-        x._parent = self._parent
-        x.__modulus = self.__modulus
-        x.ivalue = self.ivalue
-        return x
+        """
+        EXAMPLES::
+
+            sage: R = Integers(10)
+            sage: R7 = R(7)
+            sage: copy(R7) is R7
+            True
+        """
+        # immutable
+        return self
+
+    def __deepcopy__(IntegerMod_int self, memo):
+        """
+        EXAMPLES::
+
+            sage: R = Integers(10)
+            sage: R7 = R(7)
+            sage: deepcopy(R7) is R7
+            True
+        """
+        # immutable
+        return self
 
     cpdef _add_(self, right):
         """
@@ -3288,7 +3321,28 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             raise ZeroDivisionError("moduli must be coprime")
 
     def __copy__(IntegerMod_int64 self):
-        return self._new_c(self.ivalue)
+        """
+        EXAMPLES::
+
+            sage: R = Integers(10^5)
+            sage: R7 = R(7)
+            sage: copy(R7) is R7
+            True
+        """
+        # immutable
+        return self
+
+    def __deepcopy__(IntegerMod_int64 self, memo):
+        """
+        EXAMPLES::
+
+            sage: R = Integers(10^5)
+            sage: R7 = R(7)
+            sage: deepcopy(R7) is R7
+            True
+        """
+        # immutable
+        return self
 
     cpdef _add_(self, right):
         """

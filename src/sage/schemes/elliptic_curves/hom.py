@@ -1,13 +1,14 @@
 """
 Elliptic-curve morphisms
 
-This class serves as a common parent for various specializations
-of morphisms between elliptic curves. In the future, some of the
-code currently contained in the EllipticCurveIsogeny class should
-be moved here, and new code for cases not currently covered by the
-EllipticCurveIsogeny class should inherit from this class in order
-to eventually provide a uniform interface for all elliptic-curve
-maps --- regardless of differences in internal representations.
+This class serves as a common parent for various specializations of
+morphisms between elliptic curves, with the aim of providing a common
+interface regardless of implementation details.
+
+Current implementations of elliptic-curve morphisms (child classes):
+
+- :class:`EllipticCurveIsogeny`
+- :class:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism`
 
 AUTHORS:
 

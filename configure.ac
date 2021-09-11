@@ -492,6 +492,27 @@ AC_CONFIG_COMMANDS(mkdirs,
         SAGE_INST="$SAGE_SPKG_INST"
     ])
 
+AC_CONFIG_COMMANDS(links, [
+    dnl Create links for the convenience of users
+    SYMLINK="${ac_top_build_prefix}prefix"
+    AS_IF([test -L "$SYMLINK" -o ! -e "$SYMLINK"], [
+        AC_MSG_NOTICE([creating convenience symlink $SYMLINK -> $SAGE_LOCAL])
+        ln -sf "$SAGE_LOCAL" "$SYMLINK"
+    ], [
+        AC_MSG_NOTICE([cannot create convenience symlink $SYMLINK -> $SAGE_LOCAL because the file exists and is not a symlink; this is harmless])
+    ])
+    SYMLINK="${ac_top_build_prefix}venv"
+    AS_IF([test -L "$SYMLINK" -o ! -e "$SYMLINK"], [
+        AC_MSG_NOTICE([creating convenience symlink $SYMLINK -> $SAGE_VENV])
+        ln -sf "$SAGE_VENV" "$SYMLINK"
+    ], [
+        AC_MSG_NOTICE([cannot create convenience symlink $SYMLINK -> $SAGE_VENV because the file exists and is not a symlink; this is harmless])
+    ])
+], [
+    SAGE_LOCAL="$SAGE_LOCAL"
+    eval SAGE_VENV="$SAGE_VENV"dnl eval so as to evaluate the embedded ${SAGE_LOCAL}
+])
+
 AC_OUTPUT()
 
 SAGE_SYSTEM_PACKAGE_NOTICE()

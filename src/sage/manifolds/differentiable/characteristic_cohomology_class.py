@@ -1427,7 +1427,7 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
 
     Consider the 2-dimensional Euclidean space::
 
-        sage: M.<x,y> = manifolds.Sphere(2, coordinates='stereographic')
+        sage: M = manifolds.EuclideanSpace(2)
         sage: TM = M.tangent_bundle()
         sage: g = M.metric()
         sage: nab = g.connection()
@@ -1438,41 +1438,9 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
         sage: from sage.manifolds.differentiable.characteristic_cohomology_class import EulerAlgorithm
         sage: algorithm = EulerAlgorithm()
         sage: algorithm.get(nab)
-        [2-form on the 2-sphere S^2 of radius 1 smoothly embedded in the
-         Euclidean space E^3]
+        [2-form on the Euclidean plane E^2]
         sage: algorithm.get(nab)[0].display()
-        2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 + 2*(pi + pi*x^2)*y^2) dx∧dy
-
-    Get the local (normalized) Pfaffian w.r.t. spherical coordinates::
-
-        sage: spher.<ϑ,ϕ> = M.spherical_coordinates()
-        sage: cmat = [[nab.curvature_form(i, j, spher.frame())
-        ....:          for j in TM.irange()]
-        ....:         for i in TM.irange()]
-        sage: [euler_spher] = algorithm.get_local(cmat)
-        sage: euler_spher.display()
-
-
-    Get the local (normalized) Pfaffian w.r.t. stereographic coordinates::
-
-        sage: stereoN = M.stereographic_coordinates()
-        sage: cmat = [[nab.curvature_form(i, j, stereoN.frame())
-        ....:          for j in TM.irange()]
-        ....:         for i in TM.irange()]
-        sage: [euler_stereo] = algorithm.get_local(cmat)
-
-        sage: euler_stereo.display()
-        2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 + 2*(pi + pi*x^2)*y^2) dx∧dy
-
-    In general, the result of :meth:`get_local` does not yield the Euler form::
-
-        sage: W = spher.domain().intersection(stereoN.domain())
-        sage: euler_stereo.restrict(W) == euler_spher.restrict(W)  # should be False
-        False
-
-    ::
-
-
+        0
     """
     @cached_method
     def get(self, nab):
@@ -1595,17 +1563,24 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
             sage: TM = M.tangent_bundle()
             sage: g = M.metric()
             sage: nab = g.connection()
-            sage: e = M.frames()[0]  # select a frame
+            sage: e = M.frames()[0]  # select a frame (opposite orientation!)
             sage: cmat = [[nab.curvature_form(i, j, e) for j in TM.irange()]
             ....:         for i in TM.irange()]
 
-        Import the algorithm and apply ``cmat`` to it::
+        We need some preprocessing because the frame is not orthonormal::
+
+            sage: gcmat = [[sum(g[[e, i, j]] * nab.curvature_form(j, k, e)
+            ....:               for j in TM.irange())
+            ....:           for k in TM.irange()] for i in TM.irange()]
+
+        Now, ``gcmat`` is guaranteed to be skew-symmetric and can be applied
+        to :meth:`get_local`. Then, the result must be normalized::
 
             sage: from sage.manifolds.differentiable.characteristic_cohomology_class import EulerAlgorithm
             sage: algorithm = EulerAlgorithm()
-            sage: [euler] = algorithm.get_local(cmat)
+            sage: euler = -algorithm.get_local(gcmat)[0] / sqrt(g.det(frame=e))
             sage: euler.display()
-
+            1/2*sin(ϑ)/pi dϑ∧dϕ
         """
         from sage.symbolic.constants import pi
 

@@ -421,7 +421,8 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
 
         OUTPUT:
 
-        - an instance of `sage.manifolds.differentiable.mixed_form.MixedForm`
+        - an instance of
+          :class:`sage.manifolds.differentiable.mixed_form.MixedForm`
 
         EXAMPLES:
 
@@ -528,7 +529,8 @@ class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
 
         OUTPUT:
 
-        - an instance of `sage.manifolds.differentiable.mixed_form.MixedForm`
+        - an instance of
+          :class:`sage.manifolds.differentiable.mixed_form.MixedForm`
 
         EXAMPLES:
 
@@ -1211,7 +1213,13 @@ class Algorithm_generic(SageObject):
 
         OUTPUT:
 
-        - a list containing the generator's global characteristic forms
+        - a list containing the generator's global characteristic forms as
+          instances of
+          :class:`sage.manifolds.differentiable.diff_form.DiffForm`
+
+        EXAMPLES:
+
+            sage:
         """
         if isinstance(nab, AffineConnection):
             vbundle = nab._domain.tangent_bundle()
@@ -1243,6 +1251,10 @@ class Algorithm_generic(SageObject):
         OUTPUT:
 
         - a list containing the generator's local characteristic forms
+
+        ALGORITHM:
+
+        The inherited class determines the algorithm.
         """
         pass
 
@@ -1305,12 +1317,41 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
 
         OUTPUT:
 
-        - a list containing the local characteristic Chern forms
+        - a list containing the local characteristic Chern forms as
+          instances of
+          :class:`sage.manifolds.differentiable.diff_form.DiffForm`
 
         ALGORITHM::
 
             The algorithm is based on the Faddeev-LeVerrier algorithm for the
             characteristic polynomial.
+
+        EXAMPLES:
+
+        Define a complex line bundle over a 2-dimensional manifold::
+
+            sage: M = Manifold(2, 'M', structure='Lorentzian')
+            sage: X.<t,x> = M.chart()
+            sage: E = M.vector_bundle(1, 'E', field='complex'); E
+            Differentiable complex vector bundle E -> M of rank 1 over the base
+             space 2-dimensional Lorentzian manifold M
+            sage: e = E.local_frame('e')
+            sage: nab = E.bundle_connection('nabla^E', latex_name=r'\nabla^E')
+            sage: omega = M.one_form(name='omega')
+            sage: A = function('A')
+            sage: nab.set_connection_form(0, 0)[1] = I*A(t)
+            sage: nab[0, 0].display()
+            connection (0,0) of bundle connection nabla^E w.r.t. Local frame
+             (E|_M, (e_0)) = I*A(t) dx
+            sage: cmat = [[nab.curvature_form(i, j, e) for j in E.irange()]
+            ....:         for i in E.irange()]
+
+        Import the algorithm and apply ``cmat`` to it::
+
+            sage: from sage.manifolds.differentiable.characteristic_cohomology_class import ChernAlgorithm
+            sage: algorithm = ChernAlgorithm()
+            sage: algorithm.get_local(cmat)
+            [2-form on the 2-dimensional Lorentzian manifold M]
         """
         from sage.symbolic.constants import pi
         from sage.libs.pynac.pynac import I
@@ -1381,6 +1422,57 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
 class EulerAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Euler forms.
+
+    EXAMPLES:
+
+    Consider the 2-dimensional Euclidean space::
+
+        sage: M.<x,y> = manifolds.Sphere(2, coordinates='stereographic')
+        sage: TM = M.tangent_bundle()
+        sage: g = M.metric()
+        sage: nab = g.connection()
+        sage: nab.set_immutable()
+
+    Import the algorithm and apply ``nab`` to it::
+
+        sage: from sage.manifolds.differentiable.characteristic_cohomology_class import EulerAlgorithm
+        sage: algorithm = EulerAlgorithm()
+        sage: algorithm.get(nab)
+        [2-form on the 2-sphere S^2 of radius 1 smoothly embedded in the
+         Euclidean space E^3]
+        sage: algorithm.get(nab)[0].display()
+        2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 + 2*(pi + pi*x^2)*y^2) dx∧dy
+
+    Get the local (normalized) Pfaffian w.r.t. spherical coordinates::
+
+        sage: spher.<ϑ,ϕ> = M.spherical_coordinates()
+        sage: cmat = [[nab.curvature_form(i, j, spher.frame())
+        ....:          for j in TM.irange()]
+        ....:         for i in TM.irange()]
+        sage: [euler_spher] = algorithm.get_local(cmat)
+        sage: euler_spher.display()
+
+
+    Get the local (normalized) Pfaffian w.r.t. stereographic coordinates::
+
+        sage: stereoN = M.stereographic_coordinates()
+        sage: cmat = [[nab.curvature_form(i, j, stereoN.frame())
+        ....:          for j in TM.irange()]
+        ....:         for i in TM.irange()]
+        sage: [euler_stereo] = algorithm.get_local(cmat)
+
+        sage: euler_stereo.display()
+        2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 + 2*(pi + pi*x^2)*y^2) dx∧dy
+
+    In general, the result of :meth:`get_local` does not yield the Euler form::
+
+        sage: W = spher.domain().intersection(stereoN.domain())
+        sage: euler_stereo.restrict(W) == euler_spher.restrict(W)  # should be False
+        False
+
+    ::
+
+
     """
     @cached_method
     def get(self, nab):
@@ -1388,10 +1480,59 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
         Return the global characteristic forms of the generators w.r.t. a given
         connection.
 
+        INPUT:
+
+        - a metric connection `\nabla`
+
         OUTPUT:
 
         - a list containing the global characteristic Euler form
 
+        ALGORITHM:
+
+        Assume that `\nabla` is compatible with the metric `g`, and let
+        `(s_1, \ldots, s_n)` be any oriented frame. Denote by
+        `G_s = (g(s_i, s_j))_{ij}` the metric tensor and let
+        `\Omega_s` be the curvature form matrix of `\nabla` w.r.t. `s`.
+        Then, we get:
+
+        .. MATH::
+
+            \left(G_s \cdot \Omega_s \right)_{ij} = g\!\left(R(.,.)s_i, s_j\right),
+
+        where `R` is the Riemannian curvature tensor w.r.t. `\nabla`.
+
+        The characteristic Euler form is now obtained by the expression
+
+        .. MATH::
+
+            \frac{1}{\sqrt{\left|\det(G_s)\right|}} \
+                \mathrm{Pf}\!\left(G_s \cdot \frac{\Omega_s}{2 \pi}\right).
+
+        EXAMPLES:
+
+        Consider the 2-sphere::
+
+            sage: M.<x,y> = manifolds.Sphere(2, coordinates='stereographic')
+            sage: TM = M.tangent_bundle()
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: nab.set_immutable()
+
+        Import the algorithm and apply ``nab`` to it::
+
+            sage: from sage.manifolds.differentiable.characteristic_cohomology_class import EulerAlgorithm
+            sage: algorithm = EulerAlgorithm()
+            sage: algorithm.get(nab)
+            [2-form on the 2-sphere S^2 of radius 1 smoothly embedded in the
+             Euclidean space E^3]
+            sage: algorithm.get(nab)[0].display()
+            2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 + 2*(pi + pi*x^2)*y^2) dx∧dy
+
+        REFERENCES:
+
+        - [Che1944]_
+        - [Baer2020]_
         """
         if not isinstance(nab, LeviCivitaConnection):
             raise TypeError('Euler forms are currently only supported for '
@@ -1436,13 +1577,35 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
 
         .. NOTE::
 
-            The result is the local Euler form if ``cmat`` is given w.r.t. an
-            orthonormal oriented frame.
+            In general, the output does *not* represent the local
+            characteristic Euler form. The result is only guaranteed to be the
+            local Euler form if ``cmat`` is given w.r.t. an orthonormal
+            oriented frame. See :meth:`get` for details.
 
         ALGORITHM::
 
             The algorithm is based on the Bär-Faddeev-LeVerrier algorithm for
             the Pfaffian.
+
+        EXAMPLES:
+
+        Consider the 2-sphere::
+
+            sage: M.<ϑ,ϕ> = manifolds.Sphere(2)  # use spherical coordinates
+            sage: TM = M.tangent_bundle()
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: e = M.frames()[0]  # select a frame
+            sage: cmat = [[nab.curvature_form(i, j, e) for j in TM.irange()]
+            ....:         for i in TM.irange()]
+
+        Import the algorithm and apply ``cmat`` to it::
+
+            sage: from sage.manifolds.differentiable.characteristic_cohomology_class import EulerAlgorithm
+            sage: algorithm = EulerAlgorithm()
+            sage: [euler] = algorithm.get_local(cmat)
+            sage: euler.display()
+
         """
         from sage.symbolic.constants import pi
 

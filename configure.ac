@@ -70,15 +70,18 @@ SAGE_LOCAL="$prefix"
 # This is nonstandard.
 if test "$SAGE_LOCAL" = NONE; then
     SAGE_LOCAL=local
+    SAGE_VENV_AUTO=yes
+else
+    SAGE_VENV_AUTO=no
 fi
 SAGE_SRC="$SAGE_ROOT/src"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 AC_ARG_WITH([sage-venv],
-            [AS_HELP_STRING([--with-sage-venv=SAGE_VENV],
+            [AS_HELP_STRING([--with-sage-venv={auto,yes,no,SAGE_VENV}],
                             [put Python packages into an installation hierarchy separate from prefix])],
             [SAGE_VENV="$withval"],
-            [SAGE_VENV='${SAGE_LOCAL}'])dnl Quoted so that it is resolved at build time by shell/Makefile
+            [SAGE_VENV="auto"])
 AC_SUBST([SAGE_VENV])
 
 #---------------------------------------------------------

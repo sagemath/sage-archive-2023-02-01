@@ -830,13 +830,16 @@ def greedy_dominating_set(G, k=1, vertices=None, ordering=None, return_sets=Fals
         sage: from sage.graphs.domination import is_dominating
         sage: G = graphs.PetersenGraph()
         sage: vertices = {0, 1, 2, 3, 4, 5}
-        sage: dom = greedy_dominating_set(G, vertices=vertices)
+        sage: dom = greedy_dominating_set(G, vertices=vertices, return_sets=True)
         sage: sorted(dom)
         [0, 2]
         sage: is_dominating(G, dom, focus=vertices)
         True
         sage: is_dominating(G, dom)
         False
+        sage: dominated = [u for v in dom for u in dom[v]]
+        sage: sorted(dominated) == sorted(vertices)
+        True
 
     Influence of the ordering of the vertices on the result::
 
@@ -853,8 +856,6 @@ def greedy_dominating_set(G, k=1, vertices=None, ordering=None, return_sets=Fals
         sage: D = digraphs.Path(3)
         sage: sorted(greedy_dominating_set(D, vertices=[0, 1, 2]))
         [0, 2]
-        sage: sorted(greedy_dominating_set(D, vertices=[2, 1, 0]))
-        [0, 1, 2]
 
     TESTS:
 
@@ -877,7 +878,8 @@ def greedy_dominating_set(G, k=1, vertices=None, ordering=None, return_sets=Fals
         [0]
         sage: greedy_dominating_set(Graph(2))
         [0, 1]
-        sage: G = graphs.DiamondGraph()
+        sage: G = graphs.PathGraph(5)
+        sage: dom = greedy_dominating_set(G, vertices=[0, 1, 3, 4])
 
     Check parameters::
 
@@ -904,6 +906,8 @@ def greedy_dominating_set(G, k=1, vertices=None, ordering=None, return_sets=Fals
     n = G.order()
     dom = dict()
     seen = set()
+    # We want to dominate only the set vertices
+    to_avoid = set() if len(vertices) == n else set(G).difference(vertices)
 
     if closest:
         # Attach each dominated vertex to its closest dominator
@@ -914,6 +918,8 @@ def greedy_dominating_set(G, k=1, vertices=None, ordering=None, return_sets=Fals
                 continue
             dom[u] = set()
             for v, d in G.breadth_first_search(u, distance=k, report_distance=True):
+                if v in to_avoid:
+                    continue
                 if v not in seen:
                     dom[u].add(v)
                     seen.add(v)
@@ -931,7 +937,7 @@ def greedy_dominating_set(G, k=1, vertices=None, ordering=None, return_sets=Fals
                 continue
             dom[u] = set()
             for v in G.breadth_first_search(u, distance=k):
-                if v not in seen:
+                if v not in to_avoid and v not in seen:
                     dom[u].add(v)
                     seen.add(v)
 

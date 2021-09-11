@@ -63,7 +63,6 @@ Methods
 # ****************************************************************************
 
 from copy import copy
-from sage.rings.integer import Integer
 
 
 def is_dominating(G, dom, focus=None):

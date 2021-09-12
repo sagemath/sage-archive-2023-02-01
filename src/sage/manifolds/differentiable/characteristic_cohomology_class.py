@@ -1282,7 +1282,7 @@ class Algorithm_generic(SageObject):
 
         The inherited class determines the algorithm.
 
-        EXAMPLES::
+        EXAMPLES:
 
         4-dimensional Euclidean space::
 
@@ -1301,6 +1301,12 @@ class Algorithm_generic(SageObject):
             sage: [p1] = algorithm.get_local(cmat)
             sage: p1.display()
             0
+
+        A concrete implementation is given by a
+        :class:`sage.misc.fast_methods.Singleton`::
+
+            sage: algorithm is PontryaginAlgorithm()
+            True
         """
         pass
 

@@ -36,7 +36,7 @@ if __name__ == "__main__":
     what = parser.add_mutually_exclusive_group()
     what.add_argument("-a", "--all", action="store_true", default=False, help="test all files in the Sage library")
     parser.add_argument("--logfile", type=argparse.FileType('a'), metavar="FILE", help="log all output to FILE")
-    
+
     parser.add_argument("-l", "--long", action="store_true", default=False, help="include lines with the phrase 'long time'")
     parser.add_argument("-s", "--short", dest="target_walltime", nargs='?',
                         default=None, const=300, metavar="SECONDS",
@@ -119,14 +119,17 @@ if __name__ == "__main__":
     # custom treatment to separate properly
     # one or several file names at the end
     new_arguments = []
-    flag = False
-    for arg in sys.argv:
-        if arg.split('.')[-1] in ['py', 'pyx', 'pxi', 'pxd', 'rst', 'sage'] and not flag:
-            flag = True
+    need_filenames = True
+    in_filenames = False
+    for arg in sys.argv[1:]:
+        if arg in ['-n', '--new', '-a', '--all']:
+            need_filenames = False
+        elif need_filenames and not in_filenames and os.path.exists(arg):
+            in_filenames = True
             new_arguments.append('--')
         new_arguments.append(arg)
 
-    args = parser.parse_args(new_arguments[1:])
+    args = parser.parse_args(new_arguments)
 
     if not args.filenames and not (args.all or args.new):
         print('either use --new or --all or some filenames')

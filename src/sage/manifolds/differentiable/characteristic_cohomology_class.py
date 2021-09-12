@@ -1202,6 +1202,19 @@ class Algorithm_generic(SageObject):
     r"""
     Abstract algorithm class to compute the characteristic forms of the
     generators.
+
+    EXAMPLES::
+
+        sage: from sage.manifolds.differentiable.characteristic_cohomology_class import Algorithm_generic
+        sage: algorithm = Algorithm_generic()
+        sage: algorithm.get
+        Cached version of <function Algorithm_generic.get at 0x...>
+        sage: algorithm.get_local
+        Traceback (most recent call last):
+        ...
+        NotImplementedError: <abstract method get_local at 0x...>
+        sage: algorithm.get_gen_pow
+        Cached version of <function Algorithm_generic.get_gen_pow at 0x...>
     """
     @cached_method
     def get(self, nab):
@@ -1217,9 +1230,22 @@ class Algorithm_generic(SageObject):
           instances of
           :class:`sage.manifolds.differentiable.diff_form.DiffForm`
 
-        EXAMPLES:
+        EXAMPLES::
 
-            sage:
+            sage: M = manifolds.EuclideanSpace(4)
+            sage: TM = M.tangent_bundle()
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: nab.set_immutable()
+
+        ::
+
+            sage: p = TM.characteristic_cohomology_class('Pontryagin')
+            sage: p_form = p.get_form(nab); p_form
+            Mixed differential form p(TE^4, nabla_g) on the 4-dimensional
+             Euclidean space E^4
+            sage: p_form.display_expansion()
+            p(TE^4, nabla_g) = 1
         """
         if isinstance(nab, AffineConnection):
             vbundle = nab._domain.tangent_bundle()
@@ -1255,6 +1281,26 @@ class Algorithm_generic(SageObject):
         ALGORITHM:
 
         The inherited class determines the algorithm.
+
+        EXAMPLES::
+
+        4-dimensional Euclidean space::
+
+            sage: M = manifolds.EuclideanSpace(4)
+            sage: TM = M.tangent_bundle()
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: e = M.frames()[0]  # select standard frame
+            sage: cmat = [[nab.curvature_form(i, j, e) for j in TM.irange()]
+            ....:         for i in TM.irange()]
+
+        Import the algorithm::
+
+            sage: from sage.manifolds.differentiable.characteristic_cohomology_class import PontryaginAlgorithm
+            sage: algorithm = PontryaginAlgorithm()
+            sage: [p1] = algorithm.get_local(cmat)
+            sage: p1.display()
+            0
         """
         pass
 
@@ -1265,6 +1311,23 @@ class Algorithm_generic(SageObject):
         w.r.t ``nab``.
 
         The result is cached.
+
+        EXAMPLES::
+
+            sage: M = manifolds.EuclideanSpace(8)
+            sage: TM = M.tangent_bundle()
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: nab.set_immutable()
+
+        ::
+
+            sage: A = TM.characteristic_cohomology_class('AHat')
+            sage: A_form = A.get_form(nab); A_form
+            Mixed differential form A^(TE^8, nabla_g) on the 8-dimensional
+             Euclidean space E^8
+            sage: A_form.display_expansion()
+            A^(TE^8, nabla_g) = 1
         """
         if n == 0:
             return nab._domain._one_scalar_field  # no computation necessary
@@ -1380,6 +1443,23 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
 class PontryaginAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Pontryagin forms.
+
+    EXAMPLES:
+
+    5-dimensional Euclidean space::
+
+        sage: M = manifolds.EuclideanSpace(5)
+        sage: g = M.metric()
+        sage: nab = g.connection()
+        sage: nab.set_immutable()
+
+    Import the algorithm::
+
+        sage: from sage.manifolds.differentiable.characteristic_cohomology_class import PontryaginAlgorithm
+        sage: algorithm = PontryaginAlgorithm()
+        sage: [p1] = algorithm.get(nab)
+        sage: p1.display()
+        0
     """
     def get_local(self, cmat):
         r"""
@@ -1393,6 +1473,26 @@ class PontryaginAlgorithm(Singleton, Algorithm_generic):
 
             The algorithm is based on the Faddeev-LeVerrier algorithm for the
             characteristic polynomial.
+
+        EXAMPLES:
+
+        5-dimensional Euclidean space::
+
+            sage: M = manifolds.EuclideanSpace(5)
+            sage: TM = M.tangent_bundle()
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: e = M.frames()[0]  # select standard frame
+            sage: cmat = [[nab.curvature_form(i, j, e) for j in TM.irange()]
+            ....:         for i in TM.irange()]
+
+        Import the algorithm::
+
+            sage: from sage.manifolds.differentiable.characteristic_cohomology_class import PontryaginAlgorithm
+            sage: algorithm = PontryaginAlgorithm()
+            sage: [p1] = algorithm.get_local(cmat)
+            sage: p1.display()
+            0
         """
         from sage.symbolic.constants import pi
 
@@ -1428,7 +1528,6 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
     Consider the 2-dimensional Euclidean space::
 
         sage: M = manifolds.EuclideanSpace(2)
-        sage: TM = M.tangent_bundle()
         sage: g = M.metric()
         sage: nab = g.connection()
         sage: nab.set_immutable()
@@ -1482,7 +1581,6 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
         Consider the 2-sphere::
 
             sage: M.<x,y> = manifolds.Sphere(2, coordinates='stereographic')
-            sage: TM = M.tangent_bundle()
             sage: g = M.metric()
             sage: nab = g.connection()
             sage: nab.set_immutable()
@@ -1563,7 +1661,7 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
             sage: TM = M.tangent_bundle()
             sage: g = M.metric()
             sage: nab = g.connection()
-            sage: e = M.frames()[0]  # select a frame (opposite orientation!)
+            sage: e = M.frames()[0]  # select frame (opposite orientation!)
             sage: cmat = [[nab.curvature_form(i, j, e) for j in TM.irange()]
             ....:         for i in TM.irange()]
 
@@ -1605,6 +1703,25 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
 class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
     r"""
     Algorithm class to generate Euler and Pontryagin forms.
+
+    EXAMPLES:
+
+    6-dimensional Euclidean space::
+
+        sage: M = manifolds.EuclideanSpace(6)
+        sage: g = M.metric()
+        sage: nab = g.connection()
+        sage: nab.set_immutable()
+
+    Import the algorithm::
+
+        sage: from sage.manifolds.differentiable.characteristic_cohomology_class import PontryaginEulerAlgorithm
+        sage: algorithm = PontryaginEulerAlgorithm()
+        sage: e, p1 = algorithm.get(nab)
+        sage: e.display()
+        0
+        sage: p1.display()
+        0
     """
 
     @cached_method
@@ -1618,6 +1735,22 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
         - a list containing the global Euler form in the first entry, and the
           global Pontryagin forms in the remaining entries.
 
+        EXAMPLES:
+
+        4-dimensional Euclidean space::
+
+            sage: M = manifolds.EuclideanSpace(4)
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: nab.set_immutable()
+
+        Import the algorithm::
+
+            sage: from sage.manifolds.differentiable.characteristic_cohomology_class import PontryaginEulerAlgorithm
+            sage: algorithm = PontryaginEulerAlgorithm()
+            sage: algorithm.get(nab)
+            [4-form on the 4-dimensional Euclidean space E^4,
+             4-form on the 4-dimensional Euclidean space E^4]
         """
         return EulerAlgorithm().get(nab) + PontryaginAlgorithm().get(nab)
 
@@ -1626,11 +1759,39 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
         Return the local Euler and Pontryagin forms w.r.t. a given curvature
         form matrix.
 
+        .. NOTE::
+
+            Similar as for :class:`EulerAlgorithm`, the first entry only
+            represents the Euler form if the curvature form matrix is chosen
+            w.r.t. an orthonormal oriented frame. See
+            :meth:`EulerAlgorithm.get_local` for details.
+
         OUTPUT:
 
         - a list containing the local Euler form in the first entry, and the
           local Pontryagin forms in the remaining entries.
 
+        EXAMPLES:
+
+        6-dimensional Euclidean space::
+
+            sage: M = manifolds.EuclideanSpace(6)
+            sage: TM = M.tangent_bundle()
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: e = M.frames()[0]  # select the standard frame
+            sage: cmat = [[nab.curvature_form(i, j, e) for j in TM.irange()]
+            ....:         for i in TM.irange()]
+
+        Import the algorithm::
+
+            sage: from sage.manifolds.differentiable.characteristic_cohomology_class import PontryaginEulerAlgorithm
+            sage: algorithm = PontryaginEulerAlgorithm()
+            sage: e, p1 = algorithm.get_local(cmat)
+            sage: e.display()
+            0
+            sage: p1.display()
+            0
         """
         res = EulerAlgorithm().get_local(cmat)  # first entry is Euler class
         res += PontryaginAlgorithm().get_local(cmat)  # rest Pontryagin
@@ -1640,6 +1801,27 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
     def get_gen_pow(self, nab, i, n):
         r"""
         Return the `n`-th power of the `i`-th generator w.r.t ``nab``.
+
+        The result is cached.
+
+        EXAMPLES:
+
+        4-dimensional Euclidean space::
+
+            sage: M = manifolds.EuclideanSpace(8)
+            sage: TM = M.tangent_bundle()
+            sage: g = M.metric()
+            sage: nab = g.connection()
+            sage: nab.set_immutable()
+
+        Import the algorithm::
+
+            sage: from sage.manifolds.differentiable.characteristic_cohomology_class import PontryaginEulerAlgorithm
+            sage: algorithm = PontryaginEulerAlgorithm()
+            sage: e = algorithm.get_gen_pow(nab, 0, 1)  # Euler
+            sage: p1_pow2 = algorithm.get_gen_pow(nab, 1, 2)  # 1st Pontryagin
+            sage: p1_pow2 == e
+            True
         """
         if n == 0:
             return nab._domain._one_scalar_field  # no computation necessary

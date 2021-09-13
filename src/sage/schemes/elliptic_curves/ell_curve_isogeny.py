@@ -906,7 +906,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
     # Kernel Data
     #
 
-    __kernel_list = None  # list of elements in the kernel; stored as a tuple for immutability
+    __kernel_list = None  # list of elements in the kernel
 
     __kernel_polynomial_list = None # polynomial stored as a little endian list of coefficients
 
@@ -1874,7 +1874,7 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         for P in kernel_gens:
             kernel_set += Set(flatten([all_multiples(P,Q)
                                        for Q in kernel_set]))
-        self.__kernel_list = tuple(kernel_set)
+        self.__kernel_list = kernel_set.list()
         self.__kernel_2tor = {}
         self.__kernel_non2tor = {}
         self.__degree = Integer(len(kernel_set))

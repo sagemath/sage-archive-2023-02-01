@@ -767,7 +767,7 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
                             f'field type {vbundle._field_type}')
 
         if not names or not degrees:
-            raise ValueError(f'cannot find any generators')
+            raise ValueError('cannot find any generators')
 
         names = tuple(names)  # hashable
         degrees = tuple(degrees)  # hashable

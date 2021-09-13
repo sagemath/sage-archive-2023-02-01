@@ -63,7 +63,7 @@ Methods
 # ****************************************************************************
 
 from copy import copy
-
+from sage.rings.integer import Integer
 
 def is_dominating(G, dom, focus=None):
     r"""
@@ -358,7 +358,7 @@ def dominating_set(g, k=1, independent=False, total=False, value_only=False,
     p.solve(log=verbose)
     b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
     dom = [v for v in g if b[v]]
-    return len(dom) if value_only else dom
+    return Integer(len(dom)) if value_only else dom
 
 # ==============================================================================
 # Enumeration of minimal dominating set as described in [BDHPR2019]_

@@ -213,7 +213,7 @@ def load(filename, globals, attach=False):
         sage: sage.repl.load.load("this file should not exist", globals())
         Traceback (most recent call last):
         ...
-        IOError: did not find file 'this file should not exist' to load or attach
+        OSError: did not find file 'this file should not exist' to load or attach
     """
     if attach:
         from sage.repl.attach import add_attached_file

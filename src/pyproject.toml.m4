@@ -8,6 +8,7 @@ requires = [
     esyscmd(`sage-get-system-packages install-requires-toml \
         setuptools     \
         wheel          \
+        sage_setup     \
         cypari         \
         cysignals      \
         cython         \

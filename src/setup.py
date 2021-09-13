@@ -79,13 +79,13 @@ optional_packages = ['mcqd', 'bliss', 'tdlib', 'primecount',
 not_installed_packages = [package for package in optional_packages
                           if not is_package_installed_and_updated(package)]
 
-distributions_to_exclude = [f"sage-{pkg}"
+distributions_to_exclude = [f"sagemath-{pkg}"
                             for pkg in not_installed_packages]
 files_to_exclude = filter_cython_sources(SAGE_SRC, distributions_to_exclude)
 
 log.debug(f"files_to_exclude = {files_to_exclude}")
 
-python_packages = find_namespace_packages(where=SAGE_SRC, include=['sage', 'sage_setup', 'sage.*', 'sage_setup.*'])
+python_packages = find_namespace_packages(where=SAGE_SRC, include=['sage', 'sage.*'])
 log.debug(f"python_packages = {python_packages}")
 
 log.info(f"Discovered Python/Cython sources, time: {(time.time() - t):.2f} seconds.")

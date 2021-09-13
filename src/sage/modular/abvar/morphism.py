@@ -659,7 +659,7 @@ class Morphism(Morphism_abstract, sage.modules.matrix_morphism.MatrixMorphism):
         return H(MS(ims))
 
 class DegeneracyMap(Morphism):
-    def __init__(self, parent, A, t):
+    def __init__(self, parent, A, t, side="left"):
         """
         Create the degeneracy map of index t in parent defined by the
         matrix A.
@@ -686,7 +686,7 @@ class DegeneracyMap(Morphism):
         if not isinstance(t, list):
             t = [t]
         self._t = t
-        Morphism.__init__(self, parent, A)
+        Morphism.__init__(self, parent, A, side)
 
     def t(self):
         """
@@ -719,7 +719,7 @@ class HeckeOperator(Morphism):
     """
     A Hecke operator acting on a modular abelian variety.
     """
-    def __init__(self, abvar, n):
+    def __init__(self, abvar, n, side="left"):
         """
         Create the Hecke operator of index `n` acting on the
         abelian variety abvar.
@@ -748,7 +748,7 @@ class HeckeOperator(Morphism):
             raise TypeError("abvar must be a modular abelian variety")
         self.__abvar = abvar
         self.__n = n
-        sage.modules.matrix_morphism.MatrixMorphism_abstract.__init__(self, abvar.Hom(abvar))
+        sage.modules.matrix_morphism.MatrixMorphism_abstract.__init__(self, abvar.Hom(abvar), side)
 
     def _repr_(self):
         """

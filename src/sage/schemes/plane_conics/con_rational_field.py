@@ -36,7 +36,7 @@ from sage.quadratic_forms.qfsolve import qfsolve, qfparam
 
 from .con_number_field import ProjectiveConic_number_field
 
-from sage.structure.element import is_InfinityElement
+from sage.structure.element import InfinityElement
 
 from sage.arith.all import lcm, hilbert_symbol
 
@@ -44,6 +44,7 @@ from sage.arith.all import lcm, hilbert_symbol
 class ProjectiveConic_rational_field(ProjectiveConic_number_field):
     r"""
     Create a projective plane conic curve over `\QQ`.
+
     See ``Conic`` for full documentation.
 
     EXAMPLES::
@@ -68,36 +69,36 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
         ProjectiveConic_number_field.__init__(self, A, f)
 
     def has_rational_point(self, point=False, obstruction=False,
-                           algorithm='default', read_cache=True):
+                           algorithm='default', read_cache=True) -> bool:
         r"""
-        Returns True if and only if ``self`` has a point defined over `\QQ`.
+        Return ``True`` if and only if ``self`` has a point defined over `\QQ`.
 
-        If ``point`` and ``obstruction`` are both False (default), then
+        If ``point`` and ``obstruction`` are both ``False`` (default), then
         the output is a boolean ``out`` saying whether ``self`` has a
         rational point.
 
-        If ``point`` or ``obstruction`` is True, then the output is
+        If ``point`` or ``obstruction`` is ``True``, then the output is
         a pair ``(out, S)``, where ``out`` is as above and the following
         holds:
 
-         - if ``point`` is True and ``self`` has a rational point,
+         - if ``point`` is ``True`` and ``self`` has a rational point,
            then ``S`` is a rational point,
 
-         - if ``obstruction`` is True and ``self`` has no rational point,
+         - if ``obstruction`` is ``True`` and ``self`` has no rational point,
            then ``S`` is a prime such that no rational point exists
            over the completion at ``S`` or `-1` if no point exists over `\RR`.
 
         Points and obstructions are cached, whenever they are found.
-        Cached information is used if and only if ``read_cache`` is True.
+        Cached information is used if and only if ``read_cache`` is ``True``.
 
         ALGORITHM:
 
         The parameter ``algorithm``
         specifies the algorithm to be used:
 
-         - ``'qfsolve'`` -- Use PARI/GP function ``qfsolve``
+         - ``'qfsolve'`` -- Use PARI/GP function :pari:`qfsolve`
 
-         - ``'rnfisnorm'`` -- Use PARI's function rnfisnorm
+         - ``'rnfisnorm'`` -- Use PARI's function :pari:`rnfisnorm`
            (cannot be combined with ``obstruction = True``)
 
          - ``'local'`` -- Check if a local solution exists for all primes
@@ -107,8 +108,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
          - ``'default'`` -- Use ``'qfsolve'``
 
          - ``'magma'`` (requires Magma to be installed) --
-           delegates the task to the Magma computer algebra
-           system.
+           delegates the task to the Magma computer algebra system.
 
         EXAMPLES::
 
@@ -196,10 +196,12 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
                 ret[1] = -1
         return ret
 
-    def is_locally_solvable(self, p):
+    def is_locally_solvable(self, p) -> bool:
         r"""
-        Returns True if and only if ``self`` has a solution over the
-        `p`-adic numbers. Here `p` is a prime number or equals
+        Return ``True`` if and only if ``self`` has a solution over the
+        `p`-adic numbers.
+
+        Here `p` is a prime number or equals
         `-1`, infinity, or `\RR` to denote the infinite place.
 
         EXAMPLES::
@@ -218,7 +220,6 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             True
             sage: D.is_locally_solvable(RR)
             True
-
         """
         from sage.categories.map import Map
         from sage.categories.all import Rings
@@ -229,7 +230,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             return True
         a = -abc[0] / abc[2]
         b = -abc[1] / abc[2]
-        if is_RealField(p) or is_InfinityElement(p):
+        if is_RealField(p) or isinstance(p, InfinityElement):
             p = -1
         elif isinstance(p, Map) and p.category_for().is_subcategory(Rings()):
             # p is a morphism of Rings
@@ -246,13 +247,15 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
 
     def local_obstructions(self, finite=True, infinite=True, read_cache=True):
         r"""
-        Returns the sequence of finite primes and/or infinite places
-        such that self is locally solvable at those primes and places.
+        Return the sequence of finite primes and/or infinite places
+        such that ``self`` is locally solvable at those primes and places.
 
         The infinite place is denoted `-1`.
 
-        The parameters ``finite`` and ``infinite`` (both True by default) are
-        used to specify whether to look at finite and/or infinite places.
+        The parameters ``finite`` and ``infinite`` (both ``True`` by
+        default) are used to specify whether to look at finite and/or
+        infinite places.
+
         Note that ``finite = True`` involves factorization of the determinant
         of ``self``, hence may be slow.
 
@@ -267,7 +270,6 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             []
             sage: Conic(QQ, [1, 2, 3, 4, 5, 6]).local_obstructions()
             [41, -1]
-
         """
         obs0 = []
         obs1 = []
@@ -310,13 +312,13 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
         for the parametrization. Otherwise, use ``self.rational_point()``
         to find a point.
 
-        If ``morphism`` is True, then `f` is returned in the form
+        If ``morphism`` is ``True``, then `f` is returned in the form
         of a Scheme morphism. Otherwise, it is a tuple of polynomials
         that gives the parametrization.
 
         ALGORITHM:
 
-        Uses the PARI/GP function ``qfparam``.
+        Uses the PARI/GP function :pari:`qfparam`.
 
         EXAMPLES::
 

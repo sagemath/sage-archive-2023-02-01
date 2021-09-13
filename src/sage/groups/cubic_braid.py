@@ -1887,7 +1887,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
         if self._centralizing_matrix is None:
             raise ValueError("no centralizing element defined")
         else:
-            if embedded == True or self._centralizing_element is None:
+            if embedded or self._centralizing_element is None:
                 return self._centralizing_matrix
             else:
                 return self._centralizing_element
@@ -1924,9 +1924,7 @@ class CubicBraidGroup(FinitelyPresentedGroup):
 
         return order
 
-
     cardinality = order
-
 
     def is_finite(self):
         r"""

@@ -417,7 +417,8 @@ class LatexExpr(str):
     Normally, objects of this class are created by a :func:`latex` call. It is
     also possible to generate :class:`LatexExpr` directly from a string, which
     must contain valid LaTeX code for typesetting in math mode (without dollar
-    signs). In the Sage notebook, use :func:`pretty_print` or the "Typeset"
+    signs). In the Sage notebook, use
+    :func:`~sage.repl.rich_output.pretty_print.pretty_print` or the "Typeset"
     checkbox to actually see the typeset LaTeX code; alternatively, from
     either the command-line or the notebook, use the :func:`view` function.
 
@@ -1596,8 +1597,8 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
             raise ValueError("%s is not a supported LaTeX engine. Use latex, pdflatex, or xelatex" % e)
 
 # Note: latex used to be a separate function, which by default was
-# only loaded in command-line mode: in the notebook, all_notebook.py
-# defined (and still defines) latex by 'latex = Latex(density=130)'.
+# only loaded in command-line mode: in the old notebook,
+# latex was defined by 'latex = Latex(density=130)'.
 # Meanwhile, the __call__ method for Latex used to call the latex
 # function.  This has been changed around so that the contents of the
 # old latex function are now in Latex.__call__; thus the following

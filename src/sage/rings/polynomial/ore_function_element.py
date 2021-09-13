@@ -696,7 +696,7 @@ class ConstantOreFunctionSection(Map):
             sage: sigma = R.hom([t^2])
             sage: S.<x> = R['x', sigma]
 
-            sage: P = S.random_element()
+            sage: P = S._random_nonzero_element()
             sage: f = (t*P) / P
             sage: F(f)
             t

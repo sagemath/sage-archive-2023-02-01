@@ -191,7 +191,7 @@ grow faster than ``x`` (which is nonsense, mathematically). See
 for more details or see :ref:`above <growth_group_description>`
 for a more extensive description.
 
-Short notation also allows the construction of more complicated 
+Short notation also allows the construction of more complicated
 growth groups::
 
     sage: G = GrowthGroup('(QQ_+)^x * x^ZZ * log(x)^QQ * y^QQ')
@@ -1611,6 +1611,33 @@ class GenericGrowthElement(MultiplicativeGroupElement):
         raise NotImplementedError('singularity analysis of {} '
                                   'not implemented '.format(self))
 
+    def _find_minimum_(self, valid_from):
+        r"""
+        Find the minimum of this growth element over the range implied by ``valid_from``.
+
+        INPUT:
+
+        - ``valid_from`` -- a dictionary describing the range of the minimization:
+          the keys are names of variables and the range is the intersection over
+          the ranges where the absolute value of the variable designated by the
+          key is at least the corresponding value
+
+        OUTPUT:
+
+        A number
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GenericGrowthGroup
+
+            sage: G = GenericGrowthGroup(ZZ)
+            sage: G(raw_element=42)._find_minimum_(valid_from={'m': 10})
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: find minimum for GenericGrowthElement(42) not implemented
+        """
+        raise NotImplementedError(f'find minimum for {self} not implemented')
+
 
 class GenericGrowthGroup(UniqueRepresentation, Parent, WithLocals):
     r"""
@@ -2779,6 +2806,35 @@ class AbstractGrowthGroupFunctor(ConstructionFunctor):
         return not self == other
 
 
+class DecreasingGrowthElementError(ValueError):
+    r"""
+    A special :python:`ValueError<library/exceptions.html#exceptions.ValueError>`
+    which is raised when a growth element is less than one.
+
+    INPUT:
+
+    - ``element`` -- a :class:`GenericGrowthElement`
+
+    The remaining arguments are passed on to
+    :python:`ValueError<library/exceptions.html#exceptions.ValueError>`.
+    """
+    def __init__(self, element, *args, **kwds):
+        r"""
+        See :class:`DecreasingGrowthElementError` for more information.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import DecreasingGrowthElementError, GenericGrowthElement, MonomialGrowthGroup
+            sage: raise DecreasingGrowthElementError(
+            ....:     GenericGrowthElement(MonomialGrowthGroup(QQ, 'x'), 1/2), 'wrong value')
+            Traceback (most recent call last):
+            ...
+            DecreasingGrowthElementError: wrong value
+        """
+        super().__init__(*args, **kwds)
+        self.element = element
+
+
 class MonomialGrowthElement(GenericGrowthElement):
     r"""
     An implementation of monomial growth elements.
@@ -3307,6 +3363,58 @@ class MonomialGrowthElement(GenericGrowthElement):
         else:
             raise NotImplementedError(
                 'singularity analysis of {} not implemented'.format(self))
+
+    def _find_minimum_(self, valid_from):
+        r"""
+        Find the minimum of this growth element over the range implied by ``valid_from``.
+
+        INPUT:
+
+        - ``valid_from`` -- a dictionary describing the range of the minimization:
+          the keys are names of variables and the range is the intersection over
+          the ranges where the absolute value of the variable designated by the
+          key is at least the corresponding value
+
+        OUTPUT:
+
+        A number
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup, GrowthGroup
+
+            sage: G = MonomialGrowthGroup(QQ, 'x')
+            sage: G('x^3')._find_minimum_(valid_from={'x': 10})
+            1000
+            sage: e1 = G(raw_element=3); e2 = G(raw_element=2)
+            sage: e3 = e2 / e1
+            sage: e3
+            x^(-1)
+            sage: e3._find_minimum_(valid_from={'x': 5})
+            Traceback (most recent call last):
+            ...
+            DecreasingGrowthElementError: the growth of x^(-1) is less than one
+            sage: H = GrowthGroup('log(x)^ZZ')
+            sage: l1 = H(raw_element=2)
+            sage: l1._find_minimum_(valid_from={'x': 5})
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Minimum of log(x)^2 is not implemented
+            sage: I = GrowthGroup('log(log(x))^ZZ')
+            sage: l2 = I(raw_element=5)
+            sage: l2._find_minimum_(valid_from={'x': 5})
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Minimum of log(log(x))^5 is not implemented
+        """
+        if not self.parent().gens_monomial():
+            raise NotImplementedError(f'Minimum of {self} is not implemented')
+        if self.is_lt_one():
+            raise DecreasingGrowthElementError(self, f'the growth of {self} is less than one')
+        elif self.is_one():
+            return 1
+        assert self.variable_names(), f'{self.variable_names()} is empty'
+        return valid_from[self.variable_names()[0]] ** self.exponent
 
 
 class MonomialGrowthGroup(GenericGrowthGroup):
@@ -5394,14 +5502,14 @@ class GrowthGroupFactory(UniqueFactory):
         def has_l_property(s, properties, invert=False):
             for p in properties:
                 if s.startswith(p):
-                    return s[len(p):].strip(), True != invert
-            return s, False != invert
+                    return s[len(p):].strip(), not invert
+            return s, invert
 
         def has_r_property(s, properties, invert=False):
             for p in properties:
                 if s.endswith(p):
-                    return s[:-len(p)].strip(), True != invert
-            return s, False != invert
+                    return s[:-len(p)].strip(), not invert
+            return s, invert
 
         factors = []
 

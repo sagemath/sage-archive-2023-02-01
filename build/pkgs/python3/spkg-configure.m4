@@ -44,7 +44,7 @@ SAGE_SPKG_CONFIGURE([python3], [
            AS_IF([test -z "$ac_cv_path_PYTHON3"], [
                AC_MSG_ERROR([the python3 selected using --with-python=$with_python is not suitable])
            ])
-	], [dnl checking the default system python3
+        ], [dnl checking the default system python3
            AC_MSG_RESULT([])
            AC_PATH_PROGS_FEATURE_CHECK([PYTHON3], [python3], [
                 SAGE_CHECK_PYTHON_FOR_VENV([$ac_path_PYTHON3],
@@ -62,7 +62,7 @@ SAGE_SPKG_CONFIGURE([python3], [
                     ])
                 ])
             ])
-	])
+        ])
       ])
       AS_IF([test -z "$ac_cv_path_PYTHON3"], [
           AC_MSG_NOTICE([to try to use a different system python, use ./configure --with-python=/path/to/python])

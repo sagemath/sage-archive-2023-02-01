@@ -217,7 +217,9 @@ cdef class SageObject:
         You can use the :func:`~sage.typeset.ascii_art.ascii_art` function
         to get the ASCII art representation of any object in Sage::
 
-            sage: ascii_art(integral(exp(x+x^2)/(x+1), x))
+            sage: result = ascii_art(integral(exp(x+x^2)/(x+1), x))
+            ...
+            sage: result
               /
              |
              |   2
@@ -881,6 +883,14 @@ cdef class SageObject:
         import sage.interfaces.mathematica
         I = sage.interfaces.mathematica.mathematica
         return self._interface_init_(I)
+
+    def _mathics_(self, G=None):
+        if G is None:
+            import sage.interfaces.mathics
+            G = sage.interfaces.mathics.mathics
+        return self._interface_(G)
+
+    _mathics_init_ = _mathematica_init_
 
     def _octave_(self, G=None):
         if G is None:

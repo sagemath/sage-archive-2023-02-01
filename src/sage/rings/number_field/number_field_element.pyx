@@ -127,6 +127,7 @@ def __create__NumberFieldElement_version0(parent, poly):
         See https://trac.sagemath.org/25848 for details.
         a^2 + a + 1
     """
+    from sage.misc.superseded import deprecation_cython as deprecation
     deprecation(25848, '__create__NumberFieldElement_version0() is deprecated')
     return NumberFieldElement(parent, poly)
 
@@ -144,7 +145,7 @@ def __create__NumberFieldElement_version1(parent, cls, poly):
         See https://trac.sagemath.org/25848 for details.
         a^2 + a + 1
     """
-    from sage.misc.superseded import deprecation
+    from sage.misc.superseded import deprecation_cython as deprecation
     deprecation(25848, '__create__NumberFieldElement_version1() is deprecated')
     return cls(parent, poly)
 
@@ -907,11 +908,11 @@ cdef class NumberFieldElement(FieldElement):
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^3-2)
-            sage: a._random_element()
-            -1/2*a^2 - 4
+            sage: a._random_element().parent() is K
+            True
             sage: K.<a> = NumberField(x^2-5)
-            sage: a._random_element()
-            -2*a - 1
+            sage: a._random_element().parent() is K
+            True
         """
         cdef NumberFieldElement elt = self._new()
         elt._randomize(num_bound, den_bound, distribution)
@@ -1595,7 +1596,7 @@ cdef class NumberFieldElement(FieldElement):
 
         ALGORITHM:
 
-        Uses PARI's rnfisnorm. See self._rnfisnorm().
+        Uses PARI's :pari:`rnfisnorm`. See self._rnfisnorm().
 
         EXAMPLES::
 

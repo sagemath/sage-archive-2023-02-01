@@ -29,7 +29,7 @@ include 'decl.pxi'
 
 from cpython.object cimport Py_EQ, Py_NE
 from sage.rings.integer cimport Integer
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 
 from .ntl_ZZ import unpickle_class_value
 from .ntl_GF2 cimport ntl_GF2

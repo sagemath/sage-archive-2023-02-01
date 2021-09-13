@@ -21,7 +21,7 @@ from sage.categories.algebras import Algebras
 from sage.categories.realizations import Realizations, Category_realization_of_parent
 from sage.categories.all import FiniteDimensionalAlgebrasWithBasis
 from sage.rings.all import ZZ, QQ
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 from sage.combinat.free_module import CombinatorialFreeModule
 from sage.combinat.permutation import Permutations
 from sage.combinat.composition import Compositions

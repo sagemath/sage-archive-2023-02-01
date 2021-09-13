@@ -453,6 +453,17 @@ class HyperplaneArrangementElement(Element):
         """
         return self._hyperplanes[i]
 
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: h = x|y; h
+            Arrangement <y | x>
+            sage: len_dict = {h: len(h)}
+        """
+        return hash(self.hyperplanes())
+
     def n_hyperplanes(self):
         r"""
         Return the number of hyperplanes in the arrangement.
@@ -2973,7 +2984,7 @@ class HyperplaneArrangementElement(Element):
         from sage.matroids.constructor import Matroid
         return Matroid(matrix=matrix(norms).transpose())
 
-    def orlik_solomon_algebra(self, base_ring=None, ordering=None):
+    def orlik_solomon_algebra(self, base_ring=None, ordering=None, **kwds):
         """
         Return the Orlik-Solomon algebra of ``self``.
 
@@ -2996,9 +3007,9 @@ class HyperplaneArrangementElement(Element):
         """
         if base_ring is None:
             base_ring = self.base_ring()
-        return self.matroid().orlik_solomon_algebra(base_ring, ordering)
+        return self.matroid().orlik_solomon_algebra(base_ring, ordering,**kwds)
 
-    def orlik_terao_algebra(self, base_ring=None, ordering=None):
+    def orlik_terao_algebra(self, base_ring=None, ordering=None, **kwds):
         """
         Return the Orlik-Terao algebra of ``self``.
 
@@ -3022,7 +3033,7 @@ class HyperplaneArrangementElement(Element):
         """
         if base_ring is None:
             base_ring = self.base_ring()
-        return self.matroid().orlik_terao_algebra(base_ring, ordering)
+        return self.matroid().orlik_terao_algebra(base_ring, ordering, **kwds)
 
     @cached_method
     def minimal_generated_number(self):

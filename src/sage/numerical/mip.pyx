@@ -238,7 +238,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.element cimport Element
 from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 from sage.rings.integer_ring import ZZ
 
 

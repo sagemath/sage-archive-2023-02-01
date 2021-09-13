@@ -1,2 +1,0 @@
-# quaternion algebra init file
-

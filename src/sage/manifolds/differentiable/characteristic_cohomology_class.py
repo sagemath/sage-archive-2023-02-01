@@ -635,7 +635,7 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
         H^*(BG; R) \cong \begin{cases}
             R[c_1, \ldots c_k] & \text{if } G = U(k), \\
             R[p_1, \ldots p_{\lfloor \frac{k}{2}\rfloor}] & \text{if } G = O(k), \\
-            R[p_1, \ldots p_k, e] \big/ (p_k^2-e) & \text{if } G = SO(2k), \\
+            R[p_1, \ldots p_k, e] \big/ (p_k-e^2) & \text{if } G = SO(2k), \\
             R[p_1, \ldots p_k, e] & \text{if } G = SO(2k+1). \\
         \end{cases}
 
@@ -665,6 +665,13 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
     necessarily injectively) to a subring of `H^*_\mathrm{dR}(M, \CC)` via
     the Chern-Weil homomorphism. This implementation attempts to represent this
     subring.
+
+    .. NOTE::
+
+        Some generators might have torsion in `H^*(BG; R)` giving a zero
+        element in the de Rham cohomology. Those generators are still
+        considered in the implementation. Generators whose degree exceed the
+        dimension of the base space, however, are ignored.
 
     INPUT:
 
@@ -1329,10 +1336,10 @@ class Algorithm_generic(SageObject):
         ::
 
             sage: A = TM.characteristic_cohomology_class('AHat')
-            sage: A_form = A.get_form(nab); A_form
+            sage: A_form = A.get_form(nab); A_form  # long time
             Mixed differential form A^(TE^8, nabla_g) on the 8-dimensional
              Euclidean space E^8
-            sage: A_form.display_expansion()
+            sage: A_form.display_expansion()  # long time
             A^(TE^8, nabla_g) = 1
         """
         if n == 0:
@@ -1723,10 +1730,10 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
 
         sage: from sage.manifolds.differentiable.characteristic_cohomology_class import PontryaginEulerAlgorithm
         sage: algorithm = PontryaginEulerAlgorithm()
-        sage: e, p1 = algorithm.get(nab)
-        sage: e.display()
+        sage: e_form, p1_form = algorithm.get(nab)  # long time
+        sage: e_form.display()  # long time
         0
-        sage: p1.display()
+        sage: p1_form.display()  # long time
         0
     """
 
@@ -1787,16 +1794,16 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
             sage: nab = g.connection()
             sage: e = M.frames()[0]  # select the standard frame
             sage: cmat = [[nab.curvature_form(i, j, e) for j in TM.irange()]
-            ....:         for i in TM.irange()]
+            ....:         for i in TM.irange()]  # long time
 
         Import the algorithm::
 
             sage: from sage.manifolds.differentiable.characteristic_cohomology_class import PontryaginEulerAlgorithm
             sage: algorithm = PontryaginEulerAlgorithm()
-            sage: e, p1 = algorithm.get_local(cmat)
-            sage: e.display()
+            sage: e, p1 = algorithm.get_local(cmat)  # long time
+            sage: e.display()  # long time
             0
-            sage: p1.display()
+            sage: p1.display()  # long time
             0
         """
         res = EulerAlgorithm().get_local(cmat)  # first entry is Euler class
@@ -1814,7 +1821,7 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
 
         4-dimensional Euclidean space::
 
-            sage: M = manifolds.EuclideanSpace(8)
+            sage: M = manifolds.EuclideanSpace(4)
             sage: TM = M.tangent_bundle()
             sage: g = M.metric()
             sage: nab = g.connection()
@@ -1825,9 +1832,11 @@ class PontryaginEulerAlgorithm(Singleton, Algorithm_generic):
             sage: from sage.manifolds.differentiable.characteristic_cohomology_class import PontryaginEulerAlgorithm
             sage: algorithm = PontryaginEulerAlgorithm()
             sage: e = algorithm.get_gen_pow(nab, 0, 1)  # Euler
-            sage: p1_pow2 = algorithm.get_gen_pow(nab, 1, 2)  # 1st Pontryagin
-            sage: p1_pow2 == e
-            True
+            sage: e.display()
+            0
+            sage: p1_pow2 = algorithm.get_gen_pow(nab, 1, 2)  # 1st Pontryagin squared
+            sage: p1_pow2
+            8-form zero on the 4-dimensional Euclidean space E^4
         """
         if n == 0:
             return nab._domain._one_scalar_field  # no computation necessary

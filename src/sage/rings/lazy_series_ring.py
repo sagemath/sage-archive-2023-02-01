@@ -1047,9 +1047,19 @@ class LazyDirichletSeriesRing(UniqueRepresentation, Parent):
         return False
 
     def _coerce_map_from_base_ring(self):
-        """
+        r"""
         Return a coercion map from the base ring of ``self``.
 
+        EXAMPLES::
+
+            sage: L = LazyDirichletSeriesRing(QQ, 'z')
+            sage: phi = L._coerce_map_from_base_ring()
+            sage: phi(2)
+            2
+            sage: phi(2, valuation=2)
+            2/2^z
+            sage: phi(2, valuation=2, constant=4)
+            2/2^z + 4/3^z + 4/4^z + 4/5^z + O(1/(6^z))
         """
         # Return a DefaultConvertMap_unique; this can pass additional
         # arguments to _element_constructor_, unlike the map returned

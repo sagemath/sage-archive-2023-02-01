@@ -1777,7 +1777,7 @@ class FunctionFieldCompletion(Map):
         self._gen_name = gen_name
 
         if prec == infinity:
-            from sage.rings.lazy_laurent_series_ring import LazyLaurentSeriesRing
+            from sage.rings.lazy_series_ring import LazyLaurentSeriesRing
             codomain = LazyLaurentSeriesRing(k, name)
             self._precision = infinity
         else: # prec < infinity:

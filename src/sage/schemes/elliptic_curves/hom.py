@@ -17,13 +17,29 @@ class EllipticCurveHom(Morphism):
     Base class for elliptic-curve morphisms.
     """
 
-    def _repr_type(self):           # used by Morphism._repr_
+    def _repr_type(self):
+        """
+        Return a textual representation of what kind of morphism
+        this is. Used by :meth:`Morphism._repr_`.
+
+        TESTS::
+
+            sage: from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+            sage: EllipticCurveHom._repr_type(None)
+            'Elliptic-curve'
+        """
         return 'Elliptic-curve'
 
     @staticmethod
     def _composition_impl(left, right):
         """
         Called by :meth:`_composition_`.
+
+        TESTS::
+
+            sage: from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+            sage: EllipticCurveHom._composition_impl(None, None)
+            NotImplemented
         """
         return NotImplemented
 

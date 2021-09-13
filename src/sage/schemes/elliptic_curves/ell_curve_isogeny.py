@@ -1312,7 +1312,9 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
         """
         output = copy(self)
-        output._switch_sign()
+        E2 = output.__E2
+        iso = WeierstrassIsomorphism(E2, (-1,0,-E2.a1(),-E2.a3()))
+        output._set_post_isomorphism(iso)
         return output
 
     #
@@ -3184,12 +3186,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
         from sage.misc.superseded import deprecation
         deprecation(32388, 'Elliptic-curve isogenies will be immutable in a future release of Sage.'
                           ' Use -phi instead of phi.switch_sign() to obtain the negated isogeny.')
-        self._switch_sign()
-
-    def _switch_sign(self):
-        """
-        Implementation of :meth:`switch_sign`.
-        """
         self._set_post_isomorphism(WeierstrassIsomorphism(self.__E2, (-1,0,-self.__E2.a1(),-self.__E2.a3())))
 
     def is_normalized(self, via_formal=True, check_by_pullback=True):

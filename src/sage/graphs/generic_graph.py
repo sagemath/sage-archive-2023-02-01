@@ -9513,7 +9513,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: flow_graph.edges()
             [('000', '001', 1)]
         """
-        from sage.misc.functional import round
         from sage.graphs.digraph import DiGraph
         g = DiGraph()
 
@@ -23490,7 +23489,7 @@ class GenericGraph(GenericGraph_pyx):
         Return the edge polytope of ``self``.
 
         The edge polytope (EP) of a Graph on `n` vertices
-        is a polytope in `\ZZ^{n}` defined as the convex hull of
+        is the polytope in `\ZZ^{n}` defined as the convex hull of
         `e_i + e_j` for each edge `(i, j)`.
         Here `e_1, \dots, e_n` denotes the standard basis.
 
@@ -23529,7 +23528,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.is_combinatorially_isomorphic(product(components))
             True
 
-        All trees on `n` vertices have isomorphic EP::
+        All trees on `n` vertices have isomorphic EPs::
 
             sage: n = randint(4, 10)
             sage: G1 = graphs.RandomTree(n)
@@ -23577,7 +23576,7 @@ class GenericGraph(GenericGraph_pyx):
         Return the symmetric edge polytope of ``self``.
 
         The symmetric edge polytope (SEP) of a Graph on `n` vertices
-        is a polytope in `\ZZ^{n}` defined as the convex hull of
+        is the polytope in `\ZZ^{n}` defined as the convex hull of
         `e_i - e_j` and `e_j - e_i` for each edge `(i, j)`.
         Here `e_1, \dots, e_n` denotes the standard basis.
 
@@ -23631,7 +23630,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.is_combinatorially_isomorphic(product(components))
             True
 
-        All trees on `n` vertices have isomorphic SEP::
+        All trees on `n` vertices have isomorphic SEPs::
 
             sage: n = randint(4, 10)
             sage: G1 = graphs.RandomTree(n)
@@ -23657,7 +23656,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: len(polys)
             25
 
-        A non-trivial example of two graphs with isomorphic SEP::
+        A non-trivial example of two graphs with isomorphic SEPs::
 
             sage: G1 = graphs.CycleGraph(4)
             sage: G1.add_edges([[0, 5], [5, 2], [1, 6], [6, 2]])

@@ -11922,7 +11922,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return incident edges to some vertices.
 
-        If ``vertices` is a vertex, then it returns the list of edges
+        If ``vertices`` is a vertex, then it returns the list of edges
         incident to that vertex. If ``vertices`` is a list of vertices
         then it returns the list of all edges adjacent to those
         vertices. If ``vertices`` is ``None``, it returns a list of all edges

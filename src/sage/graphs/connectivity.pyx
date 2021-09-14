@@ -3277,7 +3277,7 @@ cdef class TriconnectivitySPQR:
 
         OUTPUT:
 
-        - If ``check`` is set to ``True``` and a cut vertex is found, the cut
+        - If ``check`` is set to ``True`` and a cut vertex is found, the cut
           vertex is returned. If no cut vertex is found, return ``-1``.
         - If ``check`` is set to ``False``, ``-1`` is returned.
         """

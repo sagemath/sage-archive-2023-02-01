@@ -126,16 +126,16 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: from sage.matrix.matrix_space import get_matrix_class
 
         sage: get_matrix_class(ZZ, 4, 5, False, None)
-        <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+        <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
         sage: get_matrix_class(ZZ, 4, 5, True, None)
-        <type 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
+        <class 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
 
         sage: get_matrix_class(ZZ, 3, 3, False, 'flint')
-        <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+        <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
         sage: get_matrix_class(ZZ, 3, 3, False, 'gap')
-        <type 'sage.matrix.matrix_gap.Matrix_gap'>
+        <class 'sage.matrix.matrix_gap.Matrix_gap'>
         sage: get_matrix_class(ZZ, 3, 3, False, 'generic')
-        <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+        <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         sage: get_matrix_class(GF(2^15), 3, 3, False, None)
         <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
@@ -143,23 +143,23 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         sage: get_matrix_class(GF(2), 2, 2, False, 'm4ri')
-        <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
+        <class 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
         sage: get_matrix_class(GF(4), 2, 2, False, 'm4ri')
-        <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
+        <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
         sage: get_matrix_class(GF(7), 2, 2, False, 'linbox-float')
-        <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+        <class 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
         sage: get_matrix_class(GF(7), 2, 2, False, 'linbox-double')
-        <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
+        <class 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
 
         sage: get_matrix_class(RDF, 2, 2, False, 'numpy')
-        <type 'sage.matrix.matrix_real_double_dense.Matrix_real_double_dense'>
+        <class 'sage.matrix.matrix_real_double_dense.Matrix_real_double_dense'>
         sage: get_matrix_class(CDF, 2, 3, False, 'numpy')
-        <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
+        <class 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
 
         sage: get_matrix_class(GF(25,'x'), 4, 4, False, 'meataxe')         # optional: meataxe
-        <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+        <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
         sage: get_matrix_class(IntegerModRing(3), 4, 4, False, 'meataxe')  # optional: meataxe
-        <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+        <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
         sage: get_matrix_class(IntegerModRing(4), 4, 4, False, 'meataxe')
         Traceback (most recent call last):
         ...
@@ -187,19 +187,19 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         ValueError: 'linbox-double' matrices can only deal with order < 8388608
 
         sage: type(matrix(SR, 2, 2, 0))
-        <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
+        <class 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
         sage: type(matrix(GF(7), 2, range(4)))
-        <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+        <class 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
         sage: type(matrix(GF(16007), 2, range(4)))
-        <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
+        <class 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
         sage: type(matrix(CBF, 2, range(4)))
-        <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
+        <class 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
         sage: type(matrix(GF(2), 2, range(4)))
-        <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
+        <class 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
         sage: type(matrix(GF(64,'z'), 2, range(4)))
-        <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
+        <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
         sage: type(matrix(GF(125,'z'), 2, range(4)))     # optional: meataxe
-        <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+        <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
 
     """
     if isinstance(implementation, type):
@@ -415,9 +415,9 @@ class MatrixSpace(UniqueRepresentation, Parent):
         sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
 
         sage: type(M1(range(4)))
-        <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+        <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
         sage: type(M2(range(4)))
-        <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+        <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         sage: M1(M2.an_element())
         [ 0  1]
@@ -1687,9 +1687,9 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
 
             sage: type(M1.identity_matrix())
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: type(M2.identity_matrix())
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         """
         if self.__nrows != self.__ncols:
@@ -1745,9 +1745,9 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
 
             sage: type(M1.diagonal_matrix([1, 2]))
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: type(M2.diagonal_matrix([1, 2]))
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
         """
         if self.__nrows != self.__ncols:
             raise TypeError("diagonal matrix must be square")
@@ -1950,14 +1950,14 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: MS.matrix([MS0([1,2,3,4]), MS0([5,6,7,8])])
             Traceback (most recent call last):
             ...
-            TypeError: unable to coerce <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'> to an integer
+            TypeError: unable to coerce <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'> to an integer
 
         A mixed list of matrices and vectors is prohibited as well::
 
             sage: MS.matrix( [MS0([1,2,3,4])] + list(MS0([5,6,7,8])) )
             Traceback (most recent call last):
             ...
-            TypeError: unable to coerce <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'> to an integer
+            TypeError: unable to coerce <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'> to an integer
 
         Check that :trac:`13302` is fixed::
 

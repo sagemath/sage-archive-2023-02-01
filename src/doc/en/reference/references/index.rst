@@ -607,8 +607,13 @@ REFERENCES:
               (2006) 306--317.
 
 .. [BDP2013] Thomas Brüstle, Grégoire Dupont, Matthieu Pérotin
-   *On Maximal Green Sequences*
-   :arxiv:`1205.2050`
+             *On Maximal Green Sequences*
+             :arxiv:`1205.2050`
+
+.. [BDPR2011] Marcus Bishop, J. Matthew Douglass, Götz Pfeiffer, Gerhard Röhrle,
+              *Computations for Coxeter arrangements and Solomon's descent algebra:
+              Groups of rank three and four*; Journal of symbolic computation,
+              volume 50, 03-2013, pp. 139-158.
 
 .. [BDMW2010] \K. A. Browning, J. F. Dillon, M. T. McQuistan, and A. J. Wolfe,
               *An APN permutation in dimension six*; in Finite Fields: Theory

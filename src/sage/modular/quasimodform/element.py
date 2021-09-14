@@ -340,15 +340,16 @@ class QuasiModularFormsElement(ModuleElement):
 
     def to_polynomial(self, names='E2, E4, E6'):
         r"""
-        Return a polynomial `P(E_2, E_4, E_6)` corresponding to the given form
-        where `E_2`, `E_4` and `E_6` are the generators of the quasimodular
-        form ring given by :meth:`~sage.modular.quasiform.ring.QuasiModularForms.gens`.
+        Return a multivariate polynomial `P(E_2, E_4, E_6)` corresponding to the
+        given form where `E_2`, `E_4` and `E_6` are the generators of the
+        quasimodular form ring given by
+        :meth:`~sage.modular.quasiform.ring.QuasiModularForms.gens`.
 
         INPUT:
 
         - ``names`` (str, default: ``'E2, E4, E6'``) -- a list or tuple of names
-        (strings), or a comma separated string. Correspond to the names of the
-        variables;
+          (strings), or a comma separated string. Correspond to the names of the
+          variables;
 
         OUTPUT: A multivariate polynomial in the variables ``names``
 

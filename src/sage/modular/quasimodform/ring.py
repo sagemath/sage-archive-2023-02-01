@@ -494,15 +494,17 @@ class QuasiModularForms(Parent, UniqueRepresentation):
     def polynomial_ring(self, names='E2, E4, E6'):
         r"""
         Return a multivariate polynomial ring isomorphic to the given graded
-        quasimodular forms ring. In the case of the full modular group, this
+        quasimodular forms ring.
+
+        In the case of the full modular group, this
         ring is `R[E_2, E_4, E_6]` where `E_2`, `E_4` and `E_6` have degrees 2,
         4 and 6 respectively.
 
         INPUT:
 
         - ``names`` (str, default: ``'E2, E4, E6'``) -- a list or tuple of names
-        (strings), or a comma separated string. Correspond to the names of the
-        variables;
+          (strings), or a comma separated string. Correspond to the names of the
+          variables.
 
         OUTPUT: A multivariate polynomial ring in the variables ``names``
 

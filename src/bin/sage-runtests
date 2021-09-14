@@ -39,10 +39,10 @@ if __name__ == "__main__":
 
     parser.add_argument("-l", "--long", action="store_true", default=False, help="include lines with the phrase 'long time'")
     parser.add_argument("-s", "--short", dest="target_walltime", nargs='?',
-                        default=None, const=300, metavar="SECONDS",
+                        type=int, default=-1, const=300, metavar="SECONDS",
                         help="run as many doctests as possible in about 300 seconds (or the number of seconds given as an optional argument)")
     parser.add_argument("--warn-long", dest="warn_long", nargs='?',
-                        default=None, const=1.0, metavar="SECONDS",
+                        type=float, default=-1.0, const=1.0, metavar="SECONDS",
                         help="warn if tests take more time than SECONDS")
     # By default, include all tests marked 'dochtml' -- see
     # https://trac.sagemath.org/ticket/25345 and

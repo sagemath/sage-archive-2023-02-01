@@ -9443,7 +9443,7 @@ _additional_categories = {
     "vertex_isoperimetric_number" : "Expansion properties",
     "fractional_chromatic_number" : "Coloring",
     "fractional_chromatic_index" : "Coloring",
-    "hyperbolicity"              : "Graph properties",
+    "hyperbolicity"              : "Distances",
     }
 
 __doc__ = __doc__.replace("{INDEX_OF_METHODS}",gen_thematic_rest_table_index(Graph,_additional_categories))

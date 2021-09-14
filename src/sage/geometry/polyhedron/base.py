@@ -211,16 +211,11 @@ class Polyhedron_base(Element, ConvexSet_closed):
 
         If the backend supports precomputed data, ``pref_rep`` is ignored::
 
-            sage: p = Polyhedron_field(parent, Vrep, 'nonsense',  # py3
+            sage: p = Polyhedron_field(parent, Vrep, 'nonsense',
             ....:                      Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrep')
             Traceback (most recent call last):
             ...
             TypeError: _init_Hrepresentation() takes 3 positional arguments but 9 were given
-            sage: p = Polyhedron_field(parent, Vrep, 'nonsense',  # py2
-            ....:                      Vrep_minimal=True, Hrep_minimal=True, pref_rep='Vrep')
-            Traceback (most recent call last):
-            ...
-            TypeError: _init_Hrepresentation() takes exactly 3 arguments (9 given)
 
         The empty polyhedron is detected when the Vrepresentation is given with generator;
         see :trac:`29899`::

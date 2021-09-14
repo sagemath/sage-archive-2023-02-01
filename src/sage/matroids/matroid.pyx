@@ -1488,9 +1488,7 @@ cdef class Matroid(SageObject):
             ...
             ValueError: ['x'] is not a subset of the groundset
             sage: C = M.circuit()
-            sage: sorted(C) # py2
-            ['a', 'b', 'c', 'd']
-            sage: sorted(C) # py3 random
+            sage: sorted(C) # random
             ['a', 'b', 'c', 'd']
             sage: M.is_circuit(C)
             True
@@ -1770,9 +1768,7 @@ cdef class Matroid(SageObject):
 
             sage: M = matroids.named_matroids.Vamos()
             sage: X = M.max_coindependent(['a', 'c', 'd', 'e', 'f'])
-            sage: sorted(X) # py2
-            ['a', 'c', 'd', 'e']
-            sage: sorted(X) # py3 random
+            sage: sorted(X) # random
             ['a', 'c', 'd', 'f']
             sage: M.is_coindependent(X)
             True
@@ -1858,9 +1854,7 @@ cdef class Matroid(SageObject):
             ...
             ValueError: ['x'] is not a subset of the groundset
             sage: C = M.cocircuit()
-            sage: sorted(C) # py2
-            ['e', 'f', 'g', 'h']
-            sage: sorted(C) # py3 random
+            sage: sorted(C) # random
             ['e', 'f', 'g', 'h']
             sage: M.is_cocircuit(C)
             True

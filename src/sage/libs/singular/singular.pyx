@@ -772,6 +772,13 @@ cdef init_libsingular():
     SINGULAR_LIB_PATH = SINGULAR_LIB_BASE + "." + SHLIBEXT
     lib = str_to_bytes(SINGULAR_LIB_PATH, FS_ENCODING, "surrogateescape")
 
+    # This is a workaround for https://github.com/Singular/Singular/issues/1113
+    # and can be removed once that fix makes it into release of Singular that
+    # is supported by sage.
+    from shutil import which
+    from os.path import dirname
+    os.environ["SINGULAR_BIN_DIR"] = dirname(which("Singular"))
+
     handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
     if not handle:
         err = dlerror()

@@ -18,10 +18,6 @@ _system_jupyter_url = "https://doc.sagemath.org/html/en/installation/launching.h
 
 class NotebookJupyter(object):
 
-    PREREQUISITE_ERROR = textwrap.dedent("""
-
-    """)
-
     def print_banner(self):
         banner()
         print('Please wait while the Sage Jupyter Notebook server starts...')

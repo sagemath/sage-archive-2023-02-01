@@ -467,7 +467,7 @@ class Lseries_ell(SageObject):
         approximation for `L(E,1)` and ``err`` is a bound on the error
         in the approximation.
 
-        This function is disjoint from the PARI ``elllseries``
+        This function is disjoint from the PARI :pari:`elllseries`
         command, which is for a similar purpose.  To use that command
         (via the PARI C library), simply type
         ``E.pari_mincurve().elllseries(1)``.

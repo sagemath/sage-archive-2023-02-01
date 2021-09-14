@@ -1137,8 +1137,8 @@ class AbstractLinearCode(AbstractLinearCodeNoMetric):
                 sage: Cx.minimum_distance()
                 7
         """
-        if other.is_subcode(self) == False:
-            raise ValueError("%s is not a subcode of %s"%(self,other))
+        if not other.is_subcode(self):
+            raise ValueError("%s is not a subcode of %s" % (self, other))
 
         G2 = self.generator_matrix()
         left = other.generator_matrix()  # G1

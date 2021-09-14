@@ -627,8 +627,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     that the answer comes back as an expression that contains an
     integral itself. ::
 
-        sage: A = integral(1/ ((x-4) * (x^3+2*x+1)), x); A
-        integrate(1/((x^3 + 2*x + 1)*(x - 4)), x)
+        sage: A = integral(1/ ((x-4) * (x^4+x+1)), x); A
+        integrate(1/((x^4 + x + 1)*(x - 4)), x)
 
     Sometimes, in this situation, using the algorithm "maxima"
     gives instead a partially integrated answer::

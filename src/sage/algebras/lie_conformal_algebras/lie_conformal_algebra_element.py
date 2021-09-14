@@ -17,11 +17,12 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.functions.other import factorial
+from sage.arith.all import factorial
 from sage.misc.misc_c import prod
 from sage.misc.repr import repr_lincomb
 from sage.misc.latex import latex
 from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
+
 
 class LCAWithGeneratorsElement(IndexedFreeModuleElement):
     """

@@ -197,7 +197,7 @@ cpdef kruskal(G, wfunction=None, bint check=False):
 
         sage: def my_disconnected_graph(n, ntries, directed=False, multiedges=False, loops=False):
         ....:     G = Graph()
-        ....:     k = randint(1, n)
+        ....:     k = randint(2, n)
         ....:     G.add_vertices(range(k))
         ....:     if directed:
         ....:         G = G.to_directed()

@@ -969,7 +969,7 @@ class FriCASConverter(InterfaceInit):
         super(FriCASConverter, self).__init__(sage.interfaces.fricas.fricas)
 
     def pyobject(self, ex, obj):
-        """
+        r"""
         Return a string which, when evaluated by FriCAS, returns the
         object as an expression.
 

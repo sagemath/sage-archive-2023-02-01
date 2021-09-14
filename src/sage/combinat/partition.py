@@ -323,7 +323,7 @@ from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.combinatorial_map import combinatorial_map
 from sage.groups.perm_gps.permgroup import PermutationGroup
 from sage.graphs.dot2tex_utils import have_dot2tex
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 
 
 class Partition(CombinatorialElement):
@@ -4632,7 +4632,7 @@ class Partition(CombinatorialElement):
             sage: p = Partition([2,1]).to_list(); p
             [2, 1]
             sage: type(p)
-            <... 'list'>
+            <class 'list'>
 
         TESTS::
 
@@ -7153,7 +7153,7 @@ class Partitions_parts_in(Partitions):
             sage: next(it)
             [4]
             sage: type(_)
-            <... 'list'>
+            <class 'list'>
         """
         if n == 0:
             yield []
@@ -7188,7 +7188,7 @@ class Partitions_parts_in(Partitions):
             sage: next(it)
             [4]
             sage: type(_)
-            <... 'list'>
+            <class 'list'>
         """
         sorted_parts = sorted(parts, reverse=True)
         for vec in weighted_iterator_fast(n, sorted_parts):

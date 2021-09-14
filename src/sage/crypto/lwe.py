@@ -293,7 +293,8 @@ class LWE(SageObject):
         fix the representation and recover the correct standard deviation of the
         noise::
 
-            sage: while abs(sqrt(variance([e if e <= 200 else e-401 for e in S()]).n()) - 3.0) > 0.01:
+            sage: from numpy import std
+            sage: while abs(std([e if e <= 200 else e-401 for e in S()]) - 3.0) > 0.01:
             ....:     add_samples()
 
         If ``m`` is not ``None`` the number of available samples is restricted::

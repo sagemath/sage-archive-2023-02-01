@@ -564,7 +564,8 @@ class Problem:
             ((1, 1), (-1, 1))
         """
         rows = [a.change_ring(self._field) for a in self._A.rows()]
-        for a in rows: a.set_immutable()
+        for a in rows:
+            a.set_immutable()
         return tuple(rows)
 
     def A_matrix(self):

@@ -418,19 +418,6 @@ class ModularForm_abstract(ModuleElement):
         """
         return self.q_expansion()._latex_()
 
-    def base_ring(self):
-        """
-        Return the base_ring of self.
-
-        EXAMPLES::
-
-            sage: (ModularForms(117, 2).13).base_ring()
-            Rational Field
-            sage: (ModularForms(119, 2, base_ring=GF(7)).12).base_ring()
-            Finite Field of size 7
-        """
-        return self.parent().base_ring()
-
     def character(self, compute=True):
         """
         Return the character of self. If ``compute=False``, then this will

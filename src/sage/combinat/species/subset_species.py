@@ -23,7 +23,7 @@ from .generating_series import _integers_from
 from .structure import GenericSpeciesStructure
 from sage.combinat.species.misc import accept_size
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 
 
 class SubsetSpeciesStructure(GenericSpeciesStructure):

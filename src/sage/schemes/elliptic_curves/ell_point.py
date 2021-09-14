@@ -3101,7 +3101,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
           number of bits of precision for the computation
 
         - ``algorithm``: either 'pari' (default for real embeddings)
-          to use PARI's ``ellpointtoz{}``, or 'sage' for a native
+          to use PARI's :pari:`ellpointtoz`, or 'sage' for a native
           implementation.  Ignored for complex embeddings.
 
         ALGORITHM:
@@ -3503,7 +3503,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         r"""
         Return the order of this point on the elliptic curve.
 
-        ALGORITHM: Use PARI function ``ellorder()``.
+        ALGORITHM: Use PARI function :pari:`ellorder`.
 
         .. NOTE::
 

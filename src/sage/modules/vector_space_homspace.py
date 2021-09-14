@@ -241,6 +241,7 @@ def is_VectorSpaceHomspace(x):
     """
     return isinstance(x, VectorSpaceHomspace)
 
+
 class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
 
     def __call__(self, A, check=True, **kwds):
@@ -256,7 +257,7 @@ class VectorSpaceHomspace(sage.modules.free_module_homspace.FreeModuleHomspace):
           - a function from the domain to the codomain
         - ``check`` (default: True) - ``True`` or ``False``, required for
           compatibility with calls from
-          :meth:`sage.structure.parent_gens.ParentWithGens.hom`.
+          :meth:`sage.structure.parent.Parent.hom`.
         - the keyword ``side`` can be assigned the values ``"left"`` or
           ``"right"``. It corresponds to the side of vectors relative to the
           matrix.

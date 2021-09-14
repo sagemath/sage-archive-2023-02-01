@@ -85,7 +85,7 @@ from sage.combinat.partition import Partition, Partitions
 from functools import partial
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.misc.cachefunc import cached_function
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 
 
 @cached_function

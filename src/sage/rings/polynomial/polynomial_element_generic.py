@@ -81,6 +81,8 @@ class Polynomial_generic_sparse(Polynomial):
 
             sage: PolynomialRing(RIF, 'z', sparse=True)([RIF(-1, 1), RIF(-1,1)])
             0.?*z + 0.?
+            sage: PolynomialRing(RIF, 'z', sparse=True)((RIF(-1, 1), RIF(-1,1)))
+            0.?*z + 0.?
             sage: PolynomialRing(CIF, 'z', sparse=True)([CIF(RIF(-1,1), RIF(-1,1)), RIF(-1,1)])
             0.?*z + 0.? + 0.?*I
         """
@@ -101,7 +103,7 @@ class Polynomial_generic_sparse(Polynomial):
                 # The following line has been added in trac ticket #9944.
                 # Apparently, the "else" case has never occurred before.
                 x = w
-        elif isinstance(x, list):
+        elif isinstance(x, (list, tuple)):
             x = dict((i, c) for (i, c) in enumerate(x) if c)
         elif isinstance(x, pari_gen):
             y = {}
@@ -180,7 +182,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return sorted(self.__coeffs)
 
-    def valuation(self):
+    def valuation(self, p=None):
         """
         Return the valuation of ``self``.
 
@@ -197,6 +199,13 @@ class Polynomial_generic_sparse(Polynomial):
         """
         if not self.__coeffs:
             return infinity
+
+        if p is infinity:
+            return -self.degree()
+
+        if p is not None:
+            raise NotImplementedError("input p is not support for sparse polynomials")
+
         return ZZ(min(self.__coeffs))
 
     def _derivative(self, var=None):

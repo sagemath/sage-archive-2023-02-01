@@ -613,7 +613,7 @@ cdef class Cache_givaro(Cache_base):
 
     def _element_log_repr(self, FiniteField_givaroElement e):
         """
-        Return ``str(i)`` where ``self` is ``gen^i`` with ``gen``
+        Return ``str(i)`` where ``self`` is ``gen^i`` with ``gen``
         being the *internal* multiplicative generator of this finite
         field.
 

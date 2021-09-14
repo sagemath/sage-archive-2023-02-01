@@ -1164,7 +1164,7 @@ class PolynomialSequence_gf2(PolynomialSequence_generic):
 
         - ```use_polybori`` - if ``True`` then ``polybori.ll.eliminate`` is
           called. While this is typically faster what is implemented here, it
-          is less flexible (``skip` is not supported) and may increase the
+          is less flexible (``skip`` is not supported) and may increase the
           degree (default: ``False``)
 
         OUTPUT:

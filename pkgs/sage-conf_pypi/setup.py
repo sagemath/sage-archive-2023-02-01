@@ -43,7 +43,11 @@ class build_py(setuptools_build_py):
                 raise DistutilsSetupError(f"the directory SAGE_ROOT={SAGE_ROOT} already exists but it is not configured.  Please remove it and try again.")
             cmd = f"cd {SAGE_ROOT} && {SETENV} && ./configure --prefix={SAGE_LOCAL} --with-python={sys.executable} --enable-build-as-root --enable-download-from-upstream-url --with-system-python3=force --disable-notebook --disable-sagelib"
             print(f"Running {cmd}")
+            sys.stdout.flush()
             if os.system(cmd) != 0:
+                print(f"configure failed; this may be caused by missing build prerequisites.")
+                sys.stdout.flush()
+                os.system(f'cd {SAGE_ROOT} && export SYSTEM=$(build/bin/sage-guess-package-system 2>/dev/null) && export PACKAGES="$(build/bin/sage-get-system-packages $SYSTEM _prereq)" && [ -n "$PACKAGES" ] && echo "You can install the required build prerequisites using the following shell command" && echo "" && build/bin/sage-print-system-package-command $SYSTEM --verbose --sudo install $PACKAGES && echo ""')
                 raise DistutilsSetupError("configure failed")
         # Here we run "make build" -- which builds everything except for sagelib because we
         # used configure --disable-sagelib

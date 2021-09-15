@@ -194,7 +194,7 @@ from sage.numerical.all  import *
 from sage.stats.all      import *
 import sage.stats.all as stats
 
-import sage.finance.all  as finance
+lazy_import("sage.finance", "all", as_="finance", deprecation=32427)
 
 from sage.parallel.all   import *
 

@@ -4,14 +4,16 @@ Date: Tue, 14 Sep 2021 21:57:58 -0700
 Subject: [PATCH] include/pybind11/numpy.h: gcc 4.8.4 does not have
  is_trivially_copyable
 
+Manually edited -- the sdist has a layout different from the git repo.
+
 ---
  include/pybind11/numpy.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/include/pybind11/numpy.h b/include/pybind11/numpy.h
 index 7313897fe1..34b7536d38 100644
---- a/include/pybind11/numpy.h
-+++ b/include/pybind11/numpy.h
+--- a/pybind11/include/pybind11/numpy.h
++++ b/pybind11/include/pybind11/numpy.h
 @@ -319,7 +319,7 @@ template <typename T> using remove_all_extents_t = typename array_info<T>::type;
  
  template <typename T> using is_pod_struct = all_of<

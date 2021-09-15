@@ -455,7 +455,6 @@ AC_ARG_ENABLE([r],
 dnl Packages that require a special override to use the SPKG
 dnl when the system package is not usable.
 AS_VAR_SET([sage_use_system_gcc], [force])
-AS_VAR_SET([sage_use_system_python3], [force])
 
 SAGE_SPKG_COLLECT()
 

@@ -150,7 +150,7 @@ cdef class MultiModularBasis_base(object):
             sage: mm = MultiModularBasis_base(height); mm
             MultiModularBasis with moduli [...]
 
-            sage: mm.prod()//height > 2
+            sage: mm.prod()//height >= 2
             True
 
             sage: mm = MultiModularBasis_base([1000000000000000000000000000057])
@@ -939,7 +939,9 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
             sage: from sage.arith.multi_modular import MutableMultiModularBasis
             sage: mm = MutableMultiModularBasis([10007])
             sage: p = mm.next_prime()
-            sage: p > 10007
+            sage: 1024 < p < 32768
+            True
+            sage: p != 10007
             True
             sage: mm.list() == [10007, p]
             True

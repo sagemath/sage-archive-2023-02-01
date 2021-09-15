@@ -652,7 +652,10 @@ class ContinuedFraction_base(SageObject):
             ....:         continue
             ....:     cf = continued_fraction(a)
             ....:     for R in fields:
-            ....:         assert R(cf) == R(a)
+            ....:         try:
+            ....:             assert R(cf) == R(a)
+            ....:         except ZeroDivisionError:  # :trac:`29957`
+            ....:             pass
         """
         # 1. integer case
         if self.quotient(1) is Infinity:

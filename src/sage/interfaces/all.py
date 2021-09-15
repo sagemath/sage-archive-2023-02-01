@@ -24,6 +24,7 @@ from .maxima import maxima, Maxima
 # import problems
 #from maxima_lib import maxima_lib
 from .mathematica import mathematica, Mathematica
+from .mathics import mathics, Mathics
 from .matlab import matlab, matlab_version, Matlab
 from .mupad import mupad, Mupad  # NOT functional yet
 from .mwrank import mwrank, Mwrank
@@ -64,6 +65,7 @@ if get_display_manager().is_in_terminal():
     from .maple import maple_console
     from .maxima_abstract import maxima_console
     from .mathematica import mathematica_console
+    from .mathics import mathics_console
     from .matlab import matlab_console
     from .mupad import mupad_console
     from .mwrank import mwrank_console

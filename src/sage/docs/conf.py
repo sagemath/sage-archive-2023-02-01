@@ -636,6 +636,7 @@ def check_nested_class_picklability(app, what, name, obj, skip, options):
                          'sage.misc.nested_class.NestedClassMetaclass.' % (
                         v.__module__ + '.' + name + '.' + nm))
 
+
 def skip_member(app, what, name, obj, skip, options):
     """
     To suppress Sphinx warnings / errors, we
@@ -646,9 +647,6 @@ def skip_member(app, what, name, obj, skip, options):
       inserted into its module by
       :class:`sage.misc.NestedClassMetaclass` only for pickling.  The
       class will be properly documented inside its surrounding class.
-
-    - Don't include
-      sagenb.notebook.twist.userchild_download_worksheets.zip.
 
     - Optionally, check whether pickling is broken for nested classes.
 
@@ -672,14 +670,12 @@ def skip_member(app, what, name, obj, skip, options):
             if objname.split('.')[-1] == name.split('.')[-1]:
                 return True
 
-    if name.find("userchild_download_worksheets.zip") != -1:
-        return True
-
     if 'SAGE_DOC_UNDERSCORE' in os.environ:
         if name.split('.')[-1].startswith('_'):
             return False
 
     return skip
+
 
 def process_dollars(app, what, name, obj, options, docstringlines):
     r"""

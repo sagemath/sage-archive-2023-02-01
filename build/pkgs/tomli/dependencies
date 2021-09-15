@@ -1,4 +1,4 @@
-$(PYTHON) | pip
+$(PYTHON) | pip flit_core toml
 
 ----------
 All lines of this file are ignored except the first.

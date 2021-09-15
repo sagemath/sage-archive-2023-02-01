@@ -634,7 +634,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
         elif is_finite is False:
             category = category.Infinite()
 
-        if base_ring in EnumeratedSets:
+        if base_ring in EnumeratedSets():
             category = category.Enumerated()
 
         Parent.__init__(self, base_ring, category=category)

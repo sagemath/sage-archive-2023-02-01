@@ -965,7 +965,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             # iterators:
             data_lists = [tuple(_) for _ in data_lists]
             nmz_data_lists = convert_NF(*data_lists)
-            if self.base_ring() in NumberFields:
+            if self.base_ring() in NumberFields():
                 if not RDF.has_coerce_map_from(self.base_ring()):
                     raise ValueError("invalid base ring: {} is a number field that is not real embedded".format(self.base_ring()))
                 normaliz_field = self.base_ring()

@@ -10,7 +10,7 @@ and more precisely:
     :widths: 30, 70
     :delim: |
 
-    :meth:`~dominating_set` | Return a minimum dominating set of the graph.
+    :meth:`~dominating_set` | Return a minimum distance-`k` dominating set of the graph.
     :meth:`~minimal_dominating_sets` | Return an iterator over the minimal dominating sets of a graph.
     :meth:`~is_dominating` | Check whether a set of vertices dominates a graph.
     :meth:`~is_redundant` | Check whether a set of vertices has redundant vertices (with respect to domination).
@@ -65,7 +65,6 @@ Methods
 
 from copy import copy
 from sage.rings.integer import Integer
-
 
 def is_dominating(G, dom, focus=None):
     r"""
@@ -215,24 +214,34 @@ def private_neighbors(G, vertex, dom):
 # Computation of minimum dominating
 # ==============================================================================
 
-def dominating_set(g, independent=False, total=False, value_only=False,
+def dominating_set(g, k=1, independent=False, total=False, value_only=False,
                    solver=None, verbose=0, *, integrality_tolerance=1e-3):
     r"""
-    Return a minimum dominating set of the graph.
+    Return a minimum distance-`k` dominating set of the graph.
 
     A minimum dominating set `S` of a graph `G` is a set of its vertices of
     minimal cardinality such that any vertex of `G` is in `S` or has one of its
     neighbors in `S`. See the :wikipedia:`Dominating_set`.
 
-    As an optimization problem, it can be expressed as:
+    A minimum distance-`k` dominating set is a set `S` of vertices of `G` of
+    minimal cardinality such that any vertex of `G` is in `S` or at distance at
+    most `k` from a vertex in `S`. A distance-`0` dominating set is the set of
+    vertices itself, and when `k` is the radius of the graph, any vertex
+    dominates all the other vertices.
+
+    As an optimization problem, it can be expressed as follows, where `N^k(u)`
+    denotes the set of vertices at distance at most `k` from `u` (the set of
+    neighbors when `k=1`):
 
     .. MATH::
 
         \mbox{Minimize : }&\sum_{v\in G} b_v\\
-        \mbox{Such that : }&\forall v \in G, b_v+\sum_{(u,v)\in G.edges()} b_u\geq 1\\
+        \mbox{Such that : }&\forall v \in G, b_v+\sum_{u \in N^k(v)} b_u\geq 1\\
         &\forall x\in G, b_x\mbox{ is a binary variable}
 
     INPUT:
+
+    - ``k`` -- a non-negative integer (default: ``1``); the domination distance
 
     - ``independent`` -- boolean (default: ``False``); when ``True``, computes a
       minimum independent dominating set, that is a minimum dominating set that
@@ -296,17 +305,40 @@ def dominating_set(g, independent=False, total=False, value_only=False,
         sage: g.dominating_set(value_only=True)
         1
 
+    Cardinality of distance-`k` dominating sets::
+
+        sage: G = graphs.PetersenGraph()
+        sage: [G.dominating_set(k=k, value_only=True) for k in range(G.radius() + 1)]
+        [10, 3, 1]
+        sage: G = graphs.PathGraph(5)
+        sage: [G.dominating_set(k=k, value_only=True) for k in range(G.radius() + 1)]
+        [5, 2, 1]
     """
     g._scream_if_not_simple(allow_multiple_edges=True, allow_loops=not total)
+
+    if not k:
+        return g.order() if value_only else list(g)
+    elif k < 0:
+        raise ValueError("the domination distance must be a non-negative integer")
 
     from sage.numerical.mip import MixedIntegerLinearProgram
     p = MixedIntegerLinearProgram(maximization=False, solver=solver)
     b = p.new_variable(binary=True)
 
-    # For any vertex v, one of its neighbors or v itself is in the minimum
-    # dominating set. If g is directed, we use the in neighbors of v instead.
+    if k == 1:
+        # For any vertex v, one of its neighbors or v itself is in the minimum
+        # dominating set. If g is directed, we use the in neighbors of v
+        # instead.
+        neighbors_iter = g.neighbor_in_iterator if g.is_directed() else g.neighbor_iterator
+    else:
+        # When k > 1, we use BFS to determine the vertices that can reach v
+        # through a path of length at most k
+        gg = g.reverse() if g.is_directed() else g
 
-    neighbors_iter = g.neighbor_in_iterator if g.is_directed() else g.neighbor_iterator
+        def neighbors_iter(x):
+            it = gg.breadth_first_search(x, distance=k)
+            _ = next(it)
+            yield from it
 
     if total:
         # We want a total dominating set
@@ -324,13 +356,10 @@ def dominating_set(g, independent=False, total=False, value_only=False,
     # Minimizes the number of vertices used
     p.set_objective(p.sum(b[v] for v in g))
 
-    if value_only:
-        return Integer(round(p.solve(objective_only=True, log=verbose)))
-    else:
-        p.solve(log=verbose)
-        b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
-        return [v for v in g if b[v]]
-
+    p.solve(log=verbose)
+    b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+    dom = [v for v in g if b[v]]
+    return Integer(len(dom)) if value_only else dom
 
 # ==============================================================================
 # Enumeration of minimal dominating set as described in [BDHPR2019]_

@@ -282,12 +282,14 @@ from sage.algebras.finite_gca import FiniteGCAlgebra
 from sage.combinat.free_module import IndexedFreeModuleElement
 from sage.misc.fast_methods import Singleton
 from sage.structure.sage_object import SageObject
-from sage.misc.cachefunc import cached_method, cached_function
+from sage.misc.cachefunc import cached_method
 from sage.misc.abstract_method import abstract_method
 from .affine_connection import AffineConnection
 from .bundle_connection import BundleConnection
 from .levi_civita_connection import LeviCivitaConnection
-from sage.rings.rational_field import QQ
+from sage.symbolic.expression import Expression
+from sage.rings.polynomial.polynomial_element import is_Polynomial
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
 
 class CharacteristicCohomologyClassRingElement(IndexedFreeModuleElement):
@@ -775,7 +777,7 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
                          max_degree=dim, mul_symbol='⌣',
                          mul_latex_symbol=r'\smile')
 
-    def _element_constructor_(self, x, name=None, latex_name=None):
+    def _element_constructor_(self, x, **kwargs):
         r"""
         Convert ``x`` into ``self``.
 
@@ -784,11 +786,16 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
             sage: M = Manifold(8, 'M')
             sage: TM = M.tangent_bundle()
             sage: CR = TM.characteristic_cohomology_class_ring()
-            sage: p = TM.characteristic_cohomology_class('Pontryagin')
+            sage: p = CR('Pontryagin'); p
+            Characteristic cohomology class p(TM) of the Tangent bundle TM over
+             the 8-dimensional differentiable manifold M
             sage: CR(p, name='pontr')
             Characteristic cohomology class pontr(TM) of the Tangent bundle
              TM over the 8-dimensional differentiable manifold M
         """
+        if isinstance(x, (str, Expression)) or is_Polynomial(x):
+            return self._build_element(x, **kwargs)
+
         R = self.base_ring()
 
         if x in R:
@@ -808,8 +815,215 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
         else:
             raise TypeError(f"do not know how to make x (= {x}) "
                             f"an element of self (={self})")
-
+        name, latex_name = kwargs.get('name'), kwargs.get('latex_name')
         return self.element_class(self, d, name=name, latex_name=latex_name)
+
+    @cached_method
+    def _build_element(self, *args, **kwargs):
+        r"""
+        Construct a characteristic cohomology class.
+
+        The result is cached.
+
+        INPUT:
+
+        - ``val`` -- the input data corresponding to the characteristic class
+          using the Chern-Weil homomorphism; this argument can be either a
+          symbolic expression, a polynomial or one of the following predefined
+          classes:
+
+          - ``'Chern'`` -- total Chern class,
+          - ``'ChernChar'`` -- Chern character,
+          - ``'Todd'`` -- Todd class,
+          - ``'Pontryagin'`` -- total Pontryagin class,
+          - ``'Hirzebruch'`` -- Hirzebruch class,
+          - ``'AHat'`` -- `\hat{A}` class,
+          - ``'Euler'`` -- Euler class.
+
+        - ``name`` -- (default: ``None``) string representation given to the
+          characteristic class; if ``None`` the default algebra representation or
+          predefined name is used
+        - ``latex_name`` -- (default: ``None``) LaTeX name given to the
+          characteristic class; if ``None`` the value of ``name`` is used
+        - ``class_type`` -- (default: ``None``) class type of the characteristic
+          cohomology class; the following options are possible:
+
+          - ``'multiplicative'`` -- returns a class of multiplicative type
+          - ``'additive'`` -- returns a class of additive type
+          - ``'Pfaffian'`` -- returns a class of Pfaffian type
+
+          This argument must be stated if ``val`` is a polynomial or symbolic
+          expression.
+
+        EXAMPLES:
+
+        Total Pontryagin class of an 8-dimensional manifold::
+
+            sage: M = Manifold(8, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: p = TM.characteristic_cohomology_class('Pontryagin'); p
+            Characteristic cohomology class p(TM) of the Tangent bundle TM over the
+             8-dimensional differentiable manifold M
+
+        Define a multiplicative class (see :func:`multiplicative_sequence`)::
+
+            sage: P.<x> = PolynomialRing(QQ)
+            sage: f = 1 + x - x^2
+            sage: f_class = TM.characteristic_cohomology_class(f, class_type='multiplicative'); f_class
+            Characteristic cohomology class (1 + p_1 - p_1^2 + 3*p_2)(TM) of the
+             Tangent bundle TM over the 8-dimensional differentiable manifold M
+
+        Pass a symbolic expression, whose Taylor expansion at zero will be used::
+
+            sage: M = Manifold(8, 'M')
+            sage: TM = M.tangent_bundle()
+            sage: x = var('x')
+            sage: f = cos(x)
+            sage: f_class = TM.characteristic_cohomology_class(f, class_type='multiplicative'); f_class
+            Characteristic cohomology class (1 - 1/2*p_1^2 + p_2)(TM) of the Tangent
+             bundle TM over the 8-dimensional differentiable manifold M
+        """
+        name, latex_name = kwargs.get('name'), kwargs.get('latex_name')
+        base_ring = self.base_ring()
+        class_type = kwargs.get('class_type')
+        vbundle = self._vbundle
+        val = args[0]
+        dim = vbundle._base_space._dim
+
+        # predefined classes accessible via class names
+        if isinstance(val, str):
+            from sage.arith.misc import factorial, bernoulli
+
+            P = PolynomialRing(base_ring, 'x')
+            x = P.gen()
+            if val == 'Chern':
+                if vbundle._field_type != 'complex':
+                    raise ValueError(
+                        f'total Chern class not defined on {vbundle}')
+                if name is None:
+                    name = 'c'
+                class_type = 'multiplicative'
+                val = 1 + x
+            if val == 'Pontryagin':
+                if vbundle._field_type != 'real':
+                    raise ValueError(
+                        f'total Pontryagin class not defined on {vbundle}')
+                if name is None:
+                    name = 'p'
+                class_type = 'multiplicative'
+                val = 1 + x
+            elif val == 'ChernChar':
+                if vbundle._field_type != 'complex':
+                    raise ValueError(
+                        f'Chern character not defined on {vbundle}')
+                if name is None:
+                    name = 'ch'
+                if latex_name is None:
+                    latex_name = r'\mathrm{ch}'
+                class_type = 'additive'
+                coeff = [1 / factorial(k) for k in
+                         range(dim // 2 + 1)]  # exp(x)
+                val = P(coeff)
+            elif val == 'Todd':
+                if vbundle._field_type != 'complex':
+                    raise ValueError(f'Todd class not defined on {vbundle}')
+                if name is None:
+                    name = 'Td'
+                if latex_name is None:
+                    latex_name = r'\mathrm{Td}'
+                class_type = 'multiplicative'
+                val = 1 + x / 2
+                for k in range(1, dim // 2 + 1):
+                    val += (-1) ** (k + 1) / factorial(2 * k) * bernoulli(
+                        2 * k) * x ** (2 * k)
+            elif val == 'Hirzebruch':
+                if vbundle._field_type != 'real':
+                    raise ValueError(
+                        f'Hirzebruch class not defined on {vbundle}')
+                if name is None:
+                    name = 'L'
+                if latex_name is None:
+                    latex_name = 'L'
+                class_type = 'multiplicative'
+                coeff = [2 ** (2 * k) * bernoulli(2 * k) / factorial(2 * k)
+                         for k in range(dim // 4 + 1)]
+                val = P(coeff)
+            elif val == 'AHat':
+                if vbundle._field_type != 'real':
+                    raise ValueError(f'AHat class not defined on {vbundle}')
+                if name is None:
+                    name = 'A^'
+                if latex_name is None:
+                    latex_name = r'\hat{A}'
+                class_type = 'multiplicative'
+                coeff = [- (2 ** (2 * k) - 2) / 2 ** (2 * k) * bernoulli(
+                    2 * k) / factorial(2 * k)
+                         for k in range(dim // 4 + 1)]
+                val = P(coeff)
+            elif val == 'Euler':
+                if vbundle._field_type != 'real' or not vbundle.has_orientation():
+                    raise ValueError(f'Euler class not defined on {vbundle}')
+                if name is None:
+                    name = 'e'
+                class_type = 'Pfaffian'
+                val = x
+            else:
+                ValueError(f'predefined class "{val}" unknown')
+
+        # turn symbolic expression into a polynomial via Taylor expansion
+        if isinstance(val, Expression):
+            x = val.default_variable()
+            P = PolynomialRing(base_ring, x)
+
+            if vbundle._field_type == 'real':
+                pow_range = dim // 4
+            elif vbundle._field_type == 'complex':
+                pow_range = dim // 2
+            else:
+                ValueError(f'field type of {vbundle} must be real or complex')
+
+            val = P(val.taylor(x, 0, pow_range))
+
+        # turn polynomial into a characteristic cohomology class via sequences
+        if is_Polynomial(val):
+            if class_type is None:
+                raise TypeError(f'class_type must be stated if {val} '
+                                f'is a polynomial')
+            n = self.ngens()
+            s = 0  # shift; important in case of Euler class generator
+            if self._algorithm is PontryaginEulerAlgorithm():
+                s = 1  # skip Euler class
+                n -= 1  # ignore Euler class
+
+            if class_type == 'additive':
+                sym = additive_sequence(val, vbundle._rank, n)
+            elif class_type == 'multiplicative':
+                sym = multiplicative_sequence(val, n)
+            elif class_type == 'Pfaffian':
+                P = val.parent()
+                x = P.gen()
+                val = (val(x) - val(-x)) / 2  # project to odd functions
+                val = P([(-1) ** k * val[2 * k + 1] for k in range(n + 1)])
+                sym = multiplicative_sequence(val, n)
+            else:
+                AttributeError('unkown class type')
+
+            d = {}
+            w_vec = self._weighted_vectors
+            for p, c in sym:
+                vec = [0] * self.ngens()
+                if class_type == 'Pfaffian':
+                    vec[0] = 1  # always multiply with e
+                for i in p:
+                    vec[i - 1 + s] += 1
+                key = w_vec(vec)
+                d[key] = c
+            res = self._from_dict(d)
+            res.set_name(name=name, latex_name=latex_name)
+            return res
+
+        # Nothing worked? Then something went wrong!
+        raise ValueError(f'cannot convert {val} into an element of {self}')
 
     def _repr_(self):
         r"""
@@ -946,217 +1160,6 @@ def additive_sequence(q, k, n=None):
     m_dict.update({Partitions(k)([k]): q[k] for k in range(1, n + 1)})
     mon_pol = m._from_dict(m_dict)
     return Sym.e()(mon_pol)
-
-@cached_function
-def CharacteristicCohomologyClass(*args, **kwargs):
-    r"""
-    Construct a characteristic cohomology class.
-
-    The result is cached.
-
-    INPUT:
-
-    - ``vbundle`` -- the vector bundle over which the characteristic
-      cohomology class shall be defined; this argument is skipped when invoked
-      directly from the vector bundle (see
-      :meth:`sage.manifolds.differentiable.vector_bundle.characteristic_cohomology_class`)
-    - ``val`` -- the input data corresponding to the characteristic class
-      using the Chern-Weil homomorphism; this argument can be either a
-      symbolic expression, a polynomial or one of the following predefined
-      classes:
-
-      - ``'Chern'`` -- total Chern class,
-      - ``'ChernChar'`` -- Chern character,
-      - ``'Todd'`` -- Todd class,
-      - ``'Pontryagin'`` -- total Pontryagin class,
-      - ``'Hirzebruch'`` -- Hirzebruch class,
-      - ``'AHat'`` -- `\hat{A}` class,
-      - ``'Euler'`` -- Euler class.
-
-    - ``base_ring`` -- (default: ``QQ``) base ring over which the
-      characteristic cohomology class ring shall be defined
-    - ``name`` -- (default: ``None``) string representation given to the
-      characteristic class; if ``None`` the default algebra representation or
-      predefined name is used
-    - ``latex_name`` -- (default: ``None``) LaTeX name given to the
-      characteristic class; if ``None`` the value of ``name`` is used
-    - ``class_type`` -- (default: ``None``) class type of the characteristic
-      cohomology class; the following options are possible:
-
-      - ``'multiplicative'`` -- returns a class of multiplicative type
-      - ``'additive'`` -- returns a class of additive type
-      - ``'Pfaffian'`` -- returns a class of Pfaffian type
-
-      This argument must be stated if ``val`` is a polynomial or symbolic
-      expression.
-
-    EXAMPLES:
-
-    Total Pontryagin class of an 8-dimensional manifold::
-
-        sage: M = Manifold(8, 'M')
-        sage: TM = M.tangent_bundle()
-        sage: p = TM.characteristic_cohomology_class('Pontryagin'); p
-        Characteristic cohomology class p(TM) of the Tangent bundle TM over the
-         8-dimensional differentiable manifold M
-
-    Define a multiplicative class (see :func:`multiplicative_sequence`)::
-
-        sage: P.<x> = PolynomialRing(QQ)
-        sage: f = 1 + x - x^2
-        sage: f_class = TM.characteristic_cohomology_class(f, class_type='multiplicative'); f_class
-        Characteristic cohomology class (1 + p_1 - p_1^2 + 3*p_2)(TM) of the
-         Tangent bundle TM over the 8-dimensional differentiable manifold M
-
-    Pass a symbolic expression, whose Taylor expansion at zero will be used::
-
-        sage: M = Manifold(8, 'M')
-        sage: TM = M.tangent_bundle()
-        sage: x = var('x')
-        sage: f = cos(x)
-        sage: f_class = TM.characteristic_cohomology_class(f, class_type='multiplicative'); f_class
-        Characteristic cohomology class (1 - 1/2*p_1^2 + p_2)(TM) of the Tangent
-         bundle TM over the 8-dimensional differentiable manifold M
-    """
-    from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
-    from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-    from sage.symbolic.expression import Expression
-
-    name, latex_name = kwargs.get('name'), kwargs.get('latex_name')
-    base_ring = kwargs.get('base_ring', QQ)
-    class_type = kwargs.get('class_type')
-    vbundle = args[0]
-    val = args[1]  # input value
-    R = CharacteristicCohomologyClassRing(base_ring, vbundle)
-    dim = vbundle._base_space._dim
-
-    # predefined classes accessible via class names
-    if isinstance(val, str):
-        from sage.arith.misc import factorial, bernoulli
-
-        P = PolynomialRing(base_ring, 'x')
-        x = P.gen()
-        if val == 'Chern':
-            if vbundle._field_type != 'complex':
-                raise ValueError(f'total Chern class not defined on {vbundle}')
-            if name is None:
-                name = 'c'
-            class_type = 'multiplicative'
-            val = 1 + x
-        if val == 'Pontryagin':
-            if vbundle._field_type != 'real':
-                raise ValueError(f'total Pontryagin class not defined on {vbundle}')
-            if name is None:
-                name = 'p'
-            class_type = 'multiplicative'
-            val = 1 + x
-        elif val == 'ChernChar':
-            if vbundle._field_type != 'complex':
-                raise ValueError(f'Chern character not defined on {vbundle}')
-            if name is None:
-                name = 'ch'
-            if latex_name is None:
-                latex_name = r'\mathrm{ch}'
-            class_type = 'additive'
-            coeff = [1 / factorial(k) for k in range(dim // 2 + 1)]  # exp(x)
-            val = P(coeff)
-        elif val == 'Todd':
-            if vbundle._field_type != 'complex':
-                raise ValueError(f'Todd class not defined on {vbundle}')
-            if name is None:
-                name = 'Td'
-            if latex_name is None:
-                latex_name = r'\mathrm{Td}'
-            class_type = 'multiplicative'
-            val = 1 + x / 2
-            for k in range(1, dim // 2 + 1):
-                val += (-1)**(k+1) / factorial(2*k) * bernoulli(2*k) * x**(2*k)
-        elif val == 'Hirzebruch':
-            if vbundle._field_type != 'real':
-                raise ValueError(f'Hirzebruch class not defined on {vbundle}')
-            if name is None:
-                name = 'L'
-            if latex_name is None:
-                latex_name = 'L'
-            class_type = 'multiplicative'
-            coeff = [2**(2*k) * bernoulli(2*k) / factorial(2*k)
-                     for k in range(dim // 4 + 1)]
-            val = P(coeff)
-        elif val == 'AHat':
-            if vbundle._field_type != 'real':
-                raise ValueError(f'AHat class not defined on {vbundle}')
-            if name is None:
-                name = 'A^'
-            if latex_name is None:
-                latex_name = r'\hat{A}'
-            class_type = 'multiplicative'
-            coeff = [- (2**(2*k) - 2) / 2**(2*k) * bernoulli(2*k) / factorial(2*k)
-                     for k in range(dim // 4 + 1)]
-            val = P(coeff)
-        elif val == 'Euler':
-            if vbundle._field_type != 'real' or not vbundle.has_orientation():
-                raise ValueError(f'Euler class not defined on {vbundle}')
-            if name is None:
-                name = 'e'
-            class_type = 'Pfaffian'
-            val = x
-        else:
-            ValueError(f'predefined class "{val}" unknown')
-
-    # turn symbolic expression into a polynomial via Taylor expansion
-    if isinstance(val, Expression):
-        x = val.default_variable()
-        P = PolynomialRing(base_ring, x)
-
-        if vbundle._field_type == 'real':
-            pow_range = dim // 4
-        elif vbundle._field_type == 'complex':
-            pow_range = dim // 2
-        else:
-            ValueError(f'field type of {vbundle} must be real or complex')
-
-        val = P(val.taylor(x, 0, pow_range))
-
-    # turn polynomial into a characteristic cohomology class via sequences
-    if is_PolynomialRing(val.parent()):
-        if class_type is None:
-            raise TypeError(f'class_type must be stated if {val} '
-                            f'is a polynomial')
-        n = R.ngens()
-        s = 0  # shift; important in case of Euler class generator
-        if R._algorithm is PontryaginEulerAlgorithm():
-            s = 1  # skip Euler class
-            n -= 1  # ignore Euler class
-
-        if class_type == 'additive':
-            sym = additive_sequence(val, vbundle._rank, n)
-        elif class_type == 'multiplicative':
-            sym = multiplicative_sequence(val, n)
-        elif class_type == 'Pfaffian':
-            P = val.parent()
-            x = P.gen()
-            val = (val(x) - val(-x)) / 2  # project to odd functions
-            val = P([(-1)**k * val[2*k+1] for k in range(n + 1)])
-            sym = multiplicative_sequence(val, n)
-        else:
-            AttributeError('unkown class type')
-
-        d = {}
-        w_vec = R._weighted_vectors
-        for p, c in sym:
-            vec = [0] * R.ngens()
-            if class_type == 'Pfaffian':
-                vec[0] = 1  # always multiply with e
-            for i in p:
-                vec[i - 1 + s] += 1
-            key = w_vec(vec)
-            d[key] = c
-        res = R._from_dict(d)
-        res.set_name(name=name, latex_name=latex_name)
-        return res
-
-    # last resort: try coercion
-    return R(val, name=name, latex_name=latex_name)
 
 
 def fast_wedge_power(form, n):

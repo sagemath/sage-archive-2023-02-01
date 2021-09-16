@@ -274,9 +274,9 @@ class DifferentiableVectorBundle(TopologicalVectorBundle):
             :class:`~sage.manifolds.differentiable.characteristic_class.CharacteristicClass`.
 
         """
-        from .characteristic_cohomology_class import CharacteristicCohomologyClass
-
-        return CharacteristicCohomologyClass(self, *args, **kwargs)
+        base_ring = kwargs.get('base_ring', QQ)
+        R = self.characteristic_cohomology_class_ring(base_ring)
+        return R(*args, **kwargs)
 
     characteristic_class = deprecated_function_alias(29581, characteristic_cohomology_class)
 

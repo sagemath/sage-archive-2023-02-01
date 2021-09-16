@@ -1240,7 +1240,7 @@ def float_to_html(r, g, b):
         sage: float_to_html((0.2, 0.6, 0.8))  # py3
         Traceback (most recent call last):
         ...
-        TypeError: float_to_html() missing 2 required positional arguments: 'g' and 'b'
+        TypeError: ...float_to_html() missing 2 required positional arguments: 'g' and 'b'
     """
     return "#%06x" % float_to_integer(r, g, b)
 
@@ -1286,7 +1286,7 @@ def float_to_integer(r, g, b):
         sage: float_to_integer((0.2, 0.6, 0.8))  # py3
         Traceback (most recent call last):
         ...
-        TypeError: float_to_integer() missing 2 required positional arguments: 'g' and 'b'
+        TypeError: ...float_to_integer() missing 2 required positional arguments: 'g' and 'b'
     """
     r, g, b = map(mod_one, (r, g, b))
     return int(r * 255) << 16 | int(g * 255) << 8 | int(b * 255)

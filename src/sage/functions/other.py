@@ -2132,7 +2132,7 @@ class Function_cases(GinacFunction):
             sage: cases()
             Traceback (most recent call last):
             ...
-            TypeError: __call__() missing 1 required positional argument: 'l'
+            TypeError: ...__call__() missing 1 required positional argument: 'l'
 
             sage: cases(x)
             Traceback (most recent call last):

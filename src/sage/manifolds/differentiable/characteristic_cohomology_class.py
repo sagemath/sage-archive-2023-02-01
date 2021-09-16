@@ -898,24 +898,21 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
             x = P.gen()
             if val == 'Chern':
                 if vbundle._field_type != 'complex':
-                    raise ValueError(
-                        f'total Chern class not defined on {vbundle}')
+                    raise ValueError(f'total Chern class not defined on {vbundle}')
                 if name is None:
                     name = 'c'
                 class_type = 'multiplicative'
                 val = 1 + x
             if val == 'Pontryagin':
                 if vbundle._field_type != 'real':
-                    raise ValueError(
-                        f'total Pontryagin class not defined on {vbundle}')
+                    raise ValueError(f'total Pontryagin class not defined on {vbundle}')
                 if name is None:
                     name = 'p'
                 class_type = 'multiplicative'
                 val = 1 + x
             elif val == 'ChernChar':
                 if vbundle._field_type != 'complex':
-                    raise ValueError(
-                        f'Chern character not defined on {vbundle}')
+                    raise ValueError(f'Chern character not defined on {vbundle}')
                 if name is None:
                     name = 'ch'
                 if latex_name is None:
@@ -938,8 +935,7 @@ class CharacteristicCohomologyClassRing(FiniteGCAlgebra):
                         2 * k) * x ** (2 * k)
             elif val == 'Hirzebruch':
                 if vbundle._field_type != 'real':
-                    raise ValueError(
-                        f'Hirzebruch class not defined on {vbundle}')
+                    raise ValueError(f'Hirzebruch class not defined on {vbundle}')
                 if name is None:
                     name = 'L'
                 if latex_name is None:

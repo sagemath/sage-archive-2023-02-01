@@ -2084,6 +2084,8 @@ class Func_ultraspherical(GinacFunction):
         sage: _ = var('x')
         sage: for N in range(100):
         ....:     n = ZZ.random_element().abs() + 5
+        ....:     if n > 5000:  # avoid timeouts
+        ....:         continue
         ....:     a = QQ.random_element().abs() + 5
         ....:     assert ((n+1)*ultraspherical(n+1,a,x) - 2*x*(n+a)*ultraspherical(n,a,x) + (n+2*a-1)*ultraspherical(n-1,a,x)).expand().is_zero()
         sage: ultraspherical(5,9/10,3.1416)

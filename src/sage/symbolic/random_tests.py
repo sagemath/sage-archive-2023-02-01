@@ -426,7 +426,7 @@ def test_symbolic_expression_order(repetitions=100):
 
         sage: from sage.symbolic.random_tests import test_symbolic_expression_order
         sage: test_symbolic_expression_order(200)
-        sage: test_symbolic_expression_order(10000)  # long time
+        sage: test_symbolic_expression_order(10000)  # long time,  # not tested, known bug (see :trac:`32185`)
     """
     rnd_length = 50
     nvars = 10

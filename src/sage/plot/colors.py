@@ -813,11 +813,11 @@ class Color(object):
             sage: papayawhip / yellow  # py2
             Traceback (most recent call last):
             ...
-            TypeError: float() argument must be a string or a number
+            TypeError: float() argument must be a string or a... number...
             sage: papayawhip / yellow  # py3
             Traceback (most recent call last):
             ...
-            TypeError: float() argument must be a string or a number, not 'Color'
+            TypeError: float() argument must be a string or a... number...
         """
         return self * (1 / float(right))
 

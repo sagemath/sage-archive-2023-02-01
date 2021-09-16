@@ -581,7 +581,7 @@ class SageDocTestRunner(doctest.DocTestRunner, object):
             ....: @syntax error
             Traceback (most recent call last):
             ...
-            SyntaxError: invalid syntax
+            SyntaxError: invalid ...
             sage: a = 1 # py3
             ....: @syntax error
             Traceback (most recent call last):

@@ -868,7 +868,7 @@ def sqrt(x, *args, **kwds):
             sage: sqrt(4,hold=True)
             Traceback (most recent call last):
             ...
-            TypeError: _do_sqrt() got an unexpected keyword argument 'hold'
+            TypeError: ..._do_sqrt() got an unexpected keyword argument 'hold'
 
         This illustrates that the bug reported in :trac:`6171` has been fixed::
 
@@ -876,7 +876,7 @@ def sqrt(x, *args, **kwds):
             sage: a.sqrt(prec=100)  # this is supposed to fail
             Traceback (most recent call last):
             ...
-            TypeError: sqrt() got an unexpected keyword argument 'prec'
+            TypeError: ...sqrt() got an unexpected keyword argument 'prec'
             sage: sqrt(a, prec=100)
             1.0488088481701515469914535137
             sage: sqrt(4.00, prec=250)

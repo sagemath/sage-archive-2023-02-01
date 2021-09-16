@@ -8480,7 +8480,7 @@ cdef class Expression(CommutativeRingElement):
             sage: sqrt(4,hold=True)
             Traceback (most recent call last):
             ...
-            TypeError: _do_sqrt() got an unexpected keyword argument 'hold'
+            TypeError: ..._do_sqrt() got an unexpected keyword argument 'hold'
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold2_wrapper(g_power_construct, self._gobj, g_ex1_2, hold))

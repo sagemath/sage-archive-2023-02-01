@@ -1262,7 +1262,7 @@ class Graphics(WithEqualityById, SageObject):
             sage: S.plot(hey="hou")
             Traceback (most recent call last):
             ...
-            TypeError: plot() got an unexpected keyword argument 'hey'
+            TypeError: ...plot() got an unexpected keyword argument 'hey'
         """
         return self
 

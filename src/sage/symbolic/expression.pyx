@@ -8059,7 +8059,7 @@ cdef class Expression(CommutativeRingElement):
             sage: abs(SR(-5),hold=True)
             Traceback (most recent call last):
             ...
-            TypeError: abs() takes no keyword arguments
+            TypeError: ...abs() takes no keyword arguments
 
         But this is possible using the method :meth:`abs`::
 
@@ -9573,7 +9573,7 @@ cdef class Expression(CommutativeRingElement):
             sage: x.gamma(y)
             Traceback (most recent call last):
             ...
-            TypeError: gamma() takes exactly 0 positional arguments (1 given)
+            TypeError: ...gamma() takes exactly 0 positional arguments (1 given)
         """
         cdef GEx x
         sig_on()

@@ -1235,7 +1235,7 @@ def float_to_html(r, g, b):
         sage: float_to_html((0.2, 0.6, 0.8))  # py2
         Traceback (most recent call last):
         ...
-        TypeError: float_to_html() takes exactly 3 arguments (1 given)
+        TypeError: ...float_to_html() takes exactly 3 arguments (1 given)
 
         sage: float_to_html((0.2, 0.6, 0.8))  # py3
         Traceback (most recent call last):
@@ -1281,7 +1281,7 @@ def float_to_integer(r, g, b):
         sage: float_to_integer((0.2, 0.6, 0.8))  # py2
         Traceback (most recent call last):
         ...
-        TypeError: float_to_integer() takes exactly 3 arguments (1 given)
+        TypeError: ...float_to_integer() takes exactly 3 arguments (1 given)
 
         sage: float_to_integer((0.2, 0.6, 0.8))  # py3
         Traceback (most recent call last):

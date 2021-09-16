@@ -1417,7 +1417,7 @@ class Stream_cauchy_mul(Stream_binary):
 
 
 class Stream_dirichlet_convolve(Stream_binary):
-    """
+    r"""
     Operator for the Dirichlet convolution of two streams.
 
     INPUT:
@@ -1499,7 +1499,7 @@ class Stream_dirichlet_convolve(Stream_binary):
 
 
 class Stream_dirichlet_invert(Stream_unary):
-    """
+    r"""
     Operator for inverse with respect to Dirichlet convolution of the stream.
 
     INPUT:

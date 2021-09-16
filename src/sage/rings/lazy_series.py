@@ -168,51 +168,6 @@ class LazyModuleElement(Element):
         Element.__init__(self, parent)
         self._coeff_stream = coeff_stream
 
-    def finite_part(self, degree=None):
-        r"""
-        Return ``self`` truncated to ``degree`` as an element of an appropriate ring.
-
-        INPUT:
-
-        - ``degree`` -- ``None`` or an integer
-
-        OUTPUT:
-
-        If ``degree`` is not ``None``, the terms of the series of
-        degree greater than ``degree`` are removed first. If
-        ``degree`` is ``None`` and the series is not known to have
-        only finitely many nonzero coefficients, a ``ValueError`` is
-        raised.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = L([1,0,0,2,0,0,0,3], valuation=-3); f.finite_part()
-            z^-3 + 2 + 3*z^4
-            sage: f.polynomial()
-            z^-3 + 2 + 3*z^4
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "s")
-            sage: f = L([1,0,0,2,0,0,0,3], valuation=2); f.finite_part()
-            3/9^s + 2/5^s + 1/2^s
-
-        """
-        P = self.parent()
-        L = P._laurent_poly_ring
-        coeff_stream = self._coeff_stream
-        if degree is None:
-            if isinstance(coeff_stream, Stream_zero):
-                return L.zero()
-            elif isinstance(coeff_stream, Stream_exact) and not coeff_stream._constant:
-                m = coeff_stream._degree
-            else:
-                raise ValueError("not a polynomial")
-        else:
-            m = degree + 1
-
-        v = coeff_stream.order()
-        return L.sum(self[i]*P.monomial(1, i) for i in range(v, m))
-
     def __getitem__(self, n):
         """
         Return the coefficient of the term with exponent ``n`` of the series.
@@ -819,6 +774,59 @@ class LazyModuleElement(Element):
             return UnicodeArt('Uninitialized Lazy Laurent Series')
         return self._format_series(unicode_art, True)
 
+
+    def change_ring(self, ring):
+        r"""
+        Return ``self`` with coefficients converted to elements of ``ring``.
+
+        INPUT:
+
+        - ``ring`` -- a ring
+
+        EXAMPLES:
+
+        Dense Implementation::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
+            sage: s = 2 + z
+            sage: t = s.change_ring(QQ)
+            sage: t^-1
+            1/2 - 1/4*z + 1/8*z^2 - 1/16*z^3 + 1/32*z^4 - 1/64*z^5 + 1/128*z^6 + O(z^7)
+            sage: M = L(lambda n: n, valuation=0); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: N = M.change_ring(QQ)
+            sage: N.parent()
+            Lazy Laurent Series Ring in z over Rational Field
+            sage: M.parent()
+            Lazy Laurent Series Ring in z over Integer Ring
+
+        Sparse Implementation::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
+            sage: M = L(lambda n: n, valuation=0); M
+            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
+            sage: M.parent()
+            Lazy Laurent Series Ring in z over Integer Ring
+            sage: N = M.change_ring(QQ)
+            sage: N.parent()
+            Lazy Laurent Series Ring in z over Rational Field
+            sage: M^-1
+            z^-1 - 2 + z + O(z^6)
+
+        A Dirichlet series example::
+
+            sage: L = LazyDirichletSeriesRing(ZZ, 'z')
+            sage: s = L(constant=2)
+            sage: t = s.change_ring(QQ)
+            sage: t.parent()
+            Lazy Dirichlet Series Ring in z over Rational Field
+            sage: t^-1
+            1/2 - 1/2/2^z - 1/2/3^z - 1/2/5^z + 1/2/6^z - 1/2/7^z + O(1/(8^z))
+        """
+        P = self.parent()
+        Q = type(P)(ring, names=P.variable_names(), sparse=P._sparse)
+        return Q.element_class(Q, self._coeff_stream)
+
     # === module structure ===
 
     def _add_(self, other):
@@ -884,7 +892,6 @@ class LazyModuleElement(Element):
             sage: r = L([1,2,3], constant=-1)
             sage: r + t
             2 + 3/2^z + 4/3^z
-
         """
         P = self.parent()
         left = self._coeff_stream
@@ -1499,16 +1506,6 @@ class LazyCauchyProductSeries(LazyModuleElement):
         if (isinstance(left, Stream_exact)
             and isinstance(right, Stream_exact)):
             if not left._constant and not right._constant:
-                # # alternatively:
-                # pl = self.finite_part()
-                # pr = other.finite_part()
-                # try:
-                #    ret = pl / pr
-                #    ret = P._laurent_poly_ring(ret)
-                # except (TypeError, ValueError, NotImplementedError):
-                #    # We cannot divide the polynomials, so the result must be a series
-                #    pass
-                # return P(ret)
                 R = P._laurent_poly_ring
                 pl = left._polynomial_part(R)
                 pr = right._polynomial_part(R)
@@ -1671,48 +1668,6 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         sage: f = 1 / (1 - z - z^2)
         sage: TestSuite(f).run()
     """
-
-    def change_ring(self, ring):
-        r"""
-        Return ``self`` with coefficients converted to elements of ``ring``.
-
-        INPUT:
-
-        - ``ring`` -- a ring
-
-        EXAMPLES:
-
-        Dense Implementation::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=False)
-            sage: s = 2 + z
-            sage: t = s.change_ring(QQ)
-            sage: t^-1
-            1/2 - 1/4*z + 1/8*z^2 - 1/16*z^3 + 1/32*z^4 - 1/64*z^5 + 1/128*z^6 + O(z^7)
-            sage: M = L(lambda n: n, valuation=0); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: N = M.change_ring(QQ)
-            sage: N.parent()
-            Lazy Laurent Series Ring in z over Rational Field
-            sage: M.parent()
-            Lazy Laurent Series Ring in z over Integer Ring
-
-        Sparse Implementation::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ, sparse=True)
-            sage: M = L(lambda n: n, valuation=0); M
-            z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
-            sage: M.parent()
-            Lazy Laurent Series Ring in z over Integer Ring
-            sage: N = M.change_ring(QQ)
-            sage: N.parent()
-            Lazy Laurent Series Ring in z over Rational Field
-            sage: M ^-1
-            z^-1 - 2 + z + O(z^6)
-        """
-        from .lazy_series_ring import LazyLaurentSeriesRing
-        Q = LazyLaurentSeriesRing(ring, names=self.parent().variable_names())
-        return Q.element_class(Q, self._coeff_stream)
 
     def __call__(self, g):
         r"""
@@ -2412,7 +2367,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             1/2 + 1/4*z^2 + 1/8*z^4 + 1/16*z^6 + O(z^7)
         """
         P = self.parent()
-        R = P._laurent_poly_ring
+        R = P._internal_poly_ring
         z = R.gen()
         cs = self._coeff_stream
         v = cs._approximate_order
@@ -2574,22 +2529,6 @@ class LazyDirichletSeries(LazyModuleElement):
         P = self.parent()
         return P.element_class(P, Stream_dirichlet_invert(self._coeff_stream))
 
-    def change_ring(self, ring):
-        """
-        Return this series with coefficients converted to elements of ``ring``.
-
-        INPUT:
-
-        - ``ring`` -- a ring
-
-        TESTS::
-
-            sage: L = LazyDirichletSeriesRing(ZZ, "z", sparse=False)
-        """
-        from .lazy_series_ring import LazyDirichletSeriesRing
-        Q = LazyDirichletSeriesRing(ring, names=self.parent().variable_names())
-        return Q.element_class(Q, self._coeff_stream)
-
     def _format_series(self, formatter, format_strings=False):
         """
         Return nonzero ``self`` formatted by ``formatter``.
@@ -2618,6 +2557,13 @@ class LazyDirichletSeries(LazyModuleElement):
                                   (3  )
                   ( -s        )   (---)
             (1) + (2  *(x - 1)) + ( 3 )
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: D = LazyDirichletSeriesRing(L, "s")
+            sage: f = D([2, 0, 1/(1-z), 3]); f
+            (2)/1^s + ((1+z+z^2+z^3+z^4+z^5+z^6+O(z^7))/3^s) + (3)/4^s
+            sage: f._format_series(ascii_art)
+            ((2)/1^s) + ((1 + z + z^2 + z^3 + z^4 + z^5 + z^6 + O(z^7))/3^s) + ((3)/4^s)
         """
         P = self.parent()
         cs = self._coeff_stream
@@ -2631,10 +2577,11 @@ class LazyDirichletSeries(LazyModuleElement):
             m = v + P.options.display_length
 
         atomic_repr = P._coeff_ring._repr_option('element_is_atomic')
-        mons = [P.monomial(self[i], i) for i in range(v, m) if self[i]]
+        varname = P.variable_name()
+        mons = [P._monomial(self[i], i) for i in range(v, m) if self[i]]
         if not isinstance(cs, Stream_exact) or cs._constant:
             if P._coeff_ring is P.base_ring():
-                bigO = ["O(%s)" % P.monomial(1, m)]
+                bigO = ["O(%s)" % P._monomial(1, m)]
             else:
                 bigO = ["O(%s)^%s" % (', '.join(str(g) for g in P._names), m)]
         else:
@@ -2644,31 +2591,26 @@ class LazyDirichletSeries(LazyModuleElement):
         from sage.typeset.unicode_art import unicode_art
         from sage.typeset.ascii_art import ascii_art
         from sage.misc.repr import repr_lincomb
-        from sage.typeset.symbols import ascii_left_parenthesis, ascii_right_parenthesis
-        from sage.typeset.symbols import unicode_left_parenthesis, unicode_right_parenthesis
         if formatter == repr:
             poly = repr_lincomb([(1, m) for m in mons + bigO], strip_one=True)
         elif formatter == latex:
             poly = repr_lincomb([(1, m) for m in mons + bigO], is_latex=True, strip_one=True)
-        elif formatter == ascii_art:
+        elif formatter in [ascii_art, unicode_art]:
+            if formatter == ascii_art:
+                from sage.typeset.symbols import ascii_left_parenthesis as left_paren
+                from sage.typeset.symbols import ascii_right_parenthesis as right_paren
+            else:
+                from sage.typeset.symbols import unicode_left_parenthesis as left_paren
+                from sage.typeset.symbols import unicode_right_parenthesis as right_paren
             if atomic_repr:
-                poly = ascii_art(*(mons + bigO), sep = " + ")
+                poly = formatter(*(mons + bigO), sep=" + ")
             else:
                 def parenthesize(m):
-                    a = ascii_art(m)
+                    a = formatter(m)
                     h = a.height()
-                    return ascii_art(ascii_left_parenthesis.character_art(h),
-                                     a, ascii_right_parenthesis.character_art(h))
-                poly = ascii_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
-        elif formatter == unicode_art:
-            if atomic_repr:
-                poly = unicode_art(*(mons + bigO), sep = " + ")
-            else:
-                def parenthesize(m):
-                    a = unicode_art(m)
-                    h = a.height()
-                    return unicode_art(unicode_left_parenthesis.character_art(h),
-                                       a, unicode_right_parenthesis.character_art(h))
-                poly = unicode_art(*([parenthesize(m) for m in mons] + bigO), sep = " + ")
+                    return formatter(left_paren.character_art(h),
+                                     a, right_paren.character_art(h))
+                poly = formatter(*([parenthesize(m) for m in mons] + bigO), sep=" + ")
 
         return poly
+

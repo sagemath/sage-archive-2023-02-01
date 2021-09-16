@@ -38,7 +38,7 @@ if [ $? -ne 0 ]; then
     #                      already installed (for which it sometimes gets false
     #                      positives for partially-installed packages).
     # --no-deps          : Don't install runtime dependencies from PyPI.
-    extra_pip_install_flags="--no-deps --ignore-installed"
+    extra_pip_install_flags="--no-deps --ignore-installed --ignore-requires-python"
     echo >&2 "Warning: installing with \"$PYTHON -m pip install $pip_install_flags\" failed. Retrying, adding \"$extra_pip_install_flags\""
     sage-flock -s $LOCK $PYTHON -m pip install $pip_install_flags $extra_pip_install_flags "$@"
     if [ $? -ne 0 ]; then

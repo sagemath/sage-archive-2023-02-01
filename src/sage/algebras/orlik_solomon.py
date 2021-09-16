@@ -600,7 +600,9 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
 
         if action_on_groundset is None:
             # if sage knows the action, we don't need to provide it
-            def action_on_groundset(g, x): return g(x)
+
+            def action_on_groundset(g, x):
+                return g(x)
 
         self._groundset_action = action_on_groundset
 
@@ -609,7 +611,7 @@ class OrlikSolomonInvariantAlgebra(FiniteDimensionalInvariantModule):
 
         def action(g, m):
             return OS.sum(c * self._basis_action(g, x)
-                          for x,c in m._monomial_coefficients.items())
+                          for x, c in m._monomial_coefficients.items())
 
         self._action = action
 

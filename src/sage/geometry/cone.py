@@ -4503,9 +4503,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         The primal Normaliz algorithm, see [Normaliz]_.
         """
         if self.is_strictly_convex():
-            def not_in_linear_subspace(x): return True
+
+            def not_in_linear_subspace(x):
+                return True
         else:
             linear_subspace = self.linear_subspace()
+
             def not_in_linear_subspace(x):
                 # "x in linear_subspace" does not work, due to absence
                 # of coercion maps as of Trac ticket #10513.

@@ -26,15 +26,14 @@ from sage.categories.algebras import Algebras
 from sage.categories.rings import Rings
 from sage.categories.integral_domains import IntegralDomains
 from sage.categories.fields import Fields
-from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields, CompleteDiscreteValuationRings
+from sage.categories.complete_discrete_valuation import CompleteDiscreteValuationFields
 
 from sage.misc.cachefunc import cached_method
 
-from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.lazy_series import (LazyModuleElement,
-                                    LazyCauchyProductSeries,
                                     LazyLaurentSeries,
                                     LazyDirichletSeries)
 from sage.structure.global_options import GlobalOptions
@@ -983,7 +982,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
         self._coeff_ring = base_ring
         # TODO: it would be good to have something better than the symbolic ring
         self._laurent_poly_ring = SR
-        self._internal_poly_ring = LaurentPolynomialRing(base_ring, names)
+        self._internal_poly_ring = PolynomialRing(base_ring, names, sparse=True)
 
         category = Algebras(base_ring.category())
         if base_ring in IntegralDomains():
@@ -1141,7 +1140,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
 
             sage: L = LazyDirichletSeriesRing(ZZ, 'z')
             sage: L.an_element()
-            1/(4^z) + 1/(5^z) + 1/(6^z) + ...
+            1/(4^z) + 1/(5^z) + 1/(6^z) + O(1/(7^z))
         """
         c = self.base_ring().an_element()
         return self.element_class(self, Stream_exact([], self._sparse, constant=c, order=4))

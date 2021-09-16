@@ -2068,11 +2068,11 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
 
         The compositional inverse exists if and only if:
 
-        - `val(f) = 1', or
+        - `val(f) = 1`, or
 
         - `f = a + b z` with `a b \neq 0`, or
 
-        - `f = a/z' with `a \neq 0`
+        - `f = a/z` with `a \neq 0`
 
         EXAMPLES::
 
@@ -2102,7 +2102,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             ...
             ValueError: cannot determine whether the compositional inverse exists
 
-        We look at some cases where the compositional inverse does not exist.:
+        We look at some cases where the compositional inverse does not exist:
 
         `f = 0`::
 
@@ -2115,7 +2115,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             ...
             ValueError: compositional inverse does not exist
 
-        `val(f) ! = 1 and f(0) * f(1) = 0`::
+        `val(f) ! = 1` and `f(0) * f(1) = 0`::
 
             sage: (z^2).revert()
             Traceback (most recent call last):
@@ -2126,7 +2126,6 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             Traceback (most recent call last):
             ...
             ValueError: compositional inverse does not exist
-
         """
         P = self.parent()
         if self.valuation() == 1:
@@ -2153,7 +2152,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         raise ValueError("cannot determine whether the compositional inverse exists")
 
     def approximate_series(self, prec, name=None):
-        """
+        r"""
         Return the Laurent series with absolute precision ``prec`` approximated
         from this series.
 

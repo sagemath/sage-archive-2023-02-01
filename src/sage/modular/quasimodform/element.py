@@ -38,7 +38,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     EXAMPLES::
 
-        sage: QM = QuasiModularForms()
+        sage: QM = QuasiModularForms(1)
         sage: QM.gens()
         [1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 + O(q^6),
         1 + 240*q + 2160*q^2 + 6720*q^3 + 17520*q^4 + 30240*q^5 + O(q^6),
@@ -96,7 +96,6 @@ class QuasiModularFormsElement(ModuleElement):
                 raise ValueError("at least one coefficient is not a 'GradedModularFormElement'")
         self._polynomial = polynomial
         self._coefficients = polynomial.coefficients(sparse=False)
-        self.__base_ring = parent.base_ring()
         ModuleElement.__init__(self, parent)
 
     def q_expansion(self, prec=6):
@@ -114,7 +113,7 @@ class QuasiModularFormsElement(ModuleElement):
             sage: E2.q_expansion(prec=10)
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 - 288*q^6 - 192*q^7 - 360*q^8 - 312*q^9 + O(q^10)
         """
-        E2 = eisenstein_series_qexp(2, prec=prec, K=self.__base_ring, normalization='constant') #normalization -> to force integer coefficients
+        E2 = eisenstein_series_qexp(2, prec=prec, K=self.base_ring(), normalization='constant') #normalization -> to force integer coefficients
         return sum(f.q_expansion(prec=prec)*E2**idx for idx, f in enumerate(self._coefficients))
 
     qexp = q_expansion # alias
@@ -176,6 +175,9 @@ class QuasiModularFormsElement(ModuleElement):
             2 + 216*q + 2088*q^2 + 6624*q^3 + 17352*q^4 + 30096*q^5 + O(q^6)
             sage: QM.0 + (QM.1 + QM.2) == (QM.0 + QM.1) + QM.2
             True
+            sage: QM = QuasiModularForms(5)
+            sage: QM.0 + QM.1 + QM.2 + QM.3
+            3 - 17*q - 54*q^2 - 62*q^3 - 98*q^4 + 137*q^5 + O(q^6)
         """
         return self.__class__(self.parent(), self._polynomial + other._polynomial)
 
@@ -189,6 +191,8 @@ class QuasiModularFormsElement(ModuleElement):
             -1 + 24*q + 72*q^2 + 96*q^3 + 168*q^4 + 144*q^5 + O(q^6)
             sage: QuasiModularForms(1).0 - QuasiModularForms(1).0
             0
+            sage: -QuasiModularForms(Gamma1(2)).2
+            -1 - 240*q^2 - 2160*q^4 + O(q^6)
         """
         return self.__class__(self.parent(), -self._polynomial)
 
@@ -209,6 +213,9 @@ class QuasiModularFormsElement(ModuleElement):
             1 + 216*q - 3672*q^2 - 62496*q^3 - 322488*q^4 - 1121904*q^5 + O(q^6)
             sage: (QM.0 * QM.1) * QM.2 == QM.0 * (QM.1 * QM.2)
             True
+            sage: QM = QuasiModularForms(Gamma1(5))
+            sage: QM.0 * QM.1 * QM.2
+            q - 24*q^2 - 66*q^3 - 189*q^4 - 1917*q^5 + O(q^6)
         """
         return self.__class__(self.parent(), self._polynomial * other._polynomial)
 
@@ -229,6 +236,8 @@ class QuasiModularFormsElement(ModuleElement):
             1/2 - 12*q - 36*q^2 - 48*q^3 - 84*q^4 - 72*q^5 + O(q^6)
             sage: QM.0 * (3/2)
             3/2 - 36*q - 108*q^2 - 144*q^3 - 252*q^4 - 216*q^5 + O(q^6)
+            sage: (5/2) * QuasiModularForms(Gamma0(7)).0 * (3/2)
+            15/4 - 90*q - 270*q^2 - 360*q^3 - 630*q^4 - 540*q^5 + O(q^6)
         """
         return self.__class__(self.parent(), c * self._polynomial)
 
@@ -255,6 +264,8 @@ class QuasiModularFormsElement(ModuleElement):
         EXAMPLES::
 
             sage: QM = QuasiModularForms(1)
+            sage: QM.zero().is_zero()
+            True
             sage: QM(0).is_zero()
             True
             sage: QM(1/2).is_zero()
@@ -271,6 +282,8 @@ class QuasiModularFormsElement(ModuleElement):
         EXAMPLES::
 
             sage: QM = QuasiModularForms(1)
+            sage: QM.one().is_one()
+            True
             sage: QM(1).is_one()
             True
             sage: (QM.0).is_one()
@@ -293,6 +306,11 @@ class QuasiModularFormsElement(ModuleElement):
             sage: (QM.1 + QM.0^2).is_graded_modular_form()
             False
             sage: (QM.1^2 + QM.2).is_graded_modular_form()
+            True
+            sage: QM = QuasiModularForms(Gamma0(6))
+            sage: (QM.0).is_graded_modular_form()
+            False
+            sage: (QM.1 + QM.2 + QM.1 * QM.3).is_graded_modular_form()
             True
 
         .. NOTE::
@@ -318,22 +336,20 @@ class QuasiModularFormsElement(ModuleElement):
             sage: (QM.1 + QM.2).is_modular_form() # mixed weight components
             False
         """
-        if not self._polynomial.degree():
-            return self._polynomial[0].is_modular_form()
-        else:
-            return False
+        return not self._polynomial.degree() and self._polynomial[0].is_modular_form()
 
     def to_polynomial(self, names='E2, E4, E6'):
         r"""
-        Return a polynomial `P(E_2, E_4, E_6)` corresponding to the given form
-        where `E_2`, `E_4` and `E_6` are the generators of the quasimodular
-        form ring given by :meth:`~sage.modular.quasiform.ring.QuasiModularForms.gens`.
+        Return a multivariate polynomial `P(E_2, E_4, E_6)` corresponding to the
+        given form where `E_2`, `E_4` and `E_6` are the generators of the
+        quasimodular form ring given by
+        :meth:`~sage.modular.quasiform.ring.QuasiModularForms.gens`.
 
         INPUT:
 
         - ``names`` (str, default: ``'E2, E4, E6'``) -- a list or tuple of names
-        (strings), or a comma separated string. Correspond to the names of the
-        variables;
+          (strings), or a comma separated string. Correspond to the names of the
+          variables;
 
         OUTPUT: A multivariate polynomial in the variables ``names``
 

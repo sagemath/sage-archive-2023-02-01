@@ -41,6 +41,7 @@ from sage.rings.qqbar import number_field_elements_from_algebraics
 from sage.rings.quotient_ring import QuotientRing_generic
 from sage.rings.rational_field import QQ
 from sage.arith.all import gcd, lcm
+from sage.misc.misc_c import prod
 
 from copy import copy
 from sage.schemes.generic.morphism import (SchemeMorphism,
@@ -658,7 +659,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
     def global_height(self, prec=None):
         r"""
-        Returns the absolute logarithmic height of the point.
+        Return the absolute logarithmic height of the point.
 
         INPUT:
 
@@ -674,14 +675,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: Q = P.point([4, 4, 1/30])
             sage: Q.global_height()
-            4.78749174278205
+            log(120)
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
             sage: Q = P([4, 1, 30])
             sage: Q.global_height()
-            3.40119738166216
+            log(30)
 
         ::
 
@@ -706,6 +707,8 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q.global_height()
             1.38629436111989
         """
+        if prec is None:
+            prec = 53
         K = self.codomain().base_ring()
         if K in _NumberFields or is_NumberFieldOrder(K):
             P = self
@@ -714,7 +717,21 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
                 P = self._number_field_from_algebraics()
             except TypeError:
                 raise TypeError("must be defined over an algebraic field")
-        return max([P[i].global_height(prec=prec) for i in range(self.codomain().ambient_space().dimension_relative()+1)])
+            else:
+                K = P.codomain().base_ring()
+        # first get rid of the denominators
+        denom = lcm([xi.denominator() for xi in P])
+        x = [xi * denom for xi in P]
+        d = K.degree()
+        if d == 1:
+            height = max(abs(xi) for xi in x) / gcd(x)
+            return height.log()
+
+        finite = ~sum(K.ideal(xi) for xi in x).norm()
+        infinite = prod(max(abs(xi.complex_embedding(prec, i))
+                            for xi in x) for i in range(d))
+        height = (finite * infinite)**(~d)
+        return height.log()
 
     def local_height(self, v, prec=None):
         r"""

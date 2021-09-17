@@ -706,6 +706,18 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: Q = P.point([K(4/3), K.gen(7), K.gen(5)])
             sage: Q.global_height()
             1.38629436111989
+
+        TESTS::
+
+            sage: P = ProjectiveSpace(QQ, 2)
+            sage: P(1/1,2/3,5/8).global_height()
+            log(24)
+
+            sage: x = polygen(QQ, 'x')
+            sage: F.<u> = NumberField(x^3 - 5)
+            sage: P = ProjectiveSpace(F, 2)
+            sage: P(u,u^2/5,1).global_height()
+            1.07295860828940
         """
         if prec is None:
             prec = 53

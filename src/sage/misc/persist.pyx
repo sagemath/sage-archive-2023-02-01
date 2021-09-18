@@ -1010,6 +1010,7 @@ def picklejar(obj, dir=None):
     Test an unaccessible directory::
 
         sage: import os, sys
+        sage: s = os.stat(dir)
         sage: os.chmod(dir, 0o000)
         sage: try:
         ....:     uid = os.getuid()
@@ -1027,7 +1028,7 @@ def picklejar(obj, dir=None):
         ....:     else:
         ....:         print("FAIL (did not raise an exception")
         OK...
-        sage: os.chmod(dir, 0o755)
+        sage: os.chmod(dir, s.st_mode)
     """
     if dir is None:
         from sage.env import DOT_SAGE

@@ -675,14 +675,14 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
             sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
             sage: Q = P.point([4, 4, 1/30])
             sage: Q.global_height()
-            log(120)
+            4.78749174278205
 
         ::
 
             sage: P.<x,y,z> = ProjectiveSpace(ZZ,2)
             sage: Q = P([4, 1, 30])
             sage: Q.global_height()
-            log(30)
+            3.40119738166216
 
         ::
 
@@ -711,7 +711,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
 
             sage: P = ProjectiveSpace(QQ, 2)
             sage: P(1/1,2/3,5/8).global_height()
-            log(24)
+            3.17805383034795
 
             sage: x = polygen(QQ, 'x')
             sage: F.<u> = NumberField(x^3 - 5)
@@ -737,7 +737,7 @@ class SchemeMorphism_point_projective_ring(SchemeMorphism_point):
         d = K.degree()
         if d == 1:
             height = max(abs(xi) for xi in x) / gcd(x)
-            return height.log()
+            return height.log().n(prec=prec)
 
         finite = ~sum(K.ideal(xi) for xi in x).norm()
         infinite = prod(max(abs(xi.complex_embedding(prec, i))

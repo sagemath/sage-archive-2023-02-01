@@ -27,10 +27,13 @@ SAGE_SPKG_CONFIGURE([singular], [
         [[#include <dlfcn.h>]],
         [[void* h = dlopen("${SINGULAR_LIB_FILE}", RTLD_LAZY | RTLD_GLOBAL);
           if (h == 0) { return 1; } else { return dlclose(h); }]]
-      )],
-      [AC_SUBST(SINGULAR_LIB_BASE, "${SINGULAR_LIB_BASE}")],
-      [sage_spkg_install_singular=yes]
-    )
+      )], [
+        AC_MSG_RESULT(yes)
+        AC_SUBST(SINGULAR_LIB_BASE, "${SINGULAR_LIB_BASE}")
+      ], [
+        AC_MSG_RESULT(no)
+        sage_spkg_install_singular=yes
+    ])
 
     AC_LANG_POP()
     LIBS="${ORIG_LIBS}"

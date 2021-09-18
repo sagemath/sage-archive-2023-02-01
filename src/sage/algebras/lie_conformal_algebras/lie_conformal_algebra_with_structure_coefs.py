@@ -17,7 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.functions.other import binomial
+from sage.arith.all import binomial
 from sage.sets.family import Family
 from .lie_conformal_algebra_element import LCAStructureCoefficientsElement
 from sage.categories.lie_conformal_algebras import LieConformalAlgebras

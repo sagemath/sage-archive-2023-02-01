@@ -158,8 +158,7 @@ Interfaces
 General Information
 ===================
 
-* :doc:`External Packages (by type) <spkg/index>`
-* :doc:`External Packages (alphabetical) <spkg/index_alph>`
+* :doc:`External Packages <spkg/index>`
 * :doc:`Bibliographic References <references/index>`
 * :doc:`History and License <history_and_license/index>`
 

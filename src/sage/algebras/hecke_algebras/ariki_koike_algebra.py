@@ -540,7 +540,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                     sage: LT.dimension()
                     29160
                 """
-                from sage.functions.other import factorial
+                from sage.arith.all import factorial
                 return self._r**self._n * factorial(self._n)
 
             def some_elements(self):

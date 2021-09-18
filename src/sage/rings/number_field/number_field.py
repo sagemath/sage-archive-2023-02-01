@@ -105,7 +105,6 @@ Check that :trac:`23459` is fixed::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-
 from sage.misc.cachefunc import cached_method
 from sage.misc.superseded import (deprecation,
                                   deprecated_function_alias)
@@ -569,6 +568,7 @@ def NumberField(polynomial, name=None, check=True, names=None, embedding=None,
 
     return NumberField_version2(polynomial=polynomial, name=name, check=check, embedding=embedding, latex_name=latex_name, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
 
+
 class NumberFieldFactory(UniqueFactory):
     r"""
     Factory for number fields.
@@ -704,7 +704,9 @@ class NumberFieldFactory(UniqueFactory):
         else:
             return NumberField_absolute(polynomial, name, latex_name, check, embedding, assume_disc_small=assume_disc_small, maximize_at_primes=maximize_at_primes, structure=structure)
 
+
 NumberField_version2 = NumberFieldFactory("sage.rings.number_field.number_field.NumberField_version2")
+
 
 def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_names=None, assume_disc_small=False, maximize_at_primes=None, structures=None):
     r"""
@@ -864,6 +866,7 @@ def NumberFieldTower(polynomials, names, check=True, embeddings=None, latex_name
     R = w[var]  # polynomial ring
     return w.extension(R(f), name, check=check, embedding=embeddings[0], structure=structures[0], latex_name=latex_names[0]) # currently, extension does not accept assume_disc_small, or maximize_at_primes
 
+
 def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', **args):
     r"""
     Return a quadratic field obtained by adjoining a square root of
@@ -991,6 +994,7 @@ def QuadraticField(D, name='a', check=True, embedding=True, latex_name='sqrt', *
         latex_name = r'\sqrt{%s}' % D
     return NumberField(f, name, check=False, embedding=embedding, latex_name=latex_name, **args)
 
+
 def GaussianField():
     r"""
     The field QQ[i].
@@ -1008,6 +1012,7 @@ def GaussianField():
         True
     """
     return QuadraticField(-1, 'I', latex_name='i')
+
 
 def is_AbsoluteNumberField(x):
     """
@@ -1031,6 +1036,7 @@ def is_AbsoluteNumberField(x):
     """
     return isinstance(x, NumberField_absolute)
 
+
 def is_QuadraticField(x):
     r"""
     Return True if x is of the quadratic *number* field type.
@@ -1052,6 +1058,7 @@ def is_QuadraticField(x):
         False
     """
     return isinstance(x, NumberField_quadratic)
+
 
 class CyclotomicFieldFactory(UniqueFactory):
     r"""
@@ -1211,7 +1218,9 @@ class CyclotomicFieldFactory(UniqueFactory):
         else:
             return NumberField_cyclotomic(n, names, embedding=embedding)
 
+
 CyclotomicField = CyclotomicFieldFactory("sage.rings.number_field.number_field.CyclotomicField")
+
 
 def is_CyclotomicField(x):
     """
@@ -1236,9 +1245,12 @@ def is_CyclotomicField(x):
     """
     return isinstance(x, NumberField_cyclotomic)
 
+
 from . import number_field_base
 
+
 is_NumberField = number_field_base.is_NumberField
+
 
 class NumberField_generic(WithEqualityById, number_field_base.NumberField):
     """
@@ -1842,8 +1854,8 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
 
             sage: K.<a> = NumberField(x^3 + 17)
             sage: b = K.polynomial_quotient_ring().random_element()
-            sage: K(b)
-            1/2*a^2 - 1/95*a - 1/2
+            sage: b == K(b)
+            True
 
         We can convert symbolic expressions::
 
@@ -2129,16 +2141,33 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
         EXAMPLES::
 
             sage: K.<j> = NumberField(x^8+1)
-            sage: K.random_element()
-            1/2*j^7 - j^6 - 12*j^5 + 1/2*j^4 - 1/95*j^3 - 1/2*j^2 - 4
+            sage: K.random_element().parent() is K
+            True
+
+            sage: while K.random_element().list()[0] != 0:
+            ....:     pass
+            sage: while K.random_element().list()[0] == 0:
+            ....:     pass
+            sage: while K.random_element().is_prime():
+            ....:     pass
+            sage: while not K.random_element().is_prime():
+            ....:     pass
 
             sage: K.<a,b,c> = NumberField([x^2-2,x^2-3,x^2-5])
-            sage: K.random_element()
-            ((6136*c - 7489/3)*b + 5825/3*c - 71422/3)*a + (-4849/3*c + 58918/3)*b - 45718/3*c + 75409/12
+            sage: K.random_element().parent() is K
+            True
+
+            sage: while K.random_element().is_prime():
+            ....:     pass
+            sage: while not K.random_element().is_prime():  # long time
+            ....:     pass
 
             sage: K.<a> = NumberField(x^5-2)
-            sage: K.random_element(integral_coefficients=True)
-            a^3 + a^2 - 3*a - 1
+            sage: p = K.random_element(integral_coefficients=True)
+            sage: p.is_integral()
+            True
+            sage: while K.random_element().is_integral():
+            ....:     pass
 
         TESTS::
 
@@ -3983,7 +4012,6 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 for pp in self.primes_above(p):
                     if pp.norm() <= B:
                         yield pp
-
 
     def primes_of_degree_one_iter(self, num_integer_primes=10000, max_iterations=100):
         r"""
@@ -6520,7 +6548,6 @@ class NumberField_generic(WithEqualityById, number_field_base.NumberField):
                 self.__reduced_gram_matrix_prec = prec
 
         return self.__reduced_gram_matrix
-
 
     #******************************************************
     # Supplementary algorithm to enumerate lattice points
@@ -9324,11 +9351,17 @@ class NumberField_absolute(NumberField_generic):
 
             sage: K.abs_val(v_fin,xi^2)
             0.111111111111111
+
+        Check that :trac:`28345` is fixed::
+
+            sage: K.abs_val(v_fin, K.zero())
+            0.000000000000000
         """
         if prec is None:
             prec = 53
         R = sage.rings.real_mpfr.RealField(prec)
-
+        if iota == 0:
+            return R.zero()
         try:
             p = v.smallest_integer()
             iota_ideal = self.ideal(self(iota))
@@ -10986,7 +11019,6 @@ class NumberField_cyclotomic(NumberField_absolute):
 ##         n = K.zeta_order()
 ##         m = self.zeta_order()
 
-
 ##         self_gen = self.gen()
 
 ##         if m % n == 0:   # easy case
@@ -11190,7 +11222,6 @@ class NumberField_cyclotomic(NumberField_absolute):
             True
         """
         return True
-
 
     def is_isomorphic(self, other):
         """
@@ -11497,7 +11528,6 @@ class NumberField_cyclotomic(NumberField_absolute):
                 a *= z
             self._integral_basis_dict[tuple()] = pari(B)
             return B
-
 
     def zeta_order(self):
         """
@@ -12088,7 +12118,9 @@ def NumberField_absolute_v1(poly, name, latex_name, canonical_embedding=None):
     """
     return NumberField(polynomial=poly, name=name, latex_name=latex_name, check=False, embedding=canonical_embedding)
 
+
 NumberField_generic_v1 = NumberField_absolute_v1  # for historical reasons only (so old objects unpickle)
+
 
 def NumberField_cyclotomic_v1(zeta_order, name, canonical_embedding=None):
     """
@@ -12103,6 +12135,7 @@ def NumberField_cyclotomic_v1(zeta_order, name, canonical_embedding=None):
         'a'
     """
     return CyclotomicField(n=zeta_order, names=name, embedding=canonical_embedding)
+
 
 def NumberField_quadratic_v1(poly, name, canonical_embedding=None):
     """
@@ -12299,6 +12332,7 @@ def refine_embedding(e, prec=None):
     diffs = [(RC(ee(K.gen()))-old_root).abs() for ee in elist]
     return elist[min(zip(diffs, count()))[1]]
 
+
 def is_real_place(v):
     r"""
     Return ``True`` if ``v`` is real, ``False`` if ``v`` is complex
@@ -12340,6 +12374,7 @@ def is_real_place(v):
         return True
     except TypeError:
         return False
+
 
 def _splitting_classes_gens_(K,m,d):
     r"""

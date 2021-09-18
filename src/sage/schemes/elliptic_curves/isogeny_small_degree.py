@@ -2333,6 +2333,15 @@ def isogenies_prime_degree(E, l, minimal_models=True):
         []
         sage: E.isogenies_prime_degree(73) # slower (2s)
         []
+
+    Test that :trac:`32269` is fixed::
+
+        sage: K = QuadraticField(-11)
+        sage: E = EllipticCurve(K, [0,1,0,-117,-541])
+        sage: E.isogenies_prime_degree(37)
+        [Isogeny of degree 37 from Elliptic Curve defined by y^2 = x^3 + x^2 + (-117)*x + (-541) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I to Elliptic Curve defined by y^2 = x^3 + x^2 + (30800*a+123963)*x + (3931312*a-21805005) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I,
+         Isogeny of degree 37 from Elliptic Curve defined by y^2 = x^3 + x^2 + (-117)*x + (-541) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I to Elliptic Curve defined by y^2 = x^3 + x^2 + (-30800*a+123963)*x + (-3931312*a-21805005) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I]
+
     """
     if not l.is_prime():
         raise ValueError("%s is not prime."%l)
@@ -2352,7 +2361,7 @@ def isogenies_prime_degree(E, l, minimal_models=True):
         return isogenies_prime_degree_genus_plus_0(E,l, minimal_models=minimal_models)
 
     j = E.j_invariant()
-    if j in QQ:
+    if j in QQ and E.base_field() is QQ:
         j = QQ(j)
         if j in sporadic_j:
             return isogenies_sporadic_Q(E,l, minimal_models=minimal_models)

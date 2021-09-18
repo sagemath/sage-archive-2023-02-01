@@ -1046,12 +1046,10 @@ class OrePolynomialRing(UniqueRepresentation, Algebra):
             sage: k.<t> = GF(5^3)
             sage: Frob = k.frobenius_endomorphism()
             sage: S.<x> = k['x',Frob]
-            sage: A = S.random_irreducible(); A
-            x^2 + (4*t^2 + 3*t + 4)*x + 4*t^2 + t
+            sage: A = S.random_irreducible()
             sage: A.is_irreducible()
             True
-            sage: B = S.random_irreducible(degree=3,monic=False); B  # random
-            (4*t + 1)*x^3 + (t^2 + 3*t + 3)*x^2 + (3*t^2 + 2*t + 2)*x + 3*t^2 + 3*t + 1
+            sage: B = S.random_irreducible(degree=3, monic=False)
             sage: B.is_irreducible()
             True
         """

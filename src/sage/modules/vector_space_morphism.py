@@ -345,9 +345,7 @@ def linear_transformation(arg0, arg1=None, arg2=None, side='left'):
     as in the first two call formats below, you may specify
     if the function is given by matrix multiplication with
     the vector on the left, or the vector on the right.
-    The default is 'left'. Internally representations are
-    always carried as the 'left' version, and the default
-    text representation is this version.  However, the matrix
+    The default is 'left'. The matrix
     representation may be obtained as either version, no matter
     how it is created.
 
@@ -794,7 +792,7 @@ def is_VectorSpaceMorphism(x):
 
 class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
 
-    def __init__(self, homspace, A):
+    def __init__(self, homspace, A, side="left"):
         r"""
         Create a linear transformation, a morphism between vector spaces.
 
@@ -855,14 +853,20 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             msg = 'input must be a matrix representation or another matrix morphism, not {0}'
             raise TypeError(msg.format(A))
         # now have a vector space homspace, and a matrix, check compatibility
+        if side == "left":
+            if homspace.domain().dimension() != A.nrows():
+                raise TypeError('domain dimension is incompatible with matrix size')
+            if homspace.codomain().dimension() != A.ncols():
+                raise TypeError('codomain dimension is incompatible with matrix size')
+        if side == "right":
+            if homspace.codomain().dimension() != A.nrows():
+                raise TypeError('Domain dimension is incompatible with matrix size')
+            if homspace.domain().dimension() != A.ncols():
+                raise TypeError('codomain dimension is incompatible with matrix size')
 
-        if homspace.domain().dimension() != A.nrows():
-            raise TypeError('domain dimension is incompatible with matrix size')
-        if homspace.codomain().dimension() != A.ncols():
-            raise TypeError('codomain dimension is incompatible with matrix size')
 
-        A = homspace._matrix_space()(A)
-        free_module_morphism.FreeModuleMorphism.__init__(self, homspace, A)
+        A = homspace._matrix_space(side)(A)
+        free_module_morphism.FreeModuleMorphism.__init__(self, homspace, A, side)
 
     def is_invertible(self):
         r"""
@@ -951,8 +955,11 @@ class VectorSpaceMorphism(free_module_morphism.FreeModuleMorphism):
             'dimension', '2', 'over', 'Rational', 'Field']
         """
         m = self.matrix()
-        msg = ("Vector space morphism represented by the matrix:\n",
+        act = ""
+        if self.side() == "right":
+            act = "as left-multiplication "
+        msg = ("Vector space morphism represented {}by the matrix:\n",
                "{!r}\n",
                "Domain: {}\n",
                "Codomain: {}")
-        return ''.join(msg).format(m, self.domain(), self.codomain())
+        return ''.join(msg).format(act, m, self.domain(), self.codomain())

@@ -1195,7 +1195,7 @@ cdef class NumpyToSRMorphism(Morphism):
             from sage.rings.integer_ring import ZZ
             self._intermediate_ring = ZZ
         elif issubclass(numpy_type, numpy.floating):
-            from sage.rings.all import RDF
+            from sage.rings.real_double import RDF
             self._intermediate_ring = RDF
         elif issubclass(numpy_type, numpy.complexfloating):
             from sage.rings.all import CDF

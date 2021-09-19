@@ -4,7 +4,7 @@ List Plots
 
 from sage.structure.element import is_Matrix
 from sage.matrix.constructor import matrix
-from sage.rings.all import RDF
+from sage.rings.real_double import RDF
 from sage.misc.superseded import deprecation
 
 

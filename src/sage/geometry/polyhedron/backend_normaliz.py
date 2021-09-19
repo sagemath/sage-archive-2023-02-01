@@ -955,7 +955,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
         """
         from sage.categories.number_fields import NumberFields
-        from sage.rings.all import RDF
+        from sage.rings.real_double import RDF
 
         if self.base_ring() in (QQ, ZZ):
             normaliz_field = QQ

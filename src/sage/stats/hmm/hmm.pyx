@@ -112,7 +112,7 @@ cdef class HiddenMarkovModel:
             [0.4 0.6]
         """
         from sage.matrix.constructor import matrix
-        from sage.rings.all import RDF
+        from sage.rings.real_double import RDF
         return matrix(RDF, self.N, self.A.list())
 
     def graph(self, eps=1e-3):
@@ -409,7 +409,7 @@ cdef class DiscreteHiddenMarkovModel(HiddenMarkovModel):
             [0.5 0.5]
         """
         from sage.matrix.constructor import matrix
-        from sage.rings.all import RDF
+        from sage.rings.real_double import RDF
         return matrix(RDF, self.N, self.n_out, self.B.list())
 
 

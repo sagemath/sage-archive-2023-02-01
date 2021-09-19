@@ -55,7 +55,7 @@ from sage.modules.free_module_element import vector
 from sage.plot.all import (Color, Graphics,
                            arrow, disk, line, point, polygon, rainbow, text)
 from sage.plot.plot3d.all import text3d
-from sage.rings.all import RDF
+from sage.rings.real_double import RDF
 from sage.structure.sage_object import SageObject
 
 

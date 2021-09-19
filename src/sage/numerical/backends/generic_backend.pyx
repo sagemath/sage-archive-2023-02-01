@@ -34,7 +34,7 @@ from copy import copy
 cdef class GenericBackend:
 
     cpdef base_ring(self):
-        from sage.rings.all import RDF
+        from sage.rings.real_double import RDF
         return RDF
 
     cpdef zero(self):

@@ -1561,7 +1561,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
 
             r = self._repr_()
             if 'Float' in T1:
-                from sage.rings.all import RDF
+                from sage.rings.real_double import RDF
                 base_ring = RDF
                 str_to_base_ring = lambda s: RDF(s)
             elif 'QuadraticExtension' in T1 and 'r' in r:

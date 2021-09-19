@@ -81,7 +81,7 @@ from sage.structure.richcmp cimport richcmp_not_equal, richcmp
 
 from sage.geometry.toric_lattice import ToricLattice
 from sage.matrix.all import matrix
-from sage.misc.all import latex
+from sage.misc.latex import latex
 
 
 def is_PointCollection(x):

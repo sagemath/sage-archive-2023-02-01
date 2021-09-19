@@ -429,8 +429,6 @@ class Hypergeometric(BuiltinFunction):
                 (x, y)
                 sage: f = fast_callable(hypergeometric([y], [], x), vars=[x, y])
                 sage: f(3, 4)
-                doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
-                See http://trac.sagemath.org/5930 for details.
                 hypergeometric((4,), (), 3)
             """
             return etb.call(self, *map(etb.var, etb._vars))

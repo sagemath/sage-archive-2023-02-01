@@ -28,6 +28,7 @@ available_integrators['sympy'] = external.sympy_integrator
 available_integrators['mathematica_free'] = external.mma_free_integrator
 available_integrators['fricas'] = external.fricas_integrator
 available_integrators['giac'] = external.giac_integrator
+available_integrators['libgiac'] = external.libgiac_integrator
 
 ######################################################
 #
@@ -71,7 +72,9 @@ class IndefiniteIntegral(BuiltinFunction):
 
         Check for :trac:`25119`::
 
-            sage: integrate(sqrt(x^2)/x,x)
+            sage: result = integrate(sqrt(x^2)/x,x)
+            ...
+            sage: result
             x*sgn(x)
         """
         # The automatic evaluation routine will try these integrators
@@ -79,7 +82,7 @@ class IndefiniteIntegral(BuiltinFunction):
         # a global variable in this module to enable customization by
         # creating a subclasses which define a different set of integrators
         self.integrators = [external.maxima_integrator,
-                            external.giac_integrator,
+                            external.libgiac_integrator,
                             external.sympy_integrator]
 
         BuiltinFunction.__init__(self, "integrate", nargs=2, conversions={'sympy': 'Integral',
@@ -104,7 +107,9 @@ class IndefiniteIntegral(BuiltinFunction):
 
         Check that :trac:`32002` is fixed::
 
-            sage: integral(2*min_symbolic(x,2*x),x)
+            sage: result = integral(2*min_symbolic(x,2*x),x)
+            ...
+            sage: result
             -1/2*x^2*sgn(x) + 3/2*x^2
         """
         # Check for x
@@ -195,7 +200,7 @@ class DefiniteIntegral(BuiltinFunction):
         # a global variable in this module to enable customization by
         # creating a subclasses which define a different set of integrators
         self.integrators = [external.maxima_integrator,
-                            external.giac_integrator,
+                            external.libgiac_integrator,
                             external.sympy_integrator]
 
         BuiltinFunction.__init__(self, "integrate", nargs=4, conversions={'sympy': 'Integral',
@@ -215,7 +220,9 @@ class DefiniteIntegral(BuiltinFunction):
 
         Check that :trac:`32002` is fixed::
 
-            sage: integral(2*min_symbolic(x,2*x),x,-1,1)
+            sage: result = integral(2*min_symbolic(x,2*x),x,-1,1)
+            ...
+            sage: result
             -1
         """
         # Check for x
@@ -283,6 +290,7 @@ class DefiniteIntegral(BuiltinFunction):
             sage: from sage.symbolic.integration.integral import definite_integral
             sage: f = function('f'); a,b=var('a,b')
             sage: h = definite_integral(f(x), x,a,b)
+            ...
             sage: h.diff(x) # indirect doctest
             0
             sage: h.diff(a)
@@ -440,9 +448,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     - ``b`` - (optional) upper endpoint of definite integral
 
-    - ``algorithm`` - (default: 'maxima') one of
+    - ``algorithm`` - (default: 'maxima', 'libgiac' and 'sympy') one of
 
-       - 'maxima' - use maxima (the default)
+       - 'maxima' - use maxima
 
        - 'sympy' - use sympy (also in Sage)
 
@@ -451,6 +459,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
        - 'fricas' - use FriCAS (the optional fricas spkg has to be installed)
 
        - 'giac' - use Giac
+
+       - 'libgiac' - use libgiac
 
     To prevent automatic evaluation use the ``hold`` argument.
 
@@ -617,8 +627,8 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     that the answer comes back as an expression that contains an
     integral itself. ::
 
-        sage: A = integral(1/ ((x-4) * (x^3+2*x+1)), x); A
-        integrate(1/((x^3 + 2*x + 1)*(x - 4)), x)
+        sage: A = integral(1/ ((x-4) * (x^4+x+1)), x); A
+        integrate(1/((x^4 + x + 1)*(x - 4)), x)
 
     Sometimes, in this situation, using the algorithm "maxima"
     gives instead a partially integrated answer::
@@ -642,7 +652,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     where the default integrator obtains another answer::
 
-        sage: integrate(f(x), x)
+        sage: result = integrate(f(x), x)
+        ...
+        sage: result
         1/8*sqrt(x)*gamma(1/4)*gamma(-1/4)^2*hypergeometric((-1/4, -1/4, 1/4), (1/2, 3/4), -1/x^2)/(pi*gamma(3/4))
 
     The following definite integral is not found by maxima::
@@ -667,7 +679,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
         sage: integrate(abs(cos(x)), x, 0, 2*pi, algorithm='giac')
         4
-        sage: integrate(abs(cos(x)), x, 0, 2*pi)
+        sage: result = integrate(abs(cos(x)), x, 0, 2*pi)
+        ...
+        sage: result
         4
 
     ALIASES: integral() and integrate() are the same.
@@ -814,7 +828,9 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
     the previous (wrong) answer of zero. See :trac:`10914`::
 
         sage: f = abs(sin(x))
-        sage: integrate(f, x, 0, 2*pi)
+        sage: result = integrate(f, x, 0, 2*pi)
+        ...
+        sage: result
         4
 
     Another incorrect integral fixed upstream in Maxima, from
@@ -910,42 +926,63 @@ def integrate(expression, v=None, a=None, b=None, algorithm=None, hold=False):
 
     Some integrals are now working (:trac:`27958`, using giac or sympy)::
 
-        sage: integrate(1/(1 + abs(x)), x)
+        sage: result = integrate(1/(1 + abs(x)), x)
+        ...
+        sage: result
         log(abs(x*sgn(x) + 1))/sgn(x)
 
-        sage: integrate(cos(x + abs(x)), x)
+        sage: result = integrate(cos(x + abs(x)), x)
+        ...
+        sage: result
         sin(x*sgn(x) + x)/(sgn(x) + 1)
 
-        sage: integrate(abs(x^2 - 1), x, -2, 2)
+        sage: result = integrate(abs(x^2 - 1), x, -2, 2)
+        ...
+        sage: result
         4
 
         sage: f = sqrt(x + 1/x^2)
         sage: actual = integrate(f, x)
+        ...
         sage: expected = (1/3*(2*sqrt(x^3 + 1) - log(sqrt(x^3 + 1) + 1)
         ....:             + log(abs(sqrt(x^3 + 1) - 1)))*sgn(x))
         sage: bool(actual == expected)
         True
 
         sage: g = abs(sin(x)*cos(x))
-        sage: g.integrate(x, 0, 2*pi)
+        sage: result = g.integrate(x, 0, 2*pi)
+        ...
+        sage: result
         2
 
-        sage: integrate(1/sqrt(abs(x)), x)
+        sage: result = integrate(1/sqrt(abs(x)), x)
+        ...
+        sage: result
         2*sqrt(x*sgn(x))/sgn(x)
 
-        sage: integrate(sgn(x) - sgn(1-x), x)
+        sage: result = integrate(sgn(x) - sgn(1-x), x)
+        ...
+        sage: result
         abs(x - 1) + abs(x)
 
-        sage: integrate(1 / (1 + abs(x-5)), x, -5, 6)
+        sage: result = integrate(1 / (1 + abs(x-5)), x, -5, 6)
+        ...
+        sage: result
         log(11) + log(2)
 
-        sage: integrate(1/(1 + abs(x)), x)
+        sage: result = integrate(1/(1 + abs(x)), x)
+        ...
+        sage: result
         log(abs(x*sgn(x) + 1))/sgn(x)
 
-        sage: integrate(cos(x + abs(x)), x)
+        sage: result = integrate(cos(x + abs(x)), x)
+        ...
+        sage: result
         sin(x*sgn(x) + x)/(sgn(x) + 1)
 
-        sage: integrate(abs(x^2 - 1), x, -2, 2)
+        sage: result = integrate(abs(x^2 - 1), x, -2, 2)
+        ...
+        sage: result
         4
 
     Some tests for :trac:`17468`::

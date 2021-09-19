@@ -188,7 +188,7 @@ from sage.quadratic_forms.all import *
 
 from sage.games.all      import *
 
-from sage.media.all      import *
+lazy_import('sage.media.wav', 'Wave', as_='wave', deprecation=12673)
 
 from sage.logic.all      import *
 

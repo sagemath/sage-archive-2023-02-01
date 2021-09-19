@@ -224,7 +224,9 @@ def integral(f, *args, **kwds):
 
     Sage is now (:trac:`27958`) able to compute the following integral::
 
-        sage: integral(exp(-x^2)*log(x), x)
+        sage: result = integral(exp(-x^2)*log(x), x)
+        ...
+        sage: result
         1/2*sqrt(pi)*erf(x)*log(x) - x*hypergeometric((1/2, 1/2), (3/2, 3/2), -x^2)
 
     and its value::
@@ -276,7 +278,7 @@ def integral(f, *args, **kwds):
 
     ::
 
-        sage: [float(h(i)) for i in range(5)] #random
+        sage: [float(h(x=i)) for i in range(5)] #random
 
         [0.0,
          -1.1102230246251565e-16,

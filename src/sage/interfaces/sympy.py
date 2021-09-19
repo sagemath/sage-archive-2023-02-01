@@ -321,7 +321,6 @@ class UndefSageHelper:
         sage: assert f == F._sage_()
     """
     def __get__(self, ins, typ):
-        import sage.all as sage
         if ins is None:
             return lambda: _sympysage_function_by_name(typ.__name__)
         else:
@@ -409,7 +408,9 @@ def _sympysage_derivative(self):
         integrate(diff(f(x, t), x), t)
         sage: diff(f(x, t), x).integrate(t, algorithm='sympy')
         integrate(diff(f(x, t), x), t)
-        sage: integrate(f(x, t), x).diff(t)
+        sage: result = integrate(f(x, t), x).diff(t)
+        ...
+        sage: result
         integrate(diff(f(x, t), t), x)
     """
     from sage.calculus.functional import derivative
@@ -1021,7 +1022,7 @@ def check_expression(expr, var_symbols, only_from_sympy=False):
 
     # evaluate the expression in the context of SymPy:
     if var_symbols:
-        sympy_vars = svar(var_symbols)
+        svar(var_symbols)
     b = globals().copy()
     b.update(sympydict)
     assert "sin" in b

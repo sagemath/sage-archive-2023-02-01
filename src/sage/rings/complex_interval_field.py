@@ -598,15 +598,21 @@ class ComplexIntervalField_class(Field):
 
         EXAMPLES::
 
-            sage: CIF.random_element()
-            0.15363619378561300? - 0.50298737524751780?*I
-            sage: CIF.random_element(10, 20)
-            18.047949821611205? + 10.255727028308920?*I
+            sage: CIF.random_element().parent() is CIF
+            True
+            sage: re, im = CIF.random_element(10, 20)
+            sage: 10 <= re <= 20
+            True
+            sage: 10 <= im <= 20
+            True
 
         Passes extra positional or keyword arguments through::
 
-            sage: CIF.random_element(max=0, min=-5)
-            -0.079017286535590259? - 2.8712089896087117?*I
+            sage: re, im = CIF.random_element(max=0, min=-5)
+            sage: -5 <= re <= 0
+            True
+            sage: -5 <= im <= 0
+            True
         """
         rand = self.real_field().random_element
         re = rand(*args, **kwds)

@@ -14,22 +14,27 @@ The symbolic ring
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from sage.ext.cplusplus cimport ccrepr
-
-from sage.libs.pynac.pynac cimport *
-
 from sage.rings.integer cimport Integer
-from sage.rings.real_mpfr cimport RealNumber
 
-from sage.symbolic.expression cimport Expression, new_Expression_from_GEx, new_Expression_from_pyobject, is_Expression
+from sage.symbolic.expression import (
+    is_Expression,
+    _latex_Expression,
+    _repr_Expression,
+    new_Expression,
+    new_Expression_from_pyobject,
+    new_Expression_force_pyobject,
+    new_Expression_wild,
+    new_Expression_symbol,
+)
 
-from sage.misc.latex import latex_variable_name
-from sage.cpython.string cimport str_to_bytes, bytes_to_str, char_to_str
-from sage.structure.element cimport RingElement, Element, Matrix
+from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
-from sage.rings.all import RR, CC, ZZ
+from sage.rings.all import ZZ
+
+# is_SymbolicVariable used to be defined here; re-export it
+from sage.symbolic.expression import _is_SymbolicVariable as is_SymbolicVariable
 
 import keyword
 import operator
@@ -220,7 +225,7 @@ cdef class SymbolicRing(CommutativeRing):
 
     def _element_constructor_(self, x):
         r"""
-        Coerce `x` into the symbolic expression ring SR.
+        Convert `x` into the symbolic expression ring SR.
 
         EXAMPLES::
 
@@ -359,66 +364,10 @@ cdef class SymbolicRing(CommutativeRing):
             ...
             TypeError: Malformed expression: λ + * !!!  1
         """
-        cdef GEx exp
-        if is_Expression(x):
-            return new_Expression_from_GEx(self, (<Expression>x)._gobj)
-        if hasattr(x, '_symbolic_'):
-            return x._symbolic_(self)
-        elif isinstance(x, str):
-            try:
-                from sage.calculus.calculus import symbolic_expression_from_string
-                return self(symbolic_expression_from_string(x))
-            except SyntaxError as err:
-                msg, s, pos = err.args
-                raise TypeError("%s: %s !!! %s" % (msg, s[:pos], s[pos:]))
-
-        from sage.rings.infinity import (infinity, minus_infinity,
-                                         unsigned_infinity)
-        from sage.structure.factorization import Factorization
-        from sage.categories.sets_cat import Sets
-
-        if isinstance(x, RealNumber):
-            if x.is_NaN():
-                from sage.symbolic.constants import NaN
-                return NaN
-            exp = x
-        elif isinstance(x, (float, complex)):
-            if not (x == x):
-                from sage.symbolic.constants import NaN
-                return NaN
-            exp = x
-        elif isinstance(x, long):
-            exp = x
-        elif isinstance(x, int):
-            exp = GEx(<long>x)
-        elif x is infinity:
-            return new_Expression_from_GEx(self, g_Infinity)
-        elif x is minus_infinity:
-            return new_Expression_from_GEx(self, g_mInfinity)
-        elif x is unsigned_infinity:
-            return new_Expression_from_GEx(self, g_UnsignedInfinity)
-        elif isinstance(x, (RingElement, Matrix)):
-            if x.parent().characteristic():
-                raise TypeError('positive characteristic not allowed in symbolic computations')
-            exp = x
-        elif isinstance(x, Factorization):
-            from sage.misc.all import prod
-            return prod([SR(p)**e for p,e in x], SR(x.unit()))
-        elif x in Sets():
-            from sage.rings.all import NN, ZZ, QQ, AA
-            from sage.sets.real_set import RealSet
-            if (x.is_finite() or x in (NN, ZZ, QQ, AA)
-                    or isinstance(x, RealSet)):
-                exp = x
-            else:
-                raise TypeError(f"unable to convert {x!r} to a symbolic expression")
-        else:
-            raise TypeError(f"unable to convert {x!r} to a symbolic expression")
-
-        return new_Expression_from_GEx(self, exp)
+        return new_Expression(self, x)
 
     def _force_pyobject(self, x, bint force=False, bint recursive=True):
-        """
+        r"""
         Wrap the given Python object in a symbolic expression even if it
         cannot be coerced to the Symbolic Ring.
 
@@ -474,37 +423,10 @@ cdef class SymbolicRing(CommutativeRing):
             (Rational Field, (x, x + 1, x + 2), Complex Field with 53 bits
             of precision)
         """
-        cdef GEx exp
-        cdef GExprSeq ex_seq
-        cdef GExVector ex_v
-        if force:
-            exp = x
-
-        else:
-            # first check if we can do it the nice way
-            if isinstance(x, Expression):
-                return x
-            try:
-                return self._coerce_(x)
-            except TypeError:
-                pass
-
-            # tuples can be packed into exprseq
-            if isinstance(x, (tuple, list)):
-                for e in x:
-                    obj = SR._force_pyobject(e, force=(not recursive))
-                    ex_v.push_back( (<Expression>obj)._gobj )
-
-                ex_seq = GExprSeq(ex_v)
-
-                exp = GEx(ex_seq)
-            else:
-                exp = x
-
-        return new_Expression_from_GEx(self, exp)
+        return new_Expression_force_pyobject(self, x, force, recursive)
 
     def wild(self, unsigned int n=0):
-        """
+        r"""
         Return the n-th wild-card for pattern matching and substitution.
 
         INPUT:
@@ -513,7 +435,7 @@ cdef class SymbolicRing(CommutativeRing):
 
         OUTPUT:
 
-        - `n^{th}` wildcard expression
+        - ``n``-th wildcard expression
 
         EXAMPLES::
 
@@ -540,7 +462,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: coth(SR.wild(0))
             coth($0)
         """
-        return new_Expression_from_GEx(self, g_wild(n))
+        return new_Expression_wild(self, n)
 
     def __contains__(self, x):
         r"""
@@ -669,7 +591,7 @@ cdef class SymbolicRing(CommutativeRing):
         from sage.symbolic.constants import I
         return I
 
-    cpdef Expression symbol(self, name=None, latex_name=None, domain=None):
+    def symbol(self, name=None, latex_name=None, domain=None):
         """
         EXAMPLES::
 
@@ -719,56 +641,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: MySR.an_element().parent()
             My Symbolic Ring
         """
-        cdef GSymbol symb
-        cdef Expression e
-
-        # check if there is already a symbol with same name
-        e = self.symbols.get(name)
-
-        # fast path to get an already existing variable
-        if e is not None:
-            if domain is None:
-                if latex_name is None:
-                    return e
-
-            # get symbol
-            symb = ex_to_symbol(e._gobj)
-            if latex_name is not None:
-                symb.set_texname(str_to_bytes(latex_name))
-            if domain is not None:
-                symb.set_domain(sage_domain_to_ginac_domain(domain))
-            e._gobj = GEx(symb)
-            if domain is not None:
-                send_sage_domain_to_maxima(e, domain)
-
-            return e
-
-        else: # initialize a new symbol
-            # Construct expression
-            e = <Expression>Expression.__new__(Expression)
-            e._parent = self
-
-            if name is None: # Check if we need a temporary anonymous new symbol
-                symb = ginac_new_symbol()
-                name = symb.get_name().decode('ascii')
-                if domain is not None:
-                    symb.set_domain(sage_domain_to_ginac_domain(domain))
-            else:
-                if latex_name is None:
-                    latex_name = latex_variable_name(name)
-                if domain is not None:
-                    ginac_domain = sage_domain_to_ginac_domain(domain)
-                else:
-                    ginac_domain = domain_complex
-                symb = ginac_symbol(str_to_bytes(name),
-                                    str_to_bytes(latex_name), ginac_domain)
-
-            e._gobj = GEx(symb)
-            self.symbols[name] = e
-            if domain is not None:
-                send_sage_domain_to_maxima(e, domain)
-
-        return e
+        return new_Expression_symbol(self, name, latex_name, domain)
 
     def temp_var(self, n=None, domain=None):
         """
@@ -1038,23 +911,24 @@ cdef class SymbolicRing(CommutativeRing):
             else:
                 return self.symbol(name, latex_name=formatted_latex_name, domain=domain)
 
-    def _repr_element_(self, Expression x):
+    def _repr_element_(self, x):
         """
-        Returns the string representation of the element x.  This is
-        used so that subclasses of the SymbolicRing (such the a
-        CallableSymbolicExpressionRing) can provide their own
-        implementations of how to print Expressions.
+        Return the string representation of the expression ``x``.
+
+        This is used so that subclasses of :class:`SymbolicRing` (such as a
+        :class:`~sage.symbolic.callable.CallableSymbolicExpressionRing`)
+        can provide their own implementations of how to print expressions.
 
         EXAMPLES::
 
             sage: SR._repr_element_(x+2)
             'x + 2'
         """
-        return ccrepr(x._gobj)
+        return _repr_Expression(x)
 
-    def _latex_element_(self, Expression x):
+    def _latex_element_(self, x):
         r"""
-        Returns the standard LaTeX version of the expression `x`.
+        Return the standard LaTeX version of the expression ``x``.
 
         EXAMPLES::
 
@@ -1063,44 +937,49 @@ cdef class SymbolicRing(CommutativeRing):
             sage: latex(var('theta') + 2)
             \theta + 2
         """
-        return char_to_str(GEx_to_str_latex(&x._gobj))
+        return _latex_Expression(x)
 
     def _call_element_(self, _the_element, *args, **kwds):
         """
         EXAMPLES::
 
-            sage: x,y=var('x,y')
+            sage: x, y = var('x,y')
             sage: f = x+y
             sage: f.variables()
             (x, y)
             sage: f()
             x + y
             sage: f(3)
-            doctest:...: DeprecationWarning: Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)
-            See http://trac.sagemath.org/5930 for details.
-            y + 3
-            sage: f(x=3)
-            y + 3
-            sage: f(3,4)
-            7
-            sage: f(x=3,y=4)
-            7
-            sage: f(2,3,4)
             Traceback (most recent call last):
             ...
-            ValueError: the number of arguments must be less than or equal to 2
-            sage: f(x=2,y=3,z=4)
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
+            sage: f(x=3)
+            y + 3
+            sage: f(3, 4)
+            Traceback (most recent call last):
+            ...
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
+            sage: f(x=3, y=4)
+            7
+            sage: f(2, 3, 4)
+            Traceback (most recent call last):
+            ...
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
+            sage: f(x=2, y=3, z=4)
             5
 
         ::
 
-            sage: f({x:3})
+            sage: f({x: 3})
             y + 3
-            sage: f({x:3,y:4})
+            sage: f({x: 3, y: 4})
             7
             sage: f(x=3)
             y + 3
-            sage: f(x=3,y=4)
+            sage: f(x=3, y=4)
             7
 
         ::
@@ -1109,18 +988,26 @@ cdef class SymbolicRing(CommutativeRing):
             sage: a(4)
             Traceback (most recent call last):
             ...
-            ValueError: the number of arguments must be less than or equal to 0
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
 
-
-        Note that you make get unexpected results when calling
-        symbolic expressions and not explicitly giving the variables::
+        Note that the application of arguments to a function defined using `function`
+        creates an ordinary expression, not a callable symbolic expression.  Hence,
+        calling this expression using function-call syntax and unnamed arguments
+        leads to an error::
 
             sage: f = function('Gamma')(var('z'), var('w')); f
             Gamma(z, w)
             sage: f(2)
-            Gamma(z, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
             sage: f(2,5)
-            Gamma(5, 2)
+            Traceback (most recent call last):
+            ...
+            TypeError: Substitution using function-call syntax and unnamed arguments
+            has been removed. You can use named arguments instead, like EXPR(x=..., y=...)
 
         Thus, it is better to be explicit::
 
@@ -1132,17 +1019,10 @@ cdef class SymbolicRing(CommutativeRing):
         elif len(args) == 1 and isinstance(args[0], dict):
             d = args[0]
         else:
-            from sage.misc.superseded import deprecation
-            deprecation(5930, "Substitution using function-call syntax and unnamed arguments is deprecated and will be removed from a future release of Sage; you can use named arguments instead, like EXPR(x=..., y=...)", stacklevel=3)
-            d = {}
-
-            vars = _the_element.variables()
-            for i, arg in enumerate(args):
-                try:
-                    d[ vars[i] ] = arg
-                except IndexError:
-                    raise ValueError("the number of arguments must be less than or equal to %s"%len(vars))
-
+            raise TypeError("Substitution using function-call syntax "
+                            "and unnamed arguments has been removed. You "
+                            "can use named arguments instead, like "
+                            "EXPR(x=..., y=...)")
         return _the_element.subs(d, **kwds)
 
     def subring(self, *args, **kwds):
@@ -1253,41 +1133,6 @@ cdef class SymbolicRing(CommutativeRing):
 
 SR = SymbolicRing()
 
-
-cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
-    """
-    TESTS::
-
-        sage: var('x', domain='foo')
-        Traceback (most recent call last):
-        ...
-        ValueError: 'foo': domain must be one of 'complex', 'real', 'positive' or 'integer'
-    """
-    # convert the domain argument to something easy to parse
-    if domain is RR or domain == 'real':
-        return domain_real
-    elif domain == 'positive':
-        return domain_positive
-    elif domain is CC or domain == 'complex':
-        return domain_complex
-    elif domain is ZZ or domain == 'integer':
-        return domain_integer
-    else:
-        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
-
-cdef void send_sage_domain_to_maxima(Expression v, object domain) except +:
-    from sage.symbolic.assumptions import assume
-    # convert the domain argument to something easy to parse
-    if domain is RR or domain == 'real':
-        assume(v, 'real')
-    elif domain == 'positive':
-        assume(v>0)
-    elif domain is CC or domain == 'complex':
-        assume(v, 'complex')
-    elif domain is ZZ or domain == 'integer':
-        assume(v, 'integer')
-    else:
-        raise ValueError(repr(domain)+": domain must be one of 'complex', 'real', 'positive' or 'integer'")
 
 cdef class NumpyToSRMorphism(Morphism):
     r"""
@@ -1477,26 +1322,6 @@ def var(name, **kwds):
         ValueError: The name "3" is not a valid Python identifier.
     """
     return SR.var(name, **kwds)
-
-
-def is_SymbolicVariable(x):
-    """
-    Return ``True`` if ``x`` is a variable.
-
-    EXAMPLES::
-
-        sage: from sage.symbolic.ring import is_SymbolicVariable
-        sage: is_SymbolicVariable(x)
-        True
-        sage: is_SymbolicVariable(x+2)
-        False
-
-    TESTS::
-
-        sage: ZZ['x']
-        Univariate Polynomial Ring in x over Integer Ring
-    """
-    return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
 
 
 def isidentifier(x):

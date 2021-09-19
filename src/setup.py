@@ -79,7 +79,7 @@ optional_packages = ['mcqd', 'bliss', 'tdlib', 'primecount',
 not_installed_packages = [package for package in optional_packages
                           if not is_package_installed_and_updated(package)]
 
-distributions_to_exclude = [f"sage-{pkg}"
+distributions_to_exclude = [f"sagemath-{pkg}"
                             for pkg in not_installed_packages]
 files_to_exclude = filter_cython_sources(SAGE_SRC, distributions_to_exclude)
 

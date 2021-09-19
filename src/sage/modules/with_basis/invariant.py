@@ -1049,4 +1049,3 @@ class FiniteDimensionalTwistedInvariantModule(SubmoduleWithBasis):
             if scalar in P._group and self_on_left == (P._side == 'right'):
                 return P.retract(scalar * P.lift(self))
             return super()._acted_upon_(scalar, self_on_left)
-

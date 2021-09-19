@@ -8859,7 +8859,7 @@ class GenericGraph(GenericGraph_pyx):
             obj = sum(flow[x, v] - flow[v, x] for v in g[x])
 
         if not integer and use_edge_labels is False:
-            obj = Integer(round(obj))
+            obj = Integer(obj)
 
         if value_only:
             return obj

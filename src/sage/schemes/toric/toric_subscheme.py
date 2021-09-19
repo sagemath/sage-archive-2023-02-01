@@ -21,7 +21,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.calculus.functions import jacobian
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.schemes.generic.algebraic_scheme import AlgebraicScheme_subscheme
 
 class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):

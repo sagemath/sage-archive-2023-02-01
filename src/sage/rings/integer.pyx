@@ -3227,7 +3227,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1
 
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         if self.parent() is ZZ:
             return abs(self)
         raise NotImplementedError

@@ -215,7 +215,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
                 The embeddings are systematically tested in
                 :meth:`_test_weight_lattice_realization`.
             """
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             from .weight_space import WeightSpace
             K = self.base_ring()
             # If self is the root lattice or the root space, we don't want
@@ -247,7 +247,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
 
                 sage: RootSystem(['A',3]).weight_lattice()._test_weight_lattice_realization()
             """
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             tester     = self._tester(**options)
             Lambda     = self.fundamental_weights()
             alphacheck = self.simple_coroots()

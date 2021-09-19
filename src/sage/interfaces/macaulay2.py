@@ -1540,7 +1540,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         cls_cls_str = str(self.cls().cls())
 
         if repr_str == "ZZ":
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ
         elif repr_str == "QQ":
             from sage.rings.all import QQ
@@ -1659,7 +1659,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
         else:
             #Handle the integers and rationals separately
             if cls_str == "ZZ":
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 return ZZ(repr_str)
             elif cls_str == "QQ":
                 from sage.rings.all import QQ

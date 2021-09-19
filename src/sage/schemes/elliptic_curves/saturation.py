@@ -51,7 +51,7 @@ AUTHORS:
 #*****************************************************************************
 
 from sage.rings.finite_rings.all import GF
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.arith.all import kronecker_symbol as kro
 from sage.structure.sage_object import SageObject
 

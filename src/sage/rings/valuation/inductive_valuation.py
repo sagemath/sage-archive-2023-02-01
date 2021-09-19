@@ -901,7 +901,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     verbose("Augmented %s to %s"%(self, w), level=13)
                     assert slope is -infinity or 0 in w.newton_polygon(G).slopes(repetition=False)
 
-                    from sage.rings.all import ZZ
+                    from sage.rings.integer_ring import ZZ
                     assert (phi.degree() / self.phi().degree()) in ZZ 
                     degree_bound = multiplicities[slope] * phi.degree()
                     assert degree_bound <= G.degree()

@@ -45,7 +45,7 @@ from sage.matrix.matrix_space import MatrixSpace
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import zero_vector
 from sage.misc.all import cached_method
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.arith.all import factorial
 from sage.rings.integer import Integer
 from sage.combinat.posets.lattices import LatticePoset

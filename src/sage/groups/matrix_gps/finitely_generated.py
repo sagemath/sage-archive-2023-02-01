@@ -62,7 +62,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.all import QQbar
 from sage.structure.element import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace

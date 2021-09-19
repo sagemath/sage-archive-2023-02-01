@@ -17,7 +17,7 @@ Hall Polynomials
 #*****************************************************************************
 
 from sage.misc.all import prod
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.combinat.partition import Partition
 from sage.combinat.q_analogues import q_binomial
 

@@ -676,7 +676,7 @@ class FiniteFieldPointEnumerator(NaiveFinitePointEnumerator):
             [(0, 0), (0, 1)]
         """
         from sage.matrix.constructor import matrix, block_matrix, identity_matrix
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         nrays = len(self.rays())
         N = self.multiplicative_group_order()
         # Want cokernel of the log rescalings in (ZZ/N)^(#rays). But

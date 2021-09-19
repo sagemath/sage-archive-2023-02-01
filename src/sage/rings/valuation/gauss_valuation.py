@@ -491,7 +491,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             1
 
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         return ZZ.one()
 
     def F(self):
@@ -508,7 +508,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             1
 
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         return ZZ.one()
 
     def change_domain(self, ring):

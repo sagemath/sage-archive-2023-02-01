@@ -130,7 +130,7 @@ TESTS::
 # ****************************************************************************
 
 from sage.matrix.all import matrix
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.rings.all import Integer
 from sage.matrix.matrix_integer_dense import Matrix_integer_dense
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement

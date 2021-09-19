@@ -834,7 +834,7 @@ def process_generators_chain(gen_string, dim, base_ring=None):
         [(1, 1), (0, 0, 1)]
     """
     from sage.modules.all import vector
-    from sage.rings.all import ZZ
+    from sage.rings.integer_ring import ZZ
     if base_ring is None:
         base_ring = ZZ
     # each dim in gens starts with a string like

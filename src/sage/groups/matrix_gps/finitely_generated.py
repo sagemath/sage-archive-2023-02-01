@@ -66,7 +66,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.all import QQbar
 from sage.structure.element import is_Matrix
 from sage.matrix.matrix_space import MatrixSpace, is_MatrixSpace
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 from sage.structure.sequence import Sequence
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector

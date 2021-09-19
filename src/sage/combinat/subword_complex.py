@@ -1529,7 +1529,7 @@ class SubwordComplex(UniqueRepresentation, SimplicialComplex):
             sage: SC.is_root_independent()
             True
         """
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         M = matrix(self.greedy_facet(side="negative").root_configuration())
         return M.rank() == max(M.ncols(), M.nrows())
 

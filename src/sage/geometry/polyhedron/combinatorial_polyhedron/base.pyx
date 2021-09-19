@@ -391,7 +391,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._n_Hrepresentation = len(facets)
             far_face = tuple(i for i in range(len(Vrep) - 1))
             self._dimension = data.dim()
-            from sage.matrix.all import matrix
+            from sage.matrix.constructor import matrix
             from sage.rings.all  import ZZ
             data = matrix(ZZ, data.incidence_matrix().rows()
                               + [[ZZ.one() for _ in range(len(facets))]])
@@ -442,7 +442,7 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             if not isinstance(data, Matrix_integer_dense):
                 from sage.rings.all  import ZZ
-                from sage.matrix.all import matrix
+                from sage.matrix.constructor import matrix
                 data = matrix(ZZ, data, sparse=False)
                 assert isinstance(data, Matrix_integer_dense), "conversion to ``Matrix_integer_dense`` didn't work"
 

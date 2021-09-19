@@ -1545,7 +1545,7 @@ class ClusterSeed(SageObject):
             ValueError: Unable to calculate g-vectors. Need to use g vectors.
         """
 
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         if self._use_g_vec:
             return copy(self._G)
         elif self._use_fpolys and self._cluster: # This only calls g_vector when it will not create a loop.
@@ -3036,7 +3036,7 @@ class ClusterSeed(SageObject):
                              "for finite type cluster algebras at a "
                              "bipartite initial cluster")
 
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         from sage.combinat.root_system.cartan_matrix import CartanMatrix
 
         A = 2 - self.b_matrix().apply_map(abs).transpose()

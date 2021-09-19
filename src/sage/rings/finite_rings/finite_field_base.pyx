@@ -1257,7 +1257,7 @@ cdef class FiniteField(Field):
             inclusion_map = self.coerce_map_from(base)
 
         from sage.modules.free_module_element import vector
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         from .maps_finite_field import (
             MorphismVectorSpaceToFiniteField, MorphismFiniteFieldToVectorSpace)
 

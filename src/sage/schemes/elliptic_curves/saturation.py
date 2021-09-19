@@ -463,7 +463,7 @@ class EllipticCurveSaturator(SageObject):
 
         if verbose:
             print("Using sieve method to saturate...")
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         from sage.sets.primes import Primes
 
         A = matrix(GF(p), 0, n)

@@ -551,7 +551,7 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
     # Create a zero dense matrix over QQ with len(indices) rows
     # and #P^1(N) columns.
     cdef Matrix_rational_dense T
-    from sage.matrix.all import matrix
+    from sage.matrix.constructor import matrix
     from sage.rings.rational_field import QQ
     T = matrix(QQ, len(indices), len(P1), sparse=False)
     original_base_ring = R.base_ring()
@@ -684,7 +684,7 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
     # Create a zero dense matrix over K with len(indices) rows
     # and #P^1(N) columns.
     cdef Matrix_cyclo_dense T
-    from sage.matrix.all import matrix
+    from sage.matrix.constructor import matrix
     T = matrix(K, len(indices), len(P1), sparse=False)
 
     cdef Py_ssize_t i, j
@@ -778,7 +778,7 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
     # Create a zero dense matrix over QQ with len(indices) rows
     # and #P^1(N) columns.
     cdef Matrix_rational_dense T
-    from sage.matrix.all import matrix
+    from sage.matrix.constructor import matrix
     T = matrix(QQ, len(indices), len(P1), sparse=False)
 
     if R.base_ring() != QQ:
@@ -868,7 +868,7 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
     # So we create a zero dense matrix over QQ with len(indices) rows
     # and #P^1(N) * (k-1) columns.
     cdef Matrix_rational_dense T
-    from sage.matrix.all import matrix
+    from sage.matrix.constructor import matrix
     from sage.rings.rational_field import QQ
     T = matrix(QQ, len(indices), len(P1)*(k-1), sparse=False)
 

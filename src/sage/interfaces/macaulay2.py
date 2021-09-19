@@ -1713,7 +1713,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             sage: matrix(ZZ, m.transpose()).dimensions()  # optional - macaulay2
             (0, 2)
         """
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         m = matrix(R, self.entries()._sage_())
         if not m.nrows():
             return matrix(R, 0, self.numcols()._sage_())

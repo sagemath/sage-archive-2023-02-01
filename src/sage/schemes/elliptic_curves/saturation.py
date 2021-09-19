@@ -123,7 +123,7 @@ class EllipticCurveSaturator(SageObject):
         self._N = E.discriminant().norm()
         self._field = K = E.base_field()
         if K.absolute_degree() == 1:
-            from sage.rings.all import QQ
+            from sage.rings.rational_field import QQ
             from sage.rings.polynomial.all import polygen
             self._Kpol = polygen(QQ)
         else:

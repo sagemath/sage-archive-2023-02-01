@@ -1543,7 +1543,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
             from sage.rings.integer_ring import ZZ
             return ZZ
         elif repr_str == "QQ":
-            from sage.rings.all import QQ
+            from sage.rings.rational_field import QQ
             return QQ
 
         if cls_cls_str == "Type":
@@ -1662,7 +1662,7 @@ class Macaulay2Element(ExtraTabCompletion, ExpectElement):
                 from sage.rings.integer_ring import ZZ
                 return ZZ(repr_str)
             elif cls_str == "QQ":
-                from sage.rings.all import QQ
+                from sage.rings.rational_field import QQ
                 repr_str = self.external_string()
                 if "/" not in repr_str:
                     repr_str = repr_str + "/1"

@@ -552,7 +552,7 @@ def hecke_images_gamma0_weight2(int u, int v, int N, indices, R):
     # and #P^1(N) columns.
     cdef Matrix_rational_dense T
     from sage.matrix.all import matrix
-    from sage.rings.all import QQ
+    from sage.rings.rational_field import QQ
     T = matrix(QQ, len(indices), len(P1), sparse=False)
     original_base_ring = R.base_ring()
     if original_base_ring != QQ:
@@ -672,7 +672,7 @@ def hecke_images_nonquad_character_weight2(int u, int v, int N, indices, chi, R)
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
 
-    from sage.rings.all import QQ
+    from sage.rings.rational_field import QQ
     K = chi.base_ring()
 
     if K == QQ:
@@ -771,7 +771,7 @@ def hecke_images_quad_character_weight2(int u, int v, int N, indices, chi, R):
         (0, -2, 0, 2, -2, -1)
     """
     cdef p1list.P1List P1 = p1list.P1List(N)
-    from sage.rings.all import QQ
+    from sage.rings.rational_field import QQ
     if chi.base_ring() != QQ:
         raise TypeError("character must takes values in QQ")
 
@@ -869,7 +869,7 @@ def hecke_images_gamma0_weight_k(int u, int v, int i, int N, int k, indices, R):
     # and #P^1(N) * (k-1) columns.
     cdef Matrix_rational_dense T
     from sage.matrix.all import matrix
-    from sage.rings.all import QQ
+    from sage.rings.rational_field import QQ
     T = matrix(QQ, len(indices), len(P1)*(k-1), sparse=False)
 
     if R.base_ring() != QQ:

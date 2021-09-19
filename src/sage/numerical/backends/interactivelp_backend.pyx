@@ -68,7 +68,7 @@ cdef class InteractiveLPBackend:
         """
 
         if base_ring is None:
-            from sage.rings.all import QQ
+            from sage.rings.rational_field import QQ
             base_ring = QQ
 
         self.lp = InteractiveLPProblem([], [], [], base_ring=base_ring)

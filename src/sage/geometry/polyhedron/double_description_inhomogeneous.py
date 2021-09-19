@@ -363,7 +363,7 @@ class Hrep2Vrep(PivotedInequalities):
             sage: H = Hrep2Vrep(QQ, 1, [(1,2)], [])
             sage: H.verify([(1,2)], [])
         """
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         from sage.geometry.polyhedron.constructor import Polyhedron
         if self.base_ring is not QQ:
             return
@@ -558,7 +558,7 @@ class Vrep2Hrep(PivotedInequalities):
             sage: V2H = Vrep2Hrep(QQ, 2, vertices, rays, lines)
             sage: V2H.verify(vertices, rays, lines)
         """
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         from sage.geometry.polyhedron.constructor import Polyhedron
         if self.base_ring is not QQ:
             return

@@ -2,7 +2,7 @@ r"""
 Base class for polyhedra over `\QQ`
 """
 
-from sage.rings.all import QQ
+from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method
 from sage.misc.all import prod
 from .base import Polyhedron_base

@@ -947,7 +947,7 @@ class WeightLatticeRealizations(Category_over_base_ring):
             M = M.inverse()
 
             if a[0] != 1:
-                from sage.rings.all import QQ
+                from sage.rings.rational_field import QQ
                 S = matrix([~a[0]]+[0]*(r-1))
                 A = cm.symmetrized_matrix().change_ring(QQ).stack(S)
             else:

@@ -1128,7 +1128,6 @@ def request_wolfram_alpha(input, verbose=False):
          'timing',
          'version']
     """
-    # import compatible with py2 and py3
     from urllib.parse import urlencode
     from urllib.request import Request, build_opener, HTTPCookieProcessor
     import json

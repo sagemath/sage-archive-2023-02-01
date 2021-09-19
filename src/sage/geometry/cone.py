@@ -3541,14 +3541,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             Traceback (most recent call last):
             ...
             NotImplementedError: this function is not implemented for unbounded polyhedra
-            sage: ray = Cone([(1, 1)]
-            Traceback (most recent call last):
-            ...
-            SyntaxError: unexpected EOF while parsing
+            sage: ray = Cone([(1, 1)])
             sage: ray.an_affine_basis()
             Traceback (most recent call last):
             ...
-            NameError: name 'ray' is not defined
+            NotImplementedError: this function is not implemented for unbounded polyhedra
             sage: line = Cone([(1,0), (-1,0)])
             sage: line.an_affine_basis()
             Traceback (most recent call last):

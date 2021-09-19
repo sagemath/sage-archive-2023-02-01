@@ -2807,7 +2807,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError("log base must be positive")
         self_sgn = mpz_sgn(self.value)
         if self_sgn < 0 and prec is None:
-            from sage.symbolic.all import SR
+            from sage.symbolic.ring import SR
             return SR(self).log(m)
         if prec:
             if self_sgn >= 0:

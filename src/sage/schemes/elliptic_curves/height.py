@@ -36,7 +36,7 @@ from sage.misc.all import cached_method, cartesian_product_iterator
 from sage.arith.all import lcm, factorial
 from sage.ext.fast_callable import fast_callable
 from sage.functions.log import log, exp
-from sage.symbolic.all import SR
+from sage.symbolic.ring import SR
 
 
 class UnionOfIntervals:

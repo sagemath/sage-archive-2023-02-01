@@ -309,7 +309,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
               z0*z2 - z1*z3,
               z1 + z3 + 1
         """
-        from sage.modules.all import vector
+        from sage.modules.free_module_element import vector
         from sage.misc.misc_c import prod
         ambient = self.ambient_space()
         fan = ambient.fan()

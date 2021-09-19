@@ -667,7 +667,7 @@ def p_projections(Eq, Plist, p, debug=False):
         print("gens for {}-primary part of G: {}".format(p, gens))
         print("{}*points: {}".format(m,pts))
     from sage.groups.generic import discrete_log as dlog
-    from sage.modules.all import vector
+    from sage.modules.free_module_element import vector
     Fp = GF(p)
 
     # If the p-primary part is cyclic we use elliptic discrete logs directly:

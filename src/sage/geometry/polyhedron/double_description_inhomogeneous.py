@@ -53,7 +53,7 @@ following are the inequalities and equations::
 
 from sage.structure.sage_object import SageObject
 from sage.matrix.constructor import matrix
-from sage.modules.all import vector
+from sage.modules.free_module_element import vector
 from sage.geometry.polyhedron.double_description import StandardAlgorithm as Algorithm
 
 # Compare with PPL if the base ring is QQ. Can be left enabled since

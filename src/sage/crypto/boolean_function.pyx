@@ -996,7 +996,7 @@ cdef class BooleanFunction(SageObject):
         G = R.gens()
         r = [R(1)]
 
-        from sage.modules.all import vector
+        from sage.modules.free_module_element import vector
         s = vector(self.truth_table()).support()
 
         from sage.combinat.combination import Combinations

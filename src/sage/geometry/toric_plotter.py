@@ -51,7 +51,7 @@ from math import pi
 
 from sage.functions.all import arccos, arctan2, ceil, floor
 from sage.geometry.polyhedron.constructor import Polyhedron
-from sage.modules.all import vector
+from sage.modules.free_module_element import vector
 from sage.plot.all import (Color, Graphics,
                            arrow, disk, line, point, polygon, rainbow, text)
 from sage.plot.plot3d.all import text3d

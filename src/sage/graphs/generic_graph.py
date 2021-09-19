@@ -8503,10 +8503,10 @@ class GenericGraph(GenericGraph_pyx):
             # Variables are binary, and their coefficient in the objective is 1
             p.set_objective(p.sum(b[v] for v in self))
 
-            p.solve(log=verbose)
-
             # For as long as we do not break because the digraph is acyclic....
             while True:
+
+                p.solve(log=verbose)
 
                 # Building the graph without the vertices removed by the LP
                 b_val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
@@ -8520,7 +8520,10 @@ class GenericGraph(GenericGraph_pyx):
 
                 # If so, we are done !
                 if isok:
-                    break
+                    if value_only:
+                        return Integer(self.order() - h.order())
+                    else:
+                        return [v for v in self if b_val[v]]
 
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
@@ -8536,17 +8539,6 @@ class GenericGraph(GenericGraph_pyx):
                         isok, certificate = h.is_directed_acyclic(certificate=True)
                     else:
                         isok, certificate = h.is_forest(certificate=True)
-
-                obj = p.solve(log=verbose)
-
-            if value_only:
-                return obj
-
-            else:
-
-                # Listing the vertices contained in the MFVS
-                b_val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
-                return [v for v in self if b_val[v]]
 
         else:
 
@@ -8569,12 +8561,11 @@ class GenericGraph(GenericGraph_pyx):
 
             p.set_objective(p.sum(b[v] for v in self))
 
+            p.solve(log=verbose)
+            b_sol = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
             if value_only:
-                return Integer(round(p.solve(objective_only=True, log=verbose)))
+                return Integer(sum(1 for v in self if b_sol[v]))
             else:
-                p.solve(log=verbose)
-                b_sol = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
-
                 return [v for v in self if b_sol[v]]
 
     def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True,
@@ -8855,18 +8846,23 @@ class GenericGraph(GenericGraph_pyx):
         if integer:
             p.set_integer(flow)
 
-
-        if value_only:
-            return p.solve(objective_only=True, log=verbose)
-
-        obj = p.solve(log=verbose)
-
-        if integer or use_edge_labels is False:
-            obj = Integer(round(obj))
+        p.solve(log=verbose)
 
         # If integer is True, flow variables will be converted to integers.
         # Otherwise, the base ring of the MILP solver is used
         flow = p.get_values(flow, convert=True, tolerance=integrality_tolerance)
+
+        if g.is_directed():
+            obj = sum(flow[x, v] for u, v in g.outgoing_edge_iterator([x], labels=False))
+            obj -= sum(flow[u, x] for u, v in g.incoming_edge_iterator([x], labels=False))
+        else:
+            obj = sum(flow[x, v] - flow[v, x] for v in g[x])
+
+        if not integer and use_edge_labels is False:
+            obj = Integer(round(obj))
+
+        if value_only:
+            return obj
 
         # Builds a clean flow Draph
         flow_graph = g._build_flow_graph(flow, integer=integer)

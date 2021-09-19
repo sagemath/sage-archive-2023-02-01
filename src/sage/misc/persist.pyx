@@ -112,9 +112,9 @@ def load(*filename, compress=True, verbose=True, **kwargs):
 
     EXAMPLES::
 
-        sage: u = 'http://www.sagemath.org/files/test.sobj'
+        sage: u = 'https://www.sagemath.org/files/test.sobj'
         sage: s = load(u)                                                  # optional - internet
-        Attempting to load remote file: http://www.sagemath.org/files/test.sobj
+        Attempting to load remote file: https://www.sagemath.org/files/test.sobj
         Loading started
         Loading ended
         sage: s                                                            # optional - internet
@@ -380,7 +380,7 @@ def register_unpickle_override(module, name, callable, call_name=None):
             :meth:`__setstate__`, the state object needn't be a dictionary and these methods
             can do what they want.
 
-    .. _python pickling documentation: http://docs.python.org/library/pickle.html#pickle-protocol
+    .. _python pickling documentation: https://docs.python.org/library/pickle.html#pickle-protocol
 
     By implementing a :meth:`__setstate__` method for a class it should be
     possible to fix any unpickling problems for the class. As an example of what

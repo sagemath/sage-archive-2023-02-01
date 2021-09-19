@@ -2033,6 +2033,7 @@ def xkcd(n=""):
     import contextlib
     import json
     from sage.misc.html import html
+    from ssl import SSLContext
 
     # import compatible with py2 and py3
     from urllib.request import urlopen
@@ -2041,12 +2042,12 @@ def xkcd(n=""):
     data = None
     if not n:
         # default to last comic
-        url = "http://xkcd.com/info.0.json"
+        url = "https://xkcd.com/info.0.json"
     else:
         url = "https://xkcd.com/{}/info.0.json".format(n)
 
     try:
-        with contextlib.closing(urlopen(url)) as f:
+        with contextlib.closing(urlopen(url, context=SSLContext())) as f:
             data = f.read()
     except HTTPError as error:
         if error.getcode() == 400: # this error occurs when asking for a non valid comic number

@@ -1,5 +1,5 @@
-lrcalc: Littlewood-Richardson calculator
-========================================
+lrcalc_python: Littlewood-Richardson calculator
+===============================================
 
 Description
 -----------

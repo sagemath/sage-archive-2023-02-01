@@ -35,7 +35,7 @@ import copy
 from sage.misc.classcall_metaclass import ClasscallMetaclass
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.flatten import flatten
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.parent import Parent
 from sage.structure.element import Element

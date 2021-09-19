@@ -1000,7 +1000,7 @@ cdef class BooleanFunction(SageObject):
         s = vector(self.truth_table()).support()
 
         from sage.combinat.combination import Combinations
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
 
         from sage.matrix.constructor import Matrix
         from sage.arith.all import binomial

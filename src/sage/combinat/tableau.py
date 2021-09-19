@@ -106,7 +106,7 @@ import sage.libs.symmetrica.all as symmetrica
 import sage.misc.prandom as random
 from sage.combinat import permutation
 from sage.groups.perm_gps.permgroup import PermutationGroup
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.misc import powerset
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets

@@ -15,7 +15,7 @@ r"""
 
 
 from sage.misc.cachefunc import cached_function
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.structure.element import parent
 from sage.rings.integer_ring import ZZ
 from sage.combinat.dyck_word import DyckWords

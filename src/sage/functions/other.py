@@ -1794,7 +1794,7 @@ class Function_binomial(GinacFunction):
         if k == 1:
             return n
 
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         return prod(n - i for i in range(k)) / factorial(k)
 
     def _eval_(self, n, k):

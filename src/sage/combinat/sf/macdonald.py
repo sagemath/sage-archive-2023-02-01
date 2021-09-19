@@ -55,7 +55,7 @@ from . import sfa
 from sage.combinat.partition import Partitions_n, _Partitions
 from sage.matrix.all import MatrixSpace
 from sage.rings.rational_field import QQ
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_function
 import functools
 

@@ -49,7 +49,7 @@ from sage.rings.integer_ring import ZZ
 from sage.combinat.partition import Partitions
 from sage.combinat.tableau import Tableau, SemistandardTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 
 
 class GelfandTsetlinPattern(ClonableArray,

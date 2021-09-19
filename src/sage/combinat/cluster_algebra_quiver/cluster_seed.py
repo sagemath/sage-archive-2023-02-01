@@ -46,7 +46,7 @@ from sage.graphs.digraph import DiGraph
 from sage.combinat.cluster_algebra_quiver.quiver_mutation_type import QuiverMutationType_Irreducible, QuiverMutationType_Reducible
 from sage.combinat.cluster_algebra_quiver.mutation_type import is_mutation_finite
 from random import randint
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.matrix.all import identity_matrix
 from sage.matrix.constructor import matrix
 from sage.combinat.cluster_algebra_quiver.quiver import ClusterQuiver
@@ -1812,7 +1812,7 @@ class ClusterSeed(SageObject):
             sage: [ S.coefficient(k) for k in range(3) ]
             [y0, 1/y2, 1/y1]
         """
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
 
         if k in self._nlist:
             k = self._nlist.index(k)

@@ -1061,7 +1061,7 @@ class EllipticCurveCanonicalHeight:
             sage: E.discriminant()/E.minimal_model().discriminant()
             4096
         """
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         if self.K is QQ:
             return prod([p ** (e - self.E.local_data(p).discriminant_valuation()) for p, e in self.E.discriminant().factor()], QQ.one())
 

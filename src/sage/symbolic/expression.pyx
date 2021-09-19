@@ -13410,7 +13410,7 @@ cpdef Expression new_Expression(parent, x):
             raise TypeError('positive characteristic not allowed in symbolic computations')
         exp = x
     elif isinstance(x, Factorization):
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         return prod([SR(p)**e for p,e in x], SR(x.unit()))
     elif x in Sets():
         from sage.rings.all import NN, ZZ, QQ, AA

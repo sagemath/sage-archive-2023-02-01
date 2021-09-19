@@ -137,7 +137,7 @@ REFERENCES:
 #                  https://www.gnu.org/licenses/
 ########################################################################
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.rings.infinity import Infinity
 from sage.modules.all import vector
 from sage.geometry.polyhedron.ppl_lattice_polytope import LatticePolytope_PPL

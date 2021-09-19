@@ -310,7 +310,7 @@ class AlgebraicScheme_subscheme_toric(AlgebraicScheme_subscheme):
               z1 + z3 + 1
         """
         from sage.modules.all import vector
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         ambient = self.ambient_space()
         fan = ambient.fan()
         if cone is None:

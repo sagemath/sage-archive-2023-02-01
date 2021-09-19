@@ -1295,7 +1295,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         F = list(F)
 
         if compute_unit:
-            from sage.misc.all import prod
+            from sage.misc.misc_c import prod
             unit *= self.lift(self.residue_ring()(prod([ psi.leading_coefficient()**e for psi,e in F ])))
 
         # A potential speedup that we tried to implement here:

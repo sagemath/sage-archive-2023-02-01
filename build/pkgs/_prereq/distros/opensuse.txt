@@ -19,6 +19,7 @@ which
 glibc-locale-base
 gcc
 gcc-c++
+gcc-fortran
 # Needed if we download some packages from a https upstream URL
 ca-certificates
 # gunzip needed for ppl spkg

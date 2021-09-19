@@ -26,6 +26,7 @@ gcc
 # configure: error: in `/sage':
 # configure: error: C++ preprocessor "/lib/cpp" fails sanity check
 gcc-c++
+gcc-gfortran
 # Needed according to embray at https://trac.sagemath.org/ticket/26964:
 # The need for which comes [...] from MPIR's configure script
 findutils

@@ -1,4 +1,5 @@
 compilers
+fortran-compiler
 make
 m4
 perl

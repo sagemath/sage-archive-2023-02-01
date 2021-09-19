@@ -6,5 +6,6 @@ python # system python for bootstrapping the build
 tar
 bc
 gcc
+gcc-fortran
 # Needed for 4ti2:
 which

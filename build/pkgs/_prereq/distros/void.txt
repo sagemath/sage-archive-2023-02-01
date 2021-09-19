@@ -7,4 +7,5 @@ python3
 tar
 bc
 gcc
+gcc-fortran
 which

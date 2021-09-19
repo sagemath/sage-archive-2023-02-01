@@ -3,6 +3,7 @@ make
 guile gc libffi  # dependencies of make
 "gcc-[0-9]"      # So that slackpkg pattern matching does not pull in all gcc-* packages
 gcc-g++
+gcc-gfortran
 libmpc glibc kernel-headers # dependencies of gcc
 perl
 m4

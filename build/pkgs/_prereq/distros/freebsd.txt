@@ -17,3 +17,4 @@ automake
 bash
 dash
 python # python metaport for bootstrapping the build
+lang/gcc9 # gfortran

@@ -26,5 +26,6 @@ gcc
 # configure: error: in `/sage':
 # configure: error: C++ preprocessor "/lib/cpp" fails sanity check
 g++
+gfortran
 # Needed if we download some packages from a https upstream URL
 ca-certificates

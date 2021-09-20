@@ -121,13 +121,15 @@ if __name__ == "__main__":
     new_arguments = []
     need_filenames = True
     in_filenames = False
+    afterlog = False
     for arg in sys.argv[1:]:
-        if arg in ['-n', '--new', '-a', '--all']:
+        if arg in ('-n', '--new', '-a', '--all'):
             need_filenames = False
-        elif need_filenames and not in_filenames and os.path.exists(arg):
+        elif need_filenames and not (afterlog or in_filenames) and os.path.exists(arg):
             in_filenames = True
             new_arguments.append('--')
         new_arguments.append(arg)
+        afterlog = bool(arg == '--logfile')
 
     args = parser.parse_args(new_arguments)
 

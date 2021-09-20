@@ -382,11 +382,16 @@ class DocTestController(SageObject):
 
         self.files = args
         if options.logfile:
-            try:
+            if not isinstance(options.logfile, str):
+                # file from sage-runtests
                 self.logfile = options.logfile
-            except IOError:
-                print("Unable to open logfile {!r}\nProceeding without logging.".format(options.logfile))
-                self.logfile = None
+            else:
+                # string from DocTestDefaults
+                try:
+                    self.logfile = open(options.logfile, 'a')
+                except IOError:
+                    print("Unable to open logfile {!r}\nProceeding without logging.".format(options.logfile))
+                    self.logfile = None
         else:
             self.logfile = None
 
@@ -451,7 +456,7 @@ class DocTestController(SageObject):
             5.00000000000000
         """
         # default is -1.0
-        if self.options.warn_long > 0:     # Specified on the command line
+        if self.options.warn_long >= 0:     # Specified on the command line
             return
         try:
             self.options.warn_long = 60.0 * self.second_on_modern_computer()

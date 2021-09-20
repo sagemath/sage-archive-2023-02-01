@@ -9,10 +9,6 @@ VERSION = "@PACKAGE_VERSION@"
 SAGE_LOCAL = "@prefix@"
 SAGE_ROOT = "@SAGE_ROOT@"
 
-# The extension (without the period) for shared libraries on this
-# system. For example, this is usually "so" on Linux.
-SHLIBEXT = "@SHLIBEXT@"
-
 MAXIMA = "@prefix@/bin/maxima"
 
 # Delete this line if your ECL can load maxima without further prodding.
@@ -59,11 +55,8 @@ THREEJS_DIR = SAGE_LOCAL + "/share/threejs-sage"
 OPENMP_CFLAGS = "@OPENMP_CFLAGS@"
 OPENMP_CXXFLAGS = "@OPENMP_CXXFLAGS@"
 
-# The base name of the main Singular library. If the library is called
-# libSingular.so, then its base name should be something like "libSingular",
-# or "$SAGE_LOCAL/lib/libSingular". The extension is not needed; the value
-# of SHLIBEXT will be appended automatically.
-SINGULAR_LIB_BASE = "@SINGULAR_LIB_BASE@".replace('$SAGE_LOCAL', SAGE_LOCAL)
+# The full absolute path to the main Singular library.
+LIBSINGULAR_PATH = "@LIBSINGULAR_PATH@".replace('$SAGE_LOCAL', SAGE_LOCAL)
 
 # Entry point 'sage-config'.  It does not depend on any packages.
 

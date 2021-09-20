@@ -768,9 +768,8 @@ cdef init_libsingular():
 
     cdef void *handle = NULL
 
-    from sage_conf import SINGULAR_LIB_BASE, SHLIBEXT
-    SINGULAR_LIB_PATH = SINGULAR_LIB_BASE + "." + SHLIBEXT
-    lib = str_to_bytes(SINGULAR_LIB_PATH, FS_ENCODING, "surrogateescape")
+    from sage_conf import LIBSINGULAR_PATH
+    lib = str_to_bytes(LIBSINGULAR_PATH, FS_ENCODING, "surrogateescape")
 
     # This is a workaround for https://github.com/Singular/Singular/issues/1113
     # and can be removed once that fix makes it into release of Singular that
@@ -782,7 +781,7 @@ cdef init_libsingular():
     handle = dlopen(lib, RTLD_GLOBAL|RTLD_LAZY)
     if not handle:
         err = dlerror()
-        raise ImportError(f"cannot load Singular library from {SINGULAR_LIB_PATH} ({err})")
+        raise ImportError(f"cannot load Singular library from {LIBSINGULAR_PATH} ({err})")
 
     # load SINGULAR
     siInit(lib)

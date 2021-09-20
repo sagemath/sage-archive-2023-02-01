@@ -10,12 +10,24 @@ SAGE_SPKG_CONFIGURE([singular], [
                       [],
                       [sage_spkg_install_singular=yes])
 
-    dnl The acl_shlibext variable is set in the top-level configure.ac,
-    dnl and is ultimately substituted into sage_conf as SHLIBEXT.
-    SINGULAR_LIB_BASE="libSingular"
-    SINGULAR_LIB_FILE="${SINGULAR_LIB_BASE}.${acl_shlibext}"
+    dnl Use pkg-config to get singular's libdir while we're at it. As a
+    dnl moral compromise for using pkg-config, this ultimately allows us
+    dnl to pass an absolute path to dlopen(), which is the only approach
+    dnl that POSIX guarantees will work.
+    PKG_CHECK_VAR([SINGULAR_LIB_DIR], [Singular], [libdir])
 
-    AC_MSG_CHECKING([if we can dlopen($SINGULAR_LIB_FILE)])
+    dnl libtool.m4 has dedicated cygwin* code to move DLLs from
+    dnl $libdir to $libdir/../bin.
+    AS_CASE([$host_os],
+      [cygwin*], [
+        SINGULAR_LIB_DIR="${SINGULAR_LIB_DIR}/../bin"
+      ]
+    )
+
+    dnl The acl_shlibext variable is set in the top-level configure.ac.
+    LIBSINGULAR_PATH="${SINGULAR_LIB_DIR}/libSingular.${acl_shlibext}"
+
+    AC_MSG_CHECKING([if we can dlopen($LIBSINGULAR_PATH)])
     ORIG_LIBS="${LIBS}"
     LIBS="${LIBS} -ldl"
     AC_LANG_PUSH(C)
@@ -25,11 +37,10 @@ SAGE_SPKG_CONFIGURE([singular], [
     AC_RUN_IFELSE(
       [AC_LANG_PROGRAM(
         [[#include <dlfcn.h>]],
-        [[void* h = dlopen("${SINGULAR_LIB_FILE}", RTLD_LAZY | RTLD_GLOBAL);
+        [[void* h = dlopen("${LIBSINGULAR_PATH}", RTLD_LAZY | RTLD_GLOBAL);
           if (h == 0) { return 1; } else { return dlclose(h); }]]
       )], [
         AC_MSG_RESULT(yes)
-        AC_SUBST(SINGULAR_LIB_BASE, "${SINGULAR_LIB_BASE}")
       ], [
         AC_MSG_RESULT(no)
         sage_spkg_install_singular=yes
@@ -43,24 +54,17 @@ SAGE_SPKG_CONFIGURE([singular], [
   dnl We make the sage_conf substitutions here, because the "default"
   dnl substitution needs to be made even if we skipped the system-Singular
   dnl checks themselves.
-
-  dnl If we're using the SPKG, we need to use the FULL path to the library,
-  dnl because the use of the SPKG is not just a fallback for when no system
-  dnl singular is present; it is also a fallback for when our (non-POSIX)
-  dnl dlopen() strategy fails.
   AS_IF([test "x${sage_spkg_install_singular}" = "xyes"], [
-    AC_SUBST(SINGULAR_LIB_BASE, '$SAGE_LOCAL/lib/libSingular')
+    LIBSINGULAR_PATH="\$SAGE_LOCAL/lib/libSingular.${acl_shlibext}"
 
     dnl libtool.m4 has dedicated cygwin* code to move DLLs from
     dnl $libdir to $libdir/../bin.
     AS_CASE([$host_os],
       [cygwin*], [
-        AC_SUBST(SINGULAR_LIB_BASE, '$SAGE_LOCAL/bin/libSingular')
+        LIBSINGULAR_PATH="\$SAGE_LOCAL/bin/libSingular.${acl_shlibext}"
       ]
     )
-  ], [
-    dnl We're using the system package
-    AC_SUBST(SINGULAR_LIB_BASE, "${SINGULAR_LIB_BASE}")
-  ]
-  )
+  ])
+
+  AC_SUBST(LIBSINGULAR_PATH, "${LIBSINGULAR_PATH}")
 ])

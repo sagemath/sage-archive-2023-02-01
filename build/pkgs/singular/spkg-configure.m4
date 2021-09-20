@@ -48,8 +48,19 @@ SAGE_SPKG_CONFIGURE([singular], [
   dnl because the use of the SPKG is not just a fallback for when no system
   dnl singular is present; it is also a fallback for when our (non-POSIX)
   dnl dlopen() strategy fails.
-  AS_IF([test "x${sage_spkg_install_singular}" = "xyes"],
-    [AC_SUBST(SINGULAR_LIB_BASE, '$SAGE_LOCAL/lib/libSingular')],
-    [AC_SUBST(SINGULAR_LIB_BASE, "${SINGULAR_LIB_BASE}")]
+  AS_IF([test "x${sage_spkg_install_singular}" = "xyes"], [
+    AC_SUBST(SINGULAR_LIB_BASE, '$SAGE_LOCAL/lib/libSingular')
+
+    dnl libtool.m4 has dedicated cygwin* code to move DLLs from
+    dnl $libdir to $libdir/../bin.
+    AS_CASE([$host_os],
+      [cygwin*], [
+        AC_SUBST(SINGULAR_LIB_BASE, '$SAGE_LOCAL/bin/libSingular')
+      ]
+    )
+  ], [
+    dnl We're using the system package
+    AC_SUBST(SINGULAR_LIB_BASE, "${SINGULAR_LIB_BASE}")
+  ]
   )
 ])

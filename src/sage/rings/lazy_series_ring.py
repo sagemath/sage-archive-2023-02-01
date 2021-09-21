@@ -299,7 +299,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             except (TypeError, ValueError):
                 pass
 
-            # If x has been converted to the Laurent polynomial ring
+            # If x has been converted to the internal polynomial ring
             if parent(x) is R:
                 if not x and not constant:
                     return self.zero()
@@ -326,7 +326,9 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 # If x is known to be 0
                 if isinstance(x._coeff_stream, Stream_zero):
                     if not constant:
-                        return x
+                        if self is parent(x):
+                            return x
+                        return self.element_class(self, x._coeff_stream)
                     if degree is None:
                         if valuation is None:
                             raise ValueError("you must specify the degree for the polynomial 0")
@@ -356,7 +358,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 ret = self.element_class(self, x._coeff_stream)
                 if valuation is None:
                     return ret
-                return x.shift(valuation - x._coeff_stream.order())
+                return ret.shift(valuation - x._coeff_stream.order())
 
         else:
             x = coefficients
@@ -1108,6 +1110,16 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             ...
             ValueError: positive characteristic not allowed for Dirichlet series
 
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: D = LazyDirichletSeriesRing(QQ, 't')
+            sage: D(z+z^2)
+            1 + 1/(2^t)
+
+            sage: R.<z> = LaurentPolynomialRing(QQ)
+            sage: D = LazyDirichletSeriesRing(QQ, 't')
+            sage: D(coefficients=z+z^2)
+            2 + 6/2^t + 12/3^t + 20/4^t + 30/5^t + 42/6^t + 56/7^t + O(1/(8^t))
+
         .. TODO::
 
             Add a method to make a copy of ``self._sparse``.
@@ -1120,11 +1132,14 @@ class LazyDirichletSeriesRing(LazySeriesRing):
                     x = p
                 else:
                     x = p.shift(1)
-        elif valuation is None:
+        elif not isinstance(x, LazyModuleElement) and valuation is None:
             valuation = 1
 
         if valuation is not None and (valuation not in ZZ or valuation <= 0):
             raise ValueError("the valuation must be a positive integer")
+
+        if coefficients is not None:
+            return super()._element_constructor_(x, valuation, degree, constant, coefficients)
 
         BR = self.base_ring()
         if x in BR:

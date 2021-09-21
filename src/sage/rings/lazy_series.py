@@ -348,6 +348,88 @@ class LazyModuleElement(Element):
         return P.element_class(P, Stream_exact(initial_coefficients, P._sparse,
                                                           order=v))
 
+    def shift(self, n):
+        r"""
+        Return ``self`` with the indices shifted by ``n``.
+
+        For example, a Laurent series is multiplied by the power `z^n`,
+        where `z` is the variable of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1 / (1 + 2*z)
+            sage: f
+            1 - 2*z + 4*z^2 - 8*z^3 + 16*z^4 - 32*z^5 + 64*z^6 + O(z^7)
+            sage: f.shift(3)
+            z^3 - 2*z^4 + 4*z^5 - 8*z^6 + 16*z^7 - 32*z^8 + 64*z^9 + O(z^10)
+            sage: f << -3  # shorthand
+            z^-3 - 2*z^-2 + 4*z^-1 - 8 + 16*z - 32*z^2 + 64*z^3 + O(z^4)
+            sage: g = z^-3 + 3 + z^2
+            sage: g.shift(5)
+            z^2 + 3*z^5 + z^7
+            sage: L([2,0,3], valuation=2, degree=7, constant=1) << -2
+            2 + 3*z^2 + z^5 + z^6 + z^7 + O(z^8)
+
+            sage: D = LazyDirichletSeriesRing(QQ, 't')
+            sage: f = D([0,1,2]); f
+            1/(2^t) + 2/3^t
+            sage: f.shift(3)
+            1/(5^t) + 2/6^t
+
+        TESTS::
+
+            sage: L.<z> = LazyLaurentSeriesRing(QQ)
+            sage: zero = L.zero()
+            sage: zero.shift(10) is zero
+            True
+
+            sage: f = 1 / (1 + 2*z + z^2)
+            sage: f.shift(5).shift(-5) - f
+            0
+
+        """
+        if isinstance(self._coeff_stream, Stream_zero):
+            return self
+        elif isinstance(self._coeff_stream, Stream_shift):
+            n += self._coeff_stream._shift
+            if n:
+                coeff_stream = Stream_shift(self._coeff_stream._series, n)
+            else:
+                coeff_stream = self._coeff_stream._series
+        elif isinstance(self._coeff_stream, Stream_exact):
+            init_coeff = self._coeff_stream._initial_coefficients
+            degree = self._coeff_stream._degree + n
+            valuation = self._coeff_stream._approximate_order + n
+            coeff_stream = Stream_exact(init_coeff, self._coeff_stream._is_sparse,
+                                        constant=self._coeff_stream._constant,
+                                        order=valuation, degree=degree)
+        else:
+            coeff_stream = Stream_shift(self._coeff_stream, n)
+        P = self.parent()
+        return P.element_class(P, coeff_stream)
+
+    __lshift__ = shift
+
+    def __rshift__(self, n):
+        r"""
+        Return ``self`` with the indices shifted right by ``n``.
+
+        For example, a Laurent series is multiplied by the power `z^-n`,
+        where `z` is the variable of ``self``.
+
+        EXAMPLES::
+
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: f = 1/(1 + 2*z); f
+            1 - 2*z + 4*z^2 - 8*z^3 + 16*z^4 - 32*z^5 + 64*z^6 + O(z^7)
+            sage: f >> 3
+            z^-3 - 2*z^-2 + 4*z^-1 - 8 + 16*z - 32*z^2 + 64*z^3 + O(z^4)
+            sage: f >> -3
+            z^3 - 2*z^4 + 4*z^5 - 8*z^6 + 16*z^7 - 32*z^8 + 64*z^9 + O(z^10)
+        """
+        return self.shift(-n)
+
     def prec(self):
         """
         Return the precision of the series, which is infinity.
@@ -2281,78 +2363,6 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             from sage.rings.all import PolynomialRing
             R = PolynomialRing(S.base_ring(), name=name)
             return R([self[i] for i in range(m)])
-
-    def shift(self, n):
-        r"""
-        Return ``self`` multiplied by the power `z^n`, where `z` is the
-        variable of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = 1 / (1 + 2*z)
-            sage: f
-            1 - 2*z + 4*z^2 - 8*z^3 + 16*z^4 - 32*z^5 + 64*z^6 + O(z^7)
-            sage: f.shift(3)
-            z^3 - 2*z^4 + 4*z^5 - 8*z^6 + 16*z^7 - 32*z^8 + 64*z^9 + O(z^10)
-            sage: f << -3  # shorthand
-            z^-3 - 2*z^-2 + 4*z^-1 - 8 + 16*z - 32*z^2 + 64*z^3 + O(z^4)
-            sage: g = z^-3 + 3 + z^2
-            sage: g.shift(5)
-            z^2 + 3*z^5 + z^7
-            sage: L([2,0,3], valuation=2, degree=7, constant=1) << -2
-            2 + 3*z^2 + z^5 + z^6 + z^7 + O(z^8)
-
-        TESTS::
-
-            sage: L.<z> = LazyLaurentSeriesRing(QQ)
-            sage: zero = L.zero()
-            sage: zero.shift(10) is zero
-            True
-
-            sage: f = 1 / (1 + 2*z + z^2)
-            sage: f.shift(5).shift(-5) - f
-            0
-
-        """
-        if isinstance(self._coeff_stream, Stream_zero):
-            return self
-        elif isinstance(self._coeff_stream, Stream_shift):
-            n += self._coeff_stream._shift
-            if n:
-                coeff_stream = Stream_shift(self._coeff_stream._series, n)
-            else:
-                coeff_stream = self._coeff_stream._series
-        elif isinstance(self._coeff_stream, Stream_exact):
-            init_coeff = self._coeff_stream._initial_coefficients
-            degree = self._coeff_stream._degree + n
-            valuation = self._coeff_stream._approximate_order + n
-            coeff_stream = Stream_exact(init_coeff, self._coeff_stream._is_sparse,
-                                        constant=self._coeff_stream._constant,
-                                        order=valuation, degree=degree)
-        else:
-            coeff_stream = Stream_shift(self._coeff_stream, n)
-        P = self.parent()
-        return P.element_class(P, coeff_stream)
-
-    __lshift__ = shift
-
-    def __rshift__(self, n):
-        r"""
-        Return ``self`` multiplied by the power `z^-n`, where `z` is the
-        variable of ``self``.
-
-        EXAMPLES::
-
-            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-            sage: f = 1/(1 + 2*z); f
-            1 - 2*z + 4*z^2 - 8*z^3 + 16*z^4 - 32*z^5 + 64*z^6 + O(z^7)
-            sage: f >> 3
-            z^-3 - 2*z^-2 + 4*z^-1 - 8 + 16*z - 32*z^2 + 64*z^3 + O(z^4)
-            sage: f >> -3
-            z^3 - 2*z^4 + 4*z^5 - 8*z^6 + 16*z^7 - 32*z^8 + 64*z^9 + O(z^10)
-        """
-        return self.shift(-n)
 
     def _format_series(self, formatter, format_strings=False):
         """

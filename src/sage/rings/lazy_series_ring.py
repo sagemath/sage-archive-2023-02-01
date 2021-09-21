@@ -280,7 +280,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 raise ValueError("the valuation must be specified")
             return self.element_class(self, Stream_uninitialized(self._sparse, valuation))
 
-        if coefficients is not None and (not isinstance(x, int) or x):
+        if coefficients is not None and (x is not None and (not isinstance(x, int) or x)):
             raise ValueError("coefficients must be None if x is provided")
 
         BR = self.base_ring()
@@ -1112,8 +1112,8 @@ class LazyDirichletSeriesRing(LazySeriesRing):
 
             sage: L.<z> = LazyLaurentSeriesRing(QQ)
             sage: D = LazyDirichletSeriesRing(QQ, 't')
-            sage: D(z+z^2)
-            1 + 1/(2^t)
+            sage: D(L.one())
+            1 + 1/(2^t) + 1/(3^t) + 1/(4^t) + 1/(5^t) + 1/(6^t) + 1/(7^t) + O(1/(8^t))
 
             sage: R.<z> = LaurentPolynomialRing(QQ)
             sage: D = LazyDirichletSeriesRing(QQ, 't')
@@ -1132,18 +1132,24 @@ class LazyDirichletSeriesRing(LazySeriesRing):
                     x = p
                 else:
                     x = p.shift(1)
-        elif not isinstance(x, LazyModuleElement) and valuation is None:
-            valuation = 1
+        else:
+            if valuation is None:
+                valuation = 1
+
+            if coefficients is not None:
+                return super()._element_constructor_(x, valuation, degree, constant, coefficients)
+
+            BR = self.base_ring()
+            if x in BR:
+                x = BR(x)
+            if (isinstance(x, LazyModuleElement) and not isinstance(x, LazyDirichletSeries)) or callable(x):
+                if coefficients is not None:
+                    raise ValueError("coefficients must be None if x is provided")
+                coefficients = x
+                x = None
 
         if valuation is not None and (valuation not in ZZ or valuation <= 0):
             raise ValueError("the valuation must be a positive integer")
-
-        if coefficients is not None:
-            return super()._element_constructor_(x, valuation, degree, constant, coefficients)
-
-        BR = self.base_ring()
-        if x in BR:
-            x = BR(x)
 
         return super()._element_constructor_(x, valuation, degree, constant, coefficients)
 

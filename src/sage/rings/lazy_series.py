@@ -88,7 +88,7 @@ AUTHORS:
 
 
 from sage.rings.infinity import infinity
-from sage.structure.element import Element
+from sage.structure.element import Element, parent
 from sage.rings.integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
@@ -1782,6 +1782,8 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
             z^-6 + 4*z^-5 + 12*z^-4 + 33*z^-3 + 82*z^-2 + 196*z^-1 + 457 + O(z)
             sage: g^2 + 1 + g
             z^-6 + 4*z^-5 + 12*z^-4 + 33*z^-3 + 82*z^-2 + 196*z^-1 + 457 + O(z)
+            sage: f(int(2))
+            7
 
             sage: f = z^-2 + z + 4*z^3
             sage: f(f)
@@ -2027,7 +2029,7 @@ class LazyLaurentSeries(LazyCauchyProductSeries):
         # f = self and compute f(g)
         from sage.structure.element import get_coercion_model
         cm = get_coercion_model()
-        P = cm.common_parent(self.base_ring(), g.parent())
+        P = cm.common_parent(self.base_ring(), parent(g))
 
         # f = 0
         if isinstance(self._coeff_stream, Stream_zero):

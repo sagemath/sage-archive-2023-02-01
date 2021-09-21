@@ -2588,7 +2588,6 @@ class LazyDirichletSeries(LazyModuleElement):
             m = v + P.options.display_length
 
         atomic_repr = P._coeff_ring._repr_option('element_is_atomic')
-        varname = P.variable_name()
         mons = [P._monomial(self[i], i) for i in range(v, m) if self[i]]
         if not isinstance(cs, Stream_exact) or cs._constant:
             if P._coeff_ring is P.base_ring():
@@ -2603,9 +2602,9 @@ class LazyDirichletSeries(LazyModuleElement):
         from sage.typeset.ascii_art import ascii_art
         from sage.misc.repr import repr_lincomb
         if formatter == repr:
-            poly = repr_lincomb([(1, m) for m in mons + bigO], strip_one=True)
+            poly = repr_lincomb([(1, mo) for mo in mons + bigO], strip_one=True)
         elif formatter == latex:
-            poly = repr_lincomb([(1, m) for m in mons + bigO], is_latex=True, strip_one=True)
+            poly = repr_lincomb([(1, mo) for mo in mons + bigO], is_latex=True, strip_one=True)
         elif formatter in [ascii_art, unicode_art]:
             if formatter == ascii_art:
                 from sage.typeset.symbols import ascii_left_parenthesis as left_paren
@@ -2621,7 +2620,7 @@ class LazyDirichletSeries(LazyModuleElement):
                     h = a.height()
                     return formatter(left_paren.character_art(h),
                                      a, right_paren.character_art(h))
-                poly = formatter(*([parenthesize(m) for m in mons] + bigO), sep=" + ")
+                poly = formatter(*([parenthesize(mo) for mo in mons] + bigO), sep=" + ")
 
         return poly
 

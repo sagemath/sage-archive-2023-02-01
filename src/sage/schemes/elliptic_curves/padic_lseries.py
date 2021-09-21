@@ -842,7 +842,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: lp.series(6)
             2^2 + 2^6 + O(2^7) + (2 + O(2^4))*T + O(2^3)*T^2 + (2^2 + O(2^3))*T^3 + (2 + O(2^2))*T^4 + O(T^5)
 
-        Check that twists by odd Teichmuller charachters are ok (:trac:`32258`)::
+        Check that twists by odd Teichmuller characters are ok (:trac:`32258`)::
 
             sage: E = EllipticCurve("443c1")
             sage: lp = E.padic_lseries(17, implementation="num")
@@ -1313,7 +1313,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
                 j += 1
             L = R(bj, prec)
         L /= self._quotient_of_periods_to_twist(D)
-        if si == +1 :
+        if si == +1:
             L /= self._E.real_components()
         self._set_series_in_cache(n, prec, quadratic_twist, eta, L)
         return L

@@ -269,7 +269,7 @@ class FunctionFieldDerivation_separable(FunctionFieldDerivation):
         x = self.domain().gen()
         f = L.polynomial()
         self._d = d
-        self._gen_image = - f.map_coefficients(lambda c: d(c))(x) / f.derivative()(x)
+        self._gen_image = - f.map_coefficients(d)(x) / f.derivative()(x)
 
     def _call_(self, x):
         r"""

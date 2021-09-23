@@ -6575,8 +6575,7 @@ class GenericGraph(GenericGraph_pyx):
             def good_edge(e):
                 return e
         else:
-            def good_edge(e):
-                return frozenset(e)
+            good_edge = frozenset
 
         # Some vertices belong to part 1, others to part 0
         p.add_constraint(v[s], min=0, max=0)
@@ -6846,8 +6845,7 @@ class GenericGraph(GenericGraph_pyx):
             def good_edge(e):
                 return e
         else:
-            def good_edge(e):
-                return frozenset(e)
+            good_edge = frozenset
 
         # Weight function
         if use_edge_labels:
@@ -6980,8 +6978,7 @@ class GenericGraph(GenericGraph_pyx):
             def good_edge(e):
                 return e
         else:
-            def good_edge(e):
-                return frozenset(e)
+            good_edge = frozenset
 
         from sage.numerical.mip import MixedIntegerLinearProgram
 

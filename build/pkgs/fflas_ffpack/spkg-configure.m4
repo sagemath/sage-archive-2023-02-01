@@ -1,6 +1,4 @@
 SAGE_SPKG_CONFIGURE([fflas_ffpack], [
-  # fflas-lapack uses whatever multi-precision library givaro uses,
-  # either gmp or mpir.
   SAGE_SPKG_DEPCHECK([atlas givaro gmp openblas], [
     # If our dependencies come from the system, then we can use
     # the system fflas-ffpack, too. Use pkg-config to find a

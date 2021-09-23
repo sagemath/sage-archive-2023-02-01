@@ -259,14 +259,6 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         AS_VAR_POPDEF([sage_require])dnl
         AS_VAR_POPDEF([sage_spkg_install])dnl
 
-    # Packages that should be included in the source distribution
-    # This includes all standard packages and two special cases
-    case "$SPKG_NAME" in
-    mpir)
-        in_sdist=yes
-        ;;
-    esac
-
     # Determine package source
     #
     if test -f "$DIR/requirements.txt"; then

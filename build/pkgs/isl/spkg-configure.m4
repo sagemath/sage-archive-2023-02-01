@@ -1,6 +1,6 @@
 SAGE_SPKG_CONFIGURE([isl], [
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
-    AC_MSG_CHECKING([installing gmp/mpir? ])
+    AC_MSG_CHECKING([installing gmp? ])
     if test x$sage_spkg_install_gmp = xyes; then
         AC_MSG_RESULT([yes; install isl as well])
         sage_spkg_install_isl=yes

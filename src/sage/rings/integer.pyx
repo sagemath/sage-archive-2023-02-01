@@ -6787,7 +6787,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self
 
-    def binomial(self, m, algorithm='mpir'):
+    def binomial(self, m, algorithm='gmp'):
         """
         Return the binomial coefficient "self choose m".
 
@@ -6795,9 +6795,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         - ``m`` -- an integer
 
-        - ``algorithm`` -- ``'mpir'`` (default) or ``'pari'``; ``'mpir'`` is
-          faster for small ``m``, and ``'pari'`` tends to be faster for
-          large ``m``
+        - ``algorithm`` -- ``'gmp'`` (default), ``'mpir'`` (an alias for
+          ``gmp``), or ``'pari'``; ``'gmp'`` is faster for small ``m``,
+          and ``'pari'`` tends to be faster for large ``m``
 
         OUTPUT:
 
@@ -6878,7 +6878,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return self
 
         # now call the various backend
-        if algorithm == 'mpir':
+        if algorithm == 'gmp' or algorithm == 'mpir':
             x = PY_NEW(Integer)
             if mpz_fits_ulong_p(mm.value):
                 sig_on()
@@ -6890,7 +6890,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         elif algorithm == 'pari':
             return the_integer_ring(self.__pari__().binomial(mm))
         else:
-            raise ValueError("algorithm must be one of: 'pari', 'mpir'")
+            raise ValueError("algorithm must be one of: 'pari' or 'gmp' (alias: 'mpir')")
 
 
 cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:

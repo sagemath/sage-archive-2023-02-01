@@ -1125,8 +1125,8 @@ Here are some of the more commonly used variables affecting the build process:
   An entry ``package-name`` means to run the test suite for the named package
   regardless of the setting of :envvar:`SAGE_CHECK`.
   An entry ``!package-name`` means to skip its test suite.
-  So if this is set to ``mpir,!python3``, then always run the test suite for
-  MPIR, but always skip the test suite for Python 3.
+  So if this is set to ``ppl,!python3``, then always run the test suite for
+  PPL, but always skip the test suite for Python 3.
 
   .. note::
 

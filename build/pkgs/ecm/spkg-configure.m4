@@ -2,7 +2,7 @@ SAGE_SPKG_CONFIGURE([ecm], [
     m4_pushdef([SAGE_ECM_MINVER],[7.0.4])
     AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
     AC_MSG_CHECKING([installing gmp/mpir? ])
-    if test x$sage_spkg_install_mpir = xyes -o x$sage_spkg_install_gmp = xyes; then
+    if test x$sage_spkg_install_gmp = xyes; then
         AC_MSG_RESULT([yes; install ecm as well])
         sage_spkg_install_ecm=yes
     else

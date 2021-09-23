@@ -32,7 +32,7 @@ SPKG_INST_RELDIR = var/lib/sage/installed
 # Aliases for mutually exclusive standard packages selected at configure time
 TOOLCHAIN = @SAGE_TOOLCHAIN@
 PYTHON = python3
-MP_LIBRARY = @SAGE_MP_LIBRARY@
+MP_LIBRARY = gmp
 BLAS = @SAGE_BLAS@
 
 # pkgconfig files generated/installed at build time

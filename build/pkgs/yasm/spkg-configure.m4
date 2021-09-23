@@ -12,8 +12,8 @@ SAGE_SPKG_CONFIGURE(
      AC_MSG_RESULT($ac_cv_path_YASM)],
     [dnl REQUIRED-CHECK
      AS_CASE("$host_cpu", [i@<:@0-9@:>@86|x86_64|amd64], [], [sage_require_yasm=no])
-     AC_REQUIRE([SAGE_SPKG_CONFIGURE_MPIR])
-     AS_IF([test x$sage_spkg_install_mpir = xno], [
+     AC_REQUIRE([SAGE_SPKG_CONFIGURE_GMP])
+     AS_IF([test x$sage_spkg_install_gmp = xno], [
         sage_require_yasm=no
      ])
     ]

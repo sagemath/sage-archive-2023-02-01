@@ -125,12 +125,13 @@ is attempted, and after that ``sin()`` which succeeds::
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.libs.pynac.pynac cimport *
-from sage.rings.integer cimport smallInteger
 from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, parent
 from sage.misc.lazy_attribute import lazy_attribute
-from .expression cimport new_Expression_from_GEx, Expression
+from .expression import (
+    call_registered_function, find_registered_function, register_or_update_function,
+    is_Expression
+)
 from .ring import SR
 
 from sage.structure.coerce cimport (coercion_model,
@@ -142,7 +143,6 @@ from sage.structure.richcmp cimport richcmp
 cdef dict sfunction_serial_dict = {}
 
 from sage.misc.fpickle import pickle_function, unpickle_function
-from sage.cpython.string cimport str_to_bytes
 from sage.ext.fast_eval import FastDoubleFunc
 
 # List of functions which ginac allows us to define custom behavior for.
@@ -257,51 +257,9 @@ cdef class Function(SageObject):
             f(x)
 
         """
-        cdef GFunctionOpt opt
-        opt = g_function_options_args(str_to_bytes(self._name), self._nargs)
-
-        if hasattr(self, '_eval_'):
-            opt.eval_func(self)
-
-        if not self._evalf_params_first:
-            opt.do_not_evalf_params()
-
-        if hasattr(self, '_subs_'):
-            opt.subs_func(self)
-
-        if hasattr(self, '_evalf_'):
-            opt.evalf_func(self)
-
-        if hasattr(self, '_conjugate_'):
-            opt.conjugate_func(self)
-
-        if hasattr(self, '_real_part_'):
-            opt.real_part_func(self)
-
-        if hasattr(self, '_imag_part_'):
-            opt.imag_part_func(self)
-
-        if hasattr(self, '_derivative_'):
-            opt.derivative_func(self)
-
-        if hasattr(self, '_tderivative_'):
-            opt.do_not_apply_chain_rule()
-            opt.derivative_func(self)
-
-        if hasattr(self, '_power_'):
-            opt.power_func(self)
-
-        if hasattr(self, '_series_'):
-            opt.series_func(self)
-
-        # custom print functions are called from python
-        # so we don't register them with the ginac function_options object
-
-        if self._latex_name:
-            opt.latex_name(str_to_bytes(self._latex_name))
-
-        self._serial = g_register_new(opt)
-        g_foptions_assign(g_registered_functions().index(self._serial), opt)
+        self._serial = register_or_update_function(self, self._name, self._latex_name,
+                                                   self._nargs, self._evalf_params_first,
+                                                   False)
 
     def _evalf_try_(self, *args):
         """
@@ -368,7 +326,7 @@ cdef class Function(SageObject):
         try:
             evalf = self._evalf_  # catch AttributeError early
             if any(self._is_numerical(x) for x in args):
-                if not any(isinstance(x, Expression) for x in args):
+                if not any(is_Expression(x) for x in args):
                     p = coercion_model.common_parent(*args)
                     return evalf(*args, parent=p)
         except Exception:
@@ -567,7 +525,6 @@ cdef class Function(SageObject):
         else:
             symbolic_input = False
 
-        cdef Py_ssize_t i
         if coerce:
             try:
                 args = [SR.coerce(a) for a in args]
@@ -587,30 +544,11 @@ cdef class Function(SageObject):
 
         else: # coerce == False
             for a in args:
-                if not isinstance(a, Expression):
+                if not is_Expression(a):
                     raise TypeError("arguments must be symbolic expressions")
 
-        cdef GEx res
-        cdef GExVector vec
-        if self._nargs == 0 or self._nargs > 3:
-            for i from 0 <= i < len(args):
-                vec.push_back((<Expression>args[i])._gobj)
-            res = g_function_evalv(self._serial, vec, hold)
-        elif self._nargs == 1:
-            res = g_function_eval1(self._serial,
-                    (<Expression>args[0])._gobj, hold)
-        elif self._nargs == 2:
-            res = g_function_eval2(self._serial, (<Expression>args[0])._gobj,
-                    (<Expression>args[1])._gobj, hold)
-        elif self._nargs == 3:
-            res = g_function_eval3(self._serial,
-                    (<Expression>args[0])._gobj, (<Expression>args[1])._gobj,
-                    (<Expression>args[2])._gobj, hold)
-
-        if not symbolic_input and is_a_numeric(res):
-            return py_object_from_numeric(res)
-
-        return new_Expression_from_GEx(SR, res)
+        return call_registered_function(self._serial, self._nargs, args, hold,
+                                    not symbolic_input, SR)
 
     def name(self):
         """
@@ -946,12 +884,7 @@ cdef class GinacFunction(BuiltinFunction):
         # Since this is function is defined in C++, it is already in
         # ginac's function registry
         fname = self._ginac_name if self._ginac_name is not None else self._name
-        # get serial
-        try:
-            self._serial = find_function(str_to_bytes(fname), self._nargs)
-        except RuntimeError as err:
-            raise ValueError("cannot find GiNaC function with name %s and %s arguments" % (fname, self._nargs))
-
+        self._serial = find_registered_function(fname, self._nargs)
         global sfunction_serial_dict
         return self._serial in sfunction_serial_dict
 
@@ -960,45 +893,10 @@ cdef class GinacFunction(BuiltinFunction):
         # However, if any custom methods were provided in the python class,
         # we should set the properties of the function_options object
         # corresponding to this function
-        cdef GFunctionOpt opt = g_registered_functions().index(self._serial)
-
-        if hasattr(self, '_eval_'):
-            opt.eval_func(self)
-
-        if not self._evalf_params_first:
-            opt.do_not_evalf_params()
-
-        if hasattr(self, '_evalf_'):
-            opt.evalf_func(self)
-
-        if hasattr(self, '_conjugate_'):
-            opt.conjugate_func(self)
-
-        if hasattr(self, '_real_part_'):
-            opt.real_part_func(self)
-
-        if hasattr(self, '_imag_part_'):
-            opt.imag_part_func(self)
-
-        if hasattr(self, '_derivative_'):
-            opt.derivative_func(self)
-
-        if hasattr(self, '_tderivative_'):
-            opt.do_not_apply_chain_rule()
-            opt.derivative_func(self)
-
-        if hasattr(self, '_power_'):
-            opt.power_func(self)
-
-        if hasattr(self, '_series_'):
-            opt.series_func(self)
-
-        # overriding print functions is not supported
-
-        if self._latex_name:
-            opt.latex_name(str_to_bytes(self._latex_name))
-
-        g_foptions_assign(g_registered_functions().index(self._serial), opt)
+        fname = self._ginac_name if self._ginac_name is not None else self._name
+        register_or_update_function(self, fname, self._latex_name,
+                                    self._nargs, self._evalf_params_first,
+                                    True)
 
 
 cdef class BuiltinFunction(Function):
@@ -1238,17 +1136,17 @@ cdef class BuiltinFunction(Function):
             True
         """
         # check if already defined
-        cdef int serial = -1
+        cdef unsigned int serial
 
         # search ginac registry for name and nargs
         try:
-            serial = find_function(str_to_bytes(self._name), self._nargs)
-        except RuntimeError as err:
-            pass
+            serial = find_registered_function(self._name, self._nargs)
+        except ValueError:
+            return False
 
         # if match, get operator from function table
         global sfunction_serial_dict
-        if serial != -1 and serial in sfunction_serial_dict and \
+        if serial in sfunction_serial_dict and \
                 sfunction_serial_dict[serial].__class__ == self.__class__:
                     # if the returned function is of the same type
                     self._serial = serial

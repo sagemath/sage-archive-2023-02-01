@@ -378,6 +378,9 @@ sagelib-clean:
 sage_docbuild-clean:
 	(cd "$(SAGE_ROOT)/build/pkgs/sage_docbuild/src" && rm -rf build)
 
+sage_setup-clean:
+	(cd "$(SAGE_ROOT)/build/pkgs/sage_setup/src" && rm -rf build)
+
 build-clean: clean doc-clean sagelib-clean sage_docbuild-clean
 
 # Special target for cleaning up a broken GCC install detected by configure
@@ -650,6 +653,8 @@ $(1)-$(4)-uninstall:
 	-rm -f "$$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2)"
 
 $(1)-uninstall: $(1)-$(4)-uninstall
+
+$(1)-clean: $(1)-uninstall
 
 .PHONY: $(1) $(1)-uninstall $(1)-build-deps $(1)-no-deps $(1)-clean
 endef

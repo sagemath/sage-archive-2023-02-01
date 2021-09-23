@@ -898,12 +898,12 @@ cdef class Pygen(GiacMethods_base):
 
          # Other types are converted with strings.
          else:
-           sig_on()
            if isinstance(s,Expression):
               # take account of conversions with key giac in the sage symbol dict
               s=SRexpressiontoGiac(s)
            if not(isinstance(s,str)):  #modif python3
              s=s.__str__()
+           sig_on()
            self.gptr = new gen(<string>encstring23(s),context_ptr)
            sig_off()
 

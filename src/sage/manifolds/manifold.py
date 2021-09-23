@@ -3008,27 +3008,15 @@ def Manifold(dim, name, latex_name=None, field='real', structure='smooth',
                                       start_index=start_index,
                                       unique_tag=unique_tag())
     elif structure in ['pseudo-Riemannian', 'Riemannian', 'Lorentzian','degenerate_metric']:
-        if 'diff_degree' in extra_kwds:
-            diff_degree = extra_kwds['diff_degree']
-        else:
-            diff_degree = infinity
-        if 'metric_name' in extra_kwds:
-            metric_name = extra_kwds['metric_name']
-        else:
-            metric_name = 'g'
-        if 'metric_latex_name' in extra_kwds:
-            metric_latex_name = extra_kwds['metric_latex_name']
-        else:
-            metric_latex_name = None
+        diff_degree = extra_kwds.get('diff_degree', infinity)
+        metric_name = extra_kwds.get('metric_name', None)
+        metric_latex_name = extra_kwds.get('metric_latex_name', None)
         if structure == 'pseudo-Riemannian':
-            if 'signature' in extra_kwds:
-                signature = extra_kwds['signature']
-            else:
-                signature = None
+            signature = extra_kwds.get('signature', None)
         elif structure == 'Riemannian':
             signature = dim
         elif structure == 'degenerate_metric':
-            signature = (0,dim-1,1)
+            signature = (0, dim-1, 1)
         elif structure == 'Lorentzian':
             if 'signature' in extra_kwds:
                 signat = extra_kwds['signature']

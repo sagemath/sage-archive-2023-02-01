@@ -3649,7 +3649,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         pcf = True
         i = 0
         while pcf and i < len(crit_points):
-            if crit_points[i].is_preperiodic(F, err) == False:
+            if not crit_points[i].is_preperiodic(F, err):
                 pcf = False
             i += 1
         return pcf

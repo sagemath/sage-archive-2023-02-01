@@ -51,7 +51,7 @@ from pprint import pformat
 
 from sage.misc.misc import cputime
 from sage.misc.latex import latex
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 
 
 cdef class PolyDict:

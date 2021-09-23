@@ -14,15 +14,21 @@ Convert PARI objects to Sage types
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from cysignals.signals cimport sig_on, sig_off
+
 from cypari2.types cimport (GEN, typ, t_INT, t_FRAC, t_REAL, t_COMPLEX,
                             t_INTMOD, t_PADIC, t_INFINITY, t_VEC, t_COL,
                             t_VECSMALL, t_MAT, t_STR,
                             lg, precp)
 from cypari2.pari_instance cimport prec_words_to_bits
-from cypari2.paridecl cimport gel, inf_get_sign
+from cypari2.paridecl cimport *
+from cypari2.gen cimport objtogen
+from cypari2.stack cimport new_gen
+from .convert_gmp cimport INT_to_mpz, new_gen_from_mpz_t, new_gen_from_mpq_t, INTFRAC_to_mpq
 
-from sage.rings.integer cimport Integer
-from sage.rings.rational cimport Rational
+from sage.libs.gmp.mpz cimport mpz_fits_slong_p, mpz_sgn, mpz_get_ui, mpz_set, mpz_set_si
+from sage.libs.gmp.mpq cimport mpq_denref, mpq_numref
+from sage.rings.integer cimport smallInteger
 from sage.rings.all import RealField, ComplexField, QuadraticField
 from sage.matrix.args cimport MatrixArgs
 from sage.rings.padics.factory import Qp
@@ -315,3 +321,209 @@ cpdef gen_to_sage(Gen z, locals=None):
     from sage.misc.sage_eval import sage_eval
     locals = {} if locals is None else locals
     return sage_eval(str(z), locals=locals)
+
+
+cpdef set_integer_from_gen(Integer self, Gen x):
+    r"""
+    EXAMPLES::
+
+        sage: [Integer(pari(x)) for x in [1, 2^60, 2., GF(3)(1), GF(9,'a')(2)]]
+        [1, 1152921504606846976, 2, 1, 2]
+        sage: Integer(pari(2.1)) # indirect doctest
+        Traceback (most recent call last):
+        ...
+        TypeError: Attempt to coerce non-integral real number to an Integer
+    """
+    # Simplify and lift until we get an integer
+    while typ((<Gen>x).g) != t_INT:
+        x = x.simplify()
+        paritype = typ((<Gen>x).g)
+        if paritype == t_INT:
+            break
+        elif paritype == t_REAL:
+            # Check that the fractional part is zero
+            if not x.frac().gequal0():
+                raise TypeError("Attempt to coerce non-integral real number to an Integer")
+            # floor yields an integer
+            x = x.floor()
+            break
+        elif paritype == t_PADIC:
+            if x._valp() < 0:
+                raise TypeError("Cannot convert p-adic with negative valuation to an integer")
+            # Lifting a PADIC yields an integer
+            x = x.lift()
+            break
+        elif paritype == t_INTMOD:
+            # Lifting an INTMOD yields an integer
+            x = x.lift()
+            break
+        elif paritype == t_POLMOD:
+            x = x.lift()
+        elif paritype == t_FFELT:
+            # x = (f modulo defining polynomial of finite field);
+            # we extract f.
+            sig_on()
+            x = new_gen(FF_to_FpXQ_i((<Gen>x).g))
+        else:
+            raise TypeError("Unable to coerce PARI %s to an Integer"%x)
+
+    # Now we have a true PARI integer, convert it to Sage
+    INT_to_mpz(self.value, (<Gen>x).g)
+
+
+cpdef Gen new_gen_from_integer(Integer self):
+    """
+    TESTS::
+
+        sage: Rational(pari(2))  # indirect doctest
+        2
+        sage: Rational(pari(-1))
+        -1
+    """
+    return new_gen_from_mpz_t(self.value)
+
+
+cpdef set_rational_from_gen(Rational self, Gen x):
+    r"""
+    EXAMPLES::
+
+        sage: [Rational(pari(x)) for x in [1, 1/2, 2^60, 2., GF(3)(1), GF(9,'a')(2)]]
+        [1, 1/2, 1152921504606846976, 2, 1, 2]
+        sage: Rational(pari(2.1)) # indirect doctest
+        Traceback (most recent call last):
+        ...
+        TypeError: Attempt to coerce non-integral real number to an Integer
+    """
+    x = x.simplify()
+    if is_rational_t(typ((<Gen>x).g)):
+        INTFRAC_to_mpq(self.value, (<Gen>x).g)
+    else:
+        a = Integer(x)
+        mpz_set(mpq_numref(self.value), a.value)
+        mpz_set_si(mpq_denref(self.value), 1)
+
+
+cpdef Gen new_gen_from_rational(Rational self):
+    """
+    TESTS::
+
+        sage: Integer(pari(2/2))  # indirect doctest
+        1
+        sage: Rational(pari(-1/2))
+        -1/2
+    """
+    return new_gen_from_mpq_t(self.value)
+
+
+cpdef list pari_divisors_small(Integer self):
+    r"""
+    Return the list of divisors of this number using PARI ``divisorsu``.
+
+    .. SEEALSO::
+
+        This method is better used through :meth:`sage.rings.integer.Integer.divisors`.
+
+    EXAMPLES::
+
+        sage: from sage.libs.pari.convert_sage import pari_divisors_small
+        sage: pari_divisors_small(4)
+        [1, 2, 4]
+
+    The integer must fit into an unsigned long::
+
+        sage: pari_divisors_small(-4)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+        sage: pari_divisors_small(2**65)
+        Traceback (most recent call last):
+        ...
+        AssertionError
+    """
+    # we need n to fit into a long and not a unsigned long in order to use
+    # smallInteger
+    assert mpz_fits_slong_p(self.value) and mpz_sgn(self.value) > 0
+
+    cdef unsigned long n = mpz_get_ui(self.value)
+
+    global avma
+    cdef pari_sp ltop = avma
+    cdef GEN d
+    cdef list output
+
+    try:
+        sig_on()
+        d = divisorsu(n)
+        sig_off()
+        output = [smallInteger(d[i]) for i in range(1,lg(d))]
+        return output
+    finally:
+        avma = ltop
+
+
+cpdef pari_is_prime(Integer p):
+    r"""
+    Return whether ``p`` is a prime.
+
+    The caller must ensure that ``p.value`` fits in a long.
+
+    EXAMPLES::
+
+        sage: from sage.libs.pari.convert_sage import pari_is_prime
+        sage: pari_is_prime(2)
+        True
+        sage: pari_is_prime(3)
+        True
+        sage: pari_is_prime(1)
+        False
+        sage: pari_is_prime(4)
+        False
+
+    Its recommended to use :meth:`sage.rings.integer.Integer.is_prime`, which checks overflow.
+    The following is incorrect, because the number does not fit into a long::
+
+        sage: pari_is_prime(2**64 + 2)
+        True
+    """
+    return bool(uisprime(mpz_get_ui(p.value)))
+
+
+cpdef pari_is_prime_power(Integer q, bint get_data):
+    r"""
+    Return whether ``q`` is a prime power.
+
+    The caller must ensure that ``q.value`` fits in a long.
+
+    OUTPUT:
+
+    If ``get_data`` return a tuple of the prime and the exponent.
+    Otherwise return a boolean.
+
+    EXAMPLES::
+
+        sage: from sage.libs.pari.convert_sage import pari_is_prime_power
+        sage: pari_is_prime_power(2, False)
+        True
+        sage: pari_is_prime_power(2, True)
+        (2, 1)
+        sage: pari_is_prime_power(4, False)
+        True
+        sage: pari_is_prime_power(4, True)
+        (2, 2)
+        sage: pari_is_prime_power(6, False)
+        False
+        sage: pari_is_prime_power(6, True)
+        (6, 0)
+
+    Its recommended to use :meth:`sage.rings.integer.Integer.is_prime_power`, which checks overflow.
+    The following is incorrect, because the number does not fit into a long::
+
+        sage: pari_is_prime_power(2**64 + 2, False)
+        True
+    """
+    cdef long p, n
+    n = uisprimepower(mpz_get_ui(q.value), <ulong*>(&p))
+    if n:
+        return (smallInteger(p), smallInteger(n)) if get_data else True
+    else:
+        return (q, smallInteger(0)) if get_data else False

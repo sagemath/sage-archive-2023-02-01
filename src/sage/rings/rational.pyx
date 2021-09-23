@@ -77,10 +77,6 @@ import sage.rings.rational_field
 cimport sage.rings.integer as integer
 from .integer cimport Integer
 
-from cypari2.paridecl cimport *
-from cypari2.gen cimport Gen as pari_gen
-from sage.libs.pari.convert_gmp cimport INT_to_mpz, INTFRAC_to_mpq, new_gen_from_mpq_t
-
 from .integer_ring import ZZ
 from sage.arith.rational_reconstruction cimport mpq_rational_reconstruction
 
@@ -106,6 +102,13 @@ from cpython.int cimport PyInt_AS_LONG
 
 cimport sage.rings.fast_arith
 import  sage.rings.fast_arith
+
+
+try:
+    from cypari2.gen import Gen as pari_gen
+except ImportError:
+    pari_gen = ()
+
 
 cdef sage.rings.fast_arith.arith_int ai
 ai = sage.rings.fast_arith.arith_int()
@@ -647,13 +650,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             mpq_canonicalize(self.value)
 
         elif isinstance(x, pari_gen):
-            x = x.simplify()
-            if is_rational_t(typ((<pari_gen>x).g)):
-                INTFRAC_to_mpq(self.value, (<pari_gen>x).g)
-            else:
-                a = integer.Integer(x)
-                mpz_set(mpq_numref(self.value), a.value)
-                mpz_set_si(mpq_denref(self.value), 1)
+            from sage.libs.pari.convert_sage import set_rational_from_gen
+            set_rational_from_gen(self, x)
 
         elif isinstance(x, list) and len(x) == 1:
             self.__set_value(x[0], base)
@@ -3150,9 +3148,9 @@ cdef class Rational(sage.structure.element.FieldElement):
             3
             sage: (125/8).log(5/2,prec=53)
             3.00000000000000
-            
+
         TESTS::
-        
+
             sage: (25/2).log(5/2)
             log(25/2)/log(5/2)
             sage: (-1/2).log(3)
@@ -3774,7 +3772,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: m.type()
             't_FRAC'
         """
-        return new_gen_from_mpq_t(self.value)
+        from sage.libs.pari.convert_sage import new_gen_from_rational
+        return new_gen_from_rational(self)
 
     def _interface_init_(self, I=None):
         """

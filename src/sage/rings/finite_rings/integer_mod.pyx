@@ -111,6 +111,10 @@ from sage.misc.persist import register_unpickle_override
 
 from sage.structure.parent cimport Parent
 
+from sage.arith.all import crt, lcm
+from sage.groups.generic import discrete_log
+
+
 cdef Integer one_Z = Integer(1)
 
 def Mod(n, m, parent=None):
@@ -622,9 +626,11 @@ cdef class IntegerMod_abstract(FiniteRingElement):
         else:
             return sib(self.parent())(v)
 
-    def log(self, b=None, logarithm_exists=False):
+    def log(self, b=None, logarithm_exists=None):
         r"""
-        Return an integer `x` such that `b^x = a`, where
+        Compute the discrete logarithm of this element to base `b`,
+        that is,
+        return an integer `x` such that `b^x = a`, where
         `a` is ``self``.
 
         INPUT:
@@ -636,19 +642,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
            ``R.multiplicative_generator()`` is used, where
            ``R`` is the parent of ``self``.
 
-        -  ``logarithm_exists`` - a boolean (default ``False``). If ``True``
-           it assumes that the logarithm exists in order to speed up
-           the computation, the code might end up in an infinite loop if this
-           is set to ``True`` but the logarithm does not exist.
-
 
         OUTPUT: Integer `x` such that `b^x = a`, if this exists; a ValueError otherwise.
 
         .. NOTE::
 
-           If the modulus is prime and b is a generator, this calls Pari's ``znlog``
-           function, which is rather fast. If not, it falls back on the generic
-           discrete log implementation in :meth:`sage.groups.generic.discrete_log`.
+           The algorithm first factors the modulus, then invokes Pari's ``znlog``
+           function for each odd prime power in the factorization of the modulus.
+           This method can be quite slow for large moduli.
 
         EXAMPLES::
 
@@ -671,15 +672,19 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: x^a
             4294967356
 
-        Things that can go wrong. E.g., if the base is not a generator for
-        the multiplicative group, or not even a unit.
+        An example with a highly composite modulus::
 
-        ::
+            sage: m = 2^99 * 77^7 * 123456789 * 13712923537615486607^2
+            sage: pow(5, 5735816763073854953388147237921, m).log(5)
+            5735816763073854953388147237921
+
+        Errors are generated if the logarithm doesn't exist
+        or the inputs are not units::
 
             sage: Mod(3, 7).log(Mod(2, 7))
             Traceback (most recent call last):
             ...
-            ValueError: No discrete log of 3 found to base 2 modulo 7
+            ValueError: no logarithm of 3 found to base 2 modulo 7
             sage: a = Mod(16, 100); b = Mod(4,100)
             sage: a.log(b)
             Traceback (most recent call last):
@@ -710,6 +715,27 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: (x^e).log(x)==e
             True
 
+        Examples like this took extremely long before :trac:`32375`::
+
+            sage: pow(5, 10^50-1, 123337052926643**4).log(5)
+            99999999999999999999999999999999999999999999999999
+
+        We check that non-existence of solutions is detected:
+
+        No local solutions::
+
+            sage: Mod(1111, 1234567).log(1111**3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no logarithm of 1111 found to base 961261 modulo 1234567 (no solution modulo 9721)
+
+        Incompatible local solutions::
+
+            sage: Mod(230, 323).log(173)
+            Traceback (most recent call last):
+            ...
+            ValueError: no logarithm of 230 found to base 173 modulo 323 (incompatible local solutions)
+
         AUTHORS:
 
         - David Joyner and William Stein (2005-11)
@@ -718,40 +744,60 @@ cdef class IntegerMod_abstract(FiniteRingElement):
           by David Kohel.
 
         - Simon King (2010-07-07): fix a side effect on PARI
+
+        - Lorenz Panny (2021): speedups for composite moduli
         """
+
+        if logarithm_exists is not None:
+            from sage.misc.superseded import deprecation
+            deprecation(32375, 'The "logarithm_exists" argument to .log() is no longer necessary and will be removed at some point.')
+
         if not self.is_unit():
-            raise ValueError("logarithm of %s is not defined since it is not a unit modulo %s"%(self, self.modulus()))
+            raise ValueError(f"logarithm of {self} is not defined since it is not a unit modulo {self.modulus()}")
 
         if b is None:
             b = self._parent.multiplicative_generator()
-            logarithm_exists = True
         else:
             b = self._parent(b)
-            if not (logarithm_exists or b.is_unit()):
-                raise ValueError("logarithm with base %s is not defined since it is not a unit modulo %s"%(b, b.modulus()))
+            if not b.is_unit():
+                raise ValueError(f"logarithm with base {b} is not defined since it is not a unit modulo {b.modulus()}")
 
-        if logarithm_exists or self.modulus().is_prime():
-            if not logarithm_exists:
-                oa = self.multiplicative_order()
-                ob = b.multiplicative_order()
-                if not oa.divides(ob):
-                    raise ValueError("No discrete log of %s found to base %s modulo %s"%(self, b, self.modulus()))
+        cdef Integer n = Integer()
+        cdef Integer m = one_Z
+        cdef Integer q, na, nb
+
+        for p, e in self.modulus().factor():
+            q = p**e
+            a_red = Mod(self.lift(), q)
+            b_red = Mod(b.lift(), q)
+
+            na = a_red.multiplicative_order()
+            nb = b_red.multiplicative_order()
+            if not na.divides(nb):  # cannot be a power
+                raise ValueError(f"no logarithm of {self} found to base {b} modulo {self.modulus()}" \
+                              + (f" (no solution modulo {q})" if q != self.modulus() else ""))
+
+            if p == 2 and e >= 3:   # (ZZ/2^e)* is not cyclic; must not give unsolvable DLPs to Pari
+                try:
+                    v = discrete_log(a_red, b_red, nb)
+                except ValueError:
+                    raise ValueError(f"no logarithm of {self} found to base {b} modulo {self.modulus()}" \
+                                  + (f" (no solution modulo {q})" if q != self.modulus() else ""))
+            else:
+                try:
+                    v = pari(a_red).znlog(pari(b_red)).sage()
+                except PariError as msg:
+                    raise RuntimeError(f"{msg}\nPARI failed to compute discrete log modulo {q} (perhaps base is not a generator or is too large)")
+                assert v != []  # if this happens, we've made a mistake above (or there is a Pari bug)
 
             try:
-                n = pari(self).znlog(pari(b), pari(b.multiplicative_order()))
-                n = n.sage()
-            except PariError as msg:
-                raise RuntimeError("%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)" % msg)
-            else:
-                if n == []:
-                    raise ValueError("No discrete log of %s found to base %s modulo %s"%(self, b, self.modulus()))
-                return n
+                n = crt(n, v, m, nb)
+            except ValueError:
+                raise ValueError(f"no logarithm of {self} found to base {b} modulo {self.modulus()} (incompatible local solutions)")
+            m = lcm(m, nb)
 
-
-        else: # fall back on slower native implementation
-
-            from sage.groups.generic import discrete_log
-            return discrete_log(self, b)
+#        assert b**n == self
+        return n
 
     def generalised_log(self):
         r"""
@@ -1398,15 +1444,14 @@ cdef class IntegerMod_abstract(FiniteRingElement):
             sage: a.nth_root(2, False, True, 'Johnston', cunningham = True) # optional - cunningham_tables
             [3, 8]
 
-        ALGORITHMS:
+        ALGORITHM:
 
-        - The default for prime modulus is currently an algorithm described in the following paper:
-
-        Johnston, Anna M. A generalized qth root algorithm. Proceedings of the tenth annual ACM-SIAM symposium on Discrete algorithms. Baltimore, 1999: pp 929-930.
+        The default for prime modulus is currently an algorithm
+        described in [Joh1999]_.
 
         AUTHORS:
 
-        - David Roe (2010-2-13)
+        - David Roe (2010-02-13)
         """
         if extend:
             raise NotImplementedError
@@ -4045,14 +4090,14 @@ def lucas(k, P, Q=1, n=None):
         sage: from sage.rings.finite_rings.integer_mod import lucas
         sage: p = randint(0,100000)
         sage: q = randint(0,100000)
-        sage: n = randint(0,100)
+        sage: n = randint(1,100)
         sage: all(lucas(k,p,q,n)[0] == Mod(lucas_number2(k,p,q),n)
         ....:     for k in Integers(20))
         True
         sage: from sage.rings.finite_rings.integer_mod import lucas
         sage: p = randint(0,100000)
         sage: q = randint(0,100000)
-        sage: n = randint(0,100)
+        sage: n = randint(1,100)
         sage: k = randint(0,100)
         sage: lucas(k,p,q,n) == [Mod(lucas_number2(k,p,q),n),Mod(q^(int(k/2)),n)]
         True

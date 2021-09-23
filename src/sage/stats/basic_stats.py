@@ -42,6 +42,7 @@ AUTHOR:
 from sage.rings.integer_ring import ZZ
 from sage.symbolic.constants import NaN
 from sage.functions.other import sqrt
+from sage.misc.superseded import deprecation
 
 
 def mean(v):
@@ -50,6 +51,9 @@ def mean(v):
 
     We define the mean of the empty list to be the (symbolic) NaN,
     following the convention of MATLAB, Scipy, and R.
+
+    This function is deprecated.  Use ``numpy.mean`` or ``numpy.nanmean``
+    instead.
 
     INPUT:
 
@@ -62,6 +66,9 @@ def mean(v):
     EXAMPLES::
 
         sage: mean([pi, e])
+        doctest:warning...
+        DeprecationWarning: sage.stats.basic_stats.mean is deprecated; use numpy.mean or numpy.nanmean instead
+        See https://trac.sagemath.org/29662 for details.
         1/2*pi + 1/2*e
         sage: mean([])
         NaN
@@ -75,6 +82,7 @@ def mean(v):
         sage: mean(v)
         50.5
     """
+    deprecation(29662, 'sage.stats.basic_stats.mean is deprecated; use numpy.mean or numpy.nanmean instead')
     if hasattr(v, 'mean'):
         return v.mean()
     if not v:
@@ -95,6 +103,9 @@ def mode(v):
     in `v`, then the mode is the list of elements of `v` that
     occur `n` times. The list is sorted if possible.
 
+    This function is deprecated.  Use ``scipy.stats.mode`` or
+    ``statistics.mode`` instead.
+
     .. NOTE::
 
         The elements of `v` must be hashable.
@@ -111,6 +122,9 @@ def mode(v):
 
         sage: v = [1,2,4,1,6,2,6,7,1]
         sage: mode(v)
+        doctest:warning...
+        DeprecationWarning: sage.stats.basic_stats.mode is deprecated; use scipy.stats.mode or statistics.mode instead
+        See https://trac.sagemath.org/29662 for details.
         [1]
         sage: v.count(1)
         3
@@ -133,6 +147,8 @@ def mode(v):
         sage: stats.mode(MyClass())
         [1]
     """
+    deprecation(29662, 'sage.stats.basic_stats.mode is deprecated; use scipy.stats.mode or statistics.mode instead')
+
     if hasattr(v, 'mode'):
         return v.mode()
 
@@ -160,6 +176,9 @@ def std(v, bias=False):
     We define the standard deviation of the empty list to be NaN,
     following the convention of MATLAB, Scipy, and R.
 
+    This function is deprecated.  Use ``numpy.std`` or ``numpy.nanstd``
+    instead.
+
     INPUT:
 
     - `v` -- a list of numbers
@@ -176,6 +195,15 @@ def std(v, bias=False):
     EXAMPLES::
 
         sage: std([1..6], bias=True)
+        doctest:warning...
+        DeprecationWarning: sage.stats.basic_stats.std is deprecated; use numpy.std or numpy.nanstd instead
+        See https://trac.sagemath.org/29662 for details.
+        doctest:warning...
+        DeprecationWarning: sage.stats.basic_stats.variance is deprecated; use numpy.var or numpy.nanvar instead
+        See https://trac.sagemath.org/29662 for details.
+        doctest:warning...
+        DeprecationWarning: sage.stats.basic_stats.mean is deprecated; use numpy.mean or numpy.nanmean instead
+        See https://trac.sagemath.org/29662 for details.
         1/2*sqrt(35/3)
         sage: std([1..6], bias=False)
         sqrt(7/2)
@@ -202,6 +230,8 @@ def std(v, bias=False):
         sage: std(data)  # random
         0.29487771726609185
     """
+    deprecation(29662, 'sage.stats.basic_stats.std is deprecated; use numpy.std or numpy.nanstd instead')
+
     # NOTE: in R bias = False by default, and in Scipy bias=True by
     # default, and R is more popular.
 
@@ -231,6 +261,9 @@ def variance(v, bias=False):
     We define the variance of the empty list to be NaN,
     following the convention of MATLAB, Scipy, and R.
 
+    This function is deprecated.  Use ``numpy.var`` or ``numpy.nanvar``
+    instead.
+
     INPUT:
 
     - `v` -- a list of numbers
@@ -247,6 +280,9 @@ def variance(v, bias=False):
     EXAMPLES::
 
         sage: variance([1..6])
+        doctest:warning...
+        DeprecationWarning: sage.stats.basic_stats.variance is deprecated; use numpy.var or numpy.nanvar instead
+        See https://trac.sagemath.org/29662 for details.
         7/2
         sage: variance([1..6], bias=True)
         35/12
@@ -295,6 +331,8 @@ def variance(v, bias=False):
         sage: variance([1] * 2^18)
         0
     """
+    deprecation(29662, 'sage.stats.basic_stats.variance is deprecated; use numpy.var or numpy.nanvar instead')
+
     if hasattr(v, 'variance'):
         return v.variance(bias=bias)
     import numpy
@@ -334,6 +372,9 @@ def median(v):
     If `v` is comprised of strings, TypeError occurs.
     For elements other than numbers, the median is a result of ``sorted()``.
 
+    This function is deprecated.  Use ``numpy.median`` or ``numpy.nanmedian``
+    instead.
+
     INPUT:
 
     - `v` -- a list
@@ -345,6 +386,9 @@ def median(v):
     EXAMPLES::
 
         sage: median([1,2,3,4,5])
+        doctest:warning...
+        DeprecationWarning: sage.stats.basic_stats.median is deprecated; use numpy.median or numpy.nanmedian instead
+        See https://trac.sagemath.org/29662 for details.
         3
         sage: median([e, pi])
         1/2*pi + 1/2*e
@@ -358,6 +402,8 @@ def median(v):
         sage: stats.median(MyClass())
         1
     """
+    deprecation(29662, 'sage.stats.basic_stats.median is deprecated; use numpy.median or numpy.nanmedian instead')
+
     if hasattr(v, 'median'):
         return v.median()
 
@@ -381,6 +427,8 @@ def moving_average(v, n):
 
     If `v` is empty, we define the entries of the moving average to be NaN.
 
+    This method is deprecated.  Use ``pandas.Series.rolling`` instead.
+
     INPUT:
 
     - `v` -- a list
@@ -394,6 +442,9 @@ def moving_average(v, n):
     EXAMPLES::
 
         sage: moving_average([1..10], 1)
+        doctest:warning...
+        DeprecationWarning: sage.stats.basic_stats.moving_average is deprecated; use pandas.Series.rolling instead
+        See https://trac.sagemath.org/29662 for details.
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         sage: moving_average([1..10], 4)
         [5/2, 7/2, 9/2, 11/2, 13/2, 15/2, 17/2]
@@ -415,6 +466,8 @@ def moving_average(v, n):
         [2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
 
     """
+    deprecation(29662, 'sage.stats.basic_stats.moving_average is deprecated; use pandas.Series.rolling instead')
+
     if not v:
         return v
     from sage.finance.time_series import TimeSeries

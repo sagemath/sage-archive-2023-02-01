@@ -607,7 +607,17 @@ def RandomBoundedToleranceGraph(n):
     Check that :trac:`32186` is fixed::
 
         sage: for _ in range(100): _ = graphs.RandomBoundedToleranceGraph(1)
+
+    Check input parameter::
+
+        sage: g = graphs.RandomToleranceGraph(-2)
+        Traceback (most recent call last):
+        ...
+        ValueError: the number `n` of vertices must be >= 0
     """
+    if n < 0:
+        raise ValueError('the number `n` of vertices must be >= 0')
+
     from sage.graphs.generators.intersection import ToleranceGraph
 
     W = n ** 2 * 2 ** n
@@ -1487,13 +1497,13 @@ def RandomShell(constructor, seed=None):
 
 def RandomToleranceGraph(n):
     r"""
-    Returns a random tolerance graph.
+    Return a random tolerance graph.
 
     The random tolerance graph is built from a random tolerance representation
     by using the function `ToleranceGraph`. This representation is a list
     `((l_0,r_0,t_0), (l_1,r_1,t_1), ..., (l_k,r_k,t_k))` where `k = n-1` and
     `I_i = (l_i,r_i)` denotes a random interval and `t_i` a random positive
-    value. The width of the representation is limited to n**2 * 2**n.
+    value. The width of the representation is limited to `n^2 * 2^n`.
 
     .. NOTE::
 
@@ -1519,16 +1529,22 @@ def RandomToleranceGraph(n):
         sage: g = graphs.RandomToleranceGraph(-2)
         Traceback (most recent call last):
         ...
-        ValueError: The number `n` of vertices must be >= 0.
+        ValueError: the number `n` of vertices must be >= 0
     """
     from sage.graphs.generators.intersection import ToleranceGraph
 
-    if n<0:
-        raise ValueError('The number `n` of vertices must be >= 0.')
+    if n < 0:
+        raise ValueError('the number `n` of vertices must be >= 0')
 
     W = n**2 * 2**n
 
-    tolrep = [tuple(sorted((randint(0,W), randint(0,W)))) + (randint(0,W),) for i in range(n)]
+    tolrep = []
+    for _ in range(n):
+        l = randint(0, W)
+        r = randint(0, W)
+        if l > r:
+            l, r = r, l
+        tolrep.append((l, r, randint(0, W)))
 
     return ToleranceGraph(tolrep)
 

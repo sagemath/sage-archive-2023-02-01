@@ -3789,6 +3789,12 @@ REFERENCES:
              Algebra 207 (2006), no 1, pages 1-18.
              Preprint: :arxiv:`math/0504296v2`.
 
+.. [LKOL2002] Hyeong-Ok Lee, Jong-Seok Kim, Eunseuk Oh and Hyeong-Seok Lim,
+              *Hyper-Star Graph: A New Interconnection Network Improving the
+              Network Cost of the Hypercube*, Eurasian Conference on Information
+              and Communication Technology, LNCS 2510, pp 858-865, 2002.
+              :doi:`10.1007/3-540-36087-5_99`
+
 .. [LLM2003] \A. Lascoux, L. Lapointe, and J. Morse.  *Tableau atoms and a new
              Macdonald positivity conjecture.* Duke Math Journal, **116 (1)**,
              2003.  :arxiv:`math/0008073`

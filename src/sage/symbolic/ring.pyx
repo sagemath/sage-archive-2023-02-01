@@ -1246,6 +1246,8 @@ cdef class UnderscoreSageMorphism(Morphism):
         import sage.categories.homset
         from sage.sets.pythonclass import Set_PythonType
         Morphism.__init__(self, sage.categories.homset.Hom(Set_PythonType(t), R))
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
 
     cpdef Element _call_(self, a):
         """

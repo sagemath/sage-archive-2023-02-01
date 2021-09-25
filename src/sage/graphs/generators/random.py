@@ -608,7 +608,6 @@ def RandomBoundedToleranceGraph(n):
 
         sage: for _ in range(100): _ = graphs.RandomBoundedToleranceGraph(1)
     """
-    from sage.misc.prandom import randint
     from sage.graphs.generators.intersection import ToleranceGraph
 
     W = n ** 2 * 2 ** n
@@ -1331,7 +1330,6 @@ def RandomTree(n):
         sage: graphs.RandomTree(1)
         Graph on 1 vertex
     """
-    from sage.misc.prandom import randint
     g = Graph(n)
     if n <= 1:
         return g
@@ -1523,7 +1521,6 @@ def RandomToleranceGraph(n):
         ...
         ValueError: The number `n` of vertices must be >= 0.
     """
-    from sage.misc.prandom import randint
     from sage.graphs.generators.intersection import ToleranceGraph
 
     if n<0:

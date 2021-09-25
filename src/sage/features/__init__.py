@@ -53,7 +53,6 @@ As can be seen above, features try to produce helpful error messages.
 
 import os
 import shutil
-from distutils.errors import CCompilerError
 
 from sage.env import SAGE_SHARE
 from sage.misc.lazy_string import lazy_string
@@ -770,6 +769,7 @@ class CythonFeature(Feature):
             FeatureTestResult('empty', True)
         """
         from sage.misc.temporary_file import tmp_filename
+        from distutils.errors import CCompilerError
         with open(tmp_filename(ext=".pyx"), 'w') as pyx:
             pyx.write(self.test_code)
         from sage.misc.cython import cython_import

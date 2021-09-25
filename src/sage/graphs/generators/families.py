@@ -2105,9 +2105,9 @@ def HyperStarGraph(n, k):
 
     INPUT:
 
-    -  ``n`` -- non-negative integer; length of the binary strings
+    - ``n`` -- non-negative integer; length of the binary strings
 
-    -  ``k`` -- non-negative integer; number of 1s per binary string
+    - ``k`` -- non-negative integer; number of 1s per binary string
 
     EXAMPLES::
 

@@ -160,20 +160,6 @@ Ho scaricato il binario di Sage e va in crash quando lo lancio, con il messaggio
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Un modo di risolvere è compilare Sage interamente dal codice sorgente.
-Un'altra possibilità è correggere la tua installazione di Sage con la
-ricompilazione dei componenti MPIR e ATLAS (richiede da 15 a 20 minuti),
-da effettuarsi da riga di comando a partire dalla cartella
-``SAGE_ROOT`` della tua installazione con le 2 istruzioni::
-
-    rm spkg/installed/mpir* spkg/installed/atlas*
-    make
-
-È possibile che i binari siano stati compilati per un'architettura più
-recente di quella della tua macchina. Nessuno ha ancora trovato un
-modo di compilare Sage in maniera che MPIR ed ATLAS funzionino su
-qualunque hardware. Questo sarà prima o poi risolto.
-Qualunque aiuto in tal senso sarà apprezzato.
-
 
 Ho usato Debian/Ubuntu per installare la versione 3.0.5 di Sage ed essa sta dando un sacco di errori. Cosa posso fare?
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

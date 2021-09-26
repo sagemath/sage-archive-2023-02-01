@@ -1,4 +1,4 @@
-$(INST)/xz-$(vers_xz)
+$(SAGE_LOCAL)/$(SPKG_INST_RELDIR)/xz-$(vers_xz)
 
 ----------
 All lines of this file are ignored except the first.

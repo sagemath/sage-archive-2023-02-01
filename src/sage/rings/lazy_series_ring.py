@@ -34,6 +34,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.lazy_series import (LazyModuleElement,
+                                    LazyCauchyProductSeries,
                                     LazyLaurentSeries,
                                     LazyDirichletSeries)
 from sage.structure.global_options import GlobalOptions
@@ -253,6 +254,13 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             ...
             ValueError: constant may only be specified if the degree is specified
 
+            sage: D = LazyDirichletSeriesRing(ZZ, 't')
+            sage: m = D(moebius)
+            sage: L(m)
+            Traceback (most recent call last):
+            ...
+            ValueError: unable to convert ... into Lazy Laurent Series Ring ...
+
         We support the old input format for ``constant``::
 
             sage: f = L(lambda i: i, valuation=-3, constant=-1, degree=3)
@@ -262,11 +270,6 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: g = L(lambda i: i, -3, (-1,3))
             sage: f == g
             True
-
-            sage: D = LazyDirichletSeriesRing(ZZ, 't')
-            sage: m = D(moebius)
-            sage: L(m)
-            z - z^2 - z^3 - z^5 + z^6 - z^7 + O(z^8)
 
         .. TODO::
 
@@ -318,7 +321,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 return self.element_class(self, coeff_stream)
 
             # Handle when it is a lazy series
-            if isinstance(x, LazyModuleElement):
+            if isinstance(x, LazyCauchyProductSeries):
                 if x._coeff_stream._is_sparse is not self._sparse:
                     # TODO: Implement a way to make a self._sparse copy
                     raise NotImplementedError("cannot convert between sparse and dense")

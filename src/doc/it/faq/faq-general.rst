@@ -185,7 +185,7 @@ realizzate attraverso progetti FOSS come
 * `NumPy <http://numpy.scipy.org>`_ --- algebra lineare numerica ed altre
   funzioni di calcolo numerico per Python.
 
-* `Pari/GP <http://pari.math.u-bordeaux.fr>`_ --- software matematico per
+* `Pari/GP <https://pari.math.u-bordeaux.fr>`_ --- software matematico per
   calcolo veloce in Teoria dei Numeri.
 
 * `Pynac <http://pynac.sagemath.org>`_ --- versione modificata di GiNaC che

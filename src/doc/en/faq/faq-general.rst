@@ -197,7 +197,7 @@ functionalities are made possible through FOSS projects such as
 * `NumPy and SciPy <https://scipy.org>`_ --- numerical linear algebra and
   other numerical computing capabilities for Python.
 * `OpenBLAS <https://www.openblas.net/>`_  --- an optimized BLAS library.
-* `Pari/GP <http://pari.math.u-bordeaux.fr>`_ --- a computer algebra
+* `Pari/GP <https://pari.math.u-bordeaux.fr>`_ --- a computer algebra
   system for fast computations in number theory.
 * `Pynac <http://pynac.sagemath.org>`_ --- a modified version of GiNaC
   that replaces the dependency on CLN by Python.

@@ -181,8 +181,6 @@ Why did you write Sage from scratch, instead of using other existing software an
 Sage was not written from scratch. Most of its underlying mathematics
 functionalities are made possible through FOSS projects such as
 
-* `ATLAS <http://math-atlas.sourceforge.net>`_ --- Automatically Tuned
-  Linear Algebra Software.
 * `BLAS <https://www.netlib.org/blas>`_ --- Basic Linear Algebra
   Subprograms.
 * `ECL <https://common-lisp.net/project/ecl>`_ --- Embeddable Common-Lisp system
@@ -199,7 +197,7 @@ functionalities are made possible through FOSS projects such as
 * `NumPy and SciPy <https://scipy.org>`_ --- numerical linear algebra and
   other numerical computing capabilities for Python.
 * `OpenBLAS <https://www.openblas.net/>`_  --- an optimized BLAS library.
-* `Pari/GP <http://pari.math.u-bordeaux.fr>`_ --- a computer algebra
+* `Pari/GP <https://pari.math.u-bordeaux.fr>`_ --- a computer algebra
   system for fast computations in number theory.
 * `Pynac <http://pynac.sagemath.org>`_ --- a modified version of GiNaC
   that replaces the dependency on CLN by Python.

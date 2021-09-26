@@ -8,3 +8,13 @@ cdef class RealField(Field):
 cdef class RealDoubleField(Field):
 
     pass
+
+
+cdef class ComplexField(Field):
+
+    pass
+
+
+cdef class ComplexDoubleField(Field):
+
+    pass

@@ -655,11 +655,11 @@ def NonisotropicUnitaryPolarGraph(m, q):
     r"""
     Return the Graph `NU(m,q)`.
 
-    Returns the graph on nonisotropic, with respect to a nondegenerate Hermitean
-    form, points of the `(m-1)`-dimensional projective space over `F_q`, with
-    points adjacent whenever they lie on a tangent (to the set of isotropic
-    points) line.  For more information, see Sect. 9.9 of [BH2012]_ and series
-    C14 in [Hub1975]_.
+    This returns the graph on nonisotropic, with respect to a nondegenerate
+    Hermitean form, points of the `(m-1)`-dimensional projective space over
+    `F_q`, with points adjacent whenever they lie on a tangent (to the set of
+    isotropic points) line.  For more information, see Sect. 9.9 of [BH2012]_
+    and series C14 in [Hub1975]_.
 
     INPUT:
 

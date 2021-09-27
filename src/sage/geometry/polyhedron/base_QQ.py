@@ -1175,8 +1175,7 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: p2.is_effective(Hstar,Hlin)   # optional - pynormaliz
             True
 
-        The `H^*` series must be a polynomial in order to be effective. If it is
-        not polynomial, a value error is returned::
+        If the `H^*`-series is not polynomial, then it is not effective::
 
             sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1], # optional - pynormaliz
             ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')                    # optional - pynormaliz
@@ -1186,9 +1185,7 @@ class Polyhedron_QQ(Polyhedron_base):
             (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
             sage: Hstar_lin = P.Hstar_function(H, output = 'Hstar_as_lin_comb')        # optional - pynormaliz
             sage: P.is_effective(Hstar, Hstar_lin)                               # optional - pynormaliz
-            Traceback (most recent call last):
-            ...
-            ValueError: The Hstar vector must be polynomial
+            False
         """
         if self.is_empty():
             raise NotImplementedError('Empty polyhedra are not supported')

@@ -2388,8 +2388,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
         ts_matrix = t * identity_matrix(Ring, dim)
         identity = identity_matrix(Ring, dim)
 
-        # create a flag to fix the determinant if polytope isn't full dimensional
-        flag = False
+        # ix the determinant if polytope isn't full dimensional
         codim = self.ambient_dim() - self.dim()
         for perm in conj_reps:
             mat = group_dict[perm]
@@ -2525,8 +2524,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             sage: p2._is_effective_normaliz(Hstar,Hlin)                # optional - pynormaliz
             True
 
-        The `H^*` series must be a polynomial in order to be effective. If it is
-        not polynomial, a value error is returned::
+        If the `H^*`-series is not polynomial, then it is not effective::
 
             sage: P = Polyhedron(vertices=[[0,0,1],[0,0,-1],[1,0,1],[-1,0,-1],[0,1,1], # optional - pynormaliz
             ....: [0,-1,-1],[1,1,1],[-1,-1,-1]],backend='normaliz')                    # optional - pynormaliz
@@ -2536,12 +2534,10 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             (chi_0*t^4 + (3*chi_0 + 3*chi_1)*t^3 + (8*chi_0 + 2*chi_1)*t^2 + (3*chi_0 + 3*chi_1)*t + chi_0)/(t + 1)
             sage: Hstar_lin = P.Hstar_function(H, output = 'Hstar_as_lin_comb')        # optional - pynormaliz
             sage: P._is_effective_normaliz(Hstar, Hstar_lin)                     # optional - pynormaliz
-            Traceback (most recent call last):
-            ...
-            ValueError: The Hstar vector must be polynomial
+            False
         """
         if not Hstar.denominator().is_unit():
-            raise ValueError("The Hstar vector must be polynomial")
+            return False
         for irrep in range(len(Hstar_as_lin_comb)):
             coeffs = Hstar_as_lin_comb[irrep].numerator().coefficients()
             for i in coeffs:

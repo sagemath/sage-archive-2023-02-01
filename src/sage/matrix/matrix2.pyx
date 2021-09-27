@@ -9187,13 +9187,13 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
-    def is_diagonal(self):
+    def is_diagonal(self) -> bool:
         """
-        Return True if this matrix is a diagonal matrix.
+        Return ``True`` if this matrix is a diagonal matrix.
 
         OUTPUT:
 
-        - whether self is a diagonal matrix.
+        boolean
 
         EXAMPLES::
 
@@ -9221,9 +9221,51 @@ cdef class Matrix(Matrix1):
                         return False
         return True
 
-    def is_unitary(self):
+    def is_triangular(self, side="lower") -> bool:
+        """
+        Return ``True`` if this matrix is a triangular matrix.
+
+        INPUT:
+
+        - ``side`` -- either ``"lower"`` (default) or ``"upper"``
+
+        OUTPUT:
+
+        boolean
+
+        EXAMPLES::
+
+            sage: m = matrix(QQ, 2, 2, range(4))
+            sage: m.is_triangular()
+            False
+            sage: m = matrix(QQ, 2, [5, 0, 0, 5])
+            sage: m.is_triangular()
+            True
+            sage: m = matrix(QQ, 2, [1, 2, 0, 1])
+            sage: m.is_triangular("upper")
+            True
+            sage: m.is_triangular("lower")
+            False
+        """
+        if not self.is_square():
+            return False
+        cdef Py_ssize_t i, j
+
+        if side == "upper":
+            for i in range(1, self._nrows):
+                for j in range(i):
+                    if not self.get_unsafe(i, j).is_zero():
+                        return False
+        else:
+            for i in range(self._nrows - 1):
+                for j in range(i + 1, self._ncols):
+                    if not self.get_unsafe(i, j).is_zero():
+                        return False
+        return True
+
+    def is_unitary(self) -> bool:
         r"""
-        Returns ``True`` if the columns of the matrix are an orthonormal basis.
+        Return ``True`` if the columns of the matrix are an orthonormal basis.
 
         For a matrix with real entries this determines if a matrix is
         "orthogonal" and for a matrix with complex entries this determines
@@ -10963,6 +11005,16 @@ cdef class Matrix(Matrix1):
             Traceback (most recent call last):
             ...
             ValueError: Matrix entries must be from a field, not Ring of integers modulo 6
+
+        Test for :trac:`10563`::
+
+            sage: R = FractionField(PolynomialRing(RationalField(),'a'))
+            sage: a = R.gen()
+            sage: A = matrix(R,[[1,a],[a,1]])
+            sage: A.jordan_form()
+            [ a + 1|     0]
+            [------+------]
+            [     0|-a + 1]
         """
         from sage.matrix.constructor import block_diagonal_matrix, jordan_block, diagonal_matrix
         from sage.combinat.partition import Partition

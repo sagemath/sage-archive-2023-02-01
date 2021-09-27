@@ -95,7 +95,6 @@ class QuasiModularFormsElement(ModuleElement):
             if not isinstance(f, GradedModularFormElement):
                 raise ValueError("at least one coefficient is not a 'GradedModularFormElement'")
         self._polynomial = polynomial
-        self._coefficients = polynomial.coefficients(sparse=False)
         ModuleElement.__init__(self, parent)
 
     def q_expansion(self, prec=6):
@@ -114,7 +113,8 @@ class QuasiModularFormsElement(ModuleElement):
             1 - 24*q - 72*q^2 - 96*q^3 - 168*q^4 - 144*q^5 - 288*q^6 - 192*q^7 - 360*q^8 - 312*q^9 + O(q^10)
         """
         E2 = eisenstein_series_qexp(2, prec=prec, K=self.base_ring(), normalization='constant') #normalization -> to force integer coefficients
-        return sum(f.q_expansion(prec=prec)*E2**idx for idx, f in enumerate(self._coefficients))
+        coefficients = self._polynomial.coefficients(sparse=False)
+        return sum(f.q_expansion(prec=prec)*E2**idx for idx, f in enumerate(coefficients))
 
     qexp = q_expansion # alias
 
@@ -312,6 +312,8 @@ class QuasiModularFormsElement(ModuleElement):
             False
             sage: (QM.1 + QM.2 + QM.1 * QM.3).is_graded_modular_form()
             True
+            sage: QM.zero().is_graded_modular_form()
+            True
 
         .. NOTE::
 
@@ -319,7 +321,7 @@ class QuasiModularFormsElement(ModuleElement):
             as it can have mixed weight components. To check for modular forms
             only, see the method :meth:`is_modular_form`.
         """
-        return not self._polynomial.degree()
+        return self._polynomial.degree() <= 0
 
     def is_modular_form(self):
         r"""
@@ -335,8 +337,10 @@ class QuasiModularFormsElement(ModuleElement):
             True
             sage: (QM.1 + QM.2).is_modular_form() # mixed weight components
             False
+            sage: QM.zero().is_modular_form()
+            True
         """
-        return not self._polynomial.degree() and self._polynomial[0].is_modular_form()
+        return self._polynomial.degree() <= 0 and self._polynomial[0].is_modular_form()
 
     def to_polynomial(self, names='E2, E4, E6'):
         r"""

@@ -1140,6 +1140,21 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             False
             sage: 15/36 in Integers(6)
             False
+
+        Check that :trac:`32078` is fixed::
+
+            sage: P = Frac(ZZ['x,y'])
+            sage: P(1) in ZZ
+            True
+            sage: P(1/2) in ZZ
+            False
+
+        Check that :trac:`24209` is fixed::
+
+            sage: I in QQbar
+            True
+            sage: sqrt(-1) in QQbar
+            True
         """
         P = parent(x)
         if P is self or P == self:
@@ -1163,7 +1178,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             # SR is ultra-permissive about letting other rings
             # coerce in, but ultra-strict about doing
             # comparisons.
-        except (TypeError, ValueError, ZeroDivisionError):
+        except (TypeError, ValueError, ArithmeticError):
             return False
 
     cpdef coerce(self, x):
@@ -1318,7 +1333,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         from sage.categories.homset import Hom
         return Hom(self, codomain, category)
 
-    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None):
+    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None, **kwds):
         r"""
         Return the unique homomorphism from self to codomain that
         sends ``self.gens()`` to the entries of ``im_gens``.
@@ -1402,7 +1417,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
         # Not all homsets accept category/check/base_map as arguments
-        kwds = {}
         if check is not None:
             kwds['check'] = check
         if base_map is not None:

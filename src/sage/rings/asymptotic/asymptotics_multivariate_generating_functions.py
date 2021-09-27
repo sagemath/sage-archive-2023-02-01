@@ -4030,7 +4030,7 @@ def diff_op(A, B, AB_derivs, V, M, r, N):
         sage: DD = diff_op(A, B, AB_derivs, T, M, 1, 2)
         sage: sorted(DD)
         [(0, 0, 0), (0, 1, 0), (0, 1, 1), (0, 1, 2)]
-        sage: len(DD[(0, 1, 2)])
+        sage: DD[(0, 1, 2)].number_of_operands()
         246
     """
     from itertools import product

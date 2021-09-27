@@ -124,10 +124,10 @@ class DiffMap(ContinuousMap):
         sage: type(Phi)
         <class 'sage.manifolds.differentiable.manifold_homset.DifferentiableManifoldHomset_with_category.element_class'>
         sage: Phi.display()
-        Phi: S^2 --> R^3
-        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
+        Phi: S^2 → R^3
+        on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
          (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
-        on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
+        on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
          -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
     It is possible to create the map via the method
@@ -154,8 +154,8 @@ class DiffMap(ContinuousMap):
     on the manifold `S^2`, being known in only one chart::
 
         sage: Phi1.display()
-        Phi: S^2 --> R^3
-        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
+        Phi: S^2 → R^3
+        on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
          (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
 
     The definition can be completed by means of the method
@@ -164,10 +164,10 @@ class DiffMap(ContinuousMap):
         sage: Phi1.add_expr(c_uv, c_cart, [2*u/(1+u^2+v^2), 2*v/(1+u^2+v^2),
         ....:                              (1-u^2-v^2)/(1+u^2+v^2)])
         sage: Phi1.display()
-        Phi: S^2 --> R^3
-        on U: (x, y) |--> (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
+        Phi: S^2 → R^3
+        on U: (x, y) ↦ (X, Y, Z) = (2*x/(x^2 + y^2 + 1), 2*y/(x^2 + y^2 + 1),
          (x^2 + y^2 - 1)/(x^2 + y^2 + 1))
-        on V: (u, v) |--> (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
+        on V: (u, v) ↦ (X, Y, Z) = (2*u/(u^2 + v^2 + 1), 2*v/(u^2 + v^2 + 1),
          -(u^2 + v^2 - 1)/(u^2 + v^2 + 1))
 
     At this stage, ``Phi1`` and ``Phi`` are fully equivalent::
@@ -214,10 +214,10 @@ class DiffMap(ContinuousMap):
     the default bases being::
 
         sage: Phi.differential(np).domain().default_basis()
-        Basis (d/du,d/dv) on the Tangent space at Point N on the 2-dimensional
+        Basis (∂/∂u,∂/∂v) on the Tangent space at Point N on the 2-dimensional
          differentiable manifold S^2
         sage: Phi.differential(np).codomain().default_basis()
-        Basis (d/dX,d/dY,d/dZ) on the Tangent space at Point Phi(N) on the
+        Basis (∂/∂X,∂/∂Y,∂/∂Z) on the Tangent space at Point Phi(N) on the
          3-dimensional differentiable manifold R^3
 
     Differentiable maps can be composed by means of the operator ``*``: let
@@ -233,8 +233,8 @@ class DiffMap(ContinuousMap):
         Differentiable map Psi from the 3-dimensional differentiable manifold
          R^3 to the 2-dimensional differentiable manifold R^2
         sage: Psi.display()
-        Psi: R^3 --> R^2
-           (X, Y, Z) |--> (xP, yP) = (-X/(Z - 1), -Y/(Z - 1))
+        Psi: R^3 → R^2
+           (X, Y, Z) ↦ (xP, yP) = (-X/(Z - 1), -Y/(Z - 1))
 
     Then we compose ``Psi`` with ``Phi``, thereby getting a map
     `S^2\rightarrow \RR^2`::
@@ -253,9 +253,9 @@ class DiffMap(ContinuousMap):
     its coordinate expression reveals::
 
         sage: ster.display()
-        S^2 --> R^2
-        on U: (x, y) |--> (xP, yP) = (x, y)
-        on V: (u, v) |--> (xP, yP) = (u/(u^2 + v^2), v/(u^2 + v^2))
+        S^2 → R^2
+        on U: (x, y) ↦ (xP, yP) = (x, y)
+        on V: (u, v) ↦ (xP, yP) = (u/(u^2 + v^2), v/(u^2 + v^2))
 
     If its codomain is 1-dimensional, a differentiable map must be
     defined by a single symbolic expression for each pair of charts, and not
@@ -282,8 +282,8 @@ class DiffMap(ContinuousMap):
         sage: Phi.parent() is Hom(R, R2)
         True
         sage: Phi.display()
-        Phi: R --> R^2
-           t |--> (x, y) = (cos(t), sin(t))
+        Phi: R → R^2
+           t ↦ (x, y) = (cos(t), sin(t))
 
     An example of diffeomorphism between the unit open disk and the Euclidean
     plane `\RR^2`::
@@ -302,8 +302,8 @@ class DiffMap(ContinuousMap):
         sage: Phi.parent() is Hom(D, R2)
         True
         sage: Phi.display()
-        Phi: D --> R^2
-           (x, y) |--> (x, y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
+        Phi: D → R^2
+           (x, y) ↦ (x, y) = (x/sqrt(-x^2 - y^2 + 1), y/sqrt(-x^2 - y^2 + 1))
 
     The image of a point::
 
@@ -320,8 +320,8 @@ class DiffMap(ContinuousMap):
         Diffeomorphism Phi^(-1) from the 2-dimensional differentiable manifold R^2
          to the Open subset D of the 2-dimensional differentiable manifold R^2
         sage: Phi.inverse().display()
-        Phi^(-1): R^2 --> D
-           (x, y) |--> (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
+        Phi^(-1): R^2 → D
+           (x, y) ↦ (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
 
     Equivalently, one may use the notations ``^(-1)`` or ``~`` to get the
     inverse::
@@ -343,8 +343,8 @@ class DiffMap(ContinuousMap):
     The coordinate expression of the inverse diffeomorphism::
 
         sage: (~Phi).display()
-        Phi^(-1): R^2 --> D
-           (x, y) |--> (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
+        Phi^(-1): R^2 → D
+           (x, y) ↦ (x, y) = (x/sqrt(x^2 + y^2 + 1), y/sqrt(x^2 + y^2 + 1))
 
     A special case of diffeomorphism: the identity map of the open unit disk::
 
@@ -375,8 +375,8 @@ class DiffMap(ContinuousMap):
     The coordinate expression of the identity map::
 
         sage: id.display()
-        Id_D: D --> D
-           (x, y) |--> (x, y)
+        Id_D: D → D
+           (x, y) ↦ (x, y)
 
     The identity map is its own inverse::
 
@@ -401,8 +401,8 @@ class DiffMap(ContinuousMap):
             Differentiable map f from the 2-dimensional differentiable manifold
              M to the 3-dimensional differentiable manifold N
             sage: f.display()
-            f: M --> N
-               (x, y) |--> (u, v, w) = (x + y, x*y, x - y)
+            f: M → N
+               (x, y) ↦ (u, v, w) = (x + y, x*y, x - y)
             sage: TestSuite(f).run()
 
         The identity map::
@@ -410,8 +410,8 @@ class DiffMap(ContinuousMap):
             sage: f = Hom(M,M)({}, is_identity=True) ; f
             Identity map Id_M of the 2-dimensional differentiable manifold M
             sage: f.display()
-            Id_M: M --> M
-               (x, y) |--> (x, y)
+            Id_M: M → M
+               (x, y) ↦ (x, y)
             sage: TestSuite(f).run()
 
         """
@@ -488,10 +488,11 @@ class DiffMap(ContinuousMap):
             sage: f._inverse
 
         """
-        ContinuousMap._init_derived(self)  # derived quantities of the mother
-                                           # class
-        self._diff = {} # dict. of the coord. expressions of the differential
-                        # keys: pair of charts
+        ContinuousMap._init_derived(self)
+        # derived quantities of the mother class
+        self._diff = {}
+        # dict. of the coord. expressions of the differential
+        # keys: pair of charts
 
     def _del_derived(self):
         r"""
@@ -747,7 +748,7 @@ class DiffMap(ContinuousMap):
             <class 'sage.manifolds.chart_func.ChartFunctionRing_with_category.element_class'>
 
             sage: J[2][0].display()
-            (x, y) |--> 2*x
+            (x, y) ↦ 2*x
 
         In contrast, the method :meth:`jacobian_matrix` leads directly to
         symbolic expressions::
@@ -795,7 +796,7 @@ class DiffMap(ContinuousMap):
         .. MATH::
 
             J = \left( \frac{\partial Y^i}{\partial x^j}
-              \right)_{{1 \leq i \leq m \atop 1 \leq j \leq n}},
+              \right)_{\substack{1 \leq i \leq m \\ 1 \leq j \leq n}},
 
         where `i` is the row index and `j` the column one.
 
@@ -823,8 +824,8 @@ class DiffMap(ContinuousMap):
             sage: Phi = M.diff_map(N, {(X,Y): (x-2*y, x*y, x^2-y^3)}, name='Phi',
             ....:                  latex_name = r'\Phi')
             sage: Phi.display()
-            Phi: M --> N
-               (x, y) |--> (u, v, w) = (x - 2*y, x*y, -y^3 + x^2)
+            Phi: M → N
+               (x, y) ↦ (u, v, w) = (x - 2*y, x*y, -y^3 + x^2)
             sage: J = Phi.jacobian_matrix(X, Y) ; J
             [     1     -2]
             [     y      x]
@@ -840,26 +841,34 @@ class DiffMap(ContinuousMap):
         return matrix([[diff_funct[i][j].expr() for j in range(n1)]
                        for i in range(n2)])
 
-    def pullback(self, tensor):
+    def pullback(self, tensor_or_codomain_subset, name=None, latex_name=None):
         r"""
         Pullback operator associated with ``self``.
 
-        In what follows, let `\Phi` denote a differentiable map, `M` its
-        domain and `N` its codomain.
+        In what follows, let `\Phi` denote a differentiable map ``self``,
+        `M` its domain and `N` its codomain.
 
         INPUT:
 
-        - ``tensor`` --
-          :class:`~sage.manifolds.differentiable.tensorfield.TensorField`;
-          a fully covariant tensor field `T` on `N`, i.e. a tensor
-          field of type `(0, p)`, with `p` a positive or zero integer; the
-          case `p = 0` corresponds to a scalar field
+        One of the following:
+
+        - ``tensor_or_codomain_subset`` -- one of the following:
+
+          - a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`;
+            a fully covariant tensor field `T` on `N`, i.e. a tensor
+            field of type `(0, p)`, with `p` a positive or zero integer; the
+            case `p = 0` corresponds to a scalar field
+          - a :class:`~sage.manifolds.subset.ManifoldSubset` `S`
 
         OUTPUT:
 
-        - a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
+        - (if the input is a tensor field `T`)
+          a :class:`~sage.manifolds.differentiable.tensorfield.TensorField`
           representing a fully covariant tensor field on `M` that is the
           pullback of `T` by `\Phi`
+        - (if the input is a manifold subset `S`)
+          a :class:`~sage.manifolds.subset.ManifoldSubset` that is the
+          preimage `\Phi^{-1}(S)`; same as :meth:`preimage`
 
         EXAMPLES:
 
@@ -875,26 +884,26 @@ class DiffMap(ContinuousMap):
             sage: f = N.scalar_field(x*y*z, name='f') ; f
             Scalar field f on the 3-dimensional differentiable manifold R^3
             sage: f.display()
-            f: R^3 --> R
-               (x, y, z) |--> x*y*z
+            f: R^3 → ℝ
+               (x, y, z) ↦ x*y*z
             sage: pf = Phi.pullback(f) ; pf
             Scalar field Phi^*(f) on the Open subset U of the 2-dimensional
              differentiable manifold S^2
             sage: pf.display()
-            Phi^*(f): U --> R
-               (th, ph) |--> cos(ph)*cos(th)*sin(ph)*sin(th)^2
+            Phi^*(f): U → ℝ
+               (th, ph) ↦ cos(ph)*cos(th)*sin(ph)*sin(th)^2
 
         Pullback on `S^2` of the standard Euclidean metric on `R^3`::
 
             sage: g = N.sym_bilin_form_field(name='g')
             sage: g[1,1], g[2,2], g[3,3] = 1, 1, 1
             sage: g.display()
-            g = dx*dx + dy*dy + dz*dz
+            g = dx⊗dx + dy⊗dy + dz⊗dz
             sage: pg = Phi.pullback(g) ; pg
             Field of symmetric bilinear forms Phi^*(g) on the Open subset U of
              the 2-dimensional differentiable manifold S^2
             sage: pg.display()
-            Phi^*(g) = dth*dth + sin(th)^2 dph*dph
+            Phi^*(g) = dth⊗dth + sin(th)^2 dph⊗dph
 
         Parallel computation::
 
@@ -903,7 +912,7 @@ class DiffMap(ContinuousMap):
            Field of symmetric bilinear forms Phi^*(g) on the Open subset U of
             the 2-dimensional differentiable manifold S^2
            sage: pg.display()
-           Phi^*(g) = dth*dth + sin(th)^2 dph*dph
+           Phi^*(g) = dth⊗dth + sin(th)^2 dph⊗dph
            sage: Parallelism().set('tensor', nproc=1)  # switch off parallelization
 
 
@@ -912,7 +921,7 @@ class DiffMap(ContinuousMap):
             sage: a = N.diff_form(3, name='A')
             sage: a[1,2,3] = f
             sage: a.display()
-            A = x*y*z dx/\dy/\dz
+            A = x*y*z dx∧dy∧dz
             sage: pa = Phi.pullback(a) ; pa
             3-form Phi^*(A) on the Open subset U of the 2-dimensional
              differentiable manifold S^2
@@ -931,9 +940,14 @@ class DiffMap(ContinuousMap):
             sage: F = M.diff_map(E, coord_functions={(Ct, polar): (1 + cos(t), t)})
             sage: gM = F.pullback(g)
             sage: gM.display()
-            (2*cos(t) + 2) dt*dt
+            (2*cos(t) + 2) dt⊗dt
 
         """
+        if not hasattr(tensor_or_codomain_subset, '_domain'):
+            return super().pullback(tensor_or_codomain_subset,
+                                    name=name, latex_name=latex_name)
+        tensor = tensor_or_codomain_subset
+
         from sage.manifolds.differentiable.tensorfield_paral import TensorFieldParal
         from sage.tensor.modules.comp import (Components, CompWithSym,
                                               CompFullySym, CompFullyAntiSym)
@@ -975,7 +989,7 @@ class DiffMap(ContinuousMap):
             si1 = fmodule1._sindex
             of1 = fmodule1._output_formatter
             si2 = dom2._sindex
-            resu = fmodule1.tensor((0,ncov), name=resu_name,
+            resu = fmodule1.tensor((0, ncov), name=resu_name,
                                    latex_name=resu_latex_name, sym=tensor._sym,
                                    antisym=tensor._antisym)
 
@@ -1080,9 +1094,9 @@ class DiffMap(ContinuousMap):
                         coord1 = chart1._xx
                         ff = tensor._express[chart2]
                         resu_fc.append( chart1.function(ff(*(phi(*coord1)))) )
-            dom_resu = resu_fc[0].parent()._chart._domain
+            dom_resu = resu_fc[0].parent()._chart.domain()
             for fc in resu_fc[1:]:
-                dom_resu = dom_resu.union(fc.parent()._chart._domain)
+                dom_resu = dom_resu.union(fc.parent()._chart.domain())
             resu = dom_resu.scalar_field(name=resu_name,
                                          latex_name=resu_latex_name)
             for fc in resu_fc:
@@ -1156,29 +1170,29 @@ class DiffMap(ContinuousMap):
             sage: v = U.vector_field(name='v')
             sage: v[:] = 0, 1
             sage: v.display()
-            v = d/dph
+            v = ∂/∂ph
             sage: pv = Phi.pushforward(v); pv
             Vector field Phi_*(v) along the Open subset U of the 2-dimensional
              differentiable manifold S^2 with values on the 3-dimensional
              differentiable manifold R^3
             sage: pv.display()
-            Phi_*(v) = -sin(ph)*sin(th) d/dx + cos(ph)*sin(th) d/dy
+            Phi_*(v) = -sin(ph)*sin(th) ∂/∂x + cos(ph)*sin(th) ∂/∂y
 
         Pushforward of a vector field on the real line to the `\RR^3`, via a
         helix embedding::
 
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: Psi = R.diff_map(R3, [cos(t), sin(t), t], name='Psi',
             ....:                  latex_name=r'\Psi')
             sage: u = R.vector_field(name='u')
             sage: u[0] = 1
             sage: u.display()
-            u = d/dt
+            u = ∂/∂t
             sage: pu = Psi.pushforward(u); pu
-            Vector field Psi_*(u) along the Real number line R with values on
+            Vector field Psi_*(u) along the Real number line ℝ with values on
              the 3-dimensional differentiable manifold R^3
             sage: pu.display()
-            Psi_*(u) = -sin(t) d/dx + cos(t) d/dy + d/dz
+            Psi_*(u) = -sin(t) ∂/∂x + cos(t) ∂/∂y + ∂/∂z
 
         """
         from sage.tensor.modules.comp import (Components, CompWithSym,

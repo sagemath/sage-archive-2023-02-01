@@ -395,7 +395,8 @@ class Fields(CategoryWithAxiom):
             """
             if self.characteristic() == 0:
                 return True
-            else: raise NotImplementedError
+            else:
+                raise NotImplementedError
 
         def _test_characteristic_fields(self, **options):
             """

@@ -75,6 +75,7 @@ enum_map = {
   MATRIX:     'MATRIX',
 }
 
+
 def token_to_str(int token):
     """
     For speed reasons, tokens are integers. This function returns a string

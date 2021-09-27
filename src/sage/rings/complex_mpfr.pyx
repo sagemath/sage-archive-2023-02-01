@@ -678,26 +678,25 @@ class ComplexField_class(ring.Field):
 
         EXAMPLES::
 
-            sage: [CC.random_element() for _ in range(5)]
-            [0.153636193785613 - 0.502987375247518*I,
-             0.609589964322241 - 0.948854594338216*I,
-             0.968393085385764 - 0.148483595843485*I,
-             -0.908976099636549 + 0.126219184235123*I,
-             0.461226845462901 - 0.0420335212948924*I]
+            sage: CC.random_element().parent() is CC
+            True
+            sage: re, im = CC.random_element()
+            sage: -1 <= re <= 1, -1 <= im <= 1
+            (True, True)
             sage: CC6 = ComplexField(6)
-            sage: [CC6.random_element(2^-20) for _ in range(5)]
-            [-5.4e-7 - 3.3e-7*I, 2.1e-7 + 8.0e-7*I, -4.8e-7 - 8.6e-7*I, -6.0e-8 + 2.7e-7*I, 6.0e-8 + 1.8e-7*I]
-            sage: [CC6.random_element(pi^20) for _ in range(5)]
-            [6.7e8 - 5.4e8*I, -9.4e8 + 5.0e9*I, 1.2e9 - 2.7e8*I, -2.3e9 - 4.0e9*I, 7.7e9 + 1.2e9*I]
+            sage: CC6.random_element().parent() is CC6
+            True
+            sage: re, im = CC6.random_element(2^-20)
+            sage: -2^-20 <= re <= 2^-20, -2^-20 <= im <= 2^-20
+            (True, True)
+            sage: re, im = CC6.random_element(pi^20)
+            sage: bool(-pi^20 <= re <= pi^20), bool(-pi^20 <= im <= pi^20)
+            (True, True)
 
         Passes extra positional or keyword arguments through::
 
-            sage: [CC.random_element(distribution='1/n') for _ in range(5)]
-            [-0.900931453455899 - 0.932172283929307*I,
-             0.327862582226912 + 0.828104487111727*I,
-             0.246299162813240 + 0.588214960163442*I,
-             0.892970599589521 - 0.266744694790704*I,
-             0.878458776600692 - 0.905641181799996*I]
+            sage: CC.random_element(distribution='1/n').parent() is CC
+            True
         """
         size = self._real_field()(component_max)
         re = self._real_field().random_element(-size, size, *args, **kwds)
@@ -1031,7 +1030,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLES::
 
-            sage: for prec in (2, 53, 200):
+            sage: for prec in (2, 53, 200):  # not tested, known bug (see :trac:`32129`)
             ....:     fld = ComplexField(prec)
             ....:     var = polygen(fld)
             ....:     ins = [-20, 0, 1, -2^4000, 2^-4000] + [fld._real_field().random_element() for _ in range(3)]

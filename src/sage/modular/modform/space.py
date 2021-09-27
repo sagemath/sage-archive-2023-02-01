@@ -908,8 +908,10 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             raise ArithmeticError(("Sum of %s and %s not defined because " + \
                                     "they do not lie in a common ambient space.")%\
                                    (self, right))
-        if self.is_ambient(): return self
-        if right.is_ambient(): return right
+        if self.is_ambient():
+            return self
+        if right.is_ambient():
+            return right
         V = self.free_module() + right.free_module()
         return ModularFormsSubmodule(self.ambient_module(), V)
 

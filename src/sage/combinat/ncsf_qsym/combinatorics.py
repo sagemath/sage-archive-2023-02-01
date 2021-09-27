@@ -17,7 +17,7 @@ REFERENCES:
    :arxiv:`0712.2201v1`.
 """
 from sage.misc.misc_c import prod
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 from sage.misc.cachefunc import cached_function
 from sage.combinat.composition import Composition, Compositions
 from sage.combinat.composition_tableau import CompositionTableaux

@@ -204,7 +204,7 @@ class SageMagics(Magics):
         A magic command to switch between simple display and ASCII art display.
 
         - ``args`` -- string.  See
-          :meth:`sage.misc.display_hook.DisplayHookBase.set_display`
+          :mod:`sage.repl.rich_output.preferences`
           for allowed values. If the mode is ``ascii_art``, it can
           optionally be followed by a width.
 

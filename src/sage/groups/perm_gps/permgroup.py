@@ -260,25 +260,23 @@ def from_gap_list(G, src):
     # src is now a list of group elements
     return src
 
-def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, category=None):
+def PermutationGroup(gens=None, *args, **kwds):
     """
     Return the permutation group associated to `x` (typically a
     list of generators).
 
     INPUT:
 
+    -  ``gens`` -- (default: ``None``) list of generators
 
-    -  ``gens`` - list of generators (default: ``None``)
+    -  ``gap_group`` -- (optional) a gap permutation group
 
-    -  ``gap_group`` - a gap permutation group (default: ``None``)
-
-    -  ``canonicalize`` - bool (default: ``True``); if ``True``,
+    -  ``canonicalize`` -- boolean (default: ``True``); if ``True``,
        sort generators and remove duplicates
-
 
     OUTPUT:
 
-    - A permutation group.
+    - a permutation group
 
     EXAMPLES::
 
@@ -327,8 +325,11 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
         True
         sage: G = PermutationGroup([[(1,2,3),(4,5)],[(3,4)]])
         sage: current_randstate().set_seed_gap()
-        sage: G._gap_().DerivedSeries()
-        [ Group( [ (3,4), (1,2,3)(4,5) ] ), Group( [ (1,5)(3,4), (1,5)(2,4), (1,3,5) ] ) ]
+        sage: G1, G2 = G._gap_().DerivedSeries()
+        sage: G1
+        Group( [ (3,4), (1,2,3)(4,5) ] )
+        sage: G2.GeneratorsSmallest()
+        [ (3,4,5), (2,3)(4,5), (1,2)(4,5) ]
 
     TESTS::
 
@@ -341,11 +342,36 @@ def PermutationGroup(gens=None, gap_group=None, domain=None, canonicalize=True, 
         Traceback (most recent call last):
         ...
         TypeError: gens must be a tuple, list, or GapElement
+
+    This will raise an error after the deprecation period::
+
+        sage: G = PermutationGroup([(1,2,3,4)], [(1,7,3,5)])
+        doctest:warning
+        ...
+        DeprecationWarning: gap_group, domain, canonicalize, category will become keyword only
+        See https://trac.sagemath.org/31510 for details.
     """
     if not is_ExpectElement(gens) and hasattr(gens, '_permgroup_'):
         return gens._permgroup_()
     if gens is not None and not isinstance(gens, (tuple, list, GapElement)):
         raise TypeError("gens must be a tuple, list, or GapElement")
+    gap_group = kwds.get("gap_group", None)
+    domain = kwds.get("domain", None)
+    canonicalize = kwds.get("canonicalize", True)
+    category = kwds.get("category", None)
+    if args:
+        from sage.misc.superseded import deprecation
+        deprecation(31510, "gap_group, domain, canonicalize, category will become keyword only")
+        if len(args) > 4:
+            raise ValueError("invalid input")
+        args = list(args)
+        gap_group = args.pop(0)
+        if args:
+            domain = args.pop(0)
+            if args:
+                canonicalize = args.pop(0)
+                if args:
+                    category = args.pop(0)
     return PermutationGroup_generic(gens=gens, gap_group=gap_group, domain=domain,
                                     canonicalize=canonicalize, category=category)
 
@@ -376,13 +402,13 @@ class PermutationGroup_generic(FiniteGroup):
 
         INPUT:
 
-        -  ``gens`` - list of generators (default: ``None``)
+        - ``gens`` -- list of generators (default: ``None``)
 
-        -  ``gap_group`` - a gap or libgap permutation group, or a string
+        - ``gap_group`` -- a gap or libgap permutation group, or a string
           defining one (default: ``None``)
 
-        -  ``canonicalize`` - bool (default: ``True``); if ``True``,
-           sort generators and remove duplicates
+        - ``canonicalize`` -- bool (default: ``True``); if ``True``,
+          sort generators and remove duplicates
 
         OUTPUT:
 
@@ -1549,12 +1575,12 @@ class PermutationGroup_generic(FiniteGroup):
         Action of `S_4` on sets of disjoint sets::
 
             sage: S4 = groups.permutation.Symmetric(4)
-            sage: O = S4.orbit(((1,2),(3,4)), action = "OnSetsDisjointSets")
+            sage: O = S4.orbit(((1,2),(3,4)), action="OnSetsDisjointSets")
             sage: {1, 2} in O[0] and {3, 4} in O[0]
             True
             sage: {1, 4} in O[1] and {2, 3} in O[1]
             True
-            sage: all(set(union(*x)) == {1,2,3,4} for x in O)
+            sage: all(x[0].union(x[1]) == {1,2,3,4} for x in O)
             True
 
         Action of `S_4` (on a nonstandard domain) on tuples of sets::
@@ -2890,8 +2916,12 @@ class PermutationGroup_generic(FiniteGroup):
             sage: S = SymmetricGroup(6)
             sage: perm_ls = [S.random_element() for i in range(3)]
             sage: G = PermutationGroup(perm_ls)
-            sage: G.as_finitely_presented_group().as_permutation_group().is_isomorphic(G)
-            True
+            sage: while True:
+            ....:     try:
+            ....:         assert G.as_finitely_presented_group().as_permutation_group().is_isomorphic(G)  # sometimes results in GAP error (see :trac:`32141`)
+            ....:         break
+            ....:     except ValueError:
+            ....:         pass
 
         `D_9` is the only non-Abelian group of order 18
         with an automorphism group of order 54 [TW1980]_::

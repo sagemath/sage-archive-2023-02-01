@@ -49,9 +49,9 @@ EOF
     dnl for now. Once all of cddlib's consumers know about the new (or
     dnl both) locations, we can update this check to support them.
     dnl See https://trac.sagemath.org/ticket/29413
-    AC_CHECK_HEADER([cdd.h],[],[sage_spkg_install_cddlib=yes],[
-      #include <setoper.h>
-      #include <cddmp.h>
+    AC_CHECK_HEADER([cddlib/cdd.h],[],[sage_spkg_install_cddlib=yes],[
+      #include <cddlib/setoper.h>
+      #include <cddlib/cddmp.h>
     ])
 
     dnl Both lattE and gfan try to link against libcddgmp (as

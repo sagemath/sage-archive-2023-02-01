@@ -186,7 +186,7 @@ cdef class RelaxedElement(pAdicGenericElement):
         An error code which is a superposition of the following:
 
         - ``0`` -- no error
-        - ``ERROR_ABANDON    = 1`` -- computation has been abandonned
+        - ``ERROR_ABANDON    = 1`` -- computation has been abandoned
         - ``ERROR_NOTDEFINED = 2`` -- a number is not defined
         - ``ERROR_PRECISION  = 4`` -- not enough precision
         - ``ERROR_OVERFLOW   = 8`` -- overflow
@@ -229,7 +229,7 @@ cdef class RelaxedElement(pAdicGenericElement):
         - ``prec`` -- an integer
 
         - ``halt`` -- an integer; the absolute precision after which the
-          computation is abandonned if the first significant digit has not
+          computation is abandoned if the first significant digit has not
           been found yet
 
         OUTPUT:
@@ -1158,10 +1158,10 @@ cdef class RelaxedElement(pAdicGenericElement):
           if ``None``, use the default precision of the parent
 
         - ``halt`` -- an integer or a boolean (default: ``True``);
-          the absolute precision after which the computation is abandonned
+          the absolute precision after which the computation is abandoned
           if the first significant digit has not been found yet;
           if ``True``, the default halting precision of the parent is used;
-          if ``False``, the computation is never abandonned
+          if ``False``, the computation is never abandoned
 
         - ``permissive`` -- a boolean (default: ``False`` if ``prec``
           is given, ``True`` otherwise); if ``False``, raise an error
@@ -1189,7 +1189,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             sage: b.at_precision_relative(5)
             Traceback (most recent call last):
             ...
-            PrecisionError: computation has been abandonned; try to increase precision
+            PrecisionError: computation has been abandoned; try to increase precision
 
         By setting the argument ``halt``, one can force the computation to continue
         until a prescribed limit::
@@ -1197,7 +1197,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             sage: b.at_precision_relative(5, halt=20)   # not enough to find the valuation
             Traceback (most recent call last):
             ...
-            PrecisionError: computation has been abandonned; try to increase precision
+            PrecisionError: computation has been abandoned; try to increase precision
 
             sage: b.at_precision_relative(5, halt=21)   # now, we're okay
             5^20 + O(5^25)
@@ -1339,10 +1339,10 @@ cdef class RelaxedElement(pAdicGenericElement):
         INPUT:
 
         - ``halt`` -- an integer or a boolean (default: ``True``);
-          the absolute precision after which the computation is abandonned
+          the absolute precision after which the computation is abandoned
           if the first significant digit has not been found yet;
           if ``True``, the default halting precision of the parent is used;
-          if ``False``, the computation is never abandonned
+          if ``False``, the computation is never abandoned
 
         - ``secure`` -- a boolean (default: the value given at the creation
           of the parent); when the valuation cannot be determined for sure,
@@ -1443,10 +1443,10 @@ cdef class RelaxedElement(pAdicGenericElement):
         INPUT:
 
         - ``halt`` -- an integer or a boolean (default: ``True``);
-          the absolute precision after which the computation is abandonned
+          the absolute precision after which the computation is abandoned
           if the first significant digit has not been found yet;
           if ``True``, the default halting precision of the parent is used;
-          if ``False``, the computation is never abandonned
+          if ``False``, the computation is never abandoned
 
         EXAMPLES::
 
@@ -1473,7 +1473,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             ...
             ValueError: unit part of 0 not defined
 
-        See :meth:`valuation` for more details on the paramter ``halt``.
+        See :meth:`valuation` for more details on the parameter ``halt``.
 
         """
         val = self.valuation(halt)
@@ -1488,10 +1488,10 @@ cdef class RelaxedElement(pAdicGenericElement):
         INPUT:
 
         - ``halt`` -- an integer or a boolean (default: ``True``);
-          the absolute precision after which the computation is abandonned
+          the absolute precision after which the computation is abandoned
           if the first significant digit has not been found yet;
           if ``True``, the default halting precision of the parent is used;
-          if ``False``, the computation is never abandonned
+          if ``False``, the computation is never abandoned
 
         EXAMPLES::
 
@@ -1519,7 +1519,7 @@ cdef class RelaxedElement(pAdicGenericElement):
             ...
             ValueError: unit part of 0 not defined
 
-        See :meth:`valuation` for more details on the paramter ``halt``.
+        See :meth:`valuation` for more details on the parameter ``halt``.
 
         """
         val = self.valuation(halt)
@@ -2049,7 +2049,7 @@ cdef class RelaxedElement_abandon(RelaxedElement):
             sage: x[0]
             Traceback (most recent call last):
             ...
-            PrecisionError: computation has been abandonned; try to increase precision
+            PrecisionError: computation has been abandoned; try to increase precision
         """
         self._valuation = -maxordp
 

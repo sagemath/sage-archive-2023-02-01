@@ -88,6 +88,20 @@ def nodes(degree, prec):
         ....:      for a, b in zip(L1, L2))
         True
 
+    TESTS::
+
+        sage: from sage.numerical.gauss_legendre import nodes
+        sage: nodes(1,100)
+        Traceback (most recent call last):
+        ...
+        ValueError: degree=1 not supported (degree must be 3 or even)
+
+        sage: from sage.numerical.gauss_legendre import nodes
+        sage: nodes(3,100)
+        [(0.11270166537925831148207346002, 0.27777777777777777777777777778),
+         (0.50000000000000000000000000000, 0.44444444444444444444444444444),
+         (0.88729833462074168851792653998, 0.27777777777777777777777777778)]
+
     .. TODO::
 
         It may be worth testing if using the Arb algorithm for finding the
@@ -112,7 +126,7 @@ def nodes(degree, prec):
     TWO = 2*ONE
     rnd = R.rnd
     epsilon = R(1)>>(prec+8)
-    if degree == 1:
+    if degree == 3:
         x = (R(3)/5).sqrt()
         w = R(5)/18
         nodes = [((1-x)/2,w),(HALF,R(4)/9),((1+x)/2,w)]
@@ -199,6 +213,51 @@ def estimate_error(results, prec, epsilon):
         D4 = min(ZERO,max(D1**2/D2,2*D1,ZERO-prec))
         e.append(D4.exp())
     return max(e)
+
+def integrate_vector_N(f, prec, N=3):
+    r"""
+    Integrate a one-argument vector-valued function numerically using Gauss-Legendre,
+    setting the number of nodes.
+
+    This function uses the Gauss-Legendre quadrature scheme to approximate the 
+    integral `\int_0^1 f(t) \, dt`. It is different from ``integrate_vector``
+    by using a specific number of nodes rather than targeting a specified error
+    bound on the result. 
+
+    INPUT:
+
+     - ``f`` -- callable. Vector-valued integrand.
+
+     - ``prec`` -- integer. Binary precision to be used.
+
+     - ``N`` -- integer (default: 3). Number of nodes to use.
+
+     OUTPUT: 
+
+     Vector approximating value of the integral. 
+
+     EXAMPLES::
+
+         sage: from sage.numerical.gauss_legendre import integrate_vector_N
+         sage: prec = 100
+         sage: K = RealField(prec)
+         sage: V = VectorSpace(K,1)
+         sage: f = lambda t: V([t])
+         sage: integrate_vector_N(f, prec, 4)
+         (0.50000000000000000000000000000)
+
+    .. NOTE::
+
+        The nodes and weights are calculated in the real field with ``prec`` 
+        bits of precision. If the the vector space in which ``f`` takes values
+        is over a field which is incompatible with this field (e.g. a finite
+        field) then a TypeError occurs. 
+    """
+    nodelist = nodes(N, prec)
+    I = nodelist[0][1]*f(nodelist[0][0])
+    for i in range(1,len(nodelist)):
+        I += nodelist[i][1]*f(nodelist[i][0])
+    return I
 
 def integrate_vector(f, prec, epsilon=None):
     r"""

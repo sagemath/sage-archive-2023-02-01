@@ -514,10 +514,12 @@ class AffineGroup(UniqueRepresentation, Group):
                    [0 1 0 0]     [0]
              x |-> [0 0 1 0] x + [0]
                    [0 0 0 1]     [0],
-                   [2 0 0 0]     [0]
-                   [0 1 0 0]     [2]
-             x |-> [0 0 1 0] x + [0]
-                   [0 0 0 1]     [1]]
+                   [2 0 0 0]     [...]
+                   [0 1 0 0]     [...]
+             x |-> [0 0 1 0] x + [...]
+                   [0 0 0 1]     [...]]
+            sage: all(v.parent() is G for v in G.some_elements())
+            True
 
             sage: G = AffineGroup(2,QQ)
             sage: G.some_elements()

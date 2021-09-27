@@ -51,7 +51,7 @@ you will need the local::lib Perl module installed::
    cpan -i XML::Writer XML::LibXML XML::LibXSLT File::Slurp Term::ReadLine::Gnu JSON SVG MongoDB
 
 Several Sage packages should be installed before installing the polymake
-package to give a more featureful Polymake installation:
+package to give a more featureful Polymake installation::
 
    sage -i 4ti2 latte_int topcom qhull
 
@@ -64,6 +64,13 @@ Information on missing Polymake prerequisites after installing polymake::
    $ sage -sh
    (sage-sh) $ polymake
    polytope> show_unconfigured;
+
+It is strongly recommended to also install JuPyMake::
+
+  sage -i jupymake
+
+When JuPyMake is present, Sage is able to use a more robust interface
+to Polymake.
 
 
 Debugging polymake install problems

@@ -65,11 +65,11 @@ class SageSet(Set):
 
         EXAMPLES::
 
-            sage: F = Set([1, 2])
-            sage: F is Set([1, 2])
+            sage: F = Family([1, 2])
+            sage: F is Family([1, 2])
             False
             sage: sF = F._sympy_(); sF
-            SageSet({1, 2})
+            SageSet(Family (1, 2))
             sage: sF._sage_() is F
             True
         """
@@ -82,7 +82,7 @@ class SageSet(Set):
 
         EXAMPLES::
 
-            sage: Empty = Set([])
+            sage: Empty = Family([])
             sage: sEmpty = Empty._sympy_()
             sage: sEmpty.is_empty
             True
@@ -173,3 +173,21 @@ class SageSet(Set):
             48
         """
         return len(self._sage_())
+
+    def __str__(self):
+        """
+        Return the print representation of ``self``.
+
+        EXAMPLES::
+
+            sage: sPrimes = Primes()._sympy_()
+            sage: str(sPrimes)  # indirect doctest
+            'SageSet(Set of all prime numbers: 2, 3, 5, 7, ...)'
+            sage: repr(sPrimes)
+            'SageSet(Set of all prime numbers: 2, 3, 5, 7, ...)'
+        """
+        # Provide this method so that sympy's printing code does not try to inspect
+        # the Sage object.
+        return f"SageSet({self._sage_()})"
+
+    __repr__ = __str__

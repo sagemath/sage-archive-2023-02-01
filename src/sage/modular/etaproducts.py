@@ -30,12 +30,11 @@ AUTHOR:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
-
+from __future__ import annotations
 
 from sage.arith.misc import divisors, prime_divisors, euler_phi, is_square, gcd
 from sage.categories.groups import Groups
 from sage.matrix.constructor import matrix
-from sage.misc.misc import union
 from sage.modules.free_module import FreeModule
 from sage.rings.finite_rings.integer_mod import Mod
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
@@ -149,7 +148,7 @@ class EtaGroupElement(Element):
             Eta product of level 4 : (eta_1)^24 (eta_2)^-48 (eta_4)^24
         """
         newdict = {d: self._rdict.get(d, 0) + other._rdict.get(d, 0)
-                   for d in union(self._rdict, other._rdict)}
+                   for d in set(self._rdict).union(other._rdict)}
         P = self.parent()
         return P.element_class(P, newdict)
 
@@ -166,7 +165,7 @@ class EtaGroupElement(Element):
             True
         """
         newdict = {d: self._rdict.get(d, 0) - other._rdict.get(d, 0)
-                   for d in union(self._rdict, other._rdict)}
+                   for d in set(self._rdict).union(other._rdict)}
         P = self.parent()
         return P.element_class(P, newdict)
 
@@ -453,7 +452,7 @@ class EtaGroup_class(UniqueRepresentation, Parent):
         """
         return "Group of eta products on X_0(%s)" % self.level()
 
-    def one(self) -> 'EtaGroupElement':
+    def one(self) -> EtaGroupElement:
         r"""
         Return the identity element of ``self``.
 
@@ -618,7 +617,7 @@ class EtaGroup_class(UniqueRepresentation, Parent):
     Element = EtaGroupElement
 
 
-def EtaProduct(level, dic) -> 'EtaGroupElement':
+def EtaProduct(level, dic) -> EtaGroupElement:
     r"""
     Create an :class:`EtaGroupElement` object representing the function
     `\prod_{d | N} \eta(q^d)^{r_d}`.
@@ -925,7 +924,7 @@ def eta_poly_relations(eta_elements, degree, labels=['x1', 'x2'],
 
     - ``labels`` - (list of strings): labels to use for the polynomial returned.
 
-    - ``verbose``` - (boolean, default False): if True, prints information as
+    - ``verbose`` - (boolean, default ``False``): if ``True``, prints information as
       it goes.
 
     OUTPUT: a list of polynomials which is a Groebner basis for the

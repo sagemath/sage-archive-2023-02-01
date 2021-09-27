@@ -183,9 +183,6 @@ endif
 # work correctly
 SAGE_I_TARGETS = sagelib doc
 
-STARTED = $(SAGE_LOCAL)/etc/sage-started.txt
-
-
 # Tell make not to look for files with these names:
 .PHONY: all all-sage all-toolchain all-build all-sageruntime \
 	all-start build-start base toolchain toolchain-deps base-toolchain \
@@ -219,12 +216,13 @@ endif
 # possible.
 all-start: toolchain-deps
 	+$(MAKE_REC) doc all-sage
-	+$(MAKE_REC) '$(STARTED)'
 
 # Build everything except the documentation
 all-build: toolchain-deps
 	+$(MAKE_REC) all-sage
 
+# This used to do run "sage-starts" script, now it's just an alias
+build-start: all-build
 
 # The 2 preliminary build phases: base and toolchain.
 base-toolchain: _clean-broken-gcc base
@@ -295,18 +293,6 @@ SAGERUNTIME = sagelib $(inst_ipython) $(inst_pexpect) \
 
 all-sageruntime: toolchain-deps
 	+$(MAKE_REC) $(SAGERUNTIME)
-
-
-# Start Sage at least once to check that it works
-# (i.e. when we just installed Sage for the first time).
-build-start: all-build
-	+$(MAKE_REC) '$(STARTED)'
-
-# We make this depend on all standard packages because running
-# sage-starts runs sage-location, which should be run after installing
-# any package.
-$(STARTED): $(OPTIONAL_INSTALLED_PACKAGE_INSTS)
-	$(AM_V_at)"$(SAGE_ROOT)/build/bin/sage-starts"
 
 
 ###############################################################################
@@ -392,6 +378,9 @@ sagelib-clean:
 
 sage_docbuild-clean:
 	(cd "$(SAGE_ROOT)/build/pkgs/sage_docbuild/src" && rm -rf build)
+
+sage_setup-clean:
+	(cd "$(SAGE_ROOT)/build/pkgs/sage_setup/src" && rm -rf build)
 
 build-clean: clean doc-clean sagelib-clean sage_docbuild-clean
 
@@ -590,7 +579,7 @@ $(1)-no-deps:
 	$(AM_V_at)sage-logger -p 'sage --pip install -r "$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt"' '$$(SAGE_LOGS)/$(1).log'
 
 $(1)-clean:
-	-sage --pip uninstall -y -r '$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt'
+	-sage --pip uninstall --isolated --yes --no-input -r '$$(SAGE_ROOT)/build/pkgs/$(1)/requirements.txt'
 
 .PHONY: $(1) $(1)-clean $(1)-build-deps $(1)-no-deps
 endef
@@ -665,6 +654,8 @@ $(1)-$(4)-uninstall:
 	-rm -f "$$($(4))/$(SPKG_INST_RELDIR)/$(1)-$(2)"
 
 $(1)-uninstall: $(1)-$(4)-uninstall
+
+$(1)-clean: $(1)-uninstall
 
 .PHONY: $(1) $(1)-uninstall $(1)-build-deps $(1)-no-deps $(1)-clean
 endef

@@ -1546,8 +1546,8 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
 
     - ``ivar`` -- independent variable, optional.
 
-    - ``compute_jac`` -- boolean. If True, the Jacobian of des is computed and
-      used during the integration of Stiff Systems. Default value is False.
+    - ``compute_jac`` -- boolean. If True, the Jacobian of ``des`` is computed and
+      used during the integration of stiff systems. Default value is False.
 
     Other Parameters (taken from the documentation of odeint function from `scipy.integrate module.
     <https://docs.scipy.org/doc/scipy/reference/integrate.html#module-scipy.integrate>`_)
@@ -1624,7 +1624,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         sage: ics=[0,1,1]
         sage: sol=desolve_odeint(lorenz,ics,times,[x,y,z],rtol=1e-13,atol=1e-14)
 
-    One-dimensional Stiff system::
+    One-dimensional stiff system::
 
         sage: y= var('y')
         sage: epsilon=0.01
@@ -1635,7 +1635,7 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
         sage: p=points(zip(t,sol))
         sage: p.show()
 
-    Another Stiff system with some optional parameters with no
+    Another stiff system with some optional parameters with no
     default value::
 
         sage: y1,y2,y3=var('y1,y2,y3')
@@ -1659,13 +1659,16 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
 
     def desolve_odeint_inner(ivar):
         # one-dimensional systems:
-        if is_SymbolicVariable(dvars):
-            func = fast_float(des, dvars, ivar)
+        if len(dvars) == 1:
+            assert len(des) == 1
+            dvar = dvars[0]
+            de = des[0]
+            func = fast_float(de, dvar, ivar)
             if not compute_jac:
                 Dfun = None
             else:
-                J = diff(des, dvars)
-                J = fast_float(J, dvars, ivar)
+                J = diff(de, dvar)
+                J = fast_float(J, dvar, ivar)
 
                 def Dfun(y, t):
                     return [J(y, t)]
@@ -1700,30 +1703,21 @@ def desolve_odeint(des, ics, times, dvars, ivar=None, compute_jac=False, args=()
             mxhnil=mxhnil, mxordn=mxordn, mxords=mxords, printmessg=printmessg)
         return sol
 
+    if is_SymbolicVariable(dvars):
+        dvars = [dvars]
+
+    if not isinstance(des, (list, tuple)):
+        des = [des]
+
     if ivar is None:
-        if len(dvars)==0 or len(dvars)==1:
-            if len(dvars)==1:
-                des=des[0]
-                dvars=dvars[0]
-            all_vars = set(des.variables())
-        else:
-            all_vars = set([])
-            for de in des:
-                all_vars.update(set(de.variables()))
-        if is_SymbolicVariable(dvars):
-            ivars = all_vars - set([dvars])
-        else:
-            ivars = all_vars - set(dvars)
+        all_vars = set().union(*[de.variables() for de in des])
+        ivars = all_vars - set(dvars)
 
         if len(ivars)==1:
-            return desolve_odeint_inner(ivars[0])
+            return desolve_odeint_inner(next(iter(ivars)))
         elif not ivars:
-            if is_SymbolicVariable(dvars):
-                with SR.temp_var() as ivar:
-                    return desolve_odeint_inner(ivar)
-            else:
-                with SR.temp_var(n=len(dvars)) as ivar:
-                    return desolve_odeint_inner(ivar)
+            with SR.temp_var() as ivar:
+                return desolve_odeint_inner(ivar)
         else:
             raise ValueError("Unable to determine independent variable, please specify.")
     return desolve_odeint_inner(ivar)
@@ -1851,7 +1845,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
 
     EXAMPLES:
 
-    We integrate the Lorenz equations with Salztman values for the parameters
+    We integrate the Lorenz equations with Saltzman values for the parameters
     along 10 periodic orbits with 100 digits of precision::
 
         sage: var('t,x,y,z')
@@ -1864,7 +1858,7 @@ def desolve_tides_mpfr(f, ics, initial, final, delta,  tolrel=1e-16, tolabs=1e-1
         sage: y0 = -19.5787519424517955388380414460095588661142400534276438649791334295426354746147526415973165506704676171
         sage: z0 = 27
         sage: T = 15.586522107161747275678702092126960705284805489972439358895215783190198756258880854355851082660142374
-        sage: sol = desolve_tides_mpfr(f, [x0, y0, z0],0 , T, T, 1e-100, 1e-100, 100) # optional - tides
+        sage: sol = desolve_tides_mpfr(f, [x0, y0, z0], 0, T, T, 1e-100, 1e-100, 100) # optional - tides
         sage: sol # optional -tides # abs tol 1e-50
         [[0.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
         -13.7636106821342005250144010543616538641008648540923684535378642921202827747268115852940239346395038,

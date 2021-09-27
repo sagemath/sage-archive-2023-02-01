@@ -329,7 +329,7 @@ LaTeX表式とLaTeXエンジンの生成するdvi形式にdvipngが扱えないs
     LaTeX example for testing display of a commutative diagram produced
     by xypic.
     <BLANKLINE>
-    To use, try to view this object -- it won't work.  Now try
+    To use, try to view this object -- it will not work.  Now try
     'latex.add_to_preamble("\\usepackage[matrix,arrow,curve,cmtip]{xy}")',
     and try viewing again. You should get a picture (a part of the diagram arising
     from a filtered chain complex).

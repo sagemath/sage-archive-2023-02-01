@@ -20,7 +20,7 @@ Elementary symmetric functions
 from . import multiplicative, classical
 from sage.combinat.partition import Partition
 from sage.misc.all import prod
-from sage.functions.other import factorial, binomial
+from sage.arith.all import factorial, binomial
 from sage.rings.all import infinity
 
 ###################################

@@ -75,6 +75,11 @@ EXAMPLES::
     sage: k = GF(5^2,'c'); type(k)
     <class 'sage.rings.finite_rings.finite_field_givaro.FiniteField_givaro_with_category'>
 
+One can also give the cardinality `q=p^n` as the tuple `(p,n)`::
+
+    sage: k = GF((5, 2),'c'); k
+    Finite Field in c of size 5^2
+
 ::
 
     sage: k = GF(2^16,'c'); type(k)
@@ -82,7 +87,7 @@ EXAMPLES::
 
 ::
 
-    sage: k = GF(3^16,'c'); type(k)
+    sage: k = GF((3, 16),'c'); type(k)
     <class 'sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt_with_category'>
 
 Finite Fields support iteration, starting with 0.
@@ -126,7 +131,7 @@ We output the base rings of several finite fields.
 
 ::
 
-    sage: k = GF(3^40,'b'); type(k)
+    sage: k = GF((3, 40),'b'); type(k)
     <class 'sage.rings.finite_rings.finite_field_pari_ffelt.FiniteField_pari_ffelt_with_category'>
     sage: k.base_ring()
     Finite Field of size 3
@@ -365,6 +370,8 @@ class FiniteFieldFactory(UniqueFactory):
 
         sage: k.<a> = GF(5**10, modulus='random')
         sage: n.<a> = GF(5**10, modulus='random')
+        sage: while k.modulus() == n.modulus():
+        ....:     n.<a> = GF(5**10, modulus='random')
         sage: n is k
         False
         sage: GF(5**10, 'a') is GF(5**10, 'a')
@@ -495,6 +502,11 @@ class FiniteFieldFactory(UniqueFactory):
             sage: GF.create_key_and_extra_args(9, 'a')
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', 3, 2, True, None, 'poly', True), {})
 
+        The order `q` can also be given as a pair `(p,n)`::
+
+            sage: GF.create_key_and_extra_args((3, 2), 'a')
+            ((9, ('a',), x^2 + 2*x + 2, 'givaro', 3, 2, True, None, 'poly', True), {})
+
         We do not take invalid keyword arguments and raise a value error
         to better ensure uniqueness::
 
@@ -529,6 +541,28 @@ class FiniteFieldFactory(UniqueFactory):
 
             sage: GF.create_key_and_extra_args(9, 'a', structure=None)
             ((9, ('a',), x^2 + 2*x + 2, 'givaro', 3, 2, True, None, 'poly', True), {})
+
+        TESTS::
+
+            sage: GF.create_key_and_extra_args((6, 1), 'a')
+            Traceback (most recent call last):
+            ...
+            ValueError: the order of a finite field must be a prime power
+
+            sage: GF.create_key_and_extra_args((9, 1), 'a')
+            Traceback (most recent call last):
+            ...
+            ValueError: the order of a finite field must be a prime power
+
+            sage: GF.create_key_and_extra_args((5, 0), 'a')
+            Traceback (most recent call last):
+            ...
+            ValueError: the order of a finite field must be a prime power
+
+            sage: GF.create_key_and_extra_args((3, 2, 1), 'a')
+            Traceback (most recent call last):
+            ...
+            ValueError: wrong input for finite field constructor
         """
         import sage.arith.all
         from sage.structure.proof.all import WithProof, arithmetic
@@ -536,27 +570,41 @@ class FiniteFieldFactory(UniqueFactory):
             proof = arithmetic()
         for key, val in kwds.items():
             if key not in ['structure', 'implementation', 'prec', 'embedding', 'latex_names']:
-                raise TypeError("create_key_and_extra_args() got an unexpected keyword argument '%s'"%key)
+                raise TypeError("create_key_and_extra_args() got an unexpected keyword argument '%s'" % key)
             if not (val is None or isinstance(val, list) and all(c is None for c in val)):
-                raise NotImplementedError("ring extension with prescribed %s is not implemented"%key)
+                raise NotImplementedError("ring extension with prescribed %s is not implemented" % key)
         with WithProof('arithmetic', proof):
-            order = Integer(order)
-            if order <= 1:
-                raise ValueError("the order of a finite field must be at least 2")
+            if isinstance(order, tuple):
+                if len(order) != 2:
+                    raise ValueError('wrong input for finite field constructor')
+                p, n = order
+                p = Integer(p)
+                if not p.is_prime() or n < 1:
+                    raise ValueError("the order of a finite field must be a prime power")
+                n = Integer(n)
+                order = p**n
+            else:
+                order = Integer(order)
+                if order <= 1:
+                    raise ValueError("the order of a finite field must be at least 2")
+                if order.is_prime():
+                    p = order
+                    n = Integer(1)
+                else:
+                    p, n = order.is_prime_power(get_data=True)
+                    if n == 0:
+                        raise ValueError("the order of a finite field must be a prime power")
+            # at this point, order = p**n
 
-            if order.is_prime():
-                p = order
-                n = Integer(1)
+            if n == 1:
                 if impl is None:
                     impl = 'modn'
                 name = ('x',)  # Ignore name
                 # Every polynomial of degree 1 is irreducible
                 check_irreducible = False
-            elif order.is_prime_power():
+            else:
                 if names is not None:
                     name = names
-
-                p, n = order.factor()[0]
                 if name is None:
                     if prefix is None:
                         prefix = 'z'
@@ -579,8 +627,6 @@ class FiniteFieldFactory(UniqueFactory):
                         impl = 'ntl'
                     else:
                         impl = 'pari_ffelt'
-            else:
-                raise ValueError("the order of a finite field must be a prime power")
 
             # Determine modulus.
             # For the 'modn' implementation, we use the following

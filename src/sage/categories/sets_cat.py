@@ -714,8 +714,8 @@ class Sets(Category_singleton):
                 sage: TestSuite(Groups().Finite().Algebras(QQ)).run()
             """
             from sage.categories.rings import Rings
-            assert base_ring in Rings or (isinstance(base_ring, Category)
-                                          and base_ring.is_subcategory(Rings()))
+            assert base_ring in Rings() or (isinstance(base_ring, Category)
+                                            and base_ring.is_subcategory(Rings()))
             return AlgebrasCategory.category_of(self, base_ring)
 
         @cached_method
@@ -1270,9 +1270,11 @@ class Sets(Category_singleton):
 
             for x in S:
                 for y in S:
-                    if not x == y: continue
+                    if not x == y:
+                        continue
                     for z in S:
-                        if not y == z: continue
+                        if not y == z:
+                            continue
                         tester.assertTrue(x == z,
                             LazyFormat("non transitive equality:\n"
                                        "%s and %s but %s")%(
@@ -1714,11 +1716,11 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 sage: RR._sympy_().is_finite_set
                 False
 
-                sage: F = Set([1, 2])
-                sage: F is Set([1, 2])
+                sage: F = Family([1, 2])
+                sage: F is Family([1, 2])
                 False
                 sage: sF = F._sympy_(); sF
-                SageSet({1, 2})
+                SageSet(Family (1, 2))
                 sage: sF._sage_() is F
                 True
             """
@@ -2167,19 +2169,11 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 r"""
                 Return a lexicographic iterator for the elements of this Cartesian product.
 
-                EXAMPLES::
+                EXAMPLES:
 
-                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # py2
-                    ....:     print((x, y))
-                    (1, 'a')
-                    (1, 'b')
-                    (2, 'a')
-                    (2, 'b')
+                Sets are intrinsically unordered::
 
-                Sets are intrinsically unordered, so a different
-                ordering may occur when using Python 3::
-
-                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # py3 random
+                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # random
                     ....:     print((x, y))
                     (1, 'b')
                     (1, 'a')
@@ -2333,7 +2327,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 except (AttributeError, NotImplementedError):
                     pass
                 else:
-                    if test: return test
+                    if test:
+                        return test
                 return all(c.is_finite() for c in f)
 
             def cardinality(self):

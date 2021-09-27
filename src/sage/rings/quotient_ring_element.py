@@ -173,7 +173,7 @@ class QuotientRingElement(RingElement):
         if self.__rep.is_unit():
             return True
         from sage.categories.fields import Fields
-        if self.parent() in Fields:
+        if self.parent() in Fields():
             return not self.is_zero()
         try:
             self.__invert__()
@@ -383,7 +383,8 @@ class QuotientRingElement(RingElement):
         """
         # Special case: if self==0 (and right is nonzero), just return self.
         if not self:
-            if not right: raise ZeroDivisionError
+            if not right:
+                raise ZeroDivisionError
             return self
 
         # We are computing L/R modulo the ideal.

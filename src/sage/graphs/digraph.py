@@ -1481,7 +1481,8 @@ class DiGraph(GenericGraph):
         x, y = R.gens()
         return R.sum(x ** self.in_degree(v) * y ** self.out_degree(v) for v in self)
 
-    def feedback_edge_set(self, constraint_generation=True, value_only=False, solver=None, verbose=0):
+    def feedback_edge_set(self, constraint_generation=True, value_only=False,
+                          solver=None, verbose=0, *, integrality_tolerance=1e-3):
         r"""
         Compute the minimum feedback edge set of a digraph (also called
         feedback arc set).
@@ -1506,16 +1507,20 @@ class DiGraph(GenericGraph):
           use constraint generation when solving the Mixed Integer Linear
           Program.
 
-        - ``solver`` -- string (default: ``None``); specify a Linear Program
-          (LP) solver to be used. If set to ``None``, the default one is
-          used. For more information on LP solvers and which default solver is
-          used, see the method :meth:`solve
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
           <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
           :class:`MixedIntegerLinearProgram
           <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``); sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         ALGORITHM:
 
@@ -1576,6 +1581,8 @@ class DiGraph(GenericGraph):
         `vu` is in the returned feedback arc set::
 
            sage: g = graphs.RandomGNP(5,.3)
+           sage: while not g.num_edges():
+           ....:     g = graphs.RandomGNP(5,.3)
            sage: dg = DiGraph(g)
            sage: feedback = dg.feedback_edge_set()
            sage: u,v,l = next(g.edge_iterator())
@@ -1637,7 +1644,8 @@ class DiGraph(GenericGraph):
             D = DiGraph(self.edges(sort=False), multiedges=self.allows_multiple_edges(), loops=True)
             D.allow_loops(False)
             FAS = D.feedback_edge_set(constraint_generation=constraint_generation,
-                                          value_only=value_only, solver=solver, verbose=verbose)
+                                      value_only=value_only, solver=solver, verbose=verbose,
+                                      integrality_tolerance=integrality_tolerance)
             if value_only:
                 return FAS + self.number_of_loops()
             else:
@@ -1652,10 +1660,12 @@ class DiGraph(GenericGraph):
             for h in self.strongly_connected_components_subgraphs():
                 if value_only:
                     FAS += h.feedback_edge_set(constraint_generation=constraint_generation,
-                                                value_only=True, solver=solver, verbose=verbose)
+                                               value_only=True, solver=solver, verbose=verbose,
+                                               integrality_tolerance=integrality_tolerance)
                 else:
                     FAS.extend( h.feedback_edge_set(constraint_generation=constraint_generation,
-                                                    value_only=False, solver=solver, verbose=verbose) )
+                                                    value_only=False, solver=solver, verbose=verbose,
+                                                    integrality_tolerance=integrality_tolerance) )
             return FAS
 
 
@@ -1682,11 +1692,10 @@ class DiGraph(GenericGraph):
             # For as long as we do not break because the digraph is acyclic....
             while True:
 
-                # Building the graph without the edges removed by the LP
-                h = DiGraph()
-                for u,v in self.edge_iterator(labels=False):
-                    if p.get_values(b[u,v]) < .5:
-                        h.add_edge(u,v)
+                # Building the graph without the edges removed by the MILP
+                val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+                h = DiGraph([e for e in self.edge_iterator(labels=False) if not val[e]],
+                            format='list_of_edges')
 
                 # Is the digraph acyclic ?
                 isok, certificate = h.is_directed_acyclic(certificate=True)
@@ -1718,8 +1727,8 @@ class DiGraph(GenericGraph):
 
             else:
                 # listing the edges contained in the MFAS
-                return [(u, v) for u, v in self.edge_iterator(labels=False)
-                        if p.get_values(b[u, v]) > .5]
+                val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+                return [e for e in self.edge_iterator(labels=False) if val[e]]
 
         ######################################
         # Ordering-based MILP Implementation #
@@ -1745,9 +1754,9 @@ class DiGraph(GenericGraph):
             else:
                 p.solve(log=verbose)
 
-                b_sol = p.get_values(b)
+                b_sol = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
 
-                return [(u,v) for u,v in self.edge_iterator(labels=None) if b_sol[u,v]==1]
+                return [e for e in self.edge_iterator(labels=None) if b_sol[e]]
 
     ### Construction
 
@@ -2490,6 +2499,17 @@ class DiGraph(GenericGraph):
             Traceback (most recent call last):
             ...
             ValueError: diameter is not defined for the empty DiGraph
+
+        :trac:`32095` is fixed::
+
+            sage: g6 = 'guQOUOQCW[IaDBCVP_IE\\RfxV@WMSaeHgheEIA@tfOJkB~@EpGLCrs'
+            sage: g6 += 'aPIpwgQI_`Abs_x?VWxNJAo@w\\hffCDAW]bYGMIZGC_PYOrIw[Gp['
+            sage: g6 += '@FTgc_O}E?fXAnGCB{gSaUcD'
+            sage: G = Graph(g6).to_directed()
+            sage: G.diameter(algorithm='DiFUB', by_weight=False)
+            3
+            sage: G.diameter(algorithm='DiFUB', by_weight=True)
+            3.0
         """
         if not self.order():
             raise ValueError("diameter is not defined for the empty DiGraph")
@@ -3139,8 +3159,10 @@ class DiGraph(GenericGraph):
 
         Using the NetworkX implementation ::
 
-            sage: list(D.topological_sort(implementation="NetworkX"))
-            [4, 5, 6, 9, 0, 3, 2, 7, 1, 8, 10]
+            sage: s = list(D.topological_sort(implementation="NetworkX")); s # random
+            [0, 4, 1, 3, 2, 5, 6, 9, 7, 8, 10]
+            sage: all(s.index(u) < s.index(v) for u, v in D.edges(labels=False))
+            True
 
         ::
 

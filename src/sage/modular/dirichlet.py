@@ -992,7 +992,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         elif algorithm == "pari":
             # Use pari
-            G, chi = self._pari_conversion()
+            G, chi = self._pari_init_()
             K = pari.charker(G, chi)
             H = pari.galoissubcyclo(G, K)
             P = PolynomialRing(rings.RationalField(), "x")
@@ -1112,9 +1112,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
         H = DirichletGroup(M, self.base_ring())
         return H(self)
 
-    def _pari_conversion(self):
+    def _pari_init_(self):
         r"""
-        Prepare data for the conversion of the character to Pari.
+        Conversion of the character to Pari.
 
         OUTPUT:
 
@@ -1123,19 +1123,23 @@ class DirichletCharacter(MultiplicativeGroupElement):
         EXAMPLES::
 
             sage: chi4 = DirichletGroup(4).gen()
-            sage: chi4._pari_conversion()
-            ([[4, [0]], [2, [2], [3]], [[2]~, Vecsmall([2])],
-            [[4], [[1, matrix(0,2)]], Mat(1), [3], [2], [0]], Mat(1)], [1])
+            sage: pari(chi4)
+            [[[4, [0]], [2, [2], [3]], [[2]~, Vecsmall([2])],
+            [[4], [[1, matrix(0,2)]], Mat(1), [3], [2], [0]], Mat(1)], [1]]
+            sage: pari.charker(*pari(chi4)).sage()
+            [2]
 
             sage: chi = DirichletGroup(24)([1,-1,-1]); chi
             Dirichlet character modulo 24 of conductor 24
             mapping 7 |--> 1, 13 |--> -1, 17 |--> -1
-            sage: chi._pari_conversion()
-            ([[24, [0]], [8, [2, 2, 2], [7, 13, 17]],
+            sage: pari(chi)
+            [[[24, [0]], [8, [2, 2, 2], [7, 13, 17]],
             [[2, 2, 3]~, Vecsmall([3, 3, 1])],
             [[8, 8, 3], [[1, matrix(0,2)], [1, matrix(0,2)], [2, Mat([2, 1])]],
             [1, 0, 0; 0, 1, 0; 0, 0, 1], [7, 13, 17], [2, 2, 2], [0, 0, 0]],
-            [1, 0, 0; 0, 1, 0; 0, 0, 1]], [0, 1, 1])
+            [1, 0, 0; 0, 1, 0; 0, 0, 1]], [0, 1, 1]]
+            sage: pari.charorder(*pari(chi))
+            2
         """
         G = pari.znstar(self.modulus(), 1)
 
@@ -1196,7 +1200,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             sage: eps1.conrey_number() == eps2.conrey_number()
             True
         """
-        G, v = self._pari_conversion()
+        G, v = self._pari_init_()
         return pari.znconreyexp(G, v).sage()
 
     def lmfdb_page(self):
@@ -3143,12 +3147,35 @@ class DirichletGroup_class(WithEqualityById, Parent):
 
         EXAMPLES::
 
-            sage: DirichletGroup(37).random_element()
-            Dirichlet character modulo 37 of conductor 37 mapping 2 |--> zeta36^4
-            sage: DirichletGroup(20).random_element()
-            Dirichlet character modulo 20 of conductor 4 mapping 11 |--> -1, 17 |--> 1
-            sage: DirichletGroup(60).random_element()
-            Dirichlet character modulo 60 of conductor 3 mapping 31 |--> 1, 41 |--> -1, 37 |--> 1
+            sage: D = DirichletGroup(37)
+            sage: g = D.random_element()
+            sage: g.parent() is D
+            True
+            sage: g**36
+            Dirichlet character modulo 37 of conductor 1 mapping 2 |--> 1
+            sage: S = set(D.random_element().conductor() for _ in range(100))
+            sage: while S != {1, 37}:
+            ....:     S.add(D.random_element().conductor())
+
+            sage: D = DirichletGroup(20)
+            sage: g = D.random_element()
+            sage: g.parent() is D
+            True
+            sage: g**4
+            Dirichlet character modulo 20 of conductor 1 mapping 11 |--> 1, 17 |--> 1
+            sage: S = set(D.random_element().conductor() for _ in range(100))
+            sage: while S != {1, 4, 5, 20}:
+            ....:     S.add(D.random_element().conductor())
+
+            sage: D = DirichletGroup(60)
+            sage: g = D.random_element()
+            sage: g.parent() is D
+            True
+            sage: g**4
+            Dirichlet character modulo 60 of conductor 1 mapping 31 |--> 1, 41 |--> 1, 37 |--> 1
+            sage: S = set(D.random_element().conductor() for _ in range(100))
+            sage: while S != {1, 3, 4, 5, 12, 15, 20, 60}:
+            ....:     S.add(D.random_element().conductor())
         """
         e = self(1)
         for i in range(self.ngens()):

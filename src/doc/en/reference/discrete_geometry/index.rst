@@ -47,6 +47,14 @@ Lattice polyhedra
    sage/geometry/polyhedron/ppl_lattice_polygon
    sage/geometry/polyhedron/ppl_lattice_polytope
 
+Polyhedral complexes
+~~~~~~~~~~~~~~~~~~~~
+
+.. toctree::
+   :maxdepth: 1
+
+   sage/geometry/polyhedral_complex
+
 Toric geometry
 ~~~~~~~~~~~~~~
 

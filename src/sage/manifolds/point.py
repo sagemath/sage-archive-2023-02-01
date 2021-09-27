@@ -374,7 +374,7 @@ class ManifoldPoint(Element):
             chart = dom._def_chart
             def_chart = chart
         else:
-            dom = chart._domain
+            dom = chart.domain()
             def_chart = dom._def_chart
             if self not in dom:
                 raise ValueError("the point does not belong to the domain " +
@@ -917,8 +917,8 @@ class ManifoldPoint(Element):
             sage: F = S2.continuous_map(M, {(XS, X): [sin(th)*cos(ph),
             ....:                           sin(th)*sin(ph), cos(th)]}, name='F')
             sage: F.display()
-            F: S^2 --> M
-            on U: (th, ph) |--> (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
+            F: S^2 → M
+            on U: (th, ph) ↦ (x, y, z) = (cos(ph)*sin(th), sin(ph)*sin(th), cos(th))
             sage: g = p.plot(chart=X, mapping=F)
             sage: gS2 = XS.plot(chart=X, mapping=F, number_values=9)
             sage: g + gS2

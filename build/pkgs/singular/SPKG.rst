@@ -13,7 +13,6 @@ License
 
 GPLv2 or GPLv3
 
-
 Upstream Contact
 ----------------
 
@@ -30,7 +29,6 @@ Dependencies
 -  MPFR
 -  NTL
 -  FLINT
-
 
 Special Update/Build Instructions
 ---------------------------------

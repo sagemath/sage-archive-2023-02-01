@@ -435,6 +435,8 @@ class Hrepresentation(PolyhedronRepresentation):
         self._index = len(polyhedron._Hrepresentation)
         polyhedron._Hrepresentation.append(self)
         self._polyhedron = polyhedron
+        if polyhedron.is_mutable():
+            polyhedron._add_dependent_object(self)
 
     def is_H(self):
         """
@@ -1166,6 +1168,8 @@ class Vrepresentation(PolyhedronRepresentation):
         self._index = len(polyhedron._Vrepresentation)
         polyhedron._Vrepresentation.append(self)
         self._polyhedron = polyhedron
+        if polyhedron.is_mutable():
+            polyhedron._add_dependent_object(self)
 
     def is_V(self):
         """

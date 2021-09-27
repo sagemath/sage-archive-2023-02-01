@@ -68,7 +68,7 @@ AUTHORS:
 import copy
 from sage.rings.integer import GCD_list, Integer
 from sage.rings.integer_ring import ZZ
-from sage.misc.all import cached_method
+from sage.misc.cachefunc import cached_method
 from sage.modules.all import vector
 from sage.matrix.constructor import matrix
 from ppl import (

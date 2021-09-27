@@ -123,20 +123,20 @@ class DifferentiableSubmanifold(DifferentiableManifold, TopologicalSubmanifold):
         sage: t = var('t')
         sage: phi = N.continuous_map(M, {(CN,CM): [u, v, t+u^2+v^2]})
         sage: phi.display()
-        N --> M
-           (u, v) |--> (x, y, z) = (u, v, u^2 + v^2 + t)
+        N → M
+           (u, v) ↦ (x, y, z) = (u, v, u^2 + v^2 + t)
 
     The foliation inverse maps are needed for computing the adapted chart on
     the ambient manifold::
 
         sage: phi_inv = M.continuous_map(N, {(CM, CN): [x, y]})
         sage: phi_inv.display()
-        M --> N
-           (x, y, z) |--> (u, v) = (x, y)
+        M → N
+           (x, y, z) ↦ (u, v) = (x, y)
         sage: phi_inv_t = M.scalar_field({CM: z-x^2-y^2})
         sage: phi_inv_t.display()
-        M --> R
-        (x, y, z) |--> -x^2 - y^2 + z
+        M → ℝ
+        (x, y, z) ↦ -x^2 - y^2 + z
 
     `\phi` can then be declared as an embedding `N\to M`::
 

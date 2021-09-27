@@ -341,7 +341,7 @@ class ParametrizedSurface3D(SageObject):
         """
         self.equation = tuple(equation)
 
-        if len(variables[0]):
+        if isinstance(variables[0], (list, tuple)):
             self.variables_range = (variables[0][1:3], variables[1][1:3])
             self.variables_list = (variables[0][0], variables[1][0])
         else:

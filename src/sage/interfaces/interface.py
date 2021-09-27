@@ -633,6 +633,7 @@ class Interface(WithEqualityById, ParentWithBase):
         """
         TESTS::
 
+            sage: from sage.structure.parent_base import ParentWithBase
             sage: ParentWithBase.__getattribute__(singular, '_coerce_map_from_')
             <bound method Singular._coerce_map_from_ of Singular>
         """
@@ -647,7 +648,7 @@ class Interface(WithEqualityById, ParentWithBase):
         raise NotImplementedError
 
     def help(self, s):
-        return AsciiArtString('No help on %s available'%s)
+        return AsciiArtString('No help on %s available' % s)
 
 
 @instancedoc
@@ -660,7 +661,7 @@ class InterfaceFunction(SageObject):
         self._name = name
 
     def _repr_(self):
-        return "%s"%self._name
+        return "%s" % self._name
 
     def __call__(self, *args, **kwds):
         return self._parent.function_call(self._name, list(args), kwds)

@@ -922,7 +922,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
         If no rational point on ``self`` is known yet, then also caches the point
         for use by ``self.rational_point()`` and ``self.parametrization()``.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: c = Conic([1, -1, 1])
             sage: c.point([15, 17, 8])
@@ -961,7 +961,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
         If the base field is a finite field, then the
         output is uniformly distributed over the points of self.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: c = Conic(GF(2), [1,1,1,1,1,0])
             sage: [c.random_rational_point() for i in range(10)] # output is random
@@ -1130,7 +1130,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
         The symmetric matrix `M` such that `(x y z) M (x y z)^t`
         is the defining equation of ``self``.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: R.<x, y, z> = QQ[]
             sage: C = Conic(x^2 + x*y/2 + y^2 + z^2)

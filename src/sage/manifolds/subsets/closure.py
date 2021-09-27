@@ -25,7 +25,7 @@ class ManifoldSubsetClosure(ManifoldSubset):
 
     INPUT:
 
-    - ``subset`` -- a :class:`ManifoldSubset`
+    - ``subset`` -- a :class:`~sage.manifolds.subset.ManifoldSubset`
     - ``name`` -- (default: computed from the name of the subset)
       string; name (symbol) given to the closure
     - ``latex_name`` --  (default: ``None``) string; LaTeX symbol to

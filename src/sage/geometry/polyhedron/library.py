@@ -87,6 +87,7 @@ from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from .constructor import Polyhedron
 from .parent import Polyhedra
 from sage.graphs.digraph import DiGraph
+from sage.graphs.graph import Graph
 from sage.combinat.root_system.associahedron import Associahedron
 
 def zero_sum_projection(d, base_ring=RDF):
@@ -759,7 +760,7 @@ class Polytopes():
             5/12*sqrt5 + 5/4
             sage: TestSuite(ico).run()                             # optional - pynormaliz
             sage: ico = polytopes.icosahedron(exact=False)
-            sage: TestSuite(ico).run()
+            sage: TestSuite(ico).run(skip="_test_lawrence")
 
         """
         if base_ring is None and exact:
@@ -1734,7 +1735,7 @@ class Polytopes():
             sage: vertices = ki.vertices()
             sage: edges = [[vector(edge[0]),vector(edge[1])] for edge in ki.bounded_edges()]
             sage: edge_lengths = [norm(edge[0]-edge[1]) for edge in edges]
-            sage: union(edge_lengths)
+            sage: sorted(set(edge_lengths))
             [7, 8, 9, 11, 12, 14, 16]
 
         TESTS::
@@ -2471,7 +2472,7 @@ class Polytopes():
             A 6-dimensional polyhedron in RDF^6 defined as the convex hull of 35 vertices
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
-            sage: TestSuite(h_7_3).run(skip="_test_pyramid")
+            sage: TestSuite(h_7_3).run(skip=["_test_pyramid", "_test_lawrence"])
         """
         verts = Permutations([0] * (dim - k) + [1] * k).list()
         if project:
@@ -3412,6 +3413,8 @@ class Polytopes():
     associahedron = staticmethod(Associahedron)
 
     flow_polytope = staticmethod(DiGraph.flow_polytope)
+    edge_polytope = staticmethod(Graph.edge_polytope)
+    symmetric_edge_polytope = staticmethod(Graph.symmetric_edge_polytope)
 
 
 polytopes = Polytopes()

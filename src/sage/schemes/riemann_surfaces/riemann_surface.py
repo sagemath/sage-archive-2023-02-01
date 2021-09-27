@@ -11,7 +11,7 @@ provides a graph on it that contains a homology basis.
 
 The class provides methods for computing the Riemann period matrix of the
 surface numerically, using a certified homotopy continuation method due to
-[Kr2016].
+[Kr2016]_.
 
 The class also provides facilities for computing the endomorphism ring of the
 period lattice numerically, by determining integer (near) solutions to the
@@ -21,6 +21,7 @@ AUTHORS:
 
 - Alexandre Zotine, Nils Bruin (2017-06-10): initial version
 - Nils Bruin, Jeroen Sijsling (2018-01-05): algebraization, isomorphisms
+- Linden Disney-Hogg, Nils Bruin (2021-06-23): efficient integration
 
 EXAMPLES:
 
@@ -53,6 +54,10 @@ In fact it is an order in a number field::
     sage: K.<a> = NumberField(t^6 - t^5 + 2*t^4 + 8*t^3 - t^2 - 5*t + 7)
     sage: all(len(a.minpoly().roots(K)) == a.minpoly().degree() for a in A)
     True
+
+REFERENCES:
+
+The initial version of this code was developed alongside [BSZ2019]_.
 """
 # ****************************************************************************
 #       Copyright (C) 2017 Alexandre Zotine, Nils Bruin
@@ -73,9 +78,10 @@ from sage.groups.perm_gps.permgroup_named import SymmetricGroup
 from sage.matrix.constructor import Matrix
 from sage.matrix.special import block_matrix
 from sage.misc.cachefunc import cached_method
+from sage.misc.flatten import flatten
 from sage.misc.misc_c import prod
 from sage.modules.free_module import VectorSpace
-from sage.numerical.gauss_legendre import integrate_vector
+from sage.numerical.gauss_legendre import integrate_vector, integrate_vector_N
 from sage.rings.complex_mpfr import ComplexField, CDF
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
@@ -109,7 +115,7 @@ def voronoi_ghost(cpoints, n=6, CC=CDF):
 
         sage: from sage.schemes.riemann_surfaces.riemann_surface import voronoi_ghost
         sage: L = [1 + 1*I, 1 - 1*I, -1 + 1*I, -1 - 1*I]
-        sage: voronoi_ghost(L) # abs tol 1e-6
+        sage: voronoi_ghost(L)  # abs tol 1e-6
         [(1.0, 1.0),
          (1.0, -1.0),
          (-1.0, 1.0),
@@ -343,6 +349,11 @@ class RiemannSurface(object):
       For a nonsingular plane curve of degree `d`, an appropriate set is given
       by the monomials of degree up to `d-3`.
 
+    - ``integration_method`` -- (default: ``'heuristic'``). String specifying the 
+      integration method to use when calculating the integrals of differentials. 
+      The options are ``'heuristic'`` and ``'rigorous'``, the latter of
+      which is often the most efficient. 
+
     EXAMPLES::
 
         sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
@@ -375,6 +386,63 @@ class RiemannSurface(object):
         sage: all( len(T.minpoly().roots(K)) > 0 for T in A)
         True
 
+    The ``'heuristic'`` integration method uses the method ``integrate_vector`` 
+    defined in ``sage.numerical.gauss_legendre`` to compute integrals of differentials. 
+    As mentioned there, this works by iteratively doubling the number of nodes 
+    used in the quadrature, and uses a heuristic based on the rate at which the
+    result is seemingly converging to estimate the error. The ``'rigorous'``
+    method uses results from [Neu2018]_, and bounds the algebraic integrands on 
+    circular domains using Cauchy's form of the remainder in Taylor approximation
+    coupled to Fujiwara's bound on polynomial roots (see Bruin-DisneyHogg-Gao,
+    in preparation). Note this method of bounding on circular domains is also 
+    implemented in :meth:`_compute_delta`. The net result of this bounding is 
+    that one can know (an upper bound on) the number of nodes required to achieve
+    a certain error. This means that for any given integral, assuming that the 
+    same number of nodes is required by both methods in order to achieve the 
+    desired error (not necessarily true in practice), approximately half
+    the number of integrand evaluations are required. When the required number
+    of nodes is high, e.g. when the precision required is high, this can make
+    the ``'rigorous'`` method much faster. However, the ``'rigorous'`` method does
+    not benefit as much from the caching of the ``nodes`` method over multiple
+    integrals. The result of this is that, for calls of :meth:`matrix_of_integral_values`
+    if the computation is 'fast', the heuristic method may outperform the
+    rigorous method, but for slower computations the rigorous method can be much
+    faster::
+        
+        sage: f = z*w^3+z^3+w
+        sage: p = 53
+        sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
+        sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
+        sage: from sage.numerical.gauss_legendre import nodes
+        sage: import time
+        sage: nodes.cache.clear()
+        sage: ct = time.time()
+        sage: Rh = Sh.riemann_matrix()  
+        sage: ct1 = time.time()-ct
+        sage: nodes.cache.clear()
+        sage: ct = time.time()
+        sage: Rr = Sr.riemann_matrix()  
+        sage: ct2 = time.time()-ct
+        sage: ct2/ct1  # random
+        1.2429363969691192
+        sage: p = 500
+        sage: Sh = RiemannSurface(f, prec=p, integration_method='heuristic')
+        sage: Sr = RiemannSurface(f, prec=p, integration_method='rigorous')
+        sage: nodes.cache.clear()
+        sage: ct = time.time()
+        sage: Rh = Sh.riemann_matrix()  # long time (6 seconds)
+        sage: ct1 = time.time()-ct
+        sage: nodes.cache.clear()
+        sage: ct = time.time()
+        sage: Rr = Sr.riemann_matrix()  # long time (4 seconds)
+        sage: ct2 = time.time()-ct
+        sage: ct2/ct1  # random
+        0.6627716056083879
+
+    This disparity in timings can get increasingly worse, and testing has shown
+    that even for random quadrics the heuristic method can be as bad as 30 times
+    slower. 
+
     TESTS:
 
     This elliptic curve has a relatively poorly conditioned set of branch
@@ -395,7 +463,7 @@ class RiemannSurface(object):
         sage: tau.algdep(6).degree() == 2
         True
     """
-    def __init__(self, f, prec=53, certification=True, differentials=None):
+    def __init__(self, f, prec=53, certification=True, differentials=None, integration_method="heuristic"):
         r"""
         TESTS::
 
@@ -407,6 +475,7 @@ class RiemannSurface(object):
         # Initializations.
         self._prec = prec
         self._certification = certification
+        self._integration_method = integration_method
         self._R = f.parent()
         if len(self._R.gens()) != 2:
             raise ValueError('only bivariate polynomials supported.')
@@ -417,6 +486,7 @@ class RiemannSurface(object):
         self._RR = RealField(self._prec)
         self._CCz = PolynomialRing(self._CC, [self._R.gen(0)])
         self._CCw = PolynomialRing(self._CC, [self._R.gen(1)])
+        self._RRz = PolynomialRing(self._RR, [self._R.gen(0)])
         self.f = f
         if differentials is not None:
             self._differentials = [self._R(a) for a in differentials]
@@ -493,7 +563,7 @@ class RiemannSurface(object):
 
         Find the w-values above the origin, i.e. the solutions of `w^2 + 1 = 0`::
 
-            sage: S.w_values(0) # abs tol 1e-14
+            sage: S.w_values(0)  # abs tol 1e-14
             [-1.00000000000000*I, 1.00000000000000*I]
         """
         return self.f(z0,self._CCw.gen(0)).roots(multiplicities=False)
@@ -621,7 +691,7 @@ class RiemannSurface(object):
             sage: currw = S.w_values(z1)
             sage: n = len(currw)
             sage: epsilon = min([abs(currw[i] - currw[n-j-1]) for i in range(n) for j in range(n-i-1)])/3
-            sage: S._compute_delta(z1, epsilon) # abs tol 1e-8
+            sage: S._compute_delta(z1, epsilon)  # abs tol 1e-8
             0.152628501142363
 
         If the Riemann surface does not have certified homotopy continuation,
@@ -633,7 +703,7 @@ class RiemannSurface(object):
             sage: currw = T.w_values(z1)
             sage: n = len(currw)
             sage: epsilon = min([abs(currw[i] - currw[n-j-1]) for i in range(n) for j in range(n-i-1)])/3
-            sage: T._compute_delta(z1, epsilon) # abs tol 1e-8
+            sage: T._compute_delta(z1, epsilon)  # abs tol 1e-8
             0.381881307912987
         """
         if self._certification:
@@ -861,12 +931,12 @@ class RiemannSurface(object):
             sage: z0 = S._vertices[0]
             sage: epsilon = 0.1
             sage: oldw = S.w_values(z0)[0]
-            sage: neww = S._newton_iteration(z0,oldw,epsilon); neww #abs tol 0.00000001
+            sage: neww = S._newton_iteration(z0,oldw,epsilon); neww  # abs tol 0.00000001
             -0.934613146929672 + 2.01088055918363*I
 
         Which should be exactly the same as the w-value we started with::
 
-            sage: oldw - neww #abs tol 0.00000001
+            sage: oldw - neww  # abs tol 0.00000001
             0.000000000000000
 
         Here is an example where we exit the epsilon bound. This approach is
@@ -1148,7 +1218,7 @@ class RiemannSurface(object):
             sage: R.<z,w> = QQ[]
             sage: g = w^2 - z^4 + 1
             sage: S = RiemannSurface(g)
-            sage: S.homology_basis() #random
+            sage: S.homology_basis()  # random
             [[(1, [(3, 1), (5, 0), (9, 0), (10, 0), (2, 0), (4, 0),
                 (7, 1), (10, 1), (3, 1)])],
              [(1, [(8, 0), (6, 0), (7, 0), (10, 0), (2, 0), (4, 0),
@@ -1248,24 +1318,24 @@ class RiemannSurface(object):
                     # problems occur with that.
 
                     if (b_in != a_in) and (b_in != a_out):
-                        if ((a_in_arg<b_in_arg<a_out_arg) or
-                                (b_in_arg<a_out_arg<a_in_arg) or
-                                (a_out_arg<a_in_arg<b_in_arg)):
+                        if ((a_in_arg < b_in_arg < a_out_arg)
+                            or (b_in_arg < a_out_arg < a_in_arg)
+                            or (a_out_arg < a_in_arg < b_in_arg)):
                             intsum += 1
-                        elif ((a_out_arg<b_in_arg<a_in_arg) or
-                                (b_in_arg<a_in_arg<a_out_arg) or
-                                (a_in_arg<a_out_arg<b_in_arg)):
+                        elif ((a_out_arg < b_in_arg < a_in_arg)
+                              or (b_in_arg < a_in_arg < a_out_arg)
+                              or (a_in_arg < a_out_arg < b_in_arg)):
                             intsum -= 1
                         else:
                             raise RuntimeError("impossible edge orientation")
                     if (b_out != a_in) and (b_out != a_out):
-                        if ((a_in_arg<b_out_arg<a_out_arg) or
-                                (b_out_arg<a_out_arg<a_in_arg) or
-                                (a_out_arg<a_in_arg<b_out_arg)):
+                        if ((a_in_arg < b_out_arg < a_out_arg)
+                            or (b_out_arg < a_out_arg < a_in_arg)
+                            or (a_out_arg < a_in_arg < b_out_arg)):
                             intsum -= 1
-                        elif ((a_out_arg<b_out_arg<a_in_arg) or
-                                (b_out_arg<a_in_arg<a_out_arg) or
-                                (a_in_arg<a_out_arg<b_out_arg)):
+                        elif ((a_out_arg < b_out_arg < a_in_arg)
+                              or (b_out_arg < a_in_arg < a_out_arg)
+                              or (a_in_arg < a_out_arg < b_out_arg)):
                             intsum += 1
                         else:
                             raise RuntimeError("impossible edge orientation")
@@ -1400,15 +1470,15 @@ class RiemannSurface(object):
 
             sage: M = S.riemann_matrix()
             sage: differentials = S.cohomology_basis()
-            sage: S.simple_vector_line_integral([(0,0),(1,0)], differentials) #abs tol 0.00000001
+            sage: S.simple_vector_line_integral([(0,0),(1,0)], differentials)  # abs tol 0.00000001
             (1.14590610929717e-16 - 0.352971844594760*I)
 
         .. NOTE::
 
-            Uses data that "homology_basis" initializes.
+            Uses data that ``homology_basis`` initializes.
         """
         w_of_t, Delta_z = self.make_zw_interpolator(upstairs_edge)
-        V = VectorSpace(self._CC, self.genus)
+        V = VectorSpace(self._CC, len(differentials))
 
         def integrand(t):
             zt, wt = w_of_t(t)
@@ -1482,7 +1552,271 @@ class RiemannSurface(object):
             self._differentials = generators
         return self._differentials
 
-    def matrix_of_integral_values(self, differentials):
+    def _bounding_data(self, differentials):
+        r"""
+        Compute the data required to bound a differential on a circle.
+
+        Given a differential, one can bound it on a circular region using its
+        derivative and its minimal polynomial (in the coordinate of the base).
+
+        INPUT:
+
+        - ``differentials`` -- list. A list of polynomials in ``self._R`` giving
+          the numerators of the differentials, as per the output of 
+          :meth:`cohomology_basis`. 
+
+        OUTPUT:
+
+        A tuple ``(CCzg, [(g, dgdz, F, a0_info), ...])`` where each element of 
+        the list corresponds to an element of ``differentials``. Introducing the
+        notation ``RBzg = PolynomialRing(self._R, ['z','g'])`` and 
+        ``CCzg = PolynomialRing(self._CC, ['z','g'])``, we have that:
+         - ``g`` is the full rational function in ``self._R.fraction_field()`` 
+           giving the differential,
+         - ``dgdz`` is the derivative of ``g`` with respect to ``self._R.gen(0)``,
+           written in terms of ``self._R.gen(0)`` and ``g``, hence laying in 
+           ``RBzg``,
+         - ``F`` is the minimal polynomial of ``g`` over ``self._R.gen(0)``, 
+           laying in the polynomial ring ``CCzg``,
+         - ``a0_info`` is a tuple ``(lc, roots)`` where ``lc`` and ``roots`` are 
+           the leading coefficient and roots of the polynomial in ``CCzg.gen(0)``
+           that is the coefficient of the term of ``F`` of highest degree in 
+           ``CCzg.gen(1)``. 
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<x,y> = QQ[]
+            sage: f = y^2-x^3+1
+            sage: S = RiemannSurface(f)
+            sage: differentials = S.cohomology_basis(); differentials
+            [1]
+            sage: S._dfdw
+            2*y
+            sage: S._bounding_data(differentials)
+            (Multivariate Polynomial Ring in z, g over Complex Field with 53 bits of precision,
+             [(1/(2*y),
+               (-3*z^2*g)/(2*z^3 - 2),
+               z^3*g^2 - g^2 - 0.250000000000000,
+               (1.00000000000000,
+                [1.00000000000000,
+                 -0.500000000000000 - 0.866025403784439*I,
+                 -0.500000000000000 + 0.866025403784439*I]))])
+
+        """
+        # This copies previous work by NB, outputting the zipped list required 
+        # for a certified line integral. 
+        RB = self._R.base_ring()
+        P = PolynomialRing(RB, 'Z')
+        k = P.fraction_field()
+        KP = PolynomialRing(k, 'W')  # W->fraction field
+        fZW = self.f(P.gen(0), KP.gen(0))
+        L = k.extension(fZW, 'Wb')
+        dfdw_L = self._dfdw(P.gen(0), L.gen(0))
+        integrand_list = [h/self._dfdw for h in differentials]
+        # minpoly_univ gives the minimal polynomial for h, in variable x, with 
+        # coefficients given by polynomials in P (i.e. rational polynomials in Z).
+        minpoly_univ = [(h(P.gen(0), L.gen(0))/dfdw_L).minpoly().numerator()
+                        for h in differentials]
+        RBzg = PolynomialRing(RB, ['z', 'g'])
+        # The following line changes the variables in these minimal polynomials 
+        # as Z -> z, x -> G, then evaluates at G = QQzg.gens(1) ( = g )
+        RBzgG = PolynomialRing(RBzg, 'G')
+        minpoly_list = [RBzgG([c(RBzg.gen(0)) for c in list(h)])(RBzg.gen(1))
+                        for h in minpoly_univ]
+        # h(z,g)=0 --> dg/dz = - dhdz/dhdg
+        dgdz_list = [-h.derivative(RBzg.gen(0))/h.derivative(RBzg.gen(1))
+                     for h in minpoly_list]
+        
+        CCzg = PolynomialRing(self._CC, ['z','g'])
+        CCminpoly_list = [CCzg(h) for h in minpoly_list]
+        
+        a0_list = [P(h.leading_coefficient()) for h in minpoly_univ]
+        # Note that because the field over which the Riemann surface is defined
+        # is embedded into CC, it has characteristic 0, and so we know the 
+        # irreducible factors are all separable, i.e. the roots have multiplicity
+        # one. 
+        a0_info = [(self._CC(a0.leading_coefficient()),
+                    flatten([self._CCz(F).roots(multiplicities=False)*m 
+                             for F, m in a0.factor()]))
+                   for a0 in a0_list]
+        return CCzg, list(zip(integrand_list, dgdz_list, CCminpoly_list, a0_info))
+
+    def rigorous_line_integral(self, upstairs_edge, differentials, bounding_data):
+        r"""
+        Perform vectorized integration along a straight path.
+
+        Using the error bounds for Gauss-Legendre integration found in [Neu2018]_
+        and a method for bounding an algebraic integrand on a circular domains 
+        using Cauchy's form of the remainder in Taylor approximation coupled to 
+        Fujiwara's bound on polynomial roots (see Bruin-DisneyHogg-Gao, in 
+        preparation), this method calculates (semi-)rigorously the integral of a 
+        list of differentials along an edge of the upstairs graph.
+
+        INPUT:
+
+        - ``upstairs_edge`` -- a pair of integer tuples corresponding to an edge
+          of the upstairs graph.
+
+        - ``differentials`` -- a list of polynomials; a polynomial `g`
+          represents the differential `g(z,w)/(df/dw) dz` where `f(z,w)=0` is
+          the equation defining the Riemann surface.
+
+        - ``bounding_data`` -- tuple containing the data required for bounding
+          the integrands. This should be in the form of the output from 
+          :meth:`_bounding_data`.
+
+        OUTPUT:
+
+        A complex number, the value of the line integral.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<z,w> = QQ[]
+            sage: f = w^2 - z^4 + 1
+            sage: S = RiemannSurface(f); S
+            Riemann surface defined by polynomial f = -z^4 + w^2 + 1 = 0, with 53 bits of precision
+
+        Since we make use of data from homotopy continuation, we need to compute
+        the necessary data::
+
+            sage: _ = S.homology_basis()
+            sage: differentials = S.cohomology_basis()
+            sage: bounding_data = S._bounding_data(differentials)
+            sage: S.rigorous_line_integral([(0,0), (1,0)], differentials, bounding_data)  # abs tol 1e-10
+            (1.80277751848459e-16 - 0.352971844594760*I)
+
+        .. NOTE::
+
+            Uses data that ``homology_basis`` initializes. 
+
+            Note also that the  data of the differentials is contained within
+            ``bounding_data``. It is, however, still advantageous to have this 
+            be a separate argument, as it lets the user supply a fast-callable
+            version of the differentials, to significantly speed up execution 
+            of the integrand calls, and not have to re-calculate these 
+            fast-callables for every run of the function. This is also the benefit
+            of representing the  differentials as a polynomial over a known 
+            common denominator. 
+
+        .. TODO::
+
+            Note that bounding_data contains the information of the integrands,
+            so one may want to check for consistency between ``bounding_data``
+            and ``differentials``. If so one would not want to do so at the 
+            expense of speed. 
+
+            Moreover, the current implementation bounds along a line by 
+            splitting it up into segments, each of which can be covered entirely
+            by a single circle, and then placing inside that the ellipse 
+            required to bound as per [Neu2018]_. This is reliably more efficient
+            than the heuristic method, especially in poorly-conditioned cases 
+            where discriminant points are close together around the edges, but
+            in the case where the branch locus is well separated, it can require
+            slightly more nodes than necessary. One may want to include a method
+            here to transition in this regime to an algorithm that covers the 
+            entire line with one ellipse, then bounds along that ellipse with 
+            multiple circles. 
+        """
+        # Note that this, in its current formalism, makes no check that bounding 
+        # data at all corresponds to  the differentials given. The onus is then 
+        # on the design of other functions which use it.
+    
+        # CCzg is required to be known as we need to know the ring which the minpolys lie in. 
+        CCzg, bounding_data_list = bounding_data
+        
+        i0, _ = upstairs_edge[0]
+        i1, _ = upstairs_edge[1]
+        z0 = self._vertices[i0]
+        z1 = self._vertices[i1]
+        zwt, z1_minus_z0 = self.make_zw_interpolator(upstairs_edge)
+        
+        # list of (centre, radius) pairs that still need to be processed
+        ball_stack = [(self._RR(1/2), self._RR(1/2))]
+        alpha = self._RR(912/1000) 
+        # alpha set manually for scaling purposes. Basic benchmarking shows 
+        # that ~0.9 is a sensible value. 
+        E_global = self._RR(2)**(-self._prec+3)
+        K = 2
+        # The parameter K could be tuned, but basic benchmarking seems to show
+        # that 2 is a sensible choice
+
+        # Output will iteratively store the output of the integral. 
+        V = VectorSpace(self._CC, len(differentials))
+        output = V(0)
+
+        # The purpose of this loop is as follows: We know we will be using 
+        # Gauss-Legendre quadrature to do the integral, and results from [Neu2018]_
+        # tell us an upper bound on the number of nodes required to achieve a 
+        # given error bound for this quadrature, provided we have a bound for 
+        # the integrand on a certain ellipse in the complex plane. The method 
+        # developed by Bruin and Gao that uses Cauchy and Fujiwara can bound an
+        # algebraic integrand on a circular region. Hence we need a way to change
+        # from bounding with an ellipse to bounding with a circle. The size of 
+        # these circles will be constrained by the distance to the nearest point 
+        # where the integrand blows up, i.e. the nearest branchpoint. Basic 
+        # benchmarking showed that it was in general a faster method to split 
+        # the original line segment into multiple smaller line segments, and 
+        # compute the contribution from each of the line segments bounding with
+        # a single circle, the benefits mainly coming when the curve is poorly
+        # conditioned s.t. the branch points are close together. The following 
+        # loop does exactly this, repeatedly bisecting a segment if it is not 
+        # possible to cover it entirely in a ball which encompasses an appropriate
+        # ellipse.  
+        while ball_stack:
+            ct, rt = ball_stack.pop()
+            cz = (1-ct)*z0+ct*z1  # This is the central z-value of our ball.
+            # Distance to the discriminant points
+            distances = [(cz-b).abs() for b in self.branch_locus] 
+            rho_z = min(distances)
+            rho_t = rho_z/(z1-z0).abs()
+            if rho_t > rt:
+                rho_t = alpha*rho_t+(1-alpha)*rt  # sqrt(rho_t*rt) could also work
+                rho_z = rho_t*(z1-z0).abs()
+                delta_z = (alpha*rho_t+(1-alpha)*rt)*(z1-z0).abs()
+                expr = rho_t/rt+((rho_t/rt)**2-1).sqrt()  # Note this is really exp(arcosh(rho_t/rt))
+                N = 3
+                cw = zwt(ct)[1]
+                for g, dgdz, minpoly,(a0lc,a0roots) in bounding_data_list:
+                    z_1 = a0lc.abs()*prod((cz-r).abs()-rho_z for r in a0roots)
+                    n = minpoly.degree(CCzg.gen(1))
+                    # Note the structure of the code is currently s.t 'z' has to be the variable in
+                    # the minpolys.
+                    ai_new = [(minpoly.coefficient({CCzg.gen(1):i}))(z=cz+self._CCz.gen(0)) for i
+                                in range(n)]
+                    ai_pos = [ self._RRz([c.abs() for c in h.list()]) for h in ai_new]
+                    m = [a(rho_z)/z_1 for a in ai_pos]
+                    l = len(m)
+                    M_tilde = 2*max((m[i].abs())**(1/self._RR(l-i)) for i in range(l))
+                    cg = g(cz,cw)
+                    cdgdz = dgdz(cz,cg)
+                    Delta = delta_z*cdgdz.abs()+ (delta_z**2)*M_tilde/(rho_z*(rho_z-delta_z))
+                    M = Delta
+                    N_required = ((64*M/(15*(1-1/expr)*E_global)).log()/(2*expr.log())).ceil()
+                    N = max(N,N_required)
+
+                N = (K*(self._RR(N).sqrt()/K).ceil())**2
+                # Rounding is sensible as it allows the cache of nodes in 
+                # sage.numerical.gauss_legendre to be used.
+                # Quadratic rounding can be shown to be a sensible choice through the 
+                # basic argument that nodes is quadratic in N 
+                
+                ct_minus_rt = ct-rt
+                two_rt = 2*rt
+                def integrand(t):
+                    zt, wt = zwt(ct_minus_rt+t*two_rt)
+                    dfdwt = self._fastcall_dfdw(zt, wt)
+                    return V([h(zt,wt)/dfdwt for h in differentials])
+
+                output += two_rt*integrate_vector_N(integrand, self._prec,N)
+            else:
+                ball_stack.append((ct-rt/2, rt/2))
+                ball_stack.append((ct+rt/2, rt/2))
+
+        return output*z1_minus_z0
+
+    def matrix_of_integral_values(self, differentials, integration_method="heuristic"):
         r"""
         Compute the path integrals of the given differentials along the homology
         basis.
@@ -1495,6 +1829,10 @@ class RiemannSurface(object):
         INPUT:
 
         - ``differentials`` -- a list of polynomials.
+
+        - ``integration_method`` -- (default: ``'heuristic'``). String specifying
+          the integration method to use. The options are ``'heuristic'`` and 
+          ``'rigorous'``.
 
         OUTPUT:
 
@@ -1510,7 +1848,7 @@ class RiemannSurface(object):
             sage: m = S.matrix_of_integral_values(B)
             sage: parent(m)
             Full MatrixSpace of 1 by 2 dense matrices over Complex Field with 53 bits of precision
-            sage: (m[0,0]/m[0,1]).algdep(3).degree() #curve is CM, so the period is quadratic
+            sage: (m[0,0]/m[0,1]).algdep(3).degree() # curve is CM, so the period is quadratic
             2
 
         """
@@ -1532,13 +1870,22 @@ class RiemannSurface(object):
         occurring_edges = set()
         occurring_edges.update(*[normalize_pairs(p[1]) for h in cycles
                                  for p in h])
-        integral_dict = {upstairs_edge:
-                         self.simple_vector_line_integral(upstairs_edge,
-                                                          differentials)
-                         for upstairs_edge in occurring_edges}
+
+        fcd = [fast_callable(omega, domain=self._CC) for omega in differentials]
+
+        if integration_method == "heuristic":
+            line_int = lambda edge: self.simple_vector_line_integral(edge, fcd)
+        elif integration_method == "rigorous":
+            bd = self._bounding_data(differentials)
+            line_int = lambda edge: self.rigorous_line_integral(edge, fcd, bd)
+        else:
+            raise ValueError("Invalid integration method")
+
+        integral_dict = {edge: line_int(edge) for edge in occurring_edges}
+        
         rows = []
         for cycle in cycles:
-            V = VectorSpace(self._CC, self.genus).zero()
+            V = VectorSpace(self._CC, len(differentials)).zero()
             for multiplicity, loop in cycle:
                 for i in range(len(loop) - 1):
                     if loop[i][0] < loop[i + 1][0]:
@@ -1576,10 +1923,21 @@ class RiemannSurface(object):
             Full MatrixSpace of 3 by 6 dense matrices over Complex Field with 30 bits of precision
             sage: M.rank()
             3
+
+        One can check that the two methods give similar answers::
+        
+            sage: from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
+            sage: R.<x,y> = QQ[]
+            sage: f = y^2 - x^3 + 1
+            sage: S = RiemannSurface(f, integration_method="rigorous")
+            sage: T = RiemannSurface(f, integration_method="heuristic")
+            sage: RM_S = S.riemann_matrix()
+            sage: RM_T = T.riemann_matrix()
+            sage: (RM_S-RM_T).norm() < 1e-10
+            True
         """
-        differentials = [fast_callable(omega, domain=self._CC)
-                         for omega in self.cohomology_basis()]
-        return self.matrix_of_integral_values(differentials)
+        differentials = self.cohomology_basis()
+        return self.matrix_of_integral_values(differentials, self._integration_method)
 
     def riemann_matrix(self):
         r"""
@@ -2130,7 +2488,7 @@ def integer_matrix_relations(M1, M2, b=None, r=None):
     D = Matrix(R, g1, g2, vars[3*g1*g2:4*g1*g2])
     W = ((M1*A+B) - (M1*C+D)*M2).list()
     vars = R.gens()
-    mt = Matrix(ZZ,[[1 if i==j else 0 for j in range(4*g1*g2)] +
+    mt = Matrix(ZZ,[[1 if i == j else 0 for j in range(4*g1*g2)] +
       [(S*w.monomial_coefficient(vars[i]).real_part()).round() for w in W] +
       [(S*w.monomial_coefficient(vars[i]).imag_part()).round() for w in W] for i in range(len(vars))])
     # we compute an LLL-reduced basis of this lattice:

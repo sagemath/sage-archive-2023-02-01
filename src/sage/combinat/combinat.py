@@ -815,11 +815,11 @@ def lucas_number2(n, P, Q):
         sage: n = lucas_number2(5,2,3); n
         2
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: n = lucas_number2(5,2,-3/9); n
         418/9
         sage: type(n)
-        <... 'sage.rings.rational.Rational'>
+        <class 'sage.rings.rational.Rational'>
 
     The case `P=1`, `Q=-1` is the Lucas sequence in Brualdi's Introductory
     Combinatorics, 4th ed., Prentice-Hall, 2004::
@@ -935,17 +935,17 @@ def stirling_number2(n, k, algorithm=None) -> Integer:
         sage: n
         1900842429486
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: n = stirling_number2(20,11,algorithm='gap')
         sage: n
         1900842429486
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: n = stirling_number2(20,11,algorithm='maxima')
         sage: n
         1900842429486
         sage: type(n)
-        <... 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
      Sage's implementation splitting the computation of the Stirling
      numbers of the second kind in two cases according to `n`, let us
@@ -1315,7 +1315,7 @@ class CombinatorialObject(SageObject):
             sage: c + [4]
             [1, 2, 3, 4]
             sage: type(_)
-            <... 'list'>
+            <class 'list'>
         """
         return self._list + other
 
@@ -1408,7 +1408,7 @@ class CombinatorialObject(SageObject):
             sage: c[1:]
             [2, 3]
             sage: type(_)
-            <... 'list'>
+            <class 'list'>
         """
         return self._list[key]
 
@@ -1725,7 +1725,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
             sage: p5 = Partitions(5)
             sage: a = [2,2,1]
             sage: type(a)
-            <... 'list'>
+            <class 'list'>
             sage: a = p5(a)
             sage: type(a)
             <class 'sage.combinat.partition.Partitions_n_with_category.element_class'>

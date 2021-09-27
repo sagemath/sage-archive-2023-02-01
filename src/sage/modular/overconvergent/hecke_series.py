@@ -266,8 +266,14 @@ def random_solution(B,K):
     EXAMPLES::
 
         sage: from sage.modular.overconvergent.hecke_series import random_solution
-        sage: random_solution(5,10)
-        [1, 1, 1, 1, 0]
+        sage: s = random_solution(5,10)
+        sage: sum(s[i]*(i+1) for i in range(5))
+        10
+        sage: S = set()
+        sage: while len(S) != 30:
+        ....:     s = random_solution(5,10)
+        ....:     assert sum(s[i]*(i+1) for i in range(5)) == 10
+        ....:     S.add(tuple(s))
     """
     a = []
     for i in range(B,1,-1):
@@ -703,15 +709,25 @@ def higher_level_UpGj(p, N, klist, m, modformsring, bound, extra_data=False):
     EXAMPLES::
 
         sage: from sage.modular.overconvergent.hecke_series import higher_level_UpGj
-        sage: higher_level_UpGj(5,3,[4],2,true,6)
-        [
-        [ 1  0  0  0  0  0]
-        [ 0  1  0  0  0  0]
-        [ 0  7  0  0  0  0]
-        [ 0  5 10 20  0  0]
-        [ 0  7 20  0 20  0]
-        [ 0  1 24  0 20  0]
-        ]
+        sage: A = Matrix([
+        ....:     [1,  0,  0,  0,  0,  0],
+        ....:     [0,  1,  0,  0,  0,  0],
+        ....:     [0,  7,  0,  0,  0,  0],
+        ....:     [0,  5, 10, 20,  0,  0],
+        ....:     [0,  7, 20,  0, 20,  0],
+        ....:     [0,  1, 24,  0, 20,  0]])
+        sage: B = Matrix([
+        ....:     [1,  0,  0,  0,  0,  0],
+        ....:     [0,  1,  0,  0,  0,  0],
+        ....:     [0,  7,  0,  0,  0,  0],
+        ....:     [0, 19,  0, 20,  0,  0],
+        ....:     [0,  7, 20,  0, 20,  0],
+        ....:     [0,  1, 24,  0, 20,  0]])
+        sage: C = higher_level_UpGj(5,3,[4],2,true,6)
+        sage: len(C)
+        1
+        sage: C[0] in (A, B)
+        True
         sage: len(higher_level_UpGj(5,3,[4],2,true,6,extra_data=True))
         4
     """

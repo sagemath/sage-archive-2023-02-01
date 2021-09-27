@@ -2174,7 +2174,8 @@ class ToricVariety_field(AmbientSpace):
         """
         assert self.is_complete(), "Can only integrate over compact varieties."
         top_form = cohomology_class.part_of_degree(self.dimension())
-        if top_form.is_zero(): return 0
+        if top_form.is_zero():
+            return 0
         return top_form.lc() / self.volume_class().lc()
 
     @property
@@ -3173,7 +3174,7 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
             sage: toric_varieties.P2().cohomology_ring()._repr_()
             'Rational cohomology ring of a 2-d CPR-Fano toric variety covered by 3 affine patches'
         """
-        return 'Rational cohomology ring of a '+self._variety._repr_()
+        return f'Rational cohomology ring of a {self._variety._repr_()}'
 
     def _latex_(self):
         r"""
@@ -3187,9 +3188,9 @@ class CohomologyRing(QuotientRing_generic, UniqueRepresentation):
 
             sage: cohomology_ring = toric_varieties.P2().cohomology_ring()
             sage: print(cohomology_ring._latex_())
-            H^\ast\left(\mathbb{P}_{\Delta^{2}_{15}},\QQ\right)
+            H^\ast\left(\mathbb{P}_{\Delta^{2}_{15}},\Bold{Q}\right)
         """
-        return 'H^\\ast\\left('+self._variety._latex_()+',\\QQ\\right)'
+        return fr'H^\ast\left({self._variety._latex_()},{latex(QQ)}\right)'
 
     def _element_constructor_(self,x):
         r"""

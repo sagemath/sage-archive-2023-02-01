@@ -49,7 +49,7 @@ from sage.combinat.combinat_cython import (set_partition_iterator,
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.combinat import bell_number, stirling_number2
 from sage.combinat.permutation import Permutation
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 from sage.misc.prandom import random, randint
 from sage.probability.probability_distribution import GeneralDiscreteDistribution
 from sage.sets.disjoint_set import DisjointSet
@@ -2675,6 +2675,21 @@ class SetPartitions_all(SetPartitions):
         """
         SetPartitions.__init__(self, category=InfiniteEnumeratedSets())
 
+    def subset(self, size=None, **kwargs):
+        """
+        Return the subset of set partitions of a given size and
+        additional keyword arguments.
+
+        EXAMPLES::
+
+            sage: P = SetPartitions()
+            sage: P.subset(4)
+            Set partitions of {1, 2, 3, 4}
+        """
+        if size is None:
+            return self
+        return SetPartitions(size, **kwargs)
+
     def _repr_(self):
         """
         Return a string representation of ``self``.
@@ -3250,7 +3265,7 @@ class SetPartitions_setn(SetPartitions_set):
 
 def cyclic_permutations_of_set_partition(set_part):
     """
-    Returns all combinations of cyclic permutations of each cell of the
+    Return all combinations of cyclic permutations of each cell of the
     set partition.
 
     AUTHORS:

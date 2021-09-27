@@ -126,16 +126,16 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         sage: from sage.matrix.matrix_space import get_matrix_class
 
         sage: get_matrix_class(ZZ, 4, 5, False, None)
-        <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+        <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
         sage: get_matrix_class(ZZ, 4, 5, True, None)
-        <type 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
+        <class 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
 
         sage: get_matrix_class(ZZ, 3, 3, False, 'flint')
-        <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+        <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
         sage: get_matrix_class(ZZ, 3, 3, False, 'gap')
-        <type 'sage.matrix.matrix_gap.Matrix_gap'>
+        <class 'sage.matrix.matrix_gap.Matrix_gap'>
         sage: get_matrix_class(ZZ, 3, 3, False, 'generic')
-        <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+        <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         sage: get_matrix_class(GF(2^15), 3, 3, False, None)
         <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
@@ -143,23 +143,23 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         sage: get_matrix_class(GF(2), 2, 2, False, 'm4ri')
-        <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
+        <class 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
         sage: get_matrix_class(GF(4), 2, 2, False, 'm4ri')
-        <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
+        <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
         sage: get_matrix_class(GF(7), 2, 2, False, 'linbox-float')
-        <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+        <class 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
         sage: get_matrix_class(GF(7), 2, 2, False, 'linbox-double')
-        <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
+        <class 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
 
         sage: get_matrix_class(RDF, 2, 2, False, 'numpy')
-        <type 'sage.matrix.matrix_real_double_dense.Matrix_real_double_dense'>
+        <class 'sage.matrix.matrix_real_double_dense.Matrix_real_double_dense'>
         sage: get_matrix_class(CDF, 2, 3, False, 'numpy')
-        <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
+        <class 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
 
         sage: get_matrix_class(GF(25,'x'), 4, 4, False, 'meataxe')         # optional: meataxe
-        <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+        <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
         sage: get_matrix_class(IntegerModRing(3), 4, 4, False, 'meataxe')  # optional: meataxe
-        <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+        <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
         sage: get_matrix_class(IntegerModRing(4), 4, 4, False, 'meataxe')
         Traceback (most recent call last):
         ...
@@ -187,19 +187,19 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
         ValueError: 'linbox-double' matrices can only deal with order < 8388608
 
         sage: type(matrix(SR, 2, 2, 0))
-        <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
+        <class 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
         sage: type(matrix(GF(7), 2, range(4)))
-        <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+        <class 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
         sage: type(matrix(GF(16007), 2, range(4)))
-        <type 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
+        <class 'sage.matrix.matrix_modn_dense_double.Matrix_modn_dense_double'>
         sage: type(matrix(CBF, 2, range(4)))
-        <type 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
+        <class 'sage.matrix.matrix_complex_ball_dense.Matrix_complex_ball_dense'>
         sage: type(matrix(GF(2), 2, range(4)))
-        <type 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
+        <class 'sage.matrix.matrix_mod2_dense.Matrix_mod2_dense'>
         sage: type(matrix(GF(64,'z'), 2, range(4)))
-        <type 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
+        <class 'sage.matrix.matrix_gf2e_dense.Matrix_gf2e_dense'>
         sage: type(matrix(GF(125,'z'), 2, range(4)))     # optional: meataxe
-        <type 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
+        <class 'sage.matrix.matrix_gfpn_dense.Matrix_gfpn_dense'>
 
     """
     if isinstance(implementation, type):
@@ -415,9 +415,9 @@ class MatrixSpace(UniqueRepresentation, Parent):
         sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
 
         sage: type(M1(range(4)))
-        <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+        <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
         sage: type(M2(range(4)))
-        <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+        <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         sage: M1(M2.an_element())
         [ 0  1]
@@ -634,7 +634,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
         elif is_finite is False:
             category = category.Infinite()
 
-        if base_ring in EnumeratedSets:
+        if base_ring in EnumeratedSets():
             category = category.Enumerated()
 
         Parent.__init__(self, base_ring, category=category)
@@ -750,8 +750,10 @@ class MatrixSpace(UniqueRepresentation, Parent):
         else:
             return True
 
-    def __call__(self, entries=None, coerce=True, copy=None):
+    def _element_constructor_(self, entries, **kwds):
         """
+        Construct an element of ``self`` from ``entries``.
+
         EXAMPLES::
 
             sage: k = GF(7); G = MatrixGroup([matrix(k,2,[1,1,0,1]), matrix(k,2,[1,0,0,2])])
@@ -846,8 +848,19 @@ class MatrixSpace(UniqueRepresentation, Parent):
             [t]
             sage: MS(t)       # given as a scalar matrix
             [t]
+
+        Calling a matrix space `M` with a matrix in `M` as argument
+        returns the original matrix unless ``copy=True`` is specified
+        (:trac:`31078`)::
+
+            sage: m = Matrix([[0, 1], [2, 3]])
+            sage: M = m.parent()
+            sage: M(m) is m
+            True
+            sage: M(m, copy=True) is m
+            False
         """
-        return self.element_class(self, entries, copy, coerce)
+        return self.element_class(self, entries, **kwds)
 
     def change_ring(self, R):
         """
@@ -1231,11 +1244,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: 3^(2*3)
             729
 
-            sage: len(MatrixSpace(GF(2003),3,2))  # py2
-            Traceback (most recent call last):
-            ...
-            OverflowError: long int too large to convert to int
-            sage: len(MatrixSpace(GF(2003),3,2))  # py3
+            sage: len(MatrixSpace(GF(2003),3,2))
             Traceback (most recent call last):
             ...
             OverflowError: cannot fit 'int' into an index-sized integer
@@ -1245,7 +1254,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             ...
             TypeError: len() of unsized object
         """
-        return len(self.base_ring())**(self.nrows()*self.ncols())
+        return len(self.base_ring())**(self.nrows() * self.ncols())
 
     def __iter__(self):
         r"""
@@ -1448,7 +1457,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             weight = 0
             while True:
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries):
-                    yield self(entries=[base_elements[i] for i in iv])
+                    yield self([base_elements[i] for i in iv])
                 weight += 1
                 base_elements.append( next(base_iter) )
         else:
@@ -1459,7 +1468,7 @@ class MatrixSpace(UniqueRepresentation, Parent):
             base_elements = list(base_ring)
             for weight in range((order-1)*number_of_entries+1):
                 for iv in sage.combinat.integer_vector.IntegerVectors(weight, number_of_entries, max_part=(order-1)):
-                   yield self(entries=[base_elements[i] for i in iv])
+                   yield self([base_elements[i] for i in iv])
 
     def __getitem__(self, x):
         """
@@ -1560,6 +1569,99 @@ class MatrixSpace(UniqueRepresentation, Parent):
         """
         return (self.__nrows, self.__ncols)
 
+
+    def submodule(self, gens, check=True, already_echelonized=False,
+                  unitriangular=False, support_order=None, category=None,
+                  *args, **opts):
+        r"""
+        The submodule spanned by a finite set of matrices.
+
+        INPUT:
+
+        - ``gens`` -- a list or family of elements of ``self``
+
+        - ``check`` -- (default: ``True``) whether to verify that the
+           elements of ``gens`` are in ``self``
+
+        - ``already_echelonized`` -- (default: ``False``) whether
+           the elements of ``gens`` are already in (not necessarily
+           reduced) echelon form
+
+        - ``unitriangular`` -- (default: ``False``) whether
+          the lift morphism is unitriangular
+
+        - ``support_order`` -- (optional) either something that can
+          be converted into a tuple or a key function
+
+        If ``already_echelonized`` is ``False``, then the
+        generators are put in reduced echelon form using
+        :meth:`echelonize`, and reindexed by `0, 1, \ldots`.
+
+        .. WARNING::
+
+            At this point, this method only works for finite
+            dimensional submodules and if matrices can be
+            echelonized over the base ring.
+
+        If in addition ``unitriangular`` is ``True``, then
+        the generators are made such that the coefficients of
+        the pivots are 1, so that lifting map is unitriangular.
+
+        The basis of the submodule uses the same index set as the
+        generators, and the lifting map sends `y_i` to `gens[i]`.
+
+        .. SEEALSO::
+
+             :meth:`ModulesWithBasis.ParentMethods.submodule`
+
+        EXAMPLES::
+
+            sage: M = MatrixSpace(QQ, 2)
+            sage: mat = M.matrix([[1, 2], [3, 4]])
+            sage: X = M.submodule([mat], already_echelonized=True); X
+            Free module generated by {0} over Rational Field
+
+            sage: mat2 = M.matrix([[1, 0], [-3, 2]])
+            sage: X = M.submodule([mat, mat2])
+            sage: [X.lift(b) for b in X.basis()]
+            [
+            [ 1  0]  [0 1]
+            [-3  2], [3 1]
+            ]
+
+            sage: A = matrix([[1, 1], [0, -1]])
+            sage: B = matrix([[0, 1], [0, 2]])
+            sage: X = M.submodule([A, B])
+            sage: Xp = M.submodule([A, B], support_order=[(0,1), (1,1), (0,0)])
+            sage: [X.lift(b) for b in X.basis()]
+            [
+            [ 1  0]  [0 1]
+            [ 0 -3], [0 2]
+            ]
+            sage: [Xp.lift(b) for b in Xp.basis()]
+            [
+            [2/3   1]  [-1/3    0]
+            [  0   0], [   0    1]
+            ]
+        """
+        support_order = self._compute_support_order(gens, support_order)
+        if not already_echelonized:
+            gens = self.echelon_form(gens, unitriangular, order=support_order)
+        else:
+            from copy import copy
+            # We will be making gens immutable, so copy the mutable matrices
+            gens = [copy(g) if g.is_mutable() else g for g in gens]
+
+        # We need to make sure the result immutable
+        for g in gens:
+            g.set_immutable()
+
+        from sage.modules.with_basis.subquotient import SubmoduleWithBasis
+        return SubmoduleWithBasis(gens, ambient=self,
+                                  support_order=support_order,
+                                  unitriangular=unitriangular,
+                                  category=category, *args, **opts)
+
     from sage.misc.cachefunc import cached_method
     @cached_method
     def identity_matrix(self):
@@ -1598,9 +1700,9 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
 
             sage: type(M1.identity_matrix())
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: type(M2.identity_matrix())
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
 
         """
         if self.__nrows != self.__ncols:
@@ -1656,9 +1758,9 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: M2 = MatrixSpace(ZZ, 2, implementation='generic')
 
             sage: type(M1.diagonal_matrix([1, 2]))
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: type(M2.diagonal_matrix([1, 2]))
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
         """
         if self.__nrows != self.__ncols:
             raise TypeError("diagonal matrix must be square")
@@ -1861,14 +1963,14 @@ class MatrixSpace(UniqueRepresentation, Parent):
             sage: MS.matrix([MS0([1,2,3,4]), MS0([5,6,7,8])])
             Traceback (most recent call last):
             ...
-            TypeError: unable to coerce <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'> to an integer
+            TypeError: unable to coerce <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'> to an integer
 
         A mixed list of matrices and vectors is prohibited as well::
 
             sage: MS.matrix( [MS0([1,2,3,4])] + list(MS0([5,6,7,8])) )
             Traceback (most recent call last):
             ...
-            TypeError: unable to coerce <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'> to an integer
+            TypeError: unable to coerce <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'> to an integer
 
         Check that :trac:`13302` is fixed::
 

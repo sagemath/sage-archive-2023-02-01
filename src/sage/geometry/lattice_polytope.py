@@ -124,7 +124,8 @@ lazy_import('ppl', 'point', as_='PPL_point',
 
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
-from sage.misc.all import cached_method, flatten, tmp_filename
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import flatten, tmp_filename
 from sage.modules.all import vector
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.plot.plot3d.index_face_set import IndexFaceSet
@@ -3154,7 +3155,8 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable):
             True
         """
         def PGE(S, u, v):
-            if u == v: return S.one()
+            if u == v:
+                return S.one()
             return S((u, v), check=False)
 
         PM = self.vertex_facet_pairing_matrix()
@@ -3793,6 +3795,36 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable):
             return self._points(*args, **kwds)
         else:
             return self._points
+
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self`` as a convex polytope.
+
+        In contrast to :meth:`points`, these are not necessarily lattice points.
+
+        EXAMPLES::
+
+            sage: o = lattice_polytope.cross_polytope(3)
+            sage: o.some_elements()  # indirect doctest
+            [(1, 0, 0),
+            (1/2, 1/2, 0),
+            (1/4, 1/4, 1/2),
+            (-3/8, 1/8, 1/4),
+            (-3/16, -7/16, 1/8),
+            (-3/32, -7/32, -7/16)]
+        """
+        if not self._vertices:
+            return
+        V = self.ambient_vector_space()
+        v_iter = iter(self._vertices)
+        p = V(next(v_iter))
+        yield p
+        for i in range(5):
+            try:
+                p = (p + next(v_iter)) / 2
+            except StopIteration:
+                return
+            yield p
 
     def polar(self):
         r"""

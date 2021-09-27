@@ -160,30 +160,26 @@ dict::
 Also we can substitute with keywords::
 
     sage: f = sin(x*y - z)
-    sage: f(x = t, y = z)
+    sage: f(x=t, y=z)
     sin(t*z - z)
 
-It was formerly the case that if there was no ambiguity of variable
-names, we didn't have to specify them; that still works for the moment,
-but the behavior is deprecated::
-
-    sage: f = sin(x)
-    sage: f(y)
-    doctest:...: DeprecationWarning: Substitution using function-call
-    syntax and unnamed arguments is deprecated and will be removed
-    from a future release of Sage; you can use named arguments instead,
-    like EXPR(x=..., y=...)
-    See http://trac.sagemath.org/5930 for details.
-    sin(y)
-    sage: f(pi)
-    0
-
-However if there is ambiguity, we should explicitly state what
-variables we're substituting for::
+Another example::
 
     sage: f = sin(2*pi*x/y)
     sage: f(x=4)
     sin(8*pi/y)
+
+It is no longer allowed to call expressions with positional arguments::
+
+    sage: f = sin(x)
+    sage: f(y)
+    Traceback (most recent call last):
+    ...
+    TypeError: Substitution using function-call syntax and unnamed
+    arguments has been removed. You can use named arguments instead, like
+    EXPR(x=..., y=...)
+    sage: f(x=pi)
+    0
 
 We can also make a ``CallableSymbolicExpression``,
 which is a ``SymbolicExpression`` that is a function of
@@ -399,8 +395,16 @@ To check that :trac:`14821` is fixed::
     sage: H = exp(-1.0 * x)
     sage: H.integral(x, 0, 1)
     0.6321205588285577
-    sage: integral(exp(-300.0/(-0.064*x+14.0)),x,0.0,120.0)
+    sage: result = integral(exp(-300.0/(-0.064*x+14.0)),x,0.0,120.0)
+    ...
+    sage: result
     4.62770039817000e-9
+
+To check that :trac:`27092` is fixed::
+
+    sage: n = var('n')
+    sage: sum(binomial(1, n), n, 0, oo)
+    2
 """
 
 import re
@@ -412,12 +416,11 @@ from sage.misc.latex import latex
 from sage.misc.parser import Parser, LookupNameMaker
 
 from sage.symbolic.ring import var, SR, is_SymbolicVariable
-from sage.symbolic.expression import Expression
+from sage.symbolic.expression import Expression, symbol_table
 from sage.symbolic.function import Function
 from sage.symbolic.function_factory import function_factory
 from sage.symbolic.integration.integral import (indefinite_integral,
         definite_integral)
-from sage.libs.pynac.pynac import symbol_table
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.interfaces.maxima_lib', 'maxima')
@@ -857,6 +860,14 @@ def symbolic_product(expression, v, a, b, algorithm='maxima', hold=False):
         1/factorial(n + 1)
         sage: symbolic_product(f(i), i, 1, n).log().log_expand()
         sum(log(f(i)), i, 1, n)
+
+    TESTS:
+
+    Verify that :trac:`30520` is fixed::
+
+        sage: symbolic_product(-x^2,x,1,n)
+        (-1)^n*factorial(n)^2
+
     """
     if not is_SymbolicVariable(v):
         if isinstance(v, str):
@@ -960,7 +971,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
     parameters are ignored.
 
     Numerical: Computes a numerical approximation of
-    ``self`` and use PARI's algdep to get a candidate
+    ``self`` and use PARI's :pari:`algdep` to get a candidate
     minpoly `f`. If `f(\mathtt{self})`,
     evaluated to a higher precision, is close enough to 0 then evaluate
     `f(\mathtt{self})` symbolically, attempting to prove
@@ -1278,6 +1289,11 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
         sage: limit(e^(-1/x), x=0, dir='left', algorithm='fricas')              # optional - fricas
         +Infinity
 
+    One can also call Mathematica's online interface::
+
+        sage: limit(pi+log(x)/x,x=oo, algorithm='mathematica_free') # optional - internet
+        pi
+
     TESTS::
 
         sage: lim(x^2, x=2, dir='nugget')
@@ -1431,6 +1447,8 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
             l = libgiac.limit(ex, v, a, 1).sage()
         elif dir in dir_minus:
             l = libgiac.limit(ex, v, a, -1).sage()
+    elif algorithm == 'mathematica_free':
+        return mma_free_limit(ex, v, a, dir)
     else:
         raise ValueError("Unknown algorithm: %s" % algorithm)
     return ex.parent()(l)
@@ -1438,6 +1456,45 @@ def limit(ex, dir=None, taylor=False, algorithm='maxima', **argv):
 
 # lim is alias for limit
 lim = limit
+
+
+def mma_free_limit(expression, v, a, dir=None):
+    """
+    Limit using Mathematica's online interface.
+
+    EXAMPLES::
+
+        sage: from sage.calculus.calculus import mma_free_limit
+        sage: mma_free_limit(sin(x)/x, x=0) # optional - internet
+        1
+
+    Another simple limit::
+
+        sage: mma_free_limit(e^(-x), x, a=oo) # optional - internet
+        0
+    """
+    from sage.interfaces.mathematica import request_wolfram_alpha, parse_moutput_from_json, symbolic_expression_from_mathematica_string
+    dir_plus = ['plus', '+', 'above', 'right']
+    dir_minus = ['minus', '-', 'below', 'left']
+    math_expr = expression._mathematica_init_()
+    variable = v._mathematica_init_()
+    a = a._mathematica_init_()
+    if dir is None:
+        input = "Limit[{},{} -> {}]".format(math_expr, variable, a)
+    elif dir in dir_plus:
+        dir = 'Direction -> "FromAbove"'
+        input = "Limit[{}, {} -> {}, {}]".format(math_expr, variable, a, dir)
+    elif dir in dir_minus:
+        dir = 'Direction -> "FromBelow"'
+        input = "Limit[{}, {} -> {}, {}]".format(math_expr, variable, a, dir)
+    else:
+        raise ValueError('wrong input for limit')
+    json_page_data = request_wolfram_alpha(input)
+    all_outputs = parse_moutput_from_json(json_page_data)
+    if not all_outputs:
+        raise ValueError("no outputs found in the answer from Wolfram Alpha")
+    first_output = all_outputs[0]
+    return symbolic_expression_from_mathematica_string(first_output)
 
 
 ###################################################################
@@ -1559,6 +1616,22 @@ def laplace(ex, t, s, algorithm='maxima'):
         2*(s - 2)*e^a/(s^2 - 4*s + 5)^2
         sage: inverse_laplace(L, s, t)
         t*e^(a + 2*t)*sin(t)
+
+    The Laplace transform of the exponential function::
+
+        sage: laplace(exp(x), x, s)
+        1/(s - 1)
+
+    Dirac's delta distribution is handled (the output of SymPy is
+    related to a choice that has to be made when defining Laplace
+    transforms of distributions)::
+
+        sage: laplace(dirac_delta(t), t, s)
+        1
+        sage: laplace(dirac_delta(t), t, s, algorithm='sympy')
+        (-heaviside(0) + 1, -oo, True)
+        sage: laplace(dirac_delta(t), t, s, algorithm='giac')
+        1
 
     Heaviside step function can be handled with different interfaces.
     Try with Maxima::
@@ -1736,8 +1809,16 @@ def inverse_laplace(ex, s, t, algorithm='maxima'):
         -1/3*(sqrt(3)*e^(1/2*t - 1/2)*sin(1/2*sqrt(3)*(t - 1)) - cos(1/2*sqrt(3)*(t - 1))*e^(1/2*t - 1/2) +
         e^(-t + 1))*heaviside(t - 1) + 2/3*(2*cos(1/2*sqrt(3)*(t - 2))*e^(1/2*t - 1) + e^(-t + 2))*heaviside(t - 2)
 
-    Dirac delta function can also be handled::
+        sage: inverse_laplace(1/(s - 1), s, x)
+        e^x
 
+    The inverse Laplace transform of a constant is a delta
+    distribution::
+
+        sage: inverse_laplace(1, s, t)
+        dirac_delta(t)
+        sage: inverse_laplace(1, s, t, algorithm='sympy')
+        dirac_delta(t)
         sage: inverse_laplace(1, s, t, algorithm='giac')
         dirac_delta(t)
 
@@ -2026,7 +2107,7 @@ def _inverse_laplace_latex_(self, *args):
     return "\\mathcal{L}^{-1}\\left(%s\\right)" % (', '.join(latex(x) for x in args))
 
 
-# Return un-evaluated expression as instances of SFunction class
+# Return un-evaluated expression as instances of NewSymbolicFunction
 _laplace = function_factory('laplace', print_latex_func=_laplace_latex_)
 _inverse_laplace = function_factory('ilt',
         print_latex_func=_inverse_laplace_latex_)
@@ -2069,11 +2150,11 @@ def _is_function(v):
 
     Check that :trac:`31756` is fixed::
 
-        sage: from sage.libs.pynac.pynac import symbol_table
+        sage: from sage.symbolic.expression import symbol_table
         sage: _is_function(symbol_table['mathematica']['Gamma'])
         True
 
-        sage: from sage.libs.pynac.pynac import register_symbol
+        sage: from sage.symbolic.expression import register_symbol
         sage: foo = lambda x: x^2 + 1
         sage: register_symbol(foo, dict(mathematica='Foo'))  # optional - mathematica
         sage: mathematica('Foo[x]').sage()                   # optional - mathematica
@@ -2196,7 +2277,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     delayed_functions = maxima_qp.findall(s)
     if len(delayed_functions):
         for X in delayed_functions:
-            if X == '?%at':  # we will replace Maxima's "at" with symbolic evaluation, not an SFunction
+            if X == '?%at':  # we will replace Maxima's "at" with symbolic evaluation, not a SymbolicFunction
                 pass
             else:
                 function_syms[X[2:]] = function_factory(X[2:])
@@ -2239,13 +2320,13 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s[s.find("(") + 1:s.rfind(")")]
         s = "[" + s + "]"  # turn it into a string that looks like a list
 
-    #replace %solve from to_poly_solve with the expressions
+    # replace %solve from to_poly_solve with the expressions
     if s[0:5] == 'solve':
         s = s[5:]
         s = s[s.find("(") + 1:s.find("]") + 1]
 
-    #replace all instances of Maxima's scientific notation
-    #with regular notation
+    # replace all instances of Maxima's scientific notation
+    # with regular notation
     search = sci_not.search(s)
     while search is not None:
         (start, end) = search.span()
@@ -2396,6 +2477,7 @@ def _find_func(name, create_when_missing=True):
             return function_factory(name)
         else:
             return None
+
 
 parser_make_var = LookupNameMaker({}, fallback=_find_var)
 parser_make_function = LookupNameMaker({}, fallback=_find_func)

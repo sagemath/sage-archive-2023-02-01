@@ -119,10 +119,10 @@ The Chern character is then given by::
      2-dimensional Lorentzian manifold M
 
 The corresponding characteristic form w.r.t. the bundle connection can be
-obtained via :meth:`get_form`.
+obtained via :meth:`~CharacteristicClass.get_form`::
 
     sage: ch_form = ch.get_form(nab); ch_form.display_expansion()
-    ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt/\dx
+    ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt∧dx
 
 .. _multiplicative:
 
@@ -197,7 +197,7 @@ Now, the Chern class can be constructed::
      base space 2-dimensional differentiable manifold CP^1
     sage: c_form = c.get_form(nab)
     sage: c_form.display_expansion(c_comp.frame(), chart=c_comp)
-    c(gamma^1, nabla) = 1 + 1/2*I/(pi + pi*z^2*zbar^2 + 2*pi*z*zbar) dz/\dzbar
+    c(gamma^1, nabla) = 1 + 1/2*I/(pi + pi*z^2*zbar^2 + 2*pi*z*zbar) dz∧dzbar
 
 Since `U` and `\CC\mathbf{P}^1` differ only by a point and therefore a null
 set, it is enough to integrate the top form over the domain `U`::
@@ -276,24 +276,24 @@ Fortunately, both curvature matrices are already skew-symmetric::
     ....:    for j in range(TM.rank()):
     ....:        print(cmatrix_U[i][j].display())
     curvature (1,1) of connection nabla_g w.r.t. Coordinate frame
-     (U, (d/dx,d/dy)) = 0
+     (U, (∂/∂x,∂/∂y)) = 0
     curvature (1,2) of connection nabla_g w.r.t. Coordinate frame
-     (U, (d/dx,d/dy)) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx/\dy
+     (U, (∂/∂x,∂/∂y)) = 4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx∧dy
     curvature (2,1) of connection nabla_g w.r.t. Coordinate frame
-     (U, (d/dx,d/dy)) = -4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx/\dy
+     (U, (∂/∂x,∂/∂y)) = -4/(x^4 + y^4 + 2*(x^2 + 1)*y^2 + 2*x^2 + 1) dx∧dy
     curvature (2,2) of connection nabla_g w.r.t. Coordinate frame
-     (U, (d/dx,d/dy)) = 0
+     (U, (∂/∂x,∂/∂y)) = 0
     sage: for i in range(TM.rank()):
     ....:    for j in range(TM.rank()):
     ....:        print(cmatrix_V[i][j].display())
     curvature (1,1) of connection nabla_g w.r.t. Coordinate frame
-     (V, (d/du,d/dv)) = 0
+     (V, (∂/∂u,∂/∂v)) = 0
     curvature (1,2) of connection nabla_g w.r.t. Coordinate frame
-     (V, (d/du,d/dv)) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
+     (V, (∂/∂u,∂/∂v)) = 4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du∧dv
     curvature (2,1) of connection nabla_g w.r.t. Coordinate frame
-     (V, (d/du,d/dv)) = -4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du/\dv
+     (V, (∂/∂u,∂/∂v)) = -4/(u^4 + v^4 + 2*(u^2 + 1)*v^2 + 2*u^2 + 1) du∧dv
     curvature (2,2) of connection nabla_g w.r.t. Coordinate frame
-     (V, (d/du,d/dv)) = 0
+     (V, (∂/∂u,∂/∂v)) = 0
     sage: nab.set_immutable()  # make nab immutable
 
 Now the representative of the Euler class with respect to the connection
@@ -302,7 +302,7 @@ Now the representative of the Euler class with respect to the connection
     sage: cmatrices = {eU: cmatrix_U, eV: cmatrix_V}
     sage: e_class_form = e_class.get_form(nab, cmatrices)
     sage: e_class_form.display_expansion()
-    e(TS2, nabla_g) = 2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 + 2*(pi + pi*x^2)*y^2) dx/\dy
+    e(TS2, nabla_g) = 2/(pi + pi*x^4 + pi*y^4 + 2*pi*x^2 + 2*(pi + pi*x^2)*y^2) dx∧dy
 
 Let us check whether this form represents the Euler class correctly::
 
@@ -810,7 +810,7 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
             sage: ch_form.display()
             ch(E, nabla^E) = ch_0(E, nabla^E) + zero + ch_1(E, nabla^E)
             sage: ch_form.display_expansion()
-            ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt/\dx
+            ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt∧dx
 
         Due to long computation times, the form is saved::
 
@@ -957,6 +957,6 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
         from sage.symbolic.constants import pi
         fac = 1 / (2 * pi)
         if self._class_type != 'Pfaffian':
-            from sage.libs.pynac.pynac import I
+            from sage.symbolic.expression import I
             fac = fac / I
         return fac * cmatrix

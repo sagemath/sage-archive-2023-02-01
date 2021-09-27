@@ -1628,7 +1628,7 @@ cdef class CombinatorialPolyhedron(SageObject):
         TESTS::
 
             sage: type(C.f_vector())
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+            <class 'sage.modules.vector_integer_dense.Vector_integer_dense'>
         """
         if num_threads is None:
             from sage.parallel.ncpus import ncpus
@@ -2696,10 +2696,15 @@ cdef class CombinatorialPolyhedron(SageObject):
         # Let ``_all_faces`` determine Vrepresentation.
         return self._all_faces.get_face(dim, newindex)
 
-    def a_maximal_chain(self):
+    def a_maximal_chain(self, Vindex=None, Hindex=None):
         r"""
         Return a maximal chain of the face lattice in increasing order
         without empty face and whole polyhedron/maximal face.
+
+        INPUT:
+
+        - ``Vindex`` -- integer (default: ``None``); prescribe the index of the vertex in the chain
+        - ``Hindex`` -- integer (default: ``None``); prescribe the index of the facet in the chain
 
         Each face is given as
         :class:`~sage.geometry.polyhedron.combinatorial_polyhedron.combinatorial_face.CombinatorialFace`.
@@ -2752,6 +2757,66 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: chain = C.a_maximal_chain()
             sage: [face.ambient_V_indices() for face in chain]
             [(0, 1, 2)]
+
+        Specify an index for the vertex of the chain::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: [face.ambient_V_indices() for face in C.a_maximal_chain()]
+            [(5,), (0, 5), (0, 3, 4, 5)]
+            sage: [face.ambient_V_indices() for face in C.a_maximal_chain(Vindex=2)]
+            [(2,), (2, 7), (2, 3, 4, 7)]
+
+        Specify an index for the facet of the chain::
+
+            sage: [face.ambient_H_indices() for face in C.a_maximal_chain()]
+            [(3, 4, 5), (4, 5), (5,)]
+            sage: [face.ambient_H_indices() for face in C.a_maximal_chain(Hindex=3)]
+            [(3, 4, 5), (3, 4), (3,)]
+            sage: [face.ambient_H_indices() for face in C.a_maximal_chain(Hindex=2)]
+            [(2, 3, 5), (2, 3), (2,)]
+
+        If the specified vertex is not contained in the specified facet an error is raised::
+
+            sage: C.a_maximal_chain(Vindex=0, Hindex=3)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given Vindex is not compatible with the given Hindex
+
+        An error is raised, if the specified index does not correspond to a facet::
+
+            sage: C.a_maximal_chain(Hindex=40)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given Hindex does not correspond to a facet
+
+        An error is raised, if the specified index does not correspond to a vertex::
+
+            sage: C.a_maximal_chain(Vindex=40)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given Vindex does not correspond to a vertex
+
+        ::
+
+            sage: P = Polyhedron(rays=[[1,0,0],[0,0,1]], lines=[[0,1,0]])
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.a_maximal_chain(Vindex=0)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given Vindex does not correspond to a vertex
+
+        ::
+
+            sage: P = Polyhedron(rays=[[1,0,0],[0,0,1]])
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.a_maximal_chain(Vindex=0)
+            [A 0-dimensional face of a 2-dimensional combinatorial polyhedron,
+            A 1-dimensional face of a 2-dimensional combinatorial polyhedron]
+            sage: C.a_maximal_chain(Vindex=1)
+            Traceback (most recent call last):
+            ...
+            ValueError: the given Vindex does not correspond to a vertex
         """
         if self.n_facets() == 0 or self.dimension() == 0:
             return []
@@ -2759,35 +2824,94 @@ cdef class CombinatorialPolyhedron(SageObject):
         # We take a face iterator and do one depth-search.
         # Depending on whether it is dual or not,
         # the search will be from the top or bottom.
-        it = self.face_iter()
+        cdef FaceIterator it = self.face_iter()
         chain = [None]*(self.dimension())
         dual = it.dual
         final_dim = 0 if not dual else self.dimension()-1
+
+        cdef bint found_Vindex = Vindex is None
+        cdef bint found_Hindex = Hindex is None
 
         # For each dimension we save the first face we see.
         # This is the face whose sub-/supfaces we visit in the next step.
         current_dim = self.dimension()
         for face in it:
-            if face.dimension() == current_dim:
-                continue
-            current_dim = face.dimension()
-            if chain[current_dim] is None:
-                chain[current_dim] = face
-            else:
-                # The polyhedron contains lines and has
-                # no zero-dimensional faces.
-                current_dim -= 1
-                break
+            if not found_Hindex:
+                if Hindex not in face.ambient_H_indices():
+                    continue
+                if face.dimension() == self.dimension() - 1:
+                    found_Hindex = True
+                    if not found_Vindex and Vindex not in face.ambient_V_indices():
+                        raise ValueError("the given Vindex is not compatible with the given Hindex")
+            if not found_Vindex:
+                if Vindex not in face.ambient_V_indices():
+                    continue
+                if face.dimension() == 0:
+                    found_Vindex = True
+                    if not found_Hindex and Hindex not in face.ambient_H_indices():
+                        raise ValueError("the given Vindex is not compatible with the given Hindex")
 
-            if current_dim == final_dim:
-                # The chain is complete.
-                break
+            it.only_subsets()
+            current_dim = face.dimension()
+            chain[current_dim] = face
+
+        if found_Vindex is False:
+            raise ValueError("the given Vindex does not correspond to a vertex")
+        if found_Hindex is False:
+            raise ValueError("the given Hindex does not correspond to a facet")
+
         if current_dim != final_dim:
             # The polyhedron contains lines.
             # Note that the iterator was always not dual
             # in this case.
             return chain[current_dim:]
         return chain
+
+    def _test_a_maximal_chain(self, tester=None, **options):
+        """
+        Run tests on the method :meth:`.a_maximal_chain`
+
+        TESTS::
+
+            sage: polytopes.cross_polytope(3).combinatorial_polyhedron()._test_a_maximal_chain()
+        """
+        if tester is None:
+            tester = self._tester(**options)
+
+        def test_a_chain(b):
+            for i in range(len(b) - 1):
+                tester.assertTrue(b[i].is_subface(b[i+1]))
+
+        if self.is_bounded():
+            b = self.a_maximal_chain()
+            test_a_chain(b)
+            if not self.n_vertices():
+                return
+
+            from sage.misc.prandom import randrange
+
+            if self.n_vertices():
+                # We obtain a chain containing a random vertex.
+                i = randrange(self.n_vertices())
+                b = self.a_maximal_chain(Vindex=i)
+                test_a_chain(b)
+                tester.assertTrue(all(i in f.ambient_V_indices() for f in b))
+
+            if self.n_facets():
+                # We obtain a chain containing a random facet.
+                i = randrange(self.n_facets())
+                b = self.a_maximal_chain(Hindex=i)
+                test_a_chain(b)
+                tester.assertTrue(all(i in f.ambient_H_indices() for f in b))
+
+                # We obtain a chain containing that facet
+                # and a random vertex contained in it.
+                facet = self.facets(names=False)[i]
+                j = facet[randrange(len(facet))]
+                b = self.a_maximal_chain(Vindex=j, Hindex=i)
+                test_a_chain(b)
+                tester.assertTrue(all(j in f.ambient_V_indices() for f in b))
+                tester.assertTrue(all(i in f.ambient_H_indices() for f in b))
 
     cdef tuple Vrep(self):
         r"""

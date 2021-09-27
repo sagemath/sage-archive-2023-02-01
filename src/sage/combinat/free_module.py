@@ -1316,7 +1316,7 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
                 sage: R = NonCommutativeSymmetricFunctions(QQ).R()
                 sage: Partitions.options(diagram_str="#", convention="french")
                 sage: s = unicode_art(tensor((R[1,2], R[3,1,2]))); s
-                R    ⨂ R
+                R    ⊗ R
                  ┌┐     ┌┬┬┐
                  ├┼┐    └┴┼┤
                  └┴┘      ├┼┐

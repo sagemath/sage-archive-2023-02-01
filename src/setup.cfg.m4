@@ -6,7 +6,7 @@ description = Sage: Open Source Mathematics Software: Standard Python Library
 long_description = file: README.rst
 long_description_content_type = text/x-rst
 license = GNU General Public License (GPL) v2 or later
-license_file = LICENSE.txt
+license_files = LICENSE.txt
 author = The Sage Developers
 author_email = sage-support@googlegroups.com
 url = https://www.sagemath.org
@@ -65,7 +65,6 @@ dnl From Makefile.in: DOC_DEPENDENCIES
         | sed "2,\$s/^/    /;"')dnl
 dnl Other Python packages that are standard spkg, used in doctests
     esyscmd(`sage-get-system-packages install-requires \
-        cvxopt         \
         rpy2           \
         fpylll         \
         | sed "2,\$s/^/    /;"')dnl

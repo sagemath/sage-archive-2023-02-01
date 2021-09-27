@@ -200,7 +200,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
                         multiple installation records for $SPKG_NAME:
                         m4_newline($(ls -l "$SAGE_SPKG_INST/$SPKG_NAME"-*))
                         m4_newline([only one should exist, so please delete some or all
-                        of these files and re-run \"$srcdir/configure\"])
+                        of these files and re-run "$srcdir/configure"])
                     ]))
                 ])
                 stampfile=yes
@@ -238,6 +238,9 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
                 AS_VAR_COPY([reason], [sage_use_system])
                 AS_CASE([$reason],
                 [yes],                       [ message="no suitable system package; $message"
+                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" $SPKG_NAME"])
+                                             ],
+                [force],                     [ message="no suitable system package; this is an error"
                                                AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" $SPKG_NAME"])
                                              ],
                 [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
@@ -284,9 +287,8 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
         # we don't need to download the sources, which is what
         # "in_sdist" really means. At the time of this writing, the
         # only standard script packages are sage_conf and sagelib.
-        # The source of sage_conf is included under build/pkgs/sage_conf/src,
-        # and the source of sagelib is provided by symlinks in
-        # build/pkgs/sagelib/src.
+        # The sources of these packages are in subdirectories of
+        # $SAGE_ROOT/pkgs.
         in_sdist=no
     else
         SPKG_SOURCE=normal
@@ -398,7 +400,9 @@ $COMMAND
 
 $COMMAND
 ])
+                AS_VAR_SET([need_reconfig_msg], [yes])
             ])
+            dnl Reconfigure message
             AS_VAR_IF([need_reconfig_msg], [yes], [
                 AC_MSG_NOTICE([
 
@@ -411,4 +415,8 @@ $COMMAND
             ])
         ])
     ])
+    dnl Deferred errors from --with-system-SPKG=force
+    AS_VAR_SET_IF([SAGE_SPKG_ERRORS], [AC_MSG_ERROR([
+$SAGE_SPKG_ERRORS
+    ])])
 ])

@@ -101,7 +101,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             I = self._basis_ordering
             try:
                 names = [str(x) for x in I]
-                def names_map(x): return x
+
+                def names_map(x):
+                    return x
                 F = FreeAlgebra(self.base_ring(), names)
             except ValueError:
                 names = ['b{}'.format(i) for i in range(self.dimension())]
@@ -115,7 +117,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             rels = {}
             S = self.structure_coefficients(True)
             # Construct the map from indices to names of the UEA
-            def get_var(g): return d[names_map(g)]
+
+            def get_var(g):
+                return d[names_map(g)]
             # The function ``get_var`` sends an element of the basis of
             # ``self`` to the corresponding element of ``F``.
             for k in S.keys():
@@ -1120,7 +1124,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                                           " (the trivial module)")
 
             from itertools import combinations
-            from sage.functions.other import binomial
+            from sage.arith.misc import binomial
             from sage.matrix.matrix_space import MatrixSpace
             R = self.base_ring()
             zero = R.zero()
@@ -1550,7 +1554,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             return R.quotient(P)
 
     class ElementMethods:
-        def adjoint_matrix(self): # In #11111 (more or less) by using matrix of a morphism
+        def adjoint_matrix(self, sparse=False): # In #11111 (more or less) by using matrix of a morphism
             """
             Return the matrix of the adjoint action of ``self``.
 
@@ -1561,6 +1565,8 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 [0 0 0]
                 [0 0 0]
                 [0 0 0]
+                sage: L.an_element().adjoint_matrix(sparse=True).is_sparse()
+                True
 
             ::
 
@@ -1575,10 +1581,11 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             P = self.parent()
             basis = P.basis()
             return matrix(self.base_ring(),
-                          [P.bracket(self, b).to_vector() for b in basis])
+                          [P.bracket(self, b).to_vector(sparse=sparse) for b in basis],
+                          sparse=sparse)
 
-        def to_vector(self, order=None):
-            """
+        def to_vector(self, order=None, sparse=False):
+            r"""
             Return the vector in ``g.module()`` corresponding to the
             element ``self`` of ``g`` (where ``g`` is the parent of
             ``self``).
@@ -1591,6 +1598,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
 
                 sage: L = LieAlgebras(QQ).FiniteDimensional().WithBasis().example()
                 sage: L.an_element().to_vector()
+                (0, 0, 0)
+
+                sage: L.an_element().to_vector(sparse=True)
                 (0, 0, 0)
 
                 sage: D = DescentAlgebra(QQ, 4).D()
@@ -1615,11 +1625,18 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 NotImplementedError: the basis is not defined
             """
             mc = self.monomial_coefficients(copy=False)
-            M = self.parent().module()
-            B = M.basis()
-            if order is None:
-                order = self.parent()._basis_ordering
-            return M.sum(mc[k] * B[i] for i,k in enumerate(order) if k in mc)
+            if sparse:
+                from sage.modules.free_module import FreeModule
+                M = FreeModule(self.parent().base_ring(), self.dimension(), sparse=True)
+                if order is None:
+                    order = {b: i for i,b in enumerate(self.parent()._basis_ordering)}
+                return M({order[k]: c for k, c in mc.items()})
+            else:
+                M = self.parent().module()
+                B = M.basis()
+                if order is None:
+                    order = self.parent()._basis_ordering
+                return M.sum(mc[k] * B[i] for i, k in enumerate(order) if k in mc)
 
         _vector_ = to_vector
 

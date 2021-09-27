@@ -261,7 +261,8 @@ def width_of_cut_decomposition(G, L):
 # Front end method for cutwidth
 ################################################################################
 
-def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
+def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False,
+             *, integrality_tolerance=1e-3):
     r"""
     Return the cutwidth of the graph and the corresponding vertex ordering.
 
@@ -283,16 +284,20 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
       solution with width at most ``cut_off`` is found, if any. If this bound
       cannot be reached, the best solution found is returned.
 
-    - ``solver`` -- string (default: ``None``); specify a Linear Program (LP)
-      solver to be used. If set to ``None``, the default one is used. This
-      parameter is used only when ``algorithm='MILP'``. For more information on
-      LP solvers and which default solver is used, see the method
-      :meth:`solve<sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
-      class
-      :class:`MixedIntegerLinearProgram<sage.numerical.mip.MixedIntegerLinearProgram>`.
+    - ``solver`` -- string (default: ``None``); specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+      :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- boolean (default: ``False``); whether to display
       information on the computations.
+
+    - ``integrality_tolerance`` -- float; parameter for use with MILP solvers
+      over an inexact base ring; see
+      :meth:`MixedIntegerLinearProgram.get_values`.
 
     OUTPUT:
 
@@ -416,7 +421,8 @@ def cutwidth(G, algorithm="exponential", cut_off=0, solver=None, verbose=False):
                 cwH, LH = cutwidth_dyn(H, lower_bound=this_cut_off)
 
             elif algorithm == "MILP":
-                cwH, LH = cutwidth_MILP(H, lower_bound=this_cut_off, solver=solver, verbose=verbose)
+                cwH, LH = cutwidth_MILP(H, lower_bound=this_cut_off, solver=solver,
+                                        verbose=verbose, integrality_tolerance=integrality_tolerance)
 
             else:
                 raise ValueError('algorithm "{}" has not been implemented yet, please contribute'.format(algorithm))
@@ -589,7 +595,8 @@ cdef inline int exists(FastDigraph g, uint8_t* neighborhoods, int S, int cost_S,
 # MILP formulations for cutwidth
 ################################################################################
 
-def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
+def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0,
+                  *, integrality_tolerance=1e-3):
     r"""
     MILP formulation for the cutwidth of a Graph.
 
@@ -608,15 +615,20 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
       optimal. If the given bound is too high, the algorithm might not be able
       to find a feasible solution.
 
-    - ``solver`` -- string (default: ``None``); specify a Linear Program (LP)
-      solver to be used. If set to ``None``, the default one is used. For more
-      information on LP solvers and which default solver is used, see the method
-      :meth:`solve<sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
-      class
-      :class:`MixedIntegerLinearProgram<sage.numerical.mip.MixedIntegerLinearProgram>`.
+    - ``solver`` -- string (default: ``None``); specify a Mixed Integer Linear
+      Programming (MILP) solver to be used. If set to ``None``, the default one
+      is used. For more information on MILP solvers and which default solver is
+      used, see the method :meth:`solve
+      <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+      :class:`MixedIntegerLinearProgram
+      <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
     - ``verbose`` -- integer (default: ``0``); sets the level of verbosity. Set
       to 0 by default, which means quiet.
+
+    - ``integrality_tolerance`` -- float; parameter for use with MILP solvers
+      over an inexact base ring; see
+      :meth:`MixedIntegerLinearProgram.get_values`.
 
     OUTPUT:
 
@@ -725,8 +737,8 @@ def cutwidth_MILP(G, lower_bound=0, solver=None, verbose=0):
     obj = p.solve(log=verbose)
 
     # We now extract the ordering and the cost of the solution
-    val_x = p.get_values(x)
-    cdef int cw = int(p.get_values(z)['z'])
+    val_x = p.get_values(x, convert=bool, tolerance=integrality_tolerance)
+    cdef int cw = p.get_values(z['z'], convert=True, tolerance=integrality_tolerance)
     cdef list seq = []
     cdef set to_see = set(G)
     for k in range(N):

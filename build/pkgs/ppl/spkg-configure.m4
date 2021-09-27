@@ -11,7 +11,7 @@ SAGE_SPKG_CONFIGURE([ppl], [
     AM_PATH_PPL([1.2], [
                   LIBS="$LIBS $PPL_LIBS"
                   sage_spkg_install_ppl=no
-		],
-		[sage_spkg_install_ppl=yes])
+                ],
+                [sage_spkg_install_ppl=yes])
   ])
 ])

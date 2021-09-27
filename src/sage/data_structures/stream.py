@@ -11,9 +11,9 @@ EXAMPLES:
 Streams can be used as data structure for lazy Laurent series::
 
     sage: L.<z> = LazyLaurentSeriesRing(ZZ)
-    sage: f = L(lambda n: n, True)
+    sage: f = L(lambda n: n, valuation=0)
     sage: f
-    z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + 7*z^7 + ...
+    z + 2*z^2 + 3*z^3 + 4*z^4 + 5*z^5 + 6*z^6 + O(z^7)
     sage: type(f._coeff_stream)
     <class 'sage.data_structures.stream.Stream_function'>
 
@@ -187,6 +187,25 @@ class Stream_inexact(Stream):
             self._cache = list()
             self._offset = approximate_order
             self._iter = self.iterate_coefficients()
+
+    def is_nonzero(self):
+        r"""
+        Return ``True`` if and only if the cache contains a nonzero element.
+
+        EXAMPLES::
+
+            sage: from sage.data_structures.stream import Stream_function
+            sage: CS = Stream_function(lambda n: 1/n, ZZ, False, 1)
+            sage: CS.is_nonzero()
+            False
+            sage: CS[1]
+            1
+            sage: CS.is_nonzero()
+            True
+        """
+        if self._is_sparse:
+            return any(self._cache.values())
+        return any(self._cache)
 
     def __getstate__(self):
         """
@@ -1398,7 +1417,7 @@ class Stream_cauchy_mul(Stream_binary):
 
 
 class Stream_dirichlet_convolve(Stream_binary):
-    """
+    r"""
     Operator for the Dirichlet convolution of two streams.
 
     INPUT:
@@ -1480,7 +1499,7 @@ class Stream_dirichlet_convolve(Stream_binary):
 
 
 class Stream_dirichlet_invert(Stream_unary):
-    """
+    r"""
     Operator for inverse with respect to Dirichlet convolution of the stream.
 
     INPUT:

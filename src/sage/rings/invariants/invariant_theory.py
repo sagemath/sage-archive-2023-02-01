@@ -602,7 +602,7 @@ class AlgebraicForm(FormsBase):
             sage: quartic._check_covariant('EisensteinE', invariant=True)
             sage: quartic._check_covariant('h_covariant')
 
-            sage: quartic._check_covariant('h_covariant', invariant=True)
+            sage: quartic._check_covariant('h_covariant', invariant=True)  # not tested, known bug (see :trac:`32118`)
             Traceback (most recent call last):
             ...
             AssertionError: not invariant

@@ -211,7 +211,7 @@ class OreFunction(AlgebraElement):
 
         In the example below, a simplification occurs::
 
-            sage: u = S.random_element()
+            sage: u = S.random_element(degree=2)
             sage: g = (u*s)^(-1) * (u*t)
             sage: g.left_denominator()
             x + a
@@ -272,7 +272,7 @@ class OreFunction(AlgebraElement):
 
         In the example below, a simplification occurs::
 
-            sage: u = S.random_element()
+            sage: u = S.random_element(degree=2)
             sage: g = (u*s)^(-1) * (u*t)
             sage: g.right_numerator()
             x^2 + a*x + a^2
@@ -344,7 +344,7 @@ class OreFunction(AlgebraElement):
 
         In the example below, a simplification occurs::
 
-            sage: u = S.random_element()
+            sage: u = S.random_element(degree=2)
             sage: g = (t*u) / (s*u)
             sage: g.right_denominator()
             x + a
@@ -398,7 +398,7 @@ class OreFunction(AlgebraElement):
 
         In the example below, a simplification occurs::
 
-            sage: u = S.random_element()
+            sage: u = S.random_element(degree=2)
             sage: g = (t*u) / (s*u)
             sage: g.left_numerator()
             x^2 + a*x + a^2
@@ -696,7 +696,7 @@ class ConstantOreFunctionSection(Map):
             sage: sigma = R.hom([t^2])
             sage: S.<x> = R['x', sigma]
 
-            sage: P = S.random_element()
+            sage: P = S._random_nonzero_element()
             sage: f = (t*P) / P
             sage: F(f)
             t

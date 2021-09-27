@@ -119,7 +119,7 @@ The Chern character is then given by::
      2-dimensional Lorentzian manifold M
 
 The corresponding characteristic form w.r.t. the bundle connection can be
-obtained via :meth:`get_form`.
+obtained via :meth:`~CharacteristicClass.get_form`::
 
     sage: ch_form = ch.get_form(nab); ch_form.display_expansion()
     ch(E, nabla^E) = 1 + 1/2*d(A)/dt/pi dt∧dx
@@ -957,6 +957,6 @@ class CharacteristicClass(UniqueRepresentation, SageObject):
         from sage.symbolic.constants import pi
         fac = 1 / (2 * pi)
         if self._class_type != 'Pfaffian':
-            from sage.libs.pynac.pynac import I
+            from sage.symbolic.expression import I
             fac = fac / I
         return fac * cmatrix

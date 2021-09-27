@@ -49,10 +49,10 @@ AUTHORS:
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.structure.parent import Parent
-from sage.structure.element import RingElement
-from sage.categories.rings import Rings
+from sage.structure.element import AlgebraElement
+from sage.categories.algebras import Algebras
 
-class DeRhamCohomologyClass(RingElement):
+class DeRhamCohomologyClass(AlgebraElement):
     r"""
     Define a cohomology class in the de Rham cohomology ring.
 
@@ -241,6 +241,23 @@ class DeRhamCohomologyClass(RingElement):
         """
         return self.parent()(self.representative().wedge(other.representative()))
 
+    def _rmul_(self, scalar):
+        r"""
+        Multiplication with a scalar.
+
+        TESTS::
+
+            sage: M = Manifold(2, 'M')
+            sage: X.<x,y> = M.chart()
+            sage: C = M.de_rham_complex()
+            sage: H = C.cohomology()
+            sage: omega = M.diff_form(1, [1,1], name='omega')
+            sage: 1/2*H(omega)
+            [1/2∧omega]
+
+        """
+        return self.parent(scalar * self.representative())
+
     def _sub_(self, other):
         r"""
         Subtraction of two cohomology classes.
@@ -362,7 +379,8 @@ class DeRhamCohomologyRing(Parent, UniqueRepresentation):
             ....:                       '_test_elements_neq'])  # equality not fully supported yet
 
         """
-        Parent.__init__(self, category=Rings())
+        base_field = de_rham_complex.base_ring()
+        Parent.__init__(self, base=base_field, category=Algebras(base_field))
         self._de_rham_complex = self._module = de_rham_complex
         self._manifold = de_rham_complex._domain
 

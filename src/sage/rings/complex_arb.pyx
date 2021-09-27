@@ -3643,11 +3643,13 @@ cdef class ComplexBall(RingElement):
 
             sage: CBF(1/2, 3).zetaderiv(1)
             [0.191759884092721...] + [-0.073135728865928...]*I
+            sage: CBF(2).zetaderiv(3)
+            [-6.0001458028430...]
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         Pol = PolynomialRing(self._parent, 'x')
         ser = Pol([self, 1])._zeta_series(k + 1)
-        return ser[k]
+        return ser[k]*ZZ.coerce(k).factorial()
 
     def lambert_w(self, branch=0):
         r"""

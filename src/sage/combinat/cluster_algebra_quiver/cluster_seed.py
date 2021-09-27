@@ -3949,9 +3949,9 @@ class ClusterSeed(SageObject):
         var_iter = self.variable_class_iter( depth=depth, ignore_bipartite_belt=ignore_bipartite_belt )
         return sorted(var_iter)
 
-    def is_finite(self):
+    def is_finite(self) -> bool:
         r"""
-        Returns True if ``self`` is of finite type.
+        Return ``True`` if ``self`` is of finite type.
 
         EXAMPLES::
 
@@ -3962,6 +3962,12 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(['A',[2,2],1])
             sage: S.is_finite()
             False
+
+        TESTS::
+
+            sage: Q = ClusterQuiver([[1,2],[2,3],[3,4],[4,1]])
+            sage: Q.is_finite()
+            True
         """
         mt = self.mutation_type()
         if isinstance(mt, str):
@@ -4648,11 +4654,10 @@ def PathSubset(n, m):
         sage: PathSubset(4,4)
         {0, 1, 2, 3, 4, 5, 6, 7}
     """
-    from sage.functions.other import floor
     S = set(2 * i + 1 for i in range(n))
     if m > 0:
         for j in range(n):
-            if floor((j+1)*m/n) - floor(j*m/n) == 1:
+            if ((j+1)*m) // n - (j*m) // n == 1:
                 S.add(2 * j)
     return set(S)
 

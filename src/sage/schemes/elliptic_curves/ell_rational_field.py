@@ -3343,7 +3343,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: z = CC.random_element()
             sage: v = 2 * E.elliptic_exponential(z)
             sage: w = E.elliptic_exponential(2 * z)
-            sage: abs(v[0] - w[0]) + abs(v[1] - w[1])  # abs tol 1e-13
+            sage: def err(a, b):
+            ....:     err = abs(a - b)
+            ....:     if a + b:
+            ....:         err = min(err, err / abs(a + b))
+            ....:     return err
+            sage: err(v[0], w[0]) + err(v[1], w[1])  # abs tol 1e-13
             0.0
         """
         return self.period_lattice().elliptic_exponential(z)

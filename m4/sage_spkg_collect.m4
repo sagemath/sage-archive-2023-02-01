@@ -240,6 +240,9 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
                 [yes],                       [ message="no suitable system package; $message"
                                                AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" $SPKG_NAME"])
                                              ],
+                [force],                     [ message="no suitable system package; this is an error"
+                                               AS_VAR_APPEND([$SAGE_NEED_SYSTEM_PACKAGES_VAR], [" $SPKG_NAME"])
+                                             ],
                 [installed],                 [ message="already installed as an SPKG$uninstall_message" ],
                                              [ message="$reason; $message" ])
             ])
@@ -397,7 +400,9 @@ $COMMAND
 
 $COMMAND
 ])
+                AS_VAR_SET([need_reconfig_msg], [yes])
             ])
+            dnl Reconfigure message
             AS_VAR_IF([need_reconfig_msg], [yes], [
                 AC_MSG_NOTICE([
 
@@ -410,4 +415,8 @@ $COMMAND
             ])
         ])
     ])
+    dnl Deferred errors from --with-system-SPKG=force
+    AS_VAR_SET_IF([SAGE_SPKG_ERRORS], [AC_MSG_ERROR([
+$SAGE_SPKG_ERRORS
+    ])])
 ])

@@ -340,8 +340,7 @@ class QuasiModularFormsElement(ModuleElement):
             sage: QM.zero().is_modular_form()
             True
         """
-<<<<<<< HEAD
-        return not self._polynomial.degree() and self._polynomial[0].is_modular_form()
+        return self._polynomial.degree() <= 0 and self._polynomial[0].is_modular_form()
 
     def to_polynomial(self, names='E2, E4, E6'):
         r"""
@@ -457,6 +456,3 @@ class QuasiModularFormsElement(ModuleElement):
         poly_self = self.to_polynomial()
         pol_hom_comp = poly_self.homogeneous_components()
         return { k : QM.from_polynomial(pol) for k, pol in pol_hom_comp.items()}
-=======
-        return self._polynomial.degree() <= 0 and self._polynomial[0].is_modular_form()
->>>>>>> develop

@@ -334,7 +334,7 @@ class Function_ceil(BuiltinFunction):
             sage: ceil(5.4)
             6
             sage: type(ceil(5.4))
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
 
         ::
 
@@ -483,7 +483,7 @@ class Function_floor(BuiltinFunction):
             sage: floor(5.4)
             5
             sage: type(floor(5.4))
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
             sage: var('x')
             x
             sage: a = floor(5.4 + x); a
@@ -693,7 +693,7 @@ class Function_frac(BuiltinFunction):
             sage: frac(5.4)
             0.400000000000000
             sage: type(frac(5.4))
-            <type 'sage.rings.real_mpfr.RealNumber'>
+            <class 'sage.rings.real_mpfr.RealNumber'>
             sage: frac(456/123)
             29/41
             sage: var('x')
@@ -1245,7 +1245,7 @@ class Function_real_part(GinacFunction):
             sage: real(a)
             2.50000000000000
             sage: type(real(a))
-            <type 'sage.rings.real_mpfr.RealLiteral'>
+            <class 'sage.rings.real_mpfr.RealLiteral'>
             sage: real(1.0r)
             1.0
             sage: real(complex(3, 4))
@@ -1629,7 +1629,7 @@ class Function_factorial(GinacFunction):
             sage: factorial(float(3.2))        # abs tol 1e-14
             7.7566895357931776
             sage: type(factorial(float(3.2)))
-            <type 'float'>
+            <class 'float'>
         """
         if isinstance(x, Integer):
             try:
@@ -1803,9 +1803,9 @@ class Function_binomial(GinacFunction):
             sage: binomial._eval_(5, 3)
             10
             sage: type(binomial._eval_(5, 3))
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
             sage: type(binomial._eval_(5., 3))
-            <type 'sage.rings.real_mpfr.RealNumber'>
+            <class 'sage.rings.real_mpfr.RealNumber'>
             sage: binomial._eval_(x, 3)
             1/6*(x - 1)*(x - 2)*x
             sage: binomial._eval_(x, x-2)

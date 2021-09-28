@@ -5964,11 +5964,16 @@ class GenericGraph(GenericGraph_pyx):
             return len(self.faces(embedding))
 
         if embedding is None:
-            # get_embedding() raises an error if no (valid) embedding is set
-            try:
-                embedding = self.get_embedding()
-            except:
-                pass
+            # Is self._embedding available ?
+            if self._check_embedding_validity():
+                embedding = self._embedding
+            else:
+                if self.is_planar():
+                    # We use Euler's formula: V-E+F-C=1
+                    C = len(self.connected_components())
+                    return self.size() - self.order() + C + 1
+                else:
+                    raise ValueError("no embedding is provided and the graph is not planar")
 
         # We compute the number Fc of faces of each connected component c.
         # The number of faces of the graph is the sum of the Fc values minus the

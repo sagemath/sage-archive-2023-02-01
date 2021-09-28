@@ -424,17 +424,6 @@ def SagePreparseTransformer(lines):
         sage: SagePreparseTransformer(["def foo():\n", "    return a + '''\n", "    2 - 3r\n", "    '''"])
         ['def foo():\n', "    return a + '''\n", '    2 - 3r\n', "    '''"]
 
-    IPython magic is not yet preparsed::
-
-        sage: SagePreparseTransformer(["%time 2 + 2"])
-        ['%time 2 + 2']
-        sage: SagePreparseTransformer(["a = %time 2 + 2"])
-        ['a = %time 2 + 2']
-        sage: SagePreparseTransformer(["b = 2; a = %time 2 + 2"])
-        ['b = Integer(2); a = %time Integer(2) + Integer(2)']
-        sage: SagePreparseTransformer(["%%cython", "a = 2"])
-        ['%%cython', 'a = 2']
-
     Preparses [0,2,..,n] notation::
 
         sage: SagePreparseTransformer(["for i in [2 .. 5 ..a]"])
@@ -498,56 +487,10 @@ def SagePreparseTransformer(lines):
         ``sage.repl.interpreter.SagePreparseTransformer.has_side_effects = True``
 
     """
-    if not _do_preparse:
-        return lines
-
-    from .preparse import (strip_string_literals,
-                           parse_ellipsis,
-                           implicit_mul,
-                           implicit_mul_level,
-                           preparse_numeric_literals,
-                           preparse_gen,
-                           preparse_exponentiation)
-
-    quote_state = None
-    new_lines = []
-    for i in range(len(lines)):
-        L, literals, quote_state = strip_string_literals(lines[i], quote_state)
-
-        # Ellipsis Range
-        # [1..n]
-        try:
-            L = parse_ellipsis(L, preparse_step=False)
-        except SyntaxError:
-            pass
-
-        if implicit_mul_level:
-            # Implicit Multiplication
-            # 2x -> 2*x
-            L = implicit_mul(L, level = implicit_mul_level)
-
-        # Wrapping numeric literals
-        # 1 + 0.5 -> Integer(1) + RealNumber('0.5')
-        L = preparse_numeric_literals(L, quotes=quote_state.safe_delimiter())
-
-        # Generators
-        # R.0 -> R.gen(0)
-        L = preparse_gen(L)
-
-        # Use ^ for exponentiation and ^^ for xor
-        L = preparse_exponentiation(L)
-
-        line = L % literals
-        new_lines.append(line)
-
-    from IPython.core.inputtransformer2 import TransformerManager
-    from sage.repl.interpreter import SageTokenTransformers
-
-    T = TransformerManager()
-    T.token_transformers = SageTokenTransformers
-
-    lines = T.do_token_transforms(new_lines)
-
+    if _do_preparse:
+        # IPython ensures the input lines end with a newline, and it expects
+        # the same of the output lines.
+        lines = preparse(''.join(lines)).splitlines(keepends=True)
     return lines
 
 

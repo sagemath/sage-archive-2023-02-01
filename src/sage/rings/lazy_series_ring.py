@@ -255,6 +255,15 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: L(5, valuation=6/2)
             5*z^3
 
+        Checking that series are not interpreted as coefficients when
+        they can be interpreted as series::
+
+            sage: P.<s> = ZZ[]
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: M.<w> = LazyLaurentSeriesRing(QQ)
+            sage: L(M(s^2 + s^5), valuation=-4)
+            z^-4 + z^-1
+
         This gives zero::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')

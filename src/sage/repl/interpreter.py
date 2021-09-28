@@ -399,8 +399,6 @@ class SageTestShell(SageShellOverride, TerminalInteractiveShell):
 # Transformers used in the SageInputSplitter
 ###################################################################
 
-quote_state = None
-
 def SagePreparseTransformer(lines):
     r"""
     EXAMPLES::
@@ -510,9 +508,6 @@ def SagePreparseTransformer(lines):
                            preparse_numeric_literals,
                            preparse_gen,
                            preparse_exponentiation)
-
-    # Save the quote state.
-    global quote_state
 
     quote_state = None
     new_lines = []

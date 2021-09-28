@@ -1101,8 +1101,7 @@ def search_src(string, extra1='', extra2='', extra3='', extra4='',
         misc/sagedoc.py:... len(search_src("matrix", interact=False).splitlines()) # random # long time
         misc/sagedoc.py:... len(search_src("matrix", module="sage.calculus", interact=False).splitlines()) # random
         misc/sagedoc.py:... len(search_src("matrix", path_re="calc", interact=False).splitlines()) > 15
-        misc/sagedoc.py:... print(search_src(" fetch(", "def", interact=False)) # py2
-        misc/sagedoc.py:... print(search_src(" fetch(", "def", interact=False)) # py3
+        misc/sagedoc.py:... print(search_src(" fetch(", "def", interact=False))
         misc/sagedoc.py:... print(search_src(r" fetch\(", "def", interact=False)) # random # long time
         misc/sagedoc.py:... print(search_src(r" fetch\(", "def", "pyx", interact=False)) # random # long time
         misc/sagedoc.py:... s = search_src('Matrix', path_re='matrix', interact=False); s.find('x') > 0

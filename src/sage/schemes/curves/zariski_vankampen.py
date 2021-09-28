@@ -331,7 +331,7 @@ def followstrand(f, factors, x0, x1, y0a, prec=53):
          (1.0, -1.026166099551513, -0.32768940253604323)]
         sage: fup = f.subs({y:y-1/10})
         sage: fdown = f.subs({y:y+1/10})
-        sage: followstrand(f, [fup, fdown], x0, x1, -1.0)
+        sage: followstrand(f, [fup, fdown], x0, x1, -1.0) # optional - sirocco # abs tol 1e-15
         [(0.0, -1.0, 0.0),
          (0.5303300858899107, -1.0076747107983448, -0.17588022709184917),
          (0.7651655429449553, -1.015686131039112, -0.25243563967299404),

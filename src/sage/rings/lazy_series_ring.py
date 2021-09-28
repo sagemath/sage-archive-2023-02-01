@@ -205,13 +205,15 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: D(1+2*q)
             3 + 5/2^t + 7/3^t + 9/4^t + 11/5^t + 13/6^t + 15/7^t + O(1/(8^t))
 
-        In some cases, this may yield surprising results::
+        In this example, the Dirichlet series ``m`` is considered as an
+        element in the base ring::
 
             sage: m = D(moebius)
-            sage: s = L(m, valuation=0); s[1]
-            Traceback (most recent call last):
-            ...
-            ValueError: the argument must be a linear polynomial of degree 1 with integer coefficients
+            sage: s = L(m, valuation=0)
+            sage: s[0]
+            1 - 1/(2^s) - 1/(3^s) - 1/(5^s) + 1/(6^s) - 1/(7^s) + O(1/(8^s))
+            sage: s[1]
+            0
 
         TESTS:
 
@@ -344,7 +346,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 return self.element_class(self, coeff_stream)
 
             # Handle when it is a lazy series
-            if isinstance(x, self.element_class):
+            if isinstance(x, self.Element):
                 if x._coeff_stream._is_sparse is not self._sparse:
                     # TODO: Implement a way to make a self._sparse copy
                     raise NotImplementedError("cannot convert between sparse and dense")
@@ -1150,6 +1152,13 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             sage: D(s, valuation=2)
             1/(2^t) + 2/3^t + 3/4^t + 4/5^t + 5/6^t + 6/7^t + 7/8^t + O(1/(9^t))
 
+            sage: Ds = LazyDirichletSeriesRing(ZZ, 's')
+            sage: m = Ds(moebius, valuation=2); m
+            -1/(2^s) - 1/(3^s) - 1/(5^s) + 1/(6^s) - 1/(7^s) + O(1/(9^s))
+            sage: D = LazyDirichletSeriesRing(QQ, 't')
+            sage: D(m)
+            -1/(2^t) - 1/(3^t) - 1/(5^t) + 1/(6^t) - 1/(7^t) + O(1/(9^t))
+
         .. TODO::
 
             Add a method to make a copy of ``self._sparse``.
@@ -1163,21 +1172,26 @@ class LazyDirichletSeriesRing(LazySeriesRing):
                 else:
                     x = p.shift(1)
         else:
-            if valuation is None:
-                valuation = 1
-
             if coefficients is not None:
+                if valuation is None:
+                    valuation = 1
                 return super()._element_constructor_(x, valuation, degree, constant, coefficients)
 
             BR = self.base_ring()
             if x in BR:
+                if valuation is None:
+                    valuation = 1
                 x = BR(x)
-            if not isinstance(x, LazyDirichletSeries) and (isinstance(x, LazyModuleElement)
-                                                           or callable(x)):
-                if coefficients is not None:
-                    raise ValueError("coefficients must be None if x is provided")
-                coefficients = x
-                x = None
+
+            if not isinstance(x, LazyDirichletSeries):
+                if valuation is None:
+                    valuation = 1
+
+                if isinstance(x, LazyModuleElement) or callable(x):
+                    if coefficients is not None:
+                        raise ValueError("coefficients must be None if x is provided")
+                    coefficients = x
+                    x = None
 
         if valuation is not None and (valuation not in ZZ or valuation <= 0):
             raise ValueError("the valuation must be a positive integer")

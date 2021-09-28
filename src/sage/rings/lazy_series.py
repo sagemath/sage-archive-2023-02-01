@@ -2562,13 +2562,55 @@ class LazyDirichletSeries(LazyModuleElement):
             sage: Z(s)*Z(s-1)/Z(2*s-2) - (1/Psi).map_coefficients(abs)
             O(1/(8^s))
 
+            sage: Z(5)
+            zeta(5)
+            sage: Z(1+I)
+            zeta(I + 1)
+
+            sage: f = D([1,2,-3,-4], valuation=2); f
+            1/(2^s) + 2/3^s - 3/4^s - 4/5^s
+            sage: f(2)
+            449/3600
+            sage: 1/2^2 + 2/3^2 + -3/4^2 + -4/5^2
+            449/3600
+            sage: f(0)
+            0
+            sage: f(-2)
+            -126
+
+            sage: f = D([4,2,-3,2])
+            sage: f(0)
+            4
+
+            sage: f = D([1,2,-3,-4], constant=2)
+            sage: bool(f(2) == -1 + -5/3^2 + -6/4^2 + 2*zeta(2))
+            True
         """
         P = self.parent()
+        coeff_stream = self._coeff_stream
+        if not p:
+            return self[1]
+
+        # Special behavior for finite series
+        if isinstance(coeff_stream, Stream_exact):
+            from sage.rings.all import CC
+            if not coeff_stream._constant:
+                try:
+                    return sum(self[k] * ~(ZZ(k)**p)
+                               for k in range(1, coeff_stream._degree))
+                except (ValueError, TypeError, ArithmeticError):
+                    pass
+            elif p in CC:
+                from sage.functions.transcendental import zeta
+                C = coeff_stream._constant
+                ret = sum((self[k] - C) * ~(ZZ(k)**p)
+                          for k in range(1, coeff_stream._degree))
+                return ret + C * zeta(p)
+
         R = PolynomialRing(ZZ, P.variable_name())
         p = R(p)
         if p.degree() != 1:
             raise ValueError("the argument must be a linear polynomial of degree 1 with integer coefficients")
-        coeff_stream = self._coeff_stream
         b, a = p
         if a < 0:
             raise ValueError("the leading coefficient must be positive")
@@ -2578,7 +2620,7 @@ class LazyDirichletSeries(LazyModuleElement):
                 n = m.nth_root(a)
                 return coeff_stream[n] * n ** (-b)
             except ValueError:
-                return 0
+                return ZZ.zero()
         return P.element_class(P, Stream_function(coefficient, P._coeff_ring, P._sparse, 1))
 
     def _format_series(self, formatter, format_strings=False):

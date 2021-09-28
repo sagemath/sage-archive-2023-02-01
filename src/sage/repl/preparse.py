@@ -1755,7 +1755,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     Check support for backslash line continuation (:trac:`30928`)::
 
         sage: preparse("f(x) = x \\\n+ 1")
-        '__tmp__ = var("x"); __tmpf__ = x \\\n+ Integer(1); f = symbolic_expression(__tmpf__).function(x)'
+        '__tmp__ = var("x"); __tmpf__ = x + Integer(1); f = symbolic_expression(__tmpf__).function(x)'
 
     Check that multi-line strings starting with a comment are still preparsed
     (:trac:`31043`)::
@@ -1815,7 +1815,11 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     L = re.sub(r'(\b[^\W\d]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
 
     # Use ^ for exponentiation and ^^ for xor
+    # (A side effect is that **** becomes xor as well.)
     L = L.replace('^', '**').replace('****', '^')
+
+    # Combine lines that use backslash continuation
+    L = L.replace('\\\n', '')
 
     # Backslash
     L = ';%s;' % L.replace('\n', ';\n;')

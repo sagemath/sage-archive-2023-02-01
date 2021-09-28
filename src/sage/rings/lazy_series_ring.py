@@ -1183,7 +1183,7 @@ class LazyDirichletSeriesRing(LazySeriesRing):
                     valuation = 1
                 x = BR(x)
 
-            if not isinstance(x, LazyDirichletSeries):
+            elif not isinstance(x, LazyDirichletSeries):
                 if valuation is None:
                     valuation = 1
 

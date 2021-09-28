@@ -1926,8 +1926,8 @@ class LazyModuleElement(Element):
         This also works for Dirichlet series::
 
             sage: D = LazyDirichletSeriesRing(SR, "s")
-            sage: zeta = D(constant=1)
-            sage: f = sqrt(zeta)
+            sage: Z = D(constant=1)
+            sage: f = sqrt(Z)
             1 + 1/2/2^s + 1/2/3^s + 3/8/4^s + 1/2/5^s + 1/4/6^s + 1/2/7^s + O(1/(8^s))
             sage: f*f - zeta
             O(1/(8^s))

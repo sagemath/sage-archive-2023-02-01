@@ -34,7 +34,6 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.lazy_series import (LazyModuleElement,
-                                    LazyCauchyProductSeries,
                                     LazyLaurentSeries,
                                     LazyDirichletSeries)
 from sage.structure.global_options import GlobalOptions
@@ -345,7 +344,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 return self.element_class(self, coeff_stream)
 
             # Handle when it is a lazy series
-            if isinstance(x, LazyCauchyProductSeries):
+            if isinstance(x, self.element_class):
                 if x._coeff_stream._is_sparse is not self._sparse:
                     # TODO: Implement a way to make a self._sparse copy
                     raise NotImplementedError("cannot convert between sparse and dense")
@@ -1173,7 +1172,8 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             BR = self.base_ring()
             if x in BR:
                 x = BR(x)
-            if (isinstance(x, LazyModuleElement) and not isinstance(x, LazyDirichletSeries)) or callable(x):
+            if not isinstance(x, LazyDirichletSeries) and (isinstance(x, LazyModuleElement)
+                                                           or callable(x)):
                 if coefficients is not None:
                     raise ValueError("coefficients must be None if x is provided")
                 coefficients = x

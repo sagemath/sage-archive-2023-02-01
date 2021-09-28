@@ -262,6 +262,7 @@ import re
 
 from types import SimpleNamespace
 
+from sage.misc.superseded import deprecation
 from sage.repl.load import load_wrap
 
 implicit_mul_level = False
@@ -1448,6 +1449,10 @@ def preparse_calculus(code):
 
         sage: from sage.repl.preparse import preparse_calculus
         sage: preparse_calculus(";f(t,s)=t^2;")
+        doctest:warning
+        ...
+        DeprecationWarning: The method preparse_calculus is deprecated; use sage.repl.intepreter.SageCalculusTransformer instead.
+        See https://trac.sagemath.org/31951 for details.
         ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
         sage: preparse_calculus(";f( t , s ) = t^2;")
         ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
@@ -1491,6 +1496,8 @@ def preparse_calculus(code):
         '\n__tmp__ = var("a,b,c,d"); __tmpf__ = a + b*Integer(2) + c*Integer(3) + d*Integer(4); f = symbolic_expression(__tmpf__).function(a,b,c,d)\n'
 
     """
+    deprecation(31951, "The method preparse_calculus is deprecated; use "
+                "sage.repl.intepreter.SageCalculusTransformer instead.")
     new_code = []
     last_end = 0
     #                                 f         (  vars  )   =      expr
@@ -1632,6 +1639,10 @@ def preparse_generators(code):
     with a semicolon::
 
         sage: preparse_generators(";  R.<x>=ZZ[];")
+        doctest:warning
+        ...
+        DeprecationWarning: The method preparse_generators is deprecated; use sage.repl.intepreter.SageGenConstructionTransformer instead.
+        See https://trac.sagemath.org/31951 for details.
         ";  R = ZZ['x']; (x,) = R._first_ngens(1);"
 
     See :trac:`16731`::
@@ -1644,6 +1655,8 @@ def preparse_generators(code):
         sage: preparse('Ω.<λ,μ> = QQ[]')
         "Ω = QQ['λ', 'μ']; (λ, μ,) = Ω._first_ngens(2)"
     """
+    deprecation(31951, "The method preparse_generators is deprecated; use "
+                "sage.repl.intepreter.SageGenConstructionTransformer instead.")
     new_code = []
     last_end = 0
     #                                obj       .< gens >      ,  other   =   constructor

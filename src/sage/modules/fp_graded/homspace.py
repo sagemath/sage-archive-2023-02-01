@@ -8,13 +8,13 @@ graded `k`-algebra, where `k` is a field.
 .. NOTE:: This class is intended for private use by
     :class:`sage.modules.fp_steenrod.fpa_homspace.FPA_ModuleHomspace`.
 
-TESTS:
+TESTS::
 
-    sage: from sage.modules.fp_graded.module import FP_Module
+    sage: from sage.modules.fp_graded.module import FPModule
     sage: from sage.misc.sage_unittest import TestSuite
     sage: A = SteenrodAlgebra(2, profile=(3,2,1))
-    sage: F = FP_Module(A, [1,3])
-    sage: L = FP_Module(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
+    sage: F = FPModule(A, [1,3])
+    sage: L = FPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
     sage: homset = Hom(F, L); homset
     Set of Morphisms from Finitely presented left module on 2 generators ...
     sage: homset.an_element()
@@ -59,36 +59,16 @@ from sage.categories.homset import Homset
 
 from sage.categories.homset import Hom
 
-def is_FP_ModuleHomspace(x):
-    r"""
-    Check if the given object is of type FP_ModuleHomspace.
 
-    OUTPUT: A boolean which is True if ``x`` is of type FP_ModuleHomspace.
+class FPModuleHomspace(Homset):
+    # FPModuleMorphism imports FPModuleHomspace, so this import should
+    # not happen at the top level.
+    from .morphism import FPModuleMorphism
 
-    EXAMPLES::
-
-        sage: from sage.modules.fp_graded.module import FP_Module
-        sage: from sage.modules.fp_graded.homspace import is_FP_ModuleHomspace
-        sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-        sage: F = FP_Module(A2, [1,3])
-        sage: L = FP_Module(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
-        sage: is_FP_ModuleHomspace(Hom(F, L))
-        True
-        sage: is_FP_ModuleHomspace(0)
-        False
-    """
-    return isinstance(x, FP_ModuleHomspace)
-
-
-class FP_ModuleHomspace(Homset):
-    # FP_ModuleMorphism contains reference to is_FP_ModuleHomspace, so this import
-    # statement must not appear before that function.
-    from .morphism import FP_ModuleMorphism
-
-    # In the category framework, Elements of the class FP_ModuleHomspace are of the
-    # class FP_ModuleMorphism, see
+    # In the category framework, Elements of the class FPModuleHomspace are of the
+    # class FPModuleMorphism, see
     # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
-    Element = FP_ModuleMorphism
+    Element = FPModuleMorphism
 
     def _element_constructor_(self, values):
         r"""
@@ -99,17 +79,17 @@ class FP_ModuleHomspace(Homset):
 
         INPUT:
 
-        - ``values`` -- An iterable of FP_Elements of the codomain.
+        - ``values`` -- An iterable of FPElements of the codomain.
 
         OUTPUT: A module homomorphism in this homspace sending the generators
         of the domain module to the given values.
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: F = FP_Module(A2, [1,3])
-            sage: L = FP_Module(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
+            sage: F = FPModule(A2, [1,3])
+            sage: L = FPModule(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
             sage: homset = Hom(F, L)
             sage: v1 = L([A2.Sq(1), 1])
@@ -156,9 +136,9 @@ class FP_ModuleHomspace(Homset):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: HZ = FP_Module(A, [0], relations=[[Sq(1)]])
+            sage: HZ = FPModule(A, [0], relations=[[Sq(1)]])
 
             sage: Hom(HZ, HZ).an_element(3)
             Module homomorphism of degree 3 defined by sending the generators
@@ -166,16 +146,16 @@ class FP_ModuleHomspace(Homset):
             to
               [<Sq(0,1)>]
 
-        TESTS:
+        TESTS::
 
-            sage: K = FP_Module(A, [0, 0], [[Sq(2), 0]]) # Using a zero coefficient in the relations.
+            sage: K = FPModule(A, [0, 0], [[Sq(2), 0]]) # Using a zero coefficient in the relations.
             sage: Hom(K, K).an_element(4)
             Module homomorphism of degree 4 defined by sending the generators
               [<1, 0>, <0, 1>]
             to
               [<0, 0>, <Sq(4), 0>]
 
-            sage: K = FP_Module(A, [0, 0], [[Sq(2), 0], [0,0], [Sq(4), Sq(2)*Sq(2)]])
+            sage: K = FPModule(A, [0, 0], [[Sq(2), 0], [0,0], [Sq(4), Sq(2)*Sq(2)]])
             sage: Hom(K, K).an_element(n=3)
             Module homomorphism of degree 3 defined by sending the generators
               [<1, 0>, <0, 1>]
@@ -197,9 +177,9 @@ class FP_ModuleHomspace(Homset):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: Hko = FP_Module(A, [0], relations=[[Sq(2)], [Sq(1)]])
+            sage: Hko = FPModule(A, [0], relations=[[Sq(2)], [Sq(1)]])
 
             sage: Hom(Hko, Hko).basis_elements(21)
             [Module homomorphism of degree 21 defined by sending the generators
@@ -220,10 +200,10 @@ class FP_ModuleHomspace(Homset):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: F = FP_Module(A2, [1,3])
-            sage: L = FP_Module(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
+            sage: F = FPModule(A2, [1,3])
+            sage: L = FPModule(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
             sage: z = Hom(F, L).zero(); z
             The trivial homomorphism.
@@ -243,9 +223,9 @@ class FP_ModuleHomspace(Homset):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: L = FP_Module(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
+            sage: L = FPModule(A2, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]])
 
             sage: id = Hom(L, L).identity(); id
             The identity homomorphism.
@@ -257,7 +237,7 @@ class FP_ModuleHomspace(Homset):
         It is an error to call this function when the homset is not a
         set of endomorphisms::
 
-            sage: F = FP_Module(A2, [1,3])
+            sage: F = FPModule(A2, [1,3])
             sage: Hom(F,L).identity()
             Traceback (most recent call last):
             ...
@@ -287,11 +267,11 @@ class FP_ModuleHomspace(Homset):
         latter case, this homomorphism is non-trivial if the vector space of all
         homomorphisms is non-trivial.
 
-        TESTS:
+        TESTS::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: Hko = FP_Module(A, [0], relations=[[Sq(2)], [Sq(1)]])
+            sage: Hko = FPModule(A, [0], relations=[[Sq(2)], [Sq(1)]])
             sage: Hom(Hko, Hko)._basis_elements(21, basis=True)
             [Module homomorphism of degree 21 defined by sending the generators
                [<1>]
@@ -308,7 +288,7 @@ class FP_ModuleHomspace(Homset):
             to
               [<Sq(0,0,3) + Sq(0,2,0,1)>]
 
-            sage: F = FP_Module(A, [0])
+            sage: F = FPModule(A, [0])
             sage: Hom(F, Hko)._basis_elements(21, basis=False)
             Module homomorphism of degree 21 defined by sending the generators
               [<1>]
@@ -326,9 +306,9 @@ class FP_ModuleHomspace(Homset):
 
         Test corner cases involving trivial modules:
 
-            sage: F = FP_Module(A, [0]) # A module without relations.
-            sage: Z0 = FP_Module(A, []) # A trivial module.
-            sage: Z1 = FP_Module(A, [0], [[1]]) # A trivial module with a redundant generator and relation.
+            sage: F = FPModule(A, [0]) # A module without relations.
+            sage: Z0 = FPModule(A, []) # A trivial module.
+            sage: Z1 = FPModule(A, [0], [[1]]) # A trivial module with a redundant generator and relation.
 
             Hom(FPA_Module([-1], A), F)._basis_elements(0, basis=True)
             []

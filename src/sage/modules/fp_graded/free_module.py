@@ -274,7 +274,6 @@ from sage.categories.graded_modules_with_basis import GradedModulesWithBasis
 from sage.combinat.free_module import CombinatorialFreeModule
 
 from .free_element import FreeGradedModuleElement
-from .free_homspace import FreeGradedModuleHomspace
 
 class FreeGradedModule(CombinatorialFreeModule):
     r"""
@@ -291,7 +290,7 @@ class FreeGradedModule(CombinatorialFreeModule):
     OUTPUT: The finitely generated free graded module on generators with
     degrees given by ``generator_degrees``.
 
-    TESTS:
+    TESTS::
 
         sage: from sage.modules.fp_graded.free_module import FreeGradedModule
         sage: A = SteenrodAlgebra(2)
@@ -371,7 +370,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: M.connectivity()
             -2
 
-        TESTS:
+        TESTS::
 
             sage: M = FreeGradedModule(A, ())
             sage: M.is_trivial()
@@ -476,7 +475,7 @@ class FreeGradedModule(CombinatorialFreeModule):
         r"""
         Construct a string representation of the module.
 
-        TESTS:
+        TESTS::
 
             sage: from sage.modules.fp_graded.free_module import *
             sage: A = SteenrodAlgebra(2)
@@ -709,7 +708,7 @@ class FreeGradedModule(CombinatorialFreeModule):
         :meth:`sage.categories.homset.hom.Hom` to create homsets involving this
         parent.
 
-        TESTS:
+        TESTS::
 
             sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
@@ -717,6 +716,7 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: M._Hom_(M, category=None)
             Set of Morphisms from Finitely presented free left module on 2 generators over mod 2 Steenrod algebra, milnor basis to Finitely presented free left module on 2 generators over mod 2 Steenrod algebra, milnor basis in Category of finite dimensional graded modules with basis over mod 2 Steenrod algebra, milnor basis
         """
+        from .free_homspace import FreeGradedModuleHomspace
         return FreeGradedModuleHomspace(self, Y, category)
 
 
@@ -760,8 +760,8 @@ class FreeGradedModule(CombinatorialFreeModule):
             sage: F.to_fp_module()
             Finitely presented left module on 3 generators and 0 relations over mod 2 Steenrod algebra, milnor basis
         """
-        from .module import FP_Module
-        return FP_Module(algebra=self.base_ring(),
+        from .module import FPModule
+        return FPModule(algebra=self.base_ring(),
                    generator_degrees=self.generator_degrees(),
                    relations=())
         

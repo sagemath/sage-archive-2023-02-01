@@ -37,8 +37,6 @@ from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method
 
-from .free_homspace import is_FreeGradedModuleHomspace
-
 
 class FreeGradedModuleMorphism(Morphism):
     r"""
@@ -72,7 +70,7 @@ class FreeGradedModuleMorphism(Morphism):
         to
           [<Sq(0,2) + Sq(3,1) + Sq(6), 0>, <Sq(1,2) + Sq(7), Sq(0,2) + Sq(3,1) + Sq(6)>]
 
-    TESTS:
+    TESTS::
 
     A non-example because the degree is not well-defined::
 
@@ -90,8 +88,10 @@ class FreeGradedModuleMorphism(Morphism):
         r"""
         Create a homomorphism between finitely generated free graded modules.
         """
-        if not is_FreeGradedModuleHomspace(parent):
+        from .free_homspace import FreeGradedModuleHomspace
+        if not isinstance(parent, FreeGradedModuleHomspace):
             raise TypeError('the parent (%s) must be a f.p. free module homset' % parent)
+
 
         # Get the values.
         C = parent.codomain()
@@ -354,7 +354,7 @@ class FreeGradedModuleMorphism(Morphism):
             sage: fg.is_endomorphism()
             True
 
-        TESTS:
+        TESTS::
 
             sage: fg == f.__mul__(g)
             True
@@ -544,7 +544,7 @@ class FreeGradedModuleMorphism(Morphism):
             Domain: Vector space of dimension 2 over Finite Field of size 2
             Codomain: Vector space of dimension 4 over Finite Field of size 2
 
-        TESTS:
+        TESTS::
 
             sage: F = FreeGradedModule(A, (0,))
             sage: z = Hom(F, F)([0])
@@ -589,7 +589,7 @@ class FreeGradedModuleMorphism(Morphism):
             sage: M.relations()
             [<Sq(2)>]
         """
-        from .module import FP_Module
-        return FP_Module(algebra=self.base_ring(),
+        from .module import FPModule
+        return FPModule(algebra=self.base_ring(),
                          generator_degrees=self.codomain().generator_degrees(),
                          relations=tuple([r.dense_coefficient_list() for r in self.values()]))

@@ -145,7 +145,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             sage: A2.Sq(2)*(A2.Sq(1)*A2.Sq(2)*M.generator(1) + M.generator(2))
             <0, Sq(2,1), Sq(2)>
 
-        TESTS:
+        TESTS::
 
             sage: elements = [M.an_element(n) for n in range(1,10)]
             sage: a = A2.Sq(3)
@@ -209,7 +209,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
             sage: x == x_
             True
 
-        TESTS:
+        TESTS::
 
             sage: M.zero().vector_presentation() is None
             True

@@ -7,7 +7,7 @@ connected graded `k`-algebra, where `k` is a field.
 
 For an overview of the free module API, see :doc:`free_module`.
 
-TESTS:
+TESTS::
 
     sage: from sage.modules.fp_graded.free_module import FreeGradedModule
     sage: from sage.misc.sage_unittest import TestSuite
@@ -47,33 +47,9 @@ from sage.categories.homset import Homset
 from sage.misc.cachefunc import cached_method
 
 
-def is_FreeGradedModuleHomspace(x):
-    r"""
-    Check if the given object is of type FreeGradedModuleHomspace.
-
-    OUTPUT: The boolean ``True`` if and only if ``x`` is of type
-    FreeGradedModuleHomspace, and ``False`` otherwise.
-
-    EXAMPLES::
-
-        sage: from sage.modules.fp_graded.free_module import FreeGradedModule
-        sage: from sage.modules.fp_graded.free_homspace import is_FreeGradedModuleHomspace
-        sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-        sage: F = FreeGradedModule(A2, (1,3))
-        sage: L = FreeGradedModule(A2, (2,3))
-        sage: is_FreeGradedModuleHomspace(Hom(F, L))
-        True
-
-    TESTS:
-
-        sage: is_FreeGradedModuleHomspace(0)
-        False
-    """
-    return isinstance(x, FreeGradedModuleHomspace)
-
 class FreeGradedModuleHomspace(Homset):
-    # In the category framework, Elements of the class FP_Module are of the
-    # class FP_Element, see
+    # In the category framework, Elements of the class FPModule are of the
+    # class FPElement, see
     # http://doc.sagemath.org/html/en/thematic_tutorials/coercion_and_categories.html#implementing-the-category-framework-for-the-elements
     from .free_morphism import FreeGradedModuleMorphism
 
@@ -171,7 +147,7 @@ class FreeGradedModuleHomspace(Homset):
 
         OUTPUT: The identity endomorphism.
 
-        TESTS:
+        EXAMPLES::
 
             sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
@@ -180,7 +156,7 @@ class FreeGradedModuleHomspace(Homset):
             sage: H.identity()
             The identity homomorphism.
 
-        TESTS:
+        TESTS::
 
             sage: F = FreeGradedModule(A2, (1,3))
             sage: H = Hom(F, L)

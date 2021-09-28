@@ -2,7 +2,7 @@ r"""
 Homomorphisms of finitely presented graded modules
 
 This class implements construction and basic manipulation of elements of the
-Sage parent :class:`sage.modules.fp_graded.homspace.FP_ModuleHomspace`,
+Sage parent :class:`sage.modules.fp_graded.homspace.FPModuleHomspace`,
 which models homomorphisms of finitely presented graded modules over connected
 algebras.
 
@@ -38,7 +38,6 @@ from sage.categories.homset import End
 from sage.categories.homset import Hom
 from sage.categories.morphism import Morphism
 from sage.misc.cachefunc import cached_method
-from .element import FP_Element
 from sage.rings.infinity import PlusInfinity
 
 
@@ -78,12 +77,12 @@ def _CreateRelationsMatrix(module, relations, source_degs, target_degs):
     - ``R`` -- A matrix representing ``block_matrix`` as a single linear
       transformation.
 
-    TESTS:
+    TESTS::
 
-        sage: from sage.modules.fp_graded.module import FP_Module
+        sage: from sage.modules.fp_graded.module import FPModule
         sage: from sage.modules.fp_graded.morphism import _CreateRelationsMatrix
         sage: A = SteenrodAlgebra(p=2)
-        sage: blocks, R = _CreateRelationsMatrix(FP_Module(A, [0]), [[Sq(2)]], [4], [6])
+        sage: blocks, R = _CreateRelationsMatrix(FPModule(A, [0]), [[Sq(2)]], [4], [6])
 
         sage: blocks
           [[Vector space morphism represented by the matrix:
@@ -154,7 +153,7 @@ def _CreateRelationsMatrix(module, relations, source_degs, target_degs):
     return block_matrix, matrix(module.base_ring().base_ring(), entries).transpose()
 
 
-class FP_ModuleMorphism(Morphism):
+class FPModuleMorphism(Morphism):
     r"""
     Create a homomorphism between finitely presented graded modules.
 
@@ -172,14 +171,14 @@ class FP_ModuleMorphism(Morphism):
         is that the dynamic type of the element class changes as a
         consequence of the category system.
 
-    TESTS:
+    TESTS::
 
-        sage: from sage.modules.fp_graded.module import FP_Module
+        sage: from sage.modules.fp_graded.module import FPModule
         sage: # Trying to map the generators of a non-free module into a
         sage: # free module:
         sage: A = SteenrodAlgebra(2)
-        sage: F = FP_Module(A, [2,3])
-        sage: Q = FP_Module(A, [2,3], relations=[[Sq(6), Sq(5)]])
+        sage: F = FPModule(A, [2,3])
+        sage: Q = FPModule(A, [2,3], relations=[[Sq(6), Sq(5)]])
         sage: m = Hom(F, Q)( (F((Sq(1), 0)), F((0, 1))) )
         Traceback (most recent call last):
          ...
@@ -196,13 +195,12 @@ class FP_ModuleMorphism(Morphism):
         r"""
         Create a homomorphism between finitely presented graded modules.
         """
+        from .homspace import FPModuleHomspace
 
-        from .homspace import is_FP_ModuleHomspace
-
-        if not is_FP_ModuleHomspace(parent):
+        if not isinstance(parent, FPModuleHomspace):
             raise TypeError('parent (=%s) must be a fp module hom space' % parent)
 
-        self.free_morphism = Hom(parent.domain().j.codomain(), parent.codomain().j.codomain())([v.free_element() for v in values])
+        self.free_morphism = Hom(parent.domain().j.codomain(), parent.codomain().j.codomain())([v.lift_to_free() for v in values])
         self._values = values
 
         # Call the base class constructor.
@@ -212,7 +210,6 @@ class FP_ModuleMorphism(Morphism):
         for relation in parent.domain().relations():
             # The relation is an element in the free part of the domain.
             img = self.free_morphism(relation)
-            # if not FP_Element(parent.codomain(), self.free_morphism(relation)).is_zero():
             if parent.codomain()(img):
                 raise ValueError('relation %s is not sent to zero' % relation)
 
@@ -229,11 +226,11 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
-            sage: M = FP_Module(A2, [0], relations=[[Sq(1)]])
-            sage: N = FP_Module(A2, [0], relations=[[Sq(4)],[Sq(1)]])
+            sage: M = FPModule(A2, [0], relations=[[Sq(1)]])
+            sage: N = FPModule(A2, [0], relations=[[Sq(4)],[Sq(1)]])
 
             sage: f = Hom(M,N)([A2.Sq(3)*N.generator(0)]); f
             Module homomorphism of degree 3 defined by sending the generators
@@ -266,8 +263,8 @@ class FP_ModuleMorphism(Morphism):
 
             sage: from sage.modules.fp_graded.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FP_Module(A, [2], [[Sq(4)]])
+            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: homspace = Hom(M, N)
 
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
@@ -282,10 +279,10 @@ class FP_ModuleMorphism(Morphism):
             ...
             ValueError: the zero morphism does not have a well-defined degree
     
-        TESTS:
+        TESTS::
 
-            sage: M = FP_Module(SteenrodAlgebra(p=2), [7])
-            sage: N = FP_Module(SteenrodAlgebra(p=2), [0], relations=[[Sq(1)]])
+            sage: M = FPModule(SteenrodAlgebra(p=2), [7])
+            sage: N = FPModule(SteenrodAlgebra(p=2), [0], relations=[[Sq(1)]])
             sage: f = Hom(M,N)([Sq(1)*N.generator(0)])
             sage: f == Hom(M,N).zero()
             True
@@ -311,8 +308,8 @@ class FP_ModuleMorphism(Morphism):
 
             sage: from sage.modules.fp_graded.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FP_Module(A, [2], [[Sq(4)]])
+            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: homspace = Hom(M, N)
 
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
@@ -350,8 +347,8 @@ class FP_ModuleMorphism(Morphism):
 
             sage: from sage.modules.fp_graded.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FP_Module(A, [2], [[Sq(4)]])
+            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: homspace = Hom(M, N)
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = homspace(values)
@@ -393,8 +390,8 @@ class FP_ModuleMorphism(Morphism):
 
             sage: from sage.modules.fp_graded.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FP_Module(A, [2], [[Sq(4)]])
+            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: homspace = Hom(M, N)
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = homspace(values)
@@ -429,8 +426,8 @@ class FP_ModuleMorphism(Morphism):
 
             sage: from sage.modules.fp_graded.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FP_Module(A, [2], [[Sq(4)]])
+            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: homspace = Hom(M, N)
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = homspace(values)
@@ -454,8 +451,8 @@ class FP_ModuleMorphism(Morphism):
 
             sage: from sage.modules.fp_graded.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0])
-            sage: N = FP_Module(A, [0], [[Sq(4)]])
+            sage: M = FPModule(A, [0])
+            sage: N = FPModule(A, [0], [[Sq(4)]])
             sage: f = Hom(M, N)( [Sq(3)*N.generator(0)] )
             sage: g = Hom(M, N)( [Sq(0,1)*N.generator(0)] )
             sage: f.__sub__(g)
@@ -482,10 +479,10 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0], [[Sq(1,2)]])
-            sage: N = FP_Module(A, [0], [[Sq(2,2)]])
+            sage: M = FPModule(A, [0], [[Sq(1,2)]])
+            sage: N = FPModule(A, [0], [[Sq(2,2)]])
             sage: f = Hom(M, N)( [Sq(2)*N.generator(0)] )
             sage: g = Hom(N, M)( [Sq(2,2)*M.generator(0)] )
             sage: fg = f.__mul__(g); fg
@@ -496,11 +493,11 @@ class FP_ModuleMorphism(Morphism):
             sage: fg.is_endomorphism()
             True
 
-        TESTS:
+        TESTS::
 
             sage: from sage.modules.fp_graded.free_module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, (0,1))
+            sage: M = FPModule(A, (0,1))
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = Hom(M, N)(values)
             sage: f.__mul__(f)
@@ -524,10 +521,10 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FP_Module(A, [2], [[Sq(4)]])
+            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
 
             sage: f = Hom(M, N)(values)
@@ -549,8 +546,8 @@ class FP_ModuleMorphism(Morphism):
 
             sage: from sage.modules.fp_graded.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FP_Module(A, [2], [[Sq(4)]])
+            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
 
             sage: f = Hom(M, N)(values)
@@ -584,8 +581,8 @@ class FP_ModuleMorphism(Morphism):
 
             sage: from sage.modules.fp_graded.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FP_Module(A, [2], [[Sq(4)]])
+            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A, [2], [[Sq(4)]])
 
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = Hom(M, N)(values)
@@ -599,7 +596,7 @@ class FP_ModuleMorphism(Morphism):
         if x.parent() != self.domain():
             raise ValueError('cannot evaluate morphism on element not in domain')
 
-        return self.codomain()(self.free_morphism(x.free_element()))
+        return self.codomain()(self.free_morphism(x.lift_to_free()))
 
 
     def _repr_(self):
@@ -610,8 +607,8 @@ class FP_ModuleMorphism(Morphism):
 
             sage: from sage.modules.fp_graded.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FP_Module(A, [2], [[Sq(4)]])
+            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: Hom(M, N)(values)._repr_()
             'Module homomorphism of degree 7 defined by sending the generators\n  [<1, 0>, <0, 1>]\nto\n  [<Sq(5)>, <Sq(3,1)>]'
@@ -657,15 +654,15 @@ class FP_ModuleMorphism(Morphism):
 
         .. SEEALSO::
 
-            :meth:`sage.modules.fp_graded.module.FP_Module.vector_presentation`,
-            :meth:`sage.modules.fp_graded.module.FP_Module.basis_elements`.
+            :meth:`sage.modules.fp_graded.module.FPModule.vector_presentation`,
+            :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`.
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,1], [[Sq(2), Sq(1)]])
-            sage: N = FP_Module(A, [2], [[Sq(4)]])
+            sage: M = FPModule(A, [0,1], [[Sq(2), Sq(1)]])
+            sage: N = FPModule(A, [2], [[Sq(4)]])
             sage: values = [Sq(5)*N.generator(0), Sq(3,1)*N.generator(0)]
             sage: f = Hom(M, N)(values)
             sage: f.vector_presentation(0)
@@ -711,10 +708,10 @@ class FP_ModuleMorphism(Morphism):
             [0 0 0 1]
 
 
-        TESTS:
+        TESTS::
 
-            sage: F = FP_Module(A, [0])
-            sage: Q = FP_Module(A, [0], [[Sq(2)]])
+            sage: F = FPModule(A, [0])
+            sage: Q = FPModule(A, [0], [[Sq(2)]])
             sage: z = Hom(F, Q)([Sq(2)*Q.generator(0)])
             sage: z.is_zero()
             True
@@ -748,10 +745,10 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0], [[Sq(3)]])
-            sage: N = FP_Module(A, [0], [[Sq(2,2)]])
+            sage: M = FPModule(A, [0], [[Sq(3)]])
+            sage: N = FPModule(A, [0], [[Sq(2,2)]])
             sage: f = Hom(M, N)( [Sq(2)*N.generator(0)] )
             sage: y = Sq(1,1)*N.generator(0); y
             <Sq(1,1)>
@@ -766,7 +763,7 @@ class FP_ModuleMorphism(Morphism):
             sage: z is None
             True
 
-        TESTS:
+        TESTS::
 
             sage: f.solve(Sq(2,2)*M.generator(0))
             Traceback (most recent call last):
@@ -838,14 +835,14 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
 
         Lifting a map from a free module is always possible::
 
-            sage: M = FP_Module(A, [0], [[Sq(3)]])
-            sage: N = FP_Module(A, [0], [[Sq(2,2)]])
-            sage: F = FP_Module(A, [0])
+            sage: M = FPModule(A, [0], [[Sq(3)]])
+            sage: N = FPModule(A, [0], [[Sq(2,2)]])
+            sage: F = FPModule(A, [0])
             sage: f = Hom(M,N)([Sq(2)*N.generator(0)])
             sage: k = Hom(F,N)([Sq(1)*Sq(2)*N.generator(0)])
             sage: f_ = k.lift(f)
@@ -859,8 +856,8 @@ class FP_ModuleMorphism(Morphism):
 
         A split projection::
 
-            sage: A_plus_HZ = FP_Module(A, [0,0], [[0, Sq(1)]])
-            sage: HZ = FP_Module(A, [0], [[Sq(1)]])
+            sage: A_plus_HZ = FPModule(A, [0,0], [[0, Sq(1)]])
+            sage: HZ = FPModule(A, [0], [[Sq(1)]])
             sage: q = Hom(A_plus_HZ, HZ)([HZ([1]), HZ([1])])
             sage: # We can construct a splitting of `q` manually:
             sage: split = Hom(HZ,A_plus_HZ)([A_plus_HZ.generator(1)])
@@ -879,7 +876,7 @@ class FP_ModuleMorphism(Morphism):
         Lifting over the inclusion of the image sub module::
 
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0], relations=[[Sq(0,1)]])
+            sage: M = FPModule(A, [0], relations=[[Sq(0,1)]])
             sage: f = Hom(M,M)([Sq(2)*M.generator(0)])
             sage: im = f.image(top_dim=10)
             sage: f.lift(im)
@@ -892,24 +889,24 @@ class FP_ModuleMorphism(Morphism):
         verbose argument to ``True``, an explanation of why the lifting failed will
         be displayed::
 
-            sage: F2 = FP_Module(A, [0,0])
+            sage: F2 = FPModule(A, [0,0])
             sage: non_surjection = Hom(F2, F2)([F2([1, 0]), F2([0, 0])])
             sage: lift = Hom(F2, F2).identity().lift(non_surjection, verbose=True)
             The generators of the domain of this homomorphism do not map into the image of the homomorphism we are lifting over.
             sage: lift is None
             True
 
-        TESTS:
+        TESTS::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
             sage: # The trivial map often involved in corner cases..
-            sage: trivial_map = Hom(FP_Module(A, [0]), FP_Module(A, [])).zero()
+            sage: trivial_map = Hom(FPModule(A, [0]), FPModule(A, [])).zero()
             sage: trivial_map.lift(trivial_map)
             The trivial homomorphism.
 
-            sage: F = FP_Module(A, [0])
-            sage: HZ = FP_Module(A, [0], relations=[[Sq(1)]])
+            sage: F = FPModule(A, [0])
+            sage: HZ = FPModule(A, [0], relations=[[Sq(1)]])
             sage: f = Hom(F,HZ)(HZ.generators())
             sage: split = Hom(HZ, HZ).identity().lift(f, verbose=True)
             The homomorphism cannot be lifted in any way such that the relations of the domain are respected: matrix equation has no solutions
@@ -925,7 +922,7 @@ class FP_ModuleMorphism(Morphism):
             This homomorphism cannot lift over a trivial homomorphism since it is non-trivial.
 
             sage: Ap = SteenrodAlgebra(p=2, profile=(2,2,2,1))
-            sage: Hko = FP_Module(Ap, [0], [[Sq(2)], [Sq(1)]])
+            sage: Hko = FPModule(Ap, [0], [[Sq(2)], [Sq(1)]])
             sage: f = Hom(Hko, Hko)([(Ap.Sq(0,0,3) + Ap.Sq(0,2,0,1))*Hko.generator(0)])
             sage: f*f == 0
             True
@@ -938,9 +935,9 @@ class FP_ModuleMorphism(Morphism):
 
         Corner cases involving trivial maps::
 
-            sage: M = FP_Module(A, [1])
-            sage: M1 = FP_Module(A, [0])
-            sage: M2 = FP_Module(A, [0], [[Sq(1)]])
+            sage: M = FPModule(A, [1])
+            sage: M1 = FPModule(A, [0])
+            sage: M2 = FPModule(A, [0], [[Sq(1)]])
             sage: q = Hom(M1, M2)([M2.generator(0)])
             sage: z = Hom(M, M2).zero()
             sage: lift = z.lift(q)
@@ -1080,10 +1077,10 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: M = FP_Module(A, [0,0], [[0, Sq(1)]])
-            sage: N = FP_Module(A, [0], [[Sq(1)]])
+            sage: M = FPModule(A, [0,0], [[0, Sq(1)]])
+            sage: N = FPModule(A, [0], [[Sq(1)]])
             sage: p = Hom(M, N)([N.generator(0), N.generator(0)])
             sage: s = p.split(); s
             Module homomorphism of degree 0 defined by sending the generators
@@ -1094,10 +1091,10 @@ class FP_ModuleMorphism(Morphism):
             sage: p*s
             The identity homomorphism.
 
-        TESTS:
+        TESTS::
 
-            sage: F = FP_Module(A, [0])
-            sage: N = FP_Module(A, [0], [[Sq(1)]])
+            sage: F = FPModule(A, [0])
+            sage: N = FPModule(A, [0], [[Sq(1)]])
             sage: p = Hom(F, N)([N.generator(0)])
             sage: p.split(verbose=True) is None
             The homomorphism cannot be lifted in any way such that the relations of the domain are respected: matrix equation has no solutions
@@ -1141,11 +1138,11 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: M = FP_Module(A, [0], [[Sq(3)]])
-            sage: N = FP_Module(A, [0], [[Sq(2,2)]])
-            sage: F = FP_Module(A, [0])
+            sage: M = FPModule(A, [0], [[Sq(3)]])
+            sage: N = FPModule(A, [0], [[Sq(2,2)]])
+            sage: F = FPModule(A, [0])
             sage: f = Hom(M,N)([A.Sq(2)*N.generator(0)])
             sage: g = Hom(F, M)([A.Sq(4)*A.Sq(1,2)*M.generator(0)])
             sage: ho = f.homology(g)
@@ -1177,10 +1174,10 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: F1 = FP_Module(A, [4,5])
-            sage: F2 = FP_Module(A, [5])
+            sage: F1 = FPModule(A, [4,5])
+            sage: F2 = FPModule(A, [5])
 
             sage: f = Hom(F1, F2)( ( F2([Sq(4)]), F2([Sq(5)]) ) ); f
             Module homomorphism of degree 5 defined by sending the generators
@@ -1212,7 +1209,7 @@ class FP_ModuleMorphism(Morphism):
         else:
             D = self.domain().suspension(t)
             C = self.codomain().suspension(t)
-            return Hom(D, C)([C(x.free_element().dense_coefficient_list()) for x in self._values])
+            return Hom(D, C)([C(x.lift_to_free().dense_coefficient_list()) for x in self._values])
 
 
     def cokernel(self):
@@ -1224,10 +1221,10 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A1 = SteenrodAlgebra(2, profile=(2,1))
-            sage: M = FP_Module(A1, [0], [[Sq(2)]])
-            sage: F = FP_Module(A1, [0])
+            sage: M = FPModule(A1, [0], [[Sq(2)]])
+            sage: F = FPModule(A1, [0])
 
             sage: r = Hom(F, M)([A1.Sq(1)*M.generator(0)])
             sage: co = r.cokernel(); co
@@ -1239,11 +1236,11 @@ class FP_ModuleMorphism(Morphism):
             sage: co.domain().is_trivial()
             False
         """
-        from .module import FP_Module
+        from .module import FPModule
         new_relations = [x.dense_coefficient_list() for x in self.codomain().relations()] +\
             [x.dense_coefficient_list() for x in self._values]
 
-        coker = FP_Module(self.base_ring(),
+        coker = FPModule(self.base_ring(),
                     self.codomain().generator_degrees(),
                     relations=tuple(new_relations))
 
@@ -1275,10 +1272,10 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
-            sage: F = FP_Module(A3, [1,3]);
-            sage: L = FP_Module(A3, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);
+            sage: F = FPModule(A3, [1,3]);
+            sage: L = FPModule(A3, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);
             sage: H = Hom(F, L);
 
             sage: H([L((A3.Sq(1), 1)), L((0, A3.Sq(2)))]).kernel() # long time
@@ -1287,8 +1284,8 @@ class FP_ModuleMorphism(Morphism):
             to
               (<0, 1>, <Sq(0,1), 0>)
 
-            sage: M = FP_Module(A3, [0,7], [[Sq(1), 0], [Sq(2), 0], [Sq(4), 0], [Sq(8), Sq(1)], [0, Sq(7)], [0, Sq(0,1,1)+Sq(4,2)]])
-            sage: F2 = FP_Module(A3, [0], [[Sq(1)], [Sq(2)], [Sq(4)], [Sq(8)], [Sq(15)]])
+            sage: M = FPModule(A3, [0,7], [[Sq(1), 0], [Sq(2), 0], [Sq(4), 0], [Sq(8), Sq(1)], [0, Sq(7)], [0, Sq(0,1,1)+Sq(4,2)]])
+            sage: F2 = FPModule(A3, [0], [[Sq(1)], [Sq(2)], [Sq(4)], [Sq(8)], [Sq(15)]])
             sage: H = Hom(M, F2)
             sage: f = H([F2([1]), F2([0])])
 
@@ -1351,10 +1348,10 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A3 = SteenrodAlgebra(2, profile=(4,3,2,1))
-            sage: F = FP_Module(A3, [1,3]);
-            sage: L = FP_Module(A3, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);
+            sage: F = FPModule(A3, [1,3]);
+            sage: L = FPModule(A3, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);
             sage: H = Hom(F, L);
 
             sage: H([L((A3.Sq(1), 1)), L((0, A3.Sq(2)))]).image() # long time
@@ -1363,8 +1360,8 @@ class FP_ModuleMorphism(Morphism):
             to
               (<Sq(1), 1>,)
 
-            sage: M = FP_Module(A3, [0,7], [[Sq(1), 0], [Sq(2), 0], [Sq(4), 0], [Sq(8), Sq(1)], [0, Sq(7)], [0, Sq(0,1,1)+Sq(4,2)]])
-            sage: F2 = FP_Module(A3, [0], [[Sq(1)], [Sq(2)], [Sq(4)], [Sq(8)], [Sq(15)]])
+            sage: M = FPModule(A3, [0,7], [[Sq(1), 0], [Sq(2), 0], [Sq(4), 0], [Sq(8), Sq(1)], [0, Sq(7)], [0, Sq(0,1,1)+Sq(4,2)]])
+            sage: F2 = FPModule(A3, [0], [[Sq(1)], [Sq(2)], [Sq(4)], [Sq(8)], [Sq(15)]])
             sage: H = Hom(M, F2)
             sage: f = H([F2([1]), F2([0])])
             sage: K = f.image(verbose=True, top_dim=17)
@@ -1413,19 +1410,19 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
 
-            sage: K = FP_Module(A, [2], [[Sq(2)]])
-            sage: HZ = FP_Module(A, [0], [[Sq(1)]])
+            sage: K = FPModule(A, [2], [[Sq(2)]])
+            sage: HZ = FPModule(A, [0], [[Sq(1)]])
 
             sage: f = Hom(K, HZ)([Sq(2)*HZ([1])])
             sage: f.is_injective(top_dim=23)
             True
 
-        TESTS:
+        TESTS::
 
-            sage: Z = FP_Module(A, [])
+            sage: Z = FPModule(A, [])
             sage: Hom(Z, HZ).zero().is_injective(top_dim=8)
             True
 
@@ -1440,17 +1437,17 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: F = FP_Module(A, [0])
+            sage: F = FPModule(A, [0])
 
             sage: f = Hom(F,F)([Sq(1)*F.generator(0)])
             sage: f.is_surjective()
             False
 
-        TESTS:
+        TESTS::
 
-            sage: Z = FP_Module(A, [])
+            sage: Z = FPModule(A, [])
             sage: Hom(F, Z).zero().is_surjective()
             True
 
@@ -1481,12 +1478,12 @@ class FP_ModuleMorphism(Morphism):
             If the algebra for this module is finite, then no ``top_dim``
             needs to be specified in order to ensure that this function terminates.
 
-        TESTS:
+        TESTS::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: F = FP_Module(A, [0,0])
-            sage: L = FP_Module(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
+            sage: F = FPModule(A, [0,0])
+            sage: L = FPModule(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
             sage: f = Hom(F, L)([L([Sq(2),0]), L([0, Sq(2)])])
             sage: f._resolve_kernel()
             Traceback (most recent call last):
@@ -1620,12 +1617,12 @@ class FP_ModuleMorphism(Morphism):
             If the algebra for this module is finite, then no ``top_dim`` needs
             to be specified in order to ensure that this function terminates.
 
-        TESTS:
+        TESTS::
 
             sage: from sage.modules.fp_graded.module import *
             sage: A = SteenrodAlgebra(2)
-            sage: F = FP_Module(A, [0,0])
-            sage: L = FP_Module(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
+            sage: F = FPModule(A, [0,0])
+            sage: L = FPModule(A, [0,0], [[Sq(3),Sq(0,1)], [0,Sq(2)]])
             sage: f = Hom(F, L)([L([Sq(2),0]), L([0, Sq(2)])])
             sage: f._resolve_image()
             Traceback (most recent call last):
@@ -1743,10 +1740,10 @@ class FP_ModuleMorphism(Morphism):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
-            sage: F1 = FP_Module(A, (2,))
-            sage: F2 = FP_Module(A, (0,))
+            sage: F1 = FPModule(A, (2,))
+            sage: F2 = FPModule(A, (0,))
             sage: v = F2([Sq(2)])
             sage: pres = Hom(F1, F2)([v])
             sage: M = pres.to_fp_module(); M
@@ -1756,7 +1753,7 @@ class FP_ModuleMorphism(Morphism):
             sage: M.relations()
             [<Sq(2)>]
 
-            sage: F3 = FP_Module(A, (0,), [[Sq(4)]])
+            sage: F3 = FPModule(A, (0,), [[Sq(4)]])
             sage: pres = Hom(F1, F3)([v])
             sage: pres.to_fp_module()
             Traceback (most recent call last):
@@ -1765,8 +1762,8 @@ class FP_ModuleMorphism(Morphism):
         """
         if self.domain().has_relations() or self.codomain().has_relations():
             raise ValueError("this is not a morphism between free modules")
-        from .module import FP_Module
-        return FP_Module(algebra=self.base_ring(),
+        from .module import FPModule
+        return FPModule(algebra=self.base_ring(),
                          generator_degrees=self.codomain().generator_degrees(),
                          relations=tuple([r.dense_coefficient_list() for r in self.values()]))
 

@@ -2,7 +2,7 @@ r"""
 Elements of finitely presented graded modules
 
 This class implements construction and basic manipulation of elements of the
-Sage parent :class:`sage.modules.fp_graded.module.FP_Module`, which models
+Sage parent :class:`sage.modules.fp_graded.module.FPModule`, which models
 finitely presented modules over connected graded algebras.
 
 AUTHORS:
@@ -31,34 +31,34 @@ from sage.modules.with_basis.indexed_element import IndexedFreeModuleElement
 from .free_element import FreeGradedModuleElement
 
 
-class FP_Element(IndexedFreeModuleElement):
+class FPElement(IndexedFreeModuleElement):
     r"""
     A module element of a finitely presented graded module over
     a connected graded algebra.
 
-    TESTS:
+    TESTS::
 
-        sage: from sage.modules.fp_graded.module import FP_Module
-        sage: FP_Module(SteenrodAlgebra(2), [0])([Sq(2)])
+        sage: from sage.modules.fp_graded.module import FPModule
+        sage: FPModule(SteenrodAlgebra(2), [0])([Sq(2)])
         <Sq(2)>
     """
-    def free_element(self):
+    def lift_to_free(self):
         r"""
         A lift of this element to the free module F,
         if this element is in a quotient of F.
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
-            sage: M = FP_Module(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: x = M([Sq(1), 1])
             sage: x
             <Sq(1), 1>
             sage: x.parent()
             Finitely presented left module on 2 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
-            sage: x.free_element()
+            sage: x.lift_to_free()
             <Sq(1), 1>
-            sage: x.free_element().parent()                                                           
+            sage: x.lift_to_free().parent()
             Finitely presented free left module on 2 generators over mod 2 Steenrod algebra, milnor basis
         """
         C = self.parent().j.codomain()
@@ -75,8 +75,8 @@ class FP_Element(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
-            sage: M = FP_Module(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: x = M.an_element(7)
 
             sage: x
@@ -91,9 +91,9 @@ class FP_Element(IndexedFreeModuleElement):
             ...
             ValueError: the zero element does not have a well-defined degree
 
-        TESTS:
+        TESTS::
 
-            sage: N = FP_Module(SteenrodAlgebra(2), [0], [[Sq(2)]])
+            sage: N = FPModule(SteenrodAlgebra(2), [0], [[Sq(2)]])
             sage: y = Sq(2)*N.generator(0)
             sage: y == 0
             True
@@ -104,7 +104,7 @@ class FP_Element(IndexedFreeModuleElement):
         """
         if self.is_zero():
             raise ValueError("the zero element does not have a well-defined degree")
-        return self.free_element().degree()
+        return self.lift_to_free().degree()
 
 
     def _repr_(self):
@@ -113,8 +113,8 @@ class FP_Element(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
-            sage: M = FP_Module(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: [M.an_element(n) for n in range(1,10)]
             [<Sq(1), 1>,
              <Sq(2), Sq(1)>,
@@ -126,7 +126,7 @@ class FP_Element(IndexedFreeModuleElement):
              <Sq(1,0,1), Sq(1,2)>,
              <Sq(2,0,1), Sq(2,2)>]
         """
-        return self.free_element()._repr_()
+        return self.lift_to_free()._repr_()
 
 
     def _lmul_(self, a):
@@ -141,15 +141,15 @@ class FP_Element(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: M = FP_Module(A2, [0,3], [[Sq(2)*Sq(4), Sq(3)]])
+            sage: M = FPModule(A2, [0,3], [[Sq(2)*Sq(4), Sq(3)]])
             sage: A2.Sq(2)*M.generator(1)
             <0, Sq(2)>
             sage: A2.Sq(2)*(A2.Sq(1)*A2.Sq(2)*M.generator(0) + M.generator(1))
             <Sq(2,1), Sq(2)>
 
-        TESTS:
+        TESTS::
 
             sage: elements = [M.an_element(n) for n in range(1,10)]
             sage: a = A2.Sq(3)
@@ -164,7 +164,7 @@ class FP_Element(IndexedFreeModuleElement):
              <Sq(1,1,1), Sq(5,1)>,
              <0, Sq(3,2)>]
         """
-        return self.parent()(a*self.free_element())
+        return self.parent()(a*self.lift_to_free())
 
 
     def vector_presentation(self):
@@ -172,7 +172,7 @@ class FP_Element(IndexedFreeModuleElement):
         A coordinate vector representing this module element when it is non-zero.
 
         These are coordinates with respect to the basis chosen by
-        :meth:`sage.modules.fp_graded.module.FP_Module.basis_elements`.
+        :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`.
         When the element is zero, it has no well defined degree, and this
         function returns ``None``.
 
@@ -182,15 +182,15 @@ class FP_Element(IndexedFreeModuleElement):
 
         .. SEEALSO::
 
-            :meth:`sage.modules.fp_graded.module.FP_Module.vector_presentation`
-            :meth:`sage.modules.fp_graded.module.FP_Module.basis_elements`
-            :meth:`sage.modules.fp_graded.module.FP_Module.element_from_coordinates`
+            :meth:`sage.modules.fp_graded.module.FPModule.vector_presentation`
+            :meth:`sage.modules.fp_graded.module.FPModule.basis_elements`
+            :meth:`sage.modules.fp_graded.module.FPModule.element_from_coordinates`
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
-            sage: M = FP_Module(A2, (0,1))
+            sage: M = FPModule(A2, (0,1))
 
             sage: x = M.an_element(7)
             sage: v = x.vector_presentation(); v
@@ -214,7 +214,7 @@ class FP_Element(IndexedFreeModuleElement):
             sage: x == x_
             True
 
-        TESTS:
+        TESTS::
 
             sage: M.zero().vector_presentation() is None
             True
@@ -226,12 +226,12 @@ class FP_Element(IndexedFreeModuleElement):
         # place it inside any vector space.  However, this will not work for
         # homomorphisms, so we return None to be consistent.
         try:
-            degree = self.free_element().degree()
+            degree = self.lift_to_free().degree()
         except ValueError:
             return None
 
         F_n = self.parent().vector_presentation(degree)
-        return F_n.quotient_map()(self.free_element().vector_presentation())
+        return F_n.quotient_map()(self.lift_to_free().vector_presentation())
 
 
     def __nonzero__(self):
@@ -243,8 +243,8 @@ class FP_Element(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
-            sage: M = FP_Module(SteenrodAlgebra(2), [0,2,4], [[Sq(4),Sq(2),0]])
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,2,4], [[Sq(4),Sq(2),0]])
             sage: M(0).__nonzero__()
             False
             sage: M((Sq(6), 0, Sq(2))).__nonzero__()
@@ -271,8 +271,8 @@ class FP_Element(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
-            sage: M = FP_Module(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
             sage: x = M([Sq(1), 1])
             sage: x
             <Sq(1), 1>
@@ -298,8 +298,8 @@ class FP_Element(IndexedFreeModuleElement):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import FP_Module
-            sage: M = FP_Module(SteenrodAlgebra(2), [0,2,4], [[Sq(4),Sq(2),0]])
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,2,4], [[Sq(4),Sq(2),0]])
 
             sage: m = M((Sq(6), 0, Sq(2))); m
             <Sq(6), 0, Sq(2)>

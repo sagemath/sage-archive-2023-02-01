@@ -238,7 +238,7 @@ replacements are made:
 
       sage: R.<x,y> = QQ[]
       sage: preparse('R.<x,y> = QQ[]')
-      "R = QQ['x, y']; (x, y,) = R._first_ngens(2)"
+      "R = QQ['x', 'y']; (x, y,) = R._first_ngens(2)"
 
 - Integer and real literals are Sage integers and Sage floating point
   numbers. For example, in pure Python these would be an attribute

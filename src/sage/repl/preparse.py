@@ -140,7 +140,7 @@ This involves an =-, but should still be turned into a symbolic
 expression::
 
     sage: preparse('a(x) =- 5')
-    '__tmp__=var("x"); a = symbolic_expression(- Integer(5)).function(x)'
+    '__tmp__ = var("x"); __tmpa__ =- Integer(5); a = symbolic_expression(__tmpa__).function(x)'
     sage: f(x)=-x
     sage: f(10)
     -10
@@ -1105,6 +1105,7 @@ def parse_ellipsis(code, preparse_step=True):
         ix = code.find('..')
     return code
 
+
 def extract_numeric_literals(code):
     """
     Pulls out numeric literals and assigns them to global variables.
@@ -1432,15 +1433,15 @@ def preparse_calculus(code):
     EXAMPLES::
 
         sage: preparse("f(x) = x^3-x")
-        '__tmp__=var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
+        '__tmp__ = var("x"); __tmpf__ = x**Integer(3)-x; f = symbolic_expression(__tmpf__).function(x)'
         sage: preparse("f(u,v) = u - v")
-        '__tmp__=var("u,v"); f = symbolic_expression(u - v).function(u,v)'
+        '__tmp__ = var("u,v"); __tmpf__ = u - v; f = symbolic_expression(__tmpf__).function(u,v)'
         sage: preparse("f(x) =-5")
-        '__tmp__=var("x"); f = symbolic_expression(-Integer(5)).function(x)'
+        '__tmp__ = var("x"); __tmpf__ =-Integer(5); f = symbolic_expression(__tmpf__).function(x)'
         sage: preparse("f(x) -= 5")
         'f(x) -= Integer(5)'
         sage: preparse("f(x_1, x_2) = x_1^2 - x_2^2")
-        '__tmp__=var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
+        '__tmp__ = var("x_1,x_2"); __tmpf__ = x_1**Integer(2) - x_2**Integer(2); f = symbolic_expression(__tmpf__).function(x_1,x_2)'
 
     For simplicity, this function assumes all statements begin and end
     with a semicolon::
@@ -1468,20 +1469,16 @@ def preparse_calculus(code):
 
         sage: from sage.repl.preparse import preparse_file
         sage: preparse_file("f(1)=x")
-        Traceback (most recent call last):
-        ...
-        ValueError: Argument names should be valid python identifiers.
+        '_sage_const_1 = Integer(1)\n__tmp__ = var("_sage_const_1"); __tmpf__=x; f = symbolic_expression(__tmpf__).function(_sage_const_1)'
 
         sage: from sage.repl.preparse import preparse_file
         sage: preparse_file("f(x,1)=2")
-        Traceback (most recent call last):
-        ...
-        ValueError: Argument names should be valid python identifiers.
+        '_sage_const_1 = Integer(1); _sage_const_2 = Integer(2)\n__tmp__ = var("x,_sage_const_1"); __tmpf__=_sage_const_2 ; f = symbolic_expression(__tmpf__).function(x,_sage_const_1)'
 
     Check support for unicode characters (:trac:`29278`)::
 
         sage: preparse("μ(x) = x^2")
-        '__tmp__=var("x"); μ = symbolic_expression(x**Integer(2)).function(x)'
+        '__tmp__ = var("x"); __tmpμ__ = x**Integer(2); μ = symbolic_expression(__tmpμ__).function(x)'
 
     Check that the parameter list can span multiple lines (:trac:`30928`)::
 
@@ -1491,7 +1488,7 @@ def preparse_calculus(code):
         ....:   c,
         ....:   d) = a + b*2 + c*3 + d*4
         ....: ''')
-        '\n__tmp__=var("a,b,c,d"); f = symbolic_expression(a + b*Integer(2) + c*Integer(3) + d*Integer(4)).function(a,b,c,d)\n'
+        '\n__tmp__ = var("a,b,c,d"); __tmpf__ = a + b*Integer(2) + c*Integer(3) + d*Integer(4); f = symbolic_expression(__tmpf__).function(a,b,c,d)\n'
 
     """
     new_code = []
@@ -1597,7 +1594,7 @@ def preparse_generators(code):
         sage: preparse("R.<x> = ZZ[]")
         "R = ZZ['x']; (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = ZZ[]")
-        "R = ZZ['x, y']; (x, y,) = R._first_ngens(2)"
+        "R = ZZ['x', 'y']; (x, y,) = R._first_ngens(2)"
 
     Names given not the same as generator names::
 
@@ -1620,7 +1617,7 @@ def preparse_generators(code):
         sage: preparse("R.<x, y> = a+b")
         'R = a+b; (x, y,) = R._first_ngens(2)'
         sage: preparse("A.<x,y,z>=FreeAlgebra(ZZ,3)")
-        "A = FreeAlgebra(ZZ,Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = A._first_ngens(3)"
+        "A=FreeAlgebra(ZZ,Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = A._first_ngens(3)"
 
     Ensure we do not eat too much::
 
@@ -1645,7 +1642,7 @@ def preparse_generators(code):
     Check support for unicode characters (:trac:`29278`)::
 
         sage: preparse('Ω.<λ,μ> = QQ[]')
-        "Ω = QQ['λ, μ']; (λ, μ,) = Ω._first_ngens(2)"
+        "Ω = QQ['λ', 'μ']; (λ, μ,) = Ω._first_ngens(2)"
     """
     new_code = []
     last_end = 0
@@ -1688,6 +1685,14 @@ def preparse_generators(code):
         return ''.join(new_code)
 
 
+def preparse_gen(code):
+    return re.sub(r'(\b[^\W\d]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', code)
+
+def preparse_exponentiation(code):
+    # Use ^ for exponentiation and ^^ for xor
+    # (A side effect is that **** becomes xor as well.)
+    return code.replace('^', '**').replace('****', '^')
+
 quote_state = None
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False,
@@ -1718,7 +1723,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: preparse("ZZ.<x> = ZZ['y']")
         "ZZ = ZZ['y']; (x,) = ZZ._first_ngens(1)"
         sage: preparse("ZZ.<x,y> = ZZ[]")
-        "ZZ = ZZ['x, y']; (x, y,) = ZZ._first_ngens(2)"
+        "ZZ = ZZ['x', 'y']; (x, y,) = ZZ._first_ngens(2)"
         sage: preparse("ZZ.<x,y> = ZZ['u,v']")
         "ZZ = ZZ['u,v']; (x, y,) = ZZ._first_ngens(2)"
         sage: preparse("ZZ.<x> = QQ[2^(1/3)]")
@@ -1745,7 +1750,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         'a  * BackslashOperator() * b \\'
 
         sage: preparse("time R.<x> = ZZ[]", do_time=True)
-        '__time__=cputime(); __wall__=walltime(); R = ZZ[\'x\']; print("Time: CPU %.2f s, Wall: %.2f s"%(cputime(__time__), walltime(__wall__))); (x,) = R._first_ngens(1)'
+        '__time__ = cputime(); __wall__ = walltime(); R = ZZ[\'x\']; print("Time: CPU {:.2f} s, Wall: {:.2f} s".format(cputime(__time__), walltime(__wall__))); (x,) = R._first_ngens(1)'
 
     TESTS:
 
@@ -1757,7 +1762,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     Check support for backslash line continuation (:trac:`30928`)::
 
         sage: preparse("f(x) = x \\\n+ 1")
-        '__tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)'
+        '__tmp__ = var("x"); __tmpf__ = x \\\n+ Integer(1); f = symbolic_expression(__tmpf__).function(x)'
 
     Check that multi-line strings starting with a comment are still preparsed
     (:trac:`31043`)::
@@ -1765,8 +1770,37 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: print(preparse('''# some comment
         ....: f(x) = x + 1'''))
         # some comment
-        __tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)
+        __tmp__ = var("x"); __tmpf__ = x + Integer(1); f = symbolic_expression(__tmpf__).function(x)
 
+    TESTS::
+
+        sage: from sage.repl.preparse import preparse
+        sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
+        sage: _ = preparse(lots_of_numbers)
+        sage: print(preparse("type(100r), type(100)"))
+        type(100), type(Integer(100))
+
+    Check that :trac:`4312` is fixed::
+
+        sage: file_contents = '''
+        ....: @parallel(8)
+        ....: def f(p):
+        ....:     print(p)
+        ....:     t = cputime()
+        ....:     M = ModularSymbols(p^2,sign=1)
+        ....:     w = M.atkin_lehner_operator(p)
+        ....:     K = (w-1).kernel()
+        ....:     N = K.new_subspace()
+        ....:     D = N.decomposition()'''
+        sage: t = tmp_filename(ext=".sage")
+        sage: with open(t, 'w') as f:
+        ....:     f.write(file_contents)
+        198
+        sage: load(t)
+        sage: list(f([11,17]))
+        11
+        17
+        [(((11,), {}), None), (((17,), {}), None)]
     """
     global quote_state
     if reset:
@@ -1807,43 +1841,37 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     # Generators
     # R.0 -> R.gen(0)
-    L = re.sub(r'(\b[^\W\d]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
+    L = preparse_gen(L)
 
     # Use ^ for exponentiation and ^^ for xor
-    # (A side effect is that **** becomes xor as well.)
-    L = L.replace('^', '**').replace('****', '^')
+    L = preparse_exponentiation(L)
 
-    # Combine lines that use backslash continuation
-    L = L.replace('\\\n', '')
+    from IPython.core.inputtransformer2 import TransformerManager
+    from sage.repl.interpreter import SageTokenTransformers
 
-    # Make it easy to match statement ends
-    L = ';%s;' % L.replace('\n', ';\n;')
+    T = TransformerManager()
+    T.token_transformers = SageTokenTransformers
 
-    if do_time:
-        # Separate time statement
-        L = re.sub(r';(\s*)time +(\w)', r';time;\1\2', L)
+    if not L.endswith('\n'):
+        cell = L  + '\n'  # Ensure the cell has a trailing newline
+    else:
+        cell = L
 
-    # Construction with generators
-    # R.<...> = obj()
-    # R.<...> = R[]
-    L = preparse_generators(L)
+    lines = cell.splitlines(keepends=True)
+    lines = T.do_token_transforms(lines)
+    output = ''.join(lines)
 
-    # Calculus functions
-    # f(x,y) = x^3 - sin(y)
-    L = preparse_calculus(L)
-
-    # Backslash
-    L = re.sub(r'''\\\s*([^\t ;#])''', r' * BackslashOperator() * \1', L)
+    if L[-1:] != "\n" and output[-1:] == "\n":
+        # Strip trailing newline, if input did not have it.
+        L = output[:-1]
+    else:
+        L = output
 
     if do_time:
-        # Time keyword
-        L = re.sub(r';time;(\s*)(\S[^;]*)',
-                   r';\1__time__=cputime(); __wall__=walltime(); \2; print(' +
-                        '"Time: CPU %%.2f s, Wall: %%.2f s"%%(cputime(__time__), walltime(__wall__)))',
-                   L)
-
-    # Remove extra ;'s
-    L = L.replace(';\n;', '\n')[1:-1]
+        L = re.sub(r'^(\s*)time (\S[^;\n]*)',
+                   r'__time__ = cputime(); __wall__ = walltime(); \2; print(' +
+                   r'"Time: CPU {:.2f} s, Wall: {:.2f} s".format(cputime(__time__), walltime(__wall__)))',
+                   L, flags=re.MULTILINE)
 
     line = L % literals
 
@@ -1856,7 +1884,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
 def preparse_file(contents, globals=None, numeric_literals=True):
     """
-    Preparses input, attending to numeric literals and load/attach
+    Preparse ``contents`` which is input from a file such as ``.sage`` files.
+
+    Special attentions are given to numeric literals and load/attach
     file directives.
 
     .. note:: Temporarily, if @parallel is in the input, then
@@ -2015,7 +2045,6 @@ def implicit_mul(code, level=5):
         code = re.sub(r'\) *\(', ')*(', code)
     code = code.replace(no_mul_token, '')
     return code % literals
-
 
 
 def _strip_quotes(s):

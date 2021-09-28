@@ -1441,7 +1441,7 @@ class LazyModuleElement(Element):
             z^-1 - 1/3*z - 1/45*z^3 - 2/945*z^5 + O(z^6)
 
             sage: L.<x> = LazyLaurentSeriesRing(QQ)
-            sage: cot(x/(1-x)).finite_part(4)
+            sage: cot(x/(1-x)).polynomial(4)
             x^-1 - 1 - 1/3*x - 1/3*x^2 - 16/45*x^3 - 2/5*x^4
 
         TESTS::
@@ -1463,7 +1463,7 @@ class LazyModuleElement(Element):
             z^-1 + 1/6*z + 7/360*z^3 + 31/15120*z^5 + O(z^6)
 
             sage: L.<x> = LazyLaurentSeriesRing(QQ)
-            sage: csc(x/(1-x)).finite_part(4)
+            sage: csc(x/(1-x)).polynomial(4)
             x^-1 - 1 + 1/6*x + 1/6*x^2 + 67/360*x^3 + 9/40*x^4
 
         TESTS::
@@ -1905,6 +1905,36 @@ class LazyModuleElement(Element):
 
     # === powers ===
 
+    def __pow__(self, n):
+        r"""
+        Return the ``n``-th power of the series.
+
+        INPUT:
+
+        - ``n`` -- integer; the power to which to raise the series
+
+        EXAMPLES::
+
+            sage: D = LazyDirichletSeriesRing(QQ, 's')
+            sage: Z = D(constant=1)
+            sage: Z^2
+            1 + 2/2^s + 2/3^s + 3/4^s + 2/5^s + 4/6^s + 2/7^s + O(1/(8^s))
+            sage: f = Z^(1/3)
+            sage: f
+            1 + 1/3/2^s + 1/3/3^s + 2/9/4^s + 1/3/5^s + 1/9/6^s + 1/3/7^s + O(1/(8^s))
+            sage: f^2
+            1 + 2/3/2^s + 2/3/3^s + 5/9/4^s + 2/3/5^s + 4/9/6^s + 2/3/7^s + O(1/(8^s))
+            sage: f^3 - Z
+            O(1/(8^s))
+        """
+        if n in ZZ:
+            return generic_power(self, n)
+
+        from .lazy_series_ring import LazyLaurentSeriesRing
+        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
+        exp = P(lambda k: 1/factorial(ZZ(k)), valuation=0)
+        return exp(self.log() * n)
+
     def sqrt(self):
         """
         Return ``self^(1/2)``.
@@ -1928,8 +1958,9 @@ class LazyModuleElement(Element):
             sage: D = LazyDirichletSeriesRing(SR, "s")
             sage: Z = D(constant=1)
             sage: f = sqrt(Z)
+            sage: f
             1 + 1/2/2^s + 1/2/3^s + 3/8/4^s + 1/2/5^s + 1/4/6^s + 1/2/7^s + O(1/(8^s))
-            sage: f*f - zeta
+            sage: f*f - Z
             O(1/(8^s))
         """
         return self ** (1/ZZ(2))
@@ -2103,7 +2134,7 @@ class LazyCauchyProductSeries(LazyModuleElement):
         return P.element_class(P, Stream_cauchy_mul(left, right))
 
     def __pow__(self, n):
-        """
+        r"""
         Return the ``n``-th power of the series.
 
         INPUT:
@@ -2178,13 +2209,8 @@ class LazyCauchyProductSeries(LazyModuleElement):
             return P.element_class(P, Stream_exact(initial_coefficients, P._sparse,
                                                    constant=cs._constant,
                                                    degree=deg, order=val))
-        if n in ZZ:
-            return generic_power(self, n)
 
-        from .lazy_series_ring import LazyLaurentSeriesRing
-        P = LazyLaurentSeriesRing(self.base_ring(), "z", sparse=self.parent()._sparse)
-        exp = P(lambda k: 1/factorial(ZZ(k)), valuation=0)
-        return exp(self.log() * n)
+        return super().__pow__(n)
 
     def __invert__(self):
         """

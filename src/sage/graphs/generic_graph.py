@@ -5799,6 +5799,16 @@ class GenericGraph(GenericGraph_pyx):
         neighbors of each vertex. From this information one can define the faces
         of the embedding, which is what this method returns.
 
+        If no embedding is provided or stored as ``self._embedding``, this
+        method will compute the set of faces from the embedding returned by
+        :meth:`is_planar` (if the graph is, of course, planar).
+
+        .. WARNING::
+
+            This method is not well defined when the graph is not connected.
+            Indeed, the result may contain several faces corresponding to the
+            external face.
+
         INPUT:
 
         - ``embedding`` -- dictionary (default: ``None``); a combinatorial
@@ -5910,6 +5920,17 @@ class GenericGraph(GenericGraph_pyx):
     def num_faces(self, embedding=None):
         """
         Return the number of faces of an embedded graph.
+
+        If no embedding is provided or stored as ``self._embedding``, this
+        method uses Euler's formula (see the :wikipedia:`Euler_characteristic`)
+        to determine the number of faces if the graph is planar. If the graph is
+        not planar, an error is raised.
+
+        If an embedding is provided or stored as ``self._embedding``, this
+        method calls method :meth:`faces` to get the list of faces induced by
+        the embedding in each connected component of the graph. Then it returns
+        the sum of size of these lists minus the number of connected components
+        plus one to ensure that the external face is counted only once.
 
         INPUT:
 

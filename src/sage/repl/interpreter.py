@@ -512,45 +512,7 @@ def SagePreparseTransformer(lines):
     quote_state = None
     new_lines = []
     for i in range(len(lines)):
-        line = lines[i]
-        magic_or_system = ''
-        if not quote_state:
-            if line[:2] == '%%':
-                # Cell magic. Stop the preparse.
-                new_lines += lines[i:]
-                return new_lines
-            if line[:1] in ('%', '!'):
-                # Line magic or system call.
-                # Do not preparse this line.
-                new_lines.append(line)
-                continue
-
-            # Magic or system assignments are a bit harder to detect.
-            # If we detect them, we remove the corresponding part.
-            pos_eq = line.find('=')
-            while pos_eq != -1:
-                remainder = line[pos_eq+1:].strip()
-                if remainder[:1] == '%':
-                    # Probably a magic assignment.
-                    from IPython.core.inputtransformer2 import make_tokens_by_line
-                    from IPython.core.inputtransformer2 import MagicAssign
-                    tokens = make_tokens_by_line([line])
-                    M = MagicAssign.find(tokens)
-                    if M:
-                        magic_or_system = line[M.start_col:]
-                        line = line[:M.start_col]
-                elif remainder[:1] == '!':
-                    # Probably a system assignment.
-                    from IPython.core.inputtransformer2 import make_tokens_by_line
-                    from IPython.core.inputtransformer2 import SystemAssign
-                    tokens = make_tokens_by_line([line])
-                    M = SystemAssign.find(tokens)
-                    if M:
-                        magic_or_system = line[M.start_col:]
-                        line = line[:M.start_col]
-                pos_eq = line.find('=', pos_eq + 1)
-
-        L, literals, quote_state = strip_string_literals(line, quote_state)
+        L, literals, quote_state = strip_string_literals(lines[i], quote_state)
 
         # Ellipsis Range
         # [1..n]
@@ -575,7 +537,7 @@ def SagePreparseTransformer(lines):
         # Use ^ for exponentiation and ^^ for xor
         L = preparse_exponentiation(L)
 
-        line = L % literals + magic_or_system
+        line = L % literals
         new_lines.append(line)
 
     from IPython.core.inputtransformer2 import TransformerManager

@@ -14,7 +14,8 @@
 - name: 'foreign_latex: foreign commands in LaTeX'
   hint: |
     use equivalent LaTeX commands instead of plain TeX commands such as \over, \choose, etc.
-  pattern: '(\\choose|\\over[^l]|\\atop|\\above|\\overwithdelims|\\atopwithdelims|\\abovewithdelims)'
+  pattern: '(\\choose|\\atop|\\above|\\overwithdelims|\\atopwithdelims|\\abovewithdelims)'
+  # \over appears in bad latex code coming from Fricas and Maxima
 
 - name: 'blocks: wrong syntax for blocks (INPUT, OUTPUT, EXAMPLES, NOTE, etc.)'
   hint: |

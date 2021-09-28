@@ -1685,48 +1685,8 @@ def preparse_generators(code):
         return ''.join(new_code)
 
 
-def preparse_gen(code):
-    """
-    Transform ``R.n`` to ``R.gen(n)``.
-
-    INPUT:
-
-    - ``code`` -- a string
-
-    TESTS::
-
-        sage: from sage.repl.preparse import preparse_gen
-        sage: preparse_gen('R.0')
-        'R.gen(0)'
-        sage: preparse_gen('R.1')
-        'R.gen(1)'
-    """
-    return re.sub(r'(\b[^\W\d]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', code)
-
-
-def preparse_exponentiation(code):
-    """
-    Transform ``a^n`` to ``a**n`` and ``a^^n`` to ``a^n``
-
-    Use ``^`` for exponentiation and ``^^`` for xor.` A side effect is that
-    ``****`` becomes xor as well.
-
-    INPUT:
-
-    - ``code`` -- a string
-
-    TESTS::
-
-        sage: from sage.repl.preparse import preparse_exponentiation
-        sage: preparse_exponentiation('8^1')
-        '8**1'
-        sage: preparse_exponentiation('8^^1')
-        '8^1'
-    """
-    return code.replace('^', '**').replace('****', '^')
-
-
 quote_state = None
+
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False,
              numeric_literals=True):
@@ -1874,10 +1834,15 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     # Generators
     # R.0 -> R.gen(0)
-    L = preparse_gen(L)
+    L = re.sub(r'(\b[^\W\d]\w*|[)\]])\.(\d+)', r'\1.gen(\2)', L)
 
     # Use ^ for exponentiation and ^^ for xor
-    L = preparse_exponentiation(L)
+    L = L.replace('^', '**').replace('****', '^')
+
+    # Backslash
+    L = ';%s;' % L.replace('\n', ';\n;')
+    L = re.sub(r'''\\\s*([^\t ;#])''', r' * BackslashOperator() * \1', L)
+    L = L.replace(';\n;', '\n')[1:-1]
 
     from IPython.core.inputtransformer2 import TransformerManager
     from sage.repl.interpreter import SageTokenTransformers

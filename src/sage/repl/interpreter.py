@@ -497,67 +497,6 @@ def SagePreparseTransformer(lines):
 SagePromptTransformer = PromptStripper(prompt_re=re.compile(r'^(\s*(:?sage: |\.\.\.\.: ))+'))
 
 
-class SageBackslashTransformer(TokenTransformBase):
-    r"""
-    Transform Sage's backslash operator.
-
-    TESTS::
-
-        sage: from IPython import get_ipython
-        sage: ip = get_ipython()
-        sage: ip.transform_cell(r'''
-        ....: A\B''')
-        'A * BackslashOperator() * B\n'
-        sage: ip.transform_cell(r'''
-        ....: a = (2, 3, \
-        ....:      4)''')
-        'a = (Integer(2), Integer(3), \\\n     Integer(4))\n'
-    """
-    priority = 20
-
-    @classmethod
-    def find(cls, tokens_by_line):
-        r"""
-        Find the first backslash operator.
-
-        EXAMPLES::
-
-            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
-            sage: from sage.repl.interpreter import SageBackslashTransformer
-            sage: lines = ['for i in range(5):\n', r'    C[i] = A[i] \ B[i]']
-            sage: tokens = make_tokens_by_line(lines)
-            sage: S = SageBackslashTransformer.find(tokens)
-            sage: S.transform(lines)
-            ['for i in range(5):\n', '    C[i] = A[i]  * BackslashOperator() *  B[i]']
-        """
-        for line in tokens_by_line:
-            for token in line:
-                if token.string == '\\':
-                    return cls(token.start)
-
-    def transform(self, lines):
-        r"""
-        Transform the backslash operator.
-
-        EXAMPLES::
-
-            sage: from IPython.core.inputtransformer2 import make_tokens_by_line
-            sage: from sage.repl.interpreter import SageBackslashTransformer
-            sage: lines = [r'A = (B \ C) \ D']
-            sage: tokens = make_tokens_by_line(lines)
-            sage: S = SageBackslashTransformer.find(tokens)
-            sage: while S:
-            ....:     lines = S.transform(lines)
-            ....:     tokens = make_tokens_by_line(lines)
-            ....:     S = SageBackslashTransformer.find(tokens)
-            sage: lines
-            ['A = (B * BackslashOperator() * C) * BackslashOperator() * D']
-        """
-        start_line = lines[self.start_line][:self.start_col].rstrip() + ' * BackslashOperator() * ' \
-                     + lines[self.start_line][self.start_col + 1:].lstrip()
-        return lines[:self.start_line] + [start_line] + lines[self.start_line + 1:]
-
-
 class SageGenConstructionTransformer(TokenTransformBase):
     r"""
     Transform Sage's construction with generators.
@@ -1040,8 +979,7 @@ class SageCalculusTransformer(TokenTransformBase):
         return lines_before + [line1] + lines_after
 
 
-SageTokenTransformers = [SageBackslashTransformer,
-                         SageGenConstructionTransformer,
+SageTokenTransformers = [SageGenConstructionTransformer,
                          SageCalculusTransformer]
 
 

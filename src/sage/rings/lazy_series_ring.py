@@ -264,6 +264,11 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: L(M(s^2 + s^5), valuation=-4)
             z^-4 + z^-1
 
+            sage: D = LazyDirichletSeriesRing(ZZ, "s")
+            sage: E = LazyDirichletSeriesRing(QQ, "t")
+            sage: D(E([1,2,3]))
+            1 + 2/2^s + 3/3^s
+
         This gives zero::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')

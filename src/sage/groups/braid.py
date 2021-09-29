@@ -68,7 +68,6 @@ AUTHORS:
 
 import itertools
 import collections
-from operator import index
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.lazy_attribute import lazy_attribute

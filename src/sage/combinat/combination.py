@@ -157,16 +157,22 @@ def Combinations(mset, k=None):
         [[], [(0, 0)], [(0, 1)], [(0, 0), (0, 1)]]
     """
     # Check to see if everything in mset is unique
+    is_unique = False
     if isinstance(mset, (int, Integer)):
         mset = list(range(mset))
+        is_unique = True
+    elif isinstance(mset, range):
+        mset = list(mset)
+        is_unique = True
     else:
         mset = list(mset)
+        for i, e in enumerate(mset):
+            if mset.index(e) != i:
+                break
+        else:
+            is_unique = True
 
-    d = {}
-    for i in mset:
-        d[mset.index(i)] = 1
-
-    if len(d) == len(mset):
+    if is_unique:
         if k is None:
             return Combinations_set(mset)
         else:

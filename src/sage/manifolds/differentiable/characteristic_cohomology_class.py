@@ -1429,7 +1429,7 @@ class ChernAlgorithm(Singleton, Algorithm_generic):
             [2-form on the 2-dimensional Lorentzian manifold M]
         """
         from sage.symbolic.constants import pi
-        from sage.libs.pynac.pynac import I
+        from sage.rings.imaginary_unit import I
 
         dom = cmat[0][0]._domain
         rk = len(cmat)

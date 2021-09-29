@@ -708,6 +708,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p(x=QQ(0))
             0
 
+        Check that :trac:`32513` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: x.substitute([])
+            x
+            sage: Polynomial.__call__(x, [])
+            x
+
         AUTHORS:
 
         -  David Joyner (2005-04-10)
@@ -748,7 +756,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     if len(args) > 1:
                         raise TypeError("invalid arguments")
                     args = args[0]
-                a, args = args[0], args[1:]
+                if args:
+                    a, args = args[0], args[1:]
             if a is None:
                 a = self._parent.gen()
 
@@ -2530,7 +2539,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Truncated ``n``-th power of this polynomial up to precision ``prec``
 
-        This method is overriden for certain subclasses when a library function
+        This method is overridden for certain subclasses when a library function
         is available.
 
         INPUT:
@@ -7990,7 +7999,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if L is SR:
             if self.degree() == 2:
                 from sage.functions.other import sqrt
-                from sage.libs.pynac.pynac import I
+                from sage.symbolic.expression import I
                 coeffs = self.list()
                 D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
                 l = None
@@ -10936,6 +10945,10 @@ cdef class Polynomial_generic_dense(Polynomial):
         sage: isinstance(f, Polynomial_generic_dense)
         True
 
+        sage: R.<x> = QQ[]
+        sage: S = R['y']
+        sage: S((x^2, 2, 1+x))
+        (x + 1)*y^2 + 2*y + x^2
     """
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         Polynomial.__init__(self, parent, is_gen=is_gen)
@@ -10944,7 +10957,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             return
 
         R = parent.base_ring()
-        if isinstance(x, list):
+        if isinstance(x, (list, tuple)):
             if check:
                 self.__coeffs = [R(t) for t in x]
                 self.__normalize()
@@ -10985,7 +10998,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         elif isinstance(x, pari_gen):
             x = [R(w, **kwds) for w in x.list()]
             check = 0
-        elif not isinstance(x, list):
+        elif not isinstance(x, (list, tuple)):
             # We trust that the element constructors do not send x=0
 #            if x:
             x = [x]   # constant polynomials

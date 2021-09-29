@@ -3155,7 +3155,8 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable):
             True
         """
         def PGE(S, u, v):
-            if u == v: return S.one()
+            if u == v:
+                return S.one()
             return S((u, v), check=False)
 
         PM = self.vertex_facet_pairing_matrix()
@@ -3801,7 +3802,7 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable):
 
         In contrast to :meth:`points`, these are not necessarily lattice points.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.some_elements()  # indirect doctest

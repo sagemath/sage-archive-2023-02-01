@@ -22,7 +22,7 @@ import sage.libs.lrcalc.lrcalc as lrcalc
 from sage.misc.all import prod
 from sage.rings.infinity import infinity
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 from sage.combinat.tableau import StandardTableaux
 
 

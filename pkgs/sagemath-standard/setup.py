@@ -83,7 +83,7 @@ else:
 
 from sage_setup.find import find_python_sources
 python_packages, python_modules, cython_modules = find_python_sources(
-    SAGE_SRC, ['sage', 'sage_setup'], distributions=distributions)
+    SAGE_SRC, ['sage'], distributions=distributions)
 
 log.debug('python_packages = {0}'.format(python_packages))
 

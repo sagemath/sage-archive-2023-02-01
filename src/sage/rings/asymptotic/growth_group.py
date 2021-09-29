@@ -191,7 +191,7 @@ grow faster than ``x`` (which is nonsense, mathematically). See
 for more details or see :ref:`above <growth_group_description>`
 for a more extensive description.
 
-Short notation also allows the construction of more complicated 
+Short notation also allows the construction of more complicated
 growth groups::
 
     sage: G = GrowthGroup('(QQ_+)^x * x^ZZ * log(x)^QQ * y^QQ')
@@ -5502,14 +5502,14 @@ class GrowthGroupFactory(UniqueFactory):
         def has_l_property(s, properties, invert=False):
             for p in properties:
                 if s.startswith(p):
-                    return s[len(p):].strip(), True != invert
-            return s, False != invert
+                    return s[len(p):].strip(), not invert
+            return s, invert
 
         def has_r_property(s, properties, invert=False):
             for p in properties:
                 if s.endswith(p):
-                    return s[:-len(p)].strip(), True != invert
-            return s, False != invert
+                    return s[:-len(p)].strip(), not invert
+            return s, invert
 
         factors = []
 

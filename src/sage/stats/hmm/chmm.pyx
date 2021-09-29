@@ -24,7 +24,7 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.misc.flatten  import flatten
 from sage.structure.element import is_Matrix
 
-from sage.finance.time_series cimport TimeSeries
+from sage.stats.time_series cimport TimeSeries
 from sage.stats.intlist cimport IntList
 
 from .hmm cimport HiddenMarkovModel
@@ -903,7 +903,7 @@ cdef class GaussianHiddenMarkovModel(HiddenMarkovModel):
             sage: m = hmm.GaussianHiddenMarkovModel([[.1,.9],[.5,.5]], [(1,.5), (-1,3)], [.1,.9])
             sage: v = m.sample(10)
             sage: l = stats.TimeSeries([m.baum_welch(v,max_iter=1)[0] for _ in range(len(v))])
-            sage: all(l[i] < l[i+1] for i in range(9))
+            sage: all(l[i] <= l[i+1] for i in range(9))
             True
             sage: l  # random
             [-20.1167, -17.7611, -16.9814, -16.9364, -16.9314, -16.9309, -16.9309, -16.9309, -16.9309, -16.9309]

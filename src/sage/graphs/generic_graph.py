@@ -315,12 +315,23 @@ can be applied on both. Here is what it can do:
     :meth:`~GenericGraph.multicommodity_flow` | Solve a multicommodity flow problem.
     :meth:`~GenericGraph.disjoint_routed_paths` | Return a set of disjoint routed paths.
     :meth:`~GenericGraph.dominating_set` | Return a minimum dominating set of the graph
+    :meth:`~GenericGraph.greedy_dominating_set` | Return a greedy distance-`k` dominating set of of the graph.
     :meth:`~GenericGraph.subgraph_search` | Return a copy of ``G`` in ``self``.
     :meth:`~GenericGraph.subgraph_search_count` | Return the number of labelled occurrences of ``G`` in ``self``.
     :meth:`~GenericGraph.subgraph_search_iterator` | Return an iterator over the labelled copies of ``G`` in ``self``.
     :meth:`~GenericGraph.characteristic_polynomial` | Return the characteristic polynomial of the adjacency matrix of the (di)graph.
     :meth:`~GenericGraph.genus` | Return the minimal genus of the graph.
     :meth:`~GenericGraph.crossing_number` | Return the crossing number of the graph.
+
+**Miscellaneous**
+
+.. csv-table::
+    :class: contentstable
+    :widths: 30, 70
+    :delim: |
+
+    :meth:`~GenericGraph.edge_polytope` | Return the edge polytope of ``self``.
+    :meth:`~GenericGraph.symmetric_edge_polytope` | Return the symmetric edge polytope of ``self``.
 
 Methods
 -------
@@ -1300,8 +1311,7 @@ class GenericGraph(GenericGraph_pyx):
                    "gml"               : networkx.write_gml,
                    "graphml"           : networkx.write_graphml,
                    "multiline_adjlist" : networkx.write_multiline_adjlist,
-                   "pajek"             : networkx.write_pajek,
-                   "yaml"              : networkx.write_yaml}
+                   "pajek"             : networkx.write_pajek}
 
         if format is None:
             ext = filename[1 + filename.rfind("."):]
@@ -9503,7 +9513,6 @@ class GenericGraph(GenericGraph_pyx):
             sage: flow_graph.edges()
             [('000', '001', 1)]
         """
-        from sage.misc.functional import round
         from sage.graphs.digraph import DiGraph
         g = DiGraph()
 
@@ -9734,7 +9743,7 @@ class GenericGraph(GenericGraph_pyx):
         return paths
 
     def pagerank(self, alpha=0.85, personalization=None, by_weight=False,
-                 weight_function=None, dangling=None, algorithm=None):
+                 weight_function=None, dangling=None, algorithm='scipy'):
         r"""
         Return the PageRank of the vertices of ``self``.
 
@@ -9780,10 +9789,7 @@ class GenericGraph(GenericGraph_pyx):
            computing PageRank of ``G``. The following algorithms are
            supported:
 
-          - ``NetworkX`` -- uses NetworkX's PageRank algorithm implementation
-            Note that ``'networkx'`` does not support multigraphs.
-
-          - ``"Numpy"`` -- uses Numpy's PageRank algorithm implementation
+          - ``NetworkX`` -- uses NetworkX's default implementation (Scipy as of 2.6)
 
           - ``"Scipy"`` -- uses Scipy's PageRank algorithm implementation
 
@@ -9808,33 +9814,19 @@ class GenericGraph(GenericGraph_pyx):
             {0: 0.25, 1: 0.25, 2: 0.25, 3: 0.25}
             sage: G = Graph([(1, 2, 40), (2, 3, 50), (3, 4, 60), (1, 4, 70), (4, 5, 80), (5, 6, 20)])
             sage: G.pagerank(algorithm="NetworkX") # abs tol 1e-9
-            {1: 0.16112205885619568,
-             2: 0.16195310432472196,
-             3: 0.16112205885619568,
-             4: 0.2375,
+            {1: 0.16112205885619563,
+             2: 0.1619531043247219,
+             3: 0.16112205885619563,
+             4: 0.2374999999999999,
              5: 0.17775588228760858,
-             6: 0.10054689567527803}
+             6: 0.100546895675278}
             sage: G.pagerank(algorithm="NetworkX", by_weight=True) # abs tol 1e-9
-            {1: 0.16459583718588988,
-             2: 0.1397792859515451,
-             3: 0.165398401843396,
-             4: 0.3063198690713852,
-             5: 0.17000576097071404,
-             6: 0.053900844977069616}
-            sage: G.pagerank(algorithm="Numpy") # abs tol 1e-9
-            {1: 0.16112198303979114,
-             2: 0.16195368558382248,
-             3: 0.16112198303979122,
-             4: 0.2375000000000002,
-             5: 0.17775603392041756,
-             6: 0.10054631441617742}
-            sage: G.pagerank(algorithm="Numpy", by_weight=True) # abs tol 1e-9
-            {1: 0.16459613361799788,
-             2: 0.13977926864974763,
-             3: 0.1653988472578896,
-             4: 0.3063198780991534,
-             5: 0.17000501912411242,
-             6: 0.053900853251099105}
+            {1: 0.16459583718588994,
+             2: 0.13977928595154515,
+             3: 0.16539840184339605,
+             4: 0.3063198690713853,
+             5: 0.1700057609707141,
+             6: 0.05390084497706962}
             sage: G.pagerank(algorithm="Scipy") # abs tol 1e-9
             {1: 0.16112205885619563,
              2: 0.1619531043247219,
@@ -9857,19 +9849,19 @@ class GenericGraph(GenericGraph_pyx):
              5: 0.17775603392041744,
              6: 0.10054631441617742}
             sage: G.pagerank() # abs tol 1e-9
-            {1: 0.16112198303979114,
-             2: 0.16195368558382248,
-             3: 0.16112198303979122,
-             4: 0.2375000000000002,
-             5: 0.17775603392041756,
-             6: 0.10054631441617742}
+            {1: 0.16112205885619563,
+             2: 0.1619531043247219,
+             3: 0.16112205885619563,
+             4: 0.2374999999999999,
+             5: 0.17775588228760858,
+             6: 0.100546895675278}
             sage: G.pagerank(by_weight=True) # abs tol 1e-9
-            {1: 0.16459613361799788,
-             2: 0.13977926864974763,
-             3: 0.1653988472578896,
-             4: 0.3063198780991534,
-             5: 0.17000501912411242,
-             6: 0.053900853251099105}
+            {1: 0.16459583718588994,
+             2: 0.13977928595154515,
+             3: 0.16539840184339605,
+             4: 0.3063198690713853,
+             5: 0.1700057609707141,
+             6: 0.05390084497706962}
 
         TESTS::
 
@@ -9877,7 +9869,7 @@ class GenericGraph(GenericGraph_pyx):
             sage: G.pagerank(algorithm="NetworkX", personalization={1:0, 2:3, 3:-2, 4:-1})
             Traceback (most recent call last):
             ...
-            ZeroDivisionError: float division by zero
+            ZeroDivisionError...
 
         .. SEEALSO::
 
@@ -9906,28 +9898,9 @@ class GenericGraph(GenericGraph_pyx):
 
         if algorithm:
             algorithm = algorithm.lower()
-        elif self.order() <= 60:
-            algorithm = 'numpy'
-        else:
-            algorithm = 'scipy'
-
-        if algorithm == 'networkx':
-            if self.has_multiple_edges():
-                raise ValueError("the 'networkx' implementation does not support multigraphs")
+        if algorithm == 'networkx' or algorithm == 'scipy':
             import networkx
             return networkx.pagerank(self.networkx_graph
-                   (weight_function=weight_function), alpha=alpha,
-                    personalization=personalization, weight=weight,
-                    dangling=dangling)
-        elif algorithm == 'numpy':
-            import networkx
-            return networkx.pagerank_numpy(self.networkx_graph
-                   (weight_function=weight_function), alpha=alpha,
-                    personalization=personalization, weight=weight,
-                    dangling=dangling)
-        elif algorithm == 'scipy':
-            import networkx
-            return networkx.pagerank_scipy(self.networkx_graph
                    (weight_function=weight_function), alpha=alpha,
                     personalization=personalization, weight=weight,
                     dangling=dangling)
@@ -9945,7 +9918,7 @@ class GenericGraph(GenericGraph_pyx):
             page_rank = I.pagerank(damping=alpha, weights=weight)
             return {v: page_rank[i] for i, v in enumerate(self)}
         else:
-            raise NotImplementedError("only 'NetworkX', 'Numpy', 'Scipy', and 'igraph' are supported")
+            raise NotImplementedError("only 'NetworkX', 'Scipy', and 'igraph' are supported")
 
     ### Vertex handlers
 
@@ -11959,7 +11932,7 @@ class GenericGraph(GenericGraph_pyx):
         r"""
         Return incident edges to some vertices.
 
-        If ``vertices` is a vertex, then it returns the list of edges
+        If ``vertices`` is a vertex, then it returns the list of edges
         incident to that vertex. If ``vertices`` is a list of vertices
         then it returns the list of all edges adjacent to those
         vertices. If ``vertices`` is ``None``, it returns a list of all edges
@@ -14429,8 +14402,8 @@ class GenericGraph(GenericGraph_pyx):
             import networkx
             return networkx.average_clustering(self.networkx_graph())
         else:
-            from sage.stats.basic_stats import mean
-            return mean(self.clustering_coeff(implementation=implementation).values())
+            coeffs = self.clustering_coeff(implementation=implementation)
+            return sum(coeffs.values()) / len(coeffs)
 
     def clustering_coeff(self,
                          nodes=None,
@@ -14708,7 +14681,8 @@ class GenericGraph(GenericGraph_pyx):
 
             sage: g = graphs.RandomGNP(20,.3)
             sage: distances = g.distance_all_pairs()
-            sage: all(g.distance(0,v) == distances[0][v] for v in g)
+            sage: all((g.distance(0,v) == Infinity and v not in distances[0]) or
+            ....:     g.distance(0,v) == distances[0][v] for v in g)
             True
 
         .. SEEALSO::
@@ -23245,6 +23219,7 @@ class GenericGraph(GenericGraph_pyx):
     from sage.graphs.connectivity import vertex_connectivity
     from sage.graphs.distances_all_pairs import szeged_index
     from sage.graphs.domination import dominating_set
+    from sage.graphs.domination import greedy_dominating_set
     from sage.graphs.base.static_dense_graph import connected_subgraph_iterator
     from sage.graphs.path_enumeration import shortest_simple_paths
     from sage.graphs.path_enumeration import all_paths
@@ -23474,6 +23449,227 @@ class GenericGraph(GenericGraph_pyx):
                 M = g.katz_matrix(alpha, nonedgesonly=False, vertices=verts)
                 K.update({u: sum(M[i]) for i, u in enumerate(verts)})
             return K
+
+    def edge_polytope(self, backend=None):
+        r"""
+        Return the edge polytope of ``self``.
+
+        The edge polytope (EP) of a Graph on `n` vertices
+        is the polytope in `\ZZ^{n}` defined as the convex hull of
+        `e_i + e_j` for each edge `(i, j)`.
+        Here `e_1, \dots, e_n` denotes the standard basis.
+
+        INPUT:
+
+        - ``backend`` -- string or ``None`` (default); the backend to use;
+          see :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
+
+        EXAMPLES:
+
+        The EP of a `4`-cycle is a square::
+
+            sage: G = graphs.CycleGraph(4)
+            sage: P = G.edge_polytope(); P
+            A 2-dimensional polyhedron in ZZ^4 defined as the convex hull of 4 vertices
+
+        The EP of a complete graph on `4` vertices is cross polytope::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: P = G.edge_polytope(); P
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 6 vertices
+            sage: P.is_combinatorially_isomorphic(polytopes.cross_polytope(3))
+            True
+
+        The EP of a graph with edges is isomorphic
+        to the product of it's connected components with edges::
+
+            sage: n = randint(5, 12)
+            sage: G = Graph()
+            sage: while not G.num_edges():
+            ....:     G = graphs.RandomGNP(n, 0.2)
+            sage: P = G.edge_polytope()
+            sage: components = [G.subgraph(c).edge_polytope()
+            ....:               for c in G.connected_components()
+            ....:               if G.subgraph(c).num_edges()]
+            sage: P.is_combinatorially_isomorphic(product(components))
+            True
+
+        All trees on `n` vertices have isomorphic EPs::
+
+            sage: n = randint(4, 10)
+            sage: G1 = graphs.RandomTree(n)
+            sage: G2 = graphs.RandomTree(n)
+            sage: P1 = G1.edge_polytope()
+            sage: P2 = G2.edge_polytope()
+            sage: P1.is_combinatorially_isomorphic(P2)
+            True
+
+        However, there are still many different EPs::
+
+            sage: len(list(graphs(5)))
+            34
+            sage: polys = []
+            sage: for G in graphs(5):
+            ....:     P = G.edge_polytope()
+            ....:     for P1 in polys:
+            ....:         if P.is_combinatorially_isomorphic(P1):
+            ....:             break
+            ....:     else:
+            ....:         polys.append(P)
+            ....:
+            sage: len(polys)
+            19
+
+        TESTS:
+
+        Obtain the EP with unsortable vertices::
+
+            sage: G = Graph([[1, (1, 2)]])
+            sage: G.edge_polytope()
+            A 0-dimensional polyhedron in ZZ^2 defined as the convex hull of 1 vertex
+        """
+        from sage.matrix.special import identity_matrix
+        from sage.geometry.polyhedron.parent import Polyhedra
+        dim = self.num_verts()
+        e = identity_matrix(dim).rows()
+        dic = {v: e[i] for i, v in enumerate(self)}
+        vertices = ((dic[i] + dic[j]) for i,j in self.edge_iterator(sort_vertices=False, labels=False))
+        parent = Polyhedra(ZZ, dim, backend=backend)
+        return parent([vertices, [], []], None)
+
+    def symmetric_edge_polytope(self, backend=None):
+        r"""
+        Return the symmetric edge polytope of ``self``.
+
+        The symmetric edge polytope (SEP) of a Graph on `n` vertices
+        is the polytope in `\ZZ^{n}` defined as the convex hull of
+        `e_i - e_j` and `e_j - e_i` for each edge `(i, j)`.
+        Here `e_1, \dots, e_n` denotes the standard basis.
+
+        INPUT:
+
+        - ``backend`` -- string or ``None`` (default); the backend to use;
+          see :meth:`sage.geometry.polyhedron.constructor.Polyhedron`
+
+        EXAMPLES:
+
+        The SEP of a `4`-cycle is a cube::
+
+            sage: G = graphs.CycleGraph(4)
+            sage: P = G.symmetric_edge_polytope(); P
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 8 vertices
+            sage: P.is_combinatorially_isomorphic(polytopes.cube())
+            True
+
+        The SEP of a complete graph on `4` vertices is a cuboctahedron::
+
+            sage: G = graphs.CompleteGraph(4)
+            sage: P = G.symmetric_edge_polytope(); P
+            A 3-dimensional polyhedron in ZZ^4 defined as the convex hull of 12 vertices
+            sage: P.is_combinatorially_isomorphic(polytopes.cuboctahedron())
+            True
+
+        The SEP of a graph with edges on `n` vertices has dimension `n`
+        minus the number of connected components::
+
+            sage: n = randint(5, 12)
+            sage: G = Graph()
+            sage: while not G.num_edges():
+            ....:     G = graphs.RandomGNP(n, 0.2)
+            sage: P = G.symmetric_edge_polytope()
+            sage: P.ambient_dim() == n
+            True
+            sage: P.dim() == n - G.connected_components_number()
+            True
+
+        The SEP of a graph with edges is isomorphic
+        to the product of it's connected components with edges::
+
+            sage: n = randint(5, 12)
+            sage: G = Graph()
+            sage: while not G.num_edges():
+            ....:     G = graphs.RandomGNP(n, 0.2)
+            sage: P = G.symmetric_edge_polytope()
+            sage: components = [G.subgraph(c).symmetric_edge_polytope()
+            ....:               for c in G.connected_components()
+            ....:               if G.subgraph(c).num_edges()]
+            sage: P.is_combinatorially_isomorphic(product(components))
+            True
+
+        All trees on `n` vertices have isomorphic SEPs::
+
+            sage: n = randint(4, 10)
+            sage: G1 = graphs.RandomTree(n)
+            sage: G2 = graphs.RandomTree(n)
+            sage: P1 = G1.symmetric_edge_polytope()
+            sage: P2 = G2.symmetric_edge_polytope()
+            sage: P1.is_combinatorially_isomorphic(P2)
+            True
+
+        However, there are still many different SEPs::
+
+            sage: len(list(graphs(5)))
+            34
+            sage: polys = []
+            sage: for G in graphs(5):
+            ....:     P = G.symmetric_edge_polytope()
+            ....:     for P1 in polys:
+            ....:         if P.is_combinatorially_isomorphic(P1):
+            ....:             break
+            ....:     else:
+            ....:         polys.append(P)
+            ....:
+            sage: len(polys)
+            25
+
+        A non-trivial example of two graphs with isomorphic SEPs::
+
+            sage: G1 = graphs.CycleGraph(4)
+            sage: G1.add_edges([[0, 5], [5, 2], [1, 6], [6, 2]])
+            sage: G2 = copy(G1)
+            sage: G1.add_edges([[2, 7], [7, 3]])
+            sage: G2.add_edges([[0, 7], [7, 3]])
+            sage: G1.is_isomorphic(G2)
+            False
+            sage: P1 = G1.symmetric_edge_polytope()
+            sage: P2 = G2.symmetric_edge_polytope()
+            sage: P1.is_combinatorially_isomorphic(P2)
+            True
+
+        Apparently, glueing two graphs together on a vertex
+        gives isomorphic SEPs::
+
+            sage: n = randint(3, 7)
+            sage: g1 = graphs.RandomGNP(n, 0.2)
+            sage: g2 = graphs.RandomGNP(n, 0.2)
+            sage: G = g1.disjoint_union(g2)
+            sage: H = copy(G)
+            sage: G.merge_vertices(((0, randrange(n)), (1, randrange(n))))
+            sage: H.merge_vertices(((0, randrange(n)), (1, randrange(n))))
+            sage: PG = G.symmetric_edge_polytope()
+            sage: PH = H.symmetric_edge_polytope()
+            sage: PG.is_combinatorially_isomorphic(PH)
+            True
+
+        TESTS:
+
+        Obtain the SEP with unsortable vertices::
+
+            sage: G = Graph([[1, (1, 2)]])
+            sage: G.symmetric_edge_polytope()
+            A 1-dimensional polyhedron in ZZ^2 defined as the convex hull of 2 vertices
+        """
+        from itertools import chain
+        from sage.matrix.special import identity_matrix
+        from sage.geometry.polyhedron.parent import Polyhedra
+        dim = self.num_verts()
+        e = identity_matrix(dim).rows()
+        dic = {v: e[i] for i, v in enumerate(self)}
+        vertices = chain(((dic[i] - dic[j]) for i,j in self.edge_iterator(sort_vertices=False, labels=False)),
+                         ((dic[j] - dic[i]) for i,j in self.edge_iterator(sort_vertices=False, labels=False)))
+        parent = Polyhedra(ZZ, dim, backend=backend)
+        return parent([vertices, [], []], None)
+
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
                         vertex_colors=None,

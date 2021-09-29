@@ -364,8 +364,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: f(1, 2, 3)
         sin(2) + 12
         sage: K.<x> = QQ[]
-        sage: p = K.random_element(6); p
-        -1/4*x^6 + 1/2*x^5 - x^4 - 12*x^3 + 1/2*x^2 - 1/95*x - 1/2
+        sage: p = -1/4*x^6 + 1/2*x^5 - x^4 - 12*x^3 + 1/2*x^2 - 1/95*x - 1/2
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
         [('load_arg', 0), ('load_const', -0.25), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -1.0), 'add', ('load_arg', 0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.010526315789473684), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', 'return']

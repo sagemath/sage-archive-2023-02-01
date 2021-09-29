@@ -242,10 +242,10 @@ done from the right side.""")
         #            raise TypeError, "The base_ring must be a commutative ring."
 
         try:
-            if not sparse and isinstance(base_ring,sage.rings.real_double.RealDoubleField_class):
+            if not sparse and isinstance(base_ring, sage.rings.abc.RealDoubleField):
                 return RealDoubleVectorSpace_class(rank)
 
-            elif not sparse and isinstance(base_ring,sage.rings.complex_double.ComplexDoubleField_class):
+            elif not sparse and isinstance(base_ring, sage.rings.abc.ComplexDoubleField):
                 return ComplexDoubleVectorSpace_class(rank)
 
             elif base_ring.is_field():
@@ -7454,12 +7454,10 @@ def element_class(R, is_sparse):
     elif isinstance(R, sage.rings.abc.SymbolicRing) and not is_sparse:
         import sage.modules.vector_symbolic_dense
         return sage.modules.vector_symbolic_dense.Vector_symbolic_dense
+    if is_sparse:
+        return free_module_element.FreeModuleElement_generic_sparse
     else:
-        if is_sparse:
-            return free_module_element.FreeModuleElement_generic_sparse
-        else:
-            return free_module_element.FreeModuleElement_generic_dense
-    raise NotImplementedError
+        return free_module_element.FreeModuleElement_generic_dense
 
 @richcmp_method
 class EchelonMatrixKey(object):

@@ -583,7 +583,7 @@ def RandomBoundedToleranceGraph(n):
     representation by using the function `ToleranceGraph`. This representation
     is a list `((l_0,r_0,t_0), (l_1,r_1,t_1), ..., (l_k,r_k,t_k))` where `k =
     n-1` and `I_i = (l_i,r_i)` denotes a random interval and `t_i` a random
-    positive value less then or equal to the length of the interval `I_i`. The
+    positive value less than or equal to the length of the interval `I_i`. The
     width of the representation is limited to `n^2 * 2^n`.
 
     .. NOTE::
@@ -626,7 +626,9 @@ def RandomBoundedToleranceGraph(n):
     tolrep = []
     for _ in range(n):
         l = randint(0, W - 1)
-        r = randint(l + 1, W)
+        r = randint(0, W)
+        if l >= r:
+            l, r = r, l + 1
         tolrep.append((l, r, randint(1, r - l)))
 
     return ToleranceGraph(tolrep)

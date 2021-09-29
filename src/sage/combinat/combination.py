@@ -30,7 +30,6 @@ from .integer_vector import IntegerVectors
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.misc.persist import register_unpickle_override
-from sage.functions.other import binomial
 
 
 def Combinations(mset, k=None):

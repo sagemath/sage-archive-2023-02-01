@@ -90,7 +90,6 @@ from sage.rings.number_field.number_field_base import is_NumberField
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.integer import Integer
 from sage.rings.rational_field import QQ, is_RationalField
-from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 import sage.rings.abc
 from sage.arith.numerical_approx cimport digits_to_bits
 from copy import copy

@@ -2144,7 +2144,7 @@ class Braid(FiniteTypeArtinGroupElement):
             db_inv = self.inverse()._deformed_burau_matrix(variab)[1:, 1:]
             q_inv = db_inv.parent().base_ring().base_ring().gen()
             qword_inv = sum((-1)**(s.cardinality() -
-                            1)*self._quantum_determinant(q*db_inv[list(s),
+                            1)*self._quantum_determinant(q_inv*db_inv[list(s),
                                                                   list(s)], q)
                             for s in Subsets(range(n)) if s)
             # Check if the inverse has a shorter expression at this point

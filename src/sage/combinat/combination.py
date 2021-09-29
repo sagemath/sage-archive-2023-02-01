@@ -30,6 +30,7 @@ from .integer_vector import IntegerVectors
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
 from sage.structure.parent import Parent
 from sage.misc.persist import register_unpickle_override
+from sage.functions.other import binomial
 
 
 def Combinations(mset, k=None):
@@ -320,6 +321,17 @@ class Combinations_set(Combinations_mset):
         r += rank(x, n)
         return r
 
+    def cardinality(self):
+        """
+        Return the size of Combinations(set).
+
+        EXAMPLES::
+
+            sage: Combinations(range(16000)).cardinality() == 2^16000
+            True
+        """
+        return 2**len(self.mset)
+
 
 class Combinations_msetk(Parent):
     def __init__(self, mset, k):
@@ -520,6 +532,17 @@ class Combinations_setk(Combinations_msetk):
         """
         x = [self.mset.index(_) for _ in x]
         return rank(x, len(self.mset))
+
+    def cardinality(self):
+        """
+        Return the size of combinations(set, k).
+
+        EXAMPLES::
+
+            sage: Combinations(range(16000), 5).cardinality()
+            8732673194560003200
+        """
+        return binomial(len(self.mset), self.k)
 
 
 def rank(comb, n, check=True):

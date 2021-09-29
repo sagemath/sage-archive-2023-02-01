@@ -1909,31 +1909,18 @@ def preparse_file(contents, globals=None, numeric_literals=True):
         sage: print(preparse_file("type(100r), type(100)"))
         _sage_const_100 = Integer(100)
         type(100 ), type(_sage_const_100 )
-
-    Check that :trac:`4312` is fixed::
-
-        sage: file_contents = '''
-        ....: @parallel(8)
-        ....: def f(p):
-        ....:     t = cputime()
-        ....:     M = ModularSymbols(p^2,sign=1)
-        ....:     w = M.atkin_lehner_operator(p)
-        ....:     K = (w-1).kernel()
-        ....:     N = K.new_subspace()
-        ....:     D = N.decomposition()'''
-        sage: t = tmp_filename(ext=".sage")
-        sage: with open(t, 'w') as f:
-        ....:     f.write(file_contents)
-        185
-        sage: load(t)
-        sage: sorted(list(f([11,17])))
-        [(((11,), {}), None), (((17,), {}), None)]
     """
     if not isinstance(contents, str):
         raise TypeError("contents must be a string")
 
     if globals is None:
         globals = {}
+
+    # This is a hack, since when we use @parallel to parallelize code,
+    # the numeric literals that are factored out do not get copied
+    # to the subprocesses properly.  See trac #4545.
+    if '@parallel' in contents:
+        numeric_literals = False
 
     if numeric_literals:
         contents, literals, state = strip_string_literals(contents)

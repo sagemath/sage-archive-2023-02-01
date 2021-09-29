@@ -1758,6 +1758,7 @@ class Braid(FiniteTypeArtinGroupElement):
                can come in any order.
 
             EXAMPLES::
+
                 sage: figure_8 = BraidGroup(3)([-1, 2, -1, 2])
                 sage: (
                 ....:  bp_1, cp_1, ap_1,
@@ -1793,6 +1794,7 @@ class Braid(FiniteTypeArtinGroupElement):
                 generators self._gens(), with values in self.R.
 
             EXAMPLES::
+
                 sage: figure_8 = BraidGroup(3)([-1, 2, -1, 2])
                 sage: (
                 ....:  bp_1, cp_1, ap_1,
@@ -1845,6 +1847,7 @@ class Braid(FiniteTypeArtinGroupElement):
                 An element in the free algebra self._Alg.
 
             EXAMPLES::
+
                 sage: figure_8 = BraidGroup(3)([-1, 2, -1, 2])
                 sage: (
                 ....:  bp_1, cp_1, ap_1,
@@ -1893,20 +1896,20 @@ class Braid(FiniteTypeArtinGroupElement):
 
             EXAMPLES::
 
-            sage: B = BraidGroup(3)
-            sage: b = B([1,-2,1,2])
-            sage: db = b._deformed_burau_matrix()[:, :]
-            sage: q = db.parent().base_ring().base_ring().gen()
-            sage: (bp_0, cp_0, ap_0,
-            ....:  bp_2, cp_2, ap_2,
-            ....:  bp_3, cp_3, ap_3,
-            ....:  bm_1, cm_1, am_1) = db.parent().base_ring().gens()
-            sage: rqw = b._RightQuantumWord(
-            ....:    q^3*bp_2*bp_0*ap_0 + q*ap_3*bm_1*am_1*bp_0)
-            sage: rqw.eps(3)
-            -(q^-1-2*q+q^5)
-            sage: rqw.eps(2)
-            -(1-2*q+q^2-q^3+q^4)
+                sage: B = BraidGroup(3)
+                sage: b = B([1,-2,1,2])
+                sage: db = b._deformed_burau_matrix()[:, :]
+                sage: q = db.parent().base_ring().base_ring().gen()
+                sage: (bp_0, cp_0, ap_0,
+                ....:  bp_2, cp_2, ap_2,
+                ....:  bp_3, cp_3, ap_3,
+                ....:  bm_1, cm_1, am_1) = db.parent().base_ring().gens()
+                sage: rqw = b._RightQuantumWord(
+                ....:    q^3*bp_2*bp_0*ap_0 + q*ap_3*bm_1*am_1*bp_0)
+                sage: rqw.eps(3)
+                -(q^-1-2*q+q^5)
+                sage: rqw.eps(2)
+                -(1-2*q+q^2-q^3+q^4)
 
             TESTS::
 
@@ -1942,11 +1945,11 @@ class Braid(FiniteTypeArtinGroupElement):
             String representation of the reight quantum word.
 
             EXAMPLES::
-            sage: b = BraidGroup(3)([1,2,-1,2,-1])
-            sage: db = b._deformed_burau_matrix(); db[2,2]
-            cp_1*am_2*bp_3
-            sage: b._RightQuantumWord(db[2,2])
-            The right quantum word represented by cp_1*bp_3*am_2 reduced from cp_1*am_2*bp_3
+                sage: b = BraidGroup(3)([1,2,-1,2,-1])
+                sage: db = b._deformed_burau_matrix(); db[2,2]
+                cp_1*am_2*bp_3
+                sage: b._RightQuantumWord(db[2,2])
+                The right quantum word represented by cp_1*bp_3*am_2 reduced from cp_1*am_2*bp_3
             """
             return 'The right quantum word represented by ' + \
                 f'{str(self.reduced_word())} reduced from ' + \
@@ -1974,7 +1977,7 @@ class Braid(FiniteTypeArtinGroupElement):
             [                                        0                                         0                            cp_1*cm_3*ap_4                            cp_1*cm_3*bp_4]
             [                           bm_2*bm_3*cp_5                                         0                am_2*cp_4 + bm_2*am_3*ap_4                            bm_2*am_3*bp_4]
 
-            We check how this relates to the nondeformed Burau matrix:
+        We check how this relates to the nondeformed Burau matrix:
             sage: def subs_gen(gen, q):
             ....:     gen_str = str(gen)
             ....:     v = q if 'p' in gen_str else 1/q
@@ -2040,20 +2043,20 @@ class Braid(FiniteTypeArtinGroupElement):
 
         EXAMPLES::
 
-        sage: b = BraidGroup(2)([1,1,1])
-        sage: A = Matrix([[SR(f'a{i}{j}') for i in range(2)]
-        ....:             for j in range(2)]); A
-        [a00 a10]
-        [a01 a11]
-        sage: b._quantum_determinant(A, SR('q'))
-        -a01*a10*q + a00*a11
-        sage: A = Matrix([[SR(f'a{i}{j}') for i in range(3)]
-        ....:             for j in range(3)]); A
-        [a00 a10 a20]
-        [a01 a11 a21]
-        [a02 a12 a22]
-        sage: b._quantum_determinant(A, SR('q'))
-        -a02*a11*a20*q^3 + a01*a12*a20*q^2 + a02*a10*a21*q^2 - a00*a12*a21*q - a01*a10*a22*q + a00*a11*a22
+            sage: b = BraidGroup(2)([1,1,1])
+            sage: A = Matrix([[SR(f'a{i}{j}') for i in range(2)]
+            ....:             for j in range(2)]); A
+            [a00 a10]
+            [a01 a11]
+            sage: b._quantum_determinant(A, SR('q'))
+            -a01*a10*q + a00*a11
+            sage: A = Matrix([[SR(f'a{i}{j}') for i in range(3)]
+            ....:             for j in range(3)]); A
+            [a00 a10 a20]
+            [a01 a11 a21]
+            [a02 a12 a22]
+            sage: b._quantum_determinant(A, SR('q'))
+            -a02*a11*a20*q^3 + a01*a12*a20*q^2 + a02*a10*a21*q^2 - a00*a12*a21*q - a01*a10*a22*q + a00*a11*a22
         """
         # We assume a square matrix as input
         n = A.ncols()
@@ -2070,15 +2073,15 @@ class Braid(FiniteTypeArtinGroupElement):
 
         EXAMPLES::
 
-        sage: b = BraidGroup(2)([1,1,1])
-        sage: db = b._deformed_burau_matrix()[1:,1:]; db
-        [cp_0*ap_1*bp_2]
-        sage: b._colored_jones_sum(2, db[0,0])
-        (1+q-q^2)
-        sage: b._colored_jones_sum(3, db[0,0])
-        (1+q^2-q^5-q^6+q^7)
-        sage: b._colored_jones_sum(4, db[0,0])
-        (1+q^3-q^8-q^10+q^13+q^14-q^15)
+            sage: b = BraidGroup(2)([1,1,1])
+            sage: db = b._deformed_burau_matrix()[1:,1:]; db
+            [cp_0*ap_1*bp_2]
+            sage: b._colored_jones_sum(2, db[0,0])
+            (1+q-q^2)
+            sage: b._colored_jones_sum(3, db[0,0])
+            (1+q^2-q^5-q^6+q^7)
+            sage: b._colored_jones_sum(4, db[0,0])
+            (1+q^3-q^8-q^10+q^13+q^14-q^15)
         """
         rqword = self._RightQuantumWord(qword).reduced_word()
         alg = qword.parent()

@@ -2092,7 +2092,8 @@ class Braid(FiniteTypeArtinGroupElement):
             current_word *= rqword
             new_rqw = self._RightQuantumWord(alg(current_word))
             current_word = new_rqw.reduced_word()
-            if not (new_eps := new_rqw.eps(N)):
+            new_eps = new_rqw.eps(N)
+            if not (new_eps):
                 break
             result += new_eps
         return result

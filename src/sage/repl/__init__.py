@@ -6,7 +6,8 @@ def load_ipython_extension(*args):
 
 
 # The above used to be in sage.__init__, allowing users to use "%load_ext sage".
-# But we removed the __init__.py file in order to make sage a native namespace package.
+# But we are clearing out the __init__.py file as a preparation for
+# making sage a native namespace package.
 #
 # So we make "%load_ext sage" work by monkey-patching the function
 # into the sage package upon importing sage.repl.

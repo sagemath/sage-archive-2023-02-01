@@ -84,7 +84,7 @@ SAGE_SRC="$SAGE_ROOT/src"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 AC_ARG_WITH([sage-venv],
-            [AS_HELP_STRING([--with-sage-venv={auto,yes,no,SAGE_VENV}],
+            [AS_HELP_STRING([--with-sage-venv={auto (default),yes,no,SAGE_VENV}],
                             [put Python packages into an installation hierarchy separate from prefix])],
             [SAGE_VENV="$withval"],
             [SAGE_VENV="auto"])

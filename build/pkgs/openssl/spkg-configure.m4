@@ -3,13 +3,18 @@ SAGE_SPKG_CONFIGURE([openssl], [
     AC_MSG_CHECKING([whether OpenSSL >= 1.1.1, as required by PEP 644])
     AC_COMPILE_IFELSE(
         dnl Trac #32580: Need OpenSSL >= 1.1.1 for PEP 644
+        dnl From https://www.openssl.org/docs/man3.0/man3/OPENSSL_VERSION_NUMBER.html:
         dnl If M  is the number from OPENSSL_VERSION_MAJOR
         dnl    NN is the number from OPENSSL_VERSION_MINOR
         dnl    PP is the number from OPENSSL_VERSION_PATCH
         dnl -> OPENSSL_VERSION_NUMBER is 0xMNN00PP0L
+        dnl From https://www.openssl.org/docs/man1.1.1/man3/OPENSSL_VERSION_NUMBER.html
+        dnl    FF is "fix"
+        dnl    S  is "status" (f = release)
+        dnl -> OPENSSL_VERSION_NUMBER is 0xMNNFFPPSL
         [AC_LANG_PROGRAM([[
             #include <openssl/ssl.h>
-            #if OPENSSL_VERSION_NUMBER < 0x10100010L
+            #if OPENSSL_VERSION_NUMBER < 0x10101000L
             #  error OpenSSL >= 1.1.1 is required according to PEP 644
             #endif
         ]], [])], [

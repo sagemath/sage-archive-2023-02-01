@@ -1871,7 +1871,7 @@ class LazyModuleElement(Element):
         Return the `{}_{p}F_{q}`-hypergeometric function
         `\,_pF_{q}` where `(p,q)` is the parameterization of ``self``.
 
-        INPUT::
+        INPUT:
 
         - ``a`` -- the first parameter of the hypergeometric function
         - ``b`` -- the second parameter of the hypergeometric function

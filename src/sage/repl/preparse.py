@@ -1829,7 +1829,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     ends = []
     counta = 0
     countb = 0
-    countb = 0
     for i in range(len(L)):
         if L[i] in ('[', ']'):
             counta += 1 if L[i] == '[' else -1

@@ -3238,6 +3238,17 @@ class LazyDirichletSeries(LazyModuleElement):
         Return the series with the variable `s` replaced by a linear
         polynomial `a\cdot s + b`, for positive `a`.
 
+        When `f` is an exact Dirichlet series, we can write
+
+        .. MATH::
+
+            f(s) = \sum_{n=1}^k a_n / n^s + C \zeta(s).
+
+        Thus we can evaluate this for `p \in \CC` by using the analytic
+        continuation of the Riemann `\zeta` function for `p \in \CC`
+        with the real part of `p` at most `1`. In the case `p = 1`,
+        this will return `\infty` if `C \neq 0`.
+
         EXAMPLES::
 
             sage: D = LazyDirichletSeriesRing(QQ, "s")
@@ -3255,6 +3266,10 @@ class LazyDirichletSeries(LazyModuleElement):
             zeta(5)
             sage: Z(1+I)
             zeta(I + 1)
+            sage: Z(0)
+            -1/2
+            sage: Z(1)
+            Infinity
 
             sage: f = D([1,2,-3,-4], valuation=2); f
             1/(2^s) + 2/3^s - 3/4^s - 4/5^s
@@ -3263,22 +3278,26 @@ class LazyDirichletSeries(LazyModuleElement):
             sage: 1/2^2 + 2/3^2 + -3/4^2 + -4/5^2
             449/3600
             sage: f(0)
-            0
+            -4
+            sage: f(1)
+            -23/60
             sage: f(-2)
             -126
 
             sage: f = D([4,2,-3,2])
             sage: f(0)
-            4
+            5
 
             sage: f = D([1,2,-3,-4], constant=2)
             sage: bool(f(2) == -1 + -5/3^2 + -6/4^2 + 2*zeta(2))
             True
+            sage: f(0)
+            -13
+            sage: f(1)
+            Infinity
         """
         P = self.parent()
         coeff_stream = self._coeff_stream
-        if not p:
-            return self[1]
 
         # Special behavior for finite series
         if isinstance(coeff_stream, Stream_exact):

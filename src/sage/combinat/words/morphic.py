@@ -45,7 +45,7 @@ class WordDatatype_morphic(WordDatatype_callable):
         - ``parent`` - a parent
         - ``morphism`` - a word morphism
         - ``letter`` - a starting letter
-        - ``coding`` - dict (default: ``None``), if ``None`` 
+        - ``coding`` - dict (default: ``None``), if ``None``
           the identity map is used for the coding
         - ``length`` - integer or ``'finite'`` or ``Infinity`` or
           ``'unknown'`` (default: ``Infinity``) the length of the word
@@ -60,7 +60,7 @@ class WordDatatype_morphic(WordDatatype_callable):
             word: abaababaabaababaababaabaababaabaababaaba...
             sage: w.length()
             +Infinity
-        
+
         ::
 
             sage: m = WordMorphism('a->abc,b->baba,c->ca')
@@ -120,7 +120,7 @@ class WordDatatype_morphic(WordDatatype_callable):
             self._len = None
         else:
             self._len = length
-        
+
         self._morphism = morphism
         self._letter = letter
         self._alphabet = self._morphism.domain().alphabet()
@@ -128,7 +128,7 @@ class WordDatatype_morphic(WordDatatype_callable):
             self._coding = {a:a for a in self._alphabet}
         else:
             self._coding = coding
-            
+
     def __reduce__(self):
         r"""
         EXAMPLES::
@@ -143,7 +143,7 @@ class WordDatatype_morphic(WordDatatype_callable):
               {'a': 'a', 'b': 'b'},
               +Infinity))
 
-        Below is the behavior for words of finite length:: 
+        Below is the behavior for words of finite length::
 
             sage: m = WordMorphism("a->ab,b->")
             sage: w = m.fixed_point("a")
@@ -171,9 +171,9 @@ class WordDatatype_morphic(WordDatatype_callable):
         OUTPUT:
 
         list
-        
+
         EXAMPLES::
-        
+
             sage: m = WordMorphism('a->ab,b->a')
             sage: w = m.fixed_point('a')
             sage: w.representation(5)
@@ -196,13 +196,13 @@ class WordDatatype_morphic(WordDatatype_callable):
 
         Accessing this method from an instance of the current class (no using
         the inherited word classes)::
-            
+
             sage: m = WordMorphism('a->ab,b->a')
             sage: W = m.domain()
             sage: from sage.combinat.words.morphic import WordDatatype_morphic
             sage: w = WordDatatype_morphic(W, m, 'a')
             sage: type(w)
-            <class 'sage.combinat.words.morphic.WordDatatype_morphic'>           
+            <class 'sage.combinat.words.morphic.WordDatatype_morphic'>
             sage: w.representation(5)
             [1, 0, 0, 0]
         """
@@ -217,7 +217,7 @@ class WordDatatype_morphic(WordDatatype_callable):
             if vMk[position] == vMk_next[position]:
                 raise IndexError('Index (={}) out of range, the fixed point is finite and has length {}.'.format(n,vMk[position]))
             vMk = vMk_next
-        k = len(length_of_images)  
+        k = len(length_of_images)
         letter_k = self._letter
         n_k = n
         path = []
@@ -251,7 +251,7 @@ class WordDatatype_morphic(WordDatatype_callable):
         - a letter
 
         EXAMPLES::
-        
+
             sage: m = WordMorphism("a->ab,b->a")
             sage: w = m.fixed_point("a")
             sage: w[0]
@@ -265,19 +265,19 @@ class WordDatatype_morphic(WordDatatype_callable):
 
         Accessing this method from an instance of the current class
         (without using the inherited word classes)::
-            
+
             sage: m = WordMorphism('a->ab,b->a')
             sage: W = m.domain()
             sage: from sage.combinat.words.morphic import WordDatatype_morphic
             sage: w = WordDatatype_morphic(W, m, 'a')
             sage: w._func(5)
             'a'
-       
+
         """
         letter = self._letter
         for a in self.representation(key):
             letter = (self._morphism(letter))[a]
-        if key == 0: 
+        if key == 0:
             return self._coding[letter]
         return self._coding[letter]
 

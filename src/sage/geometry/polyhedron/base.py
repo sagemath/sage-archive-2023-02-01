@@ -37,11 +37,13 @@ from sage.structure.richcmp import rich_to_bool, op_NE
 from sage.cpython.string import bytes_to_str
 
 from sage.misc.cachefunc import cached_method
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.randstate import current_randstate
 from sage.misc.superseded import deprecated_function_alias
 
-from sage.rings.all import QQ, ZZ, AA
+from sage.rings.integer_ring import ZZ
+from sage.rings.qqbar import AA
+from sage.rings.rational_field import QQ
 from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.modules.vector_space_morphism import linear_transformation
@@ -666,9 +668,8 @@ class Polyhedron_base(Element, ConvexSet_closed):
                 A 0-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex
                 sage: P.n_vertices() == Q.n_vertices()
                 False
-       """
-
-        from sage.categories.all import Rings
+        """
+        from sage.categories.rings import Rings
 
         if base_ring not in Rings():
             raise ValueError("invalid base ring")

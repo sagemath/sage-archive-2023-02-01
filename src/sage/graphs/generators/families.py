@@ -2117,12 +2117,27 @@ def HyperStarGraph(n, k):
         sage: g.plot()  # long time
         Graphics object consisting of 51 graphics primitives
 
+    TESTS::
+
+        sage: graphs.HyperStarGraph(-1, 1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameters n and k must be non-negative integers satisfying n >= k >= 0
+        sage: graphs.HyperStarGraph(1, -1)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameters n and k must be non-negative integers satisfying n >= k >= 0
+        sage: graphs.HyperStarGraph(1, 2)
+        Traceback (most recent call last):
+        ...
+        ValueError: parameters n and k must be non-negative integers satisfying n >= k >= 0
+
     AUTHORS:
 
     - Michael Yurko (2009-09-01)
     """
     if n < 0 or k < 0 or k > n:
-        raise ValueError("parameters n and k must be non-negative integers"
+        raise ValueError("parameters n and k must be non-negative integers "
                          "satisfying n >= k >= 0")
     if not n:
         adj = {}

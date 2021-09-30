@@ -24,9 +24,9 @@ EXAMPLES::
     sage: V_sum = G_sum.wedge(2) * K                      # long time
     sage: V_sum.cohomology(dim=True, weight=(0,0,0,0))    # long time
     (0, 0, 18, 16, 1)
-    sage: Gtilde = G_sum.random_deformation()
-    sage: V = Gtilde.wedge(2) * K                     # long time
-    sage: V.cohomology(dim=True, weight=(0,0,0,0))    # long time
+    sage: Gtilde = G_sum.random_deformation()  # not tested, known bug  (see :trac:`29956`)
+    sage: V = Gtilde.wedge(2) * K                     # long time  # not tested, known bug  (see :trac:`29956`)
+    sage: V.cohomology(dim=True, weight=(0,0,0,0))    # long time  # not tested, known bug  (see :trac:`29956`)
     (0, 0, 3, 0, 0)
 
 REFERENCES:
@@ -947,8 +947,8 @@ class KlyachkoBundle_class(SageObject):
            sage: V = P1.sheaves.line_bundle(H) + P1.sheaves.line_bundle(-H)
            sage: V.cohomology(dim=True, weight=(0,))
            (1, 0)
-           sage: Vtilde = V.random_deformation()  # not tested, known bug
-           sage: Vtilde.cohomology(dim=True, weight=(0,))  # not tested, known bug
+           sage: Vtilde = V.random_deformation()  # not tested, known bug  (see :trac:`29956`)
+           sage: Vtilde.cohomology(dim=True, weight=(0,))  # not tested, known bug  (see :trac:`29956`)
            (1, 0)
         """
         filt = self._filt.random_deformation(epsilon)

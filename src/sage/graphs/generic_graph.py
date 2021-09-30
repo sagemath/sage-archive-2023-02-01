@@ -20656,7 +20656,12 @@ class GenericGraph(GenericGraph_pyx):
         - ``"label_style"`` (``"string"`` or ``"latex"``)
         - ``"edge_string"`` (``"--"`` or ``"->"``)
         - ``"dir"`` (``"forward"``, ``"back"``, ``"both"`` or ``"none"``)
-        - ``"backward"`` (boolean)
+        - ``"backward"`` (boolean), instead of defining the edge in the
+          graphviz string as ``u -> v`` it draws it as ``v -> u
+          [dir=back]`` and instead of ``u -> v [dir=back]`` it draws it as
+          ``v -> u``, this changes the way it is drawn by Graphviz's dot
+          program: vertex ``v`` will be *above* vertex ``u`` instead of
+          below.
 
         Here we state that the graph should be laid out so that edges
         starting from ``1`` are going backward (e.g. going up instead of

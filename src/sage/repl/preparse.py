@@ -2,46 +2,6 @@
 """
 The Sage Preparser
 
-AUTHORS:
-
-    - William Stein (2006-02-19)
-
-      - Fixed bug when loading .py files.
-
-    - William Stein (2006-03-09)
-
-      - Fixed crash in parsing exponentials.
-      - Precision of real literals now determined by digits of input
-        (like Mathematica).
-
-    - Joe Wetherell (2006-04-14)
-
-      - Added MAGMA-style constructor preparsing.
-
-    - Bobby Moretti (2007-01-25)
-
-      - Added preliminary function assignment notation.
-
-    - Robert Bradshaw (2007-09-19)
-
-      - Added strip_string_literals, containing_block utility
-        functions. Arrr!
-      - Added [1,2,..,n] notation.
-
-    - Robert Bradshaw (2008-01-04)
-
-      - Implicit multiplication (off by default).
-
-    - Robert Bradshaw (2008-09-23)
-
-      - Factor out constants.
-
-    - Robert Bradshaw (2000-01)
-
-      - Simplify preparser by making it modular and using regular
-        expressions.
-      - Bug fixes, complex numbers, and binary input.
-
 EXAMPLES:
 
 Preparsing::
@@ -245,6 +205,26 @@ Nested F-strings are also supported::
     sage: f'''1{ f"2{ f'4{ 2^3 }4' }2" }1'''
     '1248421'
 
+AUTHORS:
+
+- William Stein (2006-02-19): fixed bug when loading .py files
+
+- William Stein (2006-03-09): fixed crash in parsing exponentials; precision of
+  real literals now determined by digits of input (like Mathematica)
+
+- Joe Wetherell (2006-04-14): added MAGMA-style constructor preparsing
+
+- Bobby Moretti (2007-01-25): added preliminary function assignment notation
+
+- Robert Bradshaw (2007-09-19): added strip_string_literals, containing_block
+  utility functions. Arrr!; added [1,2,..,n] notation
+
+- Robert Bradshaw (2008-01-04): implicit multiplication (off by default)
+
+- Robert Bradshaw (2008-09-23): factor out constants
+
+- Robert Bradshaw (2000-01): simplify preparser by making it modular and using
+  regular expressions; bug fixes, complex numbers, and binary input
 """
 
 # ****************************************************************************

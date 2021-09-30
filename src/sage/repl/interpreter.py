@@ -424,7 +424,7 @@ def SagePreparseTransformer(lines):
         sage: SagePreparseTransformer(["def foo():\n", "    return a + '''\n", "    2 - 3r\n", "    '''"])
         ['def foo():\n', "    return a + '''\n", '    2 - 3r\n', "    '''"]
 
-    Preparses [0,2,..,n] notation::
+    Preparses ``[0,2,..,n]`` notation::
 
         sage: SagePreparseTransformer(["for i in [2 .. 5 ..a]"])
         ['for i in (ellipsis_range(Integer(2) ,Ellipsis, Integer(5) ,Ellipsis,a))']
@@ -554,7 +554,7 @@ class SageGenConstructionTransformer(TokenTransformBase):
         ....: K.<a, b> = QQ[2^(1/3), 2^(1/2)]''')
         'K = QQ[Integer(2)**(Integer(1)/Integer(3)), Integer(2)**(Integer(1)/Integer(2))]; (a, b,) = K._first_ngens(2)\n'
 
-    Just the .<> notation::
+    Just the ``.<>`` notation::
 
         sage: ip.transform_cell('''
         ....: R.<x> = ZZx''')
@@ -861,9 +861,13 @@ class SageCalculusTransformer(TokenTransformBase):
         INPUT:
 
         - ``del_start`` -- start of the name of the function
+
         - ``del_end`` -- end of the ``)``
+
         - ``insert_pos`` -- position to insert the new command
+
         - ``name`` -- name of the field or similar
+
         - ``variables`` -- names of the variables
 
         TESTS::
@@ -902,12 +906,11 @@ class SageCalculusTransformer(TokenTransformBase):
         """
         for line in tokens_by_line:
             name = None
-            gens = []
             for i, token in enumerate(line[:-1]):
                 if token.string == ')' and line[i+1].string == '=':
                     # Find matching '('
                     variables = []
-                    ix = i-1
+                    ix = i - 1
                     while ix >= 1:
                         if line[ix].string == '(':
                             break
@@ -922,13 +925,13 @@ class SageCalculusTransformer(TokenTransformBase):
                         # Incorrect syntax or first token is '('.
                         break
 
-                    if line[ix-1].type != tokenize.NAME:
+                    if line[ix - 1].type != tokenize.NAME:
                         # A tuple assignment.
                         break
 
-                    name = line[ix-1].string
+                    name = line[ix - 1].string
 
-                    del_start = line[ix-1].start
+                    del_start = line[ix - 1].start
                     del_end = token.end
 
                     # Find the position to insert the declaration of the generators.

@@ -100,7 +100,7 @@ This involves an =-, but should still be turned into a symbolic
 expression::
 
     sage: preparse('a(x) =- 5')
-    '__tmp__ = var("x"); __tmpa__ =- Integer(5); a = symbolic_expression(__tmpa__).function(x)'
+    '__tmp__=var("x"); a = symbolic_expression(- Integer(5)).function(x)'
     sage: f(x)=-x
     sage: f(10)
     -10
@@ -223,7 +223,7 @@ AUTHORS:
 
 - Robert Bradshaw (2008-09-23): factor out constants
 
-- Robert Bradshaw (2000-01): simplify preparser by making it modular and using
+- Robert Bradshaw (2009-01): simplify preparser by making it modular and using
   regular expressions; bug fixes, complex numbers, and binary input
 """
 
@@ -242,7 +242,6 @@ import re
 
 from types import SimpleNamespace
 
-from sage.misc.superseded import deprecation
 from sage.repl.load import load_wrap
 
 implicit_mul_level = False
@@ -1414,25 +1413,21 @@ def preparse_calculus(code):
     EXAMPLES::
 
         sage: preparse("f(x) = x^3-x")
-        '__tmp__ = var("x"); __tmpf__ = x**Integer(3)-x; f = symbolic_expression(__tmpf__).function(x)'
+        '__tmp__=var("x"); f = symbolic_expression(x**Integer(3)-x).function(x)'
         sage: preparse("f(u,v) = u - v")
-        '__tmp__ = var("u,v"); __tmpf__ = u - v; f = symbolic_expression(__tmpf__).function(u,v)'
+        '__tmp__=var("u,v"); f = symbolic_expression(u - v).function(u,v)'
         sage: preparse("f(x) =-5")
-        '__tmp__ = var("x"); __tmpf__ =-Integer(5); f = symbolic_expression(__tmpf__).function(x)'
+        '__tmp__=var("x"); f = symbolic_expression(-Integer(5)).function(x)'
         sage: preparse("f(x) -= 5")
         'f(x) -= Integer(5)'
         sage: preparse("f(x_1, x_2) = x_1^2 - x_2^2")
-        '__tmp__ = var("x_1,x_2"); __tmpf__ = x_1**Integer(2) - x_2**Integer(2); f = symbolic_expression(__tmpf__).function(x_1,x_2)'
+        '__tmp__=var("x_1,x_2"); f = symbolic_expression(x_1**Integer(2) - x_2**Integer(2)).function(x_1,x_2)'
 
     For simplicity, this function assumes all statements begin and end
     with a semicolon::
 
         sage: from sage.repl.preparse import preparse_calculus
         sage: preparse_calculus(";f(t,s)=t^2;")
-        doctest:warning
-        ...
-        DeprecationWarning: The method preparse_calculus is deprecated; use sage.repl.intepreter.SageCalculusTransformer instead.
-        See https://trac.sagemath.org/31951 for details.
         ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
         sage: preparse_calculus(";f( t , s ) = t^2;")
         ';__tmp__=var("t,s"); f = symbolic_expression(t^2).function(t,s);'
@@ -1454,16 +1449,20 @@ def preparse_calculus(code):
 
         sage: from sage.repl.preparse import preparse_file
         sage: preparse_file("f(1)=x")
-        '_sage_const_1 = Integer(1)\n__tmp__ = var("_sage_const_1"); __tmpf__=x; f = symbolic_expression(__tmpf__).function(_sage_const_1)'
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument names should be valid python identifiers.
 
         sage: from sage.repl.preparse import preparse_file
         sage: preparse_file("f(x,1)=2")
-        '_sage_const_1 = Integer(1); _sage_const_2 = Integer(2)\n__tmp__ = var("x,_sage_const_1"); __tmpf__=_sage_const_2 ; f = symbolic_expression(__tmpf__).function(x,_sage_const_1)'
+        Traceback (most recent call last):
+        ...
+        ValueError: Argument names should be valid python identifiers.
 
     Check support for unicode characters (:trac:`29278`)::
 
         sage: preparse("μ(x) = x^2")
-        '__tmp__ = var("x"); __tmpμ__ = x**Integer(2); μ = symbolic_expression(__tmpμ__).function(x)'
+        '__tmp__=var("x"); μ = symbolic_expression(x**Integer(2)).function(x)'
 
     Check that the parameter list can span multiple lines (:trac:`30928`)::
 
@@ -1473,15 +1472,19 @@ def preparse_calculus(code):
         ....:   c,
         ....:   d) = a + b*2 + c*3 + d*4
         ....: ''')
-        '\n__tmp__ = var("a,b,c,d"); __tmpf__ = a + b*Integer(2) + c*Integer(3) + d*Integer(4); f = symbolic_expression(__tmpf__).function(a,b,c,d)\n'
+        '\n__tmp__=var("a,b,c,d"); f = symbolic_expression(a + b*Integer(2) + c*Integer(3) + d*Integer(4)).function(a,b,c,d)\n'
 
+    Check that :trac:`30953` is fixed::
+
+        sage: preparse('''
+        ....: f(x) = (x + (x*x) +  # some comment with matching )
+        ....:         1); f''')
+        '\n__tmp__=var("x"); f = symbolic_expression((x + (x*x) +  # some comment with matching )\n        Integer(1))).function(x); f'
     """
-    deprecation(31951, "The method preparse_calculus is deprecated; use "
-                "sage.repl.intepreter.SageCalculusTransformer instead.")
     new_code = []
     last_end = 0
     #                                 f         (  vars  )   =      expr
-    for m in re.finditer(r";(\s*)([^\W\d]\w*) *\(([^()]+)\) *= *([^;#=][^;#]*)", code):
+    for m in re.finditer(r";(\s*)([^\W\d]\w*) *\(([^()]+)\) *= *([^;#=][^;]*)", code):
         ident, func, vars, expr = m.groups()
         # Semicolons are removed in order to allow the vars to span multiple lines.
         # (preparse having converted all \n into ;\n;)
@@ -1581,7 +1584,7 @@ def preparse_generators(code):
         sage: preparse("R.<x> = ZZ[]")
         "R = ZZ['x']; (x,) = R._first_ngens(1)"
         sage: preparse("R.<x,y> = ZZ[]")
-        "R = ZZ['x', 'y']; (x, y,) = R._first_ngens(2)"
+        "R = ZZ['x, y']; (x, y,) = R._first_ngens(2)"
 
     Names given not the same as generator names::
 
@@ -1604,7 +1607,7 @@ def preparse_generators(code):
         sage: preparse("R.<x, y> = a+b")
         'R = a+b; (x, y,) = R._first_ngens(2)'
         sage: preparse("A.<x,y,z>=FreeAlgebra(ZZ,3)")
-        "A=FreeAlgebra(ZZ,Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = A._first_ngens(3)"
+        "A = FreeAlgebra(ZZ,Integer(3), names=('x', 'y', 'z',)); (x, y, z,) = A._first_ngens(3)"
 
     Ensure we do not eat too much::
 
@@ -1619,10 +1622,6 @@ def preparse_generators(code):
     with a semicolon::
 
         sage: preparse_generators(";  R.<x>=ZZ[];")
-        doctest:warning
-        ...
-        DeprecationWarning: The method preparse_generators is deprecated; use sage.repl.intepreter.SageGenConstructionTransformer instead.
-        See https://trac.sagemath.org/31951 for details.
         ";  R = ZZ['x']; (x,) = R._first_ngens(1);"
 
     See :trac:`16731`::
@@ -1633,14 +1632,26 @@ def preparse_generators(code):
     Check support for unicode characters (:trac:`29278`)::
 
         sage: preparse('Ω.<λ,μ> = QQ[]')
-        "Ω = QQ['λ', 'μ']; (λ, μ,) = Ω._first_ngens(2)"
+        "Ω = QQ['λ, μ']; (λ, μ,) = Ω._first_ngens(2)"
+
+    Check that :trac:`30953` is fixed::
+
+        sage: preparse('''
+        ....: K.<a> = QuadraticField(2 +
+        ....:                        1)''')
+        "\nK = QuadraticField(Integer(2) +\n                       Integer(1), names=('a',)); (a,) = K._first_ngens(1)"
+        sage: preparse('''
+        ....: K.<a> = QuadraticField(2 + (1 + 1) + # some comment
+        ....:                        1)''')
+        "\nK = QuadraticField(Integer(2) + (Integer(1) + Integer(1)) + # some comment\n                       Integer(1), names=('a',)); (a,) = K._first_ngens(1)"
+        sage: preparse('''
+        ....: K.<a> = QuadraticField(2)  # some comment''')
+        "\nK = QuadraticField(Integer(2), names=('a',)); (a,) = K._first_ngens(1)# some comment"
     """
-    deprecation(31951, "The method preparse_generators is deprecated; use "
-                "sage.repl.intepreter.SageGenConstructionTransformer instead.")
     new_code = []
     last_end = 0
     #                                obj       .< gens >      ,  other   =   constructor
-    for m in re.finditer(r";(\s*)([^\W\d]\w*)\.<([^>]+)> *((?:,[\w, ]+)?)= *([^;#]+)", code):
+    for m in re.finditer(r";(\s*)([^\W\d]\w*)\.<([^>]+)> *((?:,[\w, ]+)?)= *([^;]+)", code):
         ident, obj, gens, other_objs, constructor = m.groups()
         gens = [v.strip() for v in gens.split(',')]
         constructor = constructor.rstrip()
@@ -1709,7 +1720,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: preparse("ZZ.<x> = ZZ['y']")
         "ZZ = ZZ['y']; (x,) = ZZ._first_ngens(1)"
         sage: preparse("ZZ.<x,y> = ZZ[]")
-        "ZZ = ZZ['x', 'y']; (x, y,) = ZZ._first_ngens(2)"
+        "ZZ = ZZ['x, y']; (x, y,) = ZZ._first_ngens(2)"
         sage: preparse("ZZ.<x,y> = ZZ['u,v']")
         "ZZ = ZZ['u,v']; (x, y,) = ZZ._first_ngens(2)"
         sage: preparse("ZZ.<x> = QQ[2^(1/3)]")
@@ -1748,7 +1759,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     Check support for backslash line continuation (:trac:`30928`)::
 
         sage: preparse("f(x) = x \\\n+ 1")
-        '__tmp__ = var("x"); __tmpf__ = x + Integer(1); f = symbolic_expression(__tmpf__).function(x)'
+        '__tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)'
 
     Check that multi-line strings starting with a comment are still preparsed
     (:trac:`31043`)::
@@ -1756,7 +1767,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         sage: print(preparse('''# some comment
         ....: f(x) = x + 1'''))
         # some comment
-        __tmp__ = var("x"); __tmpf__ = x + Integer(1); f = symbolic_expression(__tmpf__).function(x)
+        __tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)
 
     TESTS::
 
@@ -1814,37 +1825,50 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     # Combine lines that use backslash continuation
     L = L.replace('\\\n', '')
 
-    # Backslash
-    L = ';%s;' % L.replace('\n', ';\n;')
-    L = re.sub(r'''\\\s*([^\t ;#])''', r' * BackslashOperator() * \1', L)
-    L = L.replace(';\n;', '\n')[1:-1]
-
-    from IPython.core.inputtransformer2 import TransformerManager
-    from sage.repl.interpreter import SageTokenTransformers
-
-    T = TransformerManager()
-    T.token_transformers = SageTokenTransformers
-
-    if not L.endswith('\n'):
-        cell = L  + '\n'  # Ensure the cell has a trailing newline
-    else:
-        cell = L
-
-    lines = cell.splitlines(keepends=True)
-    lines = T.do_token_transforms(lines)
-    output = ''.join(lines)
-
-    if L[-1:] != "\n" and output[-1:] == "\n":
-        # Strip trailing newline, if input did not have it.
-        L = output[:-1]
-    else:
-        L = output
+    # Make it easy to match statement ends
+    ends = []
+    counta = 0
+    countb = 0
+    countb = 0
+    for i in range(len(L)):
+        if L[i] in ('[', ']'):
+            counta += 1 if L[i] == '[' else -1
+        elif L[i] in ('(', ')'):
+            countb += 1 if L[i] == '(' else -1
+        elif L[i] in ('\n', '#'):
+            if counta == countb == 0:
+                ends.append(i)
+    while ends:
+        i = ends.pop()
+        L = L[:i] + ';%s;' % L[i] + L[i+1:]
+    L = ';' + L + ';'
 
     if do_time:
-        L = re.sub(r'^(\s*)time (\S[^;\n]*)',
-                   r'__time__ = cputime(); __wall__ = walltime(); \2; print(' +
+        # Separate time statement
+        L = re.sub(r';(\s*)time +(\w)', r';time;\1\2', L)
+
+    # Construction with generators
+    # R.<...> = obj()
+    # R.<...> = R[]
+    L = preparse_generators(L)
+
+    # Calculus functions
+    # f(x,y) = x^3 - sin(y)
+    L = preparse_calculus(L)
+
+    # Backslash
+    L = re.sub(r'''\\\s*([^\t ;#])''', r' * BackslashOperator() * \1', L)
+
+    if do_time:
+        # Time keyword
+        L = re.sub(r';time;(\s*)(\S[^;\n]*)',
+                   r';\1__time__ = cputime(); __wall__ = walltime(); \2; print(' +
                    r'"Time: CPU {:.2f} s, Wall: {:.2f} s".format(cputime(__time__), walltime(__wall__)))',
                    L, flags=re.MULTILINE)
+
+    # Remove extra ;'s
+    L = L.replace(';#;', '#')
+    L = L.replace(';\n;', '\n')[1:-1]
 
     line = L % literals
 

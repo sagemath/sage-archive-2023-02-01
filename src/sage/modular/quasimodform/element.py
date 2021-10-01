@@ -368,7 +368,7 @@ class QuasiModularFormsElement(ModuleElement):
         P = self.parent().polynomial_ring(names)
         g0, g1 = self.parent().modular_forms_subring().polynomial_ring(names='x').gens()
         E2, E4, E6 = P.gens()
-        return sum(f.to_polynomial().subs({g0:E4, g1:E6}) * E2 ** exp for exp, f in enumerate(self._coefficients))
+        return sum(f.to_polynomial().subs({g0:E4, g1:E6}) * E2 ** exp for exp, f in enumerate(self._polynomial.coefficients(sparse=False)))
 
     def weights_list(self):
         r"""
@@ -503,7 +503,7 @@ class QuasiModularFormsElement(ModuleElement):
         #   =      A               +              B               -           C
         der = QM.zero()
         u6 = R(6).inverse_of_unit()
-        for n, f in enumerate(self._coefficients):
+        for n, f in enumerate(self._polynomial.coefficients(sparse=False)):
             if n == 0:
                 der += QM(f.serre_derivative())
             else:

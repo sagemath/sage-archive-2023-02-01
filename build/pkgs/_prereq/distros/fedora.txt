@@ -32,3 +32,5 @@ findutils
 which
 # Needed for pcre configure, see https://trac.sagemath.org/ticket/29129:
 diffutils
+# Needed for openssl 3.0
+perl-IPC-Cmd

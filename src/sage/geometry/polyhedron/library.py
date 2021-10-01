@@ -87,6 +87,7 @@ from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from .constructor import Polyhedron
 from .parent import Polyhedra
 from sage.graphs.digraph import DiGraph
+from sage.graphs.graph import Graph
 from sage.combinat.root_system.associahedron import Associahedron
 
 def zero_sum_projection(d, base_ring=RDF):
@@ -334,7 +335,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
 
     - ``backend`` -- string (default: `None`);
       the backend to be use to construct a polyhedral,
-      used interally in case the center is not the origin,
+      used internally in case the center is not the origin,
       see :func:`~sage.geometry.polyhedron.constructor.Polyhedron`
 
     OUTPUT: An ordered point configuration as list of vectors.
@@ -759,7 +760,7 @@ class Polytopes():
             5/12*sqrt5 + 5/4
             sage: TestSuite(ico).run()                             # optional - pynormaliz
             sage: ico = polytopes.icosahedron(exact=False)
-            sage: TestSuite(ico).run()
+            sage: TestSuite(ico).run(skip="_test_lawrence")
 
         """
         if base_ring is None and exact:
@@ -962,7 +963,7 @@ class Polytopes():
         """
         Return the rhombic dodecahedron.
 
-        The rhombic dodecahedron is a a polytope  dual to the cuboctahedron. It
+        The rhombic dodecahedron is a polytope dual to the cuboctahedron. It
         has 14 vertices and 12 faces. For more information see
         the :wikipedia:`Rhombic_dodecahedron`.
 
@@ -1734,7 +1735,7 @@ class Polytopes():
             sage: vertices = ki.vertices()
             sage: edges = [[vector(edge[0]),vector(edge[1])] for edge in ki.bounded_edges()]
             sage: edge_lengths = [norm(edge[0]-edge[1]) for edge in edges]
-            sage: union(edge_lengths)
+            sage: sorted(set(edge_lengths))
             [7, 8, 9, 11, 12, 14, 16]
 
         TESTS::
@@ -2471,7 +2472,7 @@ class Polytopes():
             A 6-dimensional polyhedron in RDF^6 defined as the convex hull of 35 vertices
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
-            sage: TestSuite(h_7_3).run(skip="_test_pyramid")
+            sage: TestSuite(h_7_3).run(skip=["_test_pyramid", "_test_lawrence"])
         """
         verts = Permutations([0] * (dim - k) + [1] * k).list()
         if project:
@@ -3045,7 +3046,7 @@ class Polytopes():
             phi = (1 + sqrt5) / 2
             phi_inv = base_ring.one() / phi
 
-            # The 24 permutations of [0,0,±2,±2] (the ± are independant)
+            # The 24 permutations of [0,0,±2,±2] (the ± are independent)
             verts = Permutations([0,0,2,2]).list() + Permutations([0,0,-2,-2]).list() + Permutations([0,0,2,-2]).list()
 
             # The 64 permutations of the following vectors:
@@ -3412,6 +3413,8 @@ class Polytopes():
     associahedron = staticmethod(Associahedron)
 
     flow_polytope = staticmethod(DiGraph.flow_polytope)
+    edge_polytope = staticmethod(Graph.edge_polytope)
+    symmetric_edge_polytope = staticmethod(Graph.symmetric_edge_polytope)
 
 
 polytopes = Polytopes()

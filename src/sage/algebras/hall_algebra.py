@@ -116,7 +116,7 @@ class HallAlgebra(CombinatorialFreeModule):
     `n(\lambda) = \sum_i (i - 1) \lambda_i`.
 
     See section 2.3 in [Sch2006]_, and sections II.2 and III.3
-    in [Macdonald1995]_ (where our `I_{\lambda}` is called `u_{\lambda}`).
+    in [Mac1995]_ (where our `I_{\lambda}` is called `u_{\lambda}`).
 
     EXAMPLES::
 

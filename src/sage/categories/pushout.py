@@ -2351,7 +2351,7 @@ class CompletionFunctor(ConstructionFunctor):
     """
     rank = 4
     _real_types = ['Interval', 'Ball', 'MPFR', 'RDF', 'RLF', 'RR']
-    _dvr_types = [None, 'fixed-mod', 'floating-point', 'capped-abs', 'capped-rel', 'lattice-cap', 'lattice-float']
+    _dvr_types = [None, 'fixed-mod', 'floating-point', 'capped-abs', 'capped-rel', 'lattice-cap', 'lattice-float', 'relaxed']
 
     def __init__(self, p, prec, extras=None):
         """
@@ -2542,14 +2542,10 @@ class CompletionFunctor(ConstructionFunctor):
 
         We check that :trac:`12353` has been resolved::
 
-            sage: RealIntervalField(53)(-1) > RR(1)
-            False
-            sage: RealIntervalField(54)(-1) > RR(1)
-            False
-            sage: RealIntervalField(54)(1) > RR(-1)
-            True
-            sage: RealIntervalField(53)(1) > RR(-1)
-            True
+            sage: RIF(1) > RR(1)
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for >: 'Real Interval Field with 53 bits of precision' and 'Real Field with 53 bits of precision'
 
         We check that various pushouts work::
 
@@ -3059,7 +3055,7 @@ class AlgebraicExtensionFunctor(ConstructionFunctor):
             sage: F2(GF(5))
             Traceback (most recent call last):
             ...
-            NotImplementedError: ring extension with prescripted embedding is not implemented
+            NotImplementedError: ring extension with prescribed embedding is not implemented
 
         When applying a number field constructor to the ring of
         integers, an order (not necessarily maximal) of that field is

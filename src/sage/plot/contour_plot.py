@@ -823,6 +823,19 @@ def contour_plot(f, xrange, yrange, **options):
         sage: contour_plot(x - y^2, (x,-5,5), (y,-3,3),
         ....:              contours=[-4,-2,0], fill=False)
         Graphics object consisting of 1 graphics primitive
+
+    Check that :trac:`18074` is fixed::
+
+        sage: contour_plot(0, (0,1), (0,1))
+        ... UserWarning: No contour levels were found within the data range.
+        Graphics object consisting of 1 graphics primitive
+
+    Domain points in :trac:`11648` with complex output are now skipped::
+
+        sage: x,y = SR.var('x,y', domain='real')
+        sage: contour_plot(log(x) + log(y), (-1, 5), (-1, 5))
+        Graphics object consisting of 1 graphics primitive
+
     """
     from sage.plot.all import Graphics
     from sage.plot.misc import setup_for_eval_on_grid

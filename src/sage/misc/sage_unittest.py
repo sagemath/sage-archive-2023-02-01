@@ -548,10 +548,10 @@ class InstanceTester(unittest.TestCase):
         You can use ``max_samples`` to sample at random, instead of in order::
 
             sage: tester = InstanceTester(ZZ, elements = srange(8), max_samples = 4)
-            sage: list(tester.some_elements())
-            [0, 3, 7, 1]
-            sage: list(tester.some_elements(repeat=2))
-            [(1, 4), (3, 1), (4, 5), (5, 0)]
+            sage: all(t in srange(8) for t in tester.some_elements())
+            True
+            sage: all(s in srange(8) and t in srange(8) for s,t in tester.some_elements(repeat=2))
+            True
 
         Test for :trac:`15919`, :trac:`16244`::
 

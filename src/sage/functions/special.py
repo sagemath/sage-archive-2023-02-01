@@ -228,6 +228,18 @@ class SphericalHarmonic(BuiltinFunction):
             sage: ex = spherical_harmonic(3,2,1,2*pi/3)
             sage: QQbar(ex * sqrt(pi)/cos(1)/sin(1)^2).minpoly()
             x^4 + 105/32*x^2 + 11025/1024
+
+        Check whether :trac:`25034` yields correct results compared to Maxima::
+
+            sage: spherical_harmonic(1,1,pi/3,pi/6).n() # abs tol 1e-14
+            0.259120612103502 + 0.149603355150537*I
+            sage: maxima.spherical_harmonic(1,1,pi/3,pi/6).n() # abs tol 1e-14
+            0.259120612103502 + 0.149603355150537*I
+            sage: spherical_harmonic(1,-1,pi/3,pi/6).n() # abs tol 1e-14
+            -0.259120612103502 + 0.149603355150537*I
+            sage: maxima.spherical_harmonic(1,-1,pi/3,pi/6).n() # abs tol 1e-14
+            -0.259120612103502 + 0.149603355150537*I
+
         """
         if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:
@@ -582,7 +594,7 @@ class EllipticEU(BuiltinFunction):
 
         E(u,m)=
         \int_0^u \mathrm{dn}(x,m)^2\, dx = \int_0^\tau
-        {\sqrt{1-m x^2}\over\sqrt{1-x^2}}\, dx.
+        \frac{\sqrt{1-m x^2}}{\sqrt{1-x^2}}\, dx.
 
     where `\tau = \mathrm{sn}(u, m)`.
 

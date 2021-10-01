@@ -56,7 +56,7 @@ def canonical_parameters(group, level, weight, base_ring):
 
 
     -  ``group`` - int, long, Sage integer, group,
-       dirichlet character, or
+       Dirichlet character, or
 
     -  ``level`` - int, long, Sage integer, or group
 
@@ -127,7 +127,7 @@ def canonical_parameters(group, level, weight, base_ring):
         raise TypeError("base_ring (=%s) must be a commutative ring"%base_ring)
 
     # it is *very* important to include the level as part of the data
-    # that defines the key, since dirichlet characters of different
+    # that defines the key, since Dirichlet characters of different
     # levels can compare equal, but define much different modular
     # forms spaces.
     return level, group, weight, base_ring

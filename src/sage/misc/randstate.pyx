@@ -449,6 +449,7 @@ cpdef randstate current_randstate():
 
     EXAMPLES::
 
+        sage: set_random_seed(0)
         sage: current_randstate()
         <sage.misc.randstate.randstate object at 0x...>
         sage: current_randstate().python_random().random()
@@ -551,6 +552,7 @@ cdef class randstate:
 
         EXAMPLES::
 
+            sage: set_random_seed(0)
             sage: from sage.misc.randstate import randstate
             sage: r = randstate(314159)
             sage: r.seed()

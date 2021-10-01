@@ -24,7 +24,8 @@ AUTHORS:
 # ****************************************************************************
 
 from sage.structure.element import Element
-from sage.misc.all import cached_method, prod
+from sage.misc.cachefunc import cached_method
+from sage.misc.all import prod
 from sage.features import PythonModule
 from sage.misc.lazy_import import lazy_import
 lazy_import('PyNormaliz', ['NmzResult', 'NmzCompute', 'NmzCone', 'NmzConeCopy'],
@@ -258,7 +259,8 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: p = Polyhedron(vertices=[(0,0),(1,1),(a,3),(-1,a**2)], rays=[(-1,-a)], backend='normaliz') # optional - pynormaliz
             sage: sorted(p._nmz_result(p._normaliz_cone, 'VerticesOfPolyhedron')) # optional - pynormaliz
             [[-1, a^2, 1], [1, 1, 1], [a, 3, 1]]
-            sage: sorted(p._nmz_result(p._normaliz_cone, 'TriangulationGenerators')) # optional - pynormaliz
+            sage: triangulation_generators = p._nmz_result(p._normaliz_cone, 'Triangulation')[1]  # optional - pynormaliz
+            sage: sorted(triangulation_generators)                                                # optional - pynormaliz
             [[-a^2, -3, 0], [-1, a^2, 1], [0, 0, 1], [1, 1, 1], [a, 3, 1]]
             sage: p._nmz_result(p._normaliz_cone, 'AffineDim') == 2 # optional - pynormaliz
             True
@@ -315,17 +317,13 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz as Pn
             sage: Pn._convert_to_pynormaliz(17)
             17
-            sage: Pn._convert_to_pynormaliz(901824309821093821093812093810928309183091832091)     # py2
-            901824309821093821093812093810928309183091832091L
-            sage: Pn._convert_to_pynormaliz(901824309821093821093812093810928309183091832091)     # py3
+            sage: Pn._convert_to_pynormaliz(901824309821093821093812093810928309183091832091)
             901824309821093821093812093810928309183091832091
             sage: Pn._convert_to_pynormaliz(QQ(17))
             17
             sage: Pn._convert_to_pynormaliz(28/5)
             [[28, 5]]
-            sage: Pn._convert_to_pynormaliz(28901824309821093821093812093810928309183091832091/5234573685674784567853456543456456786543456765) # py2
-            [[28901824309821093821093812093810928309183091832091L, 5234573685674784567853456543456456786543456765L]]
-            sage: Pn._convert_to_pynormaliz(28901824309821093821093812093810928309183091832091/5234573685674784567853456543456456786543456765) # py3
+            sage: Pn._convert_to_pynormaliz(28901824309821093821093812093810928309183091832091/5234573685674784567853456543456456786543456765)
             [[28901824309821093821093812093810928309183091832091, 5234573685674784567853456543456456786543456765]]
             sage: Pn._convert_to_pynormaliz(7 + sqrt2)
             [[7, 1], [1, 1]]
@@ -963,7 +961,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             # iterators:
             data_lists = [tuple(_) for _ in data_lists]
             nmz_data_lists = convert_NF(*data_lists)
-            if self.base_ring() in NumberFields:
+            if self.base_ring() in NumberFields():
                 if not RDF.has_coerce_map_from(self.base_ring()):
                     raise ValueError("invalid base ring: {} is a number field that is not real embedded".format(self.base_ring()))
                 normaliz_field = self.base_ring()
@@ -1097,7 +1095,7 @@ class Polyhedron_normaliz(Polyhedron_base):
     @staticmethod
     def _make_normaliz_cone(data, verbose=False):
         r"""
-        Returns a normaliz cone from ``data``.
+        Return a normaliz cone from ``data``.
 
         INPUT:
 
@@ -1111,9 +1109,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: data = {'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]}  # optional - pynormaliz
             sage: nmz_cone = Polyhedron_normaliz._make_normaliz_cone(data,verbose=False)       # optional - pynormaliz
             sage: from PyNormaliz import NmzResult                                             # optional - pynormaliz
-            sage: NmzResult(nmz_cone, "ExtremeRays")                                           # py2 # optional - pynormaliz
-            [[1L, 2L, 0L], [2L, 1L, 0L]]
-            sage: NmzResult(nmz_cone, "ExtremeRays")                                           # py3 # optional - pynormaliz
+            sage: NmzResult(nmz_cone, "ExtremeRays")                                           # optional - pynormaliz
             [[1, 2, 0], [2, 1, 0]]
         """
         if verbose:
@@ -1141,13 +1137,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         Another simple example::
 
             sage: C = Polyhedron(backend='normaliz', rays=[[1, 2], [2, 1]])        # optional - pynormaliz
-            sage: C._get_nmzcone_data()                                            # py2 # optional - pynormaliz
-            {'cone': [[1L, 2L], [2L, 1L]],
-             'inhom_equations': [],
-             'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]],
-             'subspace': [],
-             'vertices': [[0L, 0L, 1L]]}
-            sage: C._get_nmzcone_data()                                            # py3 # optional - pynormaliz
+            sage: C._get_nmzcone_data()                                            # optional - pynormaliz
             {'cone': [[1, 2], [2, 1]],
              'inhom_equations': [],
              'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]],
@@ -1272,12 +1262,28 @@ class Polyhedron_normaliz(Polyhedron_base):
            A vertex at (0, 0, 1, 0),
            A vertex at (0, 1, 0, 0),
            A vertex at (1, 0, 0, 0)),
-          '_normaliz_field': Rational Field})
+          '_normaliz_field': Rational Field,
+          '_pickle_equations': [(-1, 1, 1, 1, 1)],
+          '_pickle_inequalities': [(0, 0, 0, 0, 1),
+           (0, 0, 0, 1, 0),
+           (0, 0, 1, 0, 0),
+           (0, 1, 0, 0, 0)],
+          '_pickle_lines': [],
+          '_pickle_rays': [],
+          '_pickle_vertices': [(0, 0, 0, 1),
+           (0, 0, 1, 0),
+           (0, 1, 0, 0),
+           (1, 0, 0, 0)]})
         """
         state = super(Polyhedron_normaliz, self).__getstate__()
         state = (state[0], state[1].copy())
         # Remove the unpicklable entries.
         del state[1]['_normaliz_cone']
+        state[1]["_pickle_vertices"] = [v._vector for v in self.vertices()]
+        state[1]["_pickle_rays"] = [v._vector for v in self.rays()]
+        state[1]["_pickle_lines"] = [v._vector for v in self.lines()]
+        state[1]["_pickle_inequalities"] = [v._vector for v in self.inequalities()]
+        state[1]["_pickle_equations"] = [v._vector for v in self.equations()]
         return state
 
     def __setstate__(self, state):
@@ -1326,7 +1332,22 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: P2 = Polyhedron_normaliz(P1.parent(), None, None, P1._normaliz_cone, normaliz_field=P1._normaliz_field)  # optional - pynormaliz
             sage: P == P2                                         # optional - pynormaliz
             True
+
+        Test that :trac:`31820` is fixed::
+
+            sage: P = polytopes.cube(backend='normaliz')  # optional - pynormaliz
+            sage: v = P.Vrepresentation()[0]              # optional - pynormaliz
+            sage: v1 = loads(v.dumps())                   # optional - pynormaliz
         """
+        if "_pickle_vertices" in state[1]:
+            vertices = state[1].pop("_pickle_vertices")
+            rays = state[1].pop("_pickle_rays")
+            lines = state[1].pop("_pickle_lines")
+            inequalities = state[1].pop("_pickle_inequalities")
+            equations = state[1].pop("_pickle_equations")
+        else:
+            vertices = None
+
         super(Polyhedron_normaliz, self).__setstate__(state)
 
         if self.is_empty():
@@ -1334,9 +1355,16 @@ class Polyhedron_normaliz(Polyhedron_base):
             self._normaliz_cone = None
             return
 
+        if vertices is None:
+            vertices = self.vertices()
+            rays = self.rays()
+            lines = self.lines()
+            inequalities = self.inequalities()
+            equations = self.equations()
+
         self._normaliz_cone = \
             self._cone_from_Vrepresentation_and_Hrepresentation(
-                self.vertices(), self.rays(), self.lines(), self.inequalities(), self.equations())
+                vertices, rays, lines, inequalities, equations)
 
     def integral_hull(self):
         r"""
@@ -1592,19 +1620,18 @@ class Polyhedron_normaliz(Polyhedron_base):
 
         # Compute the triangulation.
         assert cone
-        nmz_triangulation = self._nmz_result(cone, "Triangulation")
 
         # Normaliz does not guarantee that the order of generators is kept during
         # computation of the triangulation.
         # Those are the generators that the indices of the triangulation correspond to:
-        nmz_new_generators = self._nmz_result(cone, "TriangulationGenerators")
+        nmz_triangulation, nmz_triangulation_generators = self._nmz_result(cone, "Triangulation")
 
         base_ring = self.base_ring()
         v_list = self.vertices_list()
         r_list = self.rays_list()
 
         new_to_old = {}
-        for i, g in enumerate(nmz_new_generators):
+        for i, g in enumerate(nmz_triangulation_generators):
             if self.is_compact():
                 d = base_ring(g[-1])
                 vertex = [base_ring(x) / d for x in g[:-1]]

@@ -3903,9 +3903,9 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
             sage: x = TL.an_element()
             sage: ascii_art(x)  # indirect doctest
                             o o o o       o o o o
-               o o o o      | `-` |       | `-` | 
-            2* `-` `-` + 2* `-----`  + 3* `---. | 
-               .-. .-.      .-. .-.       .-. | | 
+               o o o o      | `-` |       | `-` |
+            2* `-` `-` + 2* `-----`  + 3* `---. |
+               .-. .-.      .-. .-.       .-. | |
                o o o o      o o o o       o o o o
         """
         return TL_diagram_ascii_art(diagram, use_unicode=False)
@@ -3921,9 +3921,9 @@ class TemperleyLiebAlgebra(SubPartitionAlgebra, UnitDiagramMixin):
             sage: x = TL.an_element()
             sage: unicode_art(x)  # indirect doctest
                             ⚬ ⚬ ⚬ ⚬       ⚬ ⚬ ⚬ ⚬
-               ⚬ ⚬ ⚬ ⚬      │ ╰─╯ │       │ ╰─╯ │ 
-            2* ╰─╯ ╰─╯ + 2* ╰─────╯  + 3* ╰───╮ │ 
-               ╭─╮ ╭─╮      ╭─╮ ╭─╮       ╭─╮ │ │ 
+               ⚬ ⚬ ⚬ ⚬      │ ╰─╯ │       │ ╰─╯ │
+            2* ╰─╯ ╰─╯ + 2* ╰─────╯  + 3* ╰───╮ │
+               ╭─╮ ╭─╮      ╭─╮ ╭─╮       ╭─╮ │ │
                ⚬ ⚬ ⚬ ⚬      ⚬ ⚬ ⚬ ⚬       ⚬ ⚬ ⚬ ⚬
         """
         return TL_diagram_ascii_art(diagram, use_unicode=True)
@@ -4170,21 +4170,21 @@ def TL_diagram_ascii_art(diagram, use_unicode=False, blobs=[]):
         ....:       (6,11), (7, 8), (9,10), (12,13)]
         sage: TL_diagram_ascii_art(TL, use_unicode=False)
          o o o o o o o o o o o o o o o
-         | `-` `-` | `-` `-` | `-` | | 
-         |         `---------`     | | 
-         |                 .-------` | 
+         | `-` `-` | `-` `-` | `-` | |
+         |         `---------`     | |
+         |                 .-------` |
          `---.             | .-------`
              |     .-----. | | .-----.
-         .-. | .-. | .-. | | | | .-. | 
+         .-. | .-. | .-. | | | | .-. |
          o o o o o o o o o o o o o o o
         sage: TL_diagram_ascii_art(TL, use_unicode=True)
          ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
-         │ ╰─╯ ╰─╯ │ ╰─╯ ╰─╯ │ ╰─╯ │ │ 
-         │         ╰─────────╯     │ │ 
-         │                 ╭───────╯ │ 
+         │ ╰─╯ ╰─╯ │ ╰─╯ ╰─╯ │ ╰─╯ │ │
+         │         ╰─────────╯     │ │
+         │                 ╭───────╯ │
          ╰───╮             │ ╭───────╯
              │     ╭─────╮ │ │ ╭─────╮
-         ╭─╮ │ ╭─╮ │ ╭─╮ │ │ │ │ ╭─╮ │ 
+         ╭─╮ │ ╭─╮ │ ╭─╮ │ │ │ │ ╭─╮ │
          ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
 
         sage: TL = [(-20,-9), (-19,-10), (-18,-11), (-17,-16), (-15,-12), (2,3),
@@ -4192,27 +4192,27 @@ def TL_diagram_ascii_art(diagram, use_unicode=False, blobs=[]):
         ....:       (4,5), (8,15), (9,10), (11,14), (12,13), (17,20), (18,19)]
         sage: TL_diagram_ascii_art(TL, use_unicode=False, blobs=[(-2,-1), (-5,1)])
          o o o o o o o o o o o o o o o o o o o o
-         | `-` `-` | | | `-` | `-` | | | | `-` | 
+         | `-` `-` | | | `-` | `-` | | | | `-` |
          |         | | |     `-----` | | `-----`
-         |         | | `-------------` | 
+         |         | | `-------------` |
          `---0---. | | .---------------`
                  | | | | .---------------------.
-                 | | | | | .-----------------. | 
-                 | | | | | | .-------------. | | 
-                 | | | | | | | .-----.     | | | 
-         .0. .-. | | | | | | | | .-. | .-. | | | 
+                 | | | | | .-----------------. |
+                 | | | | | | .-------------. | |
+                 | | | | | | | .-----.     | | |
+         .0. .-. | | | | | | | | .-. | .-. | | |
          o o o o o o o o o o o o o o o o o o o o
         sage: TL_diagram_ascii_art(TL, use_unicode=True, blobs=[(-2,-1), (-5,1)])
          ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
-         │ ╰─╯ ╰─╯ │ │ │ ╰─╯ │ ╰─╯ │ │ │ │ ╰─╯ │ 
+         │ ╰─╯ ╰─╯ │ │ │ ╰─╯ │ ╰─╯ │ │ │ │ ╰─╯ │
          │         │ │ │     ╰─────╯ │ │ ╰─────╯
-         │         │ │ ╰─────────────╯ │ 
+         │         │ │ ╰─────────────╯ │
          ╰───●───╮ │ │ ╭───────────────╯
                  │ │ │ │ ╭─────────────────────╮
-                 │ │ │ │ │ ╭─────────────────╮ │ 
-                 │ │ │ │ │ │ ╭─────────────╮ │ │ 
-                 │ │ │ │ │ │ │ ╭─────╮     │ │ │ 
-         ╭●╮ ╭─╮ │ │ │ │ │ │ │ │ ╭─╮ │ ╭─╮ │ │ │ 
+                 │ │ │ │ │ ╭─────────────────╮ │
+                 │ │ │ │ │ │ ╭─────────────╮ │ │
+                 │ │ │ │ │ │ │ ╭─────╮     │ │ │
+         ╭●╮ ╭─╮ │ │ │ │ │ │ │ │ ╭─╮ │ ╭─╮ │ │ │
          ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬ ⚬
     """
     def insert_pairing(cur, intervals):
@@ -4367,7 +4367,6 @@ def diagram_latex(diagram, fill=False, edge_options=None, edge_additions=None):
     # these allow the view command to work (maybe move them
     # somewhere more appropriate?)
     from sage.misc.latex import latex
-    latex.add_to_mathjax_avoid_list('tikzpicture')
     latex.add_package_to_preamble_if_available('tikz')
 
     if fill:

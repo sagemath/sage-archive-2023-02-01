@@ -88,36 +88,11 @@ computer:
 - **perl**: version 5.8.0 or later.
 - **ar** and **ranlib**: can be obtained as part of GNU binutils.
 - **tar**: GNU tar version 1.17 or later, or BSD tar.
-- **python**: Python 3.4 or later, or Python 2.6 or 2.7.
+- **python**: Python 3.4 or later, or Python 2.7.
   (This range of versions is a minimal requirement for internal purposes of the SageMath
   build system, which is referred to as ``sage-bootstrap-python``.)
 
 Other versions of these may work, but they are untested.
-
-Libraries
-^^^^^^^^^
-
-Some Sage components (and among them, most notably, Python) *"use the
-OpenSSL library for added performance if made available by the
-operating system"* (literal quote from the Python license). Testing
-has proved that:
-
-   * Sage can be successfully built against other SSL libraries (at
-     least GnuTLS).
-
-   * Sage's ``-pip`` facility (used to install some Sage packages) is
-     disabled when Sage is compiled against those libraries.
-
-Furthermore, the Sage license mention that the ``hashlib`` library
-(used in Sage) uses OpenSSL.
-
-Therefore, the OpenSSL library is recommended. However, Sage's license
-seems to clash with OpenSSL license, which makes the distribution of
-OpenSSL along with Sage sources dubious. However, there is no problem
-for Sage using a systemwide-installed OpenSSL library.
-
-In any case, you must install systemwide your chosen library and its
-development files.
 
 
 Fortran and compiler suites
@@ -177,6 +152,8 @@ environment, a.k.a. `venv <https://docs.python.org/3.7/library/venv.html>`_
 rather than building a Python 3 installation from scratch.
 Use the configure option ``--without-system-python3`` in case you want Python 3
 built from scratch.
+
+Sage will accept versions 3.7.x to 3.9.x.
 
 You can also use ``--with-python=/path/to/python3_binary`` to tell Sage to use
 ``/path/to/python3_binary`` to set up the venv. Note that setting up venv requires
@@ -268,8 +245,6 @@ On Fedora / Redhat / CentOS:
 On Arch Linux:
 
 .. literalinclude:: arch.txt
-
-(These examples suppose that you choose to use a systemwide OpenSSL library.)
 
 In addition to these, if you don't want Sage to build optional packages that might
 be available from your OS, cf. the growing list of such packages on :trac:`27330`,
@@ -648,43 +623,6 @@ On Debian/Ubuntu, the following system packages are recommended.
 
 - ``libavdevice-dev`` (to produce animations)
 
-Notebook additional features
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**attention: Sage's notebook is deprecated, and notebook() command has been removed. Use Jupyter notebook instead**
-
-By default, the Sage notebook uses the
-`HTTP <https://en.wikipedia.org/wiki/HTTP>`_
-protocol when you type the command ``notebook()``.
-To run the notebook in secure mode by typing ``notebook(secure=True)`` which
-uses the `HTTPS <https://en.wikipedia.org/wiki/HTTPS>`_ protocol,
-or to use `OpenID <https://en.wikipedia.org/wiki/OpenID>`_ authentication,
-you need to follow specific installation steps described in
-:ref:`section_notebook_ssl`.
-
-Although all necessary components are provided through Sage optional
-packages, i.e., even if you choose not to install a systemwide version
-of OpenSSL, you can install a local (Sage_specific) version of
-`OpenSSL <https://www.openssl.org>`_ by using Sage's **openssl**
-package and running ``sage -i openssl`` as suggested in
-:ref:`section_notebook_ssl` (this requires an Internet
-connection). Alternatively, you might prefer to install OpenSSL and
-the OpenSSL development headers globally on your system, as described
-above.
-
-Finally, if you intend to distribute the notebook load onto several Sage
-servers, you will surely want to setup an
-`SSH <https://en.wikipedia.org/wiki/SSH>`_ server and generate SSH keys.
-This can be achieved using `OpenSSH <https://www.openssh.com/>`_.
-
-On Linux systems, the OpenSSH server, client and utilities are usually provided
-by the **openssh-server** and **openssh-client** packages and can be installed
-using::
-
-    $ sudo apt-get install openssh-server openssh-client
-
-or similar commands.
-
 Tcl/Tk
 ~~~~~~
 
@@ -846,11 +784,9 @@ Running Sage from a directory with spaces in its name will also fail.
    (There are no formal requirements for bug reports -- just send them;
    we appreciate everything.)
 
-   See :ref:`section_make` for some targets for the ``make`` command,
+   See :ref:`section_make` for some targets for the ``make`` command and
    :ref:`section_envvar` for additional information on useful environment
-   variables used by Sage,
-   and :ref:`section_notebook_ssl` for additional instruction on how to build
-   the notebook with SSL support.
+   variables used by Sage.
 
 #. To start Sage, you can now simply type from Sage's home directory::
 
@@ -1003,49 +939,6 @@ Running Sage from a directory with spaces in its name will also fail.
    Type ``install_scripts?`` in Sage for details.
 
 #. Have fun! Discover some amazing conjectures!
-
-.. _section_notebook_ssl:
-
-Building the notebook with SSL support
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Read this section if you are intending to run a Sage notebook server for
-multiple users.
-
-For security, you may wish users to access the server using the HTTPS protocol
-(i.e., to run ``notebook(secure=True)``).
-You also may want to use OpenID for user authentication.
-The first of these requires you to install
-`pyOpenSSL <https://pyopenssl.org/>`_,
-and they both require OpenSSL.
-
-If you have OpenSSL and the OpenSSL development headers installed on your
-system, you can install pyOpenSSL by building Sage and then typing::
-
-    $ ./sage -i pyopenssl
-
-Alternatively, ``make ssl`` builds Sage and installs pyOpenSSL at once.
-Note that these commands require Internet access.
-
-If you are missing either OpenSSL or OpenSSL's development headers,
-you can install a local copy of both into your Sage installation first.
-Ideally, this should be done before installing Sage; otherwise, you should at
-least rebuild Sage's Python, and ideally any part of Sage relying on it.
-The procedure is as follows (again, with a computer connected to the
-Internet).
-Starting from a fresh Sage tarball::
-
-    $ ./sage -i openssl
-    $ make ssl
-
-And if you've already built Sage::
-
-    $ ./sage -i openssl
-    $ ./sage -f python3
-    $ make ssl
-
-The third line will rebuild all parts of Sage that depend on Python;
-this can take a while.
 
 Rebasing issues on Cygwin
 ~~~~~~~~~~~~~~~~~~~~~~~~~

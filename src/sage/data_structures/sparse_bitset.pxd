@@ -1,7 +1,7 @@
 """
 Sparse bitset.
 
-This is a regular bitset to which we we will add additional structure.
+This is a regular bitset to which we will add additional structure.
 
 In particular some representation of which limbs even contain data.
 """

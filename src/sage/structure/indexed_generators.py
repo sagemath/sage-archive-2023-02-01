@@ -519,7 +519,8 @@ def split_index_keywords(kwds):
             pass
     return ret
 
-def parse_indices_names(names, index_set, prefix, kwds={}):
+
+def parse_indices_names(names, index_set, prefix, kwds=None):
     """
     Parse the names, index set, and prefix input, along with setting
     default values for keyword arguments ``kwds``.
@@ -581,12 +582,15 @@ def parse_indices_names(names, index_set, prefix, kwds={}):
 
         if prefix is None:
             prefix = ''
+        if kwds is None:
+            kwds = {}
         kwds.setdefault('string_quotes', False)
         kwds.setdefault('bracket', False)
 
     names, index_set = standardize_names_index_set(names, index_set, -1)
 
     return (names, index_set, prefix)
+
 
 def standardize_names_index_set(names=None, index_set=None, ngens=None):
     """

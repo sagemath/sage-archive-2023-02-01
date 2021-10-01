@@ -570,8 +570,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         ::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
@@ -945,8 +944,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
             sage: G = GrowthGroup('x^ZZ')
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
@@ -1028,15 +1026,13 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
 
             sage: A.<x> = AsymptoticRing('QQ^x * x^QQ * log(x)^QQ', SR.subring(no_variables=True))
             sage: (pi/2 * 5^x * x^(42/17) - sqrt(euler_gamma) * log(x)^(-7/8)).show()
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2} \, \pi
-            5^{x} x^{\frac{42}{17}} - \sqrt{\gamma_E} \log\left(x\right)^{-\frac{7}{8}}</script></html>
+            1/2*pi*5^x*x^(42/17) - sqrt(euler_gamma)*log(x)^(-7/8)
 
         TESTS::
 
             sage: A.<x> = AsymptoticRing('(e^x)^QQ * x^QQ', SR.subring(no_variables=True))
             sage: (zeta(3) * (e^x)^(-1/2) * x^42).show()
-            <html><script type="math/tex">\newcommand{\Bold}[1]{\mathbf{#1}}\zeta(3)
-            \left(e^{x}\right)^{-\frac{1}{2}} x^{42}</script></html>
+            zeta(3)*(e^x)^(-1/2)*x^42
         """
         from sage.repl.rich_output.pretty_print import pretty_print
         pretty_print(self)
@@ -1209,8 +1205,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         TESTS::
 
             sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: T = OTermMonoid(TermMonoid, R.growth_group, ZZ)
@@ -4429,7 +4424,7 @@ class AsymptoticRing(Algebra, UniqueRepresentation, WithLocals):
             NotImplementedOZero: got 1 + O(0)
             The error term O(0) means 0 for sufficiently large n.
 
-        In this case, we can manually intervene by adding an an error term
+        In this case, we can manually intervene by adding an error term
         that suits us::
 
             sage: B.coefficients_of_generating_function(f, (1,), precision=3,

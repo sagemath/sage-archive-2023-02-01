@@ -179,6 +179,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.polynomial.polynomial_complex_arb cimport Polynomial_complex_arb
 from sage.rings.real_arb cimport mpfi_to_arb, arb_to_mpfi
 from sage.rings.real_arb import RealBallField
+from sage.rings.real_mpfi cimport RealIntervalField_class
 from sage.rings.real_mpfr cimport RealField_class, RealField, RealNumber
 from sage.rings.ring import Field
 from sage.structure.element cimport Element, ModuleElement
@@ -187,7 +188,7 @@ from sage.structure.unique_representation import UniqueRepresentation
 from sage.arith.long cimport is_small_python_int
 
 from sage.rings.complex_mpfr import ComplexField
-from sage.rings.complex_interval_field import ComplexIntervalField
+from sage.rings.complex_interval_field import ComplexIntervalField, ComplexIntervalField_class
 from sage.rings.integer_ring import ZZ
 
 cdef void ComplexIntervalFieldElement_to_acb(
@@ -623,7 +624,7 @@ class ComplexBallField(UniqueRepresentation, Field):
         The following conversions used to yield incorrect enclosures::
 
             sage: a = CBF(airy_ai(1)); a
-            [0.1352924163128814 +/- 4.17e-17]
+            [0.1352924163128814 +/- 6.95e-17]
             sage: a.overlaps(ComplexBallField(100).one().airy_ai())
             True
             sage: v = CBF(zetaderiv(1, 3/2)); v
@@ -819,6 +820,13 @@ class ComplexBallField(UniqueRepresentation, Field):
             Traceback (most recent call last):
             ...
             ValueError: unable to determine which roots are real
+
+        TESTS::
+
+            sage: CBF._roots_univariate_polynomial(CBF['x'].zero(), CBF, False, None)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: taking the roots of the zero polynomial
         """
         if algorithm is not None:
             raise NotImplementedError
@@ -829,9 +837,9 @@ class ComplexBallField(UniqueRepresentation, Field):
         cdef bint real = False
         if ring is None:
             ring = self
-        elif isinstance(ring, ComplexBallField):
+        elif isinstance(ring, (ComplexBallField, ComplexIntervalField_class)):
             pass
-        elif isinstance(ring, RealBallField):
+        elif isinstance(ring, (RealBallField, RealIntervalField_class)):
             real = True
         elif ring.has_coerce_map_from(self):
             pass
@@ -852,6 +860,8 @@ class ComplexBallField(UniqueRepresentation, Field):
         cdef ComplexBall cb
         acb_poly_init(rounded_poly)
         cdef long deg = acb_poly_degree(poly.__poly)
+        if deg < 0:
+            raise ArithmeticError("taking the roots of the zero polynomial")
         cdef acb_ptr roots = _acb_vec_init(deg)
         try:
             sig_on()
@@ -2107,7 +2117,7 @@ cdef class ComplexBall(RingElement):
         EXAMPLES::
 
             sage: CBF(exp(I*pi/3)).accuracy()
-            52
+            51
             sage: CBF(I/2).accuracy() == CBF.base().maximal_accuracy()
             True
             sage: CBF('nan', 'inf').accuracy() == -CBF.base().maximal_accuracy()
@@ -4500,8 +4510,8 @@ cdef class ComplexBall(RingElement):
             sage: CBF(0,1).elliptic_invariants()
             ([189.07272012923 +/- ...e-12], [+/- ...e-12])
             sage: CBF(sqrt(2)/2, sqrt(2)/2).elliptic_invariants()
-            ([+/- ...e-12] + [-332.53380314654 +/- ...e-12]*I,
-             [1254.4684215774 +/- ...e-11] + [1254.4684215774 +/- ...e-11]*I)
+            ([+/- ...e-12] + [-332.5338031465...]*I,
+             [1254.46842157...] + [1254.46842157...]*I)
         """
         cdef ComplexBall g2 = self._new()
         cdef ComplexBall g3 = self._new()

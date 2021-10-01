@@ -138,6 +138,7 @@ cpdef is_LinearFunction(x):
     """
     return isinstance(x, LinearFunction)
 
+
 def is_LinearConstraint(x):
     """
     Test whether ``x`` is a linear constraint
@@ -648,7 +649,7 @@ cdef class LinearFunctionsParent_class(Parent):
             sage: LF.gen(23)
             x_23
         """
-        return LinearFunction(self, {i:1})
+        return LinearFunction(self, {i: 1})
 
     def _repr_(self):
         """
@@ -659,11 +660,11 @@ cdef class LinearFunctionsParent_class(Parent):
             sage: MixedIntegerLinearProgram().linear_functions_parent()
             Linear functions over Real Double Field
         """
-        return 'Linear functions over '+str(self.base_ring())
+        return 'Linear functions over ' + str(self.base_ring())
 
     cpdef _element_constructor_(self, x):
         """
-        Construt a :class:`LinearFunction` from ``x``.
+        Construct a :class:`LinearFunction` from ``x``.
 
         EXAMPLES::
 
@@ -932,11 +933,11 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             -1*x_0 + 8*x_3
         """
         P = self.parent()
-        return P(dict([(id,-coeff) for (id, coeff) in self._f.iteritems()]))
+        return P({id: -coeff for id, coeff in self._f.iteritems()})
 
     cpdef _sub_(self, b):
         r"""
-        Defining the - operator (substraction).
+        Defining the - operator (subtraction).
 
         EXAMPLES::
 
@@ -948,8 +949,8 @@ cdef class LinearFunction(LinearFunctionOrConstraint):
             -16 + x_0 - 5*x_2 - 10*x_3
         """
         e = dict(self._f)
-        for (id,coeff) in b.dict().iteritems():
-            e[id] = self._f.get(id,0) - coeff
+        for id, coeff in b.dict().iteritems():
+            e[id] = self._f.get(id, 0) - coeff
         P = self.parent()
         return P(e)
 
@@ -1263,11 +1264,11 @@ cdef class LinearConstraintsParent_class(Parent):
             sage: MixedIntegerLinearProgram().linear_constraints_parent()
             Linear constraints over Real Double Field
         """
-        return 'Linear constraints over '+str(self.linear_functions_parent().base_ring())
+        return 'Linear constraints over ' + str(self.linear_functions_parent().base_ring())
 
     cpdef _element_constructor_(self, left, right=None, equality=False):
         """
-        Construt a :class:`LinearConstraint`.
+        Construct a :class:`LinearConstraint`.
 
         INPUT:
 
@@ -1633,10 +1634,10 @@ cdef class LinearConstraint(LinearFunctionOrConstraint):
             sage: LC(b[3])
             trivial constraint starting with x_0
         """
-        comparator = ( ' == ' if self.equality else ' <= ' )
+        comparator = (' == ' if self.equality else ' <= ')
         result = comparator.join(map(str, self))
         if self.is_trivial():
-            return 'trivial constraint starting with '+result
+            return 'trivial constraint starting with ' + result
         return result
 
     def __nonzero__(self):

@@ -96,7 +96,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
     EXAMPLES::
 
         sage: I = CIF.gen()
-        sage: b = 1.5 + 2.5*I
+        sage: b = 3/2 + 5/2*I
         sage: TestSuite(b).run()
     """
     def __cinit__(self, parent, *args):
@@ -1677,7 +1677,7 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             1.570796326794897?
             sage: (-i).argument()
             -1.570796326794897?
-            sage: (RR('-0.001') - i).argument()
+            sage: (-1/1000 - i).argument()
             -1.571796326461564?
             sage: CIF(2).argument()
             0

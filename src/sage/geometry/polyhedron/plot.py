@@ -764,8 +764,8 @@ class Projection(SageObject):
         polygons = []
 
         if polyhedron.n_lines() == 1:
-            aline = next(polyhedron.line_generator())
-            for shift in [aline(), -aline()]:
+            a_line = next(polyhedron.line_generator())
+            for shift in [a_line(), -a_line()]:
                 for i in range(len(coords)):
                     polygons.append([coords[i - 1], coords[i],
                                      coords[i] + shift, coords[i - 1] + shift])
@@ -838,7 +838,7 @@ class Projection(SageObject):
         self.face_inequalities = face_inequalities
 
         if polyhedron.n_lines() == 0:
-            assert len(faces) > 0, "no vertices?"
+            assert faces, "no vertices?"
             self.polygons.extend( [self.coord_indices_of(f) for f in faces] )
             return
 
@@ -846,9 +846,9 @@ class Projection(SageObject):
         polygons = []
 
         if polyhedron.n_lines() == 1:
-            assert len(faces) > 0, "no vertices?"
-            aline = next(polyhedron.line_generator())
-            for shift in [aline(), -aline()]:
+            assert faces, "no vertices?"
+            a_line = next(polyhedron.line_generator())
+            for shift in [a_line(), -a_line()]:
                 for coords in faces:
                     assert len(coords) == 2, "There must be two points."
                     polygons.append([coords[0], coords[1],
@@ -988,7 +988,7 @@ class Projection(SageObject):
             sage: cube_proj = cube.projection()
             sage: wire = cube_proj.render_wireframe_3d()
             sage: print(wire.tachyon().split('\n')[77])  # for testing
-            FCylinder base 1.0 1.0 -1.0 apex 1.0 1.0 1.0 rad 0.005 texture...
+            FCylinder base 1.0 1.0 -1.0 apex -1.0 1.0 -1.0 rad 0.005 texture...
         """
         wireframe = []
         for l in self.lines:

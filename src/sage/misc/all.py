@@ -10,6 +10,8 @@ from .misc import (BackslashOperator,
                   SAGE_DB, SAGE_TMP,
                    newton_method_sizes, compose,
                   nest)
+lazy_import('sage.misc.misc', 'union',
+            deprecation=32096)
 
 from .verbose import (set_verbose, set_verbose_files,
                       get_verbose_files, unset_verbose_files, get_verbose)
@@ -27,7 +29,7 @@ add = sum
 
 from .dev_tools import runsnake, import_statements
 
-from .html import html
+from .html import html, pretty_print_default
 
 from .repr import repr_lincomb
 
@@ -62,7 +64,8 @@ lazy_import('sage.misc.pager', 'pager')
 lazy_import('sage.misc.sagedoc', ['browse_sage_doc',
         'search_src', 'search_def', 'search_doc',
         'tutorial', 'reference', 'manual', 'developer',
-        'constructions', 'python_help', 'help'])
+        'constructions', 'help'])
+lazy_import('pydoc', 'help', 'python_help')
 
 from .classgraph import class_graph
 
@@ -79,7 +82,7 @@ from .sage_eval import sage_eval, sageobj
 
 from .sage_input import sage_input
 
-lazy_import("sage.misc.cython", ["cython_lambda", "cython_create_local_so"])
+lazy_import("sage.misc.cython", "cython_lambda")
 lazy_import("sage.misc.cython", "cython_compile", "cython")
 
 from .persist import save, load, dumps, loads, db, db_save
@@ -144,7 +147,7 @@ from .functional import (additive_order,
                         transpose)
 
 
-from .latex import LatexExpr, latex, view, pretty_print_default
+from .latex import LatexExpr, latex, view
 
 from .trace import trace
 

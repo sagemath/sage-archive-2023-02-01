@@ -204,7 +204,7 @@ class SageMagics(Magics):
         A magic command to switch between simple display and ASCII art display.
 
         - ``args`` -- string.  See
-          :meth:`sage.misc.display_hook.DisplayHookBase.set_display`
+          :mod:`sage.repl.rich_output.preferences`
           for allowed values. If the mode is ``ascii_art``, it can
           optionally be followed by a width.
 
@@ -260,7 +260,7 @@ class SageMagics(Magics):
 
             sage: shell.run_cell('%display text latex')
             sage: shell.run_cell('1/2')
-            \newcommand{\Bold}[1]{\mathbf{#1}}\frac{1}{2}
+            1/2
 
         Switch back::
 

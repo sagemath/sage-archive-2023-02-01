@@ -141,7 +141,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-import inspect
 
 from .tri_plot import TrianglePlot
 from .index_face_set import IndexFaceSet
@@ -153,7 +152,7 @@ from .texture import Texture
 from sage.ext.fast_eval import fast_float_arg
 
 from sage.functions.trig import cos, sin
-from sage.misc.sageinspect import sage_getargspec
+from sage.misc.sageinspect import sage_getargspec, is_function_or_cython_function
 
 
 class _Coordinates(object):
@@ -394,7 +393,7 @@ def _find_arguments_for_callable(func):
         sage: _find_arguments_for_callable(operator.add)
         []
     """
-    if inspect.isfunction(func):
+    if is_function_or_cython_function(func):
         pass
     elif hasattr(func, 'arguments'):
         # Might be a symbolic function with arguments
@@ -902,6 +901,14 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
 
         var('x y')
         sphinx_plot(plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True))
+
+    The same with thicker mesh lines (not supported in all viewers)::
+
+        sage: var('x,y')
+        (x, y)
+        sage: plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True,
+        ....:        thickness=2, viewer='threejs')
+        Graphics3d Object
 
     Two wobby translucent planes::
 

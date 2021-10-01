@@ -1249,12 +1249,7 @@ class Graphics(WithEqualityById, SageObject):
 
         It does not accept any argument (:trac:`19539`)::
 
-            sage: S.plot(1)  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: plot() takes exactly 1 argument (2 given)
-
-            sage: S.plot(1)  # py3
+            sage: S.plot(1)
             Traceback (most recent call last):
             ...
             TypeError: plot() takes 1 positional argument but 2 were given
@@ -2595,8 +2590,7 @@ class Graphics(WithEqualityById, SageObject):
             vmin -= vmin * basev**(-axes_pad)
             vmax += vmax * basev**(-axes_pad)
 
-        return vmin,vmax
-
+        return vmin, vmax
 
     def matplotlib(self, filename=None,
                    xmin=None, xmax=None, ymin=None, ymax=None,
@@ -2604,10 +2598,10 @@ class Graphics(WithEqualityById, SageObject):
                    axes=None, axes_labels=None, axes_labels_size=None,
                    flip_x=False, flip_y=False,
                    fontsize=None, frame=False, verify=True,
-                   aspect_ratio = None,
+                   aspect_ratio=None,
                    gridlines=None, gridlinesstyle=None,
                    vgridlinesstyle=None, hgridlinesstyle=None,
-                   show_legend=None, legend_options={},
+                   show_legend=None, legend_options=None,
                    axes_pad=None, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
                    title_pos=None, base=None, scale=None,
@@ -2708,7 +2702,8 @@ class Graphics(WithEqualityById, SageObject):
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
-
+        if legend_options is None:
+            legend_options = {}
         # as discussed in trac #25799 and #23696, Sage prefers the computer
         # modern fonts of TeX for math texts such as axes labels, but otherwise
         # adopts the default style of matplotlib

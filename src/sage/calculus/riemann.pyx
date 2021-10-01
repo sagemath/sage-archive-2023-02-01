@@ -255,13 +255,13 @@ cdef class Riemann_Map:
             for k in xrange(self.B):
                 for i in xrange(N):
                     fk = fs[k](self.tk[N-i-1])
-                    cps[k, i] = np.complex(1/fk)
-                    dps[k, i] = np.complex(1/fk**2*fprimes[k](self.tk[N-i-1]))
+                    cps[k, i] = complex(1/fk)
+                    dps[k, i] = complex(1/fk**2*fprimes[k](self.tk[N-i-1]))
         else:
             for k in xrange(self.B):
                 for i in xrange(N):
-                    cps[k, i] = np.complex(fs[k](self.tk[i]))
-                    dps[k, i] = np.complex(fprimes[k](self.tk[i]))
+                    cps[k, i] = complex(fs[k](self.tk[i]))
+                    dps[k, i] = complex(fprimes[k](self.tk[i]))
         if self.exterior:
             xmax = (1/cps).real.max()
             xmin = (1/cps).real.min()
@@ -605,8 +605,7 @@ cdef class Riemann_Map:
             (-1.56...e-05+0.989694...j)
             sage: m.riemann_map(0.4)
             (0.73324...+3.2...e-06j)
-            sage: import numpy as np
-            sage: m.riemann_map(np.complex(-3, 0.0001))
+            sage: m.riemann_map(complex(-3, 0.0001))
             (1.405757...e-05+8.06...e-10j)
         """
 
@@ -691,8 +690,7 @@ cdef class Riemann_Map:
             (0.486319...-4.90019052...j)
             sage: m.inverse_riemann_map(0.25 - 0.3*I)
             (0.1653244...-0.180936...j)
-            sage: import numpy as np
-            sage: m.inverse_riemann_map(np.complex(-0.2, 0.5))
+            sage: m.inverse_riemann_map(complex(-0.2, 0.5))
             (-0.156280...+0.321819...j)
         """
         if self.exterior:
@@ -974,7 +972,7 @@ cdef class Riemann_Map:
                 for i in xrange(pts - 1):
                     temp[i] = self.inverse_riemann_map(
                         (i * 1.0) / (pts * 1.0) * exp(I * angle) * linescale)
-                temp[pts - 1] = np.complex(
+                temp[pts - 1] = complex(
                     self.f(s(angle)) if angle <= tmax else self.f(s(angle-TWOPI)))
                 if plotjoined:
                     line_list[k] = list_plot(
@@ -1403,7 +1401,7 @@ cpdef analytic_boundary(FLOAT_T t, int n, FLOAT_T epsilon):
         sage: m = Riemann_Map([f], [fp],0,200)
         sage: s = spline(m.get_theta_points())
         sage: test_pt = uniform(0,2*pi)
-        sage: s(test_pt) - analytic_boundary(test_pt,20, .3) < 10^-4
+        sage: s(test_pt) - analytic_boundary(test_pt,20, .3) < 10^-3
         True
     """
     cdef FLOAT_T i
@@ -1486,7 +1484,7 @@ cpdef analytic_interior(COMPLEX_T z, int n, FLOAT_T epsilon):
         sage: abs(m.riemann_map(.5)-analytic_interior(.5, 20, .3)) < 10^-6
         True
     """
-    # evaluates the cauchy integral of the boundary, split into the real
+    # evaluates the Cauchy integral of the boundary, split into the real
     # and imaginary results because numerical_integral can't handle complex data.
     rp = 1/(TWOPI)*numerical_integral(cauchy_kernel,0,2*pi,
         params = [epsilon,z,n,'i'])[0]

@@ -187,7 +187,7 @@ class Associahedron_class_base(object):
         """
         if cartan_type or (parent is None and Vrep is None and Hrep is None):
             # Called from element constructor in ``Associahedron_base``.
-            # Alternatively called from ``loads`` in in ``loads(dumps(...))``.
+            # Alternatively called from ``loads`` in ``loads(dumps(...))``.
             return super(Associahedron_class_base, typ).__new__(typ, parent, Vrep, Hrep, **kwds)
         else:
             # Not called from element constructor in ``Associahedron_base``.

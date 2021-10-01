@@ -13,7 +13,6 @@ License
 
 GPLv2 or GPLv3
 
-
 Upstream Contact
 ----------------
 
@@ -31,11 +30,8 @@ Dependencies
 -  NTL
 -  FLINT
 
-
 Special Update/Build Instructions
 ---------------------------------
-
-See spkg-src to create the source tarball.
 
 Other notes:
 

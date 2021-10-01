@@ -4512,7 +4512,7 @@ cdef class CGraphBackend(GenericGraphBackend):
 
         ALGORITHM:
 
-        We pick a vertex at random, think hard and find out that that if we are
+        We pick a vertex at random, think hard and find out that if we are
         to remove the vertex from the graph we must remove all of its
         out-neighbors in the first place. So we put all of its out-neighbours in
         a stack, and repeat the same procedure with the vertex on top of the

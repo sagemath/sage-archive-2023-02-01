@@ -186,12 +186,9 @@ ENV SAGE_NUM_THREADS $SAGE_NUM_THREADS_DOCBUILD
 RUN make
 
 ################################################################################
-# Image with a full build of sage, ready to release, i.e., with stripped       #
-# binaries and some extras to run the jupyter notebook.                        #
+# Image with a full build of sage, ready to release.                           #
 ################################################################################
 FROM make-all as make-release
-RUN sage -pip install terminado "notebook>=5" "ipykernel>=4.6"
-RUN sage -i gap_jupyter singular_jupyter pari_jupyter
 RUN make micro_release
 
 ################################################################################

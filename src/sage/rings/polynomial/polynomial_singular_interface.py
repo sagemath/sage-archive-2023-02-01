@@ -165,7 +165,7 @@ class PolynomialRing_singular_repr:
             sage: R = IntegerModRing(15)['x,y']
             sage: singular(R)
             polynomial ring, over a ring (with zero-divisors), global ordering
-            //   coefficients: ZZ/bigint(15)
+            //   coefficients: ZZ/...(15)
             //   number of vars : 2
             //        block   1 : ordering dp
             //                  : names    x y
@@ -320,12 +320,12 @@ class PolynomialRing_singular_repr:
                 self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gens), _vars, order=order, check=False)
             else:
                 ext_gen = str(base_ring.base_ring().gen())
-                _vars = '(' + ext_gen + ', ' + _vars[1:];
+                _vars = '(' + ext_gen + ', ' + _vars[1:]
 
                 R = self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gens), _vars, order=order, check=False)
 
                 self.base_ring().__minpoly = (str(base_ring.base_ring().modulus()).replace("x",ext_gen)).replace(" ","")
-                singular.eval('setring '+R._name);
+                singular.eval('setring '+R._name)
 
                 from sage.misc.stopgap import stopgap
                 stopgap("Denominators of fraction field elements are sometimes dropped without warning.", 17696)
@@ -382,7 +382,7 @@ def can_convert_to_singular(R):
         False
     """
     if R.ngens() == 0:
-        return False;
+        return False
 
     base_ring = R.base_ring()
     if (base_ring is ZZ

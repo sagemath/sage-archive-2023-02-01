@@ -1,5 +1,5 @@
 # distutils: libraries = mtx
-# sage_setup: distribution = sage-meataxe
+# sage_setup: distribution = sagemath-meataxe
 
 r"""
 Dense Matrices over `\mathbb F_q`, with `q<255`.
@@ -1168,9 +1168,13 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             raise ValueError("self must be a square matrix")
         return self._converter.fel_to_field(MatTrace(self.Data))
 
-    def stack(self, Matrix_gfpn_dense other):
-        """
-        Stack two matrices of the same number of columns.
+    cdef _stack_impl(self, bottom):
+        r"""
+        Stack ``self`` on top of ``bottom``.
+
+        INPUT:
+
+        - ``bottom`` -- a matrix with the same number of columns as ``self``
 
         EXAMPLES::
 
@@ -1181,9 +1185,17 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
             [      0       1       2       x   x + 1   x + 2     2*x 2*x + 1 2*x + 2]
             [      0       1       2       x   x + 1   x + 2     2*x 2*x + 1 2*x + 2]
 
+        Check that we can stack a vector (:trac:`31708`)::
+
+            sage: R.<a> = GF(3^3)
+            sage: M = matrix(R, [[1,1],[0,a+1]])
+            sage: M.stack(vector(R, [a,0]))
+            [    1     1]
+            [    0 a + 1]
+            [    a     0]
         """
-        if self._ncols != other._ncols:
-            raise TypeError("Both numbers of columns must match.")
+        cdef Matrix_gfpn_dense other = <Matrix_gfpn_dense> bottom
+
         if self._nrows == 0 or self.Data == NULL:
             return other.__copy__()
         if other._nrows == 0 or other.Data == NULL:
@@ -1809,7 +1821,7 @@ cdef class Matrix_gfpn_dense(Matrix_dense):
         self.cache('in_echelon_form',True)
         return self._cache['pivots']
 
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 
 def mtx_unpickle(f, int nr, int nc, data, bint m):
     r"""

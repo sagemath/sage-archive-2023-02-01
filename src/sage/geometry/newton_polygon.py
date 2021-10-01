@@ -53,6 +53,8 @@ class NewtonPolygon_element(Element):
         Element.__init__(self, parent)
         self._polyhedron = polyhedron
         self._vertices = None
+        if polyhedron.is_mutable():
+            polyhedron._add_dependent_object(self)
 
     def _repr_(self):
         """
@@ -728,8 +730,9 @@ class ParentNewtonPolygon(Parent, UniqueRepresentation):
                 arg = list(arg)
             except TypeError:
                 raise TypeError("argument must be a list of coordinates or a list of (rational) slopes")
-        if len(arg) > 0 and arg[0] in self.base_ring():
-            if sort_slopes: arg.sort()
+        if arg and arg[0] in self.base_ring():
+            if sort_slopes:
+                arg.sort()
             x = y = 0
             vertices = [(x, y)]
             for slope in arg:

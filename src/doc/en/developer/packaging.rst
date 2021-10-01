@@ -385,9 +385,9 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
 
 - ``sdh_configure [...]``: Runs ``./configure`` with arguments
   ``--prefix="$SAGE_LOCAL"``, ``--libdir="$SAGE_LOCAL/lib"``,
-  ``--disable-maintainer-mode``, and
-  ``--disable-dependency-tracking``. Additional arguments to
-  ``./configure`` may be given as arguments.
+  ``--disable-static``, ``--disable-maintainer-mode``, and
+  ``--disable-dependency-tracking``. Additional arguments to ``./configure``
+  may be given as arguments.
 
 - ``sdh_make [...]``: Runs ``$MAKE`` with the default target.
    Additional arguments to ``$MAKE`` may be given as arguments.
@@ -410,6 +410,9 @@ begin with ``sdh_``, which stands for "Sage-distribution helper".
    ``sdh_pip_install`` actually does the installation via ``pip wheel``,
    creating a wheel file in ``dist/``, followed by
    ``sdh_store_and_pip_install_wheel`` (see below).
+
+- ``sdh_pip_uninstall [...]``: Runs ``pip uninstall`` with the given arguments.
+   If unsuccessful, it displays a warning.
 
 - ``sdh_store_and_pip_install_wheel .``: The current directory,
    indicated by the required argument ``.``, must have a subdirectory
@@ -545,51 +548,102 @@ Where ``sdh_pip_install`` is a function provided by ``sage-dist-helpers`` that
 points to the correct ``pip`` for the Python used by Sage, and includes some
 default flags needed for correct installation into Sage.
 
-If pip will not work, you may use ``sdh_setup_bdist_wheel``, followed by
+If pip will not work but a command like ``python3 setup.py install``
+will, you may use ``sdh_setup_bdist_wheel``, followed by
 ``sdh_store_and_pip_install_wheel .``.
+
+For ``spkg-check.in`` script templates, make sure to call
+``sage-python23`` rather than ``python``. This will ensure that the
+correct version of Python is used to check the package.
+The same holds for ; for example, the ``scipy`` ``spkg-check.in``
+file contains the line
+
+.. CODE-BLOCK:: bash
+
+    exec sage-python23 spkg-check.py
+
+All normal Python packages must have a file ``install-requires.txt``.
+If a Python package is available on PyPI, this file must contain the
+name of the package as it is known to PyPI.  Optionally,
+``install-requires.txt`` can encode version constraints (such as lower
+and upper bounds).  The constraints are in the format of the
+``install_requires`` key of `setup.cfg
+<https://setuptools.readthedocs.io/en/latest/userguide/declarative_config.html>`_
+or `setup.py
+<https://packaging.python.org/discussions/install-requires-vs-requirements/#id5>`_.
+
+The files may include comments (starting with ``#``) that explain why a particular lower
+bound is warranted or why we wish to include or reject certain versions.
+
+For example:
+
+.. CODE-BLOCK:: bash
+
+    $ cat build/pkgs/sphinx/package-version.txt
+    3.1.2.p0
+    $ cat build/pkgs/sphinx/install-requires.txt
+    # gentoo uses 3.2.1
+    sphinx >=3, <3.3
+
+The comments may include links to Trac tickets, as in the following example:
+
+.. CODE-BLOCK:: bash
+
+    $ cat build/pkgs/packaging/install-requires.txt
+    packaging >=18.0
+    # Trac #30975: packaging 20.5 is known to work but we have to silence "DeprecationWarning: Creating a LegacyVersion"
+
+The currently encoded version constraints are merely a starting point.
+Developers and downstream packagers are invited to refine the version
+constraints based on their experience and tests.  When a package
+update is made in order to pick up a critical bug fix from a newer
+version, then the lower bound should be adjusted.
+
 
 .. _section-spkg-SPKG-txt:
 
-The SPKG.rst or SPKG.txt File
------------------------------
+The SPKG.rst File
+-----------------
 
-The ``SPKG.txt`` file should follow this pattern:
+The ``SPKG.rst`` file should follow this pattern:
 
 .. CODE-BLOCK:: text
 
-     = PACKAGE_NAME =
+     PACKAGE_NAME: One line description
 
-     == Description ==
+     Description
+     -----------
 
      What does the package do?
 
-     == License ==
+     License
+     -------
 
      What is the license? If non-standard, is it GPLv3+ compatible?
 
-     == Upstream Contact ==
+     Upstream Contact
+     ----------------
 
-     Provide information for upstream contact.
+     Provide information for upstream contact.  Usually just an URL.
 
-     == Dependencies ==
+     Dependencies
+     ------------
 
-     Put a bulleted list of dependencies here:
+     Only put special dependencies here that are not captured by the
+     ``dependencies`` file. Otherwise omit this section.
 
-     * python
-     * readline
+     Special Update/Build Instructions
+     ---------------------------------
 
-     == Special Update/Build Instructions ==
-
-     If the tarball was modified by hand and not via a spkg-src
-     script, describe what was changed.
+     If the tarball was modified by hand and not via an ``spkg-src``
+     script, describe what was changed. Otherwise omit this section.
 
 
-with ``PACKAGE_NAME`` replaced by the package name. Legacy
-``SPKG.txt`` files have an additional changelog section, but this
+with ``PACKAGE_NAME`` replaced by the SPKG name (= the directory name in
+``build/pkgs``).
+
+Legacy ``SPKG.txt`` files have an additional changelog section, but this
 information is now kept in the git repository.
-
-It is now also possible to use an ``SPKG.rst`` file instead, with the same
-sections.
 
 .. _section-dependencies:
 
@@ -967,9 +1021,10 @@ For Python packages available from PyPI, you can use::
 
 This automatically downloads the most recent version from PyPI and also
 obtains most of the necessary information by querying PyPI.
-The ``dependencies`` file may need editing, and also you may want to set
-lower and upper bounds for acceptable package versions in the file
-``install-requires.txt``.
+The ``dependencies`` file may need editing (watch out for warnings regarding
+``--no-deps`` that Sage issues during installation of the package!).
+Also you may want to set lower and upper bounds for acceptable package versions
+in the file ``install-requires.txt``.
 
 To create a pip package rather than a normal package, you can use::
 

@@ -48,12 +48,13 @@ What about a sequence starting with `3, 7, 15, 1` ?
     sage: c.examples()                                  # optional -- internet
     0: Pi = 3.1415926535897932384...
     1:    = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
-    2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 1, 292, ...]
+    2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 1, 292, ...].
 
     sage: c.comments()                                  # optional -- internet
     0: The first 5821569425 terms were computed by _Eric W. Weisstein_ on Sep 18 2011.
     1: The first 10672905501 terms were computed by _Eric W. Weisstein_ on Jul 17 2013.
     2: The first 15000000000 terms were computed by _Eric W. Weisstein_ on Jul 27 2013.
+    3: The first 30113021586 terms were computed by _Syed Fahad_ on Apr 27 2021.
 
 ::
 
@@ -159,6 +160,7 @@ Classes and methods
 # ****************************************************************************
 from urllib.request import urlopen
 from urllib.parse import urlencode
+from ssl import SSLContext
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -169,7 +171,6 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.flatten import flatten
 from sage.misc.temporary_file import tmp_filename
 from sage.misc.unknown import Unknown
-from sage.misc.misc import embedded
 from sage.misc.html import HtmlFragment
 from sage.repl.preparse import preparse
 
@@ -199,7 +200,7 @@ def _fetch(url):
     """
     try:
         verbose("Fetching URL %s ..." % url, caller_name='OEIS')
-        f = urlopen(url)
+        f = urlopen(url, context=SSLContext())
         result = f.read()
         f.close()
         return bytes_to_str(result)
@@ -400,7 +401,7 @@ class OEIS:
         elif isinstance(query, (list, tuple)):
             return self.find_by_subsequence(query, max_results, first_result)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r"""
         Return the representation of ``self``.
 
@@ -863,7 +864,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             self.online_update()
             return self._raw
 
-    def name(self):
+    def name(self) -> str:
         r"""
         Return the name of the sequence ``self``.
 
@@ -1503,14 +1504,8 @@ class OEISSequence(SageObject, UniqueRepresentation):
             A007540: Wilson primes: primes p such that (p-1)! == -1 (mod p^2).
 
             sage: w.references()                        # optional -- internet
-            0: A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.
-            1: C. Clawson, Mathematical Mysteries, Plenum Press, 1996, p. 180.
-            2: R. Crandall and C. Pomerance, Prime Numbers: A Computational Perspective, Springer, NY, 2001; see p. 29.
-            3: G. H. Hardy and E. M. Wright, An Introduction to the Theory of Numbers, 5th ed., Oxford Univ. Press, 1979, th. 80.
+            ...A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.
             ...
-
-            sage: _[0]                                  # optional -- internet
-            'A. H. Beiler, Recreations in the Theory of Numbers, Dover, NY, 1964, p. 52.'
 
         TESTS::
 
@@ -1574,10 +1569,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             return re.sub(r'\"\/', '\"' + oeis_url, s)
         if browse is None:
             if format == 'guess':
-                if embedded():
-                    return self.links(format='html')
-                else:
-                    return self.links(format='url')
+                return self.links(format='url')
             elif format == 'raw':
                 return FancyTuple(self._field('H'))
             elif format == 'html':
@@ -1706,7 +1698,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             sage: c.examples()                          # optional -- internet
             0: Pi = 3.1415926535897932384...
             1:    = 3 + 1/(7 + 1/(15 + 1/(1 + 1/(292 + ...))))
-            2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 1, 292, ...]
+            2:    = [a_0; a_1, a_2, a_3, ...] = [3; 7, 15, 1, 292, ...].
 
         TESTS::
 
@@ -1839,15 +1831,10 @@ class OEISSequence(SageObject, UniqueRepresentation):
                   'links', 'formulas', 'examples', 'cross_references',
                   'programs', 'keywords', 'offsets', 'url', 'old_IDs',
                   'author', 'extensions_or_errors']:
-            if embedded() and s == 'links':
+            result = getattr(self, s)()
+            if result != '' and result != ('',) and result != ():
                 print(re.sub('_', ' ', s).upper())
-                getattr(self, s)()
-                print('\n')
-            else:
-                result = getattr(self, s)()
-                if result != '' and result != ('',) and result != ():
-                    print(re.sub('_', ' ', s).upper())
-                    print(str(result) + '\n')
+                print(str(result) + '\n')
 
     def programs(self, language='all', preparsing=True, keep_comments=False):
         r"""
@@ -1920,10 +1907,13 @@ class OEISSequence(SageObject, UniqueRepresentation):
         if language == 'sagemath':
             language = 'sage'
         if language == 'all':
-            table = [('maple', FancyTuple(self._field('p'))),
-                     ('mathematica', FancyTuple(self._field('t')))]
+            table = (('maple', FancyTuple(self._field('p'))),
+                     ('mathematica', FancyTuple(self._field('t'))))
+            table = [(lang, code) for lang, code in table if code]
         else:
             table = []
+
+        known_langs = ['sage', 'python', 'scheme']
 
         def is_starting_line(line):
             """
@@ -1936,15 +1926,17 @@ class OEISSequence(SageObject, UniqueRepresentation):
             if ')' not in line:
                 return None
             end = line.index(')')
-            language = line[1:end].lower()  # to handle (Sage) versus (sage)
+            language = line[1:end].lower()  # normalise the language names
             if '(' in language:
                 return None
-            if language == 'sagemath':
-                language = 'sage'
+            for special in known_langs:
+                if special in language:
+                    language = special
+            if ' ' in language:  # get rid of language versions
+                language = language.split(' ')[0]
             if language == 'c#' or language == 'c++':
                 language = 'c'
-            if language.replace(' ', '').isalnum() or language.startswith('scheme'):
-                # to cope with many wrong (Scheme xxx) separators in the OEIS
+            if language.isalnum():
                 return (language, end)
             return None
 

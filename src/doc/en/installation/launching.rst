@@ -143,6 +143,31 @@ different installations of SageMath, you can use the additional option
 
     jupyter kernelspec install --user $SAGE_LOCAL/share/jupyter/kernels/sagemath --name sagemath-dev-worktree
 
+The ``jupyter kernelspec`` approach by default does lead to about 2Gb of
+sagemath documentation being copied into your personal jupyter configuration
+directory. You can avoid that by instead putting a symlink in the relevant spot.
+Assuming that sagemath is properly installed, you can use
+
+.. CODE-BLOCK:: bash
+
+    sage -sh -c 'ls -d $SAGE_LOCAL/share/jupyter/kernels/sagemath'
+
+to find location of the sagemath kernel description and
+
+.. CODE-BLOCK:: bash
+
+    jupyter --paths
+
+to find valid data directories for your jupyter installation.
+A command along the lines of
+
+.. CODE-BLOCK:: bash
+
+    ln -s `sage -sh -c 'ls -d $SAGE_LOCAL/share/jupyter/kernels/sagemath'` $HOME/.local/share/jupyter
+
+can then be used to create a symlink to the sagemath kernel description
+in a location where your own ``jupyter`` can find it.
+
 To get the full functionality of the SageMath kernel in your global
 Jupyter installation, the following Notebook Extension packages also
 need to be installed (or linked) in the environment from which the

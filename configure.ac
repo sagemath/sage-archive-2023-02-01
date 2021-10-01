@@ -74,6 +74,13 @@ fi
 SAGE_SRC="$SAGE_ROOT/src"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
+AC_ARG_WITH([sage-venv],
+            [AS_HELP_STRING([--with-sage-venv=SAGE_VENV],
+                            [put Python packages into an installation hierarchy separate from prefix])],
+            [SAGE_VENV="$withval"],
+            [SAGE_VENV='${SAGE_LOCAL}'])dnl Quoted so that it is resolved at build time by shell/Makefile
+AC_SUBST([SAGE_VENV])
+
 #---------------------------------------------------------
 
 AC_ARG_ENABLE([build-as-root],
@@ -100,6 +107,11 @@ AC_ARG_ENABLE([debug],
               [])
 
 AC_ARG_VAR(SAGE_DEBUG, controls debugging support: "no" debugging; debugging "symbols" (default); build debug version ("yes"))
+
+AC_ARG_ENABLE([editable],
+              [AS_HELP_STRING([--enable-editable],
+                              [use an editable install of the Sage library])],
+              [AC_SUBST([SAGE_EDITABLE], [yes])])
 
 # Check whether we are on a supported platform
 AC_CANONICAL_BUILD()
@@ -416,13 +428,41 @@ AS_IF([test "x$enable_download_from_upstream_url" = "xyes"], [
 ])
 AC_SUBST([SAGE_SPKG_OPTIONS])
 
+AC_ARG_ENABLE([cvxopt],
+  AS_HELP_STRING([--disable-cvxopt],
+                 [disable build of the cvxopt package and its prerequisite suitesparse]), [
+    for pkg in cvxopt suitesparse; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
+
+AC_ARG_ENABLE([notebook],
+  AS_HELP_STRING([--disable-notebook],
+                 [disable build of the Jupyter notebook and related packages]), [
+    for pkg in notebook nbconvert sagenb_export nbformat terminado send2trash prometheus_client mistune pandocfilters bleach defusedxml jsonschema jupyter_jsmol; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
+
+AC_ARG_ENABLE([r],
+  AS_HELP_STRING([--disable-r],
+                 [disable build of the R package and related packages]), [
+    for pkg in r rpy2 r_jupyter; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
+
+dnl Packages that require a special override to use the SPKG
+dnl when the system package is not usable.
+AS_VAR_SET([sage_use_system_gcc], [force])
+
 SAGE_SPKG_COLLECT()
 
 dnl AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([build/make/Makefile-auto build/make/Makefile])
 AC_CONFIG_FILES([src/bin/sage-env-config src/bin/sage-src-env-config build/bin/sage-build-env-config])
 
-AC_CONFIG_FILES([build/pkgs/sage_conf/src/sage_conf.py build/pkgs/sage_conf/src/setup.cfg])
+AC_CONFIG_FILES([pkgs/sage-conf/sage_conf.py pkgs/sage-conf/setup.cfg])
 
 dnl Create basic directories needed for Sage
 AC_CONFIG_COMMANDS(mkdirs,

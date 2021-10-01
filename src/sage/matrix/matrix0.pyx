@@ -1589,7 +1589,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###########################################################
     def base_ring(self):
         """
-        Returns the base ring of the matrix.
+        Return the base ring of the matrix.
 
         EXAMPLES::
 
@@ -1875,6 +1875,25 @@ cdef class Matrix(sage.structure.element.Matrix):
               -0.35104242112828943    0.5084492941557279⎟
                -0.9541798283979341   -0.8948790563276592⎠
 
+        The number of floating point digits to display is controlled by
+        :obj:`matrix.options.precision <.constructor.options>` and can also be
+        set by the `IPython magic
+        <https://ipython.readthedocs.io/en/stable/interactive/magics.html#magic-precision>`_
+        ``%precision``. This does not affect the internal precision of the
+        represented data, but only the textual display of matrices::
+
+            sage: matrix.options.precision = 4
+            sage: A = matrix(RR, [[1/3, 200/3], [-3, 1e6]]); A
+            [  0.3333    66.67]
+            [  -3.000 1.000E+6]
+            sage: unicode_art(A)
+            ⎛  0.3333    66.67⎞
+            ⎝  -3.000 1.000E+6⎠
+            sage: matrix.options.precision = None
+            sage: A
+            [ 0.333333333333333   66.6666666666667]
+            [ -3.00000000000000 1.00000000000000e6]
+
         TESTS:
 
         Prior to :trac:`11544` this could take a full minute to run (2011). ::
@@ -1898,6 +1917,19 @@ cdef class Matrix(sage.structure.element.Matrix):
             ⎛─⎞
             ⎜1⎟
             ⎝─⎠
+
+        Check that exact number types are not affected by the precision
+        option::
+
+            sage: matrix.options.precision = 4
+            sage: matrix(ZZ, [[10^10]])
+            [10000000000]
+            sage: matrix(QQ, [[2/3, 10^6]])
+            [    2/3 1000000]
+            sage: R.<x,y> = QQ[[]]
+            sage: matrix(R, [[2/3 - 10^6 * x^3 + 3 * y + O(x, y)^4]])
+            [2/3 + 3*y - 1000000*x^3 + O(x, y)^4]
+            sage: matrix.options._reset()
         """
         cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
@@ -1988,15 +2020,30 @@ cdef class Matrix(sage.structure.element.Matrix):
             if minus_one is not None:
                 rep_mapping[-self.base_ring().one()] = minus_one
 
+        entries = self.list()
+
+        # only use floating point formatting for inexact types that have
+        # custom implementation of __format__
+        from .constructor import options
+        prec = options.precision()
+        if prec is None or callable(rep_mapping) or not entries \
+                or type(entries[0]).__format__ is Element.__format__ \
+                or self._base_ring.is_exact():
+            fmt_numeric = None
+        else:
+            fmt_numeric = options.format_numeric()
+
         # compute column widths
         S = []
-        for x in self.list():
+        for x in entries:
             # Override the usual representations with those specified
             if callable(rep_mapping):
                 rep = rep_mapping(x)
             # avoid hashing entries, especially algebraic numbers
             elif rep_mapping and x in rep_mapping:
                 rep = rep_mapping.get(x)
+            elif fmt_numeric is not None:
+                rep = fmt_numeric.format(x, prec=prec)
             else:
                 rep = repr(x)
             S.append(rep)
@@ -2223,7 +2270,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def dimensions(self):
         r"""
-        Returns the dimensions of this matrix as the tuple (nrows, ncols).
+        Return the dimensions of this matrix as the tuple (nrows, ncols).
 
         EXAMPLES::
 
@@ -2246,7 +2293,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     def act_on_polynomial(self, f):
         """
-        Returns the polynomial f(self\*x).
+        Return the polynomial f(self\*x).
 
         INPUT:
 
@@ -3552,8 +3599,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         cdef Py_ssize_t i, j, _
         cdef list pairs, k0_pairs, k1_pairs
@@ -3660,8 +3706,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         cdef dict d = {}
         cdef list queue = list(xrange(self._ncols))
@@ -3858,7 +3903,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_symmetric(self):
         """
-        Returns True if this is a symmetric matrix.
+        Return True if this is a symmetric matrix.
 
         A symmetric matrix is necessarily square.
 
@@ -3888,14 +3933,127 @@ cdef class Matrix(sage.structure.element.Matrix):
                     return False
         return True
 
-    def is_hermitian(self):
+    def _is_hermitian(self, skew = False):
         r"""
-        Returns ``True`` if the matrix is equal to its conjugate-transpose.
+        Return ``True`` if the matrix is (skew-)Hermitian.
+
+        For internal purposes. This function is used in `is_hermitian`
+        and `is_skew_hermitian` functions.
+
+        INPUT:
+
+        - ``skew`` - default: ``False`` - Specifies the type of the
+          test. Set to ``True`` to check whether the matrix is
+          skew-Hermitian.
 
         OUTPUT:
 
-        ``True`` if the matrix is square and equal to the transpose
-        with every entry conjugated, and ``False`` otherwise.
+        ``True`` if the matrix is square and (skew-)Hermitian, and
+        ``False`` otherwise.
+
+        Note that if conjugation has no effect on elements of the base
+        ring (such as for integers), then the :meth:`is_(skew_)symmetric`
+        method is equivalent and faster.
+
+        This routine is for matrices over exact rings and so may not
+        work properly for matrices over ``RR`` or ``CC``.  For
+        matrices with approximate entries, the rings of
+        double-precision floating-point numbers, ``RDF`` and ``CDF``,
+        are a better choice since the
+        :meth:`sage.matrix.matrix_double_dense.Matrix_double_dense.is_(skew_)hermitian`
+        method has a tolerance parameter.  This provides control over
+        allowing for minor discrepancies between entries when checking
+        equality.
+
+        The result is cached.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQbar, [[ 1 + I,  1 - 6*I, -1 - I],
+            ....:                    [-3 - I,     -4*I,     -2],
+            ....:                    [-1 + I, -2 - 8*I,  2 + I]])
+            sage: A._is_hermitian()
+            False
+            sage: B = A*A.conjugate_transpose()
+            sage: B._is_hermitian()
+            True
+
+        Sage has several fields besides the entire complex numbers
+        where conjugation is non-trivial. ::
+
+            sage: F.<b> = QuadraticField(-7)
+            sage: C = matrix(F, [[-2*b - 3,  7*b - 6, -b + 3],
+            ....:                [-2*b - 3, -3*b + 2,   -2*b],
+            ....:                [   b + 1,        0,     -2]])
+            sage: C._is_hermitian()
+            False
+            sage: C = C*C.conjugate_transpose()
+            sage: C._is_hermitian()
+            True
+
+        A matrix that is nearly Hermitian, but for a non-real
+        diagonal entry. ::
+
+            sage: A = matrix(QQbar, [[    2,   2-I, 1+4*I],
+            ....:                    [  2+I,   3+I, 2-6*I],
+            ....:                    [1-4*I, 2+6*I,     5]])
+            sage: A._is_hermitian()
+            False
+            sage: A[1,1] = 132
+            sage: A._is_hermitian()
+            True
+
+        Rectangular matrices are never Hermitian. ::
+
+            sage: A = matrix(QQbar, 3, 4)
+            sage: A._is_hermitian()
+            False
+
+        A square, empty matrix is trivially Hermitian. ::
+
+            sage: A = matrix(QQ, 0, 0)
+            sage: A._is_hermitian()
+            True
+
+        A matrix that is skew-Hermitian. ::
+            sage: A = matrix(QQbar, [[-I, 2+I], [-2+I, 0]])
+            sage: A._is_hermitian()
+            False
+            sage: A._is_hermitian(skew = True)
+            True
+        """
+        key = 'skew_hermitian' if skew else 'hermitian'
+        h = self.fetch(key)
+        if not h is None:
+            return h
+        if not self.is_square():
+            self.cache(key, False)
+            return False
+        if self._nrows == 0:
+            self.cache(key, True)
+            return True
+
+        s = -1 if skew else 1
+        cdef Py_ssize_t i,j
+        hermitian = True
+        for i in range(self._nrows):
+            for j in range(i+1):
+                if self.get_unsafe(i,j) != s*self.get_unsafe(j,i).conjugate():
+                    hermitian = False
+                    break
+            if not hermitian:
+                break
+        self.cache(key, hermitian)
+        return hermitian
+
+    def is_hermitian(self):
+        r"""
+        Return ``True`` if the matrix is equal to its conjugate-transpose.
+
+        OUTPUT:
+
+        ``True`` if the matrix is square and equal to the transpose with
+        every entry conjugated, and ``False`` otherwise.
 
         Note that if conjugation has no effect on elements of the base
         ring (such as for integers), then the :meth:`is_symmetric`
@@ -3960,28 +4118,65 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A.is_hermitian()
             True
         """
-        key = 'hermitian'
-        h = self.fetch(key)
-        if not h is None:
-            return h
-        if not self.is_square():
-            self.cache(key, False)
-            return False
-        if self._nrows == 0:
-            self.cache(key, True)
-            return True
+        return self._is_hermitian(skew = False)
 
-        cdef Py_ssize_t i,j
-        hermitian = True
-        for i in range(self._nrows):
-            for j in range(i+1):
-                if self.get_unsafe(i,j) != self.get_unsafe(j,i).conjugate():
-                    hermitian = False
-                    break
-            if not hermitian:
-                break
-        self.cache(key, hermitian)
-        return hermitian
+    def is_skew_hermitian(self):
+        r"""
+        Return ``True`` if the matrix is equal to the negative of its
+        conjugate transpose.
+
+        OUTPUT:
+
+        ``True`` if the matrix is square and equal to the negative of
+        its conjugate transpose, and ``False`` otherwise.
+
+        Note that if conjugation has no effect on elements of the base
+        ring (such as for integers), then the :meth:`is_skew_symmetric`
+        method is equivalent and faster.
+
+        This routine is for matrices over exact rings and so may not
+        work properly for matrices over ``RR`` or ``CC``.  For matrices with
+        approximate entries, the rings of double-precision floating-point
+        numbers, ``RDF`` and ``CDF``, are a better choice since the
+        :meth:`sage.matrix.matrix_double_dense.Matrix_double_dense.is_skew_hermitian`
+        method has a tolerance parameter.  This provides control over
+        allowing for minor discrepancies between entries when checking
+        equality.
+
+        The result is cached.
+
+        EXAMPLES::
+
+            sage: A = matrix(QQbar, [[0, -1],
+            ....:                    [1,  0]])
+            sage: A.is_skew_hermitian()
+            True
+
+        A matrix that is nearly skew-Hermitian, but for a non-real
+        diagonal entry. ::
+
+            sage: A = matrix(QQbar, [[  -I, -1, 1-I],
+            ....:                    [   1,  1,  -1],
+            ....:                    [-1-I,  1,  -I]])
+            sage: A.is_skew_hermitian()
+            False
+            sage: A[1,1] = -I
+            sage: A.is_skew_hermitian()
+            True
+
+        Rectangular matrices are never skew-Hermitian. ::
+
+            sage: A = matrix(QQbar, 3, 4)
+            sage: A.is_skew_hermitian()
+            False
+
+        A square, empty matrix is trivially Hermitian. ::
+
+            sage: A = matrix(QQ, 0, 0)
+            sage: A.is_skew_hermitian()
+            True
+        """
+        return self._is_hermitian(skew = True)
 
     def is_skew_symmetric(self):
         """
@@ -4114,8 +4309,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         if self._ncols != self._nrows:
             raise ValueError("The matrix is not a square matrix")
@@ -4166,8 +4360,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         if self._ncols != self._nrows:
             raise ValueError("The matrix is not a square matrix")
@@ -4175,7 +4368,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_dense(self):
         """
-        Returns True if this is a dense matrix.
+        Return True if this is a dense matrix.
 
         In Sage, being dense is a property of the underlying
         representation, not the number of nonzero entries.
@@ -4273,7 +4466,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_singular(self):
         r"""
-        Returns ``True`` if ``self`` is singular.
+        Return ``True`` if ``self`` is singular.
 
         OUTPUT:
 
@@ -4482,7 +4675,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _nonzero_positions_by_row(self, copy=True):
         """
-        Returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``.
+        Return the list of pairs ``(i,j)`` such that ``self[i,j] != 0``.
 
         It is safe to change the resulting list (unless you give the
         option ``copy=False``).
@@ -4511,7 +4704,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _nonzero_positions_by_column(self, copy=True):
         """
-        Returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``, but
+        Return the list of pairs ``(i,j)`` such that ``self[i,j] != 0``, but
         sorted by columns, i.e., column ``j=0`` entries occur first, then
         column ``j=1`` entries, etc.
 
@@ -4766,13 +4959,11 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     cdef _vector_times_matrix_(self, Vector v):
         """
-        Returns the vector times matrix product.
+        Return the vector times matrix product.
 
         INPUT:
 
-
         -  ``v`` - a free module element.
-
 
         OUTPUT: The vector times matrix product v\*A.
 

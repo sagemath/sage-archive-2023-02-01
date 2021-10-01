@@ -19,9 +19,8 @@ lazy_import('sage.functions.gamma',
              'gamma_inc_lower', 'psi', 'beta'), deprecation=24411)
 
 from sage.symbolic.function import GinacFunction, BuiltinFunction
-from sage.symbolic.expression import Expression
-from sage.libs.pynac.pynac import (register_symbol, symbol_table, I)
-from sage.symbolic.all import SR
+from sage.symbolic.expression import Expression, register_symbol, symbol_table, I
+from sage.symbolic.ring import SR
 from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
 from sage.misc.latex import latex
 from sage.structure.element import Element
@@ -948,7 +947,9 @@ class Function_real_nth_root(BuiltinFunction):
         real_nth_root(x^3, 5)
         sage: f.diff()
         3/5*x^2*real_nth_root(x^(-12), 5)
-        sage: f.integrate(x)
+        sage: result = f.integrate(x)
+        ...
+        sage: result
         integrate((abs(x)^3)^(1/5)*sgn(x^3), x)
         sage: _.diff()
         (abs(x)^3)^(1/5)*sgn(x^3)
@@ -1936,8 +1937,8 @@ class Function_prod(BuiltinFunction):
             sage: isinstance(r.operator(),
             ....:     sage.functions.other.Function_prod) # known bug
             True
-            sage: giac(sprod(m, m, 1, n))
-            n!
+            sage: giac(sprod(m, m, 1, n)).sage()
+            factorial(n)
         """
         BuiltinFunction.__init__(self, "product", nargs=4,
                                conversions=dict(maxima='product',
@@ -2127,11 +2128,7 @@ class Function_cases(GinacFunction):
 
         TESTS::
 
-            sage: cases()  # py2
-            Traceback (most recent call last):
-            ...
-            TypeError: __call__() takes exactly 2 arguments (1 given)
-            sage: cases()  # py3
+            sage: cases()
             Traceback (most recent call last):
             ...
             TypeError: __call__() missing 1 required positional argument: 'l'
@@ -2285,3 +2282,75 @@ class Function_crootof(BuiltinFunction):
 
 complex_root_of = Function_crootof()
 
+
+class Function_elementof(BuiltinFunction):
+    """
+    Formal set membership function that is only accessible internally.
+
+    This function is called to express a set membership statement,
+    usually as part of a solution set returned by ``solve()``.
+    See :class:`sage.sets.set.Set` and :class:`sage.sets.real_set.RealSet`
+    for possible set arguments.
+
+    EXAMPLES::
+
+        sage: from sage.functions.other import element_of
+        sage: element_of(x, SR(ZZ))
+        element_of(x, Integer Ring)
+        sage: element_of(sin(x), SR(QQ))
+        element_of(sin(x), Rational Field)
+        sage: element_of(x, SR(RealSet.open_closed(0,1)))
+        element_of(x, (0, 1])
+        sage: element_of(x, SR(Set([4,6,8])))
+        element_of(x, {8, 4, 6})
+    """
+    def __init__(self):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import element_of
+            sage: loads(dumps(element_of))
+            element_of
+        """
+        BuiltinFunction.__init__(self, "element_of", nargs=2,
+                                 conversions=dict(sympy='Contains'))
+
+    def _eval_(self, x, s):
+        """
+        EXAMPLES::
+
+            sage: from sage.functions.other import element_of
+            sage: element_of(x, SR(RealSet(-oo, oo)))
+            element_of(x, (-oo, +oo))
+            sage: element_of(x, 0)
+            Traceback (most recent call last):
+            ...
+            ValueError: not a set: 0
+        """
+        from sage.categories.sets_cat import Sets
+        if not s in Sets():
+            raise ValueError("not a set: {}".format(s))
+
+    def _latex_(self):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import element_of
+            sage: latex(element_of)
+            \in
+        """
+        return r'\in'
+
+    def _print_latex_(self, ex, s):
+        r"""
+        EXAMPLES::
+
+            sage: from sage.functions.other import element_of
+            sage: latex(element_of(x, SR(ZZ)))
+            x \in \Bold{Z}
+            sage: latex(element_of(x, SR(Set([4,6,8]))))
+            x \in \left\{8, 4, 6\right\}
+        """
+        return r"{} \in {}".format(latex(ex), latex(s))
+
+element_of = Function_elementof()

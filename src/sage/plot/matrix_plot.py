@@ -518,7 +518,7 @@ def matrix_plot(mat, xrange=None, yrange=None, **options):
         sage: matrix_plot(random_matrix(P, 3, 3))
         Traceback (most recent call last):
         ...
-        TypeError: cannot coerce nonconstant polynomial to float
+        TypeError: cannot convert nonconstant polynomial
 
     ::
 

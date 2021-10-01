@@ -156,7 +156,7 @@ class FPModule(CombinatorialFreeModule):
         self._relations = relations
         # if generator_degrees is [d_0, d_1, ...], then
         # the generators are indexed by (0,d_0), (1,d_1), ...
-        keys = [(i,deg) for i,deg in enumerate(generator_degrees)]
+        keys = list(enumerate(generator_degrees))
         self._generator_keys = keys
 
         # The free module on the generators of the module.

@@ -38,13 +38,13 @@ TESTS::
 ######################################################################
 
 import sage.rings.fraction_field
+import sage.rings.abc
 import sage.rings.number_field as number_field
 
 from sage.interfaces.all import singular
 from sage.rings.complex_mpfr import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
 from sage.rings.complex_double import is_ComplexDoubleField
-from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.real_double import is_RealDoubleField
 from sage.rings.rational_field import is_RationalField
 from sage.rings.function_field.function_field import RationalFunctionField
@@ -336,7 +336,7 @@ class PolynomialRing_singular_repr:
             gen = str(base_ring.gen())
             self.__singular = singular.ring( "(%s,%s)"%(base_ring.characteristic(),gen), _vars, order=order, check=False)
 
-        elif is_IntegerModRing(base_ring):
+        elif isinstance(base_ring, sage.rings.abc.IntegerModRing):
             ch = base_ring.characteristic()
             if ch.is_power_of(2):
                 exp = ch.nbits() -1
@@ -388,7 +388,7 @@ def can_convert_to_singular(R):
     if (base_ring is ZZ
         or sage.rings.finite_rings.finite_field_constructor.is_FiniteField(base_ring)
         or is_RationalField(base_ring)
-        or is_IntegerModRing(base_ring)
+        or isinstance(base_ring, sage.rings.abc.IntegerModRing)
         or is_RealField(base_ring)
         or is_ComplexField(base_ring)
         or is_RealDoubleField(base_ring)

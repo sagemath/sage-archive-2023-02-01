@@ -1,6 +1,6 @@
 SAGE_SPKG_CONFIGURE([r], [
     m4_pushdef([SAGE_R_MINVER],["3.4.4"])
-    SAGE_SPKG_DEPCHECK([atlas openblas iconv readline bzip2 liblzma pcre curl], [
+    SAGE_SPKG_DEPCHECK([openblas iconv readline bzip2 liblzma pcre curl], [
       AS_CASE([$host],
         [*-*-cygwin*], [
           dnl #29486: rpy2 2.8.x does not build against system R on cygwin.

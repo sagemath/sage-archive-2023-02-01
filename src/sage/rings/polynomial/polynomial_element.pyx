@@ -64,7 +64,6 @@ import re
 from sage.cpython.wrapperdescr cimport wrapperdescr_fastcall
 import sage.rings.rational
 import sage.rings.integer
-import sage.rings.abc
 from . import polynomial_ring
 import sage.rings.integer_ring
 import sage.rings.rational_field
@@ -85,6 +84,7 @@ from sage.structure.richcmp cimport (richcmp, richcmp_item,
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen, PariError
 
+cimport sage.rings.abc
 from sage.rings.real_mpfr import RealField, RR
 
 from sage.rings.complex_mpfr import ComplexField
@@ -7913,10 +7913,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         late_import()
 
-        input_fp = isinstance(K, (sage.rings.abc.RealField, sage.rings.abc.ComplexField,
-                                  sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField))
-        output_fp = isinstance(L, (sage.rings.abc.RealField, sage.rings.abc.ComplexField,
-                                   sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField))
+        input_fp = isinstance(K, (sage.rings.abc.RealField,
+                                  sage.rings.abc.ComplexField,
+                                  sage.rings.abc.RealDoubleField,
+                                  sage.rings.abc.ComplexDoubleField))
+        output_fp = isinstance(L, (sage.rings.abc.RealField,
+                                  sage.rings.abc.ComplexField,
+                                  sage.rings.abc.RealDoubleField,
+                                  sage.rings.abc.ComplexDoubleField))
         input_complex = isinstance(K, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField))
         output_complex = isinstance(L, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField))
         input_gaussian = (isinstance(K, NumberField_quadratic)
@@ -7925,7 +7929,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if input_fp and output_fp:
             # allow for possibly using a fast but less reliable
             # floating point algorithm from numpy
-            low_prec = isinstance(K, sage.rings.abc.RealDoubleField) or isinstance(K, sage.rings.abc.ComplexDoubleField)
+            low_prec = isinstance(K, (sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField))
             if algorithm is None:
                 if low_prec:
                     algorithm = 'either'

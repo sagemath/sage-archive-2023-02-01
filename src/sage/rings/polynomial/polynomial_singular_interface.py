@@ -387,7 +387,7 @@ def can_convert_to_singular(R):
         or is_RationalField(base_ring)
         or is_IntegerModRing(base_ring)
         or isinstance(base_ring, (sage.rings.abc.RealField, sage.rings.abc.ComplexField,
-                                  sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField)):
+                                  sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField))):
         return True
     elif base_ring.is_prime_field():
         return base_ring.characteristic() <= 2147483647

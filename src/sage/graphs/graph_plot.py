@@ -126,10 +126,10 @@ previously::
 # ****************************************************************************
 
 from collections import defaultdict
-from math import sqrt, cos, sin, acos, atan, pi
+from math import sqrt, cos, sin, atan, pi
 from sage.structure.sage_object import SageObject
 from sage.plot.all import (
-    Graphics, scatter_plot, bezier_path, line, arrow, text, arc, circle)
+    Graphics, scatter_plot, bezier_path, line, arrow, text, circle)
 
 layout_options = {
     'layout':

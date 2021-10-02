@@ -27,7 +27,6 @@ AUTHORS:
 from sage.rings.all import PolynomialRing
 
 import sage.rings.abc
-import sage.rings.abc
 
 from sage.modules.free_module_element import vector
 from sage.structure.sequence import Sequence

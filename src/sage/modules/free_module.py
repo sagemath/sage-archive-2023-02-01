@@ -7443,9 +7443,9 @@ def element_class(R, is_sparse):
             return Vector_modn_dense
         else:
             return free_module_element.FreeModuleElement_generic_dense
-    elif sage.rings.real_double.isinstance(R, sage.rings.abc.RealDoubleField) and not is_sparse:
+    elif sage.rings.real_double.is_RealDoubleField(R) and not is_sparse:
         return sage.modules.vector_real_double_dense.Vector_real_double_dense
-    elif sage.rings.complex_double.isinstance(R, sage.rings.abc.ComplexDoubleField) and not is_sparse:
+    elif sage.rings.complex_double.is_ComplexDoubleField(R) and not is_sparse:
         return sage.modules.vector_complex_double_dense.Vector_complex_double_dense
     elif sage.symbolic.ring.is_SymbolicExpressionRing(R) and not is_sparse:
         import sage.modules.vector_symbolic_dense

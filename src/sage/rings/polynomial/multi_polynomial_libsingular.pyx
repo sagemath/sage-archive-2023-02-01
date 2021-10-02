@@ -225,7 +225,6 @@ from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_mo
 from sage.rings.rational cimport Rational
 from sage.rings.rational_field import QQ
 import sage.rings.abc
-import sage.rings.abc
 from sage.rings.integer_ring import is_IntegerRing, ZZ
 from sage.rings.integer cimport Integer
 from sage.rings.integer import GCD_list

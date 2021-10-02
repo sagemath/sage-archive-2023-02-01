@@ -305,7 +305,6 @@ from sage.misc.latex import latex
 from sage.rings.all import ZZ, QQ, RR, CC
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 import sage.rings.abc
-import sage.rings.abc
 
 from sage.symbolic.function import BuiltinFunction, GinacFunction
 from sage.symbolic.expression import Expression

@@ -14,7 +14,6 @@ This module defines the class ``EllipticCurve_field``, based on
 
 import sage.rings.all as rings
 import sage.rings.abc
-import sage.rings.abc
 from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
 from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_field
 

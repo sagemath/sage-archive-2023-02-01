@@ -23480,18 +23480,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.is_combinatorially_isomorphic(polytopes.cross_polytope(3))
             True
 
-        The EP of a graph with edges is isomorphic
-        to the product of it's connected components with edges::
+        The EP of a graph is isomorphic to the subdirect sum of
+        it's connected components EPs::
 
             sage: n = randint(5, 12)
-            sage: G = Graph()
-            sage: while not G.num_edges():
-            ....:     G = graphs.RandomGNP(n, 0.2)
+            sage: G1 = graphs.RandomGNP(n, 0.2)
+            sage: n = randint(5, 12)
+            sage: G2 = graphs.RandomGNP(n, 0.2)
+            sage: G = G1.disjoint_union(G2)
             sage: P = G.edge_polytope()
-            sage: components = [G.subgraph(c).edge_polytope()
-            ....:               for c in G.connected_components()
-            ....:               if G.subgraph(c).num_edges()]
-            sage: P.is_combinatorially_isomorphic(product(components))
+            sage: P1 = G1.edge_polytope()
+            sage: P2 = G2.edge_polytope()
+            sage: P.is_combinatorially_isomorphic(P1.subdirect_sum(P2))
             True
 
         All trees on `n` vertices have isomorphic EPs::
@@ -23582,18 +23582,18 @@ class GenericGraph(GenericGraph_pyx):
             sage: P.dim() == n - G.connected_components_number()
             True
 
-        The SEP of a graph with edges is isomorphic
-        to the product of it's connected components with edges::
+        The SEP of a graph is isomorphic to the subdirect sum of
+        it's connected components SEP's::
 
             sage: n = randint(5, 12)
-            sage: G = Graph()
-            sage: while not G.num_edges():
-            ....:     G = graphs.RandomGNP(n, 0.2)
+            sage: G1 = graphs.RandomGNP(n, 0.2)
+            sage: n = randint(5, 12)
+            sage: G2 = graphs.RandomGNP(n, 0.2)
+            sage: G = G1.disjoint_union(G2)
             sage: P = G.symmetric_edge_polytope()
-            sage: components = [G.subgraph(c).symmetric_edge_polytope()
-            ....:               for c in G.connected_components()
-            ....:               if G.subgraph(c).num_edges()]
-            sage: P.is_combinatorially_isomorphic(product(components))
+            sage: P1 = G1.symmetric_edge_polytope()
+            sage: P2 = G2.symmetric_edge_polytope()
+            sage: P.is_combinatorially_isomorphic(P1.subdirect_sum(P2))
             True
 
         All trees on `n` vertices have isomorphic SEPs::

@@ -3945,7 +3945,6 @@ cdef class NumberFieldElement(FieldElement):
         if a <= Kv.one():
             return Kv.zero()
         ht = a.log()
-        from sage.rings.real_mpfr import is_RealField
         if weighted and not isinstance(Kv, sage.rings.abc.RealField):
             ht*=2
         return ht

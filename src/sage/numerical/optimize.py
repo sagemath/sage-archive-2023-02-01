@@ -512,17 +512,20 @@ def minimize_constrained(func,cons,x0,gradient=None,algorithm='default', **args)
 
     if isinstance(func, Expression):
         var_list = func.variables()
-        fast_f = fast_callable(func, vars=var_list)
+        fast_f = fast_callable(func, vars=var_list, domain=float)
         f = lambda p: fast_f(*p)
         gradient_list = func.gradient()
-        fast_gradient_functions = [ fast_callable(gi, vars=var_list)
+        fast_gradient_functions = [ fast_callable(gi,
+                                                  vars=var_list,
+                                                  domain=float)
                                     for gi in gradient_list ]
         gradient = lambda p: numpy.array([ a(*p) for a in fast_gradient_functions])
         if isinstance(cons, Expression):
-            fast_cons = fast_callable(cons, vars=var_list)
+            fast_cons = fast_callable(cons, vars=var_list, domain=float)
             cons = lambda p: numpy.array([fast_cons(*p)])
         elif isinstance(cons, list) and isinstance(cons[0], Expression):
-            fast_cons = [fast_callable(ci, vars=var_list) for ci in cons]
+            fast_cons = [ fast_callable(ci, vars=var_list, domain=float)
+                          for ci in cons ]
             cons = lambda p: numpy.array([a(*p) for a in fast_cons])
     else:
         f = func
@@ -781,7 +784,7 @@ def find_fit(data, model, initial_guess = None, parameters = None, variables = N
     if isinstance(model, Expression):
         from sage.ext.fast_callable import fast_callable
         var_list = variables + parameters
-        func = fast_callable(model, vars=var_list)
+        func = fast_callable(model, vars=var_list, domain=float)
     else:
         func = model
 

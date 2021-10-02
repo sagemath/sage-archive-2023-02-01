@@ -311,7 +311,7 @@ def numerical_integral(func, a, b=None,
                 else:
                    if ell.is_numeric() and not ell.is_zero():
                       raise ValueError('integral does not converge at infinity')
-            func = fast_callable(func, vars=[v])
+            func = fast_callable(func, vars=[v], domain=float)
 
 
     if not isinstance(func, compiled_integrand):

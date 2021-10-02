@@ -2,46 +2,6 @@
 """
 The Sage Preparser
 
-AUTHORS:
-
-    - William Stein (2006-02-19)
-
-      - Fixed bug when loading .py files.
-
-    - William Stein (2006-03-09)
-
-      - Fixed crash in parsing exponentials.
-      - Precision of real literals now determined by digits of input
-        (like Mathematica).
-
-    - Joe Wetherell (2006-04-14)
-
-      - Added MAGMA-style constructor preparsing.
-
-    - Bobby Moretti (2007-01-25)
-
-      - Added preliminary function assignment notation.
-
-    - Robert Bradshaw (2007-09-19)
-
-      - Added strip_string_literals, containing_block utility
-        functions. Arrr!
-      - Added [1,2,..,n] notation.
-
-    - Robert Bradshaw (2008-01-04)
-
-      - Implicit multiplication (off by default).
-
-    - Robert Bradshaw (2008-09-23)
-
-      - Factor out constants.
-
-    - Robert Bradshaw (2000-01)
-
-      - Simplify preparser by making it modular and using regular
-        expressions.
-      - Bug fixes, complex numbers, and binary input.
-
 EXAMPLES:
 
 Preparsing::
@@ -245,6 +205,26 @@ Nested F-strings are also supported::
     sage: f'''1{ f"2{ f'4{ 2^3 }4' }2" }1'''
     '1248421'
 
+AUTHORS:
+
+- William Stein (2006-02-19): fixed bug when loading .py files
+
+- William Stein (2006-03-09): fixed crash in parsing exponentials; precision of
+  real literals now determined by digits of input (like Mathematica)
+
+- Joe Wetherell (2006-04-14): added MAGMA-style constructor preparsing
+
+- Bobby Moretti (2007-01-25): added preliminary function assignment notation
+
+- Robert Bradshaw (2007-09-19): added strip_string_literals, containing_block
+  utility functions. Arrr!; added [1,2,..,n] notation
+
+- Robert Bradshaw (2008-01-04): implicit multiplication (off by default)
+
+- Robert Bradshaw (2008-09-23): factor out constants
+
+- Robert Bradshaw (2009-01): simplify preparser by making it modular and using
+  regular expressions; bug fixes, complex numbers, and binary input
 """
 
 # ****************************************************************************
@@ -1105,6 +1085,7 @@ def parse_ellipsis(code, preparse_step=True):
         ix = code.find('..')
     return code
 
+
 def extract_numeric_literals(code):
     """
     Pulls out numeric literals and assigns them to global variables.
@@ -1493,11 +1474,17 @@ def preparse_calculus(code):
         ....: ''')
         '\n__tmp__=var("a,b,c,d"); f = symbolic_expression(a + b*Integer(2) + c*Integer(3) + d*Integer(4)).function(a,b,c,d)\n'
 
+    Check that :trac:`30953` is fixed::
+
+        sage: preparse('''
+        ....: f(x) = (x + (x*x) +  # some comment with matching )
+        ....:         1); f''')
+        '\n__tmp__=var("x"); f = symbolic_expression((x + (x*x) +  # some comment with matching )\n        Integer(1))).function(x); f'
     """
     new_code = []
     last_end = 0
     #                                 f         (  vars  )   =      expr
-    for m in re.finditer(r";(\s*)([^\W\d]\w*) *\(([^()]+)\) *= *([^;#=][^;#]*)", code):
+    for m in re.finditer(r";(\s*)([^\W\d]\w*) *\(([^()]+)\) *= *([^;#=][^;]*)", code):
         ident, func, vars, expr = m.groups()
         # Semicolons are removed in order to allow the vars to span multiple lines.
         # (preparse having converted all \n into ;\n;)
@@ -1646,11 +1633,25 @@ def preparse_generators(code):
 
         sage: preparse('Ω.<λ,μ> = QQ[]')
         "Ω = QQ['λ, μ']; (λ, μ,) = Ω._first_ngens(2)"
+
+    Check that :trac:`30953` is fixed::
+
+        sage: preparse('''
+        ....: K.<a> = QuadraticField(2 +
+        ....:                        1)''')
+        "\nK = QuadraticField(Integer(2) +\n                       Integer(1), names=('a',)); (a,) = K._first_ngens(1)"
+        sage: preparse('''
+        ....: K.<a> = QuadraticField(2 + (1 + 1) + # some comment
+        ....:                        1)''')
+        "\nK = QuadraticField(Integer(2) + (Integer(1) + Integer(1)) + # some comment\n                       Integer(1), names=('a',)); (a,) = K._first_ngens(1)"
+        sage: preparse('''
+        ....: K.<a> = QuadraticField(2)  # some comment''')
+        "\nK = QuadraticField(Integer(2), names=('a',)); (a,) = K._first_ngens(1)# some comment"
     """
     new_code = []
     last_end = 0
     #                                obj       .< gens >      ,  other   =   constructor
-    for m in re.finditer(r";(\s*)([^\W\d]\w*)\.<([^>]+)> *((?:,[\w, ]+)?)= *([^;#]+)", code):
+    for m in re.finditer(r";(\s*)([^\W\d]\w*)\.<([^>]+)> *((?:,[\w, ]+)?)= *([^;]+)", code):
         ident, obj, gens, other_objs, constructor = m.groups()
         gens = [v.strip() for v in gens.split(',')]
         constructor = constructor.rstrip()
@@ -1689,6 +1690,7 @@ def preparse_generators(code):
 
 
 quote_state = None
+
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False,
              numeric_literals=True):
@@ -1745,7 +1747,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         'a  * BackslashOperator() * b \\'
 
         sage: preparse("time R.<x> = ZZ[]", do_time=True)
-        '__time__=cputime(); __wall__=walltime(); R = ZZ[\'x\']; print("Time: CPU %.2f s, Wall: %.2f s"%(cputime(__time__), walltime(__wall__))); (x,) = R._first_ngens(1)'
+        '__time__ = cputime(); __wall__ = walltime(); R = ZZ[\'x\']; print("Time: CPU {:.2f} s, Wall: {:.2f} s".format(cputime(__time__), walltime(__wall__))); (x,) = R._first_ngens(1)'
 
     TESTS:
 
@@ -1767,6 +1769,13 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
         # some comment
         __tmp__=var("x"); f = symbolic_expression(x + Integer(1)).function(x)
 
+    TESTS::
+
+        sage: from sage.repl.preparse import preparse
+        sage: lots_of_numbers = "[%s]" % ", ".join(str(i) for i in range(3000))
+        sage: _ = preparse(lots_of_numbers)
+        sage: print(preparse("type(100r), type(100)"))
+        type(100), type(Integer(100))
     """
     global quote_state
     if reset:
@@ -1817,7 +1826,21 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
     L = L.replace('\\\n', '')
 
     # Make it easy to match statement ends
-    L = ';%s;' % L.replace('\n', ';\n;')
+    ends = []
+    counta = 0
+    countb = 0
+    for i in range(len(L)):
+        if L[i] in ('[', ']'):
+            counta += 1 if L[i] == '[' else -1
+        elif L[i] in ('(', ')'):
+            countb += 1 if L[i] == '(' else -1
+        elif L[i] in ('\n', '#'):
+            if counta == countb == 0:
+                ends.append(i)
+    while ends:
+        i = ends.pop()
+        L = L[:i] + ';%s;' % L[i] + L[i+1:]
+    L = ';' + L + ';'
 
     if do_time:
         # Separate time statement
@@ -1837,12 +1860,13 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
     if do_time:
         # Time keyword
-        L = re.sub(r';time;(\s*)(\S[^;]*)',
-                   r';\1__time__=cputime(); __wall__=walltime(); \2; print(' +
-                        '"Time: CPU %%.2f s, Wall: %%.2f s"%%(cputime(__time__), walltime(__wall__)))',
-                   L)
+        L = re.sub(r';time;(\s*)(\S[^;\n]*)',
+                   r';\1__time__ = cputime(); __wall__ = walltime(); \2; print(' +
+                   r'"Time: CPU {:.2f} s, Wall: {:.2f} s".format(cputime(__time__), walltime(__wall__)))',
+                   L, flags=re.MULTILINE)
 
     # Remove extra ;'s
+    L = L.replace(';#;', '#')
     L = L.replace(';\n;', '\n')[1:-1]
 
     line = L % literals
@@ -1856,7 +1880,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False,
 
 def preparse_file(contents, globals=None, numeric_literals=True):
     """
-    Preparses input, attending to numeric literals and load/attach
+    Preparse ``contents`` which is input from a file such as ``.sage`` files.
+
+    Special attentions are given to numeric literals and load/attach
     file directives.
 
     .. note:: Temporarily, if @parallel is in the input, then
@@ -2028,7 +2054,6 @@ def implicit_mul(code, level=5):
         code = re.sub(r'\) *\(', ')*(', code)
     code = code.replace(no_mul_token, '')
     return code % literals
-
 
 
 def _strip_quotes(s):

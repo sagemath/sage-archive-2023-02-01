@@ -258,7 +258,7 @@ def calculate_voronoi_cell(basis, radius=None, verbose=False):
     artificial_length = None
     if dim[0] < dim[1]:
         # introduce "artificial" basis points (representing infinity)
-        artificial_length = max(abs(v) for v in basis).ceil() * 2
+        artificial_length = max(v.norm(1) for v in basis).ceil() * 2
         additional_vectors = identity_matrix(dim[1]) * artificial_length
         basis = basis.stack(additional_vectors)
         # LLL-reduce to get quadratic matrix
@@ -277,7 +277,7 @@ def calculate_voronoi_cell(basis, radius=None, verbose=False):
 
     # twice the length of longest vertex in Q is a safe choice
     if radius is None:
-        radius = 2 * max(abs(v) ** 2 for v in basis)
+        radius = 2 * max(v.norm(1) ** 2 for v in basis)
 
     V = diamond_cut(Q, basis, radius, verbose=verbose)
 

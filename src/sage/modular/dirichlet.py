@@ -1153,7 +1153,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         # now compute the input for pari (list of exponents)
         P = self.parent()
-        if isinstance(P.base_ring(, sage.rings.abc.ComplexField)):
+        if isinstance(P.base_ring(), sage.rings.abc.ComplexField):
             zeta = P.zeta()
             zeta_argument = zeta.argument()
             v = [int(x.argument() / zeta_argument) for x in values_on_gens]
@@ -2138,7 +2138,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         """
         P = self.parent()
         M = P._module
-        if isinstance(P.base_ring(, sage.rings.abc.ComplexField)):
+        if isinstance(P.base_ring(), sage.rings.abc.ComplexField):
             zeta = P.zeta()
             zeta_argument = zeta.argument()
             v = M([int(round(x.argument() / zeta_argument))

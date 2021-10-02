@@ -51,7 +51,7 @@ TESTS::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-cdef is_FractionField, is_RealField, is_ComplexField
+cdef is_FractionField
 cdef ZZ, QQ, RR, CC, RDF, CDF
 
 cimport cython
@@ -64,6 +64,7 @@ import re
 from sage.cpython.wrapperdescr cimport wrapperdescr_fastcall
 import sage.rings.rational
 import sage.rings.integer
+import sage.rings.abc
 from . import polynomial_ring
 import sage.rings.integer_ring
 import sage.rings.rational_field
@@ -84,13 +85,13 @@ from sage.structure.richcmp cimport (richcmp, richcmp_item,
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen, PariError
 
-from sage.rings.real_mpfr import RealField, is_RealField, RR
+from sage.rings.real_mpfr import RealField, RR
 
-from sage.rings.complex_mpfr import is_ComplexField, ComplexField
+from sage.rings.complex_mpfr import ComplexField
 CC = ComplexField()
 
-from sage.rings.real_double import is_RealDoubleField, RDF
-from sage.rings.complex_double import is_ComplexDoubleField, CDF
+from sage.rings.real_double import RDF
+from sage.rings.complex_double import CDF
 from sage.rings.real_mpfi import is_RealIntervalField
 
 from sage.structure.coerce cimport coercion_model
@@ -7912,18 +7913,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         late_import()
 
-        input_fp = (isinstance(K, sage.rings.abc.RealField)
-                    or isinstance(K, sage.rings.abc.ComplexField)
-                    or isinstance(K, sage.rings.abc.RealDoubleField)
-                    or isinstance(K, sage.rings.abc.ComplexDoubleField))
-        output_fp = (isinstance(L, sage.rings.abc.RealField)
-                     or isinstance(L, sage.rings.abc.ComplexField)
-                     or isinstance(L, sage.rings.abc.RealDoubleField)
-                     or isinstance(L, sage.rings.abc.ComplexDoubleField))
-        input_complex = (isinstance(K, sage.rings.abc.ComplexField)
-                         or isinstance(K, sage.rings.abc.ComplexDoubleField))
-        output_complex = (isinstance(L, sage.rings.abc.ComplexField)
-                          or isinstance(L, sage.rings.abc.ComplexDoubleField))
+        input_fp = isinstance(K, (sage.rings.abc.RealField, sage.rings.abc.ComplexField,
+                                  sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField))
+        output_fp = isinstance(L, (sage.rings.abc.RealField, sage.rings.abc.ComplexField,
+                                   sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField))
+        input_complex = isinstance(K, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField))
+        output_complex = isinstance(L, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField))
         input_gaussian = (isinstance(K, NumberField_quadratic)
                           and list(K.polynomial()) == [1, 0, 1])
 
@@ -7943,8 +7938,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             # We should support GSL, too.  We could also support PARI's
             # old Newton-iteration algorithm.
 
-            input_arbprec = (isinstance(K, sage.rings.abc.RealField) or
-                             isinstance(K, sage.rings.abc.ComplexField))
+            input_arbprec = isinstance(K, (sage.rings.abc.RealField, sage.rings.abc.ComplexField))
 
             if algorithm == 'numpy' or algorithm == 'either':
                 if K.prec() > 53 and L.prec() > 53:
@@ -8250,7 +8244,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
         """
         K = self.base_ring()
-        if isinstance(K, sage.rings.abc.RealField) or isinstance(K, sage.rings.abc.RealDoubleField):
+        if isinstance(K, (sage.rings.abc.RealField, sage.rings.abc.RealDoubleField)):
             return self.roots(multiplicities=False)
 
         return self.roots(ring=RR, multiplicities=False)
@@ -8296,7 +8290,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.roots(ring=ComplexField(K.prec()), multiplicities=False)
         if isinstance(K, sage.rings.abc.RealDoubleField):
             return self.roots(ring=CDF, multiplicities=False)
-        if isinstance(K, sage.rings.abc.ComplexField) or isinstance(K, sage.rings.abc.ComplexDoubleField):
+        if isinstance(K, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField)):
             return self.roots(multiplicities=False)
 
         return self.roots(ring=CC, multiplicities=False)

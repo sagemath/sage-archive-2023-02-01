@@ -94,6 +94,7 @@ from sage.rings.integer_ring import ZZ
 from sage.structure.richcmp import op_EQ, op_NE
 from sage.arith.power import generic_power
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.data_structures.stream import (
     Stream_add,
     Stream_cauchy_mul,
@@ -2540,6 +2541,106 @@ class LazyDirichletSeries(LazyModuleElement):
         """
         P = self.parent()
         return P.element_class(P, Stream_dirichlet_invert(self._coeff_stream))
+
+    def __call__(self, p):
+        r"""
+        Return the composition of ``self`` with a linear polynomial ``p``.
+
+        Return the series with the variable `s` replaced by a linear
+        polynomial `a\cdot s + b`, for positive `a`.
+
+        When `f` is an exact Dirichlet series, we can write
+
+        .. MATH::
+
+            f(s) = \sum_{n=1}^k a_n / n^s + C \zeta(s).
+
+        Thus we can evaluate this for `p \in \CC` by using the analytic
+        continuation of the Riemann `\zeta` function for `p \in \CC`
+        with the real part of `p` at most `1`. In the case `p = 1`,
+        this will return `\infty` if `C \neq 0`.
+
+        EXAMPLES::
+
+            sage: D = LazyDirichletSeriesRing(QQ, "s")
+            sage: P.<s> = QQ[]
+            sage: Z = D(constant=1)
+            sage: from sage.arith.misc import dedekind_psi
+            sage: Psi = D(dedekind_psi)
+            sage: Z(s)*Z(s-1)/Z(2*s) - Psi
+            O(1/(8^s))
+
+            sage: Z(s)*Z(s-1)/Z(2*s-2) - (1/Psi).map_coefficients(abs)
+            O(1/(8^s))
+
+            sage: Z(5)
+            zeta(5)
+            sage: Z(1+I)
+            zeta(I + 1)
+            sage: Z(0)
+            -1/2
+            sage: Z(1)
+            Infinity
+
+            sage: f = D([1,2,-3,-4], valuation=2); f
+            1/(2^s) + 2/3^s - 3/4^s - 4/5^s
+            sage: f(2)
+            449/3600
+            sage: 1/2^2 + 2/3^2 + -3/4^2 + -4/5^2
+            449/3600
+            sage: f(0)
+            -4
+            sage: f(1)
+            -23/60
+            sage: f(-2)
+            -126
+
+            sage: f = D([4,2,-3,2])
+            sage: f(0)
+            5
+
+            sage: f = D([1,2,-3,-4], constant=2)
+            sage: bool(f(2) == -1 + -5/3^2 + -6/4^2 + 2*zeta(2))
+            True
+            sage: f(0)
+            -13
+            sage: f(1)
+            Infinity
+        """
+        P = self.parent()
+        coeff_stream = self._coeff_stream
+
+        # Special behavior for finite series
+        if isinstance(coeff_stream, Stream_exact):
+            from sage.rings.all import CC
+            if not coeff_stream._constant:
+                try:
+                    return sum(self[k] * ~(ZZ(k)**p)
+                               for k in range(1, coeff_stream._degree))
+                except (ValueError, TypeError, ArithmeticError):
+                    pass
+            elif p in CC:
+                from sage.functions.transcendental import zeta
+                C = coeff_stream._constant
+                ret = sum((self[k] - C) * ~(ZZ(k)**p)
+                          for k in range(1, coeff_stream._degree))
+                return ret + C * zeta(p)
+
+        R = PolynomialRing(ZZ, P.variable_name())
+        p = R(p)
+        if p.degree() != 1:
+            raise ValueError("the argument must be a linear polynomial of degree 1 with integer coefficients")
+        b, a = p
+        if a < 0:
+            raise ValueError("the leading coefficient must be positive")
+        def coefficient(m):
+            m = ZZ(m)
+            try:
+                n = m.nth_root(a)
+                return coeff_stream[n] * n ** (-b)
+            except ValueError:
+                return ZZ.zero()
+        return P.element_class(P, Stream_function(coefficient, P._coeff_ring, P._sparse, 1))
 
     def _format_series(self, formatter, format_strings=False):
         """

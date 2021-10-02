@@ -34,7 +34,6 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.lazy_series import (LazyModuleElement,
-                                    LazyCauchyProductSeries,
                                     LazyLaurentSeries,
                                     LazyDirichletSeries)
 from sage.structure.global_options import GlobalOptions
@@ -57,7 +56,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
 
         INPUT:
 
-        - ``x`` -- data used to the define a Laurent series
+        - ``x`` -- data used to the define a series
         - ``valuation`` -- integer (optional); integer; a lower bound for
           the valuation of the series
         - ``degree`` -- (optional) the degree when the series is ``constant``
@@ -66,9 +65,11 @@ class LazySeriesRing(UniqueRepresentation, Parent):
           coefficients of the series; must be ``None`` if ``x`` is provided;
           see note below
 
-        If ``valuation`` is specified and ``x`` is convertible into a Laurent
-        polynomial or is a lazy Laurent series, then the data is shifted so
-        that the result has the specified valuation.
+        If ``valuation`` is specified and ``x`` is convertible into
+        an element of the underlying ring corresponding to series
+        with finite support or ``x`` is a lazy series of the same
+        parent, then the data is shifted so that the result has the
+        specified valuation.
 
         .. WARNING::
 
@@ -82,8 +83,18 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             input, then passing a function as ``x`` might be converted to
             the base ring. If instead the input is to be treated as the
             function giving the coefficients of the lazy series being
-            cosntructed, then use the ``coefficients`` argument in this
+            constructed, then use the ``coefficients`` argument in this
             case and do not provide ``x``.
+
+        .. WARNING::
+
+            Polynomials, but also :class:`LazyLaurentSeries` and
+            :class:`LazyDirichletSeries` are callable.  Therefore, an
+            argument ``x`` which is not convertible into an element
+            of the underlying ring corresponding to series with
+            finite support is interpreted as a function providing the
+            coefficients when evaluated at integers.  Examples are
+            provided below.
 
         EXAMPLES::
 
@@ -184,6 +195,26 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: L(coefficients=lambda n: 1/factorial(n), valuation=0)
             1 + z + 1/2*z^2 + 1/6*z^3 + 1/24*z^4 + 1/120*z^5 + 1/720*z^6 + O(z^7)
 
+        When the argument ``x`` is callable and not convertible into
+        an element of the underlying ring of series of finite
+        support, it is evaluated at integers to compute the
+        coefficients::
+
+            sage: R.<q> = QQ[]
+            sage: D = LazyDirichletSeriesRing(ZZ, 't')
+            sage: D(1+2*q)
+            3 + 5/2^t + 7/3^t + 9/4^t + 11/5^t + 13/6^t + 15/7^t + O(1/(8^t))
+
+        In this example, the Dirichlet series ``m`` is considered as an
+        element in the base ring::
+
+            sage: m = D(moebius)
+            sage: s = L(m, valuation=0)
+            sage: s[0]
+            1 - 1/(2^s) - 1/(3^s) - 1/(5^s) + 1/(6^s) - 1/(7^s) + O(1/(8^s))
+            sage: s[1]
+            0
+
         TESTS:
 
         Checking the valuation is consistent::
@@ -224,6 +255,20 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             sage: L(5, valuation=6/2)
             5*z^3
 
+        Checking that series are not interpreted as coefficients when
+        they can be interpreted as series::
+
+            sage: P.<s> = ZZ[]
+            sage: L.<z> = LazyLaurentSeriesRing(ZZ)
+            sage: M.<w> = LazyLaurentSeriesRing(QQ)
+            sage: L(M(s^2 + s^5), valuation=-4)
+            z^-4 + z^-1
+
+            sage: D = LazyDirichletSeriesRing(ZZ, "s")
+            sage: E = LazyDirichletSeriesRing(QQ, "t")
+            sage: D(E([1,2,3]))
+            1 + 2/2^s + 3/3^s
+
         This gives zero::
 
             sage: L = LazyLaurentSeriesRing(ZZ, 'z')
@@ -254,13 +299,6 @@ class LazySeriesRing(UniqueRepresentation, Parent):
             ...
             ValueError: constant may only be specified if the degree is specified
 
-            sage: D = LazyDirichletSeriesRing(ZZ, 't')
-            sage: m = D(moebius)
-            sage: L(m)
-            Traceback (most recent call last):
-            ...
-            ValueError: unable to convert ... into Lazy Laurent Series Ring ...
-
         We support the old input format for ``constant``::
 
             sage: f = L(lambda i: i, valuation=-3, constant=-1, degree=3)
@@ -274,6 +312,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
         .. TODO::
 
             Add a method to change the sparse/dense implementation.
+
         """
         if valuation is not None and valuation not in ZZ:
             raise ValueError("the valuation must be an integer")
@@ -321,7 +360,7 @@ class LazySeriesRing(UniqueRepresentation, Parent):
                 return self.element_class(self, coeff_stream)
 
             # Handle when it is a lazy series
-            if isinstance(x, LazyCauchyProductSeries):
+            if isinstance(x, self.Element):
                 if x._coeff_stream._is_sparse is not self._sparse:
                     # TODO: Implement a way to make a self._sparse copy
                     raise NotImplementedError("cannot convert between sparse and dense")
@@ -1123,6 +1162,17 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             sage: D(coefficients=z+z^2)
             2 + 6/2^t + 12/3^t + 20/4^t + 30/5^t + 42/6^t + 56/7^t + O(1/(8^t))
 
+            sage: s = D(lambda n: n)
+            sage: D(s, valuation=2)
+            1/(2^t) + 2/3^t + 3/4^t + 4/5^t + 5/6^t + 6/7^t + 7/8^t + O(1/(9^t))
+
+            sage: Ds = LazyDirichletSeriesRing(ZZ, 's')
+            sage: m = Ds(moebius, valuation=2); m
+            -1/(2^s) - 1/(3^s) - 1/(5^s) + 1/(6^s) - 1/(7^s) + O(1/(9^s))
+            sage: D = LazyDirichletSeriesRing(QQ, 't')
+            sage: D(m)
+            -1/(2^t) - 1/(3^t) - 1/(5^t) + 1/(6^t) - 1/(7^t) + O(1/(9^t))
+
         .. TODO::
 
             Add a method to make a copy of ``self._sparse``.
@@ -1136,20 +1186,26 @@ class LazyDirichletSeriesRing(LazySeriesRing):
                 else:
                     x = p.shift(1)
         else:
-            if valuation is None:
-                valuation = 1
-
             if coefficients is not None:
+                if valuation is None:
+                    valuation = 1
                 return super()._element_constructor_(x, valuation, degree, constant, coefficients)
 
             BR = self.base_ring()
             if x in BR:
+                if valuation is None:
+                    valuation = 1
                 x = BR(x)
-            if (isinstance(x, LazyModuleElement) and not isinstance(x, LazyDirichletSeries)) or callable(x):
-                if coefficients is not None:
-                    raise ValueError("coefficients must be None if x is provided")
-                coefficients = x
-                x = None
+
+            if not isinstance(x, LazyDirichletSeries):
+                if valuation is None:
+                    valuation = 1
+
+                if isinstance(x, LazyModuleElement) or callable(x):
+                    if coefficients is not None:
+                        raise ValueError("coefficients must be None if x is provided")
+                    coefficients = x
+                    x = None
 
         if valuation is not None and (valuation not in ZZ or valuation <= 0):
             raise ValueError("the valuation must be a positive integer")
@@ -1215,4 +1271,3 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             return '({})/{}^{}'.format(self.base_ring()(c), n, self.variable_name())
 
     options = LazyLaurentSeriesRing.options
-

@@ -118,7 +118,7 @@ frequently request it::
     sage: eval('4.__add__(3)')
     Traceback (most recent call last):
     ...
-    SyntaxError: invalid syntax
+    SyntaxError: invalid ...
 
 Symbolic functional notation::
 

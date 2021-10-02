@@ -157,9 +157,13 @@ def is_ComplexNumber(x):
     """
     return isinstance(x, ComplexNumber)
 
-def isinstance(x, sage.rings.abc.ComplexField):
+
+def is_ComplexField(x):
     """
     Check if ``x`` is a :class:`complex field <ComplexField_class>`.
+
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.ComplexField` instead.
 
     EXAMPLES::
 
@@ -171,7 +175,10 @@ def isinstance(x, sage.rings.abc.ComplexField):
         sage: is_CF(CC)
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32610, 'is_ComplexField is deprecated; use isinstance(..., sage.rings.abc.ComplexField) instead')
     return isinstance(x, ComplexField_class)
+
 
 cache = {}
 def ComplexField(prec=53, names=None):
@@ -543,7 +550,7 @@ class ComplexField_class(ring.Field):
         RR = self._real_field()
         if RR.has_coerce_map_from(S):
             return RRtoCC(RR, self) * RR._internal_coerce_map_from(S)
-        if isinstance(S, sage.rings.abc.ComplexField):
+        if isinstance(S, ComplexField_class):
             if self._prec <= S._prec:
                 return self._generic_coerce_map(S)
             else:

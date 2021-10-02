@@ -73,19 +73,25 @@ from sage.arith.constants cimport *
 cimport gmpy2
 
 
-def isinstance(x, sage.rings.abc.RealDoubleField):
+def is_RealDoubleField(x):
     """
     Returns ``True`` if ``x`` is the field of real double precision numbers.
+
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.RealDoubleField` instead.
 
     EXAMPLES::
 
         sage: from sage.rings.real_double import is_RealDoubleField
-        sage: isinstance(RDF, sage.rings.abc.RealDoubleField)
+        sage: is_RealDoubleField(RDF)
         True
-        sage: isinstance(RealField(53, sage.rings.abc.RealDoubleField))
+        sage: is_RealDoubleField(RealField(53))
         False
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32610, 'is_RealDoubleField is deprecated; use isinstance(..., sage.rings.abc.RealDoubleField) instead')
     return isinstance(x, RealDoubleField_class)
+
 
 cdef class RealDoubleField_class(Field):
     """

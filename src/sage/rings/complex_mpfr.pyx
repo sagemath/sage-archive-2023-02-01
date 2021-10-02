@@ -157,7 +157,7 @@ def is_ComplexNumber(x):
     """
     return isinstance(x, ComplexNumber)
 
-def is_ComplexField(x):
+def isinstance(x, sage.rings.abc.ComplexField):
     """
     Check if ``x`` is a :class:`complex field <ComplexField_class>`.
 
@@ -543,7 +543,7 @@ class ComplexField_class(ring.Field):
         RR = self._real_field()
         if RR.has_coerce_map_from(S):
             return RRtoCC(RR, self) * RR._internal_coerce_map_from(S)
-        if is_ComplexField(S):
+        if isinstance(S, sage.rings.abc.ComplexField):
             if self._prec <= S._prec:
                 return self._generic_coerce_map(S)
             else:

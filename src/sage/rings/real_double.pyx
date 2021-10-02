@@ -73,16 +73,16 @@ from sage.arith.constants cimport *
 cimport gmpy2
 
 
-def is_RealDoubleField(x):
+def isinstance(x, sage.rings.abc.RealDoubleField):
     """
     Returns ``True`` if ``x`` is the field of real double precision numbers.
 
     EXAMPLES::
 
         sage: from sage.rings.real_double import is_RealDoubleField
-        sage: is_RealDoubleField(RDF)
+        sage: isinstance(RDF, sage.rings.abc.RealDoubleField)
         True
-        sage: is_RealDoubleField(RealField(53))
+        sage: isinstance(RealField(53, sage.rings.abc.RealDoubleField))
         False
     """
     return isinstance(x, RealDoubleField_class)

@@ -365,7 +365,7 @@ def elliptic_j(z, prec=53):
 
     CC = z.parent()
     from sage.rings.complex_mpfr import is_ComplexField
-    if not is_ComplexField(CC):
+    if not isinstance(CC, sage.rings.abc.ComplexField):
         CC = ComplexField(prec)
         try:
             z = CC(z)

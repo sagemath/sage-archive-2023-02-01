@@ -111,16 +111,16 @@ from sage.structure.richcmp cimport rich_to_bool
 cimport gmpy2
 gmpy2.import_gmpy2()
 
-def is_ComplexDoubleField(x):
+def isinstance(x, sage.rings.abc.ComplexDoubleField):
     """
     Return ``True`` if ``x`` is the complex double field.
 
     EXAMPLES::
 
         sage: from sage.rings.complex_double import is_ComplexDoubleField
-        sage: is_ComplexDoubleField(CDF)
+        sage: isinstance(CDF, sage.rings.abc.ComplexDoubleField)
         True
-        sage: is_ComplexDoubleField(ComplexField(53))
+        sage: isinstance(ComplexField(53, sage.rings.abc.ComplexDoubleField))
         False
     """
     return isinstance(x, ComplexDoubleField_class)

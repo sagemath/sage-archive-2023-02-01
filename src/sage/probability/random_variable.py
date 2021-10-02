@@ -338,7 +338,7 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
         """
         if codomain is None:
             codomain = RealField()
-        if not is_RealField(codomain) and not is_RationalField(codomain):
+        if not isinstance(codomain, sage.rings.abc.RealField) and not is_RationalField(codomain):
             raise TypeError("Argument codomain (= %s) must be the reals or rationals" % codomain)
         if check:
             one = sum(P.values())

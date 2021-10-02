@@ -2065,7 +2065,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         # it uses Real or Complex Double Field in place of RealField(prec) or ComplexField(prec)
         # the function is_RealField does not identify RDF as real, so we test for that ourselves.
         for v in emb:
-            if is_RealField(v.codomain()) or v.codomain() is RDF:
+            if isinstance(v.codomain(, sage.rings.abc.RealField)) or v.codomain() is RDF:
                 dv = R.one()
             else:
                 dv = R(2)

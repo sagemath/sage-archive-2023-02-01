@@ -5896,15 +5896,15 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", int min_prec=53):
     return RealLiteral(R, s, base)
 
 
-def is_RealField(x):
+def isinstance(x, sage.rings.abc.RealField):
     """
     Returns ``True`` if ``x`` is technically of a Python real field type.
 
     EXAMPLES::
 
-        sage: sage.rings.real_mpfr.is_RealField(RR)
+        sage: sage.rings.real_mpfr.isinstance(RR, sage.rings.abc.RealField)
         True
-        sage: sage.rings.real_mpfr.is_RealField(CC)
+        sage: sage.rings.real_mpfr.isinstance(CC, sage.rings.abc.RealField)
         False
     """
     return isinstance(x, RealField_class)

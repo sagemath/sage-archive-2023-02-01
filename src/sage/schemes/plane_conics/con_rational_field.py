@@ -234,7 +234,7 @@ class ProjectiveConic_rational_field(ProjectiveConic_number_field):
             p = -1
         elif isinstance(p, Map) and p.category_for().is_subcategory(Rings()):
             # p is a morphism of Rings
-            if p.domain() is QQ and isinstance(p.codomain(, sage.rings.abc.RealField)):
+            if p.domain() is QQ and isinstance(p.codomain(), sage.rings.abc.RealField):
                 p = -1
             else:
                 raise TypeError("p (=%s) needs to be a prime of base field "

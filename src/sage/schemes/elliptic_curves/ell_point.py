@@ -2219,7 +2219,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
         e = embedding
         # It is also trivially true if we have a complex embedding
         if e is not None:
-            if not isinstance(e.codomain(, sage.rings.abc.RealField)):
+            if not isinstance(e.codomain(), sage.rings.abc.RealField):
                 return True
 
         # find a suitable embedding if none was supplied:
@@ -2232,7 +2232,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
                 e = K.embeddings(rings.ComplexField())[0]
 
         # If there is only one component, the result is True:
-        if not isinstance(e.codomain(, sage.rings.abc.RealField)):  # complex embedding
+        if not isinstance(e.codomain(), sage.rings.abc.RealField):  # complex embedding
             return True
         if e(E.discriminant()) < 0:  # only one component
             return True

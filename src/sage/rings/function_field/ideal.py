@@ -2175,10 +2175,12 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal_polymod):
             sage: I = O.ideal(y)
             sage: J = O.ideal(x + y)
             sage: S = I / J
-            sage: S^100 == I^100 / J^100
-            True
+            sage: a = S^100
             sage: _ = S.gens_two()
-            sage: S^100 == I^100 / J^100  # faster
+            sage: b = S^100  # faster
+            sage: b == I^100 / J^100
+            True
+            sage: b == a
             True
         """
         if mod > 2 and self._gens_two_vecs is not None:
@@ -2195,10 +2197,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal_polymod):
                 J = [ppow * v for v in I]
             else:
                 p, q = self._gens_two_vecs
-                if len(self._gens_two.cache) == 2:
-                    _, q = self._gens_two.cache
-                else:
-                    q = sum(e1 * e2 for e1,e2 in zip(O.basis(), q))
+                q = sum(e1 * e2 for e1,e2 in zip(O.basis(), q))
                 ppow = p**mod
                 qpow = O._coordinate_vector(q**mod)
                 J = [ppow * v for v in I] + [mul(qpow,v) for v in I]

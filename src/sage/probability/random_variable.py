@@ -15,6 +15,7 @@ functions.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import sage.rings.abc
 from sage.structure.parent import Parent
 from sage.functions.log import log
 from sage.functions.all import sqrt

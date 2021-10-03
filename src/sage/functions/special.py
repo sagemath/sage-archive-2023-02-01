@@ -158,6 +158,7 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
+import sage.rings.abc
 from sage.rings.integer import Integer
 from sage.misc.latex import latex
 from sage.rings.all import ZZ

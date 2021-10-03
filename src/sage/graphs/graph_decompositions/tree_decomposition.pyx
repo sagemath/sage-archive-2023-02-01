@@ -362,7 +362,7 @@ def width_of_tree_decomposition(G, T, check=True):
 
 def _from_tree_decompositions_of_atoms_to_tree_decomposition(T_atoms, cliques):
     r"""
-    Return a tree-decomposition formed by the tree_decompositions of the atoms.
+    Return a tree-decomposition formed by the tree-decompositions of the atoms.
 
     This is a helper method to avoid duplicated code.
 
@@ -1048,7 +1048,7 @@ cdef class TreelengthConnected:
             sig_free(self.distances)
 
 
-    def _treelength(self, g, k):
+    cdef bint _treelength(self, g, k):
         r"""
         Check whether the treelength of `g` is at most `k`.
 
@@ -1075,6 +1075,9 @@ cdef class TreelengthConnected:
         # tree-decomposition at the end of the _treelength method).
         @cached_function
         def rec(cut, cc):
+            cdef int v
+            cdef frozenset reduced_cut
+
             if len(cc) == 1:
                 [v] = cc
                 # We identify the neighbors of v in cut
@@ -1092,6 +1095,13 @@ cdef class TreelengthConnected:
                 return True
 
             # We explore all possible extensions of the cut
+            cdef frozenset cutv
+            cdef frozenset ccv
+            cdef frozenset cci
+            cdef frozenset reduced_cuti
+            cdef list sons
+            cdef int x
+
             for v in cc:
 
                 # We know that the cut has diameter <= k. So we check is adding
@@ -1107,8 +1117,8 @@ cdef class TreelengthConnected:
 
                 # Removing v may have disconnected cc. We iterate on its
                 # connected components
-                for cci in g.subgraph(ccv).connected_components():
-                    cci = frozenset(cci)
+                for _cci in g.subgraph(ccv).connected_components():
+                    cci = frozenset(_cci)
 
                     # The recursive subcalls. We remove on-the-fly the vertices
                     # from the cut which play no role in separating the
@@ -1145,8 +1155,8 @@ cdef class TreelengthConnected:
             return False
 
         # Main call to rec function, i.e. rec({v}, V-{v})
-        V = list(g)
-        v = frozenset([V.pop()])
+        cdef list V = list(g)
+        cdef frozenset v = frozenset([V.pop()])
         TD = rec(v, frozenset(V))
 
         if TD is False:
@@ -1407,7 +1417,7 @@ def treelength(G, k=None, certificate=False):
     if k is not None and k < 0:
         raise ValueError("k(={}) must be a nonnegative integer".format(k))
 
-    name = "Tree decomposition"
+    cdef str name = "Tree decomposition"
     if G.name():
         name += " of {}".format(G.name())
 
@@ -1453,9 +1463,11 @@ def treelength(G, k=None, certificate=False):
 
     # As some atoms might be isomorphic, we use a dictionary keyed by immutable
     # copies of canonical graphs to store intermediate results.
-    data = dict()
-    result = []
-    tl = 1  # The graph is connected and of order at least 2
+    cdef dict data = dict()
+    cdef list result = []
+    cdef int tl = 1  # The graph is connected and of order at least 2
+    cdef dict certif_inv
+    cdef dict perm
 
     for atom in atoms:
 

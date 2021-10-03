@@ -599,7 +599,7 @@ def geodetic_closure(G, S):
     cdef dict vertex_to_int = {u: i for i, u in enumerate(int_to_vertex)}
     cdef list S_int = [vertex_to_int[u] for u in S]
 
-    # Copy the graph has a short digraph
+    # Copy the graph as a short digraph
     cdef short_digraph sd
     init_short_digraph(sd, G, edge_labelled=False, vertex_list=int_to_vertex)
 

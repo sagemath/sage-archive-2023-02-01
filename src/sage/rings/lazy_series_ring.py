@@ -593,7 +593,6 @@ class LazyLaurentSeriesRing(LazySeriesRing):
             sage: L = LazyLaurentSeriesRing(E, 't')  # not tested
         """
         self._sparse = sparse
-        self._coeff_ring = base_ring
         # We always use the dense because our CS_exact is implemented densely
         self._laurent_poly_ring = LaurentPolynomialRing(base_ring, names)
         self._internal_poly_ring = self._laurent_poly_ring
@@ -1017,12 +1016,12 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
         from sage.structure.category_object import normalize_names
         names = normalize_names(-1, names)
         self._sparse = sparse
-        if len(names) == 1:
-            self._coeff_ring = base_ring
-        else:
-            self._coeff_ring = PolynomialRing(base_ring, names)
         self._laurent_poly_ring = PolynomialRing(base_ring, names)
-        self._internal_poly_ring = self._coeff_ring
+        if len(names) == 1:
+            self._internal_poly_ring = self._laurent_poly_ring
+        else:
+            coeff_ring = PolynomialRing(base_ring, names)
+            self._internal_poly_ring = PolynomialRing(coeff_ring, "DUMMY_VARIABLE")
         category = Algebras(base_ring.category())
         if base_ring in Fields():
             category &= CompleteDiscreteValuationRings()
@@ -1346,15 +1345,16 @@ class LazyTaylorSeriesRing(UniqueRepresentation, Parent):
                                             constant=constant,
                                             degree=degree)
                 return self.element_class(self, coeff_stream)
+            coeff_ring = self._internal_poly_ring.base_ring()
             if check and len(self.variable_names()) > 1:
                 def y(n):
                     e = R(x(n))
                     if not e or e.is_homogeneous() and e.degree() == n:
                         return e
                     raise ValueError("coefficient %s at degree %s is not a homogeneous polynomial" % (e, n))
-                coeff_stream = Stream_function(y, self._coeff_ring, self._sparse, valuation)
+                coeff_stream = Stream_function(y, coeff_ring, self._sparse, valuation)
             else:
-                coeff_stream = Stream_function(x, self._coeff_ring, self._sparse, valuation)
+                coeff_stream = Stream_function(x, coeff_ring, self._sparse, valuation)
             return self.element_class(self, coeff_stream)
         raise ValueError(f"unable to convert {x} into a lazy Taylor series")
 
@@ -1451,13 +1451,12 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
         self._sparse = sparse
         n = len(self.variable_names())
         if n == 1:
-            self._coeff_ring = SymmetricFunctions(base_ring).m()
+            self._laurent_poly_ring = SymmetricFunctions(base_ring).m()
         else:
             from sage.categories.tensor import tensor
             m = SymmetricFunctions(base_ring).m()
-            self._coeff_ring = tensor([m]*len(self.variable_names()))
-        self._laurent_poly_ring = self._coeff_ring
-        self._internal_poly_ring = self._coeff_ring
+            self._laurent_poly_ring = tensor([m]*len(self.variable_names()))
+        self._internal_poly_ring = PolynomialRing(self._laurent_poly_ring, "DUMMY_VARIABLE")
 
     def _repr_(self):
         """
@@ -1686,15 +1685,16 @@ class LazySymmetricFunctions(UniqueRepresentation, Parent):
                                                        constant=0,
                                                        degree=degree)
                 return self.element_class(self, coeff_stream)
+            coeff_ring = self._internal_poly_ring.base_ring()
             if check:
                 def y(n):
                     e = R(x(n))
                     if is_homogeneous_of_degree(e, n):
                         return e
                     raise ValueError("coefficient %s at degree %s is not a symmetric function of the correct homogeneous degree" % (e, n))
-                coeff_stream = Stream_function(y, self._coeff_ring, self._sparse, valuation)
+                coeff_stream = Stream_function(y, coeff_ring, self._sparse, valuation)
             else:
-                coeff_stream = Stream_function(x, self._coeff_ring, self._sparse, valuation)
+                coeff_stream = Stream_function(x, coeff_ring, self._sparse, valuation)
             return self.element_class(self, coeff_stream)
         raise ValueError(f"unable to convert {x} into a lazy symmetric function")
 
@@ -1775,7 +1775,6 @@ class LazyDirichletSeriesRing(LazySeriesRing):
             raise ValueError("positive characteristic not allowed for Dirichlet series")
 
         self._sparse = sparse
-        self._coeff_ring = base_ring
         # TODO: it would be good to have something better than the symbolic ring
         self._laurent_poly_ring = SR
         self._internal_poly_ring = PolynomialRing(base_ring, names, sparse=True)

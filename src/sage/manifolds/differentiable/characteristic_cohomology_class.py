@@ -1668,7 +1668,7 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
 
         Consider the 2-sphere::
 
-            sage: M.<ϑ,ϕ> = manifolds.Sphere(2)  # use spherical coordinates
+            sage: M.<th,phi> = manifolds.Sphere(2)  # use spherical coordinates
             sage: TM = M.tangent_bundle()
             sage: g = M.metric()
             sage: nab = g.connection()
@@ -1689,7 +1689,7 @@ class EulerAlgorithm(Singleton, Algorithm_generic):
             sage: algorithm = EulerAlgorithm()
             sage: euler = -algorithm.get_local(gcmat)[0] / sqrt(g.det(frame=e))
             sage: euler.display()
-            1/2*sin(ϑ)/pi dϑ∧dϕ
+            1/2*sin(th)/pi dth∧dphi
         """
         from sage.symbolic.constants import pi
 

@@ -106,7 +106,6 @@ from itertools import combinations
 from itertools import chain
 from sage.features import PythonModule
 from sage.sets.disjoint_set import DisjointSet
-from sage.functions.other import ceil
 from sage.rings.infinity import Infinity
 from sage.graphs.distances_all_pairs cimport c_distances_all_pairs
 from cysignals.memory cimport sig_malloc, sig_calloc, sig_free
@@ -780,7 +779,7 @@ def treelength_lowerbound(G):
     r"""
     Return a lower bound on the treelength of `G`.
 
-    See [DG2006]_ for more details`.
+    See [DG2006]_ for more details.
 
     INPUT:
 
@@ -806,6 +805,7 @@ def treelength_lowerbound(G):
         0
     """
     if G.is_cycle():
+        from sage.functions.other import ceil
         return int(ceil(G.order() / 3.0))
 
     lowerbound = 0
@@ -824,7 +824,7 @@ cdef class TreelengthConnected:
     connected graph that virtually explores the graph of all pairs
     ``(vertex_cut, connected_component)``, where ``vertex_cut`` is a vertex cut
     of the graph of length `\leq k`, and ``connected_component`` is a connected
-    component of the graph induced by `G - vertex_cut`.
+    component of the graph induced by ``G - vertex_cut``.
 
     We deduce that the pair ``(vertex_cut, connected_component)`` is feasible
     with treelength `k` if ``connected_component`` is empty, or if a vertex
@@ -846,10 +846,10 @@ cdef class TreelengthConnected:
 
     OUTPUT:
 
-        ``TreelengthConnected(G)`` returns the treelength of `G`. When `k` is
-        specified, it returns ``False`` when no tree-decomposition of length
-        `\leq k` exists or ``True`` otherwise. When ``certificate=True``, the
-        tree-decomposition is also returned.
+    ``TreelengthConnected(G)`` returns the treelength of `G`. When `k` is
+    specified, it returns ``False`` when no tree-decomposition of length
+    `\leq k` exists or ``True`` otherwise. When ``certificate=True``, the
+    tree-decomposition is also returned.
 
     EXAMPLES:
 
@@ -970,7 +970,7 @@ cdef class TreelengthConnected:
             self.leq_k = True  # We know that k is non negative
             return
 
-        if self.k_is_defined and k == 0:
+        if self.k_is_defined and not k:
             # We have at least 2 vertices and 1 edges, so tl >= 1
             self.leq_k = False
             return
@@ -1030,7 +1030,7 @@ cdef class TreelengthConnected:
         else:
             self.leq_k = False
 
-    def __destroy__(self):
+    def __dealloc__(self):
         r"""
         Destroy the object
 
@@ -1261,6 +1261,15 @@ def treelength(G, k=None, certificate=False):
     r"""
     Compute the treelength of `G` (and provide a decomposition).
 
+    The *length* of a tree decomposition, as proposed in [DG2006]_, is the
+    maximum *diameter* in `G` of its bags, where the diameter of a bag `X_i` is
+    the largest distance in `G` between the vertices in `X_i` (i.e., `\max_{u, v
+    \in X_i} dist_G(u, v)`). The *treelength* `tl(G)` of a graph `G` is the
+    minimum length among all possible tree decompositions of `G`.
+    See the documentation of the
+    :mod:`~sage.graphs.graph_decompositions.tree_decomposition` module for more
+    details.
+
     INPUT:
 
     - ``G`` -- a sage Graph
@@ -1275,31 +1284,31 @@ def treelength(G, k=None, certificate=False):
 
     OUTPUT:
 
-        ``G.treelength()`` returns the treelength of `G`. When `k` is specified,
-        it returns ``False`` when no tree-decomposition of length `\leq k`
-        exists or ``True`` otherwise. When ``certificate=True``, the
-        tree-decomposition is also returned.
+    ``G.treelength()`` returns the treelength of `G`. When `k` is specified, it
+    returns ``False`` when no tree-decomposition of length `\leq k` exists or
+    ``True`` otherwise. When ``certificate=True``, the tree-decomposition is
+    also returned.
 
     ALGORITHM:
 
-        This method virtually explores the graph of all pairs ``(vertex_cut,
-        connected_component)``, where ``vertex_cut`` is a vertex cut of the
-        graph of length `\leq k`, and ``connected_component`` is a
-        connected component of the graph induced by `G - vertex_cut`.
+    This method virtually explores the graph of all pairs ``(vertex_cut,
+    connected_component)``, where ``vertex_cut`` is a vertex cut of the graph of
+    length `\leq k`, and ``connected_component`` is a connected component of the
+    graph induced by `G - vertex_cut`.
 
-        We deduce that the pair ``(vertex_cut, connected_component)`` is
-        feasible with treelength `k` if ``connected_component`` is empty, or if
-        a vertex ``v`` from ``vertex_cut`` can be replaced with a vertex from
-        ``connected_component``, such that the pair ``(vertex_cut + v,
-        connected_component - v)`` is feasible.
+    We deduce that the pair ``(vertex_cut, connected_component)`` is feasible
+    with treelength `k` if ``connected_component`` is empty, or if a vertex
+    ``v`` from ``vertex_cut`` can be replaced with a vertex from
+    ``connected_component``, such that the pair ``(vertex_cut + v,
+    connected_component - v)`` is feasible.
 
-        In practice, this method decomposes the graph by its clique minimal
-        separators into atoms, computes the treelength of each of atom and
-        returns the maximum value over all the atoms. Indeed, we have that
-        `tl(G) = \max_{X \in A} tl(G[X])` where `A` is the set of atoms of the
-        decomposition by clique separators of `G`. When ``certificate == True``,
-        the tree-decompositions of the atoms are connected to each others by
-        adding edges with respect to the clique separators.
+    In practice, this method decomposes the graph by its clique minimal
+    separators into atoms, computes the treelength of each of atom and returns
+    the maximum value over all the atoms. Indeed, we have that `tl(G) = \max_{X
+    \in A} tl(G[X])` where `A` is the set of atoms of the decomposition by
+    clique separators of `G`. When ``certificate == True``, the
+    tree-decompositions of the atoms are connected to each others by adding
+    edges with respect to the clique separators.
 
     .. SEEALSO::
 
@@ -1344,7 +1353,7 @@ def treelength(G, k=None, certificate=False):
         sage: [graphs.CycleGraph(n).treelength() for n in range(3, 11)]
         [1, 2, 2, 2, 3, 3, 3, 4]
 
-    TESTS::
+    TESTS:
 
     Check that the decomposition by clique separators is valid::
 

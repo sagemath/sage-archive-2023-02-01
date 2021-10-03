@@ -9,11 +9,13 @@ X_2, \ldots, X_t\}` is a familly of subsets of `V`, usually called *bags*, and
 `T` is a tree of order `t` whose nodes are the subsets `X_i` satisfying the
 following properties:
 
-1. The union of all sets `X_i` equals `V`. That is, each vertex of the graph `G`
+- The union of all sets `X_i` equals `V`. That is, each vertex of the graph `G`
   is associated with at least one tree node.
-2. For every edge `(v, w)` in the graph, there is a subset `X_i` that contains
+
+- For every edge `(v, w)` in the graph, there is a subset `X_i` that contains
   both `v` and `w`. That is, each edge of the graph `G` appears in a tree node.
-3. The nodes associated with vertex `v \in V` form a connected subtree of
+
+- The nodes associated with vertex `v \in V` form a connected subtree of
   `T`. That is, if `X_i` and `X_j` both contain a vertex `v \in V`, then all
   nodes `X_k` of the tree in the (unique) path between `X_i` and `X_j` contain
   `v` as well, and we have `X_i \cap X_j \subseteq X_k`.
@@ -74,7 +76,7 @@ The treewidth of a clique is `n-1` and its treelength is 1::
     :meth:`treewidth` | Compute the treewidth of `G` (and provide a decomposition).
     :meth:`treelength` | Compute the treelength of `G` (and provide a decomposition).
     :meth:`is_valid_tree_decomposition` | Check whether `T` is a valid tree-decomposition for `G`.
-    :meth:`reduced_tree_decomposition(T)` | Return a reduced tree-decomposition of `T`.
+    :meth:`reduced_tree_decomposition` | Return a reduced tree-decomposition of `T`.
     :meth:`width_of_tree_decomposition` | Return the width of the tree decomposition `T` of `G`.
 
 
@@ -248,7 +250,7 @@ def reduced_tree_decomposition(T):
 
         This method assumes that the vertices of the input tree `T` are hashable
         and have attribute ``issuperset``, e.g., ``frozenset`` or
-        :class:`~sage.sets.set.Set_object_enumerated_with_category`.
+        :class:`~sage.sets.set.Set_object_enumerated`.
 
     INPUT:
 
@@ -456,22 +458,22 @@ def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
 
     OUTPUT:
 
-        ``g.treewidth()`` returns the treewidth of ``g``. When ``k`` is
-        specified, it returns ``False`` when no tree-decomposition of width
-        `\leq k` exists or ``True`` otherwise. When ``certificate=True``, the
-        tree-decomposition is also returned.
+    ``g.treewidth()`` returns the treewidth of ``g``. When ``k`` is specified,
+    it returns ``False`` when no tree-decomposition of width `\leq k` exists or
+    ``True`` otherwise. When ``certificate=True``, the tree-decomposition is
+    also returned.
 
     ALGORITHM:
 
-        This function virtually explores the graph of all pairs
-        ``(vertex_cut,cc)``, where ``vertex_cut`` is a vertex cut of the graph
-        of cardinality `\leq k+1`, and ``connected_component`` is a connected
-        component of the graph induced by ``G-vertex_cut``.
+    This function virtually explores the graph of all pairs ``(vertex_cut,cc)``,
+    where ``vertex_cut`` is a vertex cut of the graph of cardinality `\leq k+1`,
+    and ``connected_component`` is a connected component of the graph induced by
+    ``G-vertex_cut``.
 
-        We deduce that the pair ``(vertex_cut,cc)`` is feasible with tree-width
-        `k` if ``cc`` is empty, or if a vertex ``v`` from ``vertex_cut`` can be
-        replaced with a vertex from ``cc``, such that the pair
-        ``(vertex_cut+v,cc-v)`` is feasible.
+    We deduce that the pair ``(vertex_cut,cc)`` is feasible with tree-width `k`
+    if ``cc`` is empty, or if a vertex ``v`` from ``vertex_cut`` can be replaced
+    with a vertex from ``cc``, such that the pair ``(vertex_cut+v,cc-v)`` is
+    feasible.
 
     .. NOTE::
 
@@ -1294,7 +1296,7 @@ def treelength(G, k=None, certificate=False):
     This method virtually explores the graph of all pairs ``(vertex_cut,
     connected_component)``, where ``vertex_cut`` is a vertex cut of the graph of
     length `\leq k`, and ``connected_component`` is a connected component of the
-    graph induced by `G - vertex_cut`.
+    graph induced by ``G - vertex_cut``.
 
     We deduce that the pair ``(vertex_cut, connected_component)`` is feasible
     with treelength `k` if ``connected_component`` is empty, or if a vertex
@@ -1315,8 +1317,8 @@ def treelength(G, k=None, certificate=False):
         - :meth:`treewidth` computes the treewidth of a graph.
         - :meth:`~sage.graphs.graph_decompositions.vertex_separation.path_decomposition`
           computes the pathwidth of a graph.
-        - :mod:`~sage.graphs.graph_decompositions.vertex_separation` module.
-        - :meth:`~sage.graphs.Graph.atoms_and_clique_separators`
+        - module :mod:`~sage.graphs.graph_decompositions.vertex_separation`.
+        - :meth:`~sage.graphs.graph_decompositions.clique_separators.atoms_and_clique_separators`
 
     EXAMPLES:
 

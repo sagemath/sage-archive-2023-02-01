@@ -1900,6 +1900,11 @@ REFERENCES:
             standards et permutations de Baxter, proceedings of
             Formal Power Series and Algebraic Combinatorics, 1994.
 
+.. [DG2006] Yon Dourisboure and Cyril Gavoille. *Tree-decompositions with bags
+            of small diameter*. Discrete Mathematics, 307 (16) (2007),
+            pp. 2008-2029.
+            :doi:`10.1016/j.disc.2005.12.060`
+
 .. [DGH2020] \C. Donnot, A. Genitrini and Y. Herida. Unranking Combinations
             Lexicographically: an efficient new strategy compared with others, 2020,
             https://hal.archives-ouvertes.fr/hal-02462764v1
@@ -3871,6 +3876,11 @@ REFERENCES:
 .. [Loe2007] David Loeffler, *Spectral expansions of overconvergent
              modular functions*, Int. Math. Res. Not 2007 (050).
              :arxiv:`math/0701168`.
+
+.. [Lokshtanov2009] Daniel Lokshtanov. *On the complexity of computing
+                    treelength*. Discrete Applied
+                    Mathematics. 158(7):820-827, 2009.
+                    :doi:`10.1016/j.dam.2009.10.007`
 
 .. [Lom2019] Davide Lombardo, *Computing the geometric endomorphism ring
              of a genus 2 Jacobian*, Mathematics of Computation 88 (2019),

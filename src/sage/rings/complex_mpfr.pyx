@@ -169,6 +169,10 @@ def is_ComplexField(x):
 
         sage: from sage.rings.complex_mpfr import is_ComplexField as is_CF
         sage: is_CF(ComplexField())
+        doctest:warning...
+        DeprecationWarning: is_ComplexField is deprecated;
+        use isinstance(..., sage.rings.abc.ComplexField) instead
+        See https://trac.sagemath.org/32610 for details.
         True
         sage: is_CF(ComplexField(12))
         True

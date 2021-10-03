@@ -2269,7 +2269,7 @@ class FunctionFieldIdeal_global(FunctionFieldIdeal_polymod):
 
     @cached_method
     def _gens_two(self):
-        """
+        r"""
         Return a set of two generators of the integral ideal, that is
         the denominator times this fractional ideal.
 

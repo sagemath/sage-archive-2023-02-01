@@ -10,25 +10,25 @@ class sage__combinat(PythonModule):
         # sage.combinat will be a namespace package.
         # Testing whether sage.combinat itself can be imported is meaningless.
         # Hence, we test a Python module within the package.
-        PythonModule.__init__('sage.combinat.combinations')
+        PythonModule.__init__(self, 'sage.combinat.combinations')
 
 
 class sage__graphs(PythonModule):
 
     def __init__(self):
-        PythonModule.__init__('sage.graphs.graph')
+        PythonModule.__init__(self, 'sage.graphs.graph')
 
 
 class sage__rings__real_double(PythonModule):
 
     def __init__(self):
-        PythonModule.__init__('sage.rings.real_double')
+        PythonModule.__init__(self, 'sage.rings.real_double')
 
 
 class sage__symbolic(PythonModule):
 
     def __init__(self):
-        PythonModule.__init__('sage.symbolic.expression', spkg="sagemath_symbolics")
+        PythonModule.__init__(self, 'sage.symbolic.expression', spkg="sagemath_symbolics")
 
 
 def sage_optional_tags():
@@ -46,11 +46,11 @@ def sage_optional_tags():
     Instead, we associate distribution packages to Python modules in
     :mod:`sage.features.sagemath` via the ``spkg`` parameter of :class:`PythonModule``.
     """
-    if sage__combinat().is_functional():
+    if sage__combinat().is_present():
         yield 'sage.combinat'
-    if sage__graphs().is_functional():
+    if sage__graphs().is_present():
         yield 'sage.graphs'
-    if sage__rings__real_double().is_functional():
+    if sage__rings__real_double().is_present():
         yield 'sage.rings.real_double'
-    if sage__symbolic().is_functional():
+    if sage__symbolic().is_present():
         yield 'sage.symbolic'

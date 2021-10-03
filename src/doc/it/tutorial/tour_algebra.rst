@@ -393,6 +393,7 @@ nell'esempio seguente:
     sage: maxima.eval("diff(f,w)")
     '(bessel_y(v-1,w)-bessel_y(v+1,w))/2'
 
-.. [GAP] (en) The GAP Group, ``GAP - Groups, Algorithms, and Programming``, http://www.gap-system.org
+.. [GAP] (en) The GAP Group, GAP - Groups, Algorithms, and
+   Programming, Version 4.11; 2021, https://www.gap-system.org
 
-.. [Max] (en) Maxima, http://maxima.sf.net/
+.. [Max] (en) Maxima, Version 5.45; 2021, http://maxima.sf.net/

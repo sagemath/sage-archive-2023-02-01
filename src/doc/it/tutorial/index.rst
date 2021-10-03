@@ -15,9 +15,7 @@ un'alternativa adeguata, libera e open-source a Maple, Mathematica, Magma e
 MATLAB.
 
 Questo tutorial è la via migliore per familiarizzare con Sage in poche ore e può 
-essere letto in HTML o PDF, oppure direttamente dal Notebook di Sage (fare click 
-su "Help" e poi su "Tutorial" per seguire il tutorial in modo interattivo 
-dall'interno di Sage).
+essere letto in HTML o PDF.
 
 
 .. toctree::
@@ -32,4 +30,3 @@ Indici e tabelle
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`cerca`
-

@@ -2,14 +2,12 @@
 Introduzione
 ************
 Questo tutorial dovrebbe richiedere circa 3/4 ore per 
-una lettura completa. Lo si può leggere in versione HTML o PDF, o dal notebook Sage;
-fare clic su "Help", poi fare clic su "Tutorial" per leggere interattivamente
-il tutorial dall'interno di Sage.
+una lettura completa. Lo si può leggere in versione HTML o PDF.
 
 Nonostante molto in Sage sia implementato usando Python, la conoscenza di Python
 non è un prerequisito per la lettura di questo tutorial. Per chi volesse imparare
 il Python (un linguaggio molto divertente!) allo stesso tempo, ci sono molte risorse 
-eccellenti e libere per farlo tra le quali [PyT]_ e [Dive]_.
+eccellenti e libere per farlo tra le quali [PyT]_ e [PyB]_.
 Se si vuole solo provare velocemente Sage, questo tutorial è il punto di partenza adatto.
 Per esempio:
 
@@ -58,7 +56,7 @@ Installazione
 =============
 
 Se non si ha Sage installato su un computer e si vogliono solamente
-provare alcuni comandi, si può usare online all'indirizzo http://www.sagenb.org.
+provare alcuni comandi, si può usare online all'indirizzo https://sagecell.sagemath.org/.
 
 Si veda la Sage Installation Guide nella sezione documentazione della homepage
 di Sage [Sage]_ per istruzioni sull'installazione di Sage sul proprio computer.
@@ -123,7 +121,7 @@ Obiettivi di lungo periodo per Sage
    sorgente ed è persino concesso di archiviare la versione di Sage che si è utilizzata.
 
 -  **Facile da compilare:** Sage dovrebbe essere facile da compilare dal sorgente per
-   gli utenti Linux, OS X e Windows. Questo garantisce maggiore flessibilità agli utenti
+   gli utenti Linux, macOS e Windows. Questo garantisce maggiore flessibilità agli utenti
    di modificare il sistema.
 
 -  **Cooperazione:** Fornire un interfaccia robusta alla maggior parte degli altri sistemi
@@ -138,9 +136,10 @@ Obiettivi di lungo periodo per Sage
    Bisogna anche raggiungere un alto livello di supporto agli utenti.
 
 
-.. [Dive] (en) Tuffati in Python, Liberamente disponibile in linea 
-          all'indirizzo: http://www.diveintopython.net
+..  [PyB] (en) The Python Beginner's Guide,
+    https://wiki.python.org/moin/BeginnersGuide
 
-.. [PyT] (en) Il tutorial Python, http://www.python.org/
+..  [PyT] (en) The Python Tutorial,
+    https://docs.python.org/3/tutorial/
 
-.. [Sage] (en) Sage, http://www.sagemath.org
+..  [Sage] (en) Sage, https://www.sagemath.org

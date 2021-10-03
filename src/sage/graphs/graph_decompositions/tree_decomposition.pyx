@@ -433,7 +433,7 @@ def _from_tree_decompositions_of_atoms_to_tree_decomposition(T_atoms, cliques):
 
 def treewidth(g, k=None, kmin=None, certificate=False, algorithm=None):
     r"""
-    Computes the tree-width of `g` (and provides a decomposition)
+    Compute the treewidth of `g` (and provide a decomposition).
 
     INPUT:
 

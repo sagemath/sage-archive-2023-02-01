@@ -63,6 +63,7 @@ cdef extern from *:
 
 import os
 import pickle
+from warnings import warn
 import inspect
 from . import sageinspect
 
@@ -239,10 +240,10 @@ cdef class LazyImport(object):
             return self._object
 
         if startup_guard and not self._at_startup:
-            print(f"Resolving lazy import {self._name} during startup")
+            warn(f"Resolving lazy import {self._name} during startup")
         elif self._at_startup and not startup_guard:
             if finish_startup_called:
-                print(f"Option ``at_startup=True`` for lazy import {self._name} not needed anymore")
+                warn(f"Option ``at_startup=True`` for lazy import {self._name} not needed anymore")
 
         try:
             self._object = getattr(__import__(self._module, {}, {}, [self._name]), self._name)

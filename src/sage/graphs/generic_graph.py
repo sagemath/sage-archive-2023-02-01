@@ -6262,7 +6262,7 @@ class GenericGraph(GenericGraph_pyx):
         By Edmond's theorem, a graph which is `k`-connected always has `k`
         edge-disjoint arborescences, regardless of the root we pick::
 
-            sage: g = digraphs.RandomDirectedGNP(11, .3) # reduced from 30 to 11, cf. #32169
+            sage: g = digraphs.RandomDirectedGNP(11, .3)  # reduced from 30 to 11, cf. #32169
             sage: k = Integer(g.edge_connectivity())
             sage: while not k:
             ....:     g = digraphs.RandomDirectedGNP(11, .3)
@@ -6275,9 +6275,9 @@ class GenericGraph(GenericGraph_pyx):
 
         In the undirected case, we can only ensure half of it::
 
-            sage: g = graphs.RandomGNP(30, .3)
-            sage: while not g.is_connected():
-            ....:     g = graphs.RandomGNP(30, .3)
+            sage: g = graphs.RandomGNP(14, .3)  # reduced from 30 to 14, see #32169
+            sage: while not g.is_biconnected():
+            ....:     g = graphs.RandomGNP(14, .3)
             sage: k = Integer(g.edge_connectivity()) // 2
             sage: trees = g.edge_disjoint_spanning_trees(k)
             sage: all(t.is_tree() for t in trees)

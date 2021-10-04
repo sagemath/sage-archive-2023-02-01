@@ -23483,9 +23483,9 @@ class GenericGraph(GenericGraph_pyx):
         The EP of a graph is isomorphic to the subdirect sum of
         it's connected components EPs::
 
-            sage: n = randint(5, 12)
+            sage: n = randint(3, 6)
             sage: G1 = graphs.RandomGNP(n, 0.2)
-            sage: n = randint(5, 12)
+            sage: n = randint(3, 6)
             sage: G2 = graphs.RandomGNP(n, 0.2)
             sage: G = G1.disjoint_union(G2)
             sage: P = G.edge_polytope()
@@ -23585,9 +23585,9 @@ class GenericGraph(GenericGraph_pyx):
         The SEP of a graph is isomorphic to the subdirect sum of
         it's connected components SEP's::
 
-            sage: n = randint(5, 12)
+            sage: n = randint(3, 6)
             sage: G1 = graphs.RandomGNP(n, 0.2)
-            sage: n = randint(5, 12)
+            sage: n = randint(3, 6)
             sage: G2 = graphs.RandomGNP(n, 0.2)
             sage: G = G1.disjoint_union(G2)
             sage: P = G.symmetric_edge_polytope()

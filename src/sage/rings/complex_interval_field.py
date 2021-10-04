@@ -40,6 +40,7 @@ from sage.structure.parent import Parent
 from .integer_ring import ZZ
 from .rational_field import QQ
 from .ring import Field
+import sage.rings.abc
 from . import integer
 from . import complex_interval
 import weakref
@@ -93,7 +94,7 @@ def ComplexIntervalField(prec=53, names=None):
     return C
 
 
-class ComplexIntervalField_class(Field):
+class ComplexIntervalField_class(sage.rings.abc.ComplexIntervalField):
     """
     The field of complex (interval) numbers.
 

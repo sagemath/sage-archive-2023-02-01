@@ -7,7 +7,7 @@ deprecation(24371, "sage.rings.real_interval_field is deprecated")
 
 from sage.rings.real_mpfi import RealIntervalField_class, RealIntervalFieldElement
 
-def is_RealIntervalField(x):
+def isinstance(x, sage.rings.abc.RealIntervalField):
     """
     Check if ``x`` is a :class:`RealIntervalField_class`.
 

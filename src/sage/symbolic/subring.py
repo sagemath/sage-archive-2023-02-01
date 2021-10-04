@@ -425,7 +425,7 @@ class GenericSymbolicSubring(SymbolicRing):
             return True
 
         elif (P is InfinityRing or
-              is_RealIntervalField(P) or is_ComplexIntervalField(P)):
+              isinstance(P, sage.rings.abc.RealIntervalField) or isinstance(P, sage.rings.abc.ComplexIntervalField)):
             return True
 
         elif P._is_numerical():

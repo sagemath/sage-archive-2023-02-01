@@ -9949,7 +9949,7 @@ class NumberField_absolute(NumberField_generic):
             from sage.rings.complex_interval_field import is_ComplexIntervalField
             from sage.rings.real_mpfr import is_RealField
             from sage.rings.all import (AA, CDF, QQbar, RDF)
-            if is_ComplexField(codom) or is_ComplexIntervalField(codom) or \
+            if is_ComplexField(codom) or isinstance(codom, sage.rings.abc.ComplexIntervalField) or \
                                          codom is CDF or codom is QQbar:
                 if P(self.gen()).imag() == 0:
                     raise ValueError("Possibly real place (=%s) given as complex embedding in hilbert_symbol. Is it real or complex?" % P)

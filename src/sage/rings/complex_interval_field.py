@@ -49,7 +49,7 @@ from .complex_mpfr import ComplexField
 from sage.misc.cachefunc import cached_method
 
 
-def is_ComplexIntervalField(x):
+def isinstance(x, sage.rings.abc.ComplexIntervalField):
     """
     Check if ``x`` is a :class:`ComplexIntervalField`.
 

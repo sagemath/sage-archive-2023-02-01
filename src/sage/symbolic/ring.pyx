@@ -231,7 +231,7 @@ cdef class SymbolicRing(CommutativeRing):
                 base = R.base_ring()
                 return base is not self and self.has_coerce_map_from(base)
             elif (R is InfinityRing or R is UnsignedInfinityRing
-                  or is_RealIntervalField(R) or is_ComplexIntervalField(R)
+                  or isinstance(R, sage.rings.abc.RealIntervalField) or isinstance(R, sage.rings.abc.ComplexIntervalField)
                   or isinstance(R, RealBallField)
                   or isinstance(R, ComplexBallField)
                   or is_IntegerModRing(R) or is_FiniteField(R)):

@@ -40,7 +40,7 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.misc.randstate import current_randstate
 from sage.misc.superseded import deprecated_function_alias
-
+y
 from sage.rings.integer_ring import ZZ
 from sage.rings.qqbar import AA
 from sage.rings.rational_field import QQ
@@ -48,10 +48,9 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
-from sage.functions.other import floor, ceil
-from sage.misc.functional import sqrt
-from sage.groups.matrix_gps.finitely_generated import MatrixGroup
-from sage.graphs.graph import Graph
+from sage.arith.misc import integer_floor as floor
+from sage.arith.misc import integer_ceil as ceil
+lazy_import('sage.groups.matrix_gps.finitely_generated', 'MatrixGroup')
 from sage.geometry.convex_set import ConvexSet_closed, AffineHullProjectionData
 
 from .constructor import Polyhedron
@@ -3418,7 +3417,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
             sage: p.radius()
             2
         """
-        return sqrt(self.radius_square())
+        return self.radius_square().sqrt()
 
     def is_inscribed(self, certificate=False):
         """
@@ -8999,7 +8998,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
                     Adet = AA.coerce(Adet)
                 except TypeError:
                     pass
-                return I / sqrt(Adet)
+                return I / Adet.sqrt()
 
         else:
             raise ValueError('unknown measure "{}"'.format(measure))

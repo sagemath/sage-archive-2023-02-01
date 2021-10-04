@@ -26,7 +26,9 @@ from sage.libs.singular.decl cimport ringorder_dp, ringorder_Dp, ringorder_lp, r
 from sage.libs.singular.decl cimport p_Copy, prCopyR
 from sage.libs.singular.decl cimport n_unknown,  n_Zp,  n_Q,   n_R,   n_GF,  n_long_R,  n_algExt,n_transExt,n_long_C,   n_Z,   n_Zn,  n_Znm,  n_Z2m,  n_CF
 from sage.libs.singular.decl cimport n_coeffType, cfInitCharProc
-from sage.libs.singular.decl cimport rDefault, GFInfo, ZnmInfo, nInitChar, AlgExtInfo, nRegister, naInitChar
+from sage.libs.singular.decl cimport rDefault, GFInfo, ZnmInfo, nInitChar, AlgExtInfo, nRegister, naInitChar, TransExtInfo
+
+
 
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring cimport IntegerRing_class
@@ -40,9 +42,17 @@ from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+from sage.rings.polynomial.polynomial_ring import PolynomialRing_field
+
+from sage.rings.fraction_field import FractionField_generic, FractionField_1poly_field
+
 from cpython.object cimport Py_EQ, Py_NE
 
 from collections import defaultdict
+
+
+
+
 
 
 # mapping str --> SINGULAR representation
@@ -143,10 +153,13 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     cdef int ringorder_column_pos
     cdef int ringorder_column_asc
 
+    cdef int ngens
+
     cdef n_coeffType ringtype = n_unknown
     cdef MPolynomialRing_libsingular k
     cdef MPolynomial_libsingular minpoly
     cdef AlgExtInfo extParam
+    cdef TransExtInfo trextParam
     cdef n_coeffType _type = n_unknown
 
     #cdef cfInitCharProc myfunctionptr;
@@ -248,6 +261,31 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
     if isinstance(base_ring, RationalField):
         characteristic = 0
         _ring = rDefault( characteristic ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+
+    elif isinstance(base_ring, FractionField_generic) and isinstance(base_ring.base(), (MPolynomialRing_libsingular, PolynomialRing_field)) and isinstance(base_ring.base().base_ring(), RationalField):
+        characteristic = 1
+        k = PolynomialRing(RationalField(),
+            names=base_ring.variable_names(), order="lex", implementation="singular")
+
+        ngens = len(k.gens())
+
+        _ext_names = <char**>omAlloc0(ngens*sizeof(char*))
+        for i in range(ngens):
+            _name = str_to_bytes(k._names[i])
+            _ext_names[i] = omStrDup(_name)
+
+        _cfr = rDefault( 0, 1, _ext_names )
+
+        trextParam.r =  _cfr
+
+        _cf = nInitChar(n_transExt, <void *>&trextParam)
+
+
+        if (_cf is NULL):
+            raise RuntimeError("Failed to allocate _cf ring.")
+
+        _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+
 
     elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
         characteristic = 1

@@ -31,6 +31,9 @@ from sage.rings.rational_field import RationalField
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
 from sage.rings.finite_rings.finite_field_base import FiniteField
+from sage.rings.polynomial.polynomial_ring import PolynomialRing_field
+from sage.rings.fraction_field import FractionField_generic, FractionField_1poly_field
+
 from sage.rings.finite_rings.finite_field_prime_modn import FiniteField_prime_modn
 from sage.rings.finite_rings.finite_field_givaro import FiniteField_givaro
 from sage.rings.finite_rings.finite_field_ntl_gf2e import FiniteField_ntl_gf2e
@@ -40,7 +43,12 @@ from sage.libs.gmp.all cimport *
 from sage.cpython.string import FS_ENCODING
 from sage.cpython.string cimport str_to_bytes, char_to_str, bytes_to_str
 
-from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular
+from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
+
+cdef extern from "singular/coeffs/coeffs.h":
+    ctypedef struct coeffs "n_Procs_s"
+
+
 
 _saved_options = (int(0),0,0)
 
@@ -477,6 +485,30 @@ cdef number *sa2si_GFq_generic(object elem, ring *_ring):
 
     return n1
 
+cdef number *sa2si_transext(object elem, ring *_ring):
+
+    cdef poly *pnumer
+    cdef poly *pdenom
+
+    cdef fraction *result
+
+    numer = <MPolynomial_libsingular>elem.numerator()
+    pnumer = p_Copy(numer._poly, _ring)
+
+    denom = <MPolynomial_libsingular>elem.denominator()
+    pdenom = p_Copy(denom._poly, _ring)
+
+    nMapFuncPtr =  naSetMap(_ring.cf, currRing.cf) # choose correct mapping function
+
+    result = <fraction*>omAlloc0Bin(fractionObjectBin)
+
+    result.numerator = pnumer
+    result.denominator = pdenom
+    result.complexity = 1
+
+    return <number*>result
+
+
 cdef number *sa2si_NF(object elem, ring *_ring):
     """
     """
@@ -692,6 +724,9 @@ cdef number *sa2si(Element elem, ring * _ring):
         if _ring.cf.type == n_unknown:
             return n_Init(int(elem),_ring)
         return sa2si_ZZmod(elem, _ring)
+    elif isinstance(elem._parent, FractionField_generic) and isinstance(elem._parent.base(), (MPolynomialRing_libsingular, PolynomialRing_field)) and isinstance(elem._parent.base().base_ring(), RationalField):
+        return sa2si_transext(elem, _ring)
+
     else:
         raise ValueError("cannot convert to SINGULAR number")
 

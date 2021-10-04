@@ -401,6 +401,8 @@ cdef extern from "singular/Singular/libsingular.h":
 
     cdef omBin *slists_bin
 
+    cdef omBin *fractionObjectBin
+
     # integer conversion constant
 
     cdef long SR_INT
@@ -1136,3 +1138,14 @@ cdef extern from "singular/kernel/GBEngine/kstd1.h":
 cdef extern from "singular/kernel/GBEngine/syz.h":
     ctypedef struct syStrategy "ssyStrategy":
         short references
+
+cdef extern from "singular/polys/ext_fields/transext.h":
+    ctypedef struct TransExtInfo:
+        ring * r
+    ctypedef struct fraction "fractionObject":
+        poly *numerator
+        poly *denominator
+        int complexity
+
+
+

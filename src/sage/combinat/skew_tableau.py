@@ -703,8 +703,8 @@ class SkewTableau(ClonableList,
             sage: SkewTableau([[None,1],[1],[2]]).restrict(1)
             [[None, 1], [1]]
         """
-        return SkewTableau([z for z in [[y for y in x if y is None or y <= n]
-                                        for x in self] if z])
+        data = ([y for y in x if y is None or y <= n] for x in self)
+        return SkewTableau([z for z in data if z])
 
     def restriction_outer_shape(self, n):
         """

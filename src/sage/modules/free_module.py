@@ -170,6 +170,7 @@ import sage.misc.latex as latex
 from sage.modules.module import Module
 import sage.rings.finite_rings.finite_field_constructor as finite_field
 import sage.rings.ring as ring
+import sage.rings.abc
 import sage.rings.integer_ring
 import sage.rings.rational_field
 import sage.rings.finite_rings.integer_mod_ring
@@ -7443,9 +7444,9 @@ def element_class(R, is_sparse):
             return Vector_modn_dense
         else:
             return free_module_element.FreeModuleElement_generic_dense
-    elif sage.rings.real_double.is_RealDoubleField(R) and not is_sparse:
+    elif isinstance(R, sage.rings.abc.RealDoubleField) and not is_sparse:
         return sage.modules.vector_real_double_dense.Vector_real_double_dense
-    elif sage.rings.complex_double.is_ComplexDoubleField(R) and not is_sparse:
+    elif isinstance(R, sage.rings.abc.ComplexDoubleField) and not is_sparse:
         return sage.modules.vector_complex_double_dense.Vector_complex_double_dense
     elif sage.symbolic.ring.is_SymbolicExpressionRing(R) and not is_sparse:
         import sage.modules.vector_symbolic_dense

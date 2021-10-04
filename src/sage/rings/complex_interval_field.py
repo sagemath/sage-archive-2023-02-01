@@ -49,7 +49,7 @@ from .complex_mpfr import ComplexField
 from sage.misc.cachefunc import cached_method
 
 
-def isinstance(x, sage.rings.abc.ComplexIntervalField):
+def is_ComplexIntervalField(x):
     """
     Check if ``x`` is a :class:`ComplexIntervalField`.
 
@@ -61,7 +61,10 @@ def isinstance(x, sage.rings.abc.ComplexIntervalField):
         sage: is_CIF(CC)
         False
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32612, 'is_ComplexIntervalField is deprecated; use isinstance(..., sage.rings.abc.ComplexIntervalField) instead')
     return isinstance(x, ComplexIntervalField_class)
+
 
 cache = {}
 def ComplexIntervalField(prec=53, names=None):

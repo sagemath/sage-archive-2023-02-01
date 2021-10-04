@@ -5317,15 +5317,15 @@ def RealInterval(s, upper=None, int base=10, int pad=0, min_prec=53):
 # The default real interval field, with precision 53 bits
 RIF = RealIntervalField()
 
-def isinstance(x, sage.rings.abc.RealIntervalField):
+def is_RealIntervalField(x):
     """
     Check if ``x`` is a :class:`RealIntervalField_class`.
 
     EXAMPLES::
 
-        sage: sage.rings.real_mpfi.isinstance(RIF, sage.rings.abc.RealIntervalField)
+        sage: sage.rings.real_mpfi.is_RealIntervalField(RIF)
         True
-        sage: sage.rings.real_mpfi.isinstance(RealIntervalField(200, sage.rings.abc.RealIntervalField))
+        sage: sage.rings.real_mpfi.is_RealIntervalField(RealIntervalField(200))
         True
     """
     return isinstance(x, RealIntervalField_class)

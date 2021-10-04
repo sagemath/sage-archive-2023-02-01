@@ -9946,7 +9946,6 @@ class NumberField_absolute(NumberField_generic):
                 raise ValueError("Domain of P (=%s) should be self (=%s) in self.hilbert_symbol" % (P, self))
             codom = P.codomain()
             from sage.rings.complex_mpfr import is_ComplexField
-            from sage.rings.complex_interval_field import is_ComplexIntervalField
             from sage.rings.real_mpfr import is_RealField
             from sage.rings.all import (AA, CDF, QQbar, RDF)
             if is_ComplexField(codom) or isinstance(codom, sage.rings.abc.ComplexIntervalField) or \

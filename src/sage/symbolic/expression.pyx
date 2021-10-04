@@ -3565,8 +3565,8 @@ cdef class Expression(CommutativeRingElement):
                 else:
                     domain = RIF
         else:
-            is_interval = (isinstance(domain, sage.rings.abc.RealIntervalField)
-                           or isinstance(domain, sage.rings.abc.ComplexIntervalField)
+            is_interval = (isinstance(domain, (sage.rings.abc.RealIntervalField,
+                                               sage.rings.abc.ComplexIntervalField))
                            or is_AlgebraicField(domain)
                            or is_AlgebraicRealField(domain))
         zero = domain(0)

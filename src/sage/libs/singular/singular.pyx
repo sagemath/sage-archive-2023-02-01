@@ -500,8 +500,6 @@ cdef number *sa2si_transext(object elem, ring *_ring):
     cdef number *denominator
     cdef number *cfnum
     cdef number *cfden
-    cdef mpz_t mpz_num
-    cdef mpz_t mpz_den
     cdef int ngens
 
     cdef int ex
@@ -530,8 +528,11 @@ cdef number *sa2si_transext(object elem, ring *_ring):
     numerator = _ring.cf.cfInit(0, _ring.cf)
 
     for (exponents, coef) in numerdic.items():
-        cfnum = _ring.cf.cfInit(<int>(int(coef.numerator())), _ring.cf)
-        cfden = _ring.cf.cfInit(<int>(int(coef.denominator())), _ring.cf)
+        numer = coef.numerator()
+        cfnum = _ring.cf.cfInitMPZ((<Integer>numer).value, _ring.cf)
+        denom = coef.denominator()
+        cfden = _ring.cf.cfInitMPZ((<Integer>denom).value, _ring.cf)
+
         naCoeff = _ring.cf.cfDiv(cfnum, cfden , _ring.cf )
 
 
@@ -545,8 +546,10 @@ cdef number *sa2si_transext(object elem, ring *_ring):
         denominator = _ring.cf.cfInit(0, _ring.cf)
 
         for (exponents, coef) in denomdic.items():
-            cfnum = _ring.cf.cfInit(<int>(int(coef.numerator())), _ring.cf)
-            cfden = _ring.cf.cfInit(<int>(int(coef.denominator())), _ring.cf)
+            numer = coef.numerator()
+            cfnum = _ring.cf.cfInitMPZ((<Integer>numer).value, _ring.cf)
+            denom = coef.denominator()
+            cfden = _ring.cf.cfInitMPZ((<Integer>denom).value, _ring.cf)
             naCoeff = _ring.cf.cfDiv(cfnum, cfden , _ring.cf )
 
             for (j, ex) in enumerate(exponents):

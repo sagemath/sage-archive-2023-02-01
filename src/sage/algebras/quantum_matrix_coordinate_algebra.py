@@ -238,9 +238,8 @@ class QuantumMatrixCoordinateAlgebra_abstract(CombinatorialFreeModule):
             raise ValueError("undefined for non-square quantum matrices")
         from sage.combinat.permutation import Permutations
         q = self._q
-        return self.sum(self.term(self._indices({(i, p(i)): 1 for i in range(1, self._n + 1)}),
-                                  (-q) ** p.length())
-                        for p in Permutations(self._n))
+        return self._from_dict({self._indices({(i, p(i)): 1 for i in range(1, self._n + 1)}):
+                               (-q) ** p.length() for p in Permutations(self._n)})
 
     def product_on_basis(self, a, b):
         """

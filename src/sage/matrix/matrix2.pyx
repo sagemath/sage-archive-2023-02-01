@@ -2126,8 +2126,8 @@ cdef class Matrix(Matrix1):
             \det_q(M) =
             \sum_{\sigma \in S_n} (-q)^{\ell(\sigma)} M_{\sigma(i),j},
 
-        where `S_n` is symmetric group on `\{1, \ldots, n\}` and
-        `\ell(\sigma)` denotes the length of `\sigma` witten as simple
+        where `S_n` is the symmetric group on `\{1, \ldots, n\}` and
+        `\ell(\sigma)` denotes the length of `\sigma` written as simple
         transpositions (equivalently the number of inversions when
         written in one-line notation).
 

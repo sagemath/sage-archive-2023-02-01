@@ -31,7 +31,7 @@ it is actually resolved after the startup, so that the developer knows
 that (s)he can remove the flag::
 
     sage: ZZ
-    Option ``at_startup=True`` for lazy import ZZ not needed anymore
+    UserWarning: Option ``at_startup=True`` for lazy import ZZ not needed anymore
     Integer Ring
 
 .. SEEALSO:: :func:`lazy_import`, :class:`LazyImport`
@@ -149,7 +149,7 @@ cpdef test_fake_startup():
         sage: sage.misc.lazy_import.test_fake_startup()
         sage: lazy_import('sage.rings.all', 'ZZ', 'my_ZZ')
         sage: my_ZZ(123)
-        Resolving lazy import ZZ during startup
+        UserWarning: Resolving lazy import ZZ during startup
         123
         sage: sage.misc.lazy_import.finish_startup()
     """
@@ -233,7 +233,7 @@ cdef class LazyImport(object):
             False
             sage: my_integer_ring = LazyImport('sage.rings.all', 'ZZ', at_startup=True)
             sage: my_integer_ring
-            Option ``at_startup=True`` for lazy import ZZ not needed anymore
+            UserWarning: Option ``at_startup=True`` for lazy import ZZ not needed anymore
             Integer Ring
         """
         if self._object is not None:

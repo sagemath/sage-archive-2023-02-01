@@ -8753,11 +8753,14 @@ class GenericGraph(GenericGraph_pyx):
             from sage.rings.real_mpfr import RR
             if integer:
                 from math import floor
-                capacity=lambda x: floor(x) if x in RR else 1
+                def capacity(z):
+                    return floor(z) if z in RR else 1
             else:
-                capacity=lambda x: x if x in RR else 1
+                def capacity(z):
+                    return z if z in RR else 1
         else:
-            capacity=lambda x: 1
+            def capacity(z):
+                return 1
 
         if algorithm is None:
             if vertex_bound:
@@ -8843,7 +8846,7 @@ class GenericGraph(GenericGraph_pyx):
 
         # Elsewhere, the flow is equal to 0
         for v in g:
-            if v!=x and v!=y:
+            if v != x and v != y:
                 p.add_constraint(flow_sum(v), min=0, max=0)
 
         # Capacity constraints
@@ -8853,7 +8856,7 @@ class GenericGraph(GenericGraph_pyx):
         # No vertex except the sources can send more than 1
         if vertex_bound:
             for v in g:
-                if v!=x and v!=y:
+                if v != x and v != y:
                     p.add_constraint(flow_leaving(v), max=1)
 
         p.solve(log=verbose)

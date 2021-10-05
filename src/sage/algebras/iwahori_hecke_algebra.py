@@ -30,7 +30,7 @@ from sage.rings.all import ZZ
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
 from sage.arith.all import is_square
 from sage.combinat.root_system.coxeter_group import CoxeterGroup
-from sage.combinat.family import Family
+from sage.sets.family import Family
 from sage.combinat.free_module import CombinatorialFreeModule
 
 

@@ -406,20 +406,24 @@ include "pynac.pxi"
 include "pynac_impl.pxi"
 
 
-cpdef bint isinstance(x, Expression):
+cpdef bint is_Expression(x):
     """
     Return True if *x* is a symbolic Expression.
 
     EXAMPLES::
 
-        sage: from sage.structure.element import Expression
-        sage: isinstance(x, Expression)
+        sage: from sage.symbolic.expression import is_Expression
+        sage: is_Expression(x)
+        DeprecationWarning: is_Expression is deprecated;
+        use isinstance(..., sage.structure.element.Expression) instead
         True
-        sage: isinstance(2, Expression)
+        sage: is_Expression(2)
         False
-        sage: isinstance(SR(2, Expression))
+        sage: is_Expression(SR(2))
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32638, 'is_Expression is deprecated; use isinstance(..., sage.structure.element.Expression) instead')
     return isinstance(x, Expression)
 
 

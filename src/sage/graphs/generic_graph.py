@@ -8813,7 +8813,8 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram
         g = self
         p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-        flow = p.new_variable(nonnegative=True)
+        flow = p.new_variable(integer=integer, nonnegative=True)
+        obj = p.new_variable(nonnegative=True)
 
         if g.is_directed():
             # This function return the balance of flow at X
@@ -8837,7 +8838,8 @@ class GenericGraph(GenericGraph_pyx):
             capacity_sum = lambda u,v: flow[u,v] + flow[v,u]
 
         # Maximizes the flow leaving x
-        p.set_objective(flow_sum(x))
+        p.add_constraint(flow_sum(x) == obj[0])
+        p.set_objective(obj[0])
 
         # Elsewhere, the flow is equal to 0
         for v in g:
@@ -8854,23 +8856,16 @@ class GenericGraph(GenericGraph_pyx):
                 if v!=x and v!=y:
                     p.add_constraint(flow_leaving(v), max=1)
 
-        if integer:
-            p.set_integer(flow)
-
         p.solve(log=verbose)
 
         # If integer is True, flow variables will be converted to integers.
         # Otherwise, the base ring of the MILP solver is used
         flow = p.get_values(flow, convert=True, tolerance=integrality_tolerance)
 
-        if g.is_directed():
-            obj = sum(flow[x, v] for u, v in g.outgoing_edge_iterator([x], labels=False))
-            obj -= sum(flow[u, x] for u, v in g.incoming_edge_iterator([x], labels=False))
+        if integer or (not integer and use_edge_labels is False):
+            obj = p.get_values(obj[0], convert=ZZ, tolerance=integrality_tolerance)
         else:
-            obj = sum(flow[x, v] - flow[v, x] for v in g[x])
-
-        if not integer and use_edge_labels is False:
-            obj = Integer(obj)
+            obj = p.get_values(obj[0], convert=True, tolerance=integrality_tolerance)
 
         if value_only:
             return obj

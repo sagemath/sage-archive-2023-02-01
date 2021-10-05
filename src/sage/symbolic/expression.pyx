@@ -385,6 +385,7 @@ from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.cpython.string cimport str_to_bytes, char_to_str
 
 from sage.structure.element cimport RingElement, Element, Matrix
+from sage.structure.element cimport Expression as Expression_abc
 from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function cimport SymbolicFunction
 from sage.rings.rational import Rational
@@ -694,7 +695,7 @@ def _subs_fun_make_dict(s):
         raise TypeError(msg.format(s))
 
 
-cdef class Expression(CommutativeRingElement):
+cdef class Expression(Expression_abc):
 
     cdef GEx _gobj
 

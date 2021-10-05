@@ -2118,6 +2118,19 @@ cdef class Matrix(Matrix1):
         r"""
         Return the quantum deteminant of ``self``.
 
+        The quantum determinant of a matrix `M = (m_{ij})_{i,j=1}^n`
+        is defined by
+
+        .. MATH::
+
+            \det_q(M) =
+            \sum_{\sigma \in S_n} (-q)^{\ell(\sigma)} M_{\sigma(i),j},
+
+        where `S_n` is symmetric group on `\{1, \ldots, n\}` and
+        `\ell(\sigma)` denotes the length of `\sigma` witten as simple
+        transpositions (equivalently the number of inversions when
+        written in one-line notation).
+
         INPUT:
 
         - ``q`` -- the parameter `q`; the default is `q \in F[q]`,
@@ -2176,6 +2189,8 @@ cdef class Matrix(Matrix1):
         return sum((-q)**s.number_of_inversions()
                    * prod(self.get_unsafe(s[i] - 1, i) for i in range(n))
                    for s in Permutations(n))
+
+    qdet = quantum_determinant
 
     def pfaffian(self, algorithm=None, check=True):
         r"""

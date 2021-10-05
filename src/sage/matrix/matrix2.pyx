@@ -62,6 +62,7 @@ AUTHORS:
 - Michael Jung (2020-10-02): added Bär-Faddeev-LeVerrier algorithm for the
   Pfaffian
 
+- Moritz Firsching(2020-10-05): added ``quantum_determinant``
 """
 
 # ****************************************************************************
@@ -2112,6 +2113,43 @@ cdef class Matrix(Matrix1):
             for i from 0 <= i < level:
                 self.swap_rows(level, i)
             return d
+
+    def quantum_determinant(self, q=None):
+        r"""
+        Return the quantum deteminant of a matrix.
+
+        INPUT:
+           - ``q`` -- a symbolic variable or a generator for a
+             (Laurent) polynomial ring. Creates a generator for a
+             polynomial ring over the base ring of the by default.
+
+        EXAMPLES::
+
+            sage: A = Matrix([[SR(f'a{i}{j}') for i in range(2)]
+            ....:             for j in range(2)]); A
+            [a00 a10]
+            [a01 a11]
+            sage: A.quantum_determinant()
+            -a01*a10*q + a00*a11
+            sage: R.<q> = LaurentPolynomialRing(ZZ)
+            sage: A = MatrixSpace(Integers(8),3)([1,7,3, 1,1,1, 3,4,5])
+            sage: A.quantum_determinant(q)
+            5 + q + q^2 + 7*q^3
+        """
+        n = self._ncols
+
+        if self._nrows != n:
+            raise ValueError("self must be a square matrix")
+
+        if q is None:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            q = PolynomialRing(self.base_ring(), 'q').gen()
+
+        from sage.misc.misc_c import prod
+        from sage.combinat.permutation import Permutations
+        return sum((-q)**(s.number_of_inversions()) *
+                   prod(self[s(i + 1) - 1, i] for i in range(n))
+                   for s in Permutations(n))
 
     def pfaffian(self, algorithm=None, check=True):
         r"""

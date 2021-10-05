@@ -8817,7 +8817,7 @@ class GenericGraph(GenericGraph_pyx):
         g = self
         p = MixedIntegerLinearProgram(maximization=True, solver=solver)
         flow = p.new_variable(integer=integer, nonnegative=True)
-        obj = p.new_variable(nonnegative=True)
+        obj = p.new_variable(integer=integer, nonnegative=True)
 
         if g.is_directed():
             # This function return the balance of flow at X
@@ -8865,7 +8865,7 @@ class GenericGraph(GenericGraph_pyx):
         # Otherwise, the base ring of the MILP solver is used
         flow = p.get_values(flow, convert=True, tolerance=integrality_tolerance)
 
-        if integer or (not integer and use_edge_labels is False):
+        if not integer and use_edge_labels is False:
             obj = p.get_values(obj[0], convert=ZZ, tolerance=integrality_tolerance)
         else:
             obj = p.get_values(obj[0], convert=True, tolerance=integrality_tolerance)

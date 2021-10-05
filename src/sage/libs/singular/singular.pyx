@@ -487,26 +487,89 @@ cdef number *sa2si_GFq_generic(object elem, ring *_ring):
 
 cdef number *sa2si_transext(object elem, ring *_ring):
 
-    cdef poly *pnumer
-    cdef poly *pdenom
+    cdef int i
+    cdef int j
+    cdef number *n1
+    cdef number *n2
+    cdef number *a
+    cdef number *nlCoeff
+    cdef number *naCoeff
+    cdef number *apow1
+    cdef number *apow2
+    cdef number *numerator
+    cdef number *denominator
+    cdef number *cfnum
+    cdef number *cfden
+    cdef mpz_t mpz_num
+    cdef mpz_t mpz_den
+    cdef int ngens
 
-    cdef fraction *result
+    cdef int ex
 
-    numer = <MPolynomial_libsingular>elem.numerator()
-    pnumer = p_Copy(numer._poly, _ring)
 
-    denom = <MPolynomial_libsingular>elem.denominator()
-    pdenom = p_Copy(denom._poly, _ring)
+
+    cdef nMapFunc nMapFuncPtr = NULL;
+
+    ngens = elem.parent().ngens()
 
     nMapFuncPtr =  naSetMap(_ring.cf, currRing.cf) # choose correct mapping function
 
-    result = <fraction*>omAlloc0Bin(fractionObjectBin)
+    if (nMapFuncPtr is NULL):
+        raise RuntimeError("Failed to determine nMapFuncPtr")
 
-    result.numerator = pnumer
-    result.denominator = pdenom
-    result.complexity = 1
+    numerdic = elem.numerator().dict()
+    denomdic = elem.denominator().dict()
 
-    return <number*>result
+    if _ring != currRing:
+        rChangeCurrRing(_ring)
+    n1 = _ring.cf.cfInit(0, _ring.cf)
+
+    apow2 = _ring.cf.cfInit(1, _ring.cf)
+
+
+    numerator = _ring.cf.cfInit(0, _ring.cf)
+
+    for (exponents, coef) in numerdic.items():
+        cfnum = _ring.cf.cfInit(<int>(int(coef.numerator())), _ring.cf)
+        cfden = _ring.cf.cfInit(<int>(int(coef.denominator())), _ring.cf)
+        naCoeff = _ring.cf.cfDiv(cfnum, cfden , _ring.cf )
+
+
+        for (j, ex) in enumerate(exponents):
+            a = _ring.cf.cfParameter(j+1, _ring.cf)
+            for k in range(ex):
+                naCoeff = _ring.cf.cfMult(naCoeff, a ,_ring.cf)
+        numerator = _ring.cf.cfAdd(numerator, naCoeff,_ring.cf)
+
+    if elem.denominator() != 1:
+        denominator = _ring.cf.cfInit(0, _ring.cf)
+
+        for (exponents, coef) in denomdic.items():
+            cfnum = _ring.cf.cfInit(<int>(int(coef.numerator())), _ring.cf)
+            cfden = _ring.cf.cfInit(<int>(int(coef.denominator())), _ring.cf)
+            naCoeff = _ring.cf.cfDiv(cfnum, cfden , _ring.cf )
+
+            for (j, ex) in enumerate(exponents):
+                a = _ring.cf.cfParameter(j+1, _ring.cf)
+                for k in range(ex):
+                    naCoeff = _ring.cf.cfMult(naCoeff, a ,_ring.cf)
+            denominator = _ring.cf.cfAdd(denominator, naCoeff,_ring.cf)
+
+    else:
+        denominator = _ring.cf.cfInit(1, _ring.cf)
+
+    n1 = _ring.cf.cfDiv(numerator, denominator, _ring.cf)
+
+    _ring.cf.cfDelete(&numerator, _ring.cf)
+    _ring.cf.cfDelete(&denominator, _ring.cf)
+
+    _ring.cf.cfDelete(&apow2, _ring.cf)
+    _ring.cf.cfDelete(&naCoeff, _ring.cf)
+
+
+
+
+    return n1
 
 
 cdef number *sa2si_NF(object elem, ring *_ring):

@@ -274,7 +274,8 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
             _name = str_to_bytes(k._names[i])
             _ext_names[i] = omStrDup(_name)
 
-        _cfr = rDefault( 0, 1, _ext_names )
+        _cfr = rDefault( 0, ngens, _ext_names )
+        rComplete(_cfr, 1)
 
         trextParam.r =  _cfr
 

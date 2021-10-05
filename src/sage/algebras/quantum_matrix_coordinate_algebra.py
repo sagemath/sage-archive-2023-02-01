@@ -515,6 +515,16 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
 
             sage: O = algebras.QuantumMatrixCoordinate(4)
             sage: TestSuite(O).run()
+
+            sage: O = algebras.QuantumMatrixCoordinate(10)
+            sage: O.variable_names()
+            ('x0101', ..., 'x1010')
+            sage: O = algebras.QuantumMatrixCoordinate(11,3)
+            sage: O.variable_names()
+            ('x011', ..., 'x113')
+            sage: O = algebras.QuantumMatrixCoordinate(3,11)
+            sage: O.variable_names()
+            ('x101', ..., 'x311')
         """
         gp_indices = [(i, j) for i in range(1, m + 1) for j in range(1, n + 1)]
 
@@ -526,7 +536,10 @@ class QuantumMatrixCoordinateAlgebra(QuantumMatrixCoordinateAlgebra_abstract):
         self._m = m
         QuantumMatrixCoordinateAlgebra_abstract.__init__(self, gp_indices, n, q, bar, R, cat)
         # Set the names
-        names = ['x{}{}'.format(*k) for k in gp_indices]
+        mb = len(str(m))
+        nb = len(str(n))
+        base = 'x{{:0>{}}}{{:0>{}}}'.format(mb,nb)
+        names = [base.format(*k) for k in gp_indices]
         self._assign_names(names)
 
     def _repr_(self):
@@ -992,3 +1005,4 @@ def _generator_key(t):
     if isinstance(t, tuple):
         return t
     return ()
+

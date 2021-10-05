@@ -406,18 +406,18 @@ include "pynac.pxi"
 include "pynac_impl.pxi"
 
 
-cpdef bint is_Expression(x):
+cpdef bint isinstance(x, Expression):
     """
     Return True if *x* is a symbolic Expression.
 
     EXAMPLES::
 
-        sage: from sage.symbolic.expression import is_Expression
-        sage: is_Expression(x)
+        sage: from sage.structure.element import Expression
+        sage: isinstance(x, Expression)
         True
-        sage: is_Expression(2)
+        sage: isinstance(2, Expression)
         False
-        sage: is_Expression(SR(2))
+        sage: isinstance(SR(2, Expression))
         True
     """
     return isinstance(x, Expression)
@@ -473,7 +473,7 @@ cpdef bint _is_SymbolicVariable(x):
         sage: ZZ['x']
         Univariate Polynomial Ring in x over Integer Ring
     """
-    return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
+    return isinstance(x, Expression) and is_a_symbol((<Expression>x)._gobj)
 
 
 def _dict_update_check_duplicate(dict d1, dict d2):
@@ -13579,7 +13579,7 @@ cpdef new_Expression(parent, x):
         x + 1
     """
     cdef GEx exp
-    if is_Expression(x):
+    if isinstance(x, Expression):
         return new_Expression_from_GEx(parent, (<Expression>x)._gobj)
     if hasattr(x, '_symbolic_'):
         return x._symbolic_(parent)

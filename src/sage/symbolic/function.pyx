@@ -334,7 +334,7 @@ cdef class Function(SageObject):
         try:
             evalf = self._evalf_  # catch AttributeError early
             if any(self._is_numerical(x) for x in args):
-                if not any(is_Expression(x) for x in args):
+                if not any(isinstance(x, Expression) for x in args):
                     p = coercion_model.common_parent(*args)
                     return evalf(*args, parent=p)
         except Exception:
@@ -553,7 +553,7 @@ cdef class Function(SageObject):
 
         else: # coerce == False
             for a in args:
-                if not is_Expression(a):
+                if not isinstance(a, Expression):
                     raise TypeError("arguments must be symbolic expressions")
 
         return call_registered_function(self._serial, self._nargs, args, hold,

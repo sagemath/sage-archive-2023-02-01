@@ -870,7 +870,7 @@ cdef class SymbolicRing(CommutativeRing):
             ...
             ValueError: cannot specify n for multiple symbol names
         """
-        if is_Expression(name):
+        if isinstance(name, Expression):
             return name
         if not isinstance(name, (basestring, list, tuple)):
             name = repr(name)

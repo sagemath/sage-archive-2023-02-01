@@ -1,4 +1,4 @@
-cpdef bint is_Expression(x)
+cpdef bint isinstance(x, Expression)
 cpdef _repr_Expression(x)
 cpdef _latex_Expression(x)
 cpdef new_Expression(parent, x)

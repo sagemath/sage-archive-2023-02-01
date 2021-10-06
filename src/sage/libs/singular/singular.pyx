@@ -45,10 +45,10 @@ from sage.cpython.string cimport str_to_bytes, char_to_str, bytes_to_str
 
 from sage.rings.polynomial.multi_polynomial_libsingular cimport MPolynomial_libsingular, MPolynomialRing_libsingular
 
-cdef extern from "singular/coeffs/coeffs.h":
-    ctypedef struct coeffs "n_Procs_s"
-
-
+ctypedef struct fraction "fractionObject":
+    poly *numerator
+    poly *denominator
+    int complexity
 
 _saved_options = (int(0),0,0)
 
@@ -252,6 +252,80 @@ cdef object si2sa_GFq_generic(number *n, ring *_ring, object base):
             ret = ret  + c * a**e
         z = <poly*>pNext(<poly*>z)
     return ret
+
+cdef object si2sa_transext(number *n, ring *_ring, object base):
+    """
+    TESTS::
+
+        sage: F = PolynomialRing(QQ,'a,b').fraction_field()
+        sage: F.inject_variables()
+        Defining a, b
+        sage: R.<x,y> = F[]
+        sage: a*x
+        (a)*x
+        sage: I = R.ideal([a*x])
+        sage: I
+        Ideal ((a)*x) of Multivariate Polynomial Ring in x, y over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+        sage: I.groebner_basis()
+        [x]
+        sage: I = R.ideal([a*x+b*y^2, (b+a)/(b-a)*x^3-3*y*x])
+        sage: I.groebner_basis()
+        [x^3 + (3*a - 3*b)/(a + b)*x*y, y^2 + (a)/(b)*x]
+        sage: R.term_order()
+        Degree reverse lexicographic term order
+
+    """
+
+    cdef poly *numer
+    cdef poly *denom
+    cdef number *c
+    cdef int e
+    cdef fraction *frac
+    cdef object snumer
+    cdef object sdenom
+
+    cdef ring *cfRing = _ring.cf.extRing
+
+    if _ring.cf.cfIsZero(n,_ring.cf):
+        return base._zero_element
+    elif _ring.cf.cfIsOne(n,_ring.cf):
+        return base._one_element
+
+    snumer = base(0)
+    sdenom = base(0)
+
+    frac = <fraction*>n
+
+    numer = frac.numerator
+    denom = frac.denominator
+
+    while numer:
+        c = p_GetCoeff(numer, cfRing)
+        coeff = si2sa_QQ(c, &c, cfRing)
+        numer.coef = c
+        for i in range(base.ngens()):
+            e = p_GetExp(numer, i+1, cfRing)
+            if e!= 0:
+                coeff *= base.gen(i)**e
+        snumer += coeff
+        numer = <poly*>pNext(<poly*>numer)
+
+    if not denom:
+        sdenom = base(1)
+    else:
+        while denom:
+            c = p_GetCoeff(denom, cfRing)
+            coeff = si2sa_QQ(c, &c, cfRing)
+            denom.coef = c
+            for i in range(base.ngens()):
+                e = p_GetExp(denom, i+1, cfRing)
+                if e!= 0:
+                    coeff *= base.gen(i)**e
+            sdenom += coeff
+            denom = <poly*>pNext(<poly*>denom)
+
+    return snumer/sdenom
+
 
 cdef object si2sa_NF(number *n, ring *_ring, object base):
     """
@@ -486,6 +560,26 @@ cdef number *sa2si_GFq_generic(object elem, ring *_ring):
     return n1
 
 cdef number *sa2si_transext(object elem, ring *_ring):
+    """
+    TESTS::
+
+        sage: F = PolynomialRing(QQ,'a,b').fraction_field()
+        sage: F.inject_variables()
+        Defining a, b
+        sage: R.<x,y> = F[]
+        sage: a*x
+        (a)*x
+        sage: I = R.ideal([a*x])
+        sage: I
+        Ideal ((a)*x) of Multivariate Polynomial Ring in x, y over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+        sage: I.groebner_basis()
+        [x]
+        sage: I = R.ideal([a*x+b*y^2, (b+a)/(b-a)*x^3-3*y*x])
+        sage: I.groebner_basis()
+        [x^3 + (3*a - 3*b)/(a + b)*x*y, y^2 + (a)/(b)*x]
+        sage: R.term_order()
+        Degree reverse lexicographic term order
+    """
 
     cdef int i
     cdef int j
@@ -755,6 +849,9 @@ cdef object si2sa(number *n, ring *_ring, object base):
 
     elif isinstance(base, NumberField) and base.is_absolute():
         return si2sa_NF(n, _ring, base)
+
+    elif isinstance(base, FractionField_generic) and isinstance(base.base(), (MPolynomialRing_libsingular, PolynomialRing_field)) and isinstance(base.base_ring(), RationalField):
+        return si2sa_transext(n, _ring, base)
 
     elif isinstance(base, IntegerModRing_generic):
         if _ring.cf.type == n_unknown:

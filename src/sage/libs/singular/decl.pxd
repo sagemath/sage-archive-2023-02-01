@@ -1143,10 +1143,7 @@ cdef extern from "singular/kernel/GBEngine/syz.h":
 cdef extern from "singular/polys/ext_fields/transext.h":
     ctypedef struct TransExtInfo:
         ring * r
-    ctypedef struct fraction "fractionObject":
-        poly *numerator
-        poly *denominator
-        int complexity
+
 
 
 

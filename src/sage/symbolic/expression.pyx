@@ -414,6 +414,7 @@ cpdef bint is_Expression(x):
 
         sage: from sage.symbolic.expression import is_Expression
         sage: is_Expression(x)
+        doctest:warning...
         DeprecationWarning: is_Expression is deprecated;
         use isinstance(..., sage.structure.element.Expression) instead
         True

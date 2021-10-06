@@ -408,7 +408,10 @@ include "pynac_impl.pxi"
 
 cpdef bint is_Expression(x):
     """
-    Return True if *x* is a symbolic Expression.
+    Return True if ``x`` is a symbolic expression.
+
+    This method is deprecated.  Use :func:`isinstance` with
+    :class:`sage.structure.element.Expression` instead.
 
     EXAMPLES::
 
@@ -417,6 +420,7 @@ cpdef bint is_Expression(x):
         doctest:warning...
         DeprecationWarning: is_Expression is deprecated;
         use isinstance(..., sage.structure.element.Expression) instead
+        See https://trac.sagemath.org/32638 for details.
         True
         sage: is_Expression(2)
         False

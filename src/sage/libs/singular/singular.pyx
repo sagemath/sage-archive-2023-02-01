@@ -579,6 +579,21 @@ cdef number *sa2si_transext(object elem, ring *_ring):
         [x^3 + (3*a - 3*b)/(a + b)*x*y, y^2 + (a)/(b)*x]
         sage: R.term_order()
         Degree reverse lexicographic term order
+
+    ::
+
+        sage: F = PolynomialRing(QQ,'a').fraction_field()
+        sage: R.<x,y> = F[]
+        sage: F.inject_variables()
+        Defining a
+        sage: a*x
+        (a)*x
+        sage: I = R.ideal([a*x+5*y^2, (1+a)/(1-a)*x^3-3*y*x])
+        sage: I
+        Ideal (5*y^2 + (a)*x, (-a - 1)/(a - 1)*x^3 - 3*x*y) of Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial Ring in a over Rational Field
+        sage: I.groebner_basis()
+        [x^3 + (3*a - 3)/(a + 1)*x*y, y^2 + (a)/5*x]
+
     """
 
     cdef int i
@@ -598,8 +613,6 @@ cdef number *sa2si_transext(object elem, ring *_ring):
 
     cdef int ex
 
-
-
     cdef nMapFunc nMapFuncPtr = NULL;
 
     ngens = elem.parent().ngens()
@@ -611,6 +624,14 @@ cdef number *sa2si_transext(object elem, ring *_ring):
 
     numerdic = elem.numerator().dict()
     denomdic = elem.denominator().dict()
+
+    if numerdic and type(list(numerdic)[0]) is not tuple:
+        numerdic = {(k,):b for k,b in numerdic.items()}
+
+    if denomdic and type(list(denomdic)[0]) is not tuple:
+        denomdic = {(k,):b for k,b in denomdic.items()}
+
+
 
     if _ring != currRing:
         rChangeCurrRing(_ring)

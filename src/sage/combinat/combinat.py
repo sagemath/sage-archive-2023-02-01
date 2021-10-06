@@ -138,9 +138,25 @@ Functions and classes
 """
 
 # ****************************************************************************
-#       Copyright (C) 2006 David Joyner <wdjoyner@gmail.com>,
-#                     2007 Mike Hansen <mhansen@gmail.com>,
-#                     2006 William Stein <wstein@gmail.com>
+#       Copyright (C) 2006      David Joyner <wdjoyner@gmail.com>
+#                     2007-2009 Mike Hansen <mhansen@gmail.com>
+#                     2006      William Stein <wstein@gmail.com>
+#                     2009      Blair Sutton
+#                     2009      Craig Citro
+#                     2009-2010 Florent Hivert
+#                     2010      Francis Clarke
+#                     2010      Fredrik Johansson
+#                     2010      Robert Gerbicz
+#                     2010-2013 Nathann Cohen
+#                     2012      Christian Stump
+#                     2013-2015 Travis Scrimshaw
+#                     2014      Volker Braun
+#                     2014-2015 Darij Grinberg
+#                     2014-2015 Jeroen Demeyer
+#                     2014-2021 Frédéric Chapoton
+#                     2015      Thierry Monteil
+#                     2019      Christian Nassau
+#                     2019-2020 Alex Shearer
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -2104,7 +2120,7 @@ class CombinatorialClass(Parent, metaclass=ClasscallMetaclass):
         EXAMPLES::
 
             sage: R = Permutations(3).map(attrcall('reduced_word')); R
-            Image of Standard permutations of 3 by *.reduced_word()
+            Image of Standard permutations of 3 by The map *.reduced_word() from Standard permutations of 3
             sage: R.cardinality()
             6
             sage: R.list()
@@ -2412,7 +2428,11 @@ class Permutations_CC(CombinatorialClass):
 
 
 ##############################################################################
-class MapCombinatorialClass(CombinatorialClass):
+from sage.sets.image_set import ImageSubobject
+from sage.categories.map import is_Map
+
+
+class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
     r"""
     A MapCombinatorialClass models the image of a combinatorial
     class through a function which is assumed to be injective
@@ -2424,62 +2444,13 @@ class MapCombinatorialClass(CombinatorialClass):
         TESTS::
 
             sage: Partitions(3).map(attrcall('conjugate'))
-            Image of Partitions of the integer 3 by *.conjugate()
+            Image of Partitions of the integer 3 by The map *.conjugate() from Partitions of the integer 3
         """
+        ImageSubobject.__init__(self, f, cc, is_injective=True)
         self.cc = cc
         self.f = f
-        self._name = name
-
-    def __repr__(self) -> str:
-        """
-        TESTS::
-
-            sage: Partitions(3).map(attrcall('conjugate'))
-            Image of Partitions of the integer 3 by *.conjugate()
-
-        """
-        if self._name:
-            return self._name
-        else:
-            return "Image of %s by %s" % (self.cc, self.f)
-
-    def cardinality(self) -> Integer:
-        """
-        Return the cardinality of this combinatorial class
-
-        EXAMPLES::
-
-            sage: R = Permutations(10).map(attrcall('reduced_word'))
-            sage: R.cardinality()
-            3628800
-
-        """
-        return self.cc.cardinality()
-
-    def __iter__(self) -> Iterator:
-        """
-        Return an iterator over the elements of this combinatorial class
-
-        EXAMPLES::
-
-            sage: R = Permutations(10).map(attrcall('reduced_word'))
-            sage: R.cardinality()
-            3628800
-        """
-        for x in self.cc:
-            yield self.f(x)
-
-    def an_element(self):
-        """
-        Return an element of this combinatorial class
-
-        EXAMPLES::
-
-            sage: R = SymmetricGroup(10).map(attrcall('reduced_word'))
-            sage: R.an_element()
-            [9, 8, 7, 6, 5, 4, 3, 2]
-        """
-        return self.f(self.cc.an_element())
+        if name:
+            self.rename(name)
 
 
 ##############################################################################

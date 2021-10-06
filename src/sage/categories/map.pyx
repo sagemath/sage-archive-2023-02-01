@@ -1289,6 +1289,31 @@ cdef class Map(Element):
             raise ValueError("This map became defunct by garbage collection")
         return hash((self.domain(), self._codomain))
 
+    def image(self, domain_subset=None):
+        """
+        Return the image of the domain or of ``domain_subset``.
+        """
+        D = self.domain()
+        if D is None:
+            raise ValueError("This map became defunct by garbage collection")
+        if domain_subset is None or domain_subset == D:
+            try:
+                if self.is_surjective():
+                    return D
+            except NotImplementedError:
+                pass
+            domain_subset = D
+        from sage.sets.set import Set_base
+        from sage.sets.image_set import ImageSubobject, ImageSet
+        if isinstance(domain_subset, Set_base):
+            # Most of our parents are sets, but the mixin class Set_base
+            # provides the full kit of operators.  The image should get them too.
+            cls = ImageSet
+        else:
+            cls = ImageSubobject
+        return cls(self, domain_subset)
+
+
 cdef class Section(Map):
     """
     A formal section of a map.

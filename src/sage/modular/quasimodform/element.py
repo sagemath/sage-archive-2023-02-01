@@ -342,7 +342,7 @@ class QuasiModularFormsElement(ModuleElement):
         """
         return self._polynomial.degree() <= 0 and self._polynomial[0].is_modular_form()
 
-    def to_polynomial(self, names='E2, E4, E6'):
+    def polynomial(self, names='E2, E4, E6'):
         r"""
         Return a multivariate polynomial `P(E_2, E_4, E_6)` corresponding to the
         given form where `E_2`, `E_4` and `E_6` are the generators of the
@@ -360,15 +360,17 @@ class QuasiModularFormsElement(ModuleElement):
         EXAMPLES::
 
             sage: QM = QuasiModularForms(1)
-            sage: (QM.0 + QM.1).to_polynomial()
+            sage: (QM.0 + QM.1).polynomial()
             E4 + E2
-            sage: (1/2 + QM.0 + 2*QM.1^2 + QM.0*QM.2).to_polynomial()
+            sage: (1/2 + QM.0 + 2*QM.1^2 + QM.0*QM.2).polynomial()
             E2*E6 + 2*E4^2 + E2 + 1/2
         """
         P = self.parent().polynomial_ring(names)
         g0, g1 = self.parent().modular_forms_subring().polynomial_ring(names='x').gens()
         E2, E4, E6 = P.gens()
         return sum(f.to_polynomial().subs({g0:E4, g1:E6}) * E2 ** exp for exp, f in enumerate(self._polynomial.coefficients(sparse=False)))
+
+    to_polynomial = polynomial # alias
 
     def weights_list(self):
         r"""

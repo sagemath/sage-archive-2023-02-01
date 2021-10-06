@@ -138,6 +138,8 @@ from sage.structure.parent cimport Parent
 from sage.structure.parent_gens cimport ParentWithGens
 from sage.rings.polynomial.term_order import TermOrder
 
+from sage.misc.functional import coerce
+
 
 class G_AlgFactory(UniqueFactory):
     """
@@ -514,7 +516,7 @@ cdef class NCPolynomialRing_plural(Ring):
         base_ring = self.base_ring()
 
         try:
-            element = base_ring(elem)
+            element = coerce(base_ring, elem)
         except:
             element = elem
 

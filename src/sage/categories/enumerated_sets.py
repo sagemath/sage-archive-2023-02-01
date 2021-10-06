@@ -900,11 +900,14 @@ class EnumeratedSets(CategoryWithAxiom):
 
             .. WARNING::
 
-                :class:`MapCombinatorialClass` needs to be refactored to use categories::
+                :class:`MapCombinatorialClass` needs to be refactored
+                to use categories::
 
                     sage: R.category()             # todo: not implemented
                     Category of enumerated sets
-                    sage: TestSuite(R).run(skip=['_test_an_element', '_test_category', '_test_some_elements'])
+                    sage: TestSuite(R).run(skip=['_test_an_element', '_test_category',
+                    ....:                        '_test_enumerated_set_contains',
+                    ....:                        '_test_some_elements'])
             """
             from sage.combinat.combinat import MapCombinatorialClass
             return MapCombinatorialClass(self, f, name)

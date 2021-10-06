@@ -30,9 +30,29 @@ from sage.symbolic.callable import is_CallableSymbolicExpression
 from .set import Set_base, Set_add_sub_operators, Set_boolean_operators
 
 class ImageSubobject(Parent):
+    r"""
+    The subset defined as the image of another set under a fixed map.
 
+    Let `f: X \to Y` be a function. Then the image of `f` is defined as
+
+    .. MATH::
+
+        \{ f(x) | x \in X \} \subseteq Y.
+    """
     def __init__(self, map, domain_subset, *, category=None, is_injective=None):
+        """
+        Initialize ``self``.
 
+        EXAMPLES::
+
+            sage: M = CombinatorialFreeModule(ZZ, [0,1,2,3])
+            sage: R.<x,y> = QQ[]
+            sage: H = Hom(M, R, category=Sets())
+            sage: f = H(lambda v: v[0]*x + v[1]*(x^2-y) + v[2]^2*(y+2) + v[3] - v[0]^2)
+            sage: Im = f.image()
+            sage: TestSuite(Im).run(skip=['_test_an_element', '_test_pickling',
+            ....:                         '_test_some_elements'])
+        """
         if not is_Parent(domain_subset):
             from sage.sets.set import Set
             domain_subset = Set(domain_subset)
@@ -64,7 +84,7 @@ class ImageSubobject(Parent):
             category = map_category._meet_(domain_subset.category())
 
         category = category.Subobjects()
-        if domain_subset in Sets().Finite():
+        if domain_subset in Sets().Finite() or map.codomain() in Sets().Finite():
             category = category.Finite()
         elif is_injective and domain_subset in Sets.Infinite():
             category = category.Infinite()
@@ -91,11 +111,21 @@ class ImageSubobject(Parent):
 
         EXAMPLES::
 
+            sage: M = CombinatorialFreeModule(QQ, [0,1,2,3])
+            sage: R.<x,y> = ZZ[]
+            sage: H = Hom(M, R, category=Sets())
+            sage: f = H(lambda v: floor(v[0])*x + ceil(v[3] - v[0]^2))
+            sage: Im = f.image()
+            sage: Im.ambient() is R
+            True
+
             sage: P = Partitions(3).map(attrcall('conjugate'))
-            sage: P.ambient()
+            sage: P.ambient() is None
+            True
 
             sage: R = Permutations(10).map(attrcall('reduced_word'))
-            sage: R.ambient()
+            sage: R.ambient() is None
+            True
         """
         return self._map.codomain()
 
@@ -141,19 +171,33 @@ class ImageSubobject(Parent):
 
     def __iter__(self) -> Iterator:
         r"""
-        Return an iterator over the elements of this combinatorial class
+        Return an iterator over the elements of ``self``.
 
         EXAMPLES::
 
             sage: R = Permutations(10).map(attrcall('reduced_word'))
             sage: R.cardinality()
             3628800
+
+            sage: P = Partitions()
+            sage: H = Hom(P, ZZ)
+            sage: f = H(ZZ.sum)
+            sage: X = f.image()
+            sage: it = iter(X)
+            sage: [next(it) for _ in range(5)]
+            [0, 1, 2, 3, 4]
         """
         if self._is_injective:
             for x in self._domain_subset:
                 yield self._map(x)
         else:
-            yield from super().__iter__()
+            visited = set()
+            for x in self._domain_subset:
+                y = self._map(x)
+                if y in visited:
+                    continue
+                visited.add(y)
+                yield y
 
     def _an_element_(self):
         r"""

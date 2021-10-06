@@ -66,6 +66,7 @@ List of Poset methods
     :meth:`~FinitePoset.height` | Return the number of elements in a longest chain of the poset.
     :meth:`~FinitePoset.width` | Return the number of elements in a longest antichain of the poset.
     :meth:`~FinitePoset.relations_number` | Return the number of relations in the poset.
+    :meth:`~FinitePoset.linear_intervals_count` | Return the enumeration of linear intervals in the poset.
     :meth:`~FinitePoset.dimension` | Return the dimension of the poset.
     :meth:`~FinitePoset.jump_number` | Return the jump number of the poset.
     :meth:`~FinitePoset.magnitude` | Return the magnitude of the poset.
@@ -281,8 +282,9 @@ Classes and functions
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
+from __future__ import annotations
 from copy import copy, deepcopy
+
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
@@ -2648,6 +2650,54 @@ class FinitePoset(UniqueRepresentation, Parent):
 
     # Maybe this should also be deprecated.
     intervals_number = relations_number
+
+    def linear_intervals_count(self) -> list[int]:
+        """
+        Return the enumeration of linear intervals w.r.t. their cardinality.
+
+        An interval is linear if it is a total order.
+
+        OUTPUT: list of integers
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.linear_intervals_count()
+            [5, 5, 2]
+            sage: P = posets.TamariLattice(4)
+            sage: P.linear_intervals_count()
+            [14, 21, 12, 2]
+
+        TESTS::
+
+            sage: P = Poset()
+            sage: P.linear_intervals_count()
+            []
+        """
+        if not self.cardinality():
+            return []
+        H = self._hasse_diagram
+        stock = [(x, x, x) for x in H]
+        poly = [len(stock)]
+        exposant = 0
+        while True:
+            exposant += 1
+            next_stock = []
+            short_stock = [(ch[0], ch[2]) for ch in stock]
+            for xmin, cov_xmin, xmax in stock:
+                for y in H.neighbor_out_iterator(xmax):
+                    if exposant == 1:
+                        next_stock.append((xmin, y, y))
+                    else:
+                        if (cov_xmin, y) in short_stock:
+                            if H.is_linear_interval(xmin, y):
+                                next_stock.append((xmin, cov_xmin, y))
+            if next_stock:
+                poly.append(len(next_stock))
+                stock = next_stock
+            else:
+                break
+        return poly
 
     def is_incomparable_chain_free(self, m, n=None) -> bool:
         r"""

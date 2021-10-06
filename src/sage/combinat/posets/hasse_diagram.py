@@ -2353,6 +2353,37 @@ class HasseDiagram(DiGraph):
         """
         return IncreasingChains(self._leq_storage, element_class, exclude, conversion)
 
+    def is_linear_interval(self, t_min, t_max) -> bool:
+        """
+        Return whether the interval ``[t_min, t_max]`` is linear.
+
+        This means that this interval is a total order.
+
+        .. WARNING::
+
+            For speed, this assumes that the input is an interval!
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: H = P._hasse_diagram
+            sage: H.is_linear_interval(0,4)
+            False
+            sage: H.is_linear_interval(0,3)
+            True
+        """
+        t = t_max
+        while t != t_min:
+            found = False
+            for u in self.neighbor_in_iterator(t):
+                if self.is_lequal(t_min, u):
+                    if not found:
+                        found = True
+                        t = u
+                    else:
+                        return False
+        return True
+
     def diamonds(self):
         r"""
         Return the list of diamonds of ``self``.

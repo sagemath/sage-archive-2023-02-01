@@ -419,7 +419,7 @@ cdef class NCPolynomialRing_plural(Ring):
         """
         singular_ring_delete(self._ring)
 
-    def _element_constructor_(self, element):
+    def _element_constructor_(self, elem):
         """
         Make sure element is a valid member of self, and return the constructed element.
 
@@ -487,11 +487,22 @@ cdef class NCPolynomialRing_plural(Ring):
             Traceback (most recent call last):
             ...
             ValueError: unable to construct an element of this ring
+
+        Check that it works for rings with parameters::
+
+            sage: F = PolynomialRing(QQ,'t1,t2').fraction_field()
+            sage: A = FreeAlgebra(F, 2, 'x,y')
+            sage: A.inject_variables()
+            Defining x, y
+            sage: B = A.g_algebra({y*x:-x*y})
+            sage: B(2)
+            2
+
         """
 
-        if element == 0:
+        if elem == 0:
             return self._zero_element
-        if element == 1:
+        if elem == 1:
             return self._one_element
 
         cdef poly *_p
@@ -501,6 +512,11 @@ cdef class NCPolynomialRing_plural(Ring):
         _ring = self._ring
 
         base_ring = self.base_ring()
+
+        try:
+            element = base_ring(elem)
+        except:
+            element = elem
 
         if(_ring != currRing): rChangeCurrRing(_ring)
 
@@ -721,7 +737,7 @@ cdef class NCPolynomialRing_plural(Ring):
             -x*y
         """
         from sage.repl.rich_output.backend_base import BackendBase
-        from sage.repl.display.pretty_print import SagePrettyPrinter        
+        from sage.repl.display.pretty_print import SagePrettyPrinter
         varstr = ", ".join(char_to_str(rRingVar(i, self._ring))
                            for i in range(self.__ngens))
         backend = BackendBase()

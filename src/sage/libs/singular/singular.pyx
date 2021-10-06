@@ -27,6 +27,8 @@ import os
 from libc.stdint cimport int64_t
 from sage.libs.singular.decl cimport *
 
+from sage.rings.polynomial.polydict import ETuple
+
 from sage.rings.rational_field import RationalField
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing_generic
@@ -625,13 +627,11 @@ cdef number *sa2si_transext(object elem, ring *_ring):
     numerdic = elem.numerator().dict()
     denomdic = elem.denominator().dict()
 
-    if numerdic and type(list(numerdic)[0]) is not tuple:
+    if numerdic and not isinstance(list(numerdic)[0], (tuple, ETuple)):
         numerdic = {(k,):b for k,b in numerdic.items()}
 
-    if denomdic and type(list(denomdic)[0]) is not tuple:
+    if denomdic and not isinstance(list(denomdic)[0], (tuple, ETuple)):
         denomdic = {(k,):b for k,b in denomdic.items()}
-
-
 
     if _ring != currRing:
         rChangeCurrRing(_ring)

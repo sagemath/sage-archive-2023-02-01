@@ -402,8 +402,6 @@ cdef extern from "singular/Singular/libsingular.h":
 
     cdef omBin *slists_bin
 
-    cdef omBin *fractionObjectBin
-
     # integer conversion constant
 
     cdef long SR_INT

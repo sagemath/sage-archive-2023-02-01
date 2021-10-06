@@ -19,6 +19,7 @@ from typing import Iterator
 
 from sage.structure.parent import Parent, is_Parent
 from sage.categories.map import is_Map
+from sage.categories.morphism import IdentityMorphism
 from sage.categories.poor_man_map import PoorManMap
 from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -50,7 +51,10 @@ class ImageSubobject(Parent):
         if is_Map(map):
             map_category = map.category_for()
             if is_injective is None:
-                is_injective = map.is_injective()
+                try:
+                    is_injective = map.is_injective()
+                except NotImplementedError:
+                    is_injective = False
         else:
             map_category = Sets()
             if is_injective is None:
@@ -81,15 +85,43 @@ class ImageSubobject(Parent):
         return f
 
     def ambient(self):
+        """
+        Return the ambient set of ``self``, which is the codomain of
+        the defining map.
+
+        EXAMPLES::
+
+            sage: P = Partitions(3).map(attrcall('conjugate'))
+            sage: P.ambient()
+
+            sage: R = Permutations(10).map(attrcall('reduced_word'))
+            sage: R.ambient()
+        """
         return self._map.codomain()
+
+    def lift(self, x):
+        r"""
+        Return the lift ``x`` to the ambient space, which is ``x``.
+        """
+        return x
+
+    def retract(self, x):
+        """
+        Return the retract of ``x`` from the ambient space, which is ``x``.
+
+        .. WARNING::
+
+            This does not check that ``x`` is actually in the image.
+        """
+        return x
 
     def _repr_(self) -> str:
         r"""
         TESTS::
 
             sage: Partitions(3).map(attrcall('conjugate'))
-            Image of Partitions of the integer 3 by The map *.conjugate() from Partitions of the integer 3
-
+            Image of Partitions of the integer 3 by The map *.conjugate()
+             from Partitions of the integer 3
         """
         return f"Image of {self._domain_subset} by {self._map}"
 
@@ -102,7 +134,6 @@ class ImageSubobject(Parent):
             sage: R = Permutations(10).map(attrcall('reduced_word'))
             sage: R.cardinality()
             3628800
-
         """
         if self._is_injective:
             return self._domain_subset.cardinality()
@@ -159,11 +190,10 @@ class ImageSubobject(Parent):
 
 
 class ImageSet(ImageSubobject, Set_base, Set_add_sub_operators, Set_boolean_operators):
-
     r"""
     Image of a set by a map
 
-    EXAMPLES:
+    EXAMPLES::
 
         sage: from sage.sets.image_set import ImageSet
 
@@ -188,7 +218,6 @@ class ImageSet(ImageSubobject, Set_base, Set_add_sub_operators, Set_boolean_oper
          The map (x, y) |--> x^2 + y^2 from Vector space of dimension 2 over Symbolic Ring
         sage: _.an_element()
         25
-
     """
-
     pass
+

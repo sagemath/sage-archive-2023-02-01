@@ -1152,7 +1152,9 @@ class CombinatorialFreeModule_Tensor(CombinatorialFreeModule):
         The basis of T is indexed by tuples of basis indices of F and G::
 
             sage: T.basis().keys()
-            Image of Cartesian product of {1, 2}, {3, 4} by <... 'tuple'>
+            Image of Cartesian product of {1, 2}, {3, 4} by The map
+             <class 'tuple'> from Cartesian product of {1, 2}, {3, 4}
+
             sage: T.basis().keys().list()
             [(1, 3), (1, 4), (2, 3), (2, 4)]
 

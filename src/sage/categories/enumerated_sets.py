@@ -878,7 +878,8 @@ class EnumeratedSets(CategoryWithAxiom):
             EXAMPLES::
 
                 sage: R = Compositions(4).map(attrcall('partial_sums')); R
-                Image of Compositions of 4 by *.partial_sums()
+                Image of Compositions of 4 by The map *.partial_sums()
+                 from Compositions of 4
                 sage: R.cardinality()
                 8
                 sage: R.list()
@@ -886,7 +887,7 @@ class EnumeratedSets(CategoryWithAxiom):
                 sage: [ r for r in R]
                 [[1, 2, 3, 4], [1, 2, 4], [1, 3, 4], [1, 4], [2, 3, 4], [2, 4], [3, 4], [4]]
 
-            .. warning::
+            .. WARNING::
 
                 If the function is not injective, then there may be
                 repeated elements::
@@ -897,7 +898,7 @@ class EnumeratedSets(CategoryWithAxiom):
                     sage: P.map(attrcall('major_index')).list()
                     [6, 3, 4, 1, 5, 2, 3, 0]
 
-            .. warning::
+            .. WARNING::
 
                 :class:`MapCombinatorialClass` needs to be refactored to use categories::
 

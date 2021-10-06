@@ -2444,11 +2444,10 @@ class MapCombinatorialClass(ImageSubobject, CombinatorialClass):
         TESTS::
 
             sage: Partitions(3).map(attrcall('conjugate'))
-            Image of Partitions of the integer 3 by The map *.conjugate() from Partitions of the integer 3
+            Image of Partitions of the integer 3 by The map *.conjugate()
+             from Partitions of the integer 3
         """
         ImageSubobject.__init__(self, f, cc, is_injective=True)
-        self.cc = cc
-        self.f = f
         if name:
             self.rename(name)
 

@@ -139,12 +139,11 @@ is attempted, and after that ``sin()`` which succeeds::
 #*****************************************************************************
 
 from sage.structure.sage_object cimport SageObject
-from sage.structure.element cimport Element, parent
+from sage.structure.element cimport Element, parent, Expression
 from sage.misc.lazy_attribute import lazy_attribute
 from .expression import (
     call_registered_function, find_registered_function, register_or_update_function,
-    get_sfunction_from_hash,
-    is_Expression
+    get_sfunction_from_hash
 )
 from .expression import get_sfunction_from_serial as get_sfunction_from_serial
 

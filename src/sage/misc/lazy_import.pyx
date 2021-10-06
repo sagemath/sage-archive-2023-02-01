@@ -155,8 +155,9 @@ cpdef test_fake_startup():
         123
         sage: sage.misc.lazy_import.finish_startup()
     """
-    global startup_guard
+    global startup_guard, finish_startup_called
     startup_guard = True
+    finish_startup_called = False
 
 
 @cython.final

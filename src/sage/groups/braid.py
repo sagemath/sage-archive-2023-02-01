@@ -2159,8 +2159,8 @@ class RightQuantumWord:
         INPUT:
 
         - ``words`` -- An element in a suitable free algebra over a Laurent
-        polynomial ring in one variable. This input does not need to be in
-        reduced form, but the monomials for the input can come in any order.
+          polynomial ring in one variable. This input does not need to be in
+          reduced form, but the monomials for the input can come in any order.
 
         EXAMPLES::
 

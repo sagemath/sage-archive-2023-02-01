@@ -295,7 +295,7 @@ def has_rubiks():
 
         sage: from sage.doctest.external import has_rubiks
         sage: has_rubiks()   # optional -- rubiks
-        FeatureTestResult('Rubiks', True)
+        FeatureTestResult('rubiks', True)
     """
     from sage.features.rubiks import Rubiks
     return Rubiks().is_present()

@@ -221,14 +221,10 @@ def has_cplex():
 
         sage: from sage.doctest.external import has_cplex
         sage: has_cplex() # random, optional - CPLEX
-        True
+        FeatureTestResult('cplex', True)
     """
-    from sage.numerical.mip import MixedIntegerLinearProgram
-    try:
-        MixedIntegerLinearProgram(solver='cplex')
-        return True
-    except Exception:
-        return False
+    from sage.features.mip_backends import CPLEX
+    return CPLEX().is_present()
 
 def has_gurobi():
     """
@@ -238,14 +234,10 @@ def has_gurobi():
 
         sage: from sage.doctest.external import has_gurobi
         sage: has_gurobi() # random, optional - Gurobi
-        True
+        FeatureTestResult('gurobi', True)
     """
-    from sage.numerical.mip import MixedIntegerLinearProgram
-    try:
-        MixedIntegerLinearProgram(solver='gurobi')
-        return True
-    except Exception:
-        return False
+    from sage.features.mip_backends import Gurobi
+    return Gurobi().is_present()
 
 def has_graphviz():
     """

@@ -2,10 +2,6 @@ rm -f "$SAGE_LOCAL/bin/sqlite3"
 
 cd src
 
-# Use newer version of config.guess and config.sub (see Trac #19711)
-cp "$SAGE_ROOT"/config/config.* .
-
-
 export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 
 # Old OS X systems need -DSQLITE_WITHOUT_ZONEMALLOC

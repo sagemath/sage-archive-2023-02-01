@@ -1029,7 +1029,7 @@ def solve(f, *args, **kwds):
         or a list of symbolic expressions.
     """
     from sage.symbolic.ring import is_SymbolicVariable
-    from sage.symbolic.expression import Expression, is_Expression
+    from sage.structure.element import Expression
     explicit_solutions = kwds.get('explicit_solutions', None)
     multiplicities = kwds.get('multiplicities', None)
     to_poly_solve = kwds.get('to_poly_solve', None)

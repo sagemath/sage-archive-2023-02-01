@@ -5,7 +5,7 @@ cd src
 export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 
 # Trac #32646: configure script does not have --disable-maintainer-mode
-rm -f configure.ac */configure.ac Makefile.am
+touch configure */configure Makefile.in
 
 sdh_configure
 sdh_make

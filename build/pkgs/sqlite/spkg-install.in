@@ -4,12 +4,6 @@ cd src
 
 export CPPFLAGS="$CPPFLAGS -I$SAGE_LOCAL/include"
 
-# Old OS X systems need -DSQLITE_WITHOUT_ZONEMALLOC
-if uname -sr |grep 'Darwin [0-8][.]' >/dev/null; then
-    export CPPFLAGS="$CPPFLAGS -DSQLITE_WITHOUT_ZONEMALLOC"
-fi
-
-
 sdh_configure
 sdh_make
 sdh_make_install

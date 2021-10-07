@@ -255,7 +255,7 @@ def has_graphviz():
 
         sage: from sage.doctest.external import has_graphviz
         sage: has_graphviz()   # optional -- graphviz
-        FeatureTestResult('Graphviz', True)
+        FeatureTestResult('graphviz', True)
     """
     from sage.features.graphviz import Graphviz
     return Graphviz().is_present()

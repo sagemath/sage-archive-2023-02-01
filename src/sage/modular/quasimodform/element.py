@@ -99,7 +99,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def q_expansion(self, prec=6):
         r"""
-        Computes the `q`-expansion of self to precision `prec`.
+        Computes the `q`-expansion of self up to precision ``prec`` (default: 6).
 
         An alias of this method is ``qexp``.
 
@@ -259,7 +259,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_zero(self):
         r"""
-        Return "True" if the quasiform is 0 and "False" otherwise
+        Return ``True`` if the quasiform is 0 and ``False`` otherwise
 
         EXAMPLES::
 
@@ -277,7 +277,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_one(self):
         r"""
-        Return "True" if the quasiform is 1 and "False" otherwise
+        Return ``True`` if the quasiform is 1 and ``False`` otherwise
 
         EXAMPLES::
 

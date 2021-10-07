@@ -268,7 +268,7 @@ def has_ffmpeg():
 
         sage: from sage.doctest.external import has_ffmpeg
         sage: has_ffmpeg()      # optional -- ffmpeg
-        FeatureTestResult('FFmpeg', True)
+        FeatureTestResult('ffmpeg', True)
     """
     from sage.features.ffmpeg import FFmpeg
     return FFmpeg().is_present()

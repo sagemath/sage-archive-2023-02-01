@@ -129,26 +129,24 @@ ecl_eval(r"""
   (setq msg (mapcar #'(lambda (x) (if (eq x '| |) " " x)) msg))
   (or (eq flag 'noprint) (setq print? t))
   (error
-      (concatenate 'string "Maxima asks: "
+    (concatenate 'string
+      "Maxima asks: "
       (string-trim '(#\Newline)
-      (with-output-to-string (*standard-output*)
-      (cond ((not print?)
-         (setq print? t)
-             (format-prompt t ""))
-        ((null msg)
-             (format-prompt t ""))
-        ((atom msg)
-             (format-prompt t "~A" msg)
-         (mterpri))
-        ((eq flag t)
-             (format-prompt t "~{~A~}" (cdr msg))
-         (mterpri))
-        (t
-             (format-prompt t "~M" msg)
-         (mterpri))
-      ))))
-  )
-)
+                   (with-output-to-string (*standard-output*)
+                     (cond ((not print?)
+                            (setq print? t)
+                            (format-prompt t ""))
+                           ((null msg)
+                            (format-prompt t ""))
+                           ((atom msg)
+                            (format-prompt t "~A" msg)
+                            (mterpri))
+                           ((eq flag t)
+                            (format-prompt t "~{~A~}" (cdr msg))
+                            (mterpri))
+                           (t
+                            (format-prompt t "~M" msg)
+                            (mterpri))))))))
 """)
 
 ## Redirection of ECL and Maxima stdout to /dev/null

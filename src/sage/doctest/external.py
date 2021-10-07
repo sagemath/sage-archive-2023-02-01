@@ -53,15 +53,11 @@ def has_internet():
     EXAMPLES::
 
         sage: from sage.doctest.external import has_internet
-        sage: has_internet() # random, optional -- internet
-        True
+        sage: has_internet()                                 # random, optional -- internet
+        FeatureTestResult('internet', True)
     """
-    req = Request("https://www.sagemath.org",headers={"User-Agent":"sage-doctest"})
-    try:
-        urlopen(req, timeout=1, context=SSLContext())
-        return True
-    except urllib.error.URLError:
-        return False
+    from sage.features.internet import Internet
+    return Internet().is_present()
 
 def has_latex():
     """

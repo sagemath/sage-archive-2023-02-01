@@ -799,8 +799,8 @@ class PythonModule(Feature):
         TESTS::
 
             sage: from sage.features import PythonModule
-            sage: from sage.features.fes import LibFES
-            sage: isinstance(LibFES(), PythonModule)  # indirect doctest
+            sage: from sage.features.databases import DatabaseKnotInfo
+            sage: isinstance(DatabaseKnotInfo(), PythonModule)  # indirect doctest
             True
         """
         Feature.__init__(self, name, **kwds)

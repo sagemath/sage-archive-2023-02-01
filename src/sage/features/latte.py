@@ -38,7 +38,7 @@ class Latte(JoinFeature):
 
         sage: from sage.features.latte import Latte
         sage: Latte().is_present()  # optional - latte_int
-        FeatureTestResult('LattE', True)
+        FeatureTestResult('latte_int', True)
     """
     def __init__(self):
         r"""
@@ -48,5 +48,5 @@ class Latte(JoinFeature):
             sage: isinstance(Latte(), Latte)
             True
         """
-        JoinFeature.__init__(self, "LattE",
+        JoinFeature.__init__(self, "latte_int",
                              (Latte_count(), Latte_integrate()))

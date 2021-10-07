@@ -1818,7 +1818,7 @@ class WordMorphism(SageObject):
         parent = self.codomain()
         if self.is_growing(letter):
             from sage.combinat.words.word import InfiniteWord_morphic
-            return InfiniteWord_morphic(parent.shift(), self, letter, 
+            return InfiniteWord_morphic(parent.shift(), self, letter,
                                         coding=None, length=Infinity)
         else:
             from sage.combinat.words.word import FiniteWord_morphic
@@ -1827,7 +1827,7 @@ class WordMorphism(SageObject):
             # since FiniteWord_morphic uses the method __getitem__
             # from FiniteWord_callable, the length must be precomputed
             # for __getitem__ to work properly
-            w.length() 
+            w.length()
             return w
 
     def fixed_points(self):

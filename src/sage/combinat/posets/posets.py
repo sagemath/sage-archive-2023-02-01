@@ -66,7 +66,6 @@ List of Poset methods
     :meth:`~FinitePoset.height` | Return the number of elements in a longest chain of the poset.
     :meth:`~FinitePoset.width` | Return the number of elements in a longest antichain of the poset.
     :meth:`~FinitePoset.relations_number` | Return the number of relations in the poset.
-    :meth:`~FinitePoset.linear_intervals_count` | Return the enumeration of linear intervals in the poset.
     :meth:`~FinitePoset.dimension` | Return the dimension of the poset.
     :meth:`~FinitePoset.jump_number` | Return the jump number of the poset.
     :meth:`~FinitePoset.magnitude` | Return the magnitude of the poset.
@@ -128,7 +127,7 @@ List of Poset methods
     :meth:`~FinitePoset.canonical_label` | Return copy of the poset canonically (re)labelled to integers.
     :meth:`~FinitePoset.slant_sum` | Return the slant sum poset of two posets.
 
-**Chains & antichains**
+**Chains, antichains & linear intervals**
 
 .. csv-table::
     :class: contentstable
@@ -137,6 +136,7 @@ List of Poset methods
 
     :meth:`~FinitePoset.is_chain_of_poset` | Return ``True`` if elements in the given list are comparable.
     :meth:`~FinitePoset.is_antichain_of_poset` | Return ``True`` if elements in the given list are incomparable.
+    :meth:`~FinitePoset.is_linear_interval` | Return whether the given interval is a total order.
     :meth:`~FinitePoset.chains` | Return the chains of the poset.
     :meth:`~FinitePoset.antichains` | Return the antichains of the poset.
     :meth:`~FinitePoset.maximal_chains` | Return the maximal chains of the poset.
@@ -146,6 +146,7 @@ List of Poset methods
     :meth:`~FinitePoset.antichains_iterator` | Return an iterator over the antichains of the poset.
     :meth:`~FinitePoset.random_maximal_chain` | Return a random maximal chain.
     :meth:`~FinitePoset.random_maximal_antichain` | Return a random maximal antichain.
+    :meth:`~FinitePoset.linear_intervals_count` | Return the enumeration of linear intervals in the poset.
 
 **Drawing**
 
@@ -2659,6 +2660,8 @@ class FinitePoset(UniqueRepresentation, Parent):
 
         OUTPUT: list of integers
 
+        .. SEEALSO:: :meth:`is_linear_interval`
+
         EXAMPLES::
 
             sage: P = posets.PentagonPoset()
@@ -2698,6 +2701,26 @@ class FinitePoset(UniqueRepresentation, Parent):
             else:
                 break
         return poly
+
+    def is_linear_interval(self, x, y) -> bool:
+        """
+        Return whether the interval ``[x, y]`` is linear.
+
+        This means that this interval is a total order.
+
+        EXAMPLES::
+
+            sage: P = posets.PentagonPoset()
+            sage: P.is_linear_interval(0, 4)
+            False
+            sage: P.is_linear_interval(0, 3)
+            True
+            sage: P.is_linear_interval(1, 3)
+            False
+        """
+        a = self._element_to_vertex(x)
+        b = self._element_to_vertex(y)
+        return self._hasse_diagram.is_linear_interval(a, b)
 
     def is_incomparable_chain_free(self, m, n=None) -> bool:
         r"""

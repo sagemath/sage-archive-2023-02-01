@@ -191,7 +191,7 @@ def has_pandoc():
 
         sage: from sage.doctest.external import has_pandoc
         sage: has_pandoc()      # optional -- pandoc
-        FeatureTestResult('Pandoc', True)
+        FeatureTestResult('pandoc', True)
     """
     from sage.features.pandoc import Pandoc
     return Pandoc().is_present()

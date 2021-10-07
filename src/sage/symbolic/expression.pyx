@@ -10033,6 +10033,8 @@ cdef class Expression(CommutativeRingElement):
             Traceback (most recent call last):
             ...
             TypeError: self is not a rational expression
+            sage: n = var('n'); assume(n,'integer'); assume(n>0); (e^(2*n)/(e^(2*n) - 1)).numerator()
+            e^(2*n)
         """
         cdef GExVector vec
         cdef GEx oper, power, ex

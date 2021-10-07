@@ -3146,6 +3146,125 @@ class WordMorphism(SageObject):
 
         return sorted(forward, key=self.domain().alphabet().rank)
 
+    def letter_growth_types(self):
+        r"""
+        Return the mortal, polynomial and exponential growing letters.
+
+        The growth of `| s^n(a) |` as `n` goes to `\infty` is always of the
+        form `\alpha^n n^\beta` (where `\alpha` is a Perron number and
+        `\beta` an integer).
+
+        Without doing any linear algebra three cases can be differentiated:
+        mortal (ultimately empty or `\alpha=0`); polynomial (`\alpha=1`);
+        exponential (`\alpha > 1`).
+
+        Requires this morphism to be an endomorphism.
+
+        OUTPUT:
+
+        The output is a 3-tuple of lists (mortal, polynomial, exponential)
+        where:
+
+        - ``mortal``: list of mortal letters
+        - ``polynomial``: a list of lists where ``polynomial[i]`` is the
+          list of letters with growth `n^i`.
+        - ``exponential``: list of at least exponentionally growing letters
+
+        EXAMPLES::
+
+            sage: s = WordMorphism('a->abc,b->bc,c->c')
+            sage: mortal, poly, expo = s.letter_growth_types()
+            sage: mortal
+            []
+            sage: poly
+            [['c'], ['b'], ['a']]
+            sage: expo
+            []
+
+        When three mortal letters (c, d, and e), and two letters (a, b) are
+        not growing::
+
+            sage: s = WordMorphism('a->bc,b->cac,c->de,d->,e->')
+            sage: s^20
+            WordMorphism: a->cacde, b->debcde, c->, d->, e->
+            sage: mortal, poly, expo = s.letter_growth_types()
+            sage: mortal
+            ['c', 'd', 'e']
+            sage: poly
+            [['a', 'b']]
+            sage: expo
+            []
+
+        ::
+
+            sage: s = WordMorphism('a->abcd,b->bc,c->c,d->a')
+            sage: mortal, poly, expo = s.letter_growth_types()
+            sage: mortal
+            []
+            sage: poly
+            [['c'], ['b']]
+            sage: expo
+            ['a', 'd']
+
+        TESTS::
+
+            sage: s = WordMorphism('a->a')
+            sage: s.letter_growth_types()
+            ([], [['a']], [])
+
+        ::
+
+            sage: s = WordMorphism('a->b,b->a')
+            sage: s.letter_growth_types()
+            ([], [['a', 'b']], [])
+
+        ::
+
+            sage: s = WordMorphism('a->abcd,b->cd,c->dd,d->')
+            sage: s.letter_growth_types()
+            (['b', 'c', 'd'], [['a']], [])
+
+        ::
+
+            sage: s = WordMorphism('a->', domain=Words('a'), codomain=Words('a'))
+            sage: s.letter_growth_types()
+            (['a'], [], [])
+        """
+        immortal_letters = set(self.immortal_letters())
+        mortal_letters = [a for a in self.domain().alphabet()
+                            if a not in immortal_letters]
+        polynomial = []
+
+        d = {a:[b for b in self.image(a) if b in immortal_letters]
+             for a in self.domain().alphabet()
+             if a in immortal_letters}
+
+        while True:
+
+            letters_in_a_cycle = {a:image_a[0] for (a,image_a) in d.items()
+                                               if len(image_a) == 1}
+            growing_letters = [v for v in letters_in_a_cycle.values()
+                                 if v not in letters_in_a_cycle.keys()]
+            while growing_letters:
+                letters_in_a_cycle = {k:v for (k,v) in letters_in_a_cycle.items()
+                                          if v not in growing_letters}
+                growing_letters = [v for v in letters_in_a_cycle.values()
+                                     if v not in letters_in_a_cycle.keys()]
+            polynomial_degree_d = [k for k in letters_in_a_cycle.keys()]
+
+            if not polynomial_degree_d:
+                break
+
+            polynomial.append(polynomial_degree_d)
+
+            d = {a:[b for b in L if b not in polynomial_degree_d]
+                for (a,L) in d.items()
+                if a not in polynomial_degree_d}
+
+        exponential = [a for a in d]
+
+        return mortal_letters, polynomial, exponential
+
     def abelian_rotation_subspace(self):
         r"""
         Returns the subspace on which the incidence matrix of ``self`` acts by

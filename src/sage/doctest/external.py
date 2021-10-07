@@ -281,7 +281,7 @@ def has_imagemagick():
 
         sage: from sage.doctest.external import has_imagemagick
         sage: has_imagemagick() # optional -- imagemagick
-        FeatureTestResult('convert', True)
+        FeatureTestResult('imagemagick', True)
     """
     from sage.features.imagemagick import ImageMagick
     return ImageMagick().is_present()

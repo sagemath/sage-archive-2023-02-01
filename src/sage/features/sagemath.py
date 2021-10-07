@@ -82,7 +82,7 @@ class sage__symbolic(JoinFeature):
                              spkg="sagemath_symbolics")
 
 
-def sage_optional_tags():
+def sage_features():
     """
     Return tags for conditionalizing doctests.
 
@@ -99,15 +99,12 @@ def sage_optional_tags():
 
     EXAMPLES::
 
-        sage: from sage.features.sagemath import sage_optional_tags
-        sage: list(sage_optional_tags())                                # random
-        ['sage.graphs',
-         'sage.graphs.bliss',
-         'sage.matrix.matrix_gfpn_dense',
-         'sage.plot',
-         'sage.rings.number_field',
-         'sage.rings.real_double',
-         'sage.symbolic']
+        sage: from sage.features.sagemath import sage_features
+        sage: list(sage_features())  # random
+        [Feature('sage.graphs'),
+         Feature('sage.graphs.bliss'),
+         Feature('sage.plot'),
+         Feature('sage.rings.real_double')]
     """
     for feature in [sage__combinat(),
                     sage__graphs(),
@@ -120,4 +117,4 @@ def sage_optional_tags():
                     sage__rings__real_double(),
                     sage__symbolic()]:
         if feature.is_present():
-            yield feature.name
+            yield feature

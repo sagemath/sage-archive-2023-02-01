@@ -28,7 +28,7 @@ Here we test whether the grape GAP package is available::
 
     sage: from sage.features.gap import GapPackage
     sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional: gap_packages
-    FeatureTestResult('GAP package grape', True)
+    FeatureTestResult('gap_package_grape', True)
 
 Note that a :class:`FeatureTestResult` acts like a bool in most contexts::
 
@@ -99,7 +99,7 @@ class Feature(TrivialUniqueRepresentation):
 
         sage: from sage.features.gap import GapPackage
         sage: GapPackage("grape", spkg="gap_packages")  # indirect doctest
-        Feature('GAP package grape')
+        Feature('gap_package_grape')
 
     For efficiency, features are unique::
 
@@ -134,9 +134,9 @@ class Feature(TrivialUniqueRepresentation):
 
             sage: from sage.features.gap import GapPackage
             sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional: gap_packages
-            FeatureTestResult('GAP package grape', True)
+            FeatureTestResult('gap_package_grape', True)
             sage: GapPackage("NOT_A_PACKAGE", spkg="gap_packages").is_present()
-            FeatureTestResult('GAP package NOT_A_PACKAGE', False)
+            FeatureTestResult('gap_package_NOT_A_PACKAGE', False)
 
         The result is cached::
 
@@ -184,7 +184,7 @@ class Feature(TrivialUniqueRepresentation):
             sage: GapPackage("ve1EeThu").require()
             Traceback (most recent call last):
             ...
-            FeatureNotPresentError: GAP package ve1EeThu is not available.
+            FeatureNotPresentError: gap_package_ve1EeThu is not available.
             `TestPackageAvailability("ve1EeThu")` evaluated to `fail` in GAP.
         """
         presence = self.is_present()
@@ -199,7 +199,7 @@ class Feature(TrivialUniqueRepresentation):
 
             sage: from sage.features.gap import GapPackage
             sage: GapPackage("grape")  # indirect doctest
-            Feature('GAP package grape')
+            Feature('gap_package_grape')
         """
         return 'Feature({name!r})'.format(name=self.name)
 
@@ -264,7 +264,7 @@ class FeatureNotPresentError(RuntimeError):
             sage: GapPackage("gapZuHoh8Uu").require()  # indirect doctest
             Traceback (most recent call last):
             ...
-            FeatureNotPresentError: GAP package gapZuHoh8Uu is not available.
+            FeatureNotPresentError: gap_package_gapZuHoh8Uu is not available.
             `TestPackageAvailability("gapZuHoh8Uu")` evaluated to `fail` in GAP.
         """
         lines = ["{feature} is not available.".format(feature=self.feature.name)]
@@ -286,7 +286,7 @@ class FeatureTestResult(object):
 
         sage: from sage.features.gap import GapPackage
         sage: presence = GapPackage("NOT_A_PACKAGE").is_present(); presence  # indirect doctest
-        FeatureTestResult('GAP package NOT_A_PACKAGE', False)
+        FeatureTestResult('gap_package_NOT_A_PACKAGE', False)
         sage: bool(presence)
         False
 
@@ -305,9 +305,9 @@ class FeatureTestResult(object):
         sage: from sage.features import FeatureTestResult
         sage: package = GapPackage("NOT_A_PACKAGE", spkg="no_package")
         sage: str(FeatureTestResult(package, True).resolution)  # optional - sage_spkg
-        '...To install GAP package NOT_A_PACKAGE...you can try to run...sage -i no_package...'
+        '...To install gap_package_NOT_A_PACKAGE...you can try to run...sage -i no_package...'
         sage: str(FeatureTestResult(package, False).resolution) # optional - sage_spkg
-        '...To install GAP package NOT_A_PACKAGE...you can try to run...sage -i no_package...'
+        '...To install gap_package_NOT_A_PACKAGE...you can try to run...sage -i no_package...'
         sage: FeatureTestResult(package, False, resolution="rtm").resolution
         'rtm'
     """

@@ -93,6 +93,16 @@ class Feature(TrivialUniqueRepresentation):
     r"""
     A feature of the runtime environment
 
+    INPUT:
+
+    - ``name`` -- (string) name of the feature; this should be suitable as an optional tag
+      for the Sage doctester, i.e., lowercase alphanumeric with underscores (``_``) allowed;
+      features that correspond to Python modules/packages may use periods (``.``)
+
+    - ``spkg`` -- (string) name of the SPKG providing the feature
+
+    - ``url`` -- a URL for the upstream package providing the feature
+
     Overwrite :meth:`_is_present` to add feature checks.
 
     EXAMPLES::

@@ -110,22 +110,13 @@ def krawtchouk(n, q, l, x, check=True):
     return kraw
 
 
-def eberlein(n, w, k, u, check=True, inef=False):
+def eberlein(n, w, k, u, check=True):
     r"""
     Compute ``E^{n,l}_k(x)``, the Eberlein polynomial.
 
-    # TODO: Fix documentation here
     # See :wikipedia:`Eberlein_polynomials`.
 
-    It is defined by the generating function
-
-    .. MATH::
-
-        # (1+(q-1)z)^{n-x}(1-z)^x=\sum_{l} K^{n,q}_l(x)z^l
-
-    # TODO: up to here
-
-    and is equal to
+    It is defined as:
 
     .. MATH::
 
@@ -147,25 +138,34 @@ def eberlein(n, w, k, u, check=True, inef=False):
         sage: codes.bounds.eberlein(24,10,2,6)
         -9
 
+    TESTS:
+
+    check normal inputs (various formats for arguments) ::
+
+        sage: codes.bounds.eberlein(24,10,2,6)
+        -9
+        sage: codes.bounds.eberlein(int(24),int(10),int(2),int(6))
+        -9
+        sage: codes.bounds.eberlein(int(24),int(10),int(2),int(6),check=False)
+        -9
+
+    unusual inputs ::
+
+        sage: codes.bounds.eberlein(-1,1,1,1)
+        Traceback (most recent call last):
+        ...
+        ValueError: l must be a nonnegative integer
+        sage: codes.bounds.eberlein(1,1,3/2,1)
+        Traceback (most recent call last):
+        ...
+        TypeError: either m or x-m must be an integer
+
     """
     from sage.arith.all import binomial
     from sage.arith.srange import srange
 
-    # TODO: include these with check?, check whether these constraints are
-    # actually essential or we can have binomials==0
-    # ADD CHECK x>=k
-    """
-    if not (k>=0 and n-w-u>k and w-u>k) and not inef:
-        print("Wrong Arguments: n={}, w={}, k={}, u={}".format(n,w,k,u))
-        raise ValueError('In Eberlein polynomial')
-    """
-
     if 2*w>n:
-        return eberlein(n,n-w,k,u,inef=inef)
-
-    if inef:
-        return sum([(-1)**j*binomial(u,j)*binomial(w-u,k-j)*binomial(n-w-u,k-j)
-            for j in srange(0,k+1)])
+        return eberlein(n,n-w,k,u)
 
     if check:
         from sage.rings.integer_ring import ZZ
@@ -173,21 +173,12 @@ def eberlein(n, w, k, u, check=True, inef=False):
         if n0 != n or n0 < 0:
             raise ValueError('l must be a nonnegative integer')
         n = n0
-    eber = jth_term = binomial(w-u,k) * binomial(n-w-u,k)
 
-    if jth_term==0:jth_term=1
+    return sum([(-1)**j*binomial(u,j)*binomial(w-u,k-j)*binomial(n-w-u,k-j) for j in srange(0,k+1)])
 
-    for j in srange(1,k+1):
-        print("n={}, w={}, k={}, u={}, j={}".format(n,w,k,u,j))
-        jth_term *= (-1) * ((u-j+1)*(k-j+1)*(k-j+1)/(j*(w-u-k+j)*(n-w-u-k+j))) 
-        eber += jth_term
-        if jth_term==0:
-            jth_term = 1
-            print('fixed')
-    return eber
 
 def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
-    """
+    r"""
     LP builder - common for the two functions; not exported.
 
     EXAMPLES::
@@ -232,7 +223,7 @@ def _delsarte_LP_building(n, d, d_star, q, isinteger,  solver, maxc = 0):
     return A, p
 
 def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
-    """
+    r"""
     LP builder for Delsarte's LP for constant weight codes, used in
     delsarte_bound_constant_weight_code; not exported.
 
@@ -254,8 +245,20 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
       (ILP), rather that an LP solver. Can be very slow if set to
       ``True``.
 
-    EXAMPLES: 
-    ....
+    EXAMPLES::
+
+        sage: from sage.coding.delsarte_bounds import _delsarte_cwc_LP_building
+        sage: _,p=_delsarte_cwc_LP_building(17, 4, 3, "PPL", False)
+        sage: p.show()
+        Maximization:
+          x_0 + x_1 + 1
+        Constraints:
+          constraint_0: -1 <= 4/21 x_0 - 3/14 x_1
+          constraint_1: -1 <= -23/273 x_0 + 3/91 x_1
+          constraint_2: -1 <= 1/91 x_0 - 1/364 x_1
+        Variables:
+          x_0 is a continuous variable (min=0, max=+oo)
+          x_1 is a continuous variable (min=0, max=+oo)
 
     """
     from sage.numerical.mip import MixedIntegerLinearProgram
@@ -266,22 +269,18 @@ def _delsarte_cwc_LP_building(n, d, w, solver, isinteger):
     p.set_objective(sum([A[2*r] for r in range(d//2,w+1)])+1)
 
     def _q(k,i):
-        # mu_i = ((n-2*i+1)/(n-i+1))*binomial(n,i)
         mu_i = 1
         v_i = binomial(w,i)*binomial(n-w,i)
-        return mu_i*eberlein(n,w,i,k,inef=True)/v_i
+        return mu_i*eberlein(n,w,i,k)/v_i
 
-    for k in range(1,w+1): # could be range(d/2,n+1)
-        # could make more efficient calculation of the binomials in the future
-        # by keeping track of the divisor
-        # p.add_constraint(sum([A[2*i] * eberlein(n, w, i, k) / (binomial(w,i)*binomial(n-w,i)) for i in range(d/2,w+1)]), min=-1)
+    for k in range(1,w+1): 
         p.add_constraint(sum([A[2*i]*_q(k,i) for i in range(d//2,w+1)]),min=-1)
-    # p.show()
+
     return A, p
 
 
 def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL", isinteger=False):
-    """
+    r"""
     Find the Delsarte bound on a constant weight code of weight ``w``, length
     ``n``, lower bound on minimal distance ``d`` 
 
@@ -307,6 +306,22 @@ def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL"
     - ``isinteger`` -- if ``True``, uses an integer programming solver
       (ILP), rather that an LP solver. Can be very slow if set to
       ``True``.
+
+    EXAMPLES:
+
+    The bound on the size of codes of length 17, weight 3, and minimal distance 4::
+
+       sage: codes.bounds.delsarte_bound_constant_weight_code(17, 4, 3)
+       45
+       sage: a, p, val = codes.bounds.delsarte_bound_constant_weight_code(17, 4, 3, return_data=True)
+       sage: [j for i,j in p.get_values(a).items()]
+       [21, 70/3]
+
+    The stricter bound (using ILP) on codes of length 17, weight 3, and minimal
+    distance 4::
+
+       sage: codes.bounds.delsarte_bound_constant_weight_code(17, 4, 3, isinteger=True)
+       43
 
     """
     from sage.numerical.mip import MIPSolverException
@@ -337,7 +352,7 @@ def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL"
 
 
 def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isinteger=False):
-    """
+    r"""
     Find the Delsarte bound [De1973]_ on codes in Hamming space ``H_q^n``
     of minimal distance ``d``
 
@@ -424,7 +439,7 @@ def delsarte_bound_hamming_space(n, d, q, return_data=False, solver="PPL", isint
 
 def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
                      return_data=False, solver="PPL", isinteger=False):
-   """
+   r"""
    Find a modified Delsarte bound on additive codes in Hamming space ``H_q^n`` of minimal distance ``d``
 
    Find the Delsarte LP bound on ``F_{q_base}``-dimension of additive codes in
@@ -544,6 +559,27 @@ def delsarte_bound_additive_hamming_space(n, d, q, d_star=1, q_base=0,
       return m
   
 def _delsarte_Q_LP_building(q,d,solver,isinteger):
+    r"""
+    LP builder for Delsarte's LP for codes given Q matrix; used in
+    delsarte_bound_Q_matrix; not exported.
+
+    INPUT:
+
+    - ``q`` -- the Q matrix
+
+    - ``d`` -- the (lower bound on) minimal distance of the code
+
+    - ``solver`` -- the LP/ILP solver to be used. Defaults to
+      ``PPL``. It is arbitrary precision, thus there will be no
+      rounding errors. With other solvers (see
+      :class:`MixedIntegerLinearProgram` for the list), you are on
+      your own!
+
+    - ``isinteger`` -- if ``True``, uses an integer programming solver
+      (ILP), rather that an LP solver. Can be very slow if set to
+      ``True``.
+
+    """
     from sage.numerical.mip import MixedIntegerLinearProgram
 
     n, _ = q.dimensions() # Q is a square matrix
@@ -564,12 +600,11 @@ def _delsarte_Q_LP_building(q,d,solver,isinteger):
     for k in range(1,n):
         p.add_constraint(sum([q[k][i]*A[i] for i in range(n)]),min=0)
 
-    # p.show()
     return A, p
 
 
 def delsarte_bound_Q_matrix(q,d,return_data=False, solver="PPL", isinteger=False):
-    """
+    r"""
     Find the Delsarte bound on a code with Q matrix ``q`` and lower bound on minimal distance ``d`` 
 
     INPUT:
@@ -592,6 +627,32 @@ def delsarte_bound_Q_matrix(q,d,return_data=False, solver="PPL", isinteger=False
     - ``isinteger`` -- if ``True``, uses an integer programming solver
       (ILP), rather that an LP solver. Can be very slow if set to
       ``True``.
+
+      TODO:Add examples
+
+   EXAMPLES:
+
+   The bound on dimension of linear `F_2`-codes of length 10 and minimal distance 6::
+
+       sage: q_matrix = Matrix([[codes.bounds.krawtchouk(10,2,i,j) for i in range(11)] for j in range(11)])
+       sage: codes.bounds.delsarte_bound_Q_matrix(q_matrix, 6)
+       2
+
+       sage: a,p,val = codes.bounds.delsarte_bound_Q_matrix(q_matrix, 6, return_data=True)
+       sage: [j for i,j in p.get_values(a).items()]
+       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+
+   TESTS::
+
+       cases for using Hamming scheme Q matrix::
+
+       sage: q_matrix = Matrix([[codes.bounds.krawtchouk(10,2,i,j) for i in range(11)] for j in range(11)])
+       sage: codes.bounds.delsarte_bound_Q_matrix(q_matrix, 6)
+       2
+
+       sage: a,p,val = codes.bounds.delsarte_bound_Q_matrix(q_matrix, 6, return_data=True)
+       sage: [j for i,j in p.get_values(a).items()]
+       [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
 
     """
 

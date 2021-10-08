@@ -2053,17 +2053,17 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: db = b.deformed_burau_matrix()[1:,1:]; db
             [cp_0*ap_1*bp_2]
             sage: b._colored_jones_sum(2, db[0,0])
-            (1+q-q^2)
+            1 + q - q^2
             sage: b._colored_jones_sum(3, db[0,0])
-            (1+q^2-q^5-q^6+q^7)
+            1 + q^2 - q^5 - q^6 + q^7
             sage: b._colored_jones_sum(4, db[0,0])
-            (1+q^3-q^8-q^10+q^13+q^14-q^15)
+            1 + q^3 - q^8 - q^10 + q^13 + q^14 - q^15
         """
         rqword = RightQuantumWord(qword).reduced_word()
         alg = qword.parent()
         R = alg.base_ring()
         result = R.one()
-        current_word = alg(1)
+        current_word = alg.one()
         i = 1
         continue_summing = True
         # This seemingly infinite sum is always finite if the qword comes
@@ -2149,7 +2149,7 @@ class Braid(FiniteTypeArtinGroupElement):
         shorter_qword = qword_inv if use_inverse else qword
         knot = Knot(self.inverse()) if use_inverse else Knot(self)
         cj = (q**((N - 1) * (knot.writhe() - self.strands() + 1) / 2)
-              * self._colored_jones_sum(N, shorter_qword).leading_coefficient())
+              * self._colored_jones_sum(N, shorter_qword))
         self._cj_with_q[N] = cj.subs({q: 1/q}) if use_inverse else cj
         return self.colored_jones_polynomial(N, variab, try_inverse)
 
@@ -2202,8 +2202,8 @@ class RightQuantumWord:
         self.q = self._algebra.base_ring().gen()
         self.R = self._algebra.base_ring()
         self._unreduced_words = words
-        self._gens = self._algebra.gens()
-        self._gens_index = {g: i for i, g in enumerate(self._algebra._indices.gens())}
+        self._gens = self._algebra._indices.gens()
+        self._gens_index = {g: i for i, g in enumerate(self._gens)}
         self._minus_begin = min((i for i, gen in enumerate(self._gens) if 'm' in str(gen)),
                                 default=len(self._gens))
 
@@ -2261,7 +2261,7 @@ class RightQuantumWord:
                 if not (gen_index + 2) % 3:  # is_c
                     ret_tuple[3*index: 3*index + 3] = [i, j + exp, k]
                     q_power *= q**(-k*exp) if is_minus else q**(k*exp)
-            ret[tuple(ret_tuple)] += self._algebra(q_power)
+            ret[tuple(ret_tuple)] += q_power
         return ret
 
     def reduced_word(self):
@@ -2310,11 +2310,13 @@ class RightQuantumWord:
             Paralellize this function, calculating all summands in the sum
             in parallel.
         """
+        M = self._algebra._indices
         def tuple_to_word(q_tuple):
-            return prod(self._gens[i] ** exp
-                        for i, exp in enumerate(q_tuple))
-        return sum(q_factor * tuple_to_word(q_tuple)
-                   for q_tuple, q_factor in self.tuples.items())
+            return M.prod(self._gens[i] ** exp
+                          for i, exp in enumerate(q_tuple))
+        ret = {tuple_to_word(q_tuple): q_factor
+               for q_tuple, q_factor in self.tuples.items() if q_factor}
+        return self._algebra._from_dict(ret, remove_zeros=False)
 
     def eps(self, N):
         r"""
@@ -2338,9 +2340,9 @@ class RightQuantumWord:
             sage: rqw = RightQuantumWord(
             ....:    q^3*bp_2*bp_0*ap_0 + q*ap_3*bm_1*am_1*bp_0)
             sage: rqw.eps(3)
-            -(q^-1-2*q+q^5)
+            -q^-1 + 2*q - q^5
             sage: rqw.eps(2)
-            -(1-2*q+q^2-q^3+q^4)
+            -1 + 2*q - q^2 + q^3 - q^4
 
         TESTS::
 
@@ -2348,6 +2350,7 @@ class RightQuantumWord:
             0
 
         .. TODO::
+
             Paralellize this function, calculating all summands in the sum
             in parallel.
         """

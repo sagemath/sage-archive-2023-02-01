@@ -239,7 +239,7 @@ cdef initialize():
 
     # Define argv variable, which we will pass in to
     # initialize GAP.
-    cdef char* argv[18]
+    cdef char* argv[14]
     argv[0] = "sage"
     argv[1] = "-l"
     s = str_to_bytes(gap_root(), FS_ENCODING, "surrogateescape")
@@ -256,7 +256,7 @@ cdef initialize():
                       # 4096 unfortunately is the hard-coded max, but should
                       # be long enough for most cases
 
-    cdef int argc = 14   # argv[argc] must be NULL
+    cdef int argc = 10   # argv[argc] must be NULL
 
     from .saved_workspace import workspace
     workspace, workspace_is_up_to_date = workspace()

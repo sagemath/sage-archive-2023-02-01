@@ -454,7 +454,7 @@ cpdef RealField(mpfr_prec_t prec=53, int sci_not=0, rnd=MPFR_RNDN):
         return R
 
 
-cdef class RealField_class(sage.rings.ring.Field):
+cdef class RealField_class(sage.rings.abc.RealField):
     """
     An approximation to the field of real numbers using floating point
     numbers with any specified precision. Answers derived from
@@ -5900,14 +5900,24 @@ def is_RealField(x):
     """
     Returns ``True`` if ``x`` is technically of a Python real field type.
 
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.RealField` instead.
+
     EXAMPLES::
 
         sage: sage.rings.real_mpfr.is_RealField(RR)
+        doctest:warning...
+        DeprecationWarning: is_RealField is deprecated;
+        use isinstance(..., sage.rings.abc.RealField) instead
+        See https://trac.sagemath.org/32610 for details.
         True
         sage: sage.rings.real_mpfr.is_RealField(CC)
         False
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32610, 'is_RealField is deprecated; use isinstance(..., sage.rings.abc.RealField) instead')
     return isinstance(x, RealField_class)
+
 
 def is_RealNumber(x):
     """

@@ -395,7 +395,7 @@ from sage.misc.latex import latex_variable_name
 from sage.rings.infinity import AnInfinity, infinity, minus_infinity, unsigned_infinity
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RR
-from sage.rings.complex_mpfr import is_ComplexField
+import sage.rings.abc
 from sage.misc.decorators import rename_keyword
 from sage.structure.dynamic_class import dynamic_class
 from sage.structure.element cimport CommutativeRingElement
@@ -3565,8 +3565,8 @@ cdef class Expression(CommutativeRingElement):
                 else:
                     domain = RIF
         else:
-            is_interval = (is_RealIntervalField(domain)
-                           or is_ComplexIntervalField(domain)
+            is_interval = (isinstance(domain, (sage.rings.abc.RealIntervalField,
+                                               sage.rings.abc.ComplexIntervalField))
                            or is_AlgebraicField(domain)
                            or is_AlgebraicRealField(domain))
         zero = domain(0)
@@ -3620,7 +3620,7 @@ cdef class Expression(CommutativeRingElement):
                         eq_count += <bint>val.contains_zero()
                 except (TypeError, ValueError, ArithmeticError, AttributeError) as ex:
                     errors += 1
-                    if k == errors > 3 and is_ComplexIntervalField(domain):
+                    if k == errors > 3 and isinstance(domain, sage.rings.abc.ComplexIntervalField):
                         domain = RIF.to_prec(domain.prec())
                     # we are plugging in random values above, don't be surprised
                     # if something goes wrong...
@@ -13830,7 +13830,7 @@ cdef unsigned sage_domain_to_ginac_domain(object domain) except? 3474701533:
         return domain_real
     elif domain == 'positive':
         return domain_positive
-    elif is_ComplexField(domain) or domain == 'complex':
+    elif isinstance(domain, sage.rings.abc.ComplexField) or domain == 'complex':
         return domain_complex
     elif domain is ZZ or domain == 'integer':
         return domain_integer
@@ -13844,7 +13844,7 @@ cdef void send_sage_domain_to_maxima(Expression v, object domain) except +:
         assume(v, 'real')
     elif domain == 'positive':
         assume(v>0)
-    elif is_ComplexField(domain) or domain == 'complex':
+    elif isinstance(domain, sage.rings.abc.ComplexField) or domain == 'complex':
         assume(v, 'complex')
     elif domain is ZZ or domain == 'integer':
         assume(v, 'integer')

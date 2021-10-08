@@ -836,8 +836,11 @@ def contour_plot(f, xrange, yrange, **options):
 
     .. PLOT::
 
-        g = contour_plot(lambda x,y: abs(x**2-y**2), (-1,1), (-1,1),
-                         contours=[0], fill=False, cmap=['blue'])
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            g = contour_plot(lambda x,y: abs(x**2-y**2), (-1,1), (-1,1),
+                             contours=[0], fill=False, cmap=['blue'])
         sphinx_plot(g)
 
     Constant functions (with a single contour) can be plotted as well;
@@ -851,8 +854,11 @@ def contour_plot(f, xrange, yrange, **options):
 
     .. PLOT::
 
-        g = contour_plot(lambda x,y: 0, (-1,1), (-1,1),
-                         contours=[0], fill=False, cmap=['blue'])
+        import warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            g = contour_plot(lambda x,y: 0, (-1,1), (-1,1),
+                             contours=[0], fill=False, cmap=['blue'])
         sphinx_plot(g)
 
     TESTS:

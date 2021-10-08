@@ -270,7 +270,7 @@ AUTHORS:
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module import VectorSpace
 from sage.rings.infinity import PlusInfinity
-from sage.categories.graded_modules_with_basis import GradedModulesWithBasis
+from sage.categories.graded_modules import GradedModules
 from sage.combinat.free_module import CombinatorialFreeModule
 
 from .free_element import FreeGradedModuleElement
@@ -314,7 +314,7 @@ class FreeGradedModule(CombinatorialFreeModule):
         CombinatorialFreeModule.__init__(self, algebra,
                                          basis_keys=keys,
                                          element_class=FreeGradedModuleElement,
-                                         category=GradedModulesWithBasis(algebra))
+                                         category=GradedModules(algebra).WithBasis())
 
 
     def generator_degrees(self):

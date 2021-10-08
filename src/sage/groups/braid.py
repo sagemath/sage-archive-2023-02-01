@@ -72,7 +72,6 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.lazy_import import lazy_import
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
-from sage.algebras.free_algebra import FreeAlgebra
 from sage.categories.groups import Groups
 from sage.groups.free_group import FreeGroup, is_FreeGroup
 from sage.rings.polynomial.laurent_polynomial_ring import LaurentPolynomialRing
@@ -2011,6 +2010,7 @@ class Braid(FiniteTypeArtinGroupElement):
         R = LaurentPolynomialRing(IntegerRing(), variab)
         n = self.strands()
         m = len(self.Tietze())
+        from sage.algebras.free_algebra import FreeAlgebra
         alg = FreeAlgebra(R, m*3, [f'{s}p_{i}'
                                    for i in range(m) if self.Tietze()[i] > 0
                                    for s in 'bca']
@@ -2203,6 +2203,7 @@ class RightQuantumWord:
         self.R = self._algebra.base_ring()
         self._unreduced_words = words
         self._gens = self._algebra.gens()
+        self._gens_index = {g: i for i, g in enumerate(self._algebra._indices.gens())}
         self._minus_begin = min((i for i, gen in enumerate(self._gens) if 'm' in str(gen)),
                                 default=len(self._gens))
 
@@ -2219,7 +2220,7 @@ class RightQuantumWord:
         OUTPUT:
 
         A dict of tuples of ints corresponding to the exponents in the
-        generators self._gens(), with values in self.R.
+        generators with values in the algebra's base ring.
 
         EXAMPLES::
 
@@ -2246,7 +2247,7 @@ class RightQuantumWord:
             q = self.q
             ret_tuple = [0] * len(self._gens)
             for gen, exp in unreduced_monom:
-                gen_index = self._gens.index(gen)
+                gen_index = self._gens_index[gen]
                 is_minus = bool(gen_index >= self._minus_begin)
                 index = gen_index // 3
                 # This uses the relations in equations (4.1) and (4.2)

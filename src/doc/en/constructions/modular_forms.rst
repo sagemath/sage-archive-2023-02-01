@@ -4,7 +4,7 @@
 Modular forms
 *************
 
-One of 's computational specialities is (the very technical field
+One of SageMath's computational specialities is (the very technical field
 of) modular forms and can do a lot more than is even suggested in
 this very brief introduction.
 
@@ -19,6 +19,7 @@ section "Modular forms" in the Tutorial:
 
 ::
 
+    sage: from sage.modular.dims import dimension_cusp_forms
     sage: dimension_cusp_forms(Gamma0(11),2)
     1
     sage: dimension_cusp_forms(Gamma0(1),12)

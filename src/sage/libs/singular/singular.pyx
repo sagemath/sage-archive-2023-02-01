@@ -596,25 +596,28 @@ cdef number *sa2si_transext(object elem, ring *_ring):
         sage: I.groebner_basis()
         [x^3 + (3*a - 3)/(a + 1)*x*y, y^2 + (a)/5*x]
 
+    ::
+
+        sage: F = PolynomialRing(QQ,'a,b').fraction_field()
+        sage: R.<x,y> = PolynomialRing(F)
+        sage: S.<x,y> = QQ[]
+        sage: f = x + y + 1
+        sage: R(f)
+        x + y + 1
+
     """
 
     cdef int i
     cdef int j
     cdef number *n1
-    cdef number *n2
     cdef number *a
-    cdef number *nlCoeff
     cdef number *naCoeff
-    cdef number *apow1
-    cdef number *apow2
     cdef number *numerator
     cdef number *denominator
     cdef number *cfnum
     cdef number *cfden
     cdef int ngens
-
     cdef int ex
-
     cdef nMapFunc nMapFuncPtr = NULL;
 
     if _ring != currRing:
@@ -639,21 +642,13 @@ cdef number *sa2si_transext(object elem, ring *_ring):
     if _ring != currRing:
         rChangeCurrRing(_ring)
     n1 = _ring.cf.cfInit(0, _ring.cf)
-
-    apow2 = _ring.cf.cfInit(1, _ring.cf)
-
-
     numerator = _ring.cf.cfInit(0, _ring.cf)
-
     for (exponents, coef) in numerdic.items():
         numer = coef.numerator()
         cfnum = _ring.cf.cfInitMPZ((<Integer>numer).value, _ring.cf)
         denom = coef.denominator()
         cfden = _ring.cf.cfInitMPZ((<Integer>denom).value, _ring.cf)
-
         naCoeff = _ring.cf.cfDiv(cfnum, cfden , _ring.cf )
-
-
         for (j, ex) in enumerate(exponents):
             a = _ring.cf.cfParameter(j+1, _ring.cf)
             for k in range(ex):
@@ -683,12 +678,10 @@ cdef number *sa2si_transext(object elem, ring *_ring):
 
     _ring.cf.cfDelete(&numerator, _ring.cf)
     _ring.cf.cfDelete(&denominator, _ring.cf)
-
-    _ring.cf.cfDelete(&apow2, _ring.cf)
+    _ring.cf.cfDelete(&cfnum, _ring.cf)
+    _ring.cf.cfDelete(&cfden, _ring.cf)
     _ring.cf.cfDelete(&naCoeff, _ring.cf)
-
-
-
+    _ring.cf.cfDelete(&a, _ring.cf)
 
     return n1
 

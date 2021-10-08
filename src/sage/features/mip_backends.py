@@ -1,5 +1,5 @@
-from . import Feature
-from join_feature import JoinFeature
+from . import Feature, FeatureTestResult
+from .join_feature import JoinFeature
 
 
 class MIPBackend(Feature):
@@ -19,20 +19,20 @@ class MIPBackend(Feature):
 class CPLEX(MIPBackend):
 
     def __init__(self):
-        MIPBackend.__init__('cplex',
+        MIPBackend.__init__(self, 'cplex',
                             spkg='sage_numerical_backends_cplex')
 
 
 class Gurobi(MIPBackend):
 
     def __init__(self):
-        MIPBackend.__init__('gurobi',
+        MIPBackend.__init__(self, 'gurobi',
                             spkg='sage_numerical_backends_gurobi')
 
 
 class COIN(JoinFeature):
 
     def __init__(self):
-        JoinFeature.__init__('sage_numerical_backends_coin',
+        JoinFeature.__init__(self, 'sage_numerical_backends_coin',
                              [MIPBackend('coin')],
                              spkg='sage_numerical_backends_coin')

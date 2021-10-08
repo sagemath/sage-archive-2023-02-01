@@ -66,7 +66,6 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 ##############################################################################
 
-import collections
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import IntegerRing
 from sage.misc.lazy_attribute import lazy_attribute
@@ -1965,11 +1964,11 @@ class Braid(FiniteTypeArtinGroupElement):
 
         - ``variab`` -- variable (default: ``q``); the variable in the
           resulting laurent polynomial, which is the base ring for the
-          free algebra constructed.
+          free algebra constructed
 
         OUTPUT:
 
-        A matrix with elements in the free algebra `self._Alg`.
+        A matrix with elements in the free algebra `self._algebra`.
 
         EXAMPLES::
 
@@ -1980,7 +1979,8 @@ class Braid(FiniteTypeArtinGroupElement):
             ...
             [                           bm_2*bm_3*cp_5 ...      bm_2*am_3*bp_4]
 
-        We check how this relates to the nondeformed Burau matrix:
+        We check how this relates to the nondeformed Burau matrix::
+
             sage: def subs_gen(gen, q):
             ....:     gen_str = str(gen)
             ....:     v = q if 'p' in gen_str else 1/q
@@ -1993,7 +1993,7 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: db_base = db.parent().base_ring()
             sage: q = db_base.base_ring().gen()
             sage: db_simp = db.subs({gen: subs_gen(gen, q)
-            ....:                   for gen in db_base.gens()})
+            ....:                    for gen in db_base.gens()})
             sage: db_simp
             [ (1-2*q+q^2)      (q-q^2)  (q-q^2+q^3)    (q^2-q^3)]
             [       (1-q)            q            0            0]
@@ -2011,19 +2011,20 @@ class Braid(FiniteTypeArtinGroupElement):
         R = LaurentPolynomialRing(IntegerRing(), variab)
         n = self.strands()
         m = len(self.Tietze())
-        Algebra = FreeAlgebra(R, m*3, [f'{s}p_{i}'
-                              for i in range(m) for s in 'bca'
-                              if self.Tietze()[i] > 0] + [f'{s}m_{i}'
-                              for i in range(m) for s in 'bca'
-                              if self.Tietze()[i] < 0])
-        gen_indizes = [i for i in range(m) if self.Tietze()[i] > 0] + \
-                      [i for i in range(m) if self.Tietze()[i] < 0]
+        alg = FreeAlgebra(R, m*3, [f'{s}p_{i}'
+                                   for i in range(m) if self.Tietze()[i] > 0
+                                   for s in 'bca']
+                                  + [f'{s}m_{i}'
+                                     for i in range(m) if self.Tietze()[i] < 0
+                                     for s in 'bca'])
+        gen_indices = ([i for i in range(m) if self.Tietze()[i] > 0]
+                       + [i for i in range(m) if self.Tietze()[i] < 0])
 
-        M = identity_matrix(Algebra, n)
+        M = identity_matrix(alg, n)
         for k, i in enumerate(self.Tietze()):
-            A = identity_matrix(Algebra, n)
-            gen_index = gen_indizes.index(k)
-            b, c, a = Algebra.gens()[3*gen_index:3*gen_index+3]
+            A = identity_matrix(alg, n)
+            gen_index = gen_indices.index(k)
+            b, c, a = alg.gens()[3*gen_index:3*gen_index+3]
             if i > 0:
                 A[i-1, i-1] = a
                 A[i, i] = 0
@@ -2037,14 +2038,14 @@ class Braid(FiniteTypeArtinGroupElement):
             M = M * A
         return M
 
-    @cached_method
     def _colored_jones_sum(self, N, qword):
-        r"""Helper function to get the colored Jones polynomial.
+        r"""
+        Helper function to get the colored Jones polynomial.
 
         INPUT:
 
-        - ``N`` -- An integer; the number of colors.
-        - ``qword`` -- A right quantum word (possibly in unreduced form).
+        - ``N`` -- integer; the number of colors
+        - ``qword`` -- a right quantum word (possibly in unreduced form)
 
         EXAMPLES::
 
@@ -2061,7 +2062,7 @@ class Braid(FiniteTypeArtinGroupElement):
         rqword = RightQuantumWord(qword).reduced_word()
         alg = qword.parent()
         R = alg.base_ring()
-        result = R(1)
+        result = R.one()
         current_word = alg(1)
         i = 1
         continue_summing = True
@@ -2074,7 +2075,7 @@ class Braid(FiniteTypeArtinGroupElement):
             current_word = new_rqw.reduced_word()
             new_eps = new_rqw.eps(N)
             result += new_eps
-            if not (new_eps):
+            if not new_eps:
                 continue_summing = False
             i += 1
         return result
@@ -2085,11 +2086,17 @@ class Braid(FiniteTypeArtinGroupElement):
 
         INPUT:
 
-        - ``N`` -- integer; the number of colors.
-        - ``variab`` -- string (default: ``q``); the variable in the
-          resulting laurent polynomial.
+        - ``N`` -- integer; the number of colors
+        - ``variab`` -- (default: `q`) the variable in the resulting
+          Laurent polynomial
         - ``try_inverse`` -- boolean (default: ``True``); if ``True``,
-          attempt a faster calculation by using the inverse of the braid.
+          attempt a faster calculation by using the inverse of the braid
+
+        ALGORITHM:
+
+        The algorithm used is described in [HL2018]_. We follow their
+        notation, but work in a suitable free algebra over a Laurent
+        polynomial ring in one variable to simplify bookkeeping.
 
         EXAMPLES::
 
@@ -2097,70 +2104,85 @@ class Braid(FiniteTypeArtinGroupElement):
             sage: trefoil.colored_jones_polynomial(2)
             q + q^3 - q^4
             sage: trefoil.colored_jones_polynomial(4)
-            q^3 + q^7 - q^10 + q^11 - q^13 - q^14 + q^15 - q^17 + q^19 + q^20
-             - q^21
+            q^3 + q^7 - q^10 + q^11 - q^13 - q^14 + q^15 - q^17
+             + q^19 + q^20 - q^21
             sage: trefoil.inverse().colored_jones_polynomial(4)
-            -q^-21 + q^-20 + q^-19 - q^-17 + q^-15 - q^-14 - q^-13 + q^-11 -
-             q^-10 + q^-7 + q^-3
+            -q^-21 + q^-20 + q^-19 - q^-17 + q^-15 - q^-14 - q^-13
+             + q^-11 - q^-10 + q^-7 + q^-3
 
             sage: figure_eight = BraidGroup(3)([-1, 2, -1, 2])
             sage: figure_eight.colored_jones_polynomial(2)
             q^-2 - q^-1 + 1 - q + q^2
             sage: figure_eight.colored_jones_polynomial(3, 'Q')
-            Q^-6 - Q^-5 - Q^-4 + 2*Q^-3 - Q^-2 - Q^-1 + 3 - Q - Q^2 + 2*Q^3
-             - Q^4 - Q^5 + Q^6
-
-        ALGORITHM:
-
-        The algorithm used is described in [HL2018]_. We follow their notation,
-        but work in a suitable free algebra over a Laurent polynomial ring in
-        one variable to simplify bookkeeping.
+            Q^-6 - Q^-5 - Q^-4 + 2*Q^-3 - Q^-2 - Q^-1 + 3 - Q - Q^2
+             + 2*Q^3 - Q^4 - Q^5 + Q^6
         """
         if self.components_in_closure() != 1:
             raise ValueError("the number of components must be 1")
+        if not hasattr(self, '_cj_with_q'):
+            # Move to the __init__ if this class adds one
+            self._cj_with_q = {}
+        if N in self._cj_with_q:
+            cj = self._cj_with_q[N]
+            if variab is None:
+                return cj
+            if isinstance(variab, str):
+                variab = LaurentPolynomialRing(IntegerRing(), variab).gen()
+            return cj.subs(q=variab)
+
         db = self.deformed_burau_matrix('q')[1:, 1:]
         q = db.parent().base_ring().base_ring().gen()
         n = db.ncols()
-        qword = sum((-1)**(s.cardinality() - 1)*(q*db[list(s),
-                    list(s)]).quantum_determinant(q)
+        qword = sum((-1)**(s.cardinality() - 1)
+                    * (q * db[list(s), list(s)]).quantum_determinant(q)
                     for s in Subsets(range(n)) if s)
         inverse_shorter = try_inverse
         if try_inverse:
             db_inv = self.inverse().deformed_burau_matrix('q')[1:, 1:]
             q_inv = db_inv.parent().base_ring().base_ring().gen()
-            qword_inv = sum((-1)**(s.cardinality() -
-                            1)*(q_inv*db_inv[list(s),
-                                list(s)]).quantum_determinant(q)
+            qword_inv = sum((-1)**(s.cardinality() - 1)
+                            * (q_inv*db_inv[list(s), list(s)]).quantum_determinant(q)
                             for s in Subsets(range(n)) if s)
             # Check if the inverse has a shorter expression at this point
             inverse_shorter = len(list(qword_inv)) < len(list(qword))
         use_inverse = try_inverse and inverse_shorter
         shorter_qword = qword_inv if use_inverse else qword
         knot = Knot(self.inverse()) if use_inverse else Knot(self)
-        cj = q**(((N - 1)*(knot.writhe() - self.strands() + 1))/2) * \
-            self._colored_jones_sum(N, shorter_qword).leading_coefficient()
-        cj_with_q = cj.subs({q: 1/q}) if use_inverse else cj
-
-        # Up to this point, we have calculated everyting with a variable named
-        # `q` instead of using `variab`, because this allows proper caching in
-        # `_colored_jones_sum`. Here we do the substitution as necessary.
-        if not variab:
-            return cj_with_q
-        new_q = LaurentPolynomialRing(IntegerRing(), variab).gen()
-        return cj_with_q.subs({q: new_q})
+        cj = (q**((N - 1) * (knot.writhe() - self.strands() + 1) / 2)
+              * self._colored_jones_sum(N, shorter_qword).leading_coefficient())
+        self._cj_with_q[N] = cj.subs({q: 1/q}) if use_inverse else cj
+        return self.colored_jones_polynomial(N, variab, try_inverse)
 
 
 class RightQuantumWord:
+    """
+    A right quantum word as in Definition 4.1 of [HL2018]_.
+
+    INPUT:
+
+    - ``words`` -- an element in a suitable free algebra over a Laurent
+      polynomial ring in one variable; this input does not need to be in
+      reduced form, but the monomials for the input can come in any order
+
+    EXAMPLES::
+
+        sage: from sage.groups.braid import RightQuantumWord
+        sage: fig_8 = BraidGroup(3)([-1, 2, -1, 2])
+        sage: (
+        ....:  bp_1, cp_1, ap_1,
+        ....:  bp_3, cp_3, ap_3,
+        ....:  bm_0, cm_0, am_0,
+        ....:  bm_2, cm_2, am_2
+        ....: ) = fig_8.deformed_burau_matrix().parent().base_ring().gens()
+        sage: q = bp_1.base_ring().gen()
+        sage: RightQuantumWord(ap_1*cp_1 + q**3*bm_2*bp_1*am_0*cm_0)
+        The right quantum word represented by
+         q*cp_1*ap_1 + q^2*bp_1*cm_0*am_0*bm_2
+         reduced from ap_1*cp_1 + q^3*bm_2*bp_1*am_0*cm_0
+    """
     def __init__(self, words):
         r"""
-        An internal class representing right quantum words as in
-        definition 4.1 of [HL2018]_.
-
-        INPUT:
-
-        - ``words`` -- An element in a suitable free algebra over a Laurent
-          polynomial ring in one variable. This input does not need to be in
-          reduced form, but the monomials for the input can come in any order.
+        Initialize ``self``.
 
         EXAMPLES::
 
@@ -2173,28 +2195,26 @@ class RightQuantumWord:
             ....:  bm_2, cm_2, am_2
             ....: ) = fig_8.deformed_burau_matrix().parent().base_ring().gens()
             sage: q = bp_1.base_ring().gen()
-            sage: RightQuantumWord(ap_1*cp_1 + q**3*bm_2*bp_1*am_0*cm_0)
-            The right quantum word represented by
-             q*cp_1*ap_1 + q^2*bp_1*cm_0*am_0*bm_2
-             reduced from ap_1*cp_1 + q^3*bm_2*bp_1*am_0*cm_0
+            sage: Q = RightQuantumWord(ap_1*cp_1 + q**3*bm_2*bp_1*am_0*cm_0)
+            sage: TestSuite(Q).run(skip="_test_pickling")
         """
-        self._Alg = words.parent()
-        self.q = self._Alg.base_ring().gen()
-        self.R = self._Alg.base_ring()
+        self._algebra = words.parent()
+        self.q = self._algebra.base_ring().gen()
+        self.R = self._algebra.base_ring()
         self._unreduced_words = words
-        self._tuples = None
-        self._gens = self._Alg.gens()
-        self._minus_begin = min((i for i, gen in enumerate(self._gens) if
-                                'm' in str(gen)), default=len(self._gens))
+        self._gens = self._algebra.gens()
+        self._minus_begin = min((i for i, gen in enumerate(self._gens) if 'm' in str(gen)),
+                                default=len(self._gens))
 
-    def as_tuples(self):
+    @lazy_attribute
+    def tuples(self):
         r"""
-        Get a representation of the right quantum word as a dict, with
+        Get a representation of the right quantum word as a ``dict``, with
         keys monomials in the free algebra represented as tuples and
         values in elements the Laurent polynomial ring in one variable.
 
-        This is in the reduced form as outlines in definition of 4.1 of
-        [HL2018]_.
+        This is in the reduced form as outlined in Definition 4.1
+        of [HL2018]_.
 
         OUTPUT:
 
@@ -2214,39 +2234,34 @@ class RightQuantumWord:
             sage: q = bp_1.base_ring().gen()
             sage: qw = RightQuantumWord(ap_1*cp_1 +
             ....:                       q**3*bm_2*bp_1*am_0*cm_0)
-            sage: for key, value in qw.as_tuples().items():
+            sage: for key, value in qw.tuples.items():
             ....:     print(key, value)
             ....:
             (0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0) q
             (1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0) q^2
         """
-        if self._tuples:
-            return self._tuples
-        self._tuples = collections.defaultdict(self.R)
+        from collections import defaultdict
+        ret = defaultdict(self.R)
         for unreduced_monom, q_power in list(self._unreduced_words):
             q = self.q
             ret_tuple = [0] * len(self._gens)
             for gen, exp in unreduced_monom:
                 gen_index = self._gens.index(gen)
-                is_minus = gen_index >= self._minus_begin
-                is_a = not(bool((gen_index+1) % 3))
-                is_b = not(bool(gen_index % 3))
-                is_c = not(bool((gen_index+2) % 3))
-                index = gen_index//3
+                is_minus = bool(gen_index >= self._minus_begin)
+                index = gen_index // 3
                 # This uses the relations in equations (4.1) and (4.2)
                 # of [HL2018]_.
                 i, j, k = ret_tuple[3*index: 3*index + 3]
-                if is_a:
+                if not (gen_index + 1) % 3:  # is_a
                     ret_tuple[3*index: 3*index + 3] = [i, j, k + exp]
-                if is_b:
+                if not gen_index % 3:  # is_b
                     ret_tuple[3*index: 3*index + 3] = [i + exp, j, k]
-                    q_power *= q**(2*(k*exp + j*exp)) if is_minus \
-                        else q**(-2*j*exp)
-                if is_c:
+                    q_power *= q**(2*(k*exp + j*exp)) if is_minus else q**(-2*j*exp)
+                if not (gen_index + 2) % 3:  # is_c
                     ret_tuple[3*index: 3*index + 3] = [i, j + exp, k]
                     q_power *= q**(-k*exp) if is_minus else q**(k*exp)
-            self._tuples[tuple(ret_tuple)] += self._Alg(q_power)
-        return self._tuples
+            ret[tuple(ret_tuple)] += self._algebra(q_power)
+        return ret
 
     def reduced_word(self):
         r"""
@@ -2254,7 +2269,7 @@ class RightQuantumWord:
 
         OUTPUT:
 
-        An element in the free algebra self._Alg.
+        An element in the free algebra.
 
         EXAMPLES::
 
@@ -2272,9 +2287,9 @@ class RightQuantumWord:
             sage: qw.reduced_word()
             q*cp_1*ap_1 + q^2*bp_1*cm_0*am_0*bm_2
 
-        TESTS::
+        TESTS:
 
-        Testing the equations (4.1) and (4.2) in [HL2018]_.
+        Testing the equations (4.1) and (4.2) in [HL2018]_::
 
             sage: RightQuantumWord(ap_3*bp_3).reduced_word()
             bp_3*ap_3
@@ -2290,21 +2305,23 @@ class RightQuantumWord:
             q^2*bm_2*cm_2
 
         .. TODO::
+
             Paralellize this function, calculating all summands in the sum
             in parallel.
         """
         def tuple_to_word(q_tuple):
-            return prod(self._gens[i]**exp
+            return prod(self._gens[i] ** exp
                         for i, exp in enumerate(q_tuple))
-        return sum(q_factor*tuple_to_word(q_tuple)
-                   for q_tuple, q_factor in self.as_tuples().items())
+        return sum(q_factor * tuple_to_word(q_tuple)
+                   for q_tuple, q_factor in self.tuples.items())
 
     def eps(self, N):
-        r"""Evaluate the map $\mathcal{E}_N$ for a braid.
+        r"""
+        Evaluate the map `\mathcal{E}_N` for a braid.
 
         INPUT:
 
-        - ``N`` -- an integer; the number of colors.
+        - ``N`` -- an integer; the number of colors
 
         EXAMPLES::
 
@@ -2342,7 +2359,7 @@ class RightQuantumWord:
                             for rj in range(self._minus_begin + 1,
                                             len(q_tuple), 3))
             ret_q *= prod(prod(1 - q**(N - 1 - q_tuple[3*i + 1] - h)
-                               for h in range(0, q_tuple[3*i + 2]))
+                               for h in range(q_tuple[3*i + 2]))
                           for i in range(self._minus_begin//3))
             ret_q *= prod(prod(1 - q**(q_tuple[3*j + 1] + l + 1 - N)
                                for l in range(q_tuple[3*j + 2]))
@@ -2350,12 +2367,12 @@ class RightQuantumWord:
                                          len(q_tuple)//3))
             return ret_q
 
-        return sum(q_factor*eps_monom(q_tuple)
-                   for q_tuple, q_factor in self.as_tuples().items())
+        return sum(q_factor * eps_monom(q_tuple)
+                   for q_tuple, q_factor in self.tuples.items())
 
     def __repr__(self):
         r"""
-        String representation of the reight quantum word.
+        String representation of ``self``.
 
         EXAMPLES::
 
@@ -2367,9 +2384,9 @@ class RightQuantumWord:
             The right quantum word represented by cp_1*bp_3*am_2 reduced from
              cp_1*am_2*bp_3
         """
-        return 'The right quantum word represented by ' + \
-            f'{str(self.reduced_word())} reduced from ' + \
-            f'{str(self._unreduced_words)}'
+        return ('The right quantum word represented by '
+                + f'{str(self.reduced_word())} reduced from '
+                + f'{str(self._unreduced_words)}')
 
 
 class BraidGroup_class(FiniteTypeArtinGroup):

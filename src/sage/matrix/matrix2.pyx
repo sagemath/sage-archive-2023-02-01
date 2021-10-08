@@ -95,6 +95,7 @@ from sage.rings.real_mpfr import RealField
 from sage.rings.complex_mpfr import ComplexField
 from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 from sage.misc.derivative import multi_derivative
+import sage.rings.abc
 from sage.arith.numerical_approx cimport digits_to_bits
 from copy import copy
 
@@ -822,8 +823,7 @@ cdef class Matrix(Matrix1):
         if not K.is_integral_domain():
             # The non-integral-domain case is handled almost entirely
             # separately.
-            from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
-            if is_IntegerModRing(K):
+            if isinstance(K, sage.rings.abc.IntegerModRing):
                 from sage.libs.pari import pari
                 A = pari(self.lift())
                 b = pari(B).lift()
@@ -1985,7 +1985,6 @@ cdef class Matrix(Matrix1):
             sage: A.determinant() == B.determinant()
             True
         """
-        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.symbolic.ring import is_SymbolicExpressionRing
 
         cdef Py_ssize_t n
@@ -2031,7 +2030,7 @@ cdef class Matrix(Matrix1):
             return d
 
         # Special case for Z/nZ or GF(p):
-        if is_IntegerModRing(R) and self.is_dense():
+        if isinstance(R, sage.rings.abc.IntegerModRing) and self.is_dense():
             import sys
             # If the characteristic is prime and smaller than a machine
             # word, use PARI.
@@ -14722,6 +14721,8 @@ cdef class Matrix(Matrix1):
 
             for i from 0 <= i < size:
                 PyList_Append(M,<object>f(<object>PyList_GET_ITEM(L,i)))
+
+            from sage.rings.finite_rings.integer_mod_ring import IntegerModRing
 
             return MatrixSpace(IntegerModRing(2),
                                nrows=self._nrows,ncols=self._ncols).matrix(M)

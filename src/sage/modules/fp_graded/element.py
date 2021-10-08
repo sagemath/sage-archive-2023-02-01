@@ -234,7 +234,7 @@ class FPElement(IndexedFreeModuleElement):
         return F_n.quotient_map()(self.lift_to_free().vector_presentation())
 
 
-    def __nonzero__(self):
+    def __bool__(self):
         r"""
         Determine if this element is non-zero.
 
@@ -245,17 +245,17 @@ class FPElement(IndexedFreeModuleElement):
 
             sage: from sage.modules.fp_graded.module import FPModule
             sage: M = FPModule(SteenrodAlgebra(2), [0,2,4], [[Sq(4),Sq(2),0]])
-            sage: M(0).__nonzero__()
+            sage: M(0) != 0
             False
-            sage: M((Sq(6), 0, Sq(2))).__nonzero__()
-            True
+            sage: M((Sq(6), 0, Sq(2))) == 0
+            False
             sage: a = M((Sq(1)*Sq(2)*Sq(1)*Sq(4), 0, 0))
             sage: b = M((0, Sq(2)*Sq(2)*Sq(2), 0))
-            sage: a.__nonzero__()
+            sage: a != 0
             True
-            sage: b.__nonzero__()
+            sage: bool(b)
             True
-            sage: (a + b).__nonzero__()
+            sage: bool(a + b)
             False
         """
         pres = self.vector_presentation()
@@ -263,7 +263,6 @@ class FPElement(IndexedFreeModuleElement):
             return False
         return bool(pres)
 
-    __bool__ = __nonzero__
 
     def __eq__(self, other):
         r"""

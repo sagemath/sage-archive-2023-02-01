@@ -331,6 +331,14 @@ def contour_plot(f, xrange, yrange, **options):
         of two variables. Only segments of the surface where region(x,y)
         returns a number >0 will be included in the plot.
 
+    .. WARNING::
+
+        Due to an implementation detail in matplotlib, single-contour
+        plots whose data all lie on one side of the sole contour may
+        not be plotted correctly. We attempt to detect this situation
+        and to produce something better than an empty plot when it
+        happens; a ``UserWarning`` is emitted in that case.
+
     EXAMPLES:
 
     Here we plot a simple function of two variables.  Note that
@@ -1089,6 +1097,14 @@ def implicit_plot(f, xrange, yrange, **options):
       to logarithmic scale. The ``"semilogy"`` scale sets the vertical axis
       to logarithmic scale. The ``"linear"`` scale is the default value
       when :class:`~sage.plot.graphics.Graphics` is initialized.
+
+    .. WARNING::
+
+        Due to an implementation detail in matplotlib, implicit plots
+        whose data are all nonpositive or nonnegative may not be
+        plotted correctly. We attempt to detect this situation and to
+        produce something better than an empty plot when it happens; a
+        ``UserWarning`` is emitted in that case.
 
     EXAMPLES:
 

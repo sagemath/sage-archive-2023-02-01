@@ -372,6 +372,7 @@ cdef class NCGroebnerStrategy(SageObject):
         self._strat.enterS = enterSBba
         #- set S
         self._strat.sl = -1
+        self._strat.noTailReduction = False
         #- init local data struct
         initS(i, NULL, self._strat)
 

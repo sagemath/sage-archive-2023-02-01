@@ -62,7 +62,7 @@ class FPElement(IndexedFreeModuleElement):
             Finitely presented free left module on 2 generators over mod 2 Steenrod algebra, milnor basis
         """
         C = self.parent().j.codomain()
-        return C(self.dense_coefficient_list())
+        return C(self.coefficients())
 
 
     @cached_method
@@ -105,6 +105,25 @@ class FPElement(IndexedFreeModuleElement):
         if self.is_zero():
             raise ValueError("the zero element does not have a well-defined degree")
         return self.lift_to_free().degree()
+
+
+    def coefficients(self):
+        """
+        Return a list of all coefficients of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: A = SteenrodAlgebra()
+            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
+            sage: x = M([Sq(1), 1])
+            sage: x.coefficients()
+            [Sq(1), 1]
+            sage: y = Sq(2) * M.generator(1)
+            sage: y.coefficients()
+            [0, Sq(2)]
+        """
+        return [self[i] for i in sorted(self.parent().basis().keys())]
 
 
     def _repr_(self):

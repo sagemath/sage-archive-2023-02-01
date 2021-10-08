@@ -53,6 +53,24 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         sage: M([Sq(1), 1])
         <Sq(1), 1>
     """
+
+    def coefficients(self):
+        """
+        Return a list of all coefficients of ``self``.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+            sage: A = SteenrodAlgebra()
+            sage: M = FreeGradedModule(SteenrodAlgebra(2), (0, 1))
+            sage: x = M.an_element(7); x
+            <Sq(0,0,1), Sq(3,1)>
+            sage: x.coefficients()
+            [Sq(0,0,1), Sq(3,1)]
+        """
+        return self.dense_coefficient_list()
+
+
     def degree(self):
         r"""
         The degree of this element.
@@ -90,7 +108,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         degrees = []
         try:
             for g, c in zip(self.parent().generator_degrees(),
-                            self.dense_coefficient_list()):
+                            self.coefficients()):
                 if c:
                     degrees.append(g + c.degree())
         except ValueError:
@@ -102,13 +120,34 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         raise ValueError("this is a nonhomogeneous element, no well-defined degree")
 
 
+    def lift_to_free(self):
+        """
+        This returns the module itself.
+
+        It is provided for compatibility with the method of the same
+        name for :class:`sage.modules.fp_graded.module.FPModule`.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+            sage: A = SteenrodAlgebra(2)
+            sage: M = FreeGradedModule(A, (0,1))
+            sage: x = M.an_element()
+            sage: x.lift_to_free() == x
+            True
+            sage: x.lift_to_free() is x
+            True
+        """
+        return self
+
+
     def _repr_(self):
         r"""
         Return a string representation of this element.
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FreeGradedModule(A, (0,1))
             sage: [M.an_element(n) for n in range(1,10)]
@@ -122,7 +161,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
              <Sq(1,0,1), Sq(1,2)>,
              <Sq(2,0,1), Sq(2,2)>]
         """
-        return '<%s>' % ', '.join(['%s' % c for c in self.dense_coefficient_list()])
+        return '<%s>' % ', '.join(['%s' % c for c in self.coefficients()])
 
 
     def _lmul_(self, a):
@@ -160,7 +199,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
              <Sq(1,1,1), Sq(1,1,1), Sq(5,1)>,
              <0, 0, Sq(3,2)>]
         """
-        return self.parent()((a*c for c in self.dense_coefficient_list()))
+        return self.parent()((a*c for c in self.coefficients()))
 
     @cached_method
     def vector_presentation(self):
@@ -229,7 +268,7 @@ class FreeGradedModuleElement(IndexedFreeModuleElement):
         base_dict = dict(zip(bas_gen, base_vec.basis()))
 
         # Create a sparse representation of the element.
-        sparse_coeffs = [x for x in enumerate(self.dense_coefficient_list()) if not x[1].is_zero()]
+        sparse_coeffs = [x for x in enumerate(self.coefficients()) if not x[1].is_zero()]
 
         vector = base_vec.zero()
         for summand_index, algebra_element in sparse_coeffs:

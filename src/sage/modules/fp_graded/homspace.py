@@ -474,7 +474,7 @@ class FPModuleHomspace(Homset):
             target_degs = [r.degree() + n for r in M.relations()]
 
             block_matrix, R = _CreateRelationsMatrix(
-                N, [r.dense_coefficient_list() for r in M.relations()], source_degs, target_degs)
+                N, [r.coefficients() for r in M.relations()], source_degs, target_degs)
 
             ker = R.right_kernel()
 

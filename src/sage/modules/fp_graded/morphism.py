@@ -249,7 +249,7 @@ class FPModuleMorphism(Morphism):
         # We have to change the ring for the values, too:
         new_values = []
         for v in self._values:
-            new_values.append(new_codomain([algebra(a) for a in v.dense_coefficient_list()]))
+            new_values.append(new_codomain([algebra(a) for a in v.coefficients()]))
         return Hom(self.domain().change_ring(algebra), new_codomain)(new_values)
 
 
@@ -1008,7 +1008,7 @@ class FPModuleMorphism(Morphism):
         for r in L.relations():
             target_degree = r.degree() + lift_deg
 
-            y = iK.solve(sum([c*x for c,x in zip(r.dense_coefficient_list(), xs)]))
+            y = iK.solve(sum([c*x for c,x in zip(r.coefficients(), xs)]))
             if y is None:
                 if verbose:
                     print('The homomorphism cannot be lifted in any '
@@ -1028,7 +1028,7 @@ class FPModuleMorphism(Morphism):
             return Hom(L, M)(xs)
 
         block_matrix, R = _CreateRelationsMatrix(
-            K, [r.dense_coefficient_list() for r in L.relations()], source_degs, target_degs)
+            K, [r.coefficients() for r in L.relations()], source_degs, target_degs)
 
         try:
             solution = R.solve_right(vector(ys))
@@ -1237,8 +1237,8 @@ class FPModuleMorphism(Morphism):
             False
         """
         from .module import FPModule
-        new_relations = [x.dense_coefficient_list() for x in self.codomain().relations()] +\
-            [x.dense_coefficient_list() for x in self._values]
+        new_relations = [x.coefficients() for x in self.codomain().relations()] +\
+            [x.coefficients() for x in self._values]
 
         coker = FPModule(self.base_ring(),
                     self.codomain().generator_degrees(),
@@ -1765,5 +1765,5 @@ class FPModuleMorphism(Morphism):
         from .module import FPModule
         return FPModule(algebra=self.base_ring(),
                          generator_degrees=self.codomain().generator_degrees(),
-                         relations=tuple([r.dense_coefficient_list() for r in self.values()]))
+                         relations=tuple([r.coefficients() for r in self.values()]))
 

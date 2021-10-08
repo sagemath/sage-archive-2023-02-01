@@ -66,8 +66,13 @@ AUTHORS:
 from sage.categories.homset import Hom
 from sage.misc.cachefunc import cached_method
 from sage.rings.infinity import PlusInfinity
-from sage.categories.graded_modules_with_basis import GradedModulesWithBasis
-from sage.combinat.free_module import CombinatorialFreeModule
+from sage.categories.graded_modules import GradedModules
+from sage.modules.module import Module
+from sage.structure.indexed_generators import IndexedGenerators
+from sage.structure.unique_representation import UniqueRepresentation
+from sage.structure.parent import Parent
+from sage.misc.lazy_attribute import lazy_attribute
+from sage.structure.element import parent
 
 from .free_module import FreeGradedModule
 from .free_element import FreeGradedModuleElement
@@ -77,7 +82,7 @@ from .element import FPElement
 # vector spaces. They have a distinguished set of generators over the
 # algebra, and as long as the algebra has a vector space basis
 # implemented in Sage, the modules will have a vector space basis as well.
-class FPModule(CombinatorialFreeModule):
+class FPModule(Module, IndexedGenerators, UniqueRepresentation):
     r"""
     Create a finitely presented module over a connected graded algebra.
 
@@ -172,11 +177,14 @@ class FPModule(CombinatorialFreeModule):
         # following morphism.
         self.j = Hom(relationsModule, generatorModule)(rels)
 
-        # Call the base class constructor.
-        CombinatorialFreeModule.__init__(self, algebra,
-                                         basis_keys=keys,
-                                         element_class=FPElement,
-                                         category=GradedModulesWithBasis(algebra))
+        # Call the base class constructors.
+        cat = GradedModules(algebra).WithBasis()
+        IndexedGenerators.__init__(self, keys)
+        Module.__init__(self, algebra, category=cat)
+        Parent.__init__(self, base=algebra, category=cat)
+
+
+    element_class = FPElement
 
 
     def _free_module(self):
@@ -196,6 +204,7 @@ class FPModule(CombinatorialFreeModule):
         """
         return self.j.codomain()
 
+
     @classmethod
     def from_free_module(cls, free_module):
         r"""
@@ -210,8 +219,8 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
             sage: F = FreeGradedModule(A, (-2,2,4))
             sage: FPModule.from_free_module(F)
@@ -239,8 +248,8 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.free_module import *
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.free_module import FreeGradedModule
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
             sage: F1 = FreeGradedModule(A, (2,))
             sage: F2 = FreeGradedModule(A, (0,))
@@ -255,7 +264,7 @@ class FPModule(CombinatorialFreeModule):
         """
         return cls(algebra=morphism.base_ring(),
                    generator_degrees=morphism.codomain().generator_degrees(),
-                   relations=tuple([r.dense_coefficient_list() for r in morphism.values()]))
+                   relations=tuple([r.coefficients() for r in morphism.values()]))
 
 
     def change_ring(self, algebra):
@@ -272,7 +281,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
             sage: A2 = SteenrodAlgebra(2,profile=(3,2,1))
 
@@ -285,8 +294,88 @@ class FPModule(CombinatorialFreeModule):
             True
         """
         # self.relations() consists of module elements. We need to extra the coefficients.
-        relations = tuple(r.dense_coefficient_list() for r in self.relations())
+        relations = tuple(r.coefficients() for r in self.relations())
         return FPModule(algebra, self.generator_degrees(), relations)
+
+
+    def __contains__(self, x):
+        """
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
+            sage: x = M([Sq(1), 1])
+            sage: x in M
+            True
+            sage: N = FPModule(SteenrodAlgebra(2), [0], [[Sq(2)]])
+            sage: y = Sq(2)*N.generator(0)
+            sage: y in M
+            False
+        """
+        return parent(x) == self
+
+
+    def _from_dict(self, d, coerce=False, remove_zeros=True):
+        r"""
+        Construct an element of ``self`` from an ``{index: coefficient}``
+        dictionary.
+
+        INPUT: ``d``, a dictionary
+
+        This code is taken from the method of the same name for
+        ``sage.combinat.free_module.FreeModule``.
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
+            sage: x = M.an_element()
+            sage: M._from_dict(x.monomial_coefficients()) == x
+            True
+        """
+        assert isinstance(d, dict)
+        if coerce:
+            R = self.base_ring()
+            d = {key: R(coeff) for key, coeff in d.items()}
+        if remove_zeros:
+            d = {key: coeff for key, coeff in d.items() if coeff}
+        return self.element_class(self, d)
+
+
+    def _monomial(self, index):
+        """
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
+            sage: M._monomial((0,0))
+            <1, 0>
+            sage: M._monomial((1,1))
+            <0, 1>
+        """
+        return self._from_dict({index: self.base_ring().one()}, remove_zeros=False)
+
+    @lazy_attribute
+    def monomial(self):
+        """
+        Return the basis element indexed by ``i``.
+
+        INPUT:
+
+        - ``i`` -- an element of the index set
+
+        EXAMPLES::
+
+            sage: from sage.modules.fp_graded.module import FPModule
+            sage: M = FPModule(SteenrodAlgebra(2), [0,1], [[Sq(4), Sq(3)]])
+            sage: M.monomial((0,0))
+            <1, 0>
+            sage: M.monomial((1,1))
+            <0, 1>
+        """
+        # Should use a real Map, as soon as combinatorial_classes are enumerated sets, and therefore parents
+        from sage.categories.poor_man_map import PoorManMap
+        return PoorManMap(self._monomial, domain=self._indices, codomain=self, name="Term map")
 
 
     def _element_constructor_(self, x):
@@ -306,7 +395,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FPModule(A, [0,2,4], [[Sq(4), Sq(2), 0]])
 
@@ -330,9 +419,13 @@ class FPModule(CombinatorialFreeModule):
         """
         if isinstance(x, self.element_class):
             return x
+        ngens = len(self._generator_keys)
+        if ngens == 0: # the trivial module
+            return self._free_module().zero()
         if not x:
-            return self.zero()
-        B = self.basis()
+            x = [self.base_ring().zero()] * ngens
+        from sage.combinat.family import Family
+        B = Family(self._indices, self.monomial)
         if isinstance(x, FreeGradedModuleElement):
             if x.parent() == self._free_module():
                 # x.parent() should have the same generator list as self.
@@ -348,7 +441,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FPModule(A, [0,2,4], [[Sq(4),Sq(2),0]]); M
             Finitely presented left module on 3 generators and 1 relation over mod 2 Steenrod algebra, milnor basis
@@ -515,7 +608,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: M = FPModule(A2, [0,2,4], [[0, Sq(5), Sq(3)], [Sq(7), 0, Sq(2)*Sq(1)]])
 
@@ -556,7 +649,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: M = FPModule(A2, [0,2], [[Sq(4), Sq(2)], [0, Sq(6)]])
 
@@ -609,7 +702,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FPModule(A, [0], [[Sq(4)], [Sq(7)], [Sq(4)*Sq(9)]])
 
@@ -643,7 +736,7 @@ class FPModule(CombinatorialFreeModule):
         free_element = self._free_module().element_from_coordinates(
             M_n.lift(coordinates), n)
 
-        return self(free_element.dense_coefficient_list())
+        return self(free_element.coefficients())
 
 
     def __getitem__(self, n):
@@ -691,7 +784,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
             sage: M = FPModule(A, [0,2,4], [[Sq(4),Sq(2),0]])
 
@@ -752,7 +845,7 @@ class FPModule(CombinatorialFreeModule):
 
         TESTS::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
             sage: F = FPModule(A, [1,3]);
             sage: L = FPModule(A, [2,3], [[Sq(2),Sq(1)], [0,Sq(2)]]);
@@ -775,7 +868,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A4 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: N = FPModule(A4, [0, 1], [[Sq(2), Sq(1)]])
 
@@ -815,7 +908,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A4 = SteenrodAlgebra(2, profile=(4,3,2,1))
 
             sage: M = FPModule(A4, [0,2,3])
@@ -835,7 +928,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A4 = SteenrodAlgebra(2, profile=(4,3,2,1))
 
             sage: M = FPModule(A4, [0,2,3])
@@ -859,7 +952,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A4 = SteenrodAlgebra(2, profile=(4,3,2,1))
             sage: N = FPModule(A4, [0, 1], [[Sq(2), Sq(1)]])
             sage: N.relation(0)
@@ -876,7 +969,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
 
             sage: M = FPModule(A2, [0,1], [[Sq(2),Sq(1)],[0,Sq(2)],[Sq(3),0]])
@@ -922,7 +1015,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A = SteenrodAlgebra(2)
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
 
@@ -964,7 +1057,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
 
             sage: M = FPModule(A2, [0,1], [[Sq(2),Sq(1)]])
@@ -1012,7 +1105,7 @@ class FPModule(CombinatorialFreeModule):
 
         EXAMPLES::
 
-            sage: from sage.modules.fp_graded.module import *
+            sage: from sage.modules.fp_graded.module import FPModule
             sage: A2 = SteenrodAlgebra(2, profile=(3,2,1))
             sage: M = FPModule(A2, [0,1], [[Sq(2), Sq(1)]])
             sage: M.resolution(0)
@@ -1075,7 +1168,7 @@ class FPModule(CombinatorialFreeModule):
         # f_1: F_1 -> F_0
         _print_progress(1, k)
         F_1 = FPModule.from_free_module(self.j.domain())
-        pres = Hom(F_1, F_0)(tuple([ F_0(x.dense_coefficient_list()) for x in self.j.values() ]))
+        pres = Hom(F_1, F_0)(tuple([ F_0(x.coefficients()) for x in self.j.values() ]))
 
         complex.append(pres)
 

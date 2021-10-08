@@ -2140,7 +2140,7 @@ class FiniteWord_class(Word_class):
 
     def is_conjugate_with(self, other):
         r"""
-        Return ``True`  if ``self`` is a conjugate of ``other``, and ``False`` otherwise.
+        Return ``True`` if ``self`` is a conjugate of ``other``, and ``False`` otherwise.
 
         INPUT:
 
@@ -3539,14 +3539,11 @@ class FiniteWord_class(Word_class):
             sage: Word('121212').primitive_length()
             2
         """
-        l = lu = self.length()
+        l = self.length()
         if l == 0:
             return 0
-        p = self.prefix_function_table()
-        while l > 0:
-            l = p[l-1]
-            if lu % (lu - l) == 0:
-                return lu - l
+        p = self.minimal_period()
+        return p if l % p == 0 else l
 
     def is_primitive(self):
         r"""
@@ -3803,7 +3800,7 @@ class FiniteWord_class(Word_class):
         we removed the letters of ``self``.
         There can be more than one.
 
-        To check whether ``self`` is a subword of ``other` (without knowing its
+        To check whether ``self`` is a subword of ``other`` (without knowing its
         complementaries), use ``self.is_subword_of(other)``, and to count the
         number of occurrences of ``self`` in ``other``, use
         ``other.number_of_subword_occurrences(self)``.
@@ -7047,8 +7044,8 @@ class FiniteWord_class(Word_class):
         L = self.length()
         if L < 3:
             return True
-        for start in range(0, L - 2):
-            for end in range(start+3, L+1, 3):
+        for start in range(L - 2):
+            for end in range(start + 3, L + 1, 3):
                 if self[start:end].is_cube():
                     return False
         return True
@@ -7140,6 +7137,38 @@ class FiniteWord_class(Word_class):
         else:
             return False
 
+    def minimal_conjugate(self):
+        r"""
+        Return the lexicographically minimal conjugate of this word (see
+        :wikipedia:`Lexicographically_minimal_string_rotation`).
+
+        EXAMPLES::
+
+            sage: Word('213').minimal_conjugate()
+            word: 132
+            sage: Word('11').minimal_conjugate()
+            word: 11
+            sage: Word('12112').minimal_conjugate()
+            word: 11212
+            sage: Word('211').minimal_conjugate()
+            word: 112
+            sage: Word('211211211').minimal_conjugate()
+            word: 112112112
+
+        TESTS::
+
+            sage: Word().minimal_conjugate()
+            word:
+        """
+        if not self:
+            return self
+        p = self.primitive()
+        q = self.length() // p.length()
+        end = 0
+        for factor in (p ** 2).lyndon_factorization():
+            end += factor.length()
+            if end >= p.length():
+                return factor ** q
 
 #######################################################################
 

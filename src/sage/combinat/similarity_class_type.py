@@ -177,7 +177,7 @@ AUTHOR:
 
 from itertools import chain, product
 from sage.misc.all import prod
-from sage.functions.all import factorial
+from sage.arith.misc import factorial
 from sage.arith.all import moebius, divisors
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.structure.element import Element
@@ -308,7 +308,7 @@ def centralizer_algebra_dim(la):
 
         If it is a list, ``la`` is expected to be sorted in decreasing order.
     """
-    return sum([(2*i + 1)*la[i] for i in range(0, len(la))])
+    return sum([(2 * i + 1) * la[i] for i in range(len(la))])
 
 
 @cached_function

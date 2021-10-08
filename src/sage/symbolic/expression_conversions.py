@@ -18,11 +18,10 @@ overridden by subclasses.
 import operator as _operator
 from sage.rings.rational_field import QQ
 from sage.symbolic.ring import SR
-from sage.symbolic.constants import I
+from sage.symbolic.callable import is_CallableSymbolicExpression
 from sage.functions.all import exp
 from sage.symbolic.operators import arithmetic_operators, relation_operators, FDerivativeOperator, add_vararg, mul_vararg
-from sage.rings.number_field.number_field import GaussianField
-from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_quadratic
+from sage.rings.number_field.number_field_element_quadratic import NumberFieldElement_gaussian
 from sage.rings.universal_cyclotomic_field import UniversalCyclotomicField
 from functools import reduce
 
@@ -425,9 +424,14 @@ class InterfaceInit(Converter):
             sage: ii = InterfaceInit(gp)
             sage: ii.symbol(x)
             'x'
+            sage: g = InterfaceInit(giac)
+            sage: g.symbol(x)
+            'sageVARx'
         """
         if self.interface.name()=='maxima':
             return '_SAGE_VAR_'+repr(SR(ex))
+        elif self.interface.name() == 'giac':
+            return 'sageVAR' + repr(SR(ex))
         else:
             return repr(SR(ex))
 
@@ -448,8 +452,7 @@ class InterfaceInit(Converter):
             'Pi'
         """
         if (self.interface.name() in ['pari','gp'] and
-            isinstance(obj, NumberFieldElement_quadratic) and
-            obj.parent() is GaussianField()):
+            isinstance(obj, NumberFieldElement_gaussian)):
             return repr(obj)
         try:
             return getattr(obj, self.name_init)()
@@ -509,7 +512,7 @@ class InterfaceInit(Converter):
             sage: t
             D[0](f)(x*y)
             sage: m.derivative(t, t.operator())
-            "at(diff('f(_SAGE_VAR_t0), _SAGE_VAR_t0, 1), [_SAGE_VAR_t0 = (_SAGE_VAR_x)*(_SAGE_VAR_y)])"
+            "at(diff('f(_SAGE_VAR__symbol0), _SAGE_VAR__symbol0, 1), [_SAGE_VAR__symbol0 = (_SAGE_VAR_x)*(_SAGE_VAR_y)])"
 
         TESTS:
 
@@ -533,7 +536,7 @@ class InterfaceInit(Converter):
             sage: a = df.subs(x=exp(x)); a
             D[0](f)(e^x)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),_SAGE_VAR_t0=%e^_SAGE_VAR_x)
+            %at('diff('f(_SAGE_VAR__symbol0),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=%e^_SAGE_VAR_x)
             sage: bool(b.sage() == a)
             True
 
@@ -542,7 +545,7 @@ class InterfaceInit(Converter):
             sage: a = df.subs(x=4); a
             D[0](f)(4)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
+            %at('diff('f(_SAGE_VAR__symbol0),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -562,7 +565,7 @@ class InterfaceInit(Converter):
             sage: a = f_x.subs(x=4); a
             D[0](f)(4, y)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0,_SAGE_VAR_y),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
+            %at('diff('f(_SAGE_VAR__symbol0,_SAGE_VAR_y),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -571,7 +574,7 @@ class InterfaceInit(Converter):
             sage: a = f_x.subs(x=4).subs(y=8); a
             D[0](f)(4, 8)
             sage: b = maxima(a); b
-            %at('diff('f(_SAGE_VAR_t0,8),_SAGE_VAR_t0,1),_SAGE_VAR_t0=4)
+            %at('diff('f(_SAGE_VAR__symbol0,8),_SAGE_VAR__symbol0,1),_SAGE_VAR__symbol0=4)
             sage: bool(b.sage() == a)
             True
 
@@ -594,9 +597,12 @@ class InterfaceInit(Converter):
             # An evaluated derivative of the form f'(1) is not a
             # symbolic variable, yet we would like to treat it like
             # one. So, we replace the argument `1` with a temporary
-            # variable e.g. `t0` and then evaluate the derivative
-            # f'(t0) symbolically at t0=1. See trac #12796.
-            temp_args = [SR.var("t%s"%i) for i in range(len(args))]
+            # variable e.g. `_symbol0` and then evaluate the
+            # derivative f'(_symbol0) symbolically at _symbol0=1. See
+            # trac #12796. Note that we cannot use SR.temp_var here
+            # since two conversions of the same expression have to be
+            # equal.
+            temp_args = [SR.symbol("_symbol%s"%i) for i in range(len(args))]
             f = operator.function()(*temp_args)
             params = operator.parameter_set()
             params = ["%s, %s"%(temp_args[i]._maxima_init_(), params.count(i)) for i in set(params)]
@@ -685,8 +691,32 @@ class SympyConverter(Converter):
 
     """
     def __init__(self):
+        """
+        TESTS::
+
+            sage: from sage.symbolic.expression_conversions import SympyConverter
+            sage: s = SympyConverter()  # indirect doctest
+            sage: TestSuite(s).run(skip="_test_pickling")
+        """
         from sage.interfaces.sympy import sympy_init
         sympy_init()
+
+    def __call__(self, ex=None):
+        """
+        EXAMPLES::
+
+            sage: from sage.symbolic.expression_conversions import SympyConverter
+            sage: s = SympyConverter()
+            sage: f(x, y) = x^2 + y^2; f
+            (x, y) |--> x^2 + y^2
+            sage: s(f)
+            Lambda((x, y), x**2 + y**2)
+        """
+        if is_CallableSymbolicExpression(ex):
+            from sympy import Symbol, Lambda
+            return Lambda(tuple(Symbol(str(arg)) for arg in ex.arguments()),
+                          super().__call__(ex))
+        return super().__call__(ex)
 
     def pyobject(self, ex, obj):
         """
@@ -945,6 +975,90 @@ class FriCASConverter(InterfaceInit):
         import sage.interfaces.fricas
         super(FriCASConverter, self).__init__(sage.interfaces.fricas.fricas)
 
+    def pyobject(self, ex, obj):
+        r"""
+        Return a string which, when evaluated by FriCAS, returns the
+        object as an expression.
+
+        We explicitly add the coercion to the FriCAS domains
+        `Expression Integer` and `Expression Complex Integer` to make
+        sure that elements of the symbolic ring are translated to
+        these.  In particular, this is needed for integration, see
+        :trac:`28641` and :trac:`28647`.
+
+        EXAMPLES::
+
+            sage: 2._fricas_().domainOf()                                       # optional - fricas
+            PositiveInteger()
+
+            sage: (-1/2)._fricas_().domainOf()                                  # optional - fricas
+            Fraction(Integer())
+
+            sage: SR(2)._fricas_().domainOf()                                   # optional - fricas
+            Expression(Integer())
+
+            sage: (sqrt(2))._fricas_().domainOf()                               # optional - fricas
+            Expression(Integer())
+
+            sage: pi._fricas_().domainOf()                                      # optional - fricas
+            Pi()
+
+            sage: asin(pi)._fricas_()                                           # optional - fricas
+            asin(%pi)
+
+            sage: I._fricas_().domainOf()                                   # optional - fricas
+            Complex(Integer())
+
+            sage: SR(I)._fricas_().domainOf()                                   # optional - fricas
+            Expression(Complex(Integer()))
+
+            sage: ex = (I+sqrt(2)+2)
+            sage: ex._fricas_().domainOf()                                      # optional - fricas
+            Expression(Complex(Integer()))
+
+            sage: ex._fricas_()^2                                               # optional - fricas
+                       +-+
+            (4 + 2 %i)\|2  + 5 + 4 %i
+
+            sage: (ex^2)._fricas_()                                             # optional - fricas
+                       +-+
+            (4 + 2 %i)\|2  + 5 + 4 %i
+
+        """
+        try:
+            result = getattr(obj, self.name_init)()
+            if isinstance(obj, NumberFieldElement_gaussian):
+                return "((%s)::EXPR COMPLEX INT)" % result
+        except AttributeError:
+            result = repr(obj)
+        return "((%s)::EXPR INT)" % result
+
+    def symbol(self, ex):
+        """
+        Convert the argument, which is a symbol, to FriCAS.
+
+        In this case, we do not return an `Expression Integer`,
+        because FriCAS frequently requires elements of domain
+        `Symbol` or `Variable` as arguments, for example to
+        `integrate`.  Moreover, FriCAS is able to do the conversion
+        itself, whenever the argument should be interpreted as a
+        symbolic expression.
+
+        EXAMPLES::
+
+            sage: x._fricas_().domainOf()                                       # optional - fricas
+            Variable(x)
+
+            sage: (x^2)._fricas_().domainOf()                                   # optional - fricas
+            Expression(Integer())
+
+            sage: (2*x)._fricas_().integrate(x)                                 # optional - fricas
+             2
+            x
+
+        """
+        return repr(ex)
+
     def derivative(self, ex, operator):
         """
         Convert the derivative of ``self`` in FriCAS.
@@ -1002,9 +1116,12 @@ class FriCASConverter(InterfaceInit):
             # An evaluated derivative of the form f'(1) is not a
             # symbolic variable, yet we would like to treat it like
             # one. So, we replace the argument `1` with a temporary
-            # variable e.g. `t0` and then evaluate the derivative
-            # f'(t0) symbolically at t0=1. See trac #12796.
-            temp_args = [SR.var("t%s" % i) for i in range(len(args))]
+            # variable e.g. `_symbol0` and then evaluate the
+            # derivative f'(_symbol0) symbolically at _symbol0=1. See
+            # trac #12796. Note that we cannot use SR.temp_var here
+            # since two conversions of the same expression have to be
+            # equal.
+            temp_args = [SR.symbol("_symbol%s" % i) for i in range(len(args))]
             f = operator.function()(*temp_args)
             vars = ",".join(temp_args[i]._fricas_init_() for i in params_set)
             subs = ",".join("%s = %s" % (t._fricas_init_(), a._fricas_init_())
@@ -1913,7 +2030,7 @@ class FastCallableConverter(Converter):
             sage: z._fast_callable_(etb)
             Traceback (most recent call last):
             ...
-            ValueError: Variable 'z' not found
+            ValueError: Variable 'z' not found...
         """
         return self.etb.var(SR(ex))
 
@@ -2095,6 +2212,7 @@ class ExpressionTreeWalker(Converter):
             sage: s = ExpressionTreeWalker(ex)
             sage: bool(s() == ex)
             True
+            sage: set_random_seed(0)  # random_expr is unstable
             sage: foo = random_expr(20, nvars=2)
             sage: s = ExpressionTreeWalker(foo)
             sage: bool(s() == foo)
@@ -2195,7 +2313,7 @@ class ExpressionTreeWalker(Converter):
         return ex.operands()
 
 class SubstituteFunction(ExpressionTreeWalker):
-    def __init__(self, ex, original, new):
+    def __init__(self, ex, *args):
         """
         A class that walks the tree and replaces occurrences of a
         function with another.
@@ -2204,12 +2322,24 @@ class SubstituteFunction(ExpressionTreeWalker):
 
             sage: from sage.symbolic.expression_conversions import SubstituteFunction
             sage: foo = function('foo'); bar = function('bar')
+            sage: s = SubstituteFunction(foo(x), {foo: bar})
+            sage: s(1/foo(foo(x)) + foo(2))
+            1/bar(bar(x)) + bar(2)
+
+        TESTS::
+
+        Check that the old syntax still works::
+
             sage: s = SubstituteFunction(foo(x), foo, bar)
             sage: s(1/foo(foo(x)) + foo(2))
             1/bar(bar(x)) + bar(2)
         """
-        self.original = original
-        self.new = new
+        if len(args) == 2:
+            self.substitutions = {args[0]: args[1]}
+        elif len(args) == 1:
+            self.substitutions = args[0]
+        else:
+            raise TypeError('SubstituteFunction takes either one or two arguments.')
         self.ex = ex
 
     def composition(self, ex, operator):
@@ -2218,7 +2348,7 @@ class SubstituteFunction(ExpressionTreeWalker):
 
             sage: from sage.symbolic.expression_conversions import SubstituteFunction
             sage: foo = function('foo'); bar = function('bar')
-            sage: s = SubstituteFunction(foo(x), foo, bar)
+            sage: s = SubstituteFunction(foo(x), {foo: bar})
             sage: f = foo(x)
             sage: s.composition(f, f.operator())
             bar(x)
@@ -2232,8 +2362,9 @@ class SubstituteFunction(ExpressionTreeWalker):
             sage: s.composition(f, f.operator())
             bar(sin(x))
         """
-        if operator == self.original:
-            return self.new(*[self(_) for _ in ex.operands()])
+        new = self.substitutions.get(operator)
+        if new is not None:
+            return new(*[self(_) for _ in ex.operands()])
         else:
             return super(SubstituteFunction, self).composition(ex, operator)
 
@@ -2243,7 +2374,7 @@ class SubstituteFunction(ExpressionTreeWalker):
 
             sage: from sage.symbolic.expression_conversions import SubstituteFunction
             sage: foo = function('foo'); bar = function('bar')
-            sage: s = SubstituteFunction(foo(x), foo, bar)
+            sage: s = SubstituteFunction(foo(x), {foo: bar})
             sage: f = foo(x).diff(x)
             sage: s.derivative(f, f.operator())
             diff(bar(x), x)
@@ -2255,14 +2386,142 @@ class SubstituteFunction(ExpressionTreeWalker):
 
             sage: f = function('f')
             sage: g = function('g')
-            sage: f(g(x)).diff(x).substitute_function(g, sin)
+            sage: f(g(x)).diff(x).substitute_function({g: sin})
             cos(x)*D[0](f)(sin(x))
 
         """
-        if operator.function() == self.original:
-            return operator.change_function(self.new)(*[self(_) for _ in ex.operands()])
+        new = self.substitutions.get(operator.function())
+        if new is not None:
+            return operator.change_function(new)(*[self(_) for _ in ex.operands()])
         else:
             return operator(*[self(_) for _ in ex.operands()])
+
+class Exponentialize(ExpressionTreeWalker):
+    # Implementation note: this code is executed once at first
+    # reference in the code using it, therefore avoiding rebuilding
+    # the same canned results dictionary at each call.
+    from sage.functions.hyperbolic import sinh, cosh, sech, csch, tanh, coth
+    from sage.functions.log import exp
+    from sage.functions.trig import sin, cos, sec, csc, tan, cot
+    from sage.rings.imaginary_unit import I
+    from sage.symbolic.constants import e
+    from sage.rings.integer import Integer
+    from sage.symbolic.ring import SR
+    from sage.calculus.var import function
+    half = Integer(1) / Integer(2)
+    two = Integer(2)
+    x = SR.var("x")
+    CircDict = {
+        sin: (-half*I*exp(I*x) + half*I*exp(-I*x)).function(x),
+        cos: (half*exp(I*x) + half*exp(-I*x)).function(x),
+        sec: (two/(exp(I*x) + exp(-I*x))).function(x),
+        csc: (two*I/(exp(I*x) - exp(-I*x))).function(x),
+        tan: (-I*(exp(I*x) - exp(-I*x))/(exp(I*x) + exp(-I*x))).function(x),
+        cot: (I*(exp(I*x) + exp(-I*x))/(exp(I*x) - exp(-I*x))).function(x),
+        sinh: (-half*exp(-x) + half*exp(x)).function(x),
+        cosh: (half*exp(-x) + half*exp(x)).function(x),
+        sech: (two/(exp(-x) + exp(x))).function(x),
+        csch: (-two/(exp(-x) - exp(x))).function(x),
+        tanh: (-(exp(-x) - exp(x))/(exp(x) + exp(-x))).function(x),
+        coth: (-(exp(-x) + exp(x))/(exp(-x) - exp(x))).function(x)
+    }
+    Circs = list(CircDict.keys())
+
+    def __init__(self, ex):
+        """
+        A class that walks a symbolic expression tree and replace circular
+        and hyperbolic functions by their respective exponential
+        expressions.
+
+        EXAMPLES::
+        
+            sage: from sage.symbolic.expression_conversions import Exponentialize
+            sage: d=Exponentialize(sin(x))
+            sage: d(sin(x))
+            -1/2*I*e^(I*x) + 1/2*I*e^(-I*x)
+            sage: d(cosh(x))
+            1/2*e^(-x) + 1/2*e^x
+        """
+        self.ex = ex
+
+    def composition(self, ex, op):
+        r"""
+        Return the composition of ``self`` with ``ex`` by ``op``.
+
+        EXAMPLES::
+
+            sage: x = SR.var("x")
+            sage: from sage.symbolic.expression_conversions import Exponentialize
+            sage: p = x
+            sage: s = Exponentialize(p)
+            sage: q = sin(x)
+            sage: s.composition(q, q.operator())
+            -1/2*I*e^(I*x) + 1/2*I*e^(-I*x)
+        """
+        if op in self.Circs:
+            return self.CircDict.get(op)(*[self(oper)
+                                           for oper in ex.operands()])
+        return super(Exponentialize, self).composition(ex, op)
+
+class DeMoivre(ExpressionTreeWalker):
+    def __init__(self, ex, force=False):
+        r"""
+        A class that walks a symbolic expression tree and replaces
+        occurences of complex exponentials (optionally, all
+        exponentials) by their respective trigonometric expressions.
+
+        INPUT:
+
+        - ``force`` -- boolean (default: ``False``); replace `\exp(x)`
+          with `\cosh(x) + \sinh(x)`
+
+        EXAMPLES::
+
+            sage: a, b = SR.var("a, b")
+            sage: from sage.symbolic.expression_conversions import DeMoivre
+            sage: d=DeMoivre(e^a)
+            sage: d(e^(a+I*b))
+            (cos(b) + I*sin(b))*e^a
+        """
+        self.ex = ex
+        self.force = force
+    
+    def composition(self, ex, op):
+        """
+        Return the composition of ``self`` with ``ex`` by ``op``.
+
+        EXAMPLES::
+
+            sage: x, a, b = SR.var('x, a, b')
+            sage: from sage.symbolic.expression_conversions import DeMoivre
+            sage: p = exp(x)
+            sage: s = DeMoivre(p)
+            sage: q = exp(a+I*b)
+            sage: s.composition(q, q.operator())
+            (cos(b) + I*sin(b))*e^a
+        """
+        from sage.functions.log import exp
+        if op is not exp:
+            # return super(DeMoivre, self).composition(ex, op)
+            return op(*[self(oper) for oper in ex.operands()])
+
+        from sage.rings.imaginary_unit import I
+        from sage.symbolic.ring import SR
+        from sage.functions.hyperbolic import sinh, cosh
+        from sage.functions.trig import sin, cos
+        arg = self(ex.operands()[0])()
+        w0, w1 = (SR.wild(u) for u in range(2))
+        D = arg.match(w0 + I*w1)
+        if D is not None:
+            A = D.get(w1)
+            return exp(D.get(w0))*(cos(A) + I*sin(A))
+        D = arg.match(I*w0)
+        if D is not None:
+            A = D.get(w0)
+            return cos(A) + I*sin(A)
+        if self.force:
+            return cosh(arg) + sinh(arg)
+        return exp(arg)
 
 class HoldRemover(ExpressionTreeWalker):
     def __init__(self, ex, exclude=None):

@@ -992,6 +992,64 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             return _mul_(self, switch_sides=True)
         return _mul_(x)
 
+    def __pow__(self, x, mod):
+        """
+        Power function.
+
+        The default implementation of ``__pow__`` on parent redirects to the
+        super class (in case of multiple inheritance) or to the category. This
+        redirection is necessary when the parent is a Cython class (aka
+        extension class) because in that case the parent class does not inherit
+        from the ``ParentMethods`` of the category.
+
+        Concrete implementations of parents can freely overwrite this default
+        method.
+
+        TESTS::
+
+            sage: ZZ^3
+            Ambient free module of rank 3 over the principal ideal domain
+             Integer Ring
+            sage: QQ^3
+            Vector space of dimension 3 over Rational Field
+            sage: QQ[x]^3
+            Ambient free module of rank 3 over the principal ideal domain
+             Univariate Polynomial Ring in x over Rational Field
+            sage: IntegerModRing(6)^3
+            Ambient free module of rank 3 over Ring of integers modulo 6
+
+            sage: 3^ZZ
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand parent(s) for ^: 'Integer Ring' and '<class 'sage.rings.integer_ring.IntegerRing_class'>'
+            sage: Partitions(3)^3
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operand type(s) for ** or pow(): 'Partitions_n_with_category' and 'int'
+
+        Check multiple inheritance::
+
+            sage: class A:
+            ....:    def __pow__(self, n):
+            ....:        return 'Apow'
+            sage: class MyParent(A, Parent):
+            ....:    pass
+            sage: MyParent()^2
+            'Apow'
+        """
+        if mod is not None or not isinstance(self, Parent):
+            return NotImplemented
+        try:
+            # get __pow__ from super class
+            meth = super(Parent, (<Parent> self)).__pow__
+        except AttributeError:
+            # get __pow__ from category in case the parent is a Cython class
+            try:
+                meth = (<Parent> self).getattr_from_category('__pow__')
+            except AttributeError:
+                return NotImplemented
+        return meth(x)
+
     #############################################################################
     # Containment testing
     #############################################################################
@@ -1082,6 +1140,21 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             False
             sage: 15/36 in Integers(6)
             False
+
+        Check that :trac:`32078` is fixed::
+
+            sage: P = Frac(ZZ['x,y'])
+            sage: P(1) in ZZ
+            True
+            sage: P(1/2) in ZZ
+            False
+
+        Check that :trac:`24209` is fixed::
+
+            sage: I in QQbar
+            True
+            sage: sqrt(-1) in QQbar
+            True
         """
         P = parent(x)
         if P is self or P == self:
@@ -1105,7 +1178,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             # SR is ultra-permissive about letting other rings
             # coerce in, but ultra-strict about doing
             # comparisons.
-        except (TypeError, ValueError, ZeroDivisionError):
+        except (TypeError, ValueError, ArithmeticError):
             return False
 
     cpdef coerce(self, x):
@@ -1260,7 +1333,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         from sage.categories.homset import Hom
         return Hom(self, codomain, category)
 
-    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None):
+    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None, **kwds):
         r"""
         Return the unique homomorphism from self to codomain that
         sends ``self.gens()`` to the entries of ``im_gens``.
@@ -1344,7 +1417,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
         # Not all homsets accept category/check/base_map as arguments
-        kwds = {}
         if check is not None:
             kwds['check'] = check
         if base_map is not None:

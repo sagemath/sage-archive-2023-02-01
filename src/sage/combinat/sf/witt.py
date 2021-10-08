@@ -371,11 +371,11 @@ class SymmetricFunctionAlgebra_witt(multiplicative.SymmetricFunctionAlgebra_mult
         sage: s(w([4]))
         -s[1, 1, 1, 1] - s[2, 1, 1] - s[2, 2] - s[3, 1]
         sage: [type(coeff) for a, coeff in h(w([4]))]
-        [<... 'sage.rings.integer.Integer'>,
-         <... 'sage.rings.integer.Integer'>,
-         <... 'sage.rings.integer.Integer'>,
-         <... 'sage.rings.integer.Integer'>,
-         <... 'sage.rings.integer.Integer'>]
+        [<class 'sage.rings.integer.Integer'>,
+         <class 'sage.rings.integer.Integer'>,
+         <class 'sage.rings.integer.Integer'>,
+         <class 'sage.rings.integer.Integer'>,
+         <class 'sage.rings.integer.Integer'>]
 
         sage: w(h[3])
         w[1, 1, 1] + w[2, 1] + w[3]

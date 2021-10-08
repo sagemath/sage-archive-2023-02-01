@@ -1329,7 +1329,6 @@ class ClusterSeed(SageObject):
             return catchup.cluster_variable(k)
         else:
             raise ValueError('Clusters not being tracked')
-            return None
 
     def cluster(self):
         r"""
@@ -3950,9 +3949,9 @@ class ClusterSeed(SageObject):
         var_iter = self.variable_class_iter( depth=depth, ignore_bipartite_belt=ignore_bipartite_belt )
         return sorted(var_iter)
 
-    def is_finite(self):
+    def is_finite(self) -> bool:
         r"""
-        Returns True if ``self`` is of finite type.
+        Return ``True`` if ``self`` is of finite type.
 
         EXAMPLES::
 
@@ -3963,6 +3962,12 @@ class ClusterSeed(SageObject):
             sage: S = ClusterSeed(['A',[2,2],1])
             sage: S.is_finite()
             False
+
+        TESTS::
+
+            sage: Q = ClusterQuiver([[1,2],[2,3],[3,4],[4,1]])
+            sage: Q.is_finite()
+            True
         """
         mt = self.mutation_type()
         if isinstance(mt, str):
@@ -4128,7 +4133,7 @@ class ClusterSeed(SageObject):
                 ans = 0
                 if a1 >= a2:
                     PS = PathSubset(a1, a2)
-                elif a1 < a2:
+                else:
                     PS = PathSubset(a2, a1)
                 from sage.combinat.subset import Subsets
                 for T in Subsets(PS):
@@ -4137,7 +4142,7 @@ class ClusterSeed(SageObject):
                             oddT = set(T).intersection(PathSubset(a1, 0))
                             evenT = set(T).symmetric_difference(oddT)
                             ans = ans + S.x(0)**(b*len(evenT)) * S.x(1)**(c*len(oddT))
-                    elif a1 < a2:
+                    else:
                         if is_LeeLiZel_allowable(T, a2, a1, c, b):
                             oddT = set(T).intersection(PathSubset(a2, 0))
                             evenT = set(T).symmetric_difference(oddT)
@@ -4627,7 +4632,7 @@ def coeff_recurs(p, q, a1, a2, b, c):
             return sum((-1)**(k-1)*coeff_recurs(p, q-k, a1, a2, b, c)*_bino(a1-b*p+k-1, k)
                        for k in range(1, q+1))
 
-def PathSubset(n,m):
+def PathSubset(n, m):
     r"""
     Encodes a *maximal* Dyck path from (0,0) to (n,m) (for n >= m >= 0) as a subset of {0,1,2,..., 2n-1}.
     The encoding is given by indexing horizontal edges by odd numbers and vertical edges by evens.
@@ -4649,15 +4654,11 @@ def PathSubset(n,m):
         sage: PathSubset(4,4)
         {0, 1, 2, 3, 4, 5, 6, 7}
     """
-    from sage.misc.misc import union
-    from sage.functions.other import floor
-    S = [ ]
-    for i in range(n):
-        S = union(S, [2*i+1])
+    S = set(2 * i + 1 for i in range(n))
     if m > 0:
         for j in range(n):
-            if floor((j+1)*m/n) - floor(j*m/n) == 1:
-                S = union(S, [2*j])
+            if ((j+1)*m) // n - (j*m) // n == 1:
+                S.add(2 * j)
     return set(S)
 
 

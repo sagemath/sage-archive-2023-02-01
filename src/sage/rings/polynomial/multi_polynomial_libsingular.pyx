@@ -235,8 +235,6 @@ from sage.rings.number_field.number_field_base cimport NumberField
 from sage.structure.element import coerce_binop
 
 from sage.structure.parent cimport Parent
-from sage.structure.parent_base cimport ParentWithBase
-from sage.structure.parent_gens cimport ParentWithGens
 from sage.structure.category_object cimport CategoryObject
 
 from sage.structure.coerce cimport coercion_model
@@ -1121,12 +1119,12 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
 
             sage: R.<x,y> = QQ[]
             sage: macaulay2(R)  # optional - macaulay2
-            QQ[x, y]
+            QQ[x...y]
 
             sage: R.<x,y> = GF(17)[]
             sage: macaulay2(R)  # optional - macaulay2
             ZZ
-            --[x, y]
+            --[x...y]
             17
         """
         try:
@@ -3183,7 +3181,8 @@ cdef class MPolynomial_libsingular(MPolynomial):
         cdef ring *_ring = parent._ring
         if _ring != currRing: rChangeCurrRing(_ring)
         base = parent._base
-        cdef poly *t, *p = p_Copy(self._poly, _ring)
+        cdef poly *t
+        cdef poly *p = p_Copy(self._poly, _ring)
 
         while p:
             t = pNext(p)

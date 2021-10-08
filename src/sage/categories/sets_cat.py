@@ -714,8 +714,8 @@ class Sets(Category_singleton):
                 sage: TestSuite(Groups().Finite().Algebras(QQ)).run()
             """
             from sage.categories.rings import Rings
-            assert base_ring in Rings or (isinstance(base_ring, Category)
-                                          and base_ring.is_subcategory(Rings()))
+            assert base_ring in Rings() or (isinstance(base_ring, Category)
+                                            and base_ring.is_subcategory(Rings()))
             return AlgebrasCategory.category_of(self, base_ring)
 
         @cached_method
@@ -1270,9 +1270,11 @@ class Sets(Category_singleton):
 
             for x in S:
                 for y in S:
-                    if not x == y: continue
+                    if not x == y:
+                        continue
                     for z in S:
-                        if not y == z: continue
+                        if not y == z:
+                            continue
                         tester.assertTrue(x == z,
                             LazyFormat("non transitive equality:\n"
                                        "%s and %s but %s")%(
@@ -1458,7 +1460,7 @@ class Sets(Category_singleton):
             and if it returns the latter, then it is supposed that ``F(O)==self`.
             The test verifies this assumption.
 
-            EXAMPLE:
+            EXAMPLES:
 
             We create a parent that returns a wrong construction (its construction
             returns the rational field rather than the parent itself)::
@@ -1685,6 +1687,47 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                                         category=algebra_category, **kwds)
             result.__doc__ = Sets.ParentMethods.algebra.__doc__
             return result
+
+        def _sympy_(self):
+            """
+            Return an instance of a subclass of SymPy ``Set`` corresponding to ``self``.
+
+            The default implementation creates an instance of
+            :class:`~sage.interfaces.sympy_wrapper`.
+
+            EXAMPLES::
+
+                sage: F = FiniteEnumeratedSets().example(); F
+                An example of a finite enumerated set: {1,2,3}
+                sage: sF = F._sympy_(); sF
+                SageSet(An example of a finite enumerated set: {1,2,3})
+                sage: sF.is_finite_set
+                True
+                sage: bool(sF)
+                True
+                sage: len(sF)
+                3
+                sage: list(sF)
+                [1, 2, 3]
+                sage: from sympy import FiniteSet
+                sage: FiniteSet.fromiter(sF)
+                FiniteSet(1, 2, 3)
+
+                sage: RR._sympy_().is_finite_set
+                False
+
+                sage: F = Family([1, 2])
+                sage: F is Family([1, 2])
+                False
+                sage: sF = F._sympy_(); sF
+                SageSet(Family (1, 2))
+                sage: sF._sage_() is F
+                True
+            """
+            from sage.interfaces.sympy_wrapper import SageSet
+            from sage.interfaces.sympy import sympy_init
+            sympy_init()
+            return SageSet(self)
 
     class ElementMethods:
         ## Should eventually contain the basic operations which are no math
@@ -2126,19 +2169,11 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 r"""
                 Return a lexicographic iterator for the elements of this Cartesian product.
 
-                EXAMPLES::
+                EXAMPLES:
 
-                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # py2
-                    ....:     print((x, y))
-                    (1, 'a')
-                    (1, 'b')
-                    (2, 'a')
-                    (2, 'b')
+                Sets are intrinsically unordered::
 
-                Sets are intrinsically unordered, so a different
-                ordering may occur when using Python 3::
-
-                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # py3 random
+                    sage: for x,y in cartesian_product([Set([1,2]), Set(['a','b'])]): # random
                     ....:     print((x, y))
                     (1, 'b')
                     (1, 'a')
@@ -2292,7 +2327,8 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 except (AttributeError, NotImplementedError):
                     pass
                 else:
-                    if test: return test
+                    if test:
+                        return test
                 return all(c.is_finite() for c in f)
 
             def cardinality(self):
@@ -2437,6 +2473,23 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                     sage: C._cartesian_product_of_elements(S.an_element() for S in X)
                     (42, 47, 42)
                 """
+
+            def _sympy_(self):
+                """
+                Return a SymPy ``ProductSet`` corresponding to ``self``.
+
+                EXAMPLES::
+
+                    sage: ZZ3 = cartesian_product([ZZ, ZZ, ZZ])
+                    sage: sZZ3 = ZZ3._sympy_(); sZZ3
+                    ProductSet(Integers, Integers, Integers)
+                    sage: (1, 2, 3) in sZZ3
+                    True
+                """
+                from sympy import ProductSet
+                from sage.interfaces.sympy import sympy_init
+                sympy_init()
+                return ProductSet(*self.cartesian_factors())
 
         class ElementMethods:
 
@@ -2600,7 +2653,6 @@ Please use, e.g., S.algebra(QQ, category=Semigroups())""".format(self))
                 set = Set([1,2,3])
             from sage.categories.examples.with_realizations import SubsetAlgebra
             return SubsetAlgebra(base_ring, set)
-
 
         class ParentMethods:
 

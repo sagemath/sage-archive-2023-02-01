@@ -233,12 +233,17 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: CDF.random_element()
-            -0.43681052967509904 + 0.7369454235661859*I
-            sage: CDF.random_element(-10,10,-10,10)
-            -7.088740263015161 - 9.54135400334003*I
-            sage: CDF.random_element(-10^20,10^20,-2,2)
-            -7.587654737635711e+19 + 0.925549022838656*I
+            sage: CDF.random_element().parent() is CDF
+            True
+            sage: re, im = CDF.random_element()
+            sage: -1 <= re <= 1, -1 <= im <= 1
+            (True, True)
+            sage: re, im = CDF.random_element(-10,10,-10,10)
+            sage: -10 <= re <= 10, -10 <= im <= 10
+            (True, True)
+            sage: re, im = CDF.random_element(-10^20,10^20,-2,2)
+            sage: -10^20 <= re <= 10^20, -2 <= im <= 2
+            (True, True)
         """
         cdef randstate rstate = current_randstate()
         global _CDF
@@ -277,7 +282,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         return r"\Bold{C}"
 
-    def __call__(self, x, im=None):
+    def __call__(self, x=None, im=None):
         """
         Create a complex double using ``x`` and optionally an imaginary part
         ``im``.
@@ -329,8 +334,19 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             True
             sage: b == CC(a)
             True
+
+        TESTS:
+
+        Check that :trac:`31836` is fixed::
+
+            sage: a = CDF() ; a
+            0.0
+            sage: a.parent()
+            Complex Double Field
         """
         # We implement __call__ to gracefully accept the second argument.
+        if x is None:
+            return self.zero()
         if im is not None:
             x = x, im
         return Parent.__call__(self, x)

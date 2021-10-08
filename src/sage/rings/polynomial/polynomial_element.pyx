@@ -125,7 +125,7 @@ from sage.misc.cachefunc import cached_function
 from sage.categories.map cimport Map
 from sage.categories.morphism cimport Morphism
 
-from sage.misc.superseded import deprecation
+from sage.misc.superseded import deprecation_cython as deprecation
 from sage.misc.cachefunc import cached_method
 
 
@@ -708,6 +708,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p(x=QQ(0))
             0
 
+        Check that :trac:`32513` is fixed::
+
+            sage: R.<x> = PolynomialRing(ZZ)
+            sage: x.substitute([])
+            x
+            sage: Polynomial.__call__(x, [])
+            x
+
         AUTHORS:
 
         -  David Joyner (2005-04-10)
@@ -748,7 +756,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     if len(args) > 1:
                         raise TypeError("invalid arguments")
                     args = args[0]
-                a, args = args[0], args[1:]
+                if args:
+                    a, args = args[0], args[1:]
             if a is None:
                 a = self._parent.gen()
 
@@ -903,8 +912,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder(vars=['t'])
             sage: R.<t> = QQ[]
-            sage: v = R.random_element(6); v
-            -1/4*t^6 + 1/2*t^5 - t^4 - 12*t^3 + 1/2*t^2 - 1/95*t - 1/2
+            sage: v = -1/4*t^6 + 1/2*t^5 - t^4 - 12*t^3 + 1/2*t^2 - 1/95*t - 1/2
             sage: v._fast_callable_(etb)
             add(mul(add(mul(add(mul(add(mul(add(mul(add(mul(v_0, -1/4), 1/2), v_0), -1), v_0), -12), v_0), 1/2), v_0), -1/95), v_0), -1/2)
 
@@ -1347,6 +1355,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Traceback (most recent call last):
             ...
             TypeError: cannot convert nonconstant polynomial
+
+            sage: x = polygen(QQ)
+            sage: A.<u> = NumberField(x^3 - 2)
+            sage: A(A['x'](u))
+            u
         """
         if self.degree() > 0:
             raise TypeError("cannot convert nonconstant polynomial")
@@ -2017,8 +2030,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: K.<a> = GF(2**8)
             sage: x = polygen(K)
-            sage: (x**2+x+1).any_root() # used to loop
-            a^7 + a^6 + a^4 + a^2 + a + 1
+            sage: r = (x**2+x+1).any_root()  # used to loop
+            sage: r**2 + r
+            1
             sage: (x**2+a+1).any_root()
             a^7 + a^2
 
@@ -2048,9 +2062,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: K.<a> = GF(2^4)
             sage: R.<x> = K[]
             sage: f = x^2 + x + a^2 + a
-            sage: f.any_root()
-            a + 1
-
+            sage: r = f.any_root()
+            sage: r^2 + r
+            a^2 + a
         """
         if self.base_ring().is_finite() and self.base_ring().is_field():
             if self.degree() < 0:
@@ -2525,7 +2539,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         r"""
         Truncated ``n``-th power of this polynomial up to precision ``prec``
 
-        This method is overriden for certain subclasses when a library function
+        This method is overridden for certain subclasses when a library function
         is available.
 
         INPUT:
@@ -4880,7 +4894,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
         """
         Let f and g be two polynomials. Then this function returns the
         monic least common multiple of f and g.
+
+        TESTS:
+
+        Check that :trac:`32033` has been fixed::
+
+            sage: R.<t> = GF(3)[]
+            sage: lcm(R(0), R(0))
+            0
+
+        ::
+
+            sage: R.<t> = RR[]
+            sage: lcm(R(0), R(0))
+            0
         """
+        if self.is_zero() or other.is_zero():
+            P = self.parent()
+            return P.zero()
         f = self*other
         g = self.gcd(other)
         q = f//g
@@ -4891,6 +4922,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         Let f and g be two polynomials. Then this function returns the
         monic least common multiple of f and g.
         """
+        if self.is_zero() or other.is_zero():
+            P = self.parent()
+            return P.zero()
         f = self*other
         g = self.gcd(other)
         q = f//g
@@ -6352,6 +6386,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.libs.gap.libgap import libgap
         return self._gap_(libgap)
 
+    def _giac_init_(self):
+        r"""
+        Return a Giac string representation of this polynomial.
+
+        TESTS::
+
+            sage: R.<x> = GF(101)['e,i'][]
+            sage: f = R('e*i') * x + x^2
+            sage: f._giac_init_()
+            '((1)*1)*sageVARx^2+((1)*sageVARe*sageVARi)*sageVARx'
+            sage: giac(f)
+            sageVARx^2+sageVARe*sageVARi*sageVARx
+            sage: giac(R.zero())
+            0
+        """
+        g = 'sageVAR' + self.variable_name()
+        s = '+'.join('(%s)*%s' % (self.monomial_coefficient(m)._giac_init_(),
+                                  m._repr(g)) for m in self.monomials())
+        return s if s else '0'
+
     ######################################################################
 
     @coerce_binop
@@ -7619,7 +7673,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(-3.5074662110434039?e451, 1)]
             sage: p = bigc*x + 1
             sage: p.roots(ring=RR)
-            [(0.000000000000000, 1)]
+            [(-2.85106096489671e-452, 1)]
             sage: p.roots(ring=AA)
             [(-2.8510609648967059?e-452, 1)]
             sage: p.roots(ring=QQbar)
@@ -7830,10 +7884,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(a + O(3^20), 1),
              (2*a + 2*a*3 + 2*a*3^2 + 2*a*3^3 + 2*a*3^4 + 2*a*3^5 + 2*a*3^6 + 2*a*3^7 + 2*a*3^8 + 2*a*3^9 + 2*a*3^10 + 2*a*3^11 + 2*a*3^12 + 2*a*3^13 + 2*a*3^14 + 2*a*3^15 + 2*a*3^16 + 2*a*3^17 + 2*a*3^18 + 2*a*3^19 + O(3^20),
               1)]
+
+        Check that :trac:`31710` is fixed::
+
+            sage: CBF['x'].zero().roots(multiplicities=False)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: taking the roots of the zero polynomial
         """
         from sage.rings.finite_rings.finite_field_constructor import GF
         K = self._parent.base_ring()
-
 
         # If the base ring has a method _roots_univariate_polynomial,
         # try to use it. An exception is raised if the method does not
@@ -7939,7 +7999,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if L is SR:
             if self.degree() == 2:
                 from sage.functions.other import sqrt
-                from sage.libs.pynac.pynac import I
+                from sage.symbolic.expression import I
                 coeffs = self.list()
                 D = coeffs[1]*coeffs[1] - 4*coeffs[0]*coeffs[2]
                 l = None
@@ -10885,6 +10945,10 @@ cdef class Polynomial_generic_dense(Polynomial):
         sage: isinstance(f, Polynomial_generic_dense)
         True
 
+        sage: R.<x> = QQ[]
+        sage: S = R['y']
+        sage: S((x^2, 2, 1+x))
+        (x + 1)*y^2 + 2*y + x^2
     """
     def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, **kwds):
         Polynomial.__init__(self, parent, is_gen=is_gen)
@@ -10893,7 +10957,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             return
 
         R = parent.base_ring()
-        if isinstance(x, list):
+        if isinstance(x, (list, tuple)):
             if check:
                 self.__coeffs = [R(t) for t in x]
                 self.__normalize()
@@ -10934,7 +10998,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         elif isinstance(x, pari_gen):
             x = [R(w, **kwds) for w in x.list()]
             check = 0
-        elif not isinstance(x, list):
+        elif not isinstance(x, (list, tuple)):
             # We trust that the element constructors do not send x=0
 #            if x:
             x = [x]   # constant polynomials
@@ -11547,7 +11611,7 @@ cpdef Polynomial generic_power_trunc(Polynomial p, Integer n, long prec):
 
         sage: from sage.rings.polynomial.polynomial_element import generic_power_trunc
 
-        sage: for S in [ZZ, GF(3)]:
+        sage: for S in [ZZ, GF(3)]:  # known bug  # not tested (see :trac:`32075`)
         ....:     R = PolynomialRing(S, 'x')
         ....:     for _ in range(100):
         ....:         p = R.random_element()

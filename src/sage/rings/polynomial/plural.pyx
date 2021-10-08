@@ -421,7 +421,7 @@ cdef class NCPolynomialRing_plural(Ring):
         """
         singular_ring_delete(self._ring)
 
-    def _element_constructor_(self, elem):
+    def _element_constructor_(self, element):
         """
         Make sure element is a valid member of self, and return the constructed element.
 
@@ -502,9 +502,9 @@ cdef class NCPolynomialRing_plural(Ring):
 
         """
 
-        if elem == 0:
+        if element == 0:
             return self._zero_element
-        if elem == 1:
+        if element == 1:
             return self._one_element
 
         cdef poly *_p
@@ -516,9 +516,9 @@ cdef class NCPolynomialRing_plural(Ring):
         base_ring = self.base_ring()
 
         try:
-            element = coerce(base_ring, elem)
+            element = coerce(base_ring, element)
         except:
-            element = elem
+            pass
 
         if(_ring != currRing): rChangeCurrRing(_ring)
 

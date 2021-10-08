@@ -617,6 +617,9 @@ cdef number *sa2si_transext(object elem, ring *_ring):
 
     cdef nMapFunc nMapFuncPtr = NULL;
 
+    if _ring != currRing:
+        rChangeCurrRing(_ring)
+
     ngens = elem.parent().ngens()
 
     nMapFuncPtr =  naSetMap(_ring.cf, currRing.cf) # choose correct mapping function

@@ -32,8 +32,6 @@ dimensions of newforms), ``dimension_modular_forms`` (for modular
 forms), and ``dimension_eis`` (for Eisenstein series). The syntax is
 similar - see the Reference Manual for examples.
 
-In future versions of Sage, more related commands will be added.
-
 .. index:: cosets of Gamma_0
 
 Coset representatives
@@ -116,6 +114,7 @@ and related curves. Here are some examples of the syntax:
 
 ::
 
+    sage: from sage.modular.dims import dimension_cusp_forms
     sage: dimension_cusp_forms(Gamma0(22))
     2
     sage: dimension_cusp_forms(Gamma0(30))

@@ -13,7 +13,31 @@ SAGE_SPKG_CONFIGURE([polymake], [
     ])
     AS_IF([test -z "$ac_cv_path_POLYMAKE_CONFIG"],
           [sage_spkg_install_polymake=yes],
-          [sage_require_perl_cpan_polymake_prereq=no
-           sage_require_perl_term_readline_gnu=no])
+          [AC_MSG_CHECKING([whether libpolymake works])
+           AC_LANG_PUSH([C++])
+           saved_CXX="$CXX"
+           saved_CPPFLAGS="$CPPFLAGS"
+           saved_LDFLAGS="$LDFLAGS"
+           CXX="$($ac_cv_path_POLYMAKE_CONFIG --cc)"
+           CPPFLAGS="$($ac_cv_path_POLYMAKE_CONFIG --includes) $($ac_cv_path_POLYMAKE_CONFIG --cflags) $CPPFLAGS"
+           LDFLAGS="-lpolymake $($ac_cv_path_POLYMAKE_CONFIG --ldflags) $LDFLAGS"
+           AC_RUN_IFELSE([AC_LANG_PROGRAM([[
+               #include <polymake/Main.h>
+             ]], [[
+               polymake::Main* main_polymake_session = new polymake::Main;
+             ]]
+           )], [
+             AC_MSG_RESULT([yes])
+             sage_require_perl_cpan_polymake_prereq=no
+             sage_require_perl_term_readline_gnu=no
+           ], [
+             AC_MSG_RESULT([no])
+             sage_spkg_install_polymake=yes
+           ])
+           CXX="$saved_CXX"
+           CPPFLAGS="$saved_CPPFLAGS"
+           LDFLAGS="$saved_LDFLAGS"
+           AC_LANG_POP([C++])
+          ])
     m4_popdef([POLYMAKE_VERSION_MIN])
 ])

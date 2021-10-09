@@ -616,6 +616,8 @@ cdef number *sa2si_transext(object elem, ring *_ring):
     cdef number *denominator
     cdef number *cfnum
     cdef number *cfden
+    cdef number *aux1
+    cdef number *aux2
     cdef int ngens
     cdef int ex
     cdef nMapFunc nMapFuncPtr = NULL;
@@ -652,8 +654,13 @@ cdef number *sa2si_transext(object elem, ring *_ring):
         for (j, ex) in enumerate(exponents):
             a = _ring.cf.cfParameter(j+1, _ring.cf)
             for k in range(ex):
-                naCoeff = _ring.cf.cfMult(naCoeff, a ,_ring.cf)
-        numerator = _ring.cf.cfAdd(numerator, naCoeff,_ring.cf)
+                aux1 = naCoeff
+                naCoeff = _ring.cf.cfMult(aux1, a ,_ring.cf)
+                _ring.cf.cfDelete(&aux1, _ring.cf)
+            _ring.cf.cfDelete(&a, _ring.cf)
+        aux2 = numerator
+        numerator = _ring.cf.cfAdd(aux2, naCoeff,_ring.cf)
+        _ring.cf.cfDelete(&aux2, _ring.cf)
 
     if elem.denominator() != 1:
         denominator = _ring.cf.cfInit(0, _ring.cf)
@@ -664,12 +671,16 @@ cdef number *sa2si_transext(object elem, ring *_ring):
             denom = coef.denominator()
             cfden = _ring.cf.cfInitMPZ((<Integer>denom).value, _ring.cf)
             naCoeff = _ring.cf.cfDiv(cfnum, cfden , _ring.cf )
-
             for (j, ex) in enumerate(exponents):
                 a = _ring.cf.cfParameter(j+1, _ring.cf)
                 for k in range(ex):
-                    naCoeff = _ring.cf.cfMult(naCoeff, a ,_ring.cf)
-            denominator = _ring.cf.cfAdd(denominator, naCoeff,_ring.cf)
+                    aux1 = naCoeff
+                    naCoeff = _ring.cf.cfMult(aux1, a ,_ring.cf)
+                    _ring.cf.cfDelete(&aux1, _ring.cf)
+                _ring.cf.cfDelete(&a, _ring.cf)
+            aux2 = denominator
+            denominator = _ring.cf.cfAdd(aux2, naCoeff,_ring.cf)
+            _ring.cf.cfDelete(&aux2, _ring.cf)
 
     else:
         denominator = _ring.cf.cfInit(1, _ring.cf)

@@ -8582,10 +8582,10 @@ class GenericGraph(GenericGraph_pyx):
             # Variables are binary, and their coefficient in the objective is 1
             p.set_objective(p.sum(b[v] for v in self))
 
-            p.solve(log=verbose)
-
             # For as long as we do not break because the digraph is acyclic....
             while True:
+
+                p.solve(log=verbose)
 
                 # Building the graph without the vertices removed by the LP
                 b_val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
@@ -8599,7 +8599,10 @@ class GenericGraph(GenericGraph_pyx):
 
                 # If so, we are done !
                 if isok:
-                    break
+                    if value_only:
+                        return Integer(self.order() - h.order())
+                    else:
+                        return [v for v in self if b_val[v]]
 
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
@@ -8615,17 +8618,6 @@ class GenericGraph(GenericGraph_pyx):
                         isok, certificate = h.is_directed_acyclic(certificate=True)
                     else:
                         isok, certificate = h.is_forest(certificate=True)
-
-                obj = p.solve(log=verbose)
-
-            if value_only:
-                return obj
-
-            else:
-
-                # Listing the vertices contained in the MFVS
-                b_val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
-                return [v for v in self if b_val[v]]
 
         else:
 
@@ -8648,12 +8640,11 @@ class GenericGraph(GenericGraph_pyx):
 
             p.set_objective(p.sum(b[v] for v in self))
 
+            p.solve(log=verbose)
+            b_sol = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
             if value_only:
-                return Integer(round(p.solve(objective_only=True, log=verbose)))
+                return Integer(sum(1 for v in self if b_sol[v]))
             else:
-                p.solve(log=verbose)
-                b_sol = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
-
                 return [v for v in self if b_sol[v]]
 
     def flow(self, x, y, value_only=True, integer=False, use_edge_labels=True,
@@ -8830,11 +8821,14 @@ class GenericGraph(GenericGraph_pyx):
             from sage.rings.real_mpfr import RR
             if integer:
                 from math import floor
-                capacity=lambda x: floor(x) if x in RR else 1
+                def capacity(z):
+                    return floor(z) if z in RR else 1
             else:
-                capacity=lambda x: x if x in RR else 1
+                def capacity(z):
+                    return z if z in RR else 1
         else:
-            capacity=lambda x: 1
+            def capacity(z):
+                return 1
 
         if algorithm is None:
             if vertex_bound:
@@ -8890,7 +8884,8 @@ class GenericGraph(GenericGraph_pyx):
         from sage.numerical.mip import MixedIntegerLinearProgram
         g = self
         p = MixedIntegerLinearProgram(maximization=True, solver=solver)
-        flow = p.new_variable(nonnegative=True)
+        flow = p.new_variable(integer=integer, nonnegative=True)
+        obj = p.new_variable(integer=integer, nonnegative=True)
 
         if g.is_directed():
             # This function return the balance of flow at X
@@ -8914,11 +8909,12 @@ class GenericGraph(GenericGraph_pyx):
             capacity_sum = lambda u,v: flow[u,v] + flow[v,u]
 
         # Maximizes the flow leaving x
-        p.set_objective(flow_sum(x))
+        p.add_constraint(flow_sum(x) == obj[0])
+        p.set_objective(obj[0])
 
         # Elsewhere, the flow is equal to 0
         for v in g:
-            if v!=x and v!=y:
+            if v != x and v != y:
                 p.add_constraint(flow_sum(v), min=0, max=0)
 
         # Capacity constraints
@@ -8928,24 +8924,22 @@ class GenericGraph(GenericGraph_pyx):
         # No vertex except the sources can send more than 1
         if vertex_bound:
             for v in g:
-                if v!=x and v!=y:
+                if v != x and v != y:
                     p.add_constraint(flow_leaving(v), max=1)
 
-        if integer:
-            p.set_integer(flow)
-
-
-        if value_only:
-            return p.solve(objective_only=True, log=verbose)
-
-        obj = p.solve(log=verbose)
-
-        if integer or use_edge_labels is False:
-            obj = Integer(round(obj))
+        p.solve(log=verbose)
 
         # If integer is True, flow variables will be converted to integers.
         # Otherwise, the base ring of the MILP solver is used
         flow = p.get_values(flow, convert=True, tolerance=integrality_tolerance)
+
+        if not integer and use_edge_labels is False:
+            obj = p.get_values(obj[0], convert=ZZ, tolerance=integrality_tolerance)
+        else:
+            obj = p.get_values(obj[0], convert=True, tolerance=integrality_tolerance)
+
+        if value_only:
+            return obj
 
         # Builds a clean flow Draph
         flow_graph = g._build_flow_graph(flow, integer=integer)

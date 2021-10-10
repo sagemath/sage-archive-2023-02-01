@@ -1114,7 +1114,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             Scheme endomorphism of Affine Space of dimension 2 over Fraction Field
             of Univariate Polynomial Ring in t over Rational Field
               Defn: Defined on coordinates by sending (x, y) to
-                    (1/t*x^2 + y^2, y^2 - 1/t)
+                    (1/(t)*x^2 + y^2, y^2 - 1/(t))
 
         ::
 

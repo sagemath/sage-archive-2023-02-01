@@ -1624,11 +1624,11 @@ cdef class ETuple:
 
             sage: R.<y, z> = Frac(QQ['x'])[]
             sage: type(y)
-            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
+            <class 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
             sage: y^(2^32)
             Traceback (most recent call last):
             ...
-            OverflowError: exponent overflow (2147483648)
+            OverflowError: exponent overflow (...)
         """
         if self._length!=other._length:
             raise ArithmeticError

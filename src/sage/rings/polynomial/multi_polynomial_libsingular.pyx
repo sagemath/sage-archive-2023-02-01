@@ -251,6 +251,8 @@ from sage.interfaces.macaulay2 import macaulay2 as macaulay2_default, is_Macaula
 from sage.misc.all import prod as mul
 from sage.misc.sage_eval import sage_eval
 
+import re
+
 cimport cypari2.gen
 from . import polynomial_element
 
@@ -559,7 +561,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_base):
             sage: k.<a> = GF(2^8)
             sage: P.<x,y> = PolynomialRing(k,2)
             sage: P._coerce_(a)
-            (a)
+            a
 
             sage: z = QQ['z'].0
             sage: K.<s> = NumberField(z^2 - 2)
@@ -2481,6 +2483,10 @@ cdef class MPolynomial_libsingular(MPolynomial):
         """
         cdef ring *_ring = self._parent_ring
         s = singular_polynomial_str(self._poly, _ring)
+        regexp = re.compile(r'\([a-zA-Z][a-zA-Z0-9]*\)')
+        res = regexp.fullmatch(s)
+        if res:
+            return s[1:-1]
         return s
 
     cpdef _repr_short_(self):

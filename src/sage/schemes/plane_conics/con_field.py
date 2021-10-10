@@ -683,10 +683,10 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             sage: T = Matrix([[t,0,1],[0,1,0],[0,0,1]])
             sage: C.hom(T, D)
             Scheme morphism:
-              From: Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Rational Field defined by x^2 + t*y^2 + 1/t*z^2
-              To:   Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Rational Field defined by 1/t^2*x^2 + t*y^2 + (-2/t^2)*x*z + ((t + 1)/t^2)*z^2
+              From: Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Rational Field defined by x^2 + (t)*y^2 + 1/(t)*z^2
+              To:   Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Rational Field defined by 1/(t^2)*x^2 + (t)*y^2 - 2/(t^2)*x*z + (t + 1)/(t^2)*z^2
               Defn: Defined on coordinates by sending (x : y : z) to
-                    (t*x + z : y : z)
+                    ((t)*x + z : y : z)
 
         """
         if is_Matrix(x):

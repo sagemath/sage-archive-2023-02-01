@@ -1092,7 +1092,7 @@ class Braid(FiniteTypeArtinGroupElement):
             last_crossing_in_row[abs(cr)] = i
         # tie up the ends of the list
         for k, i in enumerate(first_crossing_in_row):
-            if i != None:
+            if i is not None:
                 j = last_crossing_in_row[k]
                 if abs(crossings[i]["cr"]) == k:
                     crossings[i]["prev_below"] = j

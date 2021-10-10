@@ -2581,7 +2581,7 @@ class GenericGraph(GenericGraph_pyx):
         if self._directed:
             connected = lambda u, v: self.has_edge(u, v) or self.has_edge(v, u)
         else:
-            connected = lambda u, v: self.has_edge(u, v)
+            connected = self.has_edge
         for v in embedding:
             if len(embedding[v]) != self.degree(v):
                 if boolean:

@@ -316,11 +316,7 @@ sdh_store_and_pip_install_wheel() {
 }
 
 sdh_pip_uninstall() {
-    # --disable-pip-version-check: Don't periodically check PyPI to determine whether a new version of pip is available
-    # --no-input: Disable prompting for input.
-    # --yes: Don't ask for confirmation of uninstall deletions
-    # See sage-pip-install for a discussion of the other flags.
-    python3 -m pip uninstall --isolated --disable-pip-version-check --yes --no-input "$@"
+    sage-pip-uninstall "$@"
     if [ $? -ne 0 ]; then
         echo "Warning: pip exited with status $?" >&2
     fi

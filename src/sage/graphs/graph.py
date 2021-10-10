@@ -4200,14 +4200,15 @@ class Graph(GenericGraph):
             for v in g:
                 p.add_constraint(p.sum(b[frozenset(e)] for e in self.edge_iterator(vertices=[v], labels=False)
                                            if e[0] != e[1]), max=1)
+
+            p.solve(log=verbose)
+            b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
             if value_only:
                 if use_edge_labels:
-                    return p.solve(objective_only=True, log=verbose)
+                    return sum(w for fe, w in W.items() if b[fe])
                 else:
-                    return Integer(round(p.solve(objective_only=True, log=verbose)))
+                    return Integer(sum(1 for fe in L if b[fe]))
             else:
-                p.solve(log=verbose)
-                b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
                 return [(u, v, L[frozenset((u, v))]) for u, v in L if b[frozenset((u, v))]]
 
         else:
@@ -4318,7 +4319,7 @@ class Graph(GenericGraph):
             p.set_objective(p.sum(m[vh] for vh in H))
 
         try:
-            p.solve(log = verbose)
+            p.solve(log=verbose)
         except MIPSolverException:
             return False
 
@@ -6787,11 +6788,11 @@ class Graph(GenericGraph):
             for u,v in g.edge_iterator(labels=None):
                 p.add_constraint(b[u] + b[v], min=1)
 
+            p.solve(log=verbose)
+            b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
             if value_only:
-                size_cover_g = p.solve(objective_only=True, log=verbose)
+                size_cover_g = sum(1 for v in g if b[v])
             else:
-                p.solve(log=verbose)
-                b = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
                 cover_g = set(v for v in g if b[v])
         else:
             raise ValueError('the algorithm must be "Cliquer", "MILP" or "mcqd"')

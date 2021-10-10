@@ -1578,8 +1578,8 @@ class Function_factorial(GinacFunction):
         Check that :trac:`16166` is fixed::
 
             sage: RBF = RealBallField(53)
-            sage: factorial(RBF(4.2))
-            [32.5780960503313 +/- 6.72e-14]
+            sage: factorial(RBF(4.2)) # abs tol 1e-13
+            [32.5780960503314 +/- 6.06e-14]
 
         Test pickling::
 

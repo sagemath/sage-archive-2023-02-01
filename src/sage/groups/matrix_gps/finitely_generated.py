@@ -1152,7 +1152,7 @@ class FinitelyGeneratedMatrixGroup_gap(MatrixGroup_gap):
             sage: R.<x,y> = K[]
             sage: f = -K.gen()*x
             sage: G.reynolds_operator(f)
-            (t)*x + (t)*y
+            t*x + t*y
         """
         if poly.parent().ngens() != self.degree():
             raise TypeError("number of variables in polynomial must match size of matrices")

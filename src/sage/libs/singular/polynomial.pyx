@@ -23,6 +23,8 @@ cdef extern from *: # hack to get at cython macro
 
 import re
 plusminus_pattern = re.compile("([^\(^])([\+\-])")
+parenthvar_pattern = re.compile(r"\(([a-zA-Z][a-zA-Z0-9]*)\)")
+
 
 from sage.cpython.string cimport bytes_to_str, str_to_bytes
 
@@ -441,6 +443,7 @@ cdef object singular_polynomial_str(poly *p, ring *r):
 
     s = bytes_to_str(p_String(p, r, r))
     s = plusminus_pattern.sub("\\1 \\2 ", s)
+    s = parenthvar_pattern.sub("\\1", s)
     return s
 
 

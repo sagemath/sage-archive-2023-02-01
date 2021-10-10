@@ -499,7 +499,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             sage: f._number_field_from_algebraics()
             Dynamical System of Projective Space of dimension 1 over Number Field in a with defining polynomial y^2 - 2 with a = 1.414213562373095?
               Defn: Defined on coordinates by sending (x : y) to
-                    (x^2 + (a)*y^2 : y^2)
+                    (x^2 + a*y^2 : y^2)
         """
         return self.as_scheme_morphism()._number_field_from_algebraics().as_dynamical_system()
 
@@ -5251,7 +5251,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             (
             Dynamical System of Projective Space of dimension 1 over Number Field in w with defining polynomial x^2 - 2 with w = 1.414213562373095?
               Defn: Defined on coordinates by sending (x : y) to
-                    (x^3 : (w)*y^3)                                                                                                                ,
+                    (x^3 : w*y^3)                                                                                                                ,
             <BLANKLINE>
             [  1 -12]
             [  0   1]

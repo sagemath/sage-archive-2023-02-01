@@ -142,7 +142,7 @@ class DynamicalSystem(SchemeMorphism_polynomial,
         sage: DynamicalSystem([GF(5)(3)*x^2, K(t)*y^2])
         Dynamical System of Projective Space of dimension 1 over Finite Field in t of size 5^2
           Defn: Defined on coordinates by sending (x : y) to
-                (-2*x^2 : (t)*y^2)
+                (-2*x^2 : t*y^2)
     """
 
     @staticmethod

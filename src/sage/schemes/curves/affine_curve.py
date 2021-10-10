@@ -2404,7 +2404,7 @@ class IntegralAffineCurve(AffineCurve_field):
              Point (x + (a + 1), y + (-a + 1)),
              Point (x - 1, y + (a + 1)),
              Point (x - 1, y + (-a - 1)),
-             Point (x + (-a - 1), y + (a)),
+             Point (x + (-a - 1), y + a),
              Point (x + (-a - 1), y + (-a)),
              Point (x + 1, y + 1),
              Point (x + 1, y - 1)]

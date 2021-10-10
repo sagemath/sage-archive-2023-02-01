@@ -57,10 +57,10 @@ manifold::
     ....:       monomial_points="all")
     Closed subscheme of 2-d CPR-Fano toric variety
     covered by 3 affine patches defined by:
-      (a0)*z0^3 + (a9)*z0^2*z1 + (a7)*z0*z1^2
-    + (a1)*z1^3 + (a8)*z0^2*z2 + (a6)*z0*z1*z2
-    + (a4)*z1^2*z2 + (a5)*z0*z2^2
-    + (a3)*z1*z2^2 + (a2)*z2^3
+      a0*z0^3 + a9*z0^2*z1 + a7*z0*z1^2
+    + a1*z1^3 + a8*z0^2*z2 + a6*z0*z1*z2
+    + a4*z1^2*z2 + a5*z0*z2^2
+    + a3*z1*z2^2 + a2*z2^3
 
 In many cases it is sufficient to work with the "simplified polynomial
 moduli space" of anticanonical hypersurfaces::
@@ -69,7 +69,7 @@ moduli space" of anticanonical hypersurfaces::
     ....:       monomial_points="simplified")
     Closed subscheme of 2-d CPR-Fano toric variety
     covered by 3 affine patches defined by:
-      (a0)*z0^3 + (a1)*z1^3 + (a6)*z0*z1*z2 + (a2)*z2^3
+      a0*z0^3 + a1*z1^3 + a6*z0*z1*z2 + a2*z2^3
 
 The mirror family to these hypersurfaces lives inside the Fano toric
 variety obtained using ``simplex`` as ``Delta`` instead of ``Delta_polar``::
@@ -80,10 +80,10 @@ variety obtained using ``simplex`` as ``Delta`` instead of ``Delta_polar``::
     ....:       monomial_points="simplified")
     Closed subscheme of 2-d CPR-Fano toric variety
     covered by 9 affine patches defined by:
-      (a2)*z2^3*z3^2*z4*z5^2*z8
-    + (a1)*z1^3*z3*z4^2*z7^2*z9
-    + (a3)*z0*z1*z2*z3*z4*z5*z7*z8*z9
-    + (a0)*z0^3*z5*z7*z8^2*z9^2
+      a2*z2^3*z3^2*z4*z5^2*z8
+    + a1*z1^3*z3*z4^2*z7^2*z9
+    + a3*z0*z1*z2*z3*z4*z5*z7*z8*z9
+    + a0*z0^3*z5*z7*z8^2*z9^2
 
 Here we have taken the resolved version of the ambient space for the
 mirror family, but in fact we don't have to resolve singularities
@@ -96,7 +96,7 @@ points which do not lie on a generic anticanonical hypersurface::
     ....:       monomial_points="simplified")
     Closed subscheme of 2-d CPR-Fano toric variety
     covered by 3 affine patches defined by:
-      (a0)*z0^3 + (a1)*z1^3 + (a3)*z0*z1*z2 + (a2)*z2^3
+      a0*z0^3 + a1*z1^3 + a3*z0*z1*z2 + a2*z2^3
 
 This looks very similar to our second version of the anticanonical
 hypersurface of the projective plane, as expected, since all
@@ -110,8 +110,8 @@ studied by Adrian Clingher and Charles F. Doran in [CD2007]_::
     sage: FTV.anticanonical_hypersurface()
     Closed subscheme of 3-d CPR-Fano toric variety
     covered by 4 affine patches defined by:
-      (a0)*z2^12 + (a4)*z2^6*z3^6 + (a3)*z3^12
-    + (a8)*z0*z1*z2*z3 + (a2)*z1^3 + (a1)*z0^2
+      a0*z2^12 + a4*z2^6*z3^6 + a3*z3^12
+    + a8*z0*z1*z2*z3 + a2*z1^3 + a1*z0^2
 
 Below you will find detailed descriptions of available functions. Current
 functionality of this module is very basic, but it is under active
@@ -806,10 +806,10 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             ....:       monomial_points="all")
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 3 affine patches defined by:
-              (a0)*z0^3 + (a9)*z0^2*z1 + (a7)*z0*z1^2
-            + (a1)*z1^3 + (a8)*z0^2*z2 + (a6)*z0*z1*z2
-            + (a4)*z1^2*z2 + (a5)*z0*z2^2
-            + (a3)*z1*z2^2 + (a2)*z2^3
+              a0*z0^3 + a9*z0^2*z1 + a7*z0*z1^2
+            + a1*z1^3 + a8*z0^2*z2 + a6*z0*z1*z2
+            + a4*z1^2*z2 + a5*z0*z2^2
+            + a3*z1*z2^2 + a2*z2^3
 
         In many cases it is sufficient to work with the "simplified polynomial
         moduli space" of anticanonical hypersurfaces::
@@ -818,7 +818,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             ....:       monomial_points="simplified")
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 3 affine patches defined by:
-              (a0)*z0^3 + (a1)*z1^3 + (a6)*z0*z1*z2 + (a2)*z2^3
+              a0*z0^3 + a1*z1^3 + a6*z0*z1*z2 + a2*z2^3
 
         The mirror family to these hypersurfaces lives inside the Fano toric
         variety obtained using ``simplex`` as ``Delta`` instead of
@@ -830,10 +830,10 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             ....:       monomial_points="simplified")
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 9 affine patches defined by:
-              (a2)*z2^3*z3^2*z4*z5^2*z8
-            + (a1)*z1^3*z3*z4^2*z7^2*z9
-            + (a3)*z0*z1*z2*z3*z4*z5*z7*z8*z9
-            + (a0)*z0^3*z5*z7*z8^2*z9^2
+              a2*z2^3*z3^2*z4*z5^2*z8
+            + a1*z1^3*z3*z4^2*z7^2*z9
+            + a3*z0*z1*z2*z3*z4*z5*z7*z8*z9
+            + a0*z0^3*z5*z7*z8^2*z9^2
 
         Here we have taken the resolved version of the ambient space for the
         mirror family, but in fact we don't have to resolve singularities
@@ -846,7 +846,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             ....:       monomial_points="simplified")
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 3 affine patches defined by:
-              (a0)*z0^3 + (a1)*z1^3 + (a3)*z0*z1*z2 + (a2)*z2^3
+              a0*z0^3 + a1*z1^3 + a3*z0*z1*z2 + a2*z2^3
 
         This looks very similar to our second anticanonical
         hypersurface of the projective plane, as expected, since all
@@ -860,7 +860,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             ....:       coefficient_names="a b c d")
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 3 affine patches defined by:
-              (a)*z0^3 + (b)*z1^3 + (d)*z0*z1*z2 + (c)*z2^3
+              a*z0^3 + b*z1^3 + d*z0*z1*z2 + c*z2^3
 
         or give concrete coefficients ::
 
@@ -877,7 +877,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             sage: H
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 3 affine patches defined by:
-              (t)*z1^3 + (psi)/(phi + psi^2)*z0*z1*z2 + 1/(t)*z2^3
+              t*z1^3 + psi/(phi + psi^2)*z0*z1*z2 + 1/t*z2^3
             sage: R = H.ambient_space().base_ring()
             sage: R
             Fraction Field of
@@ -1124,21 +1124,21 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             sage: X.nef_complete_intersection(np)
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 10 affine patches defined by:
-              (a0)*z1*z4^2*z5^2*z7^3 + (a2)*z2*z4*z5*z6*z7^2*z8^2
-              + (a3)*z2*z3*z4*z7*z8 + (a1)*z0*z2,
-              (b3)*z1*z4*z5^2*z6^2*z7^2*z8^2 + (b0)*z2*z5*z6^3*z7*z8^4
-              + (b5)*z1*z3*z4*z5*z6*z7*z8 + (b2)*z2*z3*z6^2*z8^3
-              + (b1)*z1*z3^2*z4 + (b4)*z0*z1*z5*z6
+              a0*z1*z4^2*z5^2*z7^3 + a2*z2*z4*z5*z6*z7^2*z8^2
+              + a3*z2*z3*z4*z7*z8 + a1*z0*z2,
+              b3*z1*z4*z5^2*z6^2*z7^2*z8^2 + b0*z2*z5*z6^3*z7*z8^4
+              + b5*z1*z3*z4*z5*z6*z7*z8 + b2*z2*z3*z6^2*z8^3
+              + b1*z1*z3^2*z4 + b4*z0*z1*z5*z6
 
         Now we include only monomials associated to vertices of `\Delta_i`::
 
             sage: X.nef_complete_intersection(np, monomial_points="vertices")
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 10 affine patches defined by:
-              (a0)*z1*z4^2*z5^2*z7^3 + (a2)*z2*z4*z5*z6*z7^2*z8^2
-              + (a3)*z2*z3*z4*z7*z8 + (a1)*z0*z2,
-              (b3)*z1*z4*z5^2*z6^2*z7^2*z8^2 + (b0)*z2*z5*z6^3*z7*z8^4
-              + (b2)*z2*z3*z6^2*z8^3 + (b1)*z1*z3^2*z4 + (b4)*z0*z1*z5*z6
+              a0*z1*z4^2*z5^2*z7^3 + a2*z2*z4*z5*z6*z7^2*z8^2
+              + a3*z2*z3*z4*z7*z8 + a1*z0*z2,
+              b3*z1*z4*z5^2*z6^2*z7^2*z8^2 + b0*z2*z5*z6^3*z7*z8^4
+              + b2*z2*z3*z6^2*z8^3 + b1*z1*z3^2*z4 + b4*z0*z1*z5*z6
 
         (effectively, we set ``b5=0``). Next we provide coefficients explicitly
         instead of using default generic names::
@@ -1148,7 +1148,7 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             ....:       coefficients=[("a", "a^2", "a/e", "c_i"), list(range(1,6))])
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 10 affine patches defined by:
-              (a)*z1*z4^2*z5^2*z7^3 + (a)/(e)*z2*z4*z5*z6*z7^2*z8^2
+              a*z1*z4^2*z5^2*z7^3 + a/e*z2*z4*z5*z6*z7^2*z8^2
               + (c_i)*z2*z3*z4*z7*z8 + (a^2)*z0*z2,
               4*z1*z4*z5^2*z6^2*z7^2*z8^2 + z2*z5*z6^3*z7*z8^4
               + 3*z2*z3*z6^2*z8^3 + 2*z1*z3^2*z4 + 5*z0*z1*z5*z6
@@ -1161,14 +1161,14 @@ class CPRFanoToricVariety_field(ToricVariety_field):
             sage: X.nef_complete_intersection(np)
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 22 affine patches defined by:
-              (a2)*z2*z4*z5*z6*z7^2*z8^2*z9^2*z10^2*z11*z12*z13
-              + (a0)*z1*z4^2*z5^2*z7^3*z9*z10^2*z12*z13
-              + (a3)*z2*z3*z4*z7*z8*z9*z10*z11*z12 + (a1)*z0*z2,
-              (b0)*z2*z5*z6^3*z7*z8^4*z9^3*z10^2*z11^2*z12*z13^2
-              + (b3)*z1*z4*z5^2*z6^2*z7^2*z8^2*z9^2*z10^2*z11*z12*z13^2
-              + (b2)*z2*z3*z6^2*z8^3*z9^2*z10*z11^2*z12*z13
-              + (b5)*z1*z3*z4*z5*z6*z7*z8*z9*z10*z11*z12*z13
-              + (b1)*z1*z3^2*z4*z11*z12 + (b4)*z0*z1*z5*z6*z13
+              a2*z2*z4*z5*z6*z7^2*z8^2*z9^2*z10^2*z11*z12*z13
+              + a0*z1*z4^2*z5^2*z7^3*z9*z10^2*z12*z13
+              + a3*z2*z3*z4*z7*z8*z9*z10*z11*z12 + a1*z0*z2,
+              b0*z2*z5*z6^3*z7*z8^4*z9^3*z10^2*z11^2*z12*z13^2
+              + b3*z1*z4*z5^2*z6^2*z7^2*z8^2*z9^2*z10^2*z11*z12*z13^2
+              + b2*z2*z3*z6^2*z8^3*z9^2*z10*z11^2*z12*z13
+              + b5*z1*z3*z4*z5*z6*z7*z8*z9*z10*z11*z12*z13
+              + b1*z1*z3^2*z4*z11*z12 + b4*z0*z1*z5*z6*z13
         """
         return NefCompleteIntersection(self, nef_partition, **kwds)
 
@@ -1356,7 +1356,7 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
         sage: ftv.AnticanonicalHypersurface(P1xP1)
         Closed subscheme of 2-d CPR-Fano toric variety
         covered by 4 affine patches defined by:
-          (a0)*s^2*x^2 + (a3)*t^2*x^2 + (a6)*s*t*x*y + (a1)*s^2*y^2 + (a2)*t^2*y^2
+          a0*s^2*x^2 + a3*t^2*x^2 + a6*s*t*x*y + a1*s^2*y^2 + a2*t^2*y^2
 
     See :meth:`~CPRFanoToricVariety_field.anticanonical_hypersurface()` for a
     more elaborate example.
@@ -1374,7 +1374,7 @@ class AnticanonicalHypersurface(AlgebraicScheme_subscheme_toric):
             sage: ftv.AnticanonicalHypersurface(P1xP1)
             Closed subscheme of 2-d CPR-Fano toric variety
             covered by 4 affine patches defined by:
-              (a0)*s^2*x^2 + (a3)*t^2*x^2 + (a6)*s*t*x*y + (a1)*s^2*y^2 + (a2)*t^2*y^2
+              a0*s^2*x^2 + a3*t^2*x^2 + a6*s*t*x*y + a1*s^2*y^2 + a2*t^2*y^2
 
         Check that finite fields are handled correctly :trac:`14899`::
 
@@ -1473,10 +1473,10 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
         sage: X.nef_complete_intersection(np)
         Closed subscheme of 3-d CPR-Fano toric variety
         covered by 8 affine patches defined by:
-          (a2)*z0^2*z1 + (a5)*z0*z1*z3 + (a1)*z1*z3^2
-          + (a3)*z0^2*z4 + (a4)*z0*z3*z4 + (a0)*z3^2*z4,
-          (b1)*z1*z2^2 + (b2)*z2^2*z4 + (b5)*z1*z2*z5
-          + (b4)*z2*z4*z5 + (b3)*z1*z5^2 + (b0)*z4*z5^2
+          a2*z0^2*z1 + a5*z0*z1*z3 + a1*z1*z3^2
+          + a3*z0^2*z4 + a4*z0*z3*z4 + a0*z3^2*z4,
+          b1*z1*z2^2 + b2*z2^2*z4 + b5*z1*z2*z5
+          + b4*z2*z4*z5 + b3*z1*z5^2 + b0*z4*z5^2
 
     See :meth:`CPRFanoToricVariety_field.nef_complete_intersection` for a
     more elaborate example.
@@ -1499,10 +1499,10 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             sage: NefCompleteIntersection(X, np)
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 8 affine patches defined by:
-              (a2)*z0^2*z1 + (a5)*z0*z1*z3 + (a1)*z1*z3^2
-              + (a3)*z0^2*z4 + (a4)*z0*z3*z4 + (a0)*z3^2*z4,
-              (b1)*z1*z2^2 + (b2)*z2^2*z4 + (b5)*z1*z2*z5
-              + (b4)*z2*z4*z5 + (b3)*z1*z5^2 + (b0)*z4*z5^2
+              a2*z0^2*z1 + a5*z0*z1*z3 + a1*z1*z3^2
+              + a3*z0^2*z4 + a4*z0*z3*z4 + a0*z3^2*z4,
+              b1*z1*z2^2 + b2*z2^2*z4 + b5*z1*z2*z5
+              + b4*z2*z4*z5 + b3*z1*z5^2 + b0*z4*z5^2
         """
         if not is_CPRFanoToricVariety(P_Delta):
             raise TypeError("nef complete intersections can only be "
@@ -1597,10 +1597,10 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             sage: CI
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 8 affine patches defined by:
-              (a2)*z0^2*z1 + (a5)*z0*z1*z3 + (a1)*z1*z3^2
-              + (a3)*z0^2*z4 + (a4)*z0*z3*z4 + (a0)*z3^2*z4,
-              (b1)*z1*z2^2 + (b2)*z2^2*z4 + (b5)*z1*z2*z5
-              + (b4)*z2*z4*z5 + (b3)*z1*z5^2 + (b0)*z4*z5^2
+              a2*z0^2*z1 + a5*z0*z1*z3 + a1*z1*z3^2
+              + a3*z0^2*z4 + a4*z0*z3*z4 + a0*z3^2*z4,
+              b1*z1*z2^2 + b2*z2^2*z4 + b5*z1*z2*z5
+              + b4*z2*z4*z5 + b3*z1*z5^2 + b0*z4*z5^2
             sage: CI.cohomology_class()
             [2*z3*z4 + 4*z3*z5 + 2*z4*z5]
         """
@@ -1630,10 +1630,10 @@ class NefCompleteIntersection(AlgebraicScheme_subscheme_toric):
             sage: CI
             Closed subscheme of 3-d CPR-Fano toric variety
             covered by 8 affine patches defined by:
-              (a2)*z0^2*z1 + (a5)*z0*z1*z3 + (a1)*z1*z3^2
-              + (a3)*z0^2*z4 + (a4)*z0*z3*z4 + (a0)*z3^2*z4,
-              (b1)*z1*z2^2 + (b2)*z2^2*z4 + (b5)*z1*z2*z5
-              + (b4)*z2*z4*z5 + (b3)*z1*z5^2 + (b0)*z4*z5^2
+              a2*z0^2*z1 + a5*z0*z1*z3 + a1*z1*z3^2
+              + a3*z0^2*z4 + a4*z0*z3*z4 + a0*z3^2*z4,
+              b1*z1*z2^2 + b2*z2^2*z4 + b5*z1*z2*z5
+              + b4*z2*z4*z5 + b3*z1*z5^2 + b0*z4*z5^2
             sage: CI.nef_partition()
             Nef-partition {0, 1, 3} U {2, 4, 5}
             sage: CI.nef_partition() is np

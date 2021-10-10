@@ -264,15 +264,15 @@ cdef object si2sa_transext(number *n, ring *_ring, object base):
         Defining a, b
         sage: R.<x,y> = F[]
         sage: a*x
-        (a)*x
+        a*x
         sage: I = R.ideal([a*x])
         sage: I
-        Ideal ((a)*x) of Multivariate Polynomial Ring in x, y over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+        Ideal (a*x) of Multivariate Polynomial Ring in x, y over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
         sage: I.groebner_basis()
         [x]
         sage: I = R.ideal([a*x+b*y^2, (b+a)/(b-a)*x^3-3*y*x])
         sage: I.groebner_basis()
-        [x^3 + (3*a - 3*b)/(a + b)*x*y, y^2 + (a)/(b)*x]
+        [x^3 + (3*a - 3*b)/(a + b)*x*y, y^2 + a/b*x]
         sage: R.term_order()
         Degree reverse lexicographic term order
 
@@ -570,15 +570,15 @@ cdef number *sa2si_transext(object elem, ring *_ring):
         Defining a, b
         sage: R.<x,y> = F[]
         sage: a*x
-        (a)*x
+        a*x
         sage: I = R.ideal([a*x])
         sage: I
-        Ideal ((a)*x) of Multivariate Polynomial Ring in x, y over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
+        Ideal (a*x) of Multivariate Polynomial Ring in x, y over Fraction Field of Multivariate Polynomial Ring in a, b over Rational Field
         sage: I.groebner_basis()
         [x]
         sage: I = R.ideal([a*x+b*y^2, (b+a)/(b-a)*x^3-3*y*x])
         sage: I.groebner_basis()
-        [x^3 + (3*a - 3*b)/(a + b)*x*y, y^2 + (a)/(b)*x]
+        [x^3 + (3*a - 3*b)/(a + b)*x*y, y^2 + a/b*x]
         sage: R.term_order()
         Degree reverse lexicographic term order
 
@@ -589,12 +589,12 @@ cdef number *sa2si_transext(object elem, ring *_ring):
         sage: F.inject_variables()
         Defining a
         sage: a*x
-        (a)*x
+        a*x
         sage: I = R.ideal([a*x+5*y^2, (1+a)/(1-a)*x^3-3*y*x])
         sage: I
-        Ideal (5*y^2 + (a)*x, (-a - 1)/(a - 1)*x^3 - 3*x*y) of Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial Ring in a over Rational Field
+        Ideal (5*y^2 + a*x, (-a - 1)/(a - 1)*x^3 - 3*x*y) of Multivariate Polynomial Ring in x, y over Fraction Field of Univariate Polynomial Ring in a over Rational Field
         sage: I.groebner_basis()
-        [x^3 + (3*a - 3)/(a + 1)*x*y, y^2 + (a)/5*x]
+        [x^3 + (3*a - 3)/(a + 1)*x*y, y^2 + a/5*x]
 
     ::
 

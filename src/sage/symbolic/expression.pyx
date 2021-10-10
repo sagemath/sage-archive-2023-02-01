@@ -8558,6 +8558,11 @@ cdef class Expression(CommutativeRingElement):
             sage: (I^m).imag_part()
             sin(1/2*pi*m)
             sage: forget()
+
+        Check that :trac:`29400` is fixed::
+
+            sage: cot(1 + i).imag().n() - (1/tan(1 + i)).imag().n() # abs tol 10^-12
+            0.00000000000000
         """
         return new_Expression_from_GEx(self._parent,
                 g_hold_wrapper(g_real_part, self._gobj, hold))

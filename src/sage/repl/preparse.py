@@ -46,11 +46,11 @@ A hex literal::
 Raw and hex work correctly::
 
     sage: type(0xa1)
-    <type 'sage.rings.integer.Integer'>
+    <class 'sage.rings.integer.Integer'>
     sage: type(0xa1r)
-    <type 'int'>
+    <class 'int'>
     sage: type(0Xa1R)
-    <type 'int'>
+    <class 'int'>
 
 The preparser can handle PEP 515 (see :trac:`28490`)::
 
@@ -125,7 +125,7 @@ We create a raw integer::
     sage: a
     393939
     sage: type(a)
-    <type 'int'>
+    <class 'int'>
 
 We create a raw float::
 
@@ -133,7 +133,7 @@ We create a raw float::
     sage: z
     1.5949
     sage: type(z)
-    <type 'float'>
+    <class 'float'>
 
 You can also use an upper case letter::
 
@@ -141,7 +141,7 @@ You can also use an upper case letter::
     sage: z
     3.1415
     sage: type(z)
-    <type 'float'>
+    <class 'float'>
 
 This next example illustrates how raw literals can be very useful in
 certain cases.  We make a list of even integers up to 10000::

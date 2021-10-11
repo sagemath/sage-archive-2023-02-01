@@ -1265,7 +1265,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             sage: polytopes.cube().vertex_adjacency_matrix().is_immutable()
             True
         """
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         from sage.matrix.constructor import matrix
         cdef Matrix_integer_dense adjacency_matrix = matrix(
                 ZZ, self.n_Vrepresentation(), self.n_Vrepresentation(), 0)

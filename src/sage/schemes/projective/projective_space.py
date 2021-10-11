@@ -1531,7 +1531,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
         Return a PGL element sending ``plane_1`` to ``plane_2``.
 
         ``plane_1`` and ``plane_2`` must be hyperplanes (subschemes of
-        codimension 1, each defined by a single linear homogenous equation).
+        codimension 1, each defined by a single linear homogeneous equation).
 
         INPUT:
 

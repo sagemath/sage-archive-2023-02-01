@@ -31,13 +31,6 @@ except for the known bad apples::
     sage: [inspect.getmodule(f).__name__ for f in frames if is_not_allowed(f)]
     []
 
-Check that the Sage Notebook is not imported at startup (see :trac:`15335`)::
-
-    sage: sagenb
-    Traceback (most recent call last):
-    ...
-    NameError: name 'sagenb' is not defined
-
 Check lazy import of ``interacts``::
 
     sage: type(interacts)

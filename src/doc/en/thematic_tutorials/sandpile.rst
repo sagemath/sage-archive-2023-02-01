@@ -4988,7 +4988,7 @@ Other
         [    0    -1  1650 -1649]
         [    0     0 -1658  1658]
 
-    NOTES:
+    NOTE:
 
     The algorithm is due to John Wilmes.
 

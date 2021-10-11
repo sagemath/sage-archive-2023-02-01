@@ -3605,11 +3605,13 @@ cdef class RealBall(RingElement):
 
             sage: RBF(1/2).zetaderiv(1)
             [-3.92264613920915...]
+            sage: RBF(2).zetaderiv(3)
+            [-6.0001458028430...]
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         Pol = PolynomialRing(self._parent.complex_field(), 'x')
         ser = Pol([self, 1])._zeta_series(k + 1)
-        return ser[k].real()
+        return ser[k].real()*ZZ.coerce(k).factorial()
 
     def lambert_w(self):
         r"""

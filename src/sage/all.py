@@ -280,7 +280,7 @@ def quit_sage(verbose=True):
     import sage.libs.flint.flint
     sage.libs.flint.flint.free_flint_stack()
 
-    # Free globally allocated mpir integers.
+    # Free globally allocated gmp integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
     import sage.algebras.quatalg.quaternion_algebra_element

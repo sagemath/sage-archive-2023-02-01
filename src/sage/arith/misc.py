@@ -2243,7 +2243,7 @@ def rational_reconstruction(a, m, algorithm='fast'):
 
     - ``algorithm`` -- (default: 'fast')
 
-      - ``'fast'`` - a fast implementation using direct MPIR calls
+      - ``'fast'`` - a fast implementation using direct GMP library calls
         in Cython.
 
     OUTPUT:
@@ -3434,10 +3434,10 @@ def binomial(x, m, **kwds):
         1/6*x^3 - 1/2*x^2 + 1/3*x
 
     If `x \in \ZZ`, there is an optional 'algorithm' parameter, which
-    can be 'mpir' (faster for small values) or 'pari' (faster for
-    large values)::
+    can be 'gmp' (faster for small values; alias: 'mpir') or
+    'pari' (faster for large values)::
 
-        sage: a = binomial(100, 45, algorithm='mpir')
+        sage: a = binomial(100, 45, algorithm='gmp')
         sage: b = binomial(100, 45, algorithm='pari')
         sage: a == b
         True

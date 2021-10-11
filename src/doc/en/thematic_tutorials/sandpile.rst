@@ -5002,7 +5002,7 @@ Documentation for each method is available through the Sage online help system:
 ::
 
     sage: SandpileConfig.fire_vertex?
-    Base Class:     <type 'instancemethod'>
+    Base Class:     <class 'instancemethod'>
     String Form:    <unbound method SandpileConfig.fire_vertex>
     Namespace:      Interactive
     File:           /usr/local/sage-4.7/local/lib/python2.6/site-packages/sage/sandpiles/sandpile.py

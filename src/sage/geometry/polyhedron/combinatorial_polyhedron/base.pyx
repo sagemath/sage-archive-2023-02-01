@@ -1245,6 +1245,66 @@ cdef class CombinatorialPolyhedron(SageObject):
 
     graph = vertex_graph
 
+    @cached_method
+    def vertex_adjacency_matrix(self):
+        """
+        Return the binary matrix of vertex adjacencies.
+
+        .. SEEALSO::
+
+            :meth:`~sage.geometry.polyhedron.base.Polyhedron_base.vertex_adjacency_matrix`.
+
+        EXAMPLES::
+
+            sage: P = polytopes.cube()
+            sage: C = P.combinatorial_polyhedron()
+            sage: C.vertex_adjacency_matrix()
+            [0 1 0 1 0 1 0 0]
+            [1 0 1 0 0 0 1 0]
+            [0 1 0 1 0 0 0 1]
+            [1 0 1 0 1 0 0 0]
+            [0 0 0 1 0 1 0 1]
+            [1 0 0 0 1 0 1 0]
+            [0 1 0 0 0 1 0 1]
+            [0 0 1 0 1 0 1 0]
+
+        TESTS::
+
+            sage: CombinatorialPolyhedron(-1).vertex_adjacency_matrix()
+            []
+            sage: CombinatorialPolyhedron(0).vertex_adjacency_matrix()
+            [0]
+            sage: polytopes.cube().vertex_adjacency_matrix().is_immutable()
+            True
+        """
+        from sage.rings.all import ZZ
+        from sage.matrix.constructor import matrix
+        cdef Matrix_integer_dense adjacency_matrix = matrix(
+                ZZ, self.n_Vrepresentation(), self.n_Vrepresentation(), 0)
+
+        if self._edges is NULL:
+            # compute the edges.
+            if not self.is_bounded():
+                self._compute_edges(dual=False)
+            elif self.n_Vrepresentation() > self.n_facets()*self.n_facets():
+                # This is a wild estimate
+                # that in this case it is better not to use the dual.
+                self._compute_edges(dual=False)
+            else:
+                # In most bounded cases, one should use the dual.
+                self._compute_edges(dual=True)
+        if self._edges is NULL:
+            raise ValueError('could not determine edges')
+
+        cdef size_t i, a, b
+        for i in range(self._n_edges):
+            a = self._get_edge(self._edges, i, 0)
+            b = self._get_edge(self._edges, i, 1)
+            adjacency_matrix.set_unsafe_si(a, b, 1)
+            adjacency_matrix.set_unsafe_si(b, a, 1)
+        adjacency_matrix.set_immutable()
+        return adjacency_matrix
+
     def edge_graph(self, names=True):
         r"""
         Return the edge graph.

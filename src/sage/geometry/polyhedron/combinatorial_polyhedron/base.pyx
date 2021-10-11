@@ -1183,19 +1183,7 @@ cdef class CombinatorialPolyhedron(SageObject):
              ('a', 'c'),
              ('a', 'b'))
         """
-        if self._edges is NULL:
-            # compute the edges.
-            if not self.is_bounded():
-                self._compute_edges(dual=False)
-            elif self.n_Vrepresentation() > self.n_facets()*self.n_facets():
-                # This is a wild estimate
-                # that in this case it is better not to use the dual.
-                self._compute_edges(dual=False)
-            else:
-                # In most bounded cases, one should use the dual.
-                self._compute_edges(dual=True)
-        if self._edges is NULL:
-            raise ValueError('could not determine edges')
+        self._compute_edges(-1)
 
         # Mapping the indices of the Vrep to the names, if requested.
         if self.Vrep() is not None and names is True:
@@ -1281,22 +1269,9 @@ cdef class CombinatorialPolyhedron(SageObject):
         from sage.matrix.constructor import matrix
         cdef Matrix_integer_dense adjacency_matrix = matrix(
                 ZZ, self.n_Vrepresentation(), self.n_Vrepresentation(), 0)
-
-        if self._edges is NULL:
-            # compute the edges.
-            if not self.is_bounded():
-                self._compute_edges(dual=False)
-            elif self.n_Vrepresentation() > self.n_facets()*self.n_facets():
-                # This is a wild estimate
-                # that in this case it is better not to use the dual.
-                self._compute_edges(dual=False)
-            else:
-                # In most bounded cases, one should use the dual.
-                self._compute_edges(dual=True)
-        if self._edges is NULL:
-            raise ValueError('could not determine edges')
-
         cdef size_t i, a, b
+
+        self._compute_edges(-1)
         for i in range(self._n_edges):
             a = self._get_edge(self._edges, i, 0)
             b = self._get_edge(self._edges, i, 1)
@@ -1429,19 +1404,7 @@ cdef class CombinatorialPolyhedron(SageObject):
             from sage.misc.superseded import deprecation
             deprecation(31834, "the keyword ``add_equalities`` is deprecated; use ``add_equations``", 3)
             add_equations = True
-        if self._ridges is NULL:
-            # compute the ridges.
-            if not self.is_bounded():
-                self._compute_ridges(dual=False)
-            elif self.n_Vrepresentation()*self.n_Vrepresentation() < self.n_facets():
-                # This is a wild estimate
-                # that in this case it is better to use the dual.
-                self._compute_ridges(dual=True)
-            else:
-                # In most bounded cases, one should not use the dual.
-                self._compute_ridges(dual=False)
-        if self._ridges is NULL:
-            raise ValueError('could not determine ridges')
+        self._compute_ridges(-1)
         n_ridges = self._n_ridges
 
         # Mapping the indices of the Vepr to the names, if requested.
@@ -3267,11 +3230,12 @@ cdef class CombinatorialPolyhedron(SageObject):
 
             self._f_vector = tuple(smallInteger(f_vector[i]) for i in range(dim+2))
 
-    cdef int _compute_edges_or_ridges(self, bint dual, bint do_edges) except -1:
+    cdef int _compute_edges_or_ridges(self, int dual, bint do_edges) except -1:
         r"""
         Compute the edges of the polyhedron if ``edges`` else the ridges.
 
         If ``dual``, use the face iterator in dual mode, else in non-dual.
+        If ``dual`` is ``-1`` determine this automatically.
 
         If the ``f_vector`` is unkown computes it as well if computing the edges
         in non-dual mode or the ridges in dual-mode.
@@ -3280,6 +3244,27 @@ cdef class CombinatorialPolyhedron(SageObject):
         """
         if (self._edges is not NULL and do_edges) or (self._ridges is not NULL and not do_edges):
             return 0  # There is no need to recompute.
+
+        if dual == -1:
+            # Determine whether to use dual mode or not.
+            if not self.is_bounded():
+                dual = 0
+            elif do_edges:
+                if self.n_Vrepresentation() > self.n_facets()*self.n_facets():
+                    # This is a wild estimate
+                    # that in this case it is better not to use the dual.
+                    dual = 0
+                else:
+                    # In most bounded cases, one should use the dual.
+                    dual = 1
+            else:
+                if self.n_Vrepresentation()*self.n_Vrepresentation() < self.n_facets():
+                    # This is a wild estimate
+                    # that in this case it is better to use the dual.
+                    dual = 1
+                else:
+                    # In most bounded cases, one should not use the dual.
+                    dual = 0
 
         cdef MemoryAllocator mem = MemoryAllocator()
         cdef FaceIterator face_iter
@@ -3354,6 +3339,12 @@ cdef class CombinatorialPolyhedron(SageObject):
             self._ridges = edges
             self._mem_tuple += (mem,)
             sig_unblock()
+
+        if do_edges and self._edges is NULL:
+            raise ValueError('could not determine edges')
+        elif not do_edges and self._ridges is NULL:
+            raise ValueError('could not determine ridges')
+
 
     cdef size_t _compute_edges_or_ridges_with_iterator(
             self, FaceIterator face_iter, const bint do_atom_rep, const bint do_f_vector,

@@ -959,10 +959,12 @@ class PolyhedronFace(ConvexSet_closed):
 
             sage: P = polytopes.hypercube(2)
             sage: P.faces(-1)[0].affine_tangent_cone()
-            The empty polyhedron in ZZ^2
+            Traceback (most recent call last):
+            ...
+            ValueError: affine tangent cone of the empty face not defined
         """
         if self.dim() == -1:
-            return self.as_polyhedron()
+            raise ValueError("affine tangent cone of the empty face not defined")
         parent = self.polyhedron().parent()
         new_ieqs = [H for H in self.ambient_Hrepresentation()
                     if H.is_inequality()]

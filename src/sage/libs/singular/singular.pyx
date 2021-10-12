@@ -651,6 +651,8 @@ cdef number *sa2si_transext(object elem, ring *_ring):
         denom = coef.denominator()
         cfden = _ring.cf.cfInitMPZ((<Integer>denom).value, _ring.cf)
         naCoeff = _ring.cf.cfDiv(cfnum, cfden , _ring.cf )
+        _ring.cf.cfDelete(&cfnum, _ring.cf)
+        _ring.cf.cfDelete(&cfden, _ring.cf)
         for (j, ex) in enumerate(exponents):
             a = _ring.cf.cfParameter(j+1, _ring.cf)
             for k in range(ex):
@@ -671,6 +673,8 @@ cdef number *sa2si_transext(object elem, ring *_ring):
             denom = coef.denominator()
             cfden = _ring.cf.cfInitMPZ((<Integer>denom).value, _ring.cf)
             naCoeff = _ring.cf.cfDiv(cfnum, cfden , _ring.cf )
+            _ring.cf.cfDelete(&cfnum, _ring.cf)
+            _ring.cf.cfDelete(&cfden, _ring.cf)
             for (j, ex) in enumerate(exponents):
                 a = _ring.cf.cfParameter(j+1, _ring.cf)
                 for k in range(ex):
@@ -689,8 +693,6 @@ cdef number *sa2si_transext(object elem, ring *_ring):
 
     _ring.cf.cfDelete(&numerator, _ring.cf)
     _ring.cf.cfDelete(&denominator, _ring.cf)
-    _ring.cf.cfDelete(&cfnum, _ring.cf)
-    _ring.cf.cfDelete(&cfden, _ring.cf)
     _ring.cf.cfDelete(&naCoeff, _ring.cf)
     _ring.cf.cfDelete(&a, _ring.cf)
 

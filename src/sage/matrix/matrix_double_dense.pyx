@@ -35,7 +35,27 @@ TESTS::
 """
 
 # ****************************************************************************
-#       Copyright (C) 2004,2005,2006 Joshua Kantor <kantor.jm@gmail.com>
+#       Copyright (C) 2004-2006 Joshua Kantor <kantor.jm@gmail.com>
+#       Copyright (C) 2008      Georg S. Weber
+#       Copyright (C) 2008-2011 Mike Hansen
+#       Copyright (C) 2008-2012 Jason Grout
+#       Copyright (C) 2009      Dag Sverre Seljebotn
+#       Copyright (C) 2009      Yann Laigle-Chapuy
+#       Copyright (C) 2009-2010 Florent Hivert
+#       Copyright (C) 2010-2012 Rob Beezer
+#       Copyright (C) 2011      Martin Raum
+#       Copyright (C) 2011-2012 J. H. Palmieri
+#       Copyright (C) 2011-2014 André Apitzsch
+#       Copyright (C) 2011-2018 Jeroen Demeyer
+#       Copyright (C) 2012      Kenneth Smith
+#       Copyright (C) 2016-2019 Frédéric Chapoton
+#       Copyright (C) 2017      Kiran Kedlaya
+#       Copyright (C) 2019      Chaman Agrawal
+#       Copyright (C) 2019-2021 Markus Wageringel
+#       Copyright (C) 2020      Michael Orlitzky
+#       Copyright (C) 2020      Victor Santos
+#       Copyright (C) 2021      Jonathan Kliem
+#       Copyright (C) 2021      Travis Scrimshaw
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of

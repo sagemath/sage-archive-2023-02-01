@@ -1681,17 +1681,16 @@ cdef class ComplexIntervalFieldElement(sage.structure.element.FieldElement):
             ...
             NotImplementedError: order of element not known
         """
-        if self == 1:
-            return Integer(1)
-        elif self == -1:
-            return Integer(2)
-        elif self == self._parent.gen():
-            return Integer(4)
-        elif self == -self._parent.gen():
-            return Integer(4)
-        elif self._multiplicative_order is not None:
+        if self._multiplicative_order is not None:
             return Integer(self._multiplicative_order)
-        elif 1 not in abs(self):  # clearly not a root of unity
+        ring = self._parent
+        if self == ring.one():
+            return Integer(1)
+        if self == -ring.one():
+            return Integer(2)
+        if self == ring.gen() or self == -ring.gen():
+            return Integer(4)
+        if 1 not in abs(self):  # clearly not a root of unity
             return infinity
         raise NotImplementedError("order of element not known")
 

@@ -362,14 +362,14 @@ class Function_Bessel_J(BuiltinFunction):
         from sage.rings.infinity import unsigned_infinity
         if not isinstance(x, Expression) and x == 0:
             if n == 0:
-                return ZZ(1)
+                return ZZ.one()
             elif n.real() > 0 or n in ZZ:
-                return ZZ(0)
+                return ZZ.zero()
             elif n.real() < 0:
                 return unsigned_infinity
-        if n == QQ(1) / 2:
+        if n == QQ((1, 2)):
             return sqrt(2 / pi / x) * sin(x)
-        elif n == QQ(-1) / 2:
+        elif n == QQ((-1, 2)):
             return sqrt(2 / pi / x) * cos(x)
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
@@ -584,7 +584,7 @@ class Function_Bessel_Y(BuiltinFunction):
                 return unsigned_infinity
         if n == QQ((1, 2)):
             return -sqrt(2 / pi / x) * cos(x)
-        elif n == QQ(-1) / 2:
+        elif n == QQ((-1, 2)):
             return sqrt(2 / pi / x) * sin(x)
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
@@ -788,14 +788,14 @@ class Function_Bessel_I(BuiltinFunction):
         from sage.rings.infinity import unsigned_infinity
         if not isinstance(x, Expression) and x == 0:
             if n == 0:
-                return ZZ(1)
+                return ZZ.one()
             elif n.real() > 0 or n in ZZ:
-                return ZZ(0)
+                return ZZ.zero()
             elif n.real() < 0:
                 return unsigned_infinity
-        if n == QQ(1) / 2:
+        if n == QQ((1, 2)):
             return sqrt(2 / (pi * x)) * sinh(x)
-        elif n == -QQ(1) / 2:
+        elif n == QQ((-1, 2)):
             return sqrt(2 / (pi * x)) * cosh(x)
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
@@ -989,7 +989,7 @@ class Function_Bessel_K(BuiltinFunction):
                 return infinity
             elif n.real() > 0 or n.real() < 0:
                 return unsigned_infinity
-        if n == QQ(1) / 2 or n == -QQ(1) / 2 and x > 0:
+        if n == QQ((1, 2)) or n == QQ((-1, 2)) and x > 0:
             return sqrt(pi / 2) * exp(-x) * x ** (-Integer(1) / Integer(2))
 
     def _evalf_(self, n, x, parent=None, algorithm=None):
@@ -1274,13 +1274,11 @@ class Function_Struve_H(BuiltinFunction):
             sage: struve_H(-3/2,x)
             -bessel_J(3/2, x)
         """
-        from sage.symbolic.ring import SR
         if z.is_zero() \
                 and (SR(a).is_numeric() or SR(a).is_constant()) \
                 and a.real() >= -1:
-            return ZZ(0)
-        from sage.rings.rational_field import QQ
-        if a == -QQ((1, 2)):
+            return ZZ.zero()
+        if a == QQ((-1, 2)):
             from sage.functions.trig import sin
             return sqrt(2 / (pi * z)) * sin(z)
         if a == QQ((1, 2)):
@@ -1288,7 +1286,7 @@ class Function_Struve_H(BuiltinFunction):
             return sqrt(2 / (pi * z)) * (1 - cos(z))
         if a < 0 and not SR(a).is_integer() and SR(2 * a).is_integer():
             n = (a * (-2) - 1) / 2
-            return Integer(-1)**n * bessel_J(n + QQ(1) / 2, z)
+            return Integer(-1)**n * bessel_J(n + QQ((1, 2)), z)
 
     def _evalf_(self, a, z, parent=None, algorithm=None):
         """
@@ -1392,11 +1390,10 @@ class Function_Struve_L(BuiltinFunction):
             sage: struve_L(-3/2,x)
             -bessel_I(3/2, x)
         """
-        from sage.symbolic.ring import SR
         if z.is_zero() \
                 and (SR(a).is_numeric() or SR(a).is_constant()) \
                 and a.real() >= -1:
-            return ZZ(0)
+            return ZZ.zero()
         if a == -Integer(1) / 2:
             from sage.functions.hyperbolic import sinh
             return sqrt(2 / (pi * z)) * sinh(z)
@@ -1404,9 +1401,8 @@ class Function_Struve_L(BuiltinFunction):
             from sage.functions.hyperbolic import cosh
             return sqrt(2 / (pi * z)) * (cosh(z) - 1)
         if a < 0 and not SR(a).is_integer() and SR(2 * a).is_integer():
-            from sage.rings.rational_field import QQ
             n = (a * (-2) - 1) / 2
-            return Integer(-1)**n * bessel_I(n + QQ(1) / 2, z)
+            return Integer(-1)**n * bessel_I(n + QQ((1, 2)), z)
 
     def _evalf_(self, a, z, parent=None, algorithm=None):
         """

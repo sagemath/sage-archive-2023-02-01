@@ -858,9 +858,9 @@ cdef class RealDoubleElement(FieldElement):
         # First, check special values
         if self._value == 0:
             return RealDoubleElement(libc.math.ldexp(1.0, -1074))
-        if gsl_isnan(self._value):
+        if libc.math.isnan(self._value):
             return self
-        if gsl_isinf(self._value):
+        if libc.math.isinf(self._value):
             return self.abs()
 
         # Normal case
@@ -1022,8 +1022,8 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(22/7)._sage_input_(sib, False)
             {call: {atomic:RDF}({atomic:3.1428571428571428})}
         """
-        cdef int isinf = gsl_isinf(self._value)
-        cdef bint isnan = gsl_isnan(self._value)
+        cdef int isinf = libc.math.isinf(self._value)
+        cdef bint isnan = libc.math.isnan(self._value)
         if isinf or isnan:
             if isnan:
                 v = sib.name('NaN')
@@ -1230,7 +1230,7 @@ cdef class RealDoubleElement(FieldElement):
             ...
             TypeError: Attempt to get integer part of NaN
         """
-        if gsl_isnan(self._value):
+        if libc.math.isnan(self._value):
             raise TypeError("Attempt to get integer part of NaN")
         else:
             return Integer(int(self._value))
@@ -1688,7 +1688,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a.is_NaN()
             True
         """
-        return gsl_isnan(self._value)
+        return libc.math.isnan(self._value)
 
     def is_positive_infinity(self):
         r"""
@@ -1703,7 +1703,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a.is_positive_infinity()
             False
         """
-        return gsl_isinf(self._value) > 0
+        return libc.math.isinf(self._value) > 0
 
     def is_negative_infinity(self):
         r"""
@@ -1718,7 +1718,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a.is_negative_infinity()
             True
         """
-        return gsl_isinf(self._value) < 0
+        return libc.math.isinf(self._value) < 0
 
     def is_infinity(self):
         r"""
@@ -1732,7 +1732,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: (b/a).is_infinity()
             False
         """
-        return gsl_isinf(self._value)
+        return libc.math.isinf(self._value)
 
     cpdef _richcmp_(left, right, int op):
         """
@@ -2925,9 +2925,9 @@ cdef double_repr(double x):
     """
     Convert a double to a string with maximum precision.
     """
-    if gsl_finite(x):
+    if libc.math.isfinite(x):
         return repr(x)
-    cdef int v = gsl_isinf(x)
+    cdef int v = libc.math.isinf(x)
     if v > 0:
         return "+infinity"
     if v < 0:

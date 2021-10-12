@@ -42,7 +42,7 @@ cdef class Matrix_numpy_integer_dense(Matrix_numpy_dense):
     TESTS::
 
         sage: from sage.matrix.matrix_numpy_integer_dense import Matrix_numpy_integer_dense
-        sage: M = Matrix_numpy_integer_dense(MatrixSpace(ZZ, 2, 3)); M
+        sage: M = Matrix_numpy_integer_dense(MatrixSpace(ZZ, 2, 3))
         sage: TestSuite(M).run()
     """
 

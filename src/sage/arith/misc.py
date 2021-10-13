@@ -5667,12 +5667,25 @@ def sort_complex_numbers_for_display(nums):
         ....:                     RDF.random_element()))
         sage: shuffle(nums)
         sage: nums = sort_c(nums)
-        sage: nums[:3]
-        [0.0, 1.0, 2.0]
-        sage: for i in range(3, len(nums)-1):
-        ....:     assert nums[i].real() <= nums[i+1].real() + 1e-10
-        ....:     if abs(nums[i].real() - nums[i+1].real()) < 1e-10:
-        ....:         assert nums[i].imag() <= nums[i+1].imag() + 1e-10
+        sage: for i in range(len(nums)):
+        ....:     if nums[i].imag():
+        ....:         first_non_real = i
+        ....:         break
+        ....: else:
+        ....:     first_non_real = len(nums)
+        sage: assert first_non_real >= 3
+        sage: for i in range(first_non_real - 1):
+        ....:     assert nums[i].real() <= nums[i + 1].real()
+
+        sage: def truncate(n):
+        ....:     if n.real() < 1e-10:
+        ....:         return 0
+        ....:     else:
+        ....:         return n.real().n(digits=9)
+        sage: for i in range(first_non_real, len(nums)-1):
+        ....:     assert truncate(nums[i]) <= truncate(nums[i + 1])
+        ....:     if truncate(nums[i]) == truncate(nums[i + 1]):
+        ....:         assert nums[i].imag() <= nums[i+1].imag()
     """
     if not nums:
         return nums

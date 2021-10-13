@@ -4830,7 +4830,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: B.multiplicative_order()
             1
 
-            sage: E = MatrixSpace(GF(11^2,'e'),5).random_element()
+            sage: M = MatrixSpace(GF(11^2,'e'),5)
+            sage: E = M.random_element()
+            sage: while E.det() == 0:
+            ....:     E = M.random_element()
             sage: (E^E.multiplicative_order()).is_one()
             True
 

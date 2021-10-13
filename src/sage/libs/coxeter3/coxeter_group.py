@@ -160,7 +160,7 @@ class CoxeterGroup(UniqueRepresentation, Parent):
             sage: s[2]*s[1]*s[2]                                          # optional - coxeter3
             [2, 1, 2]
         """
-        from sage.combinat.family import Family
+        from sage.sets.family import Family
         return Family(self.index_set(), lambda i: self.element_class(self, [i]))
 
     gens = simple_reflections

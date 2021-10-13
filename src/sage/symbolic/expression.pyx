@@ -13538,7 +13538,7 @@ cdef Expression new_Expression_from_GEx(parent, GEx juice):
     if is_exactly_a_function(juice):
         # if the function defines any dynamic methods these are made
         # available through a dynamic class
-        cls = <class>get_dynamic_class_for_function(ex_to_function(juice).get_serial())
+        cls = <type>get_dynamic_class_for_function(ex_to_function(juice).get_serial())
     else:
         cls = Expression
 

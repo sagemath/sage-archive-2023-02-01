@@ -3492,7 +3492,7 @@ class GenericGraph(GenericGraph_pyx):
             True
         """
         if not self._directed:
-            # An undirected graph is antisymmetric only if all it's edges are
+            # An undirected graph is antisymmetric only if all its edges are
             # loops
             return self.size() == len(self.loop_edges())
         if self.has_loops():
@@ -23481,7 +23481,7 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         The EP of a graph is isomorphic to the subdirect sum of
-        it's connected components EPs::
+        its connected components EPs::
 
             sage: n = randint(3, 6)
             sage: G1 = graphs.RandomGNP(n, 0.2)
@@ -23583,7 +23583,7 @@ class GenericGraph(GenericGraph_pyx):
             True
 
         The SEP of a graph is isomorphic to the subdirect sum of
-        it's connected components SEP's::
+        its connected components SEP's::
 
             sage: n = randint(3, 6)
             sage: G1 = graphs.RandomGNP(n, 0.2)

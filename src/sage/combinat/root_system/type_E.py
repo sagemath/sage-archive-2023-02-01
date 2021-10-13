@@ -12,7 +12,7 @@ Root system data for type E
 # ****************************************************************************
 
 from . import ambient_space
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.sets.family import Family
 
 class AmbientSpace(ambient_space.AmbientSpace):

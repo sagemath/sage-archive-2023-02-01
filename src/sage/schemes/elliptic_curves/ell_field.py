@@ -696,7 +696,7 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
         # j-invariant is in the image, otherwise return an empty list:
 
         j = self.j_invariant()
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         if K == QQ:
             try:
                 jK = QQ(j)

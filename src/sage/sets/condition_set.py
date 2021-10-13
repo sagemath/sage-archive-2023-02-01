@@ -19,12 +19,12 @@ from sage.categories.sets_cat import Sets
 from sage.categories.enumerated_sets import EnumeratedSets
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc import _stable_uniq
+from sage.structure.element import Expression
 
 try:
-    from sage.symbolic.expression import is_Expression
     from sage.symbolic.callable import is_CallableSymbolicExpression
 except ImportError:
-    is_CallableSymbolicExpression = is_Expression = lambda x: False
+    is_CallableSymbolicExpression = lambda x: False
 
 from .set import Set, Set_base, Set_boolean_operators, Set_add_sub_operators
 
@@ -168,7 +168,7 @@ class ConditionSet(Set_generic, Set_base, Set_boolean_operators, Set_add_sub_ope
                 if vars is None:
                     vars = predicate.args()
                 callable_symbolic_predicates.append(predicate)
-            elif is_Expression(predicate):
+            elif isinstance(predicate, Expression):
                 if names is None:
                     raise TypeError('use callable symbolic expressions or provide variable names')
                 if vars is None:

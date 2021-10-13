@@ -5693,7 +5693,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
         """
         # P might be defaultdict, hence the test
-        if type(P) == type({}):
+        if isinstance(P, dict):
             if set(P) != set(self):
                 raise ValueError("keys of dict P does not match to elements of the poset")
 

@@ -144,7 +144,7 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
     SPKG_NAME=$(basename $DIR)
     SPKG_VERSION=$(newest_version $SPKG_NAME)
 
-    in_sdist=no
+    in_sdist=yes
 
     dnl Determine package source
     dnl
@@ -221,9 +221,9 @@ for DIR in $SAGE_ROOT/build/pkgs/*; do
 
     case "$SPKG_TYPE" in
     standard)
-        in_sdist=yes
         ;;
     optional|experimental)
+        in_sdist=no
         uninstall_message=", use \"$srcdir/configure --disable-$SPKG_NAME\" to uninstall"
         stampfile=""
         for f in "$SAGE_SPKG_INST/$SPKG_NAME"-*; do

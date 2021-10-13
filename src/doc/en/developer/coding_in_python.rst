@@ -261,7 +261,7 @@ replacements are made:
       <... 'int'>
       sage: b = 393939
       sage: type(b)
-      <type 'sage.rings.integer.Integer'>
+      <class 'sage.rings.integer.Integer'>
       sage: a == b
       True
 

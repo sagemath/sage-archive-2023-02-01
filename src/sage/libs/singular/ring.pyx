@@ -6,6 +6,8 @@ AUTHORS:
 - Martin Albrecht (2009-07): initial implementation
 
 - Kwankyu Lee (2010-06): added matrix term order support
+
+- Miguel Marco (2021): added transcendental extensions over Q
 """
 #*****************************************************************************
 #       Copyright (C) 2009 Martin Albrecht <malb@informatik.uni-bremen.de>
@@ -126,6 +128,11 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
         sage: P.<x,y,z> = Zmod(25213521351515232)[]; P
         Multivariate Polynomial Ring in x, y, z over Ring of integers modulo 25213521351515232
+
+        sage: K = PolynomialRing(QQ, 's,t').fraction_field()
+        sage: P.<x,y> = K[]; P
+        Multivariate Polynomial Ring in x, y over Fraction Field of Multivariate Polynomial Ring in s, t over Rational Field
+
 
     TESTS:
 

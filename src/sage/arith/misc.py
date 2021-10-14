@@ -471,10 +471,19 @@ def factorial(n, algorithm='gmp'):
 
 def is_prime(n):
     r"""
-    Return ``True`` if `n` is a prime number, and ``False`` otherwise.
+    Determine whether `n` is a prime element of its parent ring.
 
-    Use a provable primality test or a strong pseudo-primality test depending
-    on the global :mod:`arithmetic proof flag <sage.structure.proof.proof>`.
+    Exceptional special cases:
+
+    - For integers, determine whether `n` is a *positive* prime.
+    - For number fields except `\QQ`, determine whether `n`
+      is a prime element *of the maximal order*.
+
+    ALGORITHM:
+
+    For integers, this function uses a provable primality test
+    or a strong pseudo-primality test depending on the global
+    :mod:`arithmetic proof flag <sage.structure.proof.proof>`.
 
     INPUT:
 
@@ -505,18 +514,57 @@ def is_prime(n):
         sage: is_prime(-2)
         False
 
+    ::
+
         sage: a = 2**2048 + 981
         sage: is_prime(a)    # not tested - takes ~ 1min
         sage: proof.arithmetic(False)
         sage: is_prime(a)    # instantaneous!
         True
         sage: proof.arithmetic(True)
+
+    TESTS:
+
+    Make sure the warning from :trac:`25046` works as intended::
+
+        sage: is_prime(7/1)
+        doctest:warning
+        ...
+        UserWarning: Testing primality in Rational Field, which is a field, hence the result will always be False. To test whether n is a prime integer, use is_prime(ZZ(n)) or ZZ(n).is_prime(). Using n.is_prime() instead will silence this warning.
+        False
+        sage: ZZ(7/1).is_prime()
+        True
+        sage: QQ(7/1).is_prime()
+        False
+
+    However, number fields redefine ``.is_prime()`` in an
+    incompatible fashion (cf. :trac:`32340`) and we should
+    not warn::
+
+        sage: K.<i> = NumberField(x^2+1)
+        sage: is_prime(1+i)
+        True
     """
     try:
-        return n.is_prime()
+        ret = n.is_prime()
     except (AttributeError, NotImplementedError):
         return ZZ(n).is_prime()
 
+    R = n.parent()
+    if R.is_field():
+        # number fields redefine .is_prime(), see #32340
+        from sage.rings.number_field.number_field import NumberField_generic
+        if not isinstance(R, NumberField_generic):
+            import warnings
+            s = f'Testing primality in {R}, which is a field, ' \
+                 'hence the result will always be False. '
+            if R is QQ:
+                s += 'To test whether n is a prime integer, use ' \
+                     'is_prime(ZZ(n)) or ZZ(n).is_prime(). '
+            s += 'Using n.is_prime() instead will silence this warning.'
+            warnings.warn(s)
+
+    return ret
 
 def is_pseudoprime(n):
     r"""

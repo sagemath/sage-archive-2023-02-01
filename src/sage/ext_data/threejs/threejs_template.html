@@ -76,8 +76,12 @@ SAGE_SCRIPTS
 
     var ar = options.aspectRatio;
     var a = [ ar[0], ar[1], ar[2] ]; // aspect multipliers
+
+    var autoScaling = options.autoScaling;
     var autoAspect = 2.5;
-    if ( zRange > autoAspect * rRange && a[2] === 1 ) a[2] = autoAspect * rRange / zRange;
+    if ( xRange > autoAspect * rRange && autoScaling[0] ) a[0] = autoAspect * rRange / xRange;
+    if ( yRange > autoAspect * rRange && autoScaling[1] ) a[1] = autoAspect * rRange / yRange;
+    if ( zRange > autoAspect * rRange && autoScaling[2] ) a[2] = autoAspect * rRange / zRange;
 
     // Distance from (xMid,yMid,zMid) to any corner of the bounding box, after applying aspectRatio
     var midToCorner = Math.sqrt( a[0]*a[0]*xRange*xRange + a[1]*a[1]*yRange*yRange + a[2]*a[2]*zRange*zRange ) / 2;

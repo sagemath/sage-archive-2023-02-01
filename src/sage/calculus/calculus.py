@@ -40,7 +40,7 @@ Thus the following works::
     sage: x^2
     x^2
     sage: type(x)
-    <type 'sage.symbolic.expression.Expression'>
+    <class 'sage.symbolic.expression.Expression'>
 
 More complicated expressions in Sage can be built up using ordinary
 arithmetic. The following are valid, and follow the rules of Python
@@ -416,12 +416,11 @@ from sage.misc.latex import latex
 from sage.misc.parser import Parser, LookupNameMaker
 
 from sage.symbolic.ring import var, SR, is_SymbolicVariable
-from sage.symbolic.expression import Expression
+from sage.symbolic.expression import Expression, symbol_table
 from sage.symbolic.function import Function
 from sage.symbolic.function_factory import function_factory
 from sage.symbolic.integration.integral import (indefinite_integral,
         definite_integral)
-from sage.libs.pynac.pynac import symbol_table
 
 from sage.misc.lazy_import import lazy_import
 lazy_import('sage.interfaces.maxima_lib', 'maxima')
@@ -972,7 +971,7 @@ def minpoly(ex, var='x', algorithm=None, bits=None, degree=None, epsilon=0):
     parameters are ignored.
 
     Numerical: Computes a numerical approximation of
-    ``self`` and use PARI's algdep to get a candidate
+    ``self`` and use PARI's :pari:`algdep` to get a candidate
     minpoly `f`. If `f(\mathtt{self})`,
     evaluated to a higher precision, is close enough to 0 then evaluate
     `f(\mathtt{self})` symbolically, attempting to prove
@@ -1629,8 +1628,11 @@ def laplace(ex, t, s, algorithm='maxima'):
 
         sage: laplace(dirac_delta(t), t, s)
         1
-        sage: laplace(dirac_delta(t), t, s, algorithm='sympy')
-        (-heaviside(0) + 1, -oo, True)
+        sage: F, a, cond = laplace(dirac_delta(t), t, s, algorithm='sympy')
+        sage: a, cond
+        (-oo, True)
+        sage: F       # random - sympy <1.9 includes undefined heaviside(0) in answer
+        1
         sage: laplace(dirac_delta(t), t, s, algorithm='giac')
         1
 
@@ -2151,11 +2153,11 @@ def _is_function(v):
 
     Check that :trac:`31756` is fixed::
 
-        sage: from sage.libs.pynac.pynac import symbol_table
+        sage: from sage.symbolic.expression import symbol_table
         sage: _is_function(symbol_table['mathematica']['Gamma'])
         True
 
-        sage: from sage.libs.pynac.pynac import register_symbol
+        sage: from sage.symbolic.expression import register_symbol
         sage: foo = lambda x: x^2 + 1
         sage: register_symbol(foo, dict(mathematica='Foo'))  # optional - mathematica
         sage: mathematica('Foo[x]').sage()                   # optional - mathematica

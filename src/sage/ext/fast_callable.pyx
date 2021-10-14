@@ -364,8 +364,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: f(1, 2, 3)
         sin(2) + 12
         sage: K.<x> = QQ[]
-        sage: p = K.random_element(6); p
-        -1/4*x^6 + 1/2*x^5 - x^4 - 12*x^3 + 1/2*x^2 - 1/95*x - 1/2
+        sage: p = -1/4*x^6 + 1/2*x^5 - x^4 - 12*x^3 + 1/2*x^2 - 1/95*x - 1/2
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
         [('load_arg', 0), ('load_const', -0.25), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -1.0), 'add', ('load_arg', 0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.010526315789473684), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', 'return']
@@ -615,9 +614,9 @@ cdef class ExpressionTreeBuilder:
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder('x')
             sage: v = etb(3); v, type(v)
-            (3, <type 'sage.ext.fast_callable.ExpressionConstant'>)
+            (3, <class 'sage.ext.fast_callable.ExpressionConstant'>)
             sage: v = etb(polygen(QQ)); v, type(v)
-            (v_0, <type 'sage.ext.fast_callable.ExpressionVariable'>)
+            (v_0, <class 'sage.ext.fast_callable.ExpressionVariable'>)
             sage: v is etb(v)
             True
         """
@@ -1085,7 +1084,7 @@ cdef class ExpressionConstant(Expression):
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb(3))
-        <type 'sage.ext.fast_callable.ExpressionConstant'>
+        <class 'sage.ext.fast_callable.ExpressionConstant'>
     """
 
     cdef object _value
@@ -1153,7 +1152,7 @@ cdef class ExpressionVariable(Expression):
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb.var(x))
-        <type 'sage.ext.fast_callable.ExpressionVariable'>
+        <class 'sage.ext.fast_callable.ExpressionVariable'>
     """
     cdef int _variable_index
 
@@ -1220,7 +1219,7 @@ cdef class ExpressionCall(Expression):
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb.call(sin, x))
-        <type 'sage.ext.fast_callable.ExpressionCall'>
+        <class 'sage.ext.fast_callable.ExpressionCall'>
     """
     cdef object _function
     cdef object _arguments
@@ -1309,7 +1308,7 @@ cdef class ExpressionIPow(Expression):
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb.var('x')^17)
-        <type 'sage.ext.fast_callable.ExpressionIPow'>
+        <class 'sage.ext.fast_callable.ExpressionIPow'>
     """
     cdef object _base
     cdef object _exponent
@@ -1709,7 +1708,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: instr_stream.instr('return')
         sage: v = Wrapper_py(instr_stream.get_current())
         sage: type(v)
-        <type 'sage.ext.interpreters.wrapper_py.Wrapper_py'>
+        <class 'sage.ext.interpreters.wrapper_py.Wrapper_py'>
         sage: v(7)
         8*pi + 56
 
@@ -1981,7 +1980,7 @@ cdef class InstructionStream:
              'stack': 0}
             sage: md = instr_stream.get_metadata()
             sage: type(md)
-            <type 'sage.ext.fast_callable.InterpreterMetadata'>
+            <class 'sage.ext.fast_callable.InterpreterMetadata'>
             sage: md.by_opname['py_call']
             (CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs']), 3)
             sage: md.by_opcode[3]
@@ -2155,7 +2154,7 @@ cdef class InstructionStream:
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: md = instr_stream.get_metadata()
             sage: type(md)
-            <type 'sage.ext.fast_callable.InterpreterMetadata'>
+            <class 'sage.ext.fast_callable.InterpreterMetadata'>
         """
         return self._metadata
 

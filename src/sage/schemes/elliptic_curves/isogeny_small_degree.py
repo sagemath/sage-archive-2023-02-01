@@ -218,7 +218,7 @@ def Psi(l, use_stored=True):
     # Here the generic kernel polynomials are actually calculated:
     j = Fricke_module(l)
     k = j - 1728
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     f = prod([p for p, e in j.factor() if e == 3]
              + [p for p, e in k.factor() if e == 2])
     A4 = -3*t**2*j*k // f**2
@@ -312,7 +312,7 @@ def isogenies_prime_degree_genus_0(E, l=None, minimal_models=True):
         T = c4/(3*c6)
         jt = Fricke_module(l)
         kt = jt-1728
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         psi = Psi(l)
         X = t
         f = R(prod( [p for p,e in jt.factor() if e==3]
@@ -537,7 +537,7 @@ def _sporadic_Q_data(j):
         ....:     assert g % f == 0
     """
     from sage.rings.all import RealField
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     ell = sporadic_j[j]
     E = EllipticCurve(j=j).short_weierstrass_model()
     a4a6 = list(E.ainvs())[3:]
@@ -2201,7 +2201,7 @@ def isogenies_prime_degree_general(E, l, minimal_models=True):
     # divisors of degree d, then their product is a kernel poly, which
     # we add to the list and remove the factors used.
 
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     for d in list(factors_by_degree):
         if d * len(factors_by_degree[d]) == l2:
             ker.append(prod(factors_by_degree.pop(d)))
@@ -2330,6 +2330,15 @@ def isogenies_prime_degree(E, l, minimal_models=True):
         []
         sage: E.isogenies_prime_degree(73) # slower (2s)
         []
+
+    Test that :trac:`32269` is fixed::
+
+        sage: K = QuadraticField(-11)
+        sage: E = EllipticCurve(K, [0,1,0,-117,-541])
+        sage: E.isogenies_prime_degree(37)
+        [Isogeny of degree 37 from Elliptic Curve defined by y^2 = x^3 + x^2 + (-117)*x + (-541) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I to Elliptic Curve defined by y^2 = x^3 + x^2 + (30800*a+123963)*x + (3931312*a-21805005) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I,
+         Isogeny of degree 37 from Elliptic Curve defined by y^2 = x^3 + x^2 + (-117)*x + (-541) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I to Elliptic Curve defined by y^2 = x^3 + x^2 + (-30800*a+123963)*x + (-3931312*a-21805005) over Number Field in a with defining polynomial x^2 + 11 with a = 3.316624790355400?*I]
+
     """
     if not l.is_prime():
         raise ValueError("%s is not prime."%l)
@@ -2349,7 +2358,7 @@ def isogenies_prime_degree(E, l, minimal_models=True):
         return isogenies_prime_degree_genus_plus_0(E,l, minimal_models=minimal_models)
 
     j = E.j_invariant()
-    if j in QQ:
+    if j in QQ and E.base_field() is QQ:
         j = QQ(j)
         if j in sporadic_j:
             return isogenies_sporadic_Q(E,l, minimal_models=minimal_models)

@@ -348,7 +348,8 @@ from sage.structure.parent import Parent
 from sage.structure.element import Element
 from sage.structure.richcmp import richcmp
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import QQ, ZZ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.misc.cachefunc import cached_method
 from sage.matrix.constructor import matrix, vector
 from sage.modules.free_module import VectorSpace
@@ -452,6 +453,17 @@ class HyperplaneArrangementElement(Element):
             Hyperplane x + 0*y + 0
         """
         return self._hyperplanes[i]
+
+    def __hash__(self):
+        r"""
+        TESTS::
+
+            sage: H.<x,y> = HyperplaneArrangements(QQ)
+            sage: h = x|y; h
+            Arrangement <y | x>
+            sage: len_dict = {h: len(h)}
+        """
+        return hash(self.hyperplanes())
 
     def n_hyperplanes(self):
         r"""
@@ -1229,7 +1241,7 @@ class HyperplaneArrangementElement(Element):
             raise TypeError('arrangement must be defined over QQ')
         if not p.is_prime():
             raise TypeError('must reduce modulo a prime number')
-        from sage.rings.all import GF
+        from sage.rings.finite_rings.finite_field_constructor import GF
         a = self.change_ring(GF(p))
         p = self.intersection_poset()
         q = a.intersection_poset()
@@ -2926,7 +2938,7 @@ class HyperplaneArrangementElement(Element):
             (h2 - 1) * (h2 + 1) * (h1 - 1) * (h1 + 1)
         """
         from sage.matrix.constructor import identity_matrix
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         k = len(self)
         R = PolynomialRing(QQ, names, k)
         h = R.gens()
@@ -2998,7 +3010,7 @@ class HyperplaneArrangementElement(Element):
             base_ring = self.base_ring()
         return self.matroid().orlik_solomon_algebra(base_ring, ordering,**kwds)
 
-    def orlik_terao_algebra(self, base_ring=None, ordering=None):
+    def orlik_terao_algebra(self, base_ring=None, ordering=None, **kwds):
         """
         Return the Orlik-Terao algebra of ``self``.
 
@@ -3022,7 +3034,7 @@ class HyperplaneArrangementElement(Element):
         """
         if base_ring is None:
             base_ring = self.base_ring()
-        return self.matroid().orlik_terao_algebra(base_ring, ordering)
+        return self.matroid().orlik_terao_algebra(base_ring, ordering, **kwds)
 
     @cached_method
     def minimal_generated_number(self):
@@ -3391,7 +3403,7 @@ class HyperplaneArrangements(Parent, UniqueRepresentation):
             sage: K = HyperplaneArrangements(QQ)
             sage: TestSuite(K).run()
         """
-        from sage.categories.all import Sets
+        from sage.categories.sets_cat import Sets
         from sage.rings.ring import _Fields
         if base_ring not in _Fields:
             raise ValueError('base ring must be a field')

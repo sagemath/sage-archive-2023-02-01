@@ -127,6 +127,53 @@ except ImportError:
     pass
 
 
+def is_function_or_cython_function(obj):
+    """
+    Check whether something is a function.
+
+    This is a variant of :func:`inspect.isfunction`:
+    We assume that anything which has a genuine ``__code__``
+    attribute (not using ``__getattr__`` overrides) is a function.
+    This is meant to support Cython functions.
+
+    Think twice before using this function (or any function from the
+    :mod:`inspect` or :mod:`sage.misc.sageinspect` modules).  Most uses of
+    :func:`inspect.isfunction` in ordinary library code can be replaced by
+    :func:`callable`.
+
+    EXAMPLES::
+
+        sage: from sage.misc.sageinspect import is_function_or_cython_function
+        sage: def f(): pass
+        sage: is_function_or_cython_function(f)
+        True
+        sage: is_function_or_cython_function(lambda x:x)
+        True
+        sage: from sage.categories.coercion_methods import _mul_parent
+        sage: is_function_or_cython_function(_mul_parent)
+        True
+        sage: is_function_or_cython_function(Integer.digits)     # unbound method
+        False
+        sage: is_function_or_cython_function(Integer(1).digits)  # bound method
+        False
+
+    TESTS:
+
+    Verify that ipywidgets can correctly determine signatures of Cython
+    functions::
+
+        sage: from ipywidgets.widgets.interaction import signature
+        sage: from sage.dynamics.complex_dynamics.mandel_julia_helper import fast_mandelbrot_plot
+        sage: signature(fast_mandelbrot_plot)  # random
+        <IPython.utils._signatures.Signature object at 0x7f3ec8274e10>
+    """
+    # We use type(obj) instead of just obj to avoid __getattr__().
+    # Some types, like methods, will return the __code__ of the
+    # underlying function in __getattr__() but we don't want to
+    # detect those as functions.
+    return hasattr(type(obj), "__code__")
+
+
 def loadable_module_extension():
     r"""
     Return the filename extension of loadable modules, including the dot.
@@ -1141,7 +1188,7 @@ def _sage_getargspec_cython(source):
         sage: sgc('def f(*x = 5, z = {(1,2,3): True}): pass')
         Traceback (most recent call last):
         ...
-        SyntaxError: invalid syntax
+        SyntaxError: invalid ...
         sage: sgc('def f(int *x = 5, z = {(1,2,3): True}): pass')
         Traceback (most recent call last):
         ...
@@ -1153,7 +1200,7 @@ def _sage_getargspec_cython(source):
         sage: sgc('def f(int x = 5, , z = {(1,2,3): True}): pass')
         Traceback (most recent call last):
         ...
-        SyntaxError: invalid syntax
+        SyntaxError: invalid ...
 
     TESTS:
 
@@ -1163,7 +1210,7 @@ def _sage_getargspec_cython(source):
         sage: def dummy_python(self, *args, x=1): pass  # py2
         Traceback (most recent call last):
         ...
-        SyntaxError: invalid syntax
+        SyntaxError: invalid ...
         sage: def dummy_python(self, *args, x=1): pass  # py3
         sage: sgc("def dummy_python(self, *args, x=1): pass")  # py3
         ArgSpec(args=['self', 'x'], varargs='args', keywords=None, defaults=(1,))
@@ -2014,6 +2061,15 @@ def sage_getdoc(obj, obj_name='', embedded=False):
         return ''
     r = sage_getdoc_original(obj)
     s = sage.misc.sagedoc.format(r, embedded=embedded)
+    f = sage_getfile(obj)
+    if f and os.path.exists(f):
+        from sage.doctest.control import skipfile
+        skip = skipfile(f)
+        if isinstance(skip, str):
+            warn = """WARNING: the enclosing module is marked '{}',
+so doctests may not pass.""".format(skip)
+            s = warn + "\n\n" + s
+        pass
 
     # Fix object naming
     if obj_name != '':
@@ -2175,7 +2231,7 @@ def _sage_getsourcelines_name_with_dot(obj):
 
     if inspect.ismethod(obj):
         obj = obj.__func__
-    if inspect.isfunction(obj):
+    if is_function_or_cython_function(obj):
         obj = obj.__code__
     if inspect.istraceback(obj):
         obj = obj.tb_frame
@@ -2260,8 +2316,11 @@ def sage_getsourcelines(obj):
         ([...'class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \\\n',
         ...)
         sage: x = var('x')
-        sage: lines, lineno = sage_getsourcelines(x); lines[0:2]
+        sage: lines, lineno = sage_getsourcelines(x); lines[0:5]
         ['cdef class Expression(CommutativeRingElement):\n',
+         '\n',
+         '    cdef GEx _gobj\n',
+         '\n',
          '    cpdef object pyobject(self):\n']
         sage: lines[-1]    # last line
         '        return S\n'

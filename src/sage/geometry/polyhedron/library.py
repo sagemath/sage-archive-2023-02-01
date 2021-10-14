@@ -81,12 +81,17 @@ The following constructions are available
 
 import itertools
 
-from sage.rings.all import ZZ, QQ, RDF, RR, AA, QQbar
+from sage.rings.integer_ring import ZZ
+from sage.rings.qqbar import AA, QQbar
+from sage.rings.rational_field import QQ
+from sage.rings.real_double import RDF
+from sage.rings.real_mpfr import RR
 from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from .constructor import Polyhedron
 from .parent import Polyhedra
 from sage.graphs.digraph import DiGraph
+from sage.graphs.graph import Graph
 from sage.combinat.root_system.associahedron import Associahedron
 
 def zero_sum_projection(d, base_ring=RDF):
@@ -440,7 +445,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
         ValueError: input vectors not totally cyclic
     """
     from sage.modules.free_module_element import vector
-    from sage.matrix.all import Matrix
+    from sage.matrix.constructor import Matrix
     if base_ring:
         vectors = tuple(vector(base_ring, x) for x in vectors)
     else:
@@ -759,7 +764,7 @@ class Polytopes():
             5/12*sqrt5 + 5/4
             sage: TestSuite(ico).run()                             # optional - pynormaliz
             sage: ico = polytopes.icosahedron(exact=False)
-            sage: TestSuite(ico).run()
+            sage: TestSuite(ico).run(skip="_test_lawrence")
 
         """
         if base_ring is None and exact:
@@ -2471,7 +2476,7 @@ class Polytopes():
             A 6-dimensional polyhedron in RDF^6 defined as the convex hull of 35 vertices
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
-            sage: TestSuite(h_7_3).run(skip="_test_pyramid")
+            sage: TestSuite(h_7_3).run(skip=["_test_pyramid", "_test_lawrence"])
         """
         verts = Permutations([0] * (dim - k) + [1] * k).list()
         if project:
@@ -3412,6 +3417,8 @@ class Polytopes():
     associahedron = staticmethod(Associahedron)
 
     flow_polytope = staticmethod(DiGraph.flow_polytope)
+    edge_polytope = staticmethod(Graph.edge_polytope)
+    symmetric_edge_polytope = staticmethod(Graph.symmetric_edge_polytope)
 
 
 polytopes = Polytopes()

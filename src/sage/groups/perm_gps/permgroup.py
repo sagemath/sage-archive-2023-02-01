@@ -402,13 +402,13 @@ class PermutationGroup_generic(FiniteGroup):
 
         INPUT:
 
-        -  ``gens`` - list of generators (default: ``None``)
+        - ``gens`` -- list of generators (default: ``None``)
 
-        -  ``gap_group`` - a gap or libgap permutation group, or a string
+        - ``gap_group`` -- a gap or libgap permutation group, or a string
           defining one (default: ``None``)
 
-        -  ``canonicalize`` - bool (default: ``True``); if ``True``,
-           sort generators and remove duplicates
+        - ``canonicalize`` -- bool (default: ``True``); if ``True``,
+          sort generators and remove duplicates
 
         OUTPUT:
 
@@ -4727,7 +4727,7 @@ class PermutationGroup_generic(FiniteGroup):
              as a permutation group over Integer Ring
         """
         if base_ring is None:
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             base_ring = ZZ
         from sage.modules.with_basis.representation import SignRepresentationPermgroup
         return SignRepresentationPermgroup(self, base_ring)

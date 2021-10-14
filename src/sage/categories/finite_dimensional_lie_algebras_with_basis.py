@@ -6,15 +6,15 @@ AUTHORS:
 - Travis Scrimshaw (07-15-2013): Initial implementation
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2013-2017 Travis Scrimshaw <tcscrims at gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 
 from sage.misc.abstract_method import abstract_method
@@ -27,6 +27,7 @@ from sage.categories.subobjects import SubobjectsCategory
 from sage.algebras.free_algebra import FreeAlgebra
 from sage.sets.family import Family
 from sage.matrix.constructor import matrix
+
 
 class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
     """
@@ -101,7 +102,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             I = self._basis_ordering
             try:
                 names = [str(x) for x in I]
-                def names_map(x): return x
+
+                def names_map(x):
+                    return x
                 F = FreeAlgebra(self.base_ring(), names)
             except ValueError:
                 names = ['b{}'.format(i) for i in range(self.dimension())]
@@ -115,7 +118,9 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
             rels = {}
             S = self.structure_coefficients(True)
             # Construct the map from indices to names of the UEA
-            def get_var(g): return d[names_map(g)]
+
+            def get_var(g):
+                return d[names_map(g)]
             # The function ``get_var`` sends an element of the basis of
             # ``self`` to the corresponding element of ``F``.
             for k in S.keys():
@@ -192,7 +197,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                 sage: sl2.indices()
                 {'e1', 'f1', 'h1'}
                 sage: type(sl2.basis().keys())
-                <type 'list'>
+                <class 'list'>
                 sage: Usl2 = sl2.pbw_basis()
                 sage: Usl2._basis_key(2)
                 2
@@ -1120,7 +1125,7 @@ class FiniteDimensionalLieAlgebrasWithBasis(CategoryWithAxiom_over_base_ring):
                                           " (the trivial module)")
 
             from itertools import combinations
-            from sage.functions.other import binomial
+            from sage.arith.misc import binomial
             from sage.matrix.matrix_space import MatrixSpace
             R = self.base_ring()
             zero = R.zero()

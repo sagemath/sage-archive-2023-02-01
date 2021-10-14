@@ -663,19 +663,19 @@ def Matroid(groundset=None, data=None, **kwds):
         sage: Matroid("abc", bases=["abc"], foo="bar")
         Traceback (most recent call last):
         ...
-        TypeError: Matroid() got an unexpected keyword argument 'foo'
+        TypeError: ...Matroid() got an unexpected keyword argument 'foo'
         sage: Matroid(data=["x"], matrix=Matrix(1,1))
         Traceback (most recent call last):
         ...
-        TypeError: Matroid() got an unexpected keyword argument 'matrix'
+        TypeError: ...Matroid() got an unexpected keyword argument 'matrix'
         sage: Matroid(bases=["x"], matrix=Matrix(1,1))
         Traceback (most recent call last):
         ...
-        TypeError: Matroid() got an unexpected keyword argument 'matrix'
+        TypeError: ...Matroid() got an unexpected keyword argument 'matrix'
         sage: Matroid(Matrix(1,1), ring=ZZ, field=QQ)
         Traceback (most recent call last):
         ...
-        TypeError: Matroid() got an unexpected keyword argument 'ring'
+        TypeError: ...Matroid() got an unexpected keyword argument 'ring'
         sage: Matroid(rank_function=lambda X: len(X))
         Traceback (most recent call last):
         ...
@@ -692,11 +692,11 @@ def Matroid(groundset=None, data=None, **kwds):
     base_ring = None
     if 'field' in kwds:
         base_ring = kwds.pop('field')
-        if check and base_ring not in Fields:
+        if check and base_ring not in Fields():
             raise TypeError("{} is not a field".format(base_ring))
     elif 'ring' in kwds:
         base_ring = kwds.pop('ring')
-        if check and base_ring not in Rings:
+        if check and base_ring not in Rings():
             raise TypeError("{} is not a ring".format(base_ring))
 
     # "key" is the kind of data we got

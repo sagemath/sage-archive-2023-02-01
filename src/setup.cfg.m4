@@ -6,7 +6,7 @@ description = Sage: Open Source Mathematics Software: Standard Python Library
 long_description = file: README.rst
 long_description_content_type = text/x-rst
 license = GNU General Public License (GPL) v2 or later
-license_file = LICENSE.txt
+license_files = LICENSE.txt
 author = The Sage Developers
 author_email = sage-support@googlegroups.com
 url = https://www.sagemath.org
@@ -43,6 +43,7 @@ dnl From build/pkgs/sagelib/dependencies
         numpy          \
         pkgconfig      \
         pplpy          \
+        memory_allocator \
         | sed "2,\$s/^/    /;"')dnl
 dnl From Makefile.in: SAGERUNTIME
     esyscmd(`sage-get-system-packages install-requires \

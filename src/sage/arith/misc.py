@@ -223,7 +223,7 @@ def algdep(z, degree, known_bits=None, use_bits=None, known_digits=None,
 
         is_complex = isinstance(z, ComplexNumber)
         n = degree+1
-        from sage.matrix.all import matrix
+        from sage.matrix.constructor import matrix
         M = matrix(ZZ, n, n+1+int(is_complex))
         r = ZZ.one() << prec
         M[0, 0] = 1
@@ -807,7 +807,7 @@ def prime_powers(start, stop=None):
 
         sage: v = prime_powers(10)
         sage: type(v[0])
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
         sage: prime_powers(0,1)
         []
@@ -1365,9 +1365,9 @@ def random_prime(n, proof=None, lbound=2):
     TESTS::
 
         sage: type(random_prime(2))
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: type(random_prime(100))
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: random_prime(1, lbound=-2)   #caused Sage hang #10112
         Traceback (most recent call last):
         ...
@@ -1699,7 +1699,7 @@ def gcd(a, b=None, **kwargs):
         sage: gcd(3, 6, 2)
         Traceback (most recent call last):
         ...
-        TypeError: gcd() takes ...
+        TypeError: ...gcd() takes ...
         sage: gcd([3, 6, 2])
         1
 
@@ -1715,7 +1715,7 @@ def gcd(a, b=None, **kwargs):
         sage: gcd([])
         0
         sage: type(gcd([]))
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
     TESTS:
 
@@ -2033,6 +2033,7 @@ def xkcd(n=""):
     import contextlib
     import json
     from sage.misc.html import html
+    from ssl import SSLContext
 
     # import compatible with py2 and py3
     from urllib.request import urlopen
@@ -2041,12 +2042,12 @@ def xkcd(n=""):
     data = None
     if not n:
         # default to last comic
-        url = "http://xkcd.com/info.0.json"
+        url = "https://xkcd.com/info.0.json"
     else:
         url = "https://xkcd.com/{}/info.0.json".format(n)
 
     try:
-        with contextlib.closing(urlopen(url)) as f:
+        with contextlib.closing(urlopen(url, context=SSLContext())) as f:
             data = f.read()
     except HTTPError as error:
         if error.getcode() == 400: # this error occurs when asking for a non valid comic number
@@ -2962,7 +2963,7 @@ class Euler_Phi:
         sage: euler_phi(0)
         0
         sage: type(euler_phi(0))
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
     We verify directly that the phi function is correct for 21.
 
@@ -3471,22 +3472,22 @@ def binomial(x, m, **kwds):
         sage: a = binomial(float(1001), float(1)); a
         1001.0
         sage: type(a)
-        <... 'float'>
+        <class 'float'>
         sage: binomial(float(1000), 1001)
         0.0
 
     Test more output types::
 
         sage: type(binomial(5r, 2))
-        <... 'int'>
+        <class 'int'>
         sage: type(binomial(5, 2r))
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
         sage: type(binomial(5.0r, 2))
-        <... 'float'>
+        <class 'float'>
 
         sage: type(binomial(5/1, 2))
-        <type 'sage.rings.rational.Rational'>
+        <class 'sage.rings.rational.Rational'>
 
         sage: R = Integers(11)
         sage: b = binomial(R(7), R(3))
@@ -3619,12 +3620,12 @@ def binomial(x, m, **kwds):
 
 def multinomial(*ks):
     r"""
-    Return the multinomial coefficient
+    Return the multinomial coefficient.
 
     INPUT:
 
-    - An arbitrary number of integer arguments `k_1,\dots,k_n`
-    - An iterable (e.g. a list) of integers `[k_1,\dots,k_n]`
+    - either an arbitrary number of integer arguments `k_1,\dots,k_n`
+    - or an iterable (e.g. a list) of integers `[k_1,\dots,k_n]`
 
     OUTPUT:
 
@@ -3653,6 +3654,8 @@ def multinomial(*ks):
         sage: multinomial(Partition([4, 2]))
         15
 
+    TESTS:
+
     Tests with numpy and gmpy2 numbers::
 
         sage: from numpy import int8
@@ -3662,6 +3665,11 @@ def multinomial(*ks):
         sage: multinomial(mpz(3), mpz(2))
         mpz(10)
 
+        sage: multinomial(range(1), range(2))
+        Traceback (most recent call last):
+        ...
+        ValueError: multinomial takes only one iterable argument
+
     AUTHORS:
 
     - Gabriel Ebner
@@ -3669,10 +3677,12 @@ def multinomial(*ks):
     if isinstance(ks[0], Iterable):
         if len(ks) > 1:
             raise ValueError("multinomial takes only one iterable argument")
-        ks = ks[0]
+        keys = ks[0]
+    else:
+        keys = ks
 
     s, c = 0, 1
-    for k in ks:
+    for k in keys:
         s += k
         c *= binomial(s, k)
     return c
@@ -4600,12 +4610,13 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     else:
         raise ValueError("Algorithm %s not defined"%algorithm)
 
+
 def hilbert_conductor(a, b):
     r"""
-    This is the product of all (finite) primes where the Hilbert symbol is -1.
+    Return the product of all (finite) primes where the Hilbert symbol is -1.
 
-    What is the same, this is the (reduced) discriminant of the quaternion
-    algebra `(a,b)` over `\QQ`.
+    This is the (reduced) discriminant of the quaternion algebra `(a,b)`
+    over `\QQ`.
 
     INPUT:
 
@@ -4613,7 +4624,7 @@ def hilbert_conductor(a, b):
 
     OUTPUT:
 
-    - squarefree positive integer
+    squarefree positive integer
 
     EXAMPLES::
 
@@ -4640,11 +4651,9 @@ def hilbert_conductor(a, b):
     - Gonzalo Tornaria (2009-03-02)
     """
     a, b = ZZ(a), ZZ(b)
-    d = ZZ(1)
-    for p in set().union([2], prime_divisors(a), prime_divisors(b)):
-        if hilbert_symbol(a, b, p) == -1:
-            d *= p
-    return d
+    return ZZ.prod(p for p in set([2]).union(prime_divisors(a),
+                                             prime_divisors(b))
+                   if hilbert_symbol(a, b, p) == -1)
 
 
 def hilbert_conductor_inverse(d):
@@ -5747,7 +5756,7 @@ def squarefree_divisors(x):
         sage: a
         1
         sage: type(a)
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
     Tests with numpy and gmpy2 numbers::
 

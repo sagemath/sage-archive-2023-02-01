@@ -3343,7 +3343,12 @@ class EllipticCurve_rational_field(EllipticCurve_number_field):
             sage: z = CC.random_element()
             sage: v = 2 * E.elliptic_exponential(z)
             sage: w = E.elliptic_exponential(2 * z)
-            sage: abs(v[0] - w[0]) + abs(v[1] - w[1])  # abs tol 1e-13
+            sage: def err(a, b):
+            ....:     err = abs(a - b)
+            ....:     if a + b:
+            ....:         err = min(err, err / abs(a + b))
+            ....:     return err
+            sage: err(v[0], w[0]) + err(v[1], w[1])  # abs tol 1e-13
             0.0
         """
         return self.period_lattice().elliptic_exponential(z)
@@ -7059,7 +7064,7 @@ def elliptic_curve_congruence_graph(curves):
     from sage.graphs.graph import Graph
     from sage.arith.all import lcm
     from sage.rings.fast_arith import prime_range
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     G = Graph()
     G.add_vertices([curve.cremona_label() for curve in curves])
     n = len(curves)

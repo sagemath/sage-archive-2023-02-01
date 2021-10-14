@@ -141,7 +141,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-import inspect
 
 from .tri_plot import TrianglePlot
 from .index_face_set import IndexFaceSet
@@ -150,10 +149,8 @@ from .base import Graphics3dGroup
 from sage.plot.colors import rainbow
 from .texture import Texture
 
-from sage.ext.fast_eval import fast_float_arg
-
 from sage.functions.trig import cos, sin
-from sage.misc.sageinspect import sage_getargspec
+from sage.misc.sageinspect import sage_getargspec, is_function_or_cython_function
 
 
 class _Coordinates(object):
@@ -394,7 +391,7 @@ def _find_arguments_for_callable(func):
         sage: _find_arguments_for_callable(operator.add)
         []
     """
-    if inspect.isfunction(func):
+    if is_function_or_cython_function(func):
         pass
     elif hasattr(func, 'arguments'):
         # Might be a symbolic function with arguments
@@ -1087,9 +1084,12 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
     elif adaptive:
         P = plot3d_adaptive(f, urange, vrange, **kwds)
     else:
-        u=fast_float_arg(0)
-        v=fast_float_arg(1)
-        P=parametric_plot3d.parametric_plot3d((u,v,f), urange, vrange, **kwds)
+        arg1 = lambda u,v: u
+        arg2 = lambda u,v: v
+        P = parametric_plot3d.parametric_plot3d((arg1,arg2,f),
+                                                urange,
+                                                vrange,
+                                                **kwds)
     P.frame_aspect_ratio([1.0,1.0,0.5])
     return P
 

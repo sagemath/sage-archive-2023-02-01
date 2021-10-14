@@ -216,11 +216,16 @@ from sage.geometry.toric_lattice import (ToricLattice, is_ToricLattice,
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.geometry.relative_interior import RelativeInterior
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import column_matrix, matrix, MatrixSpace
+from sage.matrix.constructor import matrix
+from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.special import column_matrix
 from sage.misc.cachefunc import cached_method
-from sage.misc.all import flatten, latex
-from sage.modules.all import span, vector, VectorSpace
-from sage.rings.all import QQ, ZZ
+from sage.misc.flatten import flatten
+from sage.misc.latex import latex
+from sage.modules.free_module import span, VectorSpace
+from sage.modules.free_module_element import vector
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.geometry.integral_points import parallelotope_points
@@ -591,8 +596,6 @@ def _ambient_space_point(body, data):
         (1.00000000000000, 3.14159265358979)
 
     """
-    from sage.rings.all import AA, RR
-
     L = body.lattice()
 
     def try_base_extend(ring):
@@ -617,6 +620,9 @@ def _ambient_space_point(body, data):
     # If we don't have a lattice element, try successively
     # less-desirable ambient spaces until (as a last resort) we
     # attempt a numerical representation.
+    from sage.rings.qqbar import AA
+    from sage.rings.real_mpfr import RR
+
     for ring in [QQ, AA, RR]:
         p = try_base_extend(ring)
         if p is not None:
@@ -722,7 +728,7 @@ def normalize_rays(rays, lattice):
             if lattice.is_ambient():
                 # Handle the most common case efficiently.
                 V = lattice.base_extend(QQ)
-                length = lambda ray: integral_length(ray)
+                length = integral_length
         except AttributeError:
             pass
         if V is None:
@@ -2011,7 +2017,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         r"""
         Generate some points of ``self``.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: K = cones.nonnegative_orthant(3)
             sage: K.some_elements()  # indirect doctest
@@ -3541,14 +3547,11 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             Traceback (most recent call last):
             ...
             NotImplementedError: this function is not implemented for unbounded polyhedra
-            sage: ray = Cone([(1, 1)]
-            Traceback (most recent call last):
-            ...
-            SyntaxError: unexpected EOF while parsing
+            sage: ray = Cone([(1, 1)])
             sage: ray.an_affine_basis()
             Traceback (most recent call last):
             ...
-            NameError: name 'ray' is not defined
+            NotImplementedError: this function is not implemented for unbounded polyhedra
             sage: line = Cone([(1,0), (-1,0)])
             sage: line.an_affine_basis()
             Traceback (most recent call last):
@@ -4503,9 +4506,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         The primal Normaliz algorithm, see [Normaliz]_.
         """
         if self.is_strictly_convex():
-            def not_in_linear_subspace(x): return True
+
+            def not_in_linear_subspace(x):
+                return True
         else:
             linear_subspace = self.linear_subspace()
+
             def not_in_linear_subspace(x):
                 # "x in linear_subspace" does not work, due to absence
                 # of coercion maps as of Trac ticket #10513.

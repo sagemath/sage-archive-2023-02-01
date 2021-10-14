@@ -19,11 +19,11 @@ SAGE_SPKG_CONFIGURE([python3], [
    dnl
    dnl However, if we add another package (providing a shared library linked into a Python module)
    dnl that also uses libsqlite3, then we will have to put the DEPCHECK back in.
-   SAGE_SPKG_DEPCHECK([bzip2 xz libffi], [
+   SAGE_SPKG_DEPCHECK([bzip2 liblzma libffi], [
       dnl Check if we can do venv with a system python3
       dnl instead of building our own copy.
       dnl  Trac #31160: We no longer check for readline here.
-      check_modules="sqlite3, ctypes, math, hashlib, crypt, socket, zlib, distutils.core"
+      check_modules="sqlite3, ctypes, math, hashlib, crypt, socket, zlib, distutils.core, ssl"
       AC_CACHE_CHECK([for python3 >= ]MIN_VERSION[, < ]LT_VERSION[ with modules $check_modules], [ac_cv_path_PYTHON3], [
         AS_IF([test x"$ac_path_PYTHON3" != x], [dnl checking explicitly specified $with_python
            AC_MSG_RESULT([])

@@ -30,7 +30,7 @@ from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.misc_c import prod
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 from sage.categories.realizations import Category_realization_of_parent
 from sage.categories.rings import Rings
 from sage.categories.fields import Fields
@@ -5013,7 +5013,7 @@ class NonCommutativeSymmetricFunctions(UniqueRepresentation, Parent):
                 return (matrix([[]]), [])
             CO = compositions_order(n)
             # ZZ is faster than over QQ for inverting a matrix
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             MS = MatrixSpace(ZZ, len(CO))
             return (MS([[number_of_SSRCT(al,be) for be in CO] for al in CO]).inverse(),
                     CO)

@@ -454,7 +454,7 @@ cpdef RealField(mpfr_prec_t prec=53, int sci_not=0, rnd=MPFR_RNDN):
         return R
 
 
-cdef class RealField_class(sage.rings.ring.Field):
+cdef class RealField_class(sage.rings.abc.RealField):
     """
     An approximation to the field of real numbers using floating point
     numbers with any specified precision. Answers derived from
@@ -2189,7 +2189,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES::
 
             sage: a = 3.5
-            sage: copy(a) is  a
+            sage: copy(a) is a
+            True
+        """
+        return self    # since object is immutable.
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: a = 3.5
+            sage: deepcopy(a) is a
             True
         """
         return self    # since object is immutable.
@@ -5379,7 +5389,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         ALGORITHM:
 
-        Uses the PARI C-library ``algdep`` command.
+        Uses the PARI C-library :pari:`algdep` command.
 
         EXAMPLES::
 

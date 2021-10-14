@@ -160,6 +160,7 @@ Classes and methods
 # ****************************************************************************
 from urllib.request import urlopen
 from urllib.parse import urlencode
+from ssl import SSLContext
 
 from sage.structure.sage_object import SageObject
 from sage.structure.unique_representation import UniqueRepresentation
@@ -199,7 +200,7 @@ def _fetch(url):
     """
     try:
         verbose("Fetching URL %s ..." % url, caller_name='OEIS')
-        f = urlopen(url)
+        f = urlopen(url, context=SSLContext())
         result = f.read()
         f.close()
         return bytes_to_str(result)
@@ -388,7 +389,7 @@ class OEIS:
             sage: oeis()
             Traceback (most recent call last):
             ...
-            TypeError: __call__() ...
+            TypeError: ...__call__() ...
         """
         if isinstance(query, str):
             if re.match('^A[0-9]{6}$', query):
@@ -400,7 +401,7 @@ class OEIS:
         elif isinstance(query, (list, tuple)):
             return self.find_by_subsequence(query, max_results, first_result)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         r"""
         Return the representation of ``self``.
 
@@ -863,7 +864,7 @@ class OEISSequence(SageObject, UniqueRepresentation):
             self.online_update()
             return self._raw
 
-    def name(self):
+    def name(self) -> str:
         r"""
         Return the name of the sequence ``self``.
 
@@ -1906,10 +1907,13 @@ class OEISSequence(SageObject, UniqueRepresentation):
         if language == 'sagemath':
             language = 'sage'
         if language == 'all':
-            table = [('maple', FancyTuple(self._field('p'))),
-                     ('mathematica', FancyTuple(self._field('t')))]
+            table = (('maple', FancyTuple(self._field('p'))),
+                     ('mathematica', FancyTuple(self._field('t'))))
+            table = [(lang, code) for lang, code in table if code]
         else:
             table = []
+
+        known_langs = ['sage', 'python', 'scheme']
 
         def is_starting_line(line):
             """
@@ -1922,15 +1926,17 @@ class OEISSequence(SageObject, UniqueRepresentation):
             if ')' not in line:
                 return None
             end = line.index(')')
-            language = line[1:end].lower()  # to handle (Sage) versus (sage)
+            language = line[1:end].lower()  # normalise the language names
             if '(' in language:
                 return None
-            if language == 'sagemath':
-                language = 'sage'
+            for special in known_langs:
+                if special in language:
+                    language = special
+            if ' ' in language:  # get rid of language versions
+                language = language.split(' ')[0]
             if language == 'c#' or language == 'c++':
                 language = 'c'
-            if language.replace(' ', '').isalnum() or language.startswith('scheme'):
-                # to cope with many wrong (Scheme xxx) separators in the OEIS
+            if language.isalnum():
                 return (language, end)
             return None
 

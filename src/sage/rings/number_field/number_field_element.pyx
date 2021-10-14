@@ -77,6 +77,7 @@ from sage.modules.free_module_element import vector
 from sage.structure.element cimport Element, FieldElement
 from sage.structure.element cimport parent
 from sage.structure.element import canonical_coercion, coerce_binop
+from sage.structure.parent cimport Parent
 
 from sage.libs.pari import pari
 
@@ -1596,7 +1597,7 @@ cdef class NumberFieldElement(FieldElement):
 
         ALGORITHM:
 
-        Uses PARI's rnfisnorm. See self._rnfisnorm().
+        Uses PARI's :pari:`rnfisnorm`. See self._rnfisnorm().
 
         EXAMPLES::
 
@@ -1989,7 +1990,7 @@ cdef class NumberFieldElement(FieldElement):
                 raise ArithmeticError("non-principal ideal in factorization")
         element_fac = [(P.gens_reduced()[0],e) for P,e in fac]
         # Compute the product of the p^e to figure out the unit
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         element_product = prod([p**e for p,e in element_fac], K(1))
         from sage.structure.all import Factorization
         return Factorization(element_fac, unit=self/element_product)
@@ -2630,22 +2631,50 @@ cdef class NumberFieldElement(FieldElement):
         x.__denominator = self.__denominator
         return x
 
+    cpdef _copy_for_parent(self, Parent parent):
+        r"""
+        Return a copy of ``self`` with the parent replaced by ``parent``.
+
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: L.<b> = K.change_names()
+            sage: La = a._copy_for_parent(L)
+            sage: La.parent() is L
+            True
+            sage: La == b
+            True
+        """
+        cdef NumberFieldElement x
+        x = self._new()
+        x.__numerator = self.__numerator
+        x.__denominator = self.__denominator
+        x._set_parent(parent)
+        return x
+
     def __copy__(self):
         r"""
         EXAMPLES::
 
             sage: K.<a> = NumberField(x^3 + 2)
             sage: b = copy(a)
-            sage: b == a
-            True
             sage: b is a
-            False
+            True
         """
-        cdef NumberFieldElement x
-        x = self._new()
-        x.__numerator = self.__numerator
-        x.__denominator = self.__denominator
-        return x
+        # immutable
+        return self
+
+    def __deepcopy__(self, memo):
+        r"""
+        EXAMPLES::
+
+            sage: K.<a> = NumberField(x^3 + 2)
+            sage: b = deepcopy(a)
+            sage: b is a
+            True
+        """
+        # immutable
+        return self
 
     def __int__(self):
         """
@@ -3486,9 +3515,9 @@ cdef class NumberFieldElement(FieldElement):
             sage: t.norm(F)
             3*z^3 + 4*z^2 + 2
         """
-        if K is None or (K in Fields and K.absolute_degree() == 1):
+        if K is None or (K in Fields() and K.absolute_degree() == 1):
             norm = self.__pari__('x').norm()
-            return QQ(norm) if self._parent in Fields else ZZ(norm)
+            return QQ(norm) if self._parent in Fields() else ZZ(norm)
         return self.matrix(K).determinant()
 
     def absolute_norm(self):

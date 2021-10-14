@@ -1,5 +1,5 @@
 """
-Graded Rings of Modular Forms
+Graded rings of modular forms
 
 This module contains functions to find generators for the graded ring of
 modular forms of given level.
@@ -22,7 +22,7 @@ AUTHORS:
 
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.rings.all import Integer, QQ, ZZ
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.verbose import verbose
 from sage.misc.cachefunc import cached_method
 from sage.modular.arithgroup.all import Gamma0, is_CongruenceSubgroup
@@ -236,7 +236,6 @@ class ModularFormsRing(Parent):
             raise ValueError("Base ring (=%s) should be QQ, ZZ or a finite prime field" % base_ring)
 
         self.__group = group
-        self.__base_ring = base_ring
         self.__cached_maxweight = ZZ(-1)
         self.__cached_gens = []
         self.__cached_cusp_maxweight = ZZ(-1)
@@ -266,19 +265,6 @@ class ModularFormsRing(Parent):
             True
         """
         return self.__group
-
-    def base_ring(self):
-        r"""
-        Return the coefficient ring of this modular forms ring.
-
-        EXAMPLES::
-
-            sage: ModularFormsRing(Gamma1(13)).base_ring()
-            Rational Field
-            sage: ModularFormsRing(Gamma1(13), base_ring = ZZ).base_ring()
-            Integer Ring
-        """
-        return self.__base_ring
 
     def gen(self, i):
         r"""

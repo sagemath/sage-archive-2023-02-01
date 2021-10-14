@@ -810,14 +810,10 @@ class Color(object):
             ...
             ZeroDivisionError: float division by zero
 
-            sage: papayawhip / yellow  # py2
+            sage: papayawhip / yellow
             Traceback (most recent call last):
             ...
-            TypeError: float() argument must be a string or a number
-            sage: papayawhip / yellow  # py3
-            Traceback (most recent call last):
-            ...
-            TypeError: float() argument must be a string or a number, not 'Color'
+            TypeError: float() argument must be a string or a... number...
         """
         return self * (1 / float(right))
 
@@ -1232,15 +1228,10 @@ def float_to_html(r, g, b):
 
     TESTS::
 
-        sage: float_to_html((0.2, 0.6, 0.8))  # py2
+        sage: float_to_html((0.2, 0.6, 0.8))
         Traceback (most recent call last):
         ...
-        TypeError: float_to_html() takes exactly 3 arguments (1 given)
-
-        sage: float_to_html((0.2, 0.6, 0.8))  # py3
-        Traceback (most recent call last):
-        ...
-        TypeError: float_to_html() missing 2 required positional arguments: 'g' and 'b'
+        TypeError: ...float_to_html() missing 2 required positional arguments: 'g' and 'b'
     """
     return "#%06x" % float_to_integer(r, g, b)
 
@@ -1278,15 +1269,10 @@ def float_to_integer(r, g, b):
 
     TESTS::
 
-        sage: float_to_integer((0.2, 0.6, 0.8))  # py2
+        sage: float_to_integer((0.2, 0.6, 0.8))
         Traceback (most recent call last):
         ...
-        TypeError: float_to_integer() takes exactly 3 arguments (1 given)
-
-        sage: float_to_integer((0.2, 0.6, 0.8))  # py3
-        Traceback (most recent call last):
-        ...
-        TypeError: float_to_integer() missing 2 required positional arguments: 'g' and 'b'
+        TypeError: ...float_to_integer() missing 2 required positional arguments: 'g' and 'b'
     """
     r, g, b = map(mod_one, (r, g, b))
     return int(r * 255) << 16 | int(g * 255) << 8 | int(b * 255)

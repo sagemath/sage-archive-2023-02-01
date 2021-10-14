@@ -447,10 +447,14 @@ AC_ARG_ENABLE([notebook],
 AC_ARG_ENABLE([r],
   AS_HELP_STRING([--disable-r],
                  [disable build of the R package and related packages]), [
-    for pkg in r rpy2 r_jupyter; do
+    for pkg in r rpy2 r_jupyter pcre; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])
+
+dnl Packages that require a special override to use the SPKG
+dnl when the system package is not usable.
+AS_VAR_SET([sage_use_system_gcc], [force])
 
 SAGE_SPKG_COLLECT()
 

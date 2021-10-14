@@ -33,7 +33,7 @@ import os
 from subprocess import Popen, PIPE
 
 from sage.structure.sage_object import SageObject
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 from sage.interfaces.process import terminate
 
@@ -425,7 +425,7 @@ class Reflexive4dHodge(PALPreader):
 
             sage: from sage.geometry.polyhedron.palp_database import Reflexive4dHodge
             sage: Reflexive4dHodge(1,101)  # optional - polytopes_db_4d
-            <class 'sage.geometry.polyhedron.palp_database.Reflexive4dHodge'>
+            <sage.geometry.polyhedron.palp_database.Reflexive4dHodge object at ...>
         """
         dim = 4
         if data_basename is None:

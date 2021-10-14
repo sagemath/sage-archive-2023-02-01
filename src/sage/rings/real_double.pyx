@@ -87,7 +87,7 @@ def is_RealDoubleField(x):
     """
     return isinstance(x, RealDoubleField_class)
 
-cdef class RealDoubleField_class(Field):
+cdef class RealDoubleField_class(sage.rings.abc.RealDoubleField):
     """
     An approximation to the field of real numbers using double
     precision floating point numbers. Answers derived from calculations
@@ -1199,6 +1199,16 @@ cdef class RealDoubleElement(FieldElement):
 
             sage: r = RDF('-1.6')
             sage: r.__copy__() is r
+            True
+        """
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: r = RDF('-1.6')
+            sage: deepcopy(r) is r
             True
         """
         return self
@@ -2687,7 +2697,7 @@ cdef class RealDoubleElement(FieldElement):
 
         ALGORITHM:
 
-        Uses the PARI C-library ``algdep`` command.
+        Uses the PARI C-library :pari:`algdep` command.
 
         EXAMPLES::
 

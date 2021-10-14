@@ -30,13 +30,29 @@ class EllipticCurveHom(Morphism):
     Base class for elliptic-curve morphisms.
     """
 
-    def _repr_type(self):           # used by Morphism._repr_
+    def _repr_type(self):
+        """
+        Return a textual representation of what kind of morphism
+        this is. Used by :meth:`Morphism._repr_`.
+
+        TESTS::
+
+            sage: from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+            sage: EllipticCurveHom._repr_type(None)
+            'Elliptic-curve'
+        """
         return 'Elliptic-curve'
 
     @staticmethod
     def _composition_impl(left, right):
         """
         Called by :meth:`_composition_`.
+
+        TESTS::
+
+            sage: from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+            sage: EllipticCurveHom._composition_impl(None, None)
+            NotImplemented
         """
         return NotImplemented
 
@@ -64,10 +80,12 @@ class EllipticCurveHom(Morphism):
             raise TypeError(f'cannot compose {type(self)} with {type(other)}')
 
         ret = self._composition_impl(self, other)
-        if ret is not NotImplemented: return ret
+        if ret is not NotImplemented:
+            return ret
 
         ret = other._composition_impl(self, other)
-        if ret is not NotImplemented: return ret
+        if ret is not NotImplemented:
+            return ret
 
         # fall back to generic formal composite map
         return Morphism._composition_(self, other, homset)

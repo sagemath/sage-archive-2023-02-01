@@ -1784,7 +1784,7 @@ def gcd(a, b=None, **kwargs):
     from sage.structure.sequence import Sequence
     seq = Sequence(py_scalar_to_element(el) for el in a)
     if seq.universe() is ZZ:
-        return GCD_list(a)
+        return GCD_list(seq)
     else:
         return __GCD_sequence(seq, **kwargs)
 

@@ -334,7 +334,8 @@ def delsarte_bound_constant_weight_code(n, d, w, return_data=False, solver="PPL"
 
     # minimum distance is even => if there is an odd lower bound on d we can
     # increase it by 1
-    if d%2: d+=1
+    if d%2:
+        d+=1
 
     A, p = _delsarte_cwc_LP_building(n, d, w, solver, isinteger)
     try:
@@ -627,8 +628,6 @@ def delsarte_bound_Q_matrix(q,d,return_data=False, solver="PPL", isinteger=False
     - ``isinteger`` -- if ``True``, uses an integer programming solver
       (ILP), rather that an LP solver. Can be very slow if set to
       ``True``.
-
-      TODO:Add examples
 
    EXAMPLES:
 

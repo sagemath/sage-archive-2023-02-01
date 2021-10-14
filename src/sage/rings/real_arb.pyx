@@ -2549,7 +2549,7 @@ cdef class RealBall(RingElement):
             sage: RBF(sqrt(2)).contains_exact(sqrt(2))
             Traceback (most recent call last):
             ...
-            TypeError: unsupported type: <type 'sage.symbolic.expression.Expression'>
+            TypeError: unsupported type: <class 'sage.symbolic.expression.Expression'>
 
         TESTS::
 

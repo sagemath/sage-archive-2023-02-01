@@ -2928,7 +2928,7 @@ cdef class Matrix(Matrix1):
             sage: M = MatrixSpace(RR, 2)
             sage: A = M(range(2^2))
             sage: type(A)
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
             sage: A.charpoly('x')
             x^2 - 3.00000000000000*x - 2.00000000000000
             sage: A.charpoly('y')
@@ -15230,7 +15230,7 @@ cdef class Matrix(Matrix1):
             [             1/11*(sqrt(33)*e^sqrt(33) - sqrt(33))*e^(-1/2*sqrt(33) + 5/2)  1/22*((sqrt(33) + 11)*e^sqrt(33) - sqrt(33) + 11)*e^(-1/2*sqrt(33) + 5/2)]
 
             sage: type(a.exp())
-            <type 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
+            <class 'sage.matrix.matrix_symbolic_dense.Matrix_symbolic_dense'>
 
             sage: a=matrix([[1/2,2/3],[3/4,4/5]])
             sage: a.exp()

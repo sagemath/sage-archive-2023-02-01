@@ -2132,7 +2132,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2^I
             sage: r = 2 ^ int(-3); r; type(r)
             1/8
-            <type 'sage.rings.rational.Rational'>
+            <class 'sage.rings.rational.Rational'>
             sage: f = 2^(sin(x)-cos(x)); f
             2^(-cos(x) + sin(x))
             sage: f(x=3)
@@ -5948,7 +5948,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: m = n.__pari__(); m
             9390823
             sage: type(m)
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
 
         TESTS::
 
@@ -6187,13 +6187,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         TESTS::
 
             sage: type(5.sqrt())
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
             sage: type(5.sqrt(prec=53))
-            <type 'sage.rings.real_mpfr.RealNumber'>
+            <class 'sage.rings.real_mpfr.RealNumber'>
             sage: type((-5).sqrt(prec=53))
-            <type 'sage.rings.complex_mpfr.ComplexNumber'>
+            <class 'sage.rings.complex_mpfr.ComplexNumber'>
             sage: type(0.sqrt(prec=53))
-            <type 'sage.rings.real_mpfr.RealNumber'>
+            <class 'sage.rings.real_mpfr.RealNumber'>
 
         Check that :trac:`9466` and :trac:`26509` are fixed::
 
@@ -7055,7 +7055,7 @@ def GCD_list(v):
         sage: w = GCD_list([3,9,30]); w
         3
         sage: type(w)
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
     Check that the bug reported in :trac:`3118` has been fixed::
 
@@ -7069,7 +7069,7 @@ def GCD_list(v):
         sage: w = GCD_list([int(3), int(9), '30']); w
         3
         sage: type(w)
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
     Check that the GCD of the empty list is zero (:trac:`17257`)::
 
@@ -7134,11 +7134,11 @@ cdef class int_to_Z(Morphism):
         sage: f(5r)
         5
         sage: type(f(5r))
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
         sage: 1 + 2r
         3
         sage: type(1 + 2r)
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
     This is intended for internal use by the coercion system,
     to facilitate fast expressions mixing ints and more complex

@@ -1194,8 +1194,8 @@ class PlaceSet(UniqueRepresentation, Parent):
 
         EXAMPLES::
 
-            sage: K.<x>=FunctionField(GF(2)); _.<Y>=K[]
-            sage: L.<y>=K.extension(Y^3+x+x^3*Y)
+            sage: K.<x> = FunctionField(GF(2)); _.<Y> = K[]
+            sage: L.<y> = K.extension(Y^3 + x + x^3*Y)
             sage: PS = L.place_set()
             sage: PS.function_field() == L
             True

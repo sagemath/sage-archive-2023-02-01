@@ -37,5 +37,3 @@ applied during the build process.
 
 -  pkg_resources.py.patch: silence warning about permissions.
 
--  easy_install_lock.patch: lock the easy_install.pth file to allow
-   simultaneous installation

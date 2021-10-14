@@ -27,13 +27,3 @@ Dependencies
 ------------
 
 -  python
-
-
-Build Instructions/Changes
---------------------------
-
-The following patches are in the patches subdirectory. The patches are
-applied during the build process.
-
--  pkg_resources.py.patch: silence warning about permissions.
-

@@ -105,11 +105,15 @@ from copy import copy
 from sage.parallel.ncpus import ncpus
 from sage.parallel.use_fork import p_iter_fork
 from sage.dynamics.arithmetic_dynamics.projective_ds_helper import (_fast_possible_periods,_all_periodic_points)
-from sage.sets.set import Set
-from sage.combinat.permutation import Arrangements
-from sage.combinat.subset import Subsets
 from sage.symbolic.ring import SR
 from itertools import count, product
+from .endPN_automorphism_group import (
+    automorphism_group_QQ_CRT,
+    automorphism_group_QQ_fixedpoints,
+    conjugating_set_helper,
+    conjugating_set_initializer,
+    is_conjugate_helper)
+from .endPN_automorphism_group import automorphism_group_FF
 
 
 class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
@@ -3242,7 +3246,13 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         INPUT:
 
-        keywords:
+        The following keywords are used in most cases:
+
+        - ``num_cpus`` -- (default: 2) the number of threads to use. Setting to a
+          larger number can greatly speed up this function.
+
+        The following keywords are used only when the dimension of the domain is 1 and
+        the base ring is the rationals, but ignored in all other cases:
 
         - ``starting_prime`` -- (default: 5) the first prime to use for CRT
 
@@ -3273,14 +3283,14 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         EXAMPLES::
 
-            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: R.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2-y^2, x*y])
             sage: f.automorphism_group(return_functions=True)
             [x, -x]
 
         ::
 
-            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: R.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 + 5*x*y + 5*y^2, 5*x^2 + 5*x*y + y^2])
             sage: f.automorphism_group()
             [
@@ -3290,14 +3300,21 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
+            sage: f = DynamicalSystem([x^3, y^3, z^3])
+            sage: len(f.automorphism_group())
+            24
+
+        ::
+
+            sage: R.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2-2*x*y-2*y^2, -2*x^2-2*x*y+y^2])
             sage: f.automorphism_group(return_functions=True)
             [x, 1/x, -x - 1, -x/(x + 1), (-x - 1)/x, -1/(x + 1)]
 
         ::
 
-            sage: R.<x,y> = ProjectiveSpace(QQ,1)
+            sage: R.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([3*x^2*y - y^3, x^3 - 3*x*y^2])
             sage: lst, label = f.automorphism_group(algorithm='CRT', return_functions=True, iso_type=True)
             sage: sorted(lst), label
@@ -3306,7 +3323,7 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: A.<z> = AffineSpace(QQ,1)
+            sage: A.<z> = AffineSpace(QQ, 1)
             sage: f = DynamicalSystem_affine([1/z^3])
             sage: F = f.homogenize(1)
             sage: F.automorphism_group()
@@ -3317,9 +3334,9 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x**2 + x*z, y**2, z**2])
-            sage: f.automorphism_group() # long time
+            sage: f.automorphism_group()
             [
             [1 0 0]
             [0 1 0]
@@ -3341,10 +3358,11 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
         p = kwds.get('starting_prime', 5)
         return_functions = kwds.get('return_functions', False)
         iso_type = kwds.get('iso_type', False)
+        num_cpus = kwds.get('num_cpus', 2)
         if self.domain().dimension_relative() != 1:
-            return self.conjugating_set(self)
-        if self.base_ring() != QQ  and self.base_ring != ZZ:
-            return self.conjugating_set(self)
+            return self.conjugating_set(self, num_cpus)
+        if self.base_ring() != QQ  and self.base_ring() != ZZ:
+            return self.conjugating_set(self, num_cpus)
         self.normalize_coordinates()
         if (self.degree() == 1) or (self.degree() == 0):
             raise NotImplementedError("Rational function of degree 1 not implemented.")
@@ -3354,7 +3372,6 @@ class DynamicalSystem_projective(SchemeMorphism_polynomial_projective_space,
             F = (f[0].numerator().univariate_polynomial(R))/f[0].denominator().univariate_polynomial(R)
         else:
             F = f[0].univariate_polynomial(R)
-        from .endPN_automorphism_group import automorphism_group_QQ_CRT, automorphism_group_QQ_fixedpoints
         if alg is None:
             if self.degree() <= 12:
                 return automorphism_group_QQ_fixedpoints(F, return_functions, iso_type)
@@ -6861,7 +6878,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         return points[0]
 
-    def conjugating_set(self, other, R=None):
+    def conjugating_set(self, other, R=None, num_cpus=2):
         r"""
         Return the set of elements in PGL over the base ring
         that conjugates one dynamical system to the other.
@@ -6873,8 +6890,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         The optional argument `R` specifies the field of definition
         of the PGL elements. The set is determined
         by taking the fixed points of one map and mapping
-        them to all unique permutations of the fixed points of
-        the other map. If there are not enough fixed points the
+        them to permutations of the fixed points of the other map.
+        As conjugacy preserves the multipliers as a set, fixed points
+        are only maped to fixed points with the same multiplier.
+        If there are not enough fixed points the
         function compares the mapping between rational preimages of
         fixed points and the rational preimages of the preimages of
         fixed points until there are enough points; such that there
@@ -6888,9 +6907,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         ALGORITHM:
 
         Implementing invariant set algorithm from the paper [FMV2014]_.
-        Given that the set of  `n` th preimages of fixed points is
-        invariant under conjugation find all elements of PGL that
-        take one set to another.
+        Uses the set of  `n` th preimages of fixed points, as this set is
+        invariant under conjugation to find all elements of PGL that
+        take one set to another. Additionally, keeps track of multiplier
+        information to reduce the necessary combinatorics.
 
         INPUT:
 
@@ -6898,6 +6918,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
           as this map
 
         - ``R`` -- a field or embedding
+
+        - ``num_cpus`` -- (default: 2) the number of threads to run in parallel.
+          Increasing ``num_cpus`` can potentially greatly speed up this function.
 
         OUTPUT:
 
@@ -6908,11 +6931,13 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         - Original algorithm written by Xander Faber, Michelle Manes,
           Bianca Viray [FMV2014]_.
 
-        - Implemented by Rebecca Lauren Miller, as part of GSOC 2016.
+        - Implemented by Rebecca Lauren Miller as part of GSOC 2016.
+
+        - Algorithmic improvement by Alexander Galarraga as part of GSOC 2021.
 
         EXAMPLES::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: m = matrix(QQbar, 2, 2, [-1, 3, 2, 1])
             sage: g = f.conjugate(m)
@@ -6922,14 +6947,21 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             [ 2  1]
             ]
 
+        Increasing ``num_cpus`` can speed up computation::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ, 3)
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2, w^2])
+            sage: len(f.conjugating_set(f, num_cpus=3))
+            24
+
         ::
 
             sage: K.<w> = QuadraticField(-1)
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: f = DynamicalSystem_projective([x^2 + y^2, x*y])
             sage: m = matrix(K, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
-            sage: sorted(f.conjugating_set(g)) # long time
+            sage: sorted(f.conjugating_set(g))
             [
             [-1 -1]  [1 1]
             [ 2  1], [2 1]
@@ -6938,9 +6970,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         ::
 
             sage: K.<i> = QuadraticField(-1)
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: D8 = DynamicalSystem_projective([y^3, x^3])
-            sage: sorted(D8.conjugating_set(D8)) # long time
+            sage: sorted(D8.conjugating_set(D8))
             [
             [-1  0]  [-i  0]  [ 0 -1]  [ 0 -i]  [0 i]  [0 1]  [i 0]  [1 0]
             [ 0  1], [ 0  1], [ 1  0], [ 1  0], [1 0], [1 0], [0 1], [0 1]
@@ -6948,16 +6980,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: D8 = DynamicalSystem_projective([y^2, x^2])
             sage: D8.conjugating_set(D8)
             Traceback (most recent call last):
             ...
-            ValueError: not enough rational preimages
+            ValueError: no more rational preimages. try extending the base field and trying again.
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(GF(7),1)
+            sage: P.<x,y> = ProjectiveSpace(GF(7), 1)
             sage: D6 = DynamicalSystem_projective([y^2, x^2])
             sage: D6.conjugating_set(D6)
             [
@@ -6967,9 +6999,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([x^2 + x*z, y^2, z^2])
-            sage: f.conjugating_set(f) # long time
+            sage: f.conjugating_set(f)
             [
             [1 0 0]
             [0 1 0]
@@ -6997,7 +7029,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         note that only one possible conjugation is returned::
 
-            sage: P.<x,y,z> = ProjectiveSpace(GF(11),2)
+            sage: P.<x,y,z> = ProjectiveSpace(GF(11), 2)
             sage: f = DynamicalSystem_projective([2*x + 12*y, 11*y+2*z, x+z])
             sage: m1 = matrix(GF(11), 3, 3, [1,4,1,0,2,1,1,1,1])
             sage: g = f.conjugate(m1)
@@ -7024,7 +7056,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         Make sure the caching problem is fixed, see #28070 ::
 
             sage: K.<i> = QuadraticField(-1)
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: m = matrix(QQ, 2, 2, [-1, 3, 2, 1])
             sage: g = f.conjugate(m)
@@ -7098,65 +7130,23 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                                 if f.conjugate(m_emb) == g:
                                     return [m_emb]
                 else: #finite field case
-                    #always comes from prime field so an coerce
+                    #always comes from prime field so can coerce
                     m = matrix(base, M, M, [base(u.as_finite_field_element()[1]) for t in list(m) for u in t])
                     return [m]
             #not similar
             return []
-        # sigma invariants are invariant under conjugacy but are only implemented in dim 1
+        # sigma invariants are invariant under conjugacy but are only fast in dim 1
         n = f.domain().dimension_relative()
         if (n == 1) and (R in NumberFields() or R in FiniteFields())\
             and (f.sigma_invariants(1) != g.sigma_invariants(1)):
             return []
-        L = Set(f.periodic_points(1))
-        K = Set(g.periodic_points(1))
-        if len(L) != len(K):  # checks maps have the same number of fixed points
+        tup = conjugating_set_initializer(f, g)
+        if tup == []:
             return []
-        d = len(L)
-        r = f.domain().base_ring()
-        more = True
-        if d >= n+2: # need at least n+2 points
-            for i in Subsets(range(len(L)), n+2):
-                # make sure all n+1 subsets are linearly independent
-                TL = [L[il] for il in i]
-                Ml = matrix(r, [list(s) for s in TL])
-                if not any(j == 0 for j in Ml.minors(n + 1)):
-                    Tf = list(TL)
-                    more = False
-                    break
-        while more:
-            #  finds preimages of fixed points
-            Tl = [Q for i in L for Q in f.rational_preimages(i)]
-            Tk = [Q for i in K for Q in g.rational_preimages(i)]
-            if len(Tl) != len(Tk):
-                return []
-            L = L.union(Set(Tl))
-            K = K.union(Set(Tk))
-            if d == len(L): # if no new preimages then not enough points
-                raise ValueError("not enough rational preimages")
-            d = len(L)
-            if d >= n + 2: # makes sure all n+1 subsets are linearly independent
-                for i in Subsets(range(len(L)), n+2):
-                    TL = [L[il] for il in i]
-                    Ml = matrix(r, [list(s) for s in TL])
-                    if not any(j == 0 for j in Ml.minors(n + 1)):
-                        more = False
-                        Tf = list(TL)
-                        break
-        Conj = []
-        for i in Arrangements(range(len(K)),(n+2)):
-            TK = [K[ik] for ik in i]
-            # try all possible conjugations between invariant sets
-            try: # need all n+1 subsets linearly independent
-                s = f.domain().point_transformation_matrix(TK,Tf)
-                # finds elements of PGL that maps one map to another
-                if self.conjugate(s) == other:
-                    Conj.append(s)
-            except (ValueError):
-                pass
-        return Conj
+        source, possible_targets = tup
+        return conjugating_set_helper(f, g, num_cpus, source, possible_targets)
 
-    def is_conjugate(self, other, R=None):
+    def is_conjugate(self, other, R=None, num_cpus=2):
         r"""
         Return whether two dynamical systems are conjugate over their
         base ring (by default) or over the ring `R` entered as an
@@ -7165,8 +7155,10 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
         ALGORITHM:
 
         Implementing invariant set algorithm from the paper [FMV2014]_.
-        Given that the set of `n` th preimages is invariant under
-        conjugation this function finds whether two maps are conjugate.
+        Uses the set of  `n` th preimages of fixed points, as this set is
+        invariant under conjugation to find all elements of PGL that
+        take one set to another. Additionally, keeps track of multiplier
+        information to reduce the necessary combinatorics.
 
         INPUT:
 
@@ -7174,6 +7166,9 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
           degree as this map
 
         - ``R`` -- a field or embedding
+
+        - ``num_cpus`` -- (default: 2) the number of threads to run in parallel.
+          Increasing ``num_cpus`` can potentially greatly speed up this function.
 
         OUTPUT: boolean
 
@@ -7184,28 +7179,37 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         - Implemented by Rebecca Lauren Miller as part of GSOC 2016.
 
+        - Algorithmic improvement by Alexander Galarraga as part of GSOC 2021.
+
         EXAMPLES::
 
             sage: K.<w> = CyclotomicField(3)
-            sage: P.<x,y> = ProjectiveSpace(K,1)
+            sage: P.<x,y> = ProjectiveSpace(K, 1)
             sage: D8 = DynamicalSystem_projective([y^2, x^2])
             sage: D8.is_conjugate(D8)
+            True
+
+        We can speed up computation by increasing ``num_cpus``::
+
+            sage: P.<x,y,z,w> = ProjectiveSpace(QQ,3)
+            sage: f = DynamicalSystem_projective([x^2, y^2, z^2, w^2])
+            sage: f.is_conjugate(f, num_cpus=2)
             True
 
         ::
 
             sage: set_verbose(None)
-            sage: P.<x,y> = ProjectiveSpace(QQbar,1)
-            sage: f = DynamicalSystem_projective([x^2 + x*y,y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQbar, 1)
+            sage: f = DynamicalSystem_projective([x^2 + x*y, y^2])
             sage: m = matrix(QQbar, 2, 2, [1, 1, 2, 1])
             sage: g = f.conjugate(m)
-            sage: f.is_conjugate(g) # long time
+            sage: f.is_conjugate(g)
             True
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(GF(5),1)
-            sage: f = DynamicalSystem_projective([x^3 + x*y^2,y^3])
+            sage: P.<x,y> = ProjectiveSpace(GF(5), 1)
+            sage: f = DynamicalSystem_projective([x^3 + x*y^2, y^3])
             sage: m = matrix(GF(5), 2, 2, [1, 3, 2, 9])
             sage: g = f.conjugate(m)
             sage: f.is_conjugate(g)
@@ -7213,15 +7217,15 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
-            sage: f = DynamicalSystem_projective([x^2 + x*y,y^2])
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
+            sage: f = DynamicalSystem_projective([x^2 + x*y, y^2])
             sage: g = DynamicalSystem_projective([x^3 + x^2*y, y^3])
             sage: f.is_conjugate(g)
             False
 
         ::
 
-            sage: P.<x,y> = ProjectiveSpace(QQ,1)
+            sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([x^2 + x*y, y^2])
             sage: g = DynamicalSystem_projective([x^2 - 2*y^2, y^2])
             sage: f.is_conjugate(g)
@@ -7240,7 +7244,7 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
             sage: P.<x,y> = ProjectiveSpace(QQ, 1)
             sage: f = DynamicalSystem_projective([-3*y^2, 3*x^2])
             sage: g = DynamicalSystem_projective([-x^2 - 2*x*y, 2*x*y + y^2])
-            sage: f.is_conjugate(g), f.is_conjugate(g, R=QQbar) # long time
+            sage: f.is_conjugate(g), f.is_conjugate(g, R=QQbar)
             (False, True)
 
         ::
@@ -7263,11 +7267,11 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
 
         ::
 
-            sage: P.<x,y,z> = ProjectiveSpace(QQ,2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: f = DynamicalSystem_projective([2*x^2 + 12*y*x, 11*y*x+2*y^2, x^2+z^2])
             sage: m1 = matrix(QQ, 3, 3, [1,4,1,0,2,1,1,1,1])
             sage: g = f.conjugate(m1)
-            sage: f.is_conjugate(g) # long time
+            sage: f.is_conjugate(g)
             True
 
         TESTS:
@@ -7321,57 +7325,16 @@ class DynamicalSystem_projective_field(DynamicalSystem_projective,
                 # so we can scale to have the determinants equal
                 m1 = (1/det_root)*m1
             return m1.is_similar(m2)
-        # sigma invariants are invariant under conjugacy but are only implemented in dim 1
+        # sigma invariants are invariant under conjugacy but are only fast in dim 1
         n = f.domain().dimension_relative()
         if (n==1) and (R in NumberFields() or R in FiniteFields())\
           and (f.sigma_invariants(1) != g.sigma_invariants(1)):
             return False
-        L = Set(f.periodic_points(1))
-        K = Set(g.periodic_points(1))
-        if len(L) != len(K): # checks maps have the same number of fixed points
+        tup = conjugating_set_initializer(f, g)
+        if tup == []:
             return False
-        d = len(L)
-        r = f.domain().base_ring()
-        more = True
-        if d >= n+2: # need at least n+2 points
-            for i in Subsets(range(len(L)), n+2):
-                # make sure all n+1 subsets are linearly independent
-                TL = [L[il] for il in i]
-                Ml = matrix(r, [list(s) for s in TL])
-                if not any(j == 0 for j in Ml.minors(n + 1)):
-                    Tf = list(TL)
-                    more = False
-                    break
-        while more:
-            # finds preimages of fixed points
-            Tl = [Q for i in L for Q in f.rational_preimages(i)]
-            Tk = [Q for i in K for Q in g.rational_preimages(i)]
-            if len(Tl) != len(Tk):
-                return False
-            L = L.union(Set(Tl))
-            K = K.union(Set(Tk))
-            if d == len(L):# if no new preimages then not enough points
-                raise ValueError("not enough rational preimages")
-            d = len(L)
-            if d >= n + 2: # makes sure all n+1 subsets are linearly independent
-                for i in Subsets(range(len(L)), n+2):
-                    TL = [L[il] for il in i]
-                    Ml = matrix(r, [list(s) for s in TL])
-                    if not any(j == 0 for j in Ml.minors(n + 1)):
-                        more = False
-                        Tf = list(TL)
-                        break
-        for i in Arrangements(range(len(K)),(n+2)):
-            TK = [K[ik] for ik in i]
-            # try all possible conjugations between invariant sets
-            try: # need all n+1 subsets linearly independent
-                s = f.domain().point_transformation_matrix(TK,Tf)
-                # finds elements of PGL that maps one map to another
-                if self.conjugate(s) == other:
-                    return True
-            except (ValueError):
-                pass
-        return False
+        source, possible_targets = tup
+        return is_conjugate_helper(f, g, num_cpus, source, possible_targets)
 
     def is_polynomial(self):
         r"""
@@ -8299,16 +8262,27 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
         """
         return _fast_possible_periods(self, return_points)
 
-    def automorphism_group(self, absolute=False, iso_type=False, return_functions=False):
+    def automorphism_group(self, **kwds):
         r"""
         Return the subgroup of `PGL2` that is the automorphism group of this
         dynamical system.
 
-        Only for dimension 1. The automorphism group is the set of `PGL2`
-        elements that fixed the map under conjugation. See [FMV2014]_
-        for the algorithm.
+        The automorphism group is the set of `PGL2` elements that fixed the map under conjugation.
+
+        For dimension 1, see [FMV2014]_ for the algorithm.
+
+        For dimension greater than 1, we compute the conjugating set of this
+        dynamical system with itself.
 
         INPUT:
+
+        The following keywords are used when the dimension of the domain
+        is greater than 1:
+
+        - ``num_cpus`` -- (default: 2) the number of threads to use. Setting to a
+          larger number can greatly speed up this function.
+
+        The following keywords are used when the dimension of the domain is 1:
 
         - ``absolute``-- (default: ``False``) boolean; if ``True``, then
           return the absolute automorphism group and a field of definition
@@ -8388,9 +8362,20 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
              [1 0]
              [0 1]
              ]]
+
+        ::
+
+            sage: R.<x,y,z> = ProjectiveSpace(GF(5), 2)
+            sage: f = DynamicalSystem_projective([x^3 + x*z^2, y^3 + y*z^2, z^3])
+            sage: all([f.conjugate(m) == f for m in f.automorphism_group()])
+            True
         """
+        absolute = kwds.get('absolute', False)
+        iso_type = kwds.get('iso_type', False)
+        return_functions = kwds.get('return_functions', False)
+        num_cpus = kwds.get('num_cpus', 2)
         if self.domain().dimension_relative() != 1:
-            raise NotImplementedError("must be dimension 1")
+            return self.conjugating_set(self, num_cpus)
         else:
             f = self.dehomogenize(1)
             z = f[0].parent().gen()
@@ -8401,7 +8386,6 @@ class DynamicalSystem_projective_finite_field(DynamicalSystem_projective_field,
             F = f[0].numerator().polynomial(z) / f[0].denominator().polynomial(z)
         else:
             F = f[0].numerator().polynomial(z)
-        from .endPN_automorphism_group import automorphism_group_FF
         return automorphism_group_FF(F, absolute, iso_type, return_functions)
 
     def all_periodic_points(self, **kwds):

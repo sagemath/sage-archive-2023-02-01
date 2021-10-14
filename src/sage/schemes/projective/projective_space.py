@@ -1728,7 +1728,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
 
         EXAMPLES::
 
-            sage: P.<x,y,z> = ProjectiveSpace(ZZ, 2)
+            sage: P.<x,y,z> = ProjectiveSpace(QQ, 2)
             sage: points = [P((1, 0, 1)), P((1, 2, 1)), P((1, 3, 4))]
             sage: P.is_linearly_independent(points)
             True

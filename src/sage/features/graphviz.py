@@ -11,7 +11,7 @@ Check for graphviz
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from . import Feature, Executable, FeatureTestResult
+from . import Executable
 from .join_feature import JoinFeature
 
 

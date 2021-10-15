@@ -35,10 +35,6 @@ if os.uname().sysname == 'Darwin':
     multiprocessing.set_start_method('fork', force=True)
 Array = multiprocessing.Array
 
-import urllib.error
-from urllib.request import Request, urlopen
-from ssl import SSLContext
-
 # Functions in this module whose name is of the form 'has_xxx' tests if the
 # software xxx is available to Sage.
 prefix = 'has_'

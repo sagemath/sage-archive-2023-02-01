@@ -2,7 +2,7 @@
 r"""
 Check for LattE
 """
-from . import Executable, Feature, FeatureTestResult
+from . import Executable
 from .join_feature import JoinFeature
 
 

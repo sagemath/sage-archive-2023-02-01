@@ -1022,7 +1022,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(22/7)._sage_input_(sib, False)
             {call: {atomic:RDF}({atomic:3.1428571428571428})}
         """
-        cdef int isinf = libc.math.isinf(self._value)
+        cdef bint isinf = libc.math.isinf(self._value)
         cdef bint isnan = libc.math.isnan(self._value)
         if isinf or isnan:
             if isnan:
@@ -1030,7 +1030,7 @@ cdef class RealDoubleElement(FieldElement):
             else:
                 v = sib.name('infinity')
             v = sib(self.parent())(v)
-            if isinf < 0:
+            if self._value < 0:
                 v = -v
             return v
 
@@ -1688,7 +1688,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a.is_NaN()
             True
         """
-        return libc.math.isnan(self._value)
+        return bool(libc.math.isnan(self._value))
 
     def is_positive_infinity(self):
         r"""
@@ -1703,7 +1703,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: a.is_positive_infinity()
             False
         """
-        return libc.math.isinf(self._value) > 0
+        if not libc.math.isinf(self._value):
+            return False
+        return self._value > 0
 
     def is_negative_infinity(self):
         r"""
@@ -1718,7 +1720,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: a.is_negative_infinity()
             True
         """
-        return libc.math.isinf(self._value) < 0
+        if not libc.math.isinf(self._value):
+            return False
+        return self._value < 0
 
     def is_infinity(self):
         r"""
@@ -1732,7 +1736,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: (b/a).is_infinity()
             False
         """
-        return libc.math.isinf(self._value)
+        return bool(libc.math.isinf(self._value))
 
     cpdef _richcmp_(left, right, int op):
         """
@@ -2927,9 +2931,9 @@ cdef double_repr(double x):
     """
     if libc.math.isfinite(x):
         return repr(x)
-    cdef int v = libc.math.isinf(x)
-    if v > 0:
-        return "+infinity"
-    if v < 0:
-        return "-infinity"
+    if libc.math.isinf(x):
+        if x > 0:
+            return "+infinity"
+        if x < 0:
+            return "-infinity"
     return "NaN"

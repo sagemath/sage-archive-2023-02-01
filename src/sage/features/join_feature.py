@@ -57,7 +57,7 @@ class JoinFeature(Feature):
 
             sage: from sage.features.latte import Latte
             sage: Latte()._is_present()  # optional - latte_int
-            FeatureTestResult('LattE', True)
+            FeatureTestResult('latte_int', True)
         """
         for f in self._features:
             test = f._is_present()
@@ -73,7 +73,7 @@ class JoinFeature(Feature):
 
             sage: from sage.features.latte import Latte
             sage: Latte().is_functional()  # optional - latte_int
-            FeatureTestResult('LattE', True)
+            FeatureTestResult('latte_int', True)
         """
         for f in self._features:
             test = f.is_functional()

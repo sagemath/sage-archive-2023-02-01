@@ -281,7 +281,7 @@ Classes and functions
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-
+from collections import defaultdict
 from copy import copy, deepcopy
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -2011,7 +2011,6 @@ class FinitePoset(UniqueRepresentation, Parent):
             sage: P.plot()
             Graphics object consisting of 0 graphics primitives
         """
-        from collections import defaultdict
         graph = self.hasse_diagram()
 
         rename = {'element_color': 'vertex_color',
@@ -5693,7 +5692,7 @@ class FinitePoset(UniqueRepresentation, Parent):
             True
         """
         # P might be defaultdict, hence the test
-        if isinstance(P, dict):
+        if isinstance(P, dict) and not isinstance(P, defaultdict):
             if set(P) != set(self):
                 raise ValueError("keys of dict P does not match to elements of the poset")
 

@@ -3637,8 +3637,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         And a nice big example::
 
             sage: K.<x> = QQ[]
-            sage: p = K.random_element(3); p
-            -12*x^3 + 1/2*x^2 - 1/95*x - 1/2
+            sage: p = K(-12*x^3 + 1/2*x^2 - 1/95*x - 1/2)
             sage: rts = p.roots(ring=QQbar, multiplicities=False); rts
             [-0.3325236940280402?, 0.1870951803473535? - 0.3004991638609601?*I, 0.1870951803473535? + 0.3004991638609601?*I]
             sage: sage_input(rts, verify=True)
@@ -5592,7 +5591,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             return 2
         else:
             return infinity.infinity
-    
+
     def sign(self):
         """
         Compute the sign of this algebraic number (return -1 if negative,
@@ -5743,7 +5742,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         # Sigh...
         self.exactify()
         return self.sign()
-    
+
     def _interval_fast(self, prec):
         r"""
         Compute an approximation to this ``AlgebraicReal`` object in a real interval field of precision prec.
@@ -7699,7 +7698,7 @@ class ANExtensionElement(ANDescr):
         # for instance, the .exactify() call will try to factor poly,
         # even though we know that poly is irreducible
         poly = self.minpoly()
-        intv = isolating_interval(lambda prec: n._interval_fast(prec), poly)
+        intv = isolating_interval(n._interval_fast, poly)
         new_v = QQbar.polynomial_root(poly, intv)
         new_v.exactify()
         return new_v._descr

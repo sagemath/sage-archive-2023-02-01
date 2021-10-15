@@ -25,13 +25,14 @@ AUTHORS:
 
 from sage.structure.element import Element
 from sage.misc.cachefunc import cached_method
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.features import PythonModule
 from sage.misc.lazy_import import lazy_import
 lazy_import('PyNormaliz', ['NmzResult', 'NmzCompute', 'NmzCone', 'NmzConeCopy'],
                     feature=PythonModule("PyNormaliz", spkg="pynormaliz"))
 
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.arith.functions import LCM_list
 from sage.misc.functional import denominator
 from sage.matrix.constructor import vector
@@ -317,17 +318,13 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: from sage.geometry.polyhedron.backend_normaliz import Polyhedron_normaliz as Pn
             sage: Pn._convert_to_pynormaliz(17)
             17
-            sage: Pn._convert_to_pynormaliz(901824309821093821093812093810928309183091832091)     # py2
-            901824309821093821093812093810928309183091832091L
-            sage: Pn._convert_to_pynormaliz(901824309821093821093812093810928309183091832091)     # py3
+            sage: Pn._convert_to_pynormaliz(901824309821093821093812093810928309183091832091)
             901824309821093821093812093810928309183091832091
             sage: Pn._convert_to_pynormaliz(QQ(17))
             17
             sage: Pn._convert_to_pynormaliz(28/5)
             [[28, 5]]
-            sage: Pn._convert_to_pynormaliz(28901824309821093821093812093810928309183091832091/5234573685674784567853456543456456786543456765) # py2
-            [[28901824309821093821093812093810928309183091832091L, 5234573685674784567853456543456456786543456765L]]
-            sage: Pn._convert_to_pynormaliz(28901824309821093821093812093810928309183091832091/5234573685674784567853456543456456786543456765) # py3
+            sage: Pn._convert_to_pynormaliz(28901824309821093821093812093810928309183091832091/5234573685674784567853456543456456786543456765)
             [[28901824309821093821093812093810928309183091832091, 5234573685674784567853456543456456786543456765]]
             sage: Pn._convert_to_pynormaliz(7 + sqrt2)
             [[7, 1], [1, 1]]
@@ -955,7 +952,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             A 3-dimensional polyhedron in AA^3 defined as the convex hull of 1 vertex and 3 rays
         """
         from sage.categories.number_fields import NumberFields
-        from sage.rings.all import RDF
+        from sage.rings.real_double import RDF
 
         if self.base_ring() in (QQ, ZZ):
             normaliz_field = QQ
@@ -965,7 +962,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             # iterators:
             data_lists = [tuple(_) for _ in data_lists]
             nmz_data_lists = convert_NF(*data_lists)
-            if self.base_ring() in NumberFields:
+            if self.base_ring() in NumberFields():
                 if not RDF.has_coerce_map_from(self.base_ring()):
                     raise ValueError("invalid base ring: {} is a number field that is not real embedded".format(self.base_ring()))
                 normaliz_field = self.base_ring()
@@ -1113,9 +1110,7 @@ class Polyhedron_normaliz(Polyhedron_base):
             sage: data = {'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]]}  # optional - pynormaliz
             sage: nmz_cone = Polyhedron_normaliz._make_normaliz_cone(data,verbose=False)       # optional - pynormaliz
             sage: from PyNormaliz import NmzResult                                             # optional - pynormaliz
-            sage: NmzResult(nmz_cone, "ExtremeRays")                                           # py2 # optional - pynormaliz
-            [[1L, 2L, 0L], [2L, 1L, 0L]]
-            sage: NmzResult(nmz_cone, "ExtremeRays")                                           # py3 # optional - pynormaliz
+            sage: NmzResult(nmz_cone, "ExtremeRays")                                           # optional - pynormaliz
             [[1, 2, 0], [2, 1, 0]]
         """
         if verbose:
@@ -1143,13 +1138,7 @@ class Polyhedron_normaliz(Polyhedron_base):
         Another simple example::
 
             sage: C = Polyhedron(backend='normaliz', rays=[[1, 2], [2, 1]])        # optional - pynormaliz
-            sage: C._get_nmzcone_data()                                            # py2 # optional - pynormaliz
-            {'cone': [[1L, 2L], [2L, 1L]],
-             'inhom_equations': [],
-             'inhom_inequalities': [[-1L, 2L, 0L], [0L, 0L, 1L], [2L, -1L, 0L]],
-             'subspace': [],
-             'vertices': [[0L, 0L, 1L]]}
-            sage: C._get_nmzcone_data()                                            # py3 # optional - pynormaliz
+            sage: C._get_nmzcone_data()                                            # optional - pynormaliz
             {'cone': [[1, 2], [2, 1]],
              'inhom_equations': [],
              'inhom_inequalities': [[-1, 2, 0], [0, 0, 1], [2, -1, 0]],

@@ -251,7 +251,7 @@ in max(60, 120 * 0.05) = 60 seconds::
     sage: os.kill(pid, signal.SIGQUIT) # long time; 65 seconds passed => dead
     Traceback (most recent call last):
     ...
-    OSError: ...
+    ProcessLookupError: ...
 
 Test a doctest failing with ``abort()``::
 
@@ -327,7 +327,7 @@ Test that ``sig_on_count`` is checked correctly::
 Test logfiles in serial and parallel mode (see :trac:`19271`)::
 
     sage: t = tmp_filename()
-    sage: subprocess.call(["sage", "-t", "--serial", "--warn-long", "0", "--random-seed=0", "simple_failure.rst", "--logfile", t], stdout=open(os.devnull, "w"), **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--serial", "--warn-long", "0", "--random-seed=0", "--logfile", t, "simple_failure.rst"], stdout=open(os.devnull, "w"), **kwds)  # long time
     1
     sage: print(open(t).read())  # long time
     Running doctests...
@@ -350,7 +350,7 @@ Test logfiles in serial and parallel mode (see :trac:`19271`)::
     ----------------------------------------------------------------------
     ...
 
-    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--random-seed=0", "simple_failure.rst", "--logfile", t], stdout=open(os.devnull, "w"), **kwds)  # long time
+    sage: subprocess.call(["sage", "-t", "--warn-long", "0", "--random-seed=0", "--logfile", t, "simple_failure.rst"], stdout=open(os.devnull, "w"), **kwds)  # long time
     1
     sage: print(open(t).read())  # long time
     Running doctests...

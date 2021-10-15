@@ -123,17 +123,6 @@ class FakeExpression(object):
         """
         return fast_callable(self, etb)
 
-    def _fast_float_(self, *vars):
-        """
-        EXAMPLES::
-
-            sage: from sage.symbolic.expression_conversions import FakeExpression
-            sage: import operator; x,y = var('x,y')
-            sage: f = FakeExpression([x, y], operator.truediv)
-            sage: fast_float(f, 'x', 'y').op_list()
-            [('load_arg', 0), ('load_arg', 1), 'div', 'return']
-        """
-        return fast_float(self, *vars)
 
 class Converter(object):
     def __init__(self, use_fake_div=False):
@@ -691,6 +680,13 @@ class SympyConverter(Converter):
 
     """
     def __init__(self):
+        """
+        TESTS::
+
+            sage: from sage.symbolic.expression_conversions import SympyConverter
+            sage: s = SympyConverter()  # indirect doctest
+            sage: TestSuite(s).run(skip="_test_pickling")
+        """
         from sage.interfaces.sympy import sympy_init
         sympy_init()
 
@@ -969,7 +965,7 @@ class FriCASConverter(InterfaceInit):
         super(FriCASConverter, self).__init__(sage.interfaces.fricas.fricas)
 
     def pyobject(self, ex, obj):
-        """
+        r"""
         Return a string which, when evaluated by FriCAS, returns the
         object as an expression.
 
@@ -1688,213 +1684,6 @@ def laurent_polynomial(ex, base_ring=None, ring=None):
     return converter.ring(res)
 
 
-##############
-# Fast Float #
-##############
-
-class FastFloatConverter(Converter):
-    def __init__(self, ex, *vars):
-        """
-        Returns an object which provides fast floating point
-        evaluation of the symbolic expression *ex*.  This is an class
-        used internally and is not meant to be used directly.
-
-        See :mod:`sage.ext.fast_eval` for more information.
-
-        EXAMPLES::
-
-            sage: x,y,z = var('x,y,z')
-            sage: f = 1 + sin(x)/x + sqrt(z^2+y^2)/cosh(x)
-            sage: ff = f._fast_float_('x', 'y', 'z')
-            sage: f(x=1.0,y=2.0,z=3.0).n()
-            4.1780638977...
-            sage: ff(1.0,2.0,3.0)
-            4.1780638977...
-
-        Using ``_fast_float_`` without specifying the variable names is
-        no longer possible::
-
-            sage: f = x._fast_float_()
-            Traceback (most recent call last):
-            ...
-            ValueError: please specify the variable names
-
-        Using ``_fast_float_`` on a function which is the identity is
-        now supported (see :trac:`10246`)::
-
-            sage: f = symbolic_expression(x).function(x)
-            sage: f._fast_float_(x)
-            <sage.ext.fast_eval.FastDoubleFunc object at ...>
-            sage: f(22)
-            22
-        """
-        self.ex = ex
-
-        if not vars:
-            try:
-                vars = ex.arguments()
-            except AttributeError:
-                vars = ex.variables()
-
-            if vars:
-                raise ValueError('please specify the variable names')
-
-        self.vars = vars
-
-        import sage.ext.fast_eval as fast_float
-        self.ff = fast_float
-
-        Converter.__init__(self, use_fake_div=True)
-
-    def relation(self, ex, operator):
-        """
-        EXAMPLES::
-
-            sage: ff = fast_float(x == 2, 'x')
-            sage: ff(2)
-            0.0
-            sage: ff(4)
-            2.0
-            sage: ff = fast_float(x < 2, 'x')
-            Traceback (most recent call last):
-            ...
-            NotImplementedError
-        """
-        if operator is not _operator.eq:
-            raise NotImplementedError
-        return self(ex.lhs() - ex.rhs())
-
-    def pyobject(self, ex, obj):
-        """
-        EXAMPLES::
-
-            sage: f = SR(2)._fast_float_()
-            sage: f(3)
-            2.0
-        """
-        try:
-            return obj._fast_float_(*self.vars)
-        except AttributeError:
-            return self.ff.fast_float_constant(float(obj))
-
-    def symbol(self, ex):
-        r"""
-        EXAMPLES::
-
-            sage: f = x._fast_float_('x', 'y')
-            sage: f(1,2)
-            1.0
-            sage: f = x._fast_float_('y', 'x')
-            sage: f(1,2)
-            2.0
-        """
-        if self.vars == ():
-            return self.ff.fast_float_arg(0)
-
-        vars = list(self.vars)
-        name = repr(ex)
-        if name in vars:
-            return self.ff.fast_float_arg(vars.index(name))
-        svars = [repr(x) for x in vars]
-        if name in svars:
-            return self.ff.fast_float_arg(svars.index(name))
-
-        if ex.is_symbol(): # case of callable function which is the variable, like f(x)=x
-            name = repr(SR(ex)) # this gets back just the 'output' of the function
-            if name in svars:
-                return self.ff.fast_float_arg(svars.index(name))
-
-        try:
-            return self.ff.fast_float_constant(float(ex))
-        except TypeError:
-            raise NotImplementedError("free variable: %s" % repr(ex))
-
-    def arithmetic(self, ex, operator):
-        """
-        EXAMPLES::
-
-            sage: x,y = var('x,y')
-            sage: f = x*x-y
-            sage: ff = f._fast_float_('x','y')
-            sage: ff(2,3)
-            1.0
-
-            sage: a = x + 2*y
-            sage: f = a._fast_float_('x', 'y')
-            sage: f(1,0)
-            1.0
-            sage: f(0,1)
-            2.0
-
-            sage: f = sqrt(x)._fast_float_('x'); f.op_list()
-            ['load 0', 'call sqrt(1)']
-
-            sage: f = (1/2*x)._fast_float_('x'); f.op_list()
-            ['load 0', 'push 0.5', 'mul']
-        """
-        operands = ex.operands()
-        if operator is _operator.neg:
-            return operator(self(operands[0]))
-
-        from sage.rings.all import Rational
-        if operator is _operator.pow and operands[1] == Rational(((1,2))):
-            from sage.functions.all import sqrt
-            return sqrt(self(operands[0]))
-        fops = map(self, operands)
-        if operator == add_vararg:
-            operator = _operator.add
-        elif operator == mul_vararg:
-            operator = _operator.mul
-        return reduce(operator, fops)
-
-    def composition(self, ex, operator):
-        """
-        EXAMPLES::
-
-            sage: f = sqrt(x)._fast_float_('x')
-            sage: f(2)
-            1.41421356237309...
-            sage: y = var('y')
-            sage: f = sqrt(x+y)._fast_float_('x', 'y')
-            sage: f(1,1)
-            1.41421356237309...
-
-        ::
-
-            sage: f = sqrt(x+2*y)._fast_float_('x', 'y')
-            sage: f(2,0)
-            1.41421356237309...
-            sage: f(0,1)
-            1.41421356237309...
-        """
-        f = operator
-        g = [self(_) for _ in ex.operands()]
-        try:
-            return f(*g)
-        except TypeError:
-            from sage.functions.other import abs_symbolic
-            if f is abs_symbolic:
-                return abs(*g) # special case
-            else:
-                return self.ff.fast_float_func(f, *g)
-
-def fast_float(ex, *vars):
-    """
-    Returns an object which provides fast floating point evaluation of
-    the symbolic expression *ex*.
-
-    See :mod:`sage.ext.fast_eval` for more information.
-
-    EXAMPLES::
-
-        sage: from sage.symbolic.expression_conversions import fast_float
-        sage: f = sqrt(x+1)
-        sage: ff = fast_float(f, 'x')
-        sage: ff(1.0)
-        1.4142135623730951
-    """
-    return FastFloatConverter(ex, *vars)()
-
 #################
 # Fast Callable #
 #################
@@ -2023,7 +1812,7 @@ class FastCallableConverter(Converter):
             sage: z._fast_callable_(etb)
             Traceback (most recent call last):
             ...
-            ValueError: Variable 'z' not found
+            ValueError: Variable 'z' not found...
         """
         return self.etb.var(SR(ex))
 
@@ -2306,7 +2095,7 @@ class ExpressionTreeWalker(Converter):
         return ex.operands()
 
 class SubstituteFunction(ExpressionTreeWalker):
-    def __init__(self, ex, original, new):
+    def __init__(self, ex, *args):
         """
         A class that walks the tree and replaces occurrences of a
         function with another.
@@ -2315,12 +2104,24 @@ class SubstituteFunction(ExpressionTreeWalker):
 
             sage: from sage.symbolic.expression_conversions import SubstituteFunction
             sage: foo = function('foo'); bar = function('bar')
+            sage: s = SubstituteFunction(foo(x), {foo: bar})
+            sage: s(1/foo(foo(x)) + foo(2))
+            1/bar(bar(x)) + bar(2)
+
+        TESTS::
+
+        Check that the old syntax still works::
+
             sage: s = SubstituteFunction(foo(x), foo, bar)
             sage: s(1/foo(foo(x)) + foo(2))
             1/bar(bar(x)) + bar(2)
         """
-        self.original = original
-        self.new = new
+        if len(args) == 2:
+            self.substitutions = {args[0]: args[1]}
+        elif len(args) == 1:
+            self.substitutions = args[0]
+        else:
+            raise TypeError('SubstituteFunction takes either one or two arguments.')
         self.ex = ex
 
     def composition(self, ex, operator):
@@ -2329,7 +2130,7 @@ class SubstituteFunction(ExpressionTreeWalker):
 
             sage: from sage.symbolic.expression_conversions import SubstituteFunction
             sage: foo = function('foo'); bar = function('bar')
-            sage: s = SubstituteFunction(foo(x), foo, bar)
+            sage: s = SubstituteFunction(foo(x), {foo: bar})
             sage: f = foo(x)
             sage: s.composition(f, f.operator())
             bar(x)
@@ -2343,8 +2144,9 @@ class SubstituteFunction(ExpressionTreeWalker):
             sage: s.composition(f, f.operator())
             bar(sin(x))
         """
-        if operator == self.original:
-            return self.new(*[self(_) for _ in ex.operands()])
+        new = self.substitutions.get(operator)
+        if new is not None:
+            return new(*[self(_) for _ in ex.operands()])
         else:
             return super(SubstituteFunction, self).composition(ex, operator)
 
@@ -2354,7 +2156,7 @@ class SubstituteFunction(ExpressionTreeWalker):
 
             sage: from sage.symbolic.expression_conversions import SubstituteFunction
             sage: foo = function('foo'); bar = function('bar')
-            sage: s = SubstituteFunction(foo(x), foo, bar)
+            sage: s = SubstituteFunction(foo(x), {foo: bar})
             sage: f = foo(x).diff(x)
             sage: s.derivative(f, f.operator())
             diff(bar(x), x)
@@ -2366,14 +2168,142 @@ class SubstituteFunction(ExpressionTreeWalker):
 
             sage: f = function('f')
             sage: g = function('g')
-            sage: f(g(x)).diff(x).substitute_function(g, sin)
+            sage: f(g(x)).diff(x).substitute_function({g: sin})
             cos(x)*D[0](f)(sin(x))
 
         """
-        if operator.function() == self.original:
-            return operator.change_function(self.new)(*[self(_) for _ in ex.operands()])
+        new = self.substitutions.get(operator.function())
+        if new is not None:
+            return operator.change_function(new)(*[self(_) for _ in ex.operands()])
         else:
             return operator(*[self(_) for _ in ex.operands()])
+
+class Exponentialize(ExpressionTreeWalker):
+    # Implementation note: this code is executed once at first
+    # reference in the code using it, therefore avoiding rebuilding
+    # the same canned results dictionary at each call.
+    from sage.functions.hyperbolic import sinh, cosh, sech, csch, tanh, coth
+    from sage.functions.log import exp
+    from sage.functions.trig import sin, cos, sec, csc, tan, cot
+    from sage.rings.imaginary_unit import I
+    from sage.symbolic.constants import e
+    from sage.rings.integer import Integer
+    from sage.symbolic.ring import SR
+    from sage.calculus.var import function
+    half = Integer(1) / Integer(2)
+    two = Integer(2)
+    x = SR.var("x")
+    CircDict = {
+        sin: (-half*I*exp(I*x) + half*I*exp(-I*x)).function(x),
+        cos: (half*exp(I*x) + half*exp(-I*x)).function(x),
+        sec: (two/(exp(I*x) + exp(-I*x))).function(x),
+        csc: (two*I/(exp(I*x) - exp(-I*x))).function(x),
+        tan: (-I*(exp(I*x) - exp(-I*x))/(exp(I*x) + exp(-I*x))).function(x),
+        cot: (I*(exp(I*x) + exp(-I*x))/(exp(I*x) - exp(-I*x))).function(x),
+        sinh: (-half*exp(-x) + half*exp(x)).function(x),
+        cosh: (half*exp(-x) + half*exp(x)).function(x),
+        sech: (two/(exp(-x) + exp(x))).function(x),
+        csch: (-two/(exp(-x) - exp(x))).function(x),
+        tanh: (-(exp(-x) - exp(x))/(exp(x) + exp(-x))).function(x),
+        coth: (-(exp(-x) + exp(x))/(exp(-x) - exp(x))).function(x)
+    }
+    Circs = list(CircDict.keys())
+
+    def __init__(self, ex):
+        """
+        A class that walks a symbolic expression tree and replace circular
+        and hyperbolic functions by their respective exponential
+        expressions.
+
+        EXAMPLES::
+        
+            sage: from sage.symbolic.expression_conversions import Exponentialize
+            sage: d=Exponentialize(sin(x))
+            sage: d(sin(x))
+            -1/2*I*e^(I*x) + 1/2*I*e^(-I*x)
+            sage: d(cosh(x))
+            1/2*e^(-x) + 1/2*e^x
+        """
+        self.ex = ex
+
+    def composition(self, ex, op):
+        r"""
+        Return the composition of ``self`` with ``ex`` by ``op``.
+
+        EXAMPLES::
+
+            sage: x = SR.var("x")
+            sage: from sage.symbolic.expression_conversions import Exponentialize
+            sage: p = x
+            sage: s = Exponentialize(p)
+            sage: q = sin(x)
+            sage: s.composition(q, q.operator())
+            -1/2*I*e^(I*x) + 1/2*I*e^(-I*x)
+        """
+        if op in self.Circs:
+            return self.CircDict.get(op)(*[self(oper)
+                                           for oper in ex.operands()])
+        return super(Exponentialize, self).composition(ex, op)
+
+class DeMoivre(ExpressionTreeWalker):
+    def __init__(self, ex, force=False):
+        r"""
+        A class that walks a symbolic expression tree and replaces
+        occurences of complex exponentials (optionally, all
+        exponentials) by their respective trigonometric expressions.
+
+        INPUT:
+
+        - ``force`` -- boolean (default: ``False``); replace `\exp(x)`
+          with `\cosh(x) + \sinh(x)`
+
+        EXAMPLES::
+
+            sage: a, b = SR.var("a, b")
+            sage: from sage.symbolic.expression_conversions import DeMoivre
+            sage: d=DeMoivre(e^a)
+            sage: d(e^(a+I*b))
+            (cos(b) + I*sin(b))*e^a
+        """
+        self.ex = ex
+        self.force = force
+    
+    def composition(self, ex, op):
+        """
+        Return the composition of ``self`` with ``ex`` by ``op``.
+
+        EXAMPLES::
+
+            sage: x, a, b = SR.var('x, a, b')
+            sage: from sage.symbolic.expression_conversions import DeMoivre
+            sage: p = exp(x)
+            sage: s = DeMoivre(p)
+            sage: q = exp(a+I*b)
+            sage: s.composition(q, q.operator())
+            (cos(b) + I*sin(b))*e^a
+        """
+        from sage.functions.log import exp
+        if op is not exp:
+            # return super(DeMoivre, self).composition(ex, op)
+            return op(*[self(oper) for oper in ex.operands()])
+
+        from sage.rings.imaginary_unit import I
+        from sage.symbolic.ring import SR
+        from sage.functions.hyperbolic import sinh, cosh
+        from sage.functions.trig import sin, cos
+        arg = self(ex.operands()[0])()
+        w0, w1 = (SR.wild(u) for u in range(2))
+        D = arg.match(w0 + I*w1)
+        if D is not None:
+            A = D.get(w1)
+            return exp(D.get(w0))*(cos(A) + I*sin(A))
+        D = arg.match(I*w0)
+        if D is not None:
+            A = D.get(w0)
+            return cos(A) + I*sin(A)
+        if self.force:
+            return cosh(arg) + sinh(arg)
+        return exp(arg)
 
 class HoldRemover(ExpressionTreeWalker):
     def __init__(self, ex, exclude=None):

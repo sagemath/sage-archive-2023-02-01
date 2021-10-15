@@ -1148,6 +1148,13 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
             True
             sage: P(1/2) in ZZ
             False
+
+        Check that :trac:`24209` is fixed::
+
+            sage: I in QQbar
+            True
+            sage: sqrt(-1) in QQbar
+            True
         """
         P = parent(x)
         if P is self or P == self:
@@ -1326,7 +1333,7 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         from sage.categories.homset import Hom
         return Hom(self, codomain, category)
 
-    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None):
+    def hom(self, im_gens, codomain=None, check=None, base_map=None, category=None, **kwds):
         r"""
         Return the unique homomorphism from self to codomain that
         sends ``self.gens()`` to the entries of ``im_gens``.
@@ -1410,7 +1417,6 @@ cdef class Parent(sage.structure.category_object.CategoryObject):
         if isinstance(im_gens, Sequence_generic):
             im_gens = list(im_gens)
         # Not all homsets accept category/check/base_map as arguments
-        kwds = {}
         if check is not None:
             kwds['check'] = check
         if base_map is not None:

@@ -186,7 +186,7 @@ cdef inline linbox_echelonize(celement modulus, celement* entries, Py_ssize_t nr
     cdef size_t* Q = <size_t*>check_allocarray(ncols, sizeof(size_t))
 
     cdef Py_ssize_t r
-    cpdef size_t nbthreads
+    cdef size_t nbthreads
     nbthreads = Parallelism().get('linbox')
     cdef bool transform = False
     if nrows*ncols > 1000: sig_on()
@@ -254,8 +254,8 @@ cdef inline int linbox_rank(celement modulus, celement* entries, Py_ssize_t nrow
 
     cdef celement *cpy = linbox_copy(modulus, entries, nrows, ncols)
 
-    cpdef Py_ssize_t r
-    cpdef size_t nbthreads
+    cdef Py_ssize_t r
+    cdef size_t nbthreads
     nbthreads = Parallelism().get('linbox')
     if nrows*ncols > 1000: sig_on()
     if nbthreads > 1:
@@ -275,7 +275,7 @@ cdef inline celement linbox_det(celement modulus, celement* entries, Py_ssize_t 
     cdef celement *cpy = linbox_copy(modulus, entries, n, n)
 
     cdef celement d
-    cpdef size_t nbthreads
+    cdef size_t nbthreads
     nbthreads = Parallelism().get('linbox')
 
     if n*n > 1000: sig_on()
@@ -297,7 +297,7 @@ cdef inline celement linbox_matrix_matrix_multiply(celement modulus, celement* a
     F[0].init(one, <int>1)
     F[0].init(zero, <int>0)
 
-    cpdef size_t nbthreads
+    cdef size_t nbthreads
     nbthreads = Parallelism().get('linbox')
 
     if m*n*k > 100000: sig_on()

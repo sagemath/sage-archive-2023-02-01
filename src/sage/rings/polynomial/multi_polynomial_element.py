@@ -54,7 +54,7 @@ We verify Lagrange's four squares identity::
 #*****************************************************************************
 
 from sage.structure.element import CommutativeRingElement, coerce_binop
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 import sage.rings.integer
 from sage.rings.qqbar_decorators import handle_AA_and_QQbar
 from . import polydict
@@ -90,8 +90,8 @@ class MPolynomial_element(MPolynomial):
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQbar)
-            sage: x + QQbar.random_element() # indirect doctest
-            x + 0.4142135623730951?
+            sage: x + QQbar(sqrt(2) - 1/2*I)  # indirect doctest
+            x + 1.414213562373095? - 0.50000000000000000?*I
         """
         return "%s"%self.__element
 

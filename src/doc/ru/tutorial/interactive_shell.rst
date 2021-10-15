@@ -358,7 +358,7 @@ Wall time. Однако, если существует существенная 
 Когда что-то идет не так, обычно можно увидеть исключение Python (Python
 "exception"). Python даже попытается предположить, что вызвало ошибку. Часто
 вы можете видеть имя исключения, например, ``NameError`` или ``ValueError``
-(см. Python Reference Manual [Py]_ для полного списка исключений). Например,
+(см. Python Library Reference [PyLR]_ для полного списка исключений). Например,
 
 .. skip
 
@@ -369,7 +369,7 @@ Wall time. Однако, если существует существенная 
        File "<console>", line 1
          ZZ(3)_2
                ^
-    SyntaxError: invalid syntax
+    SyntaxError: invalid ...
 
     sage: EllipticCurve([0,infinity])
     ------------------------------------------------------------

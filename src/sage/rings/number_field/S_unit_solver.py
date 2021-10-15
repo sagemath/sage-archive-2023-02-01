@@ -68,7 +68,7 @@ from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.integer_mod import mod
 from sage.rings.padics.factory import Qp
 from sage.combinat.combination import Combinations
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.arith.all import factorial
 from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix, zero_matrix
 from sage.modules.free_module_element import zero_vector
@@ -619,7 +619,7 @@ def Yu_C1_star(n, v, prec=106):
 
 def Yu_bound(SUK, v, prec=106):
     r"""
-    Return `c8` such that `c8 >= exp(2)/\log(2)` and `ord_p (\Theta - 1) < c8 \log B`, 
+    Return `c8` such that `c8 >= exp(2)/\log(2)` and `ord_p (\Theta - 1) < c8 \log B`,
     where `\Theta = \prod_{j=1}^n \alpha_j^{b_j}` and `B \geq \max_j |b_j|` and `B \geq 3`.
 
     INPUT:
@@ -946,6 +946,8 @@ def minimal_vector(A, y, prec=106):
     ::
 
         sage: B = random_matrix(ZZ, 3)
+        sage: while not B.determinant():
+        ....:     B = random_matrix(ZZ, 3)
         sage: B # random
         [-2 -1 -1]
         [ 1  1 -2]

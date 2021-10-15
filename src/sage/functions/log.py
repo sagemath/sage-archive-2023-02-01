@@ -14,14 +14,12 @@ from sage.symbolic.constants import pi as const_pi
 
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.structure.all import parent as s_parent
-from sage.symbolic.expression import Expression
+from sage.symbolic.expression import Expression, register_symbol
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
-
-from sage.libs.pynac.pynac import register_symbol
 
 
 class Function_exp(GinacFunction):
@@ -385,7 +383,7 @@ def log(*args, **kwds):
         sage: log(a,3)
         Traceback (most recent call last):
         ...
-        ValueError: No discrete log of 8 found to base 3 modulo 13
+        ValueError: no logarithm of 8 found to base 3 modulo 13
         sage: log(F(9), 3)
         2
 
@@ -450,7 +448,7 @@ def log(*args, **kwds):
     try:
         return args[0].log(args[1])
     except ValueError as ex:
-        if repr(ex)[12:27] == "No discrete log":
+        if ex.args[0].startswith("no logarithm"):
             raise
         return logb(args[0], args[1])
     except (AttributeError, TypeError):

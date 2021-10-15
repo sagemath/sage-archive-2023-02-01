@@ -76,14 +76,14 @@ else:
     distributions = ['']
     optional_packages_with_extensions = ['mcqd', 'bliss', 'tdlib', 'primecount',
                                          'coxeter3', 'fes', 'sirocco', 'meataxe']
-    distributions += ['sage-{}'.format(pkg)
+    distributions += ['sagemath-{}'.format(pkg)
                       for pkg in optional_packages_with_extensions
                       if is_package_installed_and_updated(pkg)]
     log.warn('distributions = {0}'.format(distributions))
 
 from sage_setup.find import find_python_sources
 python_packages, python_modules, cython_modules = find_python_sources(
-    SAGE_SRC, ['sage', 'sage_setup'], distributions=distributions)
+    SAGE_SRC, ['sage'], distributions=distributions)
 
 log.debug('python_packages = {0}'.format(python_packages))
 

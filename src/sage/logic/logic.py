@@ -230,10 +230,21 @@ class SymbolicLogic:
             False | False | True  | False | False |
             False | False | True  | True  | False |
             False | True  | False | False | True  |
+
+        TESTS:
+
+        Verify that :trac:`32676` is fixed::
+
+            sage: table = log.truthtable(log.statement("A->B"))
+            sage: table_copy = table.copy()
+            sage: log.print_table(table)
+            ...
+            sage: table_copy == table
+            True
         """
         statement = table[0]
-        del table[0]
-        vars_order = statement[2]
+        table = table[1:]
+        vars_order = statement[2].copy()
         vars_len = []
         line = s = ""
         vars_order.reverse()

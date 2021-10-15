@@ -100,6 +100,8 @@ class Feature(TrivialUniqueRepresentation):
 
     - ``spkg`` -- (string) name of the SPKG providing the feature
 
+    - ``description`` -- (string) optional; plain English description of the feature
+
     - ``url`` -- a URL for the upstream package providing the feature
 
     Overwrite :meth:`_is_present` to add feature checks.
@@ -115,7 +117,7 @@ class Feature(TrivialUniqueRepresentation):
         sage: GapPackage("grape") is GapPackage("grape")
         True
     """
-    def __init__(self, name, spkg=None, url=None):
+    def __init__(self, name, spkg=None, url=None, description=None):
         r"""
         TESTS::
 
@@ -127,6 +129,8 @@ class Feature(TrivialUniqueRepresentation):
         self.name = name
         self.spkg = spkg
         self.url = url
+        self.description = description
+
         self._cache_is_present = None
         self._cache_resolution = None
 
@@ -209,8 +213,13 @@ class Feature(TrivialUniqueRepresentation):
             sage: from sage.features.gap import GapPackage
             sage: GapPackage("grape")  # indirect doctest
             Feature('gap_package_grape')
+
+            sage: from sage.features.databases import DatabaseConwayPolynomials
+            sage: DatabaseConwayPolynomials()  # indirect doctest
+            Feature('conway_polynomials': Frank Luebeck's database of Conway polynomials)
         """
-        return 'Feature({name!r})'.format(name=self.name)
+        description = f'{self.name!r}: {self.description}' if self.description else f'{self.name!r}'
+        return f'Feature({description})'
 
     def resolution(self):
         r"""

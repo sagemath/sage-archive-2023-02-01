@@ -49,4 +49,5 @@ class Latte(JoinFeature):
             True
         """
         JoinFeature.__init__(self, "latte_int",
-                             (Latte_count(), Latte_integrate()))
+                             (Latte_count(), Latte_integrate()),
+                             description="LattE")

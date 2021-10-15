@@ -37,7 +37,8 @@ class DatabaseConwayPolynomials(StaticFile):
         StaticFile.__init__(self, "conway_polynomials",
                             filename='conway_polynomials.p',
                             search_path=search_path,
-                            spkg='conway_polynomials')
+                            spkg='conway_polynomials',
+                            description="Frank Luebeck's database of Conway polynomials")
 
 
 CREMONA_DATA_DIRS = set([CREMONA_MINI_DATA_DIR, CREMONA_LARGE_DATA_DIR])
@@ -59,7 +60,7 @@ class DatabaseCremona(StaticFile):
         sage: DatabaseCremona('cremona_mini').is_present()
         FeatureTestResult('database_cremona_mini_ellcurve', True)
         sage: DatabaseCremona().is_present()  # optional: database_cremona_ellcurve
-        FeatureTestResult("database_cremona_ellcurve", True)
+        FeatureTestResult('database_cremona_ellcurve', True)
     """
     def __init__(self, name="cremona", spkg="database_cremona_ellcurve"):
         r"""
@@ -73,7 +74,8 @@ class DatabaseCremona(StaticFile):
                             filename='{}.db'.format(name.replace(' ', '_')),
                             search_path=CREMONA_DATA_DIRS,
                             spkg=spkg,
-                            url="https://github.com/JohnCremona/ecdata")
+                            url="https://github.com/JohnCremona/ecdata",
+                            description="Cremona's database of elliptic curves")
 
 
 class DatabaseJones(StaticFile):
@@ -96,7 +98,8 @@ class DatabaseJones(StaticFile):
         """
         StaticFile.__init__(self, "database_jones_numfield",
                             filename='jones/jones.sobj',
-                            spkg="database_jones_numfield")
+                            spkg="database_jones_numfield",
+                            description="John Jones's tables of number fields")
 
 
 class DatabaseKnotInfo(PythonModule):

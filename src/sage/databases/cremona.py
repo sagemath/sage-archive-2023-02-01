@@ -1696,7 +1696,7 @@ def CremonaDatabase(name=None,mini=None,set_global=None):
 
     Verify that :trac:`12341` has been resolved::
 
-        sage: c = CremonaDatabase('should not exist',mini=True)
+        sage: c = CremonaDatabase('should not exist', mini=True)
         Traceback (most recent call last):
         ...
         FeatureNotPresentError: database_should_not_exist_ellcurve is not available.

@@ -599,7 +599,7 @@ class TamariIntervalPoset(Element,
 
     def factor(self) -> list[TamariIntervalPoset]:
         """
-        Return the decomposition as a list of connected components.
+        Return the unique decomposition as a list of connected components.
 
         EXAMPLES::
 
@@ -612,7 +612,10 @@ class TamariIntervalPoset(Element,
         TESTS::
 
             sage: T = TamariIntervalPosets(20).random_element()
-            sage: T == prod(factor(T))
+            sage: facs = factor(T)
+            sage: all(U.is_connected() for U in facs)
+            True
+            sage: T == prod(facs)
             True
         """
         hasse = self.poset().hasse_diagram()
@@ -2807,7 +2810,7 @@ class TamariIntervalPoset(Element,
 
         This condition is invariant under complementation.
 
-        .. SEEALSO:: :meth:`is_indecomposable`
+        .. SEEALSO:: :meth:`is_indecomposable`, :meth:`factor`
 
         EXAMPLES::
 

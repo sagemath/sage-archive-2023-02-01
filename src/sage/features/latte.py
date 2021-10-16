@@ -14,6 +14,13 @@ class Latte_count(Executable):
     Feature for the executable ``count`` from the LattE suite.
     """
     def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.latte import Latte_count
+            sage: isinstance(Latte_count(), Latte_count)
+            True
+        """
         Executable.__init__(self, "count", executable="count",
                             spkg="latte_int",
                             url=LATTE_URL)
@@ -24,6 +31,13 @@ class Latte_integrate(Executable):
     Feature for the executable ``integrate`` from the LattE suite.
     """
     def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.latte import Latte_integrate
+            sage: isinstance(Latte_integrate(), Latte_integrate)
+            True
+        """
         Executable.__init__(self, "integrate", executable="integrate",
                             spkg="latte_int",
                             url=LATTE_URL)

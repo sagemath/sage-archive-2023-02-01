@@ -14,7 +14,6 @@ class Internet(Feature):
         sage: Internet()
         Feature('internet')
     """
-
     def __init__(self):
         r"""
         TESTS::
@@ -32,7 +31,7 @@ class Internet(Feature):
         EXAMPLES::
 
             sage: from sage.features.internet import Internet
-            sage: Internet().is_present()          # random, optional -- internet
+            sage: Internet()._is_present()  # random, optional - internet
             FeatureTestResult('internet', True)
         """
         import urllib.error

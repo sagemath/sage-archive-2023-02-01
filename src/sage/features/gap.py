@@ -36,7 +36,7 @@ class GapPackage(Feature):
         EXAMPLES::
 
             sage: from sage.features.gap import GapPackage
-            sage: GapPackage("grape", spkg="gap_packages").is_present()  # optional: gap_packages
+            sage: GapPackage("grape", spkg="gap_packages")._is_present()  # optional - gap_packages
             FeatureTestResult('gap_package_grape', True)
         """
         from sage.libs.gap.libgap import libgap

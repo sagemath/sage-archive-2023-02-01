@@ -661,26 +661,13 @@ $(1)-clean: $(1)-uninstall
 
 # Recursive tox invocation (note - we do not set the environment here).
 # Setting SAGE_SPKG_WHEELS is for the benefit of sagelib's tox.ini
-$(1)-tox: FORCE
-	$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)/src' && \
-		export PATH="$$(SAGE_ORIG_PATH)" && \
-		SAGE_SPKG_WHEELS=$$(SAGE_LOCAL)/var/lib/sage/wheels \
-		tox -v -v -v
-
 $(1)-tox-%: FORCE
 	$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)/src' && \
 		export PATH="$$(SAGE_ORIG_PATH)" && \
 		SAGE_SPKG_WHEELS=$$(SAGE_LOCAL)/var/lib/sage/wheels \
 		tox -v -v -v -e $$*
 
-# Creating source distribution
-$(1)-sdist:
-	$(AM_V_at)cd '$$(SAGE_ROOT)/build/pkgs/$(1)' && \
-		. '$$(SAGE_ROOT)/src/bin/sage-env-config' && \
-		. '$$(SAGE_ROOT)/src/bin/sage-env' && \
-		$$(SAGE_ROOT)/build/pkgs/$(1)/spkg-src
-
-.PHONY: $(1) $(1)-uninstall $(1)-build-deps $(1)-no-deps $(1)-clean $(1)-sdist
+.PHONY: $(1) $(1)-uninstall $(1)-build-deps $(1)-no-deps $(1)-clean
 
 endef
 

@@ -69,7 +69,6 @@ from sage.libs.pari import pari
 from sage.categories.map import Map
 from sage.rings.rational_field import is_RationalField
 import sage.rings.abc
-from sage.rings.qqbar import is_AlgebraicField
 from sage.rings.ring import is_Ring
 
 from sage.misc.functional import round
@@ -1347,7 +1346,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         m = G.modulus()
         if isinstance(K, sage.rings.abc.ComplexField):
             return self.gauss_sum_numerical(a=a)
-        elif is_AlgebraicField(K):
+        elif isinstance(K, sage.rings.abc.AlgebraicField):
             L = K
             zeta = L.zeta(m)
         elif number_field.is_CyclotomicField(K) or is_RationalField(K):
@@ -1427,7 +1426,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             def phi(t):
                 return t
             CC = K
-        elif is_AlgebraicField(K):
+        elif isinstance(K, sage.rings.abc.AlgebraicField):
             from sage.rings.complex_mpfr import ComplexField
             CC = ComplexField(prec)
             phi = CC.coerce_map_from(K)

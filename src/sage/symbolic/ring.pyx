@@ -32,6 +32,7 @@ The symbolic ring
 # ****************************************************************************
 
 from sage.rings.integer cimport Integer
+import sage.rings.abc
 
 from sage.symbolic.expression cimport (
     is_Expression,
@@ -47,6 +48,7 @@ from sage.structure.element cimport Element
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
+import sage.rings.abc
 from sage.rings.integer_ring import ZZ
 
 # is_SymbolicVariable used to be defined here; re-export it
@@ -205,9 +207,7 @@ cdef class SymbolicRing(CommutativeRing):
             from sage.rings.real_mpfr import mpfr_prec_min
 
             from sage.rings.fraction_field import is_FractionField
-            from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
             from sage.rings.real_mpfi import is_RealIntervalField
-            from sage.rings.complex_interval_field import is_ComplexIntervalField
             from sage.rings.real_arb import RealBallField
             from sage.rings.complex_arb import ComplexBallField
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
@@ -231,10 +231,12 @@ cdef class SymbolicRing(CommutativeRing):
                 base = R.base_ring()
                 return base is not self and self.has_coerce_map_from(base)
             elif (R is InfinityRing or R is UnsignedInfinityRing
-                  or is_RealIntervalField(R) or is_ComplexIntervalField(R)
-                  or isinstance(R, RealBallField)
-                  or isinstance(R, ComplexBallField)
-                  or is_IntegerModRing(R) or is_FiniteField(R)):
+                  or isinstance(R, (sage.rings.abc.RealIntervalField,
+                                    sage.rings.abc.ComplexIntervalField,
+                                    sage.rings.abc.RealBallField,
+                                    sage.rings.abc.ComplexBallField,
+                                    sage.rings.abc.IntegerModRing))
+                  or is_FiniteField(R)):
                 return True
             elif isinstance(R, GenericSymbolicSubring):
                 return True

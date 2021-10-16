@@ -171,18 +171,6 @@ from .polynomial_compiled cimport CompiledPolynomialFunction
 
 from sage.rings.polynomial.polydict cimport ETuple
 
-cdef object NumberField_quadratic
-
-cdef void late_import():
-    # A hack to avoid circular imports.
-    global NumberField_quadratic
-
-    if NumberField_quadratic is not None:
-        return
-
-    import sage.rings.number_field.number_field
-    NumberField_quadratic = sage.rings.number_field.number_field.NumberField_quadratic
-
 
 cdef class Polynomial(CommutativeAlgebraElement):
     """
@@ -7836,8 +7824,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         L = K if ring is None else ring
 
-        late_import()
-
         input_fp = isinstance(K, (sage.rings.abc.RealField,
                                   sage.rings.abc.ComplexField,
                                   sage.rings.abc.RealDoubleField,
@@ -7848,7 +7834,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                                   sage.rings.abc.ComplexDoubleField))
         input_complex = isinstance(K, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField))
         output_complex = isinstance(L, (sage.rings.abc.ComplexField, sage.rings.abc.ComplexDoubleField))
-        input_gaussian = (isinstance(K, NumberField_quadratic)
+        input_gaussian = (isinstance(K, sage.rings.abc.NumberField_quadratic)
                           and list(K.polynomial()) == [1, 0, 1])
 
         if input_fp and output_fp:

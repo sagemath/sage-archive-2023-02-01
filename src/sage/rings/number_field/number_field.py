@@ -1041,10 +1041,17 @@ def is_QuadraticField(x):
     r"""
     Return True if x is of the quadratic *number* field type.
 
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.NumberField_quadratic` instead.
+
     EXAMPLES::
 
         sage: from sage.rings.number_field.number_field import is_QuadraticField
         sage: is_QuadraticField(QuadraticField(5,'a'))
+        doctest:warning...
+        DeprecationWarning: is_QuadraticField is deprecated;
+        use isinstance(..., sage.rings.abc.NumberField_quadratic instead
+        See https://trac.sagemath.org/32660 for details.
         True
         sage: is_QuadraticField(NumberField(x^2 - 5, 'b'))
         True
@@ -1057,6 +1064,8 @@ def is_QuadraticField(x):
         sage: is_QuadraticField(GF(9,'a'))
         False
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32660, 'is_QuadraticField is deprecated; use isinstance(..., sage.rings.abc.NumberField_quadratic instead')
     return isinstance(x, NumberField_quadratic)
 
 
@@ -11709,7 +11718,7 @@ class NumberField_cyclotomic(NumberField_absolute):
         return v
 
 
-class NumberField_quadratic(NumberField_absolute):
+class NumberField_quadratic(NumberField_absolute, sage.rings.abc.NumberField_quadratic):
     r"""
     Create a quadratic extension of the rational field.
 

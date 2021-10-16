@@ -424,6 +424,66 @@ cdef object si2sa_transext_QQ(number *n, ring *_ring, object base):
     return snumer/sdenom
 
 
+cdef object si2sa_transext_FF(number *n, ring *_ring, object base):
+    """
+
+
+    """
+
+    cdef poly *numer
+    cdef poly *denom
+    cdef number *c
+    cdef int e
+    cdef fraction *frac
+    cdef object snumer
+    cdef object sdenom
+
+    cdef ring *cfRing = _ring.cf.extRing
+
+    if _ring.cf.cfIsZero(n,_ring.cf):
+        return base._zero_element
+    elif _ring.cf.cfIsOne(n,_ring.cf):
+        return base._one_element
+
+    snumer = base(0)
+    sdenom = base(0)
+
+    frac = <fraction*>n
+
+    numer = frac.numerator
+    denom = frac.denominator
+
+    while numer:
+
+
+
+        c = p_GetCoeff(numer, cfRing)
+        coeff = base(cfRing.cf.cfInt(c, cfRing.cf))
+        numer.coef = c
+        for i in range(base.ngens()):
+            e = p_GetExp(numer, i+1, cfRing)
+            if e!= 0:
+                coeff *= base.gen(i)**e
+        snumer += coeff
+        numer = <poly*>pNext(<poly*>numer)
+
+    if not denom:
+        sdenom = base(1)
+    else:
+        while denom:
+            c = p_GetCoeff(denom, cfRing)
+            coeff = base(cfRing.cf.cfInt(c, cfRing.cf))
+            denom.coef = c
+            for i in range(base.ngens()):
+                e = p_GetExp(denom, i+1, cfRing)
+                if e!= 0:
+                    coeff *= base.gen(i)**e
+            sdenom += coeff
+            denom = <poly*>pNext(<poly*>denom)
+
+    return snumer/sdenom
+
+
 cdef object si2sa_NF(number *n, ring *_ring, object base):
     """
     Create a sage element of a number field from a singular one.
@@ -939,6 +999,94 @@ cdef number *sa2si_transext_QQ(object elem, ring *_ring):
     return n1
 
 
+
+cdef number *sa2si_transext_FF(object elem, ring *_ring):
+    """
+
+
+    """
+
+    cdef int i
+    cdef int j
+    cdef number *n1
+    cdef number *a
+    cdef number *naCoeff
+    cdef number *numerator
+    cdef number *denominator
+    cdef number *cfnum
+    cdef number *cfden
+    cdef number *aux1
+    cdef number *aux2
+    cdef int ngens
+    cdef int ex
+    cdef nMapFunc nMapFuncPtr = NULL;
+
+    if _ring != currRing:
+        rChangeCurrRing(_ring)
+
+    ngens = elem.parent().ngens()
+
+    nMapFuncPtr =  naSetMap(_ring.cf, currRing.cf) # choose correct mapping function
+
+    if (nMapFuncPtr is NULL):
+        raise RuntimeError("Failed to determine nMapFuncPtr")
+
+    numerdic = elem.numerator().dict()
+    denomdic = elem.denominator().dict()
+
+    if numerdic and not isinstance(list(numerdic)[0], (tuple, ETuple)):
+        numerdic = {(k,):b for k,b in numerdic.items()}
+
+    if denomdic and not isinstance(list(denomdic)[0], (tuple, ETuple)):
+        denomdic = {(k,):b for k,b in denomdic.items()}
+
+    if _ring != currRing:
+        rChangeCurrRing(_ring)
+    n1 = _ring.cf.cfInit(0, _ring.cf)
+    numerator = _ring.cf.cfInit(0, _ring.cf)
+    for (exponents, coef) in numerdic.items():
+        naCoeff = _ring.cf.cfInit(<int>coef, _ring.cf)
+        for (j, ex) in enumerate(exponents):
+            a = _ring.cf.cfParameter(j+1, _ring.cf)
+            for k in range(ex):
+                aux1 = naCoeff
+                naCoeff = _ring.cf.cfMult(aux1, a ,_ring.cf)
+                _ring.cf.cfDelete(&aux1, _ring.cf)
+            _ring.cf.cfDelete(&a, _ring.cf)
+        aux2 = numerator
+        numerator = _ring.cf.cfAdd(aux2, naCoeff,_ring.cf)
+        _ring.cf.cfDelete(&naCoeff, _ring.cf)
+        _ring.cf.cfDelete(&aux2, _ring.cf)
+
+    if elem.denominator() != 1:
+        denominator = _ring.cf.cfInit(0, _ring.cf)
+
+        for (exponents, coef) in denomdic.items():
+            naCoeff = _ring.cf.cfInit(<int>coef, _ring.cf)
+            for (j, ex) in enumerate(exponents):
+                a = _ring.cf.cfParameter(j+1, _ring.cf)
+                for k in range(ex):
+                    aux1 = naCoeff
+                    naCoeff = _ring.cf.cfMult(aux1, a ,_ring.cf)
+                    _ring.cf.cfDelete(&aux1, _ring.cf)
+                _ring.cf.cfDelete(&a, _ring.cf)
+            aux2 = denominator
+            denominator = _ring.cf.cfAdd(aux2, naCoeff,_ring.cf)
+            _ring.cf.cfDelete(&naCoeff, _ring.cf)
+            _ring.cf.cfDelete(&aux2, _ring.cf)
+
+    else:
+        denominator = _ring.cf.cfInit(1, _ring.cf)
+
+    n1 = _ring.cf.cfDiv(numerator, denominator, _ring.cf)
+
+    _ring.cf.cfDelete(&numerator, _ring.cf)
+    _ring.cf.cfDelete(&denominator, _ring.cf)
+    _ring.cf.cfDelete(&a, _ring.cf)
+
+    return n1
+
+
 cdef number *sa2si_NF(object elem, ring *_ring):
     """
     Create a singular number from a sage element of a number field.
@@ -1190,6 +1338,9 @@ cdef object si2sa(number *n, ring *_ring, object base):
     elif isinstance(base, FractionField_generic) and isinstance(base.base(), (MPolynomialRing_libsingular, PolynomialRing_field)) and isinstance(base.base_ring(), RationalField):
         return si2sa_transext_QQ(n, _ring, base)
 
+    elif isinstance(base, FractionField_generic) and isinstance(base.base(), (MPolynomialRing_libsingular, PolynomialRing_field)) and isinstance(base.base_ring(), FiniteField_prime_modn):
+        return si2sa_transext_FF(n, _ring, base)
+
     elif isinstance(base, IntegerModRing_generic):
         if _ring.cf.type == n_unknown:
             return base(_ring.cf.cfInt(n, _ring.cf))
@@ -1240,6 +1391,9 @@ cdef number *sa2si(Element elem, ring * _ring):
         return sa2si_ZZmod(elem, _ring)
     elif isinstance(elem._parent, FractionField_generic) and isinstance(elem._parent.base(), (MPolynomialRing_libsingular, PolynomialRing_field)) and isinstance(elem._parent.base().base_ring(), RationalField):
         return sa2si_transext_QQ(elem, _ring)
+
+    elif isinstance(elem._parent, FractionField_generic) and isinstance(elem._parent.base(), (MPolynomialRing_libsingular, PolynomialRing_field)) and isinstance(elem._parent.base().base_ring(), FiniteField_prime_modn):
+        return sa2si_transext_FF(elem, _ring)
 
     else:
         raise ValueError("cannot convert to SINGULAR number")

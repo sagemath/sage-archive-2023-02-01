@@ -294,6 +294,33 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
 
         _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
 
+    elif isinstance(base_ring, FractionField_generic) and isinstance(base_ring.base(), (MPolynomialRing_libsingular, PolynomialRing_field)) and isinstance(base_ring.base().base_ring(), FiniteField_generic):
+        if not base_ring.base_ring().is_prime_field():
+            raise NotImplementedError("Transcental extension are not implemented for non-prime finite fields")
+        characteristic = int(base_ring.characteristic())
+        k = PolynomialRing(base_ring.base_ring(),
+            names=base_ring.variable_names(), order="lex", implementation="singular")
+
+        ngens = len(k.gens())
+
+        _ext_names = <char**>omAlloc0(ngens*sizeof(char*))
+        for i in range(ngens):
+            _name = str_to_bytes(k._names[i])
+            _ext_names[i] = omStrDup(_name)
+
+        _cfr = rDefault( characteristic, ngens, _ext_names )
+        rComplete(_cfr, 1)
+
+        trextParam.r =  _cfr
+
+        _cf = nInitChar(n_transExt, <void *>&trextParam)
+
+
+        if (_cf is NULL):
+            raise RuntimeError("Failed to allocate _cf ring.")
+
+        _ring = rDefault (_cf ,nvars, _names, nblcks, _order, _block0, _block1, _wvhdl)
+
 
     elif isinstance(base_ring, NumberField) and base_ring.is_absolute():
         characteristic = 1

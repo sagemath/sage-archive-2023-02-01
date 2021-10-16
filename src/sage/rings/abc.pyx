@@ -10,6 +10,14 @@ class NumberField_quadratic(Field):
     pass
 
 
+class NumberField_cyclotomic(Field):
+    r"""
+    Abstract base class for :class:`~sage.rings.number_field.number_field.NumberField_cyclotomic`.
+    """
+
+    pass
+
+
 class AlgebraicField_common(Field):
     r"""
     Abstract base class for :class:`~sage.rings.qqbar.AlgebraicField_common`.

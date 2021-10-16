@@ -1238,10 +1238,17 @@ def is_CyclotomicField(x):
     number field that just happens to be isomorphic to a cyclotomic
     field.
 
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.NumberField_cyclotomic` instead.
+
     EXAMPLES::
 
         sage: from sage.rings.number_field.number_field import is_CyclotomicField
         sage: is_CyclotomicField(NumberField(x^2 + 1,'zeta4'))
+        doctest:warning...
+        DeprecationWarning: is_CyclotomicField is deprecated;
+        use isinstance(..., sage.rings.abc.NumberField_cyclotomic instead
+        See https://trac.sagemath.org/32660 for details.
         False
         sage: is_CyclotomicField(CyclotomicField(4))
         True
@@ -1252,6 +1259,8 @@ def is_CyclotomicField(x):
         sage: is_CyclotomicField(7)
         False
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32660, 'is_CyclotomicField is deprecated; use isinstance(..., sage.rings.abc.NumberField_cyclotomic instead')
     return isinstance(x, NumberField_cyclotomic)
 
 
@@ -10355,7 +10364,7 @@ class NumberField_absolute(NumberField_generic):
         return poly._factor_pari_helper(G)
 
 
-class NumberField_cyclotomic(NumberField_absolute):
+class NumberField_cyclotomic(NumberField_absolute, sage.rings.abc.NumberField_cyclotomic):
     """
     Create a cyclotomic extension of the rational field.
 
@@ -11258,7 +11267,7 @@ class NumberField_cyclotomic(NumberField_absolute):
             sage: K.is_isomorphic(CyclotomicField(8))
             False
         """
-        if is_CyclotomicField(other):
+        if isinstance(other, NumberField_cyclotomic):
             return self.zeta_order() == other.zeta_order()
         return NumberField_generic.is_isomorphic(self, other)
 

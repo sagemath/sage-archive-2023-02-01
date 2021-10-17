@@ -199,7 +199,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
 
             sage: P.<t> = GF(2)[]
             sage: c = Conic([t, 1, t^2, 1, 1, 0]); c
-            Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X) defined by t*x^2 + x*y + y^2 + t^2*x*z + y*z
+            Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 2 (using GF2X) defined by t*x^2 + x*y + y^2 + (t^2)*x*z + y*z
             sage: c.is_smooth()
             True
             sage: c.derivative_matrix()
@@ -340,17 +340,18 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             sage: (t,) = K.gens()
             sage: C = Conic(K, [t/2,0, 1, 2, 0, 3])
             sage: C.diagonalization()
-            (Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7 defined by 4*t*x^2 + 2*y^2 + ((3*t + 3)/t)*z^2,
+            (Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7 defined by (-3*t)*x^2 + 2*y^2 + (3*t + 3)/t*z^2,
              Scheme morphism:
-               From: Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7 defined by 4*t*x^2 + 2*y^2 + ((3*t + 3)/t)*z^2
-               To:   Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7 defined by 4*t*x^2 + 2*y^2 + x*z + 3*z^2
+               From: Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7 defined by (-3*t)*x^2 + 2*y^2 + (3*t + 3)/t*z^2
+               To:   Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7 defined by (-3*t)*x^2 + 2*y^2 + x*z + 3*z^2
                Defn: Defined on coordinates by sending (x : y : z) to
-                     (x + 6/t*z : y : z),
+                     (x - 1/t*z : y : z),
              Scheme morphism:
-               From: Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7 defined by 4*t*x^2 + 2*y^2 + x*z + 3*z^2
-               To:   Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7 defined by 4*t*x^2 + 2*y^2 + ((3*t + 3)/t)*z^2
+               From: Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7 defined by (-3*t)*x^2 + 2*y^2 + x*z + 3*z^2
+               To:   Projective Conic Curve over Fraction Field of Univariate Polynomial Ring in t over Finite Field of size 7 defined by (-3*t)*x^2 + 2*y^2 + (3*t + 3)/t*z^2
                Defn: Defined on coordinates by sending (x : y : z) to
                      (x + 1/t*z : y : z))
+
 
         """
         if names is None:

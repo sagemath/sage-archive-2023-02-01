@@ -133,6 +133,10 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         sage: P.<x,y> = K[]; P
         Multivariate Polynomial Ring in x, y over Fraction Field of Multivariate Polynomial Ring in s, t over Rational Field
 
+        sage: F = PolynomialRing(FiniteField(7),'a,b').fraction_field()
+        sage: R.<x,y,z> = F[]
+        sage: R
+        Multivariate Polynomial Ring in x, y, z over Fraction Field of Multivariate Polynomial Ring in a, b over Finite Field of size 7
 
     TESTS:
 
@@ -144,6 +148,25 @@ cdef ring *singular_ring_new(base_ring, n, names, term_order) except NULL:
         sage: L = [v for d in (0..4) for v in IntegerVectors(d, 4)]
         sage: sorted([R.monomial(*e) for e in L]) == sorted([S.monomial(*e) for e in L])
         True
+
+    Check that we are using the libsingular backend instead of the pexpect one::
+
+        sage: F = PolynomialRing(FiniteField(7),'a,b').fraction_field()
+        sage: R.<x,y,z> = F[]
+        sage: from sage.libs.singular.function import singular_function
+        sage: sing_print = singular_function('print')
+        sage: sing_print(R)
+        'polynomial ring, over a field, global ordering\n// coefficients: ZZ/7(a, b)\n// number of vars : 3\n//        block   1 : ordering dp\n//                  : names    x y z\n//        block   2 : ordering C'
+
+    ::
+
+        sage: F = PolynomialRing(QQ, 's,t').fraction_field()
+        sage: R.<x,y,z> = F[]
+        sage: from sage.libs.singular.function import singular_function
+        sage: sing_print = singular_function('print')
+        sage: sing_print(R)
+        'polynomial ring, over a field, global ordering\n// coefficients: QQ(s, t)\n// number of vars : 3\n//        block   1 : ordering dp\n//                  : names    x y z\n//        block   2 : ordering C'
+
     """
     cdef long cexponent
     cdef GFInfo* _param

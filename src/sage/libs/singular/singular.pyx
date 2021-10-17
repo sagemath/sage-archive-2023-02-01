@@ -426,7 +426,32 @@ cdef object si2sa_transext_QQ(number *n, ring *_ring, object base):
 
 cdef object si2sa_transext_FF(number *n, ring *_ring, object base):
     """
+    Create a sage element of a transcendental extension of a prime field from a
+    singular one.
 
+    INPUT:
+
+        - ``n`` - a (pointer to) a singular number in a transcendental extension
+        of the rationals
+
+        - ``_ ring`` - a (pointer to) a singular ring, in whose coefficient field
+        lives ``n``
+
+        - ``base`` - A sage FractionField
+
+    OUTPUT:
+
+        - A sage element of ``base``
+
+    TESTS::
+
+        sage: F = PolynomialRing(FiniteField(7),'a,b').fraction_field()
+        sage: R.<x,y,z> = F[]
+        sage: n = R(5)
+        sage: n
+        -2
+        sage: type(n)
+        <class 'sage.rings.polynomial.multi_polynomial_libsingular.MPolynomial_libsingular'>
 
     """
 
@@ -907,7 +932,6 @@ cdef number *sa2si_transext_QQ(object elem, ring *_ring):
 
     """
 
-    cdef int i
     cdef int j
     cdef number *n1
     cdef number *a
@@ -1002,19 +1026,40 @@ cdef number *sa2si_transext_QQ(object elem, ring *_ring):
 
 cdef number *sa2si_transext_FF(object elem, ring *_ring):
     """
+    Create a singular number from a sage element of a transcendental extension
+    of a prime field.
+
+    INPUT:
+
+        - ``elem`` - a sage element of a FractionField of polynomials over the rationals
+
+        - ``_ ring`` - a (pointer to) a singular ring, where the resul will live
+
+
+    OUTPUT:
+
+        - A (pointer to) a singular number
+
+
+    TESTS::
+
+        sage: F = PolynomialRing(FiniteField(7),'a,b').fraction_field()
+        sage: R.<x,y,z> = F[]
+        sage: n = R(5)
+        sage: n + n
+        3
+        sage: Integer(n)
+        5
+
 
 
     """
-
-    cdef int i
     cdef int j
     cdef number *n1
     cdef number *a
     cdef number *naCoeff
     cdef number *numerator
     cdef number *denominator
-    cdef number *cfnum
-    cdef number *cfden
     cdef number *aux1
     cdef number *aux2
     cdef int ngens
@@ -1042,7 +1087,6 @@ cdef number *sa2si_transext_FF(object elem, ring *_ring):
 
     if _ring != currRing:
         rChangeCurrRing(_ring)
-    n1 = _ring.cf.cfInit(0, _ring.cf)
     numerator = _ring.cf.cfInit(0, _ring.cf)
     for (exponents, coef) in numerdic.items():
         naCoeff = _ring.cf.cfInit(<int>coef, _ring.cf)

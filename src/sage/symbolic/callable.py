@@ -307,7 +307,7 @@ class CallableSymbolicExpressionRing_class(SymbolicRing, sage.rings.abc.Callable
             sage: g.parent().has_coerce_map_from(f.parent())
             True
         """
-        if isinstance(R, CallableSymbolicExpressionRing):
+        if isinstance(R, CallableSymbolicExpressionRing_class):
             args = self.arguments()
             if all(a in args for a in R.arguments()):
                 return True

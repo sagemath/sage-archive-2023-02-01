@@ -1309,7 +1309,13 @@ def the_SymbolicRing():
 
 def is_SymbolicExpressionRing(R):
     """
-    Returns True if *R* is the symbolic expression ring.
+    Returns True if ``R`` is the symbolic expression ring.
+
+    This function is deprecated.  Instead, either use ``R is SR`` (to
+    test whether ``R`` is the unique symbolic ring ``SR``); or
+    ``isinstance`` with :class:`~sage.rings.abc.SymbolicRing`
+    (when also symbolic subrings and callable symbolic rings should
+    be accepted).
 
     EXAMPLES::
 
@@ -1319,6 +1325,8 @@ def is_SymbolicExpressionRing(R):
         sage: is_SymbolicExpressionRing(SR)
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32665, 'is_SymbolicExpressionRing is deprecated; use "... is SR" or isinstance(..., sage.rings.abc.SymbolicRing instead')
     return R is SR
 
 def var(name, **kwds):

@@ -385,6 +385,7 @@ from cpython.object cimport Py_EQ, Py_NE, Py_LE, Py_GE, Py_LT, Py_GT
 from sage.cpython.string cimport str_to_bytes, char_to_str
 
 from sage.structure.element cimport RingElement, Element, Matrix
+from sage.structure.element cimport Expression as Expression_abc
 from sage.symbolic.complexity_measures import string_length
 from sage.symbolic.function cimport SymbolicFunction
 from sage.rings.rational import Rational
@@ -407,18 +408,27 @@ include "pynac_impl.pxi"
 
 cpdef bint is_Expression(x):
     """
-    Return True if *x* is a symbolic Expression.
+    Return True if ``x`` is a symbolic expression.
+
+    This method is deprecated.  Use :func:`isinstance` with
+    :class:`sage.structure.element.Expression` instead.
 
     EXAMPLES::
 
         sage: from sage.symbolic.expression import is_Expression
         sage: is_Expression(x)
+        doctest:warning...
+        DeprecationWarning: is_Expression is deprecated;
+        use isinstance(..., sage.structure.element.Expression) instead
+        See https://trac.sagemath.org/32638 for details.
         True
         sage: is_Expression(2)
         False
         sage: is_Expression(SR(2))
         True
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32638, 'is_Expression is deprecated; use isinstance(..., sage.structure.element.Expression) instead')
     return isinstance(x, Expression)
 
 
@@ -472,7 +482,7 @@ cpdef bint _is_SymbolicVariable(x):
         sage: ZZ['x']
         Univariate Polynomial Ring in x over Integer Ring
     """
-    return is_Expression(x) and is_a_symbol((<Expression>x)._gobj)
+    return isinstance(x, Expression) and is_a_symbol((<Expression>x)._gobj)
 
 
 def _dict_update_check_duplicate(dict d1, dict d2):
@@ -694,7 +704,7 @@ def _subs_fun_make_dict(s):
         raise TypeError(msg.format(s))
 
 
-cdef class Expression(CommutativeRingElement):
+cdef class Expression(Expression_abc):
 
     cdef GEx _gobj
 
@@ -13574,7 +13584,7 @@ cpdef new_Expression(parent, x):
         x + 1
     """
     cdef GEx exp
-    if is_Expression(x):
+    if isinstance(x, Expression):
         return new_Expression_from_GEx(parent, (<Expression>x)._gobj)
     if hasattr(x, '_symbolic_'):
         return x._symbolic_(parent)

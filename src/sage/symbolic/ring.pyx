@@ -34,7 +34,6 @@ The symbolic ring
 from sage.rings.integer cimport Integer
 
 from sage.symbolic.expression cimport (
-    is_Expression,
     _latex_Expression,
     _repr_Expression,
     new_Expression,
@@ -43,7 +42,7 @@ from sage.symbolic.expression cimport (
     new_Expression_symbol,
 )
 
-from sage.structure.element cimport Element
+from sage.structure.element cimport Element, Expression
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
@@ -870,7 +869,7 @@ cdef class SymbolicRing(CommutativeRing):
             ...
             ValueError: cannot specify n for multiple symbol names
         """
-        if is_Expression(name):
+        if isinstance(name, Expression):
             return name
         if not isinstance(name, (basestring, list, tuple)):
             name = repr(name)

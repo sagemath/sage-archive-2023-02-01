@@ -1323,6 +1323,10 @@ def is_SymbolicExpressionRing(R):
 
         sage: from sage.symbolic.ring import is_SymbolicExpressionRing
         sage: is_SymbolicExpressionRing(ZZ)
+        doctest:warning...
+        DeprecationWarning: is_SymbolicExpressionRing is deprecated;
+        use "... is SR" or isinstance(..., sage.rings.abc.SymbolicRing instead
+        See https://trac.sagemath.org/32665 for details.
         False
         sage: is_SymbolicExpressionRing(SR)
         True

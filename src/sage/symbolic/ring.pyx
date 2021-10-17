@@ -32,6 +32,8 @@ The symbolic ring
 # ****************************************************************************
 
 from sage.rings.integer cimport Integer
+from sage.rings.ring cimport CommutativeRing
+
 import sage.rings.abc
 
 from sage.symbolic.expression cimport (
@@ -61,7 +63,7 @@ KEYWORDS = set(keyword.kwlist).union(['exec', 'print', 'None', 'True',
                                       'False', 'nonlocal'])
 
 
-cdef class SymbolicRing(CommutativeRing):
+cdef class SymbolicRing(sage.rings.abc.SymbolicRing):
     """
     Symbolic Ring, parent object for all symbolic expressions.
     """

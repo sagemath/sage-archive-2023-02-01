@@ -332,6 +332,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             r.__sage_dict = z # do this to avoid having the entries of the list be garbage collected
             return r
 
+        import sage.rings.abc
         from sage.rings.integer import Integer
         from sage.rings.rational import Rational
         from sage.rings.real_double import RDF

@@ -438,7 +438,6 @@ def fast_callable(x, domain=None, vars=None,
             if expect_one_var and len(vars) != 1:
                 raise ValueError(f"passed expect_one_var=True, but the callable expression takes {len(vars)} arguments")
         elif isinstance(x, Expression_abc):
-            from sage.symbolic.ring import is_SymbolicVariable
             if vars is None:
                 vars = x.variables()
                 if expect_one_var and len(vars) <= 1:
@@ -447,7 +446,7 @@ def fast_callable(x, domain=None, vars=None,
                 else:
                     raise ValueError("list of variables must be specified for symbolic expressions")
             def to_var(var):
-                if is_SymbolicVariable(var):
+                if isinstance(var, Expression_abc) and var.is_symbol():
                     return var
                 from sage.symbolic.ring import SR
                 return SR.var(var)

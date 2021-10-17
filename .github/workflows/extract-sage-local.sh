@@ -24,4 +24,8 @@ ls -l "$SAGE_LOCAL" "$SAGE_LOCAL"/var/lib/sage/installed/
 df -h
 
 # Rebase!
-exec src/bin/sage-rebase.sh --all "$SAGE_LOCAL"
+case "$(uname)" in
+    CYGWIN*)
+        exec src/bin/sage-rebase.sh --all "$SAGE_LOCAL"
+        ;;
+esac

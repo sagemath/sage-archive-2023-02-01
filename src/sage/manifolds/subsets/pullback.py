@@ -28,7 +28,7 @@ from sage.manifolds.subset import ManifoldSubset
 from sage.manifolds.chart import Chart
 from sage.manifolds.scalarfield import ScalarField
 from sage.sets.real_set import RealSet
-from sage.geometry.polyhedron.base import is_Polyhedron
+import sage.geometry.abc
 from sage.geometry.relative_interior import RelativeInterior
 
 
@@ -288,7 +288,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
         if isinstance(codomain_subset, RealSet):
             return codomain_subset.is_open()
 
-        if is_Polyhedron(codomain_subset):
+        if isinstance(codomain_subset, sage.geometry.abc.Polyhedron):
             return codomain_subset.is_empty() or codomain_subset.is_universe()
 
         if isinstance(codomain_subset, RelativeInterior):

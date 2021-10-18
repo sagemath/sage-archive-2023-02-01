@@ -187,8 +187,7 @@ cdef int mpfi_set_sage(mpfi_ptr re, mpfi_ptr im, x, field, int base) except -1:
         except AttributeError:
             pass
         else:
-            from ..complex_interval_field import ComplexIntervalField_class
-            if not isinstance(field, ComplexIntervalField_class):
+            if not isinstance(field, sage.rings.abc.ComplexIntervalField):
                 field = field.complex_field()
             e = <ComplexIntervalFieldElement?>m(field)
             mpfi_swap(re, e.__re)

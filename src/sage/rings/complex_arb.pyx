@@ -2476,7 +2476,7 @@ cdef class ComplexBall(RingElement):
             sage: CBF(sqrt(2)).contains_exact(sqrt(2))
             Traceback (most recent call last):
             ...
-            TypeError: unsupported type: <type 'sage.symbolic.expression.Expression'>
+            TypeError: unsupported type: <class 'sage.symbolic.expression.Expression'>
         """
         cdef fmpz_t tmpz
         cdef fmpq_t tmpq

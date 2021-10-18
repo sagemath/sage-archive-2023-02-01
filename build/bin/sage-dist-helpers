@@ -313,7 +313,7 @@ sdh_store_and_pip_install_wheel() {
     # much -- it also reinstalls all dependencies, which we do not want.
     wheel_basename="${wheel##*/}"
     distname="${wheel_basename%%-*}"
-    $sudo python3 -m pip uninstall --isolated --disable-pip-version-check --yes --no-input $distname
+    $sudo sage-pip-uninstall "$distname"
     if [ $? -ne 0 ]; then
         echo "(ignoring error)" >&2
     fi

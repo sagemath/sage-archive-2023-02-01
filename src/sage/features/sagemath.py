@@ -31,8 +31,24 @@ class sage__combinat(JoinFeature):
 
 
 class sage__geometry__polyhedron(PythonModule):
+    r"""
+    A :class:`sage.features.Feature` describing the presence of ``sage.geometry.polyhedron``.
+
+    EXAMPLES::
+
+        sage: from sage.features.sagemath import sage__geometry__polyhedron
+        sage: sage__geometry__polyhedron().is_present()  # optional - sage.geometry.polyhedron
+        FeatureTestResult('sage.geometry.polyhedron', True)
+    """
 
     def __init__(self):
+        r"""
+        TESTS::
+
+            sage: from sage.features.sagemath import sage__geometry__polyhedron
+            sage: isinstance(sage__geometry__polyhedron(), sage__geometry__polyhedron)
+            True
+        """
         PythonModule.__init__(self, 'sage.geometry.polyhedron')
 
 

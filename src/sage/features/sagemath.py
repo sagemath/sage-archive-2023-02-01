@@ -15,6 +15,12 @@ class sage__combinat(JoinFeature):
                              [PythonModule('sage.combinat.combinations')])
 
 
+class sage__geometry__polyhedron(PythonModule):
+
+    def __init__(self):
+        PythonModule.__init__(self, 'sage.geometry.polyhedron')
+
+
 class sage__graphs(JoinFeature):
 
     def __init__(self):
@@ -75,6 +81,7 @@ def sage_features():
          Feature('sage.rings.real_double')]
     """
     for feature in [sage__combinat(),
+                    sage__geometry__polyhedron(),
                     sage__graphs(),
                     sage__plot(),
                     sage__rings__number_field(),

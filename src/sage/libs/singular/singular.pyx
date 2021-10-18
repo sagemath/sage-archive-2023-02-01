@@ -942,6 +942,7 @@ cdef number *sa2si_transext_QQ(object elem, ring *_ring):
     cdef number *cfden
     cdef number *aux1
     cdef number *aux2
+    cdef number *power
     cdef int ngens
     cdef int ex
     cdef nMapFunc nMapFuncPtr = NULL;
@@ -974,16 +975,17 @@ cdef number *sa2si_transext_QQ(object elem, ring *_ring):
         cfnum = _ring.cf.cfInitMPZ((<Integer>numer).value, _ring.cf)
         denom = coef.denominator()
         cfden = _ring.cf.cfInitMPZ((<Integer>denom).value, _ring.cf)
-        naCoeff = _ring.cf.cfDiv(cfnum, cfden , _ring.cf )
+        naCoeff = _ring.cf.cfDiv(cfnum, cfden, _ring.cf)
         _ring.cf.cfDelete(&cfnum, _ring.cf)
         _ring.cf.cfDelete(&cfden, _ring.cf)
         for (j, ex) in enumerate(exponents):
             a = _ring.cf.cfParameter(j+1, _ring.cf)
-            for k in range(ex):
-                aux1 = naCoeff
-                naCoeff = _ring.cf.cfMult(aux1, a ,_ring.cf)
-                _ring.cf.cfDelete(&aux1, _ring.cf)
+            _ring.cf.cfPower(a, ex, &power, _ring.cf)
+            aux1 = naCoeff
+            naCoeff = _ring.cf.cfMult(aux1, power, _ring.cf)
+            _ring.cf.cfDelete(&aux1, _ring.cf)
             _ring.cf.cfDelete(&a, _ring.cf)
+            _ring.cf.cfDelete(&power, _ring.cf)
         aux2 = numerator
         numerator = _ring.cf.cfAdd(aux2, naCoeff,_ring.cf)
         _ring.cf.cfDelete(&aux2, _ring.cf)
@@ -996,16 +998,17 @@ cdef number *sa2si_transext_QQ(object elem, ring *_ring):
             cfnum = _ring.cf.cfInitMPZ((<Integer>numer).value, _ring.cf)
             denom = coef.denominator()
             cfden = _ring.cf.cfInitMPZ((<Integer>denom).value, _ring.cf)
-            naCoeff = _ring.cf.cfDiv(cfnum, cfden , _ring.cf )
+            naCoeff = _ring.cf.cfDiv(cfnum, cfden, _ring.cf)
             _ring.cf.cfDelete(&cfnum, _ring.cf)
             _ring.cf.cfDelete(&cfden, _ring.cf)
             for (j, ex) in enumerate(exponents):
                 a = _ring.cf.cfParameter(j+1, _ring.cf)
-                for k in range(ex):
-                    aux1 = naCoeff
-                    naCoeff = _ring.cf.cfMult(aux1, a ,_ring.cf)
-                    _ring.cf.cfDelete(&aux1, _ring.cf)
+                _ring.cf.cfPower(a, ex, &power, _ring.cf)
+                aux1 = naCoeff
+                naCoeff = _ring.cf.cfMult(aux1, power, _ring.cf)
+                _ring.cf.cfDelete(&aux1, _ring.cf)
                 _ring.cf.cfDelete(&a, _ring.cf)
+                _ring.cf.cfDelete(&power, _ring.cf)
             aux2 = denominator
             denominator = _ring.cf.cfAdd(aux2, naCoeff,_ring.cf)
             _ring.cf.cfDelete(&aux2, _ring.cf)

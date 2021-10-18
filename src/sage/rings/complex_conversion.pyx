@@ -1,5 +1,5 @@
 from .complex_double cimport ComplexDoubleElement
-from .complex_number cimport ComplexNumber
+from .complex_mpfr cimport ComplexNumber
 from sage.libs.mpfr cimport mpfr_get_d, MPFR_RNDN
 from sage.structure.element cimport Element
 from sage.categories.map cimport Map

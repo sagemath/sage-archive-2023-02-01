@@ -37,7 +37,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 import operator
 
@@ -333,6 +332,16 @@ class Interface(WithEqualityById, ParentWithBase):
             return self(x._interface_init_())
 
     def _coerce_impl(self, x, use_special=True):
+        r"""
+        Coerce pure Python types via corresponding Sage objects.
+
+        TESTS:
+
+        Check that python type ``complex`` can be converted (:trac:`31775`)::
+
+            sage: giac(complex(I))**2  # should not return `j^2`
+            -1
+        """
         if isinstance(x, bool):
             return self(self._true_symbol() if x else self._false_symbol())
         elif isinstance(x, int):
@@ -341,6 +350,9 @@ class Interface(WithEqualityById, ParentWithBase):
         elif isinstance(x, float):
             import sage.rings.all
             return self(sage.rings.all.RDF(x))
+        elif isinstance(x, complex):
+            import sage.rings.all
+            return self(sage.rings.all.CDF(x))
         if use_special:
             try:
                 return self._coerce_from_special_method(x)
@@ -621,6 +633,7 @@ class Interface(WithEqualityById, ParentWithBase):
         """
         TESTS::
 
+            sage: from sage.structure.parent_base import ParentWithBase
             sage: ParentWithBase.__getattribute__(singular, '_coerce_map_from_')
             <bound method Singular._coerce_map_from_ of Singular>
         """
@@ -635,7 +648,7 @@ class Interface(WithEqualityById, ParentWithBase):
         raise NotImplementedError
 
     def help(self, s):
-        return AsciiArtString('No help on %s available'%s)
+        return AsciiArtString('No help on %s available' % s)
 
 
 @instancedoc
@@ -648,7 +661,7 @@ class InterfaceFunction(SageObject):
         self._name = name
 
     def _repr_(self):
-        return "%s"%self._name
+        return "%s" % self._name
 
     def __call__(self, *args, **kwds):
         return self._parent.function_call(self._name, list(args), kwds)
@@ -799,9 +812,9 @@ class InterfaceElement(Element):
             "abc"
             sage: loads(dumps(pari([1,2,3])))
             [1, 2, 3]
-            sage: loads(dumps(r('"abc"')))
+            sage: loads(dumps(r('"abc"')))                                        # optional - rpy2
             [1] "abc"
-            sage: loads(dumps(r([1,2,3])))
+            sage: loads(dumps(r([1,2,3])))                                        # optional - rpy2
             [1] 1 2 3
             sage: loads(dumps(maxima([1,2,3])))
             [1,2,3]
@@ -852,10 +865,11 @@ class InterfaceElement(Element):
         by the doctests because the original identifier was reused. This test makes sure
         that does not happen again:
 
-            sage: a = r("'abc'")
-            sage: b = dumps(a)
-            sage: r.set(a.name(), 0) # make identifier reuse doesn't accidentally lead to success
-            sage: loads(b)
+            sage: a = r("'abc'")                                                  # optional - rpy2
+            sage: b = dumps(a)                                                    # optional - rpy2
+            sage: r.set(a.name(), 0) # make sure that identifier reuse            # optional - rpy2
+            ....:                    # does not accidentally lead to success
+            sage: loads(b)                                                        # optional - rpy2
             [1] "abc"
 
         """
@@ -1169,7 +1183,7 @@ class InterfaceElement(Element):
             2
             sage: x = var('x')
             sage: giac(x)
-            x
+            sageVARx
             sage: giac(5)
             5
             sage: M = matrix(QQ,2,range(4))
@@ -1377,13 +1391,13 @@ class InterfaceElement(Element):
 
         EXAMPLES::
 
-            sage: x = r([1,2,3]); x
+            sage: x = r([1,2,3]); x                                               # optional - rpy2
             [1] 1 2 3
-            sage: x.name()
+            sage: x.name()                                                        # optional - rpy2
             'sage...'
-            sage: x = r([1,2,3]).name('x'); x
+            sage: x = r([1,2,3]).name('x'); x                                     # optional - rpy2
             [1] 1 2 3
-            sage: x.name()
+            sage: x.name()                                                        # optional - rpy2
             'x'
 
         ::

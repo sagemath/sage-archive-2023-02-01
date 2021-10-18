@@ -510,6 +510,29 @@ class Rings(CategoryWithAxiom):
             # duck typing failed
             raise TypeError("Don't know how to transform %s into an ideal of %s"%(x,self))
 
+        def __pow__(self, n):
+            """
+            Return the free module of rank `n` over this ring.  If n is a tuple of
+            two elements, creates a matrix space.
+
+            EXAMPLES::
+
+                sage: QQ^5
+                Vector space of dimension 5 over Rational Field
+                sage: Integers(20)^1000
+                Ambient free module of rank 1000 over Ring of integers modulo 20
+
+                sage: QQ^(2,3)
+                Full MatrixSpace of 2 by 3 dense matrices over Rational Field
+            """
+            if isinstance(n, tuple):
+                m, n = n
+                from sage.matrix.matrix_space import MatrixSpace
+                return MatrixSpace(self, m, n)
+            else:
+                from sage.modules.free_module import FreeModule
+                return FreeModule(self, n)
+
         @cached_method
         def ideal_monoid(self):
             """
@@ -999,7 +1022,7 @@ class Rings(CategoryWithAxiom):
             and orders in number fields::
 
                 sage: ZZ[I]
-                Order in Number Field in I with defining polynomial x^2 + 1 with I = 1*I
+                Order in Number Field in I0 with defining polynomial x^2 + 1 with I0 = 1*I
                 sage: ZZ[sqrt(5)]
                 Order in Number Field in sqrt5 with defining polynomial x^2 - 5 with sqrt5 = 2.236067977499790?
                 sage: ZZ[sqrt(2)+sqrt(3)]
@@ -1054,8 +1077,6 @@ class Rings(CategoryWithAxiom):
 
             Embeddings::
 
-                sage: QQ[I](I.pyobject())
-                I
                 sage: a = 10^100; expr = (2*a + sqrt(2))/(2*a^2-1)
                 sage: QQ[expr].coerce_embedding() is None
                 False

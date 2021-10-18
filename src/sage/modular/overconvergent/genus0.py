@@ -171,7 +171,6 @@ classical) does not apply.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.matrix.all        import matrix, MatrixSpace, diagonal_matrix
 from sage.misc.verbose      import verbose
@@ -990,7 +989,8 @@ class OverconvergentModularFormsSpace(Module):
                         else:
                             mat[i,j] = 0 # computations are exact for weight 0, and we know these terms are zero
         if use_recurrence:
-            if m != self.prime(): raise ValueError("Recurrence method not valid when m != p")
+            if m != self.prime():
+                raise ValueError("Recurrence method not valid when m != p")
             for j in range(self.prime(), n):
                 # can only apply recurrence if have i,j both >= p.
                 if j >= self.prec():
@@ -1404,7 +1404,8 @@ class OverconvergentModularFormElement(ModuleElement):
             ...
             TypeError: slope only defined for eigenfunctions
         """
-        if not self.is_eigenform(): raise TypeError("slope only defined for eigenfunctions")
+        if not self.is_eigenform():
+            raise TypeError("slope only defined for eigenfunctions")
         return self._slope
 
     def eigenvalue(self):
@@ -1424,8 +1425,8 @@ class OverconvergentModularFormElement(ModuleElement):
             ...
             TypeError: eigenvalue only defined for eigenfunctions
         """
-
-        if not self.is_eigenform(): raise TypeError("eigenvalue only defined for eigenfunctions")
+        if not self.is_eigenform():
+            raise TypeError("eigenvalue only defined for eigenfunctions")
         return self._eigenvalue
 
     def q_expansion(self, prec=None):
@@ -1478,10 +1479,10 @@ class OverconvergentModularFormElement(ModuleElement):
             ...
             ValueError: Precision too large for space
         """
-
-
-        if prec > self.prec(): raise ValueError("Precision too large for space")
-        if prec is None: prec = self.prec()
+        if prec > self.prec():
+            raise ValueError("Precision too large for space")
+        if prec is None:
+            prec = self.prec()
         return self._gexp.padded_list(prec)
 
     def prime(self):
@@ -1636,7 +1637,8 @@ class OverconvergentModularFormElement(ModuleElement):
             sage: f.valuation_plot()
             Graphics object consisting of 1 graphics primitive
         """
-        if rmax is None: rmax = ZZ(self.prime())/ZZ(1 + self.prime())
+        if rmax is None:
+            rmax = ZZ(self.prime())/ZZ(1 + self.prime())
         return plot(self.r_ord, (0, rmax) )
 
     def weight(self):
@@ -1665,8 +1667,10 @@ class OverconvergentModularFormElement(ModuleElement):
             1
         """
         from sage.rings.infinity import Infinity
-        if self.is_zero(): return ZZ(1)
-        else: return Infinity
+        if self.is_zero():
+            return ZZ(1)
+        else:
+            return Infinity
 
     def base_extend(self, R):
         r"""

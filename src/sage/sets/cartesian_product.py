@@ -13,7 +13,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 import numbers
 
@@ -75,7 +74,7 @@ class CartesianProduct(UniqueRepresentation, Parent):
             sage: cartesian_product([ZZ, ZZ], blub=None)
             Traceback (most recent call last):
             ...
-            TypeError: __init__() got an unexpected keyword argument 'blub'
+            TypeError: ...__init__() got an unexpected keyword argument 'blub'
         """
         self._sets = tuple(sets)
         Parent.__init__(self, category=category)

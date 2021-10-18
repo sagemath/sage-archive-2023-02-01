@@ -29,7 +29,6 @@ Authors:
 #
 #                  http://www.gnu.org/licenses/
 #****************************************************************************
-from __future__ import print_function, absolute_import
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.categories.finite_enumerated_sets import FiniteEnumeratedSets
@@ -40,7 +39,7 @@ from sage.combinat.skew_tableau import SkewTableau, SemistandardSkewTableaux
 from sage.combinat.partition import Partition, Partitions
 from sage.combinat.root_system.weyl_group import WeylGroup
 from sage.combinat.core import Core
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.functions.generalized import sgn
 from sage.misc.flatten import flatten
 from sage.combinat.skew_partition import SkewPartition
@@ -1819,7 +1818,7 @@ class WeakTableau_factorized_permutation(WeakTableau_abstract):
         """
         W = WeylGroup(['A', k, 1], prefix='s')
         if len(t) > 0:
-            if isinstance(t[0], list) or isinstance(t[0], tuple):
+            if isinstance(t[0], (list, tuple)):
                 w_tuple = tuple(W.from_reduced_word(p) for p in t)
             else:
                 w_tuple = tuple(W(r) for r in t)
@@ -2547,7 +2546,7 @@ class StrongTableau(ClonableList, metaclass=InheritComparisonClasscallMetaclass)
             sage: all( T._is_valid_standard() for T in StrongTableaux.standard_marked_iterator(4, 6))
             True
 
-        Inner shape is not a a 3-core::
+        Inner shape is not a 3-core::
 
             sage: StrongTableau([[None, None, None], [-1]], 2)
             Traceback (most recent call last):

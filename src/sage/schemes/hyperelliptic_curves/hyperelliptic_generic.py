@@ -21,7 +21,6 @@ EXAMPLES::
     sage: D.defining_polynomials()[0].parent()
     Multivariate Polynomial Ring in x1, x2 over Rational Field
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2006 David Kohel <kohel@maths.usyd.edu>
@@ -452,9 +451,8 @@ class HyperellipticCurve_generic(plane_curve.ProjectivePlaneCurve):
         if d == 0:
             raise TypeError("P = %s is a Weierstrass point. Use local_coordinates_at_weierstrass instead!"%P)
         pol = self.hyperelliptic_polynomials()[0]
-        L = PowerSeriesRing(self.base_ring(), name)
+        L = PowerSeriesRing(self.base_ring(), name, default_prec=prec)
         t = L.gen()
-        L.set_default_prec(prec)
         K = PowerSeriesRing(L, 'x')
         pol = K(pol)
         b = P[0]

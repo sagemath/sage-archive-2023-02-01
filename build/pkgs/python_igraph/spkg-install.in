@@ -1,8 +1,2 @@
 cd src
-
-sdh_pip_install .
-
-if [ $? -ne 0 ]; then
-    echo >&2 "Error installing python_igraph."
-    exit 1
-fi
+eval sdh_pip_install $(eval sdh_prefix_args "--build-option" --use-pkg-config) .

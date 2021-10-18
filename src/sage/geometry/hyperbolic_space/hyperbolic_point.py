@@ -62,13 +62,14 @@ Some more examples::
 
 from sage.structure.element import Element
 from sage.structure.richcmp import richcmp, op_NE
-from sage.symbolic.all import I
+from sage.symbolic.constants import I
 from sage.misc.latex import latex
 from sage.structure.element import is_Matrix
 from sage.matrix.constructor import matrix
 from sage.modules.free_module_element import vector
 from sage.rings.infinity import infinity
-from sage.rings.all import RR, CC
+from sage.rings.all import CC
+from sage.rings.real_mpfr import RR
 from sage.functions.other import real, imag
 
 from sage.geometry.hyperbolic_space.hyperbolic_isometry import HyperbolicIsometry

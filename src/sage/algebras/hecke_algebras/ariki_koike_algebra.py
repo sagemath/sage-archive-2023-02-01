@@ -48,7 +48,6 @@ REFERENCES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, print_function, division
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
@@ -541,7 +540,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                     sage: LT.dimension()
                     29160
                 """
-                from sage.functions.other import factorial
+                from sage.arith.all import factorial
                 return self._r**self._n * factorial(self._n)
 
             def some_elements(self):
@@ -1021,7 +1020,7 @@ class ArikiKoikeAlgebra(Parent, UniqueRepresentation):
                 This function is used internally by the multiplication and
                 may return elements that are not in the basis. However
                 these will be eventually resolved after the product has
-                been computed.
+                been computed. ::
 
                     sage: H = algebras.ArikiKoike(3, 2).LT()
                     sage: L2 = H.L(2)

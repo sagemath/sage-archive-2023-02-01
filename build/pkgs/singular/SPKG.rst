@@ -1,5 +1,5 @@
-Singular
-========
+singular: Computer algebra system for polynomial computations, algebraic geometry, singularity theory
+=====================================================================================================
 
 Description
 -----------
@@ -13,13 +13,12 @@ License
 
 GPLv2 or GPLv3
 
-
 Upstream Contact
 ----------------
 
 libsingular-devel@mathematik.uni-kl.de
 
-http://www.singular.uni-kl.de/
+https://www.singular.uni-kl.de/
 
 Dependencies
 ------------
@@ -31,11 +30,8 @@ Dependencies
 -  NTL
 -  FLINT
 
-
 Special Update/Build Instructions
 ---------------------------------
-
-See spkg-src to create the source tarball.
 
 Other notes:
 

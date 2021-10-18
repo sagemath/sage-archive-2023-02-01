@@ -1,5 +1,5 @@
-LattE_Integrale
-===============
+latte_int: Count lattice points, compute volumes, and integrate over convex polytopes
+=====================================================================================
 
 Description
 -----------

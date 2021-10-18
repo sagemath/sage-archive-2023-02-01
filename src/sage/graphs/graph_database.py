@@ -43,7 +43,6 @@ REFERENCES:
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 ################################################################################
-from __future__ import print_function, absolute_import
 
 from . import graph
 import os
@@ -670,18 +669,18 @@ class GraphQuery(GenericGraphQuery):
             relabel[col] = ' '.join([word.capitalize() for word in col.split('_')])
 
         if re.search('SELECT .*degree_sequence.* FROM', self.__query_string__):
-            format_cols = {'degree_sequence': (lambda x, y: data_to_degseq(x, y))}
+            format_cols = {'degree_sequence': data_to_degseq}
         else:
             format_cols = {}
         if with_picture:
             SQLQuery.show(self, max_field_size=max_field_size,
-                                plot_cols={'graph6': (lambda x: graph6_to_plot(x))},
-                                format_cols=format_cols, id_col='graph6',
-                                relabel_cols=relabel)
+                          plot_cols={'graph6': graph6_to_plot},
+                          format_cols=format_cols, id_col='graph6',
+                          relabel_cols=relabel)
         else:
             SQLQuery.show(self, max_field_size=max_field_size,
-                                format_cols=format_cols, relabel_cols=relabel,
-                                id_col='graph6')
+                          format_cols=format_cols, relabel_cols=relabel,
+                          id_col='graph6')
 
     def get_graphs_list(self):
         """
@@ -942,7 +941,6 @@ class GraphDatabase(SQLDatabase):
         This is a helper method for the ``interactive_query`` method and should
         not be called directly.
         """
-        from sagenb.notebook.interact import input_grid
         function_name = '__temporary_interact_function'
         arg = ['%s=%s'%(word, kwds[word]) for word in kwds]
         boxes = ["%s=input_grid(1,2,['=',%s])"%(word, kwds[word]) for word in kwds]
@@ -1087,9 +1085,12 @@ class GraphDatabase(SQLDatabase):
         """
         Generate an interact shell to query the database.
 
-        This method generates an interact shell (in the notebook only) that
-        allows the user to manipulate query parameters and see the updated
-        results.
+        .. WARNING::
+
+            This is no longer implemented since the switch to Python3.
+
+        This method generates an interact shell that allows the user
+        to manipulate query parameters and see the updated results.
 
         .. TODO::
 
@@ -1100,16 +1101,13 @@ class GraphDatabase(SQLDatabase):
         EXAMPLES::
 
             sage: D = GraphDatabase()
-            sage: D.interactive_query(display_cols=['graph6', 'num_vertices', 'degree_sequence'], num_edges=5, max_degree=3)  # py2 # optional -- sagenb
-            <html>...</html>
-
-        .. WARNING::
-
-            Above doctest is known to fail with Python 3 due to ``sagenb``. See
-            :trac:`27435` for more details.
+            sage: D.interactive_query(display_cols=['graph6', 'num_vertices', 'degree_sequence'], num_edges=5, max_degree=3)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: not available in Jupyter notebook
         """
-        from sagenb.notebook.interact import interact
-        print('<html><h1>Interactive Graph Query</h1></html>')
-        f = self._gen_interact_func(display=display_cols, **kwds)
-        interact(f)
+        raise NotImplementedError('not available in Jupyter notebook')
+        # print('<html><h1>Interactive Graph Query</h1></html>')
+        # f = self._gen_interact_func(display=display_cols, **kwds)
+        # interact(f)
 

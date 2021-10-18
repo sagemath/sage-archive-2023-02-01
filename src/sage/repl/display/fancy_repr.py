@@ -2,7 +2,6 @@
 """
 Representations of objects
 """
-
 # ****************************************************************************
 #       Copyright (C) 2014 Volker Braun <vbraun.name@gmail.com>
 #
@@ -20,9 +19,9 @@ from IPython.lib.pretty import (
     _type_pprinters,
 )
 
-_baseclass_reprs = (object.__repr__,)
-
 from sage.repl.display.util import format_list
+
+_baseclass_reprs = (object.__repr__,)
 
 
 class ObjectReprABC(object):
@@ -207,14 +206,13 @@ class LargeMatrixHelpRepr(ObjectReprABC):
             return False
         if not isinstance(obj, Matrix):
             return False
-        from sage.matrix.matrix0 import max_rows, max_cols
-        if obj.nrows() < max_rows and obj.ncols() < max_cols:
+        from sage.matrix.constructor import options
+        if obj.nrows() <= options.max_rows() and obj.ncols() <= options.max_cols():
             return False
         p.text(
             repr(obj) + " (use the '.str()' method to see the entries)"
         )
         return True
-
 
 
 class PlainPythonRepr(ObjectReprABC):
@@ -246,7 +244,7 @@ class PlainPythonRepr(ObjectReprABC):
             sage: from sage.repl.display.fancy_repr import PlainPythonRepr
             sage: pp = PlainPythonRepr()
             sage: pp.format_string(type(1))
-            "<type 'sage.rings.integer.Integer'>"
+            "<class 'sage.rings.integer.Integer'>"
 
         Do not swallow a trailing newline at the end of the output of
         a custom representer. Note that it is undesirable to have a
@@ -360,5 +358,3 @@ class TallListRepr(ObjectReprABC):
             return False
         p.text(output)
         return True
-
-

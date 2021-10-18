@@ -11,19 +11,30 @@ else
     export LDFLAGS="${LDFLAGS} -shared"
 fi
 
-sage-python23 ../lapack_conf.py
+if [ "$UNAME" = "CYGWIN" ]; then
+    # Trac #30643
+    export CPPFLAGS="${CPPFLAGS} -D_GNU_SOURCE"
+fi
+
+python3 ../lapack_conf.py
 
 # Make sure that the fortran objects are compiled with -fPIC
 export FFLAGS="$FFLAGS -fPIC"
 export FCFLAGS="$FCFLAGS -fPIC"
 
+# Numpy 1.20.3 enables some intrinsics on machines without support with `-march=native`.
+# We disable it until this is fixed.
+export CFLAGS="$CFLAGS_NON_NATIVE"
+
 export NUMPY_FCONFIG="config_fc --noopt --noarch"
+if [ "$SAGE_FAT_BINARY" = "yes" ]; then
+    export NUMPY_FCONFIG="--cpu-baseline=NONE"
+else
+    export NUMPY_FCONFIG
+fi
 
 ################################################
 
-sage-python23 setup.py \
-        --no-user-cfg \
-       bdist_wheel \
-       ${NUMPY_FCONFIG} || sdh_die "Error building wheel for numpy"
-
-sdh_store_and_pip_install_wheel .
+eval sdh_pip_install \
+     $(eval sdh_prefix_args "--build-option" build ${NUMPY_CONFIG} ${NUMPY_FCONFIG}) \
+     .

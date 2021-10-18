@@ -6,7 +6,7 @@ This module contains various functions relating to lifting elements of
 problems.
 """
 
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.arith.all import crt, inverse_mod
 from sage.modular.modsym.p1list import lift_to_sl2z
 
@@ -171,7 +171,7 @@ def lift_ramified(g, p, u, n):
 
         sage: from sage.modular.local_comp.liftings import lift_ramified
         sage: lift_ramified([2,2,3,2], 3, 1, 1)
-        [5, 8, 3, 5]
+        [-1, -1, 3, 2]
         sage: lift_ramified([8,2,12,2], 3, 2, 23)
         [323, 110, -133584, -45493]
         sage: type(lift_ramified([8,2,12,2], 3, 2, 23)[0])
@@ -222,9 +222,9 @@ def lift_for_SL(A, N=None):
     TESTS::
 
         sage: lift_for_SL(matrix(3,3,[1,2,0,3,4,0,0,0,1]),3)
-        [10 14  3]
-        [ 9 10  3]
-        [ 3  3  1]
+        [-2 -1  0]
+        [ 0  1 -3]
+        [ 3  0  4]
 
         sage: A = matrix(Zmod(7), 2, [1,0,0,1])
         sage: L = lift_for_SL(A)

@@ -152,7 +152,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         cartan_type = CartanType(['A',n-1])
         self._cartan_type = cartan_type
         from sage.combinat.sf.sf import SymmetricFunctions
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         Sym = SymmetricFunctions(QQ)
         s = Sym.schur()
         support = s(w.stanley_symmetric_function()).support()
@@ -161,7 +161,7 @@ class AffineFactorizationCrystal(UniqueRepresentation, Parent):
         #generators = [tuple(p) for p in affine_factorizations(w, n)]
         self.module_generators = [self(t) for t in generators]
         if x is None:
-            if generators != []:
+            if generators:
                 x = min( set(range(self.k+1)).difference(set(
                             sum([i.reduced_word() for i in generators[0]],[]))))
             else:

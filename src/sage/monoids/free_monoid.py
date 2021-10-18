@@ -23,7 +23,6 @@ the optional ``names`` argument to the
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.rings.integer import Integer
 from sage.structure.category_object import normalize_names
@@ -34,7 +33,7 @@ from .monoid import Monoid_class
 from sage.combinat.words.finite_word import FiniteWord_class
 
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 
 def is_FreeMonoid(x):

@@ -22,7 +22,6 @@ Functions and classes
 #
 #                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function, absolute_import
 
 from warnings import warn
 import inspect
@@ -41,7 +40,7 @@ def _check_trac_number(trac_number):
     OUTPUT:
 
     This function returns nothing. A ``ValueError`` or ``TypeError`` is
-    raised if the argument can not be a valid trac number.
+    raised if the argument cannot be a valid trac number.
 
     EXAMPLES::
 
@@ -99,6 +98,41 @@ def deprecation(trac_number, message, stacklevel=4):
     """
     warning(trac_number, message, DeprecationWarning, stacklevel)
 
+def deprecation_cython(trac_number, message, stacklevel=3):
+    r"""
+    Issue a deprecation warning -- for use in cython functions
+
+    TESTS:
+
+    We check that `deprecation_cython` in a cython function generates a warning
+    with the same callsite reference as `deprecation` in a python function, whereas
+    `deprecation` in a cython function does not::
+
+        sage: cython('''
+        ....: from sage.misc.superseded import deprecation_cython, deprecation
+        ....: def foo1():
+        ....:     deprecation_cython(100,"boo")
+        ....: def foo2():
+        ....:     deprecation(100,"boo")
+        ....: ''')
+        sage: def foo3():
+        ....:     deprecation(100,"boo")
+        sage: if True:  # Execute the three "with" blocks as one doctest
+        ....:     with warnings.catch_warnings(record=True) as w1:
+        ....:        warnings.simplefilter("always")
+        ....:        foo1()
+        ....:     with warnings.catch_warnings(record=True) as w2:
+        ....:        warnings.simplefilter("always")
+        ....:        foo2()
+        ....:     with warnings.catch_warnings(record=True) as w3:
+        ....:        warnings.simplefilter("always")
+        ....:        foo3()
+        sage: w1[0].filename == w3[0].filename
+        True
+        sage: w2[0].filename == w3[0].filename
+        False
+     """
+    warning(trac_number, message, DeprecationWarning, stacklevel)
 
 def warning(trac_number, message, warning_class=Warning, stacklevel=3):
     r"""
@@ -293,7 +327,7 @@ class __experimental_self_test(object):
 
     The test below does not issue a warning message because that warning has
     already been issued by a previous doc-test in the @experimental code. Note
-    that this behaviour can not be demonstrated within a single documentation
+    that this behaviour cannot be demonstrated within a single documentation
     string: Sphinx will itself supress multiple issued warnings.
 
     TESTS::
@@ -398,7 +432,7 @@ class DeprecatedFunctionAlias(object):
                 for key, val in ref_copy.items():
                     if val is search_for:
                         return key
-        raise AttributeError("The name of this deprecated function can not be determined")
+        raise AttributeError("The name of this deprecated function cannot be determined")
 
     def __call__(self, *args, **kwds):
         """

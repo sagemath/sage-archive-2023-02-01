@@ -195,7 +195,6 @@ Classes and Methods
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from functools import total_ordering
 from itertools import combinations_with_replacement
@@ -1579,7 +1578,7 @@ class FractionWithFactoredDenominator(RingElement):
             (1, [(x*y + x + y - 1, 2)])
             sage: alpha = [4, 3]
             sage: decomp = F.asymptotic_decomposition(alpha); decomp
-            (0, []) + (-3/2*r*(1/y + 1) - 1/2/y - 1/2, [(x*y + x + y - 1, 1)])
+            (0, []) + (-2*r*(1/x + 1) - 1/2/x - 1/2, [(x*y + x + y - 1, 1)])
             sage: F1 = decomp[1]
             sage: p = {y: 1/3, x: 1/2}
             sage: asy = F1.asymptotics(p, alpha, 2, verbose=True)
@@ -1613,7 +1612,7 @@ class FractionWithFactoredDenominator(RingElement):
             sage: alpha = [3, 3, 2]
             sage: decomp = F.asymptotic_decomposition(alpha); decomp
             (0, []) +
-            (-16*r*(3/y - 4/z) - 16/y + 32/z,
+            (16*r*(3/x - 2/z) + 16/x - 16/z,
              [(x + 2*y + z - 4, 1), (2*x + y + z - 4, 1)])
             sage: F1 = decomp[1]
             sage: p = {x: 1, y: 1, z: 1}
@@ -3682,6 +3681,7 @@ def diff_prod(f_derivs, u, g, X, interval, end, uderivs, atc):
         D = {}
         rhs = []
         lhs = []
+        new_vars = []
         for t in combinations_with_replacement(X, l):
             t = list(t)
             s = t + end
@@ -3690,13 +3690,15 @@ def diff_prod(f_derivs, u, g, X, interval, end, uderivs, atc):
             # Since Sage's solve command can't take derivatives as variable
             # names, make new variables based on t to stand in for
             # diff(u, t) and store them in D.
-            D[diff(u, t).subs(atc)] = var('zing' +
-                                          ''.join(str(x) for x in t))
+            new_var = SR.temp_var()
+            new_vars.append(new_var)
+            D[diff(u, t).subs(atc)] = new_var
         eqns = [lhs[i] == rhs[i].subs(uderivs).subs(D)
                 for i in range(len(lhs))]
         variables = D.values()
         sol = solve(eqns, *variables, solution_dict=True)
         uderivs.update(subs_all(D, sol[ZZ.zero()]))
+        SR.cleanup_var(new_vars)
     return uderivs
 
 
@@ -4028,7 +4030,7 @@ def diff_op(A, B, AB_derivs, V, M, r, N):
         sage: DD = diff_op(A, B, AB_derivs, T, M, 1, 2)
         sage: sorted(DD)
         [(0, 0, 0), (0, 1, 0), (0, 1, 1), (0, 1, 2)]
-        sage: len(DD[(0, 1, 2)])
+        sage: DD[(0, 1, 2)].number_of_operands()
         246
     """
     from itertools import product

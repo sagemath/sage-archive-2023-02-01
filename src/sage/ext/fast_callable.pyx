@@ -303,7 +303,7 @@ AUTHOR:
 import operator
 from copy import copy
 from sage.rings.real_mpfr cimport RealField_class, RealNumber
-from sage.rings.complex_field import ComplexField_class
+from sage.rings.complex_mpfr import ComplexField_class
 from sage.rings.all import RDF, CDF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
@@ -364,8 +364,7 @@ def fast_callable(x, domain=None, vars=None,
         sage: f(1, 2, 3)
         sin(2) + 12
         sage: K.<x> = QQ[]
-        sage: p = K.random_element(6); p
-        -1/4*x^6 + 1/2*x^5 - x^4 - 12*x^3 + 1/2*x^2 - 1/95*x - 1/2
+        sage: p = -1/4*x^6 + 1/2*x^5 - x^4 - 12*x^3 + 1/2*x^2 - 1/95*x - 1/2
         sage: fp = fast_callable(p, domain=RDF)
         sage: fp.op_list()
         [('load_arg', 0), ('load_const', -0.25), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -1.0), 'add', ('load_arg', 0), 'mul', ('load_const', -12.0), 'add', ('load_arg', 0), 'mul', ('load_const', 0.5), 'add', ('load_arg', 0), 'mul', ('load_const', -0.010526315789473684), 'add', ('load_arg', 0), 'mul', ('load_const', -0.5), 'add', 'return']
@@ -428,30 +427,44 @@ def fast_callable(x, domain=None, vars=None,
         et = x
         vars = et._etb._vars
     else:
-        if vars is None or len(vars) == 0:
-            from sage.symbolic.ring import SR
-            from sage.symbolic.callable import is_CallableSymbolicExpressionRing
-            from sage.symbolic.expression import is_Expression
+        from sage.symbolic.callable import is_CallableSymbolicExpression
+        from sage.symbolic.expression import is_Expression
 
-            # XXX This is pretty gross... there should be a "callable_variables"
-            # method that does all this.
-            vars = x.variables()
-            if x.parent() is SR and x.number_of_arguments() > len(vars):
-                vars = list(vars) + ['EXTRA_VAR%d' % n for n in range(len(vars), x.number_of_arguments())]
+        if not vars:
+            # fast_float passes empty list/tuple
+            vars = None
 
-            # Failing to specify the variables is deprecated for any
-            # symbolic expression, except for PrimitiveFunction and
-            # CallableSymbolicExpression.
-            if is_Expression(x) and not is_CallableSymbolicExpressionRing(x.parent()):
+        if is_CallableSymbolicExpression(x):
+            if vars is None:
+                vars = x.arguments()
+            if expect_one_var and len(vars) != 1:
+                raise ValueError(f"passed expect_one_var=True, but the callable expression takes {len(vars)} arguments")
+        elif is_Expression(x):
+            from sage.symbolic.ring import is_SymbolicVariable
+            if vars is None:
+                vars = x.variables()
                 if expect_one_var and len(vars) <= 1:
-                    if len(vars) == 0:
+                    if not vars:
                         vars = ['EXTRA_VAR0']
                 else:
-                    raise ValueError("List of variables must be specified for symbolic expressions")
+                    raise ValueError("list of variables must be specified for symbolic expressions")
+            def to_var(var):
+                if is_SymbolicVariable(var):
+                    return var
+                from sage.symbolic.ring import SR
+                return SR.var(var)
+            vars = [to_var(var) for var in vars]
+            # Convert to a callable symbolic expression
+            x = x.function(*vars)
+
+        if vars is None:
             from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
             from sage.rings.polynomial.multi_polynomial_ring import is_MPolynomialRing
             if is_PolynomialRing(x.parent()) or is_MPolynomialRing(x.parent()):
                 vars = x.parent().variable_names()
+            else:
+                # constant
+                vars = ()
 
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)
         et = x._fast_callable_(etb)
@@ -601,9 +614,9 @@ cdef class ExpressionTreeBuilder:
             sage: from sage.ext.fast_callable import ExpressionTreeBuilder
             sage: etb = ExpressionTreeBuilder('x')
             sage: v = etb(3); v, type(v)
-            (3, <type 'sage.ext.fast_callable.ExpressionConstant'>)
+            (3, <class 'sage.ext.fast_callable.ExpressionConstant'>)
             sage: v = etb(polygen(QQ)); v, type(v)
-            (v_0, <type 'sage.ext.fast_callable.ExpressionVariable'>)
+            (v_0, <class 'sage.ext.fast_callable.ExpressionVariable'>)
             sage: v is etb(v)
             True
         """
@@ -681,13 +694,13 @@ cdef class ExpressionTreeBuilder:
             sage: etb.var('y')
             Traceback (most recent call last):
             ...
-            ValueError: Variable 'y' not found
+            ValueError: Variable 'y' not found...
         """
         var_name = self._clean_var(v)
         try:
             ind = self._vars.index(var_name)
         except ValueError:
-            raise ValueError("Variable '%s' not found" % var_name)
+            raise ValueError(f"Variable '{var_name}' not found in {self._vars}")
         return ExpressionVariable(self, ind)
 
     def _var_number(self, n):
@@ -1071,7 +1084,7 @@ cdef class ExpressionConstant(Expression):
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb(3))
-        <type 'sage.ext.fast_callable.ExpressionConstant'>
+        <class 'sage.ext.fast_callable.ExpressionConstant'>
     """
 
     cdef object _value
@@ -1139,7 +1152,7 @@ cdef class ExpressionVariable(Expression):
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb.var(x))
-        <type 'sage.ext.fast_callable.ExpressionVariable'>
+        <class 'sage.ext.fast_callable.ExpressionVariable'>
     """
     cdef int _variable_index
 
@@ -1206,7 +1219,7 @@ cdef class ExpressionCall(Expression):
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb.call(sin, x))
-        <type 'sage.ext.fast_callable.ExpressionCall'>
+        <class 'sage.ext.fast_callable.ExpressionCall'>
     """
     cdef object _function
     cdef object _arguments
@@ -1295,7 +1308,7 @@ cdef class ExpressionIPow(Expression):
         sage: from sage.ext.fast_callable import ExpressionTreeBuilder
         sage: etb = ExpressionTreeBuilder(vars=(x,))
         sage: type(etb.var('x')^17)
-        <type 'sage.ext.fast_callable.ExpressionIPow'>
+        <class 'sage.ext.fast_callable.ExpressionIPow'>
     """
     cdef object _base
     cdef object _exponent
@@ -1695,7 +1708,7 @@ cpdef generate_code(Expression expr, InstructionStream stream):
         sage: instr_stream.instr('return')
         sage: v = Wrapper_py(instr_stream.get_current())
         sage: type(v)
-        <type 'sage.ext.interpreters.wrapper_py.Wrapper_py'>
+        <class 'sage.ext.interpreters.wrapper_py.Wrapper_py'>
         sage: v(7)
         8*pi + 56
 
@@ -1967,7 +1980,7 @@ cdef class InstructionStream:
              'stack': 0}
             sage: md = instr_stream.get_metadata()
             sage: type(md)
-            <type 'sage.ext.fast_callable.InterpreterMetadata'>
+            <class 'sage.ext.fast_callable.InterpreterMetadata'>
             sage: md.by_opname['py_call']
             (CompilerInstrSpec(0, 1, ['py_constants', 'n_inputs']), 3)
             sage: md.by_opcode[3]
@@ -2141,7 +2154,7 @@ cdef class InstructionStream:
             sage: instr_stream = InstructionStream(metadata, 1)
             sage: md = instr_stream.get_metadata()
             sage: type(md)
-            <type 'sage.ext.fast_callable.InterpreterMetadata'>
+            <class 'sage.ext.fast_callable.InterpreterMetadata'>
         """
         return self._metadata
 

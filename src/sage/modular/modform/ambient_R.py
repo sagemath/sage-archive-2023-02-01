@@ -1,7 +1,6 @@
 """
 Modular Forms over a Non-minimal Base Ring
 """
-from __future__ import absolute_import
 
 #########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -13,7 +12,7 @@ from __future__ import absolute_import
 
 from . import ambient
 from .cuspidal_submodule import CuspidalSubmodule_R
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.misc.cachefunc import cached_method
 
 class ModularFormsAmbient_R(ambient.ModularFormsAmbient):

@@ -78,16 +78,20 @@ The following constructions are available
 #
 #                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import absolute_import, division
 
 import itertools
 
-from sage.rings.all import ZZ, QQ, RDF, RR, AA, QQbar
+from sage.rings.integer_ring import ZZ
+from sage.rings.qqbar import AA, QQbar
+from sage.rings.rational_field import QQ
+from sage.rings.real_double import RDF
+from sage.rings.real_mpfr import RR
 from sage.combinat.permutation import Permutations
 from sage.groups.perm_gps.permgroup_named import AlternatingGroup
 from .constructor import Polyhedron
 from .parent import Polyhedra
 from sage.graphs.digraph import DiGraph
+from sage.graphs.graph import Graph
 from sage.combinat.root_system.associahedron import Associahedron
 
 def zero_sum_projection(d, base_ring=RDF):
@@ -335,7 +339,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
 
     - ``backend`` -- string (default: `None`);
       the backend to be use to construct a polyhedral,
-      used interally in case the center is not the origin,
+      used internally in case the center is not the origin,
       see :func:`~sage.geometry.polyhedron.constructor.Polyhedron`
 
     OUTPUT: An ordered point configuration as list of vectors.
@@ -441,7 +445,7 @@ def gale_transform_to_primal(vectors, base_ring=None, backend=None):
         ValueError: input vectors not totally cyclic
     """
     from sage.modules.free_module_element import vector
-    from sage.matrix.all import Matrix
+    from sage.matrix.constructor import Matrix
     if base_ring:
         vectors = tuple(vector(base_ring, x) for x in vectors)
     else:
@@ -760,7 +764,7 @@ class Polytopes():
             5/12*sqrt5 + 5/4
             sage: TestSuite(ico).run()                             # optional - pynormaliz
             sage: ico = polytopes.icosahedron(exact=False)
-            sage: TestSuite(ico).run()
+            sage: TestSuite(ico).run(skip="_test_lawrence")
 
         """
         if base_ring is None and exact:
@@ -963,7 +967,7 @@ class Polytopes():
         """
         Return the rhombic dodecahedron.
 
-        The rhombic dodecahedron is a a polytope  dual to the cuboctahedron. It
+        The rhombic dodecahedron is a polytope dual to the cuboctahedron. It
         has 14 vertices and 12 faces. For more information see
         the :wikipedia:`Rhombic_dodecahedron`.
 
@@ -1735,7 +1739,7 @@ class Polytopes():
             sage: vertices = ki.vertices()
             sage: edges = [[vector(edge[0]),vector(edge[1])] for edge in ki.bounded_edges()]
             sage: edge_lengths = [norm(edge[0]-edge[1]) for edge in edges]
-            sage: union(edge_lengths)
+            sage: sorted(set(edge_lengths))
             [7, 8, 9, 11, 12, 14, 16]
 
         TESTS::
@@ -2035,7 +2039,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2064,7 +2068,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2092,7 +2096,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2193,7 +2197,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2472,7 +2476,7 @@ class Polytopes():
             A 6-dimensional polyhedron in RDF^6 defined as the convex hull of 35 vertices
             sage: h_7_3.f_vector()
             (1, 35, 210, 350, 245, 84, 14, 1)
-            sage: TestSuite(h_7_3).run(skip="_test_pyramid")
+            sage: TestSuite(h_7_3).run(skip=["_test_pyramid", "_test_lawrence"])
         """
         verts = Permutations([0] * (dim - k) + [1] * k).list()
         if project:
@@ -2717,7 +2721,7 @@ class Polytopes():
         try:
             W = CoxeterGroup(coxeter_type)
         except:
-            raise ValueError("can not build a Coxeter group from {}".format(coxeter_type))
+            raise ValueError("cannot build a Coxeter group from {}".format(coxeter_type))
         n = W.one().canonical_matrix().rank()
         weights = W.fundamental_weights()
         if point is None:
@@ -2778,7 +2782,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2794,7 +2798,7 @@ class Polytopes():
         """
         if not exact:
             # cdd finds a numerical inconsistency.
-            raise NotImplementedError("can not compute the convex hull using floating points")
+            raise NotImplementedError("cannot compute the convex hull using floating points")
         return self.generalized_permutahedron(['H', 4], exact=exact, backend=backend, regular=True)
 
     omnitruncated_six_hundred_cell = omnitruncated_one_hundred_twenty_cell
@@ -2850,7 +2854,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2916,7 +2920,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2944,7 +2948,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -2972,7 +2976,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -3000,7 +3004,7 @@ class Polytopes():
 
             The coordinates are exact by default. The computation with inexact
             coordinates (using the backend ``'cdd'``) returns a numerical
-            inconsistency error, and thus can not be computed.
+            inconsistency error, and thus cannot be computed.
 
         INPUT:
 
@@ -3046,7 +3050,7 @@ class Polytopes():
             phi = (1 + sqrt5) / 2
             phi_inv = base_ring.one() / phi
 
-            # The 24 permutations of [0,0,±2,±2] (the ± are independant)
+            # The 24 permutations of [0,0,±2,±2] (the ± are independent)
             verts = Permutations([0,0,2,2]).list() + Permutations([0,0,-2,-2]).list() + Permutations([0,0,2,-2]).list()
 
             # The 64 permutations of the following vectors:
@@ -3397,16 +3401,13 @@ class Polytopes():
             sage: TestSuite(P).run()
         """
         from sage.modules.free_module_element import vector
-        from sage.structure.sequence import Sequence
         generators = [vector(v) for v in generators]
-        V = Sequence(generators).universe()
-        R = V.base_ring()
+        if not generators:
+            return Polyhedron(backend=backend)
 
-        from itertools import combinations
-        par = [V.zero()]
-        par.extend(sum(c) for k in range(1, len(generators) + 1)
-                   for c in combinations(generators, k))
-        return Polyhedron(vertices=par, base_ring=R, backend=backend)
+        zero = generators[0] - generators[0]
+        intervals = [Polyhedron([zero, gen], backend=backend) for gen in generators]
+        return sum(intervals)
 
     zonotope = parallelotope
 
@@ -3416,6 +3417,8 @@ class Polytopes():
     associahedron = staticmethod(Associahedron)
 
     flow_polytope = staticmethod(DiGraph.flow_polytope)
+    edge_polytope = staticmethod(Graph.edge_polytope)
+    symmetric_edge_polytope = staticmethod(Graph.symmetric_edge_polytope)
 
 
 polytopes = Polytopes()

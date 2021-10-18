@@ -52,8 +52,7 @@ As can be seen above, features try to produce helpful error messages.
 """
 
 import os
-from distutils.errors import CCompilerError
-from distutils.spawn import find_executable
+import shutil
 
 from sage.env import SAGE_SHARE
 from sage.misc.lazy_string import lazy_string
@@ -216,8 +215,8 @@ class Feature(TrivialUniqueRepresentation):
         EXAMPLES::
 
             sage: from sage.features import Executable
-            sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="http://github.org/dimpase/csdp").resolution()  # optional - sage_spkg
-            l'...To install CSDP...you can try to run...sage -i csdp...Further installation instructions might be available at http://github.org/dimpase/csdp.'
+            sage: Executable(name="CSDP", spkg="csdp", executable="theta", url="https://github.com/dimpase/csdp").resolution()  # optional - sage_spkg
+            l'...To install CSDP...you can try to run...sage -i csdp...Further installation instructions might be available at https://github.com/dimpase/csdp.'
         """
         def find_resolution():
             if self._cache_resolution is not None:
@@ -366,15 +365,17 @@ def package_systems():
         [Feature('homebrew'), Feature('sage_spkg'), Feature('pip')]
     """
     # The current implementation never returns more than one system.
-    from subprocess import run, CalledProcessError
+    from subprocess import run, CalledProcessError, PIPE
     global _cache_package_systems
     if _cache_package_systems is None:
         _cache_package_systems = []
         # Try to use scripts from SAGE_ROOT (or an installation of sage_bootstrap)
         # to obtain system package advice.
         try:
-            proc = run('sage-guess-package-system', shell=True, capture_output=True, text=True, check=True)
-            _cache_package_systems = [PackageSystem(proc.stdout.strip())]
+            proc = run('sage-guess-package-system', shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True, check=True)
+            system_name = proc.stdout.strip()
+            if system_name != 'unknown':
+                _cache_package_systems = [PackageSystem(system_name)]
         except CalledProcessError:
             pass
         more_package_systems = [SagePackageSystem(), PipPackageSystem()]
@@ -435,16 +436,16 @@ class PackageSystem(Feature):
             sage: fedora.spkg_installation_hint('openblas')  # optional - SAGE_ROOT
             'To install openblas using the fedora package manager, you can try to run:\n!sudo yum install openblas-devel'
         """
-        from subprocess import run, CalledProcessError
+        from subprocess import run, CalledProcessError, PIPE
         lines = []
         system = self.name
         try:
             proc = run(f'sage-get-system-packages {system} {spkgs}',
-                       shell=True, capture_output=True, text=True, check=True)
+                       shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True, check=True)
             system_packages = proc.stdout.strip()
             print_sys = f'sage-print-system-package-command {system} --verbose --sudo --prompt="{prompt}"'
             command = f'{print_sys} update && {print_sys} install {system_packages}'
-            proc = run(command, shell=True, capture_output=True, text=True, check=True)
+            proc = run(command, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True, check=True)
             command = proc.stdout.strip()
             if command:
                 lines.append(f'To install {feature} using the {system} package manager, you can try to run:')
@@ -569,6 +570,8 @@ class Executable(Feature):
         sage: from sage.features import Executable
         sage: Executable(name="sh", executable="sh").is_present()
         FeatureTestResult('sh', True)
+        sage: Executable(name="does-not-exist", executable="does-not-exist-xxxxyxyyxyy").is_present()
+        FeatureTestResult('does-not-exist', False)
     """
     def __init__(self, name, executable, **kwds):
         r"""
@@ -593,7 +596,7 @@ class Executable(Feature):
             sage: Executable(name="sh", executable="sh").is_present()
             FeatureTestResult('sh', True)
         """
-        if find_executable(self.executable) is None:
+        if shutil.which(self.executable) is None:
             return FeatureTestResult(self, False, "Executable {executable!r} not found on PATH.".format(executable=self.executable))
         return self.is_functional()
 
@@ -663,11 +666,17 @@ class StaticFile(Feature):
 
         EXAMPLES::
 
-            sage: from sage.features.databases import DatabaseCremona
-            sage: DatabaseCremona().absolute_path()  # optional: database_cremona_ellcurve
-            '.../local/share/cremona/cremona.db'
+            sage: from sage.features import StaticFile
+            sage: from sage.misc.temporary_file import tmp_dir
+            sage: dir_with_file = tmp_dir()
+            sage: file_path = os.path.join(dir_with_file, "file.txt")
+            sage: open(file_path, 'a').close() # make sure the file exists
+            sage: search_path = ( '/foo/bar', dir_with_file ) # file is somewhere in the search path
+            sage: feature = StaticFile(name="file", filename="file.txt", search_path=search_path)
+            sage: feature.absolute_path() == file_path
+            True
 
-        A ``FeatureNotPresentError`` is raised if the file can not be found::
+        A ``FeatureNotPresentError`` is raised if the file cannot be found::
 
             sage: from sage.features import StaticFile
             sage: StaticFile(name="no_such_file", filename="KaT1aihu", search_path=(), spkg="some_spkg", url="http://rand.om").absolute_path()  # optional - sage_spkg
@@ -760,6 +769,7 @@ class CythonFeature(Feature):
             FeatureTestResult('empty', True)
         """
         from sage.misc.temporary_file import tmp_filename
+        from distutils.errors import CCompilerError
         with open(tmp_filename(ext=".pyx"), 'w') as pyx:
             pyx.write(self.test_code)
         from sage.misc.cython import cython_import

@@ -97,8 +97,8 @@ from .real_mpfi import (RealIntervalField,
                        RealInterval)
 
 # Complex numbers
-from .complex_field import ComplexField
-from .complex_number import (create_ComplexNumber as ComplexNumber)
+from .complex_mpfr import ComplexField
+from .complex_mpfr import create_ComplexNumber as ComplexNumber
 Complexes = ComplexField
 from .complex_interval_field import ComplexIntervalField
 from .complex_interval import (create_ComplexIntervalFieldElement as ComplexIntervalFieldElement)
@@ -109,6 +109,8 @@ from .complex_mpc import MPComplexField
 
 from sage.rings.complex_arb import ComplexBallField, CBF
 
+lazy_import("sage.rings.imaginary_unit", "I")
+
 # Power series rings
 from .power_series_ring import PowerSeriesRing
 from .power_series_ring_element import PowerSeries
@@ -118,7 +120,7 @@ from .laurent_series_ring import LaurentSeriesRing
 from .laurent_series_ring_element import LaurentSeries
 
 # Lazy Laurent series ring
-lazy_import('sage.rings.lazy_laurent_series_ring', 'LazyLaurentSeriesRing')
+lazy_import('sage.rings.lazy_series_ring', ['LazyLaurentSeriesRing', 'LazyDirichletSeriesRing'])
 
 # Tate algebras
 from .tate_algebra import TateAlgebra

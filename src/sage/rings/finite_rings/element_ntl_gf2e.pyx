@@ -1,4 +1,8 @@
-# distutils: libraries = ntl
+# distutils: libraries = NTL_LIBRARIES
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 r"""
 Finite Fields of characteristic 2.
@@ -30,7 +34,6 @@ from cypari2.paridecl cimport *
 
 from sage.structure.richcmp cimport (richcmp,
                                      richcmp_not_equal, rich_to_bool)
-from sage.structure.sage_object cimport SageObject
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
 from sage.structure.parent cimport Parent
@@ -94,9 +97,6 @@ cdef int late_import() except -1:
     import sage.rings.finite_rings.integer_mod_ring
     IntegerModRing_generic = sage.rings.finite_rings.integer_mod_ring.IntegerModRing_generic
 
-    import sage.rings.integer
-    Integer = sage.rings.integer.Integer
-
     import sage.rings.rational
     Rational = sage.rings.rational.Rational
 
@@ -137,7 +137,7 @@ cdef unsigned int switch_endianess(unsigned int i):
         (<unsigned char*>&ret)[j] = (<unsigned char*>&i)[sizeof(int)-j-1]
     return ret
 
-cdef class Cache_ntl_gf2e(SageObject):
+cdef class Cache_ntl_gf2e(Cache_base):
     """
     This class stores information for an NTL finite field in a Cython
     class so that elements can access it quickly.
@@ -165,6 +165,9 @@ cdef class Cache_ntl_gf2e(SageObject):
             GF2_conv_long(c, modulus[i])
             GF2X_SetCoeff(ntl_m, i, c)
         self.F = GF2EContext_c(ntl_m)
+        self.F.restore()
+        self._order = Integer(1) << GF2E_degree()
+        self._degree = Integer(GF2E_degree())
 
     def __init__(self, parent, Py_ssize_t k, modulus):
         """
@@ -255,8 +258,7 @@ cdef class Cache_ntl_gf2e(SageObject):
             sage: k._cache.order()
             18446744073709551616
         """
-        self.F.restore()
-        return Integer(1) << GF2E_degree()
+        return self._order
 
     def degree(self):
         r"""
@@ -268,8 +270,7 @@ cdef class Cache_ntl_gf2e(SageObject):
             sage: k._cache.degree()
             64
         """
-        self.F.restore()
-        return Integer(GF2E_degree())
+        return self._degree
 
     def import_data(self, e):
         """
@@ -331,7 +332,7 @@ cdef class Cache_ntl_gf2e(SageObject):
             return self.fetch_int(ztmp)
 
         elif isinstance(e, (list, tuple)):
-            if len(e) > self.degree():
+            if len(e) > self._degree:
                 # could reduce here...
                 raise ValueError("list is too long")
             ztmp = Integer(e,2)
@@ -426,26 +427,30 @@ cdef class Cache_ntl_gf2e(SageObject):
             sage: K._cache.fetch_int(0r)
             0
         """
-        cdef FiniteField_ntl_gf2eElement a = self._new()
+        cdef FiniteField_ntl_gf2eElement a
         cdef GF2X_c _a
+        cdef int n
 
         self.F.restore()
 
-        if number < 0 or number >= self.order():
+        if number < 0 or number >= self._order:
             raise TypeError("n must be between 0 and self.order()")
 
         if isinstance(number, int) or isinstance(number, long):
             if not number:
                 n = 0
             else:
-                n = int(Integer(number).nbits()) // 8 + 1
+                n = int(Integer(number).nbits())
+                n = n // 8 + 1
         elif isinstance(number, Integer):
-            n = int(number.nbits()) // 8 + 1
+            n = int(number.nbits())
+            n = n // 8 + 1
         else:
             raise TypeError("number %s is not an integer" % number)
 
         cdef unsigned char* p = <unsigned char*>check_malloc(n)
         cdef long i
+        a = self._new()
         for i in range(n):
             p[i] = (number % 256)
             number = number >> 8
@@ -471,7 +476,7 @@ cdef class Cache_ntl_gf2e(SageObject):
         self.F.restore()
         cdef int i
 
-        P = -(self._gen**(self.degree()))
+        P = -(self._gen**self._degree)
         _P = GF2E_rep(P.x)
 
         ret = []
@@ -640,12 +645,10 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
 
             sage: k.<a> = GF(2^18)
             sage: e = k.random_element()
-            sage: e
-            a^15 + a^14 + a^13 + a^11 + a^10 + a^9 + a^6 + a^5 + a^4 + 1
+            sage: e.parent() is k
+            True
             sage: e.is_square()
             True
-            sage: e.sqrt()
-            a^16 + a^15 + a^14 + a^11 + a^9 + a^8 + a^7 + a^6 + a^4 + a^3 + 1
             sage: e.sqrt()^2 == e
             True
         """
@@ -673,7 +676,7 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         # this really should be handled special, its gf2 linear after
         # all
-        a = self ** (self._cache.order() // 2)
+        a = self ** (self._cache._order // 2)
         if all:
             return [a]
         else:
@@ -1149,6 +1152,16 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         """
         return self
 
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: k.<a> = GF(2^16)
+            sage: deepcopy(a) is a
+            True
+        """
+        return self
+
     def _gap_init_(self):
         r"""
         Return a string that evaluates to the GAP representation of
@@ -1167,14 +1180,15 @@ cdef class FiniteField_ntl_gf2eElement(FinitePolyExtElement):
         F = self._parent
         if not F.is_conway():
             raise NotImplementedError("conversion of (NTL) finite field element to GAP not implemented except for fields defined by Conway polynomials.")
-        if F.order() > 65536:
-            raise TypeError("order (=%s) must be at most 65536." % F.order())
+        order = F.order()
+        if order > 65536:
+            raise TypeError("order (=%s) must be at most 65536." % order)
         if self == 0:
-            return '0*Z(%s)'%F.order()
+            return '0*Z(%s)' % order
         assert F.degree() > 1
         g = F.multiplicative_generator()
         n = self.log(g)
-        return 'Z(%s)^%s'%(F.order(), n)
+        return 'Z(%s)^%s' % (order, n)
 
     def __hash__(FiniteField_ntl_gf2eElement self):
         """

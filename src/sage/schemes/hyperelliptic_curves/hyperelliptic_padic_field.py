@@ -10,7 +10,6 @@ Hyperelliptic curves over a `p`-adic field
 # (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 
 from sage.rings.all import (PowerSeriesRing, PolynomialRing, ZZ, QQ,
@@ -18,7 +17,7 @@ from sage.rings.all import (PowerSeriesRing, PolynomialRing, ZZ, QQ,
 from sage.functions.log import log
 from sage.modules.free_module import VectorSpace
 from sage.matrix.constructor import matrix
-from sage.modules.all import vector
+from sage.modules.free_module_element import vector
 
 from sage.schemes.curves.projective_curve import ProjectivePlaneCurve_field
 

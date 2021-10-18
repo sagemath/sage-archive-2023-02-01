@@ -1,7 +1,6 @@
 """
 Cycle Species
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>,
@@ -17,7 +16,7 @@ from .species import GenericCombinatorialSpecies
 from .structure import GenericSpeciesStructure
 from .generating_series import _integers_from
 from sage.structure.unique_representation import UniqueRepresentation
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.arith.all import divisors, euler_phi
 from sage.combinat.species.misc import accept_size
 

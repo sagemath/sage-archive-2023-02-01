@@ -101,9 +101,8 @@ AUTHORS:
 from sage.modules.free_module import FreeModule_generic_pid
 from sage.rings.all import ZZ, QQ, RealField, ComplexField, QQbar, AA
 from sage.rings.real_mpfr import is_RealField
-from sage.rings.complex_field import is_ComplexField
+from sage.rings.complex_mpfr import ComplexNumber, is_ComplexField
 from sage.rings.real_mpfr import RealNumber as RealNumber
-from sage.rings.complex_number import ComplexNumber as ComplexNumber
 from sage.rings.number_field.number_field import refine_embedding
 from sage.rings.infinity import Infinity
 from sage.schemes.elliptic_curves.constructor import EllipticCurve
@@ -285,7 +284,7 @@ class PeriodLattice_ell(PeriodLattice):
 
     def __repr__(self):
         """
-        Returns the string representation of this period lattice.
+        Return the string representation of this period lattice.
 
         EXAMPLES::
 
@@ -810,7 +809,7 @@ class PeriodLattice_ell(PeriodLattice):
 
     def real_period(self, prec = None, algorithm='sage'):
         """
-        Returns the real period of this period lattice.
+        Return the real period of this period lattice.
 
         INPUT:
 
@@ -847,7 +846,7 @@ class PeriodLattice_ell(PeriodLattice):
         raise RuntimeError("Not defined for non-real lattices.")
 
     def omega(self, prec = None, bsd_normalise = False):
-        r"""Returns the real or complex volume of this period lattice.
+        r"""Return the real or complex volume of this period lattice.
 
         INPUT:
 
@@ -1022,7 +1021,7 @@ class PeriodLattice_ell(PeriodLattice):
 
     def sigma(self, z, prec = None, flag=0):
         r"""
-        Returns the value of the Weierstrass sigma function for this elliptic curve  period lattice.
+        Return the value of the Weierstrass sigma function for this elliptic curve  period lattice.
 
         INPUT:
 
@@ -1124,7 +1123,7 @@ class PeriodLattice_ell(PeriodLattice):
 
     def coordinates(self, z, rounding=None):
         r"""
-        Returns the coordinates of a complex number w.r.t. the lattice basis
+        Return the coordinates of a complex number w.r.t. the lattice basis
 
         INPUT:
 
@@ -1184,7 +1183,7 @@ class PeriodLattice_ell(PeriodLattice):
                     raise TypeError("%s is not a complex number"%z)
         prec = C.precision()
         from sage.matrix.all import Matrix
-        from sage.modules.all import vector
+        from sage.modules.free_module_element import vector
         if self.real_flag:
             w1,w2 = self.basis(prec)
             M = Matrix([[w1,0], list(w2)])**(-1)
@@ -1626,7 +1625,7 @@ class PeriodLattice_ell(PeriodLattice):
             sage: P,Q = T[2]
             sage: embs = K.embeddings(CC)
             sage: Lambda = E.period_lattice(embs[0])
-            sage: Lambda.elliptic_logarithm(P+3*Q, 100)
+            sage: Lambda.elliptic_logarithm(P, 100)
             4.7100131126199672766973600998
             sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2 + x + 5)

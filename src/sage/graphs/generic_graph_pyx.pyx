@@ -25,14 +25,14 @@ from cysignals.signals cimport sig_on, sig_off
 
 import cython
 
-include "sage/data_structures/binary_matrix.pxi"
+from sage.data_structures.binary_matrix cimport *
 from libc.math cimport sqrt, fabs
 from libc.string cimport memset
+from memory_allocator cimport MemoryAllocator
 
 from sage.cpython.string cimport char_to_str
 from sage.libs.gmp.mpz cimport *
 from sage.misc.prandom import random
-from sage.ext.memory_allocator cimport MemoryAllocator
 from sage.graphs.base.static_sparse_graph cimport short_digraph
 from sage.graphs.base.static_sparse_graph cimport init_short_digraph
 from sage.graphs.base.static_sparse_graph cimport free_short_digraph
@@ -170,7 +170,7 @@ def spring_layout_fast(G, iterations=50, int dim=2, vpos=None, bint rescale=True
         sage: sorted(pos.keys()) == sorted(G)
         True
 
-    With ``split=True``, each component of G is layed out separately,
+    With ``split=True``, each component of G is laid out separately,
     placing them adjacent to each other. This is done because on a
     disconnected graph, the spring layout will push components further
     and further from each other without bound, resulting in very tight
@@ -665,7 +665,7 @@ cdef class SubgraphSearch:
             raise ValueError("Searched graph should have at least 2 vertices.")
 
         if sum([G.is_directed(), H.is_directed()]) == 1:
-            raise ValueError("One graph can not be directed while the other is not.")
+            raise ValueError("One graph cannot be directed while the other is not.")
 
         G._scream_if_not_simple(allow_loops=True)
         H._scream_if_not_simple(allow_loops=True)

@@ -1,7 +1,6 @@
 r"""
 Ambient lattices and ambient spaces
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #       Copyright (C) 2008-2009 Daniel Bump
 #       Copyright (C) 2008-2013 Nicolas M. Thiery <nthiery at users.sf.net>
@@ -86,11 +85,11 @@ class AmbientSpace(CombinatorialFreeModule):
         """
         self.root_system = root_system
         if index_set is None:
-            index_set = tuple(range(0, self.dimension()))
+            index_set = tuple(range(self.dimension()))
         CombinatorialFreeModule.__init__(self, base_ring,
                                          index_set,
                                          prefix='e',
-                                         category = WeightLatticeRealizations(base_ring))
+                                         category=WeightLatticeRealizations(base_ring))
         coroot_lattice = self.root_system.coroot_lattice()
         coroot_lattice.module_morphism(self.simple_coroot, codomain=self).register_as_coercion()
 

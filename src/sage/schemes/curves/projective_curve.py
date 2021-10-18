@@ -135,7 +135,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import division, absolute_import
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
@@ -146,7 +145,7 @@ from sage.categories.number_fields import NumberFields
 from sage.categories.homset import Hom, End
 
 from sage.interfaces.all import singular
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 from sage.misc.all import add, sage_eval
 
 from sage.rings.all import degree_lowest_rational_function, IntegerRing
@@ -535,14 +534,11 @@ class ProjectiveCurve(Curve_generic, AlgebraicScheme_subscheme_projective):
             sage: C = P.curve([x^2 - 6*y^2, w*z*u - y^3 + 4*y^2*z, u^2 - x^2])
             sage: C.plane_projection()
             (Scheme morphism:
-               From: Projective Curve over Finite Field of size 7 defined by x^2 +
-            y^2, -y^3 - 3*y^2*z + z*w*u, -x^2 + u^2
+               From: Projective Curve over Finite Field of size 7 defined by x^2 + y^2, -y^3 - 3*y^2*z + z*w*u, -x^2 + u^2
                To:   Projective Space of dimension 2 over Finite Field of size 7
                Defn: Defined on coordinates by sending (x : y : z : w : u) to
-                     (y : z : -x + w),
-             Projective Plane Curve over Finite Field of size 7 defined by x0^10 -
-            2*x0^9*x1 + 3*x0^8*x1^2 - 2*x0^7*x1^3 + x0^6*x1^4 + 2*x0^6*x1^2*x2^2 -
-            2*x0^5*x1^3*x2^2 - x0^4*x1^4*x2^2 + x0^2*x1^4*x2^4)
+                     (x : z : -y + w),
+             Projective Plane Curve over Finite Field of size 7 defined by x0^10 + 2*x0^8*x1^2 + 2*x0^6*x1^4 - 3*x0^6*x1^3*x2 + 2*x0^6*x1^2*x2^2 - 2*x0^4*x1^4*x2^2 + x0^2*x1^4*x2^4)
 
         ::
 
@@ -1703,7 +1699,7 @@ class ProjectivePlaneCurve_field(ProjectivePlaneCurve, ProjectiveCurve_field):
         f = self.affine_patch(2).defining_polynomial()
         if f.degree() == self.degree():
             return fundamental_group(f, projective=True)
-        else:  #in this case, the line at infinity is part of the curve, so the complement lies in the affine patch
+        else:  # in this case, the line at infinity is part of the curve, so the complement lies in the affine patch
             return fundamental_group(f, projective=False)
 
     def rational_parameterization(self):
@@ -2001,7 +1997,7 @@ class ProjectivePlaneCurve_finite_field(ProjectivePlaneCurve_field):
             sage: C = Curve(f); pts = C.rational_points()
             sage: D = C.divisor([ (3, pts[0]), (-1,pts[1]), (10, pts[5]) ])
             sage: C.riemann_roch_basis(D)
-            [(-x - 2*y)/(-2*x - 2*y), (-x + z)/(x + y)]
+            [(-2*x + y)/(x + y), (-x + z)/(x + y)]
 
         .. NOTE::
 
@@ -2724,13 +2720,8 @@ class IntegralProjectiveCurve_finite_field(IntegralProjectiveCurve):
         L = R(L)
         Lp = R(Lp)
 
-        previous_prec = R.default_prec()
-        R.set_default_prec(r)
-
-        f = Lp / L
+        f = R(Lp / L, prec=r)
         n = f[r-1] + q**r + 1
-
-        R.set_default_prec(previous_prec)
 
         return n
 

@@ -28,7 +28,7 @@ Para sair do Sage pressione Ctrl-D ou digite ``quit`` ou ``exit``.
 ::
 
     sage: quit
-    Exiting SAGE (CPU time 0m0.00s, Wall time 0m0.89s)
+    Exiting Sage (CPU time 0m0.00s, Wall time 0m0.89s)
 
 O wall time é o tempo que passou no relógio "pendurado na sua parede".
 Isso é relevante, pois o tempo CPU não conta o tempo usado por
@@ -190,7 +190,7 @@ arquivo log).
     sage: x,y = QQ['x,y'].gens()
     sage: G = E.gens()
     sage:
-    Exiting SAGE (CPU time 0m0.61s, Wall time 0m50.39s).
+    Exiting Sage (CPU time 0m0.61s, Wall time 0m50.39s).
     was@form:~$ sage
     ┌────────────────────────────────────────────────────────────────────┐
     │ SageMath version 9.0, Release Date: 2020-01-01                     │
@@ -304,7 +304,7 @@ comando ``cputime``, como ilustrado abaixo:
 
     sage: cputime?
     ...
-        Return the time in CPU second since SAGE started, or with optional
+        Return the time in CPU second since Sage started, or with optional
         argument t, return the time since time t.
         INPUT:
             t -- (optional) float, time in CPU seconds
@@ -439,8 +439,8 @@ Erros e Exceções
 
 Quando algo errado ocorre, você usualmente verá uma "exceção" do
 Python. O Python até mesmo tenta sugerir o que ocasionou a exceção,
-por exemplo, ``NameError`` ou ``ValueError`` (veja o Manual de
-Referência do Python [Py]_ para uma lista completa de exceções). Por
+por exemplo, ``NameError`` ou ``ValueError`` (veja o Referência da
+Biblioteca Python [PyLR]_ para uma lista completa de exceções). Por
 exemplo,
 
 .. skip
@@ -452,7 +452,7 @@ exemplo,
        File "<console>", line 1
          ZZ(3)_2
                ^
-    SyntaxError: invalid syntax
+    SyntaxError: invalid ...
     
     sage: EllipticCurve([0,infinity])
     ------------------------------------------------------------

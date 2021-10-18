@@ -11,7 +11,7 @@ Library interface to Embeddable Common Lisp (ECL)
 #*****************************************************************************
 
 #This version of the library interface prefers to convert ECL integers and
-#rationals to SAGE types Integer and Rational. These parts could easily be
+#rationals to Sage types Integer and Rational. These parts could easily be
 #adapted to work with pure Python types.
 
 from libc.stdlib cimport abort
@@ -327,17 +327,20 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
         sage: inf_loop()
         Traceback (most recent call last):
         ...
-        RuntimeError: ECL says: Console interrupt.
+        KeyboardInterrupt: ECL says: Console interrupt.
     """
     cdef cl_object ret, error = NULL
 
     ecl_sig_on()
-    ret = safe_cl_eval(&error,form)
+    ret = safe_cl_eval(&error, form)
     ecl_sig_off()
 
     if error != NULL:
-        raise RuntimeError("ECL says: {}".format(
-            ecl_string_to_python(error)))
+        message = ecl_string_to_python(error)
+        if "Console interrupt" in message:
+            raise KeyboardInterrupt("ECL says: {}".format(message))
+        else:
+            raise RuntimeError("ECL says: {}".format(message))
     else:
         return ret
 
@@ -345,12 +348,15 @@ cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
     cdef cl_object ret, error = NULL
 
     ecl_sig_on()
-    ret = safe_cl_funcall(&error,func,arg)
+    ret = safe_cl_funcall(&error, func, arg)
     ecl_sig_off()
 
     if error != NULL:
-        raise RuntimeError("ECL says: {}".format(
-            ecl_string_to_python(error)))
+        message = ecl_string_to_python(error)
+        if "Console interrupt" in message:
+            raise KeyboardInterrupt("ECL says: {}".format(message))
+        else:
+            raise RuntimeError("ECL says: {}".format(message))
     else:
         return ret
 
@@ -362,8 +368,11 @@ cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
     ecl_sig_off()
 
     if error != NULL:
-        raise RuntimeError("ECL says: {}".format(
-            ecl_string_to_python(error)))
+        message = ecl_string_to_python(error)
+        if "Console interrupt" in message:
+            raise KeyboardInterrupt("ECL says: {}".format(message))
+        else:
+            raise RuntimeError("ECL says: {}".format(message))
     else:
         return ret
 
@@ -507,6 +516,7 @@ cdef cl_object python_to_ecl(pyobj, bint read_strings) except NULL:
     else:
         raise TypeError("Unimplemented type for python_to_ecl")
 
+
 cdef ecl_to_python(cl_object o):
     cdef cl_object s
     cdef Integer N
@@ -515,21 +525,22 @@ cdef ecl_to_python(cl_object o):
     if o == Cnil:
         return None
     elif bint_fixnump(o):
-        #SAGE specific conversion
-        #return ecl_fixint(o)
+        # Sage specific conversion
+        # return ecl_fixint(o)
         return Integer(ecl_fixint(o))
     elif bint_integerp(o):
-        #SAGE specific conversion
+        # Sage specific conversion
         N = Integer.__new__(Integer)
         N.set_from_mpz(ecl_mpz_from_bignum(o))
         return N
     elif bint_rationalp(o):
-        #SAGE specific conversion
-        #vanilla python does not have a class to represent rational numbers
-        return Rational((ecl_to_python(cl_numerator(o)),ecl_to_python(cl_denominator(o))))
+        # Sage specific conversion
+        # vanilla python does not have a class to represent rational numbers
+        return Rational((ecl_to_python(cl_numerator(o)),
+                         ecl_to_python(cl_denominator(o))))
     elif bint_floatp(o):
-        #Python conversion
-        #Since SAGE mainly uses mpfr, perhaps "double is not an appropriate return type
+        # Python conversion
+        # Since Sage mainly uses mpfr, perhaps "double is not an appropriate return type
         return ecl_to_double(o)
     elif o == Ct:
         return True

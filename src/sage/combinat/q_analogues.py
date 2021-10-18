@@ -13,12 +13,11 @@ r"""
 #                  http://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import division
 
 from sage.misc.cachefunc import cached_function
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.structure.element import parent
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.combinat.dyck_word import DyckWords
 from sage.combinat.partition import _Partitions
 
@@ -277,7 +276,7 @@ def q_binomial(n, k, q=None, algorithm='auto'):
         sage: r = q_binomial(3r, 2r, 1r); r
         3
         sage: type(r)
-        <type 'int'>
+        <class 'int'>
 
     Check that arbitrary polynomials work::
 

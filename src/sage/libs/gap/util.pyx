@@ -227,6 +227,7 @@ cdef initialize():
     # global symbol table
     # Note: we could use RTLD_NOLOAD and avoid the subsequent dlclose() but
     # this isn't portable
+
     cdef void* handle
     libgapname = str_to_bytes(sage.env.GAP_SO)
     handle = dlopen(libgapname, RTLD_NOW | RTLD_GLOBAL)
@@ -420,7 +421,7 @@ cdef Obj gap_eval(str gap_string) except? NULL:
 
         # The actual resultant object, if any, is in the second entry
         # (which may be unassigned--see previous github comment; in this case
-        # 0 is returned without setting a a Python exception, so we should treat
+        # 0 is returned without setting a Python exception, so we should treat
         # this like returning None)
 
         return ELM0_LIST(result, 2)

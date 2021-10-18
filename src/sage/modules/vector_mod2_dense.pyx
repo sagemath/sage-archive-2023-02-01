@@ -14,12 +14,13 @@ AUTHOR:
 EXAMPLES::
 
     sage: VS = GF(2)^3
-    sage: e = VS.random_element(); e
-    (1, 0, 0)
-    sage: f = VS.random_element(); f
-    (0, 1, 1)
-    sage: e + f
-    (1, 1, 1)
+    sage: e = VS.random_element()
+    sage: e.parent() is VS
+    True
+    sage: S = set(vector(v, immutable=True) for v in VS)
+    sage: S1 = set()
+    sage: while S != S1:
+    ....:     S1.add(vector(VS.random_element(), immutable=True))
 
 TESTS::
 
@@ -94,10 +95,11 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             sage: w = copy(v)
             sage: w == v
             True
-            sage: v[:10]
-            (1, 0, 0, 0, 1, 1, 1, 0, 0, 1)
-            sage: w[:10]
-            (1, 0, 0, 0, 1, 1, 1, 0, 0, 1)
+            sage: v[:10] == w[:10]
+            True
+            sage: v[5] += 1
+            sage: v == w
+            False
         """
         cdef Vector_mod2_dense y = self._new_c()
         if self._degree:
@@ -132,7 +134,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
         """
         self._entries = NULL
-        self._is_mutable = 1
+        self._is_immutable = 0
         if not parent is None:
             self._init(parent.degree(), parent)
 
@@ -274,11 +276,12 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),4)
-            sage: v = VS.random_element(); v
-            (1, 0, 0, 0)
-            sage: v[0] = 0; v
-            (0, 0, 0, 0)
-            sage: v[1:3] = [1, 1]; v
+            sage: v = VS.random_element()
+            sage: v[0] = 0; v[0]
+            0
+            sage: v[1:3] = [1, 1]; v[1:3]
+            (1, 1)
+            sage: v[3] = 0; v
             (0, 1, 1, 0)
             sage: v[4] = 0
             Traceback (most recent call last):
@@ -297,7 +300,8 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             sage: loads(dumps(e)) == e
             True
         """
-        return unpickle_v0, (self._parent, self.list(), self._degree, self._is_mutable)
+        return unpickle_v0, (self._parent, self.list(), self._degree,
+                             self._is_immutable)
 
     cpdef _add_(self, right):
         """
@@ -397,12 +401,11 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),10)
-            sage: e = VS.random_element(); e
-            (1, 0, 0, 0, 1, 1, 1, 0, 0, 1)
-            sage: f = VS.random_element(); f
-            (1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
-            sage: e.pairwise_product(f) #indirect doctest
-            (1, 0, 0, 0, 1, 1, 0, 0, 0, 1)
+            sage: e = VS.random_element()
+            sage: f = VS.random_element()
+            sage: g = e.pairwise_product(f) #indirect doctest
+            sage: all(g[i] == e[i]*f[i] for i in range(10))
+            True
         """
         cdef Vector_mod2_dense z, r
         r = right
@@ -417,26 +420,24 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
         EXAMPLES::
 
             sage: VS = VectorSpace(GF(2),10)
-            sage: e = VS.random_element(); e
-            (1, 0, 0, 0, 1, 1, 1, 0, 0, 1)
+            sage: e = VS.random_element()
             sage: 0 * e
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-            sage: 1 * e
-            (1, 0, 0, 0, 1, 1, 1, 0, 0, 1)
-            sage: 2 * e #indirect doctest
+            sage: 1 * e == e
+            True
+            sage: 2 * e  # indirect doctest
             (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 
         ::
 
-            sage: VS = VectorSpace(GF(2),10)
-            sage: e = VS.random_element(); e
-            (1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
-            sage: e * 0 #indirect doctest
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-            sage: e * 1
-            (1, 1, 0, 1, 1, 1, 0, 0, 0, 1)
-            sage: e * 2
-            (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            sage: VS = VectorSpace(GF(2), 100)
+            sage: e = VS.random_element()
+            sage: e * 0 == 0  # indirect doctest
+            True
+            sage: e * 1 == e
+            True
+            sage: e * 2 == 0
+            True
         """
         cdef IntegerMod_int a
 
@@ -466,11 +467,11 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
 
         EXAMPLES::
 
-            sage: VS = VectorSpace(GF(2),10)
-            sage: e = VS.random_element(); e
-            (1, 0, 0, 0, 1, 1, 1, 0, 0, 1)
-            sage: e.list()
-            [1, 0, 0, 0, 1, 1, 1, 0, 0, 1]
+            sage: VS = VectorSpace(GF(2), 10)
+            sage: entries = [GF(2).random_element() for _ in range(10)]
+            sage: e = VS(entries)
+            sage: e.list() == entries
+            True
         """
         cdef Py_ssize_t d = self._degree
         cdef Py_ssize_t i
@@ -483,7 +484,7 @@ cdef class Vector_mod2_dense(free_module_element.FreeModuleElement):
             v[i] = switch[mzd_read_bit(self._entries, 0, i)]
         return v
 
-def unpickle_v0(parent, entries, degree, is_mutable):
+def unpickle_v0(parent, entries, degree, is_immutable):
     """
     EXAMPLES::
 
@@ -504,6 +505,6 @@ def unpickle_v0(parent, entries, degree, is_mutable):
             mzd_write_bit(v._entries, 0, i, xi%2)
         else:
             mzd_write_bit(v._entries, 0, i, entries[i]%2)
-    v._is_mutable = int(is_mutable)
+    v._is_immutable = int(is_immutable)
     return v
 

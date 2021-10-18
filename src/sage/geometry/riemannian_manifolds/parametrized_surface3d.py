@@ -14,7 +14,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from itertools import product
 
@@ -253,7 +252,7 @@ class ParametrizedSurface3D(SageObject):
         sage: K(u1,u2) = ellipsoid.gauss_curvature()
         sage: # Make array of K values
         sage: K_array = [K(uu[0],uu[1]) for uu in u_array]
-        sage: # Find minimum and max of the gauss curvature
+        sage: # Find minimum and max of the Gauss curvature
         sage: K_max = max(K_array)
         sage: K_min = min(K_array)
         sage: # Make the array of color coefficients
@@ -342,7 +341,7 @@ class ParametrizedSurface3D(SageObject):
         """
         self.equation = tuple(equation)
 
-        if len(variables[0]):
+        if isinstance(variables[0], (list, tuple)):
             self.variables_range = (variables[0][1:3], variables[1][1:3])
             self.variables_list = (variables[0][0], variables[1][0])
         else:
@@ -1520,21 +1519,21 @@ class ParametrizedSurface3D(SageObject):
 
         u1 = self.variables[1]
         u2 = self.variables[2]
-        v1 = SR.var('v1', domain='real')
-        v2 = SR.var('v2', domain='real')
 
         C = self.connection_coefficients()
 
-        dv1 = - C[(1,1,1)]*v1**2 - 2*C[(1,2,1)]*v1*v2 - C[(2,2,1)]*v2**2
-        dv2 = - C[(1,1,2)]*v1**2 - 2*C[(1,2,2)]*v1*v2 - C[(2,2,2)]*v2**2
-        fun1 = fast_float(dv1, str(u1), str(u2), str(v1), str(v2))
-        fun2 = fast_float(dv2, str(u1), str(u2), str(v1), str(v2))
+        with SR.temp_var(domain='real') as v1:
+            with SR.temp_var(domain='real') as v2:
+                dv1 = - C[(1,1,1)]*v1**2 - 2*C[(1,2,1)]*v1*v2 - C[(2,2,1)]*v2**2
+                dv2 = - C[(1,1,2)]*v1**2 - 2*C[(1,2,2)]*v1*v2 - C[(2,2,2)]*v2**2
+                fun1 = fast_float(dv1, str(u1), str(u2), str(v1), str(v2))
+                fun2 = fast_float(dv2, str(u1), str(u2), str(v1), str(v2))
 
-        geodesic_ode = ode_solver()
-        geodesic_ode.function = (
-                              lambda t, u1_u2_v1_v2:
-                              [u1_u2_v1_v2[2], u1_u2_v1_v2[3], fun1(*u1_u2_v1_v2), fun2(*u1_u2_v1_v2)])
-        return geodesic_ode
+                geodesic_ode = ode_solver()
+                geodesic_ode.function = (
+                    lambda t, u1_u2_v1_v2:
+                    [u1_u2_v1_v2[2], u1_u2_v1_v2[3], fun1(*u1_u2_v1_v2), fun2(*u1_u2_v1_v2)])
+                return geodesic_ode
 
 
     def geodesics_numerical(self, p0, v0, tinterval):
@@ -1630,8 +1629,6 @@ class ParametrizedSurface3D(SageObject):
 
         u1 = self.variables[1]
         u2 = self.variables[2]
-        v1 = SR.var('v1', domain='real')
-        v2 = SR.var('v2', domain='real')
 
         du1 = diff(curve[0], t)
         du2 = diff(curve[1], t)
@@ -1640,16 +1637,18 @@ class ParametrizedSurface3D(SageObject):
         for coef in C:
             C[coef] = C[coef].subs({u1: curve[0], u2: curve[1]})
 
-        dv1 = - C[(1,1,1)]*v1*du1 - C[(1,2,1)]*(du1*v2 + du2*v1) - \
-            C[(2,2,1)]*du2*v2
-        dv2 = - C[(1,1,2)]*v1*du1 - C[(1,2,2)]*(du1*v2 + du2*v1) - \
-            C[(2,2,2)]*du2*v2
-        fun1 = fast_float(dv1, str(t), str(v1), str(v2))
-        fun2 = fast_float(dv2, str(t), str(v1), str(v2))
+        with SR.temp_var(domain='real') as v1:
+            with SR.temp_var(domain='real') as v2:
+                dv1 = - C[(1,1,1)]*v1*du1 - C[(1,2,1)]*(du1*v2 + du2*v1) - \
+                    C[(2,2,1)]*du2*v2
+                dv2 = - C[(1,1,2)]*v1*du1 - C[(1,2,2)]*(du1*v2 + du2*v1) - \
+                    C[(2,2,2)]*du2*v2
+                fun1 = fast_float(dv1, str(t), str(v1), str(v2))
+                fun2 = fast_float(dv2, str(t), str(v1), str(v2))
 
-        pt_ode = ode_solver()
-        pt_ode.function = lambda t, v1_v2: [fun1(t, v1_v2[0], v1_v2[1]), fun2(t, v1_v2[0], v1_v2[1])]
-        return pt_ode
+                pt_ode = ode_solver()
+                pt_ode.function = lambda t, v1_v2: [fun1(t, v1_v2[0], v1_v2[1]), fun2(t, v1_v2[0], v1_v2[1])]
+                return pt_ode
 
 
     def parallel_translation_numerical(self,curve,t,v0,tinterval):

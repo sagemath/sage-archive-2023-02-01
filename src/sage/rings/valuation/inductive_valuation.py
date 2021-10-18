@@ -37,7 +37,6 @@ An introduction is also given in Chapter 4 of [Rüt2014]_.
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from .valuation import DiscreteValuation, InfiniteDiscretePseudoValuation
 from .developing_valuation import DevelopingValuation
@@ -208,9 +207,7 @@ class InductiveValuation(DevelopingValuation):
         # - we may lift h to arbitrary precision
         # - we can add anything which times e0 has positive valuation, e.g., we
         # may drop coefficients of positive valuation
-        h = h.map_coefficients(lambda c:_lift_to_maximal_precision(c))
-
-        return h
+        return h.map_coefficients(_lift_to_maximal_precision)
 
     @cached_method
     def mu(self):
@@ -902,7 +899,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
                     verbose("Augmented %s to %s"%(self, w), level=13)
                     assert slope is -infinity or 0 in w.newton_polygon(G).slopes(repetition=False)
 
-                    from sage.rings.all import ZZ
+                    from sage.rings.integer_ring import ZZ
                     assert (phi.degree() / self.phi().degree()) in ZZ 
                     degree_bound = multiplicities[slope] * phi.degree()
                     assert degree_bound <= G.degree()
@@ -1296,7 +1293,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
         F = list(F)
 
         if compute_unit:
-            from sage.misc.all import prod
+            from sage.misc.misc_c import prod
             unit *= self.lift(self.residue_ring()(prod([ psi.leading_coefficient()**e for psi,e in F ])))
 
         # A potential speedup that we tried to implement here:
@@ -1382,11 +1379,11 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
         degree = self.effective_degree(f)
         if degree == 0:
-            raise ValueError("equivalence units can not have a minimal representative")
+            raise ValueError("equivalence units cannot have a minimal representative")
 
         e = list(self.coefficients(f))[degree]
-        h = self.equivalence_reciprocal(e).map_coefficients(lambda c:_lift_to_maximal_precision(c))
-        g = h*f
+        h = self.equivalence_reciprocal(e).map_coefficients(_lift_to_maximal_precision)
+        g = h * f
         vg = self(g)
 
         coeffs = [c if v == vg else c.parent().zero() for v,c in zip(self.valuations(g), self.coefficients(g))]
@@ -1611,7 +1608,7 @@ class NonFinalInductiveValuation(FiniteInductiveValuation, DiscreteValuation):
 
 class FinalInductiveValuation(InductiveValuation):
     r"""
-    Abstract base class for an inductive valuation which can not be augmented further.
+    Abstract base class for an inductive valuation which cannot be augmented further.
 
     TESTS::
 
@@ -1621,7 +1618,6 @@ class FinalInductiveValuation(InductiveValuation):
         sage: from sage.rings.valuation.inductive_valuation import FinalInductiveValuation
         sage: isinstance(w, FinalInductiveValuation)
         True
-
     """
 
 

@@ -10,12 +10,11 @@ Integrable Representations of Affine Lie Algebras
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.structure.category_object import CategoryObject
 from sage.categories.modules import Modules
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.misc.all import cached_method
 from sage.matrix.constructor import Matrix
 from sage.sets.recursively_enumerated_set import RecursivelyEnumeratedSet
@@ -665,7 +664,7 @@ class IntegrableRepresentation(UniqueRepresentation, CategoryObject):
 
         elif self._cartan_type.type() == 'BC':
             #case A^2_{2l}
-            # We have to keep track of the roots we have visted for this case
+            # We have to keep track of the roots we have visited for this case
             ret = set(self._classical_positive_roots)
             for al in self._classical_roots:
                 if al in self._classical_short_roots:

@@ -28,7 +28,7 @@ Sageを終了するには，Ctrl-Dと押すか， コマンド ``quit`` ある�
 ::
 
     sage: quit
-    Exiting SAGE (CPU time 0m0.00s, Wall time 0m0.89s)
+    Exiting Sage (CPU time 0m0.00s, Wall time 0m0.89s)
 
 
 "Wall time"は，CPUタイムではなく外界の実経過時間を示している．
@@ -179,7 +179,7 @@ Sageセッションのロギングと，セッションの保存(:ref:`section-s
     sage: x,y = QQ['x,y'].gens()
     sage: G = E.gens()
     sage:
-    Exiting SAGE (CPU time 0m0.61s, Wall time 0m50.39s).
+    Exiting Sage (CPU time 0m0.61s, Wall time 0m50.39s).
     was@form:~$ sage
     ┌────────────────────────────────────────────────────────────────────┐
     │ SageMath version 9.0, Release Date: 2020-01-01                     │
@@ -288,7 +288,7 @@ GMPの方が速いが，その差はわずかだ(Sage用にビルドされたPAR
 
    sage: cputime?
     ...
-        Return the time in CPU second since SAGE started, or with optional
+        Return the time in CPU second since Sage started, or with optional
         argument t, return the time since time t.
         INPUT:
             t -- (optional) float, time in CPU seconds
@@ -418,7 +418,7 @@ IPythonのクイック レファレンスガイドを見たければ， ``%quick
 =====================
 
 処理中に何かまずいことが起きると，Pythonはふつう『例外』(exception)を発生し，その例外を引き起こした原因を教えてくれることもある．
-よくお目にかかることになるのは， ``NameError`` や ``ValueError`` といった名称の例外だ(Pythonレファレンスマニュアル [Py]_ に例外名の包括的なリストがある)．
+よくお目にかかることになるのは， ``NameError`` や ``ValueError`` といった名称の例外だ(Pythonライブラリーリファレンス [PyLR]_ に例外名の包括的なリストがある)．
 実例を見てみよう:
 
 ::

@@ -1010,8 +1010,8 @@ a Python exception occurs.  As an example, I modified
     152                     ainvs = [K(0),K(0),K(0)] + ainvs
     153                 self.__ainvs = tuple(ainvs)
     154                 if self.discriminant() == 0:
-    155                     raise ArithmeticError, \
-    156  ->                       "Invariants %s define a singular curve."%ainvs
+    155                     raise ArithmeticError(
+    156  ->                     "Invariants %s define a singular curve."%ainvs)
     157                 PP = projective_space.ProjectiveSpace(2, K, names='xyz');
     158                 x, y, z = PP.coordinate_ring().gens()
     159                 a1, a2, a3, a4, a6 = ainvs
@@ -1268,8 +1268,8 @@ code loads the globals from that file into the namespace before
 running tests.  To disable this behaviour (and require imports to be
 explicitly specified), use the ``--force-lib`` option.
 
-Auxilliary files
-^^^^^^^^^^^^^^^^
+Auxiliary files
+^^^^^^^^^^^^^^^
 
 To specify a logfile (rather than use the default which is created for
 ``sage -t --all``), use the ``--logfile`` flag::

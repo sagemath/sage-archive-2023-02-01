@@ -524,7 +524,7 @@ Luckily, it's possible to restore symbolic constants.
 ::
 
     sage: type(e)
-    <type 'sage.symbolic.constants_c.E'>
+    <type 'sage.symbolic.expression.E'>
 
 ::
 
@@ -728,7 +728,7 @@ not have :math:`I=\sqrt{-1}`, decimal points, or division.
     sage: parent(c)
     Real Field with 53 bits of precision
     sage: parent(d)
-    Symbolic Ring
+    Number Field in I with defining polynomial x^2 + 1 with I = 1*I
     sage: parent(e)
-    Symbolic Ring
+    Complex Field with 53 bits of precision
 

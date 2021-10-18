@@ -14,9 +14,9 @@ class CNFEncoder(object):
     def zero_blocks(self, f):
         r"""
         Divide the zero set of f into blocks.
-        
+
         TESTS::
-        
+
             sage: from sage.rings.polynomial.pbori import *
             sage: r = declare_ring(["x", "y", "z"], dict())
             sage: from sage.rings.polynomial.pbori.cnf import CNFEncoder
@@ -79,9 +79,9 @@ class CNFEncoder(object):
 
     def clauses(self, f):
         r"""
-        
+
         TESTS::
-        
+
             sage: from sage.rings.polynomial.pbori import *
             sage: r = declare_ring(["x", "y", "z"], dict())
             sage: from sage.rings.polynomial.pbori.cnf import CNFEncoder
@@ -99,9 +99,9 @@ class CNFEncoder(object):
 
     def polynomial_clauses(self, f):
         r"""
-        
+
         TESTS::
-        
+
             sage: from sage.rings.polynomial.pbori import *
             sage: r = declare_ring(["x", "y", "z"], dict())
             sage: from sage.rings.polynomial.pbori.cnf import CNFEncoder
@@ -134,17 +134,15 @@ class CNFEncoder(object):
             return -1
 
         items = sorted(c.items(), reverse=True)
-        return " ".join(
-        [str(v) for v in
-            [
+        return " ".join([str(v) for v in [
             get_sign(value) * self.to_dimacs_index(variable)
             for (variable, value) in items] + [0]])
 
     def dimacs_encode_polynomial(self, p):
         r"""
-        
+
         TESTS::
-        
+
             sage: from sage.rings.polynomial.pbori import *
             sage: d=dict()
             sage: r = declare_ring(["x", "y", "z"], d)
@@ -161,9 +159,9 @@ class CNFEncoder(object):
 
     def dimacs_cnf(self, polynomial_system):
         r"""
-        
+
         TESTS::
-        
+
             sage: from sage.rings.polynomial.pbori import *
             sage: r = declare_ring(["x", "y", "z"], dict())
             sage: from sage.rings.polynomial.pbori.cnf import CNFEncoder
@@ -191,9 +189,9 @@ class CryptoMiniSatEncoder(CNFEncoder):
 
     def dimacs_encode_polynomial(self, p):
         r"""
-        
+
         TESTS::
-        
+
             sage: from sage.rings.polynomial.pbori import *
             sage: d=dict()
             sage: r = declare_ring(["x", "y", "z"], d)
@@ -229,9 +227,9 @@ class CryptoMiniSatEncoder(CNFEncoder):
 
     def dimacs_cnf(self, polynomial_system):
         r"""
-        
+
         TESTS::
-        
+
             sage: from sage.rings.polynomial.pbori import *
             sage: r = declare_ring(["x", "y", "z"], dict())
             sage: from sage.rings.polynomial.pbori.cnf import CryptoMiniSatEncoder

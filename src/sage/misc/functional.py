@@ -11,7 +11,7 @@ AUTHORS:
 
 - David Joyner (2005-12-20): More Examples
 """
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2004 William Stein <wstein@gmail.com>
 #
 # This program is free software: you can redistribute it and/or modify
@@ -19,8 +19,7 @@ AUTHORS:
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import absolute_import
+# ****************************************************************************
 import builtins
 
 from sage.rings.complex_double import CDF
@@ -90,7 +89,7 @@ def base_field(x):
         return x.base_field()
     except AttributeError:
         y = x.base_ring()
-        if is_field(y):
+        if y.is_field():
             return y
         else:
             raise AttributeError("The base ring of %s is not a field" % x)
@@ -674,7 +673,9 @@ def integral(x, *args, **kwds):
 
     Numerical approximation::
 
-        sage: h = integral(tan(x)/x, (x, 1, pi/3)); h
+        sage: h = integral(tan(x)/x, (x, 1, pi/3))
+        ...
+        sage: h
         integrate(tan(x)/x, x, 1, 1/3*pi)
         sage: h.n()
         0.07571599101...
@@ -747,6 +748,16 @@ def integral(x, *args, **kwds):
         sage: f = sympy.Function('f')
         sage: SR(sympy.Integral(f(x,y,z), x, y, z))
         integrate(integrate(integrate(f(x, y, z), x), y), z)
+
+    Ensure that the following integral containing a signum term from
+    :trac:`11590` can be integrated::
+
+        sage: x = SR.symbol('x', domain='real')
+        sage: result = integrate(x * sgn(x^2 - 1/4), x, -1, 0)
+        ...
+        sage: result
+        -1/4
+
     """
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)
@@ -818,8 +829,11 @@ def is_commutative(x):
 
         sage: R = PolynomialRing(QQ, 'x')
         sage: is_commutative(R)
+        doctest:...DeprecationWarning: use X.is_commutative() or X in Rings().Commutative()
+        See https://trac.sagemath.org/32347 for details.
         True
     """
+    deprecation(32347, "use X.is_commutative() or X in Rings().Commutative()")
     return x.is_commutative()
 
 
@@ -849,12 +863,15 @@ def is_integrally_closed(x):
     EXAMPLES::
 
         sage: is_integrally_closed(QQ)
+        doctest:...DeprecationWarning: use X.is_integrally_closed()
+        See https://trac.sagemath.org/32347 for details.
         True
         sage: K.<a> = NumberField(x^2 + 189*x + 394)
         sage: R = K.order(2*a)
         sage: is_integrally_closed(R)
         False
     """
+    deprecation(32347, "use X.is_integrally_closed()")
     return x.is_integrally_closed()
 
 
@@ -869,8 +886,11 @@ def is_field(x, proof=True):
         sage: R = PolynomialRing(QQ, 'x')
         sage: F = FractionField(R)
         sage: is_field(F)
+        doctest:...DeprecationWarning: use X.is_field() or X in Fields()
+        See https://trac.sagemath.org/32347 for details.
         True
     """
+    deprecation(32347, "use X.is_field() or X in Fields()")
     return x.is_field(proof=proof)
 
 
@@ -1136,7 +1156,7 @@ def norm(x):
 
         - :meth:`sage.rings.complex_double.ComplexDoubleElement.norm`
 
-        - :meth:`sage.rings.complex_number.ComplexNumber.norm`
+        - :meth:`sage.rings.complex_mpfr.ComplexNumber.norm`
 
         - :meth:`sage.symbolic.expression.Expression.norm`
 
@@ -1372,7 +1392,7 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         1.41421356237309*I
 
         sage: type(numerical_approx(CC(1/2)))
-        <type 'sage.rings.complex_number.ComplexNumber'>
+        <type 'sage.rings.complex_mpfr.ComplexNumber'>
 
     The following tests :trac:`10761`, in which ``n()`` would break when
     called on complex-valued algebraic numbers.  ::
@@ -1416,6 +1436,7 @@ def numerical_approx(x, prec=None, digits=None, algorithm=None):
         return numerical_approx_generic(x, prec)
     else:
         return n(prec, algorithm=algorithm)
+
 
 n = numerical_approx
 N = numerical_approx

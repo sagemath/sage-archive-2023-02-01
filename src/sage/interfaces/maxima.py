@@ -447,6 +447,19 @@ Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
     Traceback (most recent call last):
     ...
     TypeError: ...incorrect syntax: = is not a prefix operator...
+
+Test that conversion of symbolic functions with latex names works (:trac:`31047`)::
+
+    sage: var('phi')
+    phi
+    sage: function('Cp', latex_name='C_+')
+    Cp
+    sage: test = Cp(phi)._maxima_()._sage_()
+    sage: test.operator() == Cp
+    True
+    sage: test.operator()._latex_() == 'C_+'
+    True
+
 """
 
 #*****************************************************************************
@@ -463,7 +476,6 @@ Test that Maxima gracefully handles this syntax error (:trac:`17667`)::
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function, absolute_import
 
 import os
 import re
@@ -472,7 +484,7 @@ import shlex
 
 from random import randrange
 
-from sage.env import DOT_SAGE, SAGE_LOCAL, MAXIMA
+from sage.env import MAXIMA
 from sage.misc.misc import ECL_TMP
 
 from .expect import (Expect, ExpectElement, gc_disabled)
@@ -827,7 +839,8 @@ class Maxima(MaximaAbstract, Expect):
             4
         """
         marker = '__SAGE_SYNCHRO_MARKER_'
-        if self._expect is None: return
+        if self._expect is None:
+            return
         r = randrange(2147483647)
         s = marker + str(r+1)
 

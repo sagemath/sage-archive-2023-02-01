@@ -10,8 +10,6 @@ Generate cdd ``.ext`` / ``.ine`` file format
 #
 #                  http://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function
-from __future__ import absolute_import
 
 from .misc import _set_to_None_if_empty, _common_length_of, _to_space_separated_string
 
@@ -63,7 +61,7 @@ def cdd_Vrepresentation(cdd_type, vertices, rays, lines, file_output=None):
         num += 1
 
     if cdd_type == 'real':
-        from sage.rings.all import RDF
+        from sage.rings.real_double import RDF
         base_ring = RDF
     else:
         base_ring = None
@@ -123,7 +121,7 @@ def cdd_Hrepresentation(cdd_type, ieqs, eqns, file_output=None):
     ambient_dim -= 1
 
     if cdd_type == 'real':
-        from sage.rings.all import RDF
+        from sage.rings.real_double import RDF
         base_ring = RDF
     else:
         base_ring = None

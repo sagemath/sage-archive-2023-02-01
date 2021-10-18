@@ -31,7 +31,6 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from __future__ import absolute_import, division
 from sage.dynamics.arithmetic_dynamics.generic_ds import DynamicalSystem
 from sage.dynamics.complex_dynamics.mandel_julia_helper import (fast_mandelbrot_plot,
                                                                 fast_external_ray,
@@ -684,7 +683,8 @@ def julia_plot(f=None, **kwds):
     if f is not None and period is None: # f user-specified and no period given
 
         # try to coerce f to live in a polynomial ring
-        S = PolynomialRing(CC,names='z'); z = S.gen()
+        S = PolynomialRing(CC, names='z')
+        z = S.gen()
         try:
             f_poly = S(f)
         except TypeError:

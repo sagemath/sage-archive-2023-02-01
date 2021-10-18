@@ -1,4 +1,8 @@
-# distutils: libraries = ntl gmp
+# distutils: libraries = NTL_LIBRARIES gmp
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 """
 Dense univariate polynomials over  `\ZZ/n\ZZ`, implemented using NTL
@@ -564,7 +568,7 @@ def small_roots(self, X=None, beta=1.0, epsilon=None, **kwds):
 
     if epsilon is None:
         epsilon = beta/8
-    verbose("epsilon = %d"%epsilon, level=2)
+    verbose("epsilon = %f"%epsilon, level=2)
 
     m = max(beta**2/(delta * epsilon), 7*beta/delta).ceil()
     verbose("m = %d"%m, level=2)

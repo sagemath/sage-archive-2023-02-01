@@ -1,6 +1,5 @@
-
-e-antic
-=======
+e_antic: Real embedded number fields
+====================================
 
 Description
 -----------

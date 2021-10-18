@@ -14,10 +14,9 @@ The cdd backend for polyhedral computations
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, absolute_import
 
 from subprocess import Popen, PIPE
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.matrix.constructor import matrix
 
 from .base import Polyhedron_base
@@ -63,7 +62,7 @@ class Polyhedron_cdd(Polyhedron_base):
         s = self._run_cdd(s, '--repall', verbose=verbose)
         self._init_from_cdd_output(s)
         if not self.base_ring().is_exact():
-            # cdd's parser can not handle the full output of --repall, so we
+            # cdd's parser cannot handle the full output of --repall, so we
             # need to extract the first block before we feed it back into cdd
             s = s.splitlines()
             s = s[:s.index('end')+1]
@@ -129,7 +128,7 @@ class Polyhedron_cdd(Polyhedron_base):
                 # cdd (reasonably) refuses to handle empty polyhedra, so we
                 # skip this check
                 return
-            # cdd's parser can not handle the full output of --repall, so we
+            # cdd's parser cannot handle the full output of --repall, so we
             # need to extract the first block before we feed it back into cdd
             s = s.splitlines()
             s = s[:s.index('end')+1]
@@ -239,6 +238,22 @@ class Polyhedron_cdd(Polyhedron_base):
             sage: V.points()[1], R[V.points()[1]]
             (P(-2686.81000000000, -2084.19000000000),
              A 2-dimensional polyhedron in RDF^2 defined as the convex hull of 1 vertex, 1 ray, 1 line)
+
+        Check that :trac:`31253` is fixed::
+
+        sage: P = polytopes.permutahedron(2, backend='cdd')
+        sage: P.Hrepresentation()
+        (An inequality (0, 1) x - 1 >= 0,
+         An inequality (1, 0) x - 1 >= 0,
+         An equation (1, 1) x - 3 == 0)
+        sage: Q = Polyhedron(P.vertices(), backend='cdd')
+        sage: Q.Hrepresentation()
+        (An inequality (-1, 0) x + 2 >= 0,
+         An inequality (1, 0) x - 1 >= 0,
+         An equation (1, 1) x - 3 == 0)
+        sage: [x.ambient_Hrepresentation() for x in P.facets()]
+        [(An inequality (1, 0) x - 1 >= 0, An equation (1, 1) x - 3 == 0),
+         (An inequality (0, 1) x - 1 >= 0, An equation (1, 1) x - 3 == 0)]
         """
         cddout = cddout.splitlines()
 
@@ -262,7 +277,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_H_representation(intro, data):
             if '_Hrepresentation' in self.__dict__:
-                raise NotImplementedError("can not replace internal representation as this breaks caching")
+                raise NotImplementedError("cannot replace internal representation as this breaks caching")
             self._Hrepresentation = []
             # we drop some entries in cdd's output and this changes the numbering; this dict keeps track of that
             self._cdd_H_to_sage_H = {}
@@ -272,7 +287,12 @@ class Polyhedron_cdd(Polyhedron_base):
             assert self.ambient_dim() == dimension - 1, "Unexpected ambient dimension"
             assert len(data) == count, "Unexpected number of lines"
             R = self.base_ring()
-            for i, line in enumerate(data):
+            from itertools import chain
+            # We add equations to the end of the Hrepresentation.
+            for i in chain(
+                    (j for j in range(len(data)) if not j in equations),
+                    equations):
+                line = data[i]
                 coefficients = [R(x) for x in line]
                 if coefficients[0] != 0 and all(e == 0 for e in coefficients[1:]):
                     # cddlib sometimes includes an implicit plane at infinity: 1 0 0 ... 0
@@ -290,7 +310,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_V_representation(intro, data):
             if '_Vrepresentation' in self.__dict__:
-                raise NotImplementedError("can not replace internal representation as this breaks caching")
+                raise NotImplementedError("cannot replace internal representation as this breaks caching")
             self._Vrepresentation = []
             # we drop some entries in cdd's output and this changes the numbering; this dict keeps track of that
             self._cdd_V_to_sage_V = {}
@@ -348,7 +368,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_vertex_adjacency(intro, data):
             if '_V_adjacency_matrix' in self.__dict__:
-                raise NotImplementedError("can not replace internal representation as this breaks caching")
+                raise NotImplementedError("cannot replace internal representation as this breaks caching")
             N = len(self._Vrepresentation)
             self._V_adjacency_matrix = parse_adjacency(intro, data, N, N, self._cdd_V_to_sage_V)
             for i, v in enumerate(self._Vrepresentation):
@@ -364,7 +384,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_facet_adjacency(intro, data):
             if '_H_adjacency_matrix' in self.__dict__:
-                raise NotImplementedError("can not replace internal representation as this breaks caching")
+                raise NotImplementedError("cannot replace internal representation as this breaks caching")
             N = len(self._Hrepresentation)
             self._H_adjacency_matrix = parse_adjacency(intro, data, N, N, self._cdd_H_to_sage_H)
             self._H_adjacency_matrix.set_immutable()
@@ -372,7 +392,7 @@ class Polyhedron_cdd(Polyhedron_base):
 
         def parse_incidence_matrix(intro, data):
             if 'incidence_matrix' in self.__dict__:
-                raise NotImplementedError("can not replace internal representation as this breaks caching")
+                raise NotImplementedError("cannot replace internal representation as this breaks caching")
             N = len(self._Hrepresentation)
             M = len(self._Vrepresentation)
             inc_mat = parse_adjacency(intro, data, M, N, self._cdd_V_to_sage_V, self._cdd_H_to_sage_H)
@@ -536,7 +556,7 @@ class Polyhedron_RDF_cdd(Polyhedron_cdd, Polyhedron_RDF):
 
             In comparison, the "normal" initialization from Vrepresentation over RDF
             expects the output length to be consistent with the computed length
-            when re-feeding cdd the outputed Hrepresentation.
+            when re-feeding cdd the outputted Hrepresentation.
 
         EXAMPLES::
 

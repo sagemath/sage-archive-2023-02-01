@@ -122,7 +122,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.lazy_attribute import lazy_attribute
 from sage.misc.cachefunc import cached_method
@@ -136,7 +135,7 @@ from sage.categories.finite_fields import FiniteFields
 from sage.categories.homset import Hom, End, hom
 from sage.categories.number_fields import NumberFields
 
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 
 from sage.rings.all import degree_lowest_rational_function
 from sage.rings.number_field.number_field import NumberField
@@ -1738,20 +1737,56 @@ class AffinePlaneCurve_field(AffinePlaneCurve, AffineCurve_field):
         f = self.defining_polynomial()
         return fundamental_group(f, projective=False)
 
-    def riemann_surface(self,**kwargs):
-        r"""Return the complex riemann surface determined by this curve
+    def braid_monodromy(self):
+        r"""
+        Compute the braid monodromy of a projection of the curve.
 
         OUTPUT:
 
-         - RiemannSurface object
+        A list of braids. The braids correspond to paths based in the same point;
+        each of this paths is the conjugated of a loop around one of the points
+        in the discriminant of the projection of `self`.
+
+        NOTE:
+
+        The projection over the `x` axis is used if there are no vertical asymptotes.
+        Otherwise, a linear change of variables is done to fall into the previous case.
+
+        EXAMPLES::
+
+            sage: A.<x,y> = AffineSpace(QQ, 2)
+            sage: C = A.curve((x^2-y^3)*(x+3*y-5))
+            sage: C.braid_monodromy()   # optional -  sirocco
+            [s1*s0*(s1*s2)^2*s0*s2^2*s0^-1*(s2^-1*s1^-1)^2*s0^-1*s1^-1,
+             s1*s0*(s1*s2)^2*(s0*s2^-1*s1*s2*s1*s2^-1)^2*(s2^-1*s1^-1)^2*s0^-1*s1^-1,
+             s1*s0*(s1*s2)^2*s2*s1^-1*s2^-1*s1^-1*s0^-1*s1^-1,
+             s1*s0*s2*s0^-1*s2*s1^-1]
+
+        """
+        from sage.schemes.curves.zariski_vankampen import braid_monodromy
+        F = self.base_ring()
+        from sage.rings.qqbar import QQbar
+        if QQbar.coerce_map_from(F) is None:
+            raise NotImplementedError("the base field must have an embedding"
+                                      " to the algebraic field")
+        f = self.defining_polynomial()
+        return braid_monodromy(f)
+
+
+    def riemann_surface(self, **kwargs):
+        r"""
+        Return the complex Riemann surface determined by this curve
+
+        OUTPUT:
+
+        - RiemannSurface object
 
         EXAMPLES::
 
             sage: R.<x,y>=QQ[]
-            sage: C=Curve(x^3+3*y^3+5)
+            sage: C = Curve(x^3+3*y^3+5)
             sage: C.riemann_surface()
             Riemann surface defined by polynomial f = x^3 + 3*y^3 + 5 = 0, with 53 bits of precision
-
         """
         from sage.schemes.riemann_surfaces.riemann_surface import RiemannSurface
         return RiemannSurface(self.defining_polynomial(),**kwargs)

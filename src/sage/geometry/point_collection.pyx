@@ -80,8 +80,8 @@ from sage.structure.sage_object cimport SageObject
 from sage.structure.richcmp cimport richcmp_not_equal, richcmp
 
 from sage.geometry.toric_lattice import ToricLattice
-from sage.matrix.all import matrix
-from sage.misc.all import latex
+from sage.matrix.constructor import matrix
+from sage.misc.latex import latex
 
 
 def is_PointCollection(x):
@@ -563,8 +563,8 @@ cdef class PointCollection(SageObject):
                     for i, coordinate in enumerate(point):
                         widths[i] = max(widths[i], len(coordinate))
                 format += ",".join("{{:>{}}}".format(width) for width in widths)
-                r = ",\n".join([format.format(head, *point)
-                                for head, point in zip(heads, r)])
+                r = ",\n".join(format.format(head, *point)
+                               for head, point in zip(heads, r))
         elif _output_format == "tuple":
             r = tuple(self)
         elif _output_format == "matrix":

@@ -66,7 +66,6 @@ REFERENCES:
 .. [BLL-Intro] Francois Bergeron, Gilbert Labelle, and Pierre Leroux.
    "Introduction to the Theory of Species of Structures", March 14, 2008.
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #       Copyright (C) 2008 Mike Hansen <mhansen@gmail.com>
@@ -86,6 +85,7 @@ from sage.combinat.partition import Partition, Partitions
 from functools import partial
 from sage.combinat.sf.sf import SymmetricFunctions
 from sage.misc.cachefunc import cached_function
+from sage.arith.misc import factorial
 
 
 @cached_function
@@ -219,7 +219,7 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
             sage: [f.count(i) for i in range(7)]
             [1, 1, 2, 6, 24, 120, 720]
         """
-        return factorial_stream[n] * self.coefficient(n)
+        return factorial(n) * self.coefficient(n)
 
     def counts(self, n):
         """
@@ -281,8 +281,9 @@ class ExponentialGeneratingSeries(LazyPowerSeries):
         """
         n = 0
         while True:
-            yield self.count(y.count(n))/factorial_stream[n]
+            yield self.count(y.count(n)) / factorial(n)
             n += 1
+
 
 def factorial_gen():
     """
@@ -303,9 +304,6 @@ def factorial_gen():
         z *= n
         yield z
         n += 1
-
-factorial_stream = Stream(factorial_gen())
-
 
 
 @cached_function
@@ -873,8 +871,7 @@ class CycleIndexSeries(LazyPowerSeries):
             15
         """
         p = self.coefficient(n)
-        return factorial_stream[n]*p.coefficient([1]*n)
-
+        return factorial(n) * p.coefficient([1] * n)
 
     def _compose_gen(self, y, ao):
         """

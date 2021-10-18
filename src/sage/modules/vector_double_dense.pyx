@@ -85,7 +85,7 @@ cdef class Vector_double_dense(FreeModuleElement):
             sage: v.__new__(v.__class__, v.parent(), [1,1,1])  # random output
             (-2.26770549592e-39, 5.1698223615e-252*I, -5.9147262602e-62 + 4.63145528786e-258*I)
         """
-        self._is_mutable = 1
+        self._is_immutable = 0
         self._degree = parent.degree()
         self._parent = parent
 
@@ -95,7 +95,7 @@ cdef class Vector_double_dense(FreeModuleElement):
         """
         cdef Vector_double_dense v
         v = self.__class__.__new__(self.__class__,self._parent,None,None,None)
-        v._is_mutable = 1
+        v._is_immutable = 0
         v._parent = self._parent
         v._degree = self._parent.degree()
 

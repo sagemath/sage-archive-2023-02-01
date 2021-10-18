@@ -21,7 +21,7 @@ AUTHORS:
 
 from sage.numerical.mip import MIPSolverException
 from sage.numerical.interactive_simplex_method import InteractiveLPProblem, default_variable_name
-from sage.modules.all import vector
+from sage.modules.free_module_element import vector
 from copy import copy
 
 
@@ -40,14 +40,6 @@ cdef class InteractiveLPBackend:
 
         sage: from sage.numerical.backends.generic_backend import get_solver
         sage: p = get_solver(solver = "InteractiveLP")
-
-    TESTS:
-
-    General backend testsuite::
-
-        sage: p = MixedIntegerLinearProgram(solver="InteractiveLP")
-        sage: TestSuite(p.get_backend()).run(skip="_test_pickling")
-
     """
 
     def __cinit__(self, maximization = True, base_ring = None):
@@ -76,7 +68,7 @@ cdef class InteractiveLPBackend:
         """
 
         if base_ring is None:
-            from sage.rings.all import QQ
+            from sage.rings.rational_field import QQ
             base_ring = QQ
 
         self.lp = InteractiveLPProblem([], [], [], base_ring=base_ring)
@@ -606,7 +598,7 @@ cdef class InteractiveLPBackend:
         .. NOTE::
 
             This method raises ``MIPSolverException`` exceptions when
-            the solution can not be computed for any reason (none
+            the solution cannot be computed for any reason (none
             exists, or the LP solver was not able to find it, etc...)
 
         EXAMPLES::

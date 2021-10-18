@@ -21,16 +21,14 @@ We test coercion in a particularly complicated situation::
     x^2 + (-z^2 - 1)*x
 """
 
-#*****************************************************************************
+# ****************************************************************************
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #  as published by the Free Software Foundation; either version 2 of
 #  the License, or (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
-from __future__ import print_function
-
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 from sage.rings.polynomial.polynomial_element import Polynomial, Polynomial_generic_dense, Polynomial_generic_dense_inexact
 from sage.structure.element import IntegralDomainElement, EuclideanDomainElement
 
@@ -83,6 +81,8 @@ class Polynomial_generic_sparse(Polynomial):
 
             sage: PolynomialRing(RIF, 'z', sparse=True)([RIF(-1, 1), RIF(-1,1)])
             0.?*z + 0.?
+            sage: PolynomialRing(RIF, 'z', sparse=True)((RIF(-1, 1), RIF(-1,1)))
+            0.?*z + 0.?
             sage: PolynomialRing(CIF, 'z', sparse=True)([CIF(RIF(-1,1), RIF(-1,1)), RIF(-1,1)])
             0.?*z + 0.? + 0.?*I
         """
@@ -101,9 +101,9 @@ class Polynomial_generic_sparse(Polynomial):
                 for n, c in x.dict().items():
                     w[n] = R(c)
                 # The following line has been added in trac ticket #9944.
-                # Apparently, the "else" case has never occured before.
+                # Apparently, the "else" case has never occurred before.
                 x = w
-        elif isinstance(x, list):
+        elif isinstance(x, (list, tuple)):
             x = dict((i, c) for (i, c) in enumerate(x) if c)
         elif isinstance(x, pari_gen):
             y = {}
@@ -182,7 +182,7 @@ class Polynomial_generic_sparse(Polynomial):
         """
         return sorted(self.__coeffs)
 
-    def valuation(self):
+    def valuation(self, p=None):
         """
         Return the valuation of ``self``.
 
@@ -199,6 +199,13 @@ class Polynomial_generic_sparse(Polynomial):
         """
         if not self.__coeffs:
             return infinity
+
+        if p is infinity:
+            return -self.degree()
+
+        if p is not None:
+            raise NotImplementedError("input p is not support for sparse polynomials")
+
         return ZZ(min(self.__coeffs))
 
     def _derivative(self, var=None):
@@ -1201,7 +1208,8 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
         b = ~dera
         while(True):
             na = a - selfa * b
-            if na == a: return a
+            if na == a:
+                return a
             a = na
             selfa = self(a)
             dera = der(a)
@@ -1479,7 +1487,8 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
                 continue
             if hint is not None and slope == minval:
                 rootsbar = hint
-                if not rootsbar: continue
+                if not rootsbar:
+                    continue
             if i < len(vertices) - 1:
                 F = P._factor_of_degree(deg_right - deg)
                 P = P // F
@@ -1493,7 +1502,8 @@ class Polynomial_generic_cdv(Polynomial_generic_domain):
             if hint is None or slope != minval:
                 Fbar = Pk([ F[j] >> (val - j*slope) for j in range(F.degree()+1) ])
                 rootsbar = [ r for (r, _) in Fbar.roots() ]
-                if not rootsbar: continue
+                if not rootsbar:
+                    continue
             rbar = rootsbar.pop()
             shift = K(rbar).lift_to_precision() << slope  # probably we should choose a better lift
             roots += [(r+shift, m) for (r, m) in F(x+shift)._roots(secure, slope, [r-rbar for r in rootsbar])]  # recursive call
@@ -1528,7 +1538,7 @@ class Polynomial_generic_sparse_cdvf(Polynomial_generic_sparse_cdv, Polynomial_g
     pass
 
 ############################################################################
-# XXX:  Ensures that the generic polynomials implemented in SAGE via PARI  #
+# XXX:  Ensures that the generic polynomials implemented in Sage via PARI  #
 # until at least until 4.5.0 unpickle correctly as polynomials implemented #
 # via FLINT.                                                               #
 from sage.misc.persist import register_unpickle_override

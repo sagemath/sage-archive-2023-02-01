@@ -179,15 +179,15 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function
 
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 
 from sage.combinat.combination import Combinations
-from sage.rings.all import QQ, ZZ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.matrix.constructor import matrix
-from sage.modules.all import vector
+from sage.modules.free_module_element import vector
 
 from copy import copy
 import sys
@@ -647,8 +647,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 if verbose:
                     print('# Still running ' + str(executable))
                 continue
-            if len(line)==0: # EOF
-                break;
+            if len(line) == 0:  # EOF
+                break
             if verbose:
                 print("# " + line)
                 sys.stdout.flush()
@@ -1111,8 +1111,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
             pass
 
         from sage.geometry.polyhedron.constructor import Polyhedron
-        pts = [ p.reduced_affine() for p in self.points() ];
-        self._polyhedron = Polyhedron(vertices=pts);
+        pts = [p.reduced_affine() for p in self.points()]
+        self._polyhedron = Polyhedron(vertices=pts)
         return self._polyhedron
 
     @cached_method
@@ -1207,14 +1207,13 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
         try:
             p = vector(self.point(point).reduced_affine())
         except TypeError:
-            p = vector(point);
+            p = vector(point)
 
         inequalities = []
         for ieq in self.convex_hull().inequality_generator():
             if (ieq.A()*p + ieq.b() == 0):
-                inequalities += [ ieq.vector() ];
-        return matrix(inequalities).rank();
-
+                inequalities += [ ieq.vector() ]
+        return matrix(inequalities).rank()
 
     def face_interior(self, dim=None, codim=None):
         """
@@ -1656,9 +1655,11 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                     triangulation.update([ frozenset([head]).union(tail) ])
 
             nonminimal = set()
-            for rel in Combinations(triangulation,2):
-                if rel[0].issubset(rel[1]): nonminimal.update([rel[1]])
-                if rel[1].issubset(rel[0]): nonminimal.update([rel[0]])
+            for rel in Combinations(triangulation, 2):
+                if rel[0].issubset(rel[1]):
+                    nonminimal.update([rel[1]])
+                if rel[1].issubset(rel[0]):
+                    nonminimal.update([rel[0]])
             triangulation.difference_update(nonminimal)
 
             triangulation = [ [len(t)]+sorted(t) for t in triangulation ] # decorate
@@ -2042,7 +2043,7 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 origin = next(iter(facet))
                 normal = facet_normals[facet]
                 v = point.reduced_affine_vector() - origin.reduced_affine_vector()
-                if v*normal>0:
+                if v * normal > 0:
                     visible_facets.append(facet)
 
             # construct simplices over each visible facet
@@ -2051,7 +2052,8 @@ class PointConfiguration(UniqueRepresentation, PointConfiguration_base):
                 simplex = frozenset(list(facet) + [point])
                 simplices.append(simplex)
                 for facet in facets_of_simplex(simplex):
-                    if facet in visible_facets: continue
+                    if facet in visible_facets:
+                        continue
                     if facet in new_facets:
                         new_facets.remove(facet)
                         continue

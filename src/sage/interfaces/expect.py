@@ -38,7 +38,6 @@ AUTHORS:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import io
 import os
@@ -126,10 +125,10 @@ class Expect(Interface):
     """
     def __init__(self, name, prompt, command=None, env={}, server=None,
                  server_tmpdir=None,
-                 ulimit = None, maxread=None,
+                 ulimit=None, maxread=None,
                  script_subdirectory=None, restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=None,
-                 logfile = None, eval_using_file_cutoff=0,
+                 logfile=None, eval_using_file_cutoff=0,
                  do_cleaner=True, remote_cleaner=False, path=None,
                  terminal_echo=True):
 
@@ -780,7 +779,7 @@ If this all works, you can then make calls like:
         - ``restart_if_needed`` - (optional bool, default ``True``) --
           If it is ``True``, the command evaluation is evaluated
           a second time after restarting the interface, if an
-          ``EOFError`` occured.
+          ``EOFError`` occurred.
 
         TESTS::
 
@@ -882,7 +881,7 @@ If this all works, you can then make calls like:
         - ``restart_if_needed`` (optional bool, default ``True``) --
           If it is ``True``, the command evaluation is evaluated
           a second time after restarting the interface, if an
-          ``EOFError`` occured.
+          ``EOFError`` occurred.
 
         TESTS::
 
@@ -920,6 +919,7 @@ If this all works, you can then make calls like:
         The interface still works after this interrupt::
 
             sage: singular('2+3')
+            Singular crashed -- automatically restarting.
             5
 
         Last, we demonstrate that by default the execution of a command
@@ -1454,7 +1454,8 @@ class ExpectElement(InterfaceElement):
     def __init__(self, parent, value, is_name=False, name=None):
         RingElement.__init__(self, parent)
         self._create = value
-        if parent is None: return     # means "invalid element"
+        if parent is None:
+            return     # means "invalid element"
         # idea: Joe Wetherell -- try to find out if the output
         # is too long and if so get it using file, otherwise
         # don't.

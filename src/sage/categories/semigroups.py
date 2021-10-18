@@ -1,7 +1,6 @@
 r"""
 Semigroups
 """
-from __future__ import absolute_import
 #*****************************************************************************
 #  Copyright (C) 2005      David Kohel <kohel@maths.usyd.edu>
 #                          William Stein <wstein@math.ucsd.edu>
@@ -455,7 +454,7 @@ class Semigroups(CategoryWithAxiom):
                  as a permutation group over Integer Ring
             """
             if base_ring is None:
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 base_ring = ZZ
             from sage.modules.with_basis.representation import TrivialRepresentation
             return TrivialRepresentation(self, base_ring)
@@ -475,7 +474,7 @@ class Semigroups(CategoryWithAxiom):
                  as a permutation group over Integer Ring
             """
             if base_ring is None:
-                from sage.rings.all import ZZ
+                from sage.rings.integer_ring import ZZ
                 base_ring = ZZ
             from sage.modules.with_basis.representation import RegularRepresentation
             return RegularRepresentation(self, base_ring, side)
@@ -889,7 +888,7 @@ class Semigroups(CategoryWithAxiom):
             # Once there will be some guarantee on the consistency between
             # gens / monoid/group/*_generators, these methods could possibly
             # be removed in favor of aliases gens -> xxx_generators in
-            # the Algebras.FinitelyGenerated hierachy
+            # the Algebras.FinitelyGenerated hierarchy
             def gens(self):
                 r"""
                 Return the generators of ``self``.

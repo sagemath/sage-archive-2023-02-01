@@ -712,7 +712,7 @@ def automorphism_group_QQ_CRT(rational_function, prime_lower_bound=4, return_fun
 
     MaxH = height_bound(h)
     congruence = 1
-    primes = Primes();
+    primes = Primes()
     p = primes.next(ZZ(prime_lower_bound))
     primepowers = []
     automorphisms = []
@@ -1563,7 +1563,7 @@ def automorphism_group_FF_alg3(rational_function):
     # Compute the set of distinct F-rational and F-quadratic
     # factors of the fixed point polynomial
     fix = R(f(z) - z*g(z))
-    linear_fix = gcd(fix, z**q - z);
+    linear_fix = gcd(fix, z**q - z)
     quad_temp = fix.quo_rem(linear_fix)[0]
     residual = gcd(quad_temp, z**q - z)
     while residual.degree() > 0:

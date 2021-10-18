@@ -49,9 +49,6 @@ Clayton Smith's construction [ClaytonSmith]_.
 Functions
 ---------
 """
-# python3
-from __future__ import division, print_function
-from __future__ import absolute_import
 
 from sage.categories.sets_cat import EmptySetError
 from sage.misc.unknown import Unknown
@@ -98,7 +95,7 @@ def biplane(n, existence=False):
         sage: designs.biplane(9)
         (56,11,2)-Balanced Incomplete Block Design
 
-    Check all knwon biplanes::
+    Check all known biplanes::
 
         sage: [n for n in [0,1,2,3,4,7,9,11] if designs.biplane(n, existence=True) is True]
         [0, 1, 2, 3, 4, 7, 9, 11]
@@ -1529,7 +1526,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         l = self._lambd
         return "({},{},{})-Balanced Incomplete Block Design".format(v,k,l)
 
-    def arc(self, s=2, solver=None, verbose=0):
+    def arc(self, s=2, solver=None, verbose=0, *, integrality_tolerance=1e-3):
         r"""
         Return the ``s``-arc with maximum cardinality.
 
@@ -1551,16 +1548,20 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         - ``s`` - (default to ``2``) the maximum number of points from the arc
           in each block
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method
-          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
-          of the class
-          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear
+          Programming (MILP) solver to be used. If set to ``None``, the default
+          one is used. For more information on MILP solvers and which default
+          solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of
           verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over
+          an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES::
 
@@ -1630,7 +1631,7 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         elif s >= max(self.block_sizes()):
             return self._points[:]
 
-        # linear program
+        # integer linear program
         from sage.numerical.mip import MixedIntegerLinearProgram
 
         p = MixedIntegerLinearProgram(solver=solver)
@@ -1639,6 +1640,8 @@ class BalancedIncompleteBlockDesign(PairwiseBalancedDesign):
         for i in self._blocks:
             p.add_constraint(p.sum(b[k] for k in i) <= s)
         p.solve(log=verbose)
-        return [self._points[i] for (i,j) in p.get_values(b).items() if j == 1]
+
+        values = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
+        return [self._points[i] for (i,j) in values.items() if j]
 
 BIBD = BalancedIncompleteBlockDesign

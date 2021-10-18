@@ -15,7 +15,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # ***************************************************************************
-from __future__ import division, print_function, absolute_import
 
 import os
 import pickle
@@ -28,7 +27,7 @@ from sage.rings.all import ZZ, infinity
 from sage.graphs.all import Graph, DiGraph
 from sage.arith.all import binomial, euler_phi
 from sage.all import prod
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 
 
 class QuiverMutationTypeFactory(SageObject):
@@ -381,7 +380,7 @@ mutation types.
 
     * Grassmannian: This defines the cluster algebra (without
       coefficients) corresponding to the cluster algebra with
-      coefficients which is the co-ordinate ring of a Grassmannian.
+      coefficients which is the coordinate ring of a Grassmannian.
       ``letter`` is 'GR'.  ``rank`` is a pair of integers (`k`, `n`)
       with 'k' < 'n' specifying the Grassmannian of `k`-planes in
       `n`-space.  This defines a quiver given by a (k-1) x (n-k-1)

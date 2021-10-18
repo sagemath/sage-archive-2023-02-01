@@ -1,4 +1,8 @@
-# distutils: libraries = ntl gmp m
+# distutils: libraries = NTL_LIBRARIES gmp m
+# distutils: extra_compile_args = NTL_CFLAGS
+# distutils: include_dirs = NTL_INCDIR
+# distutils: library_dirs = NTL_LIBDIR
+# distutils: extra_link_args = NTL_LIBEXTRA
 # distutils: language = c++
 
 #*****************************************************************************
@@ -44,7 +48,7 @@ cdef class ntl_ZZ_pContext_class(object):
             sage: n2+n1  # Mismatched moduli:  It will go BOOM!
             Traceback (most recent call last):
             ...
-            ValueError: You can not perform arithmetic with elements of different moduli.
+            ValueError: You cannot perform arithmetic with elements of different moduli.
         """
         pass
 

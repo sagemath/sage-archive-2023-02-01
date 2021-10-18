@@ -132,7 +132,7 @@ TESTS::
     sage: M = scilab(x)                                     # optional - scilab
     Traceback (most recent call last):
     ...
-    TypeError: _interface_init_() takes exactly one argument (0 given)
+    TypeError: ..._interface_init_() takes exactly one argument (0 given)
     sage: M = scilab(matrix(3,range(9))); M                 # optional - scilab
         0.    1.    2.
         3.    4.    5.
@@ -186,8 +186,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-from __future__ import print_function
-from __future__ import absolute_import
 
 import os
 

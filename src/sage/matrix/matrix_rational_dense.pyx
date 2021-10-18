@@ -1,8 +1,9 @@
-# distutils: extra_compile_args = -D_XPG6 M4RI_CFLAGS
-# distutils: libraries = iml ntl m CBLAS_LIBRARIES
-# distutils: library_dirs = CBLAS_LIBDIR
-# distutils: include_dirs = M4RI_INCDIR CBLAS_INCDIR
-
+# distutils: extra_compile_args = -D_XPG6 NTL_CFLAGS M4RI_CFLAGS
+# distutils: extra_link_args = NTL_LIBEXTRA
+# distutils: libraries = iml NTL_LIBRARIES m CBLAS_LIBRARIES
+# distutils: library_dirs = NTL_LIBDIR CBLAS_LIBDIR
+# distutils: include_dirs = NTL_INCDIR M4RI_INCDIR CBLAS_INCDIR
+# distutils: language = c++
 """
 Dense matrices over the rational field
 
@@ -115,7 +116,7 @@ from sage.arith.all import gcd
 from .matrix2 import decomp_seq
 from .matrix0 import Matrix as Matrix_base
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.verbose import verbose, get_verbose
 
 #########################################################
@@ -1443,7 +1444,7 @@ cdef class Matrix_rational_dense(Matrix_dense):
             sage: a.change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: matrix has denominators so can...t change to ZZ.
+            TypeError: matrix has denominators so can...t change to ZZ
             sage: b = a.change_ring(QQ['x']); b
             [1/2  -1]
             [  2   3]
@@ -1480,8 +1481,9 @@ cdef class Matrix_rational_dense(Matrix_dense):
         if is_IntegerRing(R):
             A, d = self._clear_denom()
             if not d.is_one():
-                raise TypeError("matrix has denominators so can't change to ZZ.")
-            A.subdivide(self.subdivisions())
+                raise TypeError("matrix has denominators so can't change to ZZ")
+            if self._subdivisions is not None:
+                A.subdivide(self.subdivisions())
             return A
 
         from .matrix_modn_dense_double import MAX_MODULUS
@@ -1492,7 +1494,8 @@ cdef class Matrix_rational_dense(Matrix_dense):
                 raise TypeError("matrix denominator not coprime to modulus")
             B = A._mod_int(b)
             C = (1/(B.base_ring()(d))) * B
-            C.subdivide(self.subdivisions())
+            if self._subdivisions is not None:
+                C.subdivide(self.subdivisions())
             return C
 
         # fallback to the generic version
@@ -2240,20 +2243,109 @@ cdef class Matrix_rational_dense(Matrix_dense):
 
         -  None, the matrix is modified in-space
 
-        EXAMPLES::
+        EXAMPLES:
 
-            sage: a = matrix(QQ,2,4); a.randomize(); a
-            [ 0 -1  2 -2]
-            [ 1 -1  2  1]
-            sage: a = matrix(QQ,2,4); a.randomize(density=0.5); a
-            [ -1  -2   0   0]
-            [  0   0 1/2   0]
-            sage: a = matrix(QQ,2,4); a.randomize(num_bound=100, den_bound=100); a
-            [ 14/27  21/25  43/42 -48/67]
-            [-19/55  64/67 -11/51     76]
-            sage: a = matrix(QQ,2,4); a.randomize(distribution='1/n'); a
-            [      3     1/9     1/2     1/4]
-            [      1    1/39       2 -1955/2]
+        The default distribution::
+
+            sage: from collections import defaultdict
+            sage: total_count = 0
+            sage: dic = defaultdict(Integer)
+            sage: def add_samples(distribution=None):
+            ....:     global dic, total_count
+            ....:     for _ in range(100):
+            ....:         A = Matrix(QQ, 2, 4, 0)
+            ....:         A.randomize(distribution=distribution)
+            ....:         for a in A.list():
+            ....:             dic[a] += 1
+            ....:             total_count += 1.0
+
+            sage: expected = {-2: 1/9, -1: 3/18, -1/2: 1/18, 0: 3/9,
+            ....:             1/2: 1/18, 1: 3/18, 2: 1/9}
+            sage: add_samples()
+            sage: while not all(abs(dic[a]/total_count - expected[a]) < 0.001 for a in dic):
+            ....:     add_samples()
+
+        The distribution ``'1/n'``::
+
+            sage: def mpq_randomize_entry_recip_uniform():
+            ....:     r = 2*random() - 1
+            ....:     if r == 0: r = 1
+            ....:     num = int(4/(5*r))
+            ....:     r = random()
+            ....:     if r == 0: r = 1
+            ....:     den = int(1/random())
+            ....:     return Integer(num)/Integer(den)
+
+            sage: total_count = 0
+            sage: dic = defaultdict(Integer)
+            sage: dic2 = defaultdict(Integer)
+            sage: add_samples('1/n')
+            sage: for _ in range(8):
+            ....:     dic2[mpq_randomize_entry_recip_uniform()] += 1
+            sage: while not all(abs(dic[a] - dic2[a])/total_count < 0.005 for a in dic):
+            ....:     add_samples('1/n')
+            ....:     for _ in range(800):
+            ....:         dic2[mpq_randomize_entry_recip_uniform()] += 1
+
+        The default can be used to obtain matrices of different rank::
+
+            sage: ranks = [False]*11
+            sage: while not all(ranks):
+            ....:     for dens in (0.05, 0.1, 0.2, 0.5):
+            ....:         A = Matrix(QQ, 10, 10, 0)
+            ....:         A.randomize(dens)
+            ....:         ranks[A.rank()] = True
+
+        The default density is `6/9`::
+
+            sage: def add_sample(density, num_rows, num_cols):
+            ....:     global density_sum, total_count
+            ....:     total_count += 1.0
+            ....:     A = Matrix(QQ, num_rows, num_cols, 0)
+            ....:     A.randomize(density)
+            ....:     density_sum += float(A.density())
+
+            sage: density_sum = 0.0
+            sage: total_count = 0.0
+            sage: expected_density = 6/9
+            sage: add_sample(1.0, 100, 100)
+            sage: while abs(density_sum/total_count - expected_density) > 0.001:
+            ....:     add_sample(1.0, 100, 100)
+
+        The modified density depends on the number of columns::
+
+            sage: density_sum = 0.0
+            sage: total_count = 0.0
+            sage: expected_density = 6/9*0.5
+            sage: add_sample(0.5, 100, 2)
+            sage: while abs(density_sum/total_count - expected_density) > 0.001:
+            ....:     add_sample(0.5, 100, 2)
+
+            sage: density_sum = 0.0
+            sage: total_count = 0.0
+            sage: expected_density = 6/9*(1.0 - (99/100)^50)
+            sage: expected_density
+            0.263...
+
+            sage: add_sample(0.5, 100, 100)
+            sage: while abs(density_sum/total_count - expected_density) > 0.001:
+            ....:     add_sample(0.5, 100, 100)
+
+        Modifying the bounds for numerator and denominator::
+
+            sage: num_dic = defaultdict(Integer)
+            sage: den_dic = defaultdict(Integer)
+            sage: while not (all(num_dic[i] for i in range(-200, 201))
+            ....:            and all(den_dic[i] for i in range(1, 101))):
+            ....:     a = matrix(QQ, 2, 4)
+            ....:     a.randomize(num_bound=200, den_bound=100)
+            ....:     for q in a.list():
+            ....:         num_dic[q.numerator()] += 1
+            ....:         den_dic[q.denominator()] += 1
+            sage: len(num_dic)
+            401
+            sage: len(den_dic)
+            100
 
         TESTS:
 

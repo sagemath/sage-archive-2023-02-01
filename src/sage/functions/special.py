@@ -159,14 +159,14 @@ Added 16-02-2008 (wdj): optional calls to scipy and replace all
 # ****************************************************************************
 
 from sage.rings.integer import Integer
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.misc.latex import latex
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.symbolic.constants import pi
 from sage.symbolic.function import BuiltinFunction
 from sage.libs.mpmath import utils as mpmath_utils
 from sage.functions.all import sqrt, sin, cot, exp
-from sage.symbolic.all import I
+from sage.symbolic.constants import I
 
 
 class SphericalHarmonic(BuiltinFunction):
@@ -228,6 +228,18 @@ class SphericalHarmonic(BuiltinFunction):
             sage: ex = spherical_harmonic(3,2,1,2*pi/3)
             sage: QQbar(ex * sqrt(pi)/cos(1)/sin(1)^2).minpoly()
             x^4 + 105/32*x^2 + 11025/1024
+
+        Check whether :trac:`25034` yields correct results compared to Maxima::
+
+            sage: spherical_harmonic(1,1,pi/3,pi/6).n() # abs tol 1e-14
+            0.259120612103502 + 0.149603355150537*I
+            sage: maxima.spherical_harmonic(1,1,pi/3,pi/6).n() # abs tol 1e-14
+            0.259120612103502 + 0.149603355150537*I
+            sage: spherical_harmonic(1,-1,pi/3,pi/6).n() # abs tol 1e-14
+            -0.259120612103502 + 0.149603355150537*I
+            sage: maxima.spherical_harmonic(1,-1,pi/3,pi/6).n() # abs tol 1e-14
+            -0.259120612103502 + 0.149603355150537*I
+
         """
         if n in ZZ and m in ZZ and n > -1:
             if abs(m) > n:
@@ -352,7 +364,7 @@ def elliptic_j(z, prec=53):
     """
 
     CC = z.parent()
-    from sage.rings.complex_field import is_ComplexField
+    from sage.rings.complex_mpfr import is_ComplexField
     if not is_ComplexField(CC):
         CC = ComplexField(prec)
         try:
@@ -582,7 +594,7 @@ class EllipticEU(BuiltinFunction):
 
         E(u,m)=
         \int_0^u \mathrm{dn}(x,m)^2\, dx = \int_0^\tau
-        {\sqrt{1-m x^2}\over\sqrt{1-x^2}}\, dx.
+        \frac{\sqrt{1-m x^2}}{\sqrt{1-x^2}}\, dx.
 
     where `\tau = \mathrm{sn}(u, m)`.
 

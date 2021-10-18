@@ -27,15 +27,13 @@ AUTHORS:
 # ****************************************************************************
 
 from cysignals.signals cimport sig_on, sig_off
-from sage.rings.real_double import RDF
+from memory_allocator cimport MemoryAllocator
 
+from sage.rings.real_double import RDF
 from sage.libs.gsl.all cimport *
 from sage.misc.sageinspect import sage_getargspec
-from sage.ext.fast_eval cimport FastDoubleFunc
 from sage.ext.interpreters.wrapper_rdf cimport Wrapper_rdf
 from sage.ext.fast_callable import fast_callable
-from sage.ext.memory_allocator cimport MemoryAllocator
-import inspect
 
 
 cdef class PyFunctionWrapper:
@@ -61,9 +59,6 @@ cdef double c_f(double t, void *params):
       return 0
 
    return value
-
-cdef double c_ff(double t, void *params):
-    return (<FastDoubleFunc>params)._call_c(&t)
 
 
 def numerical_integral(func, a, b=None,
@@ -136,7 +131,7 @@ def numerical_integral(func, a, b=None,
         sage: (sin(x)^3+sin(x)).integral(x,0,pi)
         10/3
 
-    If we want to change the error tolerances and gauss rule used::
+    If we want to change the error tolerances and Gauss rule used::
 
         sage: f = x^2
         sage: numerical_integral(f, 0, 1, max_points=200, eps_abs=1e-7, eps_rel=1e-7, rule=4)
@@ -274,7 +269,7 @@ def numerical_integral(func, a, b=None,
     cdef gsl_integration_workspace* W
     W = NULL
 
-    if not isinstance(func, FastDoubleFunc):
+    if True:
         from sage.rings.infinity import Infinity
         try:
             if hasattr(func, 'arguments'):
@@ -316,13 +311,10 @@ def numerical_integral(func, a, b=None,
                 else:
                    if ell.is_numeric() and not ell.is_zero():
                       raise ValueError('integral does not converge at infinity')
-            func = func._fast_float_(v)
+            func = fast_callable(func, vars=[v], domain=float)
 
-    if isinstance(func, FastDoubleFunc):
-        F.function = c_ff
-        F.params = <void *>func
 
-    elif not isinstance(func, compiled_integrand):
+    if not isinstance(func, compiled_integrand):
       wrapper = PyFunctionWrapper()
       if not func is None:
          wrapper.the_function = func
@@ -582,19 +574,21 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain',
         _xu[i] = <double> xu[i]
 
     if not callable(func):
-        # constant
+        # constant. Note that all Expression objects are callable.
         v = float(1)
         for i in range(dim):
             v *= _xu[i] - _xl[i]
         return (v * <double?> func, 0.0)
 
     elif not isinstance(func, Wrapper_rdf):
-        if inspect.isfunction(func):
-            vars = sage_getargspec(func)[0]
-        elif hasattr(func, 'arguments'):
+        # func is either an Expression or another callable.
+        try:
             vars = func.arguments()
-        else:
-            vars = func.variables()
+        except AttributeError:
+            try:
+                vars = func.variables()
+            except AttributeError:
+                vars = sage_getargspec(func)[0]
 
         target_dim = dim + len(params)
         if len(vars) < target_dim:
@@ -611,7 +605,8 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain',
                               "more items in upper and lower limits"
                              ).format(len(vars), tuple(vars), target_dim))
 
-        if not inspect.isfunction(func):
+        from sage.symbolic.expression import is_Expression
+        if is_Expression(func):
             if params:
                 to_sub = dict(zip(vars[-len(params):], params))
                 func = func.subs(to_sub)

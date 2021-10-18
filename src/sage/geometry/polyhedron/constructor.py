@@ -291,9 +291,10 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 ########################################################################
-from __future__ import print_function, absolute_import
 
-from sage.rings.all import ZZ, RDF, RR
+from sage.rings.integer_ring import ZZ
+from sage.rings.real_double import RDF
+from sage.rings.real_mpfr import RR
 
 from .misc import _make_listlist, _common_length_of
 
@@ -302,7 +303,7 @@ from .misc import _make_listlist, _common_length_of
 def Polyhedron(vertices=None, rays=None, lines=None,
                ieqs=None, eqns=None,
                ambient_dim=None, base_ring=None, minimize=True, verbose=False,
-               backend=None):
+               backend=None, mutable=False):
     r"""
     Construct a polyhedron object.
 
@@ -347,32 +348,35 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
       * ``'cdd'``: use cdd
         (:mod:`~sage.geometry.polyhedron.backend_cdd`) with `\QQ` or
-        `\RDF` coefficients depending on ``base_ring``.
+        `\RDF` coefficients depending on ``base_ring``
 
       * ``'normaliz'``: use normaliz
         (:mod:`~sage.geometry.polyhedron.backend_normaliz`) with `\ZZ` or
-        `\QQ` coefficients depending on ``base_ring``.
+        `\QQ` coefficients depending on ``base_ring``
 
       * ``'polymake'``: use polymake
         (:mod:`~sage.geometry.polyhedron.backend_polymake`) with `\QQ`, `\RDF` or
-        ``QuadraticField`` coefficients depending on ``base_ring``.
+        ``QuadraticField`` coefficients depending on ``base_ring``
 
       * ``'ppl'``: use ppl
         (:mod:`~sage.geometry.polyhedron.backend_ppl`) with `\ZZ` or
-        `\QQ` coefficients depending on ``base_ring``.
+        `\QQ` coefficients depending on ``base_ring``
 
       * ``'field'``: use python implementation
         (:mod:`~sage.geometry.polyhedron.backend_field`) for any field
 
     Some backends support further optional arguments:
 
-    - ``minimize`` -- boolean (default: ``True``). Whether to
-      immediately remove redundant H/V-representation data. Currently
+    - ``minimize`` -- boolean (default: ``True``); whether to
+      immediately remove redundant H/V-representation data; currently
       not used.
 
-    - ``verbose`` -- boolean (default: ``False``). Whether to print
-      verbose output for debugging purposes. Only supported by the cdd and
-      normaliz backends.
+    - ``verbose`` -- boolean (default: ``False``); whether to print
+      verbose output for debugging purposes; only supported by the cdd and
+      normaliz backends
+
+    - ``mutable`` -- boolean (default: ``False``); whether the polyhedron
+      is mutable
 
     OUTPUT:
 
@@ -441,8 +445,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
 
         sage: R0.<r0> = QQ[]
         sage: R1.<r1> = NumberField(r0^2-5, embedding=AA(5)**(1/2))
-        sage: grat = (1+r1)/2
-        sage: v = [[0, 1, grat], [0, 1, -grat], [0, -1, grat], [0, -1, -grat]]
+        sage: gold = (1+r1)/2
+        sage: v = [[0, 1, gold], [0, 1, -gold], [0, -1, gold], [0, -1, -gold]]
         sage: pp = Permutation((1, 2, 3))
         sage: icosah = Polyhedron([(pp^2).action(w) for w in v]
         ....:             + [pp.action(w) for w in v] + v, base_ring=R1)
@@ -460,6 +464,18 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         Traceback (most recent call last):
         ...
         ValueError: invalid base ring
+
+    Create a mutable polyhedron::
+
+        sage: P = Polyhedron(vertices=[[0, 1], [1, 0]], mutable=True)
+        sage: P.is_mutable()
+        True
+        sage: hasattr(P, "_Vrepresentation")
+        False
+        sage: P.Vrepresentation()
+        (A vertex at (0, 1), A vertex at (1, 0))
+        sage: hasattr(P, "_Vrepresentation")
+        True
 
     .. NOTE::
 
@@ -601,7 +617,8 @@ def Polyhedron(vertices=None, rays=None, lines=None,
     # figure out base_ring
     from sage.misc.flatten import flatten
     from sage.structure.element import parent
-    from sage.categories.all import Rings, Fields
+    from sage.categories.fields import Fields
+    from sage.categories.rings import Rings
 
     values = flatten(vertices + rays + lines + ieqs + eqns)
     if base_ring is not None:
@@ -635,7 +652,10 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         if base_ring not in Rings():
             raise ValueError('invalid base ring')
 
-        from sage.symbolic.ring import SR
+        try:
+            from sage.symbolic.ring import SR
+        except ImportError:
+            SR = None
         if base_ring is not SR and not base_ring.is_exact():
             # TODO: remove this hack?
             if base_ring is RR:
@@ -659,4 +679,4 @@ def Polyhedron(vertices=None, rays=None, lines=None,
         Hrep = [ieqs, eqns]
     if got_Vrep:
         Vrep = [vertices, rays, lines]
-    return parent(Vrep, Hrep, convert=convert, verbose=verbose)
+    return parent(Vrep, Hrep, convert=convert, verbose=verbose, mutable=mutable)

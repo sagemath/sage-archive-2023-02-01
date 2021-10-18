@@ -24,10 +24,10 @@ EXAMPLES::
     sage: from sage.rings.number_field.S_unit_solver import solve_S_unit_equation, eq_up_to_order
     sage: K.<xi> = NumberField(x^2+x+1)
     sage: S = K.primes_above(3)
-    sage: expected = [((2, 1), (4, 0), xi + 2, -xi - 1),
-    ....:             ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
-    ....:             ((5, 0), (1, 0), -xi, xi + 1),
-    ....:             ((1, 1), (2, 0), -xi + 1, xi)]
+    sage: expected = [((0, 1), (4, 0), xi + 2, -xi - 1),
+    ....:             ((1, -1), (0, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+    ....:             ((1, 0), (5, 0), xi + 1, -xi),
+    ....:             ((2, 0), (5, 1), xi, -xi + 1)]
     sage: sols = solve_S_unit_equation(K, S, 200)
     sage: eq_up_to_order(sols, expected)
     True
@@ -53,14 +53,13 @@ EXAMPLES::
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import absolute_import
 
 from sage.rings.all import Infinity
-from sage.calculus.var import var
+from sage.symbolic.ring import SR
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RealField, RR
-from sage.rings.complex_field import ComplexField
+from sage.rings.complex_mpfr import ComplexField
 from sage.functions.log import exp
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import is_real_place, refine_embedding
@@ -69,7 +68,7 @@ from sage.rings.finite_rings.integer_mod_ring import Integers
 from sage.rings.finite_rings.integer_mod import mod
 from sage.rings.padics.factory import Qp
 from sage.combinat.combination import Combinations
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.arith.all import factorial
 from sage.matrix.constructor import matrix, identity_matrix, vector, block_matrix, zero_matrix
 from sage.modules.free_module_element import zero_vector
@@ -620,7 +619,7 @@ def Yu_C1_star(n, v, prec=106):
 
 def Yu_bound(SUK, v, prec=106):
     r"""
-    Return `c8` such that `c8 >= exp(2)/\log(2)` and `ord_p (\Theta - 1) < c8 \log B`, 
+    Return `c8` such that `c8 >= exp(2)/\log(2)` and `ord_p (\Theta - 1) < c8 \log B`,
     where `\Theta = \prod_{j=1}^n \alpha_j^{b_j}` and `B \geq \max_j |b_j|` and `B \geq 3`.
 
     INPUT:
@@ -676,7 +675,7 @@ def Yu_bound(SUK, v, prec=106):
     else:
         # K and v don't satisfy the theorem hypotheses, and we must move to a quadratic extension L.
         # For justification of this next bound, see [AKMRVW].
-        x = var('x')
+        x = SR.var('x')
         if p == 2:
             L_over_K = K.extension(x**2 + x + 1, 'xi0')
         else:
@@ -947,6 +946,8 @@ def minimal_vector(A, y, prec=106):
     ::
 
         sage: B = random_matrix(ZZ, 3)
+        sage: while not B.determinant():
+        ....:     B = random_matrix(ZZ, 3)
         sage: B # random
         [-2 -1 -1]
         [ 1  1 -2]
@@ -1423,11 +1424,11 @@ def defining_polynomial_for_Kp(prime, prec=106):
         # We are going to find which factor of f is related to the prime ideal 'prime'
 
         L = [g.change_ring(ZZ) for g, _ in factors]
-        A = [g for g in L if (g(theta)).valuation(prime) >= e*N/2];
+        A = [g for g in L if (g(theta)).valuation(prime) >= e*N/2]
 
         # We narrow down the list unitl only one value remains
 
-        if len(A) == 1: 
+        if len(A) == 1:
             return A[0].change_ring(Integers(p**prec)).change_ring(ZZ)
         else:
             N += 1
@@ -1718,7 +1719,7 @@ def split_primes_large_lcm(SUK, bound):
         sage: split_primes_large_lcm(SUK, 200)
         [17, 19, 37, 53]
 
-    With a tiny bound, SAGE may ask you to increase the bound.
+    With a tiny bound, Sage may ask you to increase the bound.
 
     ::
 
@@ -1772,7 +1773,7 @@ def sieve_ordering(SUK, q):
     .. NOTE::
 
         - The list ``ideals_over_q`` is sorted so that the product of orders is smallest for ``ideals_over_q[0]``, as this will make the later sieving steps more efficient.
-        - The primes of ``S`` must not lie over over ``q``.
+        - The primes of ``S`` must not lie over ``q``.
 
     EXAMPLES::
 
@@ -1781,20 +1782,20 @@ def sieve_ordering(SUK, q):
         sage: SUK = K.S_unit_group(S=3)
         sage: sieve_data = list(sieve_ordering(SUK, 19))
         sage: sieve_data[0]
-        (Fractional ideal (-2*xi^2 + 3),
-        Fractional ideal (xi - 3),
-        Fractional ideal (2*xi + 1))
+        (Fractional ideal (xi - 3),
+         Fractional ideal (-2*xi^2 + 3),
+         Fractional ideal (2*xi + 1))
 
         sage: sieve_data[1]
-        (Residue field of Fractional ideal (-2*xi^2 + 3),
-        Residue field of Fractional ideal (xi - 3),
-        Residue field of Fractional ideal (2*xi + 1))
+        (Residue field of Fractional ideal (xi - 3),
+         Residue field of Fractional ideal (-2*xi^2 + 3),
+         Residue field of Fractional ideal (2*xi + 1))
 
         sage: sieve_data[2]
-        ([18, 9, 16, 8], [18, 7, 10, 4], [18, 3, 12, 10])
+        ([18, 7, 16, 4], [18, 9, 12, 8], [18, 3, 10, 10])
 
         sage: sieve_data[3]
-        (972, 972, 3888)
+        (486, 648, 11664)
     """
 
     K = SUK.number_field()
@@ -2655,10 +2656,10 @@ def sieve_below_bound(K, S, bound=10, bump=10, split_primes_list=[], verbose=Fal
         sage: S = SUK.primes()
         sage: sols = sieve_below_bound(K, S, 10)
         sage: expected = [
-        ....: ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
-        ....: ((2, 1), (4, 0), xi + 2, -xi - 1),
-        ....: ((2, 0), (1, 1), xi, -xi + 1),
-        ....: ((5, 0), (1, 0), -xi, xi + 1)]
+        ....: ((1, -1), (0, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+        ....: ((0, 1), (4, 0), xi + 2, -xi - 1),
+        ....: ((2, 0), (5, 1), xi, -xi + 1),
+        ....: ((1, 0), (5, 0), xi + 1, -xi)]
         sage: eq_up_to_order(sols, expected)
         True
     """
@@ -2703,7 +2704,7 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
 
     A list of tuples ``[( A_1, B_1, x_1, y_1), (A_2, B_2, x_2, y_2), ... ( A_n, B_n, x_n, y_n)]`` such that:
 
-    1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.  These will be ommitted if ``include_exponents`` is ``False``.
+    1. The first two entries are tuples ``A_i = (a_0, a_1, ... , a_t)`` and ``B_i = (b_0, b_1, ... , b_t)`` of exponents.  These will be omitted if ``include_exponents`` is ``False``.
     2. The last two entries are ``S``-units ``x_i`` and ``y_i`` in ``K`` with ``x_i + y_i = 1``.
     3. If the default generators for the ``S``-units of ``K`` are ``(rho_0, rho_1, ... , rho_t)``, then these satisfy ``x_i = \prod(rho_i)^(a_i)`` and ``y_i = \prod(rho_i)^(b_i)``.
 
@@ -2716,10 +2717,10 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
         sage: S = K.primes_above(3)
         sage: sols = solve_S_unit_equation(K, S, 200)
         sage: expected = [
-        ....: ((2, 1), (4, 0), xi + 2, -xi - 1),
-        ....: ((5, -1), (4, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
-        ....: ((5, 0), (1, 0), -xi, xi + 1),
-        ....: ((1, 1), (2, 0), -xi + 1, xi)]
+        ....: ((0, 1), (4, 0), xi + 2, -xi - 1),
+        ....: ((1, -1), (0, -1), 1/3*xi + 2/3, -1/3*xi + 1/3),
+        ....: ((1, 0), (5, 0), xi + 1, -xi),
+        ....: ((2, 0), (5, 1), xi, -xi + 1)]
         sage: eq_up_to_order(sols, expected)
         True
 
@@ -2727,7 +2728,7 @@ def solve_S_unit_equation(K, S, prec=106, include_exponents=True, include_bound=
 
         sage: solutions, bound = solve_S_unit_equation(K, S, 100, include_bound=True)
         sage: bound
-        6
+        7
 
     You can omit the exponent vectors::
 

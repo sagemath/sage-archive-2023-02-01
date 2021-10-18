@@ -684,7 +684,7 @@ cpdef min_spanning_tree(g,
         sage: min_spanning_tree(g)
         Traceback (most recent call last):
         ...
-        TypeError: float() argument must be a string or a number...
+        TypeError: float() argument must be a string or a... number...
     """
     from sage.graphs.graph import Graph
 
@@ -1388,7 +1388,7 @@ cpdef johnson_closeness_centrality(g, weight_function=None):
     r"""
     Use Johnson algorithm to compute the closeness centrality of all vertices.
 
-    This routine is preferrable to :func:`~johnson_shortest_paths` because it
+    This routine is preferable to :func:`~johnson_shortest_paths` because it
     does not create a doubly indexed dictionary of distances, saving memory.
 
     The time-complexity is `O(mn\log n)`, where `n` is the number of nodes and
@@ -1593,7 +1593,7 @@ cpdef min_cycle_basis(g_sage, weight_function=None, by_weight=False):
             v_int = min_path.predecessors[v_int]
             min_path_nodes.append(v_int if v_int < n else v_int - n)
 
-        # removal of edges occuring even number of times
+        # removal of edges occurring even number of times
         edges = set()
         for edge in zip(min_path_nodes[:-1], min_path_nodes[1:]):
             edges ^= {edge}
@@ -2381,8 +2381,8 @@ cdef double diameter_DiFUB(BoostVecWeightedDiGraphU g_boost,
     # distances respectively.
     # Now order_1 and order_2 will contain order of vertices in which
     # further distance computations will be done.
-    sorted(order_1, reverse=True)
-    sorted(order_2, reverse=True)
+    order_1 = sorted(order_1, reverse=True)
+    order_2 = sorted(order_2, reverse=True)
 
     LB = max(LB, LB_1, LB_2)
     if LB == sys.float_info.max:

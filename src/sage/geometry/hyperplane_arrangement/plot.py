@@ -103,7 +103,6 @@ EXAMPLES::
     sage: a.plot(hyperplane_labels=True,label_colors=['red','green','black'])
     Graphics3d Object
 """
-from __future__ import print_function
 
 from copy import copy
 from colorsys import hsv_to_rgb
@@ -114,7 +113,7 @@ from sage.plot.line import line
 from sage.plot.text import text
 from sage.plot.point import point
 from sage.plot.plot import parametric_plot
-from sage.symbolic.all import SR
+from sage.symbolic.ring import SR
 
 
 def plot(hyperplane_arrangement, **kwds):

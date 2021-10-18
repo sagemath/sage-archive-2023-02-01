@@ -10,7 +10,6 @@ Modules
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_import import LazyImport
@@ -113,7 +112,7 @@ class Modules(Category_module):
     """
 
     @staticmethod
-    def __classcall_private__(cls, base_ring, dispatch = True):
+    def __classcall_private__(cls, base_ring, dispatch=True):
         r"""
         Implement the dispatching of ``Modules(field)`` to
         ``VectorSpaces(field)``.
@@ -172,7 +171,7 @@ class Modules(Category_module):
             [Category of modules over Rational Field]
         """
         R = self.base_ring()
-        return [Bimodules(R,R)]
+        return [Bimodules(R, R)]
 
     def additional_structure(self):
         r"""
@@ -806,7 +805,7 @@ class Modules(Category_module):
                     ((5, 10), (15, 20))
                 """
                 return self.parent()._cartesian_product_of_elements(
-                    x*y for y in self.cartesian_factors())
+                    x * y for y in self.cartesian_factors())
 
     class TensorProducts(TensorProductsCategory):
         """
@@ -823,4 +822,3 @@ class Modules(Category_module):
                 [Category of modules over Integer Ring]
             """
             return [self.base_category()]
-

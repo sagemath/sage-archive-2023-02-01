@@ -12,11 +12,10 @@ Arithmetic subgroups (finite index subgroups of `{\rm SL}_2(\ZZ)`)
 #                  https://www.gnu.org/licenses/
 #
 ################################################################################
-from __future__ import absolute_import
 
 from sage.groups.old import Group
 from sage.categories.groups import Groups
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.arith.all import lcm
 from sage.misc.cachefunc import cached_method
 from copy import copy # for making copies of lists of cusps
@@ -163,7 +162,8 @@ class ArithmeticSubgroup(Group):
             if not (x[0] in ZZ and x[1] in ZZ and x[2] in ZZ and x[3] in ZZ):
                 return False
             a,b,c,d = map(ZZ, x)
-            if a*d - b*c != 1: return False
+            if a*d - b*c != 1:
+                return False
             return self._contains_sl2(a,b,c,d)
         else:
             if parent(x) is not SL2Z:
@@ -847,7 +847,8 @@ class ArithmeticSubgroup(Group):
             sage: Gamma1(4).is_regular_cusp(Cusps(oo))
             True
         """
-        if self.is_even(): return True
+        if self.is_even():
+            return True
         return (self.cusp_data(c)[2] == 1)
 
     def cusp_width(self, c):
@@ -1183,7 +1184,8 @@ class ArithmeticSubgroup(Group):
             NotImplementedError: Computation of dimensions of weight 1 cusp forms spaces not implemented in general
         """
         k = ZZ(k)
-        if k <= 0: return ZZ(0)
+        if k <= 0:
+            return ZZ(0)
 
         if not (k % 2):
             # k even
@@ -1233,8 +1235,10 @@ class ArithmeticSubgroup(Group):
             sage: GammaH(33, [4]).dimension_eis(1)
             4
         """
-        if k < 0: return ZZ(0)
-        if k == 0: return ZZ(1)
+        if k < 0:
+            return ZZ(0)
+        if k == 0:
+            return ZZ(1)
 
         if not (k % 2): # k even
             if k > 2:

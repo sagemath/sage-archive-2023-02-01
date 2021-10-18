@@ -1,5 +1,5 @@
-GDB
-===
+gdb: The GNU Project debugger
+=============================
 
 Description
 -----------

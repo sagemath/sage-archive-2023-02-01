@@ -590,7 +590,7 @@ class AlgebraicForm(FormsBase):
           the homogeneous variables. If ``None``, a random matrix will
           be picked.
 
-        - ``invariant`` -- boolean. Whether to additionaly test that
+        - ``invariant`` -- boolean. Whether to additionally test that
           it is an invariant.
 
         EXAMPLES::
@@ -602,7 +602,7 @@ class AlgebraicForm(FormsBase):
             sage: quartic._check_covariant('EisensteinE', invariant=True)
             sage: quartic._check_covariant('h_covariant')
 
-            sage: quartic._check_covariant('h_covariant', invariant=True)
+            sage: quartic._check_covariant('h_covariant', invariant=True)  # not tested, known bug (see :trac:`32118`)
             Traceback (most recent call last):
             ...
             AssertionError: not invariant
@@ -928,7 +928,7 @@ class AlgebraicForm(FormsBase):
         if isinstance(g, dict):
             transform = g
         else:
-            from sage.modules.all import vector
+            from sage.modules.free_module_element import vector
             v = vector(self._ring, self._variables)
             g_v = vector(self._ring, g*v)
             transform = dict( (v[i], g_v[i]) for i in range(self._n) )
@@ -3321,7 +3321,7 @@ class SeveralAlgebraicForms(FormsBase):
           the homogeneous variables. If ``None``, a random matrix will
           be picked.
 
-        - ``invariant`` -- boolean. Whether to additionaly test that
+        - ``invariant`` -- boolean. Whether to additionally test that
           it is an invariant.
 
         EXAMPLES::

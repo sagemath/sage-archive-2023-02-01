@@ -37,7 +37,7 @@ from sage.arith.all import binomial, bernoulli
 from sage.modules.free_module_element import vector, zero_vector
 from sage.matrix.matrix cimport Matrix
 from sage.matrix.matrix_space import MatrixSpace
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 from sage.misc.prandom import random
 from sage.functions.other import floor
 from sage.structure.element cimport RingElement, Element
@@ -799,7 +799,7 @@ cdef class Dist_vector(Dist):
                 moments = parent.approx_module(1)([moments])
             # TODO: This is not quite right if the input is an inexact zero.
             if ordp != 0 and parent.prime() == 0:
-                raise ValueError("can not specify a valuation shift for an exact ring")
+                raise ValueError("cannot specify a valuation shift for an exact ring")
 
         self._moments = moments
         self.ordp = ordp

@@ -47,7 +47,7 @@ Here is a list of all content related to GRS codes:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
+from copy import copy
 
 from sage.categories.cartesian_product import cartesian_product
 
@@ -64,13 +64,13 @@ from sage.misc.cachefunc import cached_method
 from sage.misc.functional import symbolic_sum
 from sage.misc.misc_c import prod
 
-from copy import copy
-from sage.functions.other import binomial, floor
-from sage.calculus.var import var
+from sage.functions.other import binomial
+from sage.symbolic.ring import SR
 
 from .linear_code import AbstractLinearCode
 from .encoder import Encoder
 from .decoder import Decoder, DecodingError
+
 
 class GeneralizedReedSolomonCode(AbstractLinearCode):
     r"""
@@ -216,7 +216,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         """
         if column_multipliers:
             if len(evaluation_points) != len(column_multipliers):
-                raise ValueError("There must be the same number of evaluation points as column multipliers");
+                raise ValueError("There must be the same number of evaluation points as column multipliers")
             try:
                 common_points = vector(list(evaluation_points) + list(column_multipliers))
                 F = common_points.base_ring()
@@ -535,7 +535,7 @@ class GeneralizedReedSolomonCode(AbstractLinearCode):
         d = self.minimum_distance()
         n = self.length()
         q = self.base_ring().order()
-        s = var('s')
+        s = SR.var('s')
         wd = [1] + [0] * (d - 1)
         for i in range(d, n+1):
             tmp = binomial(n, i) * (q - 1)
@@ -1564,7 +1564,7 @@ class GRSGaoDecoder(Decoder):
             sage: D._partial_xgcd(a, b, P)
             (10*x^2 + 3*x + 5, 1)
         """
-        stop = floor(self.code().dimension() + self.code().length()) // 2
+        stop = (self.code().dimension() + self.code().length()) // 2
         s = PolRing.one()
         prev_s = PolRing.zero()
 
@@ -2282,8 +2282,12 @@ class GRSKeyEquationSyndromeDecoder(Decoder):
         an exception::
 
             sage: Chan = channels.StaticErrorRateChannel(C.ambient_space(), D.decoding_radius()+1)
-            sage: y = Chan(c)
-            sage: D.decode_to_message(y)
+            sage: while True:
+            ....:     try:
+            ....:         y = Chan(c)
+            ....:         D.decode_to_message(y)
+            ....:     except ZeroDivisionError:
+            ....:         pass
             Traceback (most recent call last):
             ...
             DecodingError: Decoding failed because the number of errors exceeded the decoding radius

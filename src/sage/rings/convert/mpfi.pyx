@@ -25,7 +25,7 @@ from ..rational cimport Rational
 from ..real_mpfi cimport RealIntervalFieldElement, RealIntervalField_class
 from ..real_mpfr cimport RealNumber
 from ..real_double cimport RealDoubleElement
-from ..complex_number cimport ComplexNumber
+from ..complex_mpfr cimport ComplexNumber
 from ..complex_interval cimport ComplexIntervalFieldElement
 from ..complex_double cimport ComplexDoubleElement
 

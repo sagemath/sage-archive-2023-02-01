@@ -1,5 +1,5 @@
-cddlib
-======
+cddlib: Double description method for polyhedral representation conversion
+==========================================================================
 
 Description
 -----------

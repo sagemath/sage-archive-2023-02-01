@@ -25,7 +25,6 @@ EXAMPLES::
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.structure.parent import Parent
 from sage.structure.unique_representation import UniqueRepresentation
@@ -47,7 +46,7 @@ class DiscreteValuationCodomain(UniqueRepresentation, Parent):
     TESTS::
 
         sage: TestSuite(C).run() # long time
-        
+
     """
     def __init__(self):
         r"""
@@ -201,7 +200,7 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
         """
         x = QQ.coerce(x)
         if x == 0 or (self._generator != 0 and x/self._generator in ZZ):
-            return x 
+            return x
 
         raise ValueError("`{0}` is not in {1}.".format(x,self))
 
@@ -405,7 +404,8 @@ class DiscreteValueGroup(UniqueRepresentation, Parent):
         i = self.index(subgroup)
         x = s/self.gen()
         a = x%i
-        if abs(a-i) < a: a -= i
+        if abs(a-i) < a:
+            a -= i
         b = (x-a)/i
         return a, b
 
@@ -468,7 +468,8 @@ class DiscreteValueSemigroup(UniqueRepresentation, Parent):
         # couple of generators
         for g in generators:
             for h in generators:
-                if g == h: continue
+                if g == h:
+                    continue
                 from sage.rings.all import NN
                 if h/g in NN:
                     simplified_generators.remove(h)
@@ -530,7 +531,7 @@ class DiscreteValueSemigroup(UniqueRepresentation, Parent):
             return {0 : exp}
 
         if len(self._generators) == 2 and self._generators[0] == - self._generators[1]:
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             exp = target / self._generators[0]
             if exp not in ZZ:
                 return None
@@ -575,7 +576,7 @@ class DiscreteValueSemigroup(UniqueRepresentation, Parent):
         """
         x = QQ.coerce(x)
         if x in self._generators or self._solve_linear_program(x) is not None:
-            return x 
+            return x
 
         raise ValueError("`{0}` is not in {1}.".format(x,self))
 
@@ -678,7 +679,7 @@ class DiscreteValueSemigroup(UniqueRepresentation, Parent):
             return
         for g in self._generators:
             yield g
-        from sage.rings.all import ZZ
+        from sage.rings.integer_ring import ZZ
         for x in (ZZ**len(self._generators)).some_elements():
             yield QQ.coerce(sum([abs(c)*g for c,g in zip(x,self._generators)]))
 

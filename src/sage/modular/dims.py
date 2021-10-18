@@ -44,11 +44,10 @@ REFERENCES:
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 from sage.arith.all import factor, is_prime, valuation
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.rings.all import Mod, Integer, IntegerModRing
 from sage.rings.rational_field import frac
 from . import dirichlet

@@ -136,7 +136,6 @@ Operations
     :meth:`Transducer.cartesian_product` | Cartesian product of a transducer with another finite state machine
     :meth:`~FiniteStateMachine.product_FiniteStateMachine` | Product of finite state machines
     :meth:`~FiniteStateMachine.composition` | Composition (output of other is input of self)
-    :meth:`~FiniteStateMachine.__call__` | Composition with other finite state machine
     :meth:`~FiniteStateMachine.input_projection` | Input projection (output is deleted)
     :meth:`~FiniteStateMachine.output_projection` | Output projection (old output is new input)
     :meth:`~FiniteStateMachine.projection` | Input or output projection
@@ -1779,8 +1778,6 @@ class FSMState(SageObject):
             False
             sage: B.initial_probability == A.initial_probability
             True
-            sage: B.initial_probability is A.initial_probability
-            False
         """
         return deepcopy(self, memo)
 
@@ -6039,7 +6036,7 @@ class FiniteStateMachine(SageObject):
         accepted or not) usually corresponds to using the more
         specialized class :class:`Automaton`.
 
-        Non-deterministic finite state machines can be handeled as well.
+        Non-deterministic finite state machines can be handled as well.
 
         ::
 
@@ -8152,7 +8149,7 @@ class FiniteStateMachine(SageObject):
             sage: is_Automaton(A.composition(T, algorithm='explorative'))
             True
 
-        Non-deterministic final output cannot be handeled::
+        Non-deterministic final output cannot be handled::
 
             sage: F = Transducer([('I', 'A', 0, 42), ('I', 'B', 0, 42)],
             ....:                initial_states=['I'],
@@ -8845,11 +8842,10 @@ class FiniteStateMachine(SageObject):
     # simplifications
     # *************************************************************************
 
-
     def prepone_output(self):
         """
         For all paths, shift the output of the path from one
-        transition to the earliest possible preceeding transition of
+        transition to the earliest possible preceding transition of
         the path.
 
         INPUT:
@@ -15253,6 +15249,5 @@ def setup_latex_preamble():
         True
     """
     latex.add_package_to_preamble_if_available('tikz')
-    latex.add_to_mathjax_avoid_list("tikz")
     if latex.has_file("tikz.sty"):
         latex.add_to_preamble(r'\usetikzlibrary{automata}')

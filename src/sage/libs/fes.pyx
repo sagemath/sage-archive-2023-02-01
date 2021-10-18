@@ -1,6 +1,7 @@
 # distutils: language = c
 # distutils: libraries = fes
-# sage_setup: distribution = sage-fes
+# sage_setup: distribution = sagemath-fes
+
 """
 Binding for the FES library
 

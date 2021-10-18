@@ -79,7 +79,6 @@ from sage.categories.action import Action
 from sage.sets.set import Set
 from sage.groups.finitely_presented import FinitelyPresentedGroup
 from sage.groups.artin import FiniteTypeArtinGroup, FiniteTypeArtinGroupElement
-from sage.misc.package import PackageNotFoundError
 from sage.structure.richcmp import richcmp, rich_to_bool
 from sage.features import PythonModule
 
@@ -88,6 +87,7 @@ lazy_import('sage.libs.braiding',
              'leastcommonmultiple', 'conjugatingbraid', 'ultrasummitset',
              'thurston_type', 'rigidity', 'sliding_circuits'],
             feature=PythonModule('sage.libs.braiding', spkg='libbraiding'))
+
 
 class Braid(FiniteTypeArtinGroupElement):
     """
@@ -997,6 +997,344 @@ class Braid(FiniteTypeArtinGroupElement):
             # We force the result to be in the symbolic ring because of the expand
             return self._jones_polynomial(SR(variab)**(ZZ(1)/ZZ(4))).expand()
 
+    @cached_method
+    def _enhanced_states(self):
+        r"""
+        Return the enhanced states of the closure of the braid diagram.
+
+        The states are collected in a dictionary, where the dictionary
+        keys are tuples of quantum and annular grading.
+        Each dictionary value is itself a dictionary with the
+        dictionary keys being the homological grading, and the values
+        a list of enhanced states with the corresponding homology,
+        quantum and annular grading.
+
+        Each enhanced state is represented as a tuple containing:
+
+        - A tuple with the type of smoothing made at each crossing.
+
+        - A set with the circles marked as negative.
+
+        - A set with the circles marked as positive.
+
+        Each circle represented by a frozenset of tuples of the form
+        (index of crossing, side where the circle passes the crossing)
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(2)
+            sage: b = B([1,1])
+            sage: sorted((gr, sorted((d, [(sm,
+            ....:                          sorted((sorted(A[0]), A[1]) for A in X),
+            ....:                          sorted((sorted(A[0]), A[1]) for A in Y))
+            ....:                         for sm, X, Y in data])
+            ....:                    for d, data in v.items()))
+            ....:        for gr,v in b._enhanced_states().items())
+            [((0, -2),
+              [(0, [((0, 0), [([(0, 1), (1, 1)], 1), ([(0, 3), (1, 3)], 1)], [])])]),
+             ((2, 0),
+              [(0,
+                [((0, 0), [([(0, 3), (1, 3)], 1)], [([(0, 1), (1, 1)], 1)]),
+                 ((0, 0), [([(0, 1), (1, 1)], 1)], [([(0, 3), (1, 3)], 1)])]),
+               (1,
+                [((1, 0), [([(0, 0), (0, 2), (1, 1), (1, 3)], 0)], []),
+                 ((0, 1), [([(0, 1), (0, 3), (1, 0), (1, 2)], 0)], [])]),
+               (2, [((1, 1), [([(0, 0), (1, 2)], 0), ([(0, 2), (1, 0)], 0)], [])])]),
+             ((4, 0),
+              [(1,
+                [((1, 0), [], [([(0, 0), (0, 2), (1, 1), (1, 3)], 0)]),
+                 ((0, 1), [], [([(0, 1), (0, 3), (1, 0), (1, 2)], 0)])]),
+               (2,
+                [((1, 1), [([(0, 2), (1, 0)], 0)], [([(0, 0), (1, 2)], 0)]),
+                 ((1, 1), [([(0, 0), (1, 2)], 0)], [([(0, 2), (1, 0)], 0)])])]),
+             ((4, 2),
+              [(0, [((0, 0), [], [([(0, 1), (1, 1)], 1), ([(0, 3), (1, 3)], 1)])])]),
+             ((6, 0),
+              [(2, [((1, 1), [], [([(0, 0), (1, 2)], 0), ([(0, 2), (1, 0)], 0)])])])]
+        """
+        from sage.graphs.graph import Graph
+        from sage.functions.generalized import sgn
+        crossinglist = self.Tietze()
+        ncross = len(crossinglist)
+        writhe = 0
+
+        # first build a "quadruply linked list", each crossing indicating its
+        # previous and following neighbours
+        last_crossing_in_row=[None]*self.strands()
+        first_crossing_in_row=[None]*self.strands()
+        crossings = [None]*ncross
+        for i, cr in enumerate(crossinglist):
+            writhe = writhe + sgn(cr)
+            prevabove = last_crossing_in_row[abs(cr)-1]
+            prevbelow = last_crossing_in_row[abs(cr)]
+            if prevabove is None:
+                first_crossing_in_row[abs(cr)-1] = i
+            else:
+                if abs(cr) == abs(crossings[prevabove]["cr"]):
+                    crossings[prevabove]["next_above"] = i
+                else:
+                    crossings[prevabove]["next_below"] = i
+            if prevbelow is None:
+                first_crossing_in_row[abs(cr)] = i
+            else:
+                if abs(cr) == abs(crossings[prevbelow]["cr"]):
+                    crossings[prevbelow]["next_below"] = i
+                else:
+                    crossings[prevbelow]["next_above"] = i
+            crossings[i] = {
+                    "cr": cr,
+                    "prev_above": prevabove,
+                    "prev_below": prevbelow,
+                    "next_above": None,
+                    "next_below": None
+                    }
+            last_crossing_in_row[abs(cr)-1] = i
+            last_crossing_in_row[abs(cr)] = i
+        # tie up the ends of the list
+        for k, i in enumerate(first_crossing_in_row):
+            if i is not None:
+                j = last_crossing_in_row[k]
+                if abs(crossings[i]["cr"]) == k:
+                    crossings[i]["prev_below"] = j
+                else:
+                    crossings[i]["prev_above"] = j
+
+                if abs(crossings[j]["cr"]) == k:
+                    crossings[j]["next_below"] = i
+                else:
+                    crossings[j]["next_above"] = i
+
+        smoothings = []
+        # generate all the resolutions
+        for i in range(2 ** ncross):
+            v = Integer(i).bits()
+            v = v + [0]*(ncross - len(v))
+            G = Graph()
+            for j, cr in enumerate(crossings):
+                if (v[j]*2-1)*sgn(cr["cr"]) == -1: # oriented resolution
+                    G.add_edge((j, cr["next_above"], abs(cr["cr"])-1), (j,1))
+                    G.add_edge((cr["prev_above"], j, abs(cr["cr"])-1), (j,1))
+                    G.add_edge((j, cr["next_below"], abs(cr["cr"])), (j,3))
+                    G.add_edge((cr["prev_below"], j, abs(cr["cr"])), (j,3))
+                else:
+                    G.add_edge((j, cr["next_above"], abs(cr["cr"])-1) ,(j,0))
+                    G.add_edge((j, cr["next_below"], abs(cr["cr"])), (j,0))
+                    G.add_edge((cr["prev_above"], j, abs(cr["cr"])-1), (j,2))
+                    G.add_edge((cr["prev_below"], j, abs(cr["cr"])), (j,2))
+            # add loops of strands without crossing
+            for k, i in enumerate(first_crossing_in_row):
+                if i is None:
+                    G.add_edge((ncross+k,ncross+k, k),(ncross+k,4))
+            sm=[]
+            for component in G.connected_components(sort=False):
+                circle = set()
+                trivial = 1 # trivial switch: minus one means a circle is non-trivial.
+                for vertex in component:
+                    if len(vertex) == 3:
+                        if vertex[1] <= vertex[0]: # flip triviality for every looping edge
+                            trivial*=-1
+                    else:
+                        circle.add(vertex)
+                trivial = (1-trivial) // 2 # convert to 0 - trivial, 1 - non-trivial
+                sm.append((frozenset(circle), trivial))
+            smoothings.append((tuple(v), sm))
+
+        states = dict()
+        for sm in smoothings:
+            iindex = (writhe - ncross) // 2 + sum(sm[0])
+            for m in range(2 ** len(sm[1])):
+                m = [2*x-1 for x in Integer(m).bits()]
+                m = m + [-1]*(len(sm[1]) - len(m))
+                qagrad = (writhe + iindex + sum(m),
+                        sum([x for i,x in enumerate(m) if sm[1][i][1] == 1]))
+                circpos = set()
+                circneg = set()
+                for i, x in enumerate(m):
+                    if x == 1:
+                        circpos.add(sm[1][i])
+                    else:
+                        circneg.add(sm[1][i])
+
+                if qagrad in states:
+                    if iindex in states[qagrad]:
+                        states[qagrad][iindex].append((sm[0], circneg, circpos))
+                    else:
+                        states[qagrad][iindex] = [(sm[0], circneg, circpos)]
+                else:
+                    states[qagrad] = {iindex: [(sm[0], circneg, circpos)]}
+        return states
+
+    @cached_method
+    def _annular_khovanov_complex_cached(self, qagrad, ring=IntegerRing()):
+        r"""
+        Return the annular Khovanov complex of the braid.
+
+        INPUT:
+
+        - ``qagrad`` -- a tuple of the quantum and annular grading to compute
+
+        - ``ring`` -- (default: ``ZZ``) the coefficient ring
+
+        OUTPUT:
+
+        The annular Khovanov complex of the braid in the given grading.
+
+        .. NOTE::
+
+            This method is intended only as the cache for
+            :meth:`annular_khovanov_complex`.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(3)
+            sage: B([1,2,1,2])._annular_khovanov_complex_cached((5,-1)).homology()
+            {1: Z, 2: Z, 3: 0}
+
+
+        """
+        from sage.homology.chain_complex import ChainComplex
+        states = self._enhanced_states()
+        if qagrad in states:
+            bases = states[qagrad]
+        else:
+            # return trivial chain complexx
+            return ChainComplex()
+        C_differentials = {}
+        for i in bases:
+            if i+1 in bases:
+                m = matrix(ring, len(bases[i+1]), len(bases[i]), sparse=True)
+                for ii in range(m.nrows()):
+                    source = bases[i+1][ii]
+                    for jj in range(m.ncols()):
+                        target = bases[i][jj]
+                        difs = [index for index, value in enumerate(source[0]) if value != target[0][index]]
+                        if len(difs) == 1 and not (target[2].intersection(source[1]) or target[1].intersection(source[2])):
+                            m[ii,jj] = (-1)**sum(target[0][:difs[0]])
+            else:
+                m = matrix(ring, 0, len(bases[i]), sparse=True)
+            C_differentials[i] = m
+        return ChainComplex(C_differentials)
+
+    def annular_khovanov_complex(self, qagrad=None, ring=IntegerRing()):
+        r"""
+        Return the annular Khovanov complex of the closure of a braid,
+        as defined in [BG2013]_
+
+
+        INPUT:
+
+        - ``qagrad`` -- tuple of quantum and annular grading for which to compute
+          the chain complex. If not specified all gradings are computed.
+
+        - ``ring`` -- (default: ``ZZ``) the coefficient ring.
+
+        OUTPUT:
+
+        The annular Khovanov complex of the braid, given as a dictionary whose
+        keys are tuples of quantum and annular grading.
+        If ``qagrad`` is specified only return the chain complex of that grading.
+
+        EXAMPLES::
+
+            sage: B=BraidGroup(3)
+            sage: b=B([1,-2,1,-2])
+            sage: C=b.annular_khovanov_complex()
+            sage: C
+            {(-5, -1): Chain complex with at most 1 nonzero terms over Integer Ring,
+             (-3, -3): Chain complex with at most 1 nonzero terms over Integer Ring,
+             (-3, -1): Chain complex with at most 2 nonzero terms over Integer Ring,
+             (-3, 1): Chain complex with at most 1 nonzero terms over Integer Ring,
+             (-1, -1): Chain complex with at most 5 nonzero terms over Integer Ring,
+             (-1, 1): Chain complex with at most 2 nonzero terms over Integer Ring,
+             (1, -1): Chain complex with at most 2 nonzero terms over Integer Ring,
+             (1, 1): Chain complex with at most 5 nonzero terms over Integer Ring,
+             (3, -1): Chain complex with at most 1 nonzero terms over Integer Ring,
+             (3, 1): Chain complex with at most 2 nonzero terms over Integer Ring,
+             (3, 3): Chain complex with at most 1 nonzero terms over Integer Ring,
+             (5, 1): Chain complex with at most 1 nonzero terms over Integer Ring}
+            sage: C[1,-1].homology()
+            {1: Z x Z, 2: 0}
+
+        TESTS::
+
+            sage: C=BraidGroup(2)([]).annular_khovanov_complex()
+            sage: {qa: C[qa].homology() for qa in C}
+            {(-2, -2): {0: Z}, (0, 0): {0: Z x Z}, (2, 2): {0: Z}}
+
+            sage: BraidGroup(3)([-1]).annular_khovanov_complex((0,1), ZZ).differential()
+            {-2: [],
+             -1: [0]
+             [1]
+             [1],
+             0: []}
+
+        """
+        if qagrad is None:
+            return {qa: self._annular_khovanov_complex_cached(qa,ring) for qa in self._enhanced_states()}
+        else:
+           return self._annular_khovanov_complex_cached(qagrad,ring)
+
+    def annular_khovanov_homology(self, qagrad=None, ring=IntegerRing()):
+        r"""
+        Return the annular Khovanov homology of a closure of a braid.
+
+        INPUT:
+
+        - ``qagrad`` -- (optional) tuple of quantum and annular grading
+          for which to compute the homology
+
+        - ``ring`` -- (default: ``ZZ``) the coefficient ring
+
+        OUTPUT:
+
+        If ``qagrad`` is ``None``, return a dictionary of homogies in all
+        gradings indexed by grading. If qagrad is specified, return homology
+        of that grading.
+
+        .. NOTE::
+
+            This is a simple wrapper around :meth:`annular_khovanov_complex`
+            to compute homology from it.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(4)
+            sage: b = B([1,3,-2])
+            sage: b.annular_khovanov_homology()
+            {(-3, -4): {0: Z},
+             (-3, -2): {-1: Z},
+             (-1, -2): {-1: 0, 0: Z x Z x Z, 1: 0},
+             (-1, 0): {-1: Z x Z},
+             (1, -2): {1: Z x Z},
+             (1, 0): {-1: 0, 0: Z x Z x Z x Z, 1: 0, 2: 0},
+             (1, 2): {-1: Z},
+             (3, 0): {1: Z x Z x Z, 2: 0},
+             (3, 2): {-1: 0, 0: Z x Z x Z, 1: 0},
+             (5, 0): {2: Z},
+             (5, 2): {1: Z x Z},
+             (5, 4): {0: Z}}
+
+            sage: B = BraidGroup(2)
+            sage: b = B([1,1,1])
+            sage: b.annular_khovanov_homology((7,0))
+            {2: 0, 3: C2}
+
+        TESTS::
+
+            sage: b = BraidGroup(4)([1,-3])
+            sage: b.annular_khovanov_homology((-4,-2))
+            {-1: Z}
+            sage: b.annular_khovanov_homology((0,2))
+            {-1: Z}
+
+        """
+        if qagrad is None:
+            C = self.annular_khovanov_complex(qagrad, ring)
+            return {qa: C[qa].homology() for qa in C}
+        else:
+            return self.annular_khovanov_complex(qagrad, ring).homology()
+
+
     def _left_normal_form_coxeter(self):
         r"""
         Return the left normal form of the braid, in permutation form.
@@ -1262,7 +1600,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
     def is_reducible(self):
         """
-        Check weather the braid is reducible.
+        Check whether the braid is reducible.
 
         EXAMPLES::
 
@@ -1279,7 +1617,7 @@ class Braid(FiniteTypeArtinGroupElement):
 
     def is_periodic(self):
         """
-        Check weather the braid is periodic.
+        Check whether the braid is periodic.
 
         EXAMPLES::
 
@@ -1358,6 +1696,45 @@ class Braid(FiniteTypeArtinGroupElement):
         slc = sliding_circuits(self)
         B = self.parent()
         return [[B._element_from_libbraiding(i) for i in s] for s in slc]
+
+    def mirror_image(self):
+        r"""
+        Return the image of ``self`` under the mirror involution (see
+        :meth:`BraidGroup_class.mirror_involution`). The link closure of
+        it is mirrored to the closure of ``self`` (see the example below
+        of a positive amphicheiral knot).
+
+        EXAMPLES::
+
+            sage: B5 = BraidGroup(5)
+            sage: b  = B5((-1, 2, -3, -1, -3, 4, 2, -3, 2, 4, 2, -3)) # closure K12a_427
+            sage: bm = b.mirror_image(); bm
+            s0*s1^-1*s2*s0*s2*s3^-1*s1^-1*s2*s1^-1*s3^-1*s1^-1*s2
+            sage: bm.is_conjugated(b)
+            True
+            sage: bm.is_conjugated(~b)
+            False
+        """
+        return self.parent().mirror_involution()(self)
+
+    def reverse(self):
+        r"""
+        Return the reverse of ``self`` obtained by reversing the order of the
+        generators in its word. This defines an anti-involution on the braid
+        group. The link closure of it has the reversed orientation (see the
+        example below of a non reversible knot).
+
+        EXAMPLES::
+
+            sage: b  = BraidGroup(3)((1, 1, -2, 1, -2, 1, -2, -2))  # closure K8_17
+            sage: br = b.reverse(); br
+            s1^-1*(s1^-1*s0)^3*s0
+            sage: br.is_conjugated(b)
+            False
+        """
+        t = [i for i in self.Tietze()]
+        t.reverse()
+        return self.parent()(tuple(t))
 
 
 class BraidGroup_class(FiniteTypeArtinGroup):
@@ -2077,7 +2454,7 @@ class BraidGroup_class(FiniteTypeArtinGroup):
 
         A :class:`MappingClassGroupAction`.
 
-        EXAMPLES ::
+        EXAMPLES::
 
             sage: B = BraidGroup(3)
             sage: B.inject_variables()
@@ -2136,6 +2513,31 @@ class BraidGroup_class(FiniteTypeArtinGroup):
             return self.delta() ** nf[0][0]
         from sage.misc.misc_c import prod
         return self.delta() ** nf[0][0] * prod(self(i) for i in nf[1:])
+
+    def mirror_involution(self):
+        r"""
+        Return the mirror involution of ``self``.
+
+        This automorphism maps a braid to another one by replacing each generator
+        in its word by the inverse. In general this is different from the inverse
+        of the braid since the order of the generators in the word is not reversed.
+
+        EXAMPLES::
+
+            sage: B = BraidGroup(4)
+            sage: mirr = B.mirror_involution()
+            sage: b = B((1,-2,-1,3,2,1))
+            sage: bm = mirr(b); bm
+            s0^-1*s1*s0*s2^-1*s1^-1*s0^-1
+            sage: bm == ~b
+            False
+            sage: bm.is_conjugated(b)
+            False
+            sage: bm.is_conjugated(~b)
+            True
+        """
+        gens_mirr = [~g for g in self.gens()]
+        return self.hom(gens_mirr, check=False)
 
 
 def BraidGroup(n=None, names='s'):

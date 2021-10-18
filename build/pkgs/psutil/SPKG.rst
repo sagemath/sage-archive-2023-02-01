@@ -1,10 +1,10 @@
-psutil
-======
+psutil: Python library to retrieve information on processes and system utilization
+==================================================================================
 
 Description
 -----------
 
-psutil is a cross-platform library for retrieving information onrunning
+psutil is a cross-platform library for retrieving information on running
 processes and system utilization (CPU, memory, disks, network) in
 Python.
 

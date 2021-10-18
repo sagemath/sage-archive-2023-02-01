@@ -175,7 +175,6 @@ Python floats.
 #
 #                  https://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function, absolute_import
 
 import os
 import re
@@ -471,9 +470,8 @@ class PanAxiom(ExtraTabCompletion, Expect):
                 if line[i:] == "":
                     i = 0
                     outs = outs[1:]
-                break;
-        out = "\n".join(line[i:] for line in outs[1:])
-        return out
+                break
+        return "\n".join(line[i:] for line in outs[1:])
 
     # define relational operators
     def _equality_symbol(self):
@@ -843,10 +841,10 @@ class PanAxiomElement(ExpectElement):
             x,e,b = self.unparsed_input_form().lstrip('float(').rstrip(')').split(',')
             return R(ZZ(x)*ZZ(b)**ZZ(e))
         elif type == "DoubleFloat":
-            from sage.rings.all import RDF
+            from sage.rings.real_double import RDF
             return RDF(repr(self))
         elif type in ["PositiveInteger", "Integer"]:
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ(repr(self))
         elif type.startswith('Polynomial'):
             from sage.rings.all import PolynomialRing
@@ -888,10 +886,10 @@ class PanAxiomElement(ExpectElement):
         P = self._check_valid()
         name = str(self)
         if name == 'Integer':
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             return ZZ
         elif name == 'DoubleFloat':
-            from sage.rings.all import RDF
+            from sage.rings.real_double import RDF
             return RDF
         elif name.startswith('Fraction '):
             return P(name.lstrip('Fraction '))._sage_domain().fraction_field()

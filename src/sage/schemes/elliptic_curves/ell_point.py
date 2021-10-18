@@ -116,7 +116,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, division, absolute_import
 
 import math
 
@@ -262,9 +261,9 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             v = list(v)
         elif v == 0:
             # some of the code assumes that E(0) has integral entries
-            # irregardless of the base ring...
-            #R = self.base_ring()
-            #v = (R.zero(),R.one(),R.zero())
+            # regardless of the base ring...
+            # R = self.base_ring()
+            # v = (R.zero(),R.one(),R.zero())
             v = (0, 1, 0)
         if check:
             # mostly from SchemeMorphism_point_projective_field
@@ -977,7 +976,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: P._order
             3
 
-        When we sucessfully divide a point known to have infinite
+        When we successfully divide a point known to have infinite
         order, the points returned know that they also have infinite
         order::
 
@@ -990,7 +989,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
            sage: [(Q,Q._order) for Q in pts]
            [((0 : -1 : 1), +Infinity)]
 
-        When we sucessfully divide a point of known finite order `n`,
+        When we successfully divide a point of known finite order `n`,
         the points returned know that they also have finite order `nk`
         for some divisor `k` of `m`::
 
@@ -1195,7 +1194,7 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             (0 : 1 : 0)
 
         We now give a more interesting case, the NIST-P521 curve. Its
-        order is too big to calculate with SAGE, and takes a long time
+        order is too big to calculate with Sage, and takes a long time
         using other packages, so it is very useful here.
 
         ::
@@ -1749,14 +1748,14 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             sage: Px.weil_pairing(Qx, 41)^e == num/den
             True
 
-        NOTES:
+        .. NOTE::
 
-        This function uses Miller's algorithm, followed by a naive
-        exponentiation. It does not do anything fancy. In the case
-        that there is an issue with `Q` being on one of the lines
-        generated in the `r*P` calculation, `Q` is offset by a random
-        point `R` and P.tate_pairing(Q+R,n,k)/P.tate_pairing(R,n,k)
-        is returned.
+            This function uses Miller's algorithm, followed by a naive
+            exponentiation. It does not do anything fancy. In the case
+            that there is an issue with `Q` being on one of the lines
+            generated in the `r*P` calculation, `Q` is offset by a random
+            point `R` and P.tate_pairing(Q+R,n,k)/P.tate_pairing(R,n,k)
+            is returned.
 
         AUTHORS:
 
@@ -1946,13 +1945,14 @@ class EllipticCurvePoint_field(SchemeMorphism_point_abelian_variety_field):
             ...
             ValueError: This point (14 : 10*a : 1) is not in Ker(pi - 1)
 
-        NOTES:
+        .. NOTE::
 
-        First defined in the paper of [HSV2006]_, the ate pairing can be
-        computationally effective in those cases when the trace of the curve
-        over the base field is significantly smaller than the expected
-        value. This implementation is simply Miller's algorithm followed by a
-        naive exponentiation, and makes no claims towards efficiency.
+            First defined in the paper of [HSV2006]_, the ate pairing
+            can be computationally effective in those cases when the
+            trace of the curve over the base field is significantly
+            smaller than the expected value. This implementation is
+            simply Miller's algorithm followed by a naive
+            exponentiation, and makes no claims towards efficiency.
 
         AUTHORS:
 
@@ -2218,7 +2218,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
 
         e = embedding
         # It is also trivially true if we have a complex embedding
-        if not e is None:
+        if e is not None:
             if not is_RealField(e.codomain()):
                 return True
 
@@ -3101,7 +3101,7 @@ class EllipticCurvePoint_number_field(EllipticCurvePoint_field):
           number of bits of precision for the computation
 
         - ``algorithm``: either 'pari' (default for real embeddings)
-          to use PARI's ``ellpointtoz{}``, or 'sage' for a native
+          to use PARI's :pari:`ellpointtoz`, or 'sage' for a native
           implementation.  Ignored for complex embeddings.
 
         ALGORITHM:
@@ -3503,7 +3503,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         r"""
         Return the order of this point on the elliptic curve.
 
-        ALGORITHM: Use PARI function ``ellorder()``.
+        ALGORITHM: Use PARI function :pari:`ellorder`.
 
         .. NOTE::
 

@@ -14,8 +14,8 @@ Factory for Character-Based Art
 #
 #  The full text of the GPL is available at:
 #
-#                  http://www.gnu.org/licenses/
-#*******************************************************************************
+#                  https://www.gnu.org/licenses/
+# ******************************************************************************
 
 from sage.structure.sage_object import SageObject
 
@@ -84,7 +84,9 @@ class CharacterArtFactory(SageObject):
 
         EXAMPLES::
 
-            sage: ascii_art(integral(exp(x+x^2)/(x+1), x))
+            sage: result = ascii_art(integral(exp(x+x^2)/(x+1), x))
+            ...
+            sage: result
                 /
                |
                |   2
@@ -327,14 +329,15 @@ class CharacterArtFactory(SageObject):
 
         Check that :trac:`29447` is fixed::
 
-            sage: ascii_art({'a': '', '': ''})  # py3
+            sage: ascii_art({'a': '', '': ''})
             { a:, : }
         """
         comma = self.art_type([self.string_type(', ')],
                               baseline=0,
                               breakpoints=[1])
         colon = self.art_type([self.string_type(':')], baseline=0)
-        def concat_no_breakpoint(k,v):
+
+        def concat_no_breakpoint(k, v):
             k = self.build(k)
             v = self.build(v)
             elt = k + colon + v
@@ -344,11 +347,11 @@ class CharacterArtFactory(SageObject):
                 elt._breakpoints.remove(k._l + 1)
             return elt
         repr_elems = self.concatenate(
-                (concat_no_breakpoint(k, v) for k, v in d.items()),
-                comma, nested=True)
+            (concat_no_breakpoint(k, v) for k, v in d.items()),
+            comma, nested=True)
         return self.build_container(
-                repr_elems, self.left_curly_brace, self.right_curly_brace,
-                baseline)
+            repr_elems, self.left_curly_brace, self.right_curly_brace,
+            baseline)
 
     def build_list(self, l, baseline=0):
         r"""

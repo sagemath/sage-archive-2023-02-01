@@ -2,7 +2,7 @@
 Submodules of Hecke modules
 """
 # ****************************************************************************
-#       Sage: System for Algebra and Geometry Experimentation
+#       Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -17,7 +17,6 @@ Submodules of Hecke modules
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
 
 import sage.arith.all as arith
 from sage.misc.verbose import verbose
@@ -365,7 +364,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             bound = A.hecke_bound()
         while True:
             if anemic:
-                while N % p == 0: p = arith.next_prime(p)
+                while N % p == 0:
+                    p = arith.next_prime(p)
             verbose("using T_%s"%p)
             f = self.hecke_polynomial(p)
             T = A.hecke_matrix(p)
@@ -569,7 +569,8 @@ class HeckeSubmodule(module.HeckeModule_free_module):
             bound = A.hecke_bound()
         while True:
             if anemic:
-                while N % p == 0: p = arith.next_prime(p)
+                while N % p == 0:
+                    p = arith.next_prime(p)
             verbose("using T_%s"%p)
             f = self.hecke_polynomial(p)
             T = A.dual_hecke_matrix(p)

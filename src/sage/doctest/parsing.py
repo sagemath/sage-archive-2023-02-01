@@ -40,6 +40,8 @@ optional_regex = re.compile(r'(arb216|arb218|py2|py3|long time|not implemented|n
 # which has not been patched, we need to ignore that message.
 # See :trac:`29317`.
 glpk_simplex_warning_regex = re.compile(r'(Long-step dual simplex will be used)')
+# :trac:`31204` -- suppress warning about ld and OS version for dylib files.
+ld_warning_regex = re.compile(r'.*dylib.*was built for newer macOS version.*than being linked.*')
 find_sage_prompt = re.compile(r"^(\s*)sage: ", re.M)
 find_sage_continuation = re.compile(r"^(\s*)\.\.\.\.:", re.M)
 find_python_continuation = re.compile(r"^(\s*)\.\.\.([^\.])", re.M)
@@ -267,7 +269,7 @@ def normalize_bound_method_repr(s):
 # should be a simple fast test on the expected and/or actual output to
 # determine if a fixup should be applied.  The second function is the actual
 # fixup, which is applied if the test function passes.  In most fixups only one
-# of the expected or recevied outputs are normalized, depending on the
+# of the expected or received outputs are normalized, depending on the
 # application.
 # For example, on Python 3 we strip all u prefixes from unicode strings in the
 # expected output, because we never expect to see those on Python 3.
@@ -527,7 +529,7 @@ class MarkedOutput(str):
 
 def make_marked_output(s, D):
     """
-    Auxilliary function for pickling.
+    Auxiliary function for pickling.
 
     EXAMPLES::
 
@@ -693,7 +695,7 @@ class SageDocTestParser(doctest.DocTestParser):
 
     def __ne__(self, other):
         """
-        Test for unequality.
+        Test for non-equality.
 
         EXAMPLES::
 
@@ -935,17 +937,17 @@ class SageOutputChecker(doctest.OutputChecker):
             sage: want_tol = MarkedOutput().update(tol=0.0001)
             sage: want_abs = MarkedOutput().update(abs_tol=0.0001)
             sage: want_rel = MarkedOutput().update(rel_tol=0.0001)
-            sage: OC.add_tolerance(pi.n(64), want_tol).endpoints()
+            sage: OC.add_tolerance(RIF(pi.n(64)), want_tol).endpoints()
             (3.14127849432443, 3.14190681285516)
-            sage: OC.add_tolerance(pi.n(64), want_abs).endpoints()
+            sage: OC.add_tolerance(RIF(pi.n(64)), want_abs).endpoints()
             (3.14149265358979, 3.14169265358980)
-            sage: OC.add_tolerance(pi.n(64), want_rel).endpoints()
+            sage: OC.add_tolerance(RIF(pi.n(64)), want_rel).endpoints()
             (3.14127849432443, 3.14190681285516)
-            sage: OC.add_tolerance(1e1000, want_tol)
+            sage: OC.add_tolerance(RIF(1e1000), want_tol)
             1.000?e1000
-            sage: OC.add_tolerance(1e1000, want_abs)
+            sage: OC.add_tolerance(RIF(1e1000), want_abs)
             1.000000000000000?e1000
-            sage: OC.add_tolerance(1e1000, want_rel)
+            sage: OC.add_tolerance(RIF(1e1000), want_rel)
             1.000?e1000
             sage: OC.add_tolerance(0, want_tol)
             0.000?
@@ -956,13 +958,13 @@ class SageOutputChecker(doctest.OutputChecker):
         """
         if want.tol:
             if wantval == 0:
-                return want.tol * RIFtol(-1,1)
+                return RIFtol(want.tol) * RIFtol(-1,1)
             else:
-                return wantval * (1 + want.tol * RIFtol(-1,1))
+                return wantval * (1 + RIFtol(want.tol) * RIFtol(-1,1))
         elif want.abs_tol:
-            return wantval + want.abs_tol * RIFtol(-1,1)
+            return wantval + RIFtol(want.abs_tol) * RIFtol(-1,1)
         elif want.rel_tol:
-            return wantval * (1 + want.rel_tol * RIFtol(-1,1))
+            return wantval * (1 + RIFtol(want.rel_tol) * RIFtol(-1,1))
         else:
             return wantval
 
@@ -1087,6 +1089,7 @@ class SageOutputChecker(doctest.OutputChecker):
         """
         got = self.human_readable_escape_sequences(got)
         got = glpk_simplex_warning_regex.sub('', got)
+        got = ld_warning_regex.sub('', got)
         if isinstance(want, MarkedOutput):
             if want.random:
                 return True

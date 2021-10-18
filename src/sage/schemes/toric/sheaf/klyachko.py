@@ -44,11 +44,10 @@ REFERENCES:
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.structure.all import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp, richcmp_not_equal
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.misc.all import cached_method
 from sage.matrix.constructor import vector, block_matrix, zero_matrix
 from sage.geometry.cone import is_Cone
@@ -169,7 +168,8 @@ class KlyachkoBundle_class(SageObject):
         """
         self._variety = toric_variety
         self._filt = multi_filtration
-        if not check: return
+        if not check:
+            return
         from sage.sets.set import Set
         if multi_filtration.index_set() != Set(list(toric_variety.fan().rays())):
             raise ValueError('the index set of the multi-filtration must be'
@@ -952,4 +952,6 @@ class KlyachkoBundle_class(SageObject):
            (1, 0)
         """
         filt = self._filt.random_deformation(epsilon)
+        while not filt.is_exhaustive():
+            filt = self._filt.random_deformation(epsilon)
         return self.__class__(self.variety(), filt, check=True)

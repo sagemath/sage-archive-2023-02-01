@@ -18,12 +18,11 @@ AUTHORS:
 #
 #                    https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function
 
 from sage.interfaces.gap import gap
 from sage.categories.morphism import Morphism
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 
 
 def is_AbelianGroupMorphism(f):

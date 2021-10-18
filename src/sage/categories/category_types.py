@@ -4,7 +4,6 @@ Specific category classes
 This is placed in a separate file from categories.py to avoid circular imports
 (as morphisms must be very low in the hierarchy with the new coercion model).
 """
-from __future__ import absolute_import
 
 #*****************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu> and
@@ -344,7 +343,7 @@ class Category_over_base_ring(Category_over_base):
             sage: TestSuite(C).run()
         """
         from sage.categories.rings import Rings
-        if not (base in Rings or
+        if not (base in Rings() or
                 isinstance(base, Category) and base.is_subcategory(Rings())):
             raise ValueError("base must be a ring or a subcategory of Rings()")
         Category_over_base.__init__(self, base, name)

@@ -1,4 +1,9 @@
-# distutils: libraries = ecl gmp
+# distutils: extra_compile_args = ECL_CFLAGS
+# distutils: include_dirs = ECL_INCDIR
+# distutils: libraries = ECL_LIBRARIES
+# distutils: library_dirs = ECL_LIBDIR
+# distutils: extra_link_args = ECL_LIBEXTRA
+
 ###############################################################################
 #   Sage: Open Source Mathematical Software
 #       Copyright (C) 2009 Nils Bruin <nbruin@sfu.ca>

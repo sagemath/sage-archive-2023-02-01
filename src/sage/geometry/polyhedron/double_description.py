@@ -68,14 +68,13 @@ The implementation works over any exact field that is embedded in
 # Compare with PPL if the base ring is QQ. Can be left enabled since
 # we don't use the Python fallback for polyhedra over QQ unless you
 # construct one by hand.
-from __future__ import division, absolute_import
 
 VERIFY_RESULT = True
 
 import itertools
 
 from sage.misc.cachefunc import cached_method
-from sage.rings.all import QQ
+from sage.rings.rational_field import QQ
 from sage.modules.free_module_element import vector
 from sage.matrix.matrix_space import MatrixSpace
 
@@ -565,7 +564,8 @@ class Problem:
             ((1, 1), (-1, 1))
         """
         rows = [a.change_ring(self._field) for a in self._A.rows()]
-        for a in rows: a.set_immutable()
+        for a in rows:
+            a.set_immutable()
         return tuple(rows)
 
     def A_matrix(self):

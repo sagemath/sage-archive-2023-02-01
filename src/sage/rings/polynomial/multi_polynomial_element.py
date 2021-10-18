@@ -37,7 +37,7 @@ We verify Lagrange's four squares identity::
 """
 #*****************************************************************************
 #
-#   Sage: System for Algebra and Geometry Experimentation
+#   Sage: Open Source Mathematical Software
 #
 #       Copyright (C) 2005 William Stein <wstein@gmail.com>
 #
@@ -52,10 +52,9 @@ We verify Lagrange's four squares identity::
 #
 #                  https://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import
 
 from sage.structure.element import CommutativeRingElement, coerce_binop
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 import sage.rings.integer
 from sage.rings.qqbar_decorators import handle_AA_and_QQbar
 from . import polydict
@@ -91,8 +90,8 @@ class MPolynomial_element(MPolynomial):
         EXAMPLES::
 
             sage: P.<x,y,z> = PolynomialRing(QQbar)
-            sage: x + QQbar.random_element() # indirect doctest
-            x + 0.4142135623730951?
+            sage: x + QQbar(sqrt(2) - 1/2*I)  # indirect doctest
+            x + 1.414213562373095? - 0.50000000000000000?*I
         """
         return "%s"%self.__element
 
@@ -2231,7 +2230,7 @@ def degree_lowest_rational_function(r, x):
     ::
 
         sage: r = f/g; r
-        (-b*c^2 + 2)/(a*b^3*c^6 - 2*a*c)
+        (-2*b*c^2 - 1)/(2*a*b^3*c^6 + a*c)
         sage: degree_lowest_rational_function(r,a)
         -1
         sage: degree_lowest_rational_function(r,b)

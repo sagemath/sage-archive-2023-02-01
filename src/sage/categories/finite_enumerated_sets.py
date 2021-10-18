@@ -7,7 +7,6 @@ Finite Enumerated Sets
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import print_function
 
 from sage.categories.category_with_axiom import CategoryWithAxiom
 from sage.categories.enumerated_sets import EnumeratedSets
@@ -125,7 +124,7 @@ class FiniteEnumeratedSets(CategoryWithAxiom):
             does not do it for us::
 
                 sage: type(C._cardinality_from_iterator())
-                <type 'sage.rings.integer.Integer'>
+                <class 'sage.rings.integer.Integer'>
 
             We ignore additional inputs since during doctests classes which
             override ``cardinality()`` call up to the category rather than

@@ -34,7 +34,6 @@ AUTHORS:
 #  the License, or (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 import os
 from math import isnan
@@ -1250,20 +1249,15 @@ class Graphics(WithEqualityById, SageObject):
 
         It does not accept any argument (:trac:`19539`)::
 
-            sage: S.plot(1)  # py2
+            sage: S.plot(1)
             Traceback (most recent call last):
             ...
-            TypeError: plot() takes exactly 1 argument (2 given)
-
-            sage: S.plot(1)  # py3
-            Traceback (most recent call last):
-            ...
-            TypeError: plot() takes 1 positional argument but 2 were given
+            TypeError: ...plot() takes 1 positional argument but 2 were given
 
             sage: S.plot(hey="hou")
             Traceback (most recent call last):
             ...
-            TypeError: plot() got an unexpected keyword argument 'hey'
+            TypeError: ...plot() got an unexpected keyword argument 'hey'
         """
         return self
 
@@ -1627,7 +1621,7 @@ class Graphics(WithEqualityById, SageObject):
             ``(x_pos, y_pos)`` which indicate the relative position of the
             title within the plot. The plot itself can be considered to
             occupy, in relative terms, the region within a unit square
-            `[0,1]\\times[0,1]`.  The title text is centered around the
+            `[0, 1] \times [0, 1]`.  The title text is centered around the
             horizontal factor ``x_pos`` of the plot. The baseline of the
             title text is present at the vertical factor ``y_pos`` of the
             plot. Hence, ``title_pos=(0.5, 0.5)`` will center the title in
@@ -2596,8 +2590,7 @@ class Graphics(WithEqualityById, SageObject):
             vmin -= vmin * basev**(-axes_pad)
             vmax += vmax * basev**(-axes_pad)
 
-        return vmin,vmax
-
+        return vmin, vmax
 
     def matplotlib(self, filename=None,
                    xmin=None, xmax=None, ymin=None, ymax=None,
@@ -2605,10 +2598,10 @@ class Graphics(WithEqualityById, SageObject):
                    axes=None, axes_labels=None, axes_labels_size=None,
                    flip_x=False, flip_y=False,
                    fontsize=None, frame=False, verify=True,
-                   aspect_ratio = None,
+                   aspect_ratio=None,
                    gridlines=None, gridlinesstyle=None,
                    vgridlinesstyle=None, hgridlinesstyle=None,
-                   show_legend=None, legend_options={},
+                   show_legend=None, legend_options=None,
                    axes_pad=None, ticks_integer=None,
                    tick_formatter=None, ticks=None, title=None,
                    title_pos=None, base=None, scale=None,
@@ -2709,7 +2702,8 @@ class Graphics(WithEqualityById, SageObject):
         """
         if not isinstance(ticks, (list, tuple)):
             ticks = (ticks, None)
-
+        if legend_options is None:
+            legend_options = {}
         # as discussed in trac #25799 and #23696, Sage prefers the computer
         # modern fonts of TeX for math texts such as axes labels, but otherwise
         # adopts the default style of matplotlib

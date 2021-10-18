@@ -11,7 +11,6 @@ Loop Crystals
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 
-from __future__ import print_function, division, absolute_import
 
 from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
@@ -120,8 +119,9 @@ class LoopCrystals(Category_singleton):
             """
             G = Crystals().parent_class.digraph(self, subset, index_set)
             if have_dot2tex():
-                f = lambda u_v_label: ({"backward": u_v_label[2] == 0})
-                G.set_latex_options(edge_options=f)
+                def eopt(u_v_label):
+                    return {"backward": u_v_label[2] == 0}
+                G.set_latex_options(edge_options=eopt)
             return G
 
 # TODO: Should we make "regular" an axiom?
@@ -853,7 +853,7 @@ class KirillovReshetikhinCrystals(Category_singleton):
                     True
                 """
                 if q is None:
-                    from sage.rings.all import QQ
+                    from sage.rings.rational_field import QQ
                     q = QQ['q'].gens()[0]
                 P0 = self.weight_lattice_realization().classical()
                 B = P0.algebra(q.parent())

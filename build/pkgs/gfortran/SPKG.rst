@@ -1,5 +1,5 @@
-gfortran
-========
+gfortran: Fortran compiler from the GNU Compiler Collection
+===========================================================
 
 Description
 -----------

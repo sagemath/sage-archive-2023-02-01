@@ -394,7 +394,6 @@ GraphLatex class and functions
 #  the License, or (at your option) any later version.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import print_function
 
 from sage.structure.sage_object import SageObject
 from sage.misc.cachefunc import cached_function
@@ -468,7 +467,6 @@ def setup_latex_preamble():
         True
     """
     latex.add_package_to_preamble_if_available("tikz")
-    latex.add_to_mathjax_avoid_list("tikz")
     latex.add_package_to_preamble_if_available("tkz-graph")
     latex.add_package_to_preamble_if_available("tkz-berge")
     if have_tkz_graph():

@@ -429,7 +429,7 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
 
     - ``hmax`` -- integer
     - `B` -- integer or None; if None returns all pairs
-    - ``proof`` -- this code calls the PARI function ``qfbclassno``, so it
+    - ``proof`` -- this code calls the PARI function :pari:`qfbclassno`, so it
       could give wrong answers when ``proof``==``False``.  The default is
       whatever ``proof.number_field()`` is.  If ``proof==False`` and `B` is
       ``None``, at least the number of discriminants is correct, since it
@@ -495,11 +495,14 @@ def discriminants_with_bounded_class_number(hmax, B=None, proof=None):
 
     # This lower bound gets used in an inner loop below.
     from math import log
+
     def lb(f):
         """Lower bound on euler_phi."""
         # 1.79 > e^gamma = 1.7810724...
-        if f <= 1: return 0  # don't do log(log(1)) = log(0)
-        return f/(1.79*log(log(f)) + 3.0/log(log(f)))
+        if f <= 1:
+            return 0  # don't do log(log(1)) = log(0)
+        llf = log(log(f))
+        return f/(1.79*llf + 3.0/llf)
 
     for D in range(-B, -2):
         D = Integer(D)

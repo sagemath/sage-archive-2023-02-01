@@ -1,17 +1,21 @@
 """
 Combinatorics features that are imported by default in the interpreter namespace
 """
-from __future__ import absolute_import
 
 from sage.misc.lazy_import import lazy_import
 
 from .combinat import bell_number, catalan_number, euler_number, fibonacci, \
         lucas_number1, lucas_number2, stirling_number1, stirling_number2, \
         polygonal_number, CombinatorialObject, CombinatorialClass, \
-        FilteredCombinatorialClass, UnionCombinatorialClass, \
-        MapCombinatorialClass, InfiniteAbstractCombinatorialClass, \
+        MapCombinatorialClass, \
         tuples, number_of_tuples, unordered_tuples, number_of_unordered_tuples, \
         bell_polynomial, fibonacci_sequence, fibonacci_xrange, bernoulli_polynomial
+
+lazy_import('sage.combinat.combinat',
+            ('InfiniteAbstractCombinatorialClass', 'UnionCombinatorialClass',
+             'FilteredCombinatorialClass'),
+            deprecation=(31545, 'this class is deprecated, do not use'))
+
 
 from .expnums import expnums
 
@@ -26,7 +30,6 @@ from sage.combinat.designs.all import *
 
 # Free modules and friends
 from .free_module import CombinatorialFreeModule
-from .combinatorial_algebra import CombinatorialAlgebra
 from .debruijn_sequence import DeBruijnSequences
 
 from .schubert_polynomial import SchubertPolynomialRing
@@ -210,9 +213,11 @@ lazy_import('sage.combinat.finite_state_machine',
 lazy_import('sage.combinat.finite_state_machine_generators',
             ['automata', 'transducers'])
 
-# Binary Recurrence Sequences
+# Sequences
 lazy_import('sage.combinat.binary_recurrence_sequences',
             'BinaryRecurrenceSequence')
+lazy_import('sage.combinat.recognizable_series', 'RecognizableSeriesSpace')
+lazy_import('sage.combinat.k_regular_sequence', 'kRegularSequenceSpace')
 
 # Six Vertex Model
 lazy_import('sage.combinat.six_vertex_model', 'SixVertexModel')
@@ -231,10 +236,7 @@ lazy_import("sage.combinat.cluster_complex", "ClusterComplex")
 lazy_import('sage.combinat.constellation', ['Constellation', 'Constellations'])
 
 # Growth diagrams
-lazy_import('sage.combinat.growth', ['GrowthDiagram',
-                                     'GrowthDiagramRSK', 'GrowthDiagramBurge',
-                                     'GrowthDiagramBinWord', 'GrowthDiagramDomino',
-                                     'GrowthDiagramYoungFibonacci', 'GrowthDiagramSylvester'])
+lazy_import('sage.combinat.growth', 'GrowthDiagram')
 
 # Path Tableaux
 lazy_import('sage.combinat.path_tableaux', 'catalog', as_='path_tableaux')

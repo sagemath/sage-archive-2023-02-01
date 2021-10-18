@@ -186,7 +186,7 @@ class Groups(CategoryWithAxiom):
 
         def cayley_table(self, names='letters', elements=None):
             r"""
-            Returns the "multiplication" table of this multiplicative group,
+            Return the "multiplication" table of this multiplicative group,
             which is also known as the "Cayley table".
 
             .. note:: The order of the elements in the row and column
@@ -514,7 +514,7 @@ class Groups(CategoryWithAxiom):
                 sage: F.<x,y,z> = Groups().Commutative().free(); F
                 Multiplicative Abelian group isomorphic to Z x Z x Z
             """
-            from sage.rings.all import ZZ
+            from sage.rings.integer_ring import ZZ
             if names is not None:
                 if isinstance(names, str):
                     if ',' not in names and index_set in ZZ:

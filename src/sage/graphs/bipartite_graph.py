@@ -36,13 +36,14 @@ TESTS::
 # (at your option) any later version.
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import print_function, absolute_import
 
 from collections import defaultdict
 
 from .generic_graph import GenericGraph
 from .graph import Graph
 from sage.rings.integer import Integer
+
+from sage.misc.decorators import rename_keyword
 
 class BipartiteGraph(Graph):
     r"""
@@ -308,6 +309,27 @@ class BipartiteGraph(Graph):
             sage: P = graphs.PetersenGraph()
             sage: partition = [list(range(5)), list(range(5, 10))]
             sage: B = BipartiteGraph(P, partition, check=False)
+
+        TESTS:
+
+        Test that the memory leak in :trac:`31313` is fixed::
+
+            sage: A = Matrix(ZZ, 100, 125)
+            sage: for i in range(A.nrows()):
+            ....:     for j in Subsets(A.ncols()).random_element():
+            ....:         A[i, j - 1] = 1
+            sage: def make_bip_graph(A):
+            ....:     G = BipartiteGraph(A)
+            sage: for _ in range(10):
+            ....:     make_bip_graph(A)
+            sage: import gc
+            sage: _ = gc.collect()
+            sage: start_mem = get_memory_usage()
+            sage: for _ in range(10):
+            ....:     make_bip_graph(A)
+            sage: _ = gc.collect()
+            sage: print(round(get_memory_usage() - start_mem))
+            0.0
         """
         if kwds is None:
             kwds = {'loops': False}
@@ -365,17 +387,17 @@ class BipartiteGraph(Graph):
             if kwds.get("multiedges", False):
                 for ii in range(ncols):
                     for jj in range(nrows):
-                        if data[jj][ii]:
-                            self.add_edges([(ii, jj + ncols)] * data[jj][ii])
+                        if data[jj, ii]:
+                            self.add_edges([(ii, jj + ncols)] * data[jj, ii])
             elif kwds.get("weighted", False):
                 for ii in range(ncols):
                     for jj in range(nrows):
-                        if data[jj][ii]:
-                            self.add_edge((ii, jj + ncols, data[jj][ii]))
+                        if data[jj, ii]:
+                            self.add_edge((ii, jj + ncols, data[jj, ii]))
             else:
                 for ii in range(ncols):
                     for jj in range(nrows):
-                        if data[jj][ii]:
+                        if data[jj, ii]:
                             self.add_edge((ii, jj + ncols))
         elif isinstance(data, GenericGraph) and partition is not None:
             left, right = set(partition[0]), set(partition[1])
@@ -729,7 +751,7 @@ class BipartiteGraph(Graph):
         # delete from the graph
         Graph.delete_vertex(self, vertex)
 
-        # now remove from partition (exception already thrown for non-existant
+        # now remove from partition (exception already thrown for non-existent
         # vertex)
         if vertex in self.left:
             self.left.remove(vertex)
@@ -772,7 +794,7 @@ class BipartiteGraph(Graph):
         Graph.delete_vertices(self, vertices)
 
         # now remove vertices from partition lists (exception already thrown
-        # for non-existant vertices)
+        # for non-existent vertices)
         for vertex in vertices:
             if vertex in self.left:
                 self.left.remove(vertex)
@@ -1438,7 +1460,8 @@ class BipartiteGraph(Graph):
         return matrix(len(self.right), len(self.left), D, sparse=sparse)
 
     def matching(self, value_only=False, algorithm=None,
-                 use_edge_labels=False, solver=None, verbose=0):
+                 use_edge_labels=False, solver=None, verbose=0,
+                 *, integrality_tolerance=1e-3):
         r"""
         Return a maximum matching of the graph represented by the list of its
         edges.
@@ -1474,11 +1497,21 @@ class BipartiteGraph(Graph):
 
           - when set to ``False``, each edge has weight `1`
 
-        - ``solver`` -- (default: ``None``) a specific Linear Program (LP)
-          solver to be used
+        - ``solver`` -- string (default: ``None``); specify a Mixed
+          Integer Linear Programming (MILP) solver to be used. If set
+          to ``None``, the default one is used. For more information
+          on MILP solvers and which default solver is used, see the
+          method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the
+          class :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbose`` -- integer (default: ``0``); sets the level of verbosity:
-          set to 0 by default, which means quiet
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with
+          MILP solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         .. SEEALSO::
 
@@ -1522,15 +1555,15 @@ class BipartiteGraph(Graph):
             sage: B.matching(use_edge_labels=True, value_only=True, algorithm='Edmonds')
             4
             sage: B.matching(use_edge_labels=True, value_only=True, algorithm='LP')
-            4.0
+            4
             sage: B.matching(use_edge_labels=True, value_only=True, algorithm='Eppstein')
             Traceback (most recent call last):
             ...
-            ValueError: use_edge_labels can not be used with "Hopcroft-Karp" or "Eppstein"
+            ValueError: use_edge_labels cannot be used with "Hopcroft-Karp" or "Eppstein"
             sage: B.matching(use_edge_labels=True, value_only=True, algorithm='Hopcroft-Karp')
             Traceback (most recent call last):
             ...
-            ValueError: use_edge_labels can not be used with "Hopcroft-Karp" or "Eppstein"
+            ValueError: use_edge_labels cannot be used with "Hopcroft-Karp" or "Eppstein"
             sage: B.matching(use_edge_labels=False, value_only=True, algorithm='Hopcroft-Karp')
             2
             sage: B.matching(use_edge_labels=False, value_only=True, algorithm='Eppstein')
@@ -1570,7 +1603,7 @@ class BipartiteGraph(Graph):
 
         if algorithm == "Hopcroft-Karp" or algorithm == "Eppstein":
             if use_edge_labels:
-                raise ValueError('use_edge_labels can not be used with '
+                raise ValueError('use_edge_labels cannot be used with '
                                  '"Hopcroft-Karp" or "Eppstein"')
             d = []
             if self.size():
@@ -1599,13 +1632,16 @@ class BipartiteGraph(Graph):
             return Graph.matching(self, value_only=value_only,
                                   algorithm=algorithm,
                                   use_edge_labels=use_edge_labels,
-                                  solver=solver, verbose=verbose)
+                                  solver=solver, verbose=verbose,
+                                  integrality_tolerance=integrality_tolerance)
         else:
             raise ValueError('algorithm must be "Hopcroft-Karp", '
                              '"Eppstein", "Edmonds" or "LP"')
 
+    @rename_keyword(deprecation=32238, verbosity='verbose')
     def vertex_cover(self, algorithm="Konig", value_only=False,
-                     reduction_rules=True, solver=None, verbosity=0):
+                     reduction_rules=True, solver=None, verbose=0,
+                     *, integrality_tolerance=1e-3):
         r"""
         Return a minimum vertex cover of self represented by a set of vertices.
 
@@ -1653,18 +1689,20 @@ class BipartiteGraph(Graph):
           it might be faster to disable reduction rules.  This parameter is
           currently ignored when ``algorithm == "Konig"``.
 
-        - ``solver`` -- (default: ``None``); specify a Linear Program (LP)
-          solver to be used. If set to ``None``, the default one is used. For
-          more information on LP solvers and which default solver is used, see
-          the method :meth:`sage.numerical.mip.MixedIntegerLinearProgram.solve`
-          of the class :class:`sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- string (default: ``None``); specify a Mixed Integer
+          Linear Programming (MILP) solver to be used. If set to ``None``, the
+          default one is used. For more information on MILP solvers and which
+          default solver is used, see the method :meth:`solve
+          <sage.numerical.mip.MixedIntegerLinearProgram.solve>` of the class
+          :class:`MixedIntegerLinearProgram
+          <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
-        - ``verbosity`` -- non-negative integer (default: ``0``); set the level
-          of verbosity you want from the linear program solver. Since the
-          problem of computing a vertex cover is `NP`-complete, its solving may
-          take some time depending on the graph. A value of 0 means that there
-          will be no message printed by the solver. This option is only useful
-          if ``algorithm="MILP"``.
+        - ``verbose`` -- integer (default: ``0``); sets the level of
+          verbosity. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- float; parameter for use with MILP
+          solvers over an inexact base ring; see
+          :meth:`MixedIntegerLinearProgram.get_values`.
 
         EXAMPLES:
 
@@ -1711,7 +1749,8 @@ class BipartiteGraph(Graph):
         if not algorithm == "Konig":
             return Graph.vertex_cover(self, algorithm=algorithm, value_only=value_only,
                                           reduction_rules=reduction_rules, solver=solver,
-                                          verbosity=verbosity)
+                                          verbose=verbose,
+                                          integrality_tolerance=integrality_tolerance)
 
         if not self.is_connected():
             VC = []

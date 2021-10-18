@@ -92,23 +92,23 @@ verify that the element types are correct::
     sage: V.0
     (1.0, 0.0, 0.0)
     sage: type(V.0)
-    <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
+    <class 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
     sage: W = V.span([V.0]); W
     Vector space of degree 3 and dimension 1 over Real Double Field
     Basis matrix:
     [1.0 0.0 0.0]
     sage: type(W.0)
-    <type 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
+    <class 'sage.modules.vector_real_double_dense.Vector_real_double_dense'>
     sage: V = FreeModule(CDF, 3); V
     Vector space of dimension 3 over Complex Double Field
     sage: type(V.0)
-    <type 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
+    <class 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
     sage: W = V.span_of_basis([CDF.0 * V.1]); W
     Vector space of degree 3 and dimension 1 over Complex Double Field
     User basis matrix:
     [  0.0 1.0*I   0.0]
     sage: type(W.0)
-    <type 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
+    <class 'sage.modules.vector_complex_double_dense.Vector_complex_double_dense'>
 
 Basis vectors are immutable::
 
@@ -161,7 +161,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-from __future__ import print_function, absolute_import
 from itertools import islice
 
 from . import free_module_element
@@ -385,7 +384,7 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
         sage: M.is_sparse()
         True
         sage: type(M.0)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
 
     The default is dense.
 
@@ -393,7 +392,7 @@ def FreeModule(base_ring, rank_or_basis_keys=None, sparse=False, inner_product_m
 
         sage: M = ZZ^200
         sage: type(M.0)
-        <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+        <class 'sage.modules.vector_integer_dense.Vector_integer_dense'>
 
     Note that matrices associated in some way to sparse free modules
     are sparse by default::
@@ -803,16 +802,16 @@ class FreeModule_generic(Module):
             sage: M = FreeModule(ZZ,20,sparse=False)
             sage: x = M.random_element()
             sage: type(x)
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+            <class 'sage.modules.vector_integer_dense.Vector_integer_dense'>
             sage: M.element_class
-            <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+            <class 'sage.modules.vector_integer_dense.Vector_integer_dense'>
 
             sage: N = FreeModule(ZZ,20,sparse=True)
             sage: y = N.random_element()
             sage: type(y)
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+            <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
             sage: N.element_class
-            <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+            <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
 
         """
         if not base_ring.is_commutative():
@@ -1571,7 +1570,8 @@ done from the right side.""")
             return
         R     = self.base_ring()
         iters = [iter(R) for _ in range(len(G))]
-        for x in iters: next(x)     # put at 0
+        for x in iters:
+            next(x)     # put at 0
         zero  = R(0)
         v = [zero for _ in range(len(G))]
         n = 0
@@ -1744,7 +1744,7 @@ done from the right side.""")
             sage: M.basis_matrix(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: matrix has denominators so can...t change to ZZ.
+            TypeError: matrix has denominators so can...t change to ZZ
         """
         try:
             A = self.__basis_matrix
@@ -2183,6 +2183,34 @@ done from the right side.""")
         """
         return False
 
+    def hom(self, im_gens, codomain=None, **kwds):
+        """
+        Override the hom method to handle the case of morphisms given by left-multiplication
+        of a matrix and the codomain is not given.
+
+        EXAMPLES::
+
+            sage: W = ZZ^2; W.hom(matrix(1, [1, 2]), side="right")
+            Free module morphism defined as left-multiplication by the matrix
+            [1 2]
+            Domain: Ambient free module of rank 2 over the principal ideal domain Integer Ring
+            Codomain: Ambient free module of rank 1 over the principal ideal domain Integer Ring
+            sage: V = QQ^2; V.hom(identity_matrix(2), side="right")
+            Vector space morphism represented as left-multiplication by the matrix:
+            [1 0]
+            [0 1]
+            Domain: Vector space of dimension 2 over Rational Field
+            Codomain: Vector space of dimension 2 over Rational Field
+        """
+        from sage.structure.element import is_Matrix
+        if codomain is None and is_Matrix(im_gens):
+            side = kwds.get("side", "left")
+            n = im_gens.nrows() if side == "right" else im_gens.ncols()
+            from sage.categories.pushout import pushout
+            R = pushout(self.base_ring(), im_gens.base_ring())
+            codomain = R**n
+        return super().hom(im_gens, codomain, **kwds)
+
     def inner_product_matrix(self):
         """
         Return the default identity inner product matrix associated to this
@@ -2363,18 +2391,28 @@ done from the right side.""")
 
         EXAMPLES::
 
-            sage: M = FreeModule(ZZ, 2).span([[1,1]])
-            sage: M.random_element()
-            (-1, -1)
-            sage: M.random_element()
-            (2, 2)
-            sage: M.random_element()
-            (1, 1)
+            sage: M = FreeModule(ZZ, 2).span([[1, 1]])
+            sage: v = M.random_element()
+            sage: v.parent() is M
+            True
+            sage: v in M
+            True
+
+        Small entries are likely::
+
+            sage: for i in [-2, -1, 0, 1, 2]:
+            ....:     while vector([i, i]) != M.random_element():
+            ....:         pass
+
+        Large entries appear as well::
+
+            sage: while abs(M.random_element()[0]) < 100:
+            ....:     pass
 
         Passes extra positional or keyword arguments through::
 
-            sage: M.random_element(5,10)
-            (9, 9)
+            sage: all(i in range(5, 10) for i in M.random_element(1.0, 5, 10))
+            True
         """
         rand = current_randstate().python_random().random
         R = self.base_ring()
@@ -3002,9 +3040,11 @@ class FreeModule_generic_pid(FreeModule_generic):
 
         # standard algorithm for computing intersection of general submodule
         if self.dimension() <= other.dimension():
-            V1 = self; V2 = other
+            V1 = self
+            V2 = other
         else:
-            V1 = other; V2 = self
+            V1 = other
+            V2 = self
         A1 = V1.basis_matrix()
         A2 = V2.basis_matrix()
         S  = A1.stack(A2)
@@ -3847,13 +3887,15 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         # standard algorithm for computing intersection of general subspaces
         if self.dimension() <= other.dimension():
-            V1 = self; V2 = other
+            V1 = self
+            V2 = other
         else:
-            V1 = other; V2 = self
+            V1 = other
+            V2 = self
         A1 = V1.basis_matrix()
         A2 = V2.basis_matrix()
-        S  = A1.stack(A2)
-        K  = S.kernel()
+        S = A1.stack(A2)
+        K = S.kernel()
         n = int(V1.dimension())
         B = [A1.linear_combination_of_rows(v.list()[:n]) for v in K.basis()]
         return self.ambient_vector_space().submodule(B, check=False)
@@ -5227,26 +5269,46 @@ class FreeModule_ambient(FreeModule_generic):
         EXAMPLES::
 
             sage: M = FreeModule(ZZ, 3)
-            sage: M.random_element()
-            (-1, 2, 1)
-            sage: M.random_element()
-            (-95, -1, -2)
-            sage: M.random_element()
-            (-12, 0, 0)
+            sage: M.random_element().parent() is M
+            True
 
         Passes extra positional or keyword arguments through::
 
-            sage: M.random_element(5,10)
-            (5, 5, 5)
-
+            sage: all(i in range(5, 10) for i in M.random_element(1.0, 5, 10))
+            True
 
         ::
 
             sage: M = FreeModule(ZZ, 16)
-            sage: M.random_element()
-            (-6, 5, 0, 0, -2, 0, 1, -4, -6, 1, -1, 1, 1, -1, 1, -1)
-            sage: M.random_element(prob=0.3)
-            (0, 0, 0, 0, -3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, -3)
+            sage: M.random_element().parent() is M
+            True
+
+            sage: def add_sample(**kwds):
+            ....:     global total, zeros
+            ....:     v = M.random_element(**kwds)
+            ....:     total += M.rank()
+            ....:     zeros += sum(i == 0 for i in v)
+
+            sage: total = 0
+            sage: zeros = 0
+            sage: add_sample()
+            sage: expected = 1/5
+            sage: while abs(zeros/total - expected) > 0.01:
+            ....:     add_sample()
+
+            sage: total = 0
+            sage: zeros = 0
+            sage: add_sample(prob=0.3)
+            sage: expected = 1/5 * 3/10 + 7/10
+            sage: while abs(zeros/total - expected) > 0.01:
+            ....:     add_sample(prob=0.3)
+
+            sage: total = 0
+            sage: zeros = 0
+            sage: add_sample(prob=0.7)
+            sage: expected = 1/5 * 7/10 + 3/10
+            sage: while abs(zeros/total - expected) > 0.01:
+            ....:     add_sample(prob=0.7)
         """
         rand = current_randstate().python_random().random
         R = self.base_ring()
@@ -5306,6 +5368,22 @@ class FreeModule_ambient(FreeModule_generic):
             v[i] = self.base_ring().one()
             v.set_immutable()
             return v
+
+    def _sympy_(self):
+        """
+        Return a SymPy ``ProductSet`` corresponding to ``self``.
+
+        EXAMPLES::
+
+            sage: sZZ3 = (ZZ^3)._sympy_(); sZZ3
+            ProductSet(Integers, Integers, Integers)
+            sage: (1, 2, 3) in sZZ3
+            True
+        """
+        from sympy import ProductSet
+        from sage.interfaces.sympy import sympy_init
+        sympy_init()
+        return ProductSet(*([self.coordinate_ring()] * self.rank()))
 
 
 ###############################################################################
@@ -5518,7 +5596,7 @@ class FreeModule_ambient_pid(FreeModule_generic_pid, FreeModule_ambient_domain):
             sage: v = M.basis()[0]; v
             (1, 0, 0)
             sage: type(v)
-            <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+            <class 'sage.modules.vector_rational_dense.Vector_rational_dense'>
         """
         FreeModule_ambient_domain.__init__(self, base_ring=base_ring,
                 rank=rank, sparse=sparse, coordinate_ring=coordinate_ring)
@@ -6338,12 +6416,12 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [1 0]
             [0 2]
             sage: type(T)
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: U = N._rref_to_echelon_matrix(); U
             [  1   0]
             [  0 1/2]
             sage: type(U)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            <class 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
         """
         try:
             return self.__echelon_to_rref_matrix
@@ -6373,12 +6451,12 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
             [1 0]
             [0 2]
             sage: type(T)
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: U = N._rref_to_echelon_matrix(); U
             [  1   0]
             [  0 1/2]
             sage: type(U)
-            <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
+            <class 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
         """
         try:
             return self.__rref_to_echelon_matrix
@@ -7329,23 +7407,23 @@ def element_class(R, is_sparse):
         sage: FF = FiniteField(2)
         sage: P = PolynomialRing(FF,'x')
         sage: sage.modules.free_module.element_class(QQ, is_sparse=True)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(QQ, is_sparse=False)
-        <type 'sage.modules.vector_rational_dense.Vector_rational_dense'>
+        <class 'sage.modules.vector_rational_dense.Vector_rational_dense'>
         sage: sage.modules.free_module.element_class(ZZ, is_sparse=True)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(ZZ, is_sparse=False)
-        <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
+        <class 'sage.modules.vector_integer_dense.Vector_integer_dense'>
         sage: sage.modules.free_module.element_class(FF, is_sparse=True)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(FF, is_sparse=False)
-        <type 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
+        <class 'sage.modules.vector_mod2_dense.Vector_mod2_dense'>
         sage: sage.modules.free_module.element_class(GF(7), is_sparse=False)
-        <type 'sage.modules.vector_modn_dense.Vector_modn_dense'>
+        <class 'sage.modules.vector_modn_dense.Vector_modn_dense'>
         sage: sage.modules.free_module.element_class(P, is_sparse=True)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_sparse'>
         sage: sage.modules.free_module.element_class(P, is_sparse=False)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+        <class 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
     """
     import sage.modules.vector_real_double_dense
     import sage.modules.vector_complex_double_dense

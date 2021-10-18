@@ -175,7 +175,6 @@ AUTHORS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
-from __future__ import absolute_import, print_function
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 from .gap_workspace import gap_workspace_file, prepare_workspace_dir
@@ -277,7 +276,7 @@ def get_gap_memory_pool_size():
     # Don't eat all address space if the user set ulimit -v
     suggested_size = min(suggested_size, vmax // 10)
     # ~220MB is the minimum for long doctests
-    suggested_size = max(suggested_size, 250 * 1024**2)
+    suggested_size = max(suggested_size, 400 * 1024**2)
     return suggested_size
 
 
@@ -631,15 +630,15 @@ class Gap_generic(ExtraTabCompletion, Expect):
                 elif x == 5: # @c completion, doesn't seem to happen when -p is in use
                     warnings.warn("I didn't think GAP could do this")
                 elif x == 6: # @f GAP error message
-                    current_outputs = error_outputs;
+                    current_outputs = error_outputs
                 elif x == 7: # @h help text, but this stopped happening with new help
                     warnings.warn("I didn't think GAP could do this")
                 elif x == 8: # @i awaiting normal input
-                    break;
+                    break
                 elif x == 9: # @m finished running a child
                     pass   # there is no need to do anything
                 elif x==10: #@n normal output line
-                    current_outputs = normal_outputs;
+                    current_outputs = normal_outputs
                 elif x==11: #@r echoing input
                     current_outputs = terminal_echo
                 elif x==12: #@sN shouldn't happen
@@ -704,7 +703,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         - ``restart_if_needed`` (optional bool, default ``True``) --
           If it is ``True``, the command evaluation is evaluated
           a second time after restarting the interface, if an
-          ``EOFError`` occured.
+          ``EOFError`` occurred.
 
         TESTS::
 
@@ -886,7 +885,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
             sage: print(gap.version())
             4...
         """
-        return self.eval('VERSION')[1:-1]
+        return self.eval('GAPInfo.Version')[1:-1]
 
     def function_call(self, function, args=None, kwds=None):
         """
@@ -915,7 +914,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         properly::
 
             sage: g = Gap()
-            sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_very_very_very_long_name'))
+            sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_very_very_very_long_name')) # random
             [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( () )),
               ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ (1,2) ] )) ]
 
@@ -923,7 +922,7 @@ class Gap_generic(ExtraTabCompletion, Expect):
         file to be communicated to GAP, this does not cause problems since
         the file will contain a single command::
 
-            sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file'))
+            sage: g.function_call("ConjugacyClassesSubgroups", sage.interfaces.gap.GapElement(g, 'SymmetricGroup(2)', name = 'a_variable_with_a_name_so_very_very_very_long_that_even_by_itself_will_make_expect_use_a_file')) # random
             [ ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( () )),
               ConjugacyClassSubgroups(SymmetricGroup( [ 1 .. 2 ] ),Group( [ (1,2) ] )) ]
         """
@@ -1341,7 +1340,7 @@ class Gap(Gap_generic):
         prepare_workspace_dir()
 
         # According to the GAP Reference Manual,
-        # [http://www.gap-system.org/Manuals/doc/htm/ref/CHAP003.htm#SSEC011.1]
+        # [https://www.gap-system.org/Manuals/doc/htm/ref/CHAP003.htm#SSEC011.1]
         # SaveWorkspace can only be used at the main gap> prompt. It cannot
         # be included in the body of a loop or function, or called from a
         # break loop.
@@ -1484,7 +1483,7 @@ class Gap(Gap_generic):
 
             sage: gap.console()  # not tested
             *********   GAP, Version 4.5.7 of 14-Dec-2012 (free software, GPL)
-            *  GAP  *   http://www.gap-system.org
+            *  GAP  *   https://www.gap-system.org
             *********   Architecture: x86_64-unknown-linux-gnu-gcc-default64
             Libs used:  gmp, readline
             Loading the library and packages ...
@@ -1858,7 +1857,7 @@ def gap_console():
 
         sage: gap_console()  # not tested
         *********   GAP, Version 4.5.7 of 14-Dec-2012 (free software, GPL)
-        *  GAP  *   http://www.gap-system.org
+        *  GAP  *   https://www.gap-system.org
         *********   Architecture: x86_64-unknown-linux-gnu-gcc-default64
         Libs used:  gmp, readline
         Loading the library and packages ...
@@ -1871,9 +1870,7 @@ def gap_console():
         sage: import subprocess as sp
         sage: from sage.interfaces.gap import gap_command
         sage: cmd = 'echo "quit;" | ' + gap_command(use_workspace_cache=False)[0]
-        sage: gap_startup = sp.check_output(cmd, shell=True,  # py2
-        ....:                               stderr=sp.STDOUT)
-        sage: gap_startup = sp.check_output(cmd, shell=True,  # py3
+        sage: gap_startup = sp.check_output(cmd, shell=True,
         ....:                               stderr=sp.STDOUT,
         ....:                               encoding='latin1')
         sage: 'www.gap-system.org' in gap_startup

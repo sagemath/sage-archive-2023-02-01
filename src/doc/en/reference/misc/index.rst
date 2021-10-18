@@ -99,7 +99,7 @@ Miscellaneous Useful Functions
    sage/misc/misc_c
    sage/misc/verbose
 
-Lazyness
+Laziness
 ~~~~~~~~
 
 .. toctree::
@@ -168,6 +168,7 @@ Formatted Output
    sage/typeset/character_art_factory
    sage/typeset/ascii_art
    sage/typeset/unicode_art
+   sage/typeset/unicode_characters
    sage/misc/repr
    sage/misc/sage_input
    sage/misc/table

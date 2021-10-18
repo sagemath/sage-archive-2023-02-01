@@ -3,6 +3,7 @@
 # distutils: libraries = SINGULAR_LIBRARIES
 # distutils: library_dirs = SINGULAR_LIBDIR
 # distutils: language = c++
+# distutils: extra_compile_args = -std=c++11
 
 """
 Declarations of Singular's C/C++ Functions
@@ -434,6 +435,10 @@ cdef extern from "singular/Singular/libsingular.h":
     # external resource init
 
     void feInitResources(char *name)
+
+    # external resource query
+
+    char* feGetResource(const char id)
 
     void *omAlloc(size_t size)
 

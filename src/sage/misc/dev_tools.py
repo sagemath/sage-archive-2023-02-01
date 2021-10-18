@@ -13,7 +13,6 @@ AUTHORS:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  https://www.gnu.org/licenses/
 # *****************************************************************************
-from __future__ import absolute_import
 
 import os
 import re
@@ -104,7 +103,7 @@ def import_statement_string(module, names, lazy):
             name, alias = names[0]
             if name == alias:
                 if name is None:
-                    raise ValueError("can not lazy import modules")
+                    raise ValueError("cannot lazy import modules")
                 return "lazy_import('%s', '%s')" % (module, name)
             else:
                 return "lazy_import('%s', '%s', '%s')" % (module, name, alias)

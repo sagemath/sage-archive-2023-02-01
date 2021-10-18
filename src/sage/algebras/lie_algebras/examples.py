@@ -8,6 +8,8 @@ There are the following examples of Lie algebras:
 - All abelian Lie algebras on free modules
 - The Lie algebra of upper triangular matrices
 - The Lie algebra of strictly upper triangular matrices
+- The symplectic derivation Lie algebra
+- The rank two Heisenberg Virasoro algebra
 
 See also
 :class:`sage.algebras.lie_algebras.virasoro.LieAlgebraRegularVectorFields`
@@ -31,7 +33,9 @@ AUTHORS:
 
 from sage.algebras.lie_algebras.virasoro import VirasoroAlgebra
 from sage.algebras.lie_algebras.rank_two_heisenberg_virasoro import RankTwoHeisenbergVirasoro
+from sage.algebras.lie_algebras.symplectic_derivation import SymplecticDerivationLieAlgebra as SymplecticDerivation
 from sage.algebras.lie_algebras.onsager import OnsagerAlgebra
+from sage.algebras.lie_algebras.onsager import OnsagerAlgebraACE as AlternatingCentralExtensionOnsagerAlgebra
 from sage.algebras.lie_algebras.affine_lie_algebra import AffineLieAlgebra as Affine
 from sage.algebras.lie_algebras.classical_lie_algebra import gl
 from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieAlgebra as ClassicalMatrix
@@ -41,6 +45,7 @@ from sage.algebras.lie_algebras.classical_lie_algebra import ClassicalMatrixLieA
 assert VirasoroAlgebra
 assert RankTwoHeisenbergVirasoro
 assert OnsagerAlgebra
+assert SymplecticDerivation
 assert Affine
 assert gl
 assert ClassicalMatrix

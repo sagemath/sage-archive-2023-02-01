@@ -1,5 +1,5 @@
-cocoalib
-========
+cocoalib: Computations in commutative algebra
+=============================================
 
 Description
 -----------

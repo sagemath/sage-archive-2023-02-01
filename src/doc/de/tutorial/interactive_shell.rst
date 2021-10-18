@@ -30,7 +30,7 @@ Um Sage zu beenden drücken Sie Strg-D oder geben Sie
 ::
 
     sage: quit
-    Exiting SAGE (CPU time 0m0.00s, Wall time 0m0.89s)
+    Exiting Sage (CPU time 0m0.00s, Wall time 0m0.89s)
 
 Unter "wall time" finden Sie die vergangene Echtzeit (der Uhr an Ihrer
 Wand). Diese ist nötig, da die CPU Zeit Unterprozesse wie GAP oder
@@ -191,7 +191,7 @@ in einer zukünftigen Sitzung (indem Sie einfach die Log-Datei laden).
     sage: x,y = QQ['x,y'].gens()
     sage: G = E.gens()
     sage:
-    Exiting SAGE (CPU time 0m0.61s, Wall time 0m50.39s).
+    Exiting Sage (CPU time 0m0.61s, Wall time 0m50.39s).
     was@form:~$ sage
     ┌────────────────────────────────────────────────────────────────────┐
     │ SageMath version 9.0, Release Date: 2020-01-01                     │
@@ -308,7 +308,7 @@ unten verwenden:
 
     sage: cputime?
     ...
-        Return the time in CPU second since SAGE started, or with optional
+        Return the time in CPU second since Sage started, or with optional
         argument t, return the time since time t.
         INPUT:
             t -- (optional) float, time in CPU seconds
@@ -373,8 +373,8 @@ Fehlerbehandlung
 Wenn irgendetwas schief geht, werden Sie normalerweise eine
 Python-Fehlermeldung sehen. Python macht sogar einen Vorschlag, was den
 Fehler ausgelöst hat. Oft sehen Sie den Namen der Fehlermeldung,
-z.B. ``NameError`` oder ``ValueError`` (vgl. Python Reference Manual
-[Py]_ für eine komplette Liste der Fehlermeldungen). Zum Beispiel:
+z.B. ``NameError`` oder ``ValueError`` (vgl. Python Library Reference
+[PyLR]_ für eine komplette Liste der Fehlermeldungen). Zum Beispiel:
 
 .. skip
 
@@ -385,7 +385,7 @@ z.B. ``NameError`` oder ``ValueError`` (vgl. Python Reference Manual
        File "<console>", line 1
          ZZ(3)_2
                ^
-    SyntaxError: invalid syntax
+    SyntaxError: invalid ...
 
     sage: EllipticCurve([0,infinity])
     ------------------------------------------------------------

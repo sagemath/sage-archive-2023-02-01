@@ -30,7 +30,6 @@ REFERENCES:
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 #******************************************************************************
-from __future__ import print_function
 
 import re
 from copy import deepcopy
@@ -423,14 +422,14 @@ class GeneralizedYoungWall(CombinatorialElement):
             sage: y.sum_of_weighted_row_lengths()
             15
         """
-        n = self.parent().cartan_type().rank()-1
-        m = lambda i : len([r for r in self.data if r!=[] if r[0]==(i-1)%(n+1)])
+        n = self.parent().cartan_type().rank() - 1
+        m = lambda i: len([1 for r in self.data if r and r[0] == (i-1)%(n+1)])
         for r in self.data:
-            if r != [] and r[0] == n:
+            if r and r[0] == n:
                 raise ValueError('Statistic only valid for generalized Young walls in Y_0')
-        return sum((i+1)*m(i) for i in range(1,n+1))
+        return sum((i + 1) * m(i) for i in range(1, n + 1))
 
-    def e(self,i):
+    def e(self, i):
         r"""
         Return the application of the Kashiwara raising operator
         `e_i` on ``self``.
@@ -538,7 +537,7 @@ class GeneralizedYoungWall(CombinatorialElement):
 
     def weight(self, root_lattice=False):
         r"""
-        Returns the weight of ``self``.
+        Return the weight of ``self``.
 
         INPUT:
 

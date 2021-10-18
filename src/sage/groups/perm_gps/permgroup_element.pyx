@@ -934,7 +934,7 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
     def _latex_(self):
         r"""
-        Returns a latex representation of this permutation.
+        Return a latex representation of this permutation.
 
         EXAMPLES::
 
@@ -947,7 +947,8 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
             \left[(\text{\texttt{a}},\text{\texttt{b}})\right]
         """
         from sage.misc.latex import latex
-        return "".join(["(" + ",".join([latex(x) for x in cycle])+")" for cycle in self.cycle_tuples()])
+        return "".join(("(" + ",".join(latex(x) for x in cycle) + ")")
+                       for cycle in self.cycle_tuples())
 
     def __getitem__(self, i):
         """
@@ -956,15 +957,13 @@ cdef class PermutationGroupElement(MultiplicativeGroupElement):
 
         INPUT:
 
-
         -  ``i`` - integer
-
 
         OUTPUT: a permutation group element
 
         EXAMPLES::
 
-            sage: G = PermutationGroup([[(1,2,3),(4,5)]],5)
+            sage: G = PermutationGroup([[(1,2,3),(4,5)]])
             sage: g = G.gen(0)
             sage: g[0]
             (1,2,3)

@@ -141,8 +141,6 @@ AUTHORS:
 #
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
-from __future__ import absolute_import
-import inspect
 
 from .tri_plot import TrianglePlot
 from .index_face_set import IndexFaceSet
@@ -151,10 +149,8 @@ from .base import Graphics3dGroup
 from sage.plot.colors import rainbow
 from .texture import Texture
 
-from sage.ext.fast_eval import fast_float_arg
-
 from sage.functions.trig import cos, sin
-from sage.misc.sageinspect import sage_getargspec
+from sage.misc.sageinspect import sage_getargspec, is_function_or_cython_function
 
 
 class _Coordinates(object):
@@ -395,7 +391,7 @@ def _find_arguments_for_callable(func):
         sage: _find_arguments_for_callable(operator.add)
         []
     """
-    if inspect.isfunction(func):
+    if is_function_or_cython_function(func):
         pass
     elif hasattr(func, 'arguments'):
         # Might be a symbolic function with arguments
@@ -904,6 +900,14 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         var('x y')
         sphinx_plot(plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True))
 
+    The same with thicker mesh lines (not supported in all viewers)::
+
+        sage: var('x,y')
+        (x, y)
+        sage: plot3d(sin(x-y)*y*cos(x),(x,-3,3),(y,-3,3), mesh=True,
+        ....:        thickness=2, viewer='threejs')
+        Graphics3d Object
+
     Two wobby translucent planes::
 
         sage: x,y = var('x,y')
@@ -1033,6 +1037,13 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
         Traceback (most recent call last):
         ...
         ValueError: range variables should be distinct, but there are duplicates
+
+    Verify that :trac:`7423` is fixed::
+
+        sage: f(x,y)=ln(x)
+        sage: P=plot3d(f,(x,0,1),(y,0,1))
+        sage: P
+        Graphics3d Object
     """
     if transformation is not None:
         params=None
@@ -1073,9 +1084,12 @@ def plot3d(f, urange, vrange, adaptive=False, transformation=None, **kwds):
     elif adaptive:
         P = plot3d_adaptive(f, urange, vrange, **kwds)
     else:
-        u=fast_float_arg(0)
-        v=fast_float_arg(1)
-        P=parametric_plot3d.parametric_plot3d((u,v,f), urange, vrange, **kwds)
+        arg1 = lambda u,v: u
+        arg2 = lambda u,v: v
+        P = parametric_plot3d.parametric_plot3d((arg1,arg2,f),
+                                                urange,
+                                                vrange,
+                                                **kwds)
     P.frame_aspect_ratio([1.0,1.0,0.5])
     return P
 

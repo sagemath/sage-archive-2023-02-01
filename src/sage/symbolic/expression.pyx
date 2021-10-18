@@ -1476,7 +1476,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ZZ(f.coefficient(x,0))
             -3
             sage: type(ZZ(f.coefficient(x,0)))
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
 
         Coercion is done if necessary::
 
@@ -1484,7 +1484,7 @@ cdef class Expression(CommutativeRingElement):
             sage: ZZ(f.coefficient(x))
             17
             sage: type(ZZ(f.coefficient(x)))
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
 
         If the symbolic expression is just a wrapper around an integer,
         that very same integer is not preserved, but a new one returned::
@@ -1549,7 +1549,7 @@ cdef class Expression(CommutativeRingElement):
             sage: a = QQ(f.coefficient(x)); a
             17
             sage: type(a)
-            <type 'sage.rings.rational.Rational'>
+            <class 'sage.rings.rational.Rational'>
             sage: QQ(f.coefficient(x,0))
             -3/8
 
@@ -1679,7 +1679,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(CBF(1+I))._convert({'parent':RDF})
             1.0 + 1.0*I
             sage: type(_.pyobject())
-            <type 'sage.rings.complex_double.ComplexDoubleElement'>
+            <class 'sage.rings.complex_double.ComplexDoubleElement'>
             sage: SR(CBF(1+I))._convert({'parent':CDF})
             1.0 + 1.0*I
             sage: SR(RBF(1))._convert({'parent':RDF})
@@ -1687,7 +1687,7 @@ cdef class Expression(CommutativeRingElement):
             sage: SR(CBF(1))._convert({'parent':RDF})
             1.0
             sage: type(_.pyobject())
-            <type 'sage.rings.real_double.RealDoubleElement'>
+            <class 'sage.rings.real_double.RealDoubleElement'>
         """
         cdef GEx res = self._gobj.evalf(0, kwds)
         return new_Expression_from_GEx(self._parent, res)
@@ -6270,7 +6270,7 @@ cdef class Expression(CommutativeRingElement):
             sage: type(t._unpack_operands())
             <... 'tuple'>
             sage: list(map(type, t._unpack_operands()))
-            [<type 'sage.rings.integer.Integer'>, <type 'sage.rings.integer.Integer'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>, <type 'sage.symbolic.expression.Expression'>]
+            [<class 'sage.rings.integer.Integer'>, <class 'sage.rings.integer.Integer'>, <class 'sage.symbolic.expression.Expression'>, <class 'sage.symbolic.expression.Expression'>, <class 'sage.symbolic.expression.Expression'>]
             sage: u = SR._force_pyobject((t, x^2))
             sage: u._unpack_operands()
             ((1, 2, x, x + 1, x + 2), x^2)
@@ -8264,7 +8264,7 @@ cdef class Expression(CommutativeRingElement):
             sage: abs(SR(-5))
             5
             sage: type(abs(SR(-5)))
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
 
         Because this overrides a Python builtin function, we do not
         currently support a ``hold`` parameter to prevent automatic
@@ -10361,7 +10361,7 @@ cdef class Expression(CommutativeRingElement):
             sage: res = t.maxima_methods().logcontract(); res
             log((sqrt(2) + 1)*(sqrt(2) - 1))
             sage: type(res)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
         """
         from sage.symbolic.maxima_wrapper import MaximaWrapper
         return MaximaWrapper(self)
@@ -13559,7 +13559,7 @@ cpdef new_Expression(parent, x):
         sage: a = SR(-3/4); a
         -3/4
         sage: type(a)
-        <type 'sage.symbolic.expression.Expression'>
+        <class 'sage.symbolic.expression.Expression'>
         sage: a.parent()
         Symbolic Ring
         sage: K.<a> = QuadraticField(-3)
@@ -13654,7 +13654,7 @@ cpdef new_Expression_from_pyobject(parent, x, bint force=True, bint recursive=Tr
         sage: t = SR._force_pyobject(QQ); t   # indirect doctest
         Rational Field
         sage: type(t)
-        <type 'sage.symbolic.expression.Expression'>
+        <class 'sage.symbolic.expression.Expression'>
 
         sage: from sage.symbolic.expression import new_Expression_from_pyobject
         sage: t = new_Expression_from_pyobject(SR, 17); t

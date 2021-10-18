@@ -796,7 +796,7 @@ class HeckeOperator(Morphism):
             sage: t.index()
             997
             sage: type(t.index())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         return self.__n
 

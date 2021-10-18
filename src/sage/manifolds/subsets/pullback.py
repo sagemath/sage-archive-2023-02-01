@@ -540,7 +540,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
                 return {chart: ManifoldSubsetPullback._realset_restriction(chart[0],
                                                                            codomain_subset)}
 
-            if isinstance(codomain_subset, RelativeInterior) and is_Polyhedron(codomain_subset.closure()):
+            if isinstance(codomain_subset, RelativeInterior) and isinstance(codomain_subset.closure(), sage.geometry.abc.Polyhedron):
                 return {chart: ManifoldSubsetPullback._polyhedron_restriction(
                                    chart, codomain_subset.closure(), relint=True)}
 
@@ -803,7 +803,7 @@ class ManifoldSubsetPullback(ManifoldSubset):
         elif isinstance(self._codomain_subset, RealSet):
             # RealSet can decide closedness authoritatively
             return self._codomain_subset.is_closed()
-        elif is_Polyhedron(self._codomain_subset):
+        elif isinstance(self._codomain_subset, sage.geometry.abc.Polyhedron):
             # Regardless of their base_ring, we treat polyhedra as closed
             # convex subsets of R^n
             return True

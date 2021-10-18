@@ -401,6 +401,9 @@ Sage can be installed onto linux running on Windows Subsystem for Linux (WSL). T
 
 From this point on, follow the instructions in the :ref:`sec-installation-from-sources-linux-recommended-installation` section.
 
+In case `make` encounters permission errors of the kind `"[Errno 13] Permission denied: 'build/bdist.linux-x86_64/wheel/<package>.dist-info'"`, then create a temporary build folder using `mkdir -p ~/tmp/sage` and use it for building by `eval SAGE_BUILD_DIR="~/tmp/sage" make`.
+Also see the `related Github issue <https://github.com/pypa/packaging-problems/issues/258>`_ for other workarounds.
+
 When the installation is complete, you may be interested in :ref:`sec-launching-wsl-post-installation`.
 
 Other platforms

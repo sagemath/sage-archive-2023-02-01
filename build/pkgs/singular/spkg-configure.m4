@@ -1,5 +1,5 @@
 SAGE_SPKG_CONFIGURE([singular], [
-  SAGE_SPKG_DEPCHECK([gmp mpir ntl flint readline mpfr cddlib], [
+  SAGE_SPKG_DEPCHECK([gmp ntl flint readline mpfr cddlib], [
 
     AC_PATH_PROG([SINGULAR_BIN], [Singular])
     AS_IF([test -z "${SINGULAR_BIN}"], [sage_spkg_install_singular=yes], [

@@ -52,6 +52,7 @@ from .integer cimport Integer
 
 from .complex_double cimport ComplexDoubleElement
 from .real_mpfr cimport RealNumber
+from sage.libs.gsl.complex cimport *
 
 from sage.libs.mpmath.utils cimport mpfr_to_mpfval
 from sage.rings.integer_ring import ZZ
@@ -3450,8 +3451,9 @@ cdef class CCtoCDF(Map):
             0.7071067811865476 + 0.7071067811865475*I
         """
         z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
-        z._complex.real = mpfr_get_d((<ComplexNumber>x).__re, MPFR_RNDN)
-        z._complex.imag = mpfr_get_d((<ComplexNumber>x).__im, MPFR_RNDN)
+        GSL_SET_COMPLEX(&z._complex,
+                        mpfr_get_d((<ComplexNumber>x).__re, MPFR_RNDN),
+                        mpfr_get_d((<ComplexNumber>x).__im, MPFR_RNDN))
         return z
 
 

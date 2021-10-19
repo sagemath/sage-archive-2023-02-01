@@ -110,7 +110,7 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        stage: ["1", "2"]
+        stage: ["1", "2", "2-optional-0-g", "2-optional-h-o", "2-optional-p", "2-optional-q-z"]
         tox_system_factor: [homebrew-macos, conda-forge-macos]
         tox_packages_factor: [minimal, standard]
         # As of 2021-03, default xcode is 12.4
@@ -193,8 +193,15 @@ jobs:
         # For doctesting, we use a lower parallelization to avoid timeouts.
         run: |
           case "${{ matrix.stage }}" in
-            1) export TARGETS_PRE="all-sage-local" TARGETS="all-sage-local" TARGETS_OPTIONAL="";;
-            2) export TARGETS_PRE="all-sage-local" TARGETS="build doc-html" TARGETS_OPTIONAL="ptest";;
+            1)               export TARGETS_PRE="all-sage-local" TARGETS="all-sage-local" TARGETS_OPTIONAL=""
+                             ;;
+            2)               export TARGETS_PRE="all-sage-local" TARGETS="build doc-html" TARGETS_OPTIONAL="ptest"
+                             ;;
+            2-optional*)     export TARGETS_PRE="build/make/Makefile" TARGETS="build/make/Makefile"
+                             targets_pattern="${{ matrix.stage }}"
+                             targets_pattern="${targets_pattern#2-optional-}"
+                             export TARGETS_OPTIONAL=$( echo $(export PATH=build/bin:$PATH && (sage-package list :optional: --has-file spkg-install.in && sage-package list :optional: --has-file spkg-install && sage-package list :optional: --has-file requirements.txt) | grep -v ^_ | grep -v  database_stein_watkins\\$ | grep -v polytopes_db_4d | grep -v cplex | grep -v gurobi | grep "^[$targets_pattern]" ) )
+                             ;;
           esac
           MAKE="make -j12" tox -e $TOX_ENV -- SAGE_NUM_THREADS=4 $TARGETS
       - name: Prepare logs artifact

@@ -186,6 +186,7 @@ jobs:
       - name: Extract sage-local artifact
         # This is macOS tar -- cannot use --listed-incremental
         run: |
+          export SAGE_LOCAL=$(pwd)/.tox/$TOX_ENV/local
           .github/workflows/extract-sage-local.sh sage-local-artifact/sage-local-*.tar
         if: contains(matrix.stage, '2')
       - name: Build and test with tox

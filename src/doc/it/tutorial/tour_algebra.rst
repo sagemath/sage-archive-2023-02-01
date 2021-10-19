@@ -1,5 +1,4 @@
 Algebra di base e Analisi
-
 =========================
 
 Sage sa svolgere diversi calcoli legati all'algebra di base
@@ -156,7 +155,7 @@ Si può anche calcolare la trasformata di Laplace; la trasformata di Laplace di
 Il successivo è un esempio più articolato. Lo scostamento dall'equilibrio
 (rispettivamente) per due molle accoppiate fissate ad un muro a sinistra
 
-::
+.. CODE-BLOCK:: text
 
     |------\/\/\/\/\---|massa1|----\/\/\/\/\/----|massa2|
              molla1                  molla2
@@ -164,9 +163,9 @@ Il successivo è un esempio più articolato. Lo scostamento dall'equilibrio
 è modellizzato dal sistema di equazioni differenziali del secondo ordine
 
 .. math::
+
     m_1 x_1'' + (k_1+k_2) x_1 - k_2 x_2 = 0
     m_2 x_2''+ k_2 (x_2-x_1) = 0,
-
 
 
 dove :math:`m_{i}` è la massa dell'oggetto *i*, :math:`x_{i}` è
@@ -245,9 +244,7 @@ Essa può essere disegnata in forma parametrica usando
     ....: (0, 2*pi), rgbcolor=hue(0.9))
     sage: show(P)
 
-Le singole componenti possono essere tracciate usando:
-
-::
+Le singole componenti possono essere tracciate usando::
 
     sage: t = var('t')
     sage: p1 = plot(cos(2*t) + 2*cos(t), 0, 2*pi, rgbcolor=hue(0.3))

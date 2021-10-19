@@ -16910,11 +16910,12 @@ cdef class Matrix(Matrix1):
 
         """
         from sage.symbolic.ring import SR
-        from sage.geometry.cone import is_Cone
+        import sage.geometry.abc
 
         if K2 is None:
             K2 = K1
-        if not ( is_Cone(K1) and is_Cone(K2) ):
+        if not (isinstance(K1, sage.geometry.abc.ConvexRationalPolyhedralCone)
+                and isinstance(K2, sage.geometry.abc.ConvexRationalPolyhedralCone)):
             raise TypeError('K1 and K2 must be cones.')
         if not self.base_ring().is_exact() and not self.base_ring() is SR:
             msg = 'The base ring of the matrix is neither symbolic nor exact.'
@@ -17053,9 +17054,9 @@ cdef class Matrix(Matrix1):
 
         """
         from sage.symbolic.ring import SR
-        from sage.geometry.cone import is_Cone
+        import sage.geometry.abc
 
-        if not is_Cone(K):
+        if not isinstance(K, sage.geometry.abc.ConvexRationalPolyhedralCone):
             raise TypeError('K must be a cone.')
         if not self.base_ring().is_exact() and not self.base_ring() is SR:
             msg = 'The base ring of the matrix is neither symbolic nor exact.'
@@ -17320,9 +17321,9 @@ cdef class Matrix(Matrix1):
 
         """
         from sage.symbolic.ring import SR
-        from sage.geometry.cone import is_Cone
+        import sage.geometry.abc
 
-        if not is_Cone(K):
+        if not isinstance(K, sage.geometry.abc.ConvexRationalPolyhedralCone):
             raise TypeError('K must be a cone.')
         if not self.base_ring().is_exact() and not self.base_ring() is SR:
             msg = 'The base ring of the matrix is neither symbolic nor exact.'

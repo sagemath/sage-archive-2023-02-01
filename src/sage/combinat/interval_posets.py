@@ -597,6 +597,37 @@ class TamariIntervalPoset(Element,
                                 format='vertices_and_edges'))
         return TamariIntervalPoset(P, check=False)  # type:ignore
 
+    def factor(self) -> list[TamariIntervalPoset]:
+        """
+        Return the unique decomposition as a list of connected components.
+
+        EXAMPLES::
+
+            sage: factor(TamariIntervalPoset(2,[]))  # indirect doctest
+            [The Tamari interval of size 1 induced by relations [],
+             The Tamari interval of size 1 induced by relations []]
+
+        .. SEEALSO:: :meth:`is_connected`
+
+        TESTS::
+
+            sage: T = TamariIntervalPosets(20).random_element()
+            sage: facs = factor(T)
+            sage: all(U.is_connected() for U in facs)
+            True
+            sage: T == prod(facs)
+            True
+        """
+        hasse = self.poset().hasse_diagram()
+        cc = hasse.connected_components_subgraphs()
+        resu = []
+        for comp in sorted(cc, key=min):
+            shift = 1 - min(comp)
+            comp.relabel(lambda i: i + shift)
+            resu.append(TamariIntervalPoset(len(comp),
+                                            comp.edges(labels=False)))
+        return resu
+
     def __hash__(self):
         """
         Return the hash of ``self``.
@@ -2779,7 +2810,7 @@ class TamariIntervalPoset(Element,
 
         This condition is invariant under complementation.
 
-        .. SEEALSO:: :meth:`is_indecomposable`
+        .. SEEALSO:: :meth:`is_indecomposable`, :meth:`factor`
 
         EXAMPLES::
 

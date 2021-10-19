@@ -180,15 +180,15 @@ class WeylGroups(Category_singleton):
                 sage: W.bruhat_cone(x, y, side = 'lower')
                 A 6-dimensional polyhedron in QQ^8 defined as the convex hull of 1 vertex and 6 rays
             """
-            from sage.modules.free_module_element import vector
+            vect = LazyImport('sage.modules.free_module_element', 'vector')
             if side == 'upper':
-                roots = [vector((x*r*x.inverse()).reflection_to_root().to_ambient()) for z, r in x.bruhat_upper_covers_reflections() if z.bruhat_le(y)]
+                roots = [vect((x*r*x.inverse()).reflection_to_root().to_ambient()) for z, r in x.bruhat_upper_covers_reflections() if z.bruhat_le(y)]
             elif side == 'lower':
-                roots = [vector((y*r*y.inverse()).reflection_to_root().to_ambient()) for z, r in y.bruhat_lower_covers_reflections() if x.bruhat_le(z)]
+                roots = [vect((y*r*y.inverse()).reflection_to_root().to_ambient()) for z, r in y.bruhat_lower_covers_reflections() if x.bruhat_le(z)]
             else:
                 raise ValueError("side must be either 'upper' or 'lower'")
-            from sage.geometry.polyhedron.constructor import Polyhedron
-            return Polyhedron(vertices = [vector([0]*self.degree())], rays = roots, ambient_dim = self.degree())
+            Polyhe = LazyImport('sage.geometry.polyhedron.constructor', 'Polyhedron')
+            return Polyhe(vertices = [vect([0]*self.degree())], rays = roots, ambient_dim = self.degree())
 
         @cached_method
         def quantum_bruhat_graph(self, index_set=()):

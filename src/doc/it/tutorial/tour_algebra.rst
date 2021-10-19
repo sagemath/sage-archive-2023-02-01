@@ -286,7 +286,7 @@ per :math:`y(x+h)`:
 
 Se chiamiamo :math:`h f(x,y(x))` il "termine di correzione" (per mancanza
 di un termine migliore), :math:`y(x)` il "vecchio valore di *y*", e
- :math:`y(x+h)` il "nuovo valore di *y*", allora questa
+:math:`y(x+h)` il "nuovo valore di *y*", allora questa
 approssimazione può essere espressa come
 
 .. math::   y_{new} \approx y_{old} + h*f(x,y_{old}).
@@ -381,9 +381,7 @@ e "Funzioni speciali", rispettivamente) del manuale di Sage.
 
 A questo punto, Sage ha soltanto incorporato queste funzioni per l'uso numerico.
 Per l'uso simbolico, si usi direttamente l'intefaccia di Maxima, come
-nell'esempio seguente:
-
-::
+nell'esempio seguente::
 
     sage: maxima.eval("f:bessel_y(v, w)")
     'bessel_y(v,w)'

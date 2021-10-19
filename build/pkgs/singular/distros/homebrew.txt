@@ -1,5 +1,1 @@
-# [2021-03-20] Homebrew's Singular can be built from source
-# (via `brew install -s`, or implied when using `brew` with
-# a non-standard prefix), but that currently fails.
-
-#singular
+singular

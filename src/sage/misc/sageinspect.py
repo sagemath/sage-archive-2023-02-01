@@ -529,7 +529,7 @@ class SageArgSpecVisitor(ast.NodeVisitor):
             sage: [vis(n) for n in ['True', 'False', 'None']]  # py3
             [True, False, None]
             sage: [type(vis(n)) for n in ['True', 'False', 'None']]  # py3
-            [<type 'bool'>, <type 'bool'>, <type 'NoneType'>]
+            [<class 'bool'>, <class 'bool'>, <class 'NoneType'>]
         """
 
         return node.value

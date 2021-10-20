@@ -613,7 +613,7 @@ class PartitionTuple(CombinatorialElement):
         return '%s' % '|'.join(mu._repr_compact_high() for mu in self)
 
     # override default string representation which is str(self._list)
-    __str__ = lambda self: self._repr_()
+    __str__ = lambda self: self._repr_()  # type: ignore
 
     def _latex_(self):
         r"""

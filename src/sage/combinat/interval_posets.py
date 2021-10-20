@@ -537,7 +537,7 @@ class TamariIntervalPoset(Element,
 
         return start + nodes + relations + end
 
-    def poset(self) -> Poset:
+    def poset(self):
         r"""
         Return ``self`` as a labelled poset.
 
@@ -594,7 +594,7 @@ class TamariIntervalPoset(Element,
         relations.extend([(i + n, j + n)
                           for i, j in other._poset.cover_relations_iterator()])
         P = FinitePoset(DiGraph([list(range(1, n + m + 1)), relations],
-                                format='vertices_and_edges'))
+                                format='vertices_and_edges'))  # type:ignore
         return TamariIntervalPoset(P, check=False)  # type:ignore
 
     def __hash__(self):
@@ -1057,7 +1057,7 @@ class TamariIntervalPoset(Element,
         new_covers = [[N - i, N - j]
                       for i, j in self._poset.cover_relations_iterator()]
         P = FinitePoset(DiGraph([list(range(1, N)), new_covers],
-                                format='vertices_and_edges'))
+                                format='vertices_and_edges'))  # type:ignore
         return TamariIntervalPoset(P, check=False)  # type:ignore
 
     def left_branch_involution(self) -> TIP:
@@ -1709,7 +1709,7 @@ class TamariIntervalPoset(Element,
         """
         relations = self.increasing_cover_relations()
         P = FinitePoset(DiGraph([list(range(1, self._size + 1)), relations],
-                                format='vertices_and_edges'))
+                                format='vertices_and_edges'))  # type:ignore
         return TamariIntervalPoset(P, check=False)  # type:ignore
 
     def final_forest(self) -> TIP:
@@ -1729,7 +1729,7 @@ class TamariIntervalPoset(Element,
         """
         relations = self.decreasing_cover_relations()
         P = FinitePoset(DiGraph([list(range(1, self._size + 1)), relations],
-                                format='vertices_and_edges'))
+                                format='vertices_and_edges'))  # type:ignore
         return TamariIntervalPoset(P, check=False)  # type:ignore
 
     def is_initial_interval(self) -> bool:
@@ -1979,7 +1979,7 @@ class TamariIntervalPoset(Element,
         perm: list[int] = []
         for i in sorted(final_forest.sinks()):
             add(perm, i)
-        return Permutation(perm)
+        return Permutation(perm)  # type:ignore
 
     def max_linear_extension(self) -> Permutation:
         r"""
@@ -2029,7 +2029,7 @@ class TamariIntervalPoset(Element,
         perm: list[int] = []
         for i in sorted(initial_forest.sinks(), reverse=True):
             add(perm, i)
-        return Permutation(perm)
+        return Permutation(perm)  # type:ignore
 
     def linear_extensions(self) -> Iterator:
         r"""
@@ -2051,7 +2051,7 @@ class TamariIntervalPoset(Element,
             [[4, 1, 2, 3], [1, 2, 4, 3], [1, 4, 2, 3]]
         """
         for ext in self._poset.linear_extensions():
-            yield Permutation(ext)
+            yield Permutation(ext)  # type:ignore
 
     def lower_contained_intervals(self) -> Iterator:
         r"""
@@ -3045,7 +3045,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         roots, relations, index = get_relations(binary_tree)
         P = FinitePoset(DiGraph([list(range(1, index)), relations],
-                                format='vertices_and_edges'))
+                                format='vertices_and_edges'))  # type:ignore
         return TamariIntervalPoset(P, check=False)  # type:ignore
 
     @staticmethod
@@ -3153,7 +3153,7 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
 
         roots, relations, index = get_relations(binary_tree)
         P = FinitePoset(DiGraph([list(range(1, index)), relations],
-                                format='vertices_and_edges'))
+                                format='vertices_and_edges'))  # type:ignore
         return TamariIntervalPoset(P, check=False)  # type:ignore
 
     @staticmethod
@@ -3470,8 +3470,8 @@ class TamariIntervalPosets(UniqueRepresentation, Parent):
                          if u[2] == color_b])
         dyckword_top += [1] + [0] * indegree1
 
-        dyckword_bottom = DyckWord(dyckword_bottom)
-        dyckword_top = DyckWord(dyckword_top)
+        dyckword_bottom = DyckWord(dyckword_bottom)  # type:ignore
+        dyckword_top = DyckWord(dyckword_top)  # type:ignore
         TIP = TamariIntervalPosets(len(dyckword_bottom) // 2)
         return TIP.from_dyck_words(dyckword_bottom, dyckword_top)
 

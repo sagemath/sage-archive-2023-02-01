@@ -2033,7 +2033,7 @@ class DyckWord_complete(DyckWord):
             return (T, T)
         else:
             left: list[list[int]] = [[], []]
-            right:list[list[int]] = [[], []]
+            right: list[list[int]] = [[], []]
             for pos in range(n):
                 if self[pos] == open_symbol:
                     left[0].append(pos + 1)

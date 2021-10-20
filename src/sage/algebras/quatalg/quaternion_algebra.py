@@ -1902,6 +1902,24 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             2*i - 212*j + 2*k
             sage: I.gens()[0] * i
             2*i + 212*j - 2*k
+
+        TESTS:
+
+        Check that :trac:`32726` is fixed::
+
+            sage: Q.<i,j,k> = QuaternionAlgebra(-1,-19)
+            sage: I = Q.ideal([1,i,j,k])
+            sage: _ = I.left_order(), I.right_order()   # cache
+            sage: span = lambda L: L.basis_matrix().row_module(ZZ)
+            sage: for left in (True,False):
+            ....:     J = I.scale(1+i+j+k, left=left)
+            ....:     Ol, Or = J.left_order(), J.right_order()
+            ....:     [
+            ....:       span(Ol.unit_ideal() * J) <= span(J),
+            ....:       span(J * Or.unit_ideal()) <= span(J),
+            ....:     ]
+            [True, True]
+            [True, True]
         """
         Q = self.quaternion_algebra()
         alpha = Q(alpha)
@@ -1909,8 +1927,10 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             gens = [alpha * b for b in self.basis()]
         else:
             gens = [b * alpha for b in self.basis()]
-        return Q.ideal(gens, left_order=self.__left_order,
-                       right_order=self.__right_order, check=False)
+        left_order = self.__left_order if alpha in QQ or not left else None
+        right_order = self.__right_order if alpha in QQ or left else None
+        return Q.ideal(gens, check=False,
+                       left_order=left_order, right_order=right_order)
 
     def quaternion_algebra(self):
         """

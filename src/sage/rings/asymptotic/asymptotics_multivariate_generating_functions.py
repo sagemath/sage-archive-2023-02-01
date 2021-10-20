@@ -1757,7 +1757,8 @@ class FractionWithFactoredDenominator(RingElement):
         """
         from sage.calculus.functions import jacobian
         from sage.calculus.var import function
-        from sage.functions.other import factorial, sqrt
+        from sage.functions.other import factorial
+        from sage.misc.functional import sqrt
         from sage.functions.gamma import gamma
         from sage.functions.log import exp, log
         from sage.matrix.constructor import matrix
@@ -2138,7 +2139,8 @@ class FractionWithFactoredDenominator(RingElement):
         from sage.calculus.var import function
         from sage.combinat.combinat import stirling_number1
         from sage.functions.log import exp, log
-        from sage.functions.other import factorial, sqrt
+        from sage.functions.other import factorial
+        from sage.misc.functional import sqrt
         from sage.matrix.constructor import matrix
         from sage.misc.mrange import xmrange
         from sage.modules.free_module_element import vector

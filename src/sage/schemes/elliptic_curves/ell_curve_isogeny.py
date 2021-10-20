@@ -1226,10 +1226,11 @@ class EllipticCurveIsogeny(EllipticCurveHom):
 
     def _richcmp_(self, other, op):
         r"""
-        Function that implements comparisons between isogeny objects.
+        Compare :class:`EllipticCurveIsogeny` objects.
 
-        This function works by comparing the underlying kernel
-        objects.
+        ALGORITHM:
+
+        This method compares domains, codomains, and :meth:`rational_maps`.
 
         EXAMPLES::
 
@@ -1254,9 +1255,6 @@ class EllipticCurveIsogeny(EllipticCurveHom):
             sage: phi.dual() == psi.dual()
             True
         """
-        if (self.__kernel_polynomial is None):
-            self.__init_kernel_polynomial()
-
         # We cannot just compare kernel polynomials, as was done until
         # Trac #11327, as then phi and -phi compare equal, and
         # similarly with phi and any composition of phi with an

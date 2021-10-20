@@ -717,7 +717,7 @@ class NotANumber(Constant):
             sage: NaN._mpfr_(RealField(53))
             NaN
             sage: type(_)
-            <type 'sage.rings.real_mpfr.RealNumber'>
+            <class 'sage.rings.real_mpfr.RealNumber'>
         """
         return R('NaN') #??? nan in mpfr: void mpfr_set_nan (mpfr_t x)
 
@@ -787,7 +787,7 @@ class GoldenRatio(Constant):
             sage: golden_ratio.minpoly()
             x^2 - x - 1
         """
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         x = QQ['x'].gen(0)
         return x**2 - x - 1
 

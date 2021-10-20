@@ -1934,7 +1934,9 @@ class TransitiveGroupsAll(DisjointUnionEnumeratedSets):
             Category of facade infinite enumerated sets
             sage: TestSuite(TransitiveGroups()).run()
         """
-        DisjointUnionEnumeratedSets.__init__(self, Family(NonNegativeIntegers(), lambda i: TransitiveGroups(i)) )
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             Family(NonNegativeIntegers(),
+                                                    TransitiveGroups))
 
     # We override the __call__ as the elements are not instances of Element
     __call__ = DisjointUnionEnumeratedSets._element_constructor_facade
@@ -2125,9 +2127,9 @@ class TransitiveGroupsOfDegree(CachedRepresentation, Parent):
         TESTS::
 
             sage: type(TransitiveGroups(12).cardinality())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
             sage: type(TransitiveGroups(0).cardinality())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         # gap.NrTransitiveGroups(0) fails, so Sage needs to handle this
 
@@ -2338,7 +2340,9 @@ class PrimitiveGroupsAll(DisjointUnionEnumeratedSets):
             sage: S.category()
             Category of facade infinite enumerated sets
         """
-        DisjointUnionEnumeratedSets.__init__(self, Family(NonNegativeIntegers(), lambda i: PrimitiveGroups(i)) )
+        DisjointUnionEnumeratedSets.__init__(self,
+                                             Family(NonNegativeIntegers(),
+                                                    PrimitiveGroups))
 
     def _repr_(self):
         """
@@ -2515,9 +2519,9 @@ class PrimitiveGroupsOfDegree(CachedRepresentation, Parent):
         TESTS::
 
             sage: type(PrimitiveGroups(12).cardinality())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
             sage: type(PrimitiveGroups(0).cardinality())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
 
         Check for :trac:`31774`::
 

@@ -296,6 +296,15 @@ class PiecewiseFunction(BuiltinFunction):
             sage: f.diff(x,x)
             piecewise(x|-->2 on (-1, 1), x|-->6*x on (1, 3); x)
 
+        This still fails miserably::
+
+            sage: y = SR.var('y')
+            sage: f = piecewise([ [(-6,0), x+y], [(0,8), x*y]],var=x)
+            sage: f.derivative(x)  # known bug
+            piecewise(x|-->1 on (-6, 0), x|-->y on (0, 8); x)
+            sage: f.derivative(y)  # known bug
+            piecewise(x|-->1 on (-6, 0), x|-->x on (0, 8); x)
+
         TESTS::
 
             sage: f = piecewise([((-oo, -1),0), ((-1, 1),exp(-1/(1 - x^2))), ((1, oo),0)])

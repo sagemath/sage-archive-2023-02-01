@@ -3263,7 +3263,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 numer = self.numer()
                 rat_part = Rational((numer-2).multifactorial(2)) >> ((numer-1)//2)
                 from sage.symbolic.constants import pi
-                from sage.functions.all import sqrt
+                from sage.misc.functional import sqrt
                 return sqrt(pi) * rat_part
             else:
                 from sage.symbolic.ring import SR

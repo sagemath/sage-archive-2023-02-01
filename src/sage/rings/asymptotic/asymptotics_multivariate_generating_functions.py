@@ -4163,7 +4163,7 @@ def diff_op_simple(A, B, AB_derivs, x, v, a, N):
          ((1, 1),
           1/4*2^(2/3)*(B(x)*diff(A(x), x, x, x, x) + 4*diff(A(x), x, x, x)*diff(B(x), x) + 6*diff(A(x), x, x)*diff(B(x), x, x) + 4*diff(A(x), x)*diff(B(x), x, x, x) + A(x)*diff(B(x), x, x, x, x)))]
     """
-    from sage.functions.other import sqrt
+    from sage.misc.functional import sqrt
 
     I = sqrt(-ZZ.one())
     DD = {}

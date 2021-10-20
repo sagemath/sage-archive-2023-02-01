@@ -166,21 +166,30 @@ def setup_for_eval_on_grid(funcs,
         # himself, and the result of fast_callable() can't be
         # fast-callabled again.
         from sage.rings.complex_double import CDF
+        from sage.ext.interpreters.wrapper_cdf import Wrapper_cdf
+
         if hasattr(f, '_fast_callable_'):
             ff = fast_callable(f, vars=vars, expect_one_var=eov, domain=CDF)
             return FastCallablePlotWrapper(ff, imag_tol=imaginary_tolerance)
+        elif isinstance(f, Wrapper_cdf):
+            # Already a fast-callable, just wrap it. This can happen
+            # if, for example, a symolic expression is passed to a
+            # higher-level plot() function that converts it to a
+            # fast-callable with expr._plot_fast_callable() before
+            # we ever see it.
+            return FastCallablePlotWrapper(f, imag_tol=imaginary_tolerance)
+        elif hasattr(f, '__call__'):
+            # This will catch python functions, among other things. We don't
+            # wrap these yet because we don't know what type they'll return.
+            return f
         else:
-            if hasattr(f, '__call__'):
-                return f
-            else:
-                # Convert things like ZZ(0) into constant functions.
-                from sage.symbolic.ring import SR
-                ff = fast_callable(SR(f),
-                                   vars=vars,
-                                   expect_one_var=eov,
-                                   domain=CDF)
-                return FastCallablePlotWrapper(ff,
-                                               imag_tol=imaginary_tolerance)
+            # Convert things like ZZ(0) into constant functions.
+            from sage.symbolic.ring import SR
+            ff = fast_callable(SR(f),
+                               vars=vars,
+                               expect_one_var=eov,
+                               domain=CDF)
+            return FastCallablePlotWrapper(ff, imag_tol=imaginary_tolerance)
 
     # Handle vectors, lists, tuples, etc.
     if hasattr(funcs, "__iter__"):

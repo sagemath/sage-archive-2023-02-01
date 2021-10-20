@@ -34,7 +34,7 @@ from functools import reduce
 from .external import available_software
 
 float_regex = re.compile(r'\s*([+-]?\s*((\d*\.?\d+)|(\d+\.?))([eE][+-]?\d+)?)')
-optional_regex = re.compile(r'(arb216|arb218|py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w)*))')
+optional_regex = re.compile(r'(arb216|arb218|py2|py3|long time|not implemented|not tested|known bug)|([^ a-z]\s*optional\s*[:-]*((\s|\w|[.])*))')
 # Version 4.65 of glpk prints the warning "Long-step dual simplex will
 # be used" frequently. When Sage uses a system installation of glpk
 # which has not been patched, we need to ignore that message.
@@ -83,9 +83,17 @@ def RIFtol(*args):
     """
     global _RIFtol
     if _RIFtol is None:
-        # We need to import from sage.all to avoid circular imports.
-        from sage.all import RealIntervalField
-        _RIFtol = RealIntervalField(1044)
+        try:
+            # We need to import from sage.all to avoid circular imports.
+            from sage.all import RealIntervalField
+        except ImportError:
+            from warnings import warn
+            warn("RealIntervalField not available, ignoring all tolerance specifications in doctests")
+            def fake_RIFtol(*args):
+                return 0
+            _RIFtol = fake_RIFtol
+        else:
+            _RIFtol = RealIntervalField(1044)
     return _RIFtol(*args)
 
 # This is the correct pattern to match ISO/IEC 6429 ANSI escape sequences:
@@ -316,6 +324,8 @@ def parse_optional_tags(string):
         {''}
         sage: sorted(list(parse_optional_tags("sage: #optional -- foo bar, baz")))
         ['bar', 'foo']
+        sage: parse_optional_tags("sage: #optional -- foo.bar, baz")
+        {'foo.bar'}
         sage: sorted(list(parse_optional_tags("    sage: factor(10^(10^10) + 1) # LoNg TiME, NoT TeSTED; OptioNAL -- P4cka9e")))
         ['long time', 'not tested', 'p4cka9e']
         sage: parse_optional_tags("    sage: raise RuntimeError # known bug")

@@ -45,11 +45,11 @@ from sage.categories.infinite_enumerated_sets import InfiniteEnumeratedSets
 from sage.misc.inherit_comparison import InheritComparisonClasscallMetaclass
 from sage.misc.cachefunc import cached_method
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 from sage.combinat.partition import Partitions
 from sage.combinat.tableau import Tableau, SemistandardTableaux
 from sage.combinat.combinatorial_map import combinatorial_map
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 
 
 class GelfandTsetlinPattern(ClonableArray,
@@ -150,7 +150,7 @@ class GelfandTsetlinPattern(ClonableArray,
         """
         return GelfandTsetlinPatterns()(gt)
 
-    def check(self) -> bool:
+    def check(self):
         """
         Check that this is a valid Gelfand-Tsetlin pattern.
 
@@ -159,8 +159,8 @@ class GelfandTsetlinPattern(ClonableArray,
             sage: G = GelfandTsetlinPatterns()
             sage: G([[3,2,1],[2,1],[1]]).check()
         """
-        assert all( self[i-1][j] >= self[i][j] >= self[i-1][j+1]
-                    for i in range(1, len(self)) for j in range(len(self[i])) )
+        assert all(self[i - 1][j] >= self[i][j] >= self[i - 1][j + 1]
+                   for i in range(1, len(self)) for j in range(len(self[i])))
 
     def _hash_(self) -> int:
         """

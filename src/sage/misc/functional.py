@@ -21,6 +21,7 @@ AUTHORS:
 #                  https://www.gnu.org/licenses/
 # ****************************************************************************
 import builtins
+import math
 
 from sage.rings.complex_double import CDF
 from sage.rings.real_double import RDF, RealDoubleElement
@@ -1722,9 +1723,11 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
     """
     if prec:
         if x >= 0:
-             return RealField(prec)(x).sqrt(all=all)
+            from sage.rings.real_mpfr import RealField
+            return RealField(prec)(x).sqrt(all=all)
         else:
-             return ComplexField(prec)(x).sqrt(all=all)
+            from sage.rings.complex_mpfr import ComplexField
+            return ComplexField(prec)(x).sqrt(all=all)
     if x == -1:
         from sage.symbolic.expression import I
         z = I

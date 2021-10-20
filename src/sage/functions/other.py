@@ -21,7 +21,11 @@ lazy_import('sage.functions.gamma',
 from sage.symbolic.function import GinacFunction, BuiltinFunction
 from sage.symbolic.expression import Expression, register_symbol, symbol_table
 from sage.symbolic.ring import SR
-from sage.rings.all import Integer, Rational, RealField, ZZ, ComplexField
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational import Rational
+from sage.rings.complex_mpfr import ComplexField
+from sage.rings.real_mpfr import RealField
 from sage.misc.latex import latex
 from sage.structure.element import Element
 import math

@@ -29,4 +29,4 @@ Indici e tabelle
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`cerca`
+* :ref:`search`

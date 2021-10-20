@@ -500,14 +500,14 @@ class FastCallablePlotWrapper:
         sage: from sage.plot.misc import FastCallablePlotWrapper
         sage: f = sqrt(x)
         sage: ff = fast_callable(f, vars=[x], domain=CDF)
-        sage: fff = FastCallablePlotWrapper(ff)
+        sage: fff = FastCallablePlotWrapper(ff, imag_tol=1e-8)
         sage: fff(1)
         1.0
         sage: fff(-1)
         nan
 
     """
-    def __init__(self, ff, imag_tol=1e-8):
+    def __init__(self, ff, imag_tol):
         r"""
         Construct a ``FastCallablePlotWrapper``.
 
@@ -522,18 +522,19 @@ class FastCallablePlotWrapper:
 
         OUTPUT:
 
-        An instance of ``FastCallablePlotWrapper`` that can be called just
-        like ``ff``, but that always returns a ``float``, even if it is ``nan``.
+        An instance of ``FastCallablePlotWrapper`` that can be called
+        just like ``ff``, but that always returns a ``float``, even if
+        it is ``nan``.
 
         EXAMPLES:
 
-        The default imaginary tolerance will ignore an imaginary part
-        smaller in magnitude than ``1e-8``, but this can be changed::
+        The wrapper will ignore an imaginary part smaller in magnitude
+        than ``imag_tol``::
 
             sage: from sage.plot.misc import FastCallablePlotWrapper
             sage: f = x
             sage: ff = fast_callable(f, vars=[x], domain=CDF)
-            sage: fff = FastCallablePlotWrapper(ff)
+            sage: fff = FastCallablePlotWrapper(ff, imag_tol=1e-8)
             sage: fff(I*1e-9)
             0.0
             sage: fff = FastCallablePlotWrapper(ff, imag_tol=1e-12)
@@ -546,7 +547,8 @@ class FastCallablePlotWrapper:
 
     def __call__(self, *args):
         r"""
-        Evaluate the underlying fast-callable and convert the result to ``float``.
+        Evaluate the underlying fast-callable and convert the result to
+        ``float``.
 
         TESTS:
 
@@ -556,7 +558,7 @@ class FastCallablePlotWrapper:
             sage: set_random_seed()
             sage: f = x
             sage: ff = fast_callable(f, vars=[x], domain=CDF)
-            sage: fff = FastCallablePlotWrapper(ff)
+            sage: fff = FastCallablePlotWrapper(ff, imag_tol=1e-8)
             sage: type(fff(CDF.random_element())) is float
             True
 

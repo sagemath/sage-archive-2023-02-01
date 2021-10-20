@@ -1705,7 +1705,7 @@ def _do_sqrt(x, prec=None, extend=True, all=False):
 
     EXAMPLES::
 
-        sage: from sage.functions.other import _do_sqrt
+        sage: from sage.misc.functional import _do_sqrt
         sage: _do_sqrt(3)
         sqrt(3)
         sage: _do_sqrt(3,prec=10)

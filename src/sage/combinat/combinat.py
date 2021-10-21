@@ -150,7 +150,10 @@ Functions and classes
 # ****************************************************************************
 from typing import Iterator
 
-from sage.rings.all import ZZ, QQ, Integer, infinity
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.integer import Integer
+from sage.rings.infinity import infinity
 from sage.arith.all import bernoulli, factorial
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing

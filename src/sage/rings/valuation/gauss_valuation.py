@@ -795,7 +795,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
             1
 
         """
-        from sage.rings.all import infinity
+        from sage.rings.infinity import infinity
         coefficients = f.coefficients(sparse=True)
         coefficients.reverse()
         ret = infinity
@@ -826,7 +826,7 @@ class GaussValuation_generic(NonFinalInductiveValuation):
         f = self.domain().coerce(f)  
         coefficients = f.coefficients(sparse=True)
         if not coefficients:
-            from sage.rings.all import infinity
+            from sage.rings.infinity import infinity
             return infinity
         else:
             return self._base_valuation.upper_bound(coefficients[-1])

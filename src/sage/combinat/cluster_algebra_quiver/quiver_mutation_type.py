@@ -24,7 +24,7 @@ from copy import copy
 from sage.structure.unique_representation import UniqueRepresentation
 from sage.misc.cachefunc import cached_method
 from sage.rings.integer_ring import ZZ
-from sage.rings.infinite import infinity
+from sage.rings.infinity import infinity
 from sage.graphs.all import Graph, DiGraph
 from sage.arith.all import binomial, euler_phi
 from sage.misc.misc_c import prod

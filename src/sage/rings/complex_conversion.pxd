@@ -1,3 +1,3 @@
 cdef class CCtoCDF:
 
-    cpdef Element _call_(self, x):
+    cpdef Element _call_(self, x)

@@ -44,7 +44,7 @@ from sage.categories.integral_domains import IntegralDomains
 
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
-from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+import sage.rings.abc
 from sage.rings.integer_ring import is_IntegerRing
 
 import sage.modules.free_module
@@ -4830,7 +4830,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: B.multiplicative_order()
             1
 
-            sage: E = MatrixSpace(GF(11^2,'e'),5).random_element()
+            sage: M = MatrixSpace(GF(11^2,'e'),5)
+            sage: E = M.random_element()
+            sage: while E.det() == 0:
+            ....:     E = M.random_element()
             sage: (E^E.multiplicative_order()).is_one()
             True
 
@@ -5749,7 +5752,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         R = self.base_ring()
         if algorithm is None and R in _Fields:
             return ~self
-        elif algorithm is None and is_IntegerModRing(R):
+        elif algorithm is None and isinstance(R, sage.rings.abc.IntegerModRing):
             # Finite fields are handled above.
             # This is "easy" in that we either get an error or
             # the right answer. Note that of course there

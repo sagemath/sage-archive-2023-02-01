@@ -147,6 +147,7 @@ from cysignals.signals cimport sig_on, sig_str, sig_off, sig_error
 
 import sage.categories.fields
 
+cimport sage.rings.abc
 cimport sage.rings.rational
 
 from cpython.float cimport PyFloat_AS_DOUBLE
@@ -301,7 +302,8 @@ cdef int acb_calc_func_callback(acb_ptr out, const acb_t inp, void * param,
     finally:
         sig_on()
 
-class ComplexBallField(UniqueRepresentation, Field):
+
+class ComplexBallField(UniqueRepresentation, sage.rings.abc.ComplexBallField):
     r"""
     An approximation of the field of complex numbers using pairs of mid-rad
     intervals.
@@ -3643,11 +3645,13 @@ cdef class ComplexBall(RingElement):
 
             sage: CBF(1/2, 3).zetaderiv(1)
             [0.191759884092721...] + [-0.073135728865928...]*I
+            sage: CBF(2).zetaderiv(3)
+            [-6.0001458028430...]
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         Pol = PolynomialRing(self._parent, 'x')
         ser = Pol([self, 1])._zeta_series(k + 1)
-        return ser[k]
+        return ser[k]*ZZ.coerce(k).factorial()
 
     def lambert_w(self, branch=0):
         r"""

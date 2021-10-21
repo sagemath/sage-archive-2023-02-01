@@ -6431,17 +6431,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         TESTS::
 
-            sage: 1 << (2^60)                                        # optional - mpir
-            Traceback (most recent call last):
-            ...
-            MemoryError: failed to allocate ... bytes                # 64-bit
-            OverflowError: Python int too large to convert to C long # 32-bit
-
-            sage: 1 << (2^60)                                        # optional - gmp
-            Traceback (most recent call last):
-            ...
-            RuntimeError: Aborted                                    # 64-bit
-            OverflowError: Python int too large to convert to C long # 32-bit
+            sage: try:
+            ....:     print('Possible error output from gmp')
+            ....:     1 << (2^60)
+            ....: except (MemoryError, OverflowError, RuntimeError):
+            ....:     pass
+            ....: else:
+            ....:     print("Failed to raise exception")
+            Possible error output from gmp...
         """
         cdef long n
 
@@ -6794,7 +6791,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return self
 
-    def binomial(self, m, algorithm='mpir'):
+    def binomial(self, m, algorithm='gmp'):
         """
         Return the binomial coefficient "self choose m".
 
@@ -6802,9 +6799,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         - ``m`` -- an integer
 
-        - ``algorithm`` -- ``'mpir'`` (default) or ``'pari'``; ``'mpir'`` is
-          faster for small ``m``, and ``'pari'`` tends to be faster for
-          large ``m``
+        - ``algorithm`` -- ``'gmp'`` (default), ``'mpir'`` (an alias for
+          ``gmp``), or ``'pari'``; ``'gmp'`` is faster for small ``m``,
+          and ``'pari'`` tends to be faster for large ``m``
 
         OUTPUT:
 
@@ -6885,7 +6882,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return self
 
         # now call the various backend
-        if algorithm == 'mpir':
+        if algorithm == 'gmp' or algorithm == 'mpir':
             x = PY_NEW(Integer)
             if mpz_fits_ulong_p(mm.value):
                 sig_on()
@@ -6897,7 +6894,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         elif algorithm == 'pari':
             return the_integer_ring(self.__pari__().binomial(mm))
         else:
-            raise ValueError("algorithm must be one of: 'pari', 'mpir'")
+            raise ValueError("algorithm must be one of: 'pari' or 'gmp' (alias: 'mpir')")
 
 
 cdef int mpz_set_str_python(mpz_ptr z, char* s, int base) except -1:

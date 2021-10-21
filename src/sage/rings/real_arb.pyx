@@ -219,6 +219,7 @@ from sage.libs.mpfr cimport MPFR_RNDN, MPFR_RNDU, MPFR_RNDD, MPFR_RNDZ
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
 from sage.rings.ring cimport Field
+import sage.rings.abc
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.real_double cimport RealDoubleElement
@@ -320,7 +321,7 @@ cdef int arb_to_mpfi(mpfi_t target, arb_t source, const long precision) except -
         mpfr_clear(right)
 
 
-class RealBallField(UniqueRepresentation, Field):
+class RealBallField(UniqueRepresentation, sage.rings.abc.RealBallField):
     r"""
     An approximation of the field of real numbers using mid-rad intervals, also
     known as balls.
@@ -3605,11 +3606,13 @@ cdef class RealBall(RingElement):
 
             sage: RBF(1/2).zetaderiv(1)
             [-3.92264613920915...]
+            sage: RBF(2).zetaderiv(3)
+            [-6.0001458028430...]
         """
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         Pol = PolynomialRing(self._parent.complex_field(), 'x')
         ser = Pol([self, 1])._zeta_series(k + 1)
-        return ser[k].real()
+        return ser[k].real()*ZZ.coerce(k).factorial()
 
     def lambert_w(self):
         r"""

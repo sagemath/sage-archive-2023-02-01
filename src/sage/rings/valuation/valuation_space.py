@@ -1195,7 +1195,8 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
             """
             tester = self._tester(**options)
 
-            from sage.rings.all import infinity, QQ
+            from sage.rings.rational_field import QQ
+            from sage.rings.infinity import infinity
             from .trivial_valuation import TrivialValuation, TrivialPseudoValuation
 
             tester.assertEqual(QQ(0)*self, TrivialValuation(self.domain()))

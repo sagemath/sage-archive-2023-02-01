@@ -1134,6 +1134,24 @@ def plot(funcs, *args, **kwds):
         g2 = plot([x*exp(-n*x**2)/.4 for n in range(1,4)], (0, 2), color=['red','red','green'], linestyle=['-','--','-.'], aspect_ratio=.8)
         sphinx_plot(graphics_array([[g1], [g2]]))
 
+    While plotting real functions, imaginary numbers that are "almost
+    real" will inevitably arise due to numerical issues. By tweaking
+    the ``imaginary_tolerance``, you can decide how large of an
+    imaginary part you're willing to sweep under the rug in order to
+    plot the corresponding point. If a particular value's imaginary
+    part has magnitude larger than ``imaginary_tolerance``, that point
+    will not be plotted. The default tolerance is ``1e-8``, so the
+    imaginary part in the first example below is ignored, but the
+    second example "fails," emits a warning, and produces an empty
+    graph::
+
+        sage: f = x + I*1e-12
+        sage: plot(f, x, -1, 1)
+        Graphics object consisting of 1 graphics primitive
+        sage: plot(f, x, -1, 1, imaginary_tolerance=0)
+        ...WARNING: ...Unable to compute ...
+        Graphics object consisting of 0 graphics primitives
+
     We can also build a plot step by step from an empty plot::
 
         sage: a = plot([]); a       # passing an empty list returns an empty plot (Graphics() object)

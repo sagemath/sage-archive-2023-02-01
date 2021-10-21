@@ -413,7 +413,8 @@ class InductiveValuation(DevelopingValuation):
         tester = self._tester(**options)
         chain = self.augmentation_chain()
         for w,v in zip(chain, chain[1:]):
-            from sage.rings.all import infinity, ZZ
+            from sage.rings.infinity import infinity
+            from sage.rings.integer_ring import ZZ
             if w(w.phi()) is infinity:
                 tester.assertEqual(w.E(), v.E())
             tester.assertIn(w.E(), ZZ)

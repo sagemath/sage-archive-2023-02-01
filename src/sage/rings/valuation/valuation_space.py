@@ -161,7 +161,9 @@ class DiscretePseudoValuationSpace(UniqueRepresentation, Homset):
 
         """
         from operator import mul
-        from sage.rings.all import QQ, InfinityRing, ZZ
+        from sage.rings.infinity import infinity
+        from sage.rings.rational_field import QQ
+        from sage.rings.integer_ring import ZZ
         if op == mul and (S is InfinityRing or S is QQ or S is ZZ):
             return ScaleAction(S, self, not self_on_left, op)
         return None

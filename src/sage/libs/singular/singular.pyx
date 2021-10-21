@@ -768,7 +768,7 @@ cdef init_libsingular():
 
     cdef void *handle = NULL
 
-    from sage_conf import LIBSINGULAR_PATH
+    from sage.env import LIBSINGULAR_PATH
     lib = str_to_bytes(LIBSINGULAR_PATH, FS_ENCODING, "surrogateescape")
 
     # This is a workaround for https://github.com/Singular/Singular/issues/1113

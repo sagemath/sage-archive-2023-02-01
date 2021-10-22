@@ -578,11 +578,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             sage: R = GF(7)
             sage: A = Matrix(R, [[1, 0, 6, 1, 2],[6, 1, 0, 0, 1],[0, 6, 3, 6, 0]])
             sage: M = LinearMatroid(reduced_matrix = A)
-            sage: M.representation(lift_map=lift_map('sru')) # py2
-            [     1      0      0      1      0      1      1      1]
-            [     0      1      0 -z + 1      1      0      0      1]
-            [     0      0      1      0     -1      1 -z + 1      0]
-            sage: M.representation(lift_map=lift_map('sru')) # py3
+            sage: M.representation(lift_map=lift_map('sru'))
             [     1      0      0      1      0      1      1      1]
             [     0      1      0 -z + 1      1      0      0      1]
             [     0      0      1      0     -z      z      1      0]
@@ -2835,7 +2831,7 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             return True, None
         return True
 
-    def orlik_terao_algebra(self, R=None, ordering=None):
+    def orlik_terao_algebra(self, R=None, ordering=None, **kwargs):
         """
         Return the Orlik-Terao algebra of ``self``.
 
@@ -2860,9 +2856,40 @@ cdef class LinearMatroid(BasisExchangeMatroid):
             Integer Ring
             sage: M.orlik_terao_algebra(QQ).base_ring()
             Rational Field
-        """
+
+            sage: G = SymmetricGroup(3);
+            sage: OTG = M.orlik_terao_algebra(QQ, invariant=G)
+
+            sage: G = SymmetricGroup(4)
+            sage: action = lambda g,x: g(x+1)-1
+            sage: OTG1 = M.orlik_terao_algebra(QQ, invariant=(G,action))
+            sage: OTG2 = M.orlik_terao_algebra(QQ, invariant=(action,G))
+            sage: OTG1 is OTG2
+            True
+
+         """
         if R is None:
             R = self.base_ring()
+
+        if 'invariant' in kwargs:
+            G_action = kwargs.pop('invariant')
+
+            from sage.categories.semigroups import Semigroups
+            if len(G_action) > 1 and G_action not in Semigroups:
+                G, action = G_action
+                if action in Semigroups:
+                    G, action = action, G
+            else:
+                G, action = G_action, None # the None action is g.__call__
+
+
+            from sage.algebras.orlik_terao import OrlikTeraoInvariantAlgebra
+
+            return OrlikTeraoInvariantAlgebra(R, self, G,
+                                              action_on_groundset=action,
+                                              ordering=ordering,
+                                              **kwargs)
+
         from sage.algebras.orlik_terao import OrlikTeraoAlgebra
         return OrlikTeraoAlgebra(R, self, ordering)
 

@@ -56,16 +56,22 @@ doc-html: doc-html-reference doc-html-other
 doc-pdf--%:
 	cd $(SAGE_ROOT) && ./sage --docbuild $(subst -,/,$(subst doc-pdf--,,$@)) pdf $(SAGE_DOCBUILD_OPTS)
 
-doc-pdf: doc-inventory-reference
+# reference manual, pdf
+doc-pdf-reference: doc-inventory-reference
 	$(eval DOCS = $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents reference))
 	$(eval BIBLIO = $(firstword $(DOCS)))
 	$(eval OTHER_DOCS = $(wordlist 2, 100, $(DOCS)))
 	$(MAKE) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-pdf--$(subst /,-,$(BIBLIO))
 	$(MAKE) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(OTHER_DOCS), doc-pdf--$(subst /,-,$(doc)))
 	$(MAKE) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" doc-pdf--reference_top
+
+# other documentation, pdf
+doc-pdf-other: doc-html-reference
 	$(MAKE) SAGE_DOCBUILD_OPTS="$(SAGE_DOCBUILD_OPTS) --no-prune-empty-dirs" $(foreach doc, $(wordlist 2, 100, $(shell cd $(SAGE_ROOT) && ./sage --docbuild --all-documents all)), doc-pdf--$(subst /,-,$(doc)))
+
+doc-pdf: doc-pdf-reference doc-pdf-other
 
 .PHONY: all clean \
 	doc-html doc-pdf \
-	doc-inventory-reference doc-html-reference \
-	doc-html-other
+	doc-inventory-reference doc-html-reference doc-pdf-reference \
+	doc-html-other doc-pdf-other

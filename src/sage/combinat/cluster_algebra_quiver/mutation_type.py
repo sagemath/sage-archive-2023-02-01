@@ -910,9 +910,9 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
                         # Assuming that the two components are recognized, initialize this in a format it can be returned as output
                         type_tmp = []
                         type_tmp.append( [ type_tmp1[0], type_tmp2[0] ] )
-                        type_tmp[0].sort()
+                        type_tmp[0].sort(key=str)
                         type_tmp.append( type_tmp1[1] + type_tmp2[1] )
-                        type_tmp[1].sort()
+                        type_tmp[1].sort(key=str)
 
                         # Need to make sure the two vertices in c2 are both 'connecting vertices'.
                         if not set(c2).issubset(type_tmp[1]):
@@ -952,9 +952,9 @@ def _connected_mutation_type_AAtildeD(dg, ret_conn_vert=False):
                         # a format it can be returned as output (just as above)
                         type_tmp = []
                         type_tmp.append( [ type_tmp1[0], type_tmp2[0] ] )
-                        type_tmp[0].sort()
+                        type_tmp[0].sort(key=str)
                         type_tmp.append( type_tmp1[1] + type_tmp2[1] )
-                        type_tmp[1].sort()
+                        type_tmp[1].sort(key=str)
                         if type_tmp2 == 'unknown':
                             return _false_return()
                         if not set(c2).issubset(type_tmp[1]) and len( set(type_tmp[1]).intersection(c2) ) == 1:

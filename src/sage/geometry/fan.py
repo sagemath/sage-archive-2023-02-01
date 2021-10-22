@@ -251,11 +251,14 @@ from sage.geometry.point_collection import PointCollection
 from sage.geometry.toric_lattice import ToricLattice, is_ToricLattice
 from sage.geometry.toric_plotter import ToricPlotter
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import matrix
+from sage.matrix.constructor import matrix
 from sage.misc.cachefunc import cached_method
-from sage.misc.all import walltime, prod
-from sage.modules.all import vector, span
-from sage.rings.all import QQ, ZZ
+from sage.misc.misc import walltime
+from sage.misc.misc_c import prod
+from sage.modules.free_module import span
+from sage.modules.free_module_element import vector
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 
 
 def is_Fan(x):
@@ -3122,6 +3125,8 @@ class RationalPolyhedralFan(IntegralRayCollection, Callable, Container):
             sage: N = ToricLattice(4)
             sage: for i in range(10):
             ....:      c = Cone([N.random_element() for j in range(i//2)], lattice=N)
+            ....:      if not c.is_strictly_convex():
+            ....:          continue
             ....:      f = Fan([c])
             ....:      assert matrix(f.rays() + f.virtual_rays()).rank() == 4
             ....:      assert f.dim() + len(f.virtual_rays()) == 4

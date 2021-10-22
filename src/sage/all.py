@@ -31,17 +31,10 @@ except for the known bad apples::
     sage: [inspect.getmodule(f).__name__ for f in frames if is_not_allowed(f)]
     []
 
-Check that the Sage Notebook is not imported at startup (see :trac:`15335`)::
-
-    sage: sagenb
-    Traceback (most recent call last):
-    ...
-    NameError: name 'sagenb' is not defined
-
 Check lazy import of ``interacts``::
 
     sage: type(interacts)
-    <type 'sage.misc.lazy_import.LazyImport'>
+    <class 'sage.misc.lazy_import.LazyImport'>
     sage: interacts
     <module 'sage.interacts.all' from '...'>
 """
@@ -94,10 +87,6 @@ warnings.filterwarnings('ignore', category=DeprecationWarning,
 warnings.filterwarnings('ignore', category=DeprecationWarning,
     module='(scipy|networkx)')
 
-# Ignore collections.abc warnings, there are a lot of them but they are
-# harmless.
-warnings.filterwarnings('ignore', category=DeprecationWarning,
-    message='.*collections[.]abc.*')
 # However, be sure to keep OUR deprecation warnings
 warnings.filterwarnings('default', category=DeprecationWarning,
     message=r'[\s\S]*See https?://trac\.sagemath\.org/[0-9]* for details.')
@@ -182,13 +171,14 @@ from sage.geometry.riemannian_manifolds.all   import *
 from sage.dynamics.all   import *
 
 from sage.homology.all   import *
+
 from sage.topology.all   import *
 
 from sage.quadratic_forms.all import *
 
 from sage.games.all      import *
 
-from sage.media.all      import *
+lazy_import('sage.media.wav', 'Wave', as_='wave', deprecation=12673)
 
 from sage.logic.all      import *
 
@@ -197,7 +187,7 @@ from sage.numerical.all  import *
 from sage.stats.all      import *
 import sage.stats.all as stats
 
-import sage.finance.all  as finance
+lazy_import("sage.finance", "all", as_="finance", deprecation=32427)
 
 from sage.parallel.all   import *
 
@@ -283,7 +273,7 @@ def quit_sage(verbose=True):
     import sage.libs.flint.flint
     sage.libs.flint.flint.free_flint_stack()
 
-    # Free globally allocated mpir integers.
+    # Free globally allocated gmp integers.
     import sage.rings.integer
     sage.rings.integer.free_integer_pool()
     import sage.algebras.quatalg.quaternion_algebra_element
@@ -322,6 +312,7 @@ set_random_seed()
 
 # From now on it is ok to resolve lazy imports
 sage.misc.lazy_import.finish_startup()
+
 
 def sage_globals():
     r"""

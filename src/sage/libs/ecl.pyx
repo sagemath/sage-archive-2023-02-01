@@ -327,17 +327,20 @@ cdef cl_object ecl_safe_eval(cl_object form) except NULL:
         sage: inf_loop()
         Traceback (most recent call last):
         ...
-        RuntimeError: ECL says: Console interrupt.
+        KeyboardInterrupt: ECL says: Console interrupt.
     """
     cdef cl_object ret, error = NULL
 
     ecl_sig_on()
-    ret = safe_cl_eval(&error,form)
+    ret = safe_cl_eval(&error, form)
     ecl_sig_off()
 
     if error != NULL:
-        raise RuntimeError("ECL says: {}".format(
-            ecl_string_to_python(error)))
+        message = ecl_string_to_python(error)
+        if "Console interrupt" in message:
+            raise KeyboardInterrupt("ECL says: {}".format(message))
+        else:
+            raise RuntimeError("ECL says: {}".format(message))
     else:
         return ret
 
@@ -345,12 +348,15 @@ cdef cl_object ecl_safe_funcall(cl_object func, cl_object arg) except NULL:
     cdef cl_object ret, error = NULL
 
     ecl_sig_on()
-    ret = safe_cl_funcall(&error,func,arg)
+    ret = safe_cl_funcall(&error, func, arg)
     ecl_sig_off()
 
     if error != NULL:
-        raise RuntimeError("ECL says: {}".format(
-            ecl_string_to_python(error)))
+        message = ecl_string_to_python(error)
+        if "Console interrupt" in message:
+            raise KeyboardInterrupt("ECL says: {}".format(message))
+        else:
+            raise RuntimeError("ECL says: {}".format(message))
     else:
         return ret
 
@@ -362,8 +368,11 @@ cdef cl_object ecl_safe_apply(cl_object func, cl_object args) except NULL:
     ecl_sig_off()
 
     if error != NULL:
-        raise RuntimeError("ECL says: {}".format(
-            ecl_string_to_python(error)))
+        message = ecl_string_to_python(error)
+        if "Console interrupt" in message:
+            raise KeyboardInterrupt("ECL says: {}".format(message))
+        else:
+            raise RuntimeError("ECL says: {}".format(message))
     else:
         return ret
 
@@ -1287,7 +1296,7 @@ cdef class EclListIterator:
         sage: from sage.libs.ecl import *
         sage: I=EclListIterator(EclObject("(1 2 3)"))
         sage: type(I)
-        <type 'sage.libs.ecl.EclListIterator'>
+        <class 'sage.libs.ecl.EclListIterator'>
         sage: [i for i in I]
         [<ECL: 1>, <ECL: 2>, <ECL: 3>]
         sage: [i for i in EclObject("(1 2 3)")]
@@ -1309,7 +1318,7 @@ cdef class EclListIterator:
             sage: from sage.libs.ecl import *
             sage: I=EclListIterator(EclObject("(1 2 3)"))
             sage: type(I)
-            <type 'sage.libs.ecl.EclListIterator'>
+            <class 'sage.libs.ecl.EclListIterator'>
 
         """
         if not o.listp():

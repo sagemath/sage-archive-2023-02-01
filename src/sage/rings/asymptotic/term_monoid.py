@@ -165,9 +165,28 @@ have equal growth to be incomparable.
 Various
 =======
 
+.. WARNING::
+
+    The code for :class:`B-Terms <BTermMonoid>` is experimental, so
+    a warning is thrown when a :class:`BTerm`
+    is created for the first time in a session (see
+    :class:`sage.misc.superseded.experimental`).
+
+    ::
+
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+        sage: T = TermMonoid('B', growth_group=GrowthGroup('x^ZZ'), coefficient_ring=QQ)
+        doctest:warning
+        ...
+        FutureWarning: This class/method/function is marked as experimental.
+        It, its functionality or its interface might change without a formal deprecation.
+        See https://trac.sagemath.org/31922 for details.
+
+
 .. TODO::
 
-    - Implementation of more term types (e.g. `L` terms,
+    - Implementation of more term types (e.g.
       `\Omega` terms, `o` terms, `\Theta` terms).
 
 AUTHORS:
@@ -175,13 +194,16 @@ AUTHORS:
 - Benjamin Hackl (2015)
 - Daniel Krenn (2015)
 - Clemens Heuberger (2016)
+- Thomas Hagelmayer (2021)
 
 ACKNOWLEDGEMENT:
 
 - Benjamin Hackl, Clemens Heuberger and Daniel Krenn are supported by the
   Austrian Science Fund (FWF): P 24644-N26.
 
-- Benjamin Hackl is supported by the Google Summer of Code 2015.
+- Benjamin Hackl is supported by Google Summer of Code 2015.
+
+- Thomas Hagelmayer is supported by Google Summer of Code 2021.
 
 
 Classes and Methods
@@ -198,6 +220,7 @@ Classes and Methods
 # https://www.gnu.org/licenses/
 # *****************************************************************************
 
+from sage.misc.superseded import experimental
 from sage.rings.big_oh import O
 from sage.structure.element import MultiplicativeGroupElement
 from sage.structure.factory import UniqueFactory
@@ -551,14 +574,14 @@ class GenericTerm(MultiplicativeGroupElement):
             sage: t._calculate_pow_(3, new_coefficient=2)
             Traceback (most recent call last):
             ...
-            ValueError: Coefficient 2 is not 1, but Generic Term Monoid z^ZZ with
+            ValueError: Coefficient 2 is not 1, but GenericTerm Monoid z^ZZ with
             (implicit) coefficients in Integer Ring does not support coefficients.
             sage: t._calculate_pow_(-2)
             Generic Term with growth z^(-2)
             sage: t._calculate_pow_(-2, new_coefficient=2)
             Traceback (most recent call last):
             ...
-            ValueError: Coefficient 2 is not 1, but Generic Term Monoid z^ZZ with
+            ValueError: Coefficient 2 is not 1, but GenericTerm Monoid z^ZZ with
             (implicit) coefficients in Integer Ring does not support coefficients.
         """
         try:
@@ -1097,14 +1120,14 @@ class GenericTerm(MultiplicativeGroupElement):
             ...
             NotImplementedError: Cannot check whether Generic Term with growth x is o(1)
             in the abstract base class
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field.
             sage: T = TermWithCoefficientMonoid(TermMonoid, GrowthGroup('x^ZZ'), QQ)
             sage: T.an_element().is_little_o_of_one()
             Traceback (most recent call last):
             ...
             NotImplementedError: Cannot check whether Term with coefficient 1/2 and growth x
             is o(1) in the abstract base class
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field.
+            TermWithCoefficient Monoid x^ZZ with coefficients in Rational Field.
         """
         raise NotImplementedError('Cannot check whether %s is o(1) in the '
                                   'abstract base class %s.' % (self, self.parent()))
@@ -1133,7 +1156,7 @@ class GenericTerm(MultiplicativeGroupElement):
             ...
             NotImplementedError: Cannot take e to the exponent
             Generic Term with growth x*log(x) in the abstract base class
-            Generic Term Monoid x^ZZ * log(x)^ZZ with (implicit) coefficients in Rational Field.
+            GenericTerm Monoid x^ZZ * log(x)^ZZ with (implicit) coefficients in Rational Field.
         """
         raise NotImplementedError('Cannot take %s to the exponent %s in the '
                                   'abstract base class %s.' % (base, self, self.parent()))
@@ -1213,9 +1236,9 @@ class GenericTerm(MultiplicativeGroupElement):
             Traceback (most recent call last):
             ...
             TypeError: Cannot substitute in Generic Term with growth x in
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Integer Ring.
             > *previous* TypeError: Cannot substitute in the abstract base class
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Integer Ring.
         """
         from .misc import substitute_raise_exception
         substitute_raise_exception(self, TypeError(
@@ -1345,9 +1368,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
         sage: T_x_ZZ = GenericTermMonoid(TermMonoid, G_x, QQ)
         sage: T_y_QQ = GenericTermMonoid(TermMonoid, G_y, QQ)
         sage: T_x_ZZ
-        Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+        GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field
         sage: T_y_QQ
-        Generic Term Monoid y^QQ with (implicit) coefficients in Rational Field
+        GenericTerm Monoid y^QQ with (implicit) coefficients in Rational Field
     """
 
     # enable the category framework for elements
@@ -1426,12 +1449,12 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
             sage: G_x = GrowthGroup('x^ZZ')
             sage: T_x = GenericTermMonoid(TermMonoid, G_x, QQ); T_x
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: T_x.growth_group
             Growth Group x^ZZ
             sage: G_y = GrowthGroup('y^QQ')
             sage: T_y = GenericTermMonoid(TermMonoid, G_y, QQ); T_y
-            Generic Term Monoid y^QQ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid y^QQ with (implicit) coefficients in Rational Field
             sage: T_x is T_y
             False
 
@@ -1446,9 +1469,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
             sage: G = GrowthGroup('x^ZZ')
             sage: T_ZZ = TermWithCoefficientMonoid(TermMonoid, G, ZZ); T_ZZ
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring
+            TermWithCoefficient Monoid x^ZZ with coefficients in Integer Ring
             sage: T_QQ = TermWithCoefficientMonoid(TermMonoid, G, QQ); T_QQ
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+            TermWithCoefficient Monoid x^ZZ with coefficients in Rational Field
             sage: T_QQ.category()
             Join of Category of monoids and Category of posets
         """
@@ -1608,11 +1631,11 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: GenericTermMonoid(TermMonoid, GenericGrowthGroup(ZZ), QQ)._repr_()
-            'Generic Term Monoid Generic(ZZ) with (implicit) coefficients in Rational Field'
+            'GenericTerm Monoid Generic(ZZ) with (implicit) coefficients in Rational Field'
             sage: GenericTermMonoid(TermMonoid, GrowthGroup('x^ZZ'), QQ)._repr_()
-            'Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field'
+            'GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field'
         """
-        return 'Generic Term Monoid %s with (implicit) coefficients in %s' % \
+        return 'GenericTerm Monoid %s with (implicit) coefficients in %s' % \
             (self.growth_group._repr_short_(), self.coefficient_ring)
 
     def _coerce_map_from_(self, S):
@@ -1643,14 +1666,14 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
             sage: G_ZZ = GrowthGroup('x^ZZ')
             sage: T_ZZ = GenericTermMonoid(TermMonoid, G_ZZ, QQ); T_ZZ
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: G_QQ = GrowthGroup('x^QQ')
             sage: T_QQ = GenericTermMonoid(TermMonoid, G_QQ, QQ); T_QQ
-            Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid x^QQ with (implicit) coefficients in Rational Field
             sage: T_QQ.has_coerce_map_from(T_ZZ)  # indirect doctest
             True
             sage: T_QQ_ZZ = GenericTermMonoid(TermMonoid, G_QQ, ZZ); T_QQ_ZZ
-            Generic Term Monoid x^QQ with (implicit) coefficients in Integer Ring
+            GenericTerm Monoid x^QQ with (implicit) coefficients in Integer Ring
             sage: T_QQ.has_coerce_map_from(T_QQ_ZZ)
             True
             sage: T_QQ_ZZ.has_coerce_map_from(T_QQ)
@@ -1660,9 +1683,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
             sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
             sage: TC_ZZ = TermWithCoefficientMonoid(TermMonoid, G_ZZ, ZZ); TC_ZZ
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring
+            TermWithCoefficient Monoid x^ZZ with coefficients in Integer Ring
             sage: TC_QQ = TermWithCoefficientMonoid(TermMonoid, G_QQ, QQ); TC_QQ
-            Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
+            TermWithCoefficient Monoid x^QQ with coefficients in Rational Field
             sage: TC_QQ.has_coerce_map_from(TC_ZZ)  # indirect doctest
             True
             sage: TC_ZZ.has_coerce_map_from(TC_QQ)  # indirect doctest
@@ -1673,7 +1696,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
                     self.coefficient_ring.has_coerce_map_from(S.coefficient_ring):
                 return True
 
-    def _element_constructor_(self, data, coefficient=None):
+    def _element_constructor_(self, data, coefficient=None, **kwds):
         r"""
         Convert the given object to this term monoid.
 
@@ -1684,6 +1707,8 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
 
         - ``coefficient`` -- (default: ``None``)
           an element of the coefficient ring.
+
+        - ``**kwds`` -- keywords for creation of some terms like BTerms.
 
         OUTPUT:
 
@@ -1706,9 +1731,9 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
         a common parent has to be found::
 
             sage: term1.parent()
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field
             sage: term2.parent()
-            Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
+            GenericTerm Monoid x^QQ with (implicit) coefficients in Rational Field
             sage: term1 <= term2
             True
 
@@ -1732,7 +1757,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             sage: T_ZZ(10 * x^2)
             Traceback (most recent call last):
             ...
-            ValueError: 10*x^2 is not in Generic Term Monoid x^ZZ
+            ValueError: 10*x^2 is not in GenericTerm Monoid x^ZZ
             with (implicit) coefficients in Rational Field.
             > *previous* ValueError: Factor 10*x^2 of 10*x^2 is neither a
             coefficient (in Rational Field) nor growth (in Growth Group x^ZZ).
@@ -1790,7 +1815,7 @@ class GenericTermMonoid(UniqueRepresentation, Parent, WithLocals):
             except (ValueError, TypeError) as e:
                 raise combine_exceptions(
                     ValueError('Growth %s is not in %s.' % (data, self)), e)
-            return self._create_element_(data, coefficient)
+            return self._create_element_(data, coefficient, **kwds)
 
         try:
             growth, coefficient = self._split_growth_and_coefficient_(data)
@@ -2793,7 +2818,7 @@ class TermWithCoefficient(GenericTerm):
             Traceback (most recent call last):
             ...
             ValueError: 1/2 is not a coefficient in
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
+            TermWithCoefficient Monoid x^ZZ with coefficients in Integer Ring.
             sage: t = CT_QQ(x, 1/2); t
             Term with coefficient 1/2 and growth x
 
@@ -2803,7 +2828,7 @@ class TermWithCoefficient(GenericTerm):
             Traceback (most recent call last):
             ...
             ZeroCoefficientError:  Zero coefficient 0 is not allowed in
-            Generic Term Monoid x^ZZ with (implicit) coefficients in Integer Ring.
+            TermWithCoefficient Monoid x^ZZ with coefficients in Integer Ring.
 
         The conversion of growth elements also works for the creation
         of terms with coefficient::
@@ -2813,6 +2838,7 @@ class TermWithCoefficient(GenericTerm):
             sage: CT_ZZ(x^42, 42)
             Term with coefficient 42 and growth x^42
         """
+        super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
         try:
             coefficient = parent.coefficient_ring(coefficient)
         except (ValueError, TypeError):
@@ -2824,7 +2850,6 @@ class TermWithCoefficient(GenericTerm):
                 (coefficient, parent))
 
         self.coefficient = coefficient
-        super(TermWithCoefficient, self).__init__(parent=parent, growth=growth)
 
     def _repr_(self):
         r"""
@@ -2986,8 +3011,8 @@ class TermWithCoefficient(GenericTerm):
             Traceback (most recent call last):
             ...
             ArithmeticError: Cannot take Term with coefficient 0.? + 0.?*I and
-            growth z to the exponent I in Generic Term Monoid z^ZZ with
-            (implicit) coefficients in Complex Interval Field with
+            growth z to the exponent I in TermWithCoefficient Monoid z^ZZ with
+            coefficients in Complex Interval Field with
             53 bits of precision since its coefficient 0.? + 0.?*I
             cannot be taken to this exponent.
             > *previous* ValueError: Can't take the argument of
@@ -3124,19 +3149,45 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
         sage: G_ZZ = GrowthGroup('x^ZZ'); x_ZZ = G_ZZ.gen()
         sage: G_QQ = GrowthGroup('x^QQ'); x_QQ = G_QQ.gen()
         sage: TC_ZZ = TermWithCoefficientMonoid(TermMonoid, G_ZZ, QQ); TC_ZZ
-        Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+        TermWithCoefficient Monoid x^ZZ with coefficients in Rational Field
         sage: TC_QQ = TermWithCoefficientMonoid(TermMonoid, G_QQ, QQ); TC_QQ
-        Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
+        TermWithCoefficient Monoid x^QQ with coefficients in Rational Field
         sage: TC_ZZ == TC_QQ or TC_ZZ is TC_QQ
         False
         sage: TC_QQ.coerce_map_from(TC_ZZ)
         Coercion map:
-          From: Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
-          To:   Generic Term Monoid x^QQ with (implicit) coefficients in Rational Field
+          From: TermWithCoefficient Monoid x^ZZ with coefficients in Rational Field
+          To:   TermWithCoefficient Monoid x^QQ with coefficients in Rational Field
     """
 
     # enable the category framework for elements
     Element = TermWithCoefficient
+
+    def _repr_(self):
+        r"""
+        A representation string for this TermWithCoefficient Monoid.
+
+        INPUT:
+
+        Nothing.
+
+        OUTPUT:
+
+        A string.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import (GenericGrowthGroup, GrowthGroup)
+            sage: from sage.rings.asymptotic.term_monoid import TermWithCoefficientMonoid
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+
+            sage: TermWithCoefficientMonoid(TermMonoid, GenericGrowthGroup(ZZ), QQ)._repr_()
+            'TermWithCoefficient Monoid Generic(ZZ) with coefficients in Rational Field'
+            sage: TermWithCoefficientMonoid(TermMonoid, GrowthGroup('x^ZZ'), QQ)._repr_()
+            'TermWithCoefficient Monoid x^ZZ with coefficients in Rational Field'
+        """
+        return 'TermWithCoefficient Monoid %s with coefficients in %s' % \
+            (self.growth_group._repr_short_(), self.coefficient_ring)
 
     def _create_element_(self, growth, coefficient):
         r"""
@@ -3225,8 +3276,7 @@ class TermWithCoefficientMonoid(GenericTermMonoid):
 class ExactTerm(TermWithCoefficient):
     r"""
     Class for asymptotic exact terms. These terms primarily consist of
-    an asymptotic growth element as well as a coefficient specifying
-    the growth of the asymptotic term.
+    an asymptotic growth element as well as a coefficient.
 
     INPUT:
 
@@ -3923,6 +3973,435 @@ class ExactTermMonoid(TermWithCoefficientMonoid):
                (self.growth_group._repr_short_(), self.coefficient_ring)
 
 
+class BTerm(TermWithCoefficient):
+    r"""
+    Class for asymptotic B-terms.
+
+    A B-term represents all functions which (in absolute value) are bounded
+    by the given ``growth`` and ``coefficient`` for the parameters
+    given by ``valid_from``.
+    For example, we have terms that represent functions
+
+    - bounded by `5|x|^2` for `|x| \ge 3`,
+
+    - bounded by `42|x|^3` for `|x| \ge 15` and `|y| \ge 15`, or
+
+    - bounded by `42 |x|^3 |y|^2` for `|x| \ge 10` and `|y| \ge 20` (see below for the actual examples).
+
+    INPUT:
+
+    - ``parent`` -- the parent of the asymptotic term
+
+    - ``growth`` -- an asymptotic growth element of
+      the parent's growth group
+
+    - ``coefficient`` -- an element of the parent's coefficient ring
+
+    - ``valid_from`` -- dictionary mapping variable names to lower bounds
+      for the corresponding variable. The bound implied by this term is valid when
+      all variables are at least their corresponding lower bound
+
+    EXAMPLES:
+
+    We revisit the examples from the introduction::
+
+        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+        sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+        sage: G = GrowthGroup('x^ZZ * y^ZZ')
+        sage: T = TermMonoid('B', growth_group=G, coefficient_ring=ZZ)
+        sage: x, y = G('x'), G('y')
+
+    This is a term bounded by `5|x|^2` for `|x| \ge 3`::
+
+        sage: T(x^2, coefficient=5, valid_from={'x': 3})
+        B(5*x^2, x >= 3)
+
+    This is a term bounded by `42|x|^3` for `|x| \ge 15` and `|y| \ge 15`::
+
+        sage: T(x^3, coefficient=42, valid_from={'x': 15, 'y': 15})
+        B(42*x^3, x >= 15, y >= 15)
+
+    This is a term bounded by `42 |x|^3 |y|^2` for `|x| \ge 10` and `|y| \ge 20`::
+
+        sage: T(x^3*y^2, coefficient=42, valid_from={'x': 10, 'y': 20})
+        B(42*x^3*y^2, x >= 10, y >= 20)
+
+    """
+    def __init__(self, parent, growth, coefficient, valid_from):
+        r"""
+        See :class:`BTerm` for more information.
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+
+            sage: G = MonomialGrowthGroup(ZZ, 'x');
+            sage: BT_QQ = TermMonoid('B', G, QQ)
+            sage: BT_QQ(x^3, 3, valid_from={'m': 20})
+            Traceback (most recent call last):
+            ...
+            ValueError: B-Term has valid_from variables defined which do
+            not occur in the term.
+            sage: BT_QQ(x^3, 0, valid_from={'x': 20})
+            Traceback (most recent call last):
+            ...
+            ZeroCoefficientError: Zero coefficient 0 is not allowed in
+            B-Term Monoid x^ZZ with coefficients in Rational Field.
+
+            sage: BT_ZZ = TermMonoid('B', G, ZZ)
+            sage: BT_ZZ(x, 1/2, valid_from={'x': 20})
+            Traceback (most recent call last):
+            ...
+            ValueError: 1/2 is not a coefficient in B-Term Monoid x^ZZ with
+            coefficients in Integer Ring.
+            sage: B = GrowthGroup('x^ZZ * y^ZZ');
+            sage: x, y = B('x'), B('y')
+            sage: BT_ZZ = TermMonoid('B', B, ZZ)
+            sage: BT_ZZ(x^3, 42, valid_from={'x': 10})
+            B(42*x^3, x >= 10)
+            sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'y': 20})
+            B(42*x^3, x >= 10, y >= 20)
+            sage: BT_ZZ(x^3*y^2, 42, valid_from={'x': 10})
+            Traceback (most recent call last):
+            ValueError: B-Term has not defined all variables which occur in the term in valid_from.
+            sage: BT_ZZ(x^3, 42, valid_from={'x': 10, 'z': 20})
+            Traceback (most recent call last):
+            ...
+            ValueError: B-Term has valid_from variables defined which do not occur in the term.
+        """
+        super().__init__(parent=parent, growth=growth, coefficient=coefficient)
+        self.coefficient = coefficient
+        for variable_name in valid_from.keys():
+            if variable_name not in parent.growth_group.variable_names():
+                raise ValueError('B-Term has valid_from variables defined which do not occur in the term.')
+
+        for variable_name in growth.variable_names():
+            if variable_name not in valid_from:
+                raise ValueError('B-Term has not defined all variables which occur in the term in valid_from.')
+        self.valid_from = valid_from
+
+    def _repr_(self, latex=False):
+        r"""
+        A representation string for this B-term.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        A string
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+
+            sage: G = MonomialGrowthGroup(ZZ, 'x');
+            sage: BT_QQ = TermMonoid('B', G, QQ)
+            sage: BT_QQ(x^3, 3, valid_from={'x': 20})
+            B(3*x^3, x >= 20)
+            sage: B = GrowthGroup('x^ZZ * y^ZZ');
+            sage: x, y = B('x'), B('y')
+            sage: BT_ZZ = TermMonoid('B', B, ZZ)
+            sage: BT_ZZ(x^2, 4, valid_from={'x': 10, 'y': 15})
+            B(4*x^2, x >= 10, y >= 15)
+        """
+        if latex:
+            valid_from_string = ', '.join(fr'{variable} \ge {value}'
+                                          for variable, value in self.valid_from.items())
+            return fr'B_{{{valid_from_string}}}\left({self._repr_product_(latex=True)}\right)'
+        else:
+            valid_from_string = ''.join(f', {variable} >= {value}'
+                                        for variable, value in self.valid_from.items())
+            return f'B({self._repr_product_()}{valid_from_string})'
+
+    def _latex_(self):
+        r"""
+        A LaTeX-representation string for this B-term.
+
+        OUTPUT:
+
+        A string
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+            sage: G = GrowthGroup('x^ZZ'); x = G.gen()
+            sage: T = TermMonoid('B', G, QQ)
+            sage: latex(T(x, 5, valid_from={'x': 3}))
+            B_{x \ge 3}\left(5 x\right)
+            sage: latex(T(x^2, 3, valid_from={'x': 5}))
+            B_{x \ge 5}\left(3 x^{2}\right)
+            sage: latex(T(x^3, 6, valid_from={'x': 10}))
+            B_{x \ge 10}\left(6 x^{3}\right)
+        """
+        return self._repr_(latex=True)
+
+    def can_absorb(self, other):
+        r"""
+        Check whether this B-term can absorb ``other``.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term
+
+        OUTPUT:
+
+        A boolean
+
+        .. NOTE::
+
+            A :class:`BTerm` can absorb another :class:`BTerm`
+            with weaker or equal growth.
+
+            See the :ref:`module description <term_absorption>` for a
+            detailed explanation of absorption.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+            sage: BT = TermMonoid('B', GrowthGroup('x^ZZ'), QQ)
+            sage: t1 = BT(x^3, 3, valid_from={'x': 20})
+            sage: t2 = BT(x^2, 1, valid_from={'x': 10})
+            sage: t3 = BT(x^3, 10, valid_from={'x': 10})
+            sage: t1.can_absorb(t2)
+            True
+            sage: t2.can_absorb(t1)
+            False
+            sage: t1.can_absorb(t3)
+            True
+            sage: t3.can_absorb(t1)
+            True
+            sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
+            sage: t4 = ET(x^3, 5)
+            sage: t1.can_absorb(t4)
+            True
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+
+            sage: G = MonomialGrowthGroup(ZZ, 'x')
+            sage: BT = TermMonoid('B', G, QQ)
+            sage: t1 = BT(x, 3, valid_from={'x': 20})
+            sage: t2 = BT(x^3, 5, valid_from={'x': 5})
+            sage: t3 = BT(x^3, 10, valid_from={'x': 10})
+            sage: t2.absorb(t1)
+            B(2003/400*x^3, x >= 20)
+            sage: t2.absorb(t3)
+            B(15*x^3, x >= 10)
+            sage: t3.absorb(t2)
+            B(15*x^3, x >= 10)
+        """
+        if not isinstance(other, (BTerm, ExactTerm)):
+            return False
+
+        return self.growth >= other.growth
+
+    def _absorb_(self, other):
+        r"""
+        Absorb another B-term.
+
+        INPUT:
+
+        - ``other`` -- an asymptotic term
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup, MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+
+            sage: G = MonomialGrowthGroup(ZZ, 'x')
+            sage: BT = TermMonoid('B', G, QQ)
+            sage: t1 = BT(x^3, 4, valid_from={'x': 10}); t2 = BT(x, 5, valid_from={'x': 20})
+            sage: t1
+            B(4*x^3, x >= 10)
+            sage: t1.can_absorb(t2)
+            True
+            sage: t1.absorb(t2)
+            B(321/80*x^3, x >= 20)
+            sage: t2.absorb(t1)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: B(5*x, x >= 20) cannot absorb B(4*x^3, x >= 10)
+            sage: ET = TermMonoid('exact', GrowthGroup('x^ZZ'), QQ)
+            sage: t4 = ET(x^3, 5)
+            sage: t1.absorb(t4) # not tested, see #32229
+        """
+        if not (self.growth >= other.growth):
+            raise ArithmeticError(f'{self} cannot absorb {other}')
+
+        valid_from_new = dict()
+        for variable_name in set().union(self.valid_from.keys(), other.valid_from.keys()):
+            if variable_name in self.valid_from and other.valid_from:
+                valid_from_new[variable_name] = (max(self.valid_from[variable_name], other.valid_from[variable_name]))
+            elif variable_name in self.valid_from:
+                valid_from_new[variable_name] = (self.valid_from[variable_name])
+            elif variable_name in other.valid_from:
+                valid_from_new[variable_name] = (other.valid_from[variable_name])
+        q = self.growth / other.growth
+        coeff_new = self.coefficient + (other.coefficient / q._find_minimum_(valid_from_new))
+        return self.parent()(self.growth, coeff_new, valid_from=valid_from_new)
+
+
+class BTermMonoid(TermWithCoefficientMonoid):
+    r"""
+    Parent for asymptotic B-terms.
+
+    INPUT:
+
+    - ``growth_group`` -- a growth group
+
+    - ``coefficient_ring`` -- the ring which contains the
+      coefficients of the elements
+
+    - ``category`` -- The category of the parent can be specified
+      in order to broaden the base structure. It has to be a subcategory
+      of ``Join of Category of monoids and Category of posets``. This
+      is also the default category if ``None`` is specified
+
+    EXAMPLES::
+
+        sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+        sage: from sage.rings.asymptotic.term_monoid import BTermMonoid
+        sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+
+        sage: G = MonomialGrowthGroup(ZZ, 'x')
+        sage: BT = TermMonoid('B', G, QQ)
+        sage: BT
+        B-Term Monoid x^ZZ with coefficients in Rational Field
+        sage: BT is BTermMonoid(TermMonoid, G, QQ)
+        True
+    """
+    __init__ = experimental(trac_number=31922)(GenericTermMonoid.__init__)
+
+    # enable the category framework for elements
+    Element = BTerm
+
+    def _repr_(self):
+        r"""
+        A representation string for this B term monoid.
+
+        INPUT:
+
+        Nothing
+
+        OUTPUT:
+
+        A string
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+            sage: G = MonomialGrowthGroup(ZZ, 'x');
+            sage: TermMonoid('B', G, QQ)._repr_()
+            'B-Term Monoid x^ZZ with coefficients in Rational Field'
+        """
+        return (f'B-Term Monoid {self.growth_group._repr_short_()} with '
+                f'coefficients in {self.coefficient_ring}')
+
+    def _create_element_(self, growth, coefficient, valid_from):
+        r"""
+        Helper method which creates an element by using the ``element_class``.
+
+        INPUT:
+
+        - ``growth_group`` -- a growth group
+
+        - ``coefficient`` -- an element of the coefficient ring
+
+        - ``valid_from`` -- dictionary mapping variable names to lower bounds
+          for the corresponding variable. The bound implied by this term is valid when
+          all variables are at least their corresponding lower bound
+
+        OUTPUT:
+
+        A B-term
+
+        TESTS::
+
+            sage: from sage.rings.asymptotic.growth_group import MonomialGrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+
+            sage: G = MonomialGrowthGroup(ZZ, 'x')
+            sage: BT = TermMonoid('B', G, QQ)
+            sage: BT(x^3, 4, valid_from={'x': 10})
+            B(4*x^3, x >= 10)
+            sage: BT(x^3, 4, valid_from=10)
+            Traceback (most recent call last):
+            ...
+            AttributeError: 'sage.rings.integer.Integer' object has no attribute 'keys'
+        """
+        return self.element_class(self, growth, coefficient, valid_from)
+
+    def _coerce_map_from_(self, S):
+        r"""
+        Return whether ``S`` coerces into this term monoid.
+
+        INPUT:
+
+        - ``S`` -- a parent
+
+        OUTPUT:
+
+        ``True`` or ``None``
+
+        .. NOTE::
+
+            Another term monoid ``S`` coerces into this term monoid
+            if ``S`` is an instance of one of the following classes:
+
+            - :class:`BTermMonoid`
+
+            - :class:`ExactTermMonoid`
+
+            Additionally, the growth group underlying ``S`` has to
+            coerce into the growth group of this term monoid and the coefficient
+            ring of ``S`` coerces into the coefficient ring of this term
+            monoid.
+
+        EXAMPLES::
+
+            sage: from sage.rings.asymptotic.growth_group import GrowthGroup
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
+            sage: G_ZZ = GrowthGroup('x^ZZ')
+            sage: G_QQ = GrowthGroup('x^QQ')
+            sage: BT_ZZ = TermMonoid('B', G_ZZ, QQ)
+            sage: BT_QQ = TermMonoid('B', G_QQ, QQ)
+            sage: ET = TermMonoid('exact', G_ZZ, ZZ)
+
+        Now, the :class:`BTermMonoid` whose growth group is over the
+        integer ring has to coerce into the :class:`BTermMonoid` with
+        the growth group over the rational field, and the
+        :class:`ExactTermMonoid` also has to coerce in each of the
+        given :class:`BTermMonoid`::
+
+            sage: BT_QQ.has_coerce_map_from(BT_ZZ)  # indirect doctest
+            True
+            sage: BT_QQ.has_coerce_map_from(ET)  # indirect doctest
+            True
+            sage: ET.has_coerce_map_from(BT_ZZ)  # indirect doctest
+            False
+            sage: BT_ZZ.has_coerce_map_from(BT_QQ)  # indirect doctest
+            False
+            sage: BT_ZZ.has_coerce_map_from(ET)  # indirect doctest
+            True
+        """
+        if isinstance(S, (ExactTermMonoid,)):
+            if self.growth_group.has_coerce_map_from(S.growth_group) and \
+                    self.coefficient_ring.has_coerce_map_from(S.coefficient_ring):
+                return True
+        else:
+            return super()._coerce_map_from_(S)
+
+
 class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
     r"""
     Factory for asymptotic term monoids. It can generate the following
@@ -3930,7 +4409,9 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
 
     - :class:`OTermMonoid`,
 
-    - :class:`ExactTermMonoid`.
+    - :class:`ExactTermMonoid`,
+
+    - :class:`BTermMonoid`.
 
     .. NOTE::
 
@@ -3939,8 +4420,9 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
     INPUT:
 
     - ``term_monoid`` -- the kind of terms held in the new term monoid.
-      Either a string ``'exact'`` or ``'O'`` (capital letter ``O``),
-      or an existing instance of a term monoid.
+      Either a string ``'exact'``, ``'O'`` (capital letter ``O``) or
+      ``'B'`` or an existing instance of a term
+      monoid.
 
     - ``growth_group`` -- a growth group or
       a string describing a growth group.
@@ -3984,7 +4466,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         Exact Term Monoid x^ZZ with coefficients in Rational Field
         sage: from sage.rings.asymptotic.term_monoid import GenericTermMonoid
         sage: TermMonoid(GenericTermMonoid(TermMonoid, G, ZZ), asymptotic_ring=R)
-        Generic Term Monoid x^ZZ with (implicit) coefficients in Rational Field
+        GenericTerm Monoid x^ZZ with (implicit) coefficients in Rational Field
 
     ::
 
@@ -4045,7 +4527,8 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
 
     def __init__(self, name,
                  exact_term_monoid_class=None,
-                 O_term_monoid_class=None):
+                 O_term_monoid_class=None,
+                 B_term_monoid_class=None):
         r"""
         See :class:`TermMonoidFactory` for more information.
 
@@ -4053,21 +4536,26 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
 
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import ExactTermMonoid, OTermMonoid
+            sage: from sage.rings.asymptotic.term_monoid import ExactTermMonoid, OTermMonoid, BTermMonoid
             sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
 
             sage: class MyExactTermMonoid(ExactTermMonoid):
             ....:     pass
             sage: class MyOTermMonoid(OTermMonoid):
             ....:     pass
+            sage: class MyBTermMonoid(BTermMonoid):
+            ....:     pass
             sage: MyTermMonoid = TermMonoidFactory('MyTermMonoid',
             ....:                                  exact_term_monoid_class=MyExactTermMonoid,
-            ....:                                  O_term_monoid_class=MyOTermMonoid)
+            ....:                                  O_term_monoid_class=MyOTermMonoid,
+            ....:                                  B_term_monoid_class=MyBTermMonoid)
             sage: G = GrowthGroup('x^ZZ')
             sage: type(MyTermMonoid('exact', G, QQ))
             <class '__main__.MyExactTermMonoid_with_category'>
             sage: type(MyTermMonoid('O', G, QQ))
             <class '__main__.MyOTermMonoid_with_category'>
+            sage: type(MyTermMonoid('B', G, QQ))
+            <class '__main__.MyBTermMonoid_with_category'>
         """
         super(TermMonoidFactory, self).__init__(name)
 
@@ -4078,6 +4566,10 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
         if O_term_monoid_class is None:
             O_term_monoid_class = OTermMonoid
         self.OTermMonoid = O_term_monoid_class
+
+        if B_term_monoid_class is None:
+            B_term_monoid_class = BTermMonoid
+        self.BTermMonoid = B_term_monoid_class
 
     def create_key_and_extra_args(self, term_monoid,
                                   growth_group=None, coefficient_ring=None,
@@ -4110,7 +4602,7 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
             Traceback (most recent call last):
             ...
             ValueError: Term specification 'icecream' has to be either
-            'exact' or 'O' or an instance of an existing term.
+            'exact', 'O', 'B' or an instance of an existing term.
             sage: TermMonoid.create_key_and_extra_args('O', ZZ)
             Traceback (most recent call last):
             ...
@@ -4122,8 +4614,10 @@ class TermMonoidFactory(UniqueRepresentation, UniqueFactory):
             term_class = self.OTermMonoid
         elif term_monoid == 'exact':
             term_class = self.ExactTermMonoid
+        elif term_monoid == 'B':
+            term_class = self.BTermMonoid
         else:
-            raise ValueError("Term specification '%s' has to be either 'exact' or 'O' "
+            raise ValueError("Term specification '%s' has to be either 'exact', 'O', 'B' "
                              "or an instance of an existing term." % term_monoid)
 
         if asymptotic_ring is not None and \

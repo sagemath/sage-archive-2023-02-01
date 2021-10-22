@@ -86,7 +86,7 @@ def sage_makedirs(dirname, mode=0o777):
         sage: sage_makedirs(filename)
         Traceback (most recent call last):
         ...
-        OSError: [Errno ...] File exists: ...
+        FileExistsError: [Errno ...] File exists: ...
     """
     try:
         os.makedirs(dirname)
@@ -803,6 +803,8 @@ class BackslashOperator:
         EXAMPLES::
 
             sage: A = random_matrix(ZZ, 4)
+            sage: while A.rank() != 4:
+            ....:     A = random_matrix(ZZ, 4)
             sage: B = random_matrix(ZZ, 4)
             sage: temp = A * BackslashOperator()
             sage: temp.left is A

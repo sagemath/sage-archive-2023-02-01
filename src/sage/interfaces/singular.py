@@ -281,7 +281,7 @@ Although 'I' is an object that we computed with calls to Singular
 functions, it actually lives in Sage. As a consequence, the name
 'I' means nothing to Singular. When we called
 ``I.groebner()``, Sage was able to call the groebner
-function on'I' in Singular, since 'I' actually means something to
+function on 'I' in Singular, since 'I' actually means something to
 Sage.
 
 Long Input
@@ -342,7 +342,6 @@ import os
 import re
 import sys
 import pexpect
-from time import sleep
 
 from .expect import Expect, ExpectElement, FunctionElement, ExpectFunction
 
@@ -384,7 +383,7 @@ class Singular(ExtraTabCompletion, Expect):
     - David Joyner and William Stein
     """
     def __init__(self, maxread=None, script_subdirectory=None,
-                 logfile=None, server=None,server_tmpdir=None,
+                 logfile=None, server=None, server_tmpdir=None,
                  seed=None):
         """
         EXAMPLES::
@@ -412,7 +411,7 @@ class Singular(ExtraTabCompletion, Expect):
         self.__to_clear = []   # list of variable names that need to be cleared.
         self._seed = seed
 
-    def set_seed(self,seed=None):
+    def set_seed(self, seed=None):
         """
         Set the seed for singular interpreter.
 
@@ -504,46 +503,9 @@ class Singular(ExtraTabCompletion, Expect):
         EXAMPLES::
 
             sage: singular._quit_string()
-            'quit'
+            'quit;'
         """
-        return 'quit'
-
-    def _send_interrupt(self):
-        """
-        Send an interrupt to Singular. If needed, additional
-        semi-colons are sent until we get back at the prompt.
-
-        TESTS:
-
-        The following works without restarting Singular::
-
-            sage: a = singular(1)
-            sage: _ = singular._expect.sendline('1+')  # unfinished input
-            sage: try:
-            ....:     alarm(0.5)
-            ....:     singular._expect_expr('>')  # interrupt this
-            ....: except KeyboardInterrupt:
-            ....:     pass
-            Control-C pressed.  Interrupting Singular. Please wait a few seconds...
-
-        We can still access a::
-
-            sage: 2*a
-            2
-        """
-        # Work around for Singular bug
-        # http://www.singular.uni-kl.de:8002/trac/ticket/727
-        sleep(0.1)
-
-        E = self._expect
-        E.sendline(chr(3))
-        for i in range(5):
-            try:
-                E.expect_upto(self._prompt, timeout=1.0)
-                return
-            except Exception:
-                pass
-            E.sendline(";")
+        return 'quit;'
 
     def _read_in_file_command(self, filename):
         r"""
@@ -560,7 +522,7 @@ class Singular(ExtraTabCompletion, Expect):
             sage: singular.get('x')
             '2'
         """
-        return '< "%s";'%filename
+        return '< "%s";' % filename
 
     def eval(self, x, allow_semicolon=True, strip=True, **kwds):
         r"""
@@ -569,14 +531,12 @@ class Singular(ExtraTabCompletion, Expect):
 
         INPUT:
 
-
         -  ``x`` - string (of code)
 
         -  ``allow_semicolon`` - default: False; if False then
            raise a TypeError if the input line contains a semicolon.
 
         -  ``strip`` - ignored
-
 
         EXAMPLES::
 
@@ -662,7 +622,7 @@ class Singular(ExtraTabCompletion, Expect):
         x = str(x).rstrip().rstrip(';')
         x = x.replace("> ",">\t") #don't send a prompt  (added by Martin Albrecht)
         if not allow_semicolon and x.find(";") != -1:
-            raise TypeError("singular input must not contain any semicolons:\n%s"%x)
+            raise TypeError("singular input must not contain any semicolons:\n%s" % x)
         if len(x) == 0 or x[len(x) - 1] != ';':
             x += ';'
 
@@ -874,7 +834,7 @@ class Singular(ExtraTabCompletion, Expect):
             lib += ".lib"
         if not reload and lib in self.__libs:
             return
-        self.eval('LIB "%s"'%lib)
+        self.eval('LIB "%s"' % lib)
         self.__libs.append(lib)
 
     LIB = lib
@@ -923,7 +883,7 @@ class Singular(ExtraTabCompletion, Expect):
             return self(gens.name(), 'ideal')
 
         if not isinstance(gens, (list, tuple)):
-            raise TypeError("gens (=%s) must be a list, tuple, string, or Singular element"%gens)
+            raise TypeError("gens (=%s) must be a list, tuple, string, or Singular element" % gens)
 
         if len(gens) == 1 and isinstance(gens[0], (list, tuple)):
             gens = gens[0]
@@ -1188,7 +1148,7 @@ class Singular(ExtraTabCompletion, Expect):
         """
         if not isinstance(R, SingularElement):
             raise TypeError("R must be a singular ring")
-        self.eval("setring %s; short=0"%R.name(), allow_semicolon=True)
+        self.eval("setring %s; short=0" % R.name(), allow_semicolon=True)
 
     setring = set_ring
 
@@ -1338,7 +1298,7 @@ class Singular(ExtraTabCompletion, Expect):
             if not isinstance(val,SingularElement):
                 raise TypeError("singular.option('set') needs SingularElement as second parameter")
             #SingularFunction(self,"option")("\"set\"",val)
-            self.eval("option(set,%s)"%val.name())
+            self.eval("option(set,%s)" % val.name())
         else:
             SingularFunction(self,"option")("\""+str(cmd)+"\"")
 
@@ -1519,7 +1479,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             value = P(value)
         if isinstance(n, tuple):
             if len(n) != 2:
-                raise ValueError("If n (=%s) is a tuple, it must be a 2-tuple"%n)
+                raise ValueError("If n (=%s) is a tuple, it must be a 2-tuple" % n)
             x, y = n
             P.eval('%s[%s,%s] = %s'%(self.name(), x, y, value.name()))
         else:
@@ -1648,7 +1608,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         # extract the ring of coefficients
         singular = self.parent()
         charstr = singular.eval('charstr(basering)').split(',',1)
-        from sage.all import ZZ
+        from sage.rings.integer_ring import ZZ
         is_extension = len(charstr)==2
         if charstr[0] in ['integer', 'ZZ']:
             br = ZZ
@@ -1839,13 +1799,13 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
                 out = R(self)
                 self.parent().eval('short=%s'%is_short)
                 return out
-            singular_poly_list = self.parent().eval("string(coef(%s,%s))"%(\
+            singular_poly_list = self.parent().eval("string(coef(%s,%s))" % (\
                     self.name(),variable_str)).split(",")
             self.parent().eval('short=%s'%is_short)
         else:
             if isinstance(R, MPolynomialRing_libsingular):
                 return R(self)
-            singular_poly_list = self.parent().eval("string(coef(%s,%s))"%(\
+            singular_poly_list = self.parent().eval("string(coef(%s,%s))" % (\
                     self.name(),variable_str)).split(",")
 
         # Directly treat constants
@@ -1917,7 +1877,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             return R(sage_repr)
 
         else:
-            raise TypeError("Cannot coerce %s into %s"%(self,R))
+            raise TypeError("Cannot coerce %s into %s" % (self, R))
 
     def sage_matrix(self, R, sparse=True):
         """
@@ -2034,7 +1994,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             sage: singular(5).sage()
             5
             sage: type(singular(int(5)).sage())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
 
         """
         typ = self.type()
@@ -2195,7 +2155,7 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
         """
         # singular reports // $varname $type $stuff
         p = re.compile(r"// [\w]+ (\w+) [\w]*")
-        m = p.match(self.parent().eval("type(%s)"%self.name()))
+        m = p.match(self.parent().eval("type(%s)" % self.name()))
         return m.group(1)
 
     def __iter__(self):
@@ -2269,9 +2229,9 @@ class SingularElement(ExtraTabCompletion, ExpectElement):
             '4'
         """
         if value is None:
-            return int(self.parent().eval('attrib(%s,"%s")'%(self.name(),name)))
+            return int(self.parent().eval('attrib(%s,"%s")' % (self.name(), name)))
         else:
-            self.parent().eval('attrib(%s,"%s",%d)'%(self.name(),name,value))
+            self.parent().eval('attrib(%s,"%s",%d)' % (self.name(), name,value))
 
 
 @instancedoc
@@ -2299,12 +2259,12 @@ EXAMPLES::
     sage: groebner(singular(I))
     x+y,
     y^2-y
-"""%(self._name,)
+""" % (self._name,)
         prefix2 = \
 """
 
 The Singular documentation for '%s' is given below.
-"""%(self._name,)
+""" % (self._name,)
 
         try:
             return prefix + prefix2 + nodes[node_names[self._name]]
@@ -2553,7 +2513,7 @@ class SingularGBLogPrettyPrinter:
                 self.sync = int(match.groups()[0])
                 continue
 
-            if self.sync and line == "%d"%(self.sync+1):
+            if self.sync and line == "%d" % (self.sync + 1):
                 self.sync = None
                 continue
 
@@ -2606,10 +2566,10 @@ class SingularGBLogPrettyPrinter:
                     print("Maximal degree found: %s" % token)
 
                 elif re.match(SingularGBLogPrettyPrinter.num_crit, token) and verbosity >= 1:
-                    print("Leading term degree: %2d. Critical pairs: %s."%(self.curr_deg,token[1:-1]))
+                    print("Leading term degree: %2d. Critical pairs: %s." % (self.curr_deg,token[1:-1]))
 
                 elif re.match(SingularGBLogPrettyPrinter.red_num, token) and verbosity >= 3:
-                    print("Performing complete reduction of %s elements."%token[3:-1])
+                    print("Performing complete reduction of %s elements." % token[3:-1])
 
                 elif re.match(SingularGBLogPrettyPrinter.deg_lead, token):
                     if verbosity >= 1:
@@ -2795,6 +2755,7 @@ def singular_gb_standard_options(func):
        does not need to use it manually.
     """
     from sage.misc.decorators import sage_wraps
+
     @sage_wraps(func)
     def wrapper(*args, **kwds):
         with SingularGBDefaultContext():

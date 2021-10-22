@@ -66,7 +66,7 @@ from sage.arith.all import gcd, lcm
 
 from sage.interfaces.all import singular
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.cachefunc import cached_method
 from sage.misc.lazy_attribute import lazy_attribute
 
@@ -911,7 +911,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         """
         # if ideal or valuation is specified, we scale according the norm defined by the ideal/valuation
         ideal = kwds.pop('ideal', None)
-        if ideal != None:
+        if ideal is not None:
             from sage.rings.number_field.number_field_ideal import NumberFieldFractionalIdeal
             if not (ideal in ZZ or isinstance(ideal, NumberFieldFractionalIdeal)):
                 raise TypeError('ideal must be an ideal of a number field, not %s' %ideal)
@@ -942,7 +942,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             self.scale_by(uniformizer**(-1*min_val))
             return
         valuation = kwds.pop('valuation', None)
-        if valuation != None:
+        if valuation is not None:
             from sage.rings.padics.padic_valuation import pAdicValuation_base
             if not isinstance(valuation, pAdicValuation_base):
                 raise TypeError('valuation must be a valuation on a number field, not %s' %valuation)
@@ -970,7 +970,7 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
         # There are cases, such as the example above over GF(7),
         # where we want to compute GCDs, but NOT in the case
         # where R is a NumberField of class number > 1.
-        if R in NumberFields:
+        if R in NumberFields():
             if R.class_number() > 1:
                 return
 

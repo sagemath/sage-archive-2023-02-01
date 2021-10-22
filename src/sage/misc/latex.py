@@ -31,9 +31,7 @@ import re
 import shutil
 from subprocess import call, PIPE
 
-from sage.misc import sage_eval
 from sage.misc.cachefunc import cached_function, cached_method
-from sage.misc.sage_ostools import have_program
 from sage.misc.temporary_file import tmp_dir
 from sage.structure.sage_object import SageObject
 
@@ -82,6 +80,7 @@ def have_latex() -> bool:
         sage: have_latex() # random
         True
     """
+    from sage.misc.sage_ostools import have_program
     return have_program('latex')
 
 
@@ -99,6 +98,7 @@ def have_pdflatex() -> bool:
         sage: have_pdflatex() # random
         True
     """
+    from sage.misc.sage_ostools import have_program
     return have_program('pdflatex')
 
 
@@ -116,6 +116,7 @@ def have_xelatex() -> bool:
         sage: have_xelatex() # random
         True
     """
+    from sage.misc.sage_ostools import have_program
     return have_program('xelatex')
 
 
@@ -133,6 +134,7 @@ def have_dvipng() -> bool:
         sage: have_dvipng() # random
         True
     """
+    from sage.misc.sage_ostools import have_program
     return have_program('dvipng')
 
 
@@ -151,6 +153,7 @@ def have_convert() -> bool:
         sage: have_convert() # random
         True
     """
+    from sage.misc.sage_ostools import have_program
     return have_program('convert')
 
 
@@ -417,7 +420,8 @@ class LatexExpr(str):
     Normally, objects of this class are created by a :func:`latex` call. It is
     also possible to generate :class:`LatexExpr` directly from a string, which
     must contain valid LaTeX code for typesetting in math mode (without dollar
-    signs). In the Sage notebook, use :func:`pretty_print` or the "Typeset"
+    signs). In the Sage notebook, use
+    :func:`~sage.repl.rich_output.pretty_print.pretty_print` or the "Typeset"
     checkbox to actually see the typeset LaTeX code; alternatively, from
     either the command-line or the notebook, use the :func:`view` function.
 
@@ -1014,6 +1018,7 @@ class Latex(LatexCall):
             sage: sage.misc.latex.Latex()._latex_preparse(r'\sage{s}', locals())
             '2'
         """
+        from sage.misc.sage_eval import sage_eval
         i0 = -1
         while True:
             i = s.find('\\sage{')
@@ -1027,7 +1032,7 @@ class Latex(LatexCall):
 
             var = t[:j]
             try:
-                k = str(latex(sage_eval.sage_eval(var, locals)))
+                k = str(latex(sage_eval(var, locals)))
             except Exception as msg:
                 print(msg)
                 k = '\\mbox{\\rm [%s undefined]}' % var
@@ -1596,8 +1601,8 @@ Warning: `{}` is not part of this computer's TeX installation.""".format(file_na
             raise ValueError("%s is not a supported LaTeX engine. Use latex, pdflatex, or xelatex" % e)
 
 # Note: latex used to be a separate function, which by default was
-# only loaded in command-line mode: in the notebook, all_notebook.py
-# defined (and still defines) latex by 'latex = Latex(density=130)'.
+# only loaded in command-line mode: in the old notebook,
+# latex was defined by 'latex = Latex(density=130)'.
 # Meanwhile, the __call__ method for Latex used to call the latex
 # function.  This has been changed around so that the contents of the
 # old latex function are now in Latex.__call__; thus the following

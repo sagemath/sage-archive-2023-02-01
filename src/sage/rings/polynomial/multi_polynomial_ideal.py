@@ -249,6 +249,7 @@ from sage.misc.verbose import verbose, get_verbose
 from sage.misc.method_decorator import MethodDecorator
 
 from sage.rings.integer_ring import ZZ
+import sage.rings.abc
 import sage.rings.polynomial.toy_buchberger as toy_buchberger
 import sage.rings.polynomial.toy_variety as toy_variety
 import sage.rings.polynomial.toy_d_basis as toy_d_basis
@@ -2123,9 +2124,23 @@ class MPolynomialIdeal_singular_repr(
             sage: print("possible output from giac", flush=True); I.elimination_ideal([t, s], algorithm="giac") == J
             possible output...
             True
+
+        Check that the passed variables are actually variables of the ring
+        (:trac:`31414`)::
+
+            sage: R.<x,y,z> = QQ[]
+            sage: I = R.ideal(x-y, z)
+            sage: I.elimination_ideal([x, R(0)])
+            Traceback (most recent call last):
+            ...
+            ValueError: not a ring variable: 0
         """
         if not isinstance(variables, (list, tuple)):
             variables = (variables,)
+        gens = self.ring().gens()
+        for v in variables:
+            if v not in gens:
+                raise ValueError("not a ring variable: %s" % v)
 
         if (algorithm is None or algorithm.lower() == 'libsingular'
                 or algorithm == 'libsingular:eliminate'):
@@ -4177,8 +4192,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: F = Frac(P)
             sage: R.<X,Y,Z> = F[]
             sage: I = Ideal([f + P.random_element() for f in sage.rings.ideal.Katsura(R).gens()])
-            sage: I.groebner_basis()
-            [Z^3 + (-79/105*t - 79/70)*Z^2 + (2/15*t^2 - 74/315*t + 94/105)*Y + (2/35*t^2 + 194/315*t + 1/105)*Z - 4/105*t^2 - 17/210*t - 1/28, Y^2 + (-3/5)*Z^2 + (-2/5*t - 3/5)*Y + (2/5*t + 3/5)*Z - 4/15*t + 1/2, Y*Z + 6/5*Z^2 + (-1/5*t - 3/10)*Y + (-4/5*t - 6/5)*Z + 8/15*t - 1/2, X + 2*Y + 2*Z - t - 2]
+            sage: I.groebner_basis().ideal() == I
+            True
 
         In cases where a characteristic cannot be determined, we use a toy implementation of Buchberger's algorithm
         (see :trac:`6581`)::
@@ -4274,7 +4289,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             sage: I.groebner_basis('magma:GroebnerBasis') # optional - magma
             [a + (-60)*c^3 + 158/7*c^2 + 8/7*c - 1, b + 30*c^3 + (-79/7)*c^2 + 3/7*c, c^4 + (-10/21)*c^3 + 1/84*c^2 + 1/84*c]
         """
-        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         from sage.rings.polynomial.multi_polynomial_sequence import PolynomialSequence
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
@@ -4317,7 +4331,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
                                 deg_bound=deg_bound, mult_bound=mult_bound,
                                 prot=prot, *args, **kwds)]
                     elif (R.term_order().is_global()
-                          and is_IntegerModRing(B)
+                          and isinstance(B, sage.rings.abc.IntegerModRing)
                           and not B.is_field()):
                         verbose("Warning: falling back to very slow toy implementation.", level=0)
 
@@ -4723,7 +4737,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         if m <= n:
             raise ValueError("This function requires an overdefined system of polynomials.")
 
-        from sage.rings.all import QQ
+        from sage.rings.rational_field import QQ
         from sage.misc.misc_c import prod
         from sage.rings.power_series_ring import PowerSeriesRing
 
@@ -4876,8 +4890,11 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
 
             sage: P.<x,y,z> = GF(127)[]
             sage: I = sage.rings.ideal.Katsura(P)
-            sage: I.random_element(degree=4, compute_gb=True, terms=infinity)
-            34*x^4 - 33*x^3*y + 45*x^2*y^2 - 51*x*y^3 - 55*y^4 + 43*x^3*z ... - 28*y - 33*z + 45
+            sage: f = I.random_element(degree=4, compute_gb=True, terms=infinity)
+            sage: f.degree() <= 4
+            True
+            sage: len(list(f)) <= 35
+            True
 
         Note that sampling uniformly at random from the ideal at some large enough degree is
         equivalent to computing a Gröbner basis. We give an example showing how to compute a Gröbner

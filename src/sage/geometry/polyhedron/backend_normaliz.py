@@ -2335,7 +2335,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
         if acting_group is not None:
             if not acting_group.is_subgroup(G_perm):
-                raise TypeError("The 'acting_group' should be a subgroup of the 'restricted_automorphism_group'.")
+                raise TypeError("the 'acting_group' should be a subgroup of the 'restricted_automorphism_group'.")
             G_perm = acting_group
         # Create the Gap group one time only (each creation has different conj reps)
         G_perm_gap = G_perm._libgap_()
@@ -2392,15 +2392,15 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
 
         new_new_result = self._Hstar_as_rat_fct(new_result)
         if output is None:
-            return(new_new_result)
+            return new_new_result
         elif output == 'e_series_list':
-            return(list_es)
+            return list_es
         elif output == 'determinant_vec':
-            return(det_vector)
+            return det_vector
         elif output == 'Hstar_as_lin_comb':
-            return(new_result)
+            return new_result
         elif output == 'prod_det_es':
-            return(initial_result)
+            return initial_result
         elif output == 'complete':
             results_dictionary = {}
             results_dictionary['Hstar'] = new_new_result
@@ -2408,7 +2408,7 @@ class Polyhedron_QQ_normaliz(Polyhedron_normaliz, Polyhedron_QQ):
             results_dictionary['conjugacy_class_reps'] = conj_reps
             results_dictionary['character_table'] = char_initial
             results_dictionary['is_effective'] = self._is_effective_normaliz(new_new_result, new_result)
-            return(results_dictionary)
+            return results_dictionary
 
     def _Hstar_as_rat_fct(self, initial_Hstar):
         r"""

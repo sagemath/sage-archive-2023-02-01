@@ -878,9 +878,9 @@ class Polyhedron_QQ(Polyhedron_base):
            (A vertex at (0, 3/4), A vertex at (3/2, 3/4))
         """
         if self.is_empty():
-            raise NotImplementedError('Empty polyhedra are not supported')
+            raise NotImplementedError('empty polyhedra are not supported')
         if not self.is_compact():
-            raise NotImplementedError('Unbounded polyhedra are not supported')
+            raise NotImplementedError('unbounded polyhedra are not supported')
 
         orbits = frozenset([frozenset(i) for i in vertex_permutation.cycle_tuples(singletons=True)])
 
@@ -960,12 +960,12 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: P.fixed_subpolytopes(conj_list)
             Traceback (most recent call last):
             ...
-            NotImplementedError: Unbounded polyhedra are not supported
+            NotImplementedError: unbounded polyhedra are not supported
         """
         if self.is_empty():
-            raise NotImplementedError('Empty polyhedra are not supported')
+            raise NotImplementedError('empty polyhedra are not supported')
         if not self.is_compact():
-            raise NotImplementedError('Unbounded polyhedra are not supported')
+            raise NotImplementedError('unbounded polyhedra are not supported')
         fixed_subpolytopes = {}
 
         for element in conj_class_reps:
@@ -1076,11 +1076,11 @@ class Polyhedron_QQ(Polyhedron_base):
             ((t^4 + 3*t^3 + 8*t^2 + 3*t + 1)/(t + 1), (3*t^3 + 2*t^2 + 3*t)/(t + 1))
         """
         if self.is_empty():
-            raise NotImplementedError('Empty polyhedra are not supported')
+            raise NotImplementedError('empty polyhedra are not supported')
         if not self.is_compact():
-            raise NotImplementedError('Unbounded polyhedra are not supported')
+            raise NotImplementedError('unbounded polyhedra are not supported')
         if not self.backend() == 'normaliz':
-            raise TypeError("The backend of the polyhedron should be 'normaliz'")
+            raise TypeError("the backend of the polyhedron should be 'normaliz'")
         else:
             return self._Hstar_function_normaliz(acting_group, output)
 
@@ -1127,9 +1127,9 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: p._Hstar_function_normaliz()
             Traceback (most recent call last):
             ...
-            TypeError: The backend of the polyhedron should be 'normaliz'
+            TypeError: the backend of the polyhedron should be 'normaliz'
         """
-        raise TypeError("The backend of the polyhedron should be 'normaliz'")
+        raise TypeError("the backend of the polyhedron should be 'normaliz'")
 
     def is_effective(self, Hstar, Hstar_as_lin_comb):
         r"""
@@ -1188,13 +1188,13 @@ class Polyhedron_QQ(Polyhedron_base):
             False
         """
         if self.is_empty():
-            raise NotImplementedError('Empty polyhedra are not supported')
+            raise NotImplementedError('empty polyhedra are not supported')
         if not self.is_compact():
-            raise NotImplementedError('Unbounded polyhedra are not supported')
+            raise NotImplementedError('unbounded polyhedra are not supported')
         if self.backend() == 'normaliz':
             return self._is_effective_normaliz(Hstar, Hstar_as_lin_comb)
         else:
-            raise TypeError("The backend of the polyhedron should be 'normaliz'")
+            raise TypeError("the backend of the polyhedron should be 'normaliz'")
 
     def _is_effective_normaliz(self, Hstar, Hstar_as_lin_comb):
         r"""
@@ -1230,6 +1230,6 @@ class Polyhedron_QQ(Polyhedron_base):
             sage: p1._is_effective_normaliz(Hstar,Hstarlin)              # optional - pynormaliz
             Traceback (most recent call last):
             ...
-            TypeError: The backend of the polyhedron should be 'normaliz'
+            TypeError: the backend of the polyhedron should be 'normaliz'
         """
-        raise TypeError("The backend of the polyhedron should be 'normaliz'")
+        raise TypeError("the backend of the polyhedron should be 'normaliz'")

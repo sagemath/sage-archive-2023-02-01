@@ -1,8 +1,6 @@
 from .complex_double cimport ComplexDoubleElement
 from .complex_mpfr cimport ComplexNumber
 from sage.libs.mpfr cimport mpfr_get_d, MPFR_RNDN
-from sage.structure.element cimport Element
-from sage.categories.map cimport Map
 
 cdef class CCtoCDF(Map):
 
@@ -10,7 +8,7 @@ cdef class CCtoCDF(Map):
         """
         EXAMPLES::
 
-            sage: from sage.rings.complex_mpfr cimport CCtoCDF
+            sage: from sage.rings.complex_conversion import CCtoCDF
             sage: f = CCtoCDF(CC, CDF) # indirect doctest
             sage: f(CC.0)
             1.0*I

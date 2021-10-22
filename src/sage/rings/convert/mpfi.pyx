@@ -20,6 +20,8 @@ from sage.libs.mpfi cimport *
 from sage.arith.long cimport integer_check_long
 from sage.cpython.string cimport bytes_to_str
 from sage.structure.element cimport Element, parent
+
+import sage.rings.abc
 from ..integer cimport Integer
 from ..rational cimport Rational
 from ..real_mpfi cimport RealIntervalFieldElement, RealIntervalField_class

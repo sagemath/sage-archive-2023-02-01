@@ -56,8 +56,6 @@ gsl_set_error_handler_off()
 
 import math, operator
 
-from cypari2.convert cimport new_gen_from_double
-
 import sage.rings.integer
 import sage.rings.rational
 
@@ -1669,6 +1667,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1.5).__pari__()
             1.50000000000000
         """
+        from cypari2.convert import new_gen_from_double
         return new_gen_from_double(self._value)
 
 

@@ -12,7 +12,7 @@ class sage__combinat(JoinFeature):
         # Testing whether sage.combinat itself can be imported is meaningless.
         # Hence, we test a Python module within the package.
         JoinFeature.__init__(self, 'sage.combinat',
-                             [PythonModule('sage.combinat.combinations')])
+                             [PythonModule('sage.combinat.combination')])
 
 
 class sage__graphs(JoinFeature):

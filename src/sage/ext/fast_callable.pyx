@@ -302,9 +302,7 @@ AUTHOR:
 
 import operator
 from copy import copy
-from sage.rings.real_mpfr cimport RealField_class, RealNumber
-from sage.rings.complex_mpfr import ComplexField_class
-from sage.rings.all import RDF, CDF
+import sage.rings.abc
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element cimport parent
@@ -469,7 +467,7 @@ def fast_callable(x, domain=None, vars=None,
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)
         et = x._fast_callable_(etb)
 
-    if isinstance(domain, RealField_class):
+    if isinstance(domain, sage.rings.abc.RealField):
         import sage.ext.interpreters.wrapper_rr
         builder = sage.ext.interpreters.wrapper_rr.Wrapper_rr
 
@@ -477,20 +475,20 @@ def fast_callable(x, domain=None, vars=None,
                                 len(vars),
                                 domain)
 
-    elif isinstance(domain, ComplexField_class):
+    elif isinstance(domain, sage.rings.abc.ComplexField):
         import sage.ext.interpreters.wrapper_cc
         builder = sage.ext.interpreters.wrapper_cc.Wrapper_cc
         str = InstructionStream(sage.ext.interpreters.wrapper_cc.metadata,
                                 len(vars),
                                 domain)
 
-    elif domain == RDF or domain is float:
+    elif isinstance(domain, sage.rings.abc.RealDoubleField) or domain is float:
         import sage.ext.interpreters.wrapper_rdf
         builder = sage.ext.interpreters.wrapper_rdf.Wrapper_rdf
         str = InstructionStream(sage.ext.interpreters.wrapper_rdf.metadata,
                                 len(vars),
                                 domain)
-    elif domain == CDF:
+    elif isinstance(domain, sage.rings.abc.ComplexDoubleField):
         import sage.ext.interpreters.wrapper_cdf
         builder = sage.ext.interpreters.wrapper_cdf.Wrapper_cdf
         str = InstructionStream(sage.ext.interpreters.wrapper_cdf.metadata,

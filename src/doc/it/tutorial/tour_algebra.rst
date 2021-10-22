@@ -251,8 +251,6 @@ Le singole componenti possono essere tracciate usando::
     sage: p2 = plot(4*cos(t) - cos(2*t), 0, 2*pi, rgbcolor=hue(0.6))
     sage: show(p1 + p2)
 
-(Per ulteriori informazioni sul disegno di funzioni, si veda :ref:`section-plot`.)
-
 BIBLIOGRAFIA: Nagle, Saff, Snider, Fundamentals of Differential
 Equations, 6th ed, Addison-Wesley, 2004. (si veda § 5.5).
 
@@ -356,8 +354,6 @@ come mostrato qui in seguito:
 ::
 
     sage: show(P[0] + P[1])
-
-(Per ulteriori informazioni sul disegno di grafici, si veda :ref:`section-plot`.)
 
 Funzioni speciali
 -----------------

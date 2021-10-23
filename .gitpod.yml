@@ -1,0 +1,20 @@
+# List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
+tasks:
+  - init: |
+      sudo apt-get update
+      # Needed for bootstrap
+      sudo apt-get install gettext
+      # From dockerfile
+      sudo apt-get install -y --no-install-recommends gfortran gcc g++ libstdc++-9-dev sudo openssl
+      sudo apt-get install -y wget build-essential automake m4 dpkg-dev python libssl-dev git rdfind
+      # Recommended by ./configure
+      sudo apt-get install -y libflint-arb-dev libbrial-dev libbrial-groebner-dev libcdd-dev libcdd-tools ecl libec-dev eclib-tools fflas-ffpack flintqs libgc-dev gfan libgiac-dev xcas libgsl-dev libiml-dev lcalc liblfunction-dev libhomfly-dev libopenblas-dev palp pari-gp2c libpari-dev pari-doc pari-elldata pari-galdata pari-galpol pari-seadata libppl-dev ppl-dev python3 libpython3-dev python3-distutils r-base-dev r-cran-lattice librw-dev libsuitesparse-dev libsymmetrica2-dev sympow tachyon libzmq3-dev libzn-poly-dev
+      ./bootstrap
+      ./configure -enable-editable
+      MAKE='make -j8' make
+    command: echo 'start script'
+
+# List the ports to expose. Learn more https://www.gitpod.io/docs/config-ports/
+ports:
+  - port: 3000
+    onOpen: open-preview

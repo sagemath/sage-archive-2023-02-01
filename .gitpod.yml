@@ -12,6 +12,8 @@ tasks:
       # They are not recommended for some reason
       sudo apt-get install -y python3-venv libgf2x-dev cliquer libcliquer-dev gmp-ecm libecm-dev glpk-utils libglpk-dev libbraiding-dev liblrcalc-dev libm4rie-dev libmpc-dev libmpfi-dev libmpfr-dev nauty libntl-dev libplanarity-dev planarity 
       # We do not install tox, since it pulls in javascript-common which does not install for some reason
+      brew update
+      brew upgrade
       brew install arb ecl flint fplll pari pari-elldata pari-galdata pari-galpol pari-seadata tox
       export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
       ./bootstrap

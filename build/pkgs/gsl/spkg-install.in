@@ -1,5 +1,5 @@
 cd src
 
-sdh_configure LIBS="`pkg-config --libs-only-l cblas` -lm"
+sdh_configure LIBS="`pkg-config --libs-only-l cblas` -lm" LDFLAGS="$LDFLAGS `pkg-config --libs-only-L cblas`"
 sdh_make
 sdh_make_install

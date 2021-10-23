@@ -49,7 +49,8 @@ else:
 b = venv.EnvBuilder(system_site_packages=options.system_site,
                     clear=options.clear,
                     upgrade=options.upgrade,
-                    symlinks=use_symlinks)
+                    symlinks=use_symlinks,
+                    with_pip=True)
 c = b.ensure_directories(options.env_dir)
 b.setup_python(c)
 b.create_configuration(c)

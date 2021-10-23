@@ -252,8 +252,7 @@ def get_matrix_class(R, nrows, ncols, sparse, implementation):
                 from . import matrix_symbolic_dense
                 return matrix_symbolic_dense.Matrix_symbolic_dense
 
-            from sage.rings.complex_arb import ComplexBallField
-            if isinstance(R, ComplexBallField):
+            if isinstance(R, sage.rings.abc.ComplexBallField):
                 from . import matrix_complex_ball_dense
                 return matrix_complex_ball_dense.Matrix_complex_ball_dense
 

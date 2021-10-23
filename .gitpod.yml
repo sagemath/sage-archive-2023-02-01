@@ -12,6 +12,7 @@ tasks:
       # They are not recommended for some reason
       sudo apt-get install -y python3-venv libgf2x-dev cliquer libcliquer-dev gmp-ecm libecm-dev glpk-utils libglpk-dev libbraiding-dev liblrcalc-dev libm4rie-dev libmpc-dev libmpfi-dev libmpfr-dev nauty libntl-dev libplanarity-dev planarity 
       # We do not install tox, since it pulls in javascript-common which does not install for some reason
+      brew install arb ecl flint fplll pari pari-elldata pari-galdata pari-galpol pari-seadata tox
       ./bootstrap
       ./configure -enable-editable
       # Gitpod sets PIP_USER: yes by default, which leads to problems during build (e.g pip not being installed in the venv)
@@ -19,6 +20,8 @@ tasks:
       # Gitpod installs pyenv by default, and sage's pip install targets the pyenv python for some reason
       pyenv global system
       MAKE='make -j8' make build
+    env: 
+      SAGE_NUM_THREADS: 4
     command: echo 'start script'
 
 # List the ports to expose. Learn more https://www.gitpod.io/docs/config-ports/

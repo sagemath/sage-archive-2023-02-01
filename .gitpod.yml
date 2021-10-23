@@ -1,5 +1,6 @@
 # List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
 tasks:
+  - before: "echo 'export PIP_USER=no' >> ~/.bashrc && export PIP_USER=no"
   - init: |
       sudo apt-get update
       # Needed for bootstrap
@@ -13,6 +14,7 @@ tasks:
       sudo apt-get install -y python3-venv tox libgf2x-dev cliquer libcliquer-dev gmp-ecm libecm-dev glpk-utils libglpk-dev libbraiding-dev liblrcalc-dev libm4rie-dev libmpc-dev libmpfi-dev libmpfr-dev nauty libntl-dev libplanarity-dev planarity 
       ./bootstrap
       ./configure -enable-editable
+      #export PIP_USER=no
       MAKE='make -j8' make build
     command: echo 'start script'
     env:

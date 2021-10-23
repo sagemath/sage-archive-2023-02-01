@@ -24,6 +24,8 @@ from sage.structure.richcmp import richcmp_not_equal, richcmp
 
 from sage.categories.morphism import Morphism
 
+import sage.schemes.elliptic_curves.weierstrass_morphism as wm
+
 
 class EllipticCurveHom(Morphism):
     """
@@ -162,9 +164,11 @@ class EllipticCurveHom(Morphism):
         r"""
         Return the degree of this elliptic-curve morphism.
 
-        Implemented by child classes. For examples,
-        see :meth:`EllipticCurveIsogeny.degree` and
-        :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.degree`.
+        Implemented by child classes. For examples, see:
+
+        - :meth:`EllipticCurveIsogeny.degree`
+        - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.degree`
+        - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.degree`
 
         TESTS::
 
@@ -180,9 +184,11 @@ class EllipticCurveHom(Morphism):
         r"""
         Return the kernel polynomial of this elliptic-curve morphism.
 
-        Implemented by child classes. For examples,
-        see :meth:`EllipticCurveIsogeny.kernel_polynomial` and
-        :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.kernel_polynomial`.
+        Implemented by child classes. For examples, see:
+
+        - :meth:`EllipticCurveIsogeny.kernel_polynomial`
+        - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.kernel_polynomial`
+        - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.kernel_polynomial`
 
         TESTS::
 
@@ -198,9 +204,11 @@ class EllipticCurveHom(Morphism):
         r"""
         Return the dual of this elliptic-curve morphism.
 
-        Implemented by child classes. For examples,
-        see :meth:`EllipticCurveIsogeny.dual` and
-        :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.dual`.
+        Implemented by child classes. For examples, see:
+
+        - :meth:`EllipticCurveIsogeny.dual`
+        - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.dual`
+        - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.dual`
 
         TESTS::
 
@@ -218,9 +226,11 @@ class EllipticCurveHom(Morphism):
         elliptic-curve morphism as fractions of bivariate
         polynomials in `x` and `y`.
 
-        Implemented by child classes. For examples,
-        see :meth:`EllipticCurveIsogeny.rational_maps` and
-        :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.rational_maps`.
+        Implemented by child classes. For examples, see:
+
+        - :meth:`EllipticCurveIsogeny.rational_maps`
+        - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.rational_maps`
+        - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.rational_maps`
 
         TESTS::
 
@@ -237,9 +247,11 @@ class EllipticCurveHom(Morphism):
         Return the `x`-coordinate rational map of this elliptic-curve
         morphism as a univariate rational expression in `x`.
 
-        Implemented by child classes. For examples,
-        see :meth:`EllipticCurveIsogeny.x_rational_map` and
-        :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.x_rational_map`.
+        Implemented by child classes. For examples, see:
+
+        - :meth:`EllipticCurveIsogeny.x_rational_map`
+        - :meth:`sage.schemes.elliptic_curves.weierstrass_morphism.WeierstrassIsomorphism.x_rational_map`
+        - :meth:`sage.schemes.elliptic_curves.hom_composite.EllipticCurveHom_composite.x_rational_map`
 
         TESTS::
 
@@ -448,7 +460,7 @@ class EllipticCurveHom(Morphism):
             sage: phi.is_surjective()
             True
         """
-        return True
+        return bool(self.degree())
 
     def is_injective(self):
         r"""
@@ -477,9 +489,9 @@ class EllipticCurveHom(Morphism):
             sage: phi.is_injective()
             True
         """
-        # This will become wrong once purely inseparable isogenies
-        # are implemented. We should probably add something like a
-        # separable_degree() method then.
+        if not self.is_separable():
+            #TODO: should implement .separable_degree() or similar
+            raise NotImplementedError
         return self.degree() == 1
 
     def is_zero(self):
@@ -500,6 +512,25 @@ class EllipticCurveHom(Morphism):
             False
         """
         return not self.degree()
+
+    def __neg__(self):
+        r"""
+        Return the negative of this elliptic-curve morphism. In other
+        words, return `[-1]\circ\varphi` where `\varphi` is ``self``
+        and `[-1]` is the negation automorphism on the codomain curve.
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.hom import EllipticCurveHom
+            sage: E = EllipticCurve(GF(1019), [5,5])
+            sage: phi = E.isogeny(E.lift_x(73))
+            sage: f,g = phi.rational_maps()
+            sage: psi = EllipticCurveHom.__neg__(phi)
+            sage: psi.rational_maps() == (f, -g)
+            True
+        """
+        a1,_,a3,_,_ = self.codomain().a_invariants()
+        return wm.WeierstrassIsomorphism(self.codomain(), (-1,0,-a1,-a3)) * self
 
     @cached_method
     def __hash__(self):

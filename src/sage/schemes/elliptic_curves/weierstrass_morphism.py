@@ -29,6 +29,7 @@ from .constructor import EllipticCurve
 from sage.schemes.elliptic_curves.hom import EllipticCurveHom
 from sage.structure.richcmp import (richcmp_method, richcmp, richcmp_not_equal,
                                     op_NE)
+from sage.structure.sequence import Sequence
 from sage.rings.all import PolynomialRing
 
 
@@ -531,6 +532,38 @@ class WeierstrassIsomorphism(EllipticCurveHom, baseWI):
             return baseWI.__richcmp__(self, other, op)
 
         return EllipticCurveHom._richcmp_(self, other, op)
+
+    def _eval(self, P):
+        r"""
+        Less strict evaluation method for internal use.
+
+        In particular, this can be used to evaluate ``self`` at a
+        point defined over an extension field.
+
+        INPUT: a sequence of 3 coordinates defining a point on ``self``
+
+        OUTPUT: the result of evaluating ``self'' at the given point
+
+        EXAMPLES::
+
+            sage: from sage.schemes.elliptic_curves.weierstrass_morphism import WeierstrassIsomorphism
+            sage: E = EllipticCurve([i,0]); E
+            Elliptic Curve defined by y^2 = x^3 + I*x over Number Field in I with defining polynomial x^2 + 1 with I = 1*I
+            sage: iso = WeierstrassIsomorphism(E, (i,1,2,3))
+            sage: P = E.change_ring(QQbar).lift_x(QQbar.random_element())
+            sage: Q = iso._eval(P)
+            sage: Q.curve()
+            Elliptic Curve defined by y^2 + (-4*I)*x*y + 6*I*y = x^3 + x^2 + (I-9)*x + (-I+8) over Algebraic Field
+            sage: y = next(filter(bool, iter(QQbar.random_element, None)))  # sample until nonzero
+            sage: iso._eval((0, y, 0)) == 0
+            True
+        """
+        if self._domain.defining_polynomial()(*P):
+            raise ValueError(f'{P} not on {self._domain}')
+
+        Q = baseWI.__call__(self, P)
+        k = Sequence(tuple(P) + tuple(Q)).universe()
+        return self._codomain.base_extend(k).point(Q)
 
     def __call__(self, P):
         r"""

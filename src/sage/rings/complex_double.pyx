@@ -2657,3 +2657,8 @@ cdef inline ComplexDoubleElement ComplexDoubleElement_from_doubles(double re, do
     z._complex.real = re
     z._complex.imag = im
     return z
+
+
+# Support Python's numbers abstract base class
+import numbers
+numbers.Complex.register(ComplexDoubleElement)

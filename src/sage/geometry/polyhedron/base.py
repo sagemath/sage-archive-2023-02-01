@@ -39,7 +39,6 @@ from sage.cpython.string import bytes_to_str
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.misc.randstate import current_randstate
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.qqbar import AA
@@ -3282,7 +3281,7 @@ class Polyhedron_base(Element, ConvexSet_closed, sage.geometry.abc.Polyhedron):
         OUTPUT:
 
         A point as a coordinate vector. The point is chosen to be
-        interior as far as possible. If the polyhedron is not
+        interior if possible. If the polyhedron is not
         full-dimensional, the point is in the relative interior. If
         the polyhedron is zero-dimensional, its single point is
         returned.

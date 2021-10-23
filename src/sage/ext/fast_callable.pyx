@@ -468,40 +468,33 @@ def fast_callable(x, domain=None, vars=None,
         et = x._fast_callable_(etb)
 
     if isinstance(domain, sage.rings.abc.RealField):
-        import sage.ext.interpreters.wrapper_rr
-        builder = sage.ext.interpreters.wrapper_rr.Wrapper_rr
-
+        from sage.ext.interpreters.wrapper_rr import Wrapper_rr as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_rr.metadata,
                                 len(vars),
                                 domain)
 
     elif isinstance(domain, sage.rings.abc.ComplexField):
-        import sage.ext.interpreters.wrapper_cc
-        builder = sage.ext.interpreters.wrapper_cc.Wrapper_cc
+        from sage.ext.interpreters.wrapper_cc import Wrapper_cc as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_cc.metadata,
                                 len(vars),
                                 domain)
 
     elif isinstance(domain, sage.rings.abc.RealDoubleField) or domain is float:
-        import sage.ext.interpreters.wrapper_rdf
-        builder = sage.ext.interpreters.wrapper_rdf.Wrapper_rdf
+        from sage.ext.interpreters.wrapper_rdf import Wrapper_rdf as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_rdf.metadata,
                                 len(vars),
                                 domain)
     elif isinstance(domain, sage.rings.abc.ComplexDoubleField):
-        import sage.ext.interpreters.wrapper_cdf
-        builder = sage.ext.interpreters.wrapper_cdf.Wrapper_cdf
+        from sage.ext.interpreters.wrapper_cdf import Wrapper_cdf as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_cdf.metadata,
                                 len(vars),
                                 domain)
     elif domain is None:
-        import sage.ext.interpreters.wrapper_py
-        builder = sage.ext.interpreters.wrapper_py.Wrapper_py
+        from sage.ext.interpreters.wrapper_py import Wrapper_py as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_py.metadata,
                                 len(vars))
     else:
-        import sage.ext.interpreters.wrapper_el
-        builder = sage.ext.interpreters.wrapper_el.Wrapper_el
+        from sage.ext.interpreters.wrapper_el import Wrapper_el as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_el.metadata,
                                 len(vars),
                                 domain)

@@ -207,6 +207,7 @@ import numbers
 
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, rich_to_bool
+import sage.rings.abc
 from .integer import Integer
 from .integer_ring import ZZ
 from .infinity import Infinity

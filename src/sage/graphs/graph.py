@@ -4352,7 +4352,6 @@ class Graph(GenericGraph):
             if (self.order() != M.order() + 1) or (self.order() != 2*M.size() + 1):
                 raise ValueError("the input is not a near perfect matching of the graph")
         else:
-            print(matching)
             # We compute a maximum matching of the graph
             M = Graph(self.matching(algorithm=algorithm, solver=solver, verbose=verbose,
                                     integrality_tolerance=integrality_tolerance))
@@ -4360,7 +4359,7 @@ class Graph(GenericGraph):
             # It must be a near-perfect matching
             if self.order() != M.order() + 1:
                 return False
-        print("blop")
+
         # We find the unsaturated vertex u, i.e., the only vertex of the graph
         # not in M
         for u in self:

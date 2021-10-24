@@ -36,6 +36,14 @@ class AlgebraicField(AlgebraicField_common):
 
 class AlgebraicRealField(AlgebraicField_common):
     r"""
+    Abstract base class for :class:`~sage.rings.qqbar.AlgebraicRealField`.
+    """
+
+    pass
+
+
+cdef class RealField(Field):
+    r"""
     Abstract base class for :class:`~sage.rings.real_mpfr.RealField_class`.
     """
 

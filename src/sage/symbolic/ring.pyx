@@ -35,7 +35,6 @@ from sage.rings.integer cimport Integer
 import sage.rings.abc
 
 from sage.symbolic.expression cimport (
-    is_Expression,
     _latex_Expression,
     _repr_Expression,
     new_Expression,
@@ -44,7 +43,7 @@ from sage.symbolic.expression cimport (
     new_Expression_symbol,
 )
 
-from sage.structure.element cimport Element
+from sage.structure.element cimport Element, Expression
 from sage.categories.morphism cimport Morphism
 from sage.structure.coerce cimport is_numpy_type
 
@@ -250,7 +249,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: a = SR(-3/4); a
             -3/4
             sage: type(a)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
             sage: a.parent()
             Symbolic Ring
             sage: K.<a> = QuadraticField(-3)
@@ -404,7 +403,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: t = SR._force_pyobject(QQ); t
             Rational Field
             sage: type(t)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
 
         Testing tuples::
 
@@ -527,7 +526,7 @@ cdef class SymbolicRing(CommutativeRing):
             sage: c = SR.characteristic(); c
             0
             sage: type(c)
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         return Integer(0)
 
@@ -797,7 +796,7 @@ cdef class SymbolicRing(CommutativeRing):
         The return type is a symbolic expression::
 
             sage: type(zz)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
 
         We can specify the domain as well::
 
@@ -872,7 +871,7 @@ cdef class SymbolicRing(CommutativeRing):
             ...
             ValueError: cannot specify n for multiple symbol names
         """
-        if is_Expression(name):
+        if isinstance(name, Expression):
             return name
         if not isinstance(name, (basestring, list, tuple)):
             name = repr(name)
@@ -1179,7 +1178,7 @@ cdef class NumpyToSRMorphism(Morphism):
 
         sage: a = f(numpy.int8('2')).pyobject()
         sage: type(a)
-        <type 'sage.rings.integer.Integer'>
+        <class 'sage.rings.integer.Integer'>
 
     This behavior also applies to standard functions::
 

@@ -240,7 +240,28 @@ sdh_pip_install() {
     echo "Installing $PKG_NAME"
     mkdir -p dist
     rm -f dist/*.whl
-    python3 -m pip wheel --use-feature=in-tree-build --wheel-dir=dist --no-binary :all: --verbose --no-deps --no-index --isolated --no-build-isolation --ignore-requires-python "$@" || \
+    # pip has --no-build-isolation but no flag that turns the default back on...
+    options=""
+    build_isolation_option="--no-build-isolation --no-binary :all:"
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --build-isolation)
+                # If a package requests build isolation, we allow it to provision
+                # its build environment using the stored wheels.
+                # We pass --find-links and remove the --no-binary option.
+                # The SPKG needs to declare "setuptools_wheel" as a dependency.
+                build_isolation_option="--find-links=$SAGE_SPKG_WHEELS"
+                ;;
+            -*)
+                ;;
+            *)
+                break
+                ;;
+        esac
+        shift
+    done
+    options="$options $build_isolation_option"
+    python3 -m pip wheel --use-feature=in-tree-build --wheel-dir=dist --verbose --no-deps --no-index --isolated --ignore-requires-python $options "$@" || \
         sdh_die "Error building a wheel for $PKG_NAME"
 
     sdh_store_and_pip_install_wheel .

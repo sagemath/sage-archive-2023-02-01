@@ -472,7 +472,7 @@ AC_ARG_ENABLE([r],
 AC_ARG_ENABLE([doc],
   AS_HELP_STRING([--disable-doc],
                  [disable build of the Sage documentation and packages depending on it]), [
-    for pkg in sage_docbuild sphinx sphinxcontrib_devhelp sphinxcontrib_jsmath sphinxcontrib_serializinghtml sphinxcontrib_applehelp sphinxcontrib_htmlhelp sphinxcontrib_qthelp sphinxcontrib_websupport; do
+    for pkg in sage_docbuild alabaster babel snowballstemmer idna urllib3 certifi charset_normalizer requests imagesize sphinx sphinxcontrib_devhelp sphinxcontrib_jsmath sphinxcontrib_serializinghtml sphinxcontrib_applehelp sphinxcontrib_htmlhelp sphinxcontrib_qthelp sphinxcontrib_websupport; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])

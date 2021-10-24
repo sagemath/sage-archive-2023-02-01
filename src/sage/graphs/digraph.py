@@ -1581,6 +1581,8 @@ class DiGraph(GenericGraph):
         `vu` is in the returned feedback arc set::
 
            sage: g = graphs.RandomGNP(5,.3)
+           sage: while not g.num_edges():
+           ....:     g = graphs.RandomGNP(5,.3)
            sage: dg = DiGraph(g)
            sage: feedback = dg.feedback_edge_set()
            sage: u,v,l = next(g.edge_iterator())
@@ -1683,14 +1685,13 @@ class DiGraph(GenericGraph):
             # Variables are binary, and their coefficient in the objective is
             # the number of occurrences of the corresponding edge, so 1 if the
             # graph is simple
-            p.set_objective( p.sum(b[u,v] for u,v in self.edge_iterator(labels=False)))
-
-            p.solve(log=verbose)
+            p.set_objective( p.sum(b[e] for e in self.edge_iterator(labels=False)))
 
             # For as long as we do not break because the digraph is acyclic....
             while True:
 
                 # Building the graph without the edges removed by the MILP
+                p.solve(log=verbose)
                 val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
                 h = DiGraph([e for e in self.edge_iterator(labels=False) if not val[e]],
                             format='list_of_edges')
@@ -1700,7 +1701,11 @@ class DiGraph(GenericGraph):
 
                 # If so, we are done !
                 if isok:
-                    break
+                    if value_only:
+                        return sum(1 for e in self.edge_iterator(labels=False) if val[e])
+                    else:
+                        # listing the edges contained in the MFAS
+                        return [e for e in self.edge_iterator(labels=False) if val[e]]
 
                 # There is a circuit left. Let's add the corresponding
                 # constraint !
@@ -1710,23 +1715,13 @@ class DiGraph(GenericGraph):
                         print("Adding a constraint on circuit : {}".format(certificate))
 
                     edges = zip(certificate, certificate[1:] + [certificate[0]])
-                    p.add_constraint(p.sum(b[u, v] for u, v in edges), min=1)
+                    p.add_constraint(p.sum(b[e] for e in edges), min=1)
 
                     # Is there another edge disjoint circuit ?
                     # for python3, we need to recreate the zip iterator
                     edges = zip(certificate, certificate[1:] + [certificate[0]])
                     h.delete_edges(edges)
                     isok, certificate = h.is_directed_acyclic(certificate=True)
-
-                obj = p.solve(log=verbose)
-
-            if value_only:
-                return Integer(round(obj))
-
-            else:
-                # listing the edges contained in the MFAS
-                val = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
-                return [e for e in self.edge_iterator(labels=False) if val[e]]
 
         ######################################
         # Ordering-based MILP Implementation #
@@ -1745,16 +1740,16 @@ class DiGraph(GenericGraph):
             for v in self:
                 p.add_constraint(d[v] <= n)
 
-            p.set_objective(p.sum(b[u,v] for u,v in self.edge_iterator(labels=None)))
+            p.set_objective(p.sum(b[e] for e in self.edge_iterator(labels=False)))
+
+            p.solve(log=verbose)
+
+            b_sol = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
 
             if value_only:
-                return Integer(round(p.solve(objective_only=True, log=verbose)))
+                return sum(1 for e in self.edge_iterator(labels=False) if b_sol[e])
             else:
-                p.solve(log=verbose)
-
-                b_sol = p.get_values(b, convert=bool, tolerance=integrality_tolerance)
-
-                return [e for e in self.edge_iterator(labels=None) if b_sol[e]]
+                return [e for e in self.edge_iterator(labels=False) if b_sol[e]]
 
     ### Construction
 
@@ -3157,8 +3152,10 @@ class DiGraph(GenericGraph):
 
         Using the NetworkX implementation ::
 
-            sage: list(D.topological_sort(implementation="NetworkX"))
-            [4, 5, 6, 9, 0, 3, 2, 7, 1, 8, 10]
+            sage: s = list(D.topological_sort(implementation="NetworkX")); s # random
+            [0, 4, 1, 3, 2, 5, 6, 9, 7, 8, 10]
+            sage: all(s.index(u) < s.index(v) for u, v in D.edges(labels=False))
+            True
 
         ::
 

@@ -53,11 +53,11 @@ AC_DEFUN([SAGE_CHECK_BROKEN_GCC], [
 
 
 SAGE_SPKG_CONFIGURE_BASE([gcc], [
-	AC_REQUIRE([AC_PROG_CC])
-	AC_REQUIRE([AC_PROG_CPP])
-	AC_REQUIRE([AC_PROG_CXX])
-	AC_REQUIRE([AC_PROG_OBJC])
-	AC_REQUIRE([AC_PROG_OBJCXX])
+        AC_REQUIRE([AC_PROG_CC])
+        AC_REQUIRE([AC_PROG_CPP])
+        AC_REQUIRE([AC_PROG_CXX])
+        AC_REQUIRE([AC_PROG_OBJC])
+        AC_REQUIRE([AC_PROG_OBJCXX])
 
     if test -f "$SAGE_LOCAL/bin/gcc"; then
         # Special value for SAGE_INSTALL_GCC if GCC is already installed

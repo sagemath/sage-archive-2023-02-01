@@ -125,13 +125,16 @@ lazy_import('ppl', 'point', as_='PPL_point',
 from sage.matrix.constructor import matrix
 from sage.structure.element import is_Matrix
 from sage.misc.cachefunc import cached_method
-from sage.misc.all import flatten, tmp_filename
-from sage.modules.all import vector
+from sage.misc.flatten import flatten
+from sage.misc.temporary_file import tmp_filename
+from sage.modules.free_module_element import vector
 from sage.numerical.mip import MixedIntegerLinearProgram
 from sage.plot.plot3d.index_face_set import IndexFaceSet
 from sage.plot.plot3d.all import line3d, point3d
 from sage.plot.plot3d.shapes2 import text3d
-from sage.rings.all import Integer, ZZ, QQ
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.sets.set import Set_generic
 from sage.structure.all import Sequence
 from sage.structure.sage_object import SageObject
@@ -3155,7 +3158,8 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable):
             True
         """
         def PGE(S, u, v):
-            if u == v: return S.one()
+            if u == v:
+                return S.one()
             return S((u, v), check=False)
 
         PM = self.vertex_facet_pairing_matrix()
@@ -3801,7 +3805,7 @@ class LatticePolytopeClass(ConvexSet_compact, Hashable):
 
         In contrast to :meth:`points`, these are not necessarily lattice points.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: o = lattice_polytope.cross_polytope(3)
             sage: o.some_elements()  # indirect doctest

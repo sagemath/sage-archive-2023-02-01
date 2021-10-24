@@ -23,7 +23,7 @@ EXAMPLES::
     sage: CDF
     Complex Double Field
     sage: type(CDF.0)
-    <type 'sage.rings.complex_double.ComplexDoubleElement'>
+    <class 'sage.rings.complex_double.ComplexDoubleElement'>
     sage: ComplexDoubleElement(sqrt(2),3)
     1.4142135623730951 + 3.0*I
     sage: parent(CDF(-2))
@@ -111,22 +111,32 @@ from sage.structure.richcmp cimport rich_to_bool
 cimport gmpy2
 gmpy2.import_gmpy2()
 
+
 def is_ComplexDoubleField(x):
     """
     Return ``True`` if ``x`` is the complex double field.
+
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.ComplexDoubleField` instead.
 
     EXAMPLES::
 
         sage: from sage.rings.complex_double import is_ComplexDoubleField
         sage: is_ComplexDoubleField(CDF)
+        doctest:warning...
+        DeprecationWarning: is_ComplexDoubleField is deprecated;
+        use isinstance(..., sage.rings.abc.ComplexDoubleField) instead
+        See https://trac.sagemath.org/32610 for details.
         True
         sage: is_ComplexDoubleField(ComplexField(53))
         False
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32610, 'is_ComplexDoubleField is deprecated; use isinstance(..., sage.rings.abc.ComplexDoubleField) instead')
     return isinstance(x, ComplexDoubleField_class)
 
 
-cdef class ComplexDoubleField_class(sage.rings.ring.Field):
+cdef class ComplexDoubleField_class(sage.rings.abc.ComplexDoubleField):
     """
     An approximation to the field of complex numbers using double
     precision floating point numbers. Answers derived from calculations
@@ -233,12 +243,17 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
         EXAMPLES::
 
-            sage: CDF.random_element()
-            -0.43681052967509904 + 0.7369454235661859*I
-            sage: CDF.random_element(-10,10,-10,10)
-            -7.088740263015161 - 9.54135400334003*I
-            sage: CDF.random_element(-10^20,10^20,-2,2)
-            -7.587654737635711e+19 + 0.925549022838656*I
+            sage: CDF.random_element().parent() is CDF
+            True
+            sage: re, im = CDF.random_element()
+            sage: -1 <= re <= 1, -1 <= im <= 1
+            (True, True)
+            sage: re, im = CDF.random_element(-10,10,-10,10)
+            sage: -10 <= re <= 10, -10 <= im <= 10
+            (True, True)
+            sage: re, im = CDF.random_element(-10^20,10^20,-2,2)
+            sage: -10^20 <= re <= 10^20, -2 <= im <= 2
+            (True, True)
         """
         cdef randstate rstate = current_randstate()
         global _CDF

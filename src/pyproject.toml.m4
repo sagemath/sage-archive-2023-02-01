@@ -8,6 +8,7 @@ requires = [
     esyscmd(`sage-get-system-packages install-requires-toml \
         setuptools     \
         wheel          \
+        sage_setup     \
         cypari         \
         cysignals      \
         cython         \
@@ -17,5 +18,6 @@ requires = [
         numpy          \
         pkgconfig      \
         pplpy          \
+        memory_allocator \
                     ')]
 build-backend = "setuptools.build_meta"

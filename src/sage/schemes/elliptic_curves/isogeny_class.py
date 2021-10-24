@@ -28,7 +28,8 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp_method, richcmp
 import sage.databases.cremona
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.misc.all import flatten, cached_method
 from sage.schemes.elliptic_curves.ell_field import EllipticCurve_field
 from sage.schemes.elliptic_curves.ell_number_field import EllipticCurve_number_field
@@ -840,8 +841,7 @@ class IsogenyClass_EC_NumberField(IsogenyClass_EC):
                 if js: # seen codomain already -- up to isomorphism
                     j = js[0]
                     if phi.codomain()!=curves[j]:
-                        iso = E2.isomorphism_to(curves[j])
-                        phi.set_post_isomorphism(iso)
+                        phi = E2.isomorphism_to(curves[j]) * phi
                     assert phi.domain()==curves[i] and phi.codomain()==curves[j]
                     add_tup([i,j,d,phi])
                 else:

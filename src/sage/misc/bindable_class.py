@@ -65,7 +65,7 @@ class BindableClass(metaclass=ClasscallMetaclass):
         sage: outer.f_static(1,2,3)
         (1, 2, 3)
 
-    In some cases, we would want instead ``Inner``` to receive ``outer``
+    In some cases, we would want instead ``Inner`` to receive ``outer``
     as parameter, like in a usual method call::
 
         sage: outer.f(1,2,3)
@@ -207,18 +207,6 @@ class BoundClass(functools.partial):
         sage: import functools
         sage: def f(x, y): return x^y
         sage: g = functools.partial(f, 2, 3)
-        sage: g()
-        8
-
-    The following has incorrect syntax and thus a ``DeprecationWarning``::
-
-        sage: class mypartial(functools.partial):
-        ....:     def __init__(self, f, i, j):
-        ....:         functools.partial.__init__(self, f, i, j)
-        sage: g = mypartial(f, 2, 3)  # py2; on Python 3 this is an error
-        Traceback (most recent call last):
-        ...
-        DeprecationWarning: object.__init__() takes no parameters
         sage: g()
         8
 

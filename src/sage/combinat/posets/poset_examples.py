@@ -155,7 +155,7 @@ class Posets(metaclass=ClasscallMetaclass):
 
     @staticmethod
     def BooleanLattice(n, facade=None, use_subsets=False):
-        """
+        r"""
         Return the Boolean lattice containing `2^n` elements.
 
         - ``n`` -- integer; number of elements will be `2^n`
@@ -1599,7 +1599,7 @@ class Posets(metaclass=ClasscallMetaclass):
             current_level = new_level
 
         D = DiGraph([[], covers], format='vertices_and_edges')
-        D.relabel(lambda v: Word(v), inplace=True)
+        D.relabel(Word, inplace=True)
         return FiniteMeetSemilattice(hasse_diagram=D, category=FinitePosets())
 
     @staticmethod

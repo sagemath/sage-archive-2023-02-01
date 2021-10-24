@@ -373,6 +373,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
         INPUT:
 
+        Positional arguments:
+
         - ``equations`` -- A list of equations where the elements have
           either the form
 
@@ -397,6 +399,8 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
         - ``function`` -- symbolic function ``f`` occuring in the equations
 
         - ``var`` -- symbolic variable (``n`` in the above description of ``equations``)
+
+        Keyword-only argument:
 
         - ``offset`` -- an integer (default: ``0``). See explanation for ``equations`` above.
 
@@ -440,7 +444,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(5) == 4, f(6) == 6, f(7) == 0, f(8) == 4, f(9) == 4,
             ....:     f(10) == 4, f(11) == 4, f(12) == 12, f(13) == 0, f(14) == 4,
             ....:     f(15) == 4, f(16) == 8, f(17) == 4, f(18) == 8, f(19) == 0,
-            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n, 3)
+            ....:     f(20) == 8, f(21) == 4, f(22) == 4, f(23) == 8], f, n, offset=3)
             2-regular sequence 1, 2, 2, 4, 2, 4, 6, 0, 4, 4, ...
 
         Number of Non-Zero Elements in the Generalized Pascal's Triangle (see [LRS2017]_)::
@@ -461,7 +465,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(4*n + 1) == f(2*n),
             ....:     f(4*n + 2) == f(2*n),
             ....:     f(4*n + 3) == f(2*n + 1024),
-            ....:     f(0) == 1, f(1) == 1], f, n, 2)
+            ....:     f(0) == 1, f(1) == 1], f, n, offset=2)
             Traceback (most recent call last):
             ...
             ValueError: Initial values for arguments in [2, ..., 2044] are missing.
@@ -476,7 +480,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3, f(4) == 4,
             ....:     f(5) == 5, f(6) == 6, f(7) == 7, f(16) == 4, f(18) == 4,
             ....:     f(20) == 4, f(22) == 4, f(24) == 6, f(26) == 6, f(28) == 6],
-            ....:     f, n, 2)
+            ....:     f, n, offset=2)
             sage: all([S[4*i] == S[2*i] and
             ....:      S[4*i + 1] == S[2*i] and
             ....:      S[4*i + 2] == S[2*i] and
@@ -497,7 +501,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     f(18) == 18, f(19) == 19, f(20) == 20, f(21) == 21,
             ....:     f(22) == 22, f(23) == 23, f(24) == 24, f(25) == 25,
             ....:     f(26) == 26, f(27) == 27, f(28) == 28, f(29) == 29,
-            ....:     f(30) == 30, f(31) == 31], f, n, 8)
+            ....:     f(30) == 30, f(31) == 31], f, n, offset=8)
             sage: all([S[4*i] == S[2*i] and
             ....:      S[4*i + 1] == S[2*i] and
             ....:      S[4*i + 2] == S[2*i] and
@@ -522,7 +526,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
             ....:     g(18) == 18, g(19) == 19, g(20) == 20, g(21) == 21,
             ....:     g(22) == 22, g(23) == 23, g(24) == 24, g(25) == 25,
             ....:     g(26) == 26, g(27) == 27, g(28) == 28, g(29) == 29,
-            ....:     g(30) == 30, g(31) == 31], g, m, 8)
+            ....:     g(30) == 30, g(31) == 31], g, m, offset=8)
             sage: all([S[i] == T[i] for i in srange(1000)])
             True
 
@@ -539,7 +543,7 @@ class kRegularSequenceSpace(RecognizableSeriesSpace):
 
             sage: Seq2.from_recurrence([
             ....:     f(2*n) == 0, f(2*n + 1) == 0,
-            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n, 2)
+            ....:     f(0) == 1, f(1) == 1, f(2) == 2, f(3) == 3], f, n, offset=2)
             2-regular sequence 1, 1, 2, 3, 0, 0, 0, 0, 0, 0, ...
         """
         RP = RecurrenceParser(self.k, self.coefficient_ring())
@@ -1715,7 +1719,6 @@ class RecurrenceParser(object):
         """
         from sage.arith.srange import srange
         from sage.matrix.constructor import Matrix
-        from sage.matrix.matrix_space import MatrixSpace
         from sage.matrix.special import block_matrix, zero_matrix
         from sage.modules.free_module_element import vector
 
@@ -1768,9 +1771,8 @@ class RecurrenceParser(object):
             for i in srange(n1):
                 J = J.stack(vector([int(j*k == i - rem) for j in srange(n1)]))
 
-            Mat = MatrixSpace(coefficient_ring, dim, dim)
-            return Mat(block_matrix([[mat, W],
-                                     [zero_matrix(n1, dim_without_corr), J]]))
+            Z = zero_matrix(coefficient_ring, n1, dim_without_corr)
+            return block_matrix([[mat, W], [Z, J]], subdivide=False)
 
     def left(self, recurrence_rules):
         r"""
@@ -1871,7 +1873,7 @@ class RecurrenceParser(object):
 
         return right
 
-    def __call__(self, equations, function, var, offset=0):
+    def __call__(self, equations, function, var, *, offset=0):
         r"""
         Construct a `k`-linear representation that fulfills the recurrence relations
         given in ``equations``.

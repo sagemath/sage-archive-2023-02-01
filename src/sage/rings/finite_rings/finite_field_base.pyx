@@ -40,7 +40,8 @@ from sage.misc.persist import register_unpickle_override
 from sage.misc.cachefunc import cached_method
 from sage.misc.prandom import randrange
 from sage.rings.integer cimport Integer
-from sage.misc.superseded import deprecation
+import sage.rings.abc
+from sage.misc.superseded import deprecation_cython as deprecation
 
 # Copied from sage.misc.fast_methods, used in __hash__() below.
 cdef int SIZEOF_VOID_P_SHIFT = 8*sizeof(void *) - 4
@@ -1093,8 +1094,8 @@ cdef class FiniteField(Field):
         EXAMPLES::
 
             sage: k = GF(19^4, 'a')
-            sage: k.random_element()
-            a^3 + 3*a^2 + 6*a + 9
+            sage: k.random_element().parent() is k
+            True
 
         Passes extra positional or keyword arguments through::
 
@@ -1256,8 +1257,8 @@ cdef class FiniteField(Field):
         if inclusion_map is None:
             inclusion_map = self.coerce_map_from(base)
 
-        from sage.modules.all import vector
-        from sage.matrix.all import matrix
+        from sage.modules.free_module_element import vector
+        from sage.matrix.constructor import matrix
         from .maps_finite_field import (
             MorphismVectorSpaceToFiniteField, MorphismFiniteFieldToVectorSpace)
 
@@ -1342,10 +1343,9 @@ cdef class FiniteField(Field):
             False
         """
         from sage.rings.integer_ring import ZZ
-        from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
         if R is int or R is long or R is ZZ:
             return True
-        if is_IntegerModRing(R) and self.characteristic().divides(R.characteristic()):
+        if isinstance(R, sage.rings.abc.IntegerModRing) and self.characteristic().divides(R.characteristic()):
             return R.hom((self.one(),), check=False)
         if is_FiniteField(R):
             if R is self:
@@ -1645,7 +1645,7 @@ cdef class FiniteField(Field):
             Ring morphism:
               From: Finite Field in z of size 5^3
               To:   Finite Field in a of size 5^240
-              Defn: z |--> 2*a^235 + a^231 + ... + a + 4
+              Defn: z |--> ...
 
         There is no coercion since we can't ensure compatibility with larger
         fields in this case::

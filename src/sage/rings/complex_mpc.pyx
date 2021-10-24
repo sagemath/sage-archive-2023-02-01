@@ -409,7 +409,7 @@ cdef class MPComplexField_class(sage.rings.ring.Field):
             sage: C20(i*4, 7)
             Traceback (most recent call last):
             ...
-            TypeError: unable to coerce to a ComplexNumber: <type 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
+            TypeError: unable to coerce to a ComplexNumber: <class 'sage.rings.number_field.number_field_element_quadratic.NumberFieldElement_gaussian'>
 
         Each part can be set with strings (written in base ten)::
 
@@ -1097,6 +1097,16 @@ cdef class MPComplexNumber(sage.structure.element.FieldElement):
 
             sage: a = MPComplexField()(3.5, 3)
             sage: copy(a) is  a
+            True
+        """
+        return self    # since object is immutable.
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: a = MPComplexField()(3.5, 3)
+            sage: deepcopy(a) is  a
             True
         """
         return self    # since object is immutable.

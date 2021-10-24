@@ -17,7 +17,7 @@ Characteristic Species
 #*****************************************************************************
 
 from .species import GenericCombinatorialSpecies
-from sage.functions.other import factorial
+from sage.arith.misc import factorial
 from .structure import GenericSpeciesStructure
 from .set_species import SetSpecies
 from sage.structure.unique_representation import UniqueRepresentation

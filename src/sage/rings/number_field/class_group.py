@@ -44,7 +44,7 @@ EXAMPLES::
 from sage.groups.abelian_gps.values import AbelianGroupWithValues_class, AbelianGroupWithValuesElement
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.structure.element import MonoidElement
-from sage.rings.all import ZZ
+from sage.rings.integer_ring import ZZ
 
 
 class FractionalIdealClass(AbelianGroupWithValuesElement):
@@ -213,7 +213,7 @@ class FractionalIdealClass(AbelianGroupWithValuesElement):
     def reduce(self):
         r"""
         Return representative for this ideal class that has been
-        reduced using PARI's idealred.
+        reduced using PARI's :pari:`idealred`.
 
         EXAMPLES::
 

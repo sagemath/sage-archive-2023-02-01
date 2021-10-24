@@ -566,7 +566,7 @@ from sage.structure.richcmp import (richcmp, richcmp_method,
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, is_RealIntervalFieldElement, RealIntervalField_class
 from sage.rings.complex_mpfr import ComplexField
-from sage.rings.complex_interval_field import ComplexIntervalField, is_ComplexIntervalField
+from sage.rings.complex_interval_field import ComplexIntervalField
 from sage.rings.complex_interval import is_ComplexIntervalFieldElement
 from sage.rings.polynomial.all import PolynomialRing
 from sage.rings.polynomial.polynomial_element import is_Polynomial
@@ -3637,8 +3637,7 @@ class AlgebraicNumber_base(sage.structure.element.FieldElement):
         And a nice big example::
 
             sage: K.<x> = QQ[]
-            sage: p = K.random_element(3); p
-            -12*x^3 + 1/2*x^2 - 1/95*x - 1/2
+            sage: p = K(-12*x^3 + 1/2*x^2 - 1/95*x - 1/2)
             sage: rts = p.roots(ring=QQbar, multiplicities=False); rts
             [-0.3325236940280402?, 0.1870951803473535? - 0.3004991638609601?*I, 0.1870951803473535? + 0.3004991638609601?*I]
             sage: sage_input(rts, verify=True)
@@ -5014,7 +5013,7 @@ class AlgebraicNumber(AlgebraicNumber_base):
             sage: (a - b).interval_exact(CIF)
             0
         """
-        if not is_ComplexIntervalField(field):
+        if not isinstance(field, sage.rings.abc.ComplexIntervalField):
             raise ValueError("AlgebraicNumber interval_exact requires a ComplexIntervalField")
         rfld = field._real_field()
         re = self.real().interval_exact(rfld)
@@ -5211,7 +5210,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: b._value
             0.7071067811865475244?
             sage: type(b._value)
-            <type 'sage.rings.real_mpfi.RealIntervalFieldElement'>
+            <class 'sage.rings.real_mpfi.RealIntervalFieldElement'>
         """
         if is_ComplexIntervalFieldElement(self._value):
             self._value = self._value.real()
@@ -5592,7 +5591,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             return 2
         else:
             return infinity.infinity
-    
+
     def sign(self):
         """
         Compute the sign of this algebraic number (return -1 if negative,
@@ -5743,7 +5742,7 @@ class AlgebraicReal(AlgebraicNumber_base):
         # Sigh...
         self.exactify()
         return self.sign()
-    
+
     def _interval_fast(self, prec):
         r"""
         Compute an approximation to this ``AlgebraicReal`` object in a real interval field of precision prec.
@@ -5911,7 +5910,7 @@ class AlgebraicReal(AlgebraicNumber_base):
             sage: AA(golden_ratio)._complex_mpfr_field_(ComplexField(100))
             1.6180339887498948482045868344
         """
-        if is_ComplexIntervalField(field):
+        if isinstance(field, sage.rings.abc.ComplexIntervalField):
             return field(self.interval(field._real_field()))
         else:
             return field(self.real_number(field._real_field()))
@@ -7699,7 +7698,7 @@ class ANExtensionElement(ANDescr):
         # for instance, the .exactify() call will try to factor poly,
         # even though we know that poly is irreducible
         poly = self.minpoly()
-        intv = isolating_interval(lambda prec: n._interval_fast(prec), poly)
+        intv = isolating_interval(n._interval_fast, poly)
         new_v = QQbar.polynomial_root(poly, intv)
         new_v.exactify()
         return new_v._descr

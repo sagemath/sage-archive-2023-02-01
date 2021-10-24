@@ -26,7 +26,8 @@ tasks:
       # We do not install tox, since it pulls in javascript-common which does not install for some reason
       brew update
       brew upgrade
-      brew install arb ecl flint fplll pari pari-elldata pari-galdata pari-galpol pari-seadata tox
+      brew install arb flint fplll pari pari-elldata pari-galdata pari-galpol pari-seadata tox
+      # We do not install ecl from brew, since this breaks the build of maxima
       export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
       ./bootstrap
       ./configure -enable-editable

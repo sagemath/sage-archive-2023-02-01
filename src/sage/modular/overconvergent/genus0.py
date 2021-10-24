@@ -186,6 +186,7 @@ from sage.structure.richcmp import richcmp
 from sage.plot.plot         import plot
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
+import sage.rings.abc
 from sage.rings.all         import (O, Infinity, pAdicField, PolynomialRing, PowerSeriesRing)
 import weakref
 

@@ -24,6 +24,7 @@ from .hyperelliptic_rational_field import HyperellipticCurve_rational_field
 from .hyperelliptic_padic_field import HyperellipticCurve_padic_field
 from .hyperelliptic_g2 import HyperellipticCurve_g2
 
+import sage.rings.abc
 from sage.rings.rational_field import is_RationalField
 from sage.rings.finite_rings.finite_field_constructor import is_FiniteField
 from sage.rings.polynomial.polynomial_element import is_Polynomial

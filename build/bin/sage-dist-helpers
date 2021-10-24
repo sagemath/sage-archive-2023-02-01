@@ -253,6 +253,7 @@ sdh_pip_install() {
                 build_isolation_option="--find-links=$SAGE_SPKG_WHEELS"
                 ;;
             -*)
+                options="$options $1"
                 ;;
             *)
                 break
@@ -260,11 +261,10 @@ sdh_pip_install() {
         esac
         shift
     done
-    options="$options $build_isolation_option"
-    python3 -m pip wheel --use-feature=in-tree-build --wheel-dir=dist --verbose --no-deps --no-index --isolated --ignore-requires-python $options "$@" || \
+    python3 -m pip wheel --use-feature=in-tree-build --wheel-dir=dist --verbose --no-deps --no-index --isolated --ignore-requires-python $options $build_isolation_option "$@" || \
         sdh_die "Error building a wheel for $PKG_NAME"
 
-    sdh_store_and_pip_install_wheel .
+    sdh_store_and_pip_install_wheel $options .
 }
 
 sdh_store_wheel() {

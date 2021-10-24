@@ -469,6 +469,14 @@ AC_ARG_ENABLE([r],
     done
   ])
 
+AC_ARG_ENABLE([doc],
+  AS_HELP_STRING([--disable-doc],
+                 [disable build of the Sage documentation and packages depending on it]), [
+    for pkg in sage_docbuild sphinx sphinxcontrib_devhelp sphinxcontrib_jsmath sphinxcontrib_serializinghtml sphinxcontrib_applehelp sphinxcontrib_htmlhelp sphinxcontrib_qthelp sphinxcontrib_websupport; do
+      AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
+    done
+  ])
+
 dnl Packages that require a special override to use the SPKG
 dnl when the system package is not usable.
 AS_VAR_SET([sage_use_system_gcc], [force])

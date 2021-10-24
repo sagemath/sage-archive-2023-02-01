@@ -84,7 +84,7 @@ SAGE_SRC="$SAGE_ROOT/src"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 AC_ARG_WITH([sage-venv],
-            [AS_HELP_STRING([--with-sage-venv={auto,yes,no,SAGE_VENV}],
+            [AS_HELP_STRING([--with-sage-venv={auto (default),yes,no,SAGE_VENV}],
                             [put Python packages into an installation hierarchy separate from prefix])],
             [SAGE_VENV="$withval"],
             [SAGE_VENV="auto"])
@@ -462,7 +462,7 @@ AS_IF([test "$SAGE_ENABLE_notebook" = no -a "$SAGE_ENABLE_sagelib" = no], [
 AC_ARG_ENABLE([r],
   AS_HELP_STRING([--disable-r],
                  [disable build of the R package and related packages]), [
-    for pkg in r rpy2 r_jupyter; do
+    for pkg in r rpy2 r_jupyter pcre; do
       AS_VAR_SET([SAGE_ENABLE_$pkg], [$enableval])
     done
   ])
@@ -521,6 +521,7 @@ AC_CONFIG_COMMANDS(links, [
     SYMLINK="${ac_top_build_prefix}prefix"
     AS_IF([test -L "$SYMLINK" -o ! -e "$SYMLINK"], [
         AC_MSG_NOTICE([creating convenience symlink $SYMLINK -> $SAGE_LOCAL])
+        rm -f "$SYMLINK"
         ln -sf "$SAGE_LOCAL" "$SYMLINK"
     ], [
         AC_MSG_NOTICE([cannot create convenience symlink $SYMLINK -> $SAGE_LOCAL because the file exists and is not a symlink; this is harmless])
@@ -528,6 +529,7 @@ AC_CONFIG_COMMANDS(links, [
     SYMLINK="${ac_top_build_prefix}venv"
     AS_IF([test -L "$SYMLINK" -o ! -e "$SYMLINK"], [
         AC_MSG_NOTICE([creating convenience symlink $SYMLINK -> $SAGE_VENV])
+        rm -f "$SYMLINK"
         ln -sf "$SAGE_VENV" "$SYMLINK"
     ], [
         AC_MSG_NOTICE([cannot create convenience symlink $SYMLINK -> $SAGE_VENV because the file exists and is not a symlink; this is harmless])

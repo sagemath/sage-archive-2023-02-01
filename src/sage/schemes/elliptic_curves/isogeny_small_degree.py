@@ -32,7 +32,8 @@ AUTHORS:
 
 from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.polynomial.polynomial_ring import polygen
-from sage.rings.all import ZZ, QQ
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.schemes.elliptic_curves.all import EllipticCurve
 
 from sage.misc.cachefunc import cached_function
@@ -218,7 +219,7 @@ def Psi(l, use_stored=True):
     # Here the generic kernel polynomials are actually calculated:
     j = Fricke_module(l)
     k = j - 1728
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     f = prod([p for p, e in j.factor() if e == 3]
              + [p for p, e in k.factor() if e == 2])
     A4 = -3*t**2*j*k // f**2
@@ -312,7 +313,7 @@ def isogenies_prime_degree_genus_0(E, l=None, minimal_models=True):
         T = c4/(3*c6)
         jt = Fricke_module(l)
         kt = jt-1728
-        from sage.misc.all import prod
+        from sage.misc.misc_c import prod
         psi = Psi(l)
         X = t
         f = R(prod( [p for p,e in jt.factor() if e==3]
@@ -537,7 +538,7 @@ def _sporadic_Q_data(j):
         ....:     assert g % f == 0
     """
     from sage.rings.all import RealField
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     ell = sporadic_j[j]
     E = EllipticCurve(j=j).short_weierstrass_model()
     a4a6 = list(E.ainvs())[3:]
@@ -2201,7 +2202,7 @@ def isogenies_prime_degree_general(E, l, minimal_models=True):
     # divisors of degree d, then their product is a kernel poly, which
     # we add to the list and remove the factors used.
 
-    from sage.misc.all import prod
+    from sage.misc.misc_c import prod
     for d in list(factors_by_degree):
         if d * len(factors_by_degree[d]) == l2:
             ker.append(prod(factors_by_degree.pop(d)))

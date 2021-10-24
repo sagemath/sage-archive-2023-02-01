@@ -210,7 +210,7 @@ from sage.rings.infinity import infinity
 from sage.arith.all import divisors, gcd, lcm
 from sage.groups.abelian_gps.abelian_group_element import AbelianGroupElement
 from sage.misc.cachefunc import cached_method
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 from sage.misc.mrange import mrange, cartesian_product_iterator
 from sage.groups.group import AbelianGroup as AbelianGroupBase
 from sage.categories.groups import Groups
@@ -974,9 +974,9 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
 
             sage: F = AbelianGroup(3, [2], names='abc')
             sage: list(map(type, F.gens_orders()))
-            [<type 'sage.rings.integer.Integer'>,
-             <type 'sage.rings.integer.Integer'>,
-             <type 'sage.rings.integer.Integer'>]
+            [<class 'sage.rings.integer.Integer'>,
+             <class 'sage.rings.integer.Integer'>,
+             <class 'sage.rings.integer.Integer'>]
         """
         return self._gens_orders
 
@@ -1022,9 +1022,9 @@ class AbelianGroup_class(UniqueRepresentation, AbelianGroupBase):
 
             sage: F = AbelianGroup(3, [2], names='abc')
             sage: list(map(type, F.gens_orders()))
-            [<type 'sage.rings.integer.Integer'>,
-             <type 'sage.rings.integer.Integer'>,
-             <type 'sage.rings.integer.Integer'>]
+            [<class 'sage.rings.integer.Integer'>,
+             <class 'sage.rings.integer.Integer'>,
+             <class 'sage.rings.integer.Integer'>]
         """
         # TODO: deprecate
         return self.gens_orders()

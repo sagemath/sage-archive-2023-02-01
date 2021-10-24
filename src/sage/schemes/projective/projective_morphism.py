@@ -74,6 +74,7 @@ from sage.ext.fast_callable import fast_callable
 
 from sage.calculus.functions import jacobian
 
+import sage.rings.abc
 from sage.rings.all import Integer
 from sage.rings.algebraic_closure_finite_field import AlgebraicClosureFiniteField_generic
 from sage.rings.complex_mpfr import ComplexField_class
@@ -987,14 +988,13 @@ class SchemeMorphism_polynomial_projective_space(SchemeMorphism_polynomial):
             self.scale_by(R(1) / GCD)
 
         # scales by 1/gcd of the coefficients.
-        from sage.rings.padics.generic_nodes import is_pAdicField
         if R in _NumberFields:
             O = R.maximal_order()
         elif is_FiniteField(R):
             O = R
         elif isinstance(R, QuotientRing_generic):
             O = R.ring()
-        elif is_pAdicField(R):
+        elif isinstance(R, sage.rings.abc.pAdicField):
             O = R.integer_ring()
         else:
             O = R

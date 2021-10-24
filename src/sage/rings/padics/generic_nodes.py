@@ -1188,6 +1188,9 @@ def is_pAdicRing(R):
     EXAMPLES::
 
         sage: is_pAdicRing(Zp(5))
+        doctest:warning...
+        DeprecationWarning: is_pAdicRing is deprecated; use isinstance(..., sage.rings.abc.pAdicRing) instead
+        See https://trac.sagemath.org/32750 for details.
         True
         sage: is_pAdicRing(RR)
         False
@@ -1331,6 +1334,9 @@ def is_pAdicField(R):
     EXAMPLES::
 
         sage: is_pAdicField(Zp(17))
+        doctest:warning...
+        DeprecationWarning: is_pAdicField is deprecated; use isinstance(..., sage.rings.abc.pAdicField) instead
+        See https://trac.sagemath.org/32750 for details.
         False
         sage: is_pAdicField(Qp(17))
         True

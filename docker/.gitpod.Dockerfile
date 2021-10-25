@@ -15,7 +15,8 @@ RUN sudo apt-get install -y libflint-arb-dev libbrial-dev libbrial-groebner-dev 
 RUN brew update && brew upgrade
 RUN brew install arb flint fplll pari pari-elldata pari-galdata pari-galpol pari-seadata tox || true
 ### Give prio to brew over system packages
-ENV PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
+#Currently doesn't work as gitpod gp executable is then hidden by pari/gp
+#ENV PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 
 # Configure 
 ## Gitpod sets PIP_USER: yes by default, which leads to problems during build (e.g pip not being installed in the venv)

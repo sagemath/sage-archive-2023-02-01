@@ -218,7 +218,12 @@ cdef class Graphics3d(SageObject):
         )
 
         tachyon_args = dict((key,val) for key,val in opts.items() if key in Graphics3d.tachyon_keywords)
-        tachyon_rt(T.tachyon(**tachyon_args), filename, opts['verbosity'])
+        extra_opts = opts["extra_opts"] if "extra_opts" in opts else ""
+        if "shade" in opts:
+            if opts["shade"] not in ["full", "medium", "low", "lowest"]:
+                raise ValueError("shade must be set to 'full', 'medium', 'low' or 'lowest'")
+            extra_opts += " -" + opts["shade"] + "shade"
+        tachyon_rt(T.tachyon(**tachyon_args), filename, opts['verbosity'], extra_opts)
         from sage.repl.rich_output.buffer import OutputBuffer
         import sage.repl.rich_output.output_catalog as catalog
         import PIL.Image as Image
@@ -1684,6 +1689,24 @@ end_scene""".format(
 
         -  ``raydepth`` (for tachyon) -- (default: 8)
            see the :class:`sage.plot.plot3d.tachyon.Tachyon` class
+
+        -  ``shade`` (for tachyon) -- string (default: ``'full'``);
+           shading options. Admissible values are
+
+           * ``'full'``: best quality rendering (and slowest).
+             Sets tachyon command line flag ``-fullshade``.
+
+           * ``'medium``: good quality rendering, but no shadows.
+             Sets tachyon command line flag ``-mediumshade``.
+
+           * ``'low'``: low quality rendering, preview (and fast).
+             Sets tachyon command line flag ``-lowshade``.
+
+           * ``'lowest'``: worst quality rendering, preview (and fastest).
+             Sets tachyon command line flag ``-lowestshade``.
+             
+        -  ``extra_opts`` (for tachyon) -- string (default: empty string);
+           extra options that will be appended to the tachyon command line.
 
         -  ``**kwds`` -- other options, which make sense for particular
            rendering engines

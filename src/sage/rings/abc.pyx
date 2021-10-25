@@ -75,6 +75,7 @@ class IntegerModRing:
 
     pass
 
+
 class Order:
     r"""
     Abstract base class for :class:`~sage.rings.number_field.order.Order`.
@@ -94,6 +95,22 @@ class pAdicRing(EuclideanDomain):
 class pAdicField(Field):
     r"""
     Abstract base class for :class:`~sage.rings.padics.generic_nodes.pAdicFieldGeneric`.
+    """
+
+    pass
+
+
+cdef class SymbolicRing(CommutativeRing):
+    r"""
+    Abstract base class for :class:`~sage.rings.symbolic.ring.SymbolicRing`.
+    """
+
+    pass
+
+
+class CallableSymbolicExpressionRing(SymbolicRing):
+    r"""
+    Abstract base class for :class:`~sage.rings.symbolic.callable.CallableSymbolicExpressionRing_class`.
     """
 
     pass

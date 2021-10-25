@@ -211,7 +211,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         sage: f.expr(c_uv)
         (u^2 + v^2)/(u^2 + v^2 + 1)
         sage: type(f.expr(c_uv))
-        <type 'sage.symbolic.expression.Expression'>
+        <class 'sage.symbolic.expression.Expression'>
 
     The method :meth:`coord_function` returns instead a function of the
     chart coordinates, i.e. an instance of
@@ -1844,7 +1844,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         backend used for coordinate computations::
 
             sage: type(f.expr())
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
             sage: M.set_calculus_method('sympy')
             sage: type(f.expr())
             <class 'sympy.core.mul.Mul'>
@@ -1975,7 +1975,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         if chart is None:
             chart = self._domain._def_chart
         self._express[chart] = chart.function(coord_expression)
-        self._is_zero = False # a priori
+        self._is_zero = False  # a priori
         self._del_derived()
 
     def add_expr_by_continuation(self, chart, subdomain):
@@ -2042,7 +2042,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         if self.is_immutable():
             raise ValueError("the expressions of an immutable element "
                                  "cannot be changed")
-        if not chart._domain.is_subset(self._domain):
+        if not chart.domain().is_subset(self._domain):
             raise ValueError("the chart is not defined on a subset of " +
                              "the scalar field domain")
         schart = chart.restrict(subdomain)
@@ -2088,7 +2088,7 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         self._restrictions[rst._domain] = rst.copy(name=self._name,
                                                    latex_name=self._latex_name)
         for chart, expr in rst._express.items():
-            intersection = chart._domain.intersection(rst._domain)
+            intersection = chart.domain().intersection(rst._domain)
             self._express[chart.restrict(intersection)] = expr
         self._is_zero = False  # a priori
 
@@ -2166,13 +2166,13 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
             coords = chart[:]
             if len(coords) == 1:
                 coords = coords[0]
-            if chart._domain == self._domain:
+            if chart.domain() == self._domain:
                 if self._name is not None:
                     result._txt += "   "
                 result._latex += " & "
             else:
-                result._txt += "on " + chart._domain._name + ": "
-                result._latex += r"\mbox{on}\ " + latex(chart._domain) \
+                result._txt += "on " + chart.domain()._name + ": "
+                result._latex += r"\mbox{on}\ " + latex(chart.domain()) \
                                  + r": & "
             result._txt += repr(coords) + " " + unicode_mapsto + " " \
                            + repr(expression) + "\n"
@@ -2216,13 +2216,13 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
                     if max_dom is None:
                         try:
                             self.coord_function(sch)
-                            max_dom = sch._domain
+                            max_dom = sch.domain()
                         except (TypeError, ValueError):
                             pass
-                    elif max_dom.is_subset(sch._domain):
+                    elif max_dom.is_subset(sch.domain()):
                         try:
                             self.coord_function(sch)
-                            max_dom = sch._domain
+                            max_dom = sch.domain()
                         except (TypeError, ValueError):
                             pass
                 if max_dom is not None:
@@ -3638,6 +3638,35 @@ class ScalarField(CommutativeAlgebraElement, ModuleElementWithMutability):
         resu = type(self)(self.parent(), name=name, latex_name=latex_name)
         for chart, func in self._express.items():
             resu._express[chart] = func.arctanh()
+        return resu
+
+    def __abs__(self):
+        r"""
+        Absolute value of the scalar field.
+
+        OUTPUT:
+
+        - the scalar field `\mathrm{Abs}\, f`, where `f` is the current
+          scalar field
+
+        EXAMPLES::
+
+            sage: M = Manifold(2, 'M', structure='topological')
+            sage: X.<x,y> = M.chart()
+            sage: f = M.scalar_field({X: x*y}, name='f', latex_name=r"\Phi")
+            sage: g = abs(f) ; g
+            Scalar field abs(f) on the 2-dimensional topological manifold M
+            sage: latex(g)
+            \,\mathrm{abs}\left(\Phi\right)
+            sage: g.display()
+            abs(f): M → ℝ
+               (x, y) ↦ abs(x)*abs(y)
+
+        """
+        name, latex_name = self._function_name("abs", r"\,\mathrm{abs}")
+        resu = type(self)(self.parent(), name=name, latex_name=latex_name)
+        for chart, func in self._express.items():
+            resu._express[chart] = func.abs()
         return resu
 
     def set_calc_order(self, symbol, order, truncate=False):

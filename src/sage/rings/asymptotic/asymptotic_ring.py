@@ -570,8 +570,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         ::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
             sage: G = GrowthGroup('x^ZZ'); x = G.gen()
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
@@ -945,8 +944,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         TESTS::
 
             sage: from sage.rings.asymptotic.growth_group import GrowthGroup
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
             sage: G = GrowthGroup('x^ZZ')
             sage: OT = TermMonoid('O', G, ZZ); ET = TermMonoid('exact', G, ZZ)
             sage: R = AsymptoticRing(G, ZZ)
@@ -1207,8 +1205,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
         TESTS::
 
             sage: from sage.rings.asymptotic.term_monoid import OTermMonoid
-            sage: from sage.rings.asymptotic.term_monoid import TermMonoidFactory
-            sage: TermMonoid = TermMonoidFactory('__main__.TermMonoid')
+            sage: from sage.rings.asymptotic.term_monoid import DefaultTermMonoidFactory as TermMonoid
 
             sage: R.<x> = AsymptoticRing(growth_group='x^ZZ', coefficient_ring=ZZ)
             sage: T = OTermMonoid(TermMonoid, R.growth_group, ZZ)
@@ -2604,7 +2601,7 @@ class AsymptoticExpansion(CommutativeAlgebraElement):
             ...
             TypeError: Cannot substitute u in u since it is neither an
             asymptotic expansion nor a string
-            (but a <type 'sage.symbolic.expression.Expression'>).
+            (but a <class 'sage.symbolic.expression.Expression'>).
 
         ::
 

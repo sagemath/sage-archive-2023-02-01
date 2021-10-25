@@ -528,7 +528,7 @@ class ScalarFieldAlgebra(UniqueRepresentation, Parent):
         elif isinstance(other, ScalarFieldAlgebra):
             return self._domain.is_subset(other._domain)
         elif isinstance(other, ChartFunctionRing):
-            return self._domain.is_subset(other._chart._domain)
+            return self._domain.is_subset(other._chart.domain())
         else:
             return False
 

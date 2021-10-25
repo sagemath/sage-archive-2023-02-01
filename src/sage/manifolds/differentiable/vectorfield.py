@@ -1118,7 +1118,7 @@ class VectorField(MultivectorField):
         Scalar product of two vector fields along a curve (a lemniscate of
         Gerono)::
 
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: C = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='C')
             sage: u = C.tangent_vector_field(name='u')
             sage: u.display()
@@ -1231,7 +1231,7 @@ class VectorField(MultivectorField):
 
         Norm of the tangent vector field to a curve (a lemniscate of Gerono)::
 
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: C = M.curve([sin(t), sin(2*t)/2], (t, 0, 2*pi), name='C')
             sage: v = C.tangent_vector_field()
             sage: v.display()
@@ -1338,7 +1338,7 @@ class VectorField(MultivectorField):
 
         Cross product of two vector fields along a curve (arc of a helix)::
 
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: C = M.curve((cos(t), sin(t), t), (t, 0, 2*pi), name='C')
             sage: u = C.tangent_vector_field()
             sage: u.display()

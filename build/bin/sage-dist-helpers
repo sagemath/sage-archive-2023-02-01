@@ -64,6 +64,15 @@
 #    If $SAGE_DESTDIR is not set then the command is run with $SAGE_SUDO, if
 #    set.
 #
+# - sdh_pip_uninstall [...]
+#
+#    Runs `pip uninstall` with the given arguments.  If unsuccessful, it displays a warning.
+#
+# - eval sdh_prefix_args PREFIX [...]
+#
+#    Helper function for transforming build options so that they can be passed
+#    through "pip".
+#
 # - sdh_cmake [...]
 #
 #    Runs `cmake` in the current directory with the given arguments, as well as
@@ -208,6 +217,7 @@ sdh_make_install() {
 }
 
 sdh_setup_bdist_wheel() {
+    # Trac #32046: Most uses of this function can be replaced by sdh_pip_install
     mkdir -p dist
     rm -f dist/*.whl
     BDIST_DIR="$(mktemp -d)"
@@ -216,11 +226,21 @@ sdh_setup_bdist_wheel() {
          "$@" || sdh_die "Error building a wheel for $PKG_NAME"
 }
 
+sdh_prefix_args () {
+    prefix="$1"
+    shift
+    while [ $# -gt 0 ]; do
+        # Quoted quotes because the result is to be run through eval
+        echo "$prefix" \"$1\"
+        shift
+    done
+}
+
 sdh_pip_install() {
     echo "Installing $PKG_NAME"
     mkdir -p dist
     rm -f dist/*.whl
-    python3 -m pip wheel --wheel-dir=dist --no-binary :all: --verbose --no-deps --no-index --isolated --no-build-isolation "$@" || \
+    python3 -m pip wheel --use-feature=in-tree-build --wheel-dir=dist --no-binary :all: --verbose --no-deps --no-index --isolated --no-build-isolation --ignore-requires-python "$@" || \
         sdh_die "Error building a wheel for $PKG_NAME"
 
     sdh_store_and_pip_install_wheel .
@@ -255,17 +275,55 @@ sdh_store_wheel() {
 }
 
 sdh_store_and_pip_install_wheel() {
+    local pip_options=""
+    while [ $# -gt 0 ]; do
+        case $1 in
+            -*) pip_options="$pip_options $1"
+                ;;
+            *)
+                break
+                ;;
+        esac
+        shift
+    done
     sdh_store_wheel "$@"
-    if [ -n "$SAGE_DESTDIR" ]; then
-        local sudo=""
-        # --no-warn-script-location: Suppress a warning caused by --root
-        local root="--root=$SAGE_DESTDIR --no-warn-script-location"
+    if [ -n "$SAGE_SUDO" ]; then
+        # Trac #29585: Do the SAGE_DESTDIR staging of the wheel installation
+        # ONLY if SAGE_SUDO is set (in that case, we still do the staging so
+        # that we do not invoke pip as root).
+        if [ -n "$SAGE_DESTDIR" ]; then
+            # --no-warn-script-location: Suppress a warning caused by --root
+            local sudo=""
+            local root="--root=$SAGE_DESTDIR --no-warn-script-location"
+        else
+            # Trac #32361: Of course, this can only be done for normal packages,
+            # whose installation goes through sage-spkg.
+            # For script packages, we do have to invoke pip as root.
+            local sudo="$SAGE_SUDO"
+            local root=""
+        fi
     else
-        local sudo="$SAGE_SUDO"
+        local sudo=""
         local root=""
     fi
-    $sudo sage-pip-install $root "$wheel" || \
+    $sudo sage-pip-install $root $pip_options "$wheel" || \
         sdh_die "Error installing ${wheel##*/}"
+    if [ -n "${SAGE_PKG_DIR}" ]; then
+        # Record name of installed distribution name for uninstallation.
+        wheel=${wheel##*/}
+        echo "${wheel%%-*}" >> ${SAGE_PKG_DIR}/spkg-piprm-requirements.txt
+    fi
+}
+
+sdh_pip_uninstall() {
+    # --disable-pip-version-check: Don't periodically check PyPI to determine whether a new version of pip is available
+    # --no-input: Disable prompting for input.
+    # --yes: Don't ask for confirmation of uninstall deletions
+    # See sage-pip-install for a discussion of the other flags.
+    python3 -m pip uninstall --isolated --disable-pip-version-check --yes --no-input "$@"
+    if [ $? -ne 0 ]; then
+        echo "Warning: pip exited with status $?" >&2
+    fi
 }
 
 sdh_cmake() {

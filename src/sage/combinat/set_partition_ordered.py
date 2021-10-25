@@ -882,9 +882,7 @@ class OrderedSetPartitions(UniqueRepresentation, Parent):
     ::
 
         sage: OS = OrderedSetPartitions("cat")
-        sage: OS # py2
-        Ordered set partitions of {'a', 'c', 't'}
-        sage: OS # py3 random
+        sage: OS  # random
         Ordered set partitions of {'a', 't', 'c'}
         sage: sorted(OS.list(), key=str)
         [[{'a', 'c', 't'}],

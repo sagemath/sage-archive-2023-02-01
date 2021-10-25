@@ -98,7 +98,7 @@ import random
 from sage.structure.sage_object import SageObject
 from sage.structure.richcmp import richcmp, richcmp_method
 
-from sage.rings.all import RDF
+from sage.rings.real_double import RDF
 from sage.interfaces.all import gap
 from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
 from sage.plot.polygon import polygon
@@ -1076,7 +1076,7 @@ class CubeGroup(PermutationGroup_generic):
 
         The Rubik's cube group has about `4.3 \times 10^{19}`
         elements, so this process is time-consuming. See
-        http://www.gap-system.org/Doc/Examples/rubik.html for an
+        https://www.gap-system.org/Doc/Examples/rubik.html for an
         interesting discussion of some GAP code analyzing the Rubik's
         cube.
 

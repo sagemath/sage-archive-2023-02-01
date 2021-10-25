@@ -111,7 +111,7 @@ Some examples in the group of points of an elliptic curve over a finite field:
 
 from copy import copy
 
-from sage.misc.all import prod
+from sage.misc.misc_c import prod
 import sage.rings.integer_ring as integer_ring
 import sage.rings.integer
 from sage.arith.srange import xsrange
@@ -1356,7 +1356,7 @@ def structure_description(G, latex=False):
 
     For full details, including the form of the returned string and the
     algorithm to build it, see `GAP's documentation
-    <http://www.gap-system.org/Manuals/doc/ref/chap39.html>`_.
+    <https://www.gap-system.org/Manuals/doc/ref/chap39.html>`_.
 
     INPUT:
 

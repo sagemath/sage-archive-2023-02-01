@@ -416,7 +416,7 @@ class TensorWithIndices(SageObject):
                               # symmetries or contractions are indicated in the
                               # indices)
 
-        # Check wether the usual convention for indices, symmetries and
+        # Check whether the usual convention for indices, symmetries and
         # contractions are respected. This includes restrictions on the
         # indices symbols used, non nested (anti)symmetries,
         # (co/contra)variant  identification of repeated indices, as well
@@ -972,7 +972,7 @@ class TensorWithIndices(SageObject):
 
         if decomposition_as_string != "<identity ...>":
             decomposition_as_string = [
-                # Two cases wether the term appear with an exponent or not
+                # Two cases whether the term appear with an exponent or not
                 ("^" in term)*term.split("^") + ("^" not in term)*(term.split("^")+['1'])
                 for term in decomposition_as_string.replace("x","").split("*")
             ]

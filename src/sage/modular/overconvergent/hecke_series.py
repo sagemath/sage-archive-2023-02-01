@@ -66,8 +66,8 @@ A list containing the characteristic series of the U_23 operator modulo 23^10 on
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 2 of the License, or
 # (at your option) any later version.
-#                  http://www.gnu.org/licenses/
-#*****************************************************************************
+#                  https://www.gnu.org/licenses/
+# ****************************************************************************
 
 from sage.functions.all import floor, ceil
 from sage.arith.all import valuation
@@ -75,7 +75,7 @@ from sage.rings.all import ZZ, Zmod, Infinity, Integer
 from sage.rings.finite_rings.finite_field_constructor import GF
 from sage.modular.modform.all import ModularForms, ModularFormsRing, delta_qexp, eisenstein_series_qexp
 from sage.modular.dims import dimension_modular_forms
-from sage.misc.functional import dimension,transpose,charpoly
+from sage.misc.functional import dimension, transpose, charpoly
 from sage.matrix.constructor import matrix, random_matrix
 from sage.matrix.matrix_space import MatrixSpace
 from sage.misc.misc import cputime
@@ -266,8 +266,14 @@ def random_solution(B,K):
     EXAMPLES::
 
         sage: from sage.modular.overconvergent.hecke_series import random_solution
-        sage: random_solution(5,10)
-        [1, 1, 1, 1, 0]
+        sage: s = random_solution(5,10)
+        sage: sum(s[i]*(i+1) for i in range(5))
+        10
+        sage: S = set()
+        sage: while len(S) != 30:
+        ....:     s = random_solution(5,10)
+        ....:     assert sum(s[i]*(i+1) for i in range(5)) == 10
+        ....:     S.add(tuple(s))
     """
     a = []
     for i in range(B,1,-1):
@@ -703,15 +709,25 @@ def higher_level_UpGj(p, N, klist, m, modformsring, bound, extra_data=False):
     EXAMPLES::
 
         sage: from sage.modular.overconvergent.hecke_series import higher_level_UpGj
-        sage: higher_level_UpGj(5,3,[4],2,true,6)
-        [
-        [ 1  0  0  0  0  0]
-        [ 0  1  0  0  0  0]
-        [ 0  7  0  0  0  0]
-        [ 0  5 10 20  0  0]
-        [ 0  7 20  0 20  0]
-        [ 0  1 24  0 20  0]
-        ]
+        sage: A = Matrix([
+        ....:     [1,  0,  0,  0,  0,  0],
+        ....:     [0,  1,  0,  0,  0,  0],
+        ....:     [0,  7,  0,  0,  0,  0],
+        ....:     [0,  5, 10, 20,  0,  0],
+        ....:     [0,  7, 20,  0, 20,  0],
+        ....:     [0,  1, 24,  0, 20,  0]])
+        sage: B = Matrix([
+        ....:     [1,  0,  0,  0,  0,  0],
+        ....:     [0,  1,  0,  0,  0,  0],
+        ....:     [0,  7,  0,  0,  0,  0],
+        ....:     [0, 19,  0, 20,  0,  0],
+        ....:     [0,  7, 20,  0, 20,  0],
+        ....:     [0,  1, 24,  0, 20,  0]])
+        sage: C = higher_level_UpGj(5,3,[4],2,true,6)
+        sage: len(C)
+        1
+        sage: C[0] in (A, B)
+        True
         sage: len(higher_level_UpGj(5,3,[4],2,true,6,extra_data=True))
         4
     """
@@ -842,6 +858,7 @@ def compute_Wi(k,p,h,hj,E4,E6):
         sage: E4 = eisenstein_series_qexp(4, prec, K=S, normalization="constant")
         sage: E6 = eisenstein_series_qexp(6, prec, K=S, normalization="constant")
         sage: h = delta_qexp(prec, K=S) / E6^2
+        sage: from sage.modular.dims import dimension_modular_forms
         sage: j = dimension_modular_forms(1, k - (p-1))
         sage: hj = h**j
         sage: c = compute_Wi(k,p,h,hj,E4,E6); c

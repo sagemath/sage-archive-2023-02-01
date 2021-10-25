@@ -48,7 +48,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``base`` -- Base ring.
+        - ``base`` -- base ring
         - ``p`` -- prime
         - ``print_mode`` -- dictionary of print options
         - ``names`` -- how to print the uniformizer
@@ -90,16 +90,26 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         return L
 
     def _modified_print_mode(self, print_mode):
+
         r"""
-        Return a dictionary of print options, starting with self's
+        Return a dictionary of print options, starting with ``self``'s
         print options but modified by the options in the dictionary
-        print_mode.
+        ``print_mode``.
 
         INPUT:
 
-        - ``print_mode`` -- dictionary with keys in ['mode', 'pos', 'ram_name',
-          'unram_name', 'var_name', 'max_ram_terms', 'max_unram_terms',
-          'max_terse_terms', 'sep', 'alphabet']
+        - ``print_mode`` -- dictionary with keys in
+
+          * ``mode``
+          * ``pos``
+          * ``ram_name``
+          * ``unram_name``
+          * ``var_name``
+          * ``max_ram_terms``
+          * ``max_unram_terms``
+          * ``max_terse_terms``
+          * ``sep``
+          * ``alphabet``
 
         EXAMPLES::
 
@@ -120,7 +130,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def ngens(self):
         r"""
-        Return the number of generators of self.
+        Return the number of generators of ``self``.
 
         We conventionally define this as 1: for base rings, we take a
         uniformizer as the generator; for extension rings, we take a
@@ -152,7 +162,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def __richcmp__(self, other, op):
         r"""
-        Return 0 if self == other, and 1 or -1 otherwise.
+        Rich comparison of ``self`` with ``other``.
 
         We consider two p-adic rings or fields to be equal if they are
         equal mathematically, and also have the same precision cap and
@@ -197,14 +207,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         r"""
         Return the current print mode as a string.
 
-        INPUT:
-
-        - ``self`` -- a p-adic field
-
-        OUTPUT:
-
-        The print mode for this p-adic field, as a string.
-
         EXAMPLES::
 
             sage: R = Qp(7,5, 'capped-rel')
@@ -215,13 +217,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def characteristic(self):
         r"""
-        Return the characteristic of self, which is always 0.
-
-        INPUT:
-
-         - ``self`` -- a p-adic parent
-
-        OUTPUT: self's characteristic, i.e., 0.
+        Return the characteristic of ``self``, which is always 0.
 
         EXAMPLES::
 
@@ -233,10 +229,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
     def prime(self):
         r"""
         Return the prime, ie the characteristic of the residue field.
-
-        INPUT:
-
-        - ``self`` -- a p-adic parent
 
         OUTPUT:
 
@@ -254,7 +246,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         r"""
         Return `p^n`, as an element of ``self``.
 
-        If `n` is infinity, returns 0.
+        If ``n`` is infinity, returns 0.
 
         EXAMPLES::
 
@@ -271,7 +263,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
     def _unram_print(self):
         r"""
         For printing.  Will be ``None`` if the unramified subextension
-        of self is of degree 1 over `\ZZ_p` or `\QQ_p`.
+        of ``self`` is of degree 1 over `\ZZ_p` or `\QQ_p`.
 
         EXAMPLES::
 
@@ -299,14 +291,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         r"""
         Return the residue class field.
 
-        INPUT:
-
-        - ``self`` -- a p-adic ring
-
-        OUTPUT:
-
-        The residue field.
-
         EXAMPLES::
 
             sage: R = Zp(3,5,'fixed-mod')
@@ -321,14 +305,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         r"""
         Return the residue class field.
 
-        INPUT:
-
-        - ``self`` -- a p-adic ring
-
-        OUTPUT:
-
-         The residue field.
-
         EXAMPLES::
 
             sage: R = Zp(3,5,'fixed-mod')
@@ -340,7 +316,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def residue_ring(self, n):
         r"""
-        Return the quotient of the ring of integers by the nth power of the maximal ideal.
+        Return the quotient of the ring of integers by the ``n``-th
+        power of the maximal ideal.
 
         EXAMPLES::
 
@@ -355,14 +332,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         r"""
         Return a list of elements representing all the residue classes.
 
-        INPUT:
-
-        - ``self`` -- a p-adic ring
-
-        OUTPUT:
-
-        A list of elements representing all the residue classes.
-
         EXAMPLES::
 
             sage: R = Zp(3, 5,'fixed-mod')
@@ -373,8 +342,8 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def _fraction_field_key(self, print_mode=None):
         r"""
-        Change print_mode from a dictionary to a tuple,
-        raising a deprecation warning if it is present.
+        Change ``print_mode`` from a dictionary to a tuple, raising
+        a deprecation warning if it is present.
 
         EXAMPLES::
 
@@ -405,12 +374,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``print_mode`` -- a dictionary containing print options.
-          Defaults to the same options as this ring.
+        - ``print_mode`` -- (optional) a dictionary containing print options;
+          defaults to the same options as this ring
 
         OUTPUT:
 
-        The fraction field of this ring.
+        - the fraction field of this ring
 
         EXAMPLES::
 
@@ -465,12 +434,12 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``print_mode`` -- a dictionary containing print options.
-          Defaults to the same options as this ring.
+        - ``print_mode`` -- (optional) a dictionary containing print options;
+          defaults to the same options as this ring
 
         OUTPUT:
 
-        The ring of elements of this field with nonnegative valuation.
+        - the ring of elements of this field with nonnegative valuation
 
         EXAMPLES::
 
@@ -524,16 +493,13 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
     def teichmuller(self, x, prec = None):
         r"""
-        Return the Teichmüller representative of `x`.
+        Return the Teichmüller representative of ``x``.
 
-        INPUT:
-
-        - ``self`` -- a p-adic ring
         - ``x`` -- something that can be cast into ``self``
 
         OUTPUT:
 
-        The Teichmüller lift of `x`.
+        - the Teichmüller lift of ``x``
 
         EXAMPLES::
 
@@ -554,13 +520,16 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: f = x^5 + 75*x^3 - 15*x^2 +125*x - 5
             sage: W.<w> = R.ext(f)
             sage: y = W.teichmuller(3); y
-            3 + 3*w^5 + w^7 + 2*w^9 + 2*w^10 + 4*w^11 + w^12 + 2*w^13 + 3*w^15 + 2*w^16 + 3*w^17 + w^18 + 3*w^19 + 3*w^20 + 2*w^21 + 2*w^22 + 3*w^23 + 4*w^24 + O(w^25)
+            3 + 3*w^5 + w^7 + 2*w^9 + 2*w^10 + 4*w^11 + w^12 + 2*w^13 + 3*w^15
+             + 2*w^16 + 3*w^17 + w^18 + 3*w^19 + 3*w^20 + 2*w^21 + 2*w^22
+             + 3*w^23 + 4*w^24 + O(w^25)
             sage: y^5 == y
             True
             sage: g = x^3 + 3*x + 3
             sage: A.<a> = R.ext(g)
             sage: b = A.teichmuller(1 + 2*a - a^2); b
-            (4*a^2 + 2*a + 1) + 2*a*5 + (3*a^2 + 1)*5^2 + (a + 4)*5^3 + (a^2 + a + 1)*5^4 + O(5^5)
+            (4*a^2 + 2*a + 1) + 2*a*5 + (3*a^2 + 1)*5^2 + (a + 4)*5^3
+             + (a^2 + a + 1)*5^4 + O(5^5)
             sage: b^125 == b
             True
 
@@ -578,7 +547,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         # Since Teichmüller representatives are defined at infinite precision,
         # we can lift to precision prec, as long as the absolute precision of ans is positive.
         if ans.precision_absolute() <= 0:
-            raise ValueError("Not enough precision to determine Teichmuller representative")
+            raise ValueError("not enough precision to determine Teichmuller representative")
         if ans.valuation() > 0:
             return self(0) if prec is None else self(0, prec)
         ans = ans.lift_to_precision(prec)
@@ -591,10 +560,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         r"""
         Return a set of Teichmüller representatives for the invertible
         elements of `\ZZ / p\ZZ`.
-
-        INPUT:
-
-        - ``self`` -- a p-adic ring
 
         OUTPUT:
 
@@ -746,7 +711,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
         EXAMPLES::
 
@@ -785,7 +750,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
         EXAMPLES::
 
@@ -824,7 +789,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
         EXAMPLES::
 
@@ -833,7 +798,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         .. SEEALSO::
 
             :class:`TestSuite`
-
         """
         tester = self._tester(**options)
 
@@ -863,7 +827,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
         EXAMPLES::
 
@@ -892,7 +856,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
         EXAMPLES::
 
@@ -933,7 +897,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
         EXAMPLES::
 
@@ -960,7 +924,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
         EXAMPLES::
 
@@ -1006,7 +970,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
         EXAMPLES::
 
@@ -1059,7 +1023,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+        - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
         EXAMPLES::
 
@@ -1092,7 +1056,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-         - ``options`` -- any keyword arguments accepted by :meth:`_tester`.
+         - ``options`` -- any keyword arguments accepted by :meth:`_tester`
 
         EXAMPLES::
 
@@ -1151,11 +1115,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         -  ``n`` -- an integer (default: 1)
 
-        OUTPUT:
-
-        The `n`-th power of the absolute arithmetic Frobenius
-        endomorphism on this field.
-
         EXAMPLES::
 
             sage: K.<a> = Qq(3^5)
@@ -1204,7 +1163,6 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
             sage: R(3) == R(6)
             False
             sage: R._test_elements_eq_transitive()
-
         """
         pass
 
@@ -1214,7 +1172,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         OUTPUT:
 
-        a valuation that is normalized such that the rational prime `p` has
+        A valuation that is normalized such that the rational prime `p` has
         valuation 1.
 
         EXAMPLES::
@@ -1325,7 +1283,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         INPUT:
 
-        - ``n`` -- an integer or ``None`` (default: ``None``):
+        - ``n`` -- an integer or ``None`` (default: ``None``)
 
         - ``order`` -- a boolean (default: ``False``)
 
@@ -1407,7 +1365,7 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
         INPUT:
 
         - ``n`` -- an integer or ``None`` (default: ``None``); if
-          ``None``, the full group of roots of unity is returned.
+          ``None``, the full group of roots of unity is returned
 
         EXAMPLES::
 
@@ -1481,29 +1439,29 @@ class pAdicGeneric(PrincipalIdealDomain, LocalGeneric):
 
         - ``secure`` -- a boolean (default: ``False``)
 
-        NOTE:
+        .. NOTE::
 
-        When ``secure`` is ``True``, this method raises an error when
-        the precision on the input polynomial is not enough to determine
-        the number of roots in the ground field. This happens when two
-        roots cannot be separated.
-        A typical example is the polynomial
+            When ``secure`` is ``True``, this method raises an error when 
+            the precision on the input polynomial is not enough to determine 
+            the number of roots in the ground field. This happens when two 
+            roots cannot be separated.
+            A typical example is the polynomial
 
-        .. MATH::
+            .. MATH::
 
-             (1 + O(p^10))*X^2 + O(p^10)*X + O(p^10)
+                 (1 + O(p^10))*X^2 + O(p^10)*X + O(p^10).
 
-        Indeed its discriminant might be any `p`-adic integer divisible
-        by `p^{10}` (resp. `p^{11}` when `p=2`) and so can be as well
-        zero, a square and a non-square.
-        In the first case, the polynomial has one double root; in the
-        second case, it has two roots; in the third case, it has no
-        root in `\QQ_p`.
+            Indeed its discriminant might be any `p`-adic integer divisible 
+            by `p^{10}` (resp. `p^{11}` when `p=2`) and so can be as well 
+            zero, a square and a non-square.
+            In the first case, the polynomial has one double root; in the
+            second case, it has two roots; in the third case, it has no
+            root in `\QQ_p`.
 
-        When ``secure`` is ``False``, this method assumes that two
-        inseparable roots actually collapse. In the above example,
-        it then answers that the given polynomial has a double root
-        `O(p^5)`.
+            When ``secure`` is ``False``, this method assumes that two 
+            inseparable roots actually collapse. In the above example,
+            it then answers that the given polynomial has a double root
+            `O(p^5)`.
 
         This keyword is ignored when using the ``pari`` algorithm.
 
@@ -1735,13 +1693,13 @@ class ResidueReductionMap(Morphism):
             sage: Zmod(121).convert_map_from(Qp(11))(3/11)
             Traceback (most recent call last):
             ...
-            ValueError: element must have non-negative valuation in order to compute residue.
+            ValueError: element must have non-negative valuation in order to compute residue
         """
         return x.residue(self._n, field=self._field, check_prec=self._field)
 
     def section(self):
         r"""
-        Returns the section from the residue ring or field
+        Return the section from the residue ring or field
         back to the p-adic ring or field.
 
         EXAMPLES::
@@ -1915,7 +1873,7 @@ class ResidueLiftingMap(Morphism):
             return NotImplemented
         return richcmp((self.domain(), self.codomain()), (other.domain(), other.codomain()), op)
 
-def local_print_mode(obj, print_options, pos = None, ram_name = None):
+def local_print_mode(obj, print_options, pos=None, ram_name=None):
     r"""
     Context manager for safely temporarily changing the print_mode
     of a p-adic ring/field.
@@ -1945,3 +1903,4 @@ def local_print_mode(obj, print_options, pos = None, ram_name = None):
         if option not in print_options:
             print_options[option] = obj._printer.dict()[option]
     return pAdicPrinter(obj, print_options)
+

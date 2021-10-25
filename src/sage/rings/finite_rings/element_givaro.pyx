@@ -296,14 +296,15 @@ cdef class Cache_givaro(Cache_base):
         EXAMPLES::
 
             sage: k = GF(23**3, 'a')
-            sage: e = k._cache.random_element(); e
-            2*a^2 + 14*a + 21
+            sage: e = k._cache.random_element()
+            sage: e.parent() is k
+            True
             sage: type(e)
-            <type 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>
+            <class 'sage.rings.finite_rings.element_givaro.FiniteField_givaroElement'>
 
             sage: P.<x> = PowerSeriesRing(GF(3^3, 'a'))
-            sage: P.random_element(5)
-            a^2 + (2*a^2 + a)*x + x^2 + (2*a^2 + 2*a + 2)*x^3 + (a^2 + 2*a + 2)*x^4 + O(x^5)
+            sage: P.random_element(5).parent() is P
+            True
         """
         cdef int seed = current_randstate().c_random()
         cdef int res
@@ -612,7 +613,7 @@ cdef class Cache_givaro(Cache_base):
 
     def _element_log_repr(self, FiniteField_givaroElement e):
         """
-        Return ``str(i)`` where ``self` is ``gen^i`` with ``gen``
+        Return ``str(i)`` where ``self`` is ``gen^i`` with ``gen``
         being the *internal* multiplicative generator of this finite
         field.
 
@@ -1412,7 +1413,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: b._log_to_int()
             5
             sage: type(b._log_to_int())
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
         """
         return Integer(self._cache.log_to_int(self.element))
 
@@ -1493,7 +1494,7 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: f = (b^2+1).polynomial(); f
             b + 4
             sage: type(f)
-            <type 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
+            <class 'sage.rings.polynomial.polynomial_zmod_flint.Polynomial_zmod_flint'>
             sage: parent(f)
             Univariate Polynomial Ring in b over Finite Field of size 5
         """
@@ -1602,6 +1603,19 @@ cdef class FiniteField_givaroElement(FinitePolyExtElement):
             sage: c is b
             True
             sage: copy(5r) == 5r
+            True
+        """
+        return self
+
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: S.<b> = GF(5^2); S
+            Finite Field in b of size 5^2
+            sage: c = deepcopy(b); c
+            b
+            sage: c is b
             True
         """
         return self

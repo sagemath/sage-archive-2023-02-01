@@ -77,17 +77,27 @@ def is_RealDoubleField(x):
     """
     Returns ``True`` if ``x`` is the field of real double precision numbers.
 
+    This function is deprecated. Use :func:`isinstance` with
+    :class:`~sage.rings.abc.RealDoubleField` instead.
+
     EXAMPLES::
 
         sage: from sage.rings.real_double import is_RealDoubleField
         sage: is_RealDoubleField(RDF)
+        doctest:warning...
+        DeprecationWarning: is_RealDoubleField is deprecated;
+        use isinstance(..., sage.rings.abc.RealDoubleField) instead
+        See https://trac.sagemath.org/32610 for details.
         True
         sage: is_RealDoubleField(RealField(53))
         False
     """
+    from sage.misc.superseded import deprecation
+    deprecation(32610, 'is_RealDoubleField is deprecated; use isinstance(..., sage.rings.abc.RealDoubleField) instead')
     return isinstance(x, RealDoubleField_class)
 
-cdef class RealDoubleField_class(Field):
+
+cdef class RealDoubleField_class(sage.rings.abc.RealDoubleField):
     """
     An approximation to the field of real numbers using double
     precision floating point numbers. Answers derived from calculations
@@ -495,10 +505,12 @@ cdef class RealDoubleField_class(Field):
 
         EXAMPLES::
 
-            sage: RDF.random_element()
-            0.7369454235661859
-            sage: RDF.random_element(min=100, max=110)
-            102.8159473516245
+            sage: RDF.random_element().parent() is RDF
+            True
+            sage: -1 <= RDF.random_element() <= 1
+            True
+            sage: 100 <= RDF.random_element(min=100, max=110) <= 110
+            True
         """
         cdef randstate rstate = current_randstate()
 
@@ -1201,6 +1213,16 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self
 
+    def __deepcopy__(self, memo):
+        """
+        EXAMPLES::
+
+            sage: r = RDF('-1.6')
+            sage: deepcopy(r) is r
+            True
+        """
+        return self
+
     def integer_part(self):
         """
         If in decimal this number is written ``n.defg``, returns ``n``.
@@ -1211,7 +1233,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: a = r.integer_part(); a
             -1
             sage: type(a)
-            <type 'sage.rings.integer.Integer'>
+            <class 'sage.rings.integer.Integer'>
             sage: r = RDF(0.0/0.0)
             sage: a = r.integer_part()
             Traceback (most recent call last):
@@ -2685,7 +2707,7 @@ cdef class RealDoubleElement(FieldElement):
 
         ALGORITHM:
 
-        Uses the PARI C-library ``algdep`` command.
+        Uses the PARI C-library :pari:`algdep` command.
 
         EXAMPLES::
 

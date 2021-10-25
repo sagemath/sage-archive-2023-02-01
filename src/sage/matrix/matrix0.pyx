@@ -44,7 +44,7 @@ from sage.categories.integral_domains import IntegralDomains
 
 from sage.rings.ring cimport CommutativeRing
 from sage.rings.ring import is_Ring
-from sage.rings.finite_rings.integer_mod_ring import is_IntegerModRing
+import sage.rings.abc
 from sage.rings.integer_ring import is_IntegerRing
 
 import sage.modules.free_module
@@ -78,7 +78,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
         sage: type(a)
-        <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
+        <class 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
         sage: parent(a)
         Full MatrixSpace of 2 by 3 dense matrices over Complex Double Field
 
@@ -112,7 +112,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: import sage.matrix.matrix0
             sage: A = sage.matrix.matrix0.Matrix(MatrixSpace(QQ,2))
             sage: type(A)
-            <type 'sage.matrix.matrix0.Matrix'>
+            <class 'sage.matrix.matrix0.Matrix'>
         """
         P = <Parent?>parent
         self._parent = P
@@ -885,11 +885,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M = MatrixSpace(GF(2), 3, 3, implementation='generic')
             sage: m = M(range(9))
             sage: type(m)
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
             sage: parent(m)
             Full MatrixSpace of 3 by 3 dense matrices over Finite Field of size 2 (using Matrix_generic_dense)
             sage: type(m[:2,:2])
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
             sage: parent(m[:2,:2])
             Full MatrixSpace of 2 by 2 dense matrices over Finite Field of size 2 (using Matrix_generic_dense)
         """
@@ -1589,7 +1589,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###########################################################
     def base_ring(self):
         """
-        Returns the base ring of the matrix.
+        Return the base ring of the matrix.
 
         EXAMPLES::
 
@@ -2270,7 +2270,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def dimensions(self):
         r"""
-        Returns the dimensions of this matrix as the tuple (nrows, ncols).
+        Return the dimensions of this matrix as the tuple (nrows, ncols).
 
         EXAMPLES::
 
@@ -2293,7 +2293,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     def act_on_polynomial(self, f):
         """
-        Returns the polynomial f(self\*x).
+        Return the polynomial f(self\*x).
 
         INPUT:
 
@@ -3599,8 +3599,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         cdef Py_ssize_t i, j, _
         cdef list pairs, k0_pairs, k1_pairs
@@ -3707,8 +3706,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         cdef dict d = {}
         cdef list queue = list(xrange(self._ncols))
@@ -3905,7 +3903,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_symmetric(self):
         """
-        Returns True if this is a symmetric matrix.
+        Return True if this is a symmetric matrix.
 
         A symmetric matrix is necessarily square.
 
@@ -4311,8 +4309,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         if self._ncols != self._nrows:
             raise ValueError("The matrix is not a square matrix")
@@ -4363,8 +4360,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         REFERENCES:
 
-        - [FZ2001] S. Fomin, A. Zelevinsky. *Cluster Algebras 1: Foundations*,
-          :arxiv:`math/0104151` (2001).
+        - [FZ2001]_
         """
         if self._ncols != self._nrows:
             raise ValueError("The matrix is not a square matrix")
@@ -4372,7 +4368,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_dense(self):
         """
-        Returns True if this is a dense matrix.
+        Return True if this is a dense matrix.
 
         In Sage, being dense is a property of the underlying
         representation, not the number of nonzero entries.
@@ -4470,7 +4466,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def is_singular(self):
         r"""
-        Returns ``True`` if ``self`` is singular.
+        Return ``True`` if ``self`` is singular.
 
         OUTPUT:
 
@@ -4679,7 +4675,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _nonzero_positions_by_row(self, copy=True):
         """
-        Returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``.
+        Return the list of pairs ``(i,j)`` such that ``self[i,j] != 0``.
 
         It is safe to change the resulting list (unless you give the
         option ``copy=False``).
@@ -4708,7 +4704,7 @@ cdef class Matrix(sage.structure.element.Matrix):
 
     def _nonzero_positions_by_column(self, copy=True):
         """
-        Returns the list of pairs ``(i,j)`` such that ``self[i,j] != 0``, but
+        Return the list of pairs ``(i,j)`` such that ``self[i,j] != 0``, but
         sorted by columns, i.e., column ``j=0`` entries occur first, then
         column ``j=1`` entries, etc.
 
@@ -4834,7 +4830,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: B.multiplicative_order()
             1
 
-            sage: E = MatrixSpace(GF(11^2,'e'),5).random_element()
+            sage: M = MatrixSpace(GF(11^2,'e'),5)
+            sage: E = M.random_element()
+            sage: while E.det() == 0:
+            ....:     E = M.random_element()
             sage: (E^E.multiplicative_order()).is_one()
             True
 
@@ -4963,13 +4962,11 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     cdef _vector_times_matrix_(self, Vector v):
         """
-        Returns the vector times matrix product.
+        Return the vector times matrix product.
 
         INPUT:
 
-
         -  ``v`` - a free module element.
-
 
         OUTPUT: The vector times matrix product v\*A.
 
@@ -5569,13 +5566,13 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: m = matrix(Zmod(49),2,[2,1,3,3])
             sage: type(m)
-            <type 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
+            <class 'sage.matrix.matrix_modn_dense_float.Matrix_modn_dense_float'>
             sage: ~m
             [ 1 16]
             [48 17]
             sage: m = matrix(Zmod(2^100),2,[2,1,3,3])
             sage: type(m)
-            <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+            <class 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
             sage: (~m)*m
             [1 0]
             [0 1]
@@ -5755,7 +5752,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         R = self.base_ring()
         if algorithm is None and R in _Fields:
             return ~self
-        elif algorithm is None and is_IntegerModRing(R):
+        elif algorithm is None and isinstance(R, sage.rings.abc.IntegerModRing):
             # Finite fields are handled above.
             # This is "easy" in that we either get an error or
             # the right answer. Note that of course there

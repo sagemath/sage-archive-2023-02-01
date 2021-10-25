@@ -1340,7 +1340,7 @@ class Gap(Gap_generic):
         prepare_workspace_dir()
 
         # According to the GAP Reference Manual,
-        # [http://www.gap-system.org/Manuals/doc/htm/ref/CHAP003.htm#SSEC011.1]
+        # [https://www.gap-system.org/Manuals/doc/htm/ref/CHAP003.htm#SSEC011.1]
         # SaveWorkspace can only be used at the main gap> prompt. It cannot
         # be included in the body of a loop or function, or called from a
         # break loop.
@@ -1483,7 +1483,7 @@ class Gap(Gap_generic):
 
             sage: gap.console()  # not tested
             *********   GAP, Version 4.5.7 of 14-Dec-2012 (free software, GPL)
-            *  GAP  *   http://www.gap-system.org
+            *  GAP  *   https://www.gap-system.org
             *********   Architecture: x86_64-unknown-linux-gnu-gcc-default64
             Libs used:  gmp, readline
             Loading the library and packages ...
@@ -1857,7 +1857,7 @@ def gap_console():
 
         sage: gap_console()  # not tested
         *********   GAP, Version 4.5.7 of 14-Dec-2012 (free software, GPL)
-        *  GAP  *   http://www.gap-system.org
+        *  GAP  *   https://www.gap-system.org
         *********   Architecture: x86_64-unknown-linux-gnu-gcc-default64
         Libs used:  gmp, readline
         Loading the library and packages ...

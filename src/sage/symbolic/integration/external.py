@@ -172,6 +172,20 @@ def fricas_integrator(expression, v, a=None, b=None, noPole=True):
 
         sage: integrate(1, x, algorithm="fricas")                               # optional - fricas
         x
+
+    Check that :trac:`28630` is fixed::
+
+        sage: f = polylog(3, x)
+        sage: f.integral(x, algorithm='fricas')                                 # optional - fricas
+        -x*dilog(x) - (x - 1)*log(-x + 1) + x*polylog(3, x) + x
+
+    Check that :trac:`29043` is fixed::
+
+        sage: var("a c d"); f = (I*a*tan(d*x + c) + a)*sec(d*x + c)^10
+        (a, c, d)
+        sage: ii = integrate(f, x, algorithm="fricas")                               # optional - fricas
+        sage: 1/315*(64512*I*a*e^(10*I*d*x + 10*I*c) + 53760*I*a*e^(8*I*d*x + 8*I*c) + 30720*I*a*e^(6*I*d*x + 6*I*c) + 11520*I*a*e^(4*I*d*x + 4*I*c) + 2560*I*a*e^(2*I*d*x + 2*I*c) + 256*I*a)/(d*e^(20*I*d*x + 20*I*c) + 10*d*e^(18*I*d*x + 18*I*c) + 45*d*e^(16*I*d*x + 16*I*c) + 120*d*e^(14*I*d*x + 14*I*c) + 210*d*e^(12*I*d*x + 12*I*c) + 252*d*e^(10*I*d*x + 10*I*c) + 210*d*e^(8*I*d*x + 8*I*c) + 120*d*e^(6*I*d*x + 6*I*c) + 45*d*e^(4*I*d*x + 4*I*c) + 10*d*e^(2*I*d*x + 2*I*c) + d) - ii                        # optional - fricas
+        0
     """
     if not isinstance(expression, Expression):
         expression = SR(expression)
@@ -227,6 +241,11 @@ def giac_integrator(expression, v, a=None, b=None):
         sage: y = SR.var('π')
         sage: giac_integrator(cos(y), y)
         sin(π)
+
+    Check that :trac:`29966` is fixed::
+
+        sage: giac_integrator(sqrt(x + sqrt(x)), x)
+        1/12*(2*sqrt(x)*(4*sqrt(x) + 1) - 3)*sqrt(x + sqrt(x))...
     """
     ex = expression._giac_()
     if a is None:
@@ -237,3 +256,48 @@ def giac_integrator(expression, v, a=None, b=None):
         return expression.integrate(v, a, b, hold=True)
     else:
         return result._sage_()
+
+def libgiac_integrator(expression, v, a=None, b=None):
+    r"""
+    Integration using libgiac
+
+    EXAMPLES::
+
+        sage: import sage.libs.giac
+        ...
+        sage: from sage.symbolic.integration.external import libgiac_integrator
+        sage: libgiac_integrator(sin(x), x)
+        -cos(x)
+        sage: libgiac_integrator(1/(x^2+6), x, -oo, oo)
+        No checks were made for singular points of antiderivative...
+        1/6*sqrt(6)*pi
+
+    TESTS::
+
+        sage: libgiac_integrator(e^(-x^2)*log(x), x)
+        integrate(e^(-x^2)*log(x), x)
+
+    The following integral fails with the Giac Pexpect interface, but works
+    with libgiac (:trac:`31873`)::
+
+        sage: a, x = var('a,x')
+        sage: f = sec(2*a*x)
+        sage: F = libgiac_integrator(f, x)
+        ...
+        sage: (F.derivative(x) - f).simplify_trig()
+        0
+    """
+    from sage.libs.giac import libgiac
+    from sage.libs.giac.giac import Pygen
+    # We call Pygen on first argument because otherwise some expressions
+    # involving derivatives result in doctest failures in interfaces/sympy.py
+    # -- related to the fixme note in sage.libs.giac.giac.GiacFunction.__call__
+    # regarding conversion of lists.
+    if a is None:
+        result = libgiac.integrate(Pygen(expression), v)
+    else:
+        result = libgiac.integrate(Pygen(expression), v, a, b)
+    if 'integrate' in format(result) or 'integration' in format(result):
+        return expression.integrate(v, a, b, hold=True)
+    else:
+        return result.sage()

@@ -4374,7 +4374,7 @@ class TensorField(ModuleElementWithMutability):
         the image of it being the great circle `x=0`, `u=0`, which goes through
         the North and South poles::
 
-            sage: I.<t> = OpenInterval(0, 5*pi/2)
+            sage: I.<t> = manifolds.OpenInterval(0, 5*pi/2)
             sage: J = I.open_interval(0, 3*pi/2)
             sage: K = I.open_interval(pi, 5*pi/2)
             sage: c_J = J.canonical_chart(); c_K = K.canonical_chart()

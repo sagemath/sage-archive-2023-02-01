@@ -22,12 +22,8 @@ EXAMPLES: We illustrate each of the calculus functional functions.
     a
     sage: taylor(a*sin(x)/x, x, 0, 4)
     1/120*a*x^4 - 1/6*a*x^2 + a
-    sage: expand( (x-a)^3 )
+    sage: expand((x - a)^3)
     -a^3 + 3*a^2*x - 3*a*x^2 + x^3
-    sage: laplace( e^(x+a), x, a)
-    e^a/(a - 1)
-    sage: inverse_laplace( e^a/(a-1), x, a)
-    dirac_delta(a)*e^a/(a - 1)
 """
 
 from .calculus import SR
@@ -228,7 +224,9 @@ def integral(f, *args, **kwds):
 
     Sage is now (:trac:`27958`) able to compute the following integral::
 
-        sage: integral(exp(-x^2)*log(x), x)
+        sage: result = integral(exp(-x^2)*log(x), x)
+        ...
+        sage: result
         1/2*sqrt(pi)*erf(x)*log(x) - x*hypergeometric((1/2, 1/2), (3/2, 3/2), -x^2)
 
     and its value::
@@ -280,7 +278,7 @@ def integral(f, *args, **kwds):
 
     ::
 
-        sage: [float(h(i)) for i in range(5)] #random
+        sage: [float(h(x=i)) for i in range(5)] #random
 
         [0.0,
          -1.1102230246251565e-16,

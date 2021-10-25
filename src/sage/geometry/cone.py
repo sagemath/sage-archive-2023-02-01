@@ -216,10 +216,16 @@ from sage.geometry.toric_lattice import (ToricLattice, is_ToricLattice,
 from sage.geometry.toric_plotter import ToricPlotter, label_list
 from sage.geometry.relative_interior import RelativeInterior
 from sage.graphs.digraph import DiGraph
-from sage.matrix.all import column_matrix, matrix, MatrixSpace
-from sage.misc.all import cached_method, flatten, latex
-from sage.modules.all import span, vector, VectorSpace
-from sage.rings.all import QQ, ZZ
+from sage.matrix.constructor import matrix
+from sage.matrix.matrix_space import MatrixSpace
+from sage.matrix.special import column_matrix
+from sage.misc.cachefunc import cached_method
+from sage.misc.flatten import flatten
+from sage.misc.latex import latex
+from sage.modules.free_module import span, VectorSpace
+from sage.modules.free_module_element import vector
+from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
 from sage.structure.all import SageObject, parent
 from sage.structure.richcmp import richcmp_method, richcmp
 from sage.geometry.integral_points import parallelotope_points
@@ -590,8 +596,6 @@ def _ambient_space_point(body, data):
         (1.00000000000000, 3.14159265358979)
 
     """
-    from sage.rings.all import AA, RR
-
     L = body.lattice()
 
     def try_base_extend(ring):
@@ -616,6 +620,9 @@ def _ambient_space_point(body, data):
     # If we don't have a lattice element, try successively
     # less-desirable ambient spaces until (as a last resort) we
     # attempt a numerical representation.
+    from sage.rings.qqbar import AA
+    from sage.rings.real_mpfr import RR
+
     for ring in [QQ, AA, RR]:
         p = try_base_extend(ring)
         if p is not None:
@@ -721,7 +728,7 @@ def normalize_rays(rays, lattice):
             if lattice.is_ambient():
                 # Handle the most common case efficiently.
                 V = lattice.base_extend(QQ)
-                length = lambda ray: integral_length(ray)
+                length = integral_length
         except AttributeError:
             pass
         if V is None:
@@ -2005,6 +2012,27 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         else:
             result += " face of %s" % self.ambient()
         return result
+
+    def _some_elements_(self):
+        r"""
+        Generate some points of ``self``.
+
+        EXAMPLES::
+
+            sage: K = cones.nonnegative_orthant(3)
+            sage: K.some_elements()  # indirect doctest
+            [(0, 0, 0), (1/2, 0, 0), (1/4, 1/2, 0), (1/8, 1/4, 1/2)]
+        """
+        V = self.ambient_vector_space()
+        r_iter = iter(self._rays)
+        p = V(0)
+        yield p
+        for i in range(5):
+            try:
+                p = (p + next(r_iter)) / 2
+            except StopIteration:
+                return
+            yield p
 
     def _sort_faces(self,  faces):
         r"""
@@ -3508,6 +3536,30 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         """
         return Polyhedron(rays=self.rays(), vertices=[self.lattice()(0)])
 
+    def an_affine_basis(self):
+        r"""
+        Return points in ``self`` that form a basis for the affine hull.
+
+        EXAMPLES::
+
+            sage: quadrant = Cone([(1,0), (0,1)])
+            sage: quadrant.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+            sage: ray = Cone([(1, 1)])
+            sage: ray.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+            sage: line = Cone([(1,0), (-1,0)])
+            sage: line.an_affine_basis()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: this function is not implemented for unbounded polyhedra
+        """
+        return self.polyhedron().an_affine_basis()
+
     @cached_method
     def strict_quotient(self):
         r"""
@@ -4454,9 +4506,12 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         The primal Normaliz algorithm, see [Normaliz]_.
         """
         if self.is_strictly_convex():
-            def not_in_linear_subspace(x): return True
+
+            def not_in_linear_subspace(x):
+                return True
         else:
             linear_subspace = self.linear_subspace()
+
             def not_in_linear_subspace(x):
                 # "x in linear_subspace" does not work, due to absence
                 # of coercion maps as of Trac ticket #10513.
@@ -4485,7 +4540,8 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
         else:
             return PointCollection(irreducible, self.lattice())
 
-    def Hilbert_coefficients(self, point, solver=None, verbose=0):
+    def Hilbert_coefficients(self, point, solver=None, verbose=0,
+                             *, integrality_tolerance=1e-3):
         r"""
         Return the expansion coefficients of ``point`` with respect to
         :meth:`Hilbert_basis`.
@@ -4496,14 +4552,19 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
           in the cone, or something that can be converted to a
           point. For example, a list or tuple of integers.
 
-        - ``solver`` -- (default: ``None``) Specify a Linear Program (LP) solver
-          to be used. If set to ``None``, the default one is used. For more
-          information on LP solvers and which default solver is used, see the
-          method :meth:`~sage.numerical.mip.MixedIntegerLinearProgram.solve` of
-          the class :class:`~sage.numerical.mip.MixedIntegerLinearProgram`.
+        - ``solver`` -- (default: ``None``) Specify a Mixed Integer Linear Programming
+          (MILP) solver to be used. If set to ``None``, the default one is used. For
+          more information on MILP solvers and which default solver is used, see
+          the method
+          :meth:`solve <sage.numerical.mip.MixedIntegerLinearProgram.solve>`
+          of the class
+          :class:`MixedIntegerLinearProgram <sage.numerical.mip.MixedIntegerLinearProgram>`.
 
         - ``verbose`` -- integer (default: ``0``). Sets the level of verbosity
           of the LP solver. Set to 0 by default, which means quiet.
+
+        - ``integrality_tolerance`` -- parameter for use with MILP solvers over an
+          inexact base ring; see :meth:`MixedIntegerLinearProgram.get_values`.
 
         OUTPUT:
 
@@ -4566,7 +4627,7 @@ class ConvexRationalPolyhedralCone(IntegralRayCollection, Container, ConvexSet_c
             p.add_constraint(p.sum(b[i]*x[j] for j,b in enumerate(basis)) == point[i])
         p.solve(log=verbose)
 
-        return vector(ZZ, p.get_values(x))
+        return vector(ZZ, p.get_values(x, convert=ZZ, tolerance=integrality_tolerance))
 
     def is_solid(self):
         r"""

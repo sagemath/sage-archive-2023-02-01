@@ -62,7 +62,6 @@ from sage.cpython.string import bytes_to_str
 from sage.misc.misc import ECL_TMP
 from sage.misc.multireplace import multiple_replace
 from sage.structure.richcmp import richcmp, rich_to_bool
-import sage.server.support
 
 from .interface import (Interface, InterfaceElement, InterfaceFunctionElement,
                         InterfaceFunction, AsciiArtString)
@@ -166,9 +165,6 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
             ...
         """
         cmd = '{} --very-quiet --batch-string="{}({});" '.format(MAXIMA, command, s)
-        if sage.server.support.EMBEDDED_MODE:
-            cmd += '< /dev/null'
-
         env = os.environ.copy()
         env['TMPDIR'] = str(ECL_TMP)
 
@@ -674,9 +670,11 @@ class MaximaAbstract(ExtraTabCompletion, Interface):
 ##         represented in 2-d.
 
 ##         INPUT:
-##             flag -- bool (default: True)
 
-##         EXAMPLES
+##         flag -- bool (default: True)
+
+##         EXAMPLES::
+
 ##             sage: maxima('1/2')
 ##             1/2
 ##             sage: maxima.display2d(True)
@@ -1218,18 +1216,18 @@ class MaximaAbstractElement(ExtraTabCompletion, InterfaceElement):
             sage: b = a._sage_(); b
             sqrt(2) + 2.5
             sage: type(b)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
 
         We illustrate an automatic coercion::
 
             sage: c = b + sqrt(3); c
             sqrt(3) + sqrt(2) + 2.5
             sage: type(c)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
             sage: d = sqrt(3) + b; d
             sqrt(3) + sqrt(2) + 2.5
             sage: type(d)
-            <type 'sage.symbolic.expression.Expression'>
+            <class 'sage.symbolic.expression.Expression'>
 
             sage: a = sage.calculus.calculus.maxima('x^(sqrt(y)+%pi) + sin(%e + %pi)')
             sage: a._sage_()

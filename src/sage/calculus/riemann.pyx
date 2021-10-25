@@ -30,7 +30,7 @@ from cysignals.signals cimport sig_on, sig_off
 from sage.misc.decorators import options
 from sage.plot.all import list_plot, Graphics
 
-from sage.ext.fast_eval import fast_callable
+from sage.ext.fast_callable import fast_callable
 
 from sage.rings.all import CDF
 
@@ -1401,7 +1401,7 @@ cpdef analytic_boundary(FLOAT_T t, int n, FLOAT_T epsilon):
         sage: m = Riemann_Map([f], [fp],0,200)
         sage: s = spline(m.get_theta_points())
         sage: test_pt = uniform(0,2*pi)
-        sage: s(test_pt) - analytic_boundary(test_pt,20, .3) < 10^-4
+        sage: s(test_pt) - analytic_boundary(test_pt,20, .3) < 10^-3
         True
     """
     cdef FLOAT_T i

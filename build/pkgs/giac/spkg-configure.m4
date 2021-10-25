@@ -10,6 +10,7 @@ SAGE_SPKG_CONFIGURE([giac], [
                 AX_COMPARE_VERSION([$giac_version], [ge], GIAC_MIN_VERSION, [
                     AX_COMPARE_VERSION([$giac_version], [le], GIAC_MAX_VERSION, [
                         ac_cv_path_GIAC="$ac_path_GIAC"
+                        ac_path_GIAC_found=:
                     ])
                 ])
             ])

@@ -252,7 +252,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
         sage: M = Manifold(2, 'M')
         sage: X.<x,y> = M.chart()
-        sage: R.<t> = RealLine() ; R
+        sage: R.<t> = manifolds.RealLine() ; R
         Real number line ℝ
         sage: H = Hom(R, M) ; H
         Set of Morphisms from Real number line ℝ to 2-dimensional
@@ -381,7 +381,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: H = Hom(R, M); H
             Set of Morphisms from Real number line ℝ to 3-dimensional
              differentiable manifold M in Category of smooth manifolds over
@@ -432,7 +432,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: R.<t> = RealLine() ; R
+            sage: R.<t> = manifolds.RealLine() ; R
             Real number line ℝ
             sage: H = Hom(R, M)
             sage: c = H({X: [sin(t), sin(2*t)/2]}, name='c') ; c
@@ -459,7 +459,7 @@ class DifferentiableCurveSet(DifferentiableManifoldHomset):
 
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: c = Hom(R,M)._an_element_() ; c
             Curve in the 3-dimensional differentiable manifold M
             sage: c.display()
@@ -553,7 +553,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
 
         sage: M = Manifold(2, 'M')
         sage: X.<x,y> = M.chart()
-        sage: R.<t> = RealLine()
+        sage: R.<t> = manifolds.RealLine()
         sage: H = IntegratedCurveSet(R, M)
         Traceback (most recent call last):
         ...
@@ -708,7 +708,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: H = IntegratedCurveSet(R, M)
             Traceback (most recent call last):
             ...
@@ -763,7 +763,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
@@ -795,7 +795,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedCurveSet(I, M)
             sage: eqns_rhs = [1,1]
@@ -827,7 +827,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedCurveSet(I, M)
             sage: c = H._an_element_() ; c
@@ -957,7 +957,7 @@ class IntegratedCurveSet(DifferentiableCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedCurveSet
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedCurveSet(I, M)
             sage: H.one()
@@ -1018,7 +1018,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
 
         sage: M = Manifold(2, 'M')
         sage: X.<x,y> = M.chart()
-        sage: R.<t> = RealLine()
+        sage: R.<t> = manifolds.RealLine()
         sage: H = IntegratedAutoparallelCurveSet(R, M)
         Traceback (most recent call last):
         ...
@@ -1146,7 +1146,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: H = IntegratedAutoparallelCurveSet(R, M)
             Traceback (most recent call last):
             ...
@@ -1204,7 +1204,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
@@ -1239,7 +1239,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedAutoparallelCurveSet(I, M)
             sage: nab = M.affine_connection('nabla')
@@ -1273,7 +1273,7 @@ class IntegratedAutoparallelCurveSet(IntegratedCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedAutoparallelCurveSet
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: [a,b] = var('a b')
             sage: J = R.open_interval(a, b)
             sage: H = IntegratedAutoparallelCurveSet(J, M)
@@ -1480,7 +1480,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
 
         sage: M = Manifold(2, 'M')
         sage: X.<x,y> = M.chart()
-        sage: R.<t> = RealLine()
+        sage: R.<t> = manifolds.RealLine()
         sage: H = IntegratedGeodesicSet(R, M)
         Traceback (most recent call last):
         ...
@@ -1603,7 +1603,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: H = IntegratedGeodesicSet(R, M)
             Traceback (most recent call last):
             ...
@@ -1660,7 +1660,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
             sage: M = Manifold(3, 'M')
             sage: X.<x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, M) ; H
             Set of Morphisms from Real interval (-1, 2) to 3-dimensional
@@ -1693,7 +1693,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
             sage: M = Manifold(2, 'M')
             sage: X.<x,y> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: I = R.open_interval(-1, 2)
             sage: H = IntegratedGeodesicSet(I, M)
             sage: g = M.metric('g')
@@ -1725,7 +1725,7 @@ class IntegratedGeodesicSet(IntegratedAutoparallelCurveSet):
             sage: from sage.manifolds.differentiable.manifold_homset import IntegratedGeodesicSet
             sage: M = Manifold(4, 'M', start_index=1)
             sage: X.<w,x,y,z> = M.chart()
-            sage: R.<t> = RealLine()
+            sage: R.<t> = manifolds.RealLine()
             sage: [a,b] = var('a b')
             sage: J = R.open_interval(a, b)
             sage: H = IntegratedGeodesicSet(J, M)

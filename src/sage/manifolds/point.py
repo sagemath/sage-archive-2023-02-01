@@ -374,7 +374,7 @@ class ManifoldPoint(Element):
             chart = dom._def_chart
             def_chart = chart
         else:
-            dom = chart._domain
+            dom = chart.domain()
             def_chart = dom._def_chart
             if self not in dom:
                 raise ValueError("the point does not belong to the domain " +

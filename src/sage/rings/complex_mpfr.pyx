@@ -500,15 +500,31 @@ class ComplexField_class(sage.rings.abc.ComplexField):
             sage: CC(i)
             1.00000000000000*I
 
+        TESTS::
+
+            sage: CC('1.2+3.4*j')
+            1.20000000000000 + 3.40000000000000*I
+            sage: CC('hello')
+            Traceback (most recent call last):
+            ...
+            ValueError: given string 'hello' is not a complex number
         """
         if not isinstance(x, (RealNumber, tuple)):
             if isinstance(x, ComplexDoubleElement):
                 return ComplexNumber(self, x.real(), x.imag())
             elif isinstance(x, str):
+                x = x.replace(' ', '')
+                x = x.replace('i', 'I')
+                x = x.replace('j', 'I')
+                x = x.replace('E', 'e')
+                allowed = '+-.*0123456789Ie'
+                if not all(letter in allowed for letter in x):
+                    raise ValueError(f'given string {x!r} is not a complex number')
+                # This should rather use a proper parser to validate input.
                 # TODO: this is probably not the best and most
                 # efficient way to do this.  -- Martin Albrecht
                 return ComplexNumber(self,
-                            sage_eval(x.replace(' ',''), locals={"I":self.gen(),"i":self.gen()}))
+                                     sage_eval(x, locals={"I": self.gen()}))
 
             late_import()
             if isinstance(x, NumberFieldElement_quadratic):

@@ -166,7 +166,7 @@ class WeylGroups(Category_singleton):
               * ``'upper'`` - roots of reflections corresponding to atoms in the interval [``x``, ``y``]
               * ``'lower'`` - roots of reflections corresponding to coatoms in the interval [``x``, ``y``]
 
-        - ``backend`` -- string (default: ``'ccd'``) -- The backend to use to create the polyhedron.
+        - ``backend`` -- string (default: ``'ccd'``); the backend to use to create the polyhedron
     
             EXAMPLES::
     

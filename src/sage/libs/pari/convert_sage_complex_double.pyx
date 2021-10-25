@@ -12,7 +12,7 @@ cpdef ComplexDoubleElement pari_to_cdf(Gen g):
 
     EXAMPLES::
 
-        sage: CDF(pari("Pi"))
+        sage: CDF(pari("Pi"))  # indirect doctest
         3.141592653589793
         sage: CDF(pari("1 + I/2"))
         1.0 + 0.5*I
@@ -41,7 +41,19 @@ cpdef ComplexDoubleElement pari_to_cdf(Gen g):
 
 
 cpdef Gen new_gen_from_complex_double_element(ComplexDoubleElement self):
+    """
+    Return PARI version of ``self``, as ``t_COMPLEX`` or ``t_REAL``.
 
+    EXAMPLES::
+
+        sage: from sage.libs.pari.convert_sage_complex_double import new_gen_from_complex_double_element
+        sage: new_gen_from_complex_double_element(CDF(1,0))
+        1.00000000000000
+        sage: new_gen_from_complex_double_element(CDF(0,1))
+        1.00000000000000*I
+        sage: new_gen_from_complex_double_element(CDF(1,1))
+        1.00000000000000 + 1.00000000000000*I
+    """
     if not self._complex.imag:
         return new_gen_from_double(self._complex.real)
     else:

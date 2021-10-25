@@ -80,6 +80,7 @@ class KnotInfoColumns(Enum):
          'Unoriented Rank',
          'PD Notation (vector)',
          'PD Notation (KnotTheory)',
+         'Braid Notation',
          'Multivariable Alexander Polynomial',
          'HOMFLYPT Polynomial',
          'Unoriented',
@@ -438,7 +439,7 @@ class KnotInfoDataBase(SageObject, UniqueRepresentation):
 
             sage: from sage.databases.knotinfo_db import KnotInfoDataBase
             sage: ki_db = KnotInfoDataBase()
-            sage: ki_db.version()   >= '2021.7.21'   # optional database_knotinfo
+            sage: ki_db.version()   >= '2021.10.1'   # optional database_knotinfo
             True
         """
         self._feature.require()
@@ -886,14 +887,14 @@ data_demo_sample = {
         '{1,1,1,2,-1,2,3,-2,3}',
         '{2, {-1, -1}}',
         '{2, {1, 1}}',
-        '{4, {1, -2, 3, -2, -1, -2, -3, -2}}',
+        '{3, {-2, -2, -1, 2, -1}}',
         '{2, {1, 1, 1, 1}}',
         '{3, {-1, 2, -1, 2, -1}}',
         '{3, {-1, 2, -1, 2, -1}}',
         '{4, {1, -2, 3, -2, 1, -2, -3, -2}}',
-        '{4, {1, 2, 3, 2, 2, -1, 2, 2, -3, 2}}',
-        '{4, {1, -2, -2, -2, 3, -2, -1, -2, -3, -2}}',
-        '{4, {1, 2, -3, 2, -1, 2, 3, 2, 2, 2}}',
+        '{3, {2, 2, 2, 1, 1, -2, 1}}',
+        '{3, {-1, 2, -1, -2, -2, -1, -1}}',
+        '{3, {1, -2, 1, 2, 2, 1, 1}}',
         '{2, {-1, -1, -1, -1, -1, -1}}'
         ],
     dc.braid_index: ['1', '2', '3', '2', '3', '4', '3', '3', '2', '4'],

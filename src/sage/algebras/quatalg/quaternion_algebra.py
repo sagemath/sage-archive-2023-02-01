@@ -1473,7 +1473,11 @@ class QuaternionOrder(Algebra):
             sage: R == 5
             False
             sage: Q.<i,j,k> = QuaternionAlgebra(-1,-19)
-            sage: Q.quaternion_order([1,-i,k,j+i*7]) == Q.quaternion_order([1,i,j,k])   # trac #32245
+
+        Orders can be equal even if they are defined by different
+        bases (see :trac:`32245`)::
+
+            sage: Q.quaternion_order([1,-i,k,j+i*7]) == Q.quaternion_order([1,i,j,k])
             True
         """
         if not isinstance(R, QuaternionOrder):
@@ -1896,12 +1900,17 @@ class QuaternionFractionalIdeal_rational(QuaternionFractionalIdeal):
             Fractional ideal (2*i - 212*j + 2*k, -2 - 210*j + 2*k, -128*j + 4*k, -296*j)
             sage: I.scale(i, left=False)
             Fractional ideal (2*i + 212*j - 2*k, -2 + 210*j - 2*k, 128*j - 4*k, 296*j)
-            sage: I.scale(1) == I   # trac #32245
-            True
             sage: i * I.gens()[0]
             2*i - 212*j + 2*k
             sage: I.gens()[0] * i
             2*i + 212*j - 2*k
+
+        TESTS:
+
+        Scaling by `1` should not change anything (see :trac:`32245`)::
+
+            sage: I.scale(1) == I
+            True
         """
         Q = self.quaternion_algebra()
         alpha = Q(alpha)

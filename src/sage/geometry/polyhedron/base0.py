@@ -45,8 +45,6 @@ class Polyhedron_base0(Element):
 
         sage: from sage.geometry.polyhedron.base0 import Polyhedron_base0
         sage: P = Polyhedron(rays=[[1, 0, 0]], lines=[[0, 1, 0]])
-        sage: Polyhedron_base0.__repr__(P)
-        'A 2-dimensional polyhedron in ZZ^3 defined as the convex hull of 1 vertex, 1 ray, 1 line'
         sage: Polyhedron_base0.Vrepresentation(P)
         (A line in the direction (0, 1, 0),
         A vertex at (0, 0, 0),
@@ -67,10 +65,6 @@ class Polyhedron_base0(Element):
         Integer Ring
         sage: Polyhedron_base0.backend(P)
         'ppl'
-        sage: Polyhedron_base0.dim(P)
-        2
-        sage: Polyhedron_base0.ambient_dim(P)
-        3
         sage: Polyhedron_base0.change_ring(P, ZZ, backend='field').backend()
         'field'
         sage: Polyhedron_base0.base_extend(P, QQ)
@@ -408,59 +402,6 @@ class Polyhedron_base0(Element):
             True
         """
         return True
-
-    def _repr_(self):
-        """
-        Return a description of the polyhedron.
-
-        EXAMPLES::
-
-            sage: poly_test = Polyhedron(vertices = [[1,2,3,4],[2,1,3,4],[4,3,2,1]])
-            sage: poly_test._repr_()
-            'A 2-dimensional polyhedron in ZZ^4 defined as the convex hull of 3 vertices'
-            sage: grammar_test = Polyhedron(vertices = [[1,1,1,1,1,1]])
-            sage: grammar_test._repr_()
-            'A 0-dimensional polyhedron in ZZ^6 defined as the convex hull of 1 vertex'
-        """
-        desc = ''
-        if self.n_vertices() == 0:
-            desc += 'The empty polyhedron'
-        else:
-            desc += 'A ' + repr(self.dim()) + '-dimensional polyhedron'
-        desc += ' in '
-        desc += self.parent()._repr_ambient_module()
-
-        if self.n_vertices() > 0:
-            desc += ' defined as the convex hull of '
-            desc += repr(self.n_vertices())
-            if self.n_vertices() == 1:
-                desc += ' vertex'
-            else:
-                desc += ' vertices'
-
-            if self.n_rays() > 0:
-                if self.n_lines() > 0:
-                    desc += ", "
-                else:
-                    desc += " and "
-                desc += repr(self.n_rays())
-                if self.n_rays() == 1:
-                    desc += ' ray'
-                else:
-                    desc += ' rays'
-
-            if self.n_lines() > 0:
-                if self.n_rays() > 0:
-                    desc += ", "
-                else:
-                    desc += " and "
-                desc += repr(self.n_lines())
-                if self.n_lines() == 1:
-                    desc += ' line'
-                else:
-                    desc += ' lines'
-
-        return desc
 
     @cached_method
     def n_equations(self):
@@ -1176,51 +1117,6 @@ class Polyhedron_base0(Element):
             True
         """
         return [list(x) for x in self.line_generator()]
-
-    def ambient_dim(self):
-        r"""
-        Return the dimension of the ambient space.
-
-        EXAMPLES::
-
-            sage: poly_test = Polyhedron(vertices = [[1,0,0,0],[0,1,0,0]])
-            sage: poly_test.ambient_dim()
-            4
-        """
-        return self.parent().ambient_dim()
-
-    def dim(self):
-        """
-        Return the dimension of the polyhedron.
-
-        OUTPUT:
-
-        -1 if the polyhedron is empty, otherwise a non-negative integer.
-
-        EXAMPLES::
-
-            sage: simplex = Polyhedron(vertices = [[1,0,0,0],[0,0,0,1],[0,1,0,0],[0,0,1,0]])
-            sage: simplex.dim()
-            3
-            sage: simplex.ambient_dim()
-            4
-
-        The empty set is a special case (:trac:`12193`)::
-
-            sage: P1=Polyhedron(vertices=[[1,0,0],[0,1,0],[0,0,1]])
-            sage: P2=Polyhedron(vertices=[[2,0,0],[0,2,0],[0,0,2]])
-            sage: P12 = P1.intersection(P2)
-            sage: P12
-            The empty polyhedron in ZZ^3
-            sage: P12.dim()
-            -1
-        """
-        if self.n_Vrepresentation() == 0:
-            return -1   # the empty set
-        else:
-            return self.ambient_dim() - self.n_equations()
-
-    dimension = dim
 
     def base_ring(self):
         """

@@ -304,10 +304,10 @@ class _Coordinates(object):
             Graphics3d Object
 
         """
-        from sage.symbolic.expression import is_Expression
+        from sage.structure.element import Expression
         from sage.rings.real_mpfr import is_RealNumber
         from sage.rings.integer import is_Integer
-        if params is not None and (is_Expression(func) or is_RealNumber(func) or is_Integer(func)):
+        if params is not None and (isinstance(func, Expression) or is_RealNumber(func) or is_Integer(func)):
             return self.transform(**{
                 self.dep_var: func,
                 self.indep_vars[0]: params[0],

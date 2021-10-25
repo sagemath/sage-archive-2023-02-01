@@ -308,6 +308,7 @@ from sage.rings.all import RDF, CDF
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element cimport parent
+from sage.structure.element cimport Expression as Expression_abc
 
 
 def fast_callable(x, domain=None, vars=None,
@@ -428,7 +429,6 @@ def fast_callable(x, domain=None, vars=None,
         vars = et._etb._vars
     else:
         from sage.symbolic.callable import is_CallableSymbolicExpression
-        from sage.symbolic.expression import is_Expression
 
         if not vars:
             # fast_float passes empty list/tuple
@@ -439,7 +439,7 @@ def fast_callable(x, domain=None, vars=None,
                 vars = x.arguments()
             if expect_one_var and len(vars) != 1:
                 raise ValueError(f"passed expect_one_var=True, but the callable expression takes {len(vars)} arguments")
-        elif is_Expression(x):
+        elif isinstance(x, Expression_abc):
             from sage.symbolic.ring import is_SymbolicVariable
             if vars is None:
                 vars = x.variables()
@@ -999,8 +999,7 @@ cdef class Expression:
             return ExpressionIPow(es._etb, s, o)
         else:
             # I really don't like this, but I can't think of a better way
-            from sage.symbolic.expression import is_Expression
-            if is_Expression(o) and o in ZZ:
+            if isinstance(o, Expression_abc) and o in ZZ:
                 es = s
                 return ExpressionIPow(es._etb, s, ZZ(o))
             else:

@@ -245,6 +245,14 @@ def numerical_integral(func, a, b=None,
         Traceback (most recent call last):
         ...
         ValueError: integral does not converge at -infinity
+
+    Symbolic functions can be integrated as conveniently as symbolic
+    expressions, as in :trac:`15219`::
+
+        sage: h(x) = x
+        sage: numerical_integral(h,0,1)[0] # abs tol 1e-8
+        0.5
+
     """
     cdef double abs_err # step size
     cdef double result
@@ -605,8 +613,8 @@ def monte_carlo_integral(func, xl, xu, size_t calls, algorithm='plain',
                               "more items in upper and lower limits"
                              ).format(len(vars), tuple(vars), target_dim))
 
-        from sage.symbolic.expression import is_Expression
-        if is_Expression(func):
+        from sage.structure.element import Expression
+        if isinstance(func, Expression):
             if params:
                 to_sub = dict(zip(vars[-len(params):], params))
                 func = func.subs(to_sub)

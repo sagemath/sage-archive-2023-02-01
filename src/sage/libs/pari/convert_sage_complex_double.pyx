@@ -6,7 +6,7 @@ from cypari2.paridecl cimport *
 from cypari2.convert cimport new_gen_from_double, new_t_COMPLEX_from_double
 
 
-cdef inline ComplexDoubleElement pari_to_cdf(Gen g):
+cpdef ComplexDoubleElement pari_to_cdf(Gen g):
     """
     Create a CDF element from a PARI ``gen``.
 

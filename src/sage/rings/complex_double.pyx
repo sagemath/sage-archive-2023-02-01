@@ -91,7 +91,7 @@ from sage.structure.coerce cimport is_numpy_type
 
 try:
     from cypari2.gen import Gen as pari_gen
-    from cypari2.convert_sage_complex_double import pari_to_cdf
+    from sage.libs.pari.convert_sage_complex_double import pari_to_cdf
 
 except ImportError:
     pari_gen = ()

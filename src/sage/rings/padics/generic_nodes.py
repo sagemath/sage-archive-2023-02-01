@@ -23,7 +23,6 @@ AUTHORS:
 
 from sage.rings.padics.local_generic import LocalGeneric
 from sage.rings.padics.padic_generic import pAdicGeneric
-from sage.rings.ring import EuclideanDomain, Field
 import sage.rings.abc
 from sage.rings.padics.padic_base_generic import pAdicBaseGeneric
 from sage.rings.integer_ring import ZZ

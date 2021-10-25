@@ -1677,8 +1677,8 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1.5).__pari__()
             1.50000000000000
         """
-        from cypari2.convert import new_gen_from_double
-        return new_gen_from_double(self._value)
+        from sage.libs.pari.convert_sage_real_double import new_gen_from_real_double_element
+        return new_gen_from_real_double_element(self)
 
 
     ###########################################

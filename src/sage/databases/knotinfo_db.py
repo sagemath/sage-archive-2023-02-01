@@ -822,6 +822,7 @@ column_demo_sample = {
     'braid_index':          ['Braid Index',          KnotInfoColumnTypes.OnlyKnots],
     'braid_length':         ['Braid Length',         KnotInfoColumnTypes.OnlyKnots],
     'braid_notation':       ['Braid Notation',       KnotInfoColumnTypes.KnotsAndLinks],
+    'braid_notation_old':   ['Braid Notation',       KnotInfoColumnTypes.OnlyLinks],
     'alternating':          ['Alternating',          KnotInfoColumnTypes.KnotsAndLinks],
     'alexander_polynomial': ['Alexander',            KnotInfoColumnTypes.OnlyKnots],
     'jones_polynomial':     ['Jones',                KnotInfoColumnTypes.KnotsAndLinks],
@@ -895,6 +896,19 @@ data_demo_sample = {
         '{3, {2, 2, 2, 1, 1, -2, 1}}',
         '{3, {-1, 2, -1, -2, -2, -1, -1}}',
         '{3, {1, -2, 1, 2, 2, 1, 1}}',
+        '{2, {-1, -1, -1, -1, -1, -1}}'
+        ],
+    dc.braid_notation_old: [
+        '{2, {-1, -1}}',
+        '{2, {1, 1}}',
+        '{4, {1, -2, 3, -2, -1, -2, -3, -2}}',
+        '{2, {1, 1, 1, 1}}',
+        '{3, {-1, 2, -1, 2, -1}}',
+        '{3, {-1, 2, -1, 2, -1}}',
+        '{4, {1, -2, 3, -2, 1, -2, -3, -2}}',
+        '{4, {1, 2, 3, 2, 2, -1, 2, 2, -3, 2}}',
+        '{4, {1, -2, -2, -2, 3, -2, -1, -2, -3, -2}}',
+        '{4, {1, 2, -3, 2, -1, 2, 3, 2, 2, 2}}',
         '{2, {-1, -1, -1, -1, -1, -1}}'
         ],
     dc.braid_index: ['1', '2', '3', '2', '3', '4', '3', '3', '2', '4'],

@@ -599,7 +599,7 @@ class KnotInfoBase(Enum):
             There has been a major change to braid representatives for
             proper links since version 2021.10.1. The former braid
             reresentatives can be obtained by the column
-            ``braid_notation_old``.
+            ``braid_notation_old`` (see the final example below).
 
         EXAMPLES::
 
@@ -609,6 +609,8 @@ class KnotInfoBase(Enum):
             (-2, -2, -1, 2, -1)
             sage: L.braid_notation(original=True)
             '{3, {-2, -2, -1, 2, -1}}'
+            sage: L[L.items.braid_notation_old]
+            '{4, {1, -2, 3, -2, -1, -2, -3, -2}}'
         """
         braid_notation = self[self.items.braid_notation]
         if original:

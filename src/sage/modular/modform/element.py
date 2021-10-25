@@ -3590,7 +3590,8 @@ class GradedModularFormElement(ModuleElement):
 
     def weights_list(self):
         r"""
-        Return the list of the weights of all the graded components of the given graded modular form.
+        Return the list of the weights of all the homogeneous components of the
+        given graded modular form.
 
         EXAMPLES::
 
@@ -3628,7 +3629,8 @@ class GradedModularFormElement(ModuleElement):
 
     def _homogeneous_to_polynomial(self, names, gens):
         r"""
-        If ``self`` is a homogeneous form, return a polynomial `P(x_0,..., x_n)` corresponding to ``self``.
+        Return a polynomial `P(x_0,..., x_n)` corresponding to the given homogeneous graded form.
+
         Each variable `x_i` of the returned polynomial correspond to a generator `g_i` of the
         list ``gens`` (following the order of the list)
 
@@ -3747,10 +3749,11 @@ class GradedModularFormElement(ModuleElement):
 
     def serre_derivative(self):
         r"""
-        Return the Serre derivative of the given graded modular form. If ``self``
-        is a modular form of weight `k`, then the returned modular form will be
-        of weight `k + 2`. If the form is not homogeneous, then this method sums
-        the Serre derivative of each homogeneous components.
+        Return the Serre derivative of the given graded modular form.
+
+        If ``self`` is a modular form of weight `k`, then the returned modular
+        form will be of weight `k + 2`. If the form is not homogeneous, then
+        this method sums the Serre derivative of each homogeneous component.
 
         EXAMPLES::
 
@@ -3778,10 +3781,11 @@ class GradedModularFormElement(ModuleElement):
 
     def derivative(self, name='E2'):
         r"""
-        Return the derivative `q \frac{d}{dq}` of the given graded form. Note
-        that this method returns an element of a new parent, that is a
+        Return the derivative `q \frac{d}{dq}` of the given graded form.
+
+        Note that this method returns an element of a new parent, that is a
         quasimodular form. If the form is not homogeneous, then this method sums
-        the derivative of each homogeneous components.
+        the derivative of each homogeneous component.
 
         INPUT:
 

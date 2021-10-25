@@ -293,7 +293,7 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_graded_modular_form(self):
         r"""
-        Return ``True`` if the given quasiform is a graded modular forms element
+        Return ``True`` if the given quasimodular form is a graded modular forms element
         and ``False`` otherwise.
 
         EXAMPLES::
@@ -325,8 +325,8 @@ class QuasiModularFormsElement(ModuleElement):
 
     def is_modular_form(self):
         r"""
-        Return ``True`` if the given quasiform is a modular form and ``False``
-        otherwise.
+        Return ``True`` if the given quasimodular form is a modular form and
+        ``False`` otherwise.
 
         EXAMPLES::
 
@@ -415,8 +415,9 @@ class QuasiModularFormsElement(ModuleElement):
 
     def weight(self):
         r"""
-        Return the weight of the given quasiform. Note that the given form must
-        be homogeneous.
+        Return the weight of the given quasimodular form.
+
+        Note that the given form must be homogeneous.
 
         EXAMPLES::
 
@@ -461,9 +462,10 @@ class QuasiModularFormsElement(ModuleElement):
 
     def serre_derivative(self):
         r"""
-        Return the Serre derivative of the given quasimodular form. If the form
-        is not homogeneous, then this method sums the serre derivative of each
-        homogeneous components.
+        Return the Serre derivative of the given quasimodular form.
+
+        If the form is not homogeneous, then this method sums the serre
+        derivative of each homogeneous component.
 
         EXAMPLES::
 
@@ -517,9 +519,10 @@ class QuasiModularFormsElement(ModuleElement):
 
     def derivative(self):
         r"""
-        Return the derivative `q \frac{d}{dq}` of the given quasiform. If the
-        form is not homogeneous, then this method sums the derivative of each
-        homogeneous components.
+        Return the derivative `q \frac{d}{dq}` of the given quasimodular form.
+
+        If the form is not homogeneous, then this method sums the derivative of
+        each homogeneous component.
 
         EXAMPLES::
 

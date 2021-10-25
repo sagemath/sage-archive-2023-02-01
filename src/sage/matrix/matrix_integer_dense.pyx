@@ -364,17 +364,11 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         fmpz_set_mpz(fmpz_mat_entry(self._matrix,i,j), value)
 
-    cdef void set_unsafe_long(self, Py_ssize_t i, Py_ssize_t j, long value):
+    cdef int set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value) except -1:
         """
         Set position i,j of this matrix to ``value``.
         """
         fmpz_set_si(fmpz_mat_entry(self._matrix,i,j), value)
-
-    cdef inline set_unsafe_int(self, Py_ssize_t i, Py_ssize_t j, int value):
-        """
-        Set position i,j of this matrix to ``value``.
-        """
-        return self.set_unsafe_long(i, j, value)
 
     cdef void set_unsafe_double(self, Py_ssize_t i, Py_ssize_t j, double value):
         """
@@ -436,7 +430,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         """
         fmpz_get_mpz(value,fmpz_mat_entry(self._matrix, i, j))
 
-    cdef inline long get_unsafe_long(self, Py_ssize_t i, Py_ssize_t j):
+    cdef inline int get_unsafe_int(self, Py_ssize_t i, Py_ssize_t j):
         """
         Return (j, i) entry of self as a new Integer.
 
@@ -5040,7 +5034,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
         k = 0
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                res.set_unsafe_long(i,j,res_l[k])
+                res.set_unsafe_int(i,j,res_l[k])
                 k += 1
         sig_free(res_l)
 

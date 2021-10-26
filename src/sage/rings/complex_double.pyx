@@ -96,6 +96,16 @@ try:
 except ImportError:
     pari_gen = ()
 
+
+new_gen_from_complex_double_element = None
+complex_double_element_eta = None
+complex_double_element_agm = None
+complex_double_element_dilog = None
+complex_double_element_gamma = None
+complex_double_element_gamma_inc = None
+complex_double_element_zeta = None
+
+
 from . import complex_mpfr
 
 from .complex_mpfr import ComplexField
@@ -1140,7 +1150,9 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: pari(CDF(I))
             1.00000000000000*I
         """
-        from sage.libs.pari.convert_sage_complex_double import new_gen_from_complex_double_element
+        global new_gen_from_complex_double_element
+        if new_gen_from_complex_double_element is None:
+            from sage.libs.pari.convert_sage_complex_double import new_gen_from_complex_double_element
         return new_gen_from_complex_double_element(self)
 
     def __mpc__(self):
@@ -2241,8 +2253,12 @@ cdef class ComplexDoubleElement(FieldElement):
             # this, PARI can easily underflow.
             return ComplexDoubleElement(0,0)
 
+        global complex_double_element_eta
+        if complex_double_element_eta is None:
+            from sage.libs.pari.convert_sage_complex_double import complex_double_element_eta
+
         cdef int flag = 0 if omit_frac else 1
-        return pari_to_cdf(self.__pari__().eta(flag))
+        return complex_double_element_eta(self, flag)
 
     def agm(self, right, algorithm="optimal"):
         r"""
@@ -2307,7 +2323,10 @@ cdef class ComplexDoubleElement(FieldElement):
         cdef double d, e, eps = 2.0**-51
 
         if algorithm == "pari":
-            return pari_to_cdf(self.__pari__().agm(right))
+            global complex_double_element_agm
+            if complex_double_element_agm is None:
+                from sage.libs.pari.convert_sage_complex_double import complex_double_element_agm
+            return complex_double_element_agm(self, right)
 
         if not isinstance(right, ComplexDoubleElement):
             right = CDF(right)
@@ -2357,7 +2376,10 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(10000000,10000000).dilog()
             -134.411774490731 + 38.79396299904504*I
         """
-        return pari_to_cdf(self.__pari__().dilog())
+        global complex_double_element_dilog
+        if complex_double_element_dilog is None:
+            from sage.libs.pari.convert_sage_complex_double import complex_double_element_dilog
+        return complex_double_element_dilog(self)
 
     def gamma(self):
         r"""
@@ -2385,7 +2407,10 @@ cdef class ComplexDoubleElement(FieldElement):
                     return CC(self).gamma()
             except TypeError:
                 pass
-        return pari_to_cdf(self.__pari__().gamma())
+        global complex_double_element_gamma
+        if complex_double_element_gamma is None:
+            from sage.libs.pari.convert_sage_complex_double import complex_double_element_gamma
+        return complex_double_element_gamma(self)
 
     def gamma_inc(self, t):
         r"""
@@ -2400,7 +2425,10 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,0).gamma_inc(CDF(1,1))
             0.7070920963459381 - 0.4203536409598115*I
         """
-        return pari_to_cdf(self.__pari__().incgam(t))
+        global complex_double_element_gamma_inc
+        if complex_double_element_gamma_inc is None:
+            from sage.libs.pari.convert_sage_complex_double import complex_double_element_gamma_inc
+        return complex_double_element_gamma_inc(self, t)
 
     def zeta(self):
         """
@@ -2419,7 +2447,11 @@ cdef class ComplexDoubleElement(FieldElement):
         if self._complex.real == 1 and self._complex.imag == 0:
             from .infinity import unsigned_infinity
             return unsigned_infinity
-        return pari_to_cdf(self.__pari__().zeta())
+
+        global complex_double_element_zeta
+        if complex_double_element_zeta is None:
+            from sage.libs.pari.convert_sage_complex_double import complex_double_element_zeta
+        return complex_double_element_zeta(self)
 
     def algdep(self, long n):
         """

@@ -47,9 +47,10 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
-from sage.functions.other import sqrt, floor, ceil
-from sage.groups.matrix_gps.finitely_generated import MatrixGroup
-from sage.graphs.graph import Graph
+from sage.arith.misc import integer_floor as floor
+from sage.arith.misc import integer_ceil as ceil
+from sage.misc.lazy_import import lazy_import
+lazy_import('sage.groups.matrix_gps.finitely_generated', 'MatrixGroup')
 from sage.geometry.convex_set import AffineHullProjectionData
 
 from .constructor import Polyhedron
@@ -1925,7 +1926,7 @@ class Polyhedron_base(Polyhedron_base1):
             sage: p.radius()
             2
         """
-        return sqrt(self.radius_square())
+        return self.radius_square().sqrt()
 
     def is_inscribed(self, certificate=False):
         """
@@ -7506,7 +7507,7 @@ class Polyhedron_base(Polyhedron_base1):
                     Adet = AA.coerce(Adet)
                 except TypeError:
                     pass
-                return I / sqrt(Adet)
+                return I / Adet.sqrt()
 
         else:
             raise ValueError('unknown measure "{}"'.format(measure))
@@ -8728,6 +8729,7 @@ class Polyhedron_base(Polyhedron_base1):
         Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()
 
         # Construct the graph.
+        from sage.graphs.graph import Graph
         G = Graph()
         for i in range(len(V)):
             for j in range(i+1, len(V)):

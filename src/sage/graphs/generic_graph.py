@@ -2415,7 +2415,7 @@ class GenericGraph(GenericGraph_pyx):
             [-4 -3 -1  8]
         """
         from sage.matrix.constructor import diagonal_matrix
-        from sage.functions.all import sqrt
+        from sage.misc.functional import sqrt
 
         if weighted is None:
             weighted = self._weighted
@@ -9272,7 +9272,7 @@ class GenericGraph(GenericGraph_pyx):
             0
         """
         from sage.graphs.digraph import DiGraph
-        from sage.functions.other import floor
+        from sage.arith.misc import integer_floor as floor
 
         # Whether we should consider the edges labeled
         if use_edge_labels:

@@ -37,7 +37,7 @@ from sage.misc.abstract_method import abstract_method
 from sage.misc.cachefunc import cached_method
 from sage.modules.free_module_element import vector
 from .base0 import Polyhedron_base0
-from sage.geometry.convex_set import ConvexSet_closed, AffineHullProjectionData
+from sage.geometry.convex_set import ConvexSet_closed
 from sage.geometry.relative_interior import RelativeInterior
 
 

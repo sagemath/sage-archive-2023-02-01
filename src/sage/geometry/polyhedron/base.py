@@ -50,6 +50,7 @@ from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
 from sage.arith.misc import integer_floor as floor
 from sage.arith.misc import integer_ceil as ceil
+from sage.misc.lazy_import import lazy_import
 lazy_import('sage.groups.matrix_gps.finitely_generated', 'MatrixGroup')
 from sage.geometry.convex_set import ConvexSet_closed, AffineHullProjectionData
 
@@ -10537,6 +10538,7 @@ class Polyhedron_base(Element, ConvexSet_closed):
         Qplus = sum(v.column() * v.row() for v in V).pseudoinverse()
 
         # Construct the graph.
+        from sage.graphs.graph import Graph
         G = Graph()
         for i in range(len(V)):
             for j in range(i+1, len(V)):

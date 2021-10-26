@@ -979,7 +979,7 @@ class Polyhedron_QQ(Polyhedron_base):
         the ring of class functions of the ``acting_group``
         of this polytope.
 
-        Here, `\H^*(t) = \sum\_{m} \chi\_{m\text{``self``}}t^m det(Id-\rho(t))`.
+        Here, `H^*(t) = \sum\_{m} \chi\_{m\text{``self``}}t^m \det(Id-\rho(t))`.
         The irreducible characters of ``acting_group`` form an orthonormal basis
         for the ring of class functions with values in `\mathbb C`.
         The coefficients of `H^*(t)` are expressed in this basis.

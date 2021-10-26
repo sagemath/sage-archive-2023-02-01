@@ -268,6 +268,8 @@ def rat_interval_cf_list(r1, r2):
         ....:         x = R.random_element() * R.random_element() + R.random_element() / 100
         ....:         l = x.lower().exact_rational()
         ....:         u = x.upper().exact_rational()
+        ....:         if l.floor() != u.floor():
+        ....:             continue
         ....:         cf = rat_interval_cf_list(l,u)
         ....:         a = continued_fraction(cf).value()
         ....:         b = continued_fraction(cf+[1]).value()

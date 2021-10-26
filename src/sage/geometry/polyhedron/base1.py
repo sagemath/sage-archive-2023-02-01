@@ -428,7 +428,7 @@ class Polyhedron_base1(Polyhedron_base0, ConvexSet_closed):
         OUTPUT:
 
         A point as a coordinate vector. The point is chosen to be
-        interior as far as possible. If the polyhedron is not
+        interior if possible. If the polyhedron is not
         full-dimensional, the point is in the relative interior. If
         the polyhedron is zero-dimensional, its single point is
         returned.

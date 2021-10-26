@@ -3035,7 +3035,7 @@ class RiemannSurface(object):
         
         - ``P`` -- tuple. A pair giving the endpoint of the integral, either in
           the form ``(z, w)`` or ``(Infinity, branch)``, where in the latter case
-          we are using the conventing that the `w` value over `\infty` is given by
+          we are using the convention that the `w` value over `\infty` is given by
           the limit as ``z`` tends to `\infty` of ``self.w_values(z)[branch]``. 
           
         OUTPUT:

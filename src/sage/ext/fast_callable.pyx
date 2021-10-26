@@ -302,9 +302,7 @@ AUTHOR:
 
 import operator
 from copy import copy
-from sage.rings.real_mpfr cimport RealField_class, RealNumber
-from sage.rings.complex_mpfr import ComplexField_class
-from sage.rings.all import RDF, CDF
+import sage.rings.abc
 from sage.rings.integer import Integer
 from sage.rings.integer_ring import ZZ
 from sage.structure.element cimport parent
@@ -428,19 +426,16 @@ def fast_callable(x, domain=None, vars=None,
         et = x
         vars = et._etb._vars
     else:
-        from sage.symbolic.callable import is_CallableSymbolicExpression
-
         if not vars:
             # fast_float passes empty list/tuple
             vars = None
 
-        if is_CallableSymbolicExpression(x):
+        if isinstance(x, Expression_abc) and x.is_callable():
             if vars is None:
                 vars = x.arguments()
             if expect_one_var and len(vars) != 1:
                 raise ValueError(f"passed expect_one_var=True, but the callable expression takes {len(vars)} arguments")
         elif isinstance(x, Expression_abc):
-            from sage.symbolic.ring import is_SymbolicVariable
             if vars is None:
                 vars = x.variables()
                 if expect_one_var and len(vars) <= 1:
@@ -449,7 +444,7 @@ def fast_callable(x, domain=None, vars=None,
                 else:
                     raise ValueError("list of variables must be specified for symbolic expressions")
             def to_var(var):
-                if is_SymbolicVariable(var):
+                if isinstance(var, Expression_abc) and var.is_symbol():
                     return var
                 from sage.symbolic.ring import SR
                 return SR.var(var)
@@ -469,41 +464,34 @@ def fast_callable(x, domain=None, vars=None,
         etb = ExpressionTreeBuilder(vars=vars, domain=domain)
         et = x._fast_callable_(etb)
 
-    if isinstance(domain, RealField_class):
-        import sage.ext.interpreters.wrapper_rr
-        builder = sage.ext.interpreters.wrapper_rr.Wrapper_rr
-
+    if isinstance(domain, sage.rings.abc.RealField):
+        from sage.ext.interpreters.wrapper_rr import Wrapper_rr as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_rr.metadata,
                                 len(vars),
                                 domain)
 
-    elif isinstance(domain, ComplexField_class):
-        import sage.ext.interpreters.wrapper_cc
-        builder = sage.ext.interpreters.wrapper_cc.Wrapper_cc
+    elif isinstance(domain, sage.rings.abc.ComplexField):
+        from sage.ext.interpreters.wrapper_cc import Wrapper_cc as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_cc.metadata,
                                 len(vars),
                                 domain)
 
-    elif domain == RDF or domain is float:
-        import sage.ext.interpreters.wrapper_rdf
-        builder = sage.ext.interpreters.wrapper_rdf.Wrapper_rdf
+    elif isinstance(domain, sage.rings.abc.RealDoubleField) or domain is float:
+        from sage.ext.interpreters.wrapper_rdf import Wrapper_rdf as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_rdf.metadata,
                                 len(vars),
                                 domain)
-    elif domain == CDF:
-        import sage.ext.interpreters.wrapper_cdf
-        builder = sage.ext.interpreters.wrapper_cdf.Wrapper_cdf
+    elif isinstance(domain, sage.rings.abc.ComplexDoubleField):
+        from sage.ext.interpreters.wrapper_cdf import Wrapper_cdf as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_cdf.metadata,
                                 len(vars),
                                 domain)
     elif domain is None:
-        import sage.ext.interpreters.wrapper_py
-        builder = sage.ext.interpreters.wrapper_py.Wrapper_py
+        from sage.ext.interpreters.wrapper_py import Wrapper_py as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_py.metadata,
                                 len(vars))
     else:
-        import sage.ext.interpreters.wrapper_el
-        builder = sage.ext.interpreters.wrapper_el.Wrapper_el
+        from sage.ext.interpreters.wrapper_el import Wrapper_el as builder
         str = InstructionStream(sage.ext.interpreters.wrapper_el.metadata,
                                 len(vars),
                                 domain)

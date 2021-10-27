@@ -1492,17 +1492,17 @@ class BinaryQF(SageObject):
 
         The returned solutions are correct (random inputs)::
 
-            sage: Q = BinaryQF([randrange(-10^3,10^3) for _ in 'abc'])
+            sage: Q = BinaryQF([randrange(-10^3, 10^3) for _ in 'abc'])
             sage: n = randrange(-10^9, 10^9)
             sage: xy = Q.solve_integer(n)
-            sage: xy is None or Q(*xy)==0
+            sage: xy is None or Q(*xy) == 0
             True
         """
         n = ZZ(n)
-        if self.is_negative_definite():     # not supported by Pari
+        if self.is_negative_definite():  # not supported by PARI
             return (-self).solve_integer(-n)
 
-        flag = 2    # single solution, possibly imprimitive
+        flag = 2  # single solution, possibly imprimitive
         sol = self.__pari__().qfbsolve(n, flag)
         return tuple(map(ZZ, sol)) if sol else None
 

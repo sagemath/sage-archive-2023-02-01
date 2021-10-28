@@ -263,7 +263,7 @@ def rat_interval_cf_list(r1, r2):
         sage: rat_interval_cf_list(257/113, 5224/2297)
         [2, 3, 1, 1, 1, 4]
         sage: for prec in range(10,54):
-        ....:     R = RealIntervalField(20)
+        ....:     R = RealIntervalField(prec)
         ....:     for _ in range(100):
         ....:         x = R.random_element() * R.random_element() + R.random_element() / 100
         ....:         l = x.lower().exact_rational()

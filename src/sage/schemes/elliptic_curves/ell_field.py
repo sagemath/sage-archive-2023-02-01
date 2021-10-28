@@ -804,11 +804,13 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             ...
             ValueError: base field must be finite
         """
-        if (F := self.base_field()) != other.base_field():
+        F = self.base_field()
+        if F != other.base_field():
             raise ValueError('curves have distinct base fields')
         if not F.is_finite():
             raise ValueError('base field must be finite')
-        if (n := getattr(other, '_order', None)):
+        n = getattr(other, '_order', None)
+        if n is not None:
             self._order = n
 
     def isogeny(self, kernel, codomain=None, degree=None, model=None, check=True):

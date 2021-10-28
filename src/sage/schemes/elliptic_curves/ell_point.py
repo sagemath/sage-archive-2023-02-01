@@ -3460,7 +3460,8 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         """
         k = ZZ(other)
         Q = IntegerMulAction(ZZ, self.parent())._act_(k, self)
-        if (n := getattr(self, '_order', None)):
+        n = getattr(self, '_order', None)
+        if n is not None:
             Q._order = n // n.gcd(k)  # Lagrange's theorem
         return Q
 

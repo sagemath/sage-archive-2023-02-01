@@ -56,11 +56,12 @@
 #    be given as arguments.  If $SAGE_DESTDIR is not set then the command is
 #    run with $SAGE_SUDO, if set.
 #
-# - sdh_pip_install [...]
+# - sdh_pip_install [--no-deps] [--build-isolation] [...]
 #
-#    Runs `pip install` with the given arguments, as well as additional
-#    default arguments used for installing packages into Sage with pip.
-#    Currently this is just a wrapper around the `sage-pip-install` command.
+#    Builds a wheel using `pip wheel` with the given options [...], then installs
+#    the wheel.  Unless the special option --build-isolation is given,
+#    the wheel is built using the option --no-build-isolation.
+#    If the special option --no-deps is given, it is passed to pip install.
 #    If $SAGE_DESTDIR is not set then the command is run with $SAGE_SUDO, if
 #    set.
 #
@@ -240,8 +241,8 @@ sdh_pip_install() {
     echo "Installing $PKG_NAME"
     mkdir -p dist
     rm -f dist/*.whl
+    install_options=""
     # pip has --no-build-isolation but no flag that turns the default back on...
-    options=""
     build_isolation_option="--no-build-isolation --no-binary :all:"
     while [ $# -gt 0 ]; do
         case "$1" in
@@ -252,8 +253,8 @@ sdh_pip_install() {
                 # The SPKG needs to declare "setuptools_wheel" as a dependency.
                 build_isolation_option="--find-links=$SAGE_SPKG_WHEELS"
                 ;;
-            -*)
-                options="$options $1"
+            --no-deps)
+                install_options="$install_options $1"
                 ;;
             *)
                 break
@@ -261,10 +262,10 @@ sdh_pip_install() {
         esac
         shift
     done
-    python3 -m pip wheel --use-feature=in-tree-build --wheel-dir=dist --verbose --no-deps --no-index --isolated --ignore-requires-python $options $build_isolation_option "$@" || \
+    python3 -m pip wheel --use-feature=in-tree-build --wheel-dir=dist --verbose --no-deps --no-index --isolated --ignore-requires-python $build_isolation_option "$@" || \
         sdh_die "Error building a wheel for $PKG_NAME"
 
-    sdh_store_and_pip_install_wheel $options .
+    sdh_store_and_pip_install_wheel $install_options .
 }
 
 sdh_store_wheel() {

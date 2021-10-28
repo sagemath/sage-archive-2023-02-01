@@ -38,7 +38,9 @@ from sage.symbolic.ring import SR
 from sage.calculus.var import var
 from sage.rings.fraction_field import is_FractionField
 from sage.categories.function_fields import FunctionFields
+from sage.libs.all import PariError
 from math import sqrt
+
 
 def _color_to_RGB(color):
     """

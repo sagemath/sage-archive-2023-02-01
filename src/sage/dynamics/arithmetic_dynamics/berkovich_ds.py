@@ -803,8 +803,8 @@ class DynamicalSystem_Berkovich_projective(DynamicalSystem_Berkovich):
         if not isinstance(x.parent(), Berkovich_Cp_Projective):
             try:
                 x = self.domain()(x)
-            excep (TypeError, ValueError)t:
-                raise TypeError('action of dynamical system not defined on %s' %x.parent())
+            except (TypeError, ValueError):
+                raise TypeError('action of dynamical system not defined on %s' % x.parent())
         if x.parent().is_padic_base() != self.domain().is_padic_base():
             raise ValueError('x was not backed by the same type of field as f')
         if x.prime() != self.domain().prime():

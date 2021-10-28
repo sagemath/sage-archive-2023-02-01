@@ -39,7 +39,6 @@ from sage.cpython.string import bytes_to_str
 from sage.misc.cachefunc import cached_method
 from sage.misc.misc_c import prod
 from sage.misc.randstate import current_randstate
-from sage.misc.superseded import deprecated_function_alias
 
 from sage.rings.integer_ring import ZZ
 from sage.rings.qqbar import AA
@@ -48,7 +47,8 @@ from sage.rings.real_double import RDF
 from sage.modules.free_module_element import vector
 from sage.modules.vector_space_morphism import linear_transformation
 from sage.matrix.constructor import matrix
-from sage.functions.other import sqrt, floor, ceil
+from sage.functions.other import floor, ceil
+from sage.misc.functional import sqrt
 from sage.groups.matrix_gps.finitely_generated import MatrixGroup
 from sage.graphs.graph import Graph
 from sage.geometry.convex_set import ConvexSet_closed, AffineHullProjectionData
@@ -3281,7 +3281,7 @@ class Polyhedron_base(Element, ConvexSet_closed, sage.geometry.abc.Polyhedron):
         OUTPUT:
 
         A point as a coordinate vector. The point is chosen to be
-        interior as far as possible. If the polyhedron is not
+        interior if possible. If the polyhedron is not
         full-dimensional, the point is in the relative interior. If
         the polyhedron is zero-dimensional, its single point is
         returned.
@@ -6614,18 +6614,6 @@ class Polyhedron_base(Element, ConvexSet_closed, sage.geometry.abc.Polyhedron):
             sage: [[ls.ambient_V_indices() for ls in lss] for lss in Polyhedron(lines=[(1,0)], vertices=[(0,0)]).face_lattice().level_sets()]
             [[()], [(0, 1)]]
 
-        Test that computing the face lattice does not lead to a memory leak::
-
-            sage: import gc
-            sage: _ = gc.collect()
-            sage: P = polytopes.cube()
-            sage: a = P.face_lattice()
-            sage: n = get_memory_usage()
-            sage: P = polytopes.cube()
-            sage: a = P.face_lattice()
-            sage: _ = gc.collect()
-            sage: n == get_memory_usage()
-            True
         """
         from sage.combinat.posets.lattices import FiniteLatticePoset
         return FiniteLatticePoset(self.hasse_diagram())

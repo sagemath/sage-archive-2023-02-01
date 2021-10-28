@@ -134,6 +134,8 @@ from cypari2.pari_instance import prec_words_to_bits
 from sage.structure.sequence import Sequence
 from sage.structure.richcmp import richcmp
 
+from sage.structure.coerce_actions import IntegerMulAction
+
 from sage.schemes.curves.projective_curve import Hasse_bounds
 from sage.schemes.projective.projective_point import (SchemeMorphism_point_projective_ring,
                                                       SchemeMorphism_point_abelian_variety_field)
@@ -3439,6 +3441,29 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
         x, y = self.xy()
         return "%s![%s,%s]" % (E, x, y)
 
+    def _acted_upon_(self, other, side):
+        r"""
+        We implement ``_acted_upon_`` to keep track of cached
+        point orders when scalar multiplications are applied.
+
+        EXAMPLES::
+
+            sage: P = EllipticCurve(GF(65537), [2,2]).lift_x(6)
+            sage: P.order().factor()
+            2^2 * 3 * 37^2
+            sage: getattr(74*P, '_order', None)
+            222
+            sage: getattr(P*4070, '_order', None)
+            222
+            sage: getattr(506*P*37, '_order', None)
+            222
+        """
+        k = ZZ(other)
+        Q = IntegerMulAction(ZZ, self.parent())._act_(k, self)
+        if (n := getattr(self, '_order', None)):
+            Q._order = n // n.gcd(k)  # Lagrange's theorem
+        return Q
+
     def discrete_log(self, Q, ord=None):
         r"""
         Returns discrete log of `Q` with respect to `P` =self.
@@ -3554,6 +3579,25 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: P = E.random_point()
             sage: P.order() # random
             46912611635760
+
+        TESTS:
+
+        Check that the order actually gets cached (:trac:`32786`)::
+
+            sage: E = EllipticCurve(GF(31337), [42,1])
+            sage: P = E.lift_x(1)
+            sage: hasattr(P, '_order')
+            False
+            sage: P.order()
+            15649
+            sage: P._order
+            15649
+
+        The curve order should also get cached as a side effect
+        of computing a point order::
+
+            sage: E._order
+            31298
         """
         try:
             return self._order
@@ -3561,7 +3605,12 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             pass
 
         E = self.curve()
-        ord = getattr(E, "_order", None)  # get cached order of the curve
-        return Integer(E.pari_curve().ellorder(self, ord))
+        card = getattr(E, "_order", None)  # get cached order of the curve
+        self._order = Integer(E.pari_curve().ellorder(self, card))
+        if card is None:
+            # ellcard() is essentially free at this point because
+            # the curve order was cached by PARI during ellorder().
+            E._order = Integer(E.pari_curve().ellcard())
+        return self._order
 
     additive_order = order

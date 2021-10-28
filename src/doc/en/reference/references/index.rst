@@ -5562,6 +5562,9 @@ REFERENCES:
               a geometric analog*. Seminaire Bourbaki, Vol. 9,
               Exp. No. 306, 1966.
 
+.. [Tate1966b] John Tate, *Endomorphisms of Abelian Varieties over
+               Finite Fields*. Inventiones math. 2, 134-144, 1966.
+
 .. [TB1997] Lloyd N. Trefethen and David Bau III, *Numerical Linear
             Algebra*, SIAM, Philadelphia, 1997.
 

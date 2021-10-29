@@ -708,7 +708,7 @@ class ReferenceTopBuilder(DocBuilder):
         rst = re.sub(r'`([^`\n]*)`__.*\n\n__ (.*)',
                      r'<a href="\2">\1</a>.', rst)
         rst = re.sub(r'`([^<\n]*)\s+<(.*)>`_',
-                     r'<a href="\2">\1</a>',  rst)
+                     r'<a href="\2">\1</a>', rst)
         rst = re.sub(r':doc:`([^<]*?)\s+<(.*)/index>`',
                      r'<a href="\2/\2.pdf">\1 <img src="_static/pdf.png"/></a>', rst)
         # Body: add paragraph <p> markup.
@@ -730,7 +730,7 @@ class ReferenceTopBuilder(DocBuilder):
         # now write the file.
         with open(os.path.join(output_dir, 'index.html'), 'w') as new_index:
             new_index.write(html[:html_end_preamble])
-            new_index.write('<h1> Sage Reference Manual (PDF version)'+ '</h1>')
+            new_index.write('<h1>Sage Reference Manual (PDF version)</h1>')
             new_index.write(rst_body)
             new_index.write('<ul>')
             new_index.write(rst_toc)

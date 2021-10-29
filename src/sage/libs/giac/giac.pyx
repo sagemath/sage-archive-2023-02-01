@@ -2021,7 +2021,7 @@ class GiacFunction(Pygen):
             # FIXME? improve with a vector, or improve Pygen(list)
             right = Pygen(args).eval()
         elif n == 1:
-            right = Pygen(args[0])
+            right = Pygen(args[0]).eval()
         else:
             right = GIACNULL
         if isinstance(self, Pygen) == False:

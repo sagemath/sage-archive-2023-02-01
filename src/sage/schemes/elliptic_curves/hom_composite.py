@@ -245,6 +245,13 @@ class EllipticCurveHom_composite(EllipticCurveHom):
             Composite morphism of degree 10 = 2*5:
               From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 19
               To:   Elliptic Curve defined by y^2 = x^3 + 14*x over Finite Field of size 19
+
+        ::
+
+            sage: EllipticCurveHom_composite(E, E.lift_x(3), codomain=E)
+            Composite morphism of degree 20 = 2^2*5:
+              From: Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 19
+              To:   Elliptic Curve defined by y^2 = x^3 + x over Finite Field of size 19
         """
         if not isinstance(E, EllipticCurve_generic):
             raise ValueError(f'not an elliptic curve: {E}')
@@ -266,7 +273,7 @@ class EllipticCurveHom_composite(EllipticCurveHom):
                 raise ValueError(f'not an elliptic curve: {codomain}')
             iso = self._phis[-1].codomain().isomorphism_to(codomain)
             if hasattr(self._phis[-1], '_set_post_isomorphism'):
-                self._phis[-1].set_post_isomorphism(iso)
+                self._phis[-1]._set_post_isomorphism(iso)
             else:
                 self._phis.append(iso)
 

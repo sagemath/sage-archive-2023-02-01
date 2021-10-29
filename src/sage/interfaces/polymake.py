@@ -364,7 +364,7 @@ class PolymakeAbstract(ExtraTabCompletion, Interface):
             try:
                 x = RDF(x)
                 return '{}'.format(x)
-            except:
+            except (TypeError, ValueError):
                 pass
 
             raise NotImplementedError
@@ -1595,7 +1595,7 @@ class PolymakeElement(ExtraTabCompletion, InterfaceElement):
                 if r == '':
                     return matrix(base_ring)
                 return matrix(base_ring, [[str_to_base_ring(s) for s in t.split(' ')] for t in r.split('\n')])
-        except:
+        except Exception:
             pass
 
         if T1:

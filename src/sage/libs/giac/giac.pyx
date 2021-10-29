@@ -2012,43 +2012,10 @@ class GiacFunction(Pygen):
         a
     """
     def __call__(self, *args):
-        cdef gen result
-        cdef Pygen pari_unlock = Pygen('pari_unlock()')
-        cdef gen pari_unlock_result
-        cdef Pygen right
         n = len(args)
-        if n > 1:
-            # FIXME? improve with a vector, or improve Pygen(list)
-            right = Pygen(args).eval()
-        elif n == 1:
-            right = Pygen(args[0]).eval()
-        else:
-            right = GIACNULL
-        if isinstance(self, Pygen) == False:
-            self = Pygen(self)
-        # Some giac errors such as pari_locked are caught by the try
-        # so we can't put the sig_on() in the try.
-        # But now a keyboard interrupt fall back to this sig_on so
-        # it may have left the giac pari locked.
-        sig_on()
-        try:
-            result = (<Pygen> self).gptr[0](right.gptr[0], context_ptr)
-        except RuntimeError:
-            # The previous computation might have failed due to a pari_lock
-            # So we will not raise an exception yet.
-            pari_unlock_result = GIAC_eval(pari_unlock.gptr[0], <int> 1, context_ptr)
-            tmp = _wrap_gen(result)
-            # if pari was not locked in giac, we have locked it, so unlock it.
-            if tmp == 0:
-                pari_unlock_result = GIAC_eval(pari_unlock.gptr[0], <int> 1, context_ptr)
-                tmp = _wrap_gen(result)
-                raise
-            else:
-                result = GIAC_eval(right.gptr[0], <int> 1, context_ptr)
-                result = (<Pygen> self).gptr[0](result, context_ptr)
-        finally:
-            sig_off()
-        return _wrap_gen(result)
+        if n == 1:
+            args = (Pygen(args[0]).eval(),)
+        return Pygen.__call__(self, *args)
 
 class GiacFunctionNoEV(Pygen):
     # a class to allow to write the __doc__ attribute.

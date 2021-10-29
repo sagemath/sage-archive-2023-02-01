@@ -192,8 +192,8 @@ SAGE_I_TARGETS = sagelib doc
 	all-start build-start base toolchain toolchain-deps base-toolchain \
 	sagelib \
 	doc doc-html doc-html-jsmath doc-html-mathjax doc-pdf \
-	doc-clean doc-src-clean doc-output-clean \
-	clean sagelib-clean build-clean python3_venv _clean-broken-gcc
+	doc-uninstall \
+	python3_venv _clean-broken-gcc
 
 PYTHON_FOR_VENV = @PYTHON_FOR_VENV@
 
@@ -347,42 +347,8 @@ doc-html-jsmath: doc-html-mathjax
 
 doc-pdf: sagemath_doc_pdf
 
-doc-clean: doc-src-clean doc-output-clean
-
-doc-src-clean:
-	cd "$(SAGE_SRC)/doc" && $(MAKE) clean
-
-doc-output-clean:
+doc-uninstall:
 	rm -rf "$(SAGE_SHARE)/doc/sage"
-
-
-###############################################################################
-# Cleaning up
-###############################################################################
-
-clean:
-	@echo "Deleting package build directories..."
-	rm -rf "$(SAGE_LOCAL)/var/tmp/sage/build"
-
-# "c_lib", ".cython_version", "build" in $(SAGE_SRC) are from old sage versions
-# Cleaning .so files (and .c and .cpp files associated with .pyx files) is for editable installs.
-# Also cython_debug is for editable installs.
-sagelib-clean:
-	@echo "Deleting Sage library build artifacts..."
-	(cd "$(SAGE_SRC)" && \
-	 rm -rf c_lib .cython_version cython_debug; \
-	 rm -rf build; find . -name '*.pyc' -o -name "*.so" | xargs rm -f; \
-	 rm -f $$(find . -name "*.pyx" | sed 's/\(.*\)[.]pyx$$/\1.c \1.cpp/'); \
-	 rm -rf sage/ext/interpreters) \
-	&& (cd "$(SAGE_ROOT)/build/pkgs/sagelib/src/" && rm -rf build)
-
-sage_docbuild-clean:
-	(cd "$(SAGE_ROOT)/build/pkgs/sage_docbuild/src" && rm -rf build)
-
-sage_setup-clean:
-	(cd "$(SAGE_ROOT)/build/pkgs/sage_setup/src" && rm -rf build)
-
-build-clean: clean doc-clean sagelib-clean sage_docbuild-clean
 
 # Special target for cleaning up a broken GCC install detected by configure
 # This should check for the .clean-broken-gcc stamp, and if found clean
@@ -397,7 +363,6 @@ _clean-broken-gcc:
 	   rm -f "$(SAGE_ROOT)/build/make/.clean-broken-gcc"; \
 	   echo "Cleaned up old broken GCC install"; \
 	fi
-
 #==============================================================================
 # Setting SAGE_CHECK... variables
 #==============================================================================

@@ -1129,38 +1129,38 @@ cdef class Pygen(GiacMethods_base):
 
     def __call__(self, *args):
         cdef gen result
-        n=len(args)
-        if (n>1):
-            #FIXME? improve with a vector, or improve Pygen(list)
-            right=Pygen(args).eval()
-        elif (n==1):
-            right=Pygen(args[0])
+        n = len(args)
+        if n > 1:
+            # FIXME? improve with a vector, or improve Pygen(list)
+            right = Pygen(args).eval()
+        elif n == 1:
+            right = Pygen(args[0])
         else:
-            right=GIACNULL
-        if isinstance(self,Pygen)==False:
-            self=Pygen(self)
-#        Some giac errors such as pari_locked are caught by the try
-#        so we can't put the sig_on() in the try.
-#        But now a keyboard interrupt fall back to this sig_on so
-#        it may have left the giac pari locked.
+            right = GIACNULL
+        if isinstance(self, Pygen) == False:
+            self = Pygen(self)
+        # Some giac errors such as pari_locked are caught by the try
+        # so we can't put the sig_on() in the try.
+        # But now a keyboard interrupt fall back to this sig_on so
+        # it may have left the giac pari locked.
         sig_on()
         try:
-            result= ((<Pygen>self).gptr[0])((<Pygen>right).gptr[0],context_ptr)
+            result = ((<Pygen> self).gptr[0])((<Pygen> right).gptr[0], context_ptr)
             sig_off()
             return _wrap_gen(result)
         except:
             # The previous computation might have failed due to a pari_lock
             # So we will not raise an exception yet.
-            tmp=Pygen('pari_unlock()').eval()
+            tmp = Pygen('pari_unlock()').eval()
             # if pari was not locked in giac, we have locked it, so unlock it.
-            if(tmp==0):
+            if tmp == 0:
                 Pygen('pari_unlock()').eval()
                 sig_off()
                 raise
             else:
                 try:
-                    result= GIAC_eval((<Pygen>right).gptr[0],<int>1,context_ptr)
-                    result= ((<Pygen>self).gptr[0])(result,context_ptr)
+                    result = GIAC_eval((<Pygen>right).gptr[0], <int> 1, context_ptr)
+                    result = ((<Pygen>self).gptr[0])(result, context_ptr)
                     sig_off()
                     return _wrap_gen(result)
                 except:

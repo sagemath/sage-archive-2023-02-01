@@ -26,8 +26,7 @@ AUTHORS:
 
 from sage.rings.all import PolynomialRing
 
-from sage.rings.complex_mpfr import is_ComplexField
-from sage.rings.real_mpfr import is_RealField
+import sage.rings.abc
 
 from sage.modules.free_module_element import vector
 from sage.structure.sequence import Sequence
@@ -517,7 +516,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
         if algorithm != 'default':
             raise ValueError("Unknown algorithm: %s" % algorithm)
 
-        if is_ComplexField(B):
+        if isinstance(B, sage.rings.abc.ComplexField):
             if point:
                 [_,_,_,d,e,f] = self._coefficients
                 if d == 0:
@@ -525,7 +524,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
                 return True, self.point([0, ((e**2-4*d*f).sqrt()-e)/(2*d), 1],
                                         check = False)
             return True
-        if is_RealField(B):
+        if isinstance(B, sage.rings.abc.RealField):
             D, T = self.diagonal_matrix()
             [a, b, c] = [D[0,0], D[1,1], D[2,2]]
             if a == 0:
@@ -879,7 +878,7 @@ class ProjectiveConic_field(ProjectivePlaneCurve):
             ...
             ValueError: The conic self (=Projective Conic Curve over Rational Field defined by x^2 + y^2) is not smooth, hence does not have a parametrization.
         """
-        if (not self._parametrization is None) and not point:
+        if (self._parametrization is not None) and not point:
             par = self._parametrization
         else:
             if not self.is_smooth():

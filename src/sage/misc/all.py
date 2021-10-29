@@ -59,8 +59,6 @@ from .classgraph import class_graph
 
 from .reset import reset, restore
 
-from .getusage import get_memory_usage
-
 from .mathml import mathml
 
 from .defaults import (set_default_variable_name,
@@ -128,6 +126,7 @@ from .functional import (additive_order,
                         quo,
                         isqrt,
                         squarefree_part,
+                        sqrt,
                         symbolic_sum as sum,
                         symbolic_prod as product,
                         transpose)

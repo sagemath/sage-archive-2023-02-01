@@ -49,6 +49,14 @@ dnl Make sure the path to our own m4 macros is always properly set
 dnl and doesn't depend on how autoconf is called.
 AC_CONFIG_MACRO_DIR([m4])
 
+dnl The AC_LIB_RPATH macro comes from gettext, which is one of our bootstrap
+dnl packages. It defines, among other things, the $acl_shlibext variable that
+dnl contains the shared library extension for this system. We already use the
+dnl AM_ICONV macro from gettext (which ultimately calls AC_LIB_RPATH), and we
+dnl avoid involving libtool by using it to get the shared library extension.
+AC_LIB_RPATH
+AC_SUBST(SHLIBEXT, "${acl_shlibext}")
+
 #---------------------------------------------------------
 #
 # This is essentially the configure part of the old "install" file.
@@ -84,7 +92,7 @@ SAGE_SRC="$SAGE_ROOT/src"
 SAGE_SPKG_INST="$SAGE_LOCAL/var/lib/sage/installed"
 
 AC_ARG_WITH([sage-venv],
-            [AS_HELP_STRING([--with-sage-venv={auto,yes,no,SAGE_VENV}],
+            [AS_HELP_STRING([--with-sage-venv={auto (default),yes,no,SAGE_VENV}],
                             [put Python packages into an installation hierarchy separate from prefix])],
             [SAGE_VENV="$withval"],
             [SAGE_VENV="auto"])
@@ -521,6 +529,7 @@ AC_CONFIG_COMMANDS(links, [
     SYMLINK="${ac_top_build_prefix}prefix"
     AS_IF([test -L "$SYMLINK" -o ! -e "$SYMLINK"], [
         AC_MSG_NOTICE([creating convenience symlink $SYMLINK -> $SAGE_LOCAL])
+        rm -f "$SYMLINK"
         ln -sf "$SAGE_LOCAL" "$SYMLINK"
     ], [
         AC_MSG_NOTICE([cannot create convenience symlink $SYMLINK -> $SAGE_LOCAL because the file exists and is not a symlink; this is harmless])
@@ -528,6 +537,7 @@ AC_CONFIG_COMMANDS(links, [
     SYMLINK="${ac_top_build_prefix}venv"
     AS_IF([test -L "$SYMLINK" -o ! -e "$SYMLINK"], [
         AC_MSG_NOTICE([creating convenience symlink $SYMLINK -> $SAGE_VENV])
+        rm -f "$SYMLINK"
         ln -sf "$SAGE_VENV" "$SYMLINK"
     ], [
         AC_MSG_NOTICE([cannot create convenience symlink $SYMLINK -> $SAGE_VENV because the file exists and is not a symlink; this is harmless])

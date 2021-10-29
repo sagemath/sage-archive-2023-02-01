@@ -2660,3 +2660,8 @@ cdef inline ComplexDoubleElement ComplexDoubleElement_from_doubles(double re, do
     z = <ComplexDoubleElement>ComplexDoubleElement.__new__(ComplexDoubleElement)
     GSL_SET_COMPLEX(&z._complex, re, im)
     return z
+
+
+# Support Python's numbers abstract base class
+import numbers
+numbers.Complex.register(ComplexDoubleElement)

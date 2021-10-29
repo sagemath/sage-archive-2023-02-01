@@ -54,10 +54,10 @@ cpdef Gen new_gen_from_complex_double_element(ComplexDoubleElement self):
         sage: new_gen_from_complex_double_element(CDF(1,1))
         1.00000000000000 + 1.00000000000000*I
     """
-    if not self._complex.imag:
-        return new_gen_from_double(self._complex.real)
+    if not GSL_IMAG(self._complex):
+        return new_gen_from_double(GSL_REAL(self._complex))
     else:
-        return new_t_COMPLEX_from_double(self._complex.real, self._complex.imag)
+        return new_t_COMPLEX_from_double(GSL_REAL(self._complex), GSL_IMAG(self._complex))
 
 
 cpdef ComplexDoubleElement complex_double_element_eta(ComplexDoubleElement self, int flag):

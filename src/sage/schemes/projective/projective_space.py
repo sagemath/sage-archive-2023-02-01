@@ -1693,7 +1693,7 @@ class ProjectiveSpace_ring(UniqueRepresentation, AmbientSpace):
                 if len(source_points) == N:
                     try:
                         plane(point)
-                    except ValueError:
+                    except (ValueError, TypeError):
                         source_points.append(self(point))
                         base_list = [list(s) for s in source_points]
                 elif len(source_points) == N + 1:

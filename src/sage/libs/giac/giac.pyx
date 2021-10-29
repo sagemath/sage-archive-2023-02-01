@@ -171,28 +171,16 @@ from sage.interfaces.giac import giac
 
 
 #### Python3 compatibility  #############################
-if Pyversioninfo[0]>2 :
-    PythonVersion3 = True
-else:
-    PythonVersion3 = False
+PythonVersion3 = True
 
 def decstring23(s):
-    if PythonVersion3 :
-        return s.decode()
-    else:
-        return s
+    return s.decode()
 
 
 def encstring23(s):
-    if PythonVersion3 :
-        return bytes(s,'UTF-8')
-    else:
-        return s
+    return bytes(s,'UTF-8')
 
-if PythonVersion3:
-    listrange=list,range
-else:
-    listrange=list
+listrange = list,range
 
 ####End of Python3 compatibility########################
 

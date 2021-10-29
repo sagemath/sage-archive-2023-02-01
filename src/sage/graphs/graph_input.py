@@ -566,7 +566,6 @@ def from_networkx_graph(G, gnx, weighted=None, loops=None, multiedges=None,
     r"""
     Fill `G` with the data of a NetworkX (di)graph.
 
-
     INPUT:
 
     - ``G`` -- a :class:`Graph` or :class:`DiGraph`
@@ -581,12 +580,12 @@ def from_networkx_graph(G, gnx, weighted=None, loops=None, multiedges=None,
     - ``loops`` -- boolean (default: ``None``); whether to allow loops
 
     - ``multiedges`` -- boolean (default: ``None``); whether to allow multiple
-       edges
+      edges
 
     - ``convert_empty_dict_labels_to_None`` -- boolean (default: ``None``);
-       whether to replace the default edge labels used by NetworkX (empty
-       dictionaries) by ``None``, the default Sage edge label. When set to
-       ``False``, empty dictionaries are not converted to ``None``.
+      whether to replace the default edge labels used by NetworkX (empty
+      dictionaries) by ``None``, the default Sage edge label. When set to
+      ``False``, empty dictionaries are not converted to ``None``.
 
     EXAMPLES:
 

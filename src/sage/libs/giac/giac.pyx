@@ -1117,6 +1117,9 @@ cdef class Pygen(GiacMethods_base):
 
     def __call__(self, *args):
         cdef gen result
+        cdef Pygen pari_unlock = Pygen('pari_unlock()')
+        cdef gen pari_unlock_result
+        cdef Pygen right
         n = len(args)
         if n > 1:
             # FIXME? improve with a vector, or improve Pygen(list)
@@ -1133,27 +1136,23 @@ cdef class Pygen(GiacMethods_base):
         # it may have left the giac pari locked.
         sig_on()
         try:
-            result = ((<Pygen> self).gptr[0])((<Pygen> right).gptr[0], context_ptr)
-            sig_off()
-            return _wrap_gen(result)
-        except:
+            result = self.gptr[0](right.gptr[0], context_ptr)
+        except RuntimeError:
             # The previous computation might have failed due to a pari_lock
             # So we will not raise an exception yet.
-            tmp = Pygen('pari_unlock()').eval()
+            pari_unlock_result = GIAC_eval(pari_unlock.gptr[0], <int> 1, context_ptr)
+            tmp = _wrap_gen(result)
             # if pari was not locked in giac, we have locked it, so unlock it.
             if tmp == 0:
-                Pygen('pari_unlock()').eval()
-                sig_off()
+                pari_unlock_result = GIAC_eval(pari_unlock.gptr[0], <int> 1, context_ptr)
+                tmp = _wrap_gen(result)
                 raise
             else:
-                try:
-                    result = GIAC_eval((<Pygen>right).gptr[0], <int> 1, context_ptr)
-                    result = ((<Pygen>self).gptr[0])(result, context_ptr)
-                    sig_off()
-                    return _wrap_gen(result)
-                except:
-                    sig_off()
-                    raise
+                result = GIAC_eval(right.gptr[0], <int> 1, context_ptr)
+                result = self.gptr[0](result, context_ptr)
+        finally:
+            sig_off()
+        return _wrap_gen(result)
 
 
     def __sub__(self, right):
@@ -2014,6 +2013,9 @@ class GiacFunction(Pygen):
     """
     def __call__(self, *args):
         cdef gen result
+        cdef Pygen pari_unlock = Pygen('pari_unlock()')
+        cdef gen pari_unlock_result
+        cdef Pygen right
         n = len(args)
         if n > 1:
             # FIXME? improve with a vector, or improve Pygen(list)
@@ -2030,27 +2032,23 @@ class GiacFunction(Pygen):
         # it may have left the giac pari locked.
         sig_on()
         try:
-            result = ((<Pygen> self).gptr[0])((<Pygen> right).gptr[0], context_ptr)
-            sig_off()
-            return _wrap_gen(result)
-        except:
+            result = (<Pygen> self).gptr[0](right.gptr[0], context_ptr)
+        except RuntimeError:
             # The previous computation might have failed due to a pari_lock
             # So we will not raise an exception yet.
-            tmp = Pygen('pari_unlock()').eval()
+            pari_unlock_result = GIAC_eval(pari_unlock.gptr[0], <int> 1, context_ptr)
+            tmp = _wrap_gen(result)
             # if pari was not locked in giac, we have locked it, so unlock it.
             if tmp == 0:
-                Pygen('pari_unlock()').eval()
-                sig_off()
+                pari_unlock_result = GIAC_eval(pari_unlock.gptr[0], <int> 1, context_ptr)
+                tmp = _wrap_gen(result)
                 raise
             else:
-                try:
-                    result = GIAC_eval((<Pygen>right).gptr[0], <int> 1, context_ptr)
-                    result = ((<Pygen>self).gptr[0])(result, context_ptr)
-                    sig_off()
-                    return _wrap_gen(result)
-                except:
-                    sig_off()
-                    raise
+                result = GIAC_eval(right.gptr[0], <int> 1, context_ptr)
+                result = (<Pygen> self).gptr[0](result, context_ptr)
+        finally:
+            sig_off()
+        return _wrap_gen(result)
 
 class GiacFunctionNoEV(Pygen):
     # a class to allow to write the __doc__ attribute.

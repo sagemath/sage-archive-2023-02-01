@@ -1985,8 +1985,6 @@ cdef class Matrix(Matrix1):
             sage: A.determinant() == B.determinant()
             True
         """
-        from sage.symbolic.ring import is_SymbolicExpressionRing
-
         cdef Py_ssize_t n
         n = self._ncols
 
@@ -2075,7 +2073,7 @@ cdef class Matrix(Matrix1):
         # is then assumed to not be a variable in the symbolic ring.  But this
         # resulted in further exceptions/ errors.
 
-        var = 'A0123456789' if is_SymbolicExpressionRing(R) else 'x'
+        var = 'A0123456789' if isinstance(R, sage.rings.abc.SymbolicRing) else 'x'
         try:
             charp = self.charpoly(var, algorithm="df")
         except ValueError:
@@ -2136,15 +2134,13 @@ cdef class Matrix(Matrix1):
 
         EXAMPLES::
 
-            sage: A = matrix([[SR(f'a{i}{j}') for i in range(2)]
-            ....:             for j in range(2)]); A
-            [a00 a10]
-            [a01 a11]
+            sage: A = matrix(SR, 2, lambda i, j: f'a{i}{j}'); A
+            [a00 a01]
+            [a10 a11]
             sage: A.quantum_determinant()
             -a01*a10*q + a00*a11
 
-            sage: A = matrix([[SR(f'a{i}{j}') for i in range(3)]
-            ....:             for j in range(3)])
+            sage: A = matrix(SR, 3, lambda i, j: f'a{i}{j}')
             sage: A.quantum_determinant()
             -a02*a11*a20*q^3 + (a01*a12*a20 + a02*a10*a21)*q^2
              + (-a00*a12*a21 - a01*a10*a22)*q + a00*a11*a22
@@ -10724,10 +10720,8 @@ cdef class Matrix(Matrix1):
             sage: mu*G == A
             True
         """
-        import sage.rings.real_double
-        import sage.rings.complex_double
         R = self.base_ring()
-        if R in [sage.rings.real_double.RDF, sage.rings.complex_double.CDF]:
+        if isinstance(R, (sage.rings.abc.RealDoubleField, sage.rings.abc.ComplexDoubleField)):
             Q, R = self.transpose().QR()
             m = R.nrows(); n = R.ncols()
             if m > n:

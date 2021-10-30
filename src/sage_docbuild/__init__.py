@@ -95,7 +95,7 @@ def builder_helper(type):
     Check that :trac:`25161` has been resolved::
 
         sage: from sage_docbuild import DocBuilder, setup_parser
-        sage: DocBuilder._options = setup_parser().parse_args([])[0] # builder_helper needs _options to be set
+        sage: DocBuilder._options = setup_parser().parse_args([]) # builder_helper needs _options to be set
 
         sage: import sage_docbuild.sphinxbuild
         sage: def raiseBaseException():
@@ -1553,18 +1553,17 @@ def setup_parser():
     Sage documentation builder.
     """
     # Documentation: http://docs.python.org/library/argparse.html
-    parser = argparse.ArgumentParser(add_help_option=False,
-                                     usage=help_usage(compact=True),
+    parser = argparse.ArgumentParser(usage=help_usage(compact=True),
                                      description=help_description(compact=True))
 
     # Standard options. Note: We use explicit option.dest names
     # to avoid ambiguity.
     standard = argparse.OptionGroup(parser, "Standard")
     standard.add_argument("-h", "--help",
-                        action="callback", callback=help_message_short,
+                        action=help_message_short,
                         help="show a help message and exit")
     standard.add_argument("-H", "--help-all",
-                        action="callback", callback=help_message_long,
+                        action=help_message_long,
                         help="show an extended help message and exit")
     standard.add_argument("-D", "--documents", dest="documents",
                         action=help_wrapper,
@@ -1640,7 +1639,6 @@ def setup_parser():
                         " of en/reference. If ARG is 'all', list all main"
                         " documents")
     parser.add_argument_group(advanced)
-
     return parser
 
 
@@ -1729,19 +1727,19 @@ class IntersphinxCache:
 def main():
     # Parse the command-line.
     parser = setup_parser()
-    options, args = parser.parse_args()
-    DocBuilder._options = options
+    args = parser.parse_args()
+    DocBuilder._options = args
 
     # Get the name and type (target format) of the document we are
     # trying to build.
     try:
-        name, type = args
+        name, type = args.KKK
     except ValueError:
         help_message_short(parser=parser, error=True)
         sys.exit(1)
 
     # Set up module-wide logging.
-    setup_logger(options.verbose, options.color)
+    setup_logger(args.verbose, args.color)
 
     def excepthook(*exc_info):
         logger.error('Error building the documentation.', exc_info=exc_info)
@@ -1758,31 +1756,31 @@ def main():
     # MathJax: this check usually has no practical effect, since
     # SAGE_DOC_MATHJAX is set to "True" by the script sage-env.
     # To disable MathJax, set SAGE_DOC_MATHJAX to "no" or "False".
-    if options.mathjax or (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
-                           and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):
+    if args.mathjax or (os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'no'
+                        and os.environ.get('SAGE_DOC_MATHJAX', 'no') != 'False'):
         os.environ['SAGE_DOC_MATHJAX'] = 'True'
 
-    if options.check_nested:
+    if args.check_nested:
         os.environ['SAGE_CHECK_NESTED'] = 'True'
 
-    if options.underscore:
+    if args.underscore:
         os.environ['SAGE_DOC_UNDERSCORE'] = "True"
 
     global ALLSPHINXOPTS, WEBSITESPHINXOPTS, ABORT_ON_ERROR
-    if options.sphinx_opts:
-        ALLSPHINXOPTS += options.sphinx_opts.replace(',', ' ') + " "
-    if options.no_pdf_links:
+    if args.sphinx_opts:
+        ALLSPHINXOPTS += args.sphinx_opts.replace(',', ' ') + " "
+    if args.no_pdf_links:
         WEBSITESPHINXOPTS = " -A hide_pdf_links=1 "
-    if options.warn_links:
+    if args.warn_links:
         ALLSPHINXOPTS += "-n "
-    if options.no_plot:
+    if args.no_plot:
         os.environ['SAGE_SKIP_PLOT_DIRECTIVE'] = 'yes'
-    if options.skip_tests:
+    if args.skip_tests:
         os.environ['SAGE_SKIP_TESTS_BLOCKS'] = 'True'
 
-    ABORT_ON_ERROR = not options.keep_going
+    ABORT_ON_ERROR = not args.keep_going
 
-    if not options.no_prune_empty_dirs:
+    if not args.no_prune_empty_dirs:
         # Delete empty directories. This is needed in particular for empty
         # directories due to "git checkout" which never deletes empty
         # directories it leaves behind. See Trac #20010.

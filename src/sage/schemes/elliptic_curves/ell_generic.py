@@ -1345,7 +1345,7 @@ class EllipticCurve_generic(WithEqualityById, plane_curve.ProjectivePlaneCurve):
         if isinstance(R, FiniteField) and self.__base_ring.is_subring(R) and hasattr(self, '_order'):
             # The cardinality over an extension field follows easily
             # from the cardinality over the smaller field.
-            n = R.over(self.__base_ring).degree_over()
+            n = R.cardinality().log(self.__base_ring.cardinality())
             E._order = self.cardinality(extension_degree=n)
 
         return E

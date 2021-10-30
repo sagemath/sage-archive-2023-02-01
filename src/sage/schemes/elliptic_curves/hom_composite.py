@@ -773,7 +773,7 @@ class EllipticCurveHom_composite(EllipticCurveHom):
         In other words, return ``True`` if and only if ``self`` is a
         purely inseparable isogeny.
 
-        EXAMPLE::
+        EXAMPLES::
 
             sage: from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
             sage: E = EllipticCurve([1,0])

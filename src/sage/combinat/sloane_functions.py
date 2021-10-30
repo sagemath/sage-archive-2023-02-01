@@ -5120,7 +5120,7 @@ class ExtremesOfPermanentsSequence(SloaneSequence):
         """
         self._eval(n)   # force computation
         return self._b[:n]
-    _k  = 1
+    _k = 1
 
 
 class A000153(ExtremesOfPermanentsSequence):
@@ -9170,7 +9170,7 @@ class Sloane(SageObject):
         EXAMPLES::
 
             sage: type(sloane.trait_names())
-            <... 'list'>
+            <class 'list'>
         """
         try:
             return self.__trait_names

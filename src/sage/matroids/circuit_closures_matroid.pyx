@@ -276,7 +276,7 @@ cdef class CircuitClosuresMatroid(Matroid):
 
             sage: M = matroids.named_matroids.Vamos()
             sage: X = M._max_independent(set(['a', 'c', 'd', 'e', 'f']))
-            sage: sorted(X) random
+            sage: sorted(X)  # random
             ['a', 'd', 'e', 'f']
             sage: M.is_independent(X)
             True

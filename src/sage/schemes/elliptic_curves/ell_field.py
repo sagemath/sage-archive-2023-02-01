@@ -904,8 +904,10 @@ class EllipticCurve_field(ell_generic.EllipticCurve_generic, ProjectivePlaneCurv
             ValueError: The polynomial x^2 + (-396/5*a - 2472/5)*x + 223344/5*a - 196272/5 does not define a finite subgroup of Elliptic Curve defined by y^2 = x^3 + (-13392)*x + (-1080432) over Number Field in a with defining polynomial x^2 - x - 1.
         """
         if algorithm == "factored":
-            if degree is not None: raise TypeError('algorithm="factored" does not support the "degree" parameter')
-            if model  is not None: raise TypeError('algorithm="factored" does not support the "model" parameter')
+            if degree is not None:
+                raise TypeError('algorithm="factored" does not support the "degree" parameter')
+            if model  is not None:
+                raise TypeError('algorithm="factored" does not support the "model" parameter')
             from sage.schemes.elliptic_curves.hom_composite import EllipticCurveHom_composite
             return EllipticCurveHom_composite(self, kernel, codomain=codomain)
         try:

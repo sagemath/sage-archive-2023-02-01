@@ -833,9 +833,11 @@ class EllipticCurveHom_composite(EllipticCurveHom):
             if not isinstance(self, EllipticCurveHom) or not isinstance(other, EllipticCurveHom):
                 raise TypeError(f'cannot compose {type(self)} with {type(other)}')
             ret = self._composition_impl(self, other)
-            if ret is not NotImplemented: return ret
+            if ret is not NotImplemented:
+                return ret
             ret = other._composition_impl(self, other)
-            if ret is not NotImplemented: return ret
+            if ret is not NotImplemented:
+                return ret
             return EllipticCurveHom_composite.from_factors([other, self])
         EllipticCurveHom._composition_ = _composition_
 

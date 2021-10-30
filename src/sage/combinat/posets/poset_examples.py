@@ -1599,7 +1599,7 @@ class Posets(metaclass=ClasscallMetaclass):
             current_level = new_level
 
         D = DiGraph([[], covers], format='vertices_and_edges')
-        D.relabel(lambda v: Word(v), inplace=True)
+        D.relabel(Word, inplace=True)
         return FiniteMeetSemilattice(hasse_diagram=D, category=FinitePosets())
 
     @staticmethod
@@ -1924,7 +1924,8 @@ def _random_lattice(n, p):
         meet for `e, m` for all `m \in M`. We do that by keeping
         track of meet matrix and list of maximal elements.
     """
-    from sage.functions.other import floor, sqrt
+    from sage.functions.other import floor
+    from sage.misc.functional import sqrt
     from sage.misc.prandom import random
 
     n = n-1

@@ -216,7 +216,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: from sage.matrix.matrix_integer_dense import Matrix_integer_dense
             sage: a = Matrix_integer_dense.__new__(Matrix_integer_dense, Mat(ZZ,3), 0,0,0)
             sage: type(a)
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
 
         TESTS::
 
@@ -1303,7 +1303,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: M = MatrixSpace(ZZ, 2)
             sage: A = M(range(0, 2^2))
             sage: type(A)
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: A.charpoly('x')
             x^2 - 3*x - 2
             sage: A.charpoly('y')
@@ -4873,7 +4873,6 @@ cdef class Matrix_integer_dense(Matrix_dense):
             [  0   0 545], [0, 1, 2]
             )
         """
-        from sage.misc.getusage import get_memory_usage
         cdef Py_ssize_t i, j, piv, n = self._nrows, m = self._ncols
 
         from .constructor import matrix
@@ -5546,7 +5545,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
             sage: A = matrix(ZZ, 2, 3, range(6))
             sage: type(A)
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: B = A.transpose()
             sage: print(B)
             [0 3]
@@ -5592,7 +5591,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
 
             sage: A = matrix(2,3,range(6))
             sage: type(A)
-            <type 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
+            <class 'sage.matrix.matrix_integer_dense.Matrix_integer_dense'>
             sage: A.antitranspose()
             [5 2]
             [4 1]
@@ -5645,7 +5644,7 @@ cdef class Matrix_integer_dense(Matrix_dense):
             sage: pari(a)
             [1, 2; 3, 4]
             sage: type(pari(a))
-            <type 'cypari2.gen.Gen'>
+            <class 'cypari2.gen.Gen'>
         """
         return integer_matrix(self._matrix, 0)
 

@@ -9836,7 +9836,8 @@ class GenericGraph(GenericGraph_pyx):
         return paths
 
     def pagerank(self, alpha=0.85, personalization=None, by_weight=False,
-                 weight_function=None, dangling=None, algorithm='scipy'):
+                 weight_function=None, check_weight=True,
+                 dangling=None, algorithm='scipy'):
         r"""
         Return the PageRank of the vertices of ``self``.
 
@@ -9869,6 +9870,9 @@ class GenericGraph(GenericGraph_pyx):
           ``None``, ``by_weight`` is automatically set to ``True``. If ``None``
           and ``by_weight`` is ``True``, we use the edge label ``l``, if ``l``
           is not ``None``, else ``1`` as a weight.
+
+        - ``check_weight`` -- boolean (default: ``True``); whether to check that
+          the ``weight_function`` outputs a number for each edge.
 
         - ``dangling`` -- dict (default: ``None``); a dictionary keyed by a
           vertex the outedge of "dangling" vertices, (i.e., vertices without
@@ -9972,19 +9976,11 @@ class GenericGraph(GenericGraph_pyx):
         if not self.order():
             return {}
 
-        if weight_function is not None:
-            by_weight = True
+        by_weight, weight_function = self._get_weight_function(by_weight=by_weight,
+                                                               weight_function=weight_function,
+                                                               check_weight=check_weight)
 
         if by_weight:
-            if weight_function is None:
-                def weight_function(e):
-                    return 1 if e[2] is None else e[2]
-        else:
-            def weight_function(e):
-                return 1
-
-        if by_weight:
-            self._check_weight_function(weight_function)
             weight = "weight"
         else:
             weight = None

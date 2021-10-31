@@ -1381,7 +1381,7 @@ def help_usage(s="", compact=False):
 def help_description(s="", compact=False):
     """
     Appends and returns a brief description of the Sage documentation
-    builder.  If 'compact' is False, the function adds a final newline
+    builder.  If 'compact' is ``False``, the function adds a final newline
     character.
     """
     s += "Build or return information about Sage documentation.\n\n"
@@ -1482,21 +1482,20 @@ def help_commands(name='all', s=""):
     return s
 
 
-def help_message_long(option, opt_str, value, parser):
+class help_message_long(argparse.Action):
     """
     Prints an extended help message for the Sage documentation builder
     and exits.
     """
-    help_funcs = [help_usage, help_description, help_documents,
-                  help_formats, help_commands, parser.format_option_help,
-                  help_examples]
-    for f in help_funcs:
-        print(f())
-    sys.exit(0)
+    def __call__(self, parser, namespace, values, option_string=None):
+        help_funcs = [help_usage, help_description, help_documents,
+                      help_formats, help_commands, parser.format_option_help,
+                      help_examples]
+        for f in help_funcs:
+            print(f())
 
 
-def help_message_short(option=None, opt_str=None, value=None, parser=None,
-                       error=False):
+class help_message_short(argparse.Action):
     """
     Prints a help message for the Sage documentation builder.  The
     message includes command-line usage and a list of options.  The
@@ -1504,13 +1503,10 @@ def help_message_short(option=None, opt_str=None, value=None, parser=None,
     during this call, the message is printed only if the user hasn't
     requested a list (e.g., documents, formats, commands).
     """
-    if not hasattr(parser.values, 'printed_help'):
-        if error is True:
-            if not hasattr(parser.values, 'printed_list'):
-                parser.print_help()
-        else:
+    def __call__(self, parser, namespace, values, option_string=None):
+        if not hasattr(parser.values, 'printed_help'):
             parser.print_help()
-        setattr(parser.values, 'printed_help', 1)
+            setattr(parser.values, 'printed_help', 1)
 
 
 class help_wrapper(argparse.Action):
@@ -1560,21 +1556,21 @@ def setup_parser():
     # to avoid ambiguity.
     standard = parser.add_argument_group("Standard")
     standard.add_argument("-h", "--help",
-                        action=help_message_short,
-                        help="show a help message and exit")
+                          action=help_message_short,
+                          help="show a help message and exit")
     standard.add_argument("-H", "--help-all",
-                        action=help_message_long,
-                        help="show an extended help message and exit")
+                          action=help_message_long,
+                          help="show an extended help message and exit")
     standard.add_argument("-D", "--documents", dest="documents",
-                        action=help_wrapper,
-                        help="list all available DOCUMENTs")
+                          action=help_wrapper,
+                          help="list all available DOCUMENTs")
     standard.add_argument("-F", "--formats", dest="formats",
-                        action=help_wrapper,
-                        help="list all output FORMATs")
+                          action=help_wrapper,
+                          help="list all output FORMATs")
     standard.add_argument("-C", "--commands", dest="commands",
-                        type="string", metavar="DOC",
-                        action=help_wrapper,
-                        help="list all COMMANDs for DOCUMENT DOC; use 'all' to list all")
+                          type="string", metavar="DOC",
+                          action=help_wrapper,
+                          help="list all COMMANDs for DOCUMENT DOC; use 'all' to list all")
 
     standard.add_argument("-i", "--inherited", dest="inherited",
                         default=False, action="store_true",

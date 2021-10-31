@@ -71,6 +71,8 @@ x = SR.var('x')
 # It is important that this file is lazily imported for this to work
 from sage.repl.user_globals import get_global
 
+assert get_global  # to suppress pyflakes warning
+
 from sage.repl.ipython_kernel.all_jupyter import (interact, checkbox,
     input_box, input_grid, range_slider, selector, slider, text_control)
 

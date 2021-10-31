@@ -1506,7 +1506,7 @@ class help_message_short(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         if not hasattr(parser.values, 'printed_help'):
             parser.print_help()
-            setattr(parser.values, 'printed_help', 1)
+            setattr(namespace, 'printed_help', 1)
 
 
 class help_wrapper(argparse.Action):
@@ -1540,7 +1540,7 @@ class help_wrapper(argparse.Action):
                                  " or 'reference'")
             for d in s:
                 print(d)
-        setattr(parser.values, 'printed_list', 1)
+        setattr(namespace, 'printed_list', 1)
 
 
 def setup_parser():
@@ -1550,8 +1550,8 @@ def setup_parser():
     """
     # Documentation: http://docs.python.org/library/argparse.html
     parser = argparse.ArgumentParser(usage=help_usage(compact=True),
-                                     description=help_description(compact=True))
-
+                                     description=help_description(compact=True),
+                                     add_help=False)
     # Standard options. Note: We use explicit option.dest names
     # to avoid ambiguity.
     standard = parser.add_argument_group("Standard")
@@ -1568,7 +1568,7 @@ def setup_parser():
                           action=help_wrapper,
                           help="list all output FORMATs")
     standard.add_argument("-C", "--commands", dest="commands",
-                          type="string", metavar="DOC",
+                          type=str, metavar="DOC",
                           action=help_wrapper,
                           help="list all COMMANDs for DOCUMENT DOC; use 'all' to list all")
 
@@ -1607,7 +1607,7 @@ def setup_parser():
                         action="store_const", const=0,
                         help="work quietly; same as --verbose=0")
     standard.add_argument("-v", "--verbose", dest="verbose",
-                        type="int", default=1, metavar="LEVEL",
+                        type=int, default=1, metavar="LEVEL",
                         action="store",
                         help="report progress at LEVEL=0 (quiet), 1 (normal), 2 (info), or 3 (debug); does not affect children")
     standard.add_argument("-o", "--output", dest="output_dir", default=None,
@@ -1618,7 +1618,7 @@ def setup_parser():
     advanced = parser.add_argument_group("Advanced",
                                          "Use these options with care.")
     advanced.add_argument("-S", "--sphinx-opts", dest="sphinx_opts",
-                        type="string", metavar="OPTS",
+                        type=str, metavar="OPTS",
                         action="store",
                         help="pass comma-separated OPTS to sphinx-build")
     advanced.add_argument("-U", "--update-mtimes", dest="update_mtimes",
@@ -1628,11 +1628,13 @@ def setup_parser():
                         default=False, action="store_true",
                         help="Do not abort on errors but continue as much as possible after an error")
     advanced.add_argument("--all-documents", dest="all_documents",
-                        type="str", metavar="ARG",
+                        type=str, metavar="ARG",
                         action=help_wrapper,
                         help="if ARG is 'reference', list all subdocuments"
                         " of en/reference. If ARG is 'all', list all main"
                         " documents")
+    parser.add_argument("name", type=str)
+    parser.add_argument("type", type=str)
     return parser
 
 
@@ -1727,7 +1729,8 @@ def main():
     # Get the name and type (target format) of the document we are
     # trying to build.
     try:
-        name, type = args.KKK
+        name = args.name
+        typ = args.type
     except ValueError:
         help_message_short(parser=parser, error=True)
         sys.exit(1)
@@ -1788,5 +1791,5 @@ def main():
     # Set up Intersphinx cache
     _ = IntersphinxCache()
 
-    builder = getattr(get_builder(name), type)
+    builder = getattr(get_builder(name), typ)
     builder()

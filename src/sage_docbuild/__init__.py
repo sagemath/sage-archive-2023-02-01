@@ -1552,12 +1552,12 @@ def setup_parser():
     parser = argparse.ArgumentParser(usage=help_usage(compact=True),
                                      description=help_description(compact=True),
                                      add_help=False)
+    parser.add_argument("document", nargs=1)
+    parser.add_argument("format", nargs=1)
+
     # Standard options. Note: We use explicit option.dest names
     # to avoid ambiguity.
     standard = parser.add_argument_group("Standard")
-    standard.add_argument("-h", "--help",
-                          action=help_message_short,
-                          help="show a help message and exit")
     standard.add_argument("-H", "--help-all",
                           action=help_message_long,
                           help="show an extended help message and exit")
@@ -1633,8 +1633,6 @@ def setup_parser():
                         help="if ARG is 'reference', list all subdocuments"
                         " of en/reference. If ARG is 'all', list all main"
                         " documents")
-    parser.add_argument("name", type=str)
-    parser.add_argument("type", type=str)
     return parser
 
 
@@ -1728,12 +1726,7 @@ def main():
 
     # Get the name and type (target format) of the document we are
     # trying to build.
-    try:
-        name = args.name
-        typ = args.type
-    except ValueError:
-        help_message_short(parser=parser, error=True)
-        sys.exit(1)
+    name, typ = args.document[0], args.format[0]
 
     # Set up module-wide logging.
     setup_logger(args.verbose, args.color)

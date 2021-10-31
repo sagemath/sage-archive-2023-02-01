@@ -65,7 +65,6 @@ from sage.rings.integer import Integer
 from sage.symbolic.constants import pi
 from sage.symbolic.relation import solve
 from sage.symbolic.ring import SR
-import math
 
 x = SR.var('x')
 
@@ -1682,7 +1681,7 @@ def polar_prime_spiral(
 
     start, end = interval
     from sage.ext.fast_eval import fast_float
-    from math import floor, ceil
+    from math import ceil
     from sage.plot.colors import hue
 
     if start < 1 or end <= start:

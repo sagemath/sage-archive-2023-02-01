@@ -1558,7 +1558,7 @@ def setup_parser():
 
     # Standard options. Note: We use explicit option.dest names
     # to avoid ambiguity.
-    standard = argparse.OptionGroup(parser, "Standard")
+    standard = parser.add_argument_group("Standard")
     standard.add_argument("-h", "--help",
                         action=help_message_short,
                         help="show a help message and exit")
@@ -1617,11 +1617,10 @@ def setup_parser():
     standard.add_argument("-o", "--output", dest="output_dir", default=None,
                         metavar="DIR", action="store",
                         help="if DOCUMENT is a single file ('file=...'), write output to this directory")
-    parser.add_argument_group(standard)
 
     # Advanced options.
-    advanced = argparse.OptionGroup(parser, "Advanced",
-                                    "Use these options with care.")
+    advanced = parser.add_argument_group("Advanced",
+                                         "Use these options with care.")
     advanced.add_argument("-S", "--sphinx-opts", dest="sphinx_opts",
                         type="string", metavar="OPTS",
                         action="store",
@@ -1638,7 +1637,6 @@ def setup_parser():
                         help="if ARG is 'reference', list all subdocuments"
                         " of en/reference. If ARG is 'all', list all main"
                         " documents")
-    parser.add_argument_group(advanced)
     return parser
 
 

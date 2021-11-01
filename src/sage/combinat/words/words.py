@@ -135,9 +135,9 @@ class AbstractLanguage(Parent):
             True
 
             sage: Words('abc').sortkey_letters
-            <bound method FiniteOrInfiniteWords._sortkey_trivial of ...>
+            <bound method AbstractLanguage._sortkey_trivial of ...>
             sage: Words('bac').sortkey_letters
-            <bound method FiniteOrInfiniteWords._sortkey_letters of ...>
+            <bound method AbstractLanguage._sortkey_letters of ...>
         """
         if isinstance(alphabet, (int, Integer)):
             from sage.sets.integer_range import IntegerRange

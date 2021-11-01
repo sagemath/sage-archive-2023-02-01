@@ -1423,14 +1423,14 @@ def get_documents():
     return docs
 
 
-def help_documents(s=""):
+def help_documents():
     """
     Appends and returns a tabular list of documents, including a
     shortcut 'all' for all documents, available to the Sage
     documentation builder.
     """
     docs = get_documents()
-    s += "DOCUMENTs:\n"
+    s = "DOCUMENTs:\n"
     s += format_columns(docs)
     s += "\n"
     if 'reference' in docs:
@@ -1453,17 +1453,15 @@ def get_formats():
     return ['html', 'pdf'] + formats
 
 
-def help_formats(s=""):
+def help_formats():
     """
     Appends and returns a tabular list of output formats available to
     the Sage documentation builder.
     """
-    s += "FORMATs:\n"
-    s += format_columns(get_formats())
-    return s
+    return "FORMATs:\n" + format_columns(get_formats())
 
 
-def help_commands(name='all', s=""):
+def help_commands(name='all'):
     """
     Appends and returns a tabular list of commands, if any, the Sage
     documentation builder can run on the indicated document.  The
@@ -1471,6 +1469,7 @@ def help_commands(name='all', s=""):
     """
     # To do: Generate the lists dynamically, using class attributes,
     # as with the Builders above.
+    s = ""
     command_dict = {'reference': [
         'print_included_modules', 'print_modified_modules        (*)',
         'print_unincluded_modules', 'print_new_and_updated_modules (*)']}
@@ -1489,10 +1488,10 @@ class help_message_long(argparse.Action):
     """
     def __call__(self, parser, namespace, values, option_string=None):
         help_funcs = [help_usage, help_description, help_documents,
-                      help_formats, help_commands, parser.format_option_help,
-                      help_examples]
+                      help_formats, help_commands, help_examples]
         for f in help_funcs:
             print(f())
+        sys.exit(0)
 
 
 class help_message_short(argparse.Action):
@@ -1504,9 +1503,10 @@ class help_message_short(argparse.Action):
     requested a list (e.g., documents, formats, commands).
     """
     def __call__(self, parser, namespace, values, option_string=None):
-        if not hasattr(parser.values, 'printed_help'):
+        if not hasattr(namespace, 'printed_help'):
             parser.print_help()
             setattr(namespace, 'printed_help', 1)
+        sys.exit(0)
 
 
 class help_wrapper(argparse.Action):
@@ -1516,12 +1516,12 @@ class help_wrapper(argparse.Action):
     formats, and document-specific commands.
     """
     def __call__(self, parser, namespace, values, option_string=None):
+        if option_string in ['-D', '--documents']:
+            print(help_documents(), end="")
+        if option_string in ['-F', '--formats']:
+            print(help_formats(), end="")
         if self.dest == 'commands':
             print(help_commands(values), end="")
-        if self.dest == 'documents':
-            print(help_documents(), end="")
-        if self.dest == 'formats':
-            print(help_formats(), end="")
         if self.dest == 'all_documents':
             if values == 'en/reference' or values == 'reference':
                 b = ReferenceBuilder('reference')
@@ -1535,12 +1535,10 @@ class help_wrapper(argparse.Action):
                 # Put the reference manual first, because it needs to be built first:
                 s.remove('reference')
                 s.insert(0, 'reference')
-            else:
-                raise ValueError("argument for --all-documents must be either 'all'"
-                                 " or 'reference'")
             for d in s:
                 print(d)
         setattr(namespace, 'printed_list', 1)
+        sys.exit(0)
 
 
 def setup_parser():
@@ -1548,71 +1546,64 @@ def setup_parser():
     Sets up and returns a command-line ArgumentParser instance for the
     Sage documentation builder.
     """
-    # Documentation: http://docs.python.org/library/argparse.html
+    # Documentation: https://docs.python.org/library/argparse.html
     parser = argparse.ArgumentParser(usage=help_usage(compact=True),
                                      description=help_description(compact=True),
                                      add_help=False)
-    parser.add_argument("document", nargs=1)
-    parser.add_argument("format", nargs=1)
-
     # Standard options. Note: We use explicit option.dest names
     # to avoid ambiguity.
     standard = parser.add_argument_group("Standard")
-    standard.add_argument("-H", "--help-all",
-                          action=help_message_long,
+    standard.add_argument("-h", "--help", nargs=0, action=help_message_short,
+                          help="show a help message and exit")
+    standard.add_argument("-H", "--help-all", nargs=0, action=help_message_long,
                           help="show an extended help message and exit")
-    standard.add_argument("-D", "--documents", dest="documents",
-                          action=help_wrapper,
+    standard.add_argument("-D", "--documents", nargs=0, action=help_wrapper,
                           help="list all available DOCUMENTs")
-    standard.add_argument("-F", "--formats", dest="formats",
-                          action=help_wrapper,
+    standard.add_argument("-F", "--formats", nargs=0, action=help_wrapper,
                           help="list all output FORMATs")
     standard.add_argument("-C", "--commands", dest="commands",
-                          type=str, metavar="DOC",
-                          action=help_wrapper,
+                          type=str, metavar="DOC", action=help_wrapper,
                           help="list all COMMANDs for DOCUMENT DOC; use 'all' to list all")
-
     standard.add_argument("-i", "--inherited", dest="inherited",
-                        default=False, action="store_true",
-                        help="include inherited members in reference manual; may be slow, may fail for PDF output")
+                          action="store_true",
+                          help="include inherited members in reference manual; may be slow, may fail for PDF output")
     standard.add_argument("-u", "--underscore", dest="underscore",
-                        default=False, action="store_true",
-                        help="include variables prefixed with '_' in reference manual; may be slow, may fail for PDF output")
-
+                          action="store_true",
+                          help="include variables prefixed with '_' in reference manual; may be slow, may fail for PDF output")
     standard.add_argument("-j", "--mathjax", "--jsmath", dest="mathjax",
-                        action="store_true",
-                        help="render math using MathJax; FORMATs: html, json, pickle, web")
+                          action="store_true",
+                          help="render math using MathJax; FORMATs: html, json, pickle, web")
     standard.add_argument("--no-plot", dest="no_plot",
-                        action="store_true",
-                        help="do not include graphics auto-generated using the '.. plot' markup")
+                          action="store_true",
+                          help="do not include graphics auto-generated using the '.. plot' markup")
     standard.add_argument("--include-tests-blocks", dest="skip_tests", default=True,
-                        action="store_false",
-                        help="include TESTS blocks in the reference manual")
+                          action="store_false",
+                          help="include TESTS blocks in the reference manual")
     standard.add_argument("--no-pdf-links", dest="no_pdf_links",
-                        action="store_true",
-                        help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
+                          action="store_true",
+                          help="do not include PDF links in DOCUMENT 'website'; FORMATs: html, json, pickle, web")
     standard.add_argument("--warn-links", dest="warn_links",
-                        default=False, action="store_true",
-                        help="issue a warning whenever a link is not properly resolved; equivalent to '--sphinx-opts -n' (sphinx option: nitpicky)")
+                          action="store_true",
+                          help="issue a warning whenever a link is not properly resolved; equivalent to '--sphinx-opts -n' (sphinx option: nitpicky)")
     standard.add_argument("--check-nested", dest="check_nested",
-                        action="store_true",
-                        help="check picklability of nested classes in DOCUMENT 'reference'")
+                          action="store_true",
+                          help="check picklability of nested classes in DOCUMENT 'reference'")
     standard.add_argument("--no-prune-empty-dirs", dest="no_prune_empty_dirs",
-                        action="store_true",
-                        help="do not prune empty directories in the documentation sources")
-    standard.add_argument("-N", "--no-colors", dest="color", default=True,
-                        action="store_false",
-                        help="do not color output; does not affect children")
+                          action="store_true",
+                          help="do not prune empty directories in the documentation sources")
+    standard.add_argument("-N", "--no-colors", dest="color",
+                          action="store_false",
+                          help="do not color output; does not affect children")
     standard.add_argument("-q", "--quiet", dest="verbose",
-                        action="store_const", const=0,
-                        help="work quietly; same as --verbose=0")
+                          action="store_const", const=0,
+                          help="work quietly; same as --verbose=0")
     standard.add_argument("-v", "--verbose", dest="verbose",
-                        type=int, default=1, metavar="LEVEL",
-                        action="store",
-                        help="report progress at LEVEL=0 (quiet), 1 (normal), 2 (info), or 3 (debug); does not affect children")
+                          type=int, default=1, metavar="LEVEL",
+                          action="store",
+                          help="report progress at LEVEL=0 (quiet), 1 (normal), 2 (info), or 3 (debug); does not affect children")
     standard.add_argument("-o", "--output", dest="output_dir", default=None,
-                        metavar="DIR", action="store",
-                        help="if DOCUMENT is a single file ('file=...'), write output to this directory")
+                          metavar="DIR", action="store",
+                          help="if DOCUMENT is a single file ('file=...'), write output to this directory")
 
     # Advanced options.
     advanced = parser.add_argument_group("Advanced",
@@ -1622,17 +1613,20 @@ def setup_parser():
                         action="store",
                         help="pass comma-separated OPTS to sphinx-build")
     advanced.add_argument("-U", "--update-mtimes", dest="update_mtimes",
-                        default=False, action="store_true",
+                        action="store_true",
                         help="before building reference manual, update modification times for auto-generated reST files")
     advanced.add_argument("-k", "--keep-going", dest="keep_going",
-                        default=False, action="store_true",
+                        action="store_true",
                         help="Do not abort on errors but continue as much as possible after an error")
     advanced.add_argument("--all-documents", dest="all_documents",
-                        type=str, metavar="ARG",
-                        action=help_wrapper,
-                        help="if ARG is 'reference', list all subdocuments"
-                        " of en/reference. If ARG is 'all', list all main"
-                        " documents")
+                          type=str, metavar="ARG",
+                          choices=['all', 'reference'],
+                          action=help_wrapper,
+                          help="if ARG is 'reference', list all subdocuments"
+                          " of en/reference. If ARG is 'all', list all main"
+                          " documents")
+    parser.add_argument("document", nargs='?', type=str)
+    parser.add_argument("format", nargs='?', type=str, choices=get_formats())
     return parser
 
 
@@ -1726,7 +1720,9 @@ def main():
 
     # Get the name and type (target format) of the document we are
     # trying to build.
-    name, typ = args.document[0], args.format[0]
+    name, typ = args.document, args.format
+    if not name or not type:
+        raise ValueError('both document and format should be given')
 
     # Set up module-wide logging.
     setup_logger(args.verbose, args.color)

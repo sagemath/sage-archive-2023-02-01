@@ -25,6 +25,8 @@ SAGE_SPKG_CONFIGURE([polymake], [
                #include <polymake/Main.h>
              ]], [[
                polymake::Main* main_polymake_session = new polymake::Main;
+               main_polymake_session->shell_enable();
+               main_polymake_session->set_application("polytope");
              ]]
            )], [
              AC_MSG_RESULT([yes])
